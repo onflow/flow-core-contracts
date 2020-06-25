@@ -2,6 +2,20 @@
 
 These are the smart contracts that define the core functionality of the Flow protocol.
 
+## What is Flow?
+
+Flow is a new blockchain for open worlds. Read more about it [here](https://www.onflow.org/).
+
+## What is Cadence?
+
+Cadence is a new Resource-oriented programming language 
+for developing smart contracts for the Flow Blockchain.
+Read more about it [here](https://www.docs.onflow.org)
+
+We recommend that anyone who is reading this should have already
+completed the [Cadence Tutorials](https://docs.onflow.org/docs/getting-started-1) 
+so they can build a basic understanding of the programming language.
+
 ### FlowToken
 
 `contracts/FlowToken.cdc`

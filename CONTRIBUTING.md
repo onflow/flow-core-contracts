@@ -1,6 +1,6 @@
-# Contributing to the Fungible Token Standard
+# Contributing to the Flow Core Contracts
 
-The following is a set of guidelines for contributing to the Flow fungible token standard. These are mostly guidelines, not rules. Use your best judgment, and feel free to propose changes to this document in a pull request.
+The following is a set of guidelines for contributing to the Flow core contracts. These are mostly guidelines, not rules. Use your best judgment, and feel free to propose changes to this document in a pull request.
 
 #### Table Of Contents
 
@@ -88,4 +88,4 @@ Before contributing, make sure to examine the project to get familiar with the p
 
 ### Additional Notes
 
-Thank you for your interest in contributing to the Flow Token Standards!
+Thank you for your interest in contributing to the Flow smart contracts!
