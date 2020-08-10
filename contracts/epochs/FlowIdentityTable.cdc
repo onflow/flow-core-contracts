@@ -12,11 +12,16 @@
 
 */
 
-
 pub contract FlowIdentityTable {
 
-    /// record of node nodes in the current epoch
-    access(contract) var nodes: {String: Node}
+    /// record of nodes in the current epoch
+    access(contract) var currentNodes: {String: Node}
+
+    /// record of nodes in the previous epoch
+    access(contract) var previousNodes: {String: Node}
+
+    /// record of nodes that are proposed for the next epoch
+    access(contract) var proposedNodes: {String: Node}
 
     /// Contains information that is specific to a node in Flow
     pub struct Node {
@@ -47,15 +52,16 @@ pub contract FlowIdentityTable {
 
         init(id: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String, initialWeight: UInt64) {
             pre {
-                FlowIdentityTable.nodes[id] == nil: "The ID cannot already exist in the record"
+                id.length == 32: "Node ID length must be 32 bytes"
+                FlowIdentityTable.proposedNodes[id] == nil: "The ID cannot already exist in the proposed record"
                 role >= UInt8(1) && role <= UInt8(5): "The role must be 1, 2, 3, 4, or 5"
                 networkingAddress.length > 0: "The networkingAddress cannot be empty"
                 initialWeight > UInt64(0): "The initial weight must be greater than zero"
             }
 
-            // Assert that the addresses and keys are not already in use
+            // Assert that the addresses and keys are not already in use for the proposed nodes
             // They must be unique
-            for node in FlowIdentityTable.nodes.values {
+            for node in FlowIdentityTable.proposedNodes.values {
                 assert (
                     networkingAddress != node.networkingAddress,
                     message: "Networking Address is already in use!"
@@ -84,29 +90,45 @@ pub contract FlowIdentityTable {
     /// of the identity table at the beginning of each epoch
     pub resource StakeAdmin {
 
+        /// Add a new node to the proposed table, or update an existing one
+        pub fun addProposedNode(_ newNode: Node) {
+            FlowIdentityTable.proposedNodes[newNode.id] = newNode
+        }
+
+        /// Remove a node from the proposed table
+        pub fun removeProposedNode(_ nodeID: String) {
+            FlowIdentityTable.proposedNodes.remove(key: nodeID)
+
+        }
+
         /// update the entire node table
         /// This will be called at the beginning of a new epoch
-        pub fun updateNodeTable(_ nodeTable: {String: Node}) {
-            pre {
-                nodeTable.keys.length > 0: "The Node table cannot be empty"
-            }
-            FlowIdentityTable.nodes = nodeTable
+        pub fun updateCurrentNodeTable() {
+            FlowIdentityTable.previousNodes = FlowIdentityTable.currentNodes
+            FlowIdentityTable.currentNodes = FlowIdentityTable.proposedNodes
         }
     }
 
-    /// Returns the info about all the nodes in the epoch
-    pub fun getAllNodeInfo(): {String: Node} {
-        return self.nodes
+    /// Returns the info about all the nodes in the current epoch
+    pub fun getAllCurrentNodeInfo(): {String: Node} {
+        return self.currentNodes
     }
 
-    /// public function to return information about a node operator
-    pub fun getNodeInfo(_ id: String): Node? {
-        return self.nodes[id]
+    /// Returns the info about all the nodes in the proposed next epoch
+    pub fun getAllProposedNodeInfo(): {String: Node} {
+        return self.proposedNodes
+    }
+
+    /// Returns the info about all the nodes in the previous epoch
+    pub fun getAllPreviousNodeInfo(): {String: Node} {
+        return self.previousNodes
     }
 
     /// Initialize the node record to be empty
     init() {
-        self.nodes = {}
+        self.currentNodes = {}
+        self.proposedNodes = {}
+        self.previousNodes = {}
     }
 }
  
