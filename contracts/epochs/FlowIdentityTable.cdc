@@ -98,14 +98,20 @@ pub contract FlowIdentityTable {
         /// Remove a node from the proposed table
         pub fun removeProposedNode(_ nodeID: String) {
             FlowIdentityTable.proposedNodes.remove(key: nodeID)
-
         }
 
         /// update the entire node table
         /// This will be called at the beginning of a new epoch
         pub fun updateCurrentNodeTable() {
+            /// The current nodes become the previous nodes
             FlowIdentityTable.previousNodes = FlowIdentityTable.currentNodes
+
+            /// The proposed nodes become the current nodes
             FlowIdentityTable.currentNodes = FlowIdentityTable.proposedNodes
+
+            /// The proposed nodes for the next epoch are explicitly not changed
+            /// because the proposed identity table will stay the same for the next
+            /// epoch because we assume most nodes will stay in
         }
     }
 
