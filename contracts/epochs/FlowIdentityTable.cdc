@@ -88,7 +88,7 @@ pub contract FlowIdentityTable {
     /// Resource for performing special actions for managing the node table
     /// Will live in the Epoch Lifecycle contract so it can perform updates 
     /// of the identity table at the beginning of each epoch
-    pub resource StakeAdmin {
+    pub resource Admin {
 
         /// Add a new node to the proposed table, or update an existing one
         pub fun addProposedNode(_ newNode: Node) {
@@ -141,6 +141,9 @@ pub contract FlowIdentityTable {
         self.currentNodes = {}
         self.proposedNodes = {}
         self.previousNodes = {}
+
+        self.account.save(<-create Admin(), to: /storage/flowIdentityTableAdmin)
+        self.account.save(<-create Admin(), to: /storage/flowIdentityTableAdmin2)
     }
 }
  
