@@ -59,8 +59,8 @@ pub contract FlowIdentityTable {
                 initialWeight > UInt64(0): "The initial weight must be greater than zero"
             }
 
-            // Assert that the addresses and keys are not already in use for the proposed nodes
-            // They must be unique
+            /// Assert that the addresses and keys are not already in use for the proposed nodes
+            /// They must be unique
             for node in FlowIdentityTable.proposedNodes.values {
                 assert (
                     networkingAddress != node.networkingAddress,
