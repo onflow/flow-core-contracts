@@ -100,6 +100,12 @@ pub contract FlowIdentityTable {
             FlowIdentityTable.proposedNodes.remove(key: nodeID)
         }
 
+        /// The admin doesn't need to have the ability to update the node table
+        /// for the current epoch because their info is locked in for the epoch
+        /// from the perspective of the smart contract. If they need to be removed
+        /// for slashing or something similar, that logic can be handled by the
+        /// staking smart contract or the consensus nodes
+
         /// update the entire node table
         /// This will be called at the beginning of a new epoch
         pub fun updateCurrentNodeTable() {
