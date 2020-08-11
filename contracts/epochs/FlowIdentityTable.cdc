@@ -14,14 +14,13 @@
 
 pub contract FlowIdentityTable {
 
-    /// record of nodes in the current epoch
-    access(contract) var currentNodes: {String: Node}
+    /// The id of the current epoch
+    pub var currentEpochID: UInt64
 
-    /// record of nodes in the previous epoch
-    access(contract) var previousNodes: {String: Node}
-
-    /// record of nodes that are proposed for the next epoch
-    access(contract) var proposedNodes: {String: Node}
+    /// Holds the identity table for each epoch, indexed by epochID
+    /// The proposed identity table for the next epoch is stored
+    /// at the index that is currentEpochID + 1
+    access(contract) var nodes: {UInt64: {String: Node}}
 
     /// Contains information that is specific to a node in Flow
     pub struct Node {
@@ -39,21 +38,21 @@ pub contract FlowIdentityTable {
         pub var role: UInt8
 
         /// The address used for networking
-        pub var networkingAddress: String
+        pub(set) var networkingAddress: String
 
         /// the public key for networking
-        pub var networkingKey: String
+        pub(set) var networkingKey: String
 
         /// the public key for staking
-        pub var stakingKey: String
+        pub(set) var stakingKey: String
 
         /// weight as determined by the staking auction
-        pub var initialWeight: UInt64
+        pub(set) var initialWeight: UInt64
 
         init(id: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String, initialWeight: UInt64) {
             pre {
                 id.length == 32: "Node ID length must be 32 bytes"
-                FlowIdentityTable.proposedNodes[id] == nil: "The ID cannot already exist in the proposed record"
+                FlowIdentityTable.nodes[FlowIdentityTable.currentEpochID+UInt64(1)]![id] == nil: "The ID cannot already exist in the proposed record"
                 role >= UInt8(1) && role <= UInt8(5): "The role must be 1, 2, 3, 4, or 5"
                 networkingAddress.length > 0: "The networkingAddress cannot be empty"
                 initialWeight > UInt64(0): "The initial weight must be greater than zero"
@@ -61,7 +60,7 @@ pub contract FlowIdentityTable {
 
             /// Assert that the addresses and keys are not already in use for the proposed nodes
             /// They must be unique
-            for node in FlowIdentityTable.proposedNodes.values {
+            for node in FlowIdentityTable.nodes[FlowIdentityTable.currentEpochID+UInt64(1)]!.values {
                 assert (
                     networkingAddress != node.networkingAddress,
                     message: "Networking Address is already in use!"
@@ -92,12 +91,48 @@ pub contract FlowIdentityTable {
 
         /// Add a new node to the proposed table, or update an existing one
         pub fun addProposedNode(_ newNode: Node) {
-            FlowIdentityTable.proposedNodes[newNode.id] = newNode
+            // Remove the proposed epoch table from the record
+            let proposedNodeTable = FlowIdentityTable.nodes[FlowIdentityTable.currentEpochID+UInt64(1)]!
+
+            // Remove the node from the table
+            proposedNodeTable[newNode.id] = newNode
+
+            // Save the proposed epoch table back to the epoch record
+            FlowIdentityTable.nodes[FlowIdentityTable.currentEpochID+UInt64(1)] = proposedNodeTable
+
         }
 
         /// Remove a node from the proposed table
-        pub fun removeProposedNode(_ nodeID: String) {
-            FlowIdentityTable.proposedNodes.remove(key: nodeID)
+        pub fun removeProposedNode(_ nodeID: String): Node? {
+            // Remove the proposed epoch table from the record
+            let proposedNodeTable = FlowIdentityTable.nodes[FlowIdentityTable.currentEpochID+UInt64(1)]!
+
+            // Remove the node from the table
+            let node = proposedNodeTable.remove(key: nodeID)
+
+            // Save the proposed epoch table back to the epoch record
+            FlowIdentityTable.nodes[FlowIdentityTable.currentEpochID+UInt64(1)] = proposedNodeTable
+
+            return node
+        }
+
+        /// Update the initial weight of one of the proposed nodes
+        /// This will be called at the end of the staking auction when all
+        /// of the nodes stakes have been finally committed
+        pub fun updateInitialWeight(_ nodeID: String, newWeight: UInt64) {
+            pre {
+                newWeight > UInt64(0): "The initial weight must be greater than zero"
+            }
+            
+            // Remove the node from the table to edit it
+            let node = self.removeProposedNode(nodeID)
+                ?? panic("Node with the specified ID does not exist!")
+
+            // Set its new initial weight
+            node.initialWeight = newWeight
+
+            // Add it back to the table
+            self.addProposedNode(node)
         }
 
         /// The admin doesn't need to have the ability to update the node table
@@ -108,13 +143,13 @@ pub contract FlowIdentityTable {
 
         /// update the entire node table
         /// This will be called at the beginning of a new epoch
-        pub fun updateCurrentNodeTable() {
-            /// The current nodes become the previous nodes
-            FlowIdentityTable.previousNodes = FlowIdentityTable.currentNodes
+        pub fun startNewEpoch() {
+            // set the new proposed epoch to the previous proposed epoch
+            FlowIdentityTable.nodes[FlowIdentityTable.currentEpochID+UInt64(2)] = FlowIdentityTable.nodes[FlowIdentityTable.currentEpochID+UInt64(1)]!
 
-            /// The proposed nodes become the current nodes
-            FlowIdentityTable.currentNodes = FlowIdentityTable.proposedNodes
-
+            // Update the epoch counter
+            FlowIdentityTable.currentEpochID = FlowIdentityTable.currentEpochID + UInt64(1)
+            
             /// The proposed nodes for the next epoch are explicitly not changed
             /// because the proposed identity table will stay the same for the next
             /// epoch because we assume most nodes will stay in
@@ -123,24 +158,24 @@ pub contract FlowIdentityTable {
 
     /// Returns the info about all the nodes in the current epoch
     pub fun getAllCurrentNodeInfo(): {String: Node} {
-        return self.currentNodes
+        return FlowIdentityTable.nodes[FlowIdentityTable.currentEpochID]!
     }
 
     /// Returns the info about all the nodes in the proposed next epoch
     pub fun getAllProposedNodeInfo(): {String: Node} {
-        return self.proposedNodes
+        return FlowIdentityTable.nodes[FlowIdentityTable.currentEpochID+UInt64(1)]!
     }
 
     /// Returns the info about all the nodes in the previous epoch
     pub fun getAllPreviousNodeInfo(): {String: Node} {
-        return self.previousNodes
+        return FlowIdentityTable.nodes[FlowIdentityTable.currentEpochID-UInt64(1)]!
     }
 
     /// Initialize the node record to be empty
     init() {
-        self.currentNodes = {}
-        self.proposedNodes = {}
-        self.previousNodes = {}
+        /// Set the current epoch to 1 so that the previous epoch calculation doesn't underflow
+        self.currentEpochID = 1
+        self.nodes = {UInt64(0): {}, UInt64(1): {}, UInt64(2): {}}
 
         self.account.save(<-create Admin(), to: /storage/flowIdentityTableAdmin)
         self.account.save(<-create Admin(), to: /storage/flowIdentityTableAdmin2)

@@ -22,3 +22,8 @@ func TestFlowServiceAccountContract(t *testing.T) {
 	contract := contracts.FlowServiceAccount()
 	assert.NotNil(t, contract)
 }
+
+func TestFlowIdentityTableContract(t *testing.T) {
+	contract := contracts.FlowIdentityTable()
+	assert.NotNil(t, contract)
+}

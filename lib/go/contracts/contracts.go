@@ -1,15 +1,16 @@
 package contracts
 
-//go:generate go run github.com/kevinburke/go-bindata/go-bindata -prefix ../../../contracts -o internal/assets/assets.go -pkg assets -nometadata -nomemcopy ../../../contracts
+//go:generate go run github.com/kevinburke/go-bindata/go-bindata -prefix ../../../contracts/... -o internal/assets/assets.go -pkg assets -nometadata -nomemcopy ../../../contracts/...
 
 import (
 	"github.com/onflow/flow-core-contracts/lib/go/contracts/internal/assets"
 )
 
 const (
-	flowFeesFilename           = "FlowFees.cdc"
-	flowServiceAccountFilename = "FlowServiceAccount.cdc"
-	flowTokenFilename          = "FlowToken.cdc"
+	flowFeesFilename           = "../../../contracts/FlowFees.cdc"
+	flowServiceAccountFilename = "../../../contracts/FlowServiceAccount.cdc"
+	flowTokenFilename          = "../../../contracts/FlowToken.cdc"
+	flowIdentityTableFilename  = "../../../contracts/epochs/FlowIdentityTable.cdc"
 	hexPrefix                  = "0x"
 )
 
@@ -37,6 +38,13 @@ func FlowFees() []byte {
 // contracts from the default addresses.
 func FlowServiceAccount() []byte {
 	code := assets.MustAssetString(flowServiceAccountFilename)
+
+	return []byte(code)
+}
+
+// FlowIdentityTable returns the FlowIdentityTable contract
+func FlowIdentityTable() []byte {
+	code := assets.MustAssetString(flowIdentityTableFilename)
 
 	return []byte(code)
 }
