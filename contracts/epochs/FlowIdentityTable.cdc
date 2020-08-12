@@ -5,7 +5,7 @@
     during the current epoch.
 
     Admin: The admin has the power to add and remove operators from the record.
-    Most of the time, the admin will use the addNodeTable function 
+    Most of the time, the admin will use the startNewEpoch function 
     to update the entire note table at the beginning of each epoch, 
     The information to update the identity table in this contract
     is determined by the staking smart contract.
@@ -13,6 +13,8 @@
 */
 
 pub contract FlowIdentityTable {
+
+    pub event IdentityTableUpdated(currentEpochID: UInt64)
 
     /// The id of the current epoch
     pub var currentEpochID: UInt64
@@ -149,6 +151,8 @@ pub contract FlowIdentityTable {
 
             // Update the epoch counter
             FlowIdentityTable.currentEpochID = FlowIdentityTable.currentEpochID + UInt64(1)
+
+            emit IdentityTableUpdated(currentEpochID: FlowIdentityTable.currentEpochID)
             
             /// The proposed nodes for the next epoch are explicitly not changed
             /// because the proposed identity table will stay the same for the next
@@ -172,8 +176,11 @@ pub contract FlowIdentityTable {
     }
 
     /// Initialize the node record to be empty
-    init() {
-        /// Set the current epoch to 1 so that the previous epoch calculation doesn't underflow
+    init(startingEpochID: UInt64) {
+        pre {
+            startingEpochID > UInt64(0): "Must set the epoch ID as greater than zero"
+        }
+
         self.currentEpochID = 1
         self.nodes = {UInt64(0): {}, UInt64(1): {}, UInt64(2): {}}
 
