@@ -16,6 +16,13 @@ import (
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
 )
 
+const (
+	firstID  = "0000000000000000000000000000000000000000000000000000000000000001"
+	secondID = "0000000000000000000000000000000000000000000000000000000000000002"
+	thirdID  = "0000000000000000000000000000000000000000000000000000000000000003"
+	fourthID = "0000000000000000000000000000000000000000000000000000000000000004"
+)
+
 // Test deploying the contract
 func TestIDTableDeployment(t *testing.T) {
 	b := newEmulator()
@@ -84,6 +91,7 @@ func TestIDTable(t *testing.T) {
 		_ = tx.AddArgument(cadence.NewString("netkey"))
 		_ = tx.AddArgument(cadence.NewString("stakekey"))
 		_ = tx.AddArgument(cadence.NewUInt64(10))
+		_ = tx.AddArgument(cadence.NewUInt64(2))
 
 		signAndSubmit(
 			t, b, tx,
@@ -99,13 +107,14 @@ func TestIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
-		_ = tx.AddArgument(cadence.NewString("00000000000000000000000000000001"))
+		_ = tx.AddArgument(cadence.NewString(firstID))
 		// Invalid Role: Greater than 5
 		_ = tx.AddArgument(cadence.NewUInt8(6))
 		_ = tx.AddArgument(cadence.NewString("12234"))
 		_ = tx.AddArgument(cadence.NewString("netkey"))
 		_ = tx.AddArgument(cadence.NewString("stakekey"))
 		_ = tx.AddArgument(cadence.NewUInt64(10))
+		_ = tx.AddArgument(cadence.NewUInt64(2))
 
 		signAndSubmit(
 			t, b, tx,
@@ -121,13 +130,14 @@ func TestIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
-		_ = tx.AddArgument(cadence.NewString("00000000000000000000000000000001"))
+		_ = tx.AddArgument(cadence.NewString(firstID))
 		// Invalid Role: Less than 1
 		_ = tx.AddArgument(cadence.NewUInt8(0))
 		_ = tx.AddArgument(cadence.NewString("12234"))
 		_ = tx.AddArgument(cadence.NewString("netkey"))
 		_ = tx.AddArgument(cadence.NewString("stakekey"))
 		_ = tx.AddArgument(cadence.NewUInt64(10))
+		_ = tx.AddArgument(cadence.NewUInt64(2))
 
 		signAndSubmit(
 			t, b, tx,
@@ -143,13 +153,14 @@ func TestIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
-		_ = tx.AddArgument(cadence.NewString("00000000000000000000000000000001"))
+		_ = tx.AddArgument(cadence.NewString(firstID))
 		_ = tx.AddArgument(cadence.NewUInt8(1))
 		// Invalid Networking Address: Length cannot be zero
 		_ = tx.AddArgument(cadence.NewString(""))
 		_ = tx.AddArgument(cadence.NewString("netkey"))
 		_ = tx.AddArgument(cadence.NewString("stakekey"))
 		_ = tx.AddArgument(cadence.NewUInt64(1))
+		_ = tx.AddArgument(cadence.NewUInt64(2))
 
 		signAndSubmit(
 			t, b, tx,
@@ -165,13 +176,37 @@ func TestIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
-		_ = tx.AddArgument(cadence.NewString("00000000000000000000000000000001"))
+		_ = tx.AddArgument(cadence.NewString(firstID))
 		_ = tx.AddArgument(cadence.NewUInt8(1))
 		_ = tx.AddArgument(cadence.NewString("netaddress"))
 		_ = tx.AddArgument(cadence.NewString("netkey"))
 		_ = tx.AddArgument(cadence.NewString("stakekey"))
 		// Invalid Initial Weight: Must be greater than zero
 		_ = tx.AddArgument(cadence.NewUInt64(0))
+		_ = tx.AddArgument(cadence.NewUInt64(2))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, IDTableAddr},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			true,
+		)
+
+		tx = flow.NewTransaction().
+			SetScript(templates.GenerateCreateNodeScript(IDTableAddr.String())).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(IDTableAddr)
+
+		_ = tx.AddArgument(cadence.NewString(firstID))
+		_ = tx.AddArgument(cadence.NewUInt8(1))
+		_ = tx.AddArgument(cadence.NewString("netaddress"))
+		_ = tx.AddArgument(cadence.NewString("netkey"))
+		_ = tx.AddArgument(cadence.NewString("stakekey"))
+		_ = tx.AddArgument(cadence.NewUInt64(0))
+		// Invalid: The proposed epoch counter is too large
+		_ = tx.AddArgument(cadence.NewUInt64(3))
 
 		signAndSubmit(
 			t, b, tx,
@@ -191,12 +226,13 @@ func TestIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
-		_ = tx.AddArgument(cadence.NewString("00000000000000000000000000000001"))
+		_ = tx.AddArgument(cadence.NewString(firstID))
 		_ = tx.AddArgument(cadence.NewUInt8(1))
 		_ = tx.AddArgument(cadence.NewString("netaddress"))
 		_ = tx.AddArgument(cadence.NewString("netkey"))
 		_ = tx.AddArgument(cadence.NewString("stakekey"))
 		_ = tx.AddArgument(cadence.NewUInt64(20))
+		_ = tx.AddArgument(cadence.NewUInt64(2))
 
 		signAndSubmit(
 			t, b, tx,
@@ -217,12 +253,13 @@ func TestIDTable(t *testing.T) {
 			AddAuthorizer(IDTableAddr)
 
 		// Invalid: This ID has already been used
-		_ = tx.AddArgument(cadence.NewString("00000000000000000000000000000001"))
+		_ = tx.AddArgument(cadence.NewString(firstID))
 		_ = tx.AddArgument(cadence.NewUInt8(1))
 		_ = tx.AddArgument(cadence.NewString("netaddress"))
 		_ = tx.AddArgument(cadence.NewString("netkey"))
 		_ = tx.AddArgument(cadence.NewString("stakekey"))
 		_ = tx.AddArgument(cadence.NewUInt64(20))
+		_ = tx.AddArgument(cadence.NewUInt64(2))
 
 		signAndSubmit(
 			t, b, tx,
@@ -241,13 +278,14 @@ func TestIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
-		_ = tx.AddArgument(cadence.NewString("00000000000000000000000000000002"))
+		_ = tx.AddArgument(cadence.NewString(secondID))
 		_ = tx.AddArgument(cadence.NewUInt8(1))
 		// Invalid: "netaddress" is already in use
 		_ = tx.AddArgument(cadence.NewString("netaddress"))
 		_ = tx.AddArgument(cadence.NewString("netkey2"))
 		_ = tx.AddArgument(cadence.NewString("stakekey2"))
 		_ = tx.AddArgument(cadence.NewUInt64(20))
+		_ = tx.AddArgument(cadence.NewUInt64(2))
 
 		signAndSubmit(
 			t, b, tx,
@@ -263,13 +301,14 @@ func TestIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
-		_ = tx.AddArgument(cadence.NewString("00000000000000000000000000000002"))
+		_ = tx.AddArgument(cadence.NewString(secondID))
 		_ = tx.AddArgument(cadence.NewUInt8(1))
 		_ = tx.AddArgument(cadence.NewString("netaddress2"))
 		// Invalid: "netkey" is already in use
 		_ = tx.AddArgument(cadence.NewString("netkey"))
 		_ = tx.AddArgument(cadence.NewString("stakekey2"))
 		_ = tx.AddArgument(cadence.NewUInt64(20))
+		_ = tx.AddArgument(cadence.NewUInt64(2))
 
 		signAndSubmit(
 			t, b, tx,
@@ -285,13 +324,14 @@ func TestIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
-		_ = tx.AddArgument(cadence.NewString("00000000000000000000000000000002"))
+		_ = tx.AddArgument(cadence.NewString(secondID))
 		_ = tx.AddArgument(cadence.NewUInt8(1))
 		_ = tx.AddArgument(cadence.NewString("netaddress2"))
 		_ = tx.AddArgument(cadence.NewString("netkey2"))
 		// Invalid: "stakekey" is already in use
 		_ = tx.AddArgument(cadence.NewString("stakekey"))
 		_ = tx.AddArgument(cadence.NewUInt64(20))
+		_ = tx.AddArgument(cadence.NewUInt64(2))
 
 		signAndSubmit(
 			t, b, tx,
@@ -310,12 +350,13 @@ func TestIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
-		_ = tx.AddArgument(cadence.NewString("00000000000000000000000000000002"))
+		_ = tx.AddArgument(cadence.NewString(secondID))
 		_ = tx.AddArgument(cadence.NewUInt8(2))
 		_ = tx.AddArgument(cadence.NewString("netaddress2"))
 		_ = tx.AddArgument(cadence.NewString("netkey2"))
 		_ = tx.AddArgument(cadence.NewString("stakekey2"))
 		_ = tx.AddArgument(cadence.NewUInt64(20))
+		_ = tx.AddArgument(cadence.NewUInt64(2))
 
 		signAndSubmit(
 			t, b, tx,
@@ -331,18 +372,39 @@ func TestIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
-		_ = tx.AddArgument(cadence.NewString("00000000000000000000000000000003"))
+		_ = tx.AddArgument(cadence.NewString(thirdID))
 		_ = tx.AddArgument(cadence.NewUInt8(3))
 		_ = tx.AddArgument(cadence.NewString("netaddress3"))
 		_ = tx.AddArgument(cadence.NewString("netkey3"))
 		_ = tx.AddArgument(cadence.NewString("stakekey3"))
 		_ = tx.AddArgument(cadence.NewUInt64(20))
+		_ = tx.AddArgument(cadence.NewUInt64(2))
 
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{b.ServiceKey().Address, IDTableAddr},
 			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
 			false,
+		)
+	})
+
+	t.Run("Shouldn't be able to remove a Node from the wrong epoch", func(t *testing.T) {
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GenerateRemoveNodeScript(IDTableAddr.String())).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(IDTableAddr)
+
+		_ = tx.AddArgument(cadence.NewString(secondID))
+		_ = tx.AddArgument(cadence.NewUInt64(1))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, IDTableAddr},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			true,
 		)
 	})
 
@@ -355,7 +417,8 @@ func TestIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
-		_ = tx.AddArgument(cadence.NewString("00000000000000000000000000000002"))
+		_ = tx.AddArgument(cadence.NewString(secondID))
+		_ = tx.AddArgument(cadence.NewUInt64(2))
 
 		signAndSubmit(
 			t, b, tx,
@@ -395,12 +458,13 @@ func TestIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
-		_ = tx.AddArgument(cadence.NewString("00000000000000000000000000000002"))
+		_ = tx.AddArgument(cadence.NewString(secondID))
 		_ = tx.AddArgument(cadence.NewUInt8(2))
 		_ = tx.AddArgument(cadence.NewString("netaddress2"))
 		_ = tx.AddArgument(cadence.NewString("netkey2"))
 		_ = tx.AddArgument(cadence.NewString("stakekey2"))
 		_ = tx.AddArgument(cadence.NewUInt64(20))
+		_ = tx.AddArgument(cadence.NewUInt64(2))
 
 		signAndSubmit(
 			t, b, tx,
@@ -418,6 +482,25 @@ func TestIDTable(t *testing.T) {
 		assert.Equal(t, length.(cadence.Int), cadence.NewInt(3))
 	})
 
+	t.Run("Shouldn't be able to trigger an update for the wrong epoch", func(t *testing.T) {
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GenerateUpdateTableScript(IDTableAddr.String())).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(IDTableAddr)
+
+		_ = tx.AddArgument(cadence.NewUInt64(1))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, IDTableAddr},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			true,
+		)
+	})
+
 	t.Run("Should be able to trigger an update to the tables", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
@@ -426,6 +509,8 @@ func TestIDTable(t *testing.T) {
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
+
+		_ = tx.AddArgument(cadence.NewUInt64(2))
 
 		signAndSubmit(
 			t, b, tx,
@@ -468,12 +553,13 @@ func TestIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
-		_ = tx.AddArgument(cadence.NewString("00000000000000000000000000000004"))
+		_ = tx.AddArgument(cadence.NewString(fourthID))
 		_ = tx.AddArgument(cadence.NewUInt8(4))
 		_ = tx.AddArgument(cadence.NewString("netaddress4"))
 		_ = tx.AddArgument(cadence.NewString("netkey4"))
 		_ = tx.AddArgument(cadence.NewString("stakekey4"))
 		_ = tx.AddArgument(cadence.NewUInt64(20))
+		_ = tx.AddArgument(cadence.NewUInt64(3))
 
 		signAndSubmit(
 			t, b, tx,
@@ -482,7 +568,7 @@ func TestIDTable(t *testing.T) {
 			false,
 		)
 
-		result, err := b.ExecuteScript(templates.GenerateGetRoleScript(IDTableAddr.String(), "Proposed"), [][]byte{jsoncdc.MustEncode(cadence.String("00000000000000000000000000000004"))})
+		result, err := b.ExecuteScript(templates.GenerateGetRoleScript(IDTableAddr.String(), "Proposed"), [][]byte{jsoncdc.MustEncode(cadence.String(fourthID))})
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
@@ -490,7 +576,7 @@ func TestIDTable(t *testing.T) {
 		role := result.Value
 		assert.Equal(t, role.(cadence.UInt8), cadence.NewUInt8(4))
 
-		result, err = b.ExecuteScript(templates.GenerateGetNetworkingAddressScript(IDTableAddr.String(), "Proposed"), [][]byte{jsoncdc.MustEncode(cadence.String("00000000000000000000000000000004"))})
+		result, err = b.ExecuteScript(templates.GenerateGetNetworkingAddressScript(IDTableAddr.String(), "Proposed"), [][]byte{jsoncdc.MustEncode(cadence.String(fourthID))})
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
@@ -498,7 +584,7 @@ func TestIDTable(t *testing.T) {
 		addr := result.Value
 		assert.Equal(t, addr.(cadence.String), cadence.NewString("netaddress4"))
 
-		result, err = b.ExecuteScript(templates.GenerateGetNetworkingKeyScript(IDTableAddr.String(), "Proposed"), [][]byte{jsoncdc.MustEncode(cadence.String("00000000000000000000000000000004"))})
+		result, err = b.ExecuteScript(templates.GenerateGetNetworkingKeyScript(IDTableAddr.String(), "Proposed"), [][]byte{jsoncdc.MustEncode(cadence.String(fourthID))})
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
@@ -506,7 +592,7 @@ func TestIDTable(t *testing.T) {
 		key := result.Value
 		assert.Equal(t, key.(cadence.String), cadence.NewString("netkey4"))
 
-		result, err = b.ExecuteScript(templates.GenerateGetStakingKeyScript(IDTableAddr.String(), "Proposed"), [][]byte{jsoncdc.MustEncode(cadence.String("00000000000000000000000000000004"))})
+		result, err = b.ExecuteScript(templates.GenerateGetStakingKeyScript(IDTableAddr.String(), "Proposed"), [][]byte{jsoncdc.MustEncode(cadence.String(fourthID))})
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
@@ -514,7 +600,7 @@ func TestIDTable(t *testing.T) {
 		key = result.Value
 		assert.Equal(t, key.(cadence.String), cadence.NewString("stakekey4"))
 
-		result, err = b.ExecuteScript(templates.GenerateGetInitialWeightScript(IDTableAddr.String(), "Proposed"), [][]byte{jsoncdc.MustEncode(cadence.String("00000000000000000000000000000004"))})
+		result, err = b.ExecuteScript(templates.GenerateGetInitialWeightScript(IDTableAddr.String(), "Proposed"), [][]byte{jsoncdc.MustEncode(cadence.String(fourthID))})
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
@@ -533,8 +619,10 @@ func TestIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
-		_ = tx.AddArgument(cadence.NewString("00000000000000000000000000000004"))
-		_ = tx.AddArgument(cadence.NewUInt64(0))
+		_ = tx.AddArgument(cadence.NewString(fourthID))
+		_ = tx.AddArgument(cadence.NewUInt64(10))
+		// Invalid: Cannot change weight for the wrong epoch
+		_ = tx.AddArgument(cadence.NewUInt64(2))
 
 		signAndSubmit(
 			t, b, tx,
@@ -550,8 +638,28 @@ func TestIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
-		_ = tx.AddArgument(cadence.NewString("00000000000000000000000000000004"))
+		_ = tx.AddArgument(cadence.NewString(fourthID))
+		// Invalid: Cannot change weight to zero
+		_ = tx.AddArgument(cadence.NewUInt64(0))
+		_ = tx.AddArgument(cadence.NewUInt64(3))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, IDTableAddr},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			true,
+		)
+
+		tx = flow.NewTransaction().
+			SetScript(templates.GenerateChangeWeightScript(IDTableAddr.String())).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(IDTableAddr)
+
+		_ = tx.AddArgument(cadence.NewString(fourthID))
 		_ = tx.AddArgument(cadence.NewUInt64(50))
+		_ = tx.AddArgument(cadence.NewUInt64(3))
 
 		signAndSubmit(
 			t, b, tx,
@@ -560,7 +668,7 @@ func TestIDTable(t *testing.T) {
 			false,
 		)
 
-		result, err := b.ExecuteScript(templates.GenerateGetInitialWeightScript(IDTableAddr.String(), "Proposed"), [][]byte{jsoncdc.MustEncode(cadence.String("00000000000000000000000000000004"))})
+		result, err := b.ExecuteScript(templates.GenerateGetInitialWeightScript(IDTableAddr.String(), "Proposed"), [][]byte{jsoncdc.MustEncode(cadence.String(fourthID))})
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
@@ -578,6 +686,8 @@ func TestIDTable(t *testing.T) {
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
+
+		_ = tx.AddArgument(cadence.NewUInt64(3))
 
 		signAndSubmit(
 			t, b, tx,

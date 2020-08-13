@@ -2,7 +2,7 @@ import FlowIdentityTable from 0xIDENTITYTABLEADDRESS
 
 // This transaction removes an existing node from the proposed identity table
 
-transaction(id: String) {
+transaction(id: String, counter: UInt64) {
 
     // Local variable for a reference to the ID Table Admin object
     let adminRef: &FlowIdentityTable.Admin
@@ -14,6 +14,6 @@ transaction(id: String) {
     }
 
     execute {
-        self.adminRef.removeProposedNode(id)
+        self.adminRef.removeProposedNode(epochCounter: counter, id)
     }
 }

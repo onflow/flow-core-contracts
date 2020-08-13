@@ -1,10 +1,10 @@
-import FlowIdentityTable from 0x01cf0e2f2f715450
+import FlowIdentityTable from 0xIDENTITYTABLEADDRESS
 
 // This transaction calls the function that assigns the proposed identity table
 // to the current table, and assigns the current table to the previous table
 // It will only be called at the beginning of a new epoch
 
-transaction() {
+transaction(counter: UInt64) {
 
     // Local variable for a reference to the ID Table Admin object
     let adminRef: &FlowIdentityTable.Admin
@@ -16,6 +16,6 @@ transaction() {
     }
 
     execute {
-        self.adminRef.startNewEpoch()
+        self.adminRef.startNewEpoch(newEpochCounter: counter)
     }
 }

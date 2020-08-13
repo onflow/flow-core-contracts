@@ -4,7 +4,7 @@ import FlowIdentityTable from 0xIDENTITYTABLEADDRESS
 // to the current table, and assigns the current table to the previous table
 // It will only be called at the beginning of a new epoch
 
-transaction(id: String, newWeight: UInt64) {
+transaction(id: String, newWeight: UInt64, counter: UInt64) {
 
     // Local variable for a reference to the ID Table Admin object
     let adminRef: &FlowIdentityTable.Admin
@@ -17,6 +17,6 @@ transaction(id: String, newWeight: UInt64) {
 
     execute {
         // Use the admin reference to update the weight
-        self.adminRef.updateInitialWeight(id, newWeight: newWeight)
+        self.adminRef.updateInitialWeight(epochCounter: counter, id, newWeight: newWeight)
     }
 }
