@@ -1,6 +1,6 @@
 package templates
 
-//go:generate go run github.com/kevinburke/go-bindata/go-bindata -prefix ../../../transactions -o internal/assets/assets.go -pkg assets -nometadata -nomemcopy ../../../transactions
+//go:generate go run github.com/kevinburke/go-bindata/go-bindata -prefix ../../../transactions/... -o internal/assets/assets.go -pkg assets -nometadata -nomemcopy ../../../transactions/...
 
 import (
 	"strings"
@@ -9,6 +9,7 @@ import (
 )
 
 const (
+	filePath             = "../../../transactions/"
 	inspectFieldFilename = "inspect_field.cdc"
 	defaultField         = "transactionField"
 )
@@ -17,7 +18,7 @@ const (
 // a field from the smart contract and makes assertions
 // about its value
 func GenerateInspectFieldScript(field string) []byte {
-	code := assets.MustAssetString(inspectFieldFilename)
+	code := assets.MustAssetString(filePath + inspectFieldFilename)
 
 	code = strings.ReplaceAll(
 		code,
