@@ -3,6 +3,8 @@ package contracts
 //go:generate go run github.com/kevinburke/go-bindata/go-bindata -prefix ../../../contracts/... -o internal/assets/assets.go -pkg assets -nometadata -nomemcopy ../../../contracts/...
 
 import (
+	"strings"
+
 	"github.com/onflow/flow-core-contracts/lib/go/contracts/internal/assets"
 )
 
@@ -11,7 +13,18 @@ const (
 	flowServiceAccountFilename = "../../../contracts/FlowServiceAccount.cdc"
 	flowTokenFilename          = "../../../contracts/FlowToken.cdc"
 	flowIdentityTableFilename  = "../../../contracts/epochs/FlowIdentityTable.cdc"
-	hexPrefix                  = "0x"
+	flowStakingFilename        = "../../../contracts/epochs/FlowStaking.cdc"
+	flowQCFilename             = "../../../contracts/epochs/FlowQuorumCertificate.cdc"
+	flowDKGFilename            = "../../../contracts/epochs/FlowDKG.cdc"
+	flowEpochFilename          = "../../../contracts/epochs/FlowEpoch.cdc"
+
+	hexPrefix                = "0x"
+	defaultFungibleTokenAddr = "FUNGIBLETOKENADDRESS"
+	defaultFlowTokenAddr     = "FLOWTOKENADDRESS"
+	defaultIDTableAddr       = "FLOWIDTABLEADDRESS"
+	defaultStakingAddr       = "STAKINGADDRESS"
+	defaultQCAddr            = "QCADDRESS"
+	defaultDKGAddr           = "DKGADDRESS"
 )
 
 // FlowToken returns the FlowToken contract. importing the
@@ -45,6 +58,17 @@ func FlowServiceAccount() []byte {
 // FlowIdentityTable returns the FlowIdentityTable contract
 func FlowIdentityTable() []byte {
 	code := assets.MustAssetString(flowIdentityTableFilename)
+
+	return []byte(code)
+}
+
+// FlowStaking returns the FlowStaking contract
+func FlowStaking(ftAddr, flowTokenAddr, idTableAddr string) []byte {
+	code := assets.MustAssetString(flowStakingFilename)
+
+	code = strings.ReplaceAll(code, defaultFungibleTokenAddr, ftAddr)
+	code = strings.ReplaceAll(code, defaultFlowTokenAddr, flowTokenAddr)
+	code = strings.ReplaceAll(code, defaultIDTableAddr, idTableAddr)
 
 	return []byte(code)
 }
