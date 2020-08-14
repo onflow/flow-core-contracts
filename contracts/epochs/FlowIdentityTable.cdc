@@ -91,7 +91,7 @@ pub contract FlowIdentityTable {
     /// of the identity table at the beginning of each epoch
     pub resource Admin {
 
-        /// Add a new node to the proposed table, or update an existing one
+        /// Add a new node to the proposed table
         pub fun addProposedNode(epochCounter: UInt64, _ newNode: Node) {
             pre {
                 epochCounter == FlowIdentityTable.proposedEpochCounter():
