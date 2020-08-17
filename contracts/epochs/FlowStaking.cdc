@@ -40,10 +40,6 @@ pub contract FlowStaking {
     /// The total amount of tokens that are paid as rewards every epoch
     pub var weeklyTokenPayout: UFix64
 
-    /// The ratio of the total rewards for each week that goes
-    /// to each token type
-    access(contract) var rewardRatios: {UInt8: UFix64}
-
     // Mints Flow tokens for staking rewards
     //access(contract) let flowTokenMinter: @FlowToken.Minter
 
@@ -132,14 +128,14 @@ pub contract FlowStaking {
 
         /// Request amount tokens to be removed from staking
         /// at the end of the next epoch
-        pub fun requestUnBonding(nodeID: String, amount: UFix64) {
+        pub fun requestUnStaking(nodeID: String, amount: UFix64) {
             pre {
                 FlowStaking.nodeTokenRecords[nodeID] != nil: 
                     "Node with this ID doesn't exist!"
                 FlowStaking.nodeTokenRecords[nodeID]?.tokensStaked?.balance! + 
                 FlowStaking.nodeTokenRecords[nodeID]?.tokensCommitted?.balance! 
                 >= amount + FlowStaking.nodeTokenRecords[nodeID]?.tokensRequestedToUnstake!: 
-                    "Not enough tokens to unbond!"
+                    "Not enough tokens to unstake!"
             }
 
             let nodeTokenRecord <- FlowStaking.getTokenRecord(nodeID)
@@ -238,7 +234,7 @@ pub contract FlowStaking {
                 let nodeTokenRecord <- FlowStaking.getTokenRecord(nodeID)
 
                 /// Calculate the amount of tokens that this node operator receives
-                let rewardAmount = FlowStaking.weeklyTokenPayout * FlowStaking.rewardRatios[currentNodes[nodeID]!.role]! * nodeTokenRecord.tokensStaked.balance/FlowStaking.totalTokensStakedByNodeType[currentNodes[nodeID]!.role]! 
+                let rewardAmount = FlowStaking.weeklyTokenPayout * nodeTokenRecord.tokensStaked.balance/FlowStaking.totalTokensStakedByNodeType[currentNodes[nodeID]!.role]! 
                 // TODO: DO REAL CALCULATION
 
                 /// Mint the tokens to reward the operator
@@ -291,9 +287,6 @@ pub contract FlowStaking {
         self.minimumStakeRequired = {UInt8(1): 100.0, UInt8(2): 200.0, UInt8(3): 500.0, UInt8(4): 300.0, UInt8(5): 10.0}
         self.nodeTokenRecords <- {}
 
-        // The preliminary percentage of rewards that go to each node type every epoch
-        // subject to change
-        self.rewardRatios = {UInt8(1): 0.168, UInt8(2): 0.518, UInt8(3): 0.078, UInt8(4): 0.236, UInt8(5): 0.0}
         self.totalTokensStakedByNodeType = {UInt8(1): 0.0, UInt8(2): 0.0, UInt8(3): 0.0, UInt8(4): 0.0, UInt8(5): 0.0}
 
         // Arbitrary number for now
