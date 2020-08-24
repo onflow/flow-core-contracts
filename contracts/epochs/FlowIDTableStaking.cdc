@@ -2,12 +2,20 @@
 
     FlowIDTableStaking
 
-    The Flow Staking contract manages node operators' flow tokens
-    that are staked as part of the Flow Protocol.
+    The Flow ID Table and Staking contract manages node operators' information 
+    and flow tokens that are staked as part of the Flow Protocol.
 
-    Nodes submit their stake during the staking auction and receive
-    a resource object that they store in their account
-    to interact with their stake.
+    Nodes submit their stake to the Admin's addNodeInfo Function
+    during the staking auction phase.
+    This records their info and committd tokens. They also will get a Node
+    Object that they can use to stake, unstake, and withdraw rewards.
+
+    The Admin has the authority to remove node records, 
+    refund insufficiently staked nodes, pay rewards, 
+    and move tokens between buckets.
+
+    All the node info an staking info is publicly accessible
+    to any transaction in the network
 
  */
 
@@ -16,15 +24,17 @@ import FlowToken from 0x0ae53cb6e3f42a79
 
 pub contract FlowIDTableStaking {
 
-    pub event NewStakerCreated(nodeID: String, amountCommitted: UFix64)
+    /****************** ID Table and Staking Events *******************/
+    pub event NewNodeCreated(nodeID: String, amountCommitted: UFix64)
     pub event TokensCommitted(nodeID: String, amount: UFix64)
     pub event TokensStaked(nodeID: String, amount: UFix64)
     pub event TokensUnStaked(nodeID: String, amount: UFix64)
-    pub event StakingAuctionEnded(nodeIDsRemoved: [String])
-    pub event RewardsPaid(amount: UFix64)
+    pub event NodeRemovedAndRefunded(nodeID: String, amount: UFix64)
+    pub event RewardsPaid(nodeID: String, amount: UFix64)
+    pub event TokensWithdrawn(nodeID: String, amount: UFix64)
 
     /// Holds the identity table for all the nodes in the network.
-    /// Includes nodes that aren't actually participating
+    /// Includes nodes that aren't actively participating
     access(contract) var nodes: @{String: NodeRecord}
 
     /// The minimum amount of tokens that each node type has to stake
@@ -272,7 +282,9 @@ pub contract FlowIDTableStaking {
         /// it moves their committed tokens to their unlocked bucket
         /// This will only be called once per epoch
         /// after the staking auction phase
-        pub fun refundInsufficientlyStakedNodes() {
+        ///
+        /// Also sets the initial weight of all the accepted nodes
+        pub fun endStakingAuction() {
 
             let allNodeIDs = FlowIDTableStaking.getNodeIDs()
 
@@ -281,34 +293,39 @@ pub contract FlowIDTableStaking {
 
                 let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
 
+                let totalTokensCommitted = nodeRecord.tokensCommitted.balance + nodeRecord.tokensStaked.balance - nodeRecord.tokensRequestedToUnstake
+
                 /// If the tokens that they have committed for the next epoch
                 /// do not meet the minimum requirements
-                if (nodeRecord.tokensCommitted.balance + nodeRecord.tokensStaked.balance - nodeRecord.tokensRequestedToUnstake) < FlowIDTableStaking.minimumStakeRequired[nodeRecord.role]! {
+                if totalTokensCommitted < FlowIDTableStaking.minimumStakeRequired[nodeRecord.role]! {
                     /// move their committed tokens back to their unlocked tokens
                     nodeRecord.tokensUnlocked.deposit(from: <-nodeRecord.tokensCommitted.withdraw(amount: nodeRecord.tokensCommitted.balance))
 
                     /// Add the rest of their staked tokens to their request since they have to unstake
                     nodeRecord.tokensRequestedToUnstake = nodeRecord.tokensStaked.balance
+                } else {
+                    /// Set initial weight of all the committed nodes
+                    nodeRecord.initialWeight = UInt64(totalTokensCommitted % 1.0)
                 }
             }
         }
 
         /// Called at the end of the epoch to pay rewards to node operators
+        /// based on the tokens that they have staked
         pub fun payRewards() {
 
             let allNodeIDs = FlowIDTableStaking.getNodeIDs()
 
-            /// remove nodes that have insufficient stake
+            /// iterate through all the nodes
             for nodeID in allNodeIDs {
 
                 let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
 
                 /// Calculate the amount of tokens that this node operator receives
-                let rewardAmount = FlowIDTableStaking.weeklyTokenPayout * FlowIDTableStaking.rewardRatios[nodeRecord.role]! * nodeRecord.tokensStaked.balance/FlowIDTableStaking.totalTokensStakedByNodeType[nodeRecord.role]! 
+                let rewardAmount = FlowIDTableStaking.weeklyTokenPayout * FlowIDTableStaking.rewardRatios[nodeRecord.role]! * (nodeRecord.tokensStaked.balance/FlowIDTableStaking.totalTokensStakedByNodeType[nodeRecord.role]!)
 
                 /// Mint the tokens to reward the operator
-                let tokensRewarded <- FlowToken.createEmptyVault() //FlowIDTableStaking.flowTokenMinter.mintTokens(amount: rewardAmount)
-                // TODO: USE THE REAL FLOW TOKEN MINTER
+                let tokensRewarded <- FlowIDTableStaking.flowTokenMinter.mintTokens(amount: rewardAmount)
 
                 /// Deposit the tokens into their tokensUnlocked bucket
                 nodeRecord.tokensUnlocked.deposit(from: <-tokensRewarded)    
