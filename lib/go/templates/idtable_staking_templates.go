@@ -90,10 +90,10 @@ func GenerateCreateNodeScript(ftAddr, flowAddr, tableAddr string) []byte {
 
 // GenerateRemoveNodeScript creates a script that removes a node
 // from the record
-func GenerateRemoveNodeScript(ftAddr, flowAddr, tableAddr string) []byte {
+func GenerateRemoveNodeScript(tableAddr string) []byte {
 	code := assets.MustAssetString(filePath + removeNodeFilename)
 
-	return []byte(ReplaceAddressesAndPhase(code, ftAddr, flowAddr, tableAddr, ""))
+	return []byte(ReplaceAddressesAndPhase(code, "", "", tableAddr, ""))
 }
 
 // GenerateGetRoleScript creates a script

@@ -153,10 +153,11 @@ pub contract FlowIDTableStaking {
         }
 
         destroy() {
-            destroy self.tokensStaked
-            destroy self.tokensCommitted
-            destroy self.tokensUnstaked
-            destroy self.tokensUnlocked
+            let flowTokenRef = FlowIDTableStaking.account.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)!
+            flowTokenRef.deposit(from: <-self.tokensStaked)
+            flowTokenRef.deposit(from: <-self.tokensCommitted)
+            flowTokenRef.deposit(from: <-self.tokensUnstaked)
+            flowTokenRef.deposit(from: <-self.tokensUnlocked)
         }
     }
 
@@ -187,8 +188,6 @@ pub contract FlowIDTableStaking {
             pre {
                 FlowIDTableStaking.getNodeRole(nodeID) != UInt8(5): 
                     "Access Nodes Cannot stake tokens"
-                FlowIDTableStaking.borrowNodeRecord(nodeID).tokensUnlocked.balance >= amount: 
-                    "Not enough unlocked tokens to stake to requested amount!"
             }
 
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
@@ -253,7 +252,7 @@ pub contract FlowIDTableStaking {
     pub resource StakingAdmin {
 
         /// Add a new node to the record
-        pub fun addNodeRecord(id: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String, initialWeight: UInt64, tokensCommitted: @FlowToken.Vault): @NodeStaker {
+        pub fun addNodeRecord(id: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String, tokensCommitted: @FlowToken.Vault): @NodeStaker {
 
             // Insert the node to the table
             FlowIDTableStaking.nodes[id] <-! create NodeRecord(id: id, role: role, networkingAddress: networkingAddress, networkingKey: networkingKey, stakingKey: stakingKey, tokensCommitted: <-tokensCommitted)
@@ -326,7 +325,7 @@ pub contract FlowIDTableStaking {
                 let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
 
                 /// Calculate the amount of tokens that this node operator receives
-                let rewardAmount =  rewardsForNodeTypes[nodeRecord.role] * (nodeRecord.tokensStaked.balance/FlowIDTableStaking.totalTokensStakedByNodeType[nodeRecord.role]!)
+                let rewardAmount =  rewardsForNodeTypes[nodeRecord.role]! * (nodeRecord.tokensStaked.balance/FlowIDTableStaking.totalTokensStakedByNodeType[nodeRecord.role]!)
 
                 /// Mint the tokens to reward the operator
                 let tokensRewarded <- FlowIDTableStaking.flowTokenMinter.mintTokens(amount: rewardAmount)
@@ -484,6 +483,9 @@ pub contract FlowIDTableStaking {
     init() {
         self.nodes <- {}
 
+        self.NodeStakerStoragePath = /storage/flowStaker
+        self.StakingAdminStoragePath = /storage/flowStakingAdmin
+
         // These are just arbitrary numbers right now
         self.minimumStakeRequired = {UInt8(1): 125000.0, UInt8(2): 250000.0, UInt8(3): 625000.0, UInt8(4): 67500.0, UInt8(5): 0.0}
 
@@ -497,12 +499,12 @@ pub contract FlowIDTableStaking {
         self.rewardRatios = {UInt8(1): 0.168, UInt8(2): 0.518, UInt8(3): 0.078, UInt8(4): 0.236, UInt8(5): 0.0}
 
         /// THIS NEEDS TO CHANGE TO A PRIVATE CAPABILITY AFTER TESTING
-        self.account.save(<-create StakingAdmin(), to: /storage/flowStakingAdmin)
-        self.account.link<&StakingAdmin>(/public/flowStakingAdmin, target: /storage/flowStakingAdmin)
+        self.account.save(<-create StakingAdmin(), to: self.StakingAdminStoragePath)
+        self.account.link<&StakingAdmin>(/public/flowStakingAdmin, target: self.StakingAdminStoragePath)
 
         // store a nodeStaker object in storage and publish a capability
-        self.account.save(<-create NodeStaker(), to: /storage/flowStaker)
-        self.account.link<&NodeStaker>(/private/flowStaker, target: /storage/flowStaker)
+        self.account.save(<-create NodeStaker(), to: self.NodeStakerStoragePath)
+        self.account.link<&NodeStaker>(/private/flowStaker, target: self.NodeStakerStoragePath)
 
         /// Borrow a reference to the Flow Token Admin in the account storage
         let flowTokenMinter <- self.account.load<@FlowToken.Minter>(from: /storage/flowTokenMinter)
@@ -510,9 +512,6 @@ pub contract FlowIDTableStaking {
 
         /// Create a flowTokenMinterResource
         self.flowTokenMinter <- flowTokenMinter
-
-        self.NodeStakerStoragePath = /storage/flowStakingAdmin
-        self.StakingAdminStoragePath = /storage/flowStaker
     }
 }
  
