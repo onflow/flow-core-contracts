@@ -24,7 +24,7 @@ import FlowToken from 0x0ae53cb6e3f42a79
 
 pub contract FlowIDTableStaking {
 
-    /****************** ID Table and Staking Events *******************/
+    /********************* ID Table and Staking Events **********************/
     pub event NewNodeCreated(nodeID: String, amountCommitted: UFix64)
     pub event TokensCommitted(nodeID: String, amount: UFix64)
     pub event TokensStaked(nodeID: String, amount: UFix64)
@@ -46,13 +46,19 @@ pub contract FlowIDTableStaking {
     access(contract) var totalTokensStakedByNodeType: {UInt8: UFix64}
 
     /// The total amount of tokens that are paid as rewards every epoch
-    pub var weeklyTokenPayout: UFix64
+    /// could be manually changed by the admin resource
+    pub var epochTokenPayout: UFix64
 
     /// The ratio of the weekly awards that each node type gets
     access(contract) var rewardRatios: {UInt8: UFix64}
 
     // Mints Flow tokens for staking rewards
     access(contract) let flowTokenMinter: @FlowToken.Minter
+
+    pub let NodeStakerStoragePath: Path
+    pub let StakingAdminStoragePath: Path
+
+    /*********** ID Table and Staking Composite Type Definitions *************/
 
     /// Contains information that is specific to a node in Flow
     /// only lives in this contract
@@ -164,34 +170,28 @@ pub contract FlowIDTableStaking {
 
         /// Add new tokens to the system to stake during the next epoch
         pub fun stakeNewTokens(nodeID: String, _ tokens: @FungibleToken.Vault) {
+            pre {
+                FlowIDTableStaking.getNodeRole(nodeID) != UInt8(5): 
+                    "Access Nodes Cannot stake tokens"
+            }
 
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
 
-            assert (
-                nodeRecord.role != UInt8(5),
-                message: "Access Nodes Cannot stake tokens"
-            )
-
             /// Add the new tokens to tokens committed
             nodeRecord.tokensCommitted.deposit(from: <-tokens)
-
         }
 
         /// Stake tokens that are in the tokensUnlocked bucket 
         /// but haven't been officially staked
         pub fun stakeUnlockedTokens(nodeID: String, amount: UFix64) {
+            pre {
+                FlowIDTableStaking.getNodeRole(nodeID) != UInt8(5): 
+                    "Access Nodes Cannot stake tokens"
+                FlowIDTableStaking.borrowNodeRecord(nodeID).tokensUnlocked.balance >= amount: 
+                    "Not enough unlocked tokens to stake to requested amount!"
+            }
 
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
-
-            assert (
-                nodeRecord.role != UInt8(5),
-                message: "Access Nodes Cannot stake tokens"
-            )
-
-            assert (
-                nodeRecord.tokensUnlocked.balance >= amount,
-                message: "Not enough unlocked tokens to stake!"
-            )
 
             /// Add the removed tokens to tokens committed
             nodeRecord.tokensCommitted.deposit(from: <-nodeRecord.tokensUnlocked.withdraw(amount: amount))
@@ -200,13 +200,12 @@ pub contract FlowIDTableStaking {
         /// Request amount tokens to be removed from staking
         /// at the end of the next epoch
         pub fun requestUnStaking(nodeID: String, amount: UFix64) {
+            pre {
+                FlowIDTableStaking.getNodeRole(nodeID) != UInt8(5): 
+                    "Access Nodes Cannot stake tokens"
+            }
 
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
-
-            assert (
-                nodeRecord.role != UInt8(5),
-                message: "Access Nodes Cannot stake tokens"
-            )
 
             assert (
                 nodeRecord.tokensStaked.balance + 
@@ -219,18 +218,13 @@ pub contract FlowIDTableStaking {
             if nodeRecord.tokensCommitted.balance >= amount {
 
                 /// withdraw the requested tokens from committed since they have not been staked yet
-                let tokens <- nodeRecord.tokensCommitted.withdraw(amount: amount)
+                nodeRecord.tokensUnlocked.deposit(from: <-nodeRecord.tokensCommitted.withdraw(amount: amount))
 
-                /// add the withdrawn tokens to tokensUnlocked
-                nodeRecord.tokensUnlocked.deposit(from: <-tokens)
             } else {
                 /// Get the balance of the tokens that are currently committed
                 let amountCommitted = nodeRecord.tokensCommitted.balance
 
-                /// Withdraw all the tokens from the committed field
-                let tokens <- nodeRecord.tokensCommitted.withdraw(amount: amountCommitted)
-
-                nodeRecord.tokensUnlocked.deposit(from: <-tokens)
+                nodeRecord.tokensUnlocked.deposit(from: <-nodeRecord.tokensCommitted.withdraw(amount: amountCommitted))
 
                 /// update request to show that leftover amount is requested to be unstaked
                 /// at the end of the current epoch
@@ -240,17 +234,15 @@ pub contract FlowIDTableStaking {
 
         /// Withdraw tokens from the unlocked bucket
         pub fun withdrawUnlockedTokens(nodeID: String, amount: UFix64): @FungibleToken.Vault {
+            pre {
+                FlowIDTableStaking.getNodeRole(nodeID) != UInt8(5): 
+                    "Access Nodes Cannot stake tokens"
+            }
+
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
 
-            assert (
-                nodeRecord.role != UInt8(5),
-                message: "Access Nodes Cannot stake tokens"
-            )
-
             /// remove the tokens from the unlocked bucket
-            let tokens <- nodeRecord.tokensUnlocked.withdraw(amount: amount)
-
-            return <-tokens
+            return <- nodeRecord.tokensUnlocked.withdraw(amount: amount)
         }
 
     }
@@ -261,14 +253,17 @@ pub contract FlowIDTableStaking {
     pub resource StakingAdmin {
 
         /// Add a new node to the record
-        pub fun addNodeInfo(id: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String, initialWeight: UInt64, tokensCommitted: @FlowToken.Vault) {
+        pub fun addNodeRecord(id: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String, initialWeight: UInt64, tokensCommitted: @FlowToken.Vault): @NodeStaker {
 
             // Insert the node to the table
             FlowIDTableStaking.nodes[id] <-! create NodeRecord(id: id, role: role, networkingAddress: networkingAddress, networkingKey: networkingKey, stakingKey: stakingKey, tokensCommitted: <-tokensCommitted)
+
+            return <-create NodeStaker()
+        
         }
 
         /// Remove a node from the record
-        pub fun removeNodeInfo(_ nodeID: String): @NodeRecord {
+        pub fun removeNode(_ nodeID: String): @NodeRecord {
 
             // Remove the node from the table
             let node <- FlowIDTableStaking.nodes.remove(key: nodeID)
@@ -303,9 +298,11 @@ pub contract FlowIDTableStaking {
 
                     /// Add the rest of their staked tokens to their request since they have to unstake
                     nodeRecord.tokensRequestedToUnstake = nodeRecord.tokensStaked.balance
+
+                    nodeRecord.initialWeight = 0
                 } else {
                     /// Set initial weight of all the committed nodes
-                    nodeRecord.initialWeight = UInt64(totalTokensCommitted % 1.0)
+                    nodeRecord.initialWeight =  50
                 }
             }
         }
@@ -316,13 +313,20 @@ pub contract FlowIDTableStaking {
 
             let allNodeIDs = FlowIDTableStaking.getNodeIDs()
 
+            // calculate total reward sum for each node type
+            var rewardsForNodeTypes: {UInt8: UFix64} = {}
+            rewardsForNodeTypes[UInt8(1)] = FlowIDTableStaking.epochTokenPayout * FlowIDTableStaking.rewardRatios[UInt8(1)]!
+            rewardsForNodeTypes[UInt8(2)] = FlowIDTableStaking.epochTokenPayout * FlowIDTableStaking.rewardRatios[UInt8(2)]!
+            rewardsForNodeTypes[UInt8(3)] = FlowIDTableStaking.epochTokenPayout * FlowIDTableStaking.rewardRatios[UInt8(3)]!
+            rewardsForNodeTypes[UInt8(4)] = FlowIDTableStaking.epochTokenPayout * FlowIDTableStaking.rewardRatios[UInt8(4)]!
+
             /// iterate through all the nodes
             for nodeID in allNodeIDs {
 
                 let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
 
                 /// Calculate the amount of tokens that this node operator receives
-                let rewardAmount = FlowIDTableStaking.weeklyTokenPayout * FlowIDTableStaking.rewardRatios[nodeRecord.role]! * (nodeRecord.tokensStaked.balance/FlowIDTableStaking.totalTokensStakedByNodeType[nodeRecord.role]!)
+                let rewardAmount =  rewardsForNodeTypes[nodeRecord.role] * (nodeRecord.tokensStaked.balance/FlowIDTableStaking.totalTokensStakedByNodeType[nodeRecord.role]!)
 
                 /// Mint the tokens to reward the operator
                 let tokensRewarded <- FlowIDTableStaking.flowTokenMinter.mintTokens(amount: rewardAmount)
@@ -360,6 +364,11 @@ pub contract FlowIDTableStaking {
                 nodeRecord.tokensRequestedToUnstake = 0.0
             }
         }
+
+        // Changes the total weekly payout to a new value
+        pub fun updateEpochTokenPayout(_ newPayout: UFix64) {
+            FlowIDTableStaking.epochTokenPayout = newPayout
+        }
     }
 
     /// borrow a reference to to one of the nodes in the record
@@ -368,6 +377,10 @@ pub contract FlowIDTableStaking {
     /// The only thing they cannot do is destroy it or move it
     /// This will only be used by the other epoch contracts
     access(contract) fun borrowNodeRecord(_ nodeID: String): &NodeRecord {
+        pre {
+            FlowIDTableStaking.nodes[nodeID] != nil:
+                "Specified node ID does not exist in the record"
+        }
         return &FlowIDTableStaking.nodes[nodeID] as! &NodeRecord
     }
 
@@ -414,32 +427,32 @@ pub contract FlowIDTableStaking {
     }
 
     /// Gets the role of the specified node
-    pub fun getNodeRole(nodeID: String): UInt8? {
+    pub fun getNodeRole(_ nodeID: String): UInt8? {
         return FlowIDTableStaking.nodes[nodeID]?.role
     }
 
     /// Gets the networking Address of the specified node
-    pub fun getNodeNetworkingAddress(nodeID: String): String? {
+    pub fun getNodeNetworkingAddress(_ nodeID: String): String? {
         return FlowIDTableStaking.nodes[nodeID]?.networkingAddress
     }
 
     /// Gets the networking key of the specified node
-    pub fun getNodeNetworkingKey(nodeID: String): String? {
+    pub fun getNodeNetworkingKey(_ nodeID: String): String? {
         return FlowIDTableStaking.nodes[nodeID]?.networkingKey
     }
 
     /// Gets the staking key of the specified node
-    pub fun getNodeStakingKey(nodeID: String): String? {
+    pub fun getNodeStakingKey(_ nodeID: String): String? {
         return FlowIDTableStaking.nodes[nodeID]?.stakingKey
     }
 
     /// Gets the initial weight of the specified node
-    pub fun getNodeInitialWeight(nodeID: String): UInt64? {
+    pub fun getNodeInitialWeight(_ nodeID: String): UInt64? {
         return FlowIDTableStaking.nodes[nodeID]?.initialWeight
     }
 
     /// Gets the total token balance that the specified node currently has staked
-    pub fun getNodeStakedBalance(nodeID: String): UFix64? {
+    pub fun getNodeStakedBalance(_ nodeID: String): UFix64? {
         let nodeRecord = self.borrowNodeRecord(nodeID)
 
         return nodeRecord.tokensStaked.balance
@@ -447,7 +460,7 @@ pub contract FlowIDTableStaking {
 
     /// Gets the token balance that the specified node has committed
     /// to add to their stake for the next epoch
-    pub fun getNodeCommittedBalance(nodeID: String): UFix64? {
+    pub fun getNodeCommittedBalance(_ nodeID: String): UFix64? {
         let nodeRecord = self.borrowNodeRecord(nodeID)
 
         return nodeRecord.tokensCommitted.balance
@@ -455,14 +468,14 @@ pub contract FlowIDTableStaking {
 
     /// Gets the token balance that the specified node has unsteked
     /// from the previous epoch
-    pub fun getNodeUnStakedBalance(nodeID: String): UFix64? {
+    pub fun getNodeUnStakedBalance(_ nodeID: String): UFix64? {
         let nodeRecord = self.borrowNodeRecord(nodeID)
 
         return nodeRecord.tokensUnstaked.balance
     }
 
     /// Gets the token balance that the specified node can freely withdraw
-    pub fun getNodeUnlockedBalance(nodeID: String): UFix64? {
+    pub fun getNodeUnlockedBalance(_ nodeID: String): UFix64? {
         let nodeRecord = self.borrowNodeRecord(nodeID)
 
         return nodeRecord.tokensUnlocked.balance
@@ -477,18 +490,29 @@ pub contract FlowIDTableStaking {
         self.totalTokensStakedByNodeType = {UInt8(1): 0.0, UInt8(2): 0.0, UInt8(3): 0.0, UInt8(4): 0.0, UInt8(5): 0.0}
 
         // Arbitrary number for now
-        self.weeklyTokenPayout = 250000000.0
+        self.epochTokenPayout = 250000000.0
 
         // The preliminary percentage of rewards that go to each node type every epoch
         // subject to change
         self.rewardRatios = {UInt8(1): 0.168, UInt8(2): 0.518, UInt8(3): 0.078, UInt8(4): 0.236, UInt8(5): 0.0}
 
+        /// THIS NEEDS TO CHANGE TO A PRIVATE CAPABILITY AFTER TESTING
+        self.account.save(<-create StakingAdmin(), to: /storage/flowStakingAdmin)
+        self.account.link<&StakingAdmin>(/public/flowStakingAdmin, target: /storage/flowStakingAdmin)
+
+        // store a nodeStaker object in storage and publish a capability
+        self.account.save(<-create NodeStaker(), to: /storage/flowStaker)
+        self.account.link<&NodeStaker>(/private/flowStaker, target: /storage/flowStaker)
+
         /// Borrow a reference to the Flow Token Admin in the account storage
-        let flowTokenAdmin = self.account.borrow<&FlowToken.Administrator>(from: /storage/flowTokenAdmin)
+        let flowTokenMinter <- self.account.load<@FlowToken.Minter>(from: /storage/flowTokenMinter)
             ?? panic("Could not borrow a reference to the Flow Token Admin resource")
 
         /// Create a flowTokenMinterResource
-        self.flowTokenMinter <- flowTokenAdmin.createNewMinter(allowedAmount: 100.0)
+        self.flowTokenMinter <- flowTokenMinter
+
+        self.NodeStakerStoragePath = /storage/flowStakingAdmin
+        self.StakingAdminStoragePath = /storage/flowStaker
     }
 }
  
