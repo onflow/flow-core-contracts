@@ -114,13 +114,6 @@ pub contract FlowIDTableStaking {
                 networkingAddress.length > 0: "The networkingAddress cannot be empty"
             }
 
-            if role == UInt8(5) {
-                assert (
-                    tokensCommitted.balance == 0.0,
-                    message: "Access Nodes cannot stake and tokens"
-                )
-            }
-
             /// Assert that the addresses and keys are not already in use for the proposed nodes
             /// They must be unique
             for nodeID in FlowIDTableStaking.nodes.keys {
@@ -171,10 +164,6 @@ pub contract FlowIDTableStaking {
 
         /// Add new tokens to the system to stake during the next epoch
         pub fun stakeNewTokens(nodeID: String, _ tokens: @FungibleToken.Vault) {
-            pre {
-                FlowIDTableStaking.getNodeRole(nodeID) != UInt8(5): 
-                    "Access Nodes Cannot stake tokens"
-            }
 
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
 
@@ -185,10 +174,6 @@ pub contract FlowIDTableStaking {
         /// Stake tokens that are in the tokensUnlocked bucket 
         /// but haven't been officially staked
         pub fun stakeUnlockedTokens(nodeID: String, amount: UFix64) {
-            pre {
-                FlowIDTableStaking.getNodeRole(nodeID) != UInt8(5): 
-                    "Access Nodes Cannot stake tokens"
-            }
 
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
 
@@ -199,10 +184,6 @@ pub contract FlowIDTableStaking {
         /// Request amount tokens to be removed from staking
         /// at the end of the next epoch
         pub fun requestUnStaking(nodeID: String, amount: UFix64) {
-            pre {
-                FlowIDTableStaking.getNodeRole(nodeID) != UInt8(5): 
-                    "Access Nodes Cannot stake tokens"
-            }
 
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
 
@@ -233,10 +214,6 @@ pub contract FlowIDTableStaking {
 
         /// Withdraw tokens from the unlocked bucket
         pub fun withdrawUnlockedTokens(nodeID: String, amount: UFix64): @FungibleToken.Vault {
-            pre {
-                FlowIDTableStaking.getNodeRole(nodeID) != UInt8(5): 
-                    "Access Nodes Cannot stake tokens"
-            }
 
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
 
@@ -318,6 +295,7 @@ pub contract FlowIDTableStaking {
             rewardsForNodeTypes[UInt8(2)] = FlowIDTableStaking.epochTokenPayout * FlowIDTableStaking.rewardRatios[UInt8(2)]!
             rewardsForNodeTypes[UInt8(3)] = FlowIDTableStaking.epochTokenPayout * FlowIDTableStaking.rewardRatios[UInt8(3)]!
             rewardsForNodeTypes[UInt8(4)] = FlowIDTableStaking.epochTokenPayout * FlowIDTableStaking.rewardRatios[UInt8(4)]!
+            rewardsForNodeTypes[UInt8(5)] = 0.0
 
             /// iterate through all the nodes
             for nodeID in allNodeIDs {
