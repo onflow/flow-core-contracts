@@ -35,6 +35,7 @@ pub contract FlowIDTableStaking {
 
     /// Holds the identity table for all the nodes in the network.
     /// Includes nodes that aren't actively participating
+    /// could get a little complex in the future
     access(contract) var nodes: @{String: NodeRecord}
 
     /// The minimum amount of tokens that each node type has to stake
@@ -52,9 +53,10 @@ pub contract FlowIDTableStaking {
     /// The ratio of the weekly awards that each node type gets
     access(contract) var rewardRatios: {UInt8: UFix64}
 
-    // Mints Flow tokens for staking rewards
+    /// Mints Flow tokens for staking rewards
     access(contract) let flowTokenMinter: @FlowToken.Minter
 
+    /// Paths for storing staking resources
     pub let NodeStakerStoragePath: Path
     pub let StakingAdminStoragePath: Path
 
@@ -106,7 +108,7 @@ pub contract FlowIDTableStaking {
         /// weight as determined by the amount staked after the staking auction
         pub(set) var initialWeight: UInt64
 
-        init(id: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String, tokensCommitted: @FlowToken.Vault) {
+        init(id: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String, tokensCommitted: @FungibleToken.Vault) {
             pre {
                 id.length == 64: "Node ID length must be 32 bytes (64 hex characters)"
                 FlowIDTableStaking.nodes[id] == nil: "The ID cannot already exist in the record"
@@ -138,7 +140,7 @@ pub contract FlowIDTableStaking {
             self.stakingKey = stakingKey
             self.initialWeight = 0
 
-            self.tokensCommitted <- tokensCommitted
+            self.tokensCommitted <- tokensCommitted as! @FlowToken.Vault
             self.tokensStaked <- FlowToken.createEmptyVault() as! @FlowToken.Vault
             self.tokensUnstaked <- FlowToken.createEmptyVault() as! @FlowToken.Vault
             self.tokensUnlocked <- FlowToken.createEmptyVault() as! @FlowToken.Vault
@@ -162,10 +164,16 @@ pub contract FlowIDTableStaking {
     /// will provide the `nodeID` arguments from its ID field.
     pub resource NodeStaker {
 
-        /// Add new tokens to the system to stake during the next epoch
-        pub fun stakeNewTokens(nodeID: String, _ tokens: @FungibleToken.Vault) {
+        pub let id: String
 
-            let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
+        init(id: String) {
+            self.id = id
+        }
+
+        /// Add new tokens to the system to stake during the next epoch
+        pub fun stakeNewTokens(_ tokens: @FungibleToken.Vault) {
+
+            let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
 
             /// Add the new tokens to tokens committed
             nodeRecord.tokensCommitted.deposit(from: <-tokens)
@@ -173,9 +181,9 @@ pub contract FlowIDTableStaking {
 
         /// Stake tokens that are in the tokensUnlocked bucket 
         /// but haven't been officially staked
-        pub fun stakeUnlockedTokens(nodeID: String, amount: UFix64) {
+        pub fun stakeUnlockedTokens(amount: UFix64) {
 
-            let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
+            let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
 
             /// Add the removed tokens to tokens committed
             nodeRecord.tokensCommitted.deposit(from: <-nodeRecord.tokensUnlocked.withdraw(amount: amount))
@@ -183,9 +191,9 @@ pub contract FlowIDTableStaking {
 
         /// Request amount tokens to be removed from staking
         /// at the end of the next epoch
-        pub fun requestUnStaking(nodeID: String, amount: UFix64) {
+        pub fun requestUnStaking(amount: UFix64) {
 
-            let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
+            let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
 
             assert (
                 nodeRecord.tokensStaked.balance + 
@@ -213,9 +221,9 @@ pub contract FlowIDTableStaking {
         }
 
         /// Withdraw tokens from the unlocked bucket
-        pub fun withdrawUnlockedTokens(nodeID: String, amount: UFix64): @FungibleToken.Vault {
+        pub fun withdrawUnlockedTokens(amount: UFix64): @FungibleToken.Vault {
 
-            let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
+            let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
 
             /// remove the tokens from the unlocked bucket
             return <- nodeRecord.tokensUnlocked.withdraw(amount: amount)
@@ -226,15 +234,17 @@ pub contract FlowIDTableStaking {
     /// Admin resource that has the ability to create new staker objects,
     /// remove insufficiently staked nodes at the end of the staking auction,
     /// and pay rewards to nodes at the end of an epoch
-    pub resource StakingAdmin {
+    pub resource Admin {
 
         /// Add a new node to the record
-        pub fun addNodeRecord(id: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String, tokensCommitted: @FlowToken.Vault): @NodeStaker {
+        pub fun addNodeRecord(id: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String, tokensCommitted: @FungibleToken.Vault): @NodeStaker {
+
+            let newNode <- create NodeRecord(id: id, role: role, networkingAddress: networkingAddress, networkingKey: networkingKey, stakingKey: stakingKey, tokensCommitted: <-tokensCommitted)
 
             // Insert the node to the table
-            FlowIDTableStaking.nodes[id] <-! create NodeRecord(id: id, role: role, networkingAddress: networkingAddress, networkingKey: networkingKey, stakingKey: stakingKey, tokensCommitted: <-tokensCommitted)
+            FlowIDTableStaking.nodes[id] <-! newNode
 
-            return <-create NodeStaker()
+            return <-create NodeStaker(id: id)
         
         }
 
@@ -278,7 +288,7 @@ pub contract FlowIDTableStaking {
                     nodeRecord.initialWeight = 0
                 } else {
                     /// Set initial weight of all the committed nodes
-                    nodeRecord.initialWeight =  50
+                    nodeRecord.initialWeight = 50
                 }
             }
         }
@@ -322,7 +332,6 @@ pub contract FlowIDTableStaking {
             
             let allNodeIDs = FlowIDTableStaking.getNodeIDs()
 
-            /// remove nodes that have insufficient stake
             for nodeID in allNodeIDs {
 
                 let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
@@ -443,7 +452,7 @@ pub contract FlowIDTableStaking {
         return nodeRecord.tokensCommitted.balance
     }
 
-    /// Gets the token balance that the specified node has unsteked
+    /// Gets the token balance that the specified node has unstaked
     /// from the previous epoch
     pub fun getNodeUnStakedBalance(_ nodeID: String): UFix64? {
         let nodeRecord = self.borrowNodeRecord(nodeID)
@@ -457,6 +466,9 @@ pub contract FlowIDTableStaking {
 
         return nodeRecord.tokensUnlocked.balance
     }
+
+    /// Functions to return contract fields
+    /// TODO
 
     init() {
         self.nodes <- {}
@@ -477,12 +489,8 @@ pub contract FlowIDTableStaking {
         self.rewardRatios = {UInt8(1): 0.168, UInt8(2): 0.518, UInt8(3): 0.078, UInt8(4): 0.236, UInt8(5): 0.0}
 
         /// THIS NEEDS TO CHANGE TO A PRIVATE CAPABILITY AFTER TESTING
-        self.account.save(<-create StakingAdmin(), to: self.StakingAdminStoragePath)
-        self.account.link<&StakingAdmin>(/public/flowStakingAdmin, target: self.StakingAdminStoragePath)
-
-        // store a nodeStaker object in storage and publish a capability
-        self.account.save(<-create NodeStaker(), to: self.NodeStakerStoragePath)
-        self.account.link<&NodeStaker>(/private/flowStaker, target: self.NodeStakerStoragePath)
+        self.account.save(<-create Admin(), to: self.StakingAdminStoragePath)
+        self.account.link<&Admin>(/public/flowStakingAdmin, target: self.StakingAdminStoragePath)
 
         /// Borrow a reference to the Flow Token Admin in the account storage
         let flowTokenMinter <- self.account.load<@FlowToken.Minter>(from: /storage/flowTokenMinter)
