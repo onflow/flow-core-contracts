@@ -36,14 +36,20 @@ pub contract FlowIDTableStaking {
     /// Holds the identity table for all the nodes in the network.
     /// Includes nodes that aren't actively participating
     /// could get a little complex in the future
+    /// key = node ID
+    /// value = the record of that node's info and tokens
     access(contract) var nodes: @{String: NodeRecord}
 
     /// The minimum amount of tokens that each node type has to stake
     /// in order to be considered valid
+    /// key = node role
+    /// value = amount of tokens
     access(contract) var minimumStakeRequired: {UInt8: UFix64}
 
     /// The total amount of tokens that are staked for all the nodes
     /// of each node type during the current epoch
+    /// key = node role
+    /// value = amount of tokens
     access(contract) var totalTokensStakedByNodeType: {UInt8: UFix64}
 
     /// The total amount of tokens that are paid as rewards every epoch
@@ -51,6 +57,8 @@ pub contract FlowIDTableStaking {
     pub var epochTokenPayout: UFix64
 
     /// The ratio of the weekly awards that each node type gets
+    /// key = node role
+    /// value = decimal number between 0 and 1 indicating a percentage
     access(contract) var rewardRatios: {UInt8: UFix64}
 
     /// Mints Flow tokens for staking rewards
@@ -87,7 +95,7 @@ pub contract FlowIDTableStaking {
         /// the public key for staking
         pub(set) var stakingKey: String
 
-        /// The tokens that this node has staked for the current epoch.
+        /// The tokens that this node has staked
         pub var tokensStaked: @FlowToken.Vault
 
         /// The tokens that this node has committed to stake for the next epoch.
@@ -116,7 +124,7 @@ pub contract FlowIDTableStaking {
                 networkingAddress.length > 0: "The networkingAddress cannot be empty"
             }
 
-            /// Assert that the addresses and keys are not already in use for the proposed nodes
+            /// Assert that the addresses and keys are not already in use
             /// They must be unique
             for nodeID in FlowIDTableStaking.nodes.keys {
                 assert (
@@ -158,10 +166,6 @@ pub contract FlowIDTableStaking {
 
     /// Resource that the node operator controls for participating
     /// in the staking auction and other Epoch phases.
-    /// This resource will be wrapped by the Node resource 
-    /// in the Epoch smart contract, so the node operator will not
-    /// be able to call these functions directly. The `Node` resource
-    /// will provide the `nodeID` arguments from its ID field.
     pub resource NodeStaker {
 
         pub let id: String
@@ -244,6 +248,7 @@ pub contract FlowIDTableStaking {
             // Insert the node to the table
             FlowIDTableStaking.nodes[id] <-! newNode
 
+            // return a new NodeStaker object that the node operator stores in their account
             return <-create NodeStaker(id: id)
         
         }
@@ -288,6 +293,7 @@ pub contract FlowIDTableStaking {
                     nodeRecord.initialWeight = 0
                 } else {
                     /// Set initial weight of all the committed nodes
+                    /// TODO: Figure out how to calculate the initial weight for each node
                     nodeRecord.initialWeight = 50
                 }
             }
@@ -300,6 +306,7 @@ pub contract FlowIDTableStaking {
             let allNodeIDs = FlowIDTableStaking.getNodeIDs()
 
             // calculate total reward sum for each node type
+            // by multiplying the total amount of rewards by the ration for each node type
             var rewardsForNodeTypes: {UInt8: UFix64} = {}
             rewardsForNodeTypes[UInt8(1)] = FlowIDTableStaking.epochTokenPayout * FlowIDTableStaking.rewardRatios[UInt8(1)]!
             rewardsForNodeTypes[UInt8(2)] = FlowIDTableStaking.epochTokenPayout * FlowIDTableStaking.rewardRatios[UInt8(2)]!
@@ -373,7 +380,7 @@ pub contract FlowIDTableStaking {
     /****************** Getter Functions for the node Info *******************/
 
     /// Gets an array of the node IDs that are proposed for the next epoch
-    /// Nodes that are proposed are nodes that have tokens staked + committed
+    /// Nodes that are proposed are nodes that have enough tokens staked + committed
     /// for the next epoch
     pub fun getProposedNodeIDs(): [String] {
         var proposedNodes: [String] = []
@@ -468,7 +475,22 @@ pub contract FlowIDTableStaking {
     }
 
     /// Functions to return contract fields
-    /// TODO
+
+    pub fun getMinimumStakeRequirements(): {UInt8: UFix64} {
+        return self.minimumStakeRequired
+    }
+
+    pub fun getTotalTokensStakedByNodeType(): {UInt8: UFix64} {
+        return self.totalTokensStakedByNodeType
+    }
+
+    pub fun getEpochTokenPayout(): UFix64 {
+        return self.epochTokenPayout
+    }
+
+    pub fun getRewardRatios(): {UInt8: UFix64} {
+        return self.rewardRatios
+    }
 
     init() {
         self.nodes <- {}
