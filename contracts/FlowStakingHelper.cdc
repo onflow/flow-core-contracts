@@ -4,7 +4,7 @@
 // Q: Is it OK if we use structs in arguments to make it more readable
 // A: recreate in transaction
 
-import FlowIDTableStaking from 0xFLOWTABLESTAKING
+import FlowIDTableStaking from 0xFLOWIDTABLESTAKINGADDRESS
 import FlowToken from 0x0ae53cb6e3f42a79
 import FungibleToken from 0x179b6b1cb6755e
 
@@ -28,8 +28,8 @@ pub contract StakingHelper {
     pub resource interface NodeAssistant {
 
         pub fun abort(){
-            pre{
-                self.nodeStaker != nil: "You can't abort after node entry was created"
+            pre {
+                self.nodeStaker == nil: "NodeRecord was already initialized"
             }
         }
 
@@ -100,34 +100,13 @@ pub contract StakingHelper {
         //
         pub fun depositEscrow(vault: @FlowToken.Vault) {
             self.escrowVault.deposit(from: <- vault)
-
             // TODO: Shall we emit custom event here? 
-
         }
 
         // ---------------------------------------------------------------------------------
         // Type:    METHOD
         // Name:    withdawEscrow
-        // Access:  Custody Provider, Node Operator
-        // Action:  Abort initialization and return tokens back to custody provider
-        //
-        pub fun abort() {
-            pre {
-                self.nodeStaker == nil: "NodeRecord was already initialized"
-            }
-
-            self.withdrawEscrow(amount: escrowVault.balance)
-
-            post{
-                // Check that escrowVault is empty
-                escrowVault.balance == 0: "Escrow Vault is not empty"
-            }
-        }
-
-        // ---------------------------------------------------------------------------------
-        // Type:    METHOD
-        // Name:    withdawEscrow
-        // Access:  Custody Provider, Node Operator
+        // Access:  Custody Provider
         // Action:  Returns tokens from escrow back to custody provider
         //
         pub fun withdrawEscrow(amount: UFix64) {
@@ -165,6 +144,22 @@ pub contract StakingHelper {
             self.nodeStaker <- FlowIDTableStaking.addNodeRecord(id: id, role: role, networkingAddress: networkingAddress, networkingKey: networkingKey, stakingKey: stakingKey, tokensCommitted: tokensCommitted )
 
             // TODO: Shall we check if escrowVault is empty before calling 
+        }
+
+        // ---------------------------------------------------------------------------------
+        // Type:    METHOD
+        // Name:    withdawEscrow
+        // Access:  Custody Provider, Node Operator
+        // Action:  Abort initialization and return tokens back to custody provider
+        //
+        pub fun abort() {
+
+            self.withdrawEscrow(amount: escrowVault.balance)
+
+            post{
+                // Check that escrowVault is empty
+                escrowVault.balance == 0: "Escrow Vault is not empty"
+            }
         }
 
         // ---------------------------------------------------------------------------------
@@ -210,6 +205,7 @@ pub contract StakingHelper {
         }
     }
 
+    // Public method, which will allow node operators to create new Assistant resource
     pub fun createAssistant(stakingPair: KeySignaturePair, networkingPair: KeySignaturePair, networkingAddress: String, awardVaultRef: Capability<&FungibleToken.Receiver>): @Assistant {
         return <- create Assistant(stakingPair: stakingPair, networkingPair: networkingPair, networkingAddress: networkingAddress, awardVaultRef: awardVaultRef)
     }
