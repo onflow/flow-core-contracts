@@ -1,0 +1,24 @@
+{
+  "contracts": [
+    {
+      "address": "0x00",
+      "name": "God"
+    },
+    {
+      "path": "/Eve.cdc",
+      "name": "Eve"
+    },
+    {
+      "path": "./Adam.cdc",
+      "name": "Adam"
+    },
+    {
+      "path": "./Snake.cdc",
+      "name": "Snake"
+    },
+    {
+      "path": "/Apple.cdc",
+      "name": "Apple"
+    }
+  ]
+}
