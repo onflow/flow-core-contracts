@@ -31,3 +31,8 @@ func TestFlowIdentityTableContract(t *testing.T) {
 	contract := contracts.FlowIDTableStaking(fakeAddr, fakeAddr)
 	assert.NotNil(t, contract)
 }
+
+func TestFlowStakingHelperContract(t *testing.T) {
+	contract := contracts.FlowStakingHelper(fakeAddr, fakeAddr, fakeAddr)
+	assert.NotNil(t, contract)
+}
