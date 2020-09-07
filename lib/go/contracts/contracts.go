@@ -16,6 +16,7 @@ const (
 	flowQCFilename             = "../../../contracts/epochs/FlowQuorumCertificate.cdc"
 	flowDKGFilename            = "../../../contracts/epochs/FlowDKG.cdc"
 	flowEpochFilename          = "../../../contracts/epochs/FlowEpoch.cdc"
+	flowStakingHelper          = "../../../contracts/FlowStakingHelper.cdc"
 
 	hexPrefix                = "0x"
 	defaultFungibleTokenAddr = "FUNGIBLETOKENADDRESS"
@@ -59,6 +60,20 @@ func FlowIDTableStaking(ftAddr, flowTokenAddr string) []byte {
 
 	code = strings.ReplaceAll(code, defaultFungibleTokenAddr, ftAddr)
 	code = strings.ReplaceAll(code, defaultFlowTokenAddr, flowTokenAddr)
+
+	return []byte(code)
+}
+
+// FlowFees returns the FlowFees contract.
+//
+// The returned contract imports FlowIDTableStaking, FungibleToken and FlowToken
+// contracts from the default addresses.
+func FlowStakingHelper(ftAddr, flowTokenAddr, flowIdTableAddr string) []byte {
+	code := assets.MustAssetString(flowStakingHelper)
+
+	code = strings.ReplaceAll(code, defaultFungibleTokenAddr, ftAddr)
+	code = strings.ReplaceAll(code, defaultFlowTokenAddr, flowTokenAddr)
+	code = strings.ReplaceAll(code, defaultIDTableAddr, flowIdTableAddr)
 
 	return []byte(code)
 }
