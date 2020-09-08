@@ -13,9 +13,10 @@ const (
 	inspectFieldFilename = "inspect_field.cdc"
 	defaultField         = "transactionField"
 
-	defaultFTAddress        = "FUNGIBLETOKENADDRESS"
-	defaultFlowTokenAddress = "FLOWTOKENADDRESS"
-	defaultIDTableAddress   = "IDENTITYTABLEADDRESS"
+	defaultFTAddress            = "FUNGIBLETOKENADDRESS"
+	defaultFlowTokenAddress     = "FLOWTOKENADDRESS"
+	defaultIDTableAddress       = "IDENTITYTABLEADDRESS"
+	defaultStakingHelperAddress = "STAKINGHELPERADDRESS"
 )
 
 // GenerateInspectFieldScript creates a script that reads
@@ -35,7 +36,7 @@ func GenerateInspectFieldScript(field string) []byte {
 
 // ReplaceAddresses replaces the import address
 // and phase in scripts that return info about a specific node and phase
-func ReplaceAddresses(code, ftAddr, flowTokenAddr, idTableAddr string) string {
+func ReplaceAddresses(code, ftAddr, flowTokenAddr, idTableAddr, stakingHelperAddr string) string {
 
 	code = strings.ReplaceAll(
 		code,
@@ -53,6 +54,12 @@ func ReplaceAddresses(code, ftAddr, flowTokenAddr, idTableAddr string) string {
 		code,
 		"0x"+defaultIDTableAddress,
 		"0x"+idTableAddr,
+	)
+
+	code = strings.ReplaceAll(
+		code,
+		"0x"+defaultStakingHelperAddress,
+		"0x"+stakingHelperAddr,
 	)
 
 	return code
