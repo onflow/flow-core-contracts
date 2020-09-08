@@ -1,10 +1,6 @@
 package templates
 
-import (
-	"strings"
-
-	"github.com/onflow/flow-core-contracts/lib/go/templates/internal/assets"
-)
+import "github.com/onflow/flow-core-contracts/lib/go/templates/internal/assets"
 
 const (
 	stakingHelperCreateNew = "stakingHelper/create_staking_helper.cdc"
@@ -14,3 +10,8 @@ const (
 	stakingHelperWithdrawRewards = "stakingHelper/withdraw_rewards.cdc"
 )
 
+func GenerateCreateNewStaker(ftAddr, stakingHelperAddr string) []byte {
+	code := assets.MustAssetString(filePath + stakingHelperCreateNew)
+
+	return []byte(ReplaceAddresses(code, ftAddr, "","", stakingHelperAddr))
+}
