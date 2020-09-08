@@ -1,7 +1,7 @@
 // Create StakingHelper resource and store it in account
 // Node operator will call it to create StakingHelper for itself
 import FungibleToken from 0x179b6b1cb6755e
-import StakingHelper from 0xSTAKING_HELPER_ADDRESS
+import StakingHelper from 0xSTAKINGHELPERADDRESS
 
 // TODO: destructure into basic types and then recreate struct in code
 transaction(stakingPair: StakingHelper.KeySignaturePair, networkingPair: StakingHelper.KeySignaturePair, networkingAddress: String, awardReciever: Address ) {
