@@ -95,7 +95,7 @@ pub contract FlowIDTableStaking {
         /// the public key for staking
         pub(set) var stakingKey: String
 
-        /// The tokens that this node has staked
+        /// The tokens that this node currently has staked
         pub var tokensStaked: @FlowToken.Vault
 
         /// The tokens that this node has committed to stake for the next epoch.
@@ -116,7 +116,13 @@ pub contract FlowIDTableStaking {
         /// weight as determined by the amount staked after the staking auction
         pub(set) var initialWeight: UInt64
 
-        init(id: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String, tokensCommitted: @FungibleToken.Vault) {
+        init(id: String,
+             role: UInt8,  /// role that the node will have for future epochs
+             networkingAddress: String, 
+             networkingKey: String, 
+             stakingKey: String, 
+             tokensCommitted: @FungibleToken.Vault
+        ) {
             pre {
                 id.length == 64: "Node ID length must be 32 bytes (64 hex characters)"
                 FlowIDTableStaking.nodes[id] == nil: "The ID cannot already exist in the record"
@@ -157,10 +163,19 @@ pub contract FlowIDTableStaking {
 
         destroy() {
             let flowTokenRef = FlowIDTableStaking.account.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)!
-            flowTokenRef.deposit(from: <-self.tokensStaked)
-            flowTokenRef.deposit(from: <-self.tokensCommitted)
-            flowTokenRef.deposit(from: <-self.tokensUnstaked)
-            flowTokenRef.deposit(from: <-self.tokensUnlocked)
+            if self.tokensStaked.balance > 0.0 {
+                FlowIDTableStaking.totalTokensStakedByNodeType[self.role] = FlowIDTableStaking.totalTokensStakedByNodeType[self.role]! - self.tokensStaked.balance
+                flowTokenRef.deposit(from: <-self.tokensStaked)
+            } else { destroy self.tokensStaked }
+            if self.tokensCommitted.balance > 0.0 {
+                flowTokenRef.deposit(from: <-self.tokensCommitted)
+            } else { destroy  self.tokensCommitted }
+            if self.tokensUnstaked.balance > 0.0 {
+                flowTokenRef.deposit(from: <-self.tokensUnstaked)
+            } else { destroy  self.tokensUnstaked }
+            if self.tokensUnlocked.balance > 0.0 {
+                flowTokenRef.deposit(from: <-self.tokensUnlocked)
+            } else { destroy  self.tokensUnlocked }
         }
     }
 
@@ -216,11 +231,13 @@ pub contract FlowIDTableStaking {
                 /// Get the balance of the tokens that are currently committed
                 let amountCommitted = nodeRecord.tokensCommitted.balance
 
-                nodeRecord.tokensUnlocked.deposit(from: <-nodeRecord.tokensCommitted.withdraw(amount: amountCommitted))
+                if amountCommitted > 0.0 {
+                    nodeRecord.tokensUnlocked.deposit(from: <-nodeRecord.tokensCommitted.withdraw(amount: amountCommitted))
+                }
 
                 /// update request to show that leftover amount is requested to be unstaked
                 /// at the end of the current epoch
-                nodeRecord.tokensRequestedToUnstake = amount - amountCommitted
+                nodeRecord.tokensRequestedToUnstake = nodeRecord.tokensRequestedToUnstake + (amount - amountCommitted)
             }  
         }
 
@@ -270,7 +287,7 @@ pub contract FlowIDTableStaking {
         /// after the staking auction phase
         ///
         /// Also sets the initial weight of all the accepted nodes
-        pub fun endStakingAuction() {
+        pub fun endStakingAuction(approvedNodeIDs: {String: Bool}) {
 
             let allNodeIDs = FlowIDTableStaking.getNodeIDs()
 
@@ -279,15 +296,17 @@ pub contract FlowIDTableStaking {
 
                 let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
 
-                let totalTokensCommitted = nodeRecord.tokensCommitted.balance + nodeRecord.tokensStaked.balance - nodeRecord.tokensRequestedToUnstake
+                let totalTokensCommitted = FlowIDTableStaking.getTotalCommittedBalance(nodeID)
 
                 /// If the tokens that they have committed for the next epoch
                 /// do not meet the minimum requirements
-                if totalTokensCommitted < FlowIDTableStaking.minimumStakeRequired[nodeRecord.role]! {
+                if (totalTokensCommitted < FlowIDTableStaking.minimumStakeRequired[nodeRecord.role]!) || approvedNodeIDs[nodeID] == nil {
+
                     /// move their committed tokens back to their unlocked tokens
                     nodeRecord.tokensUnlocked.deposit(from: <-nodeRecord.tokensCommitted.withdraw(amount: nodeRecord.tokensCommitted.balance))
 
-                    /// Add the rest of their staked tokens to their request since they have to unstake
+                    /// Set their request to unstake equal to all their staked tokens
+                    /// since they are forced to unstake
                     nodeRecord.tokensRequestedToUnstake = nodeRecord.tokensStaked.balance
 
                     nodeRecord.initialWeight = 0
@@ -319,8 +338,10 @@ pub contract FlowIDTableStaking {
 
                 let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
 
+                if nodeRecord.tokensStaked.balance == 0.0 { continue }
+
                 /// Calculate the amount of tokens that this node operator receives
-                let rewardAmount =  rewardsForNodeTypes[nodeRecord.role]! * (nodeRecord.tokensStaked.balance/FlowIDTableStaking.totalTokensStakedByNodeType[nodeRecord.role]!)
+                let rewardAmount =  rewardsForNodeTypes[nodeRecord.role]! * (nodeRecord.tokensStaked.balance / FlowIDTableStaking.totalTokensStakedByNodeType[nodeRecord.role]!)
 
                 /// Mint the tokens to reward the operator
                 let tokensRewarded <- FlowIDTableStaking.flowTokenMinter.mintTokens(amount: rewardAmount)
@@ -346,9 +367,15 @@ pub contract FlowIDTableStaking {
                 // Update total number of tokens staked by all the nodes of each type
                 FlowIDTableStaking.totalTokensStakedByNodeType[nodeRecord.role] = FlowIDTableStaking.totalTokensStakedByNodeType[nodeRecord.role]! + nodeRecord.tokensCommitted.balance
 
-                nodeRecord.tokensStaked.deposit(from: <-nodeRecord.tokensCommitted.withdraw(amount: nodeRecord.tokensCommitted.balance))
-                nodeRecord.tokensUnlocked.deposit(from: <-nodeRecord.tokensUnstaked.withdraw(amount: nodeRecord.tokensUnstaked.balance))
-                nodeRecord.tokensUnstaked.deposit(from: <-nodeRecord.tokensStaked.withdraw(amount: nodeRecord.tokensRequestedToUnstake))
+                if nodeRecord.tokensCommitted.balance > 0.0 {
+                    nodeRecord.tokensStaked.deposit(from: <-nodeRecord.tokensCommitted.withdraw(amount: nodeRecord.tokensCommitted.balance))
+                }
+                if nodeRecord.tokensUnstaked.balance > 0.0 {
+                    nodeRecord.tokensUnlocked.deposit(from: <-nodeRecord.tokensUnstaked.withdraw(amount: nodeRecord.tokensUnstaked.balance))
+                }
+                if nodeRecord.tokensRequestedToUnstake > 0.0 {
+                    nodeRecord.tokensUnstaked.deposit(from: <-nodeRecord.tokensStaked.withdraw(amount: nodeRecord.tokensRequestedToUnstake))
+                }
 
                 // subtract their requested tokens from the total staked for their node type
                 FlowIDTableStaking.totalTokensStakedByNodeType[nodeRecord.role] = FlowIDTableStaking.totalTokensStakedByNodeType[nodeRecord.role]! - nodeRecord.tokensRequestedToUnstake
@@ -388,7 +415,7 @@ pub contract FlowIDTableStaking {
         for nodeID in FlowIDTableStaking.getNodeIDs() {
             let record = FlowIDTableStaking.borrowNodeRecord(nodeID)
 
-            if record.tokensCommitted.balance + record.tokensStaked.balance - record.tokensRequestedToUnstake > self.minimumStakeRequired[record.role]!  {
+            if self.getTotalCommittedBalance(nodeID) >= self.minimumStakeRequired[record.role]!  {
                 proposedNodes.append(nodeID)
             }
         }
@@ -406,7 +433,7 @@ pub contract FlowIDTableStaking {
         for nodeID in FlowIDTableStaking.getNodeIDs() {
             let record = FlowIDTableStaking.borrowNodeRecord(nodeID)
 
-            if record.tokensStaked.balance > self.minimumStakeRequired[record.role]!  {
+            if record.tokensStaked.balance >= self.minimumStakeRequired[record.role]!  {
                 stakedNodes.append(nodeID)
             }
         }
@@ -472,6 +499,22 @@ pub contract FlowIDTableStaking {
         let nodeRecord = self.borrowNodeRecord(nodeID)
 
         return nodeRecord.tokensUnlocked.balance
+    }
+
+    pub fun getTotalCommittedBalance(_ nodeID: String): UFix64 {
+        let nodeRecord = self.borrowNodeRecord(nodeID)
+
+        if (nodeRecord.tokensCommitted.balance + nodeRecord.tokensStaked.balance) < nodeRecord.tokensRequestedToUnstake {
+            return 0.0
+        } else {
+            return nodeRecord.tokensCommitted.balance + nodeRecord.tokensStaked.balance - nodeRecord.tokensRequestedToUnstake
+        }
+    }
+
+    pub fun getNodeUnstakingRequest(_ nodeID: String): UFix64 {
+        let nodeRecord = self.borrowNodeRecord(nodeID)
+
+        return nodeRecord.tokensRequestedToUnstake
     }
 
     /// Functions to return contract fields

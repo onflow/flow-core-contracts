@@ -13,6 +13,7 @@ require (
 	github.com/onflow/cadence v0.8.0
 	github.com/onflow/flow-core-contracts/lib/go/contracts v0.0.0-00010101000000-000000000000
 	github.com/onflow/flow-core-contracts/lib/go/templates v0.0.0-00010101000000-000000000000
+	github.com/onflow/flow-ft/lib/go/templates v0.0.0-20200903174622-f9406edc16ba
 	github.com/onflow/flow-go-sdk v0.9.0
 	github.com/rs/zerolog v1.19.0 // indirect
 	github.com/stretchr/objx v0.2.0 // indirect
