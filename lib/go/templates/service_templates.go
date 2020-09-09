@@ -36,7 +36,30 @@ func GenerateInspectFieldScript(field string) []byte {
 
 // ReplaceAddresses replaces the import address
 // and phase in scripts that return info about a specific node and phase
-func ReplaceAddresses(code, ftAddr, flowTokenAddr, idTableAddr, stakingHelperAddr string) string {
+func ReplaceAddresses(code, ftAddr, flowTokenAddr, idTableAddr string) string {
+
+	code = strings.ReplaceAll(
+		code,
+		"0x"+defaultFTAddress,
+		"0x"+ftAddr,
+	)
+
+	code = strings.ReplaceAll(
+		code,
+		"0x"+defaultFlowTokenAddress,
+		"0x"+flowTokenAddr,
+	)
+
+	code = strings.ReplaceAll(
+		code,
+		"0x"+defaultIDTableAddress,
+		"0x"+idTableAddr,
+	)
+
+	return code
+}
+
+func ReplaceHelperAddresses(code, ftAddr, flowTokenAddr, idTableAddr, stakingHelperAddr string) string {
 
 	code = strings.ReplaceAll(
 		code,
