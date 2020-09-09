@@ -12,7 +12,7 @@ transaction(stakingPair: StakingHelper.KeySignaturePair, networkingPair: Staking
     let awardVaultRef: Path
 
     prepare(node: AuthAccount, provider: AuthAccount) {
-        self.operator = node
+        self.node = node
         self.provider = provider
         self.path = StakingHelper.AssistantStoragePath
         self.refPath = /private/flowStakingHelperAssistant
@@ -30,8 +30,10 @@ transaction(stakingPair: StakingHelper.KeySignaturePair, networkingPair: Staking
         // Create new account here
         let newAccount = AuthAccount(payer: self.node)
 
+        // TODO: emit event that newAccount was created and updated?
+
         // TODO:  shall we do creation of assets and storing them here?
-                // Create new Assistant
+        // Create new Assistant
         let assistant <- StakingHelper.createAssistant(stakingPair: stakingPair, networkingPair: networkingPair, networkingAddress: networkingAddress, awardVaultRef: awardVaultRef)
 
         // Store assistant object in storage and create private capability
@@ -48,9 +50,14 @@ transaction(stakingPair: StakingHelper.KeySignaturePair, networkingPair: Staking
     }
 
     post {
-        getAccount(self.operator)
+        getAccount(self.node)
+            .getCapability(self.refPath)!
+            .check<&StakingHelper.NodeAssistant>():
+            "Node reference to NodeAssistant was not created correctly"
+
+        getAccount(self.provider)
             .getCapability(self.refPath)!
             .check<&StakingHelper.Assistant>():
-            "Assistant reference was not created correctly"
+            "Provider reference to Assistant was not created correctly"
     }
 }
