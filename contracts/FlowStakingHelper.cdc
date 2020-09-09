@@ -4,9 +4,9 @@
 // Q: Is it OK if we use structs in arguments to make it more readable
 // A: recreate in transaction
 
-import FlowIDTableStaking from 0xFLOWIDTABLESTAKINGADDRESS
 import FlowToken from 0x0ae53cb6e3f42a79
 import FungibleToken from 0x179b6b1cb6755e
+import FlowIDTableStaking from 0xFLOWIDTABLESTAKINGADDRESS
 
 pub contract StakingHelper {
 
@@ -19,6 +19,7 @@ pub contract StakingHelper {
         pub let key: String
         pub let signature: String
 
+
         init (key: String, signature: String){
             self.key = key
             self.signature = signature
@@ -26,6 +27,8 @@ pub contract StakingHelper {
     }
 
     pub resource interface NodeAssistant {
+        // Optional to store NodeStaker object from staking contract
+        access(contract) var nodeStaker: @FlowIDTableStaking.NodeStaker?
 
         pub fun abort(){
             pre {
@@ -148,12 +151,11 @@ pub contract StakingHelper {
 
         // ---------------------------------------------------------------------------------
         // Type:    METHOD
-        // Name:    withdawEscrow
+        // Name:    abort
         // Access:  Custody Provider, Node Operator
         // Action:  Abort initialization and return tokens back to custody provider
         //
         pub fun abort() {
-
             self.withdrawEscrow(amount: escrowVault.balance)
 
             post{
@@ -166,7 +168,7 @@ pub contract StakingHelper {
         // Type:    METHOD
         // Name:    stake
         // Access:  Custody Provider, Node Operator
-        // Action: Function to request to stake all tokens
+        // Action: Function to request to stake certain amount of tokens
         pub fun stake(amount: UFix64) {
             pre{
                 self.nodeStaker != nil: "NodeRecord was not initialized"    
