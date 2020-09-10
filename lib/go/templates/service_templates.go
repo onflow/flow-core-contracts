@@ -9,7 +9,8 @@ import (
 )
 
 const (
-	filePath             = "../../../transactions/"
+	// filePath             = "../../../transactions/"
+	filePath             = ""
 	inspectFieldFilename = "inspect_field.cdc"
 	defaultField         = "transactionField"
 

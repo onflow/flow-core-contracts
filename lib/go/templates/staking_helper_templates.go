@@ -13,5 +13,5 @@ const (
 func GenerateCreateNewStaker(ftAddr, stakingHelperAddr string) []byte {
 	code := assets.MustAssetString(filePath + stakingHelperCreateNew)
 
-	return []byte(ReplaceAddresses(code, ftAddr, "","", stakingHelperAddr))
+	return []byte(ReplaceHelperAddresses(code, ftAddr, "","", stakingHelperAddr))
 }

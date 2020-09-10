@@ -9,14 +9,16 @@ import (
 )
 
 const (
-	flowFeesFilename           = "../../../contracts/FlowFees.cdc"
-	flowServiceAccountFilename = "../../../contracts/FlowServiceAccount.cdc"
-	flowTokenFilename          = "../../../contracts/FlowToken.cdc"
-	flowIdentityTableFilename  = "../../../contracts/epochs/FlowIDTableStaking.cdc"
-	flowQCFilename             = "../../../contracts/epochs/FlowQuorumCertificate.cdc"
-	flowDKGFilename            = "../../../contracts/epochs/FlowDKG.cdc"
-	flowEpochFilename          = "../../../contracts/epochs/FlowEpoch.cdc"
-	flowStakingHelper          = "../../../contracts/FlowStakingHelper.cdc"
+	// contractPrefix				= "../../../contracts/"
+	contractPrefix				= ""
+	flowFeesFilename           = "FlowFees.cdc"
+	flowServiceAccountFilename = "FlowServiceAccount.cdc"
+	flowTokenFilename          = "FlowToken.cdc"
+	flowIdentityTableFilename  = "epochs/FlowIDTableStaking.cdc"
+	flowQCFilename             = "epochs/FlowQuorumCertificate.cdc"
+	flowDKGFilename            = "epochs/FlowDKG.cdc"
+	flowEpochFilename          = "epochs/FlowEpoch.cdc"
+	flowStakingHelper          = "FlowStakingHelper.cdc"
 
 	hexPrefix                = "0x"
 	defaultFungibleTokenAddr = "FUNGIBLETOKENADDRESS"
@@ -30,7 +32,7 @@ const (
 //
 // The returned contract will import the FungibleToken contract from the specified address.
 func FlowToken() []byte {
-	code := assets.MustAssetString(flowTokenFilename)
+	code := assets.MustAssetString(contractPrefix + flowTokenFilename)
 	return []byte(code)
 }
 
@@ -39,7 +41,7 @@ func FlowToken() []byte {
 // The returned contract imports the FungibleToken and FlowToken
 // contracts from the default addresses.
 func FlowFees() []byte {
-	code := assets.MustAssetString(flowFeesFilename)
+	code := assets.MustAssetString(contractPrefix + flowFeesFilename)
 
 	return []byte(code)
 }
@@ -49,14 +51,14 @@ func FlowFees() []byte {
 // The returned contract imports the FungibleToken, FlowToken and FlowFees
 // contracts from the default addresses.
 func FlowServiceAccount() []byte {
-	code := assets.MustAssetString(flowServiceAccountFilename)
+	code := assets.MustAssetString(contractPrefix + flowServiceAccountFilename)
 
 	return []byte(code)
 }
 
 // FlowIDTableStaking returns the FlowIDTableStaking contract
 func FlowIDTableStaking(ftAddr, flowTokenAddr string) []byte {
-	code := assets.MustAssetString(flowIdentityTableFilename)
+	code := assets.MustAssetString(contractPrefix + flowIdentityTableFilename)
 
 	code = strings.ReplaceAll(code, defaultFungibleTokenAddr, ftAddr)
 	code = strings.ReplaceAll(code, defaultFlowTokenAddr, flowTokenAddr)
@@ -69,7 +71,7 @@ func FlowIDTableStaking(ftAddr, flowTokenAddr string) []byte {
 // The returned contract imports FlowIDTableStaking, FungibleToken and FlowToken
 // contracts from the default addresses.
 func FlowStakingHelper(ftAddr, flowTokenAddr, flowIdTableAddr string) []byte {
-	code := assets.MustAssetString(flowStakingHelper)
+	code := assets.MustAssetString(contractPrefix + flowStakingHelper)
 
 	code = strings.ReplaceAll(code, defaultFungibleTokenAddr, ftAddr)
 	code = strings.ReplaceAll(code, defaultFlowTokenAddr, flowTokenAddr)
