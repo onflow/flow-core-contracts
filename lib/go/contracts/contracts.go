@@ -19,6 +19,7 @@ const (
 	flowDKGFilename            = "epochs/FlowDKG.cdc"
 	flowEpochFilename          = "epochs/FlowEpoch.cdc"
 	flowStakingHelper          = "FlowStakingHelper.cdc"
+	flowStakingScaffoldFilename = "FlowStakingScaffold.cdc"
 
 	hexPrefix                = "0x"
 	defaultFungibleTokenAddr = "FUNGIBLETOKENADDRESS"
@@ -76,6 +77,19 @@ func FlowStakingHelper(ftAddr, flowTokenAddr, flowIdTableAddr string) []byte {
 	code = strings.ReplaceAll(code, defaultFungibleTokenAddr, ftAddr)
 	code = strings.ReplaceAll(code, defaultFlowTokenAddr, flowTokenAddr)
 	code = strings.ReplaceAll(code, defaultIDTableAddr, flowIdTableAddr)
+
+	return []byte(code)
+}
+
+func FlowStakingScaffold(ftAddr, flowTokenAddr, flowIdTableAddr string) []byte {
+	println(ftAddr, flowTokenAddr, flowIdTableAddr)
+	code := assets.MustAssetString(contractPrefix + flowStakingScaffoldFilename)
+
+	code = strings.ReplaceAll(code, defaultFungibleTokenAddr, ftAddr)
+	code = strings.ReplaceAll(code, defaultFlowTokenAddr, flowTokenAddr)
+	code = strings.ReplaceAll(code, defaultIDTableAddr, flowIdTableAddr)
+
+	println(code)
 
 	return []byte(code)
 }
