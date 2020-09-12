@@ -6,11 +6,13 @@
   "author": "Max Daunarovich",
   "license": "MIT",
   "dependencies": {
+    "@babel/preset-env": "^7.11.5",
     "@onflow/config": "^0.0.2",
     "@onflow/fcl": "^0.0.51",
     "@onflow/fcl-config": "^0.0.1",
     "@onflow/sdk": "^0.0.30",
     "@onflow/types": "^0.0.3",
+    "babel-jest": "^26.3.0",
     "elliptic": "^6.5.3",
     "esm": "^3.2.25",
     "rlp": "^2.2.6",
@@ -18,9 +20,17 @@
   },
   "scripts": {
     "start-chain": "flow emulator start",
-    "run-test": "node index.js"
+    "run-test": "node index.js",
+    "test": "jest"
   },
   "devDependencies": {
+    "jest": "^26.4.2",
     "prettier": "^2.0.5"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "coveragePathIgnorePatterns": [
+      "/node_modules/"
+    ]
   }
 }
