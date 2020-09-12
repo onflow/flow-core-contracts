@@ -25,15 +25,15 @@ pub contract StakingHelper {
         pub let networkingAddress: String
 
         // FlowToken Vault to hold escrow tokens
-        pub let escrowVault: @FlowToken.Vault
+        pub let escrowVault: @FungibleToken.Vault
 
         // Receiver Capability for account, where rewards are paid
-        pub let awardVaultRef: Capability<&FungibleToken.Receiver>
+        pub let awardVaultRef: Capability<&AnyResource{FungibleToken.Receiver}>
 
         // Optional to store NodeStaker object from staking contract
         access(contract) var nodeStaker: @FlowIDTableStaking.NodeStaker?
         
-        init(stakingPair: KeySignaturePair, networkingPair: KeySignaturePair, networkingAddress: String, awardVaultRef: Capability<&FungibleToken.Receiver>){
+        init(stakingPair: KeySignaturePair, networkingPair: KeySignaturePair, networkingAddress: String, awardVaultRef: Capability<&AnyResource{FungibleToken.Receiver}>){
             pre {
                 networkingAddress.length > 0 : "The networkingAddress cannot be empty"
             }
@@ -43,6 +43,9 @@ pub contract StakingHelper {
             self.networkingAddress = networkingAddress
             self.awardVaultRef = awardVaultRef
             self.nodeStaker <- nil
+
+            // TODO: Check that proper type of Vault is created
+            self.escrowVault <- FlowToken.createEmptyVault()
         }
 
         destroy() {
@@ -52,7 +55,7 @@ pub contract StakingHelper {
         }    
     }
 
-    pub fun createAssistant(stakingPair: KeySignaturePair, networkingPair: KeySignaturePair, networkingAddress: String, awardVaultRef: Capability<&FungibleToken.Receiver>): @Assistant {
+    pub fun createAssistant(stakingPair: KeySignaturePair, networkingPair: KeySignaturePair, networkingAddress: String, awardVaultRef: Capability<&AnyResource{FungibleToken.Receiver}>): @Assistant {
         return <- create Assistant(stakingPair: stakingPair, networkingPair: networkingPair, networkingAddress: networkingAddress, awardVaultRef: awardVaultRef)
     }
 
