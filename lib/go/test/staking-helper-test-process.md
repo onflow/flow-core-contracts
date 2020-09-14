@@ -1,20 +1,19 @@
 # Setup
 
 ### Deployment
-- [ ] Deploy `FlowIDTableStaking` contract
-- [ ] Deploy `FlowStakingHelper` contract
+- [x] Deploy `FlowIDTableStaking` contract
+- [x] Deploy `FlowStakingHelper` contract
 
 ### Accounts
-- [ ] Create `NodeOperator` account
-- [ ] Create `CustodyProvider` account
-- [ ] Create `TokenHolder` account
+- [x] Create `NodeOperator` account
+- [x] Create `CustodyProvider` account
 
 ### Transactions
 ##### Creation
 - [ ] Call `createAssistant` on `StakingHelper` contract to create new Assistant resource
+    - [ ] Check event for new account created
     - [ ] Check full capability `Assistant` was created on `CustodyProvider` account
     - [ ] Check restricted capability `NodeAssistant` was created on `NodeProvider` account
-
 
 - [ ] Call **`NOT-IMPLEMENTED-METHOD`** to give `TokenHolder` capability to `CustodyProvider`
 - [ ] `TokenHolder` commits tokens via provided capability by calling `depositEscrow`
