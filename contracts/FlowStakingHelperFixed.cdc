@@ -20,21 +20,66 @@ pub contract StakingHelper {
         }
     }
 
-    pub resource Assistant {
-        // Staking parameters
+    pub resource interface NodeAssistant {
+        access(contract) var nodeStaker: @FlowIDTableStaking.NodeStaker?
+        pub let escrowVault: @FungibleToken.Vault
+        
+        /// Function to abort creation of node record and returning tokens back
+        pub fun abort(){
+            pre{
+                self.nodeStaker == nil: "NodeRecord was already initialized"
+            }
+        }
+
+        /// Teturn tokens from escrow back to custody provider
+        pub fun withdrawEscrow(amount: UFix64) {   
+            pre {
+                amount <= self.escrowVault.balance:
+                     "Amount is bigger than escrow"
+            }
+        }
+
+        /// Submit staking request to staking contract
+        /// Should be called ONCE to init the record in staking contract and get NodeRecord
+        pub fun submit(id: String, role: UInt8, adminCapability: Capability<&FlowIDTableStaking.Admin> ) {   
+            pre{
+                // check that entry already exists? 
+                self.nodeStaker == nil: "NodeRecord already initialized"
+                id.length > 0: "id field can't be empty"
+            }
+        }
+
+        /// Request to unstake portion of staked tokens
+        pub fun unstake(amount: UFix64) {
+            pre{
+                self.nodeStaker != nil: "NodeRecord was not initialized"    
+            }
+        }
+
+        /// Return unlocked tokens from staking contract
+        pub fun withdrawTokens(amount: UFix64) {
+            pre{
+                self.nodeStaker != nil: "NodeRecord was not initialized"    
+            }
+        }
+            
+    }
+
+    pub resource Assistant: NodeAssistant {
+        /// Staking parameters
         pub let stakingPair: KeySignaturePair
 
-        // Networking parameters
+        /// Networking parameters
         pub let networkingPair: KeySignaturePair
         pub let networkingAddress: String
 
-        // FlowToken Vault to hold escrow tokens
+        /// FlowToken Vault to hold escrow tokens
         pub let escrowVault: @FungibleToken.Vault
 
-        // Receiver Capability for account, where rewards are paid
+        /// Receiver Capability for account, where rewards are paid
         pub let awardVaultRef: Capability
 
-        // Optional to store NodeStaker object from staking contract
+        /// Optional to store NodeStaker object from staking contract
         access(contract) var nodeStaker: @FlowIDTableStaking.NodeStaker?
         
         init(stakingPair: KeySignaturePair, networkingPair: KeySignaturePair, networkingAddress: String, awardVaultRef: Capability){
@@ -70,8 +115,6 @@ pub contract StakingHelper {
             // TODO: Shall we emit custom event here? 
         }
 
-
-        
         /// ---------------------------------------------------------------------------------
         /// Type:    METHOD
         /// Name:    withdawEscrow
@@ -79,13 +122,6 @@ pub contract StakingHelper {
         /// Action:  Returns tokens from escrow back to custody provider
         ///
         pub fun withdrawEscrow(amount: UFix64) {
-            
-            pre {
-                amount <= self.escrowVault.balance:
-                     "Amount is bigger than escrow"
-            }
-            
-
             // We will create temvporary Vault in order to preserve one living in Assistant
             let tempVault <- self.escrowVault.withdraw(amount: self.escrowVault.balance)
             
@@ -102,13 +138,6 @@ pub contract StakingHelper {
         ///
         // TODO: How are we gonna get adminCapability
         pub fun submit(id: String, role: UInt8, adminCapability: Capability<&FlowIDTableStaking.Admin> ) {
-             
-            pre{
-                // check that entry already exists? 
-                self.nodeStaker == nil: "NodeRecord already initialized"
-                id.length > 0: "id field can't be empty"
-            }
-
             let stakingKey = self.stakingPair.key 
             let networkingKey = self.networkingPair.key 
             let networkingAddress = self.networkingAddress 
@@ -161,10 +190,6 @@ pub contract StakingHelper {
         /// Action: Function to request to unstake portion of staked tokens
         /// 
         pub fun unstake(amount: UFix64) {
-            pre{
-                self.nodeStaker != nil: "NodeRecord was not initialized"    
-            }
-
             self.nodeStaker?.requestUnStaking(amount: amount)
         }
 
@@ -176,10 +201,6 @@ pub contract StakingHelper {
         ///
         /// Action: Return unlocked tokens from staking contract
         pub fun withdrawTokens(amount: UFix64){
-            pre{
-                self.nodeStaker != nil: "NodeRecord was not initialized"    
-            }
-            
             if let vault <- self.nodeStaker?.withdrawUnlockedTokens(amount: amount) {
                 self.escrowVault.deposit(from: <- vault)
             } else {
