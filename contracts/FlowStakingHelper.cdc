@@ -9,29 +9,18 @@ pub contract StakingHelper {
 
     pub let AssistantStoragePath: Path
 
-    pub struct KeySignaturePair {
-        pub let key: String
-        pub let signature: String
-
-
-        init (key: String, signature: String){
-            self.key = key
-            self.signature = signature
-        }
-    }
-
     pub resource interface NodeAssistant {
         access(contract) var nodeStaker: @FlowIDTableStaking.NodeStaker?
         pub let escrowVault: @FungibleToken.Vault
         
-        /// Function to abort creation of node record and returning tokens back
+        /// Function to abort creation of node record and return tokens back
         pub fun abort(){
             pre{
                 self.nodeStaker == nil: "NodeRecord was already initialized"
             }
         }
 
-        /// Teturn tokens from escrow back to custody provider
+        /// Return tokens from escrow back to custody provider
         pub fun withdrawEscrow(amount: UFix64) {   
             pre {
                 amount <= self.escrowVault.balance:
@@ -41,7 +30,7 @@ pub contract StakingHelper {
 
         /// Submit staking request to staking contract
         /// Should be called ONCE to init the record in staking contract and get NodeRecord
-        pub fun submit(id: String, role: UInt8, adminCapability: Capability<&FlowIDTableStaking.Admin> ) {   
+        pub fun submit(id: String, role: UInt8 ) {   
             pre{
                 // check that entry already exists? 
                 self.nodeStaker == nil: "NodeRecord already initialized"
@@ -67,39 +56,40 @@ pub contract StakingHelper {
 
     pub resource Assistant: NodeAssistant {
         /// Staking parameters
-        pub let stakingPair: KeySignaturePair
+        pub let stakingKey: String
 
         /// Networking parameters
-        pub let networkingPair: KeySignaturePair
+        pub let networkingKey: String
         pub let networkingAddress: String
 
         /// FlowToken Vault to hold escrow tokens
         pub let escrowVault: @FungibleToken.Vault
 
         /// Receiver Capability for account, where rewards are paid
-        pub let awardVaultRef: Capability
+        pub let operatorAwardVault: Capability
+
+        pub let nodeAwardVault: Capability
 
         /// Optional to store NodeStaker object from staking contract
         access(contract) var nodeStaker: @FlowIDTableStaking.NodeStaker?
         
-        init(stakingPair: KeySignaturePair, networkingPair: KeySignaturePair, networkingAddress: String, awardVaultRef: Capability){
+        init(stakingKey: String, networkingKey: String, networkingAddress: String, awardVaultRef: Capability){
             pre {
                 networkingAddress.length > 0 : "The networkingAddress cannot be empty"
             }
 
-            self.stakingPair = stakingPair
-            self.networkingPair = networkingPair
+            self.stakingKey = stakingKey
+            self.networkingKey = networkingKey
             self.networkingAddress = networkingAddress
             self.awardVaultRef = awardVaultRef
             self.nodeStaker <- nil
 
-            // TODO: Check that proper type of Vault is created
-            self.escrowVault <- FlowToken.createEmptyVault()
-        
+            // Initiaate empty FungibleToken Vault to store escrowed tokens
+            self.escrowVault <- FlowToken.createEmptyVault()        
         }
 
         destroy() {
-            // Decide what to do with  resources
+            // TODO: deposit into owner vault
             destroy self.escrowVault
             destroy self.nodeStaker
         }
@@ -122,7 +112,7 @@ pub contract StakingHelper {
         /// Action:  Returns tokens from escrow back to custody provider
         ///
         pub fun withdrawEscrow(amount: UFix64) {
-            // We will create temvporary Vault in order to preserve one living in Assistant
+            // We will create temporary Vault in order to preserve one living in Assistant
             let tempVault <- self.escrowVault.withdraw(amount: self.escrowVault.balance)
             
             self.awardVaultRef.borrow<&{FungibleToken.Receiver}>()!
@@ -136,20 +126,15 @@ pub contract StakingHelper {
         /// Access:  Node Operator
         /// Action:  Submits staking request to staking contract
         ///
-        // TODO: How are we gonna get adminCapability
-        pub fun submit(id: String, role: UInt8, adminCapability: Capability<&FlowIDTableStaking.Admin> ) {
-            let stakingKey = self.stakingPair.key 
-            let networkingKey = self.networkingPair.key 
+        pub fun submit(id: String, role: UInt8 ) {
+            let stakingKey = self.stakingKey 
+            let networkingKey = self.networkingKey 
             let networkingAddress = self.networkingAddress 
             
-            let tempVault <- self.escrowVault.withdraw(amount: self.escrowVault.balance)
-            let tokensCommitted <- tempVault
+            let tokensCommitted <- self.escrowVault.withdraw(amount: self.escrowVault.balance)
              
             // TODO: Admin capability should be of restricted type
-            let adminRef = adminCapability.borrow()!
-            self.nodeStaker <-! adminRef.addNodeRecord(id: id, role: role, networkingAddress: networkingAddress, networkingKey: networkingKey, stakingKey: stakingKey, tokensCommitted: <- tokensCommitted )
-            
-            // TODO: Shall we check if escrowVault is empty before calling 
+            self.nodeStaker <-! FlowIDTableStaking.addNodeRecord(id: id, role: role, networkingAddress: networkingAddress, networkingKey: networkingKey, stakingKey: stakingKey, tokensCommitted: <- tokensCommitted )            
         }
 
         /// ---------------------------------------------------------------------------------
@@ -209,8 +194,14 @@ pub contract StakingHelper {
         }
     }
 
-    pub fun createAssistant(stakingPair: KeySignaturePair, networkingPair: KeySignaturePair, networkingAddress: String, awardVaultRef: Capability): @Assistant {
-        return <- create Assistant(stakingPair: stakingPair, networkingPair: networkingPair, networkingAddress: networkingAddress, awardVaultRef: awardVaultRef)
+    /// ---------------------------------------------------------------------------------
+    /// Type:    METHOD
+    /// Name:    createAssistant
+    /// Access:  Public
+    ///
+    /// Action: create new Assistant object with specified parameters
+    pub fun createAssistant(stakingKey: String, networkingKey: String, networkingAddress: String, awardVaultRef: Capability): @Assistant {
+        return <- create Assistant(stakingKey: stakingKey, networkingKey: networkingKey, networkingAddress: networkingAddress, awardVaultRef: awardVaultRef)
     }
 
     init(){
