@@ -316,7 +316,6 @@ func TestIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
-		_ = tx.AddArgument(cadence.NewAddress(IDTableAddr))
 		// Invalid ID: Too short
 		_ = tx.AddArgument(cadence.NewString("3039"))
 		_ = tx.AddArgument(cadence.NewUInt8(1))
@@ -326,6 +325,9 @@ func TestIDTable(t *testing.T) {
 		tokenAmount, err := cadence.NewUFix64("125000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
+		cut, err := cadence.NewUFix64("1.0")
+		require.NoError(t, err)
+		_ = tx.AddArgument(cut)
 
 		signAndSubmit(
 			t, b, tx,
@@ -341,7 +343,6 @@ func TestIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
-		_ = tx.AddArgument(cadence.NewAddress(IDTableAddr))
 		_ = tx.AddArgument(cadence.NewString(firstID))
 		// Invalid Role: Greater than 5
 		_ = tx.AddArgument(cadence.NewUInt8(6))
@@ -351,6 +352,9 @@ func TestIDTable(t *testing.T) {
 		tokenAmount, err = cadence.NewUFix64("125000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
+		cut, err = cadence.NewUFix64("1.0")
+		require.NoError(t, err)
+		_ = tx.AddArgument(cut)
 
 		signAndSubmit(
 			t, b, tx,
@@ -366,7 +370,6 @@ func TestIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
-		_ = tx.AddArgument(cadence.NewAddress(IDTableAddr))
 		_ = tx.AddArgument(cadence.NewString(firstID))
 		// Invalid Role: Less than 1
 		_ = tx.AddArgument(cadence.NewUInt8(0))
@@ -376,6 +379,9 @@ func TestIDTable(t *testing.T) {
 		tokenAmount, err = cadence.NewUFix64("125000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
+		cut, err = cadence.NewUFix64("1.0")
+		require.NoError(t, err)
+		_ = tx.AddArgument(cut)
 
 		signAndSubmit(
 			t, b, tx,
@@ -391,7 +397,6 @@ func TestIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
-		_ = tx.AddArgument(cadence.NewAddress(IDTableAddr))
 		_ = tx.AddArgument(cadence.NewString(firstID))
 		_ = tx.AddArgument(cadence.NewUInt8(1))
 		// Invalid Networking Address: Length cannot be zero
@@ -401,6 +406,9 @@ func TestIDTable(t *testing.T) {
 		tokenAmount, err = cadence.NewUFix64("125000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
+		cut, err = cadence.NewUFix64("1.0")
+		require.NoError(t, err)
+		_ = tx.AddArgument(cut)
 
 		signAndSubmit(
 			t, b, tx,
@@ -420,9 +428,7 @@ func TestIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
-		err := tx.AddArgument(cadence.NewAddress(IDTableAddr))
-		require.NoError(t, err)
-		err = tx.AddArgument(cadence.NewString(firstID))
+		err := tx.AddArgument(cadence.NewString(firstID))
 		require.NoError(t, err)
 		err = tx.AddArgument(cadence.NewUInt8(1))
 		require.NoError(t, err)
@@ -436,6 +442,9 @@ func TestIDTable(t *testing.T) {
 		require.NoError(t, err)
 		err = tx.AddArgument(tokenAmount)
 		require.NoError(t, err)
+		cut, err := cadence.NewUFix64("1.0")
+		require.NoError(t, err)
+		_ = tx.AddArgument(cut)
 
 		signAndSubmit(
 			t, b, tx,
@@ -545,7 +554,6 @@ func TestIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
-		_ = tx.AddArgument(cadence.NewAddress(IDTableAddr))
 		// Invalid: This ID has already been used
 		_ = tx.AddArgument(cadence.NewString(firstID))
 		_ = tx.AddArgument(cadence.NewUInt8(1))
@@ -555,6 +563,9 @@ func TestIDTable(t *testing.T) {
 		tokenAmount, err := cadence.NewUFix64("125000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
+		cut, err := cadence.NewUFix64("1.0")
+		require.NoError(t, err)
+		_ = tx.AddArgument(cut)
 
 		signAndSubmit(
 			t, b, tx,
@@ -573,7 +584,6 @@ func TestIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
-		_ = tx.AddArgument(cadence.NewAddress(IDTableAddr))
 		_ = tx.AddArgument(cadence.NewString(secondID))
 		_ = tx.AddArgument(cadence.NewUInt8(1))
 		// Invalid: "netaddress" is already in use
@@ -583,6 +593,9 @@ func TestIDTable(t *testing.T) {
 		tokenAmount, err := cadence.NewUFix64("125000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
+		cut, err := cadence.NewUFix64("1.0")
+		require.NoError(t, err)
+		_ = tx.AddArgument(cut)
 
 		signAndSubmit(
 			t, b, tx,
@@ -598,7 +611,6 @@ func TestIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
-		_ = tx.AddArgument(cadence.NewAddress(IDTableAddr))
 		_ = tx.AddArgument(cadence.NewString(secondID))
 		_ = tx.AddArgument(cadence.NewUInt8(1))
 		_ = tx.AddArgument(cadence.NewString("netaddress2"))
@@ -608,6 +620,9 @@ func TestIDTable(t *testing.T) {
 		tokenAmount, err = cadence.NewUFix64("125000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
+		cut, err = cadence.NewUFix64("1.0")
+		require.NoError(t, err)
+		_ = tx.AddArgument(cut)
 
 		signAndSubmit(
 			t, b, tx,
@@ -623,7 +638,6 @@ func TestIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
-		_ = tx.AddArgument(cadence.NewAddress(IDTableAddr))
 		_ = tx.AddArgument(cadence.NewString(secondID))
 		_ = tx.AddArgument(cadence.NewUInt8(1))
 		_ = tx.AddArgument(cadence.NewString("netaddress2"))
@@ -633,6 +647,9 @@ func TestIDTable(t *testing.T) {
 		tokenAmount, err = cadence.NewUFix64("125000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
+		cut, err = cadence.NewUFix64("1.0")
+		require.NoError(t, err)
+		_ = tx.AddArgument(cut)
 
 		signAndSubmit(
 			t, b, tx,
@@ -651,7 +668,6 @@ func TestIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshAddress)
 
-		_ = tx.AddArgument(cadence.NewAddress(IDTableAddr))
 		_ = tx.AddArgument(cadence.NewString(secondID))
 		_ = tx.AddArgument(cadence.NewUInt8(2))
 		_ = tx.AddArgument(cadence.NewString("netaddress2"))
@@ -660,6 +676,9 @@ func TestIDTable(t *testing.T) {
 		tokenAmount, err := cadence.NewUFix64("240000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
+		cut, err := cadence.NewUFix64("1.0")
+		require.NoError(t, err)
+		_ = tx.AddArgument(cut)
 
 		signAndSubmit(
 			t, b, tx,
@@ -683,7 +702,6 @@ func TestIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(maxAddress)
 
-		_ = tx.AddArgument(cadence.NewAddress(IDTableAddr))
 		_ = tx.AddArgument(cadence.NewString(thirdID))
 		_ = tx.AddArgument(cadence.NewUInt8(3))
 		_ = tx.AddArgument(cadence.NewString("netaddress3"))
@@ -692,6 +710,9 @@ func TestIDTable(t *testing.T) {
 		tokenAmount, err = cadence.NewUFix64("650000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
+		cut, err = cadence.NewUFix64("1.0")
+		require.NoError(t, err)
+		_ = tx.AddArgument(cut)
 
 		signAndSubmit(
 			t, b, tx,
@@ -781,7 +802,6 @@ func TestIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
-		_ = tx.AddArgument(cadence.NewAddress(IDTableAddr))
 		_ = tx.AddArgument(cadence.NewString(secondID))
 		_ = tx.AddArgument(cadence.NewUInt8(2))
 		_ = tx.AddArgument(cadence.NewString("netaddress2"))
@@ -790,6 +810,9 @@ func TestIDTable(t *testing.T) {
 		tokenAmount, err := cadence.NewUFix64("240000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
+		cut, err := cadence.NewUFix64("1.0")
+		require.NoError(t, err)
+		_ = tx.AddArgument(cut)
 
 		signAndSubmit(
 			t, b, tx,
