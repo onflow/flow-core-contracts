@@ -68,6 +68,7 @@ pub contract FlowIDTableStaking {
     /// Paths for storing staking resources
     pub let NodeStakerStoragePath: Path
     pub let StakingAdminStoragePath: Path
+    pub let DelegatorStoragePath: Path
 
     /*********** ID Table and Staking Composite Type Definitions *************/
 
@@ -133,7 +134,8 @@ pub contract FlowIDTableStaking {
              networkingAddress: String, 
              networkingKey: String, 
              stakingKey: String, 
-             tokensCommitted: @FungibleToken.Vault
+             tokensCommitted: @FungibleToken.Vault,
+             cutPercentage: UFix64
         ) {
             pre {
                 id.length == 64: "Node ID length must be 32 bytes (64 hex characters)"
@@ -173,6 +175,7 @@ pub contract FlowIDTableStaking {
             self.tokensStaked <- FlowToken.createEmptyVault() as! @FlowToken.Vault
             self.tokensUnstaked <- FlowToken.createEmptyVault() as! @FlowToken.Vault
             self.tokensUnlocked <- FlowToken.createEmptyVault() as! @FlowToken.Vault
+            self.tokensRewarded <- FlowToken.createEmptyVault() as! @FlowToken.Vault
             self.tokensRequestedToUnstake = 0.0
         }
 
@@ -264,16 +267,29 @@ pub contract FlowIDTableStaking {
     /// in the staking auction and other Epoch phases.
     pub resource NodeStaker: PublicNodeStaker {
 
+        /// Unique ID for the node operator
         pub let id: String
 
-        init(id: String) {
+        /// The incrementing ID used to register new delegators
+        access(self) var delegatorIDCounter: UInt32
+
+        /// The amount of tokens that only this Node operator has staked
+        /// Does not count delegated tokens
+        /// This value must always be above the minimum to stay staked
+        pub var amountStaked: UFix64
+
+        init(id: String, initialStake: UFix64) {
             self.id = id
+            self.delegatorIDCounter = 0
+            self.amountStaked = initialStake
         }
 
         /// Add new tokens to the system to stake during the next epoch
         pub fun stakeNewTokens(_ tokens: @FungibleToken.Vault) {
 
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
+
+            self.amountStaked = self.amountStaked + tokens.balance
 
             /// Add the new tokens to tokens committed
             nodeRecord.tokensCommitted.deposit(from: <-tokens)
@@ -284,6 +300,8 @@ pub contract FlowIDTableStaking {
         pub fun stakeUnlockedTokens(amount: UFix64) {
 
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
+
+            self.amountStaked = self.amountStaked + amount
 
             /// Add the removed tokens to tokens committed
             nodeRecord.tokensCommitted.deposit(from: <-nodeRecord.tokensUnlocked.withdraw(amount: amount))
@@ -306,6 +324,11 @@ pub contract FlowIDTableStaking {
         pub fun requestUnStaking(amount: UFix64) {
 
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
+
+            assert (
+                nodeRecord.delegators.length == 0 || self.amountStaked - amount >= FlowIDTableStaking.getMinimumStakeRequirements()[nodeRecord.role]!,
+                message: "Cannot unstake below the minimum if there are delegators"
+            )
 
             assert (
                 nodeRecord.tokensStaked.balance + 
@@ -410,8 +433,10 @@ pub contract FlowIDTableStaking {
         /// The ID of the node operator that this delegator delegates to
         pub let nodeID: String
 
-            // Insert the node to the table
-            FlowIDTableStaking.nodes[id] <-! newNode
+        init(id: UInt32, nodeID: String) {
+            self.id = id
+            self.nodeID = nodeID
+        }
 
         /// Delegate new tokens to the node operator
         pub fun delegateNewTokens(from: @FungibleToken.Vault) {
@@ -589,7 +614,7 @@ pub contract FlowIDTableStaking {
                 if nodeRecord.tokensStaked.balance == 0.0 { continue }
 
                 /// Calculate the amount of tokens that this node operator receives
-                let rewardAmount =  rewardsForNodeTypes[nodeRecord.role]! * (nodeRecord.tokensStaked.balance / FlowIDTableStaking.totalTokensStakedByNodeType[nodeRecord.role]!)
+                let rewardAmount = rewardsForNodeTypes[nodeRecord.role]! * (nodeRecord.tokensStaked.balance / FlowIDTableStaking.totalTokensStakedByNodeType[nodeRecord.role]!)
 
                 /// Mint the tokens to reward the operator
                 let tokenReward <- FlowIDTableStaking.flowTokenMinter.mintTokens(amount: rewardAmount)
@@ -670,6 +695,21 @@ pub contract FlowIDTableStaking {
         pub fun updateEpochTokenPayout(_ newPayout: UFix64) {
             FlowIDTableStaking.epochTokenPayout = newPayout
         }
+    }
+
+    /// Add a new node to the record
+    pub fun addNodeRecord(id: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String, tokensCommitted: @FungibleToken.Vault, cutPercentage: UFix64): @NodeStaker {
+
+        let initialBalance = tokensCommitted.balance
+        
+        let newNode <- create NodeRecord(id: id, role: role, networkingAddress: networkingAddress, networkingKey: networkingKey, stakingKey: stakingKey, tokensCommitted: <-tokensCommitted, cutPercentage: cutPercentage)
+
+        // Insert the node to the table
+        FlowIDTableStaking.nodes[id] <-! newNode
+
+        // return a new NodeStaker object that the node operator stores in their account
+        return <-create NodeStaker(id: id, initialStake: initialBalance)
+    
     }
 
     /// borrow a reference to to one of the nodes in the record
@@ -837,6 +877,7 @@ pub contract FlowIDTableStaking {
 
         self.NodeStakerStoragePath = /storage/flowStaker
         self.StakingAdminStoragePath = /storage/flowStakingAdmin
+        self.DelegatorStoragePath = /storage/flowStakingDelegator
 
         // These are just arbitrary numbers right now
         self.minimumStakeRequired = {UInt8(1): 125000.0, UInt8(2): 250000.0, UInt8(3): 625000.0, UInt8(4): 67500.0, UInt8(5): 0.0}
