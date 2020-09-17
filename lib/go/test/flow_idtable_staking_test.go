@@ -27,6 +27,9 @@ const (
 
 	nonexistantID = "0000000000000000000000000000000000000000000000000000000000383838383"
 
+	firstDelegatorID  = 1
+	secondDelegatorID = 2
+
 	FTAddress        = "ee82856bf20e2aa6"
 	FlowTokenAddress = "0ae53cb6e3f42a79"
 )
@@ -902,7 +905,7 @@ func TestIDTable(t *testing.T) {
 	t.Run("Should be able to withdraw tokens from unlocked", func(t *testing.T) {
 
 		tx = flow.NewTransaction().
-			SetScript(templates.GenerateWithdrawTokensScript(FTAddress, FlowTokenAddress, IDTableAddr.String())).
+			SetScript(templates.GenerateWithdrawUnlockedTokensScript(FTAddress, FlowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).

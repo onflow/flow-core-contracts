@@ -9,17 +9,17 @@ import (
 const (
 	transferDeployFilename = "idTableStaking/transfer_minter_deploy.cdc"
 
-	createNodeStructFilename = "idTableStaking/create_node.cdc"
-	removeNodeFilename       = "idTableStaking/remove_node.cdc"
-	updateTableFilename      = "idTableStaking/update_table.cdc"
-	endStakingFilename       = "idTableStaking/end_staking.cdc"
-	payRewardsFilename       = "idTableStaking/pay_rewards.cdc"
-	moveTokensFilename       = "idTableStaking/move_tokens.cdc"
+	removeNodeFilename = "idTableStaking/admin/remove_node.cdc"
+	endStakingFilename = "idTableStaking/admin/end_staking.cdc"
+	payRewardsFilename = "idTableStaking/admin/pay_rewards.cdc"
+	moveTokensFilename = "idTableStaking/admin/move_tokens.cdc"
 
-	stakeNewTokensFilename      = "idTableStaking/stake_new_tokens.cdc"
-	stakeUnlockedTokensFilename = "idTableStaking/stake_unlocked_tokens.cdc"
-	unstakeTokensFilename       = "idTableStaking/unstake_tokens.cdc"
-	withdrawTokensFilename      = "idTableStaking/withdraw_tokens.cdc"
+	createNodeStructFilename       = "idTableStaking/create_node.cdc"
+	stakeNewTokensFilename         = "idTableStaking/stake_new_tokens.cdc"
+	stakeUnlockedTokensFilename    = "idTableStaking/stake_unlocked_tokens.cdc"
+	unstakeTokensFilename          = "idTableStaking/unstake_tokens.cdc"
+	withdrawUnlockedTokensFilename = "idTableStaking/withdraw_unlocked_tokens.cdc"
+	withdrawRewardedTokensFilename = "idTableStaking/withdraw_rewarded_tokens.cdc"
 
 	getTableFilename            = "idTableStaking/get_table.cdc"
 	currentTableFilename        = "idTableStaking/get_current_table.cdc"
@@ -164,10 +164,18 @@ func GenerateUnstakeTokensScript(tableAddr string) []byte {
 	return []byte(ReplaceAddresses(code, "", "", tableAddr))
 }
 
-// GenerateWithdrawTokensScript creates a script that withdraws unlocked tokens
+// GenerateWithdrawUnlockedTokensScript creates a script that withdraws unlocked tokens
 // for an existing node operator
-func GenerateWithdrawTokensScript(ftAddr, flowAddr, tableAddr string) []byte {
-	code := assets.MustAssetString(filePath + withdrawTokensFilename)
+func GenerateWithdrawUnlockedTokensScript(ftAddr, flowAddr, tableAddr string) []byte {
+	code := assets.MustAssetString(filePath + withdrawUnlockedTokensFilename)
+
+	return []byte(ReplaceAddresses(code, ftAddr, flowAddr, tableAddr))
+}
+
+// GenerateWithdrawRewardedTokensScript creates a script that withdraws rewarded tokens
+// for an existing node operator
+func GenerateWithdrawRewardedTokensScript(ftAddr, flowAddr, tableAddr string) []byte {
+	code := assets.MustAssetString(filePath + withdrawRewardedTokensFilename)
 
 	return []byte(ReplaceAddresses(code, ftAddr, flowAddr, tableAddr))
 }
@@ -244,8 +252,8 @@ func GenerateGetUnlockedBalanceScript(tableAddr string) []byte {
 	return []byte(ReplaceAddresses(code, "", "", tableAddr))
 }
 
-// GenerateGetTotalCommitmentBalanceScript creates a script
-// that returns the balance of the total committed tokens of a node
+// GenerateGetUnstakingRequestScript creates a script
+// that returns the balance of the unstaking request for a node
 func GenerateGetUnstakingRequestScript(tableAddr string) []byte {
 	code := assets.MustAssetString(filePath + getUnstakingRequestFilename)
 

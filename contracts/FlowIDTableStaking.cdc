@@ -854,6 +854,55 @@ pub contract FlowIDTableStaking {
         return nodeRecord.tokensRequestedToUnstake
     }
 
+    pub fun getNodeDelegatorIDs(nodeID: String): [UInt32] {
+        let nodeRecord = self.borrowNodeRecord(nodeID)
+
+        return nodeRecord.delegators.keys
+    }
+
+    /// Gets the total token balance that the specified node currently has staked
+    pub fun getDelegatorStakedBalance(_ nodeID: String, delegatorID: UInt32): UFix64? {
+        let nodeRecord = self.borrowNodeRecord(nodeID)
+
+        return nodeRecord.delegators[delegatorID]?.tokensStaked
+    }
+
+    /// Gets the token balance that the specified node has committed
+    /// to add to their stake for the next epoch
+    pub fun getDelegatorCommittedBalance(_ nodeID: String, delegatorID: UInt32): UFix64? {
+        let nodeRecord = self.borrowNodeRecord(nodeID)
+
+        return nodeRecord.delegators[delegatorID]?.tokensCommitted
+    }
+
+    /// Gets the token balance that the specified node has unstaked
+    /// from the previous epoch
+    pub fun getDelegatorUnStakedBalance(_ nodeID: String, delegatorID: UInt32): UFix64? {
+        let nodeRecord = self.borrowNodeRecord(nodeID)
+
+        return nodeRecord.delegators[delegatorID]?.tokensUnstaked
+    }
+
+    /// Gets the token balance that the specified node can freely withdraw
+    pub fun getDelegatorUnlockedBalance(_ nodeID: String, delegatorID: UInt32): UFix64? {
+        let nodeRecord = self.borrowNodeRecord(nodeID)
+
+        return nodeRecord.delegators[delegatorID]?.tokensUnlocked?.balance
+    }
+
+    /// Gets the token balance that the specified node can freely withdraw
+    pub fun getDelegatorRewardedBalance(_ nodeID: String, delegatorID: UInt32): UFix64? {
+        let nodeRecord = self.borrowNodeRecord(nodeID)
+
+        return nodeRecord.delegators[delegatorID]?.tokensRewarded?.balance
+    }
+
+    pub fun getDelegatorUnstakingRequest(_ nodeID: String, delegatorID: UInt32): UFix64? {
+        let nodeRecord = self.borrowNodeRecord(nodeID)
+
+        return nodeRecord.delegators[delegatorID]?.tokensRequestedToUnstake
+    }
+
     /// Functions to return contract fields
 
     pub fun getMinimumStakeRequirements(): {UInt8: UFix64} {
