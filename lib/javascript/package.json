@@ -20,6 +20,7 @@
   },
   "scripts": {
     "start-chain": "flow emulator start -v",
+    "start-rpc": "nodemon ./rpc/index.js",
     "run-test": "node index.js",
     "test": "jest"
   },
