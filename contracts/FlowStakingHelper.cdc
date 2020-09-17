@@ -2,25 +2,28 @@ import FlowToken from 0x0ae53cb6e3f42a79
 import FungibleToken from 0xee82856bf20e2aa6
 import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
 
-pub contract StakingHelper {
+pub contract FlowStakingHelper {
+    // Event that is emitted when tokens are deposited to the escrow vault
+    pub event TokensDeposited(amount: UFix64)
     
-    pub event EscrowDeposited(amount: UFix64)
-    pub event StakeAccepted(nodeID: String, amount: UFix64)
+    // Event that is emitted when tokens are successfully staked
+    pub event StakeAccepted(amount: UFix64)
 
-    pub let AssistantStoragePath: Path
+    // Publicly available path
+    pub let HelperStoragePath: Path
 
-    pub resource interface NodeAssistant {
+    pub resource interface NodeHelper {
         access(contract) var nodeStaker: @FlowIDTableStaking.NodeStaker?
         pub let escrowVault: @FungibleToken.Vault
         
-        /// Function to abort creation of node record and return tokens back
+        // Function to abort creation of node record and return tokens back
         pub fun abort(){
             pre{
                 self.nodeStaker == nil: "NodeRecord was already initialized"
             }
         }
 
-        /// Return tokens from escrow back to custody provider
+        // Return tokens from escrow back to custody provider
         pub fun withdrawEscrow(amount: UFix64) {   
             pre {
                 amount <= self.escrowVault.balance:
@@ -28,8 +31,8 @@ pub contract StakingHelper {
             }
         }
 
-        /// Submit staking request to staking contract
-        /// Should be called ONCE to init the record in staking contract and get NodeRecord
+        // Submit staking request to staking contract
+        // Should be called ONCE to init the record in staking contract and get NodeRecord
         pub fun submit(id: String, role: UInt8 ) {   
             pre{
                 // check that entry already exists? 
@@ -38,14 +41,14 @@ pub contract StakingHelper {
             }
         }
 
-        /// Request to unstake portion of staked tokens
+        // Request to unstake portion of staked tokens
         pub fun unstake(amount: UFix64) {
             pre{
                 self.nodeStaker != nil: "NodeRecord was not initialized"    
             }
         }
 
-        /// Return unlocked tokens from staking contract
+        // Return unlocked tokens from staking contract
         pub fun withdrawTokens(amount: UFix64) {
             pre{
                 self.nodeStaker != nil: "NodeRecord was not initialized"    
@@ -54,26 +57,28 @@ pub contract StakingHelper {
             
     }
 
-    pub resource Assistant: NodeAssistant {
-        /// Staking parameters
+    pub resource StakingHelper: NodeHelper {
+        // Staking parameters
         pub let stakingKey: String
 
-        /// Networking parameters
+        // Networking parameters
         pub let networkingKey: String
         pub let networkingAddress: String
 
-        /// FlowToken Vault to hold escrow tokens
+        // FlowToken Vault to hold escrow tokens
         pub let escrowVault: @FungibleToken.Vault
 
-        /// Receiver Capability for account, where rewards are paid
-        pub let operatorAwardVault: Capability
+        // Receiver Capability for account, where rewards are paid
+        pub let stakerAwardVaultCapability: Capability
+        pub let nodeAwardVaultCapability: Capability
 
-        pub let nodeAwardVault: Capability
+        // Portion of reward that goes to node operator
+        pub let cutPercentage: UFix64
 
-        /// Optional to store NodeStaker object from staking contract
+        // Optional to store NodeStaker object from staking contract
         access(contract) var nodeStaker: @FlowIDTableStaking.NodeStaker?
         
-        init(stakingKey: String, networkingKey: String, networkingAddress: String, awardVaultRef: Capability){
+        init(stakingKey: String, networkingKey: String, networkingAddress: String, stakerAwardVaultCapability: Capability, nodeAwardVaultCapability: Capability, cutPercentage: UFix64){
             pre {
                 networkingAddress.length > 0 : "The networkingAddress cannot be empty"
             }
@@ -81,68 +86,73 @@ pub contract StakingHelper {
             self.stakingKey = stakingKey
             self.networkingKey = networkingKey
             self.networkingAddress = networkingAddress
-            self.awardVaultRef = awardVaultRef
+            self.stakerAwardVaultCapability = stakerAwardVaultCapability
+            self.nodeAwardVaultCapability = nodeAwardVaultCapability
+            self.cutPercentage = cutPercentage
+
+            // init resource with empty node record
             self.nodeStaker <- nil
 
-            // Initiaate empty FungibleToken Vault to store escrowed tokens
+            // initiate empty FungibleToken Vault to store escrowed tokens
             self.escrowVault <- FlowToken.createEmptyVault()        
         }
 
         destroy() {
-            // TODO: deposit into owner vault
+            self.withdrawEscrow(amount: self.escrowVault.balance)
+                        
             destroy self.escrowVault
             destroy self.nodeStaker
         }
         
-        /// ---------------------------------------------------------------------------------
-        /// Type:    METHOD
-        /// Name:    depositEscrow
-        /// Access:  Custody Provider
-        /// Action:  Deposit tokens to escrow Vault   
-        ///
+        // ---------------------------------------------------------------------------------
+        // Type:    METHOD
+        // Name:    depositEscrow
+        // Access:  Custody Provider
+        // Action:  Deposit tokens to escrow Vault   
+        //
         pub fun depositEscrow(vault: @FlowToken.Vault) {
+            let amount =  vault.balance 
             self.escrowVault.deposit(from: <- vault)
-            // TODO: Shall we emit custom event here? 
+
+            emit TokensDeposited(amount: amount)
         }
 
-        /// ---------------------------------------------------------------------------------
-        /// Type:    METHOD
-        /// Name:    withdawEscrow
-        /// Access:  Custody Provider
-        /// Action:  Returns tokens from escrow back to custody provider
-        ///
+        // ---------------------------------------------------------------------------------
+        // Type:    METHOD
+        // Name:    withdawEscrow
+        // Access:  Custody Provider
+        // Action:  Returns tokens from escrow back to custody provider
+        //
         pub fun withdrawEscrow(amount: UFix64) {
-            // We will create temporary Vault in order to preserve one living in Assistant
+            // We will create temporary Vault in order to preserve one living in StakingHelper
             let tempVault <- self.escrowVault.withdraw(amount: self.escrowVault.balance)
             
-            self.awardVaultRef.borrow<&{FungibleToken.Receiver}>()!
-                .deposit(from: <- tempVault);            
+            self.stakerAwardVaultCapability.borrow<&{FungibleToken.Receiver}>()!.deposit(from: <- tempVault)          
             
         }
         
-        /// ---------------------------------------------------------------------------------
-        /// Type:    METHOD
-        /// Name:    submit
-        /// Access:  Node Operator
-        /// Action:  Submits staking request to staking contract
-        ///
+        // ---------------------------------------------------------------------------------
+        // Type:    METHOD
+        // Name:    submit
+        // Access:  Node Operator
+        // Action:  Submits staking request to staking contract
+        //
         pub fun submit(id: String, role: UInt8 ) {
             let stakingKey = self.stakingKey 
             let networkingKey = self.networkingKey 
-            let networkingAddress = self.networkingAddress 
-            
+            let networkingAddress = self.networkingAddress
+            let cutPercentage = self.cutPercentage
             let tokensCommitted <- self.escrowVault.withdraw(amount: self.escrowVault.balance)
              
-            // TODO: Admin capability should be of restricted type
-            self.nodeStaker <-! FlowIDTableStaking.addNodeRecord(id: id, role: role, networkingAddress: networkingAddress, networkingKey: networkingKey, stakingKey: stakingKey, tokensCommitted: <- tokensCommitted )            
+            self.nodeStaker <-! FlowIDTableStaking.addNodeRecord(id: id, role: role, networkingAddress: networkingAddress, networkingKey: networkingKey, stakingKey: stakingKey, tokensCommitted: <- tokensCommitted, cutPercentage: cutPercentage )            
         }
 
-        /// ---------------------------------------------------------------------------------
-        /// Type:    METHOD
-        /// Name:    abort
-        /// Access:  Custody Provider, Node Operator
-        /// Action:  Abort initialization and return tokens back to custody provider
-        ///
+        // ---------------------------------------------------------------------------------
+        // Type:    METHOD
+        // Name:    abort
+        // Access:  Custody Provider, Node Operator
+        // Action:  Abort initialization and return tokens back to custody provider
+        //
         pub fun abort() {
             self.withdrawEscrow(amount: self.escrowVault.balance)
             
@@ -155,11 +165,11 @@ pub contract StakingHelper {
             */            
         }
 
-        /// ---------------------------------------------------------------------------------
-        /// Type:    METHOD
-        /// Name:    stake
-        /// Access:  Custody Provider, Node Operator
-        /// Action: Function to request to stake certain amount of tokens
+        // ---------------------------------------------------------------------------------
+        // Type:    METHOD
+        // Name:    stake
+        // Access:  Custody Provider, Node Operator
+        // Action: Function to request to stake certain amount of tokens
         pub fun stake(amount: UFix64) {
             pre{
                 self.nodeStaker != nil: "NodeRecord was not initialized"    
@@ -168,23 +178,23 @@ pub contract StakingHelper {
             self.nodeStaker?.stakeUnlockedTokens(amount: amount)    
         }
 
-        /// ---------------------------------------------------------------------------------
-        /// Type:    METHOD
-        /// Name:    unstake
-        /// Access:  Custody Provider, Node Operator
-        /// Action: Function to request to unstake portion of staked tokens
-        /// 
+        // ---------------------------------------------------------------------------------
+        // Type:    METHOD
+        // Name:    unstake
+        // Access:  Custody Provider, Node Operator
+        // Action: Function to request to unstake portion of staked tokens
+        // 
         pub fun unstake(amount: UFix64) {
             self.nodeStaker?.requestUnStaking(amount: amount)
         }
 
          
-        /// ---------------------------------------------------------------------------------
-        /// Type:    METHOD
-        /// Name:    withdrawTokens
-        /// Access:  Custody Provider, Node Operator
-        ///
-        /// Action: Return unlocked tokens from staking contract
+        // ---------------------------------------------------------------------------------
+        // Type:    METHOD
+        // Name:    withdrawTokens
+        // Access:  Custody Provider
+        //
+        // Action: Return unlocked tokens from staking contract
         pub fun withdrawTokens(amount: UFix64){
             if let vault <- self.nodeStaker?.withdrawUnlockedTokens(amount: amount) {
                 self.escrowVault.deposit(from: <- vault)
@@ -192,19 +202,47 @@ pub contract StakingHelper {
                 // TODO: Emit event that withdraw failed 
             }
         }
+
+        // ---------------------------------------------------------------------------------
+        // Type:    METHOD
+        // Name:    withdrawReward
+        // Access:  Custody Provider, Node Operator //TODO: Define who are able to call this
+        //
+        // Action: Withdraw rewards from staking contract
+        pub fun withdrawReward(amount: UFix64){
+            let nodeVaultRef = self.nodeAwardVaultCapability.borrow<&FungibleToken.Vault>()
+            let stakerVaultRef = self.stakerAwardVaultCapability.borrow<&FungibleToken.Vault>()
+
+            let rewardVault <- self.nodeStaker?.withdrawRewardedTokens(amount: amount);
+            let nodeAmount = rewardVault.balance * self.cutPercentage
+
+            let nodePart <- rewardVault.withdraw(amount: nodeAmount)
+            nodeVaultRef!.deposit(from: <- nodePart)
+            stakerVaultRef!.deposit(from: <- rewardVault)
+        }
+
+        // ---------------------------------------------------------------------------------
+        // Type:    METHOD
+        // Name:    stakeRewards
+        // Access:  Custody Provider, Node Operator //TODO: Define who are able to call this
+        //
+        // Action: Stake rewards stored inside of staking contract without returning them to involved parties
+        pub fun stakeRewards(amount: UFix64){
+            self.nodeStaker?.stakeRewardedTokens(amount)
+        }
     }
 
-    /// ---------------------------------------------------------------------------------
-    /// Type:    METHOD
-    /// Name:    createAssistant
-    /// Access:  Public
-    ///
-    /// Action: create new Assistant object with specified parameters
-    pub fun createAssistant(stakingKey: String, networkingKey: String, networkingAddress: String, awardVaultRef: Capability): @Assistant {
-        return <- create Assistant(stakingKey: stakingKey, networkingKey: networkingKey, networkingAddress: networkingAddress, awardVaultRef: awardVaultRef)
+    // ---------------------------------------------------------------------------------
+    // Type:    METHOD
+    // Name:    createHelper
+    // Access:  Public
+    //
+    // Action: create new StakingHelper object with specified parameters
+    pub fun createHelper(stakingKey: String, networkingKey: String, networkingAddress: String, stakerAwardVaultCapability: Capability, nodeAwardVaultCapability: Capability, cutPercentage: UFix64): @StakingHelper {
+        return <- create StakingHelper(stakingKey: stakingKey, networkingKey: networkingKey, networkingAddress: networkingAddress, stakerAwardVaultCapability: stakerAwardVaultCapability, nodeAwardVaultCapability: nodeAwardVaultCapability, cutPercentage: cutPercentage)
     }
 
     init(){
-        self.AssistantStoragePath = /storage/flowStakingAssistant
+        self.HelperStoragePath = /storage/flowStakingHelper
     }
 }
