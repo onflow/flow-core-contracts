@@ -4,13 +4,13 @@ import FlowToken from 0xFLOWTOKENADDRESS
 
 transaction(amount: UFix64) {
 
-    // Local variable for a reference to the ID Table Admin object
+    // Local variable for a reference to the node object
     let stakerRef: &FlowIDTableStaking.NodeStaker
 
     let flowTokenRef: &FlowToken.Vault
 
     prepare(acct: AuthAccount) {
-        // borrow a reference to the admin object
+        // borrow a reference to the node object
         self.stakerRef = acct.borrow<&FlowIDTableStaking.NodeStaker>(from: /storage/flowStaker)
             ?? panic("Could not borrow reference to staking admin")
 

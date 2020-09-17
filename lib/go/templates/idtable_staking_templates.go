@@ -7,17 +7,17 @@ import (
 )
 
 const (
-	transferDeployFilename = "idTableStaking/transfer_minter_deploy.cdc"
+	transferDeployFilename = "idTableStaking/admin/transfer_minter_deploy.cdc"
 
 	removeNodeFilename = "idTableStaking/admin/remove_node.cdc"
 	endStakingFilename = "idTableStaking/admin/end_staking.cdc"
 	payRewardsFilename = "idTableStaking/admin/pay_rewards.cdc"
 	moveTokensFilename = "idTableStaking/admin/move_tokens.cdc"
 
-	createNodeStructFilename       = "idTableStaking/create_node.cdc"
+	createNodeStructFilename       = "idTableStaking/create_staking_request.cdc"
 	stakeNewTokensFilename         = "idTableStaking/stake_new_tokens.cdc"
 	stakeUnlockedTokensFilename    = "idTableStaking/stake_unlocked_tokens.cdc"
-	unstakeTokensFilename          = "idTableStaking/unstake_tokens.cdc"
+	unstakeTokensFilename          = "idTableStaking/request_unstake.cdc"
 	withdrawUnlockedTokensFilename = "idTableStaking/withdraw_unlocked_tokens.cdc"
 	withdrawRewardedTokensFilename = "idTableStaking/withdraw_rewarded_tokens.cdc"
 
