@@ -1,6 +1,8 @@
 import FlowToken from 0x0ae53cb6e3f42a79
 import FungibleToken from 0xee82856bf20e2aa6
-import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
+import FlowIDTableStaking from 0xe03daebed8ca0615
+
+// Use service account to mint tokens
 
 pub contract FlowStakingHelper {
     // Event that is emitted when tokens are deposited to the escrow vault
@@ -58,6 +60,7 @@ pub contract FlowStakingHelper {
     }
 
     pub resource StakingHelper: NodeHelper {
+        // TODO: do we need to restrict access to keys arguments? 
         // Staking parameters
         pub let stakingKey: String
 
@@ -111,7 +114,7 @@ pub contract FlowStakingHelper {
         // Action:  Deposit tokens to escrow Vault   
         //
         pub fun depositEscrow(vault: @FlowToken.Vault) {
-            let amount =  vault.balance 
+            let amount = vault.balance 
             self.escrowVault.deposit(from: <- vault)
 
             emit TokensDeposited(amount: amount)
@@ -197,7 +200,8 @@ pub contract FlowStakingHelper {
         // Action: Return unlocked tokens from staking contract
         pub fun withdrawTokens(amount: UFix64){
             if let vault <- self.nodeStaker?.withdrawUnlockedTokens(amount: amount) {
-                self.escrowVault.deposit(from: <- vault)
+                // TODO: send them backto the staker and not escrow vault
+                // self.escrowVault.deposit(from: <- vault)
             } else {
                 // TODO: Emit event that withdraw failed 
             }
@@ -206,29 +210,34 @@ pub contract FlowStakingHelper {
         // ---------------------------------------------------------------------------------
         // Type:    METHOD
         // Name:    withdrawReward
-        // Access:  Custody Provider, Node Operator //TODO: Define who are able to call this
+        // Access:  Custody Provider, Node Operator
         //
         // Action: Withdraw rewards from staking contract
         pub fun withdrawReward(amount: UFix64){
+            pre{
+                self.nodeStaker != nil: "NodeRecord was not initialized"    
+            }
+
             let nodeVaultRef = self.nodeAwardVaultCapability.borrow<&FungibleToken.Vault>()
             let stakerVaultRef = self.stakerAwardVaultCapability.borrow<&FungibleToken.Vault>()
 
-            let rewardVault <- self.nodeStaker?.withdrawRewardedTokens(amount: amount);
-            let nodeAmount = rewardVault.balance * self.cutPercentage
+            if let rewardVault <- self.nodeStaker?.withdrawRewardedTokens(amount: amount){
+                let nodeAmount = rewardVault.balance * self.cutPercentage
 
-            let nodePart <- rewardVault.withdraw(amount: nodeAmount)
-            nodeVaultRef!.deposit(from: <- nodePart)
-            stakerVaultRef!.deposit(from: <- rewardVault)
+                let nodePart <- rewardVault.withdraw(amount: nodeAmount)
+                nodeVaultRef!.deposit(from: <- nodePart)
+                stakerVaultRef!.deposit(from: <- rewardVault)
+            }
         }
 
         // ---------------------------------------------------------------------------------
         // Type:    METHOD
         // Name:    stakeRewards
-        // Access:  Custody Provider, Node Operator //TODO: Define who are able to call this
+        // Access:  Custody Provider, Node Operator
         //
         // Action: Stake rewards stored inside of staking contract without returning them to involved parties
         pub fun stakeRewards(amount: UFix64){
-            self.nodeStaker?.stakeRewardedTokens(amount)
+            self.nodeStaker?.stakeRewardedTokens(amount: amount)
         }
     }
 
@@ -246,3 +255,4 @@ pub contract FlowStakingHelper {
         self.HelperStoragePath = /storage/flowStakingHelper
     }
 }
+ 
