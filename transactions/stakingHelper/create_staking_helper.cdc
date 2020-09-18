@@ -1,63 +1,73 @@
-// Create StakingHelper resource and store it in account
-// Node operator will call it to create StakingHelper for itself
-import FungibleToken from 0x179b6b1cb6755e
-import StakingHelper from 0xSTAKINGHELPERADDRESS
+import FungibleToken from 0xee82856bf20e2aa6
+import FlowIDTableStaking from 0xe03daebed8ca0615
+import FlowStakingHelper from 0x045a1763c93006ca
 
-// TODO: destructure into basic types and then recreate struct in code
-transaction(stakingPair: StakingHelper.KeySignaturePair, networkingPair: StakingHelper.KeySignaturePair, networkingAddress: String, awardReciever: Address ) {
+transaction(stakingKey: String, networkingKey: String, networkingAddress: String, 
+            nodeAwardReceiver: Address, stakerAwardReceiver: Address, 
+            cutPercentage: UFix64) {
+
     let node: AuthAccount
-    let provider: AuthAccount
-    let path: Path
-    let refPath: Path
-    let awardVaultRef: Path
+    let staker: AuthAccount
+    let storagePath: Path
+    let linkPath: Path
+    let flowReceiverPath: Path
 
-    prepare(node: AuthAccount, provider: AuthAccount) {
+    prepare(staker: AuthAccount, node: AuthAccount) {
+        // assign accounts
+        self.staker = staker
         self.node = node
-        self.provider = provider
-        self.path = StakingHelper.AssistantStoragePath
-        self.refPath = /private/flowStakingHelperAssistant
-        self.custodyRefPath = /private/flowStakingHelperAssistant
-        
-        self.receiverVaultPath = /public/flowTokenReceiver 
-        // Get capability from awardReciever account
-        self.awardVaultRef = getAccount(awardReciever).getCapability(receiverVaultPath)
 
-        // - create new StakingHelper resources - shall we take params from existing Node resource?
+        // assign path values
+        self.storagePath = FlowStakingHelper.HelperStoragePath
+        self.linkPath = /private/flowStakingHelper
+        self.flowReceiverPath = /public/flowTokenReceiver
     }
 
-    execute {
-
-        // Create new account here
+    execute{
+        // Create new account to store stakingHelper resource
         let newAccount = AuthAccount(payer: self.node)
 
-        // TODO: emit event that newAccount was created and updated?
+        // Create new StakingHelper
+        // TODO: Do we need to check if capability exists? 🤔
+        let nodeAwardVaultCapability = getAccount(nodeAwardReceiver).getCapability(self.flowReceiverPath)!
+        let stakerAwardVaultCapability = getAccount(stakerAwardReceiver).getCapability(self.flowReceiverPath)!
 
-        // TODO:  shall we do creation of assets and storing them here?
-        // Create new Assistant
-        let assistant <- StakingHelper.createAssistant(stakingPair: stakingPair, networkingPair: networkingPair, networkingAddress: networkingAddress, awardVaultRef: awardVaultRef)
-
-        // Store assistant object in storage and create private capability
-        newAccount.save<@StakingHelper.Assistant>(<- assistant, to: self.path)
+        let helper <- FlowStakingHelper.createHelper(stakingKey: stakingKey, 
+                                                networkingKey: networkingKey, 
+                                                networkingAddress:networkingAddress,
+                                                stakerAwardVaultCapability: stakerAwardVaultCapability,
+                                                nodeAwardVaultCapability: nodeAwardVaultCapability,
+                                                cutPercentage: cutPercentage)
         
-        let nodeCapability = newAccount.link<&StakingHelper.Assistant>(self.refPath, target: self.path)
-        let providerCapability = newAccount.link<&StakingHelper.Assistant>(self.refPath, target: self.path)
-        
-        self.node.save<&StakingHelper.Assistant>(nodeCapability, to: self.path)
-        self.provider.save<&StakingHelper.Assistant>(nodeCapability, to: self.path)
+        // Save newly created StakingHelper into newAccount storage
+        newAccount.save<@FlowStakingHelper.StakingHelper>(<- helper, to: self.storagePath)
 
-        // self.node.link<&StakingHelper.Assistant>(self.refPath, target: self.path)
-        // self.provider.link<&StakingHelper.NodeAssistant>(self.custodyRefPath, target: self.path)
+        // Create capability to stored StakingHelper
+        // TODO: Create another one for restricted NodeHelper capability
+        newAccount.link<&FlowStakingHelper.StakingHelper>(self.linkPath, target: self.storagePath)    
+        let capability = newAccount.getCapability(/private/VaultRef)
+
+        // clear storages before saving anything, remove after tests
+        self.node.load<Capability>(from: self.storagePath)
+        self.staker.load<Capability>(from: self.storagePath)
+        
+        // Save capabilities to storage
+        self.node.save(capability!, to: self.storagePath)
+        self.staker.save(capability!, to: self.storagePath)
     }
 
     post {
-        getAccount(self.node)
-            .getCapability(self.refPath)!
-            .check<&StakingHelper.NodeAssistant>():
-            "Node reference to NodeAssistant was not created correctly"
+        /* 
+        // TODO: Check that capability of restricted type
+        self.node
+            .copy<Capability>(from: self.storagePath)!
+            .check<&FlowStakingHelper.StakingHelper>():
+            "StakingHelper capability on node account wasn't saved properly"
 
-        getAccount(self.provider)
-            .getCapability(self.refPath)!
-            .check<&StakingHelper.Assistant>():
-            "Provider reference to Assistant was not created correctly"
+        self.staker
+            .copy<Capability>(from: self.storagePath)!
+            .check<&FlowStakingHelper.StakingHelper>():
+            "StakingHelper capability on staker account wasn't saved properly"
+        */
     }
 }
