@@ -25,7 +25,7 @@ func FungibleToken() []byte {
 	return ftcontracts.FungibleToken()
 }
 
-// FlowToken returns the FlowToken contract. importing the
+// FlowToken returns the FlowToken contract.
 //
 // The returned contract will import the FungibleToken contract from the specified address.
 func FlowToken(fungibleTokenAddr string) []byte {
