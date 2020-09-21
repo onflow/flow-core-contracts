@@ -1,7 +1,6 @@
 import FlowStakingHelper from 0x045a1763c93006ca
 
 pub fun main(address: Address):UFix64 {
-        log(address)
     let capability = getAccount(address)
         .getCapability(/public/linkStakingHelper)!
         .borrow<&Capability>()!
