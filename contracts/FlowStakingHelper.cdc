@@ -113,7 +113,7 @@ pub contract FlowStakingHelper {
         // Access:  Custody Provider
         // Action:  Deposit tokens to escrow Vault   
         //
-        pub fun depositEscrow(vault: @FlowToken.Vault) {
+        pub fun depositEscrow(vault: @FungibleToken.Vault) {
             let amount = vault.balance 
             self.escrowVault.deposit(from: <- vault)
 
@@ -201,7 +201,7 @@ pub contract FlowStakingHelper {
         pub fun withdrawTokens(amount: UFix64){
             if let vault <- self.nodeStaker?.withdrawUnlockedTokens(amount: amount) {
                 // TODO: send them backto the staker and not escrow vault
-                // self.escrowVault.deposit(from: <- vault)
+                self.escrowVault.deposit(from: <- vault)
             } else {
                 // TODO: Emit event that withdraw failed 
             }
