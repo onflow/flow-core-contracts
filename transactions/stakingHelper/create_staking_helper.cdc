@@ -1,6 +1,6 @@
 import FungibleToken from 0xee82856bf20e2aa6
-import FlowIDTableStaking from 0xe03daebed8ca0615
-import FlowStakingHelper from 0x045a1763c93006ca
+import FlowIDTableStaking from 0x120e725050340cab
+import FlowStakingHelper from 0xf669cb8d41ce0c74
 
 transaction(stakingKey: String, networkingKey: String, networkingAddress: String, 
             nodeAwardReceiver: Address, stakerAwardReceiver: Address, 
@@ -45,7 +45,7 @@ transaction(stakingKey: String, networkingKey: String, networkingAddress: String
         // Create capability to stored StakingHelper
         // TODO: Create another one for restricted NodeHelper capability
         newAccount.link<&FlowStakingHelper.StakingHelper>(self.linkPath, target: self.storagePath)    
-        let capability = newAccount.getCapability(/private/VaultRef)
+        let capability = newAccount.getCapability(self.linkPath)
 
         // clear storages before saving anything, remove after tests
         self.node.load<Capability>(from: self.storagePath)
@@ -53,7 +53,7 @@ transaction(stakingKey: String, networkingKey: String, networkingAddress: String
         
         // Save capabilities to storage
         self.node.save(capability!, to: self.storagePath)
-        self.staker.save(capability!, to: self.storagePath)
+        self.staker.save(capability!, to: self.storagePath)    
     }
 
     post {
