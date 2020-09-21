@@ -6,7 +6,7 @@ transaction(amount: UFix64) {
     let helper: &FlowStakingHelper.StakingHelper
 
     prepare(signer: AuthAccount) {
-                // Get a reference to the signer's stored vault
+        // Get a reference to the signer's stored vault
         let vaultRef = signer.borrow<&FungibleToken.Vault>(from: /storage/flowTokenVault)
 			?? panic("Could not borrow reference to the owner's Vault!")
 
