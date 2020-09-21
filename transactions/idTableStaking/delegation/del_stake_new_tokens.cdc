@@ -5,7 +5,7 @@ import FlowToken from 0xFLOWTOKENADDRESS
 transaction(amount: UFix64) {
 
     // Local variable for a reference to the delegator object
-    let delegatorRef: &FlowIDTableStaking.NodeStaker
+    let delegatorRef: &FlowIDTableStaking.NodeDelegator
 
     let flowTokenRef: &FlowToken.Vault
 
@@ -21,7 +21,7 @@ transaction(amount: UFix64) {
 
     execute {
 
-        self.delegatorRef.stakeNewTokens(<-self.flowTokenRef.withdraw(amount: amount))
+        self.delegatorRef.delegateNewTokens(from: <-self.flowTokenRef.withdraw(amount: amount))
 
     }
 }

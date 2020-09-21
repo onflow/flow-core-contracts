@@ -15,7 +15,7 @@ transaction(amount: UFix64) {
 
     execute {
 
-        self.delegatorRef.stakeUnlockedTokens(amount: amount)
+        self.delegatorRef.delegateUnlockedTokens(amount: amount)
 
     }
 }

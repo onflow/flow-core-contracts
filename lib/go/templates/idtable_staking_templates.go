@@ -17,6 +17,7 @@ const (
 	createNodeStructFilename       = "idTableStaking/create_staking_request.cdc"
 	stakeNewTokensFilename         = "idTableStaking/stake_new_tokens.cdc"
 	stakeUnlockedTokensFilename    = "idTableStaking/stake_unlocked_tokens.cdc"
+	stakeRewardedTokensFilename    = "idTableStaking/stake_rewarded_tokens.cdc"
 	unstakeTokensFilename          = "idTableStaking/request_unstake.cdc"
 	withdrawUnlockedTokensFilename = "idTableStaking/withdraw_unlocked_tokens.cdc"
 	withdrawRewardedTokensFilename = "idTableStaking/withdraw_rewarded_tokens.cdc"
@@ -30,8 +31,10 @@ const (
 	getStakingKeyFilename       = "idTableStaking/get_node_staking_key.cdc"
 	getInitialWeightFilename    = "idTableStaking/get_node_initial_weight.cdc"
 	stakedBalanceFilename       = "idTableStaking/get_node_stakedTokens.cdc"
+	directStakedFilename        = "idTableStaking/get_node_direct_stakedTokens.cdc"
 	comittedBalanceFilename     = "idTableStaking/get_node_committedTokens.cdc"
 	unlockedBalanceFilename     = "idTableStaking/get_node_unlockedTokens.cdc"
+	rewardBalanceFilename       = "idTableStaking/get_node_rewardedTokens.cdc"
 	unstakedBalanceFilename     = "idTableStaking/get_node_unstakedTokens.cdc"
 	getTotalCommitmentFilename  = "idTableStaking/get_node_total_commitment.cdc"
 	getUnstakingRequestFilename = "idTableStaking/get_unstaking_request.cdc"
@@ -156,6 +159,14 @@ func GenerateStakeUnlockedTokensScript(tableAddr string) []byte {
 	return []byte(ReplaceAddresses(code, "", "", tableAddr))
 }
 
+// GenerateStakeRewardedTokensScript creates a script that stakes
+// tokens for a node operator from their rewarded bucket
+func GenerateStakeRewardedTokensScript(tableAddr string) []byte {
+	code := assets.MustAssetString(filePath + stakeRewardedTokensFilename)
+
+	return []byte(ReplaceAddresses(code, "", "", tableAddr))
+}
+
 // GenerateUnstakeTokensScript creates a script that makes an unstaking request
 // for an existing node operator
 func GenerateUnstakeTokensScript(tableAddr string) []byte {
@@ -228,6 +239,15 @@ func GenerateGetStakedBalanceScript(tableAddr string) []byte {
 	return []byte(ReplaceAddresses(code, "", "", tableAddr))
 }
 
+// GenerateGetDirectStakedBalanceScript creates a script
+// that returns the balance of the staked tokens of a node
+// not including delegated tokens
+func GenerateGetDirectStakedBalanceScript(tableAddr string) []byte {
+	code := assets.MustAssetString(filePath + directStakedFilename)
+
+	return []byte(ReplaceAddresses(code, "", "", tableAddr))
+}
+
 // GenerateGetCommittedBalanceScript creates a script
 // that returns the balance of the committed tokens of a node
 func GenerateGetCommittedBalanceScript(tableAddr string) []byte {
@@ -248,6 +268,14 @@ func GenerateGetUnstakedBalanceScript(tableAddr string) []byte {
 // that returns the balance of the unlocked tokens of a node
 func GenerateGetUnlockedBalanceScript(tableAddr string) []byte {
 	code := assets.MustAssetString(filePath + unlockedBalanceFilename)
+
+	return []byte(ReplaceAddresses(code, "", "", tableAddr))
+}
+
+// GenerateGetRewardBalanceScript creates a script
+// that returns the balance of the rewarded tokens of a node
+func GenerateGetRewardBalanceScript(tableAddr string) []byte {
+	code := assets.MustAssetString(filePath + rewardBalanceFilename)
 
 	return []byte(ReplaceAddresses(code, "", "", tableAddr))
 }
@@ -275,8 +303,8 @@ func GenerateGetStakeRequirementsScript(tableAddr string) []byte {
 	return []byte(ReplaceAddresses(code, "", "", tableAddr))
 }
 
-// GenerateGetTotalTokensScript returns the total tokens staked for a node type
-func GenerateGetTotalTokensScript(tableAddr string) []byte {
+// GenerateGetTotalTokensStakedByTypeScript returns the total tokens staked for a node type
+func GenerateGetTotalTokensStakedByTypeScript(tableAddr string) []byte {
 	code := assets.MustAssetString(filePath + totalStakedFilename)
 
 	return []byte(ReplaceAddresses(code, "", "", tableAddr))

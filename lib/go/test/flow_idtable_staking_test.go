@@ -145,7 +145,7 @@ func TestIDTable(t *testing.T) {
 
 		/// Check that the total tokens staked for each node role are initialized correctly
 
-		result, err = b.ExecuteScript(templates.GenerateGetTotalTokensScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.UInt8(1))})
+		result, err = b.ExecuteScript(templates.GenerateGetTotalTokensStakedByTypeScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.UInt8(1))})
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
@@ -153,7 +153,7 @@ func TestIDTable(t *testing.T) {
 		tokens := result.Value
 		assert.Equal(t, CadenceUFix64("0.0"), tokens.(cadence.UFix64))
 
-		result, err = b.ExecuteScript(templates.GenerateGetTotalTokensScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.UInt8(2))})
+		result, err = b.ExecuteScript(templates.GenerateGetTotalTokensStakedByTypeScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.UInt8(2))})
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
@@ -161,7 +161,7 @@ func TestIDTable(t *testing.T) {
 		tokens = result.Value
 		assert.Equal(t, CadenceUFix64("0.0"), tokens.(cadence.UFix64))
 
-		result, err = b.ExecuteScript(templates.GenerateGetTotalTokensScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.UInt8(3))})
+		result, err = b.ExecuteScript(templates.GenerateGetTotalTokensStakedByTypeScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.UInt8(3))})
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
@@ -169,7 +169,7 @@ func TestIDTable(t *testing.T) {
 		tokens = result.Value
 		assert.Equal(t, CadenceUFix64("0.0"), tokens.(cadence.UFix64))
 
-		result, err = b.ExecuteScript(templates.GenerateGetTotalTokensScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.UInt8(4))})
+		result, err = b.ExecuteScript(templates.GenerateGetTotalTokensStakedByTypeScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.UInt8(4))})
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
@@ -177,7 +177,7 @@ func TestIDTable(t *testing.T) {
 		tokens = result.Value
 		assert.Equal(t, CadenceUFix64("0.0"), tokens.(cadence.UFix64))
 
-		result, err = b.ExecuteScript(templates.GenerateGetTotalTokensScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.UInt8(5))})
+		result, err = b.ExecuteScript(templates.GenerateGetTotalTokensStakedByTypeScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.UInt8(5))})
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
@@ -235,7 +235,7 @@ func TestIDTable(t *testing.T) {
 			t.Log(result.Error.Error())
 		}
 		payout := result.Value
-		assert.Equal(t, CadenceUFix64("250000000.0"), payout.(cadence.UFix64))
+		assert.Equal(t, CadenceUFix64("5000000.0"), payout.(cadence.UFix64))
 
 	})
 
@@ -246,6 +246,23 @@ func TestIDTable(t *testing.T) {
 	// Create a new user account
 	maxAccountKey, maxSigner := accountKeys.NewWithSigner()
 	maxAddress, _ := b.CreateAccount([]*flow.AccountKey{maxAccountKey}, nil)
+
+	// Create a new user account
+	bastianAccountKey, bastianSigner := accountKeys.NewWithSigner()
+	bastianAddress, _ := b.CreateAccount([]*flow.AccountKey{bastianAccountKey}, nil)
+
+	// Create new delegator user accounts
+	adminDelegatorAccountKey, adminDelegatorSigner := accountKeys.NewWithSigner()
+	adminDelegatorAddress, _ := b.CreateAccount([]*flow.AccountKey{adminDelegatorAccountKey}, nil)
+
+	joshDelegatorOneAccountKey, joshDelegatorOneSigner := accountKeys.NewWithSigner()
+	joshDelegatorOneAddress, _ := b.CreateAccount([]*flow.AccountKey{joshDelegatorOneAccountKey}, nil)
+
+	maxDelegatorOneAccountKey, maxDelegatorOneSigner := accountKeys.NewWithSigner()
+	maxDelegatorOneAddress, _ := b.CreateAccount([]*flow.AccountKey{maxDelegatorOneAccountKey}, nil)
+
+	maxDelegatorTwoAccountKey, maxDelegatorTwoSigner := accountKeys.NewWithSigner()
+	maxDelegatorTwoAddress, _ := b.CreateAccount([]*flow.AccountKey{maxDelegatorTwoAccountKey}, nil)
 
 	t.Run("Should be able to mint tokens for new accounts", func(t *testing.T) {
 
@@ -307,6 +324,91 @@ func TestIDTable(t *testing.T) {
 		}
 		balance := result.Value
 		assert.Equal(t, CadenceUFix64("1000000000.0"), balance.(cadence.UFix64))
+
+		tx = flow.NewTransaction().
+			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(FTAddress), flow.HexToAddress(FlowTokenAddress), "FlowToken")).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(b.ServiceKey().Address)
+
+		_ = tx.AddArgument(cadence.NewAddress(bastianAddress))
+		_ = tx.AddArgument(CadenceUFix64("1000000000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address},
+			[]crypto.Signer{b.ServiceKey().Signer()},
+			false,
+		)
+
+		tx = flow.NewTransaction().
+			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(FTAddress), flow.HexToAddress(FlowTokenAddress), "FlowToken")).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(b.ServiceKey().Address)
+
+		_ = tx.AddArgument(cadence.NewAddress(maxDelegatorOneAddress))
+		_ = tx.AddArgument(CadenceUFix64("1000000000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address},
+			[]crypto.Signer{b.ServiceKey().Signer()},
+			false,
+		)
+
+		tx = flow.NewTransaction().
+			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(FTAddress), flow.HexToAddress(FlowTokenAddress), "FlowToken")).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(b.ServiceKey().Address)
+
+		_ = tx.AddArgument(cadence.NewAddress(maxDelegatorTwoAddress))
+		_ = tx.AddArgument(CadenceUFix64("1000000000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address},
+			[]crypto.Signer{b.ServiceKey().Signer()},
+			false,
+		)
+
+		tx = flow.NewTransaction().
+			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(FTAddress), flow.HexToAddress(FlowTokenAddress), "FlowToken")).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(b.ServiceKey().Address)
+
+		_ = tx.AddArgument(cadence.NewAddress(joshDelegatorOneAddress))
+		_ = tx.AddArgument(CadenceUFix64("1000000000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address},
+			[]crypto.Signer{b.ServiceKey().Signer()},
+			false,
+		)
+
+		tx = flow.NewTransaction().
+			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(FTAddress), flow.HexToAddress(FlowTokenAddress), "FlowToken")).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(b.ServiceKey().Address)
+
+		_ = tx.AddArgument(cadence.NewAddress(adminDelegatorAddress))
+		_ = tx.AddArgument(CadenceUFix64("1000000000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address},
+			[]crypto.Signer{b.ServiceKey().Signer()},
+			false,
+		)
 
 	})
 
@@ -679,7 +781,7 @@ func TestIDTable(t *testing.T) {
 		tokenAmount, err := cadence.NewUFix64("240000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
-		cut, err := cadence.NewUFix64("1.0")
+		cut, err := cadence.NewUFix64("0.1")
 		require.NoError(t, err)
 		_ = tx.AddArgument(cut)
 
@@ -713,7 +815,7 @@ func TestIDTable(t *testing.T) {
 		tokenAmount, err = cadence.NewUFix64("650000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
-		cut, err = cadence.NewUFix64("1.0")
+		cut, err = cadence.NewUFix64("0.2")
 		require.NoError(t, err)
 		_ = tx.AddArgument(cut)
 
@@ -813,7 +915,7 @@ func TestIDTable(t *testing.T) {
 		tokenAmount, err := cadence.NewUFix64("240000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
-		cut, err := cadence.NewUFix64("1.0")
+		cut, err := cadence.NewUFix64("0.1")
 		require.NoError(t, err)
 		_ = tx.AddArgument(cut)
 
@@ -832,6 +934,14 @@ func TestIDTable(t *testing.T) {
 		proposedIDs = result.Value
 		idArray = proposedIDs.(cadence.Array).Values
 		assert.Equal(t, 2, len(idArray))
+
+		result, err = b.ExecuteScript(templates.GenerateGetCommittedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance := result.Value
+		assert.Equal(t, CadenceUFix64("240000.0"), balance.(cadence.UFix64))
 	})
 
 	t.Run("Should be able to commit additional tokens for a node", func(t *testing.T) {
@@ -862,6 +972,28 @@ func TestIDTable(t *testing.T) {
 		}
 		balance := result.Value
 		assert.Equal(t, CadenceUFix64("700000.0"), balance.(cadence.UFix64))
+	})
+
+	t.Run("Should not be able request unstaking for more than is available", func(t *testing.T) {
+
+		tx = flow.NewTransaction().
+			SetScript(templates.GenerateUnstakeTokensScript(IDTableAddr.String())).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(maxAddress)
+
+		tokenAmount, err := cadence.NewUFix64("5000000.0")
+		require.NoError(t, err)
+		err = tx.AddArgument(tokenAmount)
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, maxAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), maxSigner},
+			true,
+		)
 	})
 
 	t.Run("Should be able to request unstaking which moves from comitted to unlocked", func(t *testing.T) {
@@ -1006,6 +1138,22 @@ func TestIDTable(t *testing.T) {
 		idArray := proposedIDs.(cadence.Array).Values
 		assert.Equal(t, 2, len(idArray))
 
+		result, err = b.ExecuteScript(templates.GenerateGetUnlockedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(firstID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetCommittedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(firstID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("125000.0"), balance.(cadence.UFix64))
+
 		result, err = b.ExecuteScript(templates.GenerateGetUnlockedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID))})
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
@@ -1021,6 +1169,22 @@ func TestIDTable(t *testing.T) {
 		}
 		balance = result.Value
 		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetUnlockedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(thirdID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetCommittedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(thirdID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("675000.0"), balance.(cadence.UFix64))
 
 	})
 
@@ -1057,6 +1221,30 @@ func TestIDTable(t *testing.T) {
 		assert.Equal(t, CadenceUFix64("240000.0"), balance.(cadence.UFix64))
 
 		result, err = b.ExecuteScript(templates.GenerateGetUnlockedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(thirdID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetRewardBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(firstID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetRewardBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetRewardBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(thirdID))})
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
@@ -1259,4 +1447,1351 @@ func TestIDTable(t *testing.T) {
 		assert.Equal(t, CadenceUFix64("100000.0"), balance.(cadence.UFix64))
 	})
 
+	/************* Start of Delegation Tests *******************/
+
+	t.Run("Should be able to publish a reference for delegation", func(t *testing.T) {
+
+		tx = flow.NewTransaction().
+			SetScript(templates.GenerateCreateDelegationScript(IDTableAddr.String())).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(IDTableAddr)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, IDTableAddr},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+
+		tx = flow.NewTransaction().
+			SetScript(templates.GenerateCreateDelegationScript(IDTableAddr.String())).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(joshAddress)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+
+		tx = flow.NewTransaction().
+			SetScript(templates.GenerateCreateDelegationScript(IDTableAddr.String())).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(maxAddress)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, maxAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), maxSigner},
+			false,
+		)
+	})
+
+	t.Run("Should be able to register first account to delegate to max", func(t *testing.T) {
+
+		tx = flow.NewTransaction().
+			SetScript(templates.GenerateRegisterDelegatorScript(IDTableAddr.String())).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(maxDelegatorOneAddress)
+
+		err := tx.AddArgument(cadence.Address(maxAddress))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, maxDelegatorOneAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), maxDelegatorOneSigner},
+			false,
+		)
+	})
+
+	t.Run("Should be able to register second account to delegate to max", func(t *testing.T) {
+
+		tx = flow.NewTransaction().
+			SetScript(templates.GenerateRegisterDelegatorScript(IDTableAddr.String())).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(maxDelegatorTwoAddress)
+
+		err := tx.AddArgument(cadence.Address(maxAddress))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, maxDelegatorTwoAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), maxDelegatorTwoSigner},
+			false,
+		)
+	})
+
+	t.Run("Should be able to register account to delegate to josh", func(t *testing.T) {
+
+		tx = flow.NewTransaction().
+			SetScript(templates.GenerateRegisterDelegatorScript(IDTableAddr.String())).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(joshDelegatorOneAddress)
+
+		err := tx.AddArgument(cadence.Address(joshAddress))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshDelegatorOneAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshDelegatorOneSigner},
+			false,
+		)
+	})
+
+	t.Run("Should not be able to register account to delegate to the admin address, because it has insufficient stake committed", func(t *testing.T) {
+
+		tx = flow.NewTransaction().
+			SetScript(templates.GenerateRegisterDelegatorScript(IDTableAddr.String())).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(adminDelegatorAddress)
+
+		err := tx.AddArgument(cadence.Address(IDTableAddr))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, adminDelegatorAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), adminDelegatorSigner},
+			true,
+		)
+	})
+
+	t.Run("Should be able to delegate new tokens to josh", func(t *testing.T) {
+
+		tx = flow.NewTransaction().
+			SetScript(templates.GenerateDelegatorStakeNewScript(FTAddress, FlowTokenAddress, IDTableAddr.String())).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(joshDelegatorOneAddress)
+
+		tokenAmount, err := cadence.NewUFix64("50000.0")
+		require.NoError(t, err)
+		_ = tx.AddArgument(tokenAmount)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshDelegatorOneAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshDelegatorOneSigner},
+			false,
+		)
+
+		result, err := b.ExecuteScript(templates.GenerateGetCommittedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance := result.Value
+		assert.Equal(t, CadenceUFix64("340000.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetTotalCommitmentBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("340000.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetDelegatorCommittedScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("50000.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetDelegatorStakedScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+	})
+
+	t.Run("Should be able to request unstake delegated tokens from Josh, which moved them from committed to unlocked", func(t *testing.T) {
+
+		tx = flow.NewTransaction().
+			SetScript(templates.GenerateDelegatorRequestUnstakeScript(IDTableAddr.String())).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(joshDelegatorOneAddress)
+
+		tokenAmount, err := cadence.NewUFix64("20000.0")
+		require.NoError(t, err)
+		_ = tx.AddArgument(tokenAmount)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshDelegatorOneAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshDelegatorOneSigner},
+			false,
+		)
+
+		result, err := b.ExecuteScript(templates.GenerateGetCommittedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance := result.Value
+		assert.Equal(t, CadenceUFix64("320000.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetTotalCommitmentBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("320000.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetDelegatorCommittedScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("30000.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetDelegatorUnlockedScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("20000.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetDelegatorRequestScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+	})
+
+	t.Run("Should be able to withdraw josh delegator's unlocked tokens", func(t *testing.T) {
+
+		tx = flow.NewTransaction().
+			SetScript(templates.GenerateDelegatorWithdrawUnlockedScript(FTAddress, FlowTokenAddress, IDTableAddr.String())).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(joshDelegatorOneAddress)
+
+		tokenAmount, err := cadence.NewUFix64("10000.0")
+		require.NoError(t, err)
+		_ = tx.AddArgument(tokenAmount)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshDelegatorOneAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshDelegatorOneSigner},
+			false,
+		)
+
+		result, err := b.ExecuteScript(templates.GenerateGetDelegatorCommittedScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance := result.Value
+		assert.Equal(t, CadenceUFix64("30000.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetDelegatorUnlockedScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("10000.0"), balance.(cadence.UFix64))
+
+	})
+
+	t.Run("Should be able to delegate unlocked tokens to josh", func(t *testing.T) {
+
+		tx = flow.NewTransaction().
+			SetScript(templates.GenerateDelegatorStakeUnlockedScript(IDTableAddr.String())).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(joshDelegatorOneAddress)
+
+		tokenAmount, err := cadence.NewUFix64("10000.0")
+		require.NoError(t, err)
+		_ = tx.AddArgument(tokenAmount)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshDelegatorOneAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshDelegatorOneSigner},
+			false,
+		)
+
+		result, err := b.ExecuteScript(templates.GenerateGetCommittedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance := result.Value
+		assert.Equal(t, CadenceUFix64("330000.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetTotalCommitmentBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("330000.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetDelegatorCommittedScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("40000.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetDelegatorUnlockedScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+	})
+
+	t.Run("Should be able to end the staking auction, which marks admin to unstake", func(t *testing.T) {
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GenerateEndStakingScript(IDTableAddr.String())).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(IDTableAddr)
+
+		err := tx.AddArgument(cadence.NewArray([]cadence.Value{cadence.NewString(firstID), cadence.NewString(secondID), cadence.NewString(thirdID)}))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, IDTableAddr},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+
+		result, err := b.ExecuteScript(templates.GenerateReturnProposedTableScript(FTAddress, FlowTokenAddress, IDTableAddr.String()), nil)
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		proposedIDs := result.Value
+		idArray := proposedIDs.(cadence.Array).Values
+		assert.Equal(t, 2, len(idArray))
+
+		result, err = b.ExecuteScript(templates.GenerateGetUnstakingRequestScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(firstID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance := result.Value
+		assert.Equal(t, CadenceUFix64("125000.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetUnlockedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(firstID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetCommittedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(firstID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetUnlockedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetCommittedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("330000.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetStakedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+	})
+
+	t.Run("Should pay correct rewards, no delegators are paid because none are staked yet", func(t *testing.T) {
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GeneratePayRewardsScript(IDTableAddr.String())).
+			SetGasLimit(100000).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(IDTableAddr)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, IDTableAddr},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+
+		result, err := b.ExecuteScript(templates.GenerateGetUnlockedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(firstID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance := result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetUnlockedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetUnlockedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(thirdID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetRewardBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(firstID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("840000.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetRewardBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetDelegatorRewardsScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetStakedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(thirdID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("675000.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetTotalTokensStakedByTypeScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.UInt8(3))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		tokens := result.Value
+		assert.Equal(t, CadenceUFix64("675000.0"), tokens.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetDelegatorStakedScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(thirdID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetDelegatorStakedScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(thirdID)), jsoncdc.MustEncode(cadence.UInt32(secondDelegatorID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetRewardBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(thirdID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("389610.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetDelegatorRewardsScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(thirdID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+	})
+
+	t.Run("Should Move tokens between buckets", func(t *testing.T) {
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GenerateMoveTokensScript(IDTableAddr.String())).
+			SetGasLimit(100000).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(IDTableAddr)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, IDTableAddr},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+
+		// Admin buckets
+
+		result, err := b.ExecuteScript(templates.GenerateGetUnlockedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(firstID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance := result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetCommittedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(firstID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetStakedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(firstID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetUnstakingRequestScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(firstID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetUnstakedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(firstID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("125000.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetRewardBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(firstID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("840000.0"), balance.(cadence.UFix64))
+
+		// josh buckets
+
+		result, err = b.ExecuteScript(templates.GenerateGetUnlockedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetCommittedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetStakedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("330000.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetUnstakingRequestScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetUnstakedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetRewardBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		// Josh Delegator Buckets
+
+		result, err = b.ExecuteScript(templates.GenerateGetDelegatorUnlockedScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetDelegatorCommittedScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetDelegatorStakedScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("40000.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetDelegatorRequestScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetDelegatorUnstakedScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetDelegatorRewardsScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		// Max buckets
+
+		result, err = b.ExecuteScript(templates.GenerateGetUnlockedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(thirdID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetCommittedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(thirdID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetStakedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(thirdID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("675000.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetUnstakingRequestScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(thirdID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetUnstakedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(thirdID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetRewardBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(thirdID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("389610.0"), balance.(cadence.UFix64))
+
+		// Max Delegator Buckets
+
+		result, err = b.ExecuteScript(templates.GenerateGetDelegatorUnlockedScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(thirdID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetDelegatorCommittedScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(thirdID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetDelegatorStakedScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(thirdID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetDelegatorRequestScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(thirdID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetDelegatorUnstakedScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(thirdID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetDelegatorRewardsScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(thirdID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+	})
+
+	t.Run("Should create new execution node", func(t *testing.T) {
+
+		tx = flow.NewTransaction().
+			SetScript(templates.GenerateCreateNodeScript(FTAddress, FlowTokenAddress, IDTableAddr.String())).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(bastianAddress)
+
+		_ = tx.AddArgument(cadence.NewString(fourthID))
+		_ = tx.AddArgument(cadence.NewUInt8(3))
+		_ = tx.AddArgument(cadence.NewString("netaddress4"))
+		_ = tx.AddArgument(cadence.NewString("netkey4"))
+		_ = tx.AddArgument(cadence.NewString("stakekey4"))
+		tokenAmount, err := cadence.NewUFix64("700000.0")
+		require.NoError(t, err)
+		_ = tx.AddArgument(tokenAmount)
+		cut, err := cadence.NewUFix64("1.0")
+		require.NoError(t, err)
+		_ = tx.AddArgument(cut)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, bastianAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), bastianSigner},
+			false,
+		)
+
+		result, err := b.ExecuteScript(templates.GenerateGetCommittedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(fourthID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance := result.Value
+		assert.Equal(t, CadenceUFix64("700000.0"), balance.(cadence.UFix64))
+	})
+
+	t.Run("Should be able to delegate new tokens to max", func(t *testing.T) {
+
+		tx = flow.NewTransaction().
+			SetScript(templates.GenerateDelegatorStakeNewScript(FTAddress, FlowTokenAddress, IDTableAddr.String())).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(maxDelegatorOneAddress)
+
+		tokenAmount, err := cadence.NewUFix64("50000.0")
+		require.NoError(t, err)
+		_ = tx.AddArgument(tokenAmount)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, maxDelegatorOneAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), maxDelegatorOneSigner},
+			false,
+		)
+
+		tx = flow.NewTransaction().
+			SetScript(templates.GenerateDelegatorStakeNewScript(FTAddress, FlowTokenAddress, IDTableAddr.String())).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(maxDelegatorTwoAddress)
+
+		tokenAmount, err = cadence.NewUFix64("100000.0")
+		require.NoError(t, err)
+		_ = tx.AddArgument(tokenAmount)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, maxDelegatorTwoAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), maxDelegatorTwoSigner},
+			false,
+		)
+
+	})
+
+	t.Run("Should not be able request unstaking below the minimum if a node has delegators staked or committed", func(t *testing.T) {
+
+		result, err := b.ExecuteScript(templates.GenerateGetTotalCommitmentBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance := result.Value
+		assert.Equal(t, CadenceUFix64("330000.0"), balance.(cadence.UFix64))
+
+		tx = flow.NewTransaction().
+			SetScript(templates.GenerateUnstakeTokensScript(IDTableAddr.String())).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(joshAddress)
+
+		tokenAmount, err := cadence.NewUFix64("90000.0")
+		require.NoError(t, err)
+		err = tx.AddArgument(tokenAmount)
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			true,
+		)
+
+		tx = flow.NewTransaction().
+			SetScript(templates.GenerateUnstakeTokensScript(IDTableAddr.String())).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(maxAddress)
+
+		tokenAmount, err = cadence.NewUFix64("250000.0")
+		require.NoError(t, err)
+		err = tx.AddArgument(tokenAmount)
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, maxAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), maxSigner},
+			true,
+		)
+	})
+
+	t.Run("Should be able to commit rewarded tokens", func(t *testing.T) {
+
+		tx = flow.NewTransaction().
+			SetScript(templates.GenerateStakeRewardedTokensScript(IDTableAddr.String())).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(IDTableAddr)
+
+		tokenAmount, err := cadence.NewUFix64("25000.0")
+		require.NoError(t, err)
+		err = tx.AddArgument(tokenAmount)
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, IDTableAddr},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+
+		result, err := b.ExecuteScript(templates.GenerateGetRewardBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(firstID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance := result.Value
+		assert.Equal(t, CadenceUFix64("815000.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetCommittedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(firstID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("25000.0"), balance.(cadence.UFix64))
+	})
+
+	// Josh Delegator Requests to unstake which marks their request
+	t.Run("Should be able to request unstake delegated tokens from Josh, marks as requested", func(t *testing.T) {
+
+		tx = flow.NewTransaction().
+			SetScript(templates.GenerateDelegatorRequestUnstakeScript(IDTableAddr.String())).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(joshDelegatorOneAddress)
+
+		tokenAmount, err := cadence.NewUFix64("20000.0")
+		require.NoError(t, err)
+		_ = tx.AddArgument(tokenAmount)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshDelegatorOneAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshDelegatorOneSigner},
+			false,
+		)
+
+		result, err := b.ExecuteScript(templates.GenerateGetCommittedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance := result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetTotalCommitmentBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("310000.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetDelegatorCommittedScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetDelegatorUnlockedScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetDelegatorRequestScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("20000.0"), balance.(cadence.UFix64))
+
+	})
+
+	// End the staking auction
+	t.Run("Should be able to end the staking auction", func(t *testing.T) {
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GenerateEndStakingScript(IDTableAddr.String())).
+			SetGasLimit(100000).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(IDTableAddr)
+
+		err := tx.AddArgument(cadence.NewArray([]cadence.Value{cadence.NewString(firstID), cadence.NewString(secondID), cadence.NewString(thirdID), cadence.NewString(fourthID)}))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, IDTableAddr},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+
+		result, err := b.ExecuteScript(templates.GenerateGetRewardBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(firstID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance := result.Value
+		assert.Equal(t, CadenceUFix64("815000.0"), balance.(cadence.UFix64))
+	})
+
+	// Move tokens between buckets. Josh delegator's should be in the unstaked bucket
+	// also make sure that the total totens for the #3 node role is correct
+	// Make sure that admin's unstaked were moved into their unlocked
+	t.Run("Should Move tokens between buckets", func(t *testing.T) {
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GenerateMoveTokensScript(IDTableAddr.String())).
+			SetGasLimit(100000).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(IDTableAddr)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, IDTableAddr},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+
+		result, err := b.ExecuteScript(templates.GenerateGetUnlockedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(firstID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance := result.Value
+		assert.Equal(t, CadenceUFix64("150000.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetStakedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("310000.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetDirectStakedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("290000.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetDelegatorStakedScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("20000.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetDelegatorUnstakedScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("20000.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetTotalTokensStakedByTypeScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.UInt8(2))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("310000.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetStakedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(thirdID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("825000.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetDirectStakedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(thirdID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("675000.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetDelegatorStakedScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(thirdID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("50000.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetDelegatorStakedScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(thirdID)), jsoncdc.MustEncode(cadence.UInt32(secondDelegatorID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("100000.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetStakedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(fourthID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("700000.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetDirectStakedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(fourthID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("700000.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetTotalTokensStakedByTypeScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.UInt8(3))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("1525000.0"), balance.(cadence.UFix64))
+
+	})
+
+	// Pay rewards and make sure josh and josh delegator got paid the right amounts based on the cut
+	t.Run("Should pay correct rewards, rewards are split up properly between stakers and delegators", func(t *testing.T) {
+
+		result, err := b.ExecuteScript(templates.GenerateGetRewardBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(firstID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance := result.Value
+		assert.Equal(t, CadenceUFix64("815000.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetRewardBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetRewardBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(thirdID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("389610.0"), balance.(cadence.UFix64))
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GeneratePayRewardsScript(IDTableAddr.String())).
+			SetGasLimit(100000).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(IDTableAddr)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, IDTableAddr},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+
+		result, err = b.ExecuteScript(templates.GenerateGetRewardBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(firstID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("815000.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetRewardBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("2435221.6"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetDelegatorRewardsScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("150116.4"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetRewardBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(thirdID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("568327.5"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetDelegatorRewardsScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(thirdID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("10140.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetDelegatorRewardsScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(thirdID)), jsoncdc.MustEncode(cadence.UInt32(secondDelegatorID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("20280.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetRewardBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(fourthID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("177450.0"), balance.(cadence.UFix64))
+
+	})
+
+	// Move tokens. make sure josh delegators unstaked tokens are moved into their unlocked bucket
+	t.Run("Should Move tokens between buckets", func(t *testing.T) {
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GenerateMoveTokensScript(IDTableAddr.String())).
+			SetGasLimit(100000).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(IDTableAddr)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, IDTableAddr},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+
+		result, err := b.ExecuteScript(templates.GenerateGetDelegatorStakedScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance := result.Value
+		assert.Equal(t, CadenceUFix64("20000.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetDelegatorUnstakedScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetDelegatorUnlockedScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(secondID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("20000.0"), balance.(cadence.UFix64))
+
+	})
+
+	// Max Delegator Withdraws rewards
+	t.Run("Should be able to withdraw delegator rewards", func(t *testing.T) {
+
+		tx = flow.NewTransaction().
+			SetScript(templates.GenerateDelegatorWithdrawRewardsScript(FTAddress, FlowTokenAddress, IDTableAddr.String())).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(maxDelegatorOneAddress)
+
+		tokenAmount, err := cadence.NewUFix64("10000.0")
+		require.NoError(t, err)
+		_ = tx.AddArgument(tokenAmount)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, maxDelegatorOneAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), maxDelegatorOneSigner},
+			false,
+		)
+
+		result, err := b.ExecuteScript(templates.GenerateGetDelegatorRewardsScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(thirdID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance := result.Value
+		assert.Equal(t, CadenceUFix64("140.0"), balance.(cadence.UFix64))
+
+	})
 }

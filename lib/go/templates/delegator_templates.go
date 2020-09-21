@@ -5,6 +5,8 @@ import (
 )
 
 const (
+	createDelegationFilename = "idTableStaking/delegation/del_create_delegation.cdc"
+
 	delegatorRegisterFilename         = "idTableStaking/delegation/del_register_delegator.cdc"
 	delegatorStakeNewFilename         = "idTableStaking/delegation/del_stake_new_tokens.cdc"
 	delegatorStakeUnlockedFilename    = "idTableStaking/delegation/del_stake_unlocked.cdc"
@@ -20,6 +22,12 @@ const (
 	getDelegatorRewardedFilename  = "idTableStaking/delegation/get_delegator_rewarded.cdc"
 	getDelegatorRequestFilename   = "idTableStaking/delegation/get_delegator_request.cdc"
 )
+
+func GenerateCreateDelegationScript(idTableAddr string) []byte {
+	code := assets.MustAssetString(filePath + createDelegationFilename)
+
+	return []byte(ReplaceAddresses(code, "", "", idTableAddr))
+}
 
 func GenerateRegisterDelegatorScript(idTableAddr string) []byte {
 	code := assets.MustAssetString(filePath + delegatorRegisterFilename)
