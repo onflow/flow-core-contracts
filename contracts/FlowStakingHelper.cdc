@@ -5,6 +5,7 @@ import FlowIDTableStaking from 0xe03daebed8ca0615
 // Use service account to mint tokens
 
 pub contract FlowStakingHelper {
+
     // Event that is emitted when tokens are deposited to the escrow vault
     pub event TokensDeposited(amount: UFix64)
     
@@ -128,10 +129,9 @@ pub contract FlowStakingHelper {
         //
         pub fun withdrawEscrow(amount: UFix64) {
             // We will create temporary Vault in order to preserve one living in StakingHelper
-            let tempVault <- self.escrowVault.withdraw(amount: self.escrowVault.balance)
+            let tempVault <- self.escrowVault.withdraw(amount: amount)
             
-            self.stakerAwardVaultCapability.borrow<&{FungibleToken.Receiver}>()!.deposit(from: <- tempVault)          
-            
+            self.stakerAwardVaultCapability.borrow<&{FungibleToken.Receiver}>()!.deposit(from: <- tempVault)
         }
         
         // ---------------------------------------------------------------------------------
