@@ -168,6 +168,24 @@ pub contract FlowStakingHelper {
             */            
         }
 
+        
+        // ---------------------------------------------------------------------------------
+        // Type:    METHOD
+        // Name:    abort
+        // Access:  Custody Provider, Node Operator
+        // Action:  Add more tokens to the stake
+        //
+        pub fun stakeNewTokens(amount: UFix64) {
+            let tokens <- self.escrowVault.withdraw(amount: amount)
+
+            if (self.nodeStaker != nil) {
+                self.nodeStaker?.stakeNewTokens(<- tokens)
+            } else {
+                self.escrowVault.deposit(from: <- tokens)
+            }
+        }
+
+
         // ---------------------------------------------------------------------------------
         // Type:    METHOD
         // Name:    stake
