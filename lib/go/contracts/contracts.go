@@ -5,11 +5,8 @@ package contracts
 import (
 	"strings"
 
-<<<<<<< HEAD
-=======
 	ftcontracts "github.com/onflow/flow-ft/lib/go/contracts"
 
->>>>>>> 853ae364ad4d493e1027140b5eb68ee029c980c3
 	"github.com/onflow/flow-core-contracts/lib/go/contracts/internal/assets"
 )
 
@@ -17,7 +14,6 @@ const (
 	flowFeesFilename           = "../../../contracts/FlowFees.cdc"
 	flowServiceAccountFilename = "../../../contracts/FlowServiceAccount.cdc"
 	flowTokenFilename          = "../../../contracts/FlowToken.cdc"
-<<<<<<< HEAD
 	flowIdentityTableFilename  = "../../../contracts/FlowIDTableStaking.cdc"
 	flowQCFilename             = "../../../contracts/epochs/FlowQuorumCertificate.cdc"
 	flowDKGFilename            = "../../../contracts/epochs/FlowDKG.cdc"
@@ -29,12 +25,7 @@ const (
 	defaultIDTableAddr       = "FLOWIDTABLESTAKINGADDRESS"
 	defaultQCAddr            = "QCADDRESS"
 	defaultDKGAddr           = "DKGADDRESS"
-=======
-	flowIdentityTableFilename  = "../../../contracts/epochs/FlowIdentityTable.cdc"
-	defaultFungibleTokenAddr   = "0xee82856bf20e2aa6"
-	defaultFlowTokenAddr       = "0x0ae53cb6e3f42a79"
-	defaultFlowFeesAddr        = "0xe5a8b7f23e8b548f"
->>>>>>> 853ae364ad4d493e1027140b5eb68ee029c980c3
+	defaultFlowFeesAddr      = "0xe5a8b7f23e8b548f"
 )
 
 // FungibleToken returns the FungibleToken contract interface.
