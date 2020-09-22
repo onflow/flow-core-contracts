@@ -32,7 +32,14 @@ pub contract FlowIDTableStaking {
     pub event TokensUnStaked(nodeID: String, amount: UFix64)
     pub event NodeRemovedAndRefunded(nodeID: String, amount: UFix64)
     pub event RewardsPaid(nodeID: String, amount: UFix64)
-    pub event TokensWithdrawn(nodeID: String, amount: UFix64)
+    pub event UnlockedTokensWithdrawn(nodeID: String, amount: UFix64)
+    pub event RewardTokensWithdrawn(nodeID: String, amount: UFix64)
+
+    /// Delegator Events
+    pub event NewDelegatorCreated(nodeID: String, delegatorID: UInt32)
+    pub event DelegatorRewardsPaid(nodeID: String, delegatorID: UInt32, amount: UFix64)
+    pub event DelegatorUnlockedTokensWithdrawn(nodeID: String, delegatorID: UInt32, amount: UFix64)
+    pub event DelegatorRewardTokensWithdrawn(nodeID: String, delegatorID: UInt32, amount: UFix64)
 
     /// Holds the identity table for all the nodes in the network.
     /// Includes nodes that aren't actively participating
@@ -67,6 +74,7 @@ pub contract FlowIDTableStaking {
 
     /// Paths for storing staking resources
     pub let NodeStakerStoragePath: Path
+    pub let NodeStakerPublicPath: Path
     pub let StakingAdminStoragePath: Path
     pub let DelegatorStoragePath: Path
 
@@ -97,8 +105,13 @@ pub contract FlowIDTableStaking {
         /// the public key for staking
         pub(set) var stakingKey: String
 
-        /// The tokens that this node currently has staked
+        /// The total tokens that this node currently has staked, including delegators
         pub var tokensStaked: @FlowToken.Vault
+
+        /// The amount of tokens that only this Node operator has staked
+        /// Does not count delegated tokens
+        /// This value must always be above the minimum to stay staked
+        pub(set) var amountStakedByOnlyNode: UFix64
 
         /// The tokens that this node has committed to stake for the next epoch.
         pub var tokensCommitted: @FlowToken.Vault
@@ -170,6 +183,7 @@ pub contract FlowIDTableStaking {
             self.initialWeight = 0
             self.delegators <- {}
             self.cutPercentage = cutPercentage
+            self.amountStakedByOnlyNode = tokensCommitted.balance
 
             self.tokensCommitted <- tokensCommitted as! @FlowToken.Vault
             self.tokensStaked <- FlowToken.createEmptyVault() as! @FlowToken.Vault
@@ -177,6 +191,8 @@ pub contract FlowIDTableStaking {
             self.tokensUnlocked <- FlowToken.createEmptyVault() as! @FlowToken.Vault
             self.tokensRewarded <- FlowToken.createEmptyVault() as! @FlowToken.Vault
             self.tokensRequestedToUnstake = 0.0
+
+            emit NewNodeCreated(nodeID: self.id, amountCommitted: self.tokensCommitted.balance)
         }
 
         destroy() {
@@ -198,7 +214,17 @@ pub contract FlowIDTableStaking {
                 flowTokenRef.deposit(from: <-self.tokensRewarded)
             } else { destroy  self.tokensRewarded }
 
-            /// Needs to be fixed
+            // Return all of the delegators' funds
+            for delegator in self.delegators.keys {
+                let record = self.borrowDelegatorRecord(delegator)
+                if record.tokensUnlocked.balance > 0.0 {
+                    flowTokenRef.deposit(from: <-record.tokensUnlocked.withdraw(amount: record.tokensUnlocked.balance))
+                }
+                if record.tokensRewarded.balance > 0.0 {
+                    flowTokenRef.deposit(from: <-record.tokensRewarded.withdraw(amount: record.tokensRewarded.balance))
+                }
+            }
+
             destroy self.delegators
         }
 
@@ -230,8 +256,7 @@ pub contract FlowIDTableStaking {
         pub(set) var tokensStaked: UFix64
 
         /// Tokens this delegator has unstaked and is locked for the current epoch
-        /// The actual tokens are stored in the node's unstaked bucket
-        pub(set) var tokensUnstaked: UFix64
+        pub(set) var tokensUnstaked: @FlowToken.Vault
 
         /// Tokens this delegator has been rewarded and can withdraw
         pub let tokensRewarded: @FlowToken.Vault
@@ -245,13 +270,14 @@ pub contract FlowIDTableStaking {
         init() {
             self.tokensCommitted = 0.0
             self.tokensStaked = 0.0
-            self.tokensUnstaked = 0.0
+            self.tokensUnstaked <- FlowToken.createEmptyVault() as! @FlowToken.Vault
             self.tokensRewarded <- FlowToken.createEmptyVault() as! @FlowToken.Vault
             self.tokensUnlocked <- FlowToken.createEmptyVault() as! @FlowToken.Vault
             self.tokensRequestedToUnstake = 0.0
         }
 
         destroy () {
+            destroy self.tokensUnstaked
             destroy self.tokensRewarded
             destroy self.tokensUnlocked
         }
@@ -273,15 +299,9 @@ pub contract FlowIDTableStaking {
         /// The incrementing ID used to register new delegators
         access(self) var delegatorIDCounter: UInt32
 
-        /// The amount of tokens that only this Node operator has staked
-        /// Does not count delegated tokens
-        /// This value must always be above the minimum to stay staked
-        pub var amountStaked: UFix64
-
         init(id: String, initialStake: UFix64) {
             self.id = id
             self.delegatorIDCounter = 0
-            self.amountStaked = initialStake
         }
 
         /// Add new tokens to the system to stake during the next epoch
@@ -289,7 +309,9 @@ pub contract FlowIDTableStaking {
 
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
 
-            self.amountStaked = self.amountStaked + tokens.balance
+            nodeRecord.amountStakedByOnlyNode = nodeRecord.amountStakedByOnlyNode + tokens.balance
+
+            emit TokensCommitted(nodeID: nodeRecord.id, amount: tokens.balance)
 
             /// Add the new tokens to tokens committed
             nodeRecord.tokensCommitted.deposit(from: <-tokens)
@@ -301,10 +323,12 @@ pub contract FlowIDTableStaking {
 
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
 
-            self.amountStaked = self.amountStaked + amount
+            nodeRecord.amountStakedByOnlyNode = nodeRecord.amountStakedByOnlyNode + amount
 
             /// Add the removed tokens to tokens committed
             nodeRecord.tokensCommitted.deposit(from: <-nodeRecord.tokensUnlocked.withdraw(amount: amount))
+
+            emit TokensCommitted(nodeID: nodeRecord.id, amount: amount)
         }
 
         /// Stake tokens that are in the tokensRewarded bucket 
@@ -313,10 +337,12 @@ pub contract FlowIDTableStaking {
 
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
 
-            self.amountStaked = self.amountStaked + amount
+            nodeRecord.amountStakedByOnlyNode = nodeRecord.amountStakedByOnlyNode + amount
 
             /// Add the removed tokens to tokens committed
             nodeRecord.tokensCommitted.deposit(from: <-nodeRecord.tokensRewarded.withdraw(amount: amount))
+
+            emit TokensCommitted(nodeID: nodeRecord.id, amount: amount)
         }
 
         /// Request amount tokens to be removed from staking
@@ -326,7 +352,7 @@ pub contract FlowIDTableStaking {
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
 
             assert (
-                nodeRecord.delegators.length == 0 || self.amountStaked - amount >= FlowIDTableStaking.getMinimumStakeRequirements()[nodeRecord.role]!,
+                nodeRecord.delegators.length == 0 || nodeRecord.amountStakedByOnlyNode - amount >= FlowIDTableStaking.getMinimumStakeRequirements()[nodeRecord.role]!,
                 message: "Cannot unstake below the minimum if there are delegators"
             )
 
@@ -337,7 +363,7 @@ pub contract FlowIDTableStaking {
                 message: "Not enough tokens to unstake!"
             )
 
-            self.amountStaked = self.amountStaked - amount
+            nodeRecord.amountStakedByOnlyNode = nodeRecord.amountStakedByOnlyNode - amount
 
             /// If the request can come from committed, withdraw from committed to unlocked
             if nodeRecord.tokensCommitted.balance >= amount {
@@ -377,7 +403,7 @@ pub contract FlowIDTableStaking {
                 record.tokensRequestedToUnstake = record.tokensStaked
             }
 
-            self.amountStaked = 0.0
+            nodeRecord.amountStakedByOnlyNode = 0.0
 
             /// if the request can come from committed, withdraw from committed to unlocked
             if nodeRecord.tokensCommitted.balance >= 0.0 {
@@ -397,6 +423,8 @@ pub contract FlowIDTableStaking {
 
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
 
+            emit UnlockedTokensWithdrawn(nodeID: nodeRecord.id, amount: amount)
+
             return <- nodeRecord.tokensUnlocked.withdraw(amount: amount)
         }
 
@@ -404,6 +432,8 @@ pub contract FlowIDTableStaking {
         pub fun withdrawRewardedTokens(amount: UFix64): @FungibleToken.Vault {
 
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
+
+            emit RewardTokensWithdrawn(nodeID: nodeRecord.id, amount: amount)
 
             return <- nodeRecord.tokensRewarded.withdraw(amount: amount)
         }
@@ -414,9 +444,16 @@ pub contract FlowIDTableStaking {
 
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
 
+            assert(
+                nodeRecord.amountStakedByOnlyNode > FlowIDTableStaking.minimumStakeRequired[FlowIDTableStaking.getNodeRole(self.id)!]!,
+                message: "Cannot register a delegator if the node operator is below the minimum stake"
+            )
+
             self.delegatorIDCounter = self.delegatorIDCounter + UInt32(1)
 
             nodeRecord.delegators[self.delegatorIDCounter] <-! create DelegatorRecord()
+
+            emit NewDelegatorCreated(nodeID: nodeRecord.id, delegatorID: self.delegatorIDCounter)
 
             return <-create NodeDelegator(id: self.delegatorIDCounter, nodeID: self.id)
         }
@@ -522,6 +559,8 @@ pub contract FlowIDTableStaking {
 
             let record = nodeRecord.borrowDelegatorRecord(self.id)
 
+            emit DelegatorUnlockedTokensWithdrawn(nodeID: nodeRecord.id, delegatorID: self.id, amount: amount)
+
             /// remove the tokens from the unlocked bucket
             return <- record.tokensUnlocked.withdraw(amount: amount)
         }
@@ -532,6 +571,8 @@ pub contract FlowIDTableStaking {
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.nodeID)
 
             let record = nodeRecord.borrowDelegatorRecord(self.id)
+
+            emit DelegatorRewardTokensWithdrawn(nodeID: nodeRecord.id, delegatorID: self.id, amount: amount)
 
             /// remove the tokens from the unlocked bucket
             return <- record.tokensRewarded.withdraw(amount: amount)
@@ -575,18 +616,25 @@ pub contract FlowIDTableStaking {
                 /// do not meet the minimum requirements
                 if (totalTokensCommitted < FlowIDTableStaking.minimumStakeRequired[nodeRecord.role]!) || approvedNodeIDs[nodeID] == nil {
 
-                    /// move their committed tokens back to their unlocked tokens
-                    nodeRecord.tokensUnlocked.deposit(from: <-nodeRecord.tokensCommitted.withdraw(amount: nodeRecord.tokensCommitted.balance))
+                    emit NodeRemovedAndRefunded(nodeID: nodeRecord.id, amount: nodeRecord.tokensCommitted.balance + nodeRecord.tokensStaked.balance)
+
+                    if nodeRecord.tokensCommitted.balance > 0.0 {
+                        /// move their committed tokens back to their unlocked tokens
+                        nodeRecord.tokensUnlocked.deposit(from: <-nodeRecord.tokensCommitted.withdraw(amount: nodeRecord.tokensCommitted.balance))
+                    }
 
                     /// Set their request to unstake equal to all their staked tokens
                     /// since they are forced to unstake
                     nodeRecord.tokensRequestedToUnstake = nodeRecord.tokensStaked.balance
 
+                    nodeRecord.amountStakedByOnlyNode = 0.0
+
                     nodeRecord.initialWeight = 0
+
                 } else {
                     /// Set initial weight of all the committed nodes
                     /// TODO: Figure out how to calculate the initial weight for each node
-                    nodeRecord.initialWeight = 50
+                    nodeRecord.initialWeight = 100
                 }
             }
         }
@@ -619,16 +667,24 @@ pub contract FlowIDTableStaking {
                 /// Mint the tokens to reward the operator
                 let tokenReward <- FlowIDTableStaking.flowTokenMinter.mintTokens(amount: rewardAmount)
 
+                emit RewardsPaid(nodeID: nodeRecord.id, amount: tokenReward.balance)
+
                 // Iterate through all delegators and reward them their share
                 // of the rewards for the tokens they have staked for this node
                 for delegator in nodeRecord.delegators.keys {
                     let record = nodeRecord.borrowDelegatorRecord(delegator)
 
-                    let delegatorRewardAmount = (rewardAmount * record.tokensStaked / FlowIDTableStaking.totalTokensStakedByNodeType[nodeRecord.role]!) * (1.0 - nodeRecord.cutPercentage)
+                    let delegatorRewardAmount = (rewardsForNodeTypes[nodeRecord.role]! * (record.tokensStaked / FlowIDTableStaking.totalTokensStakedByNodeType[nodeRecord.role]!)) * (1.0 - nodeRecord.cutPercentage)
 
                     let delegatorReward <- tokenReward.withdraw(amount: delegatorRewardAmount)
 
-                    record.tokensRewarded.deposit(from: <-delegatorReward)
+                    emit DelegatorRewardsPaid(nodeID: nodeRecord.id, delegatorID: delegator, amount: delegatorRewardAmount)
+
+                    if delegatorReward.balance > 0.0 {
+                        record.tokensRewarded.deposit(from: <-delegatorReward)
+                    } else {
+                        destroy delegatorReward
+                    }
                 }
 
                 /// Deposit the rest of their tokens into their tokensRewarded bucket
@@ -653,12 +709,14 @@ pub contract FlowIDTableStaking {
                 FlowIDTableStaking.totalTokensStakedByNodeType[nodeRecord.role] = FlowIDTableStaking.totalTokensStakedByNodeType[nodeRecord.role]! + nodeRecord.tokensCommitted.balance
 
                 if nodeRecord.tokensCommitted.balance > 0.0 {
+                    emit TokensStaked(nodeID: nodeRecord.id, amount: nodeRecord.tokensCommitted.balance)
                     nodeRecord.tokensStaked.deposit(from: <-nodeRecord.tokensCommitted.withdraw(amount: nodeRecord.tokensCommitted.balance))
                 }
                 if nodeRecord.tokensUnstaked.balance > 0.0 {
                     nodeRecord.tokensUnlocked.deposit(from: <-nodeRecord.tokensUnstaked.withdraw(amount: nodeRecord.tokensUnstaked.balance))
                 }
                 if nodeRecord.tokensRequestedToUnstake > 0.0 {
+                    emit TokensUnStaked(nodeID: nodeRecord.id, amount: nodeRecord.tokensRequestedToUnstake)
                     nodeRecord.tokensUnstaked.deposit(from: <-nodeRecord.tokensStaked.withdraw(amount: nodeRecord.tokensRequestedToUnstake))
                 }
 
@@ -669,11 +727,16 @@ pub contract FlowIDTableStaking {
                     record.tokensStaked = record.tokensStaked + record.tokensCommitted
                     record.tokensCommitted = 0.0
 
-                    record.tokensUnlocked.deposit(from: <-nodeRecord.tokensUnstaked.withdraw(amount: record.tokensRequestedToUnstake))
+                    if record.tokensUnstaked.balance > 0.0 {
+                        if record.tokensUnstaked.balance > record.tokensUnstaked.balance {panic("Couldn't move delegator from unstaked to unlocked!".concat(nodeID).concat("    ").concat(delegator.toString()))} // REMOVE
+                        record.tokensUnlocked.deposit(from: <-record.tokensUnstaked.withdraw(amount: record.tokensUnstaked.balance))
+                    }
 
-                    nodeRecord.tokensUnstaked.deposit(from: <-nodeRecord.tokensStaked.withdraw(amount: record.tokensRequestedToUnstake))
-
-                    record.tokensUnstaked = record.tokensRequestedToUnstake
+                    if record.tokensRequestedToUnstake > 0.0 {
+                        if record.tokensRequestedToUnstake > nodeRecord.tokensStaked.balance {panic("Couldn't move delegator from staked to Unstaked!")} // REMOVE
+                        record.tokensUnstaked.deposit(from: <-nodeRecord.tokensStaked.withdraw(amount: record.tokensRequestedToUnstake))
+                        emit TokensUnStaked(nodeID: nodeRecord.id, amount: record.tokensRequestedToUnstake)
+                    }
 
                     record.tokensStaked = record.tokensStaked - record.tokensRequestedToUnstake
 
@@ -799,6 +862,14 @@ pub contract FlowIDTableStaking {
         return nodeRecord.tokensStaked.balance
     }
 
+    /// Gets the token balance that the specified node currently has directly staked
+    /// Does not include delegated tokens
+    pub fun getNodeDirectStakedBalance(_ nodeID: String): UFix64? {
+        let nodeRecord = self.borrowNodeRecord(nodeID)
+
+        return nodeRecord.amountStakedByOnlyNode
+    }
+
     /// Gets the token balance that the specified node has committed
     /// to add to their stake for the next epoch
     pub fun getNodeCommittedBalance(_ nodeID: String): UFix64? {
@@ -854,6 +925,55 @@ pub contract FlowIDTableStaking {
         return nodeRecord.tokensRequestedToUnstake
     }
 
+    pub fun getNodeDelegatorIDs(nodeID: String): [UInt32] {
+        let nodeRecord = self.borrowNodeRecord(nodeID)
+
+        return nodeRecord.delegators.keys
+    }
+
+    /// Gets the total token balance that the specified node currently has staked
+    pub fun getDelegatorStakedBalance(_ nodeID: String, delegatorID: UInt32): UFix64? {
+        let nodeRecord = self.borrowNodeRecord(nodeID)
+
+        return nodeRecord.delegators[delegatorID]?.tokensStaked
+    }
+
+    /// Gets the token balance that the specified node has committed
+    /// to add to their stake for the next epoch
+    pub fun getDelegatorCommittedBalance(_ nodeID: String, delegatorID: UInt32): UFix64? {
+        let nodeRecord = self.borrowNodeRecord(nodeID)
+
+        return nodeRecord.delegators[delegatorID]?.tokensCommitted
+    }
+
+    /// Gets the token balance that the specified node has unstaked
+    /// from the previous epoch
+    pub fun getDelegatorUnStakedBalance(_ nodeID: String, delegatorID: UInt32): UFix64? {
+        let nodeRecord = self.borrowNodeRecord(nodeID)
+
+        return nodeRecord.delegators[delegatorID]?.tokensUnstaked?.balance
+    }
+
+    /// Gets the token balance that the specified node can freely withdraw
+    pub fun getDelegatorUnlockedBalance(_ nodeID: String, delegatorID: UInt32): UFix64? {
+        let nodeRecord = self.borrowNodeRecord(nodeID)
+
+        return nodeRecord.delegators[delegatorID]?.tokensUnlocked?.balance
+    }
+
+    /// Gets the token balance that the specified node can freely withdraw
+    pub fun getDelegatorRewardedBalance(_ nodeID: String, delegatorID: UInt32): UFix64? {
+        let nodeRecord = self.borrowNodeRecord(nodeID)
+
+        return nodeRecord.delegators[delegatorID]?.tokensRewarded?.balance
+    }
+
+    pub fun getDelegatorUnstakingRequest(_ nodeID: String, delegatorID: UInt32): UFix64? {
+        let nodeRecord = self.borrowNodeRecord(nodeID)
+
+        return nodeRecord.delegators[delegatorID]?.tokensRequestedToUnstake
+    }
+
     /// Functions to return contract fields
 
     pub fun getMinimumStakeRequirements(): {UInt8: UFix64} {
@@ -876,6 +996,7 @@ pub contract FlowIDTableStaking {
         self.nodes <- {}
 
         self.NodeStakerStoragePath = /storage/flowStaker
+        self.NodeStakerPublicPath = /public/flowStaker
         self.StakingAdminStoragePath = /storage/flowStakingAdmin
         self.DelegatorStoragePath = /storage/flowStakingDelegator
 
@@ -885,7 +1006,7 @@ pub contract FlowIDTableStaking {
         self.totalTokensStakedByNodeType = {UInt8(1): 0.0, UInt8(2): 0.0, UInt8(3): 0.0, UInt8(4): 0.0, UInt8(5): 0.0}
 
         // Arbitrary number for now
-        self.epochTokenPayout = 250000000.0
+        self.epochTokenPayout = 5000000.0
 
         // The preliminary percentage of rewards that go to each node type every epoch
         // subject to change

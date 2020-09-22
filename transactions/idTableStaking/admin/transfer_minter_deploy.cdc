@@ -15,7 +15,7 @@ transaction(publicKeys: [[UInt8]], code: [UInt8]) {
         ?? panic("Could not borrow a reference to the Flow Token Admin resource")
 
     /// Create a flowTokenMinterResource
-    let flowTokenMinter <- flowTokenAdmin.createNewMinter(allowedAmount: 100.0)
+    let flowTokenMinter <- flowTokenAdmin.createNewMinter(allowedAmount: 1000000000.0)
 
     acct.save(<-flowTokenMinter, to: /storage/flowTokenMinter)
 

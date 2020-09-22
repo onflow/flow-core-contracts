@@ -9,17 +9,13 @@ import (
 )
 
 const (
-	// contractPrefix				= "../../../contracts/"
-	contractPrefix				= ""
-	flowFeesFilename           = "FlowFees.cdc"
-	flowServiceAccountFilename = "FlowServiceAccount.cdc"
-	flowTokenFilename          = "FlowToken.cdc"
-	flowIdentityTableFilename  = "epochs/FlowIDTableStaking.cdc"
-	flowQCFilename             = "epochs/FlowQuorumCertificate.cdc"
-	flowDKGFilename            = "epochs/FlowDKG.cdc"
-	flowEpochFilename          = "epochs/FlowEpoch.cdc"
-	flowStakingHelper          = "FlowStakingHelper.cdc"
-	flowStakingScaffoldFilename = "FlowStakingScaffold.cdc"
+	flowFeesFilename           = "../../../contracts/FlowFees.cdc"
+	flowServiceAccountFilename = "../../../contracts/FlowServiceAccount.cdc"
+	flowTokenFilename          = "../../../contracts/FlowToken.cdc"
+	flowIdentityTableFilename  = "../../../contracts/FlowIDTableStaking.cdc"
+	flowQCFilename             = "../../../contracts/epochs/FlowQuorumCertificate.cdc"
+	flowDKGFilename            = "../../../contracts/epochs/FlowDKG.cdc"
+	flowEpochFilename          = "../../../contracts/epochs/FlowEpoch.cdc"
 
 	hexPrefix                = "0x"
 	defaultFungibleTokenAddr = "FUNGIBLETOKENADDRESS"
