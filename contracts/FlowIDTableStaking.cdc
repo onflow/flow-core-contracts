@@ -6,17 +6,32 @@
     node operators' and delegators' information 
     and flow tokens that are staked as part of the Flow Protocol.
 
-    Nodes submit their stake to the Admin's addNodeInfo Function
+    It is recommended to check out the staking page on the Flow Docs site
+    before looking at the smart contract. It will help with understanding
+    https://docs.onflow.org/token/staking/
+
+    Nodes submit their stake to the public addNodeInfo Function
     during the staking auction phase.
+
     This records their info and committd tokens. They also will get a Node
     Object that they can use to stake, unstake, and withdraw rewards.
 
+    Each node has multiple token buckets that hold their tokens
+    based on their status. committed, staked, unstaked, unlocked, and rewarded.
+
     The Admin has the authority to remove node records, 
     refund insufficiently staked nodes, pay rewards, 
-    and move tokens between buckets.
+    and move tokens between buckets. These will happen once every epoch.
 
-    All the node info an staking info is publicly accessible
+    All the node info and staking info is publicly accessible
     to any transaction in the network
+
+    Node Roles are represented by integers:
+        1 = collection
+        2 = consensus
+        3 = execution
+        4 = verification
+        5 = access
 
  */
 
@@ -26,7 +41,7 @@ import FlowToken from 0x0ae53cb6e3f42a79
 pub contract FlowIDTableStaking {
 
     /********************* ID Table and Staking Events **********************/
-    pub event NewNodeCreated(nodeID: String, amountCommitted: UFix64)
+    pub event NewNodeCreated(nodeID: String, amountCommitted: UFix64, cutPercentage: UFix64)
     pub event TokensCommitted(nodeID: String, amount: UFix64)
     pub event TokensStaked(nodeID: String, amount: UFix64)
     pub event TokensUnStaked(nodeID: String, amount: UFix64)
@@ -36,6 +51,7 @@ pub contract FlowIDTableStaking {
     pub event RewardTokensWithdrawn(nodeID: String, amount: UFix64)
 
     /// Delegator Events
+    pub event NewDelegatorCutPercentage(nodeID: String, newCutPercentage: UFix64)
     pub event NewDelegatorCreated(nodeID: String, delegatorID: UInt32)
     pub event DelegatorRewardsPaid(nodeID: String, delegatorID: UInt32, amount: UFix64)
     pub event DelegatorUnlockedTokensWithdrawn(nodeID: String, delegatorID: UInt32, amount: UFix64)
@@ -43,7 +59,6 @@ pub contract FlowIDTableStaking {
 
     /// Holds the identity table for all the nodes in the network.
     /// Includes nodes that aren't actively participating
-    /// could get a little complex in the future
     /// key = node ID
     /// value = the record of that node's info, tokens, and delegators
     access(contract) var nodes: @{String: NodeRecord}
@@ -111,6 +126,7 @@ pub contract FlowIDTableStaking {
         /// The amount of tokens that only this Node operator has staked
         /// Does not count delegated tokens
         /// This value must always be above the minimum to stay staked
+        /// or accept delegators
         pub(set) var amountStakedByOnlyNode: UFix64
 
         /// The tokens that this node has committed to stake for the next epoch.
@@ -133,7 +149,7 @@ pub contract FlowIDTableStaking {
 
         /// The percentage of rewards that this node operator takes from 
         /// the users that are delegating to it
-        pub var cutPercentage: UFix64
+        pub(set) var cutPercentage: UFix64
 
         /// The amount of tokens that this node has requested to unstake
         /// for the next epoch
@@ -192,7 +208,7 @@ pub contract FlowIDTableStaking {
             self.tokensRewarded <- FlowToken.createEmptyVault() as! @FlowToken.Vault
             self.tokensRequestedToUnstake = 0.0
 
-            emit NewNodeCreated(nodeID: self.id, amountCommitted: self.tokensCommitted.balance)
+            emit NewNodeCreated(nodeID: self.id, amountCommitted: self.tokensCommitted.balance, cutPercentage: self.cutPercentage)
         }
 
         destroy() {
@@ -289,8 +305,7 @@ pub contract FlowIDTableStaking {
         pub fun createNewDelegator(): @NodeDelegator
     }
 
-    /// Resource that the node operator controls for participating
-    /// in the staking auction and other Epoch phases.
+    /// Resource that the node operator controls for staking
     pub resource NodeStaker: PublicNodeStaker {
 
         /// Unique ID for the node operator
@@ -440,6 +455,8 @@ pub contract FlowIDTableStaking {
 
         /// Registers a new delegator with a unique ID for this node operator
         /// and returns a delegator object to the caller
+        /// The node operator would make a public capability for potential delegators
+        /// to access this function
         pub fun createNewDelegator(): @NodeDelegator {
 
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
@@ -456,6 +473,20 @@ pub contract FlowIDTableStaking {
             emit NewDelegatorCreated(nodeID: nodeRecord.id, delegatorID: self.delegatorIDCounter)
 
             return <-create NodeDelegator(id: self.delegatorIDCounter, nodeID: self.id)
+        }
+
+        /// Node operator calls this to change the percentage 
+        /// of delegator rewards they take
+        pub fun changeCutPercentage(_ newCutPercentage: UFix64) {
+            pre {
+                newCutPercentage > 0.0 && newCutPercentage < 1.0:
+                    "Cut percentage must be between 0 and 1!"
+            }
+            let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
+
+            nodeRecord.cutPercentage = newCutPercentage
+
+            emit NewDelegatorCutPercentage(nodeID: self.id, newCutPercentage: nodeRecord.cutPercentage)
         }
 
     }
@@ -646,7 +677,7 @@ pub contract FlowIDTableStaking {
             let allNodeIDs = FlowIDTableStaking.getNodeIDs()
 
             // calculate total reward sum for each node type
-            // by multiplying the total amount of rewards by the ration for each node type
+            // by multiplying the total amount of rewards by the ratio for each node type
             var rewardsForNodeTypes: {UInt8: UFix64} = {}
             rewardsForNodeTypes[UInt8(1)] = FlowIDTableStaking.epochTokenPayout * FlowIDTableStaking.rewardRatios[UInt8(1)]!
             rewardsForNodeTypes[UInt8(2)] = FlowIDTableStaking.epochTokenPayout * FlowIDTableStaking.rewardRatios[UInt8(2)]!
@@ -720,10 +751,12 @@ pub contract FlowIDTableStaking {
                     nodeRecord.tokensUnstaked.deposit(from: <-nodeRecord.tokensStaked.withdraw(amount: nodeRecord.tokensRequestedToUnstake))
                 }
 
+                // move all the delegators' tokens between buckets
                 for delegator in nodeRecord.delegators.keys {
 
                     let record = nodeRecord.borrowDelegatorRecord(delegator)
 
+                    // mark their committed tokens as staked
                     record.tokensStaked = record.tokensStaked + record.tokensCommitted
                     record.tokensCommitted = 0.0
 
@@ -760,7 +793,9 @@ pub contract FlowIDTableStaking {
         }
     }
 
-    /// Add a new node to the record
+    /// Any node can call this function to register a new Node
+    /// It returns the resource for nodes that they can store in
+    /// their account storage
     pub fun addNodeRecord(id: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String, tokensCommitted: @FungibleToken.Vault, cutPercentage: UFix64): @NodeStaker {
 
         let initialBalance = tokensCommitted.balance
@@ -919,12 +954,14 @@ pub contract FlowIDTableStaking {
         }
     }
 
+    /// Get the amount of tokens that a node has requested to unstake
     pub fun getNodeUnstakingRequest(_ nodeID: String): UFix64 {
         let nodeRecord = self.borrowNodeRecord(nodeID)
 
         return nodeRecord.tokensRequestedToUnstake
     }
 
+    /// Get the IDs of all the delegators that a node has
     pub fun getNodeDelegatorIDs(nodeID: String): [UInt32] {
         let nodeRecord = self.borrowNodeRecord(nodeID)
 
@@ -1000,8 +1037,8 @@ pub contract FlowIDTableStaking {
         self.StakingAdminStoragePath = /storage/flowStakingAdmin
         self.DelegatorStoragePath = /storage/flowStakingDelegator
 
-        // These are just arbitrary numbers right now
-        self.minimumStakeRequired = {UInt8(1): 125000.0, UInt8(2): 250000.0, UInt8(3): 625000.0, UInt8(4): 67500.0, UInt8(5): 0.0}
+        // minimum stakes for each node types
+        self.minimumStakeRequired = {UInt8(1): 250000.0, UInt8(2): 500000.0, UInt8(3): 1250000.0, UInt8(4): 135000.0, UInt8(5): 0.0}
 
         self.totalTokensStakedByNodeType = {UInt8(1): 0.0, UInt8(2): 0.0, UInt8(3): 0.0, UInt8(4): 0.0, UInt8(5): 0.0}
 
