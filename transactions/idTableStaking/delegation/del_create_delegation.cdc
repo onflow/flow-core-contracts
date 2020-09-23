@@ -6,7 +6,10 @@ transaction() {
 
         // Create a public link to the node staker
         // so that delegators can access the function to register as a delegator
-        acct.link<&FlowIDTableStaking.NodeStaker{FlowIDTableStaking.PublicNodeStaker}>(FlowIDTableStaking.NodeStakerPublicPath, target: FlowIDTableStaking.NodeStakerStoragePath)
+        let linkPath = FlowIDTableStaking.NodeStakerPublicPath
+        let storagePath = FlowIDTableStaking.NodeStakerStoragePath
+
+        acct.link<&FlowIDTableStaking.NodeStaker{FlowIDTableStaking.PublicNodeStaker}>(linkPath, target: storagePath)
     }
 
 }

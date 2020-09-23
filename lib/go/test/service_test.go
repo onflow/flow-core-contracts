@@ -13,7 +13,7 @@ func TestContracts(t *testing.T) {
 	b := newEmulator()
 
 	// deploy the ServiceAccount contract
-	serviceAccountCode := contracts.FlowServiceAccount()
+	serviceAccountCode := contracts.FlowServiceAccount(emulatorFTAddress, emulatorFlowTokenAddress, "0xe5a8b7f23e8b548f")
 	_, err := b.CreateAccount(nil, serviceAccountCode)
 	assert.NoError(t, err)
 	_, err = b.CommitBlock()
