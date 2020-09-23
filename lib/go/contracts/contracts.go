@@ -14,10 +14,18 @@ const (
 	flowFeesFilename           = "../../../contracts/FlowFees.cdc"
 	flowServiceAccountFilename = "../../../contracts/FlowServiceAccount.cdc"
 	flowTokenFilename          = "../../../contracts/FlowToken.cdc"
-	flowIdentityTableFilename  = "../../../contracts/epochs/FlowIdentityTable.cdc"
-	defaultFungibleTokenAddr   = "0xee82856bf20e2aa6"
-	defaultFlowTokenAddr       = "0x0ae53cb6e3f42a79"
-	defaultFlowFeesAddr        = "0xe5a8b7f23e8b548f"
+	flowIdentityTableFilename  = "../../../contracts/FlowIDTableStaking.cdc"
+	flowQCFilename             = "../../../contracts/epochs/FlowQuorumCertificate.cdc"
+	flowDKGFilename            = "../../../contracts/epochs/FlowDKG.cdc"
+	flowEpochFilename          = "../../../contracts/epochs/FlowEpoch.cdc"
+
+	hexPrefix                = "0x"
+	defaultFungibleTokenAddr = "FUNGIBLETOKENADDRESS"
+	defaultFlowTokenAddr     = "FLOWTOKENADDRESS"
+	defaultIDTableAddr       = "FLOWIDTABLESTAKINGADDRESS"
+	defaultQCAddr            = "QCADDRESS"
+	defaultDKGAddr           = "DKGADDRESS"
+	defaultFlowFeesAddr      = "0xe5a8b7f23e8b548f"
 )
 
 // FungibleToken returns the FungibleToken contract interface.
@@ -90,9 +98,12 @@ func FlowServiceAccount(fungibleTokenAddr, flowTokenAddr, flowFeesAddr string) [
 	return []byte(code)
 }
 
-// FlowIdentityTable returns the FlowIdentityTable contract
-func FlowIdentityTable() []byte {
+// FlowIDTableStaking returns the FlowIDTableStaking contract
+func FlowIDTableStaking(ftAddr, flowTokenAddr string) []byte {
 	code := assets.MustAssetString(flowIdentityTableFilename)
+
+	code = strings.ReplaceAll(code, defaultFungibleTokenAddr, ftAddr)
+	code = strings.ReplaceAll(code, defaultFlowTokenAddr, flowTokenAddr)
 
 	return []byte(code)
 }

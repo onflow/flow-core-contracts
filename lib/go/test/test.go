@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/onflow/cadence"
-	"github.com/onflow/cadence/runtime/cmd"
 	"github.com/onflow/flow-go-sdk"
 
 	emulator "github.com/dapperlabs/flow-emulator"
@@ -76,7 +75,7 @@ func Submit(
 	} else {
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
-			cmd.PrettyPrintError(result.Error, "", map[string]string{"": ""})
+			//cmd.PrettyPrintError(result.Error, "", map[string]string{"": ""})
 		}
 	}
 
@@ -112,4 +111,14 @@ func CadenceUFix64(value string) cadence.Value {
 	}
 
 	return newValue
+}
+
+func bytesToCadenceArray(b []byte) cadence.Array {
+	values := make([]cadence.Value, len(b))
+
+	for i, v := range b {
+		values[i] = cadence.NewUInt8(v)
+	}
+
+	return cadence.NewArray(values)
 }

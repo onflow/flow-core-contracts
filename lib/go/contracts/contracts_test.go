@@ -8,6 +8,10 @@ import (
 	"github.com/onflow/flow-core-contracts/lib/go/contracts"
 )
 
+const (
+	fakeAddr = "0x0A"
+)
+
 func TestFlowTokenContract(t *testing.T) {
 	contract := contracts.FlowToken()
 	assert.NotNil(t, contract)
@@ -24,6 +28,6 @@ func TestFlowServiceAccountContract(t *testing.T) {
 }
 
 func TestFlowIdentityTableContract(t *testing.T) {
-	contract := contracts.FlowIdentityTable()
+	contract := contracts.FlowIDTableStaking(fakeAddr, fakeAddr)
 	assert.NotNil(t, contract)
 }
