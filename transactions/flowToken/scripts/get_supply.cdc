@@ -7,7 +7,5 @@ pub fun main(): UFix64 {
 
     let supply = FlowToken.totalSupply
 
-    log(supply)
-
     return supply
 }
