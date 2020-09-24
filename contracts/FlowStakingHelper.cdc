@@ -190,7 +190,7 @@ pub contract FlowStakingHelper {
         // Type:    METHOD
         // Name:    stake
         // Access:  Custody Provider, Node Operator
-        // Action: Function to request to stake certain amount of tokens
+        // Action: Function to request to commit to stake a certain amount of unlocked tokens
         pub fun stakeUnlockedTokens(amount: UFix64) {
             pre{
                 self.nodeStaker != nil: "NodeRecord was not initialized"    
