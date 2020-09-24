@@ -173,7 +173,7 @@ pub contract FlowStakingHelper {
         // Type:    METHOD
         // Name:    abort
         // Access:  Custody Provider, Node Operator
-        // Action:  Add more tokens to the stake
+        // Action:  Commit more tokens to stake
         //
         pub fun stakeNewTokens(amount: UFix64) {
             let tokens <- self.escrowVault.withdraw(amount: amount)
