@@ -25,7 +25,7 @@ const (
 	defaultIDTableAddr       = "FLOWIDTABLESTAKINGADDRESS"
 	defaultQCAddr            = "QCADDRESS"
 	defaultDKGAddr           = "DKGADDRESS"
-	defaultFlowFeesAddr      = "0xe5a8b7f23e8b548f"
+	defaultFlowFeesAddr      = "FLOWFEESADDRESS"
 )
 
 // FungibleToken returns the FungibleToken contract interface.

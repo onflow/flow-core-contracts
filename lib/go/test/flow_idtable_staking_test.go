@@ -1,6 +1,7 @@
 package test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -32,16 +33,19 @@ const (
 
 	emulatorFTAddress        = "ee82856bf20e2aa6"
 	emulatorFlowTokenAddress = "0ae53cb6e3f42a79"
+
+	testnetFTAddress        = "9a0766d93b6608b7"
+	testnetFlowTokenAddress = "7e60df042a9c0868"
 )
 
 func TestIDTable(t *testing.T) {
-	b := newEmulator()
+	b := newBlockchain()
 
 	accountKeys := test.AccountKeyGenerator()
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	IDTableCode := contracts.FlowIDTableStaking(emulatorFTAddress, emulatorFlowTokenAddress)
+	IDTableCode := contracts.FlowIDTableStaking(fungibleTokenAddress, flowTokenAddress)
 
 	publicKeys := make([]cadence.Value, 1)
 
@@ -49,10 +53,9 @@ func TestIDTable(t *testing.T) {
 
 	cadencePublicKeys := cadence.NewArray(publicKeys)
 	cadenceCode := bytesToCadenceArray(IDTableCode)
-
 	// Deploy the IDTableStaking contract
 	tx := flow.NewTransaction().
-		SetScript(templates.GenerateTransferMinterAndDeployScript(emulatorFTAddress, emulatorFlowTokenAddress)).
+		SetScript(templates.GenerateTransferMinterAndDeployScript(fungibleTokenAddress, flowTokenAddress)).
 		SetGasLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
@@ -67,25 +70,25 @@ func TestIDTable(t *testing.T) {
 		false,
 	)
 
+	txResult, err := b.GetTransactionResult(tx.ID())
+	require.NoError(t, err)
+
 	var IDTableAddr sdk.Address
 
-	var i uint64
-	i = 0
-	for i < 1000 {
-		results, _ := b.GetEventsByHeight(i, "flow.AccountCreated")
-
-		for _, event := range results {
-			if event.Type == sdk.EventAccountCreated {
-				IDTableAddr = sdk.Address(event.Value.Fields[0].(cadence.Address))
-			}
+	found := false
+	for _, event := range txResult.Events {
+		if event.Type == flow.EventAccountCreated {
+			found = true
+			accountCreatedEvent := flow.AccountCreatedEvent(event)
+			IDTableAddr = accountCreatedEvent.Address()
+			break
 		}
-
-		i = i + 1
 	}
 
-	t.Run("Should be able to read empty table fields and initialized fields", func(t *testing.T) {
+	require.True(t, found)
 
-		result, err := b.ExecuteScript(templates.GenerateReturnCurrentTableScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String()), nil)
+	t.Run("Should be able to read empty table fields and initialized fields", func(t *testing.T) {
+		result, err := b.ExecuteScript(templates.GenerateReturnCurrentTableScript(fungibleTokenAddress, flowTokenAddress, IDTableAddr.String()), nil)
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
@@ -94,7 +97,7 @@ func TestIDTable(t *testing.T) {
 		idArray := currentIDs.(cadence.Array).Values
 		assert.Equal(t, 0, len(idArray))
 
-		result, err = b.ExecuteScript(templates.GenerateReturnProposedTableScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String()), nil)
+		result, err = b.ExecuteScript(templates.GenerateReturnProposedTableScript(fungibleTokenAddress, flowTokenAddress, IDTableAddr.String()), nil)
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
@@ -104,6 +107,9 @@ func TestIDTable(t *testing.T) {
 		assert.Equal(t, 0, len(idArray))
 
 		/// Check that the stake requirements for each node role are initialized correctly
+		script := templates.GenerateGetStakeRequirementsScript(IDTableAddr.String())
+		fmt.Println(string(script))
+		fmt.Println("ARGS", jsoncdc.MustEncode(cadence.UInt8(1)))
 
 		result, err = b.ExecuteScript(templates.GenerateGetStakeRequirementsScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.UInt8(1))})
 		require.NoError(t, err)
@@ -269,7 +275,7 @@ func TestIDTable(t *testing.T) {
 	t.Run("Should be able to mint tokens for new accounts", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
+			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(fungibleTokenAddress), flow.HexToAddress(flowTokenAddress), "FlowToken")).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -286,7 +292,7 @@ func TestIDTable(t *testing.T) {
 		)
 
 		tx = flow.NewTransaction().
-			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
+			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(fungibleTokenAddress), flow.HexToAddress(flowTokenAddress), "FlowToken")).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -303,7 +309,7 @@ func TestIDTable(t *testing.T) {
 		)
 
 		tx = flow.NewTransaction().
-			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
+			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(fungibleTokenAddress), flow.HexToAddress(flowTokenAddress), "FlowToken")).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -319,7 +325,7 @@ func TestIDTable(t *testing.T) {
 			false,
 		)
 
-		result, err := b.ExecuteScript(ft_templates.GenerateInspectVaultScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
+		result, err := b.ExecuteScript(ft_templates.GenerateInspectVaultScript(flow.HexToAddress(fungibleTokenAddress), flow.HexToAddress(flowTokenAddress), "FlowToken"), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
@@ -328,7 +334,7 @@ func TestIDTable(t *testing.T) {
 		assert.Equal(t, CadenceUFix64("1000000000.0"), balance.(cadence.UFix64))
 
 		tx = flow.NewTransaction().
-			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
+			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(fungibleTokenAddress), flow.HexToAddress(flowTokenAddress), "FlowToken")).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -345,7 +351,7 @@ func TestIDTable(t *testing.T) {
 		)
 
 		tx = flow.NewTransaction().
-			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
+			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(fungibleTokenAddress), flow.HexToAddress(flowTokenAddress), "FlowToken")).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -362,7 +368,7 @@ func TestIDTable(t *testing.T) {
 		)
 
 		tx = flow.NewTransaction().
-			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
+			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(fungibleTokenAddress), flow.HexToAddress(flowTokenAddress), "FlowToken")).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -379,7 +385,7 @@ func TestIDTable(t *testing.T) {
 		)
 
 		tx = flow.NewTransaction().
-			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
+			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(fungibleTokenAddress), flow.HexToAddress(flowTokenAddress), "FlowToken")).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -396,7 +402,7 @@ func TestIDTable(t *testing.T) {
 		)
 
 		tx = flow.NewTransaction().
-			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
+			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(fungibleTokenAddress), flow.HexToAddress(flowTokenAddress), "FlowToken")).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -417,7 +423,7 @@ func TestIDTable(t *testing.T) {
 	t.Run("Shouldn't be able to create invalid Node structs", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateCreateNodeScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
+			SetScript(templates.GenerateCreateNodeScript(fungibleTokenAddress, flowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -444,7 +450,7 @@ func TestIDTable(t *testing.T) {
 		)
 
 		tx = flow.NewTransaction().
-			SetScript(templates.GenerateCreateNodeScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
+			SetScript(templates.GenerateCreateNodeScript(fungibleTokenAddress, flowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -471,7 +477,7 @@ func TestIDTable(t *testing.T) {
 		)
 
 		tx = flow.NewTransaction().
-			SetScript(templates.GenerateCreateNodeScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
+			SetScript(templates.GenerateCreateNodeScript(fungibleTokenAddress, flowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -498,7 +504,7 @@ func TestIDTable(t *testing.T) {
 		)
 
 		tx = flow.NewTransaction().
-			SetScript(templates.GenerateCreateNodeScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
+			SetScript(templates.GenerateCreateNodeScript(fungibleTokenAddress, flowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -529,7 +535,7 @@ func TestIDTable(t *testing.T) {
 	t.Run("Should be able to create a valid Node struct", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateCreateNodeScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
+			SetScript(templates.GenerateCreateNodeScript(fungibleTokenAddress, flowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -560,7 +566,7 @@ func TestIDTable(t *testing.T) {
 			false,
 		)
 
-		result, err := b.ExecuteScript(templates.GenerateReturnTableScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String()), nil)
+		result, err := b.ExecuteScript(templates.GenerateReturnTableScript(fungibleTokenAddress, flowTokenAddress, IDTableAddr.String()), nil)
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
@@ -569,7 +575,7 @@ func TestIDTable(t *testing.T) {
 		idArray := proposedIDs.(cadence.Array).Values
 		assert.Equal(t, 1, len(idArray))
 
-		result, err = b.ExecuteScript(templates.GenerateReturnProposedTableScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String()), nil)
+		result, err = b.ExecuteScript(templates.GenerateReturnProposedTableScript(fungibleTokenAddress, flowTokenAddress, IDTableAddr.String()), nil)
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
@@ -655,7 +661,7 @@ func TestIDTable(t *testing.T) {
 	t.Run("Shouldn't be able to create Node with a duplicate id", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateCreateNodeScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
+			SetScript(templates.GenerateCreateNodeScript(fungibleTokenAddress, flowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -685,7 +691,7 @@ func TestIDTable(t *testing.T) {
 	t.Run("Shouldn't be able to create Nodes with duplicate fields", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateCreateNodeScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
+			SetScript(templates.GenerateCreateNodeScript(fungibleTokenAddress, flowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -712,7 +718,7 @@ func TestIDTable(t *testing.T) {
 		)
 
 		tx = flow.NewTransaction().
-			SetScript(templates.GenerateCreateNodeScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
+			SetScript(templates.GenerateCreateNodeScript(fungibleTokenAddress, flowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -739,7 +745,7 @@ func TestIDTable(t *testing.T) {
 		)
 
 		tx = flow.NewTransaction().
-			SetScript(templates.GenerateCreateNodeScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
+			SetScript(templates.GenerateCreateNodeScript(fungibleTokenAddress, flowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -769,7 +775,7 @@ func TestIDTable(t *testing.T) {
 	t.Run("Should be able to create more valid Node structs", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateCreateNodeScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
+			SetScript(templates.GenerateCreateNodeScript(fungibleTokenAddress, flowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -803,7 +809,7 @@ func TestIDTable(t *testing.T) {
 		assert.Equal(t, CadenceUFix64("480000.0"), balance.(cadence.UFix64))
 
 		tx = flow.NewTransaction().
-			SetScript(templates.GenerateCreateNodeScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
+			SetScript(templates.GenerateCreateNodeScript(fungibleTokenAddress, flowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -828,7 +834,7 @@ func TestIDTable(t *testing.T) {
 			false,
 		)
 
-		result, err = b.ExecuteScript(templates.GenerateReturnCurrentTableScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String()), nil)
+		result, err = b.ExecuteScript(templates.GenerateReturnCurrentTableScript(fungibleTokenAddress, flowTokenAddress, IDTableAddr.String()), nil)
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
@@ -837,7 +843,7 @@ func TestIDTable(t *testing.T) {
 		idArray := currentIDs.(cadence.Array).Values
 		assert.Equal(t, 0, len(idArray))
 
-		result, err = b.ExecuteScript(templates.GenerateReturnProposedTableScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String()), nil)
+		result, err = b.ExecuteScript(templates.GenerateReturnProposedTableScript(fungibleTokenAddress, flowTokenAddress, IDTableAddr.String()), nil)
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
@@ -884,7 +890,7 @@ func TestIDTable(t *testing.T) {
 			false,
 		)
 
-		result, err := b.ExecuteScript(templates.GenerateReturnCurrentTableScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String()), nil)
+		result, err := b.ExecuteScript(templates.GenerateReturnCurrentTableScript(fungibleTokenAddress, flowTokenAddress, IDTableAddr.String()), nil)
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
@@ -893,7 +899,7 @@ func TestIDTable(t *testing.T) {
 		idArray := currentIDs.(cadence.Array).Values
 		assert.Equal(t, 0, len(idArray))
 
-		result, err = b.ExecuteScript(templates.GenerateReturnProposedTableScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String()), nil)
+		result, err = b.ExecuteScript(templates.GenerateReturnProposedTableScript(fungibleTokenAddress, flowTokenAddress, IDTableAddr.String()), nil)
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
@@ -903,7 +909,7 @@ func TestIDTable(t *testing.T) {
 		assert.Equal(t, 2, len(idArray))
 
 		tx = flow.NewTransaction().
-			SetScript(templates.GenerateCreateNodeScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
+			SetScript(templates.GenerateCreateNodeScript(fungibleTokenAddress, flowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -928,7 +934,7 @@ func TestIDTable(t *testing.T) {
 			false,
 		)
 
-		result, err = b.ExecuteScript(templates.GenerateReturnProposedTableScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String()), nil)
+		result, err = b.ExecuteScript(templates.GenerateReturnProposedTableScript(fungibleTokenAddress, flowTokenAddress, IDTableAddr.String()), nil)
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
@@ -949,7 +955,7 @@ func TestIDTable(t *testing.T) {
 	t.Run("Should be able to commit additional tokens for a node", func(t *testing.T) {
 
 		tx = flow.NewTransaction().
-			SetScript(templates.GenerateStakeNewTokensScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
+			SetScript(templates.GenerateStakeNewTokensScript(fungibleTokenAddress, flowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -1039,7 +1045,7 @@ func TestIDTable(t *testing.T) {
 	t.Run("Should be able to withdraw tokens from unlocked", func(t *testing.T) {
 
 		tx = flow.NewTransaction().
-			SetScript(templates.GenerateWithdrawUnlockedTokensScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
+			SetScript(templates.GenerateWithdrawUnlockedTokensScript(fungibleTokenAddress, flowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -1131,7 +1137,7 @@ func TestIDTable(t *testing.T) {
 			false,
 		)
 
-		result, err = b.ExecuteScript(templates.GenerateReturnProposedTableScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String()), nil)
+		result, err = b.ExecuteScript(templates.GenerateReturnProposedTableScript(fungibleTokenAddress, flowTokenAddress, IDTableAddr.String()), nil)
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
@@ -1368,7 +1374,7 @@ func TestIDTable(t *testing.T) {
 		)
 
 		tx = flow.NewTransaction().
-			SetScript(templates.GenerateStakeNewTokensScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
+			SetScript(templates.GenerateStakeNewTokensScript(fungibleTokenAddress, flowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -1579,7 +1585,7 @@ func TestIDTable(t *testing.T) {
 	t.Run("Should be able to delegate new tokens to josh", func(t *testing.T) {
 
 		tx = flow.NewTransaction().
-			SetScript(templates.GenerateDelegatorStakeNewScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
+			SetScript(templates.GenerateDelegatorStakeNewScript(fungibleTokenAddress, flowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -1695,7 +1701,7 @@ func TestIDTable(t *testing.T) {
 	t.Run("Should be able to withdraw josh delegator's unlocked tokens", func(t *testing.T) {
 
 		tx = flow.NewTransaction().
-			SetScript(templates.GenerateDelegatorWithdrawUnlockedScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
+			SetScript(templates.GenerateDelegatorWithdrawUnlockedScript(fungibleTokenAddress, flowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -1803,7 +1809,7 @@ func TestIDTable(t *testing.T) {
 			false,
 		)
 
-		result, err := b.ExecuteScript(templates.GenerateReturnProposedTableScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String()), nil)
+		result, err := b.ExecuteScript(templates.GenerateReturnProposedTableScript(fungibleTokenAddress, flowTokenAddress, IDTableAddr.String()), nil)
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
@@ -1865,7 +1871,7 @@ func TestIDTable(t *testing.T) {
 
 		tx := flow.NewTransaction().
 			SetScript(templates.GeneratePayRewardsScript(IDTableAddr.String())).
-			SetGasLimit(100000).
+			SetGasLimit(9999).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
@@ -1979,7 +1985,7 @@ func TestIDTable(t *testing.T) {
 
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateMoveTokensScript(IDTableAddr.String())).
-			SetGasLimit(100000).
+			SetGasLimit(9999).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
@@ -2246,7 +2252,7 @@ func TestIDTable(t *testing.T) {
 	t.Run("Should create new execution node", func(t *testing.T) {
 
 		tx = flow.NewTransaction().
-			SetScript(templates.GenerateCreateNodeScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
+			SetScript(templates.GenerateCreateNodeScript(fungibleTokenAddress, flowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -2283,7 +2289,7 @@ func TestIDTable(t *testing.T) {
 	t.Run("Should be able to delegate new tokens to max", func(t *testing.T) {
 
 		tx = flow.NewTransaction().
-			SetScript(templates.GenerateDelegatorStakeNewScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
+			SetScript(templates.GenerateDelegatorStakeNewScript(fungibleTokenAddress, flowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -2301,7 +2307,7 @@ func TestIDTable(t *testing.T) {
 		)
 
 		tx = flow.NewTransaction().
-			SetScript(templates.GenerateDelegatorStakeNewScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
+			SetScript(templates.GenerateDelegatorStakeNewScript(fungibleTokenAddress, flowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -2475,7 +2481,7 @@ func TestIDTable(t *testing.T) {
 
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateEndStakingScript(IDTableAddr.String())).
-			SetGasLimit(100000).
+			SetGasLimit(9999).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
@@ -2499,7 +2505,7 @@ func TestIDTable(t *testing.T) {
 
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateMoveTokensScript(IDTableAddr.String())).
-			SetGasLimit(100000).
+			SetGasLimit(9999).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
@@ -2646,7 +2652,7 @@ func TestIDTable(t *testing.T) {
 
 		tx := flow.NewTransaction().
 			SetScript(templates.GeneratePayRewardsScript(IDTableAddr.String())).
-			SetGasLimit(100000).
+			SetGasLimit(9999).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
@@ -2723,7 +2729,7 @@ func TestIDTable(t *testing.T) {
 
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateMoveTokensScript(IDTableAddr.String())).
-			SetGasLimit(100000).
+			SetGasLimit(9999).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
@@ -2765,7 +2771,7 @@ func TestIDTable(t *testing.T) {
 	t.Run("Should be able to withdraw delegator rewards", func(t *testing.T) {
 
 		tx = flow.NewTransaction().
-			SetScript(templates.GenerateDelegatorWithdrawRewardsScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
+			SetScript(templates.GenerateDelegatorWithdrawRewardsScript(fungibleTokenAddress, flowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
