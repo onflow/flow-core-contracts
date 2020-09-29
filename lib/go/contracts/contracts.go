@@ -18,14 +18,16 @@ const (
 	flowQCFilename             = "../../../contracts/epochs/FlowQuorumCertificate.cdc"
 	flowDKGFilename            = "../../../contracts/epochs/FlowDKG.cdc"
 	flowEpochFilename          = "../../../contracts/epochs/FlowEpoch.cdc"
+	flowArcadeTokenFilename    = "../../../contracts/FlowArcadeToken.cdc"
 
-	hexPrefix                = "0x"
-	defaultFungibleTokenAddr = "FUNGIBLETOKENADDRESS"
-	defaultFlowTokenAddr     = "FLOWTOKENADDRESS"
-	defaultIDTableAddr       = "FLOWIDTABLESTAKINGADDRESS"
-	defaultQCAddr            = "QCADDRESS"
-	defaultDKGAddr           = "DKGADDRESS"
-	defaultFlowFeesAddr      = "0xe5a8b7f23e8b548f"
+	hexPrefix                  = "0x"
+	defaultFungibleTokenAddr   = "FUNGIBLETOKENADDRESS"
+	defaultFlowTokenAddr       = "FLOWTOKENADDRESS"
+	defaultIDTableAddr         = "FLOWIDTABLESTAKINGADDRESS"
+	defaultQCAddr              = "QCADDRESS"
+	defaultDKGAddr             = "DKGADDRESS"
+	defaultFlowFeesAddr        = "0xe5a8b7f23e8b548f"
+	defaultFlowArcadeTokenAddr = "FLOWARCADETOKENADDRESS"
 )
 
 // FungibleToken returns the FungibleToken contract interface.
@@ -104,6 +106,21 @@ func FlowIDTableStaking(ftAddr, flowTokenAddr string) []byte {
 
 	code = strings.ReplaceAll(code, defaultFungibleTokenAddr, ftAddr)
 	code = strings.ReplaceAll(code, defaultFlowTokenAddr, flowTokenAddr)
+
+	return []byte(code)
+}
+
+// FlowArcadeToken returns the FlowArcadeToken contract.
+//
+// The returned contract will import the FungibleToken contract from the specified address.
+func FlowArcadeToken(fungibleTokenAddr string) []byte {
+	code := assets.MustAssetString(flowArcadeTokenFilename)
+
+	code = strings.ReplaceAll(
+		code,
+		defaultFungibleTokenAddr,
+		fungibleTokenAddr,
+	)
 
 	return []byte(code)
 }
