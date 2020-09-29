@@ -432,9 +432,6 @@ func TestIDTable(t *testing.T) {
 		tokenAmount, err := cadence.NewUFix64("250000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
-		cut, err := cadence.NewUFix64("1.0")
-		require.NoError(t, err)
-		_ = tx.AddArgument(cut)
 
 		signAndSubmit(
 			t, b, tx,
@@ -459,9 +456,6 @@ func TestIDTable(t *testing.T) {
 		tokenAmount, err = cadence.NewUFix64("250000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
-		cut, err = cadence.NewUFix64("1.0")
-		require.NoError(t, err)
-		_ = tx.AddArgument(cut)
 
 		signAndSubmit(
 			t, b, tx,
@@ -486,9 +480,6 @@ func TestIDTable(t *testing.T) {
 		tokenAmount, err = cadence.NewUFix64("250000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
-		cut, err = cadence.NewUFix64("1.0")
-		require.NoError(t, err)
-		_ = tx.AddArgument(cut)
 
 		signAndSubmit(
 			t, b, tx,
@@ -513,9 +504,6 @@ func TestIDTable(t *testing.T) {
 		tokenAmount, err = cadence.NewUFix64("250000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
-		cut, err = cadence.NewUFix64("1.0")
-		require.NoError(t, err)
-		_ = tx.AddArgument(cut)
 
 		signAndSubmit(
 			t, b, tx,
@@ -549,9 +537,6 @@ func TestIDTable(t *testing.T) {
 		require.NoError(t, err)
 		err = tx.AddArgument(tokenAmount)
 		require.NoError(t, err)
-		cut, err := cadence.NewUFix64("1.0")
-		require.NoError(t, err)
-		_ = tx.AddArgument(cut)
 
 		signAndSubmit(
 			t, b, tx,
@@ -670,9 +655,6 @@ func TestIDTable(t *testing.T) {
 		tokenAmount, err := cadence.NewUFix64("250000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
-		cut, err := cadence.NewUFix64("1.0")
-		require.NoError(t, err)
-		_ = tx.AddArgument(cut)
 
 		signAndSubmit(
 			t, b, tx,
@@ -700,9 +682,6 @@ func TestIDTable(t *testing.T) {
 		tokenAmount, err := cadence.NewUFix64("250000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
-		cut, err := cadence.NewUFix64("1.0")
-		require.NoError(t, err)
-		_ = tx.AddArgument(cut)
 
 		signAndSubmit(
 			t, b, tx,
@@ -727,9 +706,6 @@ func TestIDTable(t *testing.T) {
 		tokenAmount, err = cadence.NewUFix64("250000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
-		cut, err = cadence.NewUFix64("1.0")
-		require.NoError(t, err)
-		_ = tx.AddArgument(cut)
 
 		signAndSubmit(
 			t, b, tx,
@@ -754,9 +730,6 @@ func TestIDTable(t *testing.T) {
 		tokenAmount, err = cadence.NewUFix64("250000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
-		cut, err = cadence.NewUFix64("1.0")
-		require.NoError(t, err)
-		_ = tx.AddArgument(cut)
 
 		signAndSubmit(
 			t, b, tx,
@@ -783,9 +756,6 @@ func TestIDTable(t *testing.T) {
 		tokenAmount, err := cadence.NewUFix64("480000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
-		cut, err := cadence.NewUFix64("0.1")
-		require.NoError(t, err)
-		_ = tx.AddArgument(cut)
 
 		signAndSubmit(
 			t, b, tx,
@@ -817,9 +787,6 @@ func TestIDTable(t *testing.T) {
 		tokenAmount, err = cadence.NewUFix64("1350000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
-		cut, err = cadence.NewUFix64("0.2")
-		require.NoError(t, err)
-		_ = tx.AddArgument(cut)
 
 		signAndSubmit(
 			t, b, tx,
@@ -917,9 +884,6 @@ func TestIDTable(t *testing.T) {
 		tokenAmount, err := cadence.NewUFix64("480000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
-		cut, err := cadence.NewUFix64("0.1")
-		require.NoError(t, err)
-		_ = tx.AddArgument(cut)
 
 		signAndSubmit(
 			t, b, tx,
@@ -1451,51 +1415,6 @@ func TestIDTable(t *testing.T) {
 
 	/************* Start of Delegation Tests *******************/
 
-	t.Run("Should be able to publish a reference for delegation", func(t *testing.T) {
-
-		tx = flow.NewTransaction().
-			SetScript(templates.GenerateCreateDelegationScript(IDTableAddr.String())).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(IDTableAddr)
-
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, IDTableAddr},
-			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
-			false,
-		)
-
-		tx = flow.NewTransaction().
-			SetScript(templates.GenerateCreateDelegationScript(IDTableAddr.String())).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(joshAddress)
-
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
-			false,
-		)
-
-		tx = flow.NewTransaction().
-			SetScript(templates.GenerateCreateDelegationScript(IDTableAddr.String())).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(maxAddress)
-
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, maxAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), maxSigner},
-			false,
-		)
-	})
-
 	t.Run("Should be able to register first account to delegate to max", func(t *testing.T) {
 
 		tx = flow.NewTransaction().
@@ -1505,7 +1424,7 @@ func TestIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(maxDelegatorOneAddress)
 
-		err := tx.AddArgument(cadence.Address(maxAddress))
+		err := tx.AddArgument(cadence.String(maxID))
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -1525,7 +1444,7 @@ func TestIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(maxDelegatorTwoAddress)
 
-		err := tx.AddArgument(cadence.Address(maxAddress))
+		err := tx.AddArgument(cadence.String(maxID))
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -1545,7 +1464,7 @@ func TestIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshDelegatorOneAddress)
 
-		err := tx.AddArgument(cadence.Address(joshAddress))
+		err := tx.AddArgument(cadence.String(joshID))
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -1565,7 +1484,7 @@ func TestIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(adminDelegatorAddress)
 
-		err := tx.AddArgument(cadence.Address(IDTableAddr))
+		err := tx.AddArgument(cadence.String(adminID))
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -2260,9 +2179,6 @@ func TestIDTable(t *testing.T) {
 		tokenAmount, err := cadence.NewUFix64("1400000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
-		cut, err := cadence.NewUFix64("1.0")
-		require.NoError(t, err)
-		_ = tx.AddArgument(cut)
 
 		signAndSubmit(
 			t, b, tx,
@@ -2525,14 +2441,6 @@ func TestIDTable(t *testing.T) {
 			t.Log(result.Error.Error())
 		}
 		balance = result.Value
-		assert.Equal(t, CadenceUFix64("620000.0"), balance.(cadence.UFix64))
-
-		result, err = b.ExecuteScript(templates.GenerateGetDirectStakedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(joshID))})
-		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
-		balance = result.Value
 		assert.Equal(t, CadenceUFix64("580000.0"), balance.(cadence.UFix64))
 
 		result, err = b.ExecuteScript(templates.GenerateGetDelegatorStakedScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(joshID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
@@ -2565,14 +2473,6 @@ func TestIDTable(t *testing.T) {
 			t.Log(result.Error.Error())
 		}
 		balance = result.Value
-		assert.Equal(t, CadenceUFix64("1700000.0"), balance.(cadence.UFix64))
-
-		result, err = b.ExecuteScript(templates.GenerateGetDirectStakedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(maxID))})
-		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
-		balance = result.Value
 		assert.Equal(t, CadenceUFix64("1400000.0"), balance.(cadence.UFix64))
 
 		result, err = b.ExecuteScript(templates.GenerateGetDelegatorStakedScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(maxID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
@@ -2592,14 +2492,6 @@ func TestIDTable(t *testing.T) {
 		assert.Equal(t, CadenceUFix64("200000.0"), balance.(cadence.UFix64))
 
 		result, err = b.ExecuteScript(templates.GenerateGetStakedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(bastianID))})
-		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
-		balance = result.Value
-		assert.Equal(t, CadenceUFix64("1400000.0"), balance.(cadence.UFix64))
-
-		result, err = b.ExecuteScript(templates.GenerateGetDirectStakedBalanceScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.String(bastianID))})
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())

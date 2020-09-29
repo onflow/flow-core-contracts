@@ -9,8 +9,7 @@ transaction(id: String,
             networkingAddress: String, 
             networkingKey: String, 
             stakingKey: String, 
-            amount: UFix64,
-            cutPercentage: UFix64) {
+            amount: UFix64) {
 
     let flowTokenRef: &FlowToken.Vault
 
@@ -24,8 +23,7 @@ transaction(id: String,
                                     networkingAddress: networkingAddress, 
                                     networkingKey: networkingKey, 
                                     stakingKey: stakingKey, 
-                                    tokensCommitted: <-self.flowTokenRef.withdraw(amount: amount),
-                                    cutPercentage: cutPercentage)
+                                    tokensCommitted: <-self.flowTokenRef.withdraw(amount: amount))
 
         
         if acct.borrow<&FlowIDTableStaking.NodeStaker>(from: FlowIDTableStaking.NodeStakerStoragePath) == nil {
