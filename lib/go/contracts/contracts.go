@@ -15,16 +15,12 @@ const (
 	flowServiceAccountFilename = "../../../contracts/FlowServiceAccount.cdc"
 	flowTokenFilename          = "../../../contracts/FlowToken.cdc"
 	flowIdentityTableFilename  = "../../../contracts/FlowIDTableStaking.cdc"
-	flowQCFilename             = "../../../contracts/epochs/FlowQuorumCertificate.cdc"
-	flowDKGFilename            = "../../../contracts/epochs/FlowDKG.cdc"
-	flowEpochFilename          = "../../../contracts/epochs/FlowEpoch.cdc"
 
-	hexPrefix                = "0x"
-	defaultFungibleTokenAddr = "FUNGIBLETOKENADDRESS"
-	defaultFlowTokenAddr     = "FLOWTOKENADDRESS"
-	defaultIDTableAddr       = "FLOWIDTABLESTAKINGADDRESS"
-	defaultQCAddr            = "QCADDRESS"
-	defaultDKGAddr           = "DKGADDRESS"
+	defaultFungibleTokenAddr = "0xee82856bf20e2aa6"
+	defaultFlowTokenAddr     = "0x0ae53cb6e3f42a79"
+	defaultIDTableAddr       = "0xFLOWIDTABLESTAKINGADDRESS"
+	defaultQCAddr            = "0xQCADDRESS"
+	defaultDKGAddr           = "0xDKGADDRESS"
 	defaultFlowFeesAddr      = "0xe5a8b7f23e8b548f"
 )
 
