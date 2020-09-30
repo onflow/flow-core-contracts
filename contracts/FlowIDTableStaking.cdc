@@ -84,9 +84,6 @@ pub contract FlowIDTableStaking {
     /// value = decimal number between 0 and 1 indicating a percentage
     access(contract) var rewardRatios: {UInt8: UFix64}
 
-    /// Mints Flow tokens for staking rewards
-    access(contract) let flowTokenMinter: @FlowToken.Minter
-
     /// The percentage of rewards that every node operator takes from 
     /// the users that are delegating to it
     pub var nodeDelegatingRewardCut: UFix64
@@ -688,6 +685,9 @@ pub contract FlowIDTableStaking {
 
             let allNodeIDs = FlowIDTableStaking.getNodeIDs()
 
+            let flowTokenMinter = FlowIDTableStaking.account.borrow<&FlowToken.Minter>(from: /storage/flowTokenMinter)
+                ?? panic("Could not borrow minter reference")
+
             // calculate total reward sum for each node type
             // by multiplying the total amount of rewards by the ratio for each node type
             var rewardsForNodeTypes: {UInt8: UFix64} = {}
@@ -708,7 +708,7 @@ pub contract FlowIDTableStaking {
                 let rewardAmount = rewardsForNodeTypes[nodeRecord.role]! * (nodeRecord.tokensStaked.balance / FlowIDTableStaking.totalTokensStakedByNodeType[nodeRecord.role]!)
 
                 /// Mint the tokens to reward the operator
-                let tokenReward <- FlowIDTableStaking.flowTokenMinter.mintTokens(amount: rewardAmount)
+                let tokenReward <- flowTokenMinter.mintTokens(amount: rewardAmount)
 
                 emit RewardsPaid(nodeID: nodeRecord.id, amount: tokenReward.balance) 
 
@@ -721,7 +721,7 @@ pub contract FlowIDTableStaking {
 
                     let delegatorRewardAmount = (rewardsForNodeTypes[nodeRecord.role]! * (delRecord.tokensStaked.balance / FlowIDTableStaking.totalTokensStakedByNodeType[nodeRecord.role]!))
 
-                    let delegatorReward <- FlowIDTableStaking.flowTokenMinter.mintTokens(amount: delegatorRewardAmount)
+                    let delegatorReward <- flowTokenMinter.mintTokens(amount: delegatorRewardAmount)
 
                     // take the node operator's cut
                     tokenReward.deposit(from: <-delegatorReward.withdraw(amount: delegatorReward.balance * FlowIDTableStaking.nodeDelegatingRewardCut))
@@ -981,13 +981,6 @@ pub contract FlowIDTableStaking {
 
         // save the admin object to storage
         self.account.save(<-create Admin(), to: self.StakingAdminStoragePath)
-
-        /// Borrow a reference to the Flow Token Admin in the account storage
-        let flowTokenMinter <- self.account.load<@FlowToken.Minter>(from: /storage/flowTokenMinter)
-            ?? panic("Could not borrow a reference to the Flow Token Admin resource")
-
-        /// Create a flowTokenMinterResource
-        self.flowTokenMinter <- flowTokenMinter
     }
 }
  
