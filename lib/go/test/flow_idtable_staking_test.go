@@ -31,11 +31,11 @@ const (
 	firstDelegatorID  = 1
 	secondDelegatorID = 2
 
-	emulatorFTAddress        = "ee82856bf20e2aa6"
-	emulatorFlowTokenAddress = "0ae53cb6e3f42a79"
+	// emulatorFTAddress        = "ee82856bf20e2aa6"
+	// emulatorFlowTokenAddress = "0ae53cb6e3f42a79"
 
-	testnetFTAddress        = "9a0766d93b6608b7"
-	testnetFlowTokenAddress = "7e60df042a9c0868"
+	// testnetFTAddress        = "9a0766d93b6608b7"
+	// testnetFlowTokenAddress = "7e60df042a9c0868"
 )
 
 func TestIDTable(t *testing.T) {

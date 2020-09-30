@@ -76,7 +76,6 @@ func FlowFees(fungibleTokenAddr, flowTokenAddr string) []byte {
 // contracts from the specified addresses.
 func FlowServiceAccount(fungibleTokenAddr, flowTokenAddr, flowFeesAddr string) []byte {
 	code := assets.MustAssetString(flowServiceAccountFilename)
-
 	code = strings.ReplaceAll(
 		code,
 		defaultFungibleTokenAddr,

@@ -50,6 +50,7 @@ func newEmulator() *emulator.Blockchain {
 }
 
 func newNetwork() backend.Emulator {
+	fmt.Println("Connecting to ", os.Getenv("FLOW_ADDRESS"))
 	b, err := emulator.NewNetwork(os.Getenv("FLOW_ADDRESS"), os.Getenv("FLOW_SERVICE_ACCOUNT_PRIVATE_KEY"))
 
 	if err != nil {
@@ -62,6 +63,7 @@ func newNetwork() backend.Emulator {
 	fungibleTokenAddress = generator.NextAddress().Hex()
 	flowTokenAddress = generator.NextAddress().Hex()
 	feesAddress = generator.NextAddress().Hex()
+	fmt.Println("Contract Addresses: ", fungibleTokenAddress, flowTokenAddress, feesAddress)
 
 	return b
 }
