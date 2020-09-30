@@ -31,13 +31,12 @@ const (
 	getStakingKeyFilename       = "idTableStaking/get_node_staking_key.cdc"
 	getInitialWeightFilename    = "idTableStaking/get_node_initial_weight.cdc"
 	stakedBalanceFilename       = "idTableStaking/get_node_stakedTokens.cdc"
-	directStakedFilename        = "idTableStaking/get_node_direct_stakedTokens.cdc"
 	comittedBalanceFilename     = "idTableStaking/get_node_committedTokens.cdc"
 	unlockedBalanceFilename     = "idTableStaking/get_node_unlockedTokens.cdc"
 	rewardBalanceFilename       = "idTableStaking/get_node_rewardedTokens.cdc"
 	unstakedBalanceFilename     = "idTableStaking/get_node_unstakedTokens.cdc"
 	getTotalCommitmentFilename  = "idTableStaking/get_node_total_commitment.cdc"
-	getUnstakingRequestFilename = "idTableStaking/get_unstaking_request.cdc"
+	getUnstakingRequestFilename = "idTableStaking/get_node_unstaking_request.cdc"
 
 	stakeRequirementsFilename = "idTableStaking/get_stakeRequirements.cdc"
 	totalStakedFilename       = "idTableStaking/get_totalStaked_by_type.cdc"
@@ -235,15 +234,6 @@ func GenerateGetInitialWeightScript(tableAddr string) []byte {
 // that returns the balance of the staked tokens of a node
 func GenerateGetStakedBalanceScript(tableAddr string) []byte {
 	code := assets.MustAssetString(filePath + stakedBalanceFilename)
-
-	return []byte(ReplaceAddresses(code, "", "", tableAddr))
-}
-
-// GenerateGetDirectStakedBalanceScript creates a script
-// that returns the balance of the staked tokens of a node
-// not including delegated tokens
-func GenerateGetDirectStakedBalanceScript(tableAddr string) []byte {
-	code := assets.MustAssetString(filePath + directStakedFilename)
 
 	return []byte(ReplaceAddresses(code, "", "", tableAddr))
 }
