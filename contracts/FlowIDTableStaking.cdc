@@ -969,8 +969,8 @@ pub contract FlowIDTableStaking {
 
         self.totalTokensStakedByNodeType = {UInt8(1): 0.0, UInt8(2): 0.0, UInt8(3): 0.0, UInt8(4): 0.0, UInt8(5): 0.0}
 
-        // Arbitrary number for now
-        self.epochTokenPayout = 5000000.0
+        // 1.25M FLOW paid out in the first week. Decreasing in subsequent weeks
+        self.epochTokenPayout = 1250000.0
 
         // initialize the cut of rewards that node operators take to 3%
         self.nodeDelegatingRewardCut = 0.03
