@@ -98,7 +98,7 @@ pub contract Lockbox {
     }
 
     pub fun createNodeDelagtorProxy(nodeAddress: Address): @LockedNodeDelegatorProxy {
-      return <- create LockedNodeDelegatorProxy()
+      return <- create LockedNodeDelegatorProxy(nodeAddress: nodeAddress)
     }
 
     init(vault: Capability<&FlowToken.Vault>) {
