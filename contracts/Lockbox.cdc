@@ -1,5 +1,7 @@
 import FlowToken from 0x0ae53cb6e3f42a79
 import FungibleToken from 0xee82856bf20e2aa6
+import StakingProxy from 0x01
+import FlowIDTableStaking from 0x02
 
 pub contract Lockbox {
 
@@ -17,12 +19,35 @@ pub contract Lockbox {
 
   pub let LockedTokenProviderPrivatePath: Path
 
-  // lives in Dapper Labs account
+  // stored in Admin account
   pub resource interface TokenAdmin {
     pub fun increaseUnlockLimit(delta: UFix64)
   }
 
-  pub resource LockedTokenManager: FungibleToken.Receiver, FungibleToken.Provider, TokenAdmin, StakingProxy {
+  // stored in Holder account
+  pub resource interface TokenHolder {
+    pub fun createNodeStakerProxy(): @LockedNodeStakerProxy
+
+    pub fun createNodeDelagtorProxy(nodeAddress: Address): @LockedNodeDelegatorProxy
+  }
+
+  pub resource LockedNodeStakerProxy: StakingProxy.NodeStakerProxy {}
+
+  pub resource LockedNodeDelegatorProxy: StakingProxy.NodeDelegatorProxy {
+    
+    pub var delegator: @FlowIDTableStaking.NodeDelegator
+
+    init(nodeAddress: Address) {
+      let nodeRef = getAccount(nodeAddress)
+        .getCapability<&FlowIDTableStaking.NodeStaker{FlowIDTableStaking.PublicNodeStaker}>(FlowIDTableStaking.NodeStakerPublicPath)!
+        .borrow()
+          ?? panic("Could not borrow reference to node staker")
+
+      self.delegator <- nodeRef.createNewDelegator()
+    }
+  }
+
+  pub resource LockedTokenManager: FungibleToken.Receiver, FungibleToken.Provider, TokenAdmin, TokenHolder {
   
     pub var vault: Capability<&FlowToken.Vault>
 
@@ -60,66 +85,20 @@ pub contract Lockbox {
       self.unlockLimit = self.unlockLimit - delta
     }
 
-    // Lockbox.TokenAdministrator actions
+    // Lockbox.TokenAdmin actions
 
     pub fun increaseUnlockLimit(delta: UFix64) {  
       self.unlockLimit = self.unlockLimit + delta
     }
 
-    // StakingProxy actions
+    // Lockbox.TokenHolder actions
 
-    // Personas
-    // Token Holder (TH)
-    // Node Operator (NO)
-    // Token Holder/Operator (TH-NO)
-
-    // Use Cases
-    // 1. TH-NO stakes directly
-    // 2. TH delegates directly
-    // 3. NO operates a node with StakingHelper
-    // 4. TH stake with StakingHelper
-
-    pub var nodeStaker: Capability<&NodeStaker>
-    pub var nodeDelegator: Capability<&NodeDelegator>
-
-    pub fun register1() {
-      // TH-NO provides all node info (keys, address, etc)
-      // Calls addNewNode on staking contract -> return NodeStaker
-      // store NodeStaker object in storage of sharedAccount
-      // create capability for NodeStaker and attach it to this proxy
+    pub fun createNodeStakerProxy(): @LockedNodeStakerProxy {
+      return <- create LockedNodeStakerProxy()
     }
 
-    pub fun register2() {
-      // TH provides ID of the node they want to delegate to
-      // Calls registerDelegator -> return NodeDelegator
-      // store NodeDelegator object in storage of sharedAccount
-      // create capability for NodeDelegator and attach it to this proxy
-    }
-    
-    pub fun register3() {
-      // NO provides all node info (keys, address, etc)
-      // 
-    }
-
-    // StakingHelper instance already has been created by NO
-    pub fun register4(stakingHelper: ??) {
-      stakingHelper.register(myStuff)
-    }
-
-    pub fun stake(amount: UFix64) {
-      // TODO
-    }
-
-    pub fun unstake(amount: UFix64) {
-      // TODO
-    }
-
-    pub fun claimStake(amount: UFix64) {
-      // TODO
-    }
-
-    pub fun claimRewards(amount: UFix64) {
-      // TODO
+    pub fun createNodeDelagtorProxy(nodeAddress: Address): @LockedNodeDelegatorProxy {
+      return <- create LockedNodeDelegatorProxy()
     }
 
     init(vault: Capability<&FlowToken.Vault>) {
@@ -162,3 +141,61 @@ pub contract Lockbox {
     return <- create LockedTokenManager(vault: vault)
   }
 }
+
+// NOTES:
+
+// // StakingProxy actions
+
+// // Personas
+// // Token Holder (TH)
+// // Node Operator (NO)
+// // Token Holder/Operator (TH-NO)
+
+// // Use Cases
+// // 1. TH-NO stakes directly
+// // 2. TH delegates directly
+// // 3. NO operates a node with StakingHelper
+// // 4. TH stake with StakingHelper
+
+// pub var nodeStaker: Capability<&NodeStaker>
+// pub var nodeDelegator: Capability<&NodeDelegator>
+
+// pub fun register1() {
+//   // TH-NO provides all node info (keys, address, etc)
+//   // Calls addNewNode on staking contract -> return NodeStaker
+//   // store NodeStaker object in storage of sharedAccount
+//   // create capability for NodeStaker and attach it to this proxy
+// }
+
+// pub fun register2() {
+//   // TH provides ID of the node they want to delegate to
+//   // Calls registerDelegator -> return NodeDelegator
+//   // store NodeDelegator object in storage of sharedAccount
+//   // create capability for NodeDelegator and attach it to this proxy
+// }
+
+// pub fun register3() {
+//   // NO provides all node info (keys, address, etc)
+//   // 
+// }
+
+// // StakingHelper instance already has been created by NO
+// pub fun register4(stakingHelper: ??) {
+//   stakingHelper.register(myStuff)
+// }
+
+// pub fun stake(amount: UFix64) {
+//   // TODO
+// }
+
+// pub fun unstake(amount: UFix64) {
+//   // TODO
+// }
+
+// pub fun claimStake(amount: UFix64) {
+//   // TODO
+// }
+
+// pub fun claimRewards(amount: UFix64) {
+//   // TODO
+// }
