@@ -1,6 +1,5 @@
 import FlowToken from 0x0ae53cb6e3f42a79
 import FungibleToken from 0xee82856bf20e2aa6
-import StakingProxy from ??
 
 pub contract Lockbox {
 
@@ -23,20 +22,6 @@ pub contract Lockbox {
     pub fun increaseUnlockLimit(delta: UFix64)
   }
 
-  pub resource interface StakingProxy {
-    // submit req to stake
-    pub fun stake(amount: UFix64)
-
-    // submit req to unstake
-    pub fun unstake(amount: UFix64)
-
-    // move unstaked tokens back into lockbox
-    pub fun claimStake(amount: UFix64)
-
-    // move rewards back into lockbox
-    pub fun claimRewards(amount: UFix64)
-  }
-
   pub resource LockedTokenManager: FungibleToken.Receiver, FungibleToken.Provider, TokenAdmin, StakingProxy {
   
     pub var vault: Capability<&FlowToken.Vault>
@@ -45,7 +30,7 @@ pub contract Lockbox {
 
     // FungibleToken.Receiver actions
 
-    pub fun deposit(from: @Vault) {
+    pub fun deposit(from: @FlowToken.Vault) {
       let balance = from.balance
 
       vault.deposit(from: <- from)
@@ -81,7 +66,45 @@ pub contract Lockbox {
       self.unlockLimit = self.unlockLimit + delta
     }
 
-    // StakingProxy.Proxy actions
+    // StakingProxy actions
+
+    // Personas
+    // Token Holder (TH)
+    // Node Operator (NO)
+    // Token Holder/Operator (TH-NO)
+
+    // Use Cases
+    // 1. TH-NO stakes directly
+    // 2. TH delegates directly
+    // 3. NO operates a node with StakingHelper
+    // 4. TH stake with StakingHelper
+
+    pub var nodeStaker: Capability<&NodeStaker>
+    pub var nodeDelegator: Capability<&NodeDelegator>
+
+    pub fun register1() {
+      // TH-NO provides all node info (keys, address, etc)
+      // Calls addNewNode on staking contract -> return NodeStaker
+      // store NodeStaker object in storage of sharedAccount
+      // create capability for NodeStaker and attach it to this proxy
+    }
+
+    pub fun register2() {
+      // TH provides ID of the node they want to delegate to
+      // Calls registerDelegator -> return NodeDelegator
+      // store NodeDelegator object in storage of sharedAccount
+      // create capability for NodeDelegator and attach it to this proxy
+    }
+    
+    pub fun register3() {
+      // NO provides all node info (keys, address, etc)
+      // 
+    }
+
+    // StakingHelper instance already has been created by NO
+    pub fun register4(stakingHelper: ??) {
+      stakingHelper.register(myStuff)
+    }
 
     pub fun stake(amount: UFix64) {
       // TODO

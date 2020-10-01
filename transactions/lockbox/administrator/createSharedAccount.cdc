@@ -9,6 +9,7 @@ transaction(adminPublicKey: [UInt8], userPublicKey: [UInt8])  {
     sharedAccount.addPublicKey(adminPublicKey)
     sharedAccount.addPublicKey(userPublicKey)
 
+    // TODO: add separate full-weight key for user
     userAccount.addPublicKey(userPublicKey)
 
     let vaultCapability = sharedAccount
@@ -18,10 +19,11 @@ transaction(adminPublicKey: [UInt8], userPublicKey: [UInt8])  {
 
     sharedAccount.save(<- lockedTokenManager, to: Lockbox.LockedTokenManagerPath)
 
-    let stakingProxyCapability = sharedAccount.link<&Lockbox.LockedTokenManager{Lockbox.StakingProxy}>(
-      Lockbox.LockedTokenStakingProxyPrivatePath,
-      target: Lockbox.LockedTokenManagerPath
-    )
+    let stakingProxyCapability = sharedAccount
+      .link<&Lockbox.LockedTokenManager{Lockbox.StakingProxy}>(
+        Lockbox.LockedTokenStakingProxyPrivatePath,
+        target: Lockbox.LockedTokenManagerPath
+      )
 
     userAccount.save(
       stakingProxyCapability, 
@@ -39,10 +41,16 @@ transaction(adminPublicKey: [UInt8], userPublicKey: [UInt8])  {
 
     tokenAdminCollection.addAccount(sharedAccount.address, tokenAdminCapability)
 
+    // Override the default FlowToken receiver
     sharedAccount.unlink(/public/flowTokenReceiver)
-    sharedAccount.link<&Lockbox.LockedTokenManager{FungibleToken.Receiver}>(
+    sharedAccount.link<&AnyResource{FungibleToken.Receiver}>(
       /public/flowTokenReceiver,
       target: Lockbox.LockedTokenManagerPath
+    )
+
+    sharedAccount.link<&AnyResource{FungibleToken.Receiver}>(
+      /public/lockedFlowTokenReceiver,
+      target: /storage/flowTokenVault
     )
 
     let lockedTokenProviderCapability = sharedAccount
