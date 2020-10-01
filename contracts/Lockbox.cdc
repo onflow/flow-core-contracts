@@ -31,7 +31,44 @@ pub contract Lockbox {
     pub fun createNodeDelagtorProxy(nodeAddress: Address): @LockedNodeDelegatorProxy
   }
 
-  pub resource LockedNodeStakerProxy: StakingProxy.NodeStakerProxy {}
+  pub resource LockedNodeStakerProxy: StakingProxy.NodeStakerProxy {
+
+    access(self) var nodeStaker: @FlowIDTableStaking.NodeStaker?
+
+    pub var nodeInfo: StakingProxy.NodeInfo?
+
+    pub fun setNodeInfo(nodeInfo: StakingProxy.NodeInfo) {
+      self.nodeInfo = nodeInfo
+    }
+
+    pub fun createStakingRequest() {
+      pre {
+        self.nodeInfo != nil: "Node information is missing"
+      }
+
+      // TODO: submit staking request to staking contract
+      // Ref: create_staking_request.cdc
+    }
+
+    pub fun stakeNewTokens(amount: UFix64) {}
+
+    pub fun stakeUnlockedTokens(amount: UFix64) {}
+
+    // TODO: only callable by token holder
+    pub fun stakeRewardedTokens(amount: UFix64) {}
+
+    pub fun requestUnstaking(amount: UFix64) {}
+
+    pub fun unstakeAll(amount: UFix64) {}
+
+    pub fun withdrawUnlockedTokens(amount: UFix64) {}
+
+    pub fun withdrawRewardedTokens(amount: UFix64) {}
+
+    init() {
+      self.nodeInfo = nil
+    }
+  }
 
   pub resource LockedNodeDelegatorProxy: StakingProxy.NodeDelegatorProxy {
     
@@ -58,7 +95,7 @@ pub contract Lockbox {
     pub fun deposit(from: @FlowToken.Vault) {
       let balance = from.balance
 
-      vault.deposit(from: <- from)
+      self.vault.deposit(from: <- from)
 
       self.increaseUnlockLimit(delta: balance)
     }
