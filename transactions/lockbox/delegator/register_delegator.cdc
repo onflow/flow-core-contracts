@@ -1,5 +1,4 @@
-// import Lockbox from 0
-// import StakingProxy from 0
+import Lockbox from 0xf3fcd2c1a78f5eee
 
 transaction(id: String, amount: UFix64) {
 
@@ -10,6 +9,6 @@ transaction(id: String, amount: UFix64) {
     }
 
     execute {
-        self.holderRef.createNodeDelagtor(nodeID: nodeInfo)
+        self.holderRef.createNodeDelegator(nodeID: nodeInfo)
     }
 }

@@ -1,6 +1,6 @@
 import FlowToken from 0x0ae53cb6e3f42a79
 import FungibleToken from 0xee82856bf20e2aa6
-import Lockbox from 0
+import Lockbox from 0xf3fcd2c1a78f5eee
 
 // createSharedAccount
 transaction(

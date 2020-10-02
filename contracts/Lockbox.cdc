@@ -28,7 +28,7 @@ import FlowToken from 0x0ae53cb6e3f42a79
 import FungibleToken from 0xee82856bf20e2aa6
 import FlowIDTableStaking from 0x179b6b1cb6755e31
 
-import StakingProxy from 
+import StakingProxy from 0x179b6b1cb6755e31
 
 pub contract Lockbox {
 
@@ -199,7 +199,7 @@ pub contract Lockbox {
 
         /// The user calls this function if they want to register as a node operator
         /// They have to provide all the info for their node
-        pub fun createNodeDelagtor(nodeID: String) {
+        pub fun createNodeDelegator(nodeID: String) {
             pre {
                 self.nodeStakerProxy == nil && self.nodeDelegatorProxy == nil: "Already initialized"
             }

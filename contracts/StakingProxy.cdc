@@ -78,7 +78,7 @@ pub contract StakingProxy {
         
         pub fun addStakingProxy(nodeID: String, proxy: AnyStruct{NodeStakerProxy})
 
-        pub fun getNodeInfo(nodeID: String): NodeInfo
+        pub fun getNodeInfo(nodeID: String): NodeInfo?
     }
 
     /// The resource that node operators store in their accounts
