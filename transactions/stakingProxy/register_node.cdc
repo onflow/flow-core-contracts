@@ -22,4 +22,5 @@ transaction(address: Address, nodeID: String, amount: UFix64) {
 
         nodeOperatorRef.addStakingProxy(nodeID: nodeInfo.id, proxy: nodeStakerProxy)
     }
+
 }
