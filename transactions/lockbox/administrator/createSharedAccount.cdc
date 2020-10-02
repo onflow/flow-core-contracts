@@ -3,16 +3,19 @@ import FungibleToken from 0xee82856bf20e2aa6
 import Lockbox from 0
 
 // createSharedAccount
-transaction(adminPublicKey: [UInt8], userPublicKey: [UInt8])  {
+transaction(
+    partialAdminPublicKey: [UInt8], // Weight: 100
+    partialUserPublicKey: [UInt8], // Weight: 900
+    fullUserPublicKey: [UInt8], // Weight: 1000
+)  {
     prepare(admin: AuthAccount) {
         let sharedAccount = AuthAccount(payer: admin)
         let userAccount = AuthAccount(payer: admin)
 
-        sharedAccount.addPublicKey(adminPublicKey)
-        sharedAccount.addPublicKey(userPublicKey)
+        sharedAccount.addPublicKey(partialAdminPublicKey)
+        sharedAccount.addPublicKey(partialUserPublicKey)
 
-        // TODO: add separate full-weight key for user
-        userAccount.addPublicKey(userPublicKey)
+        userAccount.addPublicKey(fullUserPublicKey)
 
         let vaultCapability = sharedAccount
             .getCapability<&FlowToken.Vault>(/storage/flowTokenVault)!
@@ -27,9 +30,7 @@ transaction(adminPublicKey: [UInt8], userPublicKey: [UInt8])  {
                 target: Lockbox.LockedTokenManagerPath
         )
 
-        tokenManagerRef = tokenManagerCapability.borrow()!
-
-        let tokenHolder <- tokenManagerRef.createTokenHolder(tokenManager: tokenManagerCapability)
+        let tokenHolder <- Lockbox.createTokenHolder(tokenManager: tokenManagerCapability)
 
         userAccount.save(
             tokenHolder, 
