@@ -30,7 +30,7 @@ pub contract FlowArcadeToken: FungibleToken {
     // Vault
     //
     // Each user stores an instance of only the Vault in their storage
-    // The functions in the Vault and governed by the pre and post conditions
+    // The functions in the Vault are governed by the pre and post conditions
     // in FungibleToken when they are called.
     // The checks happen at runtime whenever a function is called.
     //
