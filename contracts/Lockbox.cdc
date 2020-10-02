@@ -42,7 +42,7 @@ pub contract Lockbox {
 
     /// path to store the admin collection 
     /// in the admin account
-    pub let LockedTokenAdminCollectionPath: Path
+    pub let LockedTokenAdminCollectionStoragePath: Path
 
     /// path to store the token holder resource
     /// in the unlocked account
@@ -122,9 +122,13 @@ pub contract Lockbox {
         // Lockbox.TokenHolder actions
 
         /// Registers a new node operator with the Flow Staking contract
-        ///
-        pub fun registerNode(nodeInfo: StakingProxy.NodeInfo) {
-            self.nodeStaker <- FlowIDTableStaking.addNodeRecord(id: nodeInfo.id, role: nodeInfo.role, networkingAddress: nodeInfo.networkingAddress, networkingKey: nodeInfo.String, stakingKey: nodeInfo.stakingKey)
+        /// and commits an initial amount of locked tokens to stake
+        pub fun registerNode(nodeInfo: StakingProxy.NodeInfo, amount: UFix64) {
+            let vaultRef = self.vault.borrow()!
+
+            let tokens <- vaultRef.withdraw(amount: amount)
+
+            self.nodeStaker <- FlowIDTableStaking.addNodeRecord(id: nodeInfo.id, role: nodeInfo.role, networkingAddress: nodeInfo.networkingAddress, networkingKey: nodeInfo.String, stakingKey: nodeInfo.stakingKey, tokensCommitted: <-tokens)
         }
 
         /// Registers a new Delegator with the Flow Staking contract
@@ -179,7 +183,7 @@ pub contract Lockbox {
 
         /// The user calls this function if they want to register as a node operator
         /// They have to provide all the info for their node
-        pub fun createNodeStaker(nodeInfo: StakingProxy.NodeInfo) {
+        pub fun createNodeStaker(nodeInfo: StakingProxy.NodeInfo, amount: UFix64) {
             pre {
                 self.nodeStakerProxy == nil && self.nodeDelegatorProxy == nil: "Already initialized"
             }
@@ -187,7 +191,7 @@ pub contract Lockbox {
             let tokenManagerRef = self.tokenManager.borrow()!
 
             // register node, which stores the NodeStaker object in the LockedTokenManager
-            tokenManagerRef.registerNode(nodeInfo: nodeInfo)
+            tokenManagerRef.registerNode(nodeInfo: nodeInfo, amount: amount)
 
             // Create a new staker proxy that can be accessed in transactions
             self.nodeStakerProxy = LockedNodeStakerProxy(tokenManager: self.tokenManager)
@@ -420,7 +424,7 @@ pub contract Lockbox {
         self.LockedTokenManagerPath = /storage/lockedTokenManager
 
         self.LockedTokenAdminPrivatePath = /private/lockedTokenAdmin
-        self.LockedTokenAdminCollectionPath = /storage/lockedTokenAdminCollection
+        self.LockedTokenAdminCollectionStoragePath = /storage/lockedTokenAdminCollection
 
         self.TokenHolderStoragePath = /storage/flowTokenHolder
     }

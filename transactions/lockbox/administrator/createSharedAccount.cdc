@@ -44,18 +44,20 @@ transaction(
         )
 
         let tokenAdminCollection = admin
-            .borrow<&Lockbox.TokenAdminCollection>(from: Lockbox.LockedTokenAdminCollectionPath)
+            .borrow<&Lockbox.TokenAdminCollection>(from: Lockbox.LockedTokenAdminCollectionStoragePath)
 
-        tokenAdminCollection.addAccount(sharedAccount.address, tokenAdminCapability)
+        tokenAdminCollection.addAccount(address: sharedAccount.address, tokenAdmin: tokenAdminCapability)
 
         // Override the default FlowToken receiver
         sharedAccount.unlink(/public/flowTokenReceiver)
             
+        // create new receiver that marks received tokens as unlocked
         sharedAccount.link<&AnyResource{FungibleToken.Receiver}>(
             /public/flowTokenReceiver,
             target: Lockbox.LockedTokenManagerPath
         )
 
+        // pub normal receiver in a separate unique path
         sharedAccount.link<&AnyResource{FungibleToken.Receiver}>(
             /public/lockedFlowTokenReceiver,
             target: /storage/flowTokenVault

@@ -11,6 +11,8 @@ pub contract StakingProxy {
     /// in the node operators account for staking helper
     pub let NodeOperatorCapabilityStoragePath: Path
 
+    pub let NodeOperatorCapabilityPublicPath: Path
+
     /// Contains the node info associated with a node operator
     pub struct NodeInfo {
 
@@ -112,8 +114,8 @@ pub contract StakingProxy {
         }
 
         /// Published function to get all the info for a specific node ID
-        pub fun getNodeInfo(nodeID: String): NodeInfo {
-            return self.nodeInfo[nodeID]!
+        pub fun getNodeInfo(nodeID: String): NodeInfo? {
+            return self.nodeInfo[nodeID]
         }
 
         /// Published function for a token holder who has signed up
@@ -139,8 +141,8 @@ pub contract StakingProxy {
 
         /// Borrow a "reference" to the staking proxy so staking operations
         /// can be performed with it
-        pub fun borrowStakingProxy(nodeID: String): AnyStruct{NodeStakerProxy} {
-            return self.stakingProxies[nodeID]!
+        pub fun borrowStakingProxy(nodeID: String): AnyStruct{NodeStakerProxy}? {
+            return self.stakingProxies[nodeID]
         }
     }
 
@@ -151,5 +153,6 @@ pub contract StakingProxy {
 
     init() {
         self.NodeOperatorCapabilityStoragePath = /storage/nodeOperator
+        self.NodeOperatorCapabilityPublicPath = /public/nodeOperator
     }
 }
