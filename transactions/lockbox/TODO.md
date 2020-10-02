@@ -31,6 +31,7 @@
 #### Staking (with `Lockbox.NodeStakerProxy`)
 
 - [ ] getOperatorNodeInfo (with `StakingProxy.NodeStakerProxyHolderPublic`)
+- [ ] addStakingProxy (with `StakingProxy.NodeStakerProxyHolderPublic`)
 - [ ] stakeLockedRewardedTokens
 
 #### Delegating (with `Lockbox.NodeDelegatorProxy`)
