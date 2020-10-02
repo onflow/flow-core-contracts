@@ -282,7 +282,7 @@ pub contract Lockbox {
 
         /// Requests to unstake all of the node's tokens and all of
         /// the tokens that have been delegated to the node
-        pub fun unstakeAll(amount: UFix64) {
+        pub fun unstakeAll() {
             let tokenManagerRef = self.tokenManager.borrow()!
 
             tokenManagerRef.nodeStaker?.unstakeAll()
