@@ -329,7 +329,7 @@ pub contract Lockbox {
 
             let vaultRef = tokenManagerRef.vault.borrow()!
 
-            tokenManagerRef.nodeDelegator?.delegatorNewTokens(from: <-vaultRef.withdraw(amount: amount))
+            tokenManagerRef.nodeDelegator?.delegateNewTokens(from: <-vaultRef.withdraw(amount: amount))
         }
 
         /// Delegate tokens from the unlocked staking bucket
