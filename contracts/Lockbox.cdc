@@ -26,15 +26,17 @@
 
 import FlowToken from 0x0ae53cb6e3f42a79
 import FungibleToken from 0xee82856bf20e2aa6
-import FlowIDTableStaking from 0x179b6b1cb6755e31
+import FlowIDTableStaking from 0xFLOWIDTABLESTAKINGADDRESS
 
-import StakingProxy from 0x179b6b1cb6755e31
+import StakingProxy from 0xSTAKINGPROXYADDRESS
 
 pub contract Lockbox {
 
     /// path to store the locked token manager resource 
     /// in the shared account
-    pub let LockedTokenManagerPath: Path
+    pub let LockedTokenManagerStoragePath: Path
+
+    pub let LockedTokenManagerPrivatePath: Path
 
     /// path to store the private locked token admin link
     /// in the shared account
@@ -73,19 +75,26 @@ pub contract Lockbox {
         /// signs up to be a delegator
         pub var nodeDelegator: @FlowIDTableStaking.NodeDelegator?
 
-        init(vault: Capability<&FungibleToken.Vault>) {
+        init(vault: Capability<&FlowToken.Vault>) {
             self.vault = vault
-            self.nodeStaker = nil
-            self.nodeDelegator = nil
+            self.nodeStaker <- nil
+            self.nodeDelegator <- nil
             self.unlockLimit = 0.0
+        }
+
+        destroy () {
+            destroy self.nodeStaker
+            destroy self.nodeDelegator
         }
 
         // FungibleToken.Receiver actions
 
         pub fun deposit(from: @FungibleToken.Vault) {
+            let vaultRef = self.vault.borrow()!
+
             let balance = from.balance
 
-            self.vault.deposit(from: <- from)
+            vaultRef.deposit(from: <- from)
 
             self.increaseUnlockLimit(delta: balance)
         }
@@ -101,7 +110,9 @@ pub contract Lockbox {
                 self.unlockLimit == before(self.unlockLimit) - amount: "Updated unlocked token limit is incorrect"
             }
 
-            let vault <- self.vault.withdraw(amount: amount)
+            let vaultRef = self.vault.borrow()!
+
+            let vault <- vaultRef.withdraw(amount: amount)
 
             self.decreaseUnlockLimit(delta: amount)
 
@@ -128,14 +139,14 @@ pub contract Lockbox {
 
             let tokens <- vaultRef.withdraw(amount: amount)
 
-            self.nodeStaker <- FlowIDTableStaking.addNodeRecord(id: nodeInfo.id, role: nodeInfo.role, networkingAddress: nodeInfo.networkingAddress, networkingKey: nodeInfo.String, stakingKey: nodeInfo.stakingKey, tokensCommitted: <-tokens)
+            self.nodeStaker <-! FlowIDTableStaking.addNodeRecord(id: nodeInfo.id, role: nodeInfo.role, networkingAddress: nodeInfo.networkingAddress, networkingKey: nodeInfo.networkingKey, stakingKey: nodeInfo.stakingKey, tokensCommitted: <-tokens)
         }
 
         /// Registers a new Delegator with the Flow Staking contract
         /// the caller has to specify the ID of the node operator
         /// they are delegating to
         pub fun registerDelegator(nodeID: String) {
-            self.nodeDelegator <- FlowIDTableStaking.registerDelegator(nodeID: nodeID)
+            self.nodeDelegator <-! FlowIDTableStaking.registerNewDelegator(nodeID: nodeID)
         }
     }
 
@@ -252,7 +263,7 @@ pub contract Lockbox {
 
             let vaultRef = tokenManagerRef.vault.borrow()!
 
-            tokenManagerRef.nodeStaker?.stakeNewTokens(from: <-vaultRef.withdraw(amount: amount))
+            tokenManagerRef.nodeStaker?.stakeNewTokens(<-vaultRef.withdraw(amount: amount))
         }
 
         /// Stakes unlocked tokens from the staking contract
@@ -307,7 +318,7 @@ pub contract Lockbox {
         pub fun withdrawRewardedTokens(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
 
-            tokenManagerRef.deposit(from: <-tokenManagerRef.nodeStaker?.withdrawRewardedTokens(amount: amount))
+            tokenManagerRef.deposit(from: <-tokenManagerRef.nodeStaker?.withdrawRewardedTokens(amount: amount)!)
         }
     }
 
@@ -353,7 +364,7 @@ pub contract Lockbox {
         pub fun requestUnstaking(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
 
-            tokenManagerRef.nodeDelegator?.requestUnStaking(amount: amount)
+            tokenManagerRef.nodeDelegator?.requestUnstaking(amount: amount)
         }
 
         /// withdraw unlocked tokens back to the locked vault
@@ -363,7 +374,7 @@ pub contract Lockbox {
 
             let vaultRef = tokenManagerRef.vault.borrow()!
 
-            vaultRef.deposit(from: <-tokenManagerRef.nodeDelegator?.withdrawUnlockedTokens(amount: amount))
+            vaultRef.deposit(from: <-tokenManagerRef.nodeDelegator?.withdrawUnlockedTokens(amount: amount)!)
         }
 
         /// Withdraw rewarded tokens back to the locked vault,
@@ -372,7 +383,7 @@ pub contract Lockbox {
         pub fun withdrawRewardedTokens(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
 
-            tokenManagerRef.deposit(from: <-tokenManagerRef.nodeDelegator?.withdrawRewardedTokens(amount: amount))
+            tokenManagerRef.deposit(from: <-tokenManagerRef.nodeDelegator?.withdrawRewardedTokens(amount: amount)!)
         }
     }
 
@@ -421,7 +432,8 @@ pub contract Lockbox {
     }
 
     init() {
-        self.LockedTokenManagerPath = /storage/lockedTokenManager
+        self.LockedTokenManagerStoragePath = /storage/lockedTokenManager
+        self.LockedTokenManagerPrivatePath = /private/lockedTokenManager
 
         self.LockedTokenAdminPrivatePath = /private/lockedTokenAdmin
         self.LockedTokenAdminCollectionStoragePath = /storage/lockedTokenAdminCollection
@@ -429,3 +441,4 @@ pub contract Lockbox {
         self.TokenHolderStoragePath = /storage/flowTokenHolder
     }
 }
+ 

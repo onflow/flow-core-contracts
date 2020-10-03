@@ -18,33 +18,35 @@ transaction(
         userAccount.addPublicKey(fullUserPublicKey)
 
         let vaultCapability = sharedAccount
-            .getCapability<&FlowToken.Vault>(/storage/flowTokenVault)!
+            .link<&FlowToken.Vault>(/private/flowTokenVault, target: /storage/flowTokenVault)
+            ?? panic("Could not link Flow Token Vault capability")
 
         let lockedTokenManager <- Lockbox.createNewLockedTokenManager(vault: vaultCapability)
 
-        sharedAccount.save(<-lockedTokenManager, to: Lockbox.LockedTokenManagerPath)
+        sharedAccount.save(<-lockedTokenManager, to: Lockbox.LockedTokenManagerStoragePath)
 
         let tokenManagerCapability = sharedAccount
             .link<&Lockbox.LockedTokenManager>(
-                Lockbox.LockedTokenStakingProxyPrivatePath,
-                target: Lockbox.LockedTokenManagerPath
-        )
+                Lockbox.LockedTokenManagerPrivatePath,
+                target: Lockbox.LockedTokenManagerStoragePath
+        )   ?? panic("Could not link token manager capability")
 
         let tokenHolder <- Lockbox.createTokenHolder(tokenManager: tokenManagerCapability)
 
         userAccount.save(
-            tokenHolder, 
+            <-tokenHolder, 
             to: Lockbox.TokenHolderStoragePath,
         )
 
         let tokenAdminCapability = sharedAccount
             .link<&Lockbox.LockedTokenManager{Lockbox.TokenAdmin}>(
                 Lockbox.LockedTokenAdminPrivatePath,
-                target: Lockbox.LockedTokenManagerPath
-        )
+                target: Lockbox.LockedTokenManagerStoragePath)
+            ?? panic("Could not link token admin to token manager")
 
         let tokenAdminCollection = admin
             .borrow<&Lockbox.TokenAdminCollection>(from: Lockbox.LockedTokenAdminCollectionStoragePath)
+            ?? panic("Could not borrow reference to admin collection")
 
         tokenAdminCollection.addAccount(address: sharedAccount.address, tokenAdmin: tokenAdminCapability)
 
@@ -54,7 +56,7 @@ transaction(
         // create new receiver that marks received tokens as unlocked
         sharedAccount.link<&AnyResource{FungibleToken.Receiver}>(
             /public/flowTokenReceiver,
-            target: Lockbox.LockedTokenManagerPath
+            target: Lockbox.LockedTokenManagerStoragePath
         )
 
         // pub normal receiver in a separate unique path

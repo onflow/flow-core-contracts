@@ -7,6 +7,7 @@ transaction(amount: UFix64) {
 
     prepare(acct: AuthAccount) {
         self.holderRef = acct.borrow<&LockBox.TokenHolder>(from: LockBox.TokenHolderStoragePath)
+            ?? panic("Could not borrow reference to TokenHolder")
     }
 
     execute {

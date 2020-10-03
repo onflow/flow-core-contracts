@@ -1,10 +1,10 @@
 import Lockbox from 0xf3fcd2c1a78f5eee
 
-transaction() {
+transaction {
 
     prepare(acct: AuthAccount) {
-        let tokenAdminCollection <- LockBox.createTokenAdminCollection()
+        let tokenAdminCollection <- Lockbox.createTokenAdminCollection()
 
-        acct.save(<-tokenAdminCollection, to: LockBox.LockedTokenAdminCollectionStoragePath)
+        acct.save(<-tokenAdminCollection, to: Lockbox.LockedTokenAdminCollectionStoragePath)
     }
 }

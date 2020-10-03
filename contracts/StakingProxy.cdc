@@ -16,7 +16,7 @@ pub contract StakingProxy {
     /// Contains the node info associated with a node operator
     pub struct NodeInfo {
 
-        pub let nodeID: String
+        pub let id: String
         pub let role: UInt8
         pub let networkingAddress: String
         pub let networkingKey: String
@@ -27,7 +27,7 @@ pub contract StakingProxy {
                 networkingAddress.length > 0 && networkingKey.length > 0 && stakingKey.length > 0:
                         "Address and Key have to be the correct length"
             }
-            self.nodeID = nodeID
+            self.id = nodeID
             self.role = role
             self.networkingAddress = networkingAddress
             self.networkingKey = networkingKey
@@ -101,9 +101,9 @@ pub contract StakingProxy {
         /// want to accept tokens for
         pub fun addNodeInfo(nodeInfo: NodeInfo) {
             pre {
-                self.nodeInfo[nodeInfo.nodeID] == nil
+                self.nodeInfo[nodeInfo.id] == nil
             }
-            self.nodeInfo[nodeInfo.nodeID] = nodeInfo
+            self.nodeInfo[nodeInfo.id] = nodeInfo
         }
 
         /// Remove node info if it isn't in use any more

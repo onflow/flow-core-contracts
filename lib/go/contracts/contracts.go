@@ -18,11 +18,17 @@ const (
 	flowQCFilename             = "../../../contracts/epochs/FlowQuorumCertificate.cdc"
 	flowDKGFilename            = "../../../contracts/epochs/FlowDKG.cdc"
 	flowEpochFilename          = "../../../contracts/epochs/FlowEpoch.cdc"
+	flowLockboxFilename        = "../../../contracts/Lockbox.cdc"
+	flowStakingProxyFilename   = "../../../contracts/StakingProxy.cdc"
+
+	/// Test contracts
+	TESTFlowIdentityTableFilename = "../../../contracts/testContracts/TestFlowIDTableStaking.cdc"
 
 	hexPrefix                = "0x"
 	defaultFungibleTokenAddr = "FUNGIBLETOKENADDRESS"
 	defaultFlowTokenAddr     = "FLOWTOKENADDRESS"
 	defaultIDTableAddr       = "FLOWIDTABLESTAKINGADDRESS"
+	defaultStakingProxyAddr  = "STAKINGPROXYADDRESS"
 	defaultQCAddr            = "QCADDRESS"
 	defaultDKGAddr           = "DKGADDRESS"
 	defaultFlowFeesAddr      = "0xe5a8b7f23e8b548f"
@@ -104,6 +110,35 @@ func FlowIDTableStaking(ftAddr, flowTokenAddr string) []byte {
 
 	code = strings.ReplaceAll(code, defaultFungibleTokenAddr, ftAddr)
 	code = strings.ReplaceAll(code, defaultFlowTokenAddr, flowTokenAddr)
+
+	return []byte(code)
+}
+
+// TESTFlowIDTableStaking returns the TestFlowIDTableStaking contract
+func TESTFlowIDTableStaking(ftAddr, flowTokenAddr string) []byte {
+	code := assets.MustAssetString(TESTFlowIdentityTableFilename)
+
+	code = strings.ReplaceAll(code, defaultFungibleTokenAddr, ftAddr)
+	code = strings.ReplaceAll(code, defaultFlowTokenAddr, flowTokenAddr)
+
+	return []byte(code)
+}
+
+// FlowStakingProxy returns the StakingProxy contract.
+func FlowStakingProxy() []byte {
+	code := assets.MustAssetString(flowStakingProxyFilename)
+
+	return []byte(code)
+}
+
+// FlowLockbox return the Lockbox contract
+func FlowLockbox(ftAddr, flowTokenAddr, idTableAddr, stakingProxyAddr string) []byte {
+	code := assets.MustAssetString(flowLockboxFilename)
+
+	code = strings.ReplaceAll(code, defaultFungibleTokenAddr, ftAddr)
+	code = strings.ReplaceAll(code, defaultFlowTokenAddr, flowTokenAddr)
+	code = strings.ReplaceAll(code, defaultIDTableAddr, idTableAddr)
+	code = strings.ReplaceAll(code, defaultStakingProxyAddr, stakingProxyAddr)
 
 	return []byte(code)
 }
