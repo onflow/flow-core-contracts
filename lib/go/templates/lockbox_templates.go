@@ -16,19 +16,18 @@ const (
 	stakeNewLockedTokensFilename         = "lockbox/staker/stake_new_tokens.cdc"
 	stakeLockedUnlockedTokensFilename    = "lockbox/staker/stake_unlocked_tokens.cdc"
 	stakeLockedRewardedTokensFilename    = "lockbox/staker/stake_rewarded_tokens.cdc"
-	unstakeLockedTokensFilename          = "lockbox/staker/request_unstake.cdc"
+	unstakeLockedTokensFilename          = "lockbox/staker/request_unstaking.cdc"
 	withdrawLockedUnlockedTokensFilename = "lockbox/staker/withdraw_unlocked_tokens.cdc"
 	withdrawLockedRewardedTokensFilename = "lockbox/staker/withdraw_rewarded_tokens.cdc"
 
 	// delegator templates
 	registerLockedDelegatorFilename               = "lockbox/delegator/register_delegator.cdc"
-	delegateNewLockedTokensFilename               = "lockbox/delegator/"
-	delegateLockedUnlockedTokensFilename          = "lockbox/delegator/"
-	delegateLockedRewardedTokensFilename          = "lockbox/delegator/"
-	requestUnstakingLockedDelegatedTokensFilename = "lockbox/delegator/"
-	unstakeAllLockedDelegatedTokensFilename       = "lockbox/delegator/"
-	withdrawLockedUnlockedDelegatedTokensFilename = "lockbox/delegator/"
-	withdrawLockedRewardedDelegatedTokensFilename = "lockbox/delegator/"
+	delegateNewLockedTokensFilename               = "lockbox/delegator/delegate_new_locked_tokens.cdc"
+	delegateLockedUnlockedTokensFilename          = "lockbox/delegator/delegate_locked_unlocked_tokens.cdc"
+	delegateLockedRewardedTokensFilename          = "lockbox/delegator/delegate_locked_rewarded_tokens.cdc"
+	requestUnstakingLockedDelegatedTokensFilename = "lockbox/delegator/request_unstaking_locked_delegated_tokens.cdc"
+	withdrawLockedUnlockedDelegatedTokensFilename = "lockbox/delegator/withdraw_locked_unlocked_delegated_tokens.cdc"
+	withdrawLockedRewardedDelegatedTokensFilename = "lockbox/delegator/withdraw_locked_rewarded_delegated_tokens.cdc"
 
 	// staking helper templates
 	registerNodeFilename = "stakingProxy/stakingHelper/sh_register_node.cdc"
@@ -38,7 +37,7 @@ const (
 )
 
 // ReplaceLockboxAddress replaces the import address
-// and phase in scripts that return info about a specific node and phase
+// and phase in scripts that return info about a specific node and phase.
 func ReplaceLockboxAddress(code, lockboxAddress string) string {
 
 	code = strings.ReplaceAll(
@@ -51,9 +50,73 @@ func ReplaceLockboxAddress(code, lockboxAddress string) string {
 }
 
 // GenerateCreateLockedNodeScript creates a script that creates a new
-// node request with locked tokens
+// node request with locked tokens.
 func GenerateCreateLockedNodeScript(lockboxAddr, proxyAddr string) []byte {
 	code := assets.MustAssetString(filePath + createLockedNodeFilename)
+
+	code = ReplaceLockboxAddress(code, lockboxAddr)
+
+	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
+}
+
+// GenerateStakeNewLockedTokensScript creates a script that stakes new
+// locked tokens.
+func GenerateStakeNewLockedTokensScript(lockboxAddr, proxyAddr string) []byte {
+	code := assets.MustAssetString(filePath + stakeNewLockedTokensFilename)
+
+	code = ReplaceLockboxAddress(code, lockboxAddr)
+
+	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
+}
+
+// GenerateStakeLockedUnlockedTokensScript creates a script that stakes
+// unlocked tokens.
+// The unusual name is to avoid a clash with idtables_staking_templates.go .
+func GenerateStakeLockedUnlockedTokensScript(lockboxAddr, proxyAddr string) []byte {
+	code := assets.MustAssetString(filePath + stakeLockedUnlockedTokensFilename)
+
+	code = ReplaceLockboxAddress(code, lockboxAddr)
+
+	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
+}
+
+// GenerateStakeLockedRewardedTokensScript creates a script that stakes
+// unlocked tokens.
+// The unusual name is to avoid a clash with idtables_staking_templates.go .
+func GenerateStakeLockedRewardedTokensScript(lockboxAddr, proxyAddr string) []byte {
+	code := assets.MustAssetString(filePath + stakeLockedUnlockedTokensFilename)
+
+	code = ReplaceLockboxAddress(code, lockboxAddr)
+
+	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
+}
+
+// GenerateUnstakeLockedTokensScript creates a script that unstakes
+// locked tokens.
+func GenerateUnstakeLockedTokensScript(lockboxAddr, proxyAddr string) []byte {
+	code := assets.MustAssetString(filePath + unstakeLockedTokensFilename)
+
+	code = ReplaceLockboxAddress(code, lockboxAddr)
+
+	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
+}
+
+// GenerateWithdrawLockedUnlockedTokensScript creates a script that requests
+// a withdrawal of unlocked tokens.
+// The unusual name is to avoid a clash with idtables_staking_templates.go .
+func GenerateWithdrawLockedUnlockedTokensScript(lockboxAddr, proxyAddr string) []byte {
+	code := assets.MustAssetString(filePath + withdrawLockedUnlockedTokensFilename)
+
+	code = ReplaceLockboxAddress(code, lockboxAddr)
+
+	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
+}
+
+// GenerateWithdrawLockedRewardedTokensScript creates a script that requests
+// a withdrawal of unlocked tokens.
+// The unusual name is to avoid a clash with idtables_staking_templates.go .
+func GenerateWithdrawLockedRewardedTokensScript(lockboxAddr, proxyAddr string) []byte {
+	code := assets.MustAssetString(filePath + withdrawLockedRewardedTokensFilename)
 
 	code = ReplaceLockboxAddress(code, lockboxAddr)
 
