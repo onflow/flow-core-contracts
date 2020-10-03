@@ -8,7 +8,7 @@
 import FungibleToken from 0xFUNGIBLETOKENADDRESS
 import FlowArcadeToken from 0xARCADETOKENADDRESS
 
-transaction(to: Address, amount: UFix64) {
+transaction(amount: UFix64, to: Address) {
 
     // The Vault resource that holds the tokens that are being transferred
     let sentVault: @FungibleToken.Vault
