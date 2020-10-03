@@ -5,7 +5,8 @@ transaction(id: String, amount: UFix64) {
     let holderRef: &LockBox.TokenHolder
 
     prepare(acct: AuthAccount) {
-        self.holderRef = acct.borrow<&LockBox.TokenHolder>(from: LockBox.TokenHolderStoragePath)
+        self.holderRef = acct.borrow<&LockBox.TokenHolder>(from: LockBox.TokenHolderStoragePath) 
+            ?? panic("TokenHolder is not saved at specified path")
     }
 
     execute {

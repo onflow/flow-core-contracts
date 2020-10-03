@@ -22,13 +22,12 @@ const (
 
 	// delegator templates
 	registerLockedDelegatorFilename               = "lockbox/delegator/register_delegator.cdc"
-	delegateNewLockedTokensFilename               = "lockbox/delegator/"
-	delegateLockedUnlockedTokensFilename          = "lockbox/delegator/"
-	delegateLockedRewardedTokensFilename          = "lockbox/delegator/"
-	requestUnstakingLockedDelegatedTokensFilename = "lockbox/delegator/"
-	unstakeAllLockedDelegatedTokensFilename       = "lockbox/delegator/"
-	withdrawLockedUnlockedDelegatedTokensFilename = "lockbox/delegator/"
-	withdrawLockedRewardedDelegatedTokensFilename = "lockbox/delegator/"
+	delegateNewLockedTokensFilename               = "lockbox/delegator/delegate_new_locked_tokens.cdc"
+	delegateLockedUnlockedTokensFilename          = "lockbox/delegator/delegate_locked_unlocked_tokens.cdc"
+	delegateLockedRewardedTokensFilename          = "lockbox/delegator/delegate_locked_rewarded_tokens.cdc"
+	requestUnstakingLockedDelegatedTokensFilename = "lockbox/delegator/request_unstaking_locked_delegated_tokens.cdc"
+	withdrawLockedUnlockedDelegatedTokensFilename = "lockbox/delegator/withdraw_locked_unlocked_delegated_tokens.cdc"
+	withdrawLockedRewardedDelegatedTokensFilename = "lockbox/delegator/withdraw_locked_rewarded_delegated_tokens.cdc"
 
 	// staking helper templates
 	registerNodeFilename = "stakingProxy/stakingHelper/sh_register_node.cdc"
