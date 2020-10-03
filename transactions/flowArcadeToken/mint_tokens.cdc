@@ -7,13 +7,13 @@ transaction(recipientAddress: Address, amount: UFix64) {
 
     prepare(minterAccount: AuthAccount) {
         self.tokenMinter = minterAccount
-        .borrow<&FlowArcadeToken.Minter>(from: /storage/flowArcadeTokenMinter) 
-        ?? panic("No minter available")
+            .borrow<&FlowArcadeToken.Minter>(from: /storage/flowArcadeTokenMinter) 
+            ?? panic("No minter available")
 
         self.tokenReceiver = getAccount(recipientAddress)
-        .getCapability(/public/flowArcadeTokenReceiver)!
-        .borrow<&{FungibleToken.Receiver}>()
-        ?? panic("Unable to borrow receiver reference")
+            .getCapability(/public/flowArcadeTokenReceiver)!
+            .borrow<&{FungibleToken.Receiver}>()
+            ?? panic("Unable to borrow receiver reference")
     }
 
     execute {

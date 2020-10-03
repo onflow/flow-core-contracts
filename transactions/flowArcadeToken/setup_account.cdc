@@ -9,23 +9,26 @@ transaction {
 
     prepare(signer: AuthAccount) {
 
-        if signer.borrow<&FlowArcadeToken.Vault>(from: /storage/flowArcadeTokenVault) == nil {
-            // Create a new FlowArcadeToken Vault and put it in storage
-            signer.save(<-FlowArcadeToken.createEmptyVault(), to: /storage/flowArcadeTokenVault)
-
-            // Create a public capability to the Vault that only exposes
-            // the deposit function through the Receiver interface
-            signer.link<&FlowArcadeToken.Vault{FungibleToken.Receiver}>(
-                /public/flowArcadeTokenReceiver,
-                target: /storage/flowArcadeTokenVault
-            )
-
-            // Create a public capability to the Vault that only exposes
-            // the balance field through the Balance interface
-            signer.link<&FlowArcadeToken.Vault{FungibleToken.Balance}>(
-                /public/flowArcadeTokenBalance,
-                target: /storage/flowArcadeTokenVault
-            )
+        if signer.check<&FlowArcadeToken.Vault>(from: /storage/flowArcadeTokenVault) {
+            return
         }
+        
+        // Create a new FlowArcadeToken Vault and put it in storage
+        signer.save(<-FlowArcadeToken.createEmptyVault(), to: /storage/flowArcadeTokenVault)
+
+        // Create a public capability to the Vault that only exposes
+        // the deposit function through the Receiver interface
+        signer.link<&FlowArcadeToken.Vault{FungibleToken.Receiver}>(
+            /public/flowArcadeTokenReceiver,
+            target: /storage/flowArcadeTokenVault
+        )
+
+        // Create a public capability to the Vault that only exposes
+        // the balance field through the Balance interface
+        signer.link<&FlowArcadeToken.Vault{FungibleToken.Balance}>(
+            /public/flowArcadeTokenBalance,
+            target: /storage/flowArcadeTokenVault
+        )
     }
+}
 }
