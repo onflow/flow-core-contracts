@@ -282,7 +282,7 @@ pub contract Lockbox {
 
         /// Requests to unstake all of the node's tokens and all of
         /// the tokens that have been delegated to the node
-        pub fun unstakeAll(amount: UFix64) {
+        pub fun unstakeAll() {
             let tokenManagerRef = self.tokenManager.borrow()!
 
             tokenManagerRef.nodeStaker?.unstakeAll()
@@ -329,7 +329,7 @@ pub contract Lockbox {
 
             let vaultRef = tokenManagerRef.vault.borrow()!
 
-            tokenManagerRef.nodeDelegator?.delegatorNewTokens(from: <-vaultRef.withdraw(amount: amount))
+            tokenManagerRef.nodeDelegator?.delegateNewTokens(from: <-vaultRef.withdraw(amount: amount))
         }
 
         /// Delegate tokens from the unlocked staking bucket

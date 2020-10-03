@@ -9,18 +9,18 @@ import (
 const (
 
 	// node operator templates
-	setupNodeAccountFilename   = "stakingProxy/stakingHelper/sh_setup_node_account_filename.cdc"
-	addNodeInfoFilename        = ""
-	removeNodeInfoFilename     = ""
-	removeStakingProxyFilename = ""
+	setupNodeAccountFilename   = "stakingProxy/sh_setup_node_account.cdc"
+	addNodeInfoFilename        = "stakingProxy/sh_add_node_info.cdc"
+	removeNodeInfoFilename     = "stakingProxy/sh_remove_node_info.cdc"
+	removeStakingProxyFilename = "stakingProxy/sh_remove_staking_proxy.cdc"
 
 	// templates for node operator doing staking actions
-	proxyStakeNewTokensFilename      = ""
-	proxyStakeUnlockedTokensFilename = ""
-	proxyRequestUnstakingFilename    = ""
-	proxyUnstakeAllFilename          = ""
-	proxyWithdrawUnlockedFilename    = ""
-	proxyWithdrawRewardsFilename     = ""
+	proxyStakeNewTokensFilename      = "stakingProxy/sh_stake_new_tokens.cdc"
+	proxyStakeUnlockedTokensFilename = "stakingProxy/sh_stake_unlocked_tokens.cdc"
+	proxyRequestUnstakingFilename    = "stakingProxy/sh_request_unstaking.cdc"
+	proxyUnstakeAllFilename          = "stakingProxy/sh_unstake_all.cdc"
+	proxyWithdrawUnlockedFilename    = "stakingProxy/sh_withdraw_unlocked.cdc"
+	proxyWithdrawRewardsFilename     = "stakingProxy/sh_withdraw_rewards.cdc"
 
 	// addresses
 	defaultStakingProxyAddress = "0x179b6b1cb6755e31"
@@ -43,6 +43,62 @@ func ReplaceStakingProxyAddress(code, proxyAddr string) string {
 // a node operator's account to receive staking proxies
 func GenerateSetupNodeAccountScript(proxyAddr string) []byte {
 	code := assets.MustAssetString(filePath + setupNodeAccountFilename)
+
+	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
+}
+
+// GenerateAddNodeInfoScript generates a script that adds the node
+// operators node info to their account
+func GenerateAddNodeInfoScript(proxyAddr string) []byte {
+	code := assets.MustAssetString(filePath + addNodeInfoFilename)
+
+	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
+}
+
+func GenerateRemoveNodeInfoScript(proxyAddr string) []byte {
+	code := assets.MustAssetString(filePath + removeNodeInfoFilename)
+
+	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
+}
+
+func GenerateRemoveStakingProxyScript(proxyAddr string) []byte {
+	code := assets.MustAssetString(filePath + removeStakingProxyFilename)
+
+	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
+}
+
+func GenerateProxyStakeNewTokensScript(proxyAddr string) []byte {
+	code := assets.MustAssetString(filePath + proxyStakeNewTokensFilename)
+
+	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
+}
+
+func GenerateProxyStakeUnlockedTokensScript(proxyAddr string) []byte {
+	code := assets.MustAssetString(filePath + proxyStakeUnlockedTokensFilename)
+
+	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
+}
+
+func GenerateProxyRequestUnstakingScript(proxyAddr string) []byte {
+	code := assets.MustAssetString(filePath + proxyRequestUnstakingFilename)
+
+	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
+}
+
+func GenerateProxyUnstakeAllScript(proxyAddr string) []byte {
+	code := assets.MustAssetString(filePath + proxyUnstakeAllFilename)
+
+	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
+}
+
+func GenerateProxyWithdrawRewardsScript(proxyAddr string) []byte {
+	code := assets.MustAssetString(filePath + proxyWithdrawRewardsFilename)
+
+	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
+}
+
+func GenerateProxyWithdrawUnlockedScript(proxyAddr string) []byte {
+	code := assets.MustAssetString(filePath + proxyWithdrawUnlockedFilename)
 
 	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
 }

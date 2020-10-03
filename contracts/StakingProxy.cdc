@@ -45,7 +45,7 @@ pub contract StakingProxy {
 
         pub fun requestUnstaking(amount: UFix64)
 
-        pub fun unstakeAll(amount: UFix64)
+        pub fun unstakeAll()
 
         pub fun withdrawUnlockedTokens(amount: UFix64)
 
@@ -63,8 +63,6 @@ pub contract StakingProxy {
         pub fun delegateRewardedTokens(amount: UFix64)
 
         pub fun requestUnstaking(amount: UFix64)
-
-        pub fun unstakeAll(amount: UFix64)
 
         pub fun withdrawUnlockedTokens(amount: UFix64)
 
