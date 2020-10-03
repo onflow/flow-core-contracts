@@ -18,14 +18,8 @@ pub contract FlowArcadeToken: FungibleToken {
     // Event that is emitted when new tokens are minted
     pub event TokensMinted(amount: UFix64)
 
-    // Event that is emitted when tokens are destroyed
-    //pub event TokensBurned(amount: UFix64)
-
     // Event that is emitted when a new minter resource is created
     pub event MinterCreated()
-
-    // Event that is emitted when a new burner resource is created
-    //pub event BurnerCreated()
 
     // Vault
     //
@@ -91,7 +85,7 @@ pub contract FlowArcadeToken: FungibleToken {
     // and store the returned Vault in their storage in order to allow their
     // account to be able to receive deposits of this token type.
     //
-    pub fun createEmptyVault(): @FungibleToken.Vault {
+    pub fun createEmptyVault(): @FlowArcadeToken.Vault {
         return <-create Vault(balance: 0.0)
     }
 

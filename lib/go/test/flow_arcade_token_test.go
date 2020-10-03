@@ -177,8 +177,8 @@ func TestFlowArcadeToken(t *testing.T) {
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(oneAddress)
-	txTransfer.AddArgument(cadence.NewAddress(twoAddress))
 	txTransfer.AddArgument(CadenceUFix64("9.09"))
+	txTransfer.AddArgument(cadence.NewAddress(twoAddress))
 
 	signAndSubmit(
 		t, b, txTransfer,
