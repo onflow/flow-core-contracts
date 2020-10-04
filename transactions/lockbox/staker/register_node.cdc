@@ -7,6 +7,7 @@ transaction(id: String, role: UInt8, networkingAddress: String, networkingKey: S
 
     prepare(acct: AuthAccount) {
         self.holderRef = acct.borrow<&Lockbox.TokenHolder>(from: Lockbox.TokenHolderStoragePath)
+            ?? panic("Could not borrow ref to TokenHolder")
     }
 
     execute {

@@ -37,9 +37,6 @@ const (
 	withdrawLockedUnlockedDelegatedTokensFilename = "lockbox/delegator/withdraw_locked_unlocked_delegated_tokens.cdc"
 	withdrawLockedRewardedDelegatedTokensFilename = "lockbox/delegator/withdraw_locked_rewarded_delegated_tokens.cdc"
 
-	// staking helper templates
-	registerNodeFilename = "stakingProxy/stakingHelper/sh_register_node.cdc"
-
 	// addresses
 	defaultLockboxAddress = "0xf3fcd2c1a78f5eee"
 )
@@ -162,7 +159,7 @@ func GenerateStakeLockedUnlockedTokensScript(lockboxAddr, proxyAddr string) []by
 // unlocked tokens.
 // The unusual name is to avoid a clash with idtables_staking_templates.go .
 func GenerateStakeLockedRewardedTokensScript(lockboxAddr, proxyAddr string) []byte {
-	code := assets.MustAssetString(filePath + stakeLockedUnlockedTokensFilename)
+	code := assets.MustAssetString(filePath + stakeLockedRewardedTokensFilename)
 
 	code = ReplaceLockboxAddress(code, lockboxAddr)
 

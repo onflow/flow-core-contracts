@@ -12,6 +12,7 @@ const (
 	setupNodeAccountFilename   = "stakingProxy/sh_setup_node_account.cdc"
 	addNodeInfoFilename        = "stakingProxy/sh_add_node_info.cdc"
 	removeNodeInfoFilename     = "stakingProxy/sh_remove_node_info.cdc"
+	getNodeInfoFilename        = "stakingProxy/sh_get_node_info.cdc"
 	removeStakingProxyFilename = "stakingProxy/sh_remove_staking_proxy.cdc"
 
 	// templates for node operator doing staking actions
@@ -21,6 +22,9 @@ const (
 	proxyUnstakeAllFilename          = "stakingProxy/sh_unstake_all.cdc"
 	proxyWithdrawUnlockedFilename    = "stakingProxy/sh_withdraw_unlocked.cdc"
 	proxyWithdrawRewardsFilename     = "stakingProxy/sh_withdraw_rewards.cdc"
+
+	// staking helper templates for the token holder to register their node
+	registerNodeFilename = "stakingProxy/sh_register_node.cdc"
 
 	// addresses
 	defaultStakingProxyAddress = "0x179b6b1cb6755e31"
@@ -57,6 +61,12 @@ func GenerateAddNodeInfoScript(proxyAddr string) []byte {
 
 func GenerateRemoveNodeInfoScript(proxyAddr string) []byte {
 	code := assets.MustAssetString(filePath + removeNodeInfoFilename)
+
+	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
+}
+
+func GenerateGetNodeInfoScript(proxyAddr string) []byte {
+	code := assets.MustAssetString(filePath + getNodeInfoFilename)
 
 	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
 }
@@ -99,6 +109,16 @@ func GenerateProxyWithdrawRewardsScript(proxyAddr string) []byte {
 
 func GenerateProxyWithdrawUnlockedScript(proxyAddr string) []byte {
 	code := assets.MustAssetString(filePath + proxyWithdrawUnlockedFilename)
+
+	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
+}
+
+// Transactions for the token holder
+
+func GenerateRegisterStakingProxyNodeScript(lockboxAddr, proxyAddr string) []byte {
+	code := assets.MustAssetString(filePath + registerNodeFilename)
+
+	code = ReplaceLockboxAddress(code, lockboxAddr)
 
 	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
 }

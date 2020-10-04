@@ -10,7 +10,7 @@ transaction(id: String, amount: UFix64) {
     }
 
     execute {
-        self.holderRef.createNodeDelegator(nodeID: nodeInfo)
+        self.holderRef.createNodeDelegator(nodeID: id)
 
         let delegatorProxy = self.holderRef.borrowDelegator()
 

@@ -1,9 +1,9 @@
 import StakingProxy from 0x179b6b1cb6755e31
 
-transaction(id: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String) {
+transaction() {
 
     prepare(acct: AuthAccount) {
-        let proxyHolder = StakingProxy.createProxyHolder()
+        let proxyHolder <- StakingProxy.createProxyHolder()
 
         acct.save(<-proxyHolder, to: StakingProxy.NodeOperatorCapabilityStoragePath)
 

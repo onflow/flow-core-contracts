@@ -7,7 +7,7 @@ transaction(amount: UFix64) {
         let holderRef = acct.borrow<&Lockbox.TokenHolder>(from: Lockbox.TokenHolderStoragePath) 
             ?? panic("TokenHolder is not saved at specified path")
 
-        self.nodeDelegatorProxy = self.holderRef.borrowDelegator()
+        self.nodeDelegatorProxy = holderRef.borrowDelegator()
     }
 
     execute {

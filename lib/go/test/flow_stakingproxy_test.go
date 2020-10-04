@@ -125,6 +125,47 @@ func TestStakingProxy(t *testing.T) {
 		)
 	})
 
+	// Create a new node operator account for staking helper
+	nodeAccountKey, nodeSigner := accountKeys.NewWithSigner()
+	nodeAddress, _ := b.CreateAccount([]*flow.AccountKey{nodeAccountKey}, nil)
+
+	t.Run("Should be able to set up the node account for staking helper", func(t *testing.T) {
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GenerateSetupNodeAccountScript(proxyAddr.String())).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(nodeAddress)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, nodeAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), nodeSigner},
+			false,
+		)
+
+		tx = flow.NewTransaction().
+			SetScript(templates.GenerateAddNodeInfoScript(proxyAddr.String())).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(nodeAddress)
+
+		_ = tx.AddArgument(cadence.NewString(joshID))
+		_ = tx.AddArgument(cadence.NewUInt8(1))
+		_ = tx.AddArgument(cadence.NewString("12234"))
+		_ = tx.AddArgument(cadence.NewString("netkey"))
+		_ = tx.AddArgument(cadence.NewString("stakekey"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, nodeAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), nodeSigner},
+			false,
+		)
+	})
+
 	// Create new keys for the user account
 	joshKey, joshSigner := accountKeys.NewWithSigner()
 
@@ -160,23 +201,19 @@ func TestStakingProxy(t *testing.T) {
 		for _, event := range createAccountsTxResult.Events {
 			if event.Type == fmt.Sprintf("A.%s.Lockbox.SharedAccountCreated", lockboxAddr.Hex()) {
 				// needs work
-				sharedAccountCreatedEvent := SharedAccountCreatedEvent(event)
+				sharedAccountCreatedEvent := sharedAccountCreatedEvent(event)
 				joshSharedAddress = sharedAccountCreatedEvent.Address()
 				break
 			}
-
-			assert.Fail(t, "missing shared account created event")
 		}
 
 		for _, event := range createAccountsTxResult.Events {
 			if event.Type == fmt.Sprintf("A.%s.Lockbox.UnlockedAccountCreated", lockboxAddr.Hex()) {
 				// needs work
-				sharedAccountCreatedEvent := SharedAccountCreatedEvent(event)
-				joshSharedAddress = sharedAccountCreatedEvent.Address()
+				unlockedAccountCreatedEvent := unlockedAccountCreatedEvent(event)
+				joshAddress = unlockedAccountCreatedEvent.Address()
 				break
 			}
-
-			assert.Fail(t, "missing shared account created event")
 		}
 	})
 
@@ -189,8 +226,8 @@ func TestStakingProxy(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(adminAddress)
 
-		_ = tx.AddArgument(cadence.NewAddress(joshSharedAddress))
 		_ = tx.AddArgument(CadenceUFix64("1000000.0"))
+		_ = tx.AddArgument(cadence.NewAddress(joshSharedAddress))
 
 		signAndSubmit(
 			t, b, tx,
@@ -198,24 +235,19 @@ func TestStakingProxy(t *testing.T) {
 			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
 			false,
 		)
-
-		// check balance of locked account
 	})
 
-	t.Run("Should be able to register josh as a node operator", func(t *testing.T) {
+	t.Run("Should be able to register josh as a node operator and add the staking proxy to the node's account", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateCreateLockedNodeScript(lockboxAddr.String(), proxyAddr.String())).
+			SetScript(templates.GenerateRegisterStakingProxyNodeScript(lockboxAddr.String(), proxyAddr.String())).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshAddress)
 
+		_ = tx.AddArgument(cadence.NewAddress(nodeAddress))
 		_ = tx.AddArgument(cadence.NewString(joshID))
-		_ = tx.AddArgument(cadence.NewUInt8(1))
-		_ = tx.AddArgument(cadence.NewString("12234"))
-		_ = tx.AddArgument(cadence.NewString("netkey"))
-		_ = tx.AddArgument(cadence.NewString("stakekey"))
 		tokenAmount, err := cadence.NewUFix64("250000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
@@ -231,44 +263,43 @@ func TestStakingProxy(t *testing.T) {
 	t.Run("Should be able to stake locked tokens", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateStakeNewLockedTokensScript(lockboxAddr.String(), proxyAddr.String())).
+			SetScript(templates.GenerateProxyStakeNewTokensScript(proxyAddr.String())).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(joshAddress)
+			AddAuthorizer(nodeAddress)
 
+		_ = tx.AddArgument(cadence.NewString(joshID))
 		tokenAmount, err := cadence.NewUFix64("2000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{b.ServiceKey().Address, nodeAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), nodeSigner},
 			false,
 		)
-
-		// Check balance of locked account
-
 	})
 
 	t.Run("Should be able to stake unlocked (staking) tokens", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateStakeLockedUnlockedTokensScript(lockboxAddr.String(), proxyAddr.String())).
+			SetScript(templates.GenerateProxyStakeUnlockedTokensScript(proxyAddr.String())).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(joshAddress)
+			AddAuthorizer(nodeAddress)
 
+		_ = tx.AddArgument(cadence.NewString(joshID))
 		tokenAmount, err := cadence.NewUFix64("1000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{b.ServiceKey().Address, nodeAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), nodeSigner},
 			false,
 		)
 
@@ -277,20 +308,21 @@ func TestStakingProxy(t *testing.T) {
 	t.Run("Should be able to request unstaking", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateUnstakeLockedTokensScript(lockboxAddr.String(), proxyAddr.String())).
+			SetScript(templates.GenerateProxyRequestUnstakingScript(proxyAddr.String())).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(joshAddress)
+			AddAuthorizer(nodeAddress)
 
+		_ = tx.AddArgument(cadence.NewString(joshID))
 		tokenAmount, err := cadence.NewUFix64("500.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{b.ServiceKey().Address, nodeAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), nodeSigner},
 			false,
 		)
 
@@ -299,16 +331,18 @@ func TestStakingProxy(t *testing.T) {
 	t.Run("Should be able to request unstaking all tokens", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateUnstakeAllLockedTokensScript(lockboxAddr.String(), proxyAddr.String())).
+			SetScript(templates.GenerateProxyUnstakeAllScript(proxyAddr.String())).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(joshAddress)
+			AddAuthorizer(nodeAddress)
+
+		_ = tx.AddArgument(cadence.NewString(joshID))
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{b.ServiceKey().Address, nodeAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), nodeSigner},
 			false,
 		)
 	})
@@ -316,48 +350,46 @@ func TestStakingProxy(t *testing.T) {
 	t.Run("Should be able to withdraw unlocked (staking) tokens which are deposited to the locked vault (still locked)", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateWithdrawLockedUnlockedTokensScript(lockboxAddr.String(), proxyAddr.String())).
+			SetScript(templates.GenerateProxyWithdrawUnlockedScript(proxyAddr.String())).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(joshAddress)
+			AddAuthorizer(nodeAddress)
 
+		_ = tx.AddArgument(cadence.NewString(joshID))
 		tokenAmount, err := cadence.NewUFix64("500.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{b.ServiceKey().Address, nodeAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), nodeSigner},
 			false,
 		)
-
-		// make sure the unlock limit hasn't changed
 
 	})
 
 	t.Run("Should be able to withdraw rewards tokens which are deposited to the locked vault (increase limit)", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateWithdrawLockedRewardedTokensScript(lockboxAddr.String(), proxyAddr.String())).
+			SetScript(templates.GenerateProxyWithdrawRewardsScript(proxyAddr.String())).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(joshAddress)
+			AddAuthorizer(nodeAddress)
 
+		_ = tx.AddArgument(cadence.NewString(joshID))
 		tokenAmount, err := cadence.NewUFix64("500.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{b.ServiceKey().Address, nodeAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), nodeSigner},
 			false,
 		)
-
-		// make sure the unlock limit has increased by 500.0
 	})
 
 }
