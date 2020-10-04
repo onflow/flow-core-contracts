@@ -10,7 +10,13 @@ const (
 	// admin templates
 	createAdminCollectionFilename = "lockbox/admin/create_admin_collection.cdc"
 	createLockedAccountsFilename  = "lockbox/admin/create_shared_account.cdc"
+	depositLockedTokensFilename   = "lockbox/admin/deposit_locked_tokens.cdc"
 	increaseUnlockLimitFilename   = "lockbox/admin/unlock_tokens.cdc"
+
+	// user templates
+	withdrawTokensFilename = "lockbox/user/withdraw_tokens.cdc"
+	depositTokensFilename  = "lockbox/user/deposit_tokens.cdc"
+	getUnlockLimitFilename = "lockbox/user/get_unlock_limit.cdc"
 
 	// staker templates
 	createLockedNodeFilename             = "lockbox/staker/register_node.cdc"
@@ -18,6 +24,7 @@ const (
 	stakeLockedUnlockedTokensFilename    = "lockbox/staker/stake_unlocked_tokens.cdc"
 	stakeLockedRewardedTokensFilename    = "lockbox/staker/stake_rewarded_tokens.cdc"
 	unstakeLockedTokensFilename          = "lockbox/staker/request_unstaking.cdc"
+	unstakeAllLockedTokensFilename       = "lockbox/staker/unstake_all.cdc"
 	withdrawLockedUnlockedTokensFilename = "lockbox/staker/withdraw_unlocked_tokens.cdc"
 	withdrawLockedRewardedTokensFilename = "lockbox/staker/withdraw_rewarded_tokens.cdc"
 
@@ -70,8 +77,48 @@ func GenerateCreateSharedAccountScript(ftAddr, flowTokenAddr, lockboxAddr string
 	return []byte(code)
 }
 
+func GenerateDepositLockedTokensScript(ftAddr, flowTokenAddr, lockboxAddr string) []byte {
+	code := assets.MustAssetString(filePath + depositLockedTokensFilename)
+
+	code = ReplaceAddresses(code, ftAddr, flowTokenAddr, "")
+
+	code = ReplaceLockboxAddress(code, lockboxAddr)
+
+	return []byte(code)
+}
+
 func GenerateIncreaseUnlockLimitScript(lockboxAddr string) []byte {
 	code := assets.MustAssetString(filePath + increaseUnlockLimitFilename)
+
+	code = ReplaceLockboxAddress(code, lockboxAddr)
+
+	return []byte(code)
+}
+
+/************ User Transactions ********************/
+
+func GenerateWithdrawTokensScript(ftAddr, flowTokenAddr, lockboxAddr string) []byte {
+	code := assets.MustAssetString(filePath + withdrawTokensFilename)
+
+	code = ReplaceAddresses(code, ftAddr, flowTokenAddr, "")
+
+	code = ReplaceLockboxAddress(code, lockboxAddr)
+
+	return []byte(code)
+}
+
+func GenerateDepositTokensScript(ftAddr, flowTokenAddr, lockboxAddr string) []byte {
+	code := assets.MustAssetString(filePath + depositTokensFilename)
+
+	code = ReplaceAddresses(code, ftAddr, flowTokenAddr, "")
+
+	code = ReplaceLockboxAddress(code, lockboxAddr)
+
+	return []byte(code)
+}
+
+func GenerateGetUnlockLimitScript(lockboxAddr string) []byte {
+	code := assets.MustAssetString(filePath + getUnlockLimitFilename)
 
 	code = ReplaceLockboxAddress(code, lockboxAddr)
 
@@ -126,6 +173,16 @@ func GenerateStakeLockedRewardedTokensScript(lockboxAddr, proxyAddr string) []by
 // locked tokens.
 func GenerateUnstakeLockedTokensScript(lockboxAddr, proxyAddr string) []byte {
 	code := assets.MustAssetString(filePath + unstakeLockedTokensFilename)
+
+	code = ReplaceLockboxAddress(code, lockboxAddr)
+
+	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
+}
+
+// GenerateUnstakeAllLockedTokensScript creates a script that unstakes
+// all locked tokens.
+func GenerateUnstakeAllLockedTokensScript(lockboxAddr, proxyAddr string) []byte {
+	code := assets.MustAssetString(filePath + unstakeAllLockedTokensFilename)
 
 	code = ReplaceLockboxAddress(code, lockboxAddr)
 

@@ -4,7 +4,7 @@ transaction(amount: UFix64) {
     let nodeDelegatorProxy: Lockbox.LockedNodeDelegatorProxy
 
     prepare(acct: AuthAccount) {
-        let holderRef = acct.borrow<&LockBox.TokenHolder>(from: LockBox.TokenHolderStoragePath) 
+        let holderRef = acct.borrow<&Lockbox.TokenHolder>(from: Lockbox.TokenHolderStoragePath) 
             ?? panic("TokenHolder is not saved at specified path")
 
         self.nodeDelegatorProxy = self.holderRef.borrowDelegator()

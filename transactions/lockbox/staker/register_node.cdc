@@ -3,10 +3,10 @@ import StakingProxy from 0x179b6b1cb6755e31
 
 transaction(id: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String, amount: UFix64) {
 
-    let holderRef: &LockBox.TokenHolder
+    let holderRef: &Lockbox.TokenHolder
 
     prepare(acct: AuthAccount) {
-        self.holderRef = acct.borrow<&LockBox.TokenHolder>(from: LockBox.TokenHolderStoragePath)
+        self.holderRef = acct.borrow<&Lockbox.TokenHolder>(from: Lockbox.TokenHolderStoragePath)
     }
 
     execute {

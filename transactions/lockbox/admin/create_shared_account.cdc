@@ -8,7 +8,9 @@ transaction(
     partialUserPublicKey: [UInt8], // Weight: 900
     fullUserPublicKey: [UInt8], // Weight: 1000
 )  {
+
     prepare(admin: AuthAccount) {
+
         let sharedAccount = AuthAccount(payer: admin)
         let userAccount = AuthAccount(payer: admin)
 
@@ -38,6 +40,8 @@ transaction(
             to: Lockbox.TokenHolderStoragePath,
         )
 
+        userAccount.link<&Lockbox.TokenHolder{Lockbox.UnlockLimit}>(Lockbox.UnlockLimitPublicPath, target: Lockbox.TokenHolderStoragePath)
+
         let tokenAdminCapability = sharedAccount
             .link<&Lockbox.LockedTokenManager{Lockbox.TokenAdmin}>(
                 Lockbox.LockedTokenAdminPrivatePath,
@@ -48,7 +52,7 @@ transaction(
             .borrow<&Lockbox.TokenAdminCollection>(from: Lockbox.LockedTokenAdminCollectionStoragePath)
             ?? panic("Could not borrow reference to admin collection")
 
-        tokenAdminCollection.addAccount(address: sharedAccount.address, tokenAdmin: tokenAdminCapability)
+        tokenAdminCollection.addAccount(sharedAccountAddress: sharedAccount.address, unlockedAccountAddress: userAccount.address, tokenAdmin: tokenAdminCapability)
 
         // Override the default FlowToken receiver
         sharedAccount.unlink(/public/flowTokenReceiver)

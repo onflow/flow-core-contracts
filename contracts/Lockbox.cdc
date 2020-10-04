@@ -32,10 +32,15 @@ import StakingProxy from 0xSTAKINGPROXYADDRESS
 
 pub contract Lockbox {
 
+    pub event SharedAccountCreated(address: Address)
+    pub event UnlockedAccountCreated(address: Address)
+
     /// path to store the locked token manager resource 
     /// in the shared account
     pub let LockedTokenManagerStoragePath: Path
 
+    /// Path to store the private capability for the token
+    /// manager
     pub let LockedTokenManagerPrivatePath: Path
 
     /// path to store the private locked token admin link
@@ -49,6 +54,10 @@ pub contract Lockbox {
     /// path to store the token holder resource
     /// in the unlocked account
     pub let TokenHolderStoragePath: Path
+
+    /// Public path to store the capability that allows
+    /// reading the unlock limit of an account
+    pub let UnlockLimitPublicPath: Path
 
     /// stored in Admin account to use to increase the unlock
     /// token limit every time a vesting release happens
@@ -150,8 +159,13 @@ pub contract Lockbox {
         }
     }
 
+    /// allows anyone to read the unlock limit of an account with TokenHolder
+    pub resource interface UnlockLimit {
+        pub fun getUnlockLimit(): UFix64
+    }
+
     // Stored in Holder unlocked account
-    pub resource TokenHolder {
+    pub resource TokenHolder: UnlockLimit {
 
         /// Capability that is used to access the LockedTokenManager
         /// in the shared account
@@ -172,6 +186,12 @@ pub contract Lockbox {
             self.tokenManager = tokenManager
             self.nodeStakerProxy = nil
             self.nodeDelegatorProxy = nil
+        }
+
+        pub fun getUnlockLimit(): UFix64 {
+            let tokenManagerRef = self.tokenManager.borrow()!
+
+            return tokenManagerRef.unlockLimit
         }
 
         /// Deposits tokens in the locked vault, which marks them as 
@@ -279,7 +299,7 @@ pub contract Lockbox {
         pub fun stakeRewardedTokens(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
 
-            tokenManagerRef.nodeStaker?.stakeRewardedTokens(amount:amount)
+            tokenManagerRef.nodeStaker?.stakeRewardedTokens(amount: amount)
 
             tokenManagerRef.increaseUnlockLimit(delta: amount)
         }
@@ -402,10 +422,13 @@ pub contract Lockbox {
         /// Add a new account's locked token manager capability
         /// to the record
         pub fun addAccount(
-            address: Address, 
+            sharedAccountAddress: Address, 
+            unlockedAccountAddress: Address,
             tokenAdmin: Capability<&LockedTokenManager{TokenAdmin}>,
         ) {
-            self.accounts[address] = tokenAdmin
+            self.accounts[sharedAccountAddress] = tokenAdmin
+            emit SharedAccountCreated(address: sharedAccountAddress)
+            emit UnlockedAccountCreated(address: unlockedAccountAddress)
         }
 
         /// Get an accounts capability
@@ -439,6 +462,7 @@ pub contract Lockbox {
         self.LockedTokenAdminCollectionStoragePath = /storage/lockedTokenAdminCollection
 
         self.TokenHolderStoragePath = /storage/flowTokenHolder
+        self.UnlockLimitPublicPath = /public/flowUnlockLimit
     }
 }
  
