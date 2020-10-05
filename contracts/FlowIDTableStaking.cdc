@@ -4,20 +4,20 @@
 
     The Flow ID Table and Staking contract manages 
     node operators' and delegators' information 
-    and flow tokens that are staked as part of the Flow Protocol.
+    and Flow tokens that are staked as part of the Flow Protocol.
 
     It is recommended to check out the staking page on the Flow Docs site
     before looking at the smart contract. It will help with understanding
     https://docs.onflow.org/token/staking/
 
-    Nodes submit their stake to the public addNodeInfo Function
+    Nodes submit their stake to the public addNodeInfo function
     during the staking auction phase.
 
-    This records their info and committd tokens. They also will get a Node
+    This records their info and committed tokens. They also will get a Node
     Object that they can use to stake, unstake, and withdraw rewards.
 
     Each node has multiple token buckets that hold their tokens
-    based on their status. committed, staked, unstaking, unstaked, and rewarded.
+    based on their status: committed, staked, unstaking, unstaked, and rewarded.
 
     The Admin has the authority to remove node records, 
     refund insufficiently staked nodes, pay rewards, 
