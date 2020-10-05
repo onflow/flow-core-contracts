@@ -226,8 +226,8 @@ func TestStakingProxy(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(adminAddress)
 
-		_ = tx.AddArgument(CadenceUFix64("1000000.0"))
 		_ = tx.AddArgument(cadence.NewAddress(joshSharedAddress))
+		_ = tx.AddArgument(CadenceUFix64("1000000.0"))
 
 		signAndSubmit(
 			t, b, tx,

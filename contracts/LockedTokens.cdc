@@ -33,8 +33,8 @@ import StakingProxy from 0xSTAKINGPROXYADDRESS
 
 pub contract LockedTokens {
 
-    pub event SharedAccountCreated(address: Address)
-    pub event UnlockedAccountCreated(address: Address)
+    pub event SharedAccountRegistered(address: Address)
+    pub event UnlockedAccountRegistered(address: Address)
 
     /// path to store the locked token manager resource 
     /// in the shared account
@@ -59,6 +59,15 @@ pub contract LockedTokens {
     /// Public path to store the capability that allows
     /// reading the unlock limit of an account
     pub let UnlockLimitPublicPath: Path
+
+    /// Path that an account creator would store
+    /// the resource that they use to create locked accounts
+    pub let LockedAccountCreatorStoragePath: Path
+
+    /// Path that an account creator would publish
+    /// their capability for the token admin to 
+    /// deposit the account creation capability
+    pub let LockedAccountCreatorPublicPath: Path
 
     /// The TokenAdmin capability allows the token administrator to unlock tokens at each
     /// milestone in the vesting period.
@@ -180,7 +189,7 @@ pub contract LockedTokens {
     }
 
     // Stored in Holder unlocked account
-    pub resource TokenHolder: UnlockLimit, FungibleToken.Receiver, FungibleToken.Provider {
+    pub resource TokenHolder: FungibleToken.Receiver, FungibleToken.Provider, UnlockLimit{
 
         /// Capability that is used to access the LockedTokenManager
         /// in the shared account
@@ -415,13 +424,20 @@ pub contract LockedTokens {
         }
     }
 
+    pub resource interface AddAccount {
+        pub fun addAccount(
+            sharedAccountAddress: Address, 
+            unlockedAccountAddress: Address,
+            tokenAdmin: Capability<&LockedTokenManager>)
+    }
+
     /// Resource that the Dapper Labs token admin
     /// stores in their account to manage the vesting schedule
     /// for all the token holders
-    pub resource TokenAdminCollection {
+    pub resource TokenAdminCollection: AddAccount {
         
         /// Mapping of account addresses to LockedTokenManager capabilities
-        access(self) var accounts: {Address: Capability<&LockedTokenManager{TokenAdmin}>}
+        access(self) var accounts: {Address: Capability<&LockedTokenManager>}
 
         init() {
             self.accounts = {}
@@ -432,16 +448,46 @@ pub contract LockedTokens {
         pub fun addAccount(
             sharedAccountAddress: Address, 
             unlockedAccountAddress: Address,
-            tokenAdmin: Capability<&LockedTokenManager{TokenAdmin}>,
-        ) {
+            tokenAdmin: Capability<&LockedTokenManager>) 
+        {
             self.accounts[sharedAccountAddress] = tokenAdmin
-            emit SharedAccountCreated(address: sharedAccountAddress)
-            emit UnlockedAccountCreated(address: unlockedAccountAddress)
+            emit SharedAccountRegistered(address: sharedAccountAddress)
+            emit UnlockedAccountRegistered(address: unlockedAccountAddress)
         }
 
         /// Get an accounts capability
-        pub fun getAccount(address: Address): Capability<&LockedTokenManager{TokenAdmin}> {
+        pub fun getAccount(address: Address): Capability<&LockedTokenManager> {
             return self.accounts[address]!
+        }
+    }
+
+    pub resource interface LockedAccountCreatorPublic {
+        pub fun addCapability(cap: Capability<&TokenAdminCollection>)
+    }
+
+    // account creators store this resource in their account
+    // in order to be able to register accounts who have locked tokens
+    pub resource LockedAccountCreator: LockedAccountCreatorPublic, AddAccount {
+
+        access(self) var addAccountCapability: Capability<&TokenAdminCollection>?
+
+        init() {
+            self.addAccountCapability = nil
+        }
+
+        pub fun addCapability(cap: Capability<&TokenAdminCollection>) {
+            self.addAccountCapability = cap
+        }
+
+        pub fun addAccount(sharedAccountAddress: Address, 
+                           unlockedAccountAddress: Address,
+                           tokenAdmin: Capability<&LockedTokenManager>) {
+            
+            let adminRef = self.addAccountCapability!.borrow()!
+
+            adminRef.addAccount(sharedAccountAddress: sharedAccountAddress, 
+                           unlockedAccountAddress: unlockedAccountAddress,
+                           tokenAdmin: tokenAdmin)
         }
     }
 
@@ -462,6 +508,10 @@ pub contract LockedTokens {
         return <- create TokenHolder(tokenManager: tokenManager)
     }
 
+    pub fun createLockedAccountCreator(): @LockedAccountCreator {
+        return <-create LockedAccountCreator()
+    }
+
     init() {
         self.LockedTokenManagerStoragePath = /storage/lockedTokenManager
         self.LockedTokenManagerPrivatePath = /private/lockedTokenManager
@@ -471,6 +521,9 @@ pub contract LockedTokens {
 
         self.TokenHolderStoragePath = /storage/flowTokenHolder
         self.UnlockLimitPublicPath = /public/flowUnlockLimit
+
+        self.LockedAccountCreatorStoragePath = /storage/lockedAccountCreator
+        self.LockedAccountCreatorPublicPath = /public/lockedAccountCreator
     }
 }
  

@@ -9,7 +9,7 @@ import (
 const (
 	// admin templates
 	createAdminCollectionFilename = "lockedTokens/admin/create_admin_collection.cdc"
-	createLockedAccountsFilename  = "lockedTokens/admin/create_shared_account.cdc"
+	createLockedAccountsFilename  = "lockedTokens/admin/admin_create_shared_accounts.cdc"
 	depositLockedTokensFilename   = "lockedTokens/admin/deposit_locked_tokens.cdc"
 	increaseUnlockLimitFilename   = "lockedTokens/admin/unlock_tokens.cdc"
 

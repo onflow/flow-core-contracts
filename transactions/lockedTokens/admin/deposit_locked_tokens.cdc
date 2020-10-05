@@ -1,7 +1,7 @@
 import FungibleToken from 0xee82856bf20e2aa6
 import FlowToken from 0x0ae53cb6e3f42a79
 
-transaction(amount: UFix64, to: Address) {
+transaction(to: Address, amount: UFix64) {
 
     // The Vault resource that holds the tokens that are being transferred
     let sentVault: @FungibleToken.Vault
@@ -22,7 +22,7 @@ transaction(amount: UFix64, to: Address) {
         let recipient = getAccount(to)
 
         // Get a reference to the recipient's Receiver
-        let receiverRef = recipient.getCapability(/public/lockedFlowTokenReceiver)!.borrow<&{FungibleToken.Receiver}>()
+        let receiverRef = recipient.getCapability<&AnyResource{FungibleToken.Receiver}>(/public/lockedFlowTokenReceiver)!.borrow()
 			?? panic("Could not borrow receiver reference to the recipient's locked Vault")
 
         // Deposit the withdrawn tokens in the recipient's receiver
