@@ -3,7 +3,7 @@
     LockedTokens implements the functionality required to manage FLOW
     buyers locked tokens from the token sale.
 
-    Each token holer gets two accounts. One account is their locked token
+    Each token holder gets two accounts. One account is their locked token
     account. It will be jointly controlled by the user and the token administrator.
     The token administrator must co-sign the transfer of any locked tokens. 
     The token admin cannot interact with the account 

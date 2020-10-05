@@ -199,18 +199,18 @@ func TestStakingProxy(t *testing.T) {
 		assert.Equal(t, flow.TransactionStatusSealed, createAccountsTxResult.Status)
 
 		for _, event := range createAccountsTxResult.Events {
-			if event.Type == fmt.Sprintf("A.%s.LockedTokens.SharedAccountCreated", lockedTokensAddr.Hex()) {
+			if event.Type == fmt.Sprintf("A.%s.LockedTokens.SharedAccountRegistered", lockedTokensAddr.Hex()) {
 				// needs work
-				sharedAccountCreatedEvent := sharedAccountCreatedEvent(event)
+				sharedAccountCreatedEvent := sharedAccountRegisteredEvent(event)
 				joshSharedAddress = sharedAccountCreatedEvent.Address()
 				break
 			}
 		}
 
 		for _, event := range createAccountsTxResult.Events {
-			if event.Type == fmt.Sprintf("A.%s.LockedTokens.UnlockedAccountCreated", lockedTokensAddr.Hex()) {
+			if event.Type == fmt.Sprintf("A.%s.LockedTokens.UnlockedAccountRegistered", lockedTokensAddr.Hex()) {
 				// needs work
-				unlockedAccountCreatedEvent := unlockedAccountCreatedEvent(event)
+				unlockedAccountCreatedEvent := unlockedAccountRegisteredEvent(event)
 				joshAddress = unlockedAccountCreatedEvent.Address()
 				break
 			}
