@@ -21,7 +21,7 @@ transaction(amount: UFix64) {
 
     execute {
 
-        self.flowTokenRef.deposit(from: <-self.stakerRef.withdrawUnlockedTokens(amount: amount))
+        self.flowTokenRef.deposit(from: <-self.stakerRef.withdrawUnstakedTokens(amount: amount))
 
     }
 }
