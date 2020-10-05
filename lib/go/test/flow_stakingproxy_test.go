@@ -77,9 +77,9 @@ func TestStakingProxy(t *testing.T) {
 	_, err = b.CommitBlock()
 	assert.NoError(t, err)
 
-	lockboxCode := contracts.FlowLockbox(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String(), proxyAddr.String())
+	lockedTokensCode := contracts.FlowLockedTokens(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String(), proxyAddr.String())
 
-	lockboxAddr, err := b.CreateAccount(nil, []byte(lockboxCode))
+	lockedTokensAddr, err := b.CreateAccount(nil, []byte(lockedTokensCode))
 	if !assert.NoError(t, err) {
 		t.Log(err.Error())
 	}
@@ -94,7 +94,7 @@ func TestStakingProxy(t *testing.T) {
 	t.Run("Should be able to set up the admin account", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateCreateAdminCollectionScript(lockboxAddr.String())).
+			SetScript(templates.GenerateCreateAdminCollectionScript(lockedTokensAddr.String())).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -178,7 +178,7 @@ func TestStakingProxy(t *testing.T) {
 	t.Run("Should be able to create new shared accounts", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateCreateSharedAccountScript(emulatorFTAddress, emulatorFlowTokenAddress, lockboxAddr.String())).
+			SetScript(templates.GenerateCreateSharedAccountScript(emulatorFTAddress, emulatorFlowTokenAddress, lockedTokensAddr.String())).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -199,7 +199,7 @@ func TestStakingProxy(t *testing.T) {
 		assert.Equal(t, flow.TransactionStatusSealed, createAccountsTxResult.Status)
 
 		for _, event := range createAccountsTxResult.Events {
-			if event.Type == fmt.Sprintf("A.%s.Lockbox.SharedAccountCreated", lockboxAddr.Hex()) {
+			if event.Type == fmt.Sprintf("A.%s.LockedTokens.SharedAccountCreated", lockedTokensAddr.Hex()) {
 				// needs work
 				sharedAccountCreatedEvent := sharedAccountCreatedEvent(event)
 				joshSharedAddress = sharedAccountCreatedEvent.Address()
@@ -208,7 +208,7 @@ func TestStakingProxy(t *testing.T) {
 		}
 
 		for _, event := range createAccountsTxResult.Events {
-			if event.Type == fmt.Sprintf("A.%s.Lockbox.UnlockedAccountCreated", lockboxAddr.Hex()) {
+			if event.Type == fmt.Sprintf("A.%s.LockedTokens.UnlockedAccountCreated", lockedTokensAddr.Hex()) {
 				// needs work
 				unlockedAccountCreatedEvent := unlockedAccountCreatedEvent(event)
 				joshAddress = unlockedAccountCreatedEvent.Address()
@@ -220,7 +220,7 @@ func TestStakingProxy(t *testing.T) {
 	t.Run("Should be able to deposit locked tokens to the shared account", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateDepositLockedTokensScript(emulatorFTAddress, emulatorFlowTokenAddress, lockboxAddr.String())).
+			SetScript(templates.GenerateDepositLockedTokensScript(emulatorFTAddress, emulatorFlowTokenAddress, lockedTokensAddr.String())).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -240,7 +240,7 @@ func TestStakingProxy(t *testing.T) {
 	t.Run("Should be able to register josh as a node operator and add the staking proxy to the node's account", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateRegisterStakingProxyNodeScript(lockboxAddr.String(), proxyAddr.String())).
+			SetScript(templates.GenerateRegisterStakingProxyNodeScript(lockedTokensAddr.String(), proxyAddr.String())).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).

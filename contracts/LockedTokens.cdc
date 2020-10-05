@@ -1,6 +1,6 @@
 /*
 
-    Lockbox implements the functionality required to manage FLOW
+    LockedTokens implements the functionality required to manage FLOW
     buyers locked tokens from the token sale.
 
     Each token holer gets two accounts. One account is their locked token
@@ -31,7 +31,7 @@ import FlowIDTableStaking from 0xFLOWIDTABLESTAKINGADDRESS
 
 import StakingProxy from 0xSTAKINGPROXYADDRESS
 
-pub contract Lockbox {
+pub contract LockedTokens {
 
     pub event SharedAccountCreated(address: Address)
     pub event UnlockedAccountCreated(address: Address)
@@ -147,14 +147,14 @@ pub contract Lockbox {
             self.unlockLimit = self.unlockLimit - delta
         }
 
-        // Lockbox.TokenAdmin actions
+        // LockedTokens.TokenAdmin actions
 
         /// Called by the admin every time a vesting release happens
         pub fun increaseUnlockLimit(delta: UFix64) {  
             self.unlockLimit = self.unlockLimit + delta
         }
 
-        // Lockbox.TokenHolder actions
+        // LockedTokens.TokenHolder actions
 
         /// Registers a new node operator with the Flow Staking contract
         /// and commits an initial amount of locked tokens to stake

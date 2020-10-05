@@ -18,7 +18,7 @@ const (
 	flowQCFilename             = "../../../contracts/epochs/FlowQuorumCertificate.cdc"
 	flowDKGFilename            = "../../../contracts/epochs/FlowDKG.cdc"
 	flowEpochFilename          = "../../../contracts/epochs/FlowEpoch.cdc"
-	flowLockboxFilename        = "../../../contracts/Lockbox.cdc"
+	flowLockedTokensFilename   = "../../../contracts/LockedTokens.cdc"
 	flowStakingProxyFilename   = "../../../contracts/StakingProxy.cdc"
 
 	/// Test contracts
@@ -131,9 +131,9 @@ func FlowStakingProxy() []byte {
 	return []byte(code)
 }
 
-// FlowLockbox return the Lockbox contract
-func FlowLockbox(ftAddr, flowTokenAddr, idTableAddr, stakingProxyAddr string) []byte {
-	code := assets.MustAssetString(flowLockboxFilename)
+// FlowLockedTokens return the LockedTokens contract
+func FlowLockedTokens(ftAddr, flowTokenAddr, idTableAddr, stakingProxyAddr string) []byte {
+	code := assets.MustAssetString(flowLockedTokensFilename)
 
 	code = strings.ReplaceAll(code, defaultFungibleTokenAddr, ftAddr)
 	code = strings.ReplaceAll(code, defaultFlowTokenAddr, flowTokenAddr)

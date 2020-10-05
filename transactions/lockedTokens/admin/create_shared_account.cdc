@@ -1,6 +1,6 @@
 import FlowToken from 0x0ae53cb6e3f42a79
 import FungibleToken from 0xee82856bf20e2aa6
-import Lockbox from 0xf3fcd2c1a78f5eee
+import LockedTokens from 0xf3fcd2c1a78f5eee
 
 // createSharedAccount
 transaction(
@@ -23,33 +23,33 @@ transaction(
             .link<&FlowToken.Vault>(/private/flowTokenVault, target: /storage/flowTokenVault)
             ?? panic("Could not link Flow Token Vault capability")
 
-        let lockedTokenManager <- Lockbox.createNewLockedTokenManager(vault: vaultCapability)
+        let lockedTokenManager <- LockedTokens.createNewLockedTokenManager(vault: vaultCapability)
 
-        sharedAccount.save(<-lockedTokenManager, to: Lockbox.LockedTokenManagerStoragePath)
+        sharedAccount.save(<-lockedTokenManager, to: LockedTokens.LockedTokenManagerStoragePath)
 
         let tokenManagerCapability = sharedAccount
-            .link<&Lockbox.LockedTokenManager>(
-                Lockbox.LockedTokenManagerPrivatePath,
-                target: Lockbox.LockedTokenManagerStoragePath
+            .link<&LockedTokens.LockedTokenManager>(
+                LockedTokens.LockedTokenManagerPrivatePath,
+                target: LockedTokens.LockedTokenManagerStoragePath
         )   ?? panic("Could not link token manager capability")
 
-        let tokenHolder <- Lockbox.createTokenHolder(tokenManager: tokenManagerCapability)
+        let tokenHolder <- LockedTokens.createTokenHolder(tokenManager: tokenManagerCapability)
 
         userAccount.save(
             <-tokenHolder, 
-            to: Lockbox.TokenHolderStoragePath,
+            to: LockedTokens.TokenHolderStoragePath,
         )
 
-        userAccount.link<&Lockbox.TokenHolder{Lockbox.UnlockLimit}>(Lockbox.UnlockLimitPublicPath, target: Lockbox.TokenHolderStoragePath)
+        userAccount.link<&LockedTokens.TokenHolder{LockedTokens.UnlockLimit}>(LockedTokens.UnlockLimitPublicPath, target: LockedTokens.TokenHolderStoragePath)
 
         let tokenAdminCapability = sharedAccount
-            .link<&Lockbox.LockedTokenManager{Lockbox.TokenAdmin}>(
-                Lockbox.LockedTokenAdminPrivatePath,
-                target: Lockbox.LockedTokenManagerStoragePath)
+            .link<&LockedTokens.LockedTokenManager{LockedTokens.TokenAdmin}>(
+                LockedTokens.LockedTokenAdminPrivatePath,
+                target: LockedTokens.LockedTokenManagerStoragePath)
             ?? panic("Could not link token admin to token manager")
 
         let tokenAdminCollection = admin
-            .borrow<&Lockbox.TokenAdminCollection>(from: Lockbox.LockedTokenAdminCollectionStoragePath)
+            .borrow<&LockedTokens.TokenAdminCollection>(from: LockedTokens.LockedTokenAdminCollectionStoragePath)
             ?? panic("Could not borrow reference to admin collection")
 
         tokenAdminCollection.addAccount(sharedAccountAddress: sharedAccount.address, unlockedAccountAddress: userAccount.address, tokenAdmin: tokenAdminCapability)
@@ -60,7 +60,7 @@ transaction(
         // create new receiver that marks received tokens as unlocked
         sharedAccount.link<&AnyResource{FungibleToken.Receiver}>(
             /public/flowTokenReceiver,
-            target: Lockbox.LockedTokenManagerStoragePath
+            target: LockedTokens.LockedTokenManagerStoragePath
         )
 
         // pub normal receiver in a separate unique path

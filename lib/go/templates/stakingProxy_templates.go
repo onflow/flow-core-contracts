@@ -115,10 +115,10 @@ func GenerateProxyWithdrawUnlockedScript(proxyAddr string) []byte {
 
 // Transactions for the token holder
 
-func GenerateRegisterStakingProxyNodeScript(lockboxAddr, proxyAddr string) []byte {
+func GenerateRegisterStakingProxyNodeScript(lockedTokensAddr, proxyAddr string) []byte {
 	code := assets.MustAssetString(filePath + registerNodeFilename)
 
-	code = ReplaceLockboxAddress(code, lockboxAddr)
+	code = ReplaceLockedTokensAddress(code, lockedTokensAddr)
 
 	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
 }

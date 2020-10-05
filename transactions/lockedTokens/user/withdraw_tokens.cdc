@@ -1,14 +1,14 @@
 import FungibleToken from 0xee82856bf20e2aa6
 import FlowToken from 0x0ae53cb6e3f42a79
-import Lockbox from 0xf3fcd2c1a78f5eee
+import LockedTokens from 0xf3fcd2c1a78f5eee
 
 transaction(amount: UFix64) {
 
-    let holderRef: &Lockbox.TokenHolder
+    let holderRef: &LockedTokens.TokenHolder
     let vaultRef: &FlowToken.Vault
 
     prepare(acct: AuthAccount) {
-        self.holderRef = acct.borrow<&Lockbox.TokenHolder>(from: Lockbox.TokenHolderStoragePath)
+        self.holderRef = acct.borrow<&LockedTokens.TokenHolder>(from: LockedTokens.TokenHolderStoragePath)
             ?? panic("Could not borrow a reference to TokenHolder")
 
         self.vaultRef = acct.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)
@@ -16,6 +16,6 @@ transaction(amount: UFix64) {
     }
 
     execute {
-        self.holderRef.deposit(from: <-self.vaultRef.withdraw(amount: amount))
+        self.vaultRef.deposit(from: <-self.holderRef.withdraw(amount: amount))
     }
 }
