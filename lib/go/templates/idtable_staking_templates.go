@@ -16,10 +16,10 @@ const (
 
 	createNodeStructFilename       = "idTableStaking/create_staking_request.cdc"
 	stakeNewTokensFilename         = "idTableStaking/stake_new_tokens.cdc"
-	stakeUnlockedTokensFilename    = "idTableStaking/stake_unlocked_tokens.cdc"
+	stakeUnstakedTokensFilename    = "idTableStaking/stake_unstaked_tokens.cdc"
 	stakeRewardedTokensFilename    = "idTableStaking/stake_rewarded_tokens.cdc"
 	unstakeTokensFilename          = "idTableStaking/request_unstake.cdc"
-	withdrawUnlockedTokensFilename = "idTableStaking/withdraw_unlocked_tokens.cdc"
+	withdrawUnstakedTokensFilename = "idTableStaking/withdraw_unstaked_tokens.cdc"
 	withdrawRewardedTokensFilename = "idTableStaking/withdraw_rewarded_tokens.cdc"
 
 	getTableFilename            = "idTableStaking/get_table.cdc"
@@ -32,9 +32,9 @@ const (
 	getInitialWeightFilename    = "idTableStaking/get_node_initial_weight.cdc"
 	stakedBalanceFilename       = "idTableStaking/get_node_stakedTokens.cdc"
 	comittedBalanceFilename     = "idTableStaking/get_node_committedTokens.cdc"
-	unlockedBalanceFilename     = "idTableStaking/get_node_unlockedTokens.cdc"
-	rewardBalanceFilename       = "idTableStaking/get_node_rewardedTokens.cdc"
 	unstakedBalanceFilename     = "idTableStaking/get_node_unstakedTokens.cdc"
+	rewardBalanceFilename       = "idTableStaking/get_node_rewardedTokens.cdc"
+	unstakingBalanceFilename    = "idTableStaking/get_node_unstakingTokens.cdc"
 	getTotalCommitmentFilename  = "idTableStaking/get_node_total_commitment.cdc"
 	getUnstakingRequestFilename = "idTableStaking/get_node_unstaking_request.cdc"
 
@@ -150,10 +150,10 @@ func GenerateStakeNewTokensScript(ftAddr, flowAddr, tableAddr string) []byte {
 	return []byte(ReplaceAddresses(code, ftAddr, flowAddr, tableAddr))
 }
 
-// GenerateStakeUnlockedTokensScript creates a script that stakes
-// tokens for a node operator from their unlocked bucket
-func GenerateStakeUnlockedTokensScript(tableAddr string) []byte {
-	code := assets.MustAssetString(filePath + stakeUnlockedTokensFilename)
+// GenerateStakeUnstakedTokensScript creates a script that stakes
+// tokens for a node operator from their unstaked bucket
+func GenerateStakeUnstakedTokensScript(tableAddr string) []byte {
+	code := assets.MustAssetString(filePath + stakeUnstakedTokensFilename)
 
 	return []byte(ReplaceAddresses(code, "", "", tableAddr))
 }
@@ -174,10 +174,10 @@ func GenerateUnstakeTokensScript(tableAddr string) []byte {
 	return []byte(ReplaceAddresses(code, "", "", tableAddr))
 }
 
-// GenerateWithdrawUnlockedTokensScript creates a script that withdraws unlocked tokens
+// GenerateWithdrawUnstakedTokensScript creates a script that withdraws unstaked tokens
 // for an existing node operator
-func GenerateWithdrawUnlockedTokensScript(ftAddr, flowAddr, tableAddr string) []byte {
-	code := assets.MustAssetString(filePath + withdrawUnlockedTokensFilename)
+func GenerateWithdrawUnstakedTokensScript(ftAddr, flowAddr, tableAddr string) []byte {
+	code := assets.MustAssetString(filePath + withdrawUnstakedTokensFilename)
 
 	return []byte(ReplaceAddresses(code, ftAddr, flowAddr, tableAddr))
 }
@@ -246,18 +246,18 @@ func GenerateGetCommittedBalanceScript(tableAddr string) []byte {
 	return []byte(ReplaceAddresses(code, "", "", tableAddr))
 }
 
-// GenerateGetUnstakedBalanceScript creates a script
-// that returns the balance of the unstaked tokens of a node
-func GenerateGetUnstakedBalanceScript(tableAddr string) []byte {
-	code := assets.MustAssetString(filePath + unstakedBalanceFilename)
+// GenerateGetUnstakingBalanceScript creates a script
+// that returns the balance of the unstaking tokens of a node
+func GenerateGetUnstakingBalanceScript(tableAddr string) []byte {
+	code := assets.MustAssetString(filePath + unstakingBalanceFilename)
 
 	return []byte(ReplaceAddresses(code, "", "", tableAddr))
 }
 
-// GenerateGetUnlockedBalanceScript creates a script
-// that returns the balance of the unlocked tokens of a node
-func GenerateGetUnlockedBalanceScript(tableAddr string) []byte {
-	code := assets.MustAssetString(filePath + unlockedBalanceFilename)
+// GenerateGetUnstakedBalanceScript creates a script
+// that returns the balance of the unstaked tokens of a node
+func GenerateGetUnstakedBalanceScript(tableAddr string) []byte {
+	code := assets.MustAssetString(filePath + unstakedBalanceFilename)
 
 	return []byte(ReplaceAddresses(code, "", "", tableAddr))
 }
