@@ -303,11 +303,11 @@ pub contract LockedTokens {
             tokenManagerRef.nodeStaker?.stakeNewTokens(<-vaultRef.withdraw(amount: amount))
         }
 
-        /// Stakes unlocked tokens from the staking contract
-        pub fun stakeUnlockedTokens(amount: UFix64) {
+        /// Stakes unstaked tokens from the staking contract
+        pub fun stakeUnstakedTokens(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
 
-            tokenManagerRef.nodeStaker?.stakeUnlockedTokens(amount: amount)
+            tokenManagerRef.nodeStaker?.stakeUnstakedTokens(amount: amount)
         }
 
         /// Stakes rewarded tokens. Rewarded tokens are freely withdrawable
@@ -325,7 +325,7 @@ pub contract LockedTokens {
         pub fun requestUnstaking(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
 
-            tokenManagerRef.nodeStaker?.requestUnStaking(amount: amount)
+            tokenManagerRef.nodeStaker?.requestUnstaking(amount: amount)
         }
 
         /// Requests to unstake all of the node's tokens and all of
@@ -336,16 +336,16 @@ pub contract LockedTokens {
             tokenManagerRef.nodeStaker?.unstakeAll()
         }
 
-        /// Withdraw the unstaked/unlocked tokens back to 
+        /// Withdraw the unstaked tokens back to 
         /// the locked token vault. This does not increase the withdraw
         /// limit because staked/unstaked tokens are considered to still
         /// be locked in terms of the vesting schedule
-        pub fun withdrawUnlockedTokens(amount: UFix64) {
+        pub fun withdrawUnstakedTokens(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
 
             let vaultRef = tokenManagerRef.vault.borrow()!
 
-            let withdrawnTokens <- tokenManagerRef.nodeStaker?.withdrawUnlockedTokens(amount: amount)!
+            let withdrawnTokens <- tokenManagerRef.nodeStaker?.withdrawUnstakedTokens(amount: amount)!
 
             vaultRef.deposit(from: <-withdrawnTokens)
         }
@@ -380,11 +380,11 @@ pub contract LockedTokens {
             tokenManagerRef.nodeDelegator?.delegateNewTokens(from: <-vaultRef.withdraw(amount: amount))
         }
 
-        /// Delegate tokens from the unlocked staking bucket
-        pub fun delegateUnlockedTokens(amount: UFix64) {
+        /// Delegate tokens from the unstaked staking bucket
+        pub fun delegateUnstakedTokens(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
 
-            tokenManagerRef.nodeDelegator?.delegateUnlockedTokens(amount: amount)
+            tokenManagerRef.nodeDelegator?.delegateUnstakedTokens(amount: amount)
         }
 
         /// Delegate rewarded tokens. Increases the unlock limit
@@ -404,19 +404,19 @@ pub contract LockedTokens {
             tokenManagerRef.nodeDelegator?.requestUnstaking(amount: amount)
         }
 
-        /// withdraw unlocked tokens back to the locked vault
+        /// withdraw unstaked tokens back to the locked vault
         /// This does not increase the withdraw limit
-        pub fun withdrawUnlockedTokens(amount: UFix64) {
+        pub fun withdrawUnstakedTokens(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
 
             let vaultRef = tokenManagerRef.vault.borrow()!
 
-            vaultRef.deposit(from: <-tokenManagerRef.nodeDelegator?.withdrawUnlockedTokens(amount: amount)!)
+            vaultRef.deposit(from: <-tokenManagerRef.nodeDelegator?.withdrawUnstakedTokens(amount: amount)!)
         }
 
         /// Withdraw rewarded tokens back to the locked vault,
         /// which increases the withdraw limit because these 
-        /// are considered unlocked in terms of the vesting schedule
+        /// are considered unstaked in terms of the vesting schedule
         pub fun withdrawRewardedTokens(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
 

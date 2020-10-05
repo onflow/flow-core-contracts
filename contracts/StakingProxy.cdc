@@ -41,13 +41,13 @@ pub contract StakingProxy {
 
         pub fun stakeNewTokens(amount: UFix64)
 
-        pub fun stakeUnlockedTokens(amount: UFix64)
+        pub fun stakeUnstakedTokens(amount: UFix64)
 
         pub fun requestUnstaking(amount: UFix64)
 
         pub fun unstakeAll()
 
-        pub fun withdrawUnlockedTokens(amount: UFix64)
+        pub fun withdrawUnstakedTokens(amount: UFix64)
 
         pub fun withdrawRewardedTokens(amount: UFix64)
 
@@ -58,13 +58,13 @@ pub contract StakingProxy {
 
         pub fun delegateNewTokens(amount: UFix64)
 
-        pub fun delegateUnlockedTokens(amount: UFix64)
+        pub fun delegateUnstakedTokens(amount: UFix64)
         
         pub fun delegateRewardedTokens(amount: UFix64)
 
         pub fun requestUnstaking(amount: UFix64)
 
-        pub fun withdrawUnlockedTokens(amount: UFix64)
+        pub fun withdrawUnstakedTokens(amount: UFix64)
 
         pub fun withdrawRewardedTokens(amount: UFix64)
     }
@@ -86,7 +86,7 @@ pub contract StakingProxy {
 
         /// Maps node IDs to any struct that implements the NodeStakerProxy interface
         /// allows node operators to work with users with locked tokens
-        /// and with unlocked tokens
+        /// and with unstaked tokens
         access(self) var stakingProxies: {String: AnyStruct{NodeStakerProxy}}
 
         /// Maps node IDs to NodeInfo

@@ -73,9 +73,9 @@ pub contract FlowIDTableStaking {
             destroy tokens
         }
 
-        /// Stake tokens that are in the tokensUnlocked bucket 
+        /// Stake tokens that are in the tokensUnstaked bucket 
         /// but haven't been officially staked
-        pub fun stakeUnlockedTokens(amount: UFix64) {
+        pub fun stakeUnstakedTokens(amount: UFix64) {
 
         }
 
@@ -87,7 +87,7 @@ pub contract FlowIDTableStaking {
 
         /// Request amount tokens to be removed from staking
         /// at the end of the next epoch
-        pub fun requestUnStaking(amount: UFix64) {
+        pub fun requestUnstaking(amount: UFix64) {
 
         }
 
@@ -97,8 +97,8 @@ pub contract FlowIDTableStaking {
             
         }
 
-        /// Withdraw tokens from the unlocked bucket
-        pub fun withdrawUnlockedTokens(amount: UFix64): @FungibleToken.Vault {
+        /// Withdraw tokens from the unstaked bucket
+        pub fun withdrawUnstakedTokens(amount: UFix64): @FungibleToken.Vault {
             let flowTokenMinter = FlowIDTableStaking.account.borrow<&FlowToken.Minter>(from: /storage/flowTokenMinter)
                 ?? panic("Could not borrow minter reference")
 
@@ -137,8 +137,8 @@ pub contract FlowIDTableStaking {
             destroy from
         }
 
-        /// Delegate tokens from the unlocked bucket to the node operator
-        pub fun delegateUnlockedTokens(amount: UFix64) {
+        /// Delegate tokens from the unstaked bucket to the node operator
+        pub fun delegateUnstakedTokens(amount: UFix64) {
 
         }
 
@@ -152,8 +152,8 @@ pub contract FlowIDTableStaking {
 
         }
 
-        /// Withdraw tokens from the unlocked bucket
-        pub fun withdrawUnlockedTokens(amount: UFix64): @FungibleToken.Vault {
+        /// Withdraw tokens from the unstaked bucket
+        pub fun withdrawUnstakedTokens(amount: UFix64): @FungibleToken.Vault {
             let flowTokenMinter = FlowIDTableStaking.account.borrow<&FlowToken.Minter>(from: /storage/flowTokenMinter)
                 ?? panic("Could not borrow minter reference")
 
