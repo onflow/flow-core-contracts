@@ -25,11 +25,11 @@
 
  */
 
-// import FlowToken from 0x0ae53cb6e3f42a79
-// import FungibleToken from 0xee82856bf20e2aa6
-// import FlowIDTableStaking from 0xFLOWIDTABLESTAKINGADDRESS
+import FlowToken from 0x0ae53cb6e3f42a79
+import FungibleToken from 0xee82856bf20e2aa6
+import FlowIDTableStaking from 0xFLOWIDTABLESTAKINGADDRESS
 
-// import StakingProxy from 0xSTAKINGPROXYADDRESS
+import StakingProxy from 0xSTAKINGPROXYADDRESS
 
 pub contract Lockbox {
 
@@ -74,7 +74,7 @@ pub contract Lockbox {
         ///
         /// All locked FLOW tokens are stored in this vault, which can be accessed in two ways:
         ///   1) Directly, in a transaction co-signed by both the token holder and token administrator
-        ///   2) Indirectly via the LockedTokenManager, in a transaction signed by the token holder 
+        ///   2) Indirectly via the LockedTokenManager, in a transaction signed by the token holder
         pub var vault: Capability<&FlowToken.Vault>
 
         /// The amount of tokens that the user can withdraw. 
@@ -125,7 +125,7 @@ pub contract Lockbox {
             return <-self.withdrawUnlockedTokens(amount: amount)
         }
 
-        pub fun withdraw(amount: UFix64): @FungibleToken.Vault {
+        access(self) fun withdrawUnlockedTokens(amount: UFix64): @FungibleToken.Vault {
             pre {
                 self.unlockLimit >= amount: "Requested amount exceeds unlocked token limit"
             }
@@ -140,7 +140,7 @@ pub contract Lockbox {
 
             self.decreaseUnlockLimit(delta: amount)
 
-            return <- vault
+            return <-vault
         }
 
         access(self) fun decreaseUnlockLimit(delta: UFix64) {  
@@ -285,14 +285,9 @@ pub contract Lockbox {
             self.tokenManager = tokenManager
         }
 
-        /// Utility function to borrow a reference to the LockedTokenManager object
-        access(self) fun borrowTokenManager(): &LockedTokenManager {
-            return self.tokenManager.borrow()!
-        }
-
         /// Stakes new locked tokens
         pub fun stakeNewTokens(amount: UFix64) {
-            let tokenManagerRef = self.borrowTokenManager()
+            let tokenManagerRef = self.tokenManager.borrow()!
 
             let vaultRef = tokenManagerRef.vault.borrow()!
 
@@ -301,14 +296,16 @@ pub contract Lockbox {
 
         /// Stakes unlocked tokens from the staking contract
         pub fun stakeUnlockedTokens(amount: UFix64) {
-            self.borrowTokenManager().nodeStaker?.stakeUnlockedTokens(amount: amount)
+            let tokenManagerRef = self.tokenManager.borrow()!
+
+            tokenManagerRef.nodeStaker?.stakeUnlockedTokens(amount: amount)
         }
 
         /// Stakes rewarded tokens. Rewarded tokens are freely withdrawable
         /// so if they are staked, the withdraw limit should be increased
         /// because staked tokens are effectively treated as locked tokens
         pub fun stakeRewardedTokens(amount: UFix64) {
-            let tokenManagerRef = self.borrowTokenManager()
+            let tokenManagerRef = self.tokenManager.borrow()!
 
             tokenManagerRef.nodeStaker?.stakeRewardedTokens(amount: amount)
 
@@ -317,13 +314,17 @@ pub contract Lockbox {
 
         /// Requests unstaking for the node
         pub fun requestUnstaking(amount: UFix64) {
-            self.borrowTokenManager().nodeStaker?.requestUnStaking(amount: amount)
+            let tokenManagerRef = self.tokenManager.borrow()!
+
+            tokenManagerRef.nodeStaker?.requestUnStaking(amount: amount)
         }
 
         /// Requests to unstake all of the node's tokens and all of
         /// the tokens that have been delegated to the node
         pub fun unstakeAll() {
-            self.borrowTokenManager().nodeStaker?.unstakeAll()
+            let tokenManagerRef = self.tokenManager.borrow()!
+
+            tokenManagerRef.nodeStaker?.unstakeAll()
         }
 
         /// Withdraw the unstaked/unlocked tokens back to 
@@ -331,7 +332,7 @@ pub contract Lockbox {
         /// limit because staked/unstaked tokens are considered to still
         /// be locked in terms of the vesting schedule
         pub fun withdrawUnlockedTokens(amount: UFix64) {
-            let tokenManagerRef = self.borrowTokenManager()
+            let tokenManagerRef = self.tokenManager.borrow()!
 
             let vaultRef = tokenManagerRef.vault.borrow()!
 
@@ -343,7 +344,7 @@ pub contract Lockbox {
         /// Withdraw reward tokens to the locked vault, 
         /// which increases the withdraw limit
         pub fun withdrawRewardedTokens(amount: UFix64) {
-            let tokenManagerRef = self.borrowTokenManager()
+            let tokenManagerRef = self.tokenManager.borrow()!
 
             tokenManagerRef.deposit(from: <-tokenManagerRef.nodeStaker?.withdrawRewardedTokens(amount: amount)!)
         }
@@ -361,14 +362,9 @@ pub contract Lockbox {
             self.tokenManager = tokenManager
         }
 
-        /// Utility function to borrow a reference to the LockedTokenManager object
-        access(self) fun borrowTokenManager(): &LockedTokenManager {
-            return self.tokenManager.borrow()!
-        }
-
         /// delegates tokens from the locked token vault
         pub fun delegateNewTokens(amount: UFix64) {
-            let tokenManagerRef = self.borrowTokenManager()
+            let tokenManagerRef = self.tokenManager.borrow()!
 
             let vaultRef = tokenManagerRef.vault.borrow()!
 
@@ -377,13 +373,15 @@ pub contract Lockbox {
 
         /// Delegate tokens from the unlocked staking bucket
         pub fun delegateUnlockedTokens(amount: UFix64) {
-            self.borrowTokenManager().nodeDelegator?.delegateUnlockedTokens(amount: amount)
+            let tokenManagerRef = self.tokenManager.borrow()!
+
+            tokenManagerRef.nodeDelegator?.delegateUnlockedTokens(amount: amount)
         }
 
         /// Delegate rewarded tokens. Increases the unlock limit
         /// because these are freely withdrawable
         pub fun delegateRewardedTokens(amount: UFix64) {
-            let tokenManagerRef = self.borrowTokenManager()
+            let tokenManagerRef = self.tokenManager.borrow()!
 
             tokenManagerRef.nodeDelegator?.delegateRewardedTokens(amount: amount)
 
@@ -392,13 +390,15 @@ pub contract Lockbox {
 
         /// Request to unstake tokens
         pub fun requestUnstaking(amount: UFix64) {
-            self.borrowTokenManager().nodeDelegator?.requestUnstaking(amount: amount)
+            let tokenManagerRef = self.tokenManager.borrow()!
+
+            tokenManagerRef.nodeDelegator?.requestUnstaking(amount: amount)
         }
 
         /// withdraw unlocked tokens back to the locked vault
         /// This does not increase the withdraw limit
         pub fun withdrawUnlockedTokens(amount: UFix64) {
-            let tokenManagerRef = self.borrowTokenManager()
+            let tokenManagerRef = self.tokenManager.borrow()!
 
             let vaultRef = tokenManagerRef.vault.borrow()!
 
@@ -409,7 +409,7 @@ pub contract Lockbox {
         /// which increases the withdraw limit because these 
         /// are considered unlocked in terms of the vesting schedule
         pub fun withdrawRewardedTokens(amount: UFix64) {
-            let tokenManagerRef = self.borrowTokenManager()
+            let tokenManagerRef = self.tokenManager.borrow()!
 
             tokenManagerRef.deposit(from: <-tokenManagerRef.nodeDelegator?.withdrawRewardedTokens(amount: amount)!)
         }
