@@ -15,9 +15,9 @@ const (
 func TestThatWeHaveAllTheLockedTokensStakerTemplates(t *testing.T) {
     templates.GenerateCreateLockedNodeScript(dummyLockedTokensAddr, dummyProxyAddr)
     templates.GenerateStakeNewLockedTokensScript(dummyLockedTokensAddr, dummyProxyAddr)
-    templates.GenerateStakeLockedUnlockedTokensScript(dummyLockedTokensAddr, dummyProxyAddr)
+    templates.GenerateStakeLockedUnstakedTokensScript(dummyLockedTokensAddr, dummyProxyAddr)
     templates.GenerateStakeLockedRewardedTokensScript(dummyLockedTokensAddr, dummyProxyAddr)
     templates.GenerateUnstakeLockedTokensScript(dummyLockedTokensAddr, dummyProxyAddr)
-    templates.GenerateWithdrawLockedUnlockedTokensScript(dummyLockedTokensAddr, dummyProxyAddr)
+    templates.GenerateWithdrawLockedUnstakedTokensScript(dummyLockedTokensAddr, dummyProxyAddr)
     templates.GenerateWithdrawLockedRewardedTokensScript(dummyLockedTokensAddr, dummyProxyAddr)
 }

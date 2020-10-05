@@ -8,6 +8,6 @@ transaction(nodeID: String, amount: UFix64) {
 
         let stakingProxy = proxyHolder.borrowStakingProxy(nodeID: nodeID)!
 
-        stakingProxy.withdrawUnlockedTokens(amount: amount)
+        stakingProxy.stakeUnstakedTokens(amount: amount)
     }
 }

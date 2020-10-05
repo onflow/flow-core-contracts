@@ -522,10 +522,10 @@ func TestLockedTokensStaker(t *testing.T) {
 
 	})
 
-	t.Run("Should be able to stake unlocked (staking) tokens", func(t *testing.T) {
+	t.Run("Should be able to stake unstaked tokens", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateStakeLockedUnlockedTokensScript(lockedTokensAddr.String(), proxyAddr.String())).
+			SetScript(templates.GenerateStakeLockedUnstakedTokensScript(lockedTokensAddr.String(), proxyAddr.String())).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -623,10 +623,10 @@ func TestLockedTokensStaker(t *testing.T) {
 		)
 	})
 
-	t.Run("Should be able to withdraw unlocked (staking) tokens which are deposited to the locked vault (still locked)", func(t *testing.T) {
+	t.Run("Should be able to withdraw unstaked tokens which are deposited to the locked vault (still locked)", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateWithdrawLockedUnlockedTokensScript(lockedTokensAddr.String(), proxyAddr.String())).
+			SetScript(templates.GenerateWithdrawLockedUnstakedTokensScript(lockedTokensAddr.String(), proxyAddr.String())).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -994,10 +994,10 @@ func TestLockedTokensDelegator(t *testing.T) {
 
 	})
 
-	t.Run("Should be able to delegate unlocked (staking) tokens", func(t *testing.T) {
+	t.Run("Should be able to delegate unstaked tokens", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateDelegateLockedUnlockedTokensScript(lockedTokensAddr.String(), proxyAddr.String())).
+			SetScript(templates.GenerateDelegateLockedUnstakedTokensScript(lockedTokensAddr.String(), proxyAddr.String())).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -1096,10 +1096,10 @@ func TestLockedTokensDelegator(t *testing.T) {
 
 	})
 
-	t.Run("Should be able to withdraw unlocked (staking) tokens which are deposited to the locked vault (still locked)", func(t *testing.T) {
+	t.Run("Should be able to withdraw unstaked tokens which are deposited to the locked vault (still locked)", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateWithdrawDelegatorLockedUnlockedTokensScript(lockedTokensAddr.String(), proxyAddr.String())).
+			SetScript(templates.GenerateWithdrawDelegatorLockedUnstakedTokensScript(lockedTokensAddr.String(), proxyAddr.String())).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).

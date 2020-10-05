@@ -13,7 +13,7 @@ transaction(amount: UFix64) {
     execute {
         let stakerProxy = self.holderRef.borrowStaker()
 
-        stakerProxy.stakeUnlockedTokens(amount: amount)
+        stakerProxy.stakeUnstakedTokens(amount: amount)
     }
 
 }

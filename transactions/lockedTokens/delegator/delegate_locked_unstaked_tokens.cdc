@@ -6,12 +6,12 @@ transaction(amount: UFix64) {
     prepare(acct: AuthAccount) {
         let holderRef = acct.borrow<&LockedTokens.TokenHolder>(from: LockedTokens.TokenHolderStoragePath) 
             ?? panic("TokenHolder is not saved at specified path")
-        
+
         self.nodeDelegatorProxy = holderRef.borrowDelegator()
     }
 
     execute {
-        self.nodeDelegatorProxy.withdrawUnlockedTokens(amount: amount)
+        self.nodeDelegatorProxy.delegateUnstakedTokens(amount: amount)
     }
 
 }

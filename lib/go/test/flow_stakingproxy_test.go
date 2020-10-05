@@ -285,7 +285,7 @@ func TestStakingProxy(t *testing.T) {
 	t.Run("Should be able to stake unlocked (staking) tokens", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateProxyStakeUnlockedTokensScript(proxyAddr.String())).
+			SetScript(templates.GenerateProxyStakeUnstakedTokensScript(proxyAddr.String())).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -350,7 +350,7 @@ func TestStakingProxy(t *testing.T) {
 	t.Run("Should be able to withdraw unlocked (staking) tokens which are deposited to the locked vault (still locked)", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateProxyWithdrawUnlockedScript(proxyAddr.String())).
+			SetScript(templates.GenerateProxyWithdrawUnstakedScript(proxyAddr.String())).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
