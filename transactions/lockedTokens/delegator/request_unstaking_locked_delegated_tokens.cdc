@@ -13,5 +13,4 @@ transaction(amount: UFix64) {
     execute {
         self.nodeDelegatorProxy.requestUnstaking(amount: amount)
     }
-
 }

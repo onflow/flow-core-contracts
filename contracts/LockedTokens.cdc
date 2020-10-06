@@ -526,4 +526,3 @@ pub contract LockedTokens {
         self.LockedAccountCreatorPublicPath = /public/lockedAccountCreator
     }
 }
- 
