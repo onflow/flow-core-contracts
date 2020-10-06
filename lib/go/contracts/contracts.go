@@ -3,6 +3,7 @@ package contracts
 //go:generate go run github.com/kevinburke/go-bindata/go-bindata -prefix ../../../contracts/... -o internal/assets/assets.go -pkg assets -nometadata -nomemcopy ../../../contracts/...
 
 import (
+	"fmt"
 	"strings"
 
 	ftcontracts "github.com/onflow/flow-ft/lib/go/contracts"
@@ -18,15 +19,28 @@ const (
 	flowQCFilename             = "../../../contracts/epochs/FlowQuorumCertificate.cdc"
 	flowDKGFilename            = "../../../contracts/epochs/FlowDKG.cdc"
 	flowEpochFilename          = "../../../contracts/epochs/FlowEpoch.cdc"
+	flowLockedTokensFilename   = "../../../contracts/LockedTokens.cdc"
+	flowStakingProxyFilename   = "../../../contracts/StakingProxy.cdc"
 
-	hexPrefix                = "0x"
-	defaultFungibleTokenAddr = "FUNGIBLETOKENADDRESS"
-	defaultFlowTokenAddr     = "FLOWTOKENADDRESS"
-	defaultIDTableAddr       = "FLOWIDTABLESTAKINGADDRESS"
-	defaultQCAddr            = "QCADDRESS"
-	defaultDKGAddr           = "DKGADDRESS"
+	/// Test contracts
+	TESTFlowIdentityTableFilename = "../../../contracts/testContracts/TestFlowIDTableStaking.cdc"
+
+	defaultFungibleTokenAddr = "0xFUNGIBLETOKENADDRESS"
+	defaultFlowTokenAddr     = "0xFLOWTOKENADDRESS"
+	defaultIDTableAddr       = "0xFLOWIDTABLESTAKINGADDRESS"
+	defaultStakingProxyAddr  = "0xSTAKINGPROXYADDRESS"
+	defaultQCAddr            = "0xQCADDRESS"
+	defaultDKGAddr           = "0xDKGADDRESS"
 	defaultFlowFeesAddr      = "0xe5a8b7f23e8b548f"
 )
+
+func sanitizeAddress(address string) string {
+	if address[0:2] == "0x" {
+		return address
+	}
+
+	return fmt.Sprintf("0x%s", address)
+}
 
 // FungibleToken returns the FungibleToken contract interface.
 func FungibleToken() []byte {
@@ -42,7 +56,7 @@ func FlowToken(fungibleTokenAddr string) []byte {
 	code = strings.ReplaceAll(
 		code,
 		defaultFungibleTokenAddr,
-		fungibleTokenAddr,
+		sanitizeAddress(fungibleTokenAddr),
 	)
 
 	return []byte(code)
@@ -58,13 +72,13 @@ func FlowFees(fungibleTokenAddr, flowTokenAddr string) []byte {
 	code = strings.ReplaceAll(
 		code,
 		defaultFungibleTokenAddr,
-		fungibleTokenAddr,
+		sanitizeAddress(fungibleTokenAddr),
 	)
 
 	code = strings.ReplaceAll(
 		code,
 		defaultFlowTokenAddr,
-		flowTokenAddr,
+		sanitizeAddress(flowTokenAddr),
 	)
 
 	return []byte(code)
@@ -80,19 +94,19 @@ func FlowServiceAccount(fungibleTokenAddr, flowTokenAddr, flowFeesAddr string) [
 	code = strings.ReplaceAll(
 		code,
 		defaultFungibleTokenAddr,
-		fungibleTokenAddr,
+		sanitizeAddress(fungibleTokenAddr),
 	)
 
 	code = strings.ReplaceAll(
 		code,
 		defaultFlowTokenAddr,
-		flowTokenAddr,
+		sanitizeAddress(flowTokenAddr),
 	)
 
 	code = strings.ReplaceAll(
 		code,
 		defaultFlowFeesAddr,
-		flowFeesAddr,
+		sanitizeAddress(flowFeesAddr),
 	)
 
 	return []byte(code)
@@ -102,8 +116,37 @@ func FlowServiceAccount(fungibleTokenAddr, flowTokenAddr, flowFeesAddr string) [
 func FlowIDTableStaking(ftAddr, flowTokenAddr string) []byte {
 	code := assets.MustAssetString(flowIdentityTableFilename)
 
-	code = strings.ReplaceAll(code, defaultFungibleTokenAddr, ftAddr)
-	code = strings.ReplaceAll(code, defaultFlowTokenAddr, flowTokenAddr)
+	code = strings.ReplaceAll(code, defaultFungibleTokenAddr, sanitizeAddress(ftAddr))
+	code = strings.ReplaceAll(code, defaultFlowTokenAddr, sanitizeAddress(flowTokenAddr))
+
+	return []byte(code)
+}
+
+// TESTFlowIDTableStaking returns the TestFlowIDTableStaking contract
+func TESTFlowIDTableStaking(ftAddr, flowTokenAddr string) []byte {
+	code := assets.MustAssetString(TESTFlowIdentityTableFilename)
+
+	code = strings.ReplaceAll(code, defaultFungibleTokenAddr, sanitizeAddress(ftAddr))
+	code = strings.ReplaceAll(code, defaultFlowTokenAddr, sanitizeAddress(flowTokenAddr))
+
+	return []byte(code)
+}
+
+// FlowStakingProxy returns the StakingProxy contract.
+func FlowStakingProxy() []byte {
+	code := assets.MustAssetString(flowStakingProxyFilename)
+
+	return []byte(code)
+}
+
+// FlowLockedTokens return the LockedTokens contract
+func FlowLockedTokens(ftAddr, flowTokenAddr, idTableAddr, stakingProxyAddr string) []byte {
+	code := assets.MustAssetString(flowLockedTokensFilename)
+
+	code = strings.ReplaceAll(code, defaultFungibleTokenAddr, sanitizeAddress(ftAddr))
+	code = strings.ReplaceAll(code, defaultFlowTokenAddr, sanitizeAddress(flowTokenAddr))
+	code = strings.ReplaceAll(code, defaultIDTableAddr, sanitizeAddress(idTableAddr))
+	code = strings.ReplaceAll(code, defaultStakingProxyAddr, sanitizeAddress(stakingProxyAddr))
 
 	return []byte(code)
 }

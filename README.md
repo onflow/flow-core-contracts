@@ -93,7 +93,7 @@ for staking, and add arguments to it, you would use something like this Go code.
         // providing the import addresses for the contract imports
         SetScript(templates.GenerateCreateNodeScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
         SetGasLimit(100).
-        SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+        SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
         SetPayer(b.ServiceKey().Address).
         AddAuthorizer(IDTableAddr)
 
