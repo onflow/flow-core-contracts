@@ -12,7 +12,7 @@ transaction {
         )
             
         // create new receiver that marks received tokens as unlocked
-        admin.link<&LockedToken.LockedAccountCreator{LockedAccountCreatorPublic}>(
+        admin.link<&LockedTokens.LockedAccountCreator{LockedTokens.LockedAccountCreatorPublic}>(
             LockedTokens.LockedAccountCreatorPublicPath,
             target: LockedTokens.LockedAccountCreatorStoragePath
         )

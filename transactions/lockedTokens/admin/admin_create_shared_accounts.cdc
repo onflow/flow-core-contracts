@@ -29,7 +29,7 @@ transaction(
             ?? panic("Could not link Flow Token Vault capability")
 
         // create a locked token manager and stored it in the shared account
-        let lockedTokenManager <- LockedTokens.createNewLockedTokenManager(vault: vaultCapability)
+        let lockedTokenManager <- LockedTokens.createLockedTokenManager(vault: vaultCapability)
         sharedAccount.save(<-lockedTokenManager, to: LockedTokens.LockedTokenManagerStoragePath)
 
         let tokenManagerCapability = sharedAccount

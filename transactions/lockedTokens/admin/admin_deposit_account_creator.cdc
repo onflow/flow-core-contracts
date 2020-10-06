@@ -11,11 +11,11 @@ transaction(custodyProviderAddress: Address) {
         let custodyProvider = getAccount(custodyProviderAddress)
             
         let capabilityReceiver = custodyProvider.getCapability
-            <&LockedToken.LockedAccountCreator{LockedAccountCreatorPublic}>
+            <&LockedTokens.LockedAccountCreator{LockedTokens.LockedAccountCreatorPublic}>
             (LockedTokens.LockedAccountCreatorPublicPath)!
             .borrow() ?? panic("Could not borrow capability receiver reference")
 
-        let tokenAdminCollection = admin.getCapability<&TokenAdminCollection>(LockedTokens.LockedTokenAdminCollectionStoragePath)
+        let tokenAdminCollection = admin.link<&LockedTokens.TokenAdminCollection>(LockedTokens.LockedTokenAdminPrivatePath, target: LockedTokens.LockedTokenAdminCollectionStoragePath)
             ?? panic("Could not get a capability to the admin collection")
 
         capabilityReceiver.addCapability(cap: tokenAdminCollection)

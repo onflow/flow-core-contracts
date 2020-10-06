@@ -8,10 +8,16 @@ import (
 
 const (
 	// admin templates
-	createAdminCollectionFilename = "lockedTokens/admin/create_admin_collection.cdc"
-	createLockedAccountsFilename  = "lockedTokens/admin/admin_create_shared_accounts.cdc"
-	depositLockedTokensFilename   = "lockedTokens/admin/deposit_locked_tokens.cdc"
-	increaseUnlockLimitFilename   = "lockedTokens/admin/unlock_tokens.cdc"
+	createAdminCollectionFilename           = "lockedTokens/admin/create_admin_collection.cdc"
+	createLockedAccountsFilename            = "lockedTokens/admin/admin_create_shared_accounts.cdc"
+	depositLockedTokensFilename             = "lockedTokens/admin/deposit_locked_tokens.cdc"
+	increaseUnlockLimitFilename             = "lockedTokens/admin/unlock_tokens.cdc"
+	depositAccountCreatorCapabilityFilename = "lockedTokens/admin/admin_deposit_account_creator.cdc"
+
+	// Custody Provider / Wallet provider Account creation templates
+	setupCustodyAccountFilename            = "lockedTokens/admin/custody_setup_account_creator.cdc"
+	custodyCreateAccountsFilename          = "lockedTokens/admin/custody_create_shared_accounts.cdc"
+	custodyCreateOnlySharedAccountFilename = "lockedTokens/admin/custody_create_only_shared_account.cdc"
 
 	// user templates
 	withdrawTokensFilename = "lockedTokens/user/withdraw_tokens.cdc"
@@ -86,6 +92,44 @@ func GenerateDepositLockedTokensScript(ftAddr, flowTokenAddr, lockedTokensAddr s
 
 func GenerateIncreaseUnlockLimitScript(lockedTokensAddr string) []byte {
 	code := assets.MustAssetString(filePath + increaseUnlockLimitFilename)
+
+	code = ReplaceLockedTokensAddress(code, lockedTokensAddr)
+
+	return []byte(code)
+}
+
+func GenerateDepositAccountCreatorScript(lockedTokensAddr string) []byte {
+	code := assets.MustAssetString(filePath + depositAccountCreatorCapabilityFilename)
+
+	code = ReplaceLockedTokensAddress(code, lockedTokensAddr)
+
+	return []byte(code)
+}
+
+/************ Custody Provider Transactions ********************/
+
+func GenerateSetupCustodyAccountScript(lockedTokensAddr string) []byte {
+	code := assets.MustAssetString(filePath + setupCustodyAccountFilename)
+
+	code = ReplaceLockedTokensAddress(code, lockedTokensAddr)
+
+	return []byte(code)
+}
+
+func GenerateCustodyCreateAccountsScript(ftAddr, flowTokenAddr, lockedTokensAddr string) []byte {
+	code := assets.MustAssetString(filePath + custodyCreateAccountsFilename)
+
+	code = ReplaceAddresses(code, ftAddr, flowTokenAddr, "")
+
+	code = ReplaceLockedTokensAddress(code, lockedTokensAddr)
+
+	return []byte(code)
+}
+
+func GenerateCustodyCreateOnlySharedAccountScript(ftAddr, flowTokenAddr, lockedTokensAddr string) []byte {
+	code := assets.MustAssetString(filePath + custodyCreateOnlySharedAccountFilename)
+
+	code = ReplaceAddresses(code, ftAddr, flowTokenAddr, "")
 
 	code = ReplaceLockedTokensAddress(code, lockedTokensAddr)
 

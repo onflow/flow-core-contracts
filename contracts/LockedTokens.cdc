@@ -498,7 +498,7 @@ pub contract LockedTokens {
 
     /// Public function to create a new Locked Token Manager
     /// every time a new user account is created
-    pub fun createNewLockedTokenManager(vault: Capability<&FlowToken.Vault>): @LockedTokenManager {
+    pub fun createLockedTokenManager(vault: Capability<&FlowToken.Vault>): @LockedTokenManager {
         return <- create LockedTokenManager(vault: vault)
     }
 

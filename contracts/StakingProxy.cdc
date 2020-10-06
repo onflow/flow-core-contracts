@@ -154,3 +154,4 @@ pub contract StakingProxy {
         self.NodeOperatorCapabilityPublicPath = /public/nodeOperator
     }
 }
+ 

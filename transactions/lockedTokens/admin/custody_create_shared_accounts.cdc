@@ -26,7 +26,7 @@ transaction(
             .link<&FlowToken.Vault>(/private/flowTokenVault, target: /storage/flowTokenVault)
             ?? panic("Could not link Flow Token Vault capability")
 
-        let lockedTokenManager <- LockedTokens.createNewLockedTokenManager(vault: vaultCapability)
+        let lockedTokenManager <- LockedTokens.createLockedTokenManager(vault: vaultCapability)
 
         sharedAccount.save(<-lockedTokenManager, to: LockedTokens.LockedTokenManagerStoragePath)
 
