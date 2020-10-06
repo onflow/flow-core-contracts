@@ -38,14 +38,14 @@ transaction(
                 target: LockedTokens.LockedTokenManagerStoragePath
         )   ?? panic("Could not link token manager capability")
 
-        let tokenHolder <- LockedTokens.createTokenHolder(tokenManager: tokenManagerCapability)
+        let tokenHolder <- LockedTokens.createTokenHolder(lockedAddress: sharedAccount.address, tokenManager: tokenManagerCapability)
 
         userAccount.save(
             <-tokenHolder, 
             to: LockedTokens.TokenHolderStoragePath,
         )
 
-        userAccount.link<&LockedTokens.TokenHolder{LockedTokens.LockedAccountInfo}>(LockedTokens.UnlockLimitPublicPath, target: LockedTokens.TokenHolderStoragePath)
+        userAccount.link<&LockedTokens.TokenHolder{LockedTokens.LockedAccountInfo}>(LockedTokens.LockedAccountInfoPublicPath, target: LockedTokens.TokenHolderStoragePath)
 
         let tokenAdminCapability = sharedAccount
             .link<&LockedTokens.LockedTokenManager>(

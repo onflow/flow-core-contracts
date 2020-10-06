@@ -230,14 +230,10 @@ func TestLockedTokensStaker(t *testing.T) {
 			false,
 		)
 
-		script := ft_templates.GenerateInspectVaultScript(
-			flow.HexToAddress(emulatorFTAddress),
-			flow.HexToAddress(emulatorFlowTokenAddress),
-			"FlowToken",
-		)
+		script := templates.GenerateGetLockedAccountBalanceScript(lockedTokensAddr.String())
 
 		// check balance of locked account
-		result, err := b.ExecuteScript(script, [][]byte{jsoncdc.MustEncode(cadence.Address(joshSharedAddress))})
+		result, err := b.ExecuteScript(script, [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
 		require.NoError(t, err)
 
 		if !assert.True(t, result.Succeeded()) {
@@ -268,8 +264,10 @@ func TestLockedTokensStaker(t *testing.T) {
 			true,
 		)
 
+		script := templates.GenerateGetLockedAccountBalanceScript(lockedTokensAddr.String())
+
 		// make sure balance of locked account hasn't changed
-		result, err := b.ExecuteScript(ft_templates.GenerateInspectVaultScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), [][]byte{jsoncdc.MustEncode(cadence.Address(joshSharedAddress))})
+		result, err := b.ExecuteScript(script, [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
@@ -336,8 +334,10 @@ func TestLockedTokensStaker(t *testing.T) {
 			false,
 		)
 
+		script := templates.GenerateGetLockedAccountBalanceScript(lockedTokensAddr.String())
+
 		// Check balance of locked account
-		result, err := b.ExecuteScript(ft_templates.GenerateInspectVaultScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), [][]byte{jsoncdc.MustEncode(cadence.Address(joshSharedAddress))})
+		result, err := b.ExecuteScript(script, [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
@@ -384,8 +384,10 @@ func TestLockedTokensStaker(t *testing.T) {
 			false,
 		)
 
+		script := templates.GenerateGetLockedAccountBalanceScript(lockedTokensAddr.String())
+
 		// Check balance of locked account
-		result, err := b.ExecuteScript(ft_templates.GenerateInspectVaultScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), [][]byte{jsoncdc.MustEncode(cadence.Address(joshSharedAddress))})
+		result, err := b.ExecuteScript(script, [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
@@ -515,8 +517,10 @@ func TestLockedTokensStaker(t *testing.T) {
 			false,
 		)
 
+		script := templates.GenerateGetLockedAccountBalanceScript(lockedTokensAddr.String())
+
 		// Check balance of locked account
-		result, err := b.ExecuteScript(ft_templates.GenerateInspectVaultScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), [][]byte{jsoncdc.MustEncode(cadence.Address(joshSharedAddress))})
+		result, err := b.ExecuteScript(script, [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
@@ -656,8 +660,10 @@ func TestLockedTokensStaker(t *testing.T) {
 			false,
 		)
 
+		script := templates.GenerateGetLockedAccountBalanceScript(lockedTokensAddr.String())
+
 		// locked tokens balance should increase by 500
-		result, err := b.ExecuteScript(ft_templates.GenerateInspectVaultScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), [][]byte{jsoncdc.MustEncode(cadence.Address(joshSharedAddress))})
+		result, err := b.ExecuteScript(script, [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
@@ -696,8 +702,10 @@ func TestLockedTokensStaker(t *testing.T) {
 			false,
 		)
 
+		script := templates.GenerateGetLockedAccountBalanceScript(lockedTokensAddr.String())
+
 		// locked tokens balance should increase by 500
-		result, err := b.ExecuteScript(ft_templates.GenerateInspectVaultScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), [][]byte{jsoncdc.MustEncode(cadence.Address(joshSharedAddress))})
+		result, err := b.ExecuteScript(script, [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
@@ -1075,8 +1083,10 @@ func TestLockedTokensDelegator(t *testing.T) {
 			false,
 		)
 
+		script := templates.GenerateGetLockedAccountBalanceScript(lockedTokensAddr.String())
+
 		// Check balance of locked account
-		result, err := b.ExecuteScript(ft_templates.GenerateInspectVaultScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), [][]byte{jsoncdc.MustEncode(cadence.Address(joshSharedAddress))})
+		result, err := b.ExecuteScript(script, [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
@@ -1115,8 +1125,10 @@ func TestLockedTokensDelegator(t *testing.T) {
 			false,
 		)
 
+		script := templates.GenerateGetLockedAccountBalanceScript(lockedTokensAddr.String())
+
 		// Check balance of locked account. should not have changed
-		result, err := b.ExecuteScript(ft_templates.GenerateInspectVaultScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), [][]byte{jsoncdc.MustEncode(cadence.Address(joshSharedAddress))})
+		result, err := b.ExecuteScript(script, [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
@@ -1177,8 +1189,10 @@ func TestLockedTokensDelegator(t *testing.T) {
 			false,
 		)
 
+		script := templates.GenerateGetLockedAccountBalanceScript(lockedTokensAddr.String())
+
 		// Check balance of locked account. should have increased by 500
-		result, err := b.ExecuteScript(ft_templates.GenerateInspectVaultScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), [][]byte{jsoncdc.MustEncode(cadence.Address(joshSharedAddress))})
+		result, err := b.ExecuteScript(script, [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
@@ -1226,8 +1240,10 @@ func TestLockedTokensDelegator(t *testing.T) {
 			false,
 		)
 
+		script := templates.GenerateGetLockedAccountBalanceScript(lockedTokensAddr.String())
+
 		// Check balance of locked account. should have increased by 500
-		result, err := b.ExecuteScript(ft_templates.GenerateInspectVaultScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), [][]byte{jsoncdc.MustEncode(cadence.Address(joshSharedAddress))})
+		result, err := b.ExecuteScript(script, [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
@@ -1470,6 +1486,21 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 				break
 			}
 		}
+	})
+
+	t.Run("Unlocked account should be connected to locked account", func(t *testing.T) {
+		script := templates.GenerateGetLockedAccountAddressScript(lockedTokensAddr.String())
+
+		// Check that locked account is connected to unlocked account
+		result, err := b.ExecuteScript(script, [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+
+		lockedAddress := result.Value.(cadence.Address)
+
+		assert.Equal(t, cadence.Address(joshSharedAddress), lockedAddress)
 	})
 
 	// Create new keys for a new user account

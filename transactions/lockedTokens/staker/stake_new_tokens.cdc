@@ -21,7 +21,7 @@ transaction(amount: UFix64) {
     execute {
         let stakerProxy = self.holderRef.borrowStaker()
 
-        let lockedBalance = self.holderRef.getBalance()
+        let lockedBalance = self.holderRef.getLockedAccountBalance()
 
         if amount <= lockedBalance {
 
