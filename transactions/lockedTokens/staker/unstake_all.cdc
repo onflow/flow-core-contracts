@@ -15,5 +15,4 @@ transaction() {
 
         stakerProxy.unstakeAll()
     }
-
 }

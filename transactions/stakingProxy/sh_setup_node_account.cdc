@@ -1,13 +1,15 @@
 import StakingProxy from 0x179b6b1cb6755e31
 
+// ID: NO.01 
+// Authorizer: Node Operator
+// 
 transaction() {
 
-    prepare(acct: AuthAccount) {
+    prepare(nodeOperator: AuthAccount) {
         let proxyHolder <- StakingProxy.createProxyHolder()
 
-        acct.save(<-proxyHolder, to: StakingProxy.NodeOperatorCapabilityStoragePath)
+        nodeOperator.save(<-proxyHolder, to: StakingProxy.NodeOperatorCapabilityStoragePath)
 
-        acct.link<&StakingProxy.NodeStakerProxyHolder{StakingProxy.NodeStakerProxyHolderPublic}>(StakingProxy.NodeOperatorCapabilityPublicPath, target: StakingProxy.NodeOperatorCapabilityStoragePath)
+        nodeOperator.link<&StakingProxy.NodeStakerProxyHolder{StakingProxy.NodeStakerProxyHolderPublic}>(StakingProxy.NodeOperatorCapabilityPublicPath, target: StakingProxy.NodeOperatorCapabilityStoragePath)
     }
-
 }

@@ -15,5 +15,4 @@ transaction(amount: UFix64) {
 
         stakerProxy.stakeUnstakedTokens(amount: amount)
     }
-
 }
