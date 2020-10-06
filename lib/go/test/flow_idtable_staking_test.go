@@ -54,7 +54,7 @@ func TestIDTable(t *testing.T) {
 	tx := flow.NewTransaction().
 		SetScript(templates.GenerateTransferMinterAndDeployScript(emulatorFTAddress, emulatorFlowTokenAddress)).
 		SetGasLimit(100).
-		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(b.ServiceKey().Address).
 		AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys)).
@@ -271,7 +271,7 @@ func TestIDTable(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(b.ServiceKey().Address)
 
@@ -288,7 +288,7 @@ func TestIDTable(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(b.ServiceKey().Address)
 
@@ -305,7 +305,7 @@ func TestIDTable(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(b.ServiceKey().Address)
 
@@ -330,7 +330,7 @@ func TestIDTable(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(b.ServiceKey().Address)
 
@@ -347,7 +347,7 @@ func TestIDTable(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(b.ServiceKey().Address)
 
@@ -364,7 +364,7 @@ func TestIDTable(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(b.ServiceKey().Address)
 
@@ -381,7 +381,7 @@ func TestIDTable(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(b.ServiceKey().Address)
 
@@ -398,7 +398,7 @@ func TestIDTable(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(b.ServiceKey().Address)
 
@@ -419,7 +419,7 @@ func TestIDTable(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateCreateNodeScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
@@ -443,7 +443,7 @@ func TestIDTable(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(templates.GenerateCreateNodeScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
@@ -467,7 +467,7 @@ func TestIDTable(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(templates.GenerateCreateNodeScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
@@ -491,7 +491,7 @@ func TestIDTable(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(templates.GenerateCreateNodeScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
@@ -519,7 +519,7 @@ func TestIDTable(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateCreateNodeScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
@@ -642,7 +642,7 @@ func TestIDTable(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateCreateNodeScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
@@ -669,7 +669,7 @@ func TestIDTable(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateCreateNodeScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
@@ -693,7 +693,7 @@ func TestIDTable(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(templates.GenerateCreateNodeScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
@@ -717,7 +717,7 @@ func TestIDTable(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(templates.GenerateCreateNodeScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
@@ -744,7 +744,7 @@ func TestIDTable(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateCreateNodeScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshAddress)
 
@@ -775,7 +775,7 @@ func TestIDTable(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(templates.GenerateCreateNodeScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(maxAddress)
 
@@ -819,7 +819,7 @@ func TestIDTable(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateRemoveNodeScript(IDTableAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
@@ -838,7 +838,7 @@ func TestIDTable(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateRemoveNodeScript(IDTableAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
@@ -872,7 +872,7 @@ func TestIDTable(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(templates.GenerateCreateNodeScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
@@ -915,7 +915,7 @@ func TestIDTable(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(templates.GenerateStakeNewTokensScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(maxAddress)
 
@@ -945,7 +945,7 @@ func TestIDTable(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(templates.GenerateUnstakeTokensScript(IDTableAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(maxAddress)
 
@@ -967,7 +967,7 @@ func TestIDTable(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(templates.GenerateUnstakeTokensScript(IDTableAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(maxAddress)
 
@@ -1005,7 +1005,7 @@ func TestIDTable(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(templates.GenerateWithdrawUnstakedTokensScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(maxAddress)
 
@@ -1035,7 +1035,7 @@ func TestIDTable(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(templates.GenerateStakeUnstakedTokensScript(IDTableAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(maxAddress)
 
@@ -1081,7 +1081,7 @@ func TestIDTable(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateEndStakingScript(IDTableAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
@@ -1159,7 +1159,7 @@ func TestIDTable(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GeneratePayRewardsScript(IDTableAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
@@ -1225,7 +1225,7 @@ func TestIDTable(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateMoveTokensScript(IDTableAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
@@ -1315,7 +1315,7 @@ func TestIDTable(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(templates.GenerateStakeUnstakedTokensScript(IDTableAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshAddress)
 
@@ -1334,7 +1334,7 @@ func TestIDTable(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(templates.GenerateStakeNewTokensScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshAddress)
 
@@ -1372,7 +1372,7 @@ func TestIDTable(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(templates.GenerateUnstakeTokensScript(IDTableAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
@@ -1420,7 +1420,7 @@ func TestIDTable(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(templates.GenerateRegisterDelegatorScript(IDTableAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(maxDelegatorOneAddress)
 
@@ -1440,7 +1440,7 @@ func TestIDTable(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(templates.GenerateRegisterDelegatorScript(IDTableAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(maxDelegatorTwoAddress)
 
@@ -1460,7 +1460,7 @@ func TestIDTable(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(templates.GenerateRegisterDelegatorScript(IDTableAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshDelegatorOneAddress)
 
@@ -1480,7 +1480,7 @@ func TestIDTable(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(templates.GenerateRegisterDelegatorScript(IDTableAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(adminDelegatorAddress)
 
@@ -1500,7 +1500,7 @@ func TestIDTable(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(templates.GenerateDelegatorStakeNewScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshDelegatorOneAddress)
 
@@ -1554,7 +1554,7 @@ func TestIDTable(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(templates.GenerateDelegatorRequestUnstakeScript(IDTableAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshDelegatorOneAddress)
 
@@ -1616,7 +1616,7 @@ func TestIDTable(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(templates.GenerateDelegatorWithdrawUnstakedScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshDelegatorOneAddress)
 
@@ -1654,7 +1654,7 @@ func TestIDTable(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(templates.GenerateDelegatorStakeUnstakedScript(IDTableAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshDelegatorOneAddress)
 
@@ -1708,7 +1708,7 @@ func TestIDTable(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateEndStakingScript(IDTableAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
@@ -1785,7 +1785,7 @@ func TestIDTable(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GeneratePayRewardsScript(IDTableAddr.String())).
 			SetGasLimit(100000).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
@@ -1899,7 +1899,7 @@ func TestIDTable(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateMoveTokensScript(IDTableAddr.String())).
 			SetGasLimit(100000).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
@@ -2167,7 +2167,7 @@ func TestIDTable(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(templates.GenerateCreateNodeScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(bastianAddress)
 
@@ -2201,7 +2201,7 @@ func TestIDTable(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(templates.GenerateDelegatorStakeNewScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(maxDelegatorOneAddress)
 
@@ -2219,7 +2219,7 @@ func TestIDTable(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(templates.GenerateDelegatorStakeNewScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(maxDelegatorTwoAddress)
 
@@ -2249,7 +2249,7 @@ func TestIDTable(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(templates.GenerateUnstakeTokensScript(IDTableAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshAddress)
 
@@ -2268,7 +2268,7 @@ func TestIDTable(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(templates.GenerateUnstakeTokensScript(IDTableAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(maxAddress)
 
@@ -2290,7 +2290,7 @@ func TestIDTable(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(templates.GenerateStakeRewardedTokensScript(IDTableAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
@@ -2329,7 +2329,7 @@ func TestIDTable(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(templates.GenerateDelegatorRequestUnstakeScript(IDTableAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshDelegatorOneAddress)
 
@@ -2392,7 +2392,7 @@ func TestIDTable(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateEndStakingScript(IDTableAddr.String())).
 			SetGasLimit(100000).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
@@ -2416,7 +2416,7 @@ func TestIDTable(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateMoveTokensScript(IDTableAddr.String())).
 			SetGasLimit(100000).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
@@ -2539,7 +2539,7 @@ func TestIDTable(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GeneratePayRewardsScript(IDTableAddr.String())).
 			SetGasLimit(100000).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
@@ -2614,7 +2614,7 @@ func TestIDTable(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateMoveTokensScript(IDTableAddr.String())).
 			SetGasLimit(100000).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(IDTableAddr)
 
@@ -2657,7 +2657,7 @@ func TestIDTable(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(templates.GenerateDelegatorWithdrawRewardsScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(maxDelegatorOneAddress)
 

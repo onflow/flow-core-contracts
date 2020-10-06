@@ -68,7 +68,7 @@ func TestLockedTokensStaker(t *testing.T) {
 	tx := flow.NewTransaction().
 		SetScript(templates.GenerateTransferMinterAndDeployScript(emulatorFTAddress, emulatorFlowTokenAddress)).
 		SetGasLimit(100).
-		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(b.ServiceKey().Address).
 		AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys)).
@@ -107,9 +107,14 @@ func TestLockedTokensStaker(t *testing.T) {
 	_, err = b.CommitBlock()
 	assert.NoError(t, err)
 
-	lockedTokensCode := contracts.FlowLockedTokens(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String(), proxyAddr.String())
+	lockedTokensCode := contracts.FlowLockedTokens(
+		emulatorFTAddress,
+		emulatorFlowTokenAddress,
+		IDTableAddr.Hex(),
+		proxyAddr.Hex(),
+	)
 
-	lockedTokensAddr, err := b.CreateAccount(nil, []byte(lockedTokensCode))
+	lockedTokensAddr, err := b.CreateAccount(nil, lockedTokensCode)
 	if !assert.NoError(t, err) {
 		t.Log(err.Error())
 	}
@@ -126,7 +131,7 @@ func TestLockedTokensStaker(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateCreateAdminCollectionScript(lockedTokensAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(adminAddress)
 
@@ -140,7 +145,7 @@ func TestLockedTokensStaker(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(b.ServiceKey().Address)
 
@@ -169,7 +174,7 @@ func TestLockedTokensStaker(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateCreateSharedAccountScript(emulatorFTAddress, emulatorFlowTokenAddress, lockedTokensAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(adminAddress).
 			AddRawArgument(jsoncdc.MustEncode(adminPublicKey)).
@@ -211,7 +216,7 @@ func TestLockedTokensStaker(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateDepositLockedTokensScript(emulatorFTAddress, emulatorFlowTokenAddress, lockedTokensAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(adminAddress)
 
@@ -225,12 +230,20 @@ func TestLockedTokensStaker(t *testing.T) {
 			false,
 		)
 
+		script := ft_templates.GenerateInspectVaultScript(
+			flow.HexToAddress(emulatorFTAddress),
+			flow.HexToAddress(emulatorFlowTokenAddress),
+			"FlowToken",
+		)
+
 		// check balance of locked account
-		result, err := b.ExecuteScript(ft_templates.GenerateInspectVaultScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), [][]byte{jsoncdc.MustEncode(cadence.Address(joshSharedAddress))})
+		result, err := b.ExecuteScript(script, [][]byte{jsoncdc.MustEncode(cadence.Address(joshSharedAddress))})
 		require.NoError(t, err)
+
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
 		}
+
 		balance := result.Value
 		assert.Equal(t, CadenceUFix64("1000000.0"), balance.(cadence.UFix64))
 	})
@@ -240,7 +253,7 @@ func TestLockedTokensStaker(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateWithdrawTokensScript(emulatorFTAddress, emulatorFlowTokenAddress, lockedTokensAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshAddress)
 
@@ -279,7 +292,7 @@ func TestLockedTokensStaker(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateIncreaseUnlockLimitScript(lockedTokensAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(adminAddress)
 
@@ -308,7 +321,7 @@ func TestLockedTokensStaker(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateWithdrawTokensScript(emulatorFTAddress, emulatorFlowTokenAddress, lockedTokensAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshAddress)
 
@@ -356,7 +369,7 @@ func TestLockedTokensStaker(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateDepositTokensScript(emulatorFTAddress, emulatorFlowTokenAddress, lockedTokensAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshAddress)
 
@@ -404,7 +417,7 @@ func TestLockedTokensStaker(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateCreateLockedNodeScript(lockedTokensAddr.String(), proxyAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshAddress)
 
@@ -439,7 +452,7 @@ func TestLockedTokensStaker(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateCreateLockedNodeScript(lockedTokensAddr.String(), proxyAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshAddress)
 
@@ -465,7 +478,7 @@ func TestLockedTokensStaker(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateCreateLockedDelegatorScript(lockedTokensAddr.String(), proxyAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshAddress)
 
@@ -487,7 +500,7 @@ func TestLockedTokensStaker(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateStakeNewLockedTokensScript(lockedTokensAddr.String(), proxyAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshAddress)
 
@@ -527,7 +540,7 @@ func TestLockedTokensStaker(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateStakeLockedUnstakedTokensScript(lockedTokensAddr.String(), proxyAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshAddress)
 
@@ -558,7 +571,7 @@ func TestLockedTokensStaker(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateStakeLockedRewardedTokensScript(lockedTokensAddr.String(), proxyAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshAddress)
 
@@ -589,7 +602,7 @@ func TestLockedTokensStaker(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateUnstakeLockedTokensScript(lockedTokensAddr.String(), proxyAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshAddress)
 
@@ -611,7 +624,7 @@ func TestLockedTokensStaker(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateUnstakeAllLockedTokensScript(lockedTokensAddr.String(), proxyAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshAddress)
 
@@ -628,7 +641,7 @@ func TestLockedTokensStaker(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateWithdrawLockedUnstakedTokensScript(lockedTokensAddr.String(), proxyAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshAddress)
 
@@ -668,7 +681,7 @@ func TestLockedTokensStaker(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateWithdrawLockedRewardedTokensScript(lockedTokensAddr.String(), proxyAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshAddress)
 
@@ -724,7 +737,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 	tx := flow.NewTransaction().
 		SetScript(templates.GenerateTransferMinterAndDeployScript(emulatorFTAddress, emulatorFlowTokenAddress)).
 		SetGasLimit(100).
-		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(b.ServiceKey().Address).
 		AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys)).
@@ -782,7 +795,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateCreateAdminCollectionScript(lockedTokensAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(adminAddress)
 
@@ -796,7 +809,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(b.ServiceKey().Address)
 
@@ -825,7 +838,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateCreateSharedAccountScript(emulatorFTAddress, emulatorFlowTokenAddress, lockedTokensAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(adminAddress).
 			AddRawArgument(jsoncdc.MustEncode(adminPublicKey)).
@@ -867,7 +880,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateDepositLockedTokensScript(emulatorFTAddress, emulatorFlowTokenAddress, lockedTokensAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(adminAddress)
 
@@ -889,7 +902,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateCreateLockedDelegatorScript(lockedTokensAddr.String(), proxyAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshAddress)
 
@@ -911,7 +924,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateCreateLockedDelegatorScript(lockedTokensAddr.String(), proxyAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshAddress)
 
@@ -933,7 +946,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateCreateLockedNodeScript(lockedTokensAddr.String(), proxyAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshAddress)
 
@@ -959,7 +972,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateDelegateNewLockedTokensScript(lockedTokensAddr.String(), proxyAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshAddress)
 
@@ -999,7 +1012,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateDelegateLockedUnstakedTokensScript(lockedTokensAddr.String(), proxyAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshAddress)
 
@@ -1039,7 +1052,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateDelegateLockedRewardedTokensScript(lockedTokensAddr.String(), proxyAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshAddress)
 
@@ -1079,7 +1092,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateUnDelegateLockedTokensScript(lockedTokensAddr.String(), proxyAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshAddress)
 
@@ -1101,7 +1114,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateWithdrawDelegatorLockedUnstakedTokensScript(lockedTokensAddr.String(), proxyAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshAddress)
 
@@ -1150,7 +1163,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateWithdrawDelegatorLockedRewardedTokensScript(lockedTokensAddr.String(), proxyAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshAddress)
 
@@ -1216,7 +1229,7 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 	tx := flow.NewTransaction().
 		SetScript(templates.GenerateTransferMinterAndDeployScript(emulatorFTAddress, emulatorFlowTokenAddress)).
 		SetGasLimit(100).
-		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(b.ServiceKey().Address).
 		AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys)).
@@ -1274,7 +1287,7 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateCreateAdminCollectionScript(lockedTokensAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(adminAddress)
 
@@ -1288,7 +1301,7 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(b.ServiceKey().Address)
 
@@ -1312,7 +1325,7 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateSetupCustodyAccountScript(lockedTokensAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(custodyAddress)
 
@@ -1326,7 +1339,7 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(b.ServiceKey().Address)
 
@@ -1346,7 +1359,7 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateDepositAccountCreatorScript(lockedTokensAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(adminAddress)
 
@@ -1374,7 +1387,7 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateCustodyCreateAccountsScript(emulatorFTAddress, emulatorFlowTokenAddress, lockedTokensAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(custodyAddress).
 			AddRawArgument(jsoncdc.MustEncode(adminPublicKey)).
@@ -1424,7 +1437,7 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateCustodyCreateOnlySharedAccountScript(emulatorFTAddress, emulatorFlowTokenAddress, lockedTokensAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(custodyAddress).
 			AddAuthorizer(maxAddress).
@@ -1459,7 +1472,7 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateIncreaseUnlockLimitScript(lockedTokensAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(adminAddress)
 
@@ -1485,7 +1498,7 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(templates.GenerateIncreaseUnlockLimitScript(lockedTokensAddr.String())).
 			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(adminAddress)
 
