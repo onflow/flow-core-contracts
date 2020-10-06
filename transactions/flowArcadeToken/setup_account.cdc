@@ -9,7 +9,7 @@ transaction {
 
     prepare(signer: AuthAccount) {
 
-        if signer.check<&FlowArcadeToken.Vault>(from: /storage/flowArcadeTokenVault) {
+        if signer.check<&FlowArcadeToken.Vault>(/storage/flowArcadeTokenVault) {
             return
         }
         
@@ -30,5 +30,4 @@ transaction {
             target: /storage/flowArcadeTokenVault
         )
     }
-}
 }
