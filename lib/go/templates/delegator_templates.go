@@ -9,16 +9,16 @@ const (
 
 	delegatorRegisterFilename         = "idTableStaking/delegation/del_register_delegator.cdc"
 	delegatorStakeNewFilename         = "idTableStaking/delegation/del_stake_new_tokens.cdc"
-	delegatorStakeUnlockedFilename    = "idTableStaking/delegation/del_stake_unlocked.cdc"
+	delegatorStakeUnstakedFilename    = "idTableStaking/delegation/del_stake_unstaked.cdc"
 	delegatorStakeRewardedFilename    = "idTableStaking/delegation/del_stake_rewarded.cdc"
 	delegatorRequestUnstakeFilename   = "idTableStaking/delegation/del_request_unstaking.cdc"
 	delegatorWithdrawRewardsFilename  = "idTableStaking/delegation/del_withdraw_reward_tokens.cdc"
-	delegatorWithdrawUnlockedFilename = "idTableStaking/delegation/del_withdraw_unlocked_tokens.cdc"
+	delegatorWithdrawUnstakedFilename = "idTableStaking/delegation/del_withdraw_unstaked_tokens.cdc"
 
 	getDelegatorCommittedFilename = "idTableStaking/delegation/get_delegator_committed.cdc"
 	getDelegatorStakedFilename    = "idTableStaking/delegation/get_delegator_staked.cdc"
+	getDelegatorUnstakingFilename = "idTableStaking/delegation/get_delegator_unstaking.cdc"
 	getDelegatorUnstakedFilename  = "idTableStaking/delegation/get_delegator_unstaked.cdc"
-	getDelegatorUnlockedFilename  = "idTableStaking/delegation/get_delegator_unlocked.cdc"
 	getDelegatorRewardedFilename  = "idTableStaking/delegation/get_delegator_rewarded.cdc"
 	getDelegatorRequestFilename   = "idTableStaking/delegation/get_delegator_request.cdc"
 )
@@ -41,8 +41,8 @@ func GenerateDelegatorStakeNewScript(ftAddress, flowAddr, idTableAddr string) []
 	return []byte(ReplaceAddresses(code, ftAddress, flowAddr, idTableAddr))
 }
 
-func GenerateDelegatorStakeUnlockedScript(idTableAddr string) []byte {
-	code := assets.MustAssetString(filePath + delegatorStakeUnlockedFilename)
+func GenerateDelegatorStakeUnstakedScript(idTableAddr string) []byte {
+	code := assets.MustAssetString(filePath + delegatorStakeUnstakedFilename)
 
 	return []byte(ReplaceAddresses(code, "", "", idTableAddr))
 }
@@ -59,8 +59,8 @@ func GenerateDelegatorRequestUnstakeScript(idTableAddr string) []byte {
 	return []byte(ReplaceAddresses(code, "", "", idTableAddr))
 }
 
-func GenerateDelegatorWithdrawUnlockedScript(ftAddress, flowAddr, idTableAddr string) []byte {
-	code := assets.MustAssetString(filePath + delegatorWithdrawUnlockedFilename)
+func GenerateDelegatorWithdrawUnstakedScript(ftAddress, flowAddr, idTableAddr string) []byte {
+	code := assets.MustAssetString(filePath + delegatorWithdrawUnstakedFilename)
 
 	return []byte(ReplaceAddresses(code, ftAddress, flowAddr, idTableAddr))
 }
@@ -85,14 +85,14 @@ func GenerateGetDelegatorStakedScript(idTableAddr string) []byte {
 	return []byte(ReplaceAddresses(code, "", "", idTableAddr))
 }
 
-func GenerateGetDelegatorUnstakedScript(idTableAddr string) []byte {
-	code := assets.MustAssetString(filePath + getDelegatorUnstakedFilename)
+func GenerateGetDelegatorUnstakingScript(idTableAddr string) []byte {
+	code := assets.MustAssetString(filePath + getDelegatorUnstakingFilename)
 
 	return []byte(ReplaceAddresses(code, "", "", idTableAddr))
 }
 
-func GenerateGetDelegatorUnlockedScript(idTableAddr string) []byte {
-	code := assets.MustAssetString(filePath + getDelegatorUnlockedFilename)
+func GenerateGetDelegatorUnstakedScript(idTableAddr string) []byte {
+	code := assets.MustAssetString(filePath + getDelegatorUnstakedFilename)
 
 	return []byte(ReplaceAddresses(code, "", "", idTableAddr))
 }
