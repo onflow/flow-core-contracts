@@ -22,6 +22,8 @@ const (
 	// user templates
 	withdrawTokensFilename = "lockedTokens/user/withdraw_tokens.cdc"
 	depositTokensFilename  = "lockedTokens/user/deposit_tokens.cdc"
+	getLockedAccountAddressFilename = "lockedTokens/user/get_locked_account_address.cdc"
+	getLockedAccountBalanceFilename = "lockedTokens/user/get_locked_account_balance.cdc"
 	getUnlockLimitFilename = "lockedTokens/user/get_unlock_limit.cdc"
 
 	// staker templates
@@ -152,6 +154,22 @@ func GenerateDepositTokensScript(ftAddr, flowTokenAddr, lockedTokensAddr string)
 	code := assets.MustAssetString(filePath + depositTokensFilename)
 
 	code = ReplaceAddresses(code, ftAddr, flowTokenAddr, "")
+
+	code = ReplaceLockedTokensAddress(code, lockedTokensAddr)
+
+	return []byte(code)
+}
+
+func GenerateGetLockedAccountAddressScript(lockedTokensAddr string) []byte {
+	code := assets.MustAssetString(filePath + getLockedAccountAddressFilename)
+
+	code = ReplaceLockedTokensAddress(code, lockedTokensAddr)
+
+	return []byte(code)
+}
+
+func GenerateGetLockedAccountBalanceScript(lockedTokensAddr string) []byte {
+	code := assets.MustAssetString(filePath + getLockedAccountBalanceFilename)
 
 	code = ReplaceLockedTokensAddress(code, lockedTokensAddr)
 

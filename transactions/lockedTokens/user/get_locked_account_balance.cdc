@@ -6,5 +6,5 @@ pub fun main(account: Address): UFix64 {
         .getCapability<&LockedTokens.TokenHolder{LockedTokens.LockedAccountInfo}>(LockedTokens.LockedAccountInfoPublicPath)!
         .borrow() ?? panic("Could not borrow a reference to public LockedAccountInfo")
 
-    return lockedAccountInfoRef.getUnlockLimit()
+    return lockedAccountInfoRef.getLockedAccountBalance()
 }

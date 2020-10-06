@@ -36,7 +36,7 @@ pub contract LockedTokens {
     pub event SharedAccountRegistered(address: Address)
     pub event UnlockedAccountRegistered(address: Address)
 
-    /// path to store the locked token manager resource 
+    /// Path to store the locked token manager resource 
     /// in the shared account
     pub let LockedTokenManagerStoragePath: Path
 
@@ -44,21 +44,21 @@ pub contract LockedTokens {
     /// manager
     pub let LockedTokenManagerPrivatePath: Path
 
-    /// path to store the private locked token admin link
+    /// Path to store the private locked token admin link
     /// in the shared account
     pub let LockedTokenAdminPrivatePath: Path
 
-    /// path to store the admin collection 
+    /// Path to store the admin collection 
     /// in the admin account
     pub let LockedTokenAdminCollectionStoragePath: Path
 
-    /// path to store the token holder resource
+    /// Path to store the token holder resource
     /// in the unlocked account
     pub let TokenHolderStoragePath: Path
 
     /// Public path to store the capability that allows
-    /// reading the unlock limit of an account
-    pub let UnlockLimitPublicPath: Path
+    /// reading information about a locked account
+    pub let LockedAccountInfoPublicPath: Path
 
     /// Path that an account creator would store
     /// the resource that they use to create locked accounts
@@ -75,8 +75,8 @@ pub contract LockedTokens {
         pub fun increaseUnlockLimit(delta: UFix64)
     }
 
-    /// stored in the shared account to manage access to the locked token vault
-    /// and to the staking/delegating resources
+    /// This token manager resource is stored in the shared account to manage access 
+    /// to the locked token vault and to the staking/delegating resources.
     pub resource LockedTokenManager: FungibleToken.Receiver, FungibleToken.Provider, TokenAdmin {
     
         /// This is a reference to the default FLOW vault stored in the shared account. 
@@ -152,6 +152,11 @@ pub contract LockedTokens {
             return <-vault
         }
 
+        pub fun getBalance(): UFix64 {
+            let vaultRef = self.vault.borrow()!
+            return vaultRef.balance
+        }
+
         access(self) fun decreaseUnlockLimit(delta: UFix64) {  
             self.unlockLimit = self.unlockLimit - delta
         }
@@ -183,13 +188,18 @@ pub contract LockedTokens {
         }
     }
 
-    /// allows anyone to read the unlock limit of an account with TokenHolder
-    pub resource interface UnlockLimit {
+    /// This interfaces allows anybody to read information about the locked account.
+    pub resource interface LockedAccountInfo {
+        pub fun getLockedAccountAddress(): Address
+        pub fun getLockedAccountBalance(): UFix64
         pub fun getUnlockLimit(): UFix64
     }
 
-    // Stored in Holder unlocked account
-    pub resource TokenHolder: FungibleToken.Receiver, FungibleToken.Provider, UnlockLimit{
+    /// Stored in Holder unlocked account
+    pub resource TokenHolder: FungibleToken.Receiver, FungibleToken.Provider, LockedAccountInfo {
+
+        /// The address of the shared (locked) account.
+        pub var address: Address
 
         /// Capability that is used to access the LockedTokenManager
         /// in the shared account
@@ -203,10 +213,12 @@ pub contract LockedTokens {
         /// as a delegator
         access(self) var nodeDelegatorProxy: LockedNodeDelegatorProxy?
 
-        init(tokenManager: Capability<&LockedTokenManager>) {
+        init(lockedAddress: Address, tokenManager: Capability<&LockedTokenManager>) {
             pre {
                 tokenManager.borrow() != nil: "Must pass a LockedTokenManager capability"
             }
+
+            self.address = lockedAddress
             self.tokenManager = tokenManager
             self.nodeStakerProxy = nil
             self.nodeDelegatorProxy = nil
@@ -217,6 +229,19 @@ pub contract LockedTokens {
             return self.tokenManager.borrow()!
         }
 
+        // LockedAccountInfo actions
+
+        /// Returns the locked account address for this token holder.
+        pub fun getLockedAccountAddress(): Address {
+            return self.address
+        }
+
+        /// Returns the locked account balance for this token holder.
+        pub fun getLockedAccountBalance(): UFix64 {
+            return self.borrowTokenManager().getBalance()
+        }
+
+        // Returns the unlocked limit for this token holder.
         pub fun getUnlockLimit(): UFix64 {
             return self.borrowTokenManager().unlockLimit
         }
@@ -504,8 +529,8 @@ pub contract LockedTokens {
 
     // Creates a new TokenHolder resource for this LockedTokenManager
     /// that the user can store in their unlocked account.
-    pub fun createTokenHolder(tokenManager: Capability<&LockedTokenManager>): @TokenHolder {
-        return <- create TokenHolder(tokenManager: tokenManager)
+    pub fun createTokenHolder(lockedAddress: Address, tokenManager: Capability<&LockedTokenManager>): @TokenHolder {
+        return <- create TokenHolder(lockedAddress: lockedAddress, tokenManager: tokenManager)
     }
 
     pub fun createLockedAccountCreator(): @LockedAccountCreator {
@@ -520,7 +545,7 @@ pub contract LockedTokens {
         self.LockedTokenAdminCollectionStoragePath = /storage/lockedTokenAdminCollection
 
         self.TokenHolderStoragePath = /storage/flowTokenHolder
-        self.UnlockLimitPublicPath = /public/flowUnlockLimit
+        self.LockedAccountInfoPublicPath = /public/lockedAccountInfo
 
         self.LockedAccountCreatorStoragePath = /storage/lockedAccountCreator
         self.LockedAccountCreatorPublicPath = /public/lockedAccountCreator
