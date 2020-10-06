@@ -23,7 +23,7 @@ const (
 	withdrawTokensFilename = "lockedTokens/user/withdraw_tokens.cdc"
 	depositTokensFilename  = "lockedTokens/user/deposit_tokens.cdc"
 	getLockedAccountAddressFilename = "lockedTokens/user/get_locked_account_address.cdc"
-	getBalanceFilename = "lockedTokens/user/get_locked_account_balance.cdc"
+	getLockedAccountBalanceFilename = "lockedTokens/user/get_locked_account_balance.cdc"
 	getUnlockLimitFilename = "lockedTokens/user/get_unlock_limit.cdc"
 
 	// staker templates
@@ -169,7 +169,7 @@ func GenerateGetLockedAccountAddressScript(lockedTokensAddr string) []byte {
 }
 
 func GenerateGetLockedAccountBalanceScript(lockedTokensAddr string) []byte {
-	code := assets.MustAssetString(filePath + getBalanceFilename)
+	code := assets.MustAssetString(filePath + getLockedAccountBalanceFilename)
 
 	code = ReplaceLockedTokensAddress(code, lockedTokensAddr)
 
