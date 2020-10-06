@@ -184,12 +184,13 @@ pub contract LockedTokens {
     }
 
     /// allows anyone to read the unlock limit of an account with TokenHolder
-    pub resource interface UnlockLimit {
+    pub resource interface LockedAccountInfo {
         pub fun getUnlockLimit(): UFix64
+        pub fun getBalance(): UFix64
     }
 
     // Stored in Holder unlocked account
-    pub resource TokenHolder: FungibleToken.Receiver, FungibleToken.Provider, UnlockLimit{
+    pub resource TokenHolder: FungibleToken.Receiver, FungibleToken.Provider, LockedAccountInfo {
 
         /// Capability that is used to access the LockedTokenManager
         /// in the shared account
@@ -219,6 +220,12 @@ pub contract LockedTokens {
 
         pub fun getUnlockLimit(): UFix64 {
             return self.borrowTokenManager().unlockLimit
+        }
+
+        pub fun getBalance(): UFix64 {
+            let vaultRef = self.borrowTokenManager().vault.borrow()!
+
+            return vaultRef.balance
         }
 
         /// Deposits tokens in the locked vault, which marks them as 

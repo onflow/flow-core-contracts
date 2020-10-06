@@ -43,7 +43,7 @@ transaction(
             to: LockedTokens.TokenHolderStoragePath,
         )
 
-        userAccount.link<&LockedTokens.TokenHolder{LockedTokens.UnlockLimit}>(LockedTokens.UnlockLimitPublicPath, target: LockedTokens.TokenHolderStoragePath)
+        userAccount.link<&LockedTokens.TokenHolder{LockedTokens.LockedAccountInfo}>(LockedTokens.UnlockLimitPublicPath, target: LockedTokens.TokenHolderStoragePath)
 
         let tokenAdminCapability = sharedAccount
             .link<&LockedTokens.LockedTokenManager>(

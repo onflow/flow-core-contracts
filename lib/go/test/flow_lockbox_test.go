@@ -715,6 +715,54 @@ func TestLockedTokensStaker(t *testing.T) {
 		assert.Equal(t, CadenceUFix64("6500.0"), balance.(cadence.UFix64))
 	})
 
+	t.Run("Should be able to stake tokens that come from the locked vault first and then the unlocked vault", func(t *testing.T) {
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GenerateStakeNewLockedTokensScript(lockedTokensAddr.String(), proxyAddr.String())).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(joshAddress)
+
+		tokenAmount, err := cadence.NewUFix64("746000.0")
+		require.NoError(t, err)
+		_ = tx.AddArgument(tokenAmount)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+
+		// Check balance of locked account
+		result, err := b.ExecuteScript(ft_templates.GenerateInspectVaultScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), [][]byte{jsoncdc.MustEncode(cadence.Address(joshSharedAddress))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance := result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(ft_templates.GenerateInspectVaultScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("8000.0"), balance.(cadence.UFix64))
+
+		// unlock limit should not have changed
+		result, err = b.ExecuteScript(templates.GenerateGetUnlockLimitScript(lockedTokensAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("8500.0"), balance.(cadence.UFix64))
+
+	})
+
 }
 
 func TestLockedTokensDelegator(t *testing.T) {
