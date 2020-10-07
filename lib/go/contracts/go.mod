@@ -4,6 +4,5 @@ go 1.14
 
 require (
 	github.com/onflow/flow-ft/lib/go/contracts v0.2.0
-	github.com/onflow/flow-go-sdk v0.4.0
 	github.com/stretchr/testify v1.5.1
 )
