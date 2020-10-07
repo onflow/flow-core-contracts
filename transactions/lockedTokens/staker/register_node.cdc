@@ -1,5 +1,5 @@
 import LockedTokens from 0xLOCKEDTOKENADDRESS
-import StakingProxy from 0xTOKENPROXYADDRESS
+import StakingProxy from 0xSTAKINGPROXYADDRESS
 
 transaction(id: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String, amount: UFix64) {
 

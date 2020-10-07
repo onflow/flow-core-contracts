@@ -2,7 +2,7 @@ import FlowToken from 0xFLOWTOKENADDRESS
 import FungibleToken from 0xFUNGIBLETOKENADDRESS
 
 import LockedTokens from 0xLOCKEDTOKENADDRESS
-import StakingProxy from 0xTOKENPROXYADDRESS
+import StakingProxy from 0xSTAKINGPROXYADDRESS
 
 transaction(amount: UFix64) {
 

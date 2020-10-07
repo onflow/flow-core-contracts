@@ -9,7 +9,7 @@ const (
 	placeholderFungibleTokenAddress = "0xFUNGIBLETOKENADDRESS"
 	placeholderFlowTokenAddress     = "0xFLOWTOKENADDRESS"
 	placeholderIDTableAddress       = "0xIDENTITYTABLEADDRESS"
-	placeholderStakingProxyAddress  = "0xTOKENPROXYADDRESS"
+	placeholderStakingProxyAddress  = "0xSTAKINGPROXYADDRESS"
 	placeholderLockedTokensAddress  = "0xLOCKEDTOKENADDRESS"
 )
 

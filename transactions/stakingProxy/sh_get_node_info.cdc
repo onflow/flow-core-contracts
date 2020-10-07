@@ -1,4 +1,4 @@
-import StakingProxy from 0xTOKENPROXYADDRESS
+import StakingProxy from 0xSTAKINGPROXYADDRESS
 
 pub fun main(account: Address, nodeID: String): StakingProxy.NodeInfo {
 

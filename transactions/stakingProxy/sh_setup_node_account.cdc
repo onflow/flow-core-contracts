@@ -1,4 +1,4 @@
-import StakingProxy from 0xTOKENPROXYADDRESS
+import StakingProxy from 0xSTAKINGPROXYADDRESS
 
 // ID: NO.01 
 // Authorizer: Node Operator
