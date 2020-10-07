@@ -1,8 +1,6 @@
 package templates
 
 import (
-	"strings"
-
 	"github.com/onflow/flow-core-contracts/lib/go/templates/internal/assets"
 )
 
@@ -20,11 +18,11 @@ const (
 	custodyCreateOnlySharedAccountFilename = "lockedTokens/admin/custody_create_only_shared_account.cdc"
 
 	// user templates
-	withdrawTokensFilename = "lockedTokens/user/withdraw_tokens.cdc"
-	depositTokensFilename  = "lockedTokens/user/deposit_tokens.cdc"
+	withdrawTokensFilename          = "lockedTokens/user/withdraw_tokens.cdc"
+	depositTokensFilename           = "lockedTokens/user/deposit_tokens.cdc"
 	getLockedAccountAddressFilename = "lockedTokens/user/get_locked_account_address.cdc"
 	getLockedAccountBalanceFilename = "lockedTokens/user/get_locked_account_balance.cdc"
-	getUnlockLimitFilename = "lockedTokens/user/get_unlock_limit.cdc"
+	getUnlockLimitFilename          = "lockedTokens/user/get_unlock_limit.cdc"
 
 	// staker templates
 	createLockedNodeFilename             = "lockedTokens/staker/register_node.cdc"
@@ -44,27 +42,11 @@ const (
 	requestUnstakingLockedDelegatedTokensFilename = "lockedTokens/delegator/request_unstaking_locked_delegated_tokens.cdc"
 	withdrawLockedUnstakedDelegatedTokensFilename = "lockedTokens/delegator/withdraw_locked_unstaked_delegated_tokens.cdc"
 	withdrawLockedRewardedDelegatedTokensFilename = "lockedTokens/delegator/withdraw_locked_rewarded_delegated_tokens.cdc"
-
-	// addresses
-	defaultLockedTokensAddress = "0xf3fcd2c1a78f5eee"
 )
-
-// ReplaceLockedTokensAddress replaces the import address
-// and phase in scripts that return info about a specific node and phase.
-func ReplaceLockedTokensAddress(code, lockedTokensAddress string) string {
-
-	code = strings.ReplaceAll(
-		code,
-		"0x"+defaultLockedTokensAddress,
-		"0x"+lockedTokensAddress,
-	)
-
-	return code
-}
 
 /************ LockedTokens Admin Transactions ****************/
 
-func GenerateCreateAdminCollectionScript(lockedTokensAddr string) []byte {
+func CreateAdminCollectionScript(lockedTokensAddr string) []byte {
 	code := assets.MustAssetString(filePath + createAdminCollectionFilename)
 
 	code = ReplaceLockedTokensAddress(code, lockedTokensAddr)
@@ -72,7 +54,7 @@ func GenerateCreateAdminCollectionScript(lockedTokensAddr string) []byte {
 	return []byte(code)
 }
 
-func GenerateCreateSharedAccountScript(ftAddr, flowTokenAddr, lockedTokensAddr string) []byte {
+func CreateSharedAccountScript(ftAddr, flowTokenAddr, lockedTokensAddr string) []byte {
 	code := assets.MustAssetString(filePath + createLockedAccountsFilename)
 
 	code = ReplaceAddresses(code, ftAddr, flowTokenAddr, "")
@@ -82,7 +64,7 @@ func GenerateCreateSharedAccountScript(ftAddr, flowTokenAddr, lockedTokensAddr s
 	return []byte(code)
 }
 
-func GenerateDepositLockedTokensScript(ftAddr, flowTokenAddr, lockedTokensAddr string) []byte {
+func DepositLockedTokensScript(ftAddr, flowTokenAddr, lockedTokensAddr string) []byte {
 	code := assets.MustAssetString(filePath + depositLockedTokensFilename)
 
 	code = ReplaceAddresses(code, ftAddr, flowTokenAddr, "")
@@ -92,7 +74,7 @@ func GenerateDepositLockedTokensScript(ftAddr, flowTokenAddr, lockedTokensAddr s
 	return []byte(code)
 }
 
-func GenerateIncreaseUnlockLimitScript(lockedTokensAddr string) []byte {
+func IncreaseUnlockLimitScript(lockedTokensAddr string) []byte {
 	code := assets.MustAssetString(filePath + increaseUnlockLimitFilename)
 
 	code = ReplaceLockedTokensAddress(code, lockedTokensAddr)
@@ -100,7 +82,7 @@ func GenerateIncreaseUnlockLimitScript(lockedTokensAddr string) []byte {
 	return []byte(code)
 }
 
-func GenerateDepositAccountCreatorScript(lockedTokensAddr string) []byte {
+func DepositAccountCreatorScript(lockedTokensAddr string) []byte {
 	code := assets.MustAssetString(filePath + depositAccountCreatorCapabilityFilename)
 
 	code = ReplaceLockedTokensAddress(code, lockedTokensAddr)
@@ -110,7 +92,7 @@ func GenerateDepositAccountCreatorScript(lockedTokensAddr string) []byte {
 
 /************ Custody Provider Transactions ********************/
 
-func GenerateSetupCustodyAccountScript(lockedTokensAddr string) []byte {
+func SetupCustodyAccountScript(lockedTokensAddr string) []byte {
 	code := assets.MustAssetString(filePath + setupCustodyAccountFilename)
 
 	code = ReplaceLockedTokensAddress(code, lockedTokensAddr)
@@ -118,7 +100,7 @@ func GenerateSetupCustodyAccountScript(lockedTokensAddr string) []byte {
 	return []byte(code)
 }
 
-func GenerateCustodyCreateAccountsScript(ftAddr, flowTokenAddr, lockedTokensAddr string) []byte {
+func CustodyCreateAccountsScript(ftAddr, flowTokenAddr, lockedTokensAddr string) []byte {
 	code := assets.MustAssetString(filePath + custodyCreateAccountsFilename)
 
 	code = ReplaceAddresses(code, ftAddr, flowTokenAddr, "")
@@ -128,7 +110,7 @@ func GenerateCustodyCreateAccountsScript(ftAddr, flowTokenAddr, lockedTokensAddr
 	return []byte(code)
 }
 
-func GenerateCustodyCreateOnlySharedAccountScript(ftAddr, flowTokenAddr, lockedTokensAddr string) []byte {
+func CustodyCreateOnlySharedAccountScript(ftAddr, flowTokenAddr, lockedTokensAddr string) []byte {
 	code := assets.MustAssetString(filePath + custodyCreateOnlySharedAccountFilename)
 
 	code = ReplaceAddresses(code, ftAddr, flowTokenAddr, "")
@@ -140,7 +122,7 @@ func GenerateCustodyCreateOnlySharedAccountScript(ftAddr, flowTokenAddr, lockedT
 
 /************ User Transactions ********************/
 
-func GenerateWithdrawTokensScript(ftAddr, flowTokenAddr, lockedTokensAddr string) []byte {
+func WithdrawTokensScript(ftAddr, flowTokenAddr, lockedTokensAddr string) []byte {
 	code := assets.MustAssetString(filePath + withdrawTokensFilename)
 
 	code = ReplaceAddresses(code, ftAddr, flowTokenAddr, "")
@@ -150,7 +132,7 @@ func GenerateWithdrawTokensScript(ftAddr, flowTokenAddr, lockedTokensAddr string
 	return []byte(code)
 }
 
-func GenerateDepositTokensScript(ftAddr, flowTokenAddr, lockedTokensAddr string) []byte {
+func DepositTokensScript(ftAddr, flowTokenAddr, lockedTokensAddr string) []byte {
 	code := assets.MustAssetString(filePath + depositTokensFilename)
 
 	code = ReplaceAddresses(code, ftAddr, flowTokenAddr, "")
@@ -160,7 +142,7 @@ func GenerateDepositTokensScript(ftAddr, flowTokenAddr, lockedTokensAddr string)
 	return []byte(code)
 }
 
-func GenerateGetLockedAccountAddressScript(lockedTokensAddr string) []byte {
+func GetLockedAccountAddressScript(lockedTokensAddr string) []byte {
 	code := assets.MustAssetString(filePath + getLockedAccountAddressFilename)
 
 	code = ReplaceLockedTokensAddress(code, lockedTokensAddr)
@@ -168,7 +150,7 @@ func GenerateGetLockedAccountAddressScript(lockedTokensAddr string) []byte {
 	return []byte(code)
 }
 
-func GenerateGetLockedAccountBalanceScript(lockedTokensAddr string) []byte {
+func GetLockedAccountBalanceScript(lockedTokensAddr string) []byte {
 	code := assets.MustAssetString(filePath + getLockedAccountBalanceFilename)
 
 	code = ReplaceLockedTokensAddress(code, lockedTokensAddr)
@@ -176,7 +158,7 @@ func GenerateGetLockedAccountBalanceScript(lockedTokensAddr string) []byte {
 	return []byte(code)
 }
 
-func GenerateGetUnlockLimitScript(lockedTokensAddr string) []byte {
+func GetUnlockLimitScript(lockedTokensAddr string) []byte {
 	code := assets.MustAssetString(filePath + getUnlockLimitFilename)
 
 	code = ReplaceLockedTokensAddress(code, lockedTokensAddr)
@@ -186,9 +168,9 @@ func GenerateGetUnlockLimitScript(lockedTokensAddr string) []byte {
 
 /************ Node Staker Transactions ******************/
 
-// GenerateCreateLockedNodeScript creates a script that creates a new
+// CreateLockedNodeScript creates a script that creates a new
 // node request with locked tokens.
-func GenerateCreateLockedNodeScript(lockedTokensAddr, proxyAddr string) []byte {
+func CreateLockedNodeScript(lockedTokensAddr, proxyAddr string) []byte {
 	code := assets.MustAssetString(filePath + createLockedNodeFilename)
 
 	code = ReplaceLockedTokensAddress(code, lockedTokensAddr)
@@ -196,20 +178,26 @@ func GenerateCreateLockedNodeScript(lockedTokensAddr, proxyAddr string) []byte {
 	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
 }
 
-// GenerateStakeNewLockedTokensScript creates a script that stakes new
+// StakeNewLockedTokensScript creates a script that stakes new
 // locked tokens.
-func GenerateStakeNewLockedTokensScript(lockedTokensAddr, proxyAddr string) []byte {
+func StakeNewLockedTokensScript(
+	fungibleTokenAddr,
+	flowTokenAddr,
+	lockedTokensAddr,
+	proxyAddr string,
+) []byte {
 	code := assets.MustAssetString(filePath + stakeNewLockedTokensFilename)
 
+	code = ReplaceAddresses(code, fungibleTokenAddr, flowTokenAddr, "")
 	code = ReplaceLockedTokensAddress(code, lockedTokensAddr)
 
 	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
 }
 
-// GenerateStakeLockedUnstakedTokensScript creates a script that stakes
+// StakeLockedUnstakedTokensScript creates a script that stakes
 // unstaked tokens.
 // The unusual name is to avoid a clash with idtables_staking_templates.go .
-func GenerateStakeLockedUnstakedTokensScript(lockedTokensAddr, proxyAddr string) []byte {
+func StakeLockedUnstakedTokensScript(lockedTokensAddr, proxyAddr string) []byte {
 	code := assets.MustAssetString(filePath + stakeLockedUnstakedTokensFilename)
 
 	code = ReplaceLockedTokensAddress(code, lockedTokensAddr)
@@ -217,10 +205,10 @@ func GenerateStakeLockedUnstakedTokensScript(lockedTokensAddr, proxyAddr string)
 	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
 }
 
-// GenerateStakeLockedRewardedTokensScript creates a script that stakes
+// StakeLockedRewardedTokensScript creates a script that stakes
 // unstaked tokens.
 // The unusual name is to avoid a clash with idtables_staking_templates.go .
-func GenerateStakeLockedRewardedTokensScript(lockedTokensAddr, proxyAddr string) []byte {
+func StakeLockedRewardedTokensScript(lockedTokensAddr, proxyAddr string) []byte {
 	code := assets.MustAssetString(filePath + stakeLockedRewardedTokensFilename)
 
 	code = ReplaceLockedTokensAddress(code, lockedTokensAddr)
@@ -228,9 +216,9 @@ func GenerateStakeLockedRewardedTokensScript(lockedTokensAddr, proxyAddr string)
 	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
 }
 
-// GenerateUnstakeLockedTokensScript creates a script that unstakes
+// UnstakeLockedTokensScript creates a script that unstakes
 // locked tokens.
-func GenerateUnstakeLockedTokensScript(lockedTokensAddr, proxyAddr string) []byte {
+func UnstakeLockedTokensScript(lockedTokensAddr, proxyAddr string) []byte {
 	code := assets.MustAssetString(filePath + unstakeLockedTokensFilename)
 
 	code = ReplaceLockedTokensAddress(code, lockedTokensAddr)
@@ -238,9 +226,9 @@ func GenerateUnstakeLockedTokensScript(lockedTokensAddr, proxyAddr string) []byt
 	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
 }
 
-// GenerateUnstakeAllLockedTokensScript creates a script that unstakes
+// UnstakeAllLockedTokensScript creates a script that unstakes
 // all locked tokens.
-func GenerateUnstakeAllLockedTokensScript(lockedTokensAddr, proxyAddr string) []byte {
+func UnstakeAllLockedTokensScript(lockedTokensAddr, proxyAddr string) []byte {
 	code := assets.MustAssetString(filePath + unstakeAllLockedTokensFilename)
 
 	code = ReplaceLockedTokensAddress(code, lockedTokensAddr)
@@ -248,10 +236,10 @@ func GenerateUnstakeAllLockedTokensScript(lockedTokensAddr, proxyAddr string) []
 	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
 }
 
-// GenerateWithdrawLockedUnstakedTokensScript creates a script that requests
+// WithdrawLockedUnstakedTokensScript creates a script that requests
 // a withdrawal of unstaked tokens.
 // The unusual name is to avoid a clash with idtables_staking_templates.go .
-func GenerateWithdrawLockedUnstakedTokensScript(lockedTokensAddr, proxyAddr string) []byte {
+func WithdrawLockedUnstakedTokensScript(lockedTokensAddr, proxyAddr string) []byte {
 	code := assets.MustAssetString(filePath + withdrawLockedUnstakedTokensFilename)
 
 	code = ReplaceLockedTokensAddress(code, lockedTokensAddr)
@@ -259,10 +247,10 @@ func GenerateWithdrawLockedUnstakedTokensScript(lockedTokensAddr, proxyAddr stri
 	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
 }
 
-// GenerateWithdrawLockedRewardedTokensScript creates a script that requests
+// WithdrawLockedRewardedTokensScript creates a script that requests
 // a withdrawal of unstaked tokens.
 // The unusual name is to avoid a clash with idtables_staking_templates.go .
-func GenerateWithdrawLockedRewardedTokensScript(lockedTokensAddr, proxyAddr string) []byte {
+func WithdrawLockedRewardedTokensScript(lockedTokensAddr, proxyAddr string) []byte {
 	code := assets.MustAssetString(filePath + withdrawLockedRewardedTokensFilename)
 
 	code = ReplaceLockedTokensAddress(code, lockedTokensAddr)
@@ -272,9 +260,9 @@ func GenerateWithdrawLockedRewardedTokensScript(lockedTokensAddr, proxyAddr stri
 
 /******************** Delegator Transactions ****************************/
 
-// GenerateCreateLockedDelegatorScript creates a script that creates a new
+// CreateLockedDelegatorScript creates a script that creates a new
 // node request with locked tokens.
-func GenerateCreateLockedDelegatorScript(lockedTokensAddr, proxyAddr string) []byte {
+func CreateLockedDelegatorScript(lockedTokensAddr, proxyAddr string) []byte {
 	code := assets.MustAssetString(filePath + registerLockedDelegatorFilename)
 
 	code = ReplaceLockedTokensAddress(code, lockedTokensAddr)
@@ -282,20 +270,26 @@ func GenerateCreateLockedDelegatorScript(lockedTokensAddr, proxyAddr string) []b
 	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
 }
 
-// GenerateDelegateNewLockedTokensScript creates a script that stakes new
+// DelegateNewLockedTokensScript creates a script that stakes new
 // locked tokens.
-func GenerateDelegateNewLockedTokensScript(lockedTokensAddr, proxyAddr string) []byte {
+func DelegateNewLockedTokensScript(
+	fungibleTokenAddr,
+	flowTokenAddr,
+	lockedTokensAddr,
+	proxyAddr string,
+) []byte {
 	code := assets.MustAssetString(filePath + delegateNewLockedTokensFilename)
 
+	code = ReplaceAddresses(code, fungibleTokenAddr, flowTokenAddr, "")
 	code = ReplaceLockedTokensAddress(code, lockedTokensAddr)
 
 	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
 }
 
-// GenerateDelegateLockedUnstakedTokensScript creates a script that stakes
+// DelegateLockedUnstakedTokensScript creates a script that stakes
 // unstaked tokens.
 // The unusual name is to avoid a clash with idtables_staking_templates.go .
-func GenerateDelegateLockedUnstakedTokensScript(lockedTokensAddr, proxyAddr string) []byte {
+func DelegateLockedUnstakedTokensScript(lockedTokensAddr, proxyAddr string) []byte {
 	code := assets.MustAssetString(filePath + delegateLockedUnstakedTokensFilename)
 
 	code = ReplaceLockedTokensAddress(code, lockedTokensAddr)
@@ -303,10 +297,10 @@ func GenerateDelegateLockedUnstakedTokensScript(lockedTokensAddr, proxyAddr stri
 	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
 }
 
-// GenerateDelegateLockedRewardedTokensScript creates a script that stakes
+// DelegateLockedRewardedTokensScript creates a script that stakes
 // unstaked tokens.
 // The unusual name is to avoid a clash with idtables_staking_templates.go .
-func GenerateDelegateLockedRewardedTokensScript(lockedTokensAddr, proxyAddr string) []byte {
+func DelegateLockedRewardedTokensScript(lockedTokensAddr, proxyAddr string) []byte {
 	code := assets.MustAssetString(filePath + delegateLockedRewardedTokensFilename)
 
 	code = ReplaceLockedTokensAddress(code, lockedTokensAddr)
@@ -314,9 +308,9 @@ func GenerateDelegateLockedRewardedTokensScript(lockedTokensAddr, proxyAddr stri
 	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
 }
 
-// GenerateUnDelegateLockedTokensScript creates a script that unstakes
+// UnDelegateLockedTokensScript creates a script that unstakes
 // locked tokens.
-func GenerateUnDelegateLockedTokensScript(lockedTokensAddr, proxyAddr string) []byte {
+func UnDelegateLockedTokensScript(lockedTokensAddr, proxyAddr string) []byte {
 	code := assets.MustAssetString(filePath + requestUnstakingLockedDelegatedTokensFilename)
 
 	code = ReplaceLockedTokensAddress(code, lockedTokensAddr)
@@ -324,10 +318,10 @@ func GenerateUnDelegateLockedTokensScript(lockedTokensAddr, proxyAddr string) []
 	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
 }
 
-// GenerateWithdrawDelegatorLockedUnstakedTokensScript creates a script that requests
+// WithdrawDelegatorLockedUnstakedTokensScript creates a script that requests
 // a withdrawal of unstaked tokens.
 // The unusual name is to avoid a clash with idtables_staking_templates.go .
-func GenerateWithdrawDelegatorLockedUnstakedTokensScript(lockedTokensAddr, proxyAddr string) []byte {
+func WithdrawDelegatorLockedUnstakedTokensScript(lockedTokensAddr, proxyAddr string) []byte {
 	code := assets.MustAssetString(filePath + withdrawLockedUnstakedDelegatedTokensFilename)
 
 	code = ReplaceLockedTokensAddress(code, lockedTokensAddr)
@@ -335,10 +329,10 @@ func GenerateWithdrawDelegatorLockedUnstakedTokensScript(lockedTokensAddr, proxy
 	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
 }
 
-// GenerateWithdrawDelegatorLockedRewardedTokensScript creates a script that requests
+// WithdrawDelegatorLockedRewardedTokensScript creates a script that requests
 // a withdrawal of unstaked tokens.
 // The unusual name is to avoid a clash with idtables_staking_templates.go .
-func GenerateWithdrawDelegatorLockedRewardedTokensScript(lockedTokensAddr, proxyAddr string) []byte {
+func WithdrawDelegatorLockedRewardedTokensScript(lockedTokensAddr, proxyAddr string) []byte {
 	code := assets.MustAssetString(filePath + withdrawLockedRewardedDelegatedTokensFilename)
 
 	code = ReplaceLockedTokensAddress(code, lockedTokensAddr)

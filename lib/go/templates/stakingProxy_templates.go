@@ -1,8 +1,6 @@
 package templates
 
 import (
-	"strings"
-
 	"github.com/onflow/flow-core-contracts/lib/go/templates/internal/assets"
 )
 
@@ -25,89 +23,73 @@ const (
 
 	// staking helper templates for the token holder to register their node
 	registerNodeFilename = "stakingProxy/sh_register_node.cdc"
-
-	// addresses
-	defaultStakingProxyAddress = "0x179b6b1cb6755e31"
 )
 
-// ReplaceStakingProxyAddress replaces the import address
-// and phase in scripts that use staking proxy contract
-func ReplaceStakingProxyAddress(code, proxyAddr string) string {
-
-	code = strings.ReplaceAll(
-		code,
-		"0x"+defaultStakingProxyAddress,
-		"0x"+proxyAddr,
-	)
-
-	return code
-}
-
-// GenerateSetupNodeAccountScript generates a script that sets up
+// SetupNodeAccountScript generates a script that sets up
 // a node operator's account to receive staking proxies
-func GenerateSetupNodeAccountScript(proxyAddr string) []byte {
+func SetupNodeAccountScript(proxyAddr string) []byte {
 	code := assets.MustAssetString(filePath + setupNodeAccountFilename)
 
 	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
 }
 
-// GenerateAddNodeInfoScript generates a script that adds the node
+// AddNodeInfoScript generates a script that adds the node
 // operators node info to their account
-func GenerateAddNodeInfoScript(proxyAddr string) []byte {
+func AddNodeInfoScript(proxyAddr string) []byte {
 	code := assets.MustAssetString(filePath + addNodeInfoFilename)
 
 	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
 }
 
-func GenerateRemoveNodeInfoScript(proxyAddr string) []byte {
+func RemoveNodeInfoScript(proxyAddr string) []byte {
 	code := assets.MustAssetString(filePath + removeNodeInfoFilename)
 
 	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
 }
 
-func GenerateGetNodeInfoScript(proxyAddr string) []byte {
+func GetNodeInfoScript(proxyAddr string) []byte {
 	code := assets.MustAssetString(filePath + getNodeInfoFilename)
 
 	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
 }
 
-func GenerateRemoveStakingProxyScript(proxyAddr string) []byte {
+func RemoveStakingProxyScript(proxyAddr string) []byte {
 	code := assets.MustAssetString(filePath + removeStakingProxyFilename)
 
 	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
 }
 
-func GenerateProxyStakeNewTokensScript(proxyAddr string) []byte {
+func ProxyStakeNewTokensScript(proxyAddr string) []byte {
 	code := assets.MustAssetString(filePath + proxyStakeNewTokensFilename)
 
 	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
 }
 
-func GenerateProxyStakeUnstakedTokensScript(proxyAddr string) []byte {
+func ProxyStakeUnstakedTokensScript(proxyAddr string) []byte {
 	code := assets.MustAssetString(filePath + proxyStakeUnstakedTokensFilename)
 
 	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
 }
 
-func GenerateProxyRequestUnstakingScript(proxyAddr string) []byte {
+func ProxyRequestUnstakingScript(proxyAddr string) []byte {
 	code := assets.MustAssetString(filePath + proxyRequestUnstakingFilename)
 
 	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
 }
 
-func GenerateProxyUnstakeAllScript(proxyAddr string) []byte {
+func ProxyUnstakeAllScript(proxyAddr string) []byte {
 	code := assets.MustAssetString(filePath + proxyUnstakeAllFilename)
 
 	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
 }
 
-func GenerateProxyWithdrawRewardsScript(proxyAddr string) []byte {
+func ProxyWithdrawRewardsScript(proxyAddr string) []byte {
 	code := assets.MustAssetString(filePath + proxyWithdrawRewardsFilename)
 
 	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
 }
 
-func GenerateProxyWithdrawUnstakedScript(proxyAddr string) []byte {
+func ProxyWithdrawUnstakedScript(proxyAddr string) []byte {
 	code := assets.MustAssetString(filePath + proxyWithdrawUnstakedFilename)
 
 	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
@@ -115,7 +97,7 @@ func GenerateProxyWithdrawUnstakedScript(proxyAddr string) []byte {
 
 // Transactions for the token holder
 
-func GenerateRegisterStakingProxyNodeScript(lockedTokensAddr, proxyAddr string) []byte {
+func RegisterStakingProxyNodeScript(lockedTokensAddr, proxyAddr string) []byte {
 	code := assets.MustAssetString(filePath + registerNodeFilename)
 
 	code = ReplaceLockedTokensAddress(code, lockedTokensAddr)
