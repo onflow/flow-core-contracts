@@ -22,19 +22,23 @@ const (
 	flowLockedTokensFilename   = "../../../contracts/LockedTokens.cdc"
 	flowStakingProxyFilename   = "../../../contracts/StakingProxy.cdc"
 
-	/// Test contracts
+	// Test contracts
 	TESTFlowIdentityTableFilename = "../../../contracts/testContracts/TestFlowIDTableStaking.cdc"
 
-	defaultFungibleTokenAddr = "0xFUNGIBLETOKENADDRESS"
-	defaultFlowTokenAddr     = "0xFLOWTOKENADDRESS"
-	defaultIDTableAddr       = "0xFLOWIDTABLESTAKINGADDRESS"
-	defaultStakingProxyAddr  = "0xSTAKINGPROXYADDRESS"
-	defaultQCAddr            = "0xQCADDRESS"
-	defaultDKGAddr           = "0xDKGADDRESS"
-	defaultFlowFeesAddr      = "0xe5a8b7f23e8b548f"
+	placeholderFungibleTokenAddress = "0xFUNGIBLETOKENADDRESS"
+	placeholderFlowTokenAddress     = "0xFLOWTOKENADDRESS"
+	placeholderIDTableAddress       = "0xFLOWIDTABLESTAKINGADDRESS"
+	placeholderStakingProxyAddress  = "0xSTAKINGPROXYADDRESS"
+	placeholderQCAddr               = "0xQCADDRESS"
+	placeholderDKGAddr              = "0xDKGADDRESS"
+	placeholderFlowFeesAddress      = "0xFLOWFEESADDRESS"
 )
 
-func sanitizeAddress(address string) string {
+func withHexPrefix(address string) string {
+	if address == "" {
+		return ""
+	}
+
 	if address[0:2] == "0x" {
 		return address
 	}
@@ -50,13 +54,13 @@ func FungibleToken() []byte {
 // FlowToken returns the FlowToken contract.
 //
 // The returned contract will import the FungibleToken contract from the specified address.
-func FlowToken(fungibleTokenAddr string) []byte {
+func FlowToken(fungibleTokenAddress string) []byte {
 	code := assets.MustAssetString(flowTokenFilename)
 
 	code = strings.ReplaceAll(
 		code,
-		defaultFungibleTokenAddr,
-		sanitizeAddress(fungibleTokenAddr),
+		placeholderFungibleTokenAddress,
+		withHexPrefix(fungibleTokenAddress),
 	)
 
 	return []byte(code)
@@ -66,19 +70,19 @@ func FlowToken(fungibleTokenAddr string) []byte {
 //
 // The returned contract will import the FungibleToken and FlowToken
 // contracts from the specified addresses.
-func FlowFees(fungibleTokenAddr, flowTokenAddr string) []byte {
+func FlowFees(fungibleTokenAddress, flowTokenAddress string) []byte {
 	code := assets.MustAssetString(flowFeesFilename)
 
 	code = strings.ReplaceAll(
 		code,
-		defaultFungibleTokenAddr,
-		sanitizeAddress(fungibleTokenAddr),
+		placeholderFungibleTokenAddress,
+		withHexPrefix(fungibleTokenAddress),
 	)
 
 	code = strings.ReplaceAll(
 		code,
-		defaultFlowTokenAddr,
-		sanitizeAddress(flowTokenAddr),
+		placeholderFlowTokenAddress,
+		withHexPrefix(flowTokenAddress),
 	)
 
 	return []byte(code)
@@ -88,46 +92,46 @@ func FlowFees(fungibleTokenAddr, flowTokenAddr string) []byte {
 //
 // The returned contract will import the FungibleToken, FlowToken and FlowFees
 // contracts from the specified addresses.
-func FlowServiceAccount(fungibleTokenAddr, flowTokenAddr, flowFeesAddr string) []byte {
+func FlowServiceAccount(fungibleTokenAddress, flowTokenAddress, flowFeesAddress string) []byte {
 	code := assets.MustAssetString(flowServiceAccountFilename)
 
 	code = strings.ReplaceAll(
 		code,
-		defaultFungibleTokenAddr,
-		sanitizeAddress(fungibleTokenAddr),
+		placeholderFungibleTokenAddress,
+		withHexPrefix(fungibleTokenAddress),
 	)
 
 	code = strings.ReplaceAll(
 		code,
-		defaultFlowTokenAddr,
-		sanitizeAddress(flowTokenAddr),
+		placeholderFlowTokenAddress,
+		withHexPrefix(flowTokenAddress),
 	)
 
 	code = strings.ReplaceAll(
 		code,
-		defaultFlowFeesAddr,
-		sanitizeAddress(flowFeesAddr),
+		placeholderFlowFeesAddress,
+		withHexPrefix(flowFeesAddress),
 	)
 
 	return []byte(code)
 }
 
 // FlowIDTableStaking returns the FlowIDTableStaking contract
-func FlowIDTableStaking(ftAddr, flowTokenAddr string) []byte {
+func FlowIDTableStaking(fungibleTokenAddress, flowTokenAddress string) []byte {
 	code := assets.MustAssetString(flowIdentityTableFilename)
 
-	code = strings.ReplaceAll(code, defaultFungibleTokenAddr, sanitizeAddress(ftAddr))
-	code = strings.ReplaceAll(code, defaultFlowTokenAddr, sanitizeAddress(flowTokenAddr))
+	code = strings.ReplaceAll(code, placeholderFungibleTokenAddress, withHexPrefix(fungibleTokenAddress))
+	code = strings.ReplaceAll(code, placeholderFlowTokenAddress, withHexPrefix(flowTokenAddress))
 
 	return []byte(code)
 }
 
 // TESTFlowIDTableStaking returns the TestFlowIDTableStaking contract
-func TESTFlowIDTableStaking(ftAddr, flowTokenAddr string) []byte {
+func TESTFlowIDTableStaking(fungibleTokenAddress, flowTokenAddress string) []byte {
 	code := assets.MustAssetString(TESTFlowIdentityTableFilename)
 
-	code = strings.ReplaceAll(code, defaultFungibleTokenAddr, sanitizeAddress(ftAddr))
-	code = strings.ReplaceAll(code, defaultFlowTokenAddr, sanitizeAddress(flowTokenAddr))
+	code = strings.ReplaceAll(code, placeholderFungibleTokenAddress, withHexPrefix(fungibleTokenAddress))
+	code = strings.ReplaceAll(code, placeholderFlowTokenAddress, withHexPrefix(flowTokenAddress))
 
 	return []byte(code)
 }
@@ -140,13 +144,18 @@ func FlowStakingProxy() []byte {
 }
 
 // FlowLockedTokens return the LockedTokens contract
-func FlowLockedTokens(ftAddr, flowTokenAddr, idTableAddr, stakingProxyAddr string) []byte {
+func FlowLockedTokens(
+	fungibleTokenAddress,
+	flowTokenAddress,
+	idTableAddress,
+	stakingProxyAddress string,
+) []byte {
 	code := assets.MustAssetString(flowLockedTokensFilename)
 
-	code = strings.ReplaceAll(code, defaultFungibleTokenAddr, sanitizeAddress(ftAddr))
-	code = strings.ReplaceAll(code, defaultFlowTokenAddr, sanitizeAddress(flowTokenAddr))
-	code = strings.ReplaceAll(code, defaultIDTableAddr, sanitizeAddress(idTableAddr))
-	code = strings.ReplaceAll(code, defaultStakingProxyAddr, sanitizeAddress(stakingProxyAddr))
+	code = strings.ReplaceAll(code, placeholderFungibleTokenAddress, withHexPrefix(fungibleTokenAddress))
+	code = strings.ReplaceAll(code, placeholderFlowTokenAddress, withHexPrefix(flowTokenAddress))
+	code = strings.ReplaceAll(code, placeholderIDTableAddress, withHexPrefix(idTableAddress))
+	code = strings.ReplaceAll(code, placeholderStakingProxyAddress, withHexPrefix(stakingProxyAddress))
 
 	return []byte(code)
 }

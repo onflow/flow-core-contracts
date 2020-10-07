@@ -1,5 +1,5 @@
-import LockedTokens from 0xf3fcd2c1a78f5eee
-import StakingProxy from 0x179b6b1cb6755e31
+import LockedTokens from 0xLOCKEDTOKENADDRESS
+import StakingProxy from 0xSTAKINGPROXYADDRESS
 
 transaction(address: Address, nodeID: String, amount: UFix64) {
 

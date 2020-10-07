@@ -1,4 +1,4 @@
-import StakingProxy from 0x179b6b1cb6755e31
+import StakingProxy from 0xSTAKINGPROXYADDRESS
 
 transaction(nodeID: String, amount: UFix64) {
 
