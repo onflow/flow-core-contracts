@@ -9,7 +9,8 @@ transaction {
 
     prepare(signer: AuthAccount) {
 
-        if signer.check<&FlowArcadeToken.Vault>(/storage/flowArcadeTokenVault) {
+        // If the account is already set up that's not a problem, but we don't want to replace it
+        if(signer.borrow<&FlowArcadeToken.Vault>(from: /storage/flowArcadeTokenVault) != nil) {
             return
         }
         

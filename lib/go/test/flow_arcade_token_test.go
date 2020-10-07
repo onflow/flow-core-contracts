@@ -32,7 +32,8 @@ func createAccount(t *testing.T, b *emulator.Blockchain, accountKeys *test.Accou
 // Create a new Flow account that has the FAT vault installed.
 func createFatReceiverAccount(t *testing.T, b *emulator.Blockchain, accountKeys *test.AccountKeys, fatAddress sdk.Address) (sdk.Address, crypto.Signer, *sdk.AccountKey) {
 	address, signer, accountKey := createAccount(t, b, accountKeys)
-	txSetupOne := flow.NewTransaction().
+
+	txSetup := flow.NewTransaction().
 		SetScript(templates.GenerateSetupAccountScript(emulatorFTAddress, fatAddress.String())).
 		SetGasLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
@@ -40,7 +41,7 @@ func createFatReceiverAccount(t *testing.T, b *emulator.Blockchain, accountKeys 
 		AddAuthorizer(address)
 
 	signAndSubmit(
-		t, b, txSetupOne,
+		t, b, txSetup,
 		[]flow.Address{b.ServiceKey().Address, address},
 		[]crypto.Signer{b.ServiceKey().Signer(), signer},
 		false,
@@ -72,6 +73,150 @@ func getDeployedContractAddress(t *testing.T, b *emulator.Blockchain) sdk.Addres
 	assert.NotEqual(t, address, sdk.EmptyAddress)
 
 	return address
+}
+
+// Vend tokens to an account - this can and should fail in various ways
+// if the admin or recipient are incorrectly configured.
+func vendTokens(
+	t *testing.T,
+	b *emulator.Blockchain,
+	fatAddress sdk.Address,
+	adminAddress sdk.Address,
+	adminSigner crypto.Signer,
+	recipientAddress sdk.Address,
+	amount string,
+	shouldRevert bool,
+) {
+	// Get pre state
+	totalPreBalance := executeScriptAndCheck(t, b, templates.GenerateGetSupplyScript(fatAddress.String()))
+	recipientPreBalance, recipientPreBalanceError := b.ExecuteScript(
+		templates.GenerateGetBalanceScript(emulatorFTAddress, fatAddress.String()),
+		[][]byte{jsoncdc.MustEncode(cadence.Address(recipientAddress))},
+	)
+	require.NoError(t, recipientPreBalanceError)
+
+	cadenceAmount := CadenceUFix64(amount)
+
+	// Admin vends tokens to receiver account
+	txVend := flow.NewTransaction().
+		SetScript(templates.GenerateMintTokensScript(emulatorFTAddress, fatAddress.String())).
+		SetGasLimit(100).
+		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+		SetPayer(b.ServiceKey().Address).
+		AddAuthorizer(adminAddress)
+	txVend.AddArgument(cadence.NewAddress(recipientAddress))
+	txVend.AddArgument(cadenceAmount)
+
+	signAndSubmit(
+		t, b, txVend,
+		[]flow.Address{b.ServiceKey().Address, adminAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
+		shouldRevert,
+	)
+
+	// Only check state if transaction should have gone through
+	if !shouldRevert {
+		// Get post state
+		totalPostBalance := executeScriptAndCheck(t, b, templates.GenerateGetSupplyScript(fatAddress.String()))
+		recipientPostBalance, recipientPostBalanceError := b.ExecuteScript(
+			templates.GenerateGetBalanceScript(emulatorFTAddress, fatAddress.String()),
+			[][]byte{jsoncdc.MustEncode(cadence.Address(recipientAddress))},
+		)
+		require.NoError(t, recipientPostBalanceError)
+
+		uint64Amount := cadenceAmount.ToGoValue().(uint64)
+
+		// Make sure state has been correctly updated
+		require.Equal(
+			t,
+			totalPreBalance.(cadence.UFix64).ToGoValue().(uint64),
+			totalPostBalance.(cadence.UFix64).ToGoValue().(uint64)-uint64Amount,
+		)
+		require.EqualValues(
+			t,
+			recipientPostBalance.Value.(cadence.UFix64).ToGoValue().(uint64),
+			recipientPreBalance.Value.(cadence.UFix64).ToGoValue().(uint64)+uint64Amount,
+		)
+	}
+}
+
+// Transfer tokens to an account - this can and should fail in various ways
+// if the sender or receiver are incorrectly configured.
+func transferTokens(
+	t *testing.T,
+	b *emulator.Blockchain,
+	fatAddress sdk.Address,
+	adminAddress sdk.Address,
+	adminSigner crypto.Signer,
+	senderAddress sdk.Address,
+	senderSigner crypto.Signer,
+	receiverAddress sdk.Address,
+	amount string,
+	shouldRevert bool,
+) {
+	// Get pre state
+	totalPreBalance := executeScriptAndCheck(t, b, templates.GenerateGetSupplyScript(fatAddress.String()))
+	senderPreBalance, senderPreBalanceError := b.ExecuteScript(
+		templates.GenerateGetBalanceScript(emulatorFTAddress, fatAddress.String()),
+		[][]byte{jsoncdc.MustEncode(cadence.Address(senderAddress))},
+	)
+	require.NoError(t, senderPreBalanceError)
+	receiverPreBalance, receiverPreBalanceError := b.ExecuteScript(
+		templates.GenerateGetBalanceScript(emulatorFTAddress, fatAddress.String()),
+		[][]byte{jsoncdc.MustEncode(cadence.Address(receiverAddress))},
+	)
+	require.NoError(t, receiverPreBalanceError)
+
+	cadenceAmount := CadenceUFix64(amount)
+
+	// Perform the transfer
+	txTransfer := flow.NewTransaction().
+		SetScript(templates.GenerateTransferTokensScript(emulatorFTAddress, fatAddress.String())).
+		SetGasLimit(100).
+		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+		SetPayer(b.ServiceKey().Address).
+		AddAuthorizer(senderAddress)
+	txTransfer.AddArgument(cadenceAmount)
+	txTransfer.AddArgument(cadence.NewAddress(receiverAddress))
+
+	signAndSubmit(
+		t, b, txTransfer,
+		[]flow.Address{b.ServiceKey().Address, senderAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), senderSigner},
+		shouldRevert,
+	)
+
+	// Only check state if transfer should have gone through
+	if !shouldRevert {
+		// Get post state
+		totalPostBalance := executeScriptAndCheck(t, b, templates.GenerateGetSupplyScript(fatAddress.String()))
+		senderPostBalance, senderPostBalanceError := b.ExecuteScript(
+			templates.GenerateGetBalanceScript(emulatorFTAddress, fatAddress.String()),
+			[][]byte{jsoncdc.MustEncode(cadence.Address(senderAddress))},
+		)
+		require.NoError(t, senderPostBalanceError)
+		receiverPostBalance, receiverPostBalanceError := b.ExecuteScript(
+			templates.GenerateGetBalanceScript(emulatorFTAddress, fatAddress.String()),
+			[][]byte{jsoncdc.MustEncode(cadence.Address(receiverAddress))},
+		)
+		require.NoError(t, receiverPostBalanceError)
+
+		// Make sure state has been correctly updated
+		require.Equal(t, totalPreBalance, totalPostBalance)
+
+		uint64Amount := cadenceAmount.ToGoValue().(uint64)
+
+		require.EqualValues(
+			t,
+			senderPostBalance.Value.(cadence.UFix64).ToGoValue().(uint64),
+			senderPreBalance.Value.(cadence.UFix64).ToGoValue().(uint64)-uint64Amount,
+		)
+		require.EqualValues(
+			t,
+			receiverPostBalance.Value.(cadence.UFix64).ToGoValue().(uint64),
+			receiverPreBalance.Value.(cadence.UFix64).ToGoValue().(uint64)+uint64Amount,
+		)
+	}
 }
 
 func TestFlowArcadeToken(t *testing.T) {
@@ -134,31 +279,10 @@ func TestFlowArcadeToken(t *testing.T) {
 		assert.Equal(t, balanceOne.Value.(cadence.UFix64), CadenceUFix64("0.0"))
 	})
 
-	t.Run("Should not be able to set up account to receive FAT tokens twice", func(t *testing.T) {
-		address, signer, _ := createFatReceiverAccount(t, b, accountKeys, fatAddress)
-
-		txSetupOne := flow.NewTransaction().
-			SetScript(templates.GenerateSetupAccountScript(emulatorFTAddress, fatAddress.String())).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(address)
-
-		signAndSubmit(
-			t, b, txSetupOne,
-			[]flow.Address{b.ServiceKey().Address, address},
-			[]crypto.Signer{b.ServiceKey().Signer(), signer},
-			true,
-		)
-	})
-
 	// Create addresses to test token transfer.
 	// This implicitly checks the account creation code.
-	oneAddress, oneSigner, _ := createFatReceiverAccount(t, b, accountKeys, fatAddress)
-	twoAddress, twoSigner, _ := createFatReceiverAccount(t, b, accountKeys, fatAddress)
-	noFatVaultAddress, _, _ := createAccount(t, b, accountKeys)
 
-	t.Run("Admin should be able to give minter capability to minter account", func(t *testing.T) {
+	t.Run("Admin should be able to give minter capability to an account", func(t *testing.T) {
 		txAddMinter := flow.NewTransaction().
 			SetScript(templates.GenerateAddMinterScript(fatAddress.String())).
 			SetGasLimit(100).
@@ -175,7 +299,7 @@ func TestFlowArcadeToken(t *testing.T) {
 		)
 	})
 
-	t.Run("Admin should not be able to give minter capability to minter account twice", func(t *testing.T) {
+	t.Run("Admin should not be able to give minter capability to an account twice", func(t *testing.T) {
 		txAddMinter := flow.NewTransaction().
 			SetScript(templates.GenerateAddMinterScript(fatAddress.String())).
 			SetGasLimit(100).
@@ -192,7 +316,7 @@ func TestFlowArcadeToken(t *testing.T) {
 		)
 	})
 
-	t.Run("Non-admin should not be able to give minter capability to minter account", func(t *testing.T) {
+	t.Run("Non-admin should not be able to give minter capability to an account", func(t *testing.T) {
 		txAddMinter := flow.NewTransaction().
 			SetScript(templates.GenerateAddMinterScript(fatAddress.String())).
 			SetGasLimit(100).
@@ -210,139 +334,226 @@ func TestFlowArcadeToken(t *testing.T) {
 	})
 
 	t.Run("Minter should be able to mint tokens to account with FAT vault", func(t *testing.T) {
-		txVend := flow.NewTransaction().
-			SetScript(templates.GenerateMintTokensScript(emulatorFTAddress, fatAddress.String())).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(adminAddress)
-		txVend.AddArgument(cadence.NewAddress(oneAddress))
-		txVend.AddArgument(CadenceUFix64("99.99"))
+		oneAddress, _, _ := createFatReceiverAccount(t, b, accountKeys, fatAddress)
 
-		signAndSubmit(
-			t, b, txVend,
-			[]flow.Address{b.ServiceKey().Address, adminAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
-			false,
-		)
+		vendTokens(t, b, fatAddress, adminAddress, adminSigner, oneAddress, "99.99", false)
+	})
 
-		// Make sure the mintee received the correct number of tokens.
-		balanceOneAfterVend, balanceOneAfterVendError := b.ExecuteScript(
-			templates.GenerateGetBalanceScript(emulatorFTAddress, fatAddress.String()),
-			[][]byte{jsoncdc.MustEncode(cadence.Address(oneAddress))},
-		)
-		require.NoError(t, balanceOneAfterVendError)
-		assert.Equal(t, balanceOneAfterVend.Value.(cadence.UFix64), CadenceUFix64("99.99"))
+	t.Run("Minter should be able to mint tokens to account with FAT vault multiple times", func(t *testing.T) {
+		address, _, _ := createFatReceiverAccount(t, b, accountKeys, fatAddress)
 
-		// Make sure the total number of tokens in existence is correct.
-		supplyAfterVend := executeScriptAndCheck(t, b, templates.GenerateGetSupplyScript(fatAddress.String()))
-		assert.Equal(t, supplyAfterVend.(cadence.UFix64), CadenceUFix64("99.99"))
+		for i := 0; i < 10; i++ {
+			vendTokens(t, b, fatAddress, adminAddress, adminSigner, address, "1.0", false)
+		}
 	})
 
 	t.Run("Minter should not be able to mint tokens to account without FAT vault", func(t *testing.T) {
-		txVend := flow.NewTransaction().
-			SetScript(templates.GenerateMintTokensScript(emulatorFTAddress, fatAddress.String())).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(adminAddress)
-		txVend.AddArgument(cadence.NewAddress(noFatVaultAddress))
-		txVend.AddArgument(CadenceUFix64("99.99"))
+		noFatVaultAddress, _, _ := createAccount(t, b, accountKeys)
 
-		signAndSubmit(
-			t, b, txVend,
-			[]flow.Address{b.ServiceKey().Address, adminAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
+		vendTokens(t, b, fatAddress, adminAddress, adminSigner, noFatVaultAddress, "99.99", true)
+	})
+
+	t.Run("Non-minter should not be able to mint tokens to account with FAT vault", func(t *testing.T) {
+		nonAdminAddress, nonAdminSigner, _ := createAccount(t, b, accountKeys)
+		noFatVaultAddress, _, _ := createAccount(t, b, accountKeys)
+
+		vendTokens(t, b, fatAddress, nonAdminAddress, nonAdminSigner, noFatVaultAddress, "99.99", true)
+	})
+
+	t.Run("Account without tokens should not be able to transfer any", func(t *testing.T) {
+		oneAddress, oneSigner, _ := createFatReceiverAccount(t, b, accountKeys, fatAddress)
+
+		twoAddress, _, _ := createFatReceiverAccount(t, b, accountKeys, fatAddress)
+
+		transferTokens(
+			t,
+			b,
+			fatAddress,
+			adminAddress,
+			adminSigner,
+			oneAddress,
+			oneSigner,
+			twoAddress,
+			"9.09",
 			true,
 		)
 	})
 
-	t.Run("Non-minter should not be able to mint tokens to account with FAT vault", func(t *testing.T) {
-		txVend := flow.NewTransaction().
-			SetScript(templates.GenerateMintTokensScript(emulatorFTAddress, fatAddress.String())).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(nonAdminAddress)
-		txVend.AddArgument(cadence.NewAddress(oneAddress))
-		txVend.AddArgument(CadenceUFix64("99.99"))
+	t.Run("Account with insufficient tokens should not be able to transfer a karger amount", func(t *testing.T) {
+		oneAddress, oneSigner, _ := createFatReceiverAccount(t, b, accountKeys, fatAddress)
 
-		signAndSubmit(
-			t, b, txVend,
-			[]flow.Address{b.ServiceKey().Address, nonAdminAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), nonAdminSigner},
+		// Admin vends tokens to first account
+		vendTokens(t, b, fatAddress, adminAddress, adminSigner, oneAddress, "1.0", false)
+
+		twoAddress, _, _ := createFatReceiverAccount(t, b, accountKeys, fatAddress)
+
+		transferTokens(
+			t,
+			b,
+			fatAddress,
+			adminAddress,
+			adminSigner,
+			oneAddress,
+			oneSigner,
+			twoAddress,
+			"100.0",
 			true,
 		)
 	})
 
 	t.Run("Account with minted tokens should be able to transfer tokens to another account with FAT vault", func(t *testing.T) {
-		// Set up the second account to receive tokens.
-		txSetupTwo := flow.NewTransaction().
+		oneAddress, oneSigner, _ := createFatReceiverAccount(t, b, accountKeys, fatAddress)
+
+		// Admin vends tokens to first account
+		vendTokens(t, b, fatAddress, adminAddress, adminSigner, oneAddress, "99.99", false)
+
+		twoAddress, _, _ := createFatReceiverAccount(t, b, accountKeys, fatAddress)
+
+		transferTokens(
+			t,
+			b,
+			fatAddress,
+			adminAddress,
+			adminSigner,
+			oneAddress,
+			oneSigner,
+			twoAddress,
+			"9.09",
+			false,
+		)
+	})
+
+	t.Run("Account should be able to transfer its entire balance", func(t *testing.T) {
+		oneAddress, oneSigner, _ := createFatReceiverAccount(t, b, accountKeys, fatAddress)
+
+		// Admin vends tokens to first account
+		vendTokens(t, b, fatAddress, adminAddress, adminSigner, oneAddress, "100.0", false)
+
+		twoAddress, _, _ := createFatReceiverAccount(t, b, accountKeys, fatAddress)
+
+		transferTokens(
+			t,
+			b,
+			fatAddress,
+			adminAddress,
+			adminSigner,
+			oneAddress,
+			oneSigner,
+			twoAddress,
+			"100.0",
+			false,
+		)
+	})
+
+	t.Run("Account should be able to transfer its entire balance then receive more tokens", func(t *testing.T) {
+		oneAddress, oneSigner, _ := createFatReceiverAccount(t, b, accountKeys, fatAddress)
+
+		// Admin vends tokens to first account
+		vendTokens(t, b, fatAddress, adminAddress, adminSigner, oneAddress, "100.0", false)
+
+		twoAddress, _, _ := createFatReceiverAccount(t, b, accountKeys, fatAddress)
+
+		transferTokens(
+			t,
+			b,
+			fatAddress,
+			adminAddress,
+			adminSigner,
+			oneAddress,
+			oneSigner,
+			twoAddress,
+			"100.0",
+			false,
+		)
+
+		vendTokens(t, b, fatAddress, adminAddress, adminSigner, oneAddress, "1000.0", false)
+	})
+
+	t.Run("Accounts with tokens should be able to transfer them multiple times", func(t *testing.T) {
+		oneAddress, oneSigner, _ := createFatReceiverAccount(t, b, accountKeys, fatAddress)
+
+		// Admin vends tokens to first account
+		vendTokens(t, b, fatAddress, adminAddress, adminSigner, oneAddress, "99.99", false)
+
+		twoAddress, twoSigner, _ := createFatReceiverAccount(t, b, accountKeys, fatAddress)
+
+		for i := 0; i < 10; i++ {
+			transferTokens(
+				t,
+				b,
+				fatAddress,
+				adminAddress,
+				adminSigner,
+				oneAddress,
+				oneSigner,
+				twoAddress,
+				"10.1",
+				false,
+			)
+
+			transferTokens(
+				t,
+				b,
+				fatAddress,
+				adminAddress,
+				adminSigner,
+				twoAddress,
+				twoSigner,
+				oneAddress,
+				"1.1",
+				false,
+			)
+		}
+	})
+
+	t.Run("Account with minted tokens should not be able to transfer tokens to another account without FAT vault", func(t *testing.T) {
+		oneAddress, oneSigner, _ := createFatReceiverAccount(t, b, accountKeys, fatAddress)
+		vendTokens(t, b, fatAddress, adminAddress, adminSigner, oneAddress, "99.99", false)
+
+		noFatVaultAddress, _, _ := createAccount(t, b, accountKeys)
+
+		transferTokens(
+			t,
+			b,
+			fatAddress,
+			adminAddress,
+			adminSigner,
+			oneAddress,
+			oneSigner,
+			noFatVaultAddress,
+			"9.09",
+			true,
+		)
+	})
+
+	t.Run("Should not replace vault if user tries to set up account twice", func(t *testing.T) {
+		address, signer, _ := createFatReceiverAccount(t, b, accountKeys, fatAddress)
+		vendTokens(t, b, fatAddress, adminAddress, adminSigner, address, "10.11", false)
+
+		// Try to set up account again. This should not error,
+		// but it should also not replace the originally created vault.
+
+		txSetupAgain := flow.NewTransaction().
 			SetScript(templates.GenerateSetupAccountScript(emulatorFTAddress, fatAddress.String())).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(twoAddress)
+			AddAuthorizer(address)
 
 		signAndSubmit(
-			t, b, txSetupTwo,
-			[]flow.Address{b.ServiceKey().Address, twoAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), twoSigner},
+			t, b, txSetupAgain,
+			[]flow.Address{b.ServiceKey().Address, address},
+			[]crypto.Signer{b.ServiceKey().Signer(), signer},
 			false,
 		)
 
-		// Token vendee sends tokens to transfer reciever account.
-		txTransfer := flow.NewTransaction().
-			SetScript(templates.GenerateTransferTokensScript(emulatorFTAddress, fatAddress.String())).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(oneAddress)
-		txTransfer.AddArgument(CadenceUFix64("9.09"))
-		txTransfer.AddArgument(cadence.NewAddress(twoAddress))
-
-		signAndSubmit(
-			t, b, txTransfer,
-			[]flow.Address{b.ServiceKey().Address, oneAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), oneSigner},
-			false,
-		)
-
-		// Make sure each account has the correct number of tokens.
-		balanceOneAfterTransfer, balanceOneAfterTransferError := b.ExecuteScript(
+		// The existing vault should not have been replaced.
+		// To establish this, we check that it still has its value.
+		balance, balanceError := b.ExecuteScript(
 			templates.GenerateGetBalanceScript(emulatorFTAddress, fatAddress.String()),
-			[][]byte{jsoncdc.MustEncode(cadence.Address(oneAddress))},
+			[][]byte{jsoncdc.MustEncode(cadence.Address(address))},
 		)
-
-		require.NoError(t, balanceOneAfterTransferError)
-		assert.Equal(t, balanceOneAfterTransfer.Value.(cadence.UFix64), CadenceUFix64("90.9"))
-		balanceTwoAfterTransfer, balanceTwoAfterTransferError := b.ExecuteScript(
-			templates.GenerateGetBalanceScript(emulatorFTAddress, fatAddress.String()),
-			[][]byte{jsoncdc.MustEncode(cadence.Address(twoAddress))},
-		)
-		require.NoError(t, balanceTwoAfterTransferError)
-		assert.Equal(t, balanceTwoAfterTransfer.Value.(cadence.UFix64), CadenceUFix64("9.09"))
-
-		// Make sure the total number of tokens in existence is still correct.
-		supply := executeScriptAndCheck(t, b, templates.GenerateGetSupplyScript(fatAddress.String()))
-		assert.Equal(t, supply.(cadence.UFix64), CadenceUFix64("99.99"))
-	})
-
-	t.Run("Account with minted tokens should not be able to transfer tokens to another account without FAT vault", func(t *testing.T) {
-		txTransfer := flow.NewTransaction().
-			SetScript(templates.GenerateTransferTokensScript(emulatorFTAddress, fatAddress.String())).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(oneAddress)
-		txTransfer.AddArgument(CadenceUFix64("9.09"))
-		txTransfer.AddArgument(cadence.NewAddress(noFatVaultAddress))
-
-		signAndSubmit(
-			t, b, txTransfer,
-			[]flow.Address{b.ServiceKey().Address, oneAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), oneSigner},
-			true,
-		)
+		require.NoError(t, balanceError)
+		assert.Equal(t, balance.Value.(cadence.UFix64), CadenceUFix64("10.11"))
 	})
 }
