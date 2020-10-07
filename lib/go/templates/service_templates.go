@@ -14,10 +14,10 @@ const (
 	defaultField         = "transactionField"
 )
 
-// InspectFieldScript creates a script that reads
+// GenerateInspectFieldScript creates a script that reads
 // a field from the smart contract and makes assertions
 // about its value
-func InspectFieldScript(field string) []byte {
+func GenerateInspectFieldScript(field string) []byte {
 	code := assets.MustAssetString(filePath + inspectFieldFilename)
 
 	code = strings.ReplaceAll(

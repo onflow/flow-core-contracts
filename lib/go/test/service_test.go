@@ -20,6 +20,6 @@ func TestContracts(t *testing.T) {
 	assert.NoError(t, err)
 
 	// read fields on the ServiceAccount contract
-	_ = executeScriptAndCheck(t, b, templates.InspectFieldScript("transactionFee"))
-	_ = executeScriptAndCheck(t, b, templates.InspectFieldScript("accountCreationFee"))
+	_ = executeScriptAndCheck(t, b, templates.GenerateInspectFieldScript("transactionFee"))
+	_ = executeScriptAndCheck(t, b, templates.GenerateInspectFieldScript("accountCreationFee"))
 }
