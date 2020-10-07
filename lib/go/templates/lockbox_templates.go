@@ -6,7 +6,6 @@ import (
 
 const (
 	// admin templates
-	createAdminCollectionFilename           = "lockedTokens/admin/create_admin_collection.cdc"
 	createLockedAccountsFilename            = "lockedTokens/admin/admin_create_shared_accounts.cdc"
 	depositLockedTokensFilename             = "lockedTokens/admin/deposit_locked_tokens.cdc"
 	increaseUnlockLimitFilename             = "lockedTokens/admin/unlock_tokens.cdc"
@@ -45,14 +44,6 @@ const (
 )
 
 /************ LockedTokens Admin Transactions ****************/
-
-func GenerateCreateAdminCollectionScript(lockedTokensAddr string) []byte {
-	code := assets.MustAssetString(filePath + createAdminCollectionFilename)
-
-	code = ReplaceLockedTokensAddress(code, lockedTokensAddr)
-
-	return []byte(code)
-}
 
 func GenerateCreateSharedAccountScript(ftAddr, flowTokenAddr, lockedTokensAddr string) []byte {
 	code := assets.MustAssetString(filePath + createLockedAccountsFilename)
