@@ -22,13 +22,6 @@ const (
 
 // ReplaceAddresses replaces the contract addresses in the code
 func replaceFATAddress(code, fatAddr string) string {
-
-	code = strings.ReplaceAll(
-		code,
-		"0x"+defaultFungibleTokenAddress,
-		"0x"+ftAddr,
-	)
-
 	code = strings.ReplaceAll(
 		code,
 		"0x"+defaultFlowArcadeTokenAddress,
@@ -47,35 +40,55 @@ func GenerateDeployFlowArcadeTokenScript() []byte {
 func GenerateAddMinterScript(fatAddr string) []byte {
 	code := assets.MustAssetString(filePath + addMinterFilename)
 
-	return []byte(replaceAddresses(code, "", fatAddr))
+	code = replaceFATAddress(code, fatAddr)
+
+	return []byte(code)
 }
 
 func GenerateSetupAccountScript(ftAddr, fatAddr string) []byte {
 	code := assets.MustAssetString(filePath + setupAccountFilename)
 
-	return []byte(replaceAddresses(code, ftAddr, fatAddr))
+	code = ReplaceAddresses(code, ftAddr, "", "")
+
+	code = replaceFATAddress(code, fatAddr)
+
+	return []byte(code)
 }
 
 func GenerateMintTokensScript(ftAddr, fatAddr string) []byte {
 	code := assets.MustAssetString(filePath + mintTokensFilename)
 
-	return []byte(replaceAddresses(code, ftAddr, fatAddr))
+	code = ReplaceAddresses(code, ftAddr, "", "")
+
+	code = replaceFATAddress(code, fatAddr)
+
+	return []byte(code)
 }
 
 func GenerateTransferTokensScript(ftAddr, fatAddr string) []byte {
 	code := assets.MustAssetString(filePath + transferTokensFilename)
 
-	return []byte(replaceAddresses(code, ftAddr, fatAddr))
+	code = ReplaceAddresses(code, ftAddr, "", "")
+
+	code = replaceFATAddress(code, fatAddr)
+
+	return []byte(code)
 }
 
 func GenerateGetBalanceScript(ftAddr, fatAddr string) []byte {
 	code := assets.MustAssetString(filePath + getBalanceFilename)
 
-	return []byte(replaceAddresses(code, ftAddr, fatAddr))
+	code = ReplaceAddresses(code, ftAddr, "", "")
+
+	code = replaceFATAddress(code, fatAddr)
+
+	return []byte(code)
 }
 
 func GenerateGetSupplyScript(fatAddr string) []byte {
 	code := assets.MustAssetString(filePath + getSupplyFilename)
 
-	return []byte(replaceAddresses(code, "", fatAddr))
+	code = replaceFATAddress(code, fatAddr)
+
+	return []byte(code)
 }
