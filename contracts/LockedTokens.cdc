@@ -36,7 +36,7 @@ pub contract LockedTokens {
     pub event SharedAccountRegistered(address: Address)
     pub event UnlockedAccountRegistered(address: Address)
 
-    pub event UnlockLimitIncreased(address: Address, amount: UFix64)
+    pub event UnlockLimitIncreased(address: Address, increaseAmount: UFix64, newLimit: UFix64)
 
     pub event LockedAccountRegisteredAsNode(address: Address, nodeID: String)
     pub event LockedAccountRegisteredAsDelegator(address: Address, nodeID: String)
@@ -173,7 +173,7 @@ pub contract LockedTokens {
         /// Called by the admin every time a vesting release happens
         pub fun increaseUnlockLimit(delta: UFix64) {  
             self.unlockLimit = self.unlockLimit + delta
-            emit UnlockLimitIncreased(address: self.owner!.address, amount: delta)
+            emit UnlockLimitIncreased(address: self.owner!.address, increaseAmount: delta, newLimit: self.unlockLimit)
         }
 
         // LockedTokens.TokenHolder actions
@@ -205,6 +205,8 @@ pub contract LockedTokens {
         pub fun getLockedAccountAddress(): Address
         pub fun getLockedAccountBalance(): UFix64
         pub fun getUnlockLimit(): UFix64
+        pub fun getNodeID(): String?
+        pub fun getDelegatorID(): UInt32?
     }
 
     /// Stored in Holder unlocked account
@@ -308,6 +310,12 @@ pub contract LockedTokens {
             return self.nodeStakerProxy!
         }
 
+        pub fun getNodeID(): String? {
+            let tokenManager = self.tokenManager.borrow()!
+
+            return tokenManager.nodeStaker?.id
+        }
+
         /// Borrow a "reference" to the delegating object which allows the caller
         /// to perform all delegating actions with locked tokens.
         pub fun borrowDelegator(): LockedNodeDelegatorProxy {
@@ -317,6 +325,13 @@ pub contract LockedTokens {
             }
             return self.nodeDelegatorProxy!
         }
+
+        pub fun getDelegatorID(): UInt32? {
+            let tokenManager = self.tokenManager.borrow()!
+
+            return tokenManager.nodeDelegator?.id
+        }
+
     }
 
     /// Used to perform staking actions

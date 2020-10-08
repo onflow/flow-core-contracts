@@ -67,10 +67,12 @@
 // ../../../transactions/lockedTokens/delegator/delegate_locked_rewarded_tokens.cdc (522B)
 // ../../../transactions/lockedTokens/delegator/delegate_locked_unstaked_tokens.cdc (514B)
 // ../../../transactions/lockedTokens/delegator/delegate_new_locked_tokens.cdc (1.172kB)
+// ../../../transactions/lockedTokens/delegator/get_delegator_id.cdc (405B)
 // ../../../transactions/lockedTokens/delegator/register_delegator.cdc (549B)
 // ../../../transactions/lockedTokens/delegator/request_unstaking_locked_delegated_tokens.cdc (516B)
 // ../../../transactions/lockedTokens/delegator/withdraw_locked_rewarded_delegated_tokens.cdc (522B)
 // ../../../transactions/lockedTokens/delegator/withdraw_locked_unstaked_delegated_tokens.cdc (522B)
+// ../../../transactions/lockedTokens/staker/get_node_id.cdc (400B)
 // ../../../transactions/lockedTokens/staker/register_node.cdc (729B)
 // ../../../transactions/lockedTokens/staker/request_unstaking.cdc (516B)
 // ../../../transactions/lockedTokens/staker/stake_new_tokens.cdc (1.226kB)
@@ -1512,6 +1514,26 @@ func TransactionsLockedtokensDelegatorDelegate_new_locked_tokensCdc() (*asset, e
 	return a, nil
 }
 
+var _TransactionsLockedtokensDelegatorGet_delegator_idCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x7c\x50\x5d\x6b\xc2\x40\x10\x7c\xbf\x5f\x31\xfa\x50\x72\x2f\x52\xda\x37\x69\x2b\x62\x84\x8a\x52\x45\xed\x0f\xb8\x5c\x36\xf6\xf0\xbc\x0d\x97\x3d\xda\x22\xfe\xf7\x62\xd2\xd2\x4f\xba\x2f\x0b\x3b\xb3\x33\xbb\xe3\x0e\x35\x47\xc1\x82\xed\x9e\xca\x2d\xef\x29\x34\xa8\x22\x1f\x70\xf9\xb2\x58\x4e\xe6\xd3\x7c\xbb\x9c\x4f\x1f\xc6\x79\xbe\x9e\x6e\x36\x4a\xd5\xa9\x40\x95\x02\x0e\xc6\x85\xcc\x58\xcb\x29\xc8\x10\xe3\xb2\x8c\xd4\x34\x7a\x88\xc7\x59\x90\xeb\x2b\x1c\x95\x02\x00\x4f\x02\xdf\x2a\x8f\x3b\xea\x2c\x54\xbc\xa6\x0a\xb7\xd8\x91\xbc\xcf\x3e\x64\x74\xbb\x72\xae\xc1\x8e\x64\x62\x6a\x53\x38\xef\xe4\xf5\xe6\xe2\xeb\x71\x83\xb6\xdd\xb3\x2f\x29\x1e\xbf\x01\x8b\x9f\x46\xa7\xbb\xec\x7f\xc2\x2a\x15\xde\xd9\x95\x91\x27\xdd\xfb\x34\x2f\x38\x46\x7e\xce\x34\x46\x23\xd4\x26\x38\x9b\xf5\x27\x9c\x7c\x89\xc0\x82\x0e\x84\x41\xa4\x8a\x22\x05\x4b\x10\x46\xdd\x0a\xe1\x97\x41\x5f\x77\x39\x44\x92\x14\xc3\x9f\x51\x9c\x7f\xcd\xc9\xd3\xce\x08\xc7\x59\x9e\xe9\x9e\x3a\xa9\xb7\x00\x00\x00\xff\xff\xae\x79\x8c\xf0\x95\x01\x00\x00"
+
+func TransactionsLockedtokensDelegatorGet_delegator_idCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_TransactionsLockedtokensDelegatorGet_delegator_idCdc,
+		"../../../transactions/lockedTokens/delegator/get_delegator_id.cdc",
+	)
+}
+
+func TransactionsLockedtokensDelegatorGet_delegator_idCdc() (*asset, error) {
+	bytes, err := TransactionsLockedtokensDelegatorGet_delegator_idCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "../../../transactions/lockedTokens/delegator/get_delegator_id.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x95, 0x5, 0xef, 0x1b, 0x63, 0xc1, 0xf2, 0x8e, 0xe5, 0x4f, 0x5, 0x4d, 0xa8, 0x56, 0xa9, 0x28, 0xd1, 0x9, 0xc3, 0xad, 0xb6, 0x9, 0x4f, 0xc7, 0x71, 0xb, 0x2e, 0x86, 0xb7, 0xc7, 0xac, 0x5d}}
+	return a, nil
+}
+
 var _TransactionsLockedtokensDelegatorRegister_delegatorCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x74\x91\x41\x6b\xc2\x40\x10\x85\xef\xf9\x15\x0f\x0f\x25\x81\x12\x7a\x28\x3d\x84\x5a\x91\xc6\xd2\xa2\xa8\x18\xfb\x03\xb6\xbb\x13\xb3\x18\x77\xc2\x66\xac\x29\xc5\xff\x5e\x62\xd4\xda\x82\x73\x19\x96\x79\xf3\x0d\xef\xad\xdd\x54\xec\x05\x13\xd6\x6b\x32\x4b\x5e\x93\xab\x91\x7b\xde\xe0\xae\x99\xcc\x9e\xc7\xa3\x74\x39\x1b\x8f\xa6\xc3\x34\x5d\x8c\xb2\x2c\x08\xc4\x2b\x57\x2b\x2d\x96\x5d\x68\x4d\x82\x4c\xbc\x75\xab\x5b\xa8\x0d\x6f\x9d\x24\x78\x7f\xb1\xcd\xc3\x7d\x84\xef\x20\x00\x80\x92\x04\x05\x97\x86\xfc\x82\xf2\x04\x37\x97\x67\xe2\x43\x7b\x3d\x4c\x3b\x75\xe5\xa9\x52\x9e\x42\xa5\xb5\x24\x18\x6e\xa5\x18\x6a\xdd\x72\x5b\x1e\x8e\x55\x53\x99\xc7\x67\x26\xfa\x68\xd5\xf1\x07\x7b\xcf\xbb\xc7\xab\x07\x9e\xc2\xd6\x54\x82\x6b\xf3\x4c\xd8\xab\x15\xcd\x95\x14\x11\xce\xb7\xda\x1a\x0c\x50\x29\x67\x75\xd8\xbb\x90\xc3\xd6\x70\x2c\xa8\xd5\x27\x19\x28\x41\x5d\x91\xb6\xb9\x25\x83\x4a\x49\xd1\x8b\x0e\x88\x7d\x67\x8b\x1a\xd2\x5b\xa1\xab\x1e\x62\xed\x49\x09\x4d\xd9\x50\x4a\x25\xad\x94\xb0\x0f\x1d\x1b\x7a\x4b\x13\x58\x13\x05\xe7\xbd\x36\x4e\x73\x92\xcc\x3d\x37\x5f\xe8\xff\x87\x75\x49\xfc\x82\x2e\xd6\xff\xae\xc6\xc7\x27\x4d\x69\xd7\x05\x12\x9e\x7e\xb1\xeb\x27\x13\xfb\xe0\x27\x00\x00\xff\xff\xed\x4b\xa5\xfd\x25\x02\x00\x00"
 
 func TransactionsLockedtokensDelegatorRegister_delegatorCdcBytes() ([]byte, error) {
@@ -1589,6 +1611,26 @@ func TransactionsLockedtokensDelegatorWithdraw_locked_unstaked_delegated_tokensC
 
 	info := bindataFileInfo{name: "../../../transactions/lockedTokens/delegator/withdraw_locked_unstaked_delegated_tokens.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x16, 0x72, 0x9c, 0xc1, 0x6, 0x36, 0x57, 0xe5, 0x1d, 0x19, 0x1e, 0x22, 0xbd, 0x5d, 0x1f, 0x5b, 0x5b, 0x44, 0xe8, 0x54, 0xbd, 0xed, 0x9b, 0xb, 0xa1, 0xf6, 0x7f, 0xae, 0x9c, 0xb3, 0x12, 0x39}}
+	return a, nil
+}
+
+var _TransactionsLockedtokensStakerGet_node_idCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x7c\x50\x5d\x6b\xc2\x40\x10\x7c\xbf\x5f\x31\xfa\x50\x72\x2f\xd2\x67\x69\x2b\x62\x84\x8a\xa2\x62\xfc\x03\x97\xbb\x4d\x7a\x78\xb9\x0d\x97\x3b\xda\x22\xfe\xf7\x62\xd2\xd2\x4f\xba\x2f\x0b\x3b\xb3\x33\xbb\x63\x9b\x96\x43\xc4\x86\xf5\x89\xcc\x91\x4f\xe4\x3b\x54\x81\x1b\xdc\xbe\x6c\x76\x8b\xf5\x32\x3f\xee\xd6\xcb\xed\x3c\xcf\x0f\xcb\xa2\x10\xa2\x4d\x25\xaa\xe4\xd1\x28\xeb\x33\xa5\x35\x27\x1f\xa7\x98\x1b\x13\xa8\xeb\xe4\x14\x45\x0c\xd6\xd7\x38\x0b\x01\x00\x8e\x22\x5c\xaf\x3c\x1f\xa8\x2b\x5f\xf1\x81\x2a\xdc\xa3\xa6\xf8\x3e\xfb\x90\x91\xfd\xca\xb5\x26\x35\xc5\x85\x6a\x55\x69\x9d\x8d\xaf\x77\x37\x5f\x8f\x9b\xf4\xed\x91\x9d\xa1\x70\xfe\x06\x6c\x7e\x1a\x5d\x1e\xb2\xff\x09\xfb\x54\x3a\xab\xf7\x2a\x3e\xc9\xd1\xa7\x79\xc9\x21\xf0\x73\x26\x31\x9b\xa1\x55\xde\xea\x6c\xbc\xe0\xe4\x0c\x3c\x47\x0c\x20\x14\x02\x55\x14\xc8\x6b\x42\x64\xb4\xbd\x10\x7e\x19\x8c\xe5\x90\x43\xa0\x98\x82\xff\x33\x8a\xeb\xaf\x5b\x36\xb4\xca\x33\x39\x12\x17\xf1\x16\x00\x00\xff\xff\x51\x27\xf0\x0c\x90\x01\x00\x00"
+
+func TransactionsLockedtokensStakerGet_node_idCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_TransactionsLockedtokensStakerGet_node_idCdc,
+		"../../../transactions/lockedTokens/staker/get_node_id.cdc",
+	)
+}
+
+func TransactionsLockedtokensStakerGet_node_idCdc() (*asset, error) {
+	bytes, err := TransactionsLockedtokensStakerGet_node_idCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "../../../transactions/lockedTokens/staker/get_node_id.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xd7, 0x47, 0xfe, 0xf5, 0x52, 0x97, 0x8c, 0x6a, 0xd8, 0xc2, 0x0, 0x69, 0x5b, 0x94, 0xba, 0x9e, 0x62, 0x92, 0x49, 0x15, 0x50, 0x26, 0xcc, 0x3c, 0x7e, 0x95, 0xcc, 0x33, 0x76, 0x4, 0xba, 0x72}}
 	return a, nil
 }
 
@@ -2390,10 +2432,12 @@ var _bindata = map[string]func() (*asset, error){
 	"../../../transactions/lockedTokens/delegator/delegate_locked_rewarded_tokens.cdc":           TransactionsLockedtokensDelegatorDelegate_locked_rewarded_tokensCdc,
 	"../../../transactions/lockedTokens/delegator/delegate_locked_unstaked_tokens.cdc":           TransactionsLockedtokensDelegatorDelegate_locked_unstaked_tokensCdc,
 	"../../../transactions/lockedTokens/delegator/delegate_new_locked_tokens.cdc":                TransactionsLockedtokensDelegatorDelegate_new_locked_tokensCdc,
+	"../../../transactions/lockedTokens/delegator/get_delegator_id.cdc":                          TransactionsLockedtokensDelegatorGet_delegator_idCdc,
 	"../../../transactions/lockedTokens/delegator/register_delegator.cdc":                        TransactionsLockedtokensDelegatorRegister_delegatorCdc,
 	"../../../transactions/lockedTokens/delegator/request_unstaking_locked_delegated_tokens.cdc": TransactionsLockedtokensDelegatorRequest_unstaking_locked_delegated_tokensCdc,
 	"../../../transactions/lockedTokens/delegator/withdraw_locked_rewarded_delegated_tokens.cdc": TransactionsLockedtokensDelegatorWithdraw_locked_rewarded_delegated_tokensCdc,
 	"../../../transactions/lockedTokens/delegator/withdraw_locked_unstaked_delegated_tokens.cdc": TransactionsLockedtokensDelegatorWithdraw_locked_unstaked_delegated_tokensCdc,
+	"../../../transactions/lockedTokens/staker/get_node_id.cdc":                                  TransactionsLockedtokensStakerGet_node_idCdc,
 	"../../../transactions/lockedTokens/staker/register_node.cdc":                                TransactionsLockedtokensStakerRegister_nodeCdc,
 	"../../../transactions/lockedTokens/staker/request_unstaking.cdc":                            TransactionsLockedtokensStakerRequest_unstakingCdc,
 	"../../../transactions/lockedTokens/staker/stake_new_tokens.cdc":                             TransactionsLockedtokensStakerStake_new_tokensCdc,
@@ -2559,12 +2603,14 @@ var _bintree = &bintree{nil, map[string]*bintree{
 							"delegate_locked_rewarded_tokens.cdc":           &bintree{TransactionsLockedtokensDelegatorDelegate_locked_rewarded_tokensCdc, map[string]*bintree{}},
 							"delegate_locked_unstaked_tokens.cdc":           &bintree{TransactionsLockedtokensDelegatorDelegate_locked_unstaked_tokensCdc, map[string]*bintree{}},
 							"delegate_new_locked_tokens.cdc":                &bintree{TransactionsLockedtokensDelegatorDelegate_new_locked_tokensCdc, map[string]*bintree{}},
+							"get_delegator_id.cdc":                          &bintree{TransactionsLockedtokensDelegatorGet_delegator_idCdc, map[string]*bintree{}},
 							"register_delegator.cdc":                        &bintree{TransactionsLockedtokensDelegatorRegister_delegatorCdc, map[string]*bintree{}},
 							"request_unstaking_locked_delegated_tokens.cdc": &bintree{TransactionsLockedtokensDelegatorRequest_unstaking_locked_delegated_tokensCdc, map[string]*bintree{}},
 							"withdraw_locked_rewarded_delegated_tokens.cdc": &bintree{TransactionsLockedtokensDelegatorWithdraw_locked_rewarded_delegated_tokensCdc, map[string]*bintree{}},
 							"withdraw_locked_unstaked_delegated_tokens.cdc": &bintree{TransactionsLockedtokensDelegatorWithdraw_locked_unstaked_delegated_tokensCdc, map[string]*bintree{}},
 						}},
 						"staker": &bintree{nil, map[string]*bintree{
+							"get_node_id.cdc":              &bintree{TransactionsLockedtokensStakerGet_node_idCdc, map[string]*bintree{}},
 							"register_node.cdc":            &bintree{TransactionsLockedtokensStakerRegister_nodeCdc, map[string]*bintree{}},
 							"request_unstaking.cdc":        &bintree{TransactionsLockedtokensStakerRequest_unstakingCdc, map[string]*bintree{}},
 							"stake_new_tokens.cdc":         &bintree{TransactionsLockedtokensStakerStake_new_tokensCdc, map[string]*bintree{}},

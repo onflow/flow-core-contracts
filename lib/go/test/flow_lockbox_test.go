@@ -423,8 +423,17 @@ func TestLockedTokensStaker(t *testing.T) {
 			false,
 		)
 
+		// Check the node ID
+		result, err := b.ExecuteScript(templates.GenerateGetNodeIDScript(lockedTokensAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		id := result.Value
+		assert.Equal(t, cadence.NewString(joshID), id.(cadence.String))
+
 		// unlock limit should not have changed
-		result, err := b.ExecuteScript(templates.GenerateGetUnlockLimitScript(lockedTokensAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
+		result, err = b.ExecuteScript(templates.GenerateGetUnlockLimitScript(lockedTokensAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
@@ -955,6 +964,15 @@ func TestLockedTokensDelegator(t *testing.T) {
 			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
 			false,
 		)
+
+		// Check the delegator ID
+		result, err := b.ExecuteScript(templates.GenerateGetDelegatorIDScript(lockedTokensAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		id := result.Value
+		assert.Equal(t, cadence.NewUInt32(1), id.(cadence.UInt32))
 	})
 
 	t.Run("Should not be able to register a second time", func(t *testing.T) {

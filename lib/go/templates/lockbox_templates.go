@@ -32,6 +32,7 @@ const (
 	unstakeAllLockedTokensFilename       = "lockedTokens/staker/unstake_all.cdc"
 	withdrawLockedUnstakedTokensFilename = "lockedTokens/staker/withdraw_unstaked_tokens.cdc"
 	withdrawLockedRewardedTokensFilename = "lockedTokens/staker/withdraw_rewarded_tokens.cdc"
+	getNodeIDFilename                    = "lockedTokens/staker/get_node_id.cdc"
 
 	// delegator templates
 	registerLockedDelegatorFilename               = "lockedTokens/delegator/register_delegator.cdc"
@@ -41,6 +42,7 @@ const (
 	requestUnstakingLockedDelegatedTokensFilename = "lockedTokens/delegator/request_unstaking_locked_delegated_tokens.cdc"
 	withdrawLockedUnstakedDelegatedTokensFilename = "lockedTokens/delegator/withdraw_locked_unstaked_delegated_tokens.cdc"
 	withdrawLockedRewardedDelegatedTokensFilename = "lockedTokens/delegator/withdraw_locked_rewarded_delegated_tokens.cdc"
+	getDelegatorIDFilename                        = "lockedTokens/delegator/get_delegator_id.cdc"
 )
 
 /************ LockedTokens Admin Transactions ****************/
@@ -249,6 +251,14 @@ func GenerateWithdrawLockedRewardedTokensScript(lockedTokensAddr, proxyAddr stri
 	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
 }
 
+func GenerateGetNodeIDScript(lockedTokensAddr string) []byte {
+	code := assets.MustAssetString(filePath + getNodeIDFilename)
+
+	code = ReplaceLockedTokensAddress(code, lockedTokensAddr)
+
+	return []byte(code)
+}
+
 /******************** Delegator Transactions ****************************/
 
 // CreateLockedDelegatorScript creates a script that creates a new
@@ -329,4 +339,12 @@ func GenerateWithdrawDelegatorLockedRewardedTokensScript(lockedTokensAddr, proxy
 	code = ReplaceLockedTokensAddress(code, lockedTokensAddr)
 
 	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
+}
+
+func GenerateGetDelegatorIDScript(lockedTokensAddr string) []byte {
+	code := assets.MustAssetString(filePath + getDelegatorIDFilename)
+
+	code = ReplaceLockedTokensAddress(code, lockedTokensAddr)
+
+	return []byte(code)
 }
