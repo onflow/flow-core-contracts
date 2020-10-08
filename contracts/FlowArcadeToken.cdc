@@ -2,7 +2,7 @@ import FungibleToken from 0xee82856bf20e2aa6
 
 pub contract FlowArcadeToken: FungibleToken {
 
-    // Total supply of Flow tokens in existence
+    // Total supply of FATs in existence
     pub var totalSupply: UFix64
 
     // Event that is emitted when the contract is created

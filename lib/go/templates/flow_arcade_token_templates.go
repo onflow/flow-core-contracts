@@ -21,7 +21,7 @@ const (
 )
 
 // ReplaceAddresses replaces the contract addresses in the code
-func replaceAddresses(code, ftAddr, fatAddr string) string {
+func replaceFATAddress(code, fatAddr string) string {
 
 	code = strings.ReplaceAll(
 		code,

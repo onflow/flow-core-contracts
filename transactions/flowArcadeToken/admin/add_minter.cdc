@@ -3,7 +3,7 @@ import FlowArcadeToken from 0xARCADETOKENADDRESS
 transaction() {
     
     prepare(adminAcct: AuthAccount, minterAcct: AuthAccount) {
-        // Create a reference to the admin admin resource in storage
+        // Create a reference to the admin resource in storage
        let tokenAdmin = adminAcct.borrow<&FlowArcadeToken.Administrator>(from: /storage/flowArcadeTokenAdmin)
             ?? panic("Could not borrow a reference to the admin resource")
 
