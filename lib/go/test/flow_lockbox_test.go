@@ -1600,9 +1600,7 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 		// Check that locked account is connected to unlocked account
 		result, err := b.ExecuteScript(script, [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
 		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
+		require.NoError(t, result.Error)
 
 		lockedAddress := result.Value.(cadence.Address)
 
@@ -1674,9 +1672,8 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 		// Check unlock limit of the shared account
 		result, err := b.ExecuteScript(templates.GenerateGetUnlockLimitScript(lockedTokensAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
 		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
+		require.NoError(t, result.Error)
+
 		balance := result.Value
 		assert.Equal(t, CadenceUFix64("10000.0"), balance.(cadence.UFix64))
 
