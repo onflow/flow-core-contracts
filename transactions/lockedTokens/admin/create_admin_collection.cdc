@@ -7,7 +7,10 @@ transaction {
 
         admin.save(<-tokenAdminCollection, to: LockedTokens.LockedTokenAdminCollectionStoragePath)
 
-        admin.link<&LockedTokens.TokenAdminCollection>(LockedTokens.LockedTokenAdminPrivatePath, target: LockedTokens.LockedTokenAdminCollectionStoragePath)
+        admin.link<&LockedTokens.TokenAdminCollection>(
+            LockedTokens.LockedTokenAdminPrivatePath, 
+            target: LockedTokens.LockedTokenAdminCollectionStoragePath
+        )
             ?? panic("Could not get a capability to the admin collection")
     }
 }
