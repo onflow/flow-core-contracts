@@ -16,16 +16,15 @@ const (
 	getBalanceFilename = "flowArcadeToken/scripts/get_balance.cdc"
 	getSupplyFilename  = "flowArcadeToken/scripts/get_supply.cdc"
 
-	defaultFungibleTokenAddress   = "FUNGIBLETOKENADDRESS"
-	defaultFlowArcadeTokenAddress = "ARCADETOKENADDRESS"
+	placeholderFlowArcadeTokenAddress = "0xARCADETOKENADDRESS"
 )
 
 // ReplaceAddresses replaces the contract addresses in the code
 func replaceFATAddress(code, fatAddr string) string {
 	code = strings.ReplaceAll(
 		code,
-		"0x"+defaultFlowArcadeTokenAddress,
-		"0x"+fatAddr,
+		placeholderFlowArcadeTokenAddress,
+		withHexPrefix(fatAddr),
 	)
 
 	return code
