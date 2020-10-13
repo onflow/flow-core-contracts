@@ -6,6 +6,7 @@ import (
 
 const (
 	// admin templates
+	deployLockedTokensFilename              = "lockedTokens/admin/admin_deploy_contract.cdc"
 	createLockedAccountsFilename            = "lockedTokens/admin/admin_create_shared_accounts.cdc"
 	depositLockedTokensFilename             = "lockedTokens/admin/deposit_locked_tokens.cdc"
 	increaseUnlockLimitFilename             = "lockedTokens/admin/unlock_tokens.cdc"
@@ -46,6 +47,10 @@ const (
 )
 
 /************ LockedTokens Admin Transactions ****************/
+
+func GenerateDeployLockedTokens() []byte {
+	return assets.MustAsset(filePath + deployLockedTokensFilename)
+}
 
 func GenerateCreateSharedAccountScript(ftAddr, flowTokenAddr, lockedTokensAddr string) []byte {
 	code := assets.MustAssetString(filePath + createLockedAccountsFilename)

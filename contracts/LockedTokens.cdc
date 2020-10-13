@@ -563,7 +563,7 @@ pub contract LockedTokens {
         return <-create LockedAccountCreator()
     }
 
-    init() {
+    init(admin: AuthAccount) {
         self.LockedTokenManagerStoragePath = /storage/lockedTokenManager
         self.LockedTokenManagerPrivatePath = /private/lockedTokenManager
 
@@ -577,6 +577,6 @@ pub contract LockedTokens {
         self.LockedAccountCreatorPublicPath = /public/lockedAccountCreator
 
         /// create a single admin collection and store it
-        self.account.save(<-create TokenAdminCollection(), to: self.LockedTokenAdminCollectionStoragePath)
+        admin.save(<-create TokenAdminCollection(), to: self.LockedTokenAdminCollectionStoragePath)
     }
 }
