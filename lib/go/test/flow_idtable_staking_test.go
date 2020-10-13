@@ -103,7 +103,7 @@ func TestIDTable(t *testing.T) {
 		idArray = proposedIDs.(cadence.Array).Values
 		assert.Equal(t, 0, len(idArray))
 
-		/// Check that the stake requirements for each node role are initialized correctly
+		// Check that the stake requirements for each node role are initialized correctly
 
 		result, err = b.ExecuteScript(templates.GenerateGetStakeRequirementsScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.UInt8(1))})
 		require.NoError(t, err)
@@ -145,7 +145,7 @@ func TestIDTable(t *testing.T) {
 		requirement = result.Value
 		assert.Equal(t, CadenceUFix64("0.0"), requirement.(cadence.UFix64))
 
-		/// Check that the total tokens staked for each node role are initialized correctly
+		// Check that the total tokens staked for each node role are initialized correctly
 
 		result, err = b.ExecuteScript(templates.GenerateGetTotalTokensStakedByTypeScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.UInt8(1))})
 		require.NoError(t, err)
@@ -187,7 +187,7 @@ func TestIDTable(t *testing.T) {
 		tokens = result.Value
 		assert.Equal(t, CadenceUFix64("0.0"), tokens.(cadence.UFix64))
 
-		/// Check that the reward ratios were initialized correctly for each node role
+		// Check that the reward ratios were initialized correctly for each node role
 
 		result, err = b.ExecuteScript(templates.GenerateGetRewardRatioScript(IDTableAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.UInt8(1))})
 		require.NoError(t, err)
@@ -229,7 +229,7 @@ func TestIDTable(t *testing.T) {
 		ratio = result.Value
 		assert.Equal(t, CadenceUFix64("0.0"), ratio.(cadence.UFix64))
 
-		/// Check that the weekly payout was initialized correctly
+		// Check that the weekly payout was initialized correctly
 
 		result, err = b.ExecuteScript(templates.GenerateGetWeeklyPayoutScript(IDTableAddr.String()), nil)
 		require.NoError(t, err)

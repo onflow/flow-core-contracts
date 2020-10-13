@@ -1,4 +1,4 @@
-import LockedTokens from 0xf3fcd2c1a78f5eee
+import LockedTokens from 0xLOCKEDTOKENADDRESS
 
 /// token admin signs this transaction to deposit a capability
 /// into a custody provider's account that allows them to add
@@ -15,8 +15,8 @@ transaction(custodyProviderAddress: Address) {
             (LockedTokens.LockedAccountCreatorPublicPath)!
             .borrow() ?? panic("Could not borrow capability receiver reference")
 
-        let tokenAdminCollection = admin.link<&LockedTokens.TokenAdminCollection>(LockedTokens.LockedTokenAdminPrivatePath, target: LockedTokens.LockedTokenAdminCollectionStoragePath)
-            ?? panic("Could not get a capability to the admin collection")
+        let tokenAdminCollection = admin
+            .getCapability<&LockedTokens.TokenAdminCollection>(LockedTokens.LockedTokenAdminPrivatePath)!
 
         capabilityReceiver.addCapability(cap: tokenAdminCollection)
     }

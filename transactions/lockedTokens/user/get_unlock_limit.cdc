@@ -1,4 +1,4 @@
-import LockedTokens from 0xf3fcd2c1a78f5eee
+import LockedTokens from 0xLOCKEDTOKENADDRESS
 
 pub fun main(account: Address): UFix64 {
 

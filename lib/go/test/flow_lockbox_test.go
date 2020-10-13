@@ -499,8 +499,15 @@ func TestLockedTokensStaker(t *testing.T) {
 
 	t.Run("Should be able to stake locked tokens", func(t *testing.T) {
 
+		script := templates.GenerateStakeNewLockedTokensScript(
+			emulatorFTAddress,
+			emulatorFlowTokenAddress,
+			lockedTokensAddr.String(),
+			proxyAddr.String(),
+		)
+
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateStakeNewLockedTokensScript(lockedTokensAddr.String(), proxyAddr.String())).
+			SetScript(script).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -517,7 +524,7 @@ func TestLockedTokensStaker(t *testing.T) {
 			false,
 		)
 
-		script := templates.GenerateGetLockedAccountBalanceScript(lockedTokensAddr.String())
+		script = templates.GenerateGetLockedAccountBalanceScript(lockedTokensAddr.String())
 
 		// Check balance of locked account
 		result, err := b.ExecuteScript(script, [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
@@ -725,8 +732,15 @@ func TestLockedTokensStaker(t *testing.T) {
 
 	t.Run("Should be able to stake tokens that come from the locked vault first and then the unlocked vault", func(t *testing.T) {
 
+		script := templates.GenerateStakeNewLockedTokensScript(
+			emulatorFTAddress,
+			emulatorFlowTokenAddress,
+			lockedTokensAddr.String(),
+			proxyAddr.String(),
+		)
+
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateStakeNewLockedTokensScript(lockedTokensAddr.String(), proxyAddr.String())).
+			SetScript(script).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -1025,8 +1039,15 @@ func TestLockedTokensDelegator(t *testing.T) {
 
 	t.Run("Should be able to delegate locked tokens", func(t *testing.T) {
 
+		script := templates.GenerateDelegateNewLockedTokensScript(
+			emulatorFTAddress,
+			emulatorFlowTokenAddress,
+			lockedTokensAddr.String(),
+			proxyAddr.String(),
+		)
+
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateDelegateNewLockedTokensScript(lockedTokensAddr.String(), proxyAddr.String())).
+			SetScript(script).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -1303,8 +1324,15 @@ func TestLockedTokensDelegator(t *testing.T) {
 
 	t.Run("Should be able to delegate tokens that come from the locked vault first and then the unlocked vault", func(t *testing.T) {
 
+		script := templates.GenerateDelegateNewLockedTokensScript(
+			emulatorFTAddress,
+			emulatorFlowTokenAddress,
+			lockedTokensAddr.String(),
+			proxyAddr.String(),
+		)
+
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateDelegateNewLockedTokensScript(lockedTokensAddr.String(), proxyAddr.String())).
+			SetScript(script).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -1572,9 +1600,7 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 		// Check that locked account is connected to unlocked account
 		result, err := b.ExecuteScript(script, [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
 		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
+		require.NoError(t, result.Error)
 
 		lockedAddress := result.Value.(cadence.Address)
 
@@ -1646,9 +1672,8 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 		// Check unlock limit of the shared account
 		result, err := b.ExecuteScript(templates.GenerateGetUnlockLimitScript(lockedTokensAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
 		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
+		require.NoError(t, result.Error)
+
 		balance := result.Value
 		assert.Equal(t, CadenceUFix64("10000.0"), balance.(cadence.UFix64))
 

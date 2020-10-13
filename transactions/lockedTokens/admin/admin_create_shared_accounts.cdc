@@ -1,6 +1,6 @@
-import FlowToken from 0x0ae53cb6e3f42a79
-import FungibleToken from 0xee82856bf20e2aa6
-import LockedTokens from 0xf3fcd2c1a78f5eee
+import FlowToken from 0xFLOWTOKENADDRESS
+import FungibleToken from 0xFUNGIBLETOKENADDRESS
+import LockedTokens from 0xLOCKEDTOKENADDRESS
 
 /// Transaction that the main token admin would sign
 /// to create a shared account and an unlocked

@@ -1,4 +1,4 @@
-import FlowToken from 0x0ae53cb6e3f42a79
+import FlowToken from 0xFLOWTOKENADDRESS
 
 transaction(publicKeys: [[UInt8]], code: [UInt8]) {
 

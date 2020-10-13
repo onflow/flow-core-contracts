@@ -1,10 +1,16 @@
-import LockedTokens from 0xf3fcd2c1a78f5eee
+import LockedTokens from 0xLOCKEDTOKENADDRESS
 
 transaction {
 
-    prepare(acct: AuthAccount) {
+    prepare(admin: AuthAccount) {
         let tokenAdminCollection <- LockedTokens.createTokenAdminCollection()
 
-        acct.save(<-tokenAdminCollection, to: LockedTokens.LockedTokenAdminCollectionStoragePath)
+        admin.save(<-tokenAdminCollection, to: LockedTokens.LockedTokenAdminCollectionStoragePath)
+
+        admin.link<&LockedTokens.TokenAdminCollection>(
+            LockedTokens.LockedTokenAdminPrivatePath, 
+            target: LockedTokens.LockedTokenAdminCollectionStoragePath
+        )
+            ?? panic("Could not get a capability to the admin collection")
     }
 }

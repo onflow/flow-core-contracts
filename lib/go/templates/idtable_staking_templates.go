@@ -1,8 +1,6 @@
 package templates
 
 import (
-	"strings"
-
 	"github.com/onflow/flow-core-contracts/lib/go/templates/internal/assets"
 )
 
@@ -42,36 +40,7 @@ const (
 	totalStakedFilename       = "idTableStaking/get_totalStaked_by_type.cdc"
 	rewardRatioFilename       = "idTableStaking/get_nodeType_ratio.cdc"
 	weeklyPayoutFilename      = "idTableStaking/get_weeklyPayout.cdc"
-
-	defaultFTAddress        = "FUNGIBLETOKENADDRESS"
-	defaultFlowTokenAddress = "FLOWTOKENADDRESS"
-	defaultIDTableAddress   = "IDENTITYTABLEADDRESS"
 )
-
-// ReplaceAddresses replaces the import address
-// and phase in scripts that return info about a specific node and phase
-func ReplaceAddresses(code, ftAddr, flowTokenAddr, idTableAddr string) string {
-
-	code = strings.ReplaceAll(
-		code,
-		"0x"+defaultFTAddress,
-		"0x"+ftAddr,
-	)
-
-	code = strings.ReplaceAll(
-		code,
-		"0x"+defaultFlowTokenAddress,
-		"0x"+flowTokenAddr,
-	)
-
-	code = strings.ReplaceAll(
-		code,
-		"0x"+defaultIDTableAddress,
-		"0x"+idTableAddr,
-	)
-
-	return code
-}
 
 // GenerateTransferMinterAndDeployScript generates a script that transfers
 // a flow minter and deploys the id table account
