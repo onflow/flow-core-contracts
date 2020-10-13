@@ -15,8 +15,8 @@ transaction(custodyProviderAddress: Address) {
             (LockedTokens.LockedAccountCreatorPublicPath)!
             .borrow() ?? panic("Could not borrow capability receiver reference")
 
-        let tokenAdminCollection = admin.link<&LockedTokens.TokenAdminCollection>(LockedTokens.LockedTokenAdminPrivatePath, target: LockedTokens.LockedTokenAdminCollectionStoragePath)
-            ?? panic("Could not get a capability to the admin collection")
+        let tokenAdminCollection = admin
+            .getCapability<&LockedTokens.TokenAdminCollection>(LockedTokens.LockedTokenAdminPrivatePath)!
 
         capabilityReceiver.addCapability(cap: tokenAdminCollection)
     }

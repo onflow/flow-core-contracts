@@ -578,5 +578,10 @@ pub contract LockedTokens {
 
         /// create a single admin collection and store it
         admin.save(<-create TokenAdminCollection(), to: self.LockedTokenAdminCollectionStoragePath)
+        
+        admin.link<&LockedTokens.TokenAdminCollection>(
+            LockedTokens.LockedTokenAdminPrivatePath,
+            target: LockedTokens.LockedTokenAdminCollectionStoragePath
+        ) ?? panic("Could not get a capability to the admin collection")
     }
 }
