@@ -379,7 +379,7 @@ func TestFlowArcadeToken(t *testing.T) {
 		)
 	})
 
-	t.Run("Account with insufficient tokens should not be able to transfer a karger amount", func(t *testing.T) {
+	t.Run("Account with insufficient tokens should not be able to transfer a larger amount", func(t *testing.T) {
 		oneAddress, oneSigner, _ := createFatReceiverAccount(t, b, accountKeys, fatAddress)
 
 		// Admin vends tokens to first account
