@@ -77,7 +77,7 @@ pub contract FlowIDTableStaking {
 
     /// The total amount of tokens that are paid as rewards every epoch
     /// could be manually changed by the admin resource
-    pub var epochTokenPayout: UFix64
+    access(contract) var epochTokenPayout: UFix64
 
     /// The ratio of the weekly awards that each node type gets
     /// key = node role
@@ -86,7 +86,7 @@ pub contract FlowIDTableStaking {
 
     /// The percentage of rewards that every node operator takes from 
     /// the users that are delegating to it
-    pub var nodeDelegatingRewardCut: UFix64
+    access(contract) var nodeDelegatingRewardCut: UFix64
 
     /// Paths for storing staking resources
     pub let NodeStakerStoragePath: Path
@@ -803,8 +803,15 @@ pub contract FlowIDTableStaking {
             }
         }
 
+        pub fun changeMinimumStakeRequirements(_ newRequirements: {UInt8: UFix64}) {
+            pre {
+                newRequirements.keys.length == 5: "Incorrect number of nodes"
+            }
+            FlowIDTableStaking.minimumStakeRequired = newRequirements
+        }
+
         // Changes the total weekly payout to a new value
-        pub fun updateEpochTokenPayout(_ newPayout: UFix64) {
+        pub fun changeEpochTokenPayout(_ newPayout: UFix64) {
             FlowIDTableStaking.epochTokenPayout = newPayout
         }
 
@@ -952,11 +959,15 @@ pub contract FlowIDTableStaking {
         return self.epochTokenPayout
     }
 
+    pub fun getRewardCutPercentage(): UFix64 {
+        return self.nodeDelegatingRewardCut
+    }
+
     pub fun getRewardRatios(): {UInt8: UFix64} {
         return self.rewardRatios
     }
 
-    init() {
+    init(_ epochTokenPayout: UFix64, _ rewardCut: UFix64) {
         self.nodes <- {}
 
         self.NodeStakerStoragePath = /storage/flowStaker
@@ -970,10 +981,10 @@ pub contract FlowIDTableStaking {
         self.totalTokensStakedByNodeType = {UInt8(1): 0.0, UInt8(2): 0.0, UInt8(3): 0.0, UInt8(4): 0.0, UInt8(5): 0.0}
 
         // 1.25M FLOW paid out in the first week. Decreasing in subsequent weeks
-        self.epochTokenPayout = 1250000.0
+        self.epochTokenPayout = epochTokenPayout
 
-        // initialize the cut of rewards that node operators take to 3%
-        self.nodeDelegatingRewardCut = 0.03
+        // initialize the cut of rewards that node operators take to 10%
+        self.nodeDelegatingRewardCut = rewardCut
 
         // The preliminary percentage of rewards that go to each node type every epoch
         // subject to change

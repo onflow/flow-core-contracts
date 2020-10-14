@@ -7,10 +7,13 @@ import (
 const (
 	transferDeployFilename = "idTableStaking/admin/transfer_minter_deploy.cdc"
 
-	removeNodeFilename = "idTableStaking/admin/remove_node.cdc"
-	endStakingFilename = "idTableStaking/admin/end_staking.cdc"
-	payRewardsFilename = "idTableStaking/admin/pay_rewards.cdc"
-	moveTokensFilename = "idTableStaking/admin/move_tokens.cdc"
+	removeNodeFilename     = "idTableStaking/admin/remove_node.cdc"
+	endStakingFilename     = "idTableStaking/admin/end_staking.cdc"
+	payRewardsFilename     = "idTableStaking/admin/pay_rewards.cdc"
+	moveTokensFilename     = "idTableStaking/admin/move_tokens.cdc"
+	changeMinimumsFilename = "idTableStaking/admin/change_minimums.cdc"
+	changeCutFilename      = "idTableStaking/admin/change_cut.cdc"
+	changePayoutFilename   = "idTableStaking/admin/change_payout.cdc"
 
 	createNodeStructFilename       = "idTableStaking/create_staking_request.cdc"
 	stakeNewTokensFilename         = "idTableStaking/stake_new_tokens.cdc"
@@ -35,6 +38,7 @@ const (
 	unstakingBalanceFilename    = "idTableStaking/get_node_unstakingTokens.cdc"
 	getTotalCommitmentFilename  = "idTableStaking/get_node_total_commitment.cdc"
 	getUnstakingRequestFilename = "idTableStaking/get_node_unstaking_request.cdc"
+	getCutPercentageFilename    = "idTableStaking/get_cut_percentage.cdc"
 
 	stakeRequirementsFilename = "idTableStaking/get_stakeRequirements.cdc"
 	totalStakedFilename       = "idTableStaking/get_totalStaked_by_type.cdc"
@@ -107,6 +111,27 @@ func GeneratePayRewardsScript(env Environment) []byte {
 // GenerateMoveTokensScript creates a script that moves tokens between buckets
 func GenerateMoveTokensScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + moveTokensFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+// GenerateChangeMinimumsScript creates a script that changes the staking minimums
+func GenerateChangeMinimumsScript(env Environment) []byte {
+	code := assets.MustAssetString(filePath + changeMinimumsFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+// GenerateChangeCutScript creates a script that changes the cut percentage
+func GenerateChangeCutScript(env Environment) []byte {
+	code := assets.MustAssetString(filePath + changeCutFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+// GenerateChangePayoutScript creates a script that changes the weekly payout
+func GenerateChangePayoutScript(env Environment) []byte {
+	code := assets.MustAssetString(filePath + changePayoutFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -279,6 +304,13 @@ func GenerateGetRewardRatioScript(env Environment) []byte {
 // GenerateGetWeeklyPayoutScript gets the total weekly reward payout
 func GenerateGetWeeklyPayoutScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + weeklyPayoutFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+// GenerateGetCutPercentageScript gets the delegator cut percentage
+func GenerateGetCutPercentageScript(env Environment) []byte {
+	code := assets.MustAssetString(filePath + getCutPercentageFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
