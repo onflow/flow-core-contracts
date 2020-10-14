@@ -532,12 +532,22 @@ pub contract LockedTokens {
         }
 
         pub fun addCapability(cap: Capability<&TokenAdminCollection>) {
+            pre {
+                cap.borrow() != nil: "Invalid token admin collection capability"
+            }
             self.addAccountCapability = cap
         }
 
         pub fun addAccount(sharedAccountAddress: Address, 
                            unlockedAccountAddress: Address,
                            tokenAdmin: Capability<&LockedTokenManager>) {
+            
+            pre {
+                self.addAccountCapability != nil: 
+                    "Cannot add account until the token admin has deposited the account registration capability"
+                tokenAdmin.borrow() != nil:
+                    "Invalid tokenAdmin capability"
+            }
             
             let adminRef = self.addAccountCapability!.borrow()!
 
