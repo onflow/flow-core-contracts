@@ -5,24 +5,23 @@ import (
 )
 
 const (
-
 	// node operator templates
-	setupNodeAccountFilename   = "stakingProxy/sh_setup_node_account.cdc"
-	addNodeInfoFilename        = "stakingProxy/sh_add_node_info.cdc"
-	removeNodeInfoFilename     = "stakingProxy/sh_remove_node_info.cdc"
-	getNodeInfoFilename        = "stakingProxy/sh_get_node_info.cdc"
-	removeStakingProxyFilename = "stakingProxy/sh_remove_staking_proxy.cdc"
+	setupNodeAccountFilename   = "stakingProxy/setup_node_account.cdc"
+	addNodeInfoFilename        = "stakingProxy/add_node_info.cdc"
+	removeNodeInfoFilename     = "stakingProxy/remove_node_info.cdc"
+	getNodeInfoFilename        = "stakingProxy/get_node_info.cdc"
+	removeStakingProxyFilename = "stakingProxy/remove_staking_proxy.cdc"
 
 	// templates for node operator doing staking actions
-	proxyStakeNewTokensFilename      = "stakingProxy/sh_stake_new_tokens.cdc"
-	proxyStakeUnstakedTokensFilename = "stakingProxy/sh_stake_unstaked_tokens.cdc"
-	proxyRequestUnstakingFilename    = "stakingProxy/sh_request_unstaking.cdc"
-	proxyUnstakeAllFilename          = "stakingProxy/sh_unstake_all.cdc"
-	proxyWithdrawUnstakedFilename    = "stakingProxy/sh_withdraw_unstaked.cdc"
-	proxyWithdrawRewardsFilename     = "stakingProxy/sh_withdraw_rewards.cdc"
+	proxyStakeNewTokensFilename      = "stakingProxy/stake_new_tokens.cdc"
+	proxyStakeUnstakedTokensFilename = "stakingProxy/stake_unstaked_tokens.cdc"
+	proxyRequestUnstakingFilename    = "stakingProxy/request_unstaking.cdc"
+	proxyUnstakeAllFilename          = "stakingProxy/unstake_all.cdc"
+	proxyWithdrawUnstakedFilename    = "stakingProxy/withdraw_unstaked.cdc"
+	proxyWithdrawRewardsFilename     = "stakingProxy/withdraw_rewards.cdc"
 
 	// staking helper templates for the token holder to register their node
-	registerNodeFilename = "stakingProxy/sh_register_node.cdc"
+	registerNodeFilename = "stakingProxy/register_node.cdc"
 )
 
 // GenerateSetupNodeAccountScript generates a script that sets up
