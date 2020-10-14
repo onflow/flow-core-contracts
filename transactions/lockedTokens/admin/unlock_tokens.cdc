@@ -7,7 +7,7 @@ transaction(targetAccount: Address, delta: UFix64) {
         let adminRef = acct.borrow<&LockedTokens.TokenAdminCollection>(from: LockedTokens.LockedTokenAdminCollectionStoragePath)
             ?? panic("Could not borrow a reference to the admin collection")
 
-        let tokenManagerRef = adminRef.getAccount(address: targetAccount).borrow()
+        let tokenManagerRef = adminRef.getAccount(address: targetAccount)!.borrow()
             ?? panic("Could not borrow a reference to the user's token manager")
 
         tokenManagerRef.increaseUnlockLimit(delta: delta)

@@ -1,6 +1,6 @@
 import FlowToken from 0xFLOWTOKENADDRESS
 
-transaction(publicKeys: [[UInt8]], code: [UInt8]) {
+transaction(publicKeys: [[UInt8]], code: [UInt8], rewardAmount: UFix64, rewardCut: UFix64) {
 
   prepare(signer: AuthAccount) {
 
@@ -19,7 +19,7 @@ transaction(publicKeys: [[UInt8]], code: [UInt8]) {
 
     acct.save(<-flowTokenMinter, to: /storage/flowTokenMinter)
 
-	acct.setCode(code)
+	acct.setCode(code, rewardAmount, rewardCut)
   }
 
 }

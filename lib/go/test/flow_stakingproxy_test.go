@@ -49,6 +49,9 @@ func TestStakingProxy(t *testing.T) {
 		AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys)).
 		AddRawArgument(jsoncdc.MustEncode(cadenceCode))
 
+	_ = tx.AddArgument(CadenceUFix64("1250000.0"))
+	_ = tx.AddArgument(CadenceUFix64("0.03"))
+
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{b.ServiceKey().Address},

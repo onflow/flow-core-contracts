@@ -508,8 +508,8 @@ pub contract LockedTokens {
         }
 
         /// Get an accounts capability
-        pub fun getAccount(address: Address): Capability<&LockedTokenManager> {
-            return self.accounts[address]!
+        pub fun getAccount(address: Address): Capability<&LockedTokenManager>? {
+            return self.accounts[address]
         }
 
         pub fun createAdminCollection(): @TokenAdminCollection {

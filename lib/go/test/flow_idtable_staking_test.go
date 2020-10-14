@@ -65,6 +65,9 @@ func TestIDTable(t *testing.T) {
 		AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys)).
 		AddRawArgument(jsoncdc.MustEncode(cadenceCode))
 
+	_ = tx.AddArgument(CadenceUFix64("1250000.0"))
+	_ = tx.AddArgument(CadenceUFix64("0.03"))
+
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{b.ServiceKey().Address},
@@ -915,6 +918,127 @@ func TestIDTable(t *testing.T) {
 		}
 		balance := result.Value
 		assert.Equal(t, CadenceUFix64("480000.0"), balance.(cadence.UFix64))
+	})
+
+	t.Run("Shouldn't be able to change the cut percentage above 1", func(t *testing.T) {
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GenerateChangeCutScript(env)).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(idTableAddress)
+
+		_ = tx.AddArgument(CadenceUFix64("2.10"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			true,
+		)
+	})
+
+	t.Run("Should be able to change the cut percentage", func(t *testing.T) {
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GenerateChangeCutScript(env)).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(idTableAddress)
+
+		_ = tx.AddArgument(CadenceUFix64("0.10"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+
+		result, err := b.ExecuteScript(templates.GenerateGetCutPercentageScript(env), nil)
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		cut := result.Value
+		assert.Equal(t, CadenceUFix64("0.10"), cut.(cadence.UFix64))
+
+		tx = flow.NewTransaction().
+			SetScript(templates.GenerateChangeCutScript(env)).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(idTableAddress)
+
+		_ = tx.AddArgument(CadenceUFix64("0.03"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+
+		result, err = b.ExecuteScript(templates.GenerateGetCutPercentageScript(env), nil)
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		cut = result.Value
+		assert.Equal(t, CadenceUFix64("0.03"), cut.(cadence.UFix64))
+	})
+
+	t.Run("Should be able to change the weekly payout", func(t *testing.T) {
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GenerateChangePayoutScript(env)).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(idTableAddress)
+
+		_ = tx.AddArgument(CadenceUFix64("5000000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+
+		result, err := b.ExecuteScript(templates.GenerateGetWeeklyPayoutScript(env), nil)
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		cut := result.Value
+		assert.Equal(t, CadenceUFix64("5000000.0"), cut.(cadence.UFix64))
+
+		tx = flow.NewTransaction().
+			SetScript(templates.GenerateChangePayoutScript(env)).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(idTableAddress)
+
+		_ = tx.AddArgument(CadenceUFix64("1250000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+
+		result, err = b.ExecuteScript(templates.GenerateGetWeeklyPayoutScript(env), nil)
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		cut = result.Value
+		assert.Equal(t, CadenceUFix64("1250000.0"), cut.(cadence.UFix64))
 	})
 
 	t.Run("Should be able to commit additional tokens for a node", func(t *testing.T) {
