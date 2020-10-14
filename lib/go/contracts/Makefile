@@ -8,7 +8,7 @@ generate:
 
 .PHONY: check-generated
 check-generated:
-	git diff --exit-code
+	git diff -- lib/go/contracts/ --exit-code
 
 .PHONY: ci
 ci: generate check-generated test
