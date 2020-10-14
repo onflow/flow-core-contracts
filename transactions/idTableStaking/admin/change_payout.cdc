@@ -14,6 +14,6 @@ transaction(newPayout: UFix64) {
     }
 
     execute {
-        self.adminRef.changeEpochTokenPayout(newPayout)
+        self.adminRef.setEpochTokenPayout(newPayout)
     }
 }

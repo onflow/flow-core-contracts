@@ -14,6 +14,6 @@ transaction(newCutPercentage: UFix64) {
     }
 
     execute {
-        self.adminRef.changeCutPercentage(newCutPercentage)
+        self.adminRef.setCutPercentage(newCutPercentage)
     }
 }

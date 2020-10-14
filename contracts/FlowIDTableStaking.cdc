@@ -803,7 +803,7 @@ pub contract FlowIDTableStaking {
             }
         }
 
-        pub fun changeMinimumStakeRequirements(_ newRequirements: {UInt8: UFix64}) {
+        pub fun setMinimumStakeRequirements(_ newRequirements: {UInt8: UFix64}) {
             pre {
                 newRequirements.keys.length == 5: "Incorrect number of nodes"
             }
@@ -811,13 +811,13 @@ pub contract FlowIDTableStaking {
         }
 
         // Changes the total weekly payout to a new value
-        pub fun changeEpochTokenPayout(_ newPayout: UFix64) {
+        pub fun setEpochTokenPayout(_ newPayout: UFix64) {
             FlowIDTableStaking.epochTokenPayout = newPayout
         }
 
         /// Admin calls this to change the percentage 
         /// of delegator rewards every node operator takes
-        pub fun changeCutPercentage(_ newCutPercentage: UFix64) {
+        pub fun setCutPercentage(_ newCutPercentage: UFix64) {
             pre {
                 newCutPercentage > 0.0 && newCutPercentage < 1.0:
                     "Cut percentage must be between 0 and 1!"
@@ -980,10 +980,10 @@ pub contract FlowIDTableStaking {
 
         self.totalTokensStakedByNodeType = {UInt8(1): 0.0, UInt8(2): 0.0, UInt8(3): 0.0, UInt8(4): 0.0, UInt8(5): 0.0}
 
-        // 1.25M FLOW paid out in the first week. Decreasing in subsequent weeks
+        // Set FLOW paid out in the first week. Decreasing in subsequent weeks
         self.epochTokenPayout = epochTokenPayout
 
-        // initialize the cut of rewards that node operators take to 10%
+        // initialize the cut of rewards that node operators take
         self.nodeDelegatingRewardCut = rewardCut
 
         // The preliminary percentage of rewards that go to each node type every epoch

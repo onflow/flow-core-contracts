@@ -14,6 +14,6 @@ transaction(newMinimums: {UInt8: UFix64}) {
     }
 
     execute {
-        self.adminRef.changeMinimumStakeRequirements(newMinimums)
+        self.adminRef.setMinimumStakeRequirements(newMinimums)
     }
 }
