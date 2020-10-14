@@ -36,6 +36,13 @@ pub contract LockedTokens {
     pub event SharedAccountRegistered(address: Address)
     pub event UnlockedAccountRegistered(address: Address)
 
+    pub event UnlockLimitIncreased(address: Address, increaseAmount: UFix64, newLimit: UFix64)
+
+    pub event LockedAccountRegisteredAsNode(address: Address, nodeID: String)
+    pub event LockedAccountRegisteredAsDelegator(address: Address, nodeID: String)
+
+    pub event LockedTokensDeposited(address: Address, amount: UFix64)
+
     /// Path to store the locked token manager resource 
     /// in the shared account
     pub let LockedTokenManagerStoragePath: Path
@@ -166,6 +173,7 @@ pub contract LockedTokens {
         /// Called by the admin every time a vesting release happens
         pub fun increaseUnlockLimit(delta: UFix64) {  
             self.unlockLimit = self.unlockLimit + delta
+            emit UnlockLimitIncreased(address: self.owner!.address, increaseAmount: delta, newLimit: self.unlockLimit)
         }
 
         // LockedTokens.TokenHolder actions
@@ -178,6 +186,8 @@ pub contract LockedTokens {
             let tokens <- vaultRef.withdraw(amount: amount)
 
             self.nodeStaker <-! FlowIDTableStaking.addNodeRecord(id: nodeInfo.id, role: nodeInfo.role, networkingAddress: nodeInfo.networkingAddress, networkingKey: nodeInfo.networkingKey, stakingKey: nodeInfo.stakingKey, tokensCommitted: <-tokens)
+        
+            emit LockedAccountRegisteredAsNode(address: self.owner!.address, nodeID: nodeInfo.id)
         }
 
         /// Registers a new Delegator with the Flow Staking contract
@@ -185,6 +195,8 @@ pub contract LockedTokens {
         /// they are delegating to
         pub fun registerDelegator(nodeID: String) {
             self.nodeDelegator <-! FlowIDTableStaking.registerNewDelegator(nodeID: nodeID)
+        
+            emit LockedAccountRegisteredAsDelegator(address: self.owner!.address, nodeID: nodeID)
         }
     }
 
@@ -193,6 +205,8 @@ pub contract LockedTokens {
         pub fun getLockedAccountAddress(): Address
         pub fun getLockedAccountBalance(): UFix64
         pub fun getUnlockLimit(): UFix64
+        pub fun getNodeID(): String?
+        pub fun getDelegatorID(): UInt32?
     }
 
     /// Stored in Holder unlocked account
@@ -296,6 +310,12 @@ pub contract LockedTokens {
             return self.nodeStakerProxy!
         }
 
+        pub fun getNodeID(): String? {
+            let tokenManager = self.tokenManager.borrow()!
+
+            return tokenManager.nodeStaker?.id
+        }
+
         /// Borrow a "reference" to the delegating object which allows the caller
         /// to perform all delegating actions with locked tokens.
         pub fun borrowDelegator(): LockedNodeDelegatorProxy {
@@ -305,6 +325,13 @@ pub contract LockedTokens {
             }
             return self.nodeDelegatorProxy!
         }
+
+        pub fun getDelegatorID(): UInt32? {
+            let tokenManager = self.tokenManager.borrow()!
+
+            return tokenManager.nodeDelegator?.id
+        }
+
     }
 
     /// Used to perform staking actions
@@ -484,6 +511,10 @@ pub contract LockedTokens {
         pub fun getAccount(address: Address): Capability<&LockedTokenManager> {
             return self.accounts[address]!
         }
+
+        pub fun createAdminCollection(): @TokenAdminCollection {
+            return <-create TokenAdminCollection()
+        }
     }
 
     pub resource interface LockedAccountCreatorPublic {
@@ -516,11 +547,6 @@ pub contract LockedTokens {
         }
     }
 
-    /// Public function to create a new token admin collection
-    pub fun createTokenAdminCollection(): @TokenAdminCollection {
-        return <- create TokenAdminCollection()
-    }
-
     /// Public function to create a new Locked Token Manager
     /// every time a new user account is created
     pub fun createLockedTokenManager(vault: Capability<&FlowToken.Vault>): @LockedTokenManager {
@@ -537,7 +563,7 @@ pub contract LockedTokens {
         return <-create LockedAccountCreator()
     }
 
-    init() {
+    init(admin: AuthAccount) {
         self.LockedTokenManagerStoragePath = /storage/lockedTokenManager
         self.LockedTokenManagerPrivatePath = /private/lockedTokenManager
 
@@ -549,5 +575,13 @@ pub contract LockedTokens {
 
         self.LockedAccountCreatorStoragePath = /storage/lockedAccountCreator
         self.LockedAccountCreatorPublicPath = /public/lockedAccountCreator
+
+        /// create a single admin collection and store it
+        admin.save(<-create TokenAdminCollection(), to: self.LockedTokenAdminCollectionStoragePath)
+        
+        admin.link<&LockedTokens.TokenAdminCollection>(
+            LockedTokens.LockedTokenAdminPrivatePath,
+            target: LockedTokens.LockedTokenAdminCollectionStoragePath
+        ) ?? panic("Could not get a capability to the admin collection")
     }
 }

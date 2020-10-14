@@ -1,9 +1,11 @@
 package test
 
 import (
+	"encoding/hex"
 	"fmt"
 	"testing"
 
+	emulator "github.com/dapperlabs/flow-emulator"
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	ft_templates "github.com/onflow/flow-ft/lib/go/templates"
@@ -107,40 +109,16 @@ func TestLockedTokensStaker(t *testing.T) {
 	_, err = b.CommitBlock()
 	assert.NoError(t, err)
 
-	lockedTokensCode := contracts.FlowLockedTokens(
-		emulatorFTAddress,
-		emulatorFlowTokenAddress,
-		IDTableAddr.Hex(),
-		proxyAddr.Hex(),
+	adminAccountKey := accountKeys.New()
+
+	lockedTokensAddr := deployLockedTokensContract(
+		t,
+		b,
+		IDTableAddr,
+		proxyAddr,
 	)
 
-	lockedTokensAddr, err := b.CreateAccount(nil, lockedTokensCode)
-	if !assert.NoError(t, err) {
-		t.Log(err.Error())
-	}
-
-	_, err = b.CommitBlock()
-	assert.NoError(t, err)
-
-	// Create new admin account
-	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
-	adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
-
 	t.Run("Should be able to set up the admin account", func(t *testing.T) {
-
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateCreateAdminCollectionScript(lockedTokensAddr.String())).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(adminAddress)
-
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, adminAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
-			false,
-		)
 
 		tx = flow.NewTransaction().
 			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
@@ -149,7 +127,7 @@ func TestLockedTokensStaker(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(b.ServiceKey().Address)
 
-		_ = tx.AddArgument(cadence.NewAddress(adminAddress))
+		_ = tx.AddArgument(cadence.NewAddress(lockedTokensAddr))
 		_ = tx.AddArgument(CadenceUFix64("1000000000.0"))
 
 		signAndSubmit(
@@ -176,15 +154,15 @@ func TestLockedTokensStaker(t *testing.T) {
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(adminAddress).
+			AddAuthorizer(b.ServiceKey().Address).
 			AddRawArgument(jsoncdc.MustEncode(adminPublicKey)).
 			AddRawArgument(jsoncdc.MustEncode(joshPublicKey)).
 			AddRawArgument(jsoncdc.MustEncode(joshPublicKey))
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, adminAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
+			[]flow.Address{b.ServiceKey().Address},
+			[]crypto.Signer{b.ServiceKey().Signer()},
 			false,
 		)
 
@@ -218,15 +196,15 @@ func TestLockedTokensStaker(t *testing.T) {
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(adminAddress)
+			AddAuthorizer(b.ServiceKey().Address)
 
 		_ = tx.AddArgument(cadence.NewAddress(joshSharedAddress))
 		_ = tx.AddArgument(CadenceUFix64("1000000.0"))
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, adminAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
+			[]flow.Address{b.ServiceKey().Address},
+			[]crypto.Signer{b.ServiceKey().Signer()},
 			false,
 		)
 
@@ -292,15 +270,15 @@ func TestLockedTokensStaker(t *testing.T) {
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(adminAddress)
+			AddAuthorizer(b.ServiceKey().Address)
 
 		_ = tx.AddArgument(cadence.NewAddress(joshSharedAddress))
 		_ = tx.AddArgument(CadenceUFix64("10000.0"))
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, adminAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
+			[]flow.Address{b.ServiceKey().Address},
+			[]crypto.Signer{b.ServiceKey().Signer()},
 			false,
 		)
 
@@ -439,8 +417,17 @@ func TestLockedTokensStaker(t *testing.T) {
 			false,
 		)
 
+		// Check the node ID
+		result, err := b.ExecuteScript(templates.GenerateGetNodeIDScript(lockedTokensAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		id := result.Value
+		assert.Equal(t, cadence.NewString(joshID), id.(cadence.String))
+
 		// unlock limit should not have changed
-		result, err := b.ExecuteScript(templates.GenerateGetUnlockLimitScript(lockedTokensAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
+		result, err = b.ExecuteScript(templates.GenerateGetUnlockLimitScript(lockedTokensAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
@@ -846,35 +833,16 @@ func TestLockedTokensDelegator(t *testing.T) {
 	_, err = b.CommitBlock()
 	assert.NoError(t, err)
 
-	lockedTokensCode := contracts.FlowLockedTokens(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String(), proxyAddr.String())
+	adminAccountKey := accountKeys.New()
 
-	lockedTokensAddr, err := b.CreateAccount(nil, []byte(lockedTokensCode))
-	if !assert.NoError(t, err) {
-		t.Log(err.Error())
-	}
-
-	_, err = b.CommitBlock()
-	assert.NoError(t, err)
-
-	// Create new admin account
-	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
-	adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
+	lockedTokensAddr := deployLockedTokensContract(
+		t,
+		b,
+		IDTableAddr,
+		proxyAddr,
+	)
 
 	t.Run("Should be able to set up the admin account", func(t *testing.T) {
-
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateCreateAdminCollectionScript(lockedTokensAddr.String())).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(adminAddress)
-
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, adminAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
-			false,
-		)
 
 		tx = flow.NewTransaction().
 			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
@@ -883,7 +851,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(b.ServiceKey().Address)
 
-		_ = tx.AddArgument(cadence.NewAddress(adminAddress))
+		_ = tx.AddArgument(cadence.NewAddress(lockedTokensAddr))
 		_ = tx.AddArgument(CadenceUFix64("1000000000.0"))
 
 		signAndSubmit(
@@ -910,15 +878,15 @@ func TestLockedTokensDelegator(t *testing.T) {
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(adminAddress).
+			AddAuthorizer(b.ServiceKey().Address).
 			AddRawArgument(jsoncdc.MustEncode(adminPublicKey)).
 			AddRawArgument(jsoncdc.MustEncode(joshPublicKey)).
 			AddRawArgument(jsoncdc.MustEncode(joshPublicKey))
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, adminAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
+			[]flow.Address{b.ServiceKey().Address},
+			[]crypto.Signer{b.ServiceKey().Signer()},
 			false,
 		)
 
@@ -952,15 +920,15 @@ func TestLockedTokensDelegator(t *testing.T) {
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(adminAddress)
+			AddAuthorizer(b.ServiceKey().Address)
 
 		_ = tx.AddArgument(cadence.NewAddress(joshSharedAddress))
 		_ = tx.AddArgument(CadenceUFix64("1000000.0"))
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, adminAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
+			[]flow.Address{b.ServiceKey().Address},
+			[]crypto.Signer{b.ServiceKey().Signer()},
 			false,
 		)
 
@@ -987,6 +955,15 @@ func TestLockedTokensDelegator(t *testing.T) {
 			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
 			false,
 		)
+
+		// Check the delegator ID
+		result, err := b.ExecuteScript(templates.GenerateGetDelegatorIDScript(lockedTokensAddr.String()), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		id := result.Value
+		assert.Equal(t, cadence.NewUInt32(1), id.(cadence.UInt32))
 	})
 
 	t.Run("Should not be able to register a second time", func(t *testing.T) {
@@ -1438,35 +1415,16 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 	_, err = b.CommitBlock()
 	assert.NoError(t, err)
 
-	lockedTokensCode := contracts.FlowLockedTokens(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String(), proxyAddr.String())
+	adminAccountKey := accountKeys.New()
 
-	lockedTokensAddr, err := b.CreateAccount(nil, []byte(lockedTokensCode))
-	if !assert.NoError(t, err) {
-		t.Log(err.Error())
-	}
-
-	_, err = b.CommitBlock()
-	assert.NoError(t, err)
-
-	// Create new admin account
-	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
-	adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
+	lockedTokensAddr := deployLockedTokensContract(
+		t,
+		b,
+		IDTableAddr,
+		proxyAddr,
+	)
 
 	t.Run("Should be able to set up the admin account", func(t *testing.T) {
-
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateCreateAdminCollectionScript(lockedTokensAddr.String())).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(adminAddress)
-
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, adminAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
-			false,
-		)
 
 		tx = flow.NewTransaction().
 			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
@@ -1475,7 +1433,7 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(b.ServiceKey().Address)
 
-		_ = tx.AddArgument(cadence.NewAddress(adminAddress))
+		_ = tx.AddArgument(cadence.NewAddress(lockedTokensAddr))
 		_ = tx.AddArgument(CadenceUFix64("1000000000.0"))
 
 		signAndSubmit(
@@ -1531,14 +1489,14 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(adminAddress)
+			AddAuthorizer(b.ServiceKey().Address)
 
 		_ = tx.AddArgument(cadence.NewAddress(custodyAddress))
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, adminAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
+			[]flow.Address{b.ServiceKey().Address},
+			[]crypto.Signer{b.ServiceKey().Signer()},
 			false,
 		)
 	})
@@ -1657,15 +1615,15 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(adminAddress)
+			AddAuthorizer(b.ServiceKey().Address)
 
 		_ = tx.AddArgument(cadence.NewAddress(joshSharedAddress))
 		_ = tx.AddArgument(CadenceUFix64("10000.0"))
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, adminAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
+			[]flow.Address{b.ServiceKey().Address},
+			[]crypto.Signer{b.ServiceKey().Signer()},
 			false,
 		)
 
@@ -1682,15 +1640,15 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(adminAddress)
+			AddAuthorizer(b.ServiceKey().Address)
 
 		_ = tx.AddArgument(cadence.NewAddress(maxSharedAddress))
 		_ = tx.AddArgument(CadenceUFix64("10000.0"))
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, adminAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
+			[]flow.Address{b.ServiceKey().Address},
+			[]crypto.Signer{b.ServiceKey().Signer()},
 			false,
 		)
 
@@ -1704,4 +1662,54 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 		assert.Equal(t, CadenceUFix64("10000.0"), balance.(cadence.UFix64))
 	})
 
+}
+
+func deployLockedTokensContract(
+	t testing.TB,
+	b *emulator.Blockchain,
+	IDTableAddr, proxyAddr sdk.Address,
+) sdk.Address {
+
+	lockedTokensCode := contracts.FlowLockedTokens(
+		emulatorFTAddress,
+		emulatorFlowTokenAddress,
+		IDTableAddr.Hex(),
+		proxyAddr.Hex(),
+	)
+
+	cadenceCode := cadence.NewString(hex.EncodeToString(lockedTokensCode))
+
+	tx := sdk.NewTransaction().
+		SetScript(templates.GenerateDeployLockedTokens()).
+		AddRawArgument(jsoncdc.MustEncode(cadenceCode)).
+		AddRawArgument(jsoncdc.MustEncode(cadence.NewArray(nil))).
+		SetGasLimit(100).
+		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+		SetPayer(b.ServiceKey().Address).
+		AddAuthorizer(b.ServiceKey().Address)
+
+	err := tx.SignEnvelope(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().Signer())
+	require.NoError(t, err)
+
+	err = b.AddTransaction(*tx)
+	require.NoError(t, err)
+
+	result, err := b.ExecuteNextTransaction()
+	require.NoError(t, err)
+	require.NoError(t, result.Error)
+
+	var lockedTokensAddr sdk.Address
+
+	for _, event := range result.Events {
+		if event.Type == sdk.EventAccountCreated {
+			accountCreatedEvent := sdk.AccountCreatedEvent(event)
+			lockedTokensAddr = accountCreatedEvent.Address()
+			break
+		}
+	}
+
+	_, err = b.CommitBlock()
+	require.NoError(t, err)
+
+	return lockedTokensAddr
 }

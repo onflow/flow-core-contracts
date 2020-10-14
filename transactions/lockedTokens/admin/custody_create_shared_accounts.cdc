@@ -4,7 +4,7 @@ import LockedTokens from 0xLOCKEDTOKENADDRESS
 
 /// Transaction that a custody provider would sign
 /// to create a shared account and an unlocked
-/// acount for a user
+/// account for a user
 
 transaction(
     partialAdminPublicKey: [UInt8], // Weight: 100
@@ -50,7 +50,6 @@ transaction(
                 LockedTokens.LockedTokenAdminPrivatePath,
                 target: LockedTokens.LockedTokenManagerStoragePath)
             ?? panic("Could not link token custodyProvider to token manager")
-
 
         let lockedAccountCreator = custodyProvider
             .borrow<&LockedTokens.LockedAccountCreator>(from: LockedTokens.LockedAccountCreatorStoragePath)
