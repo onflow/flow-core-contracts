@@ -44,241 +44,241 @@ const (
 
 // GenerateTransferMinterAndDeployScript generates a script that transfers
 // a flow minter and deploys the id table account
-func GenerateTransferMinterAndDeployScript(ftAddr, flowAddr string) []byte {
+func GenerateTransferMinterAndDeployScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + transferDeployFilename)
 
-	return []byte(ReplaceAddresses(code, ftAddr, flowAddr, ""))
+	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateReturnTableScript creates a script that returns
 // the the whole ID table nodeIDs
-func GenerateReturnTableScript(ftAddr, flowAddr, idTableAddr string) []byte {
+func GenerateReturnTableScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + getTableFilename)
 
-	return []byte(ReplaceAddresses(code, ftAddr, flowAddr, idTableAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateReturnCurrentTableScript creates a script that returns
 // the current ID table
-func GenerateReturnCurrentTableScript(ftAddr, flowAddr, idTableAddr string) []byte {
+func GenerateReturnCurrentTableScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + currentTableFilename)
 
-	return []byte(ReplaceAddresses(code, ftAddr, flowAddr, idTableAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateReturnProposedTableScript creates a script that returns
 // the ID table for the proposed next epoch
-func GenerateReturnProposedTableScript(ftAddr, flowAddr, idTableAddr string) []byte {
+func GenerateReturnProposedTableScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + proposedTableFilename)
 
-	return []byte(ReplaceAddresses(code, ftAddr, flowAddr, idTableAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateCreateNodeScript creates a script that creates a new
 // node struct and stores it in the Node records
-func GenerateCreateNodeScript(ftAddr, flowAddr, tableAddr string) []byte {
+func GenerateCreateNodeScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + createNodeStructFilename)
 
-	return []byte(ReplaceAddresses(code, ftAddr, flowAddr, tableAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateRemoveNodeScript creates a script that removes a node
 // from the record
-func GenerateRemoveNodeScript(tableAddr string) []byte {
+func GenerateRemoveNodeScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + removeNodeFilename)
 
-	return []byte(ReplaceAddresses(code, "", "", tableAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateEndStakingScript creates a script that ends the staking auction
-func GenerateEndStakingScript(tableAddr string) []byte {
+func GenerateEndStakingScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + endStakingFilename)
 
-	return []byte(ReplaceAddresses(code, "", "", tableAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
 // GeneratePayRewardsScript creates a script that pays rewards
-func GeneratePayRewardsScript(tableAddr string) []byte {
+func GeneratePayRewardsScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + payRewardsFilename)
 
-	return []byte(ReplaceAddresses(code, "", "", tableAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateMoveTokensScript creates a script that moves tokens between buckets
-func GenerateMoveTokensScript(tableAddr string) []byte {
+func GenerateMoveTokensScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + moveTokensFilename)
 
-	return []byte(ReplaceAddresses(code, "", "", tableAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateStakeNewTokensScript creates a script that stakes new
 // tokens for a node operator
-func GenerateStakeNewTokensScript(ftAddr, flowAddr, tableAddr string) []byte {
+func GenerateStakeNewTokensScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + stakeNewTokensFilename)
 
-	return []byte(ReplaceAddresses(code, ftAddr, flowAddr, tableAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateStakeUnstakedTokensScript creates a script that stakes
 // tokens for a node operator from their unstaked bucket
-func GenerateStakeUnstakedTokensScript(tableAddr string) []byte {
+func GenerateStakeUnstakedTokensScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + stakeUnstakedTokensFilename)
 
-	return []byte(ReplaceAddresses(code, "", "", tableAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateStakeRewardedTokensScript creates a script that stakes
 // tokens for a node operator from their rewarded bucket
-func GenerateStakeRewardedTokensScript(tableAddr string) []byte {
+func GenerateStakeRewardedTokensScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + stakeRewardedTokensFilename)
 
-	return []byte(ReplaceAddresses(code, "", "", tableAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateUnstakeTokensScript creates a script that makes an unstaking request
 // for an existing node operator
-func GenerateUnstakeTokensScript(tableAddr string) []byte {
+func GenerateUnstakeTokensScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + unstakeTokensFilename)
 
-	return []byte(ReplaceAddresses(code, "", "", tableAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateWithdrawUnstakedTokensScript creates a script that withdraws unstaked tokens
 // for an existing node operator
-func GenerateWithdrawUnstakedTokensScript(ftAddr, flowAddr, tableAddr string) []byte {
+func GenerateWithdrawUnstakedTokensScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + withdrawUnstakedTokensFilename)
 
-	return []byte(ReplaceAddresses(code, ftAddr, flowAddr, tableAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateWithdrawRewardedTokensScript creates a script that withdraws rewarded tokens
 // for an existing node operator
-func GenerateWithdrawRewardedTokensScript(ftAddr, flowAddr, tableAddr string) []byte {
+func GenerateWithdrawRewardedTokensScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + withdrawRewardedTokensFilename)
 
-	return []byte(ReplaceAddresses(code, ftAddr, flowAddr, tableAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateGetRoleScript creates a script
 // that returns the role of a node
-func GenerateGetRoleScript(tableAddr string) []byte {
+func GenerateGetRoleScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + getRoleFilename)
 
-	return []byte(ReplaceAddresses(code, "", "", tableAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateGetNetworkingAddressScript creates a script
 // that returns the networking address of a node
-func GenerateGetNetworkingAddressScript(tableAddr string) []byte {
+func GenerateGetNetworkingAddressScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + getNetworkingAddrFilename)
 
-	return []byte(ReplaceAddresses(code, "", "", tableAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateGetNetworkingKeyScript creates a script
 // that returns the networking key of a node
-func GenerateGetNetworkingKeyScript(tableAddr string) []byte {
+func GenerateGetNetworkingKeyScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + getNetworkingKeyFilename)
 
-	return []byte(ReplaceAddresses(code, "", "", tableAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateGetStakingKeyScript creates a script
 // that returns the staking key of a node
-func GenerateGetStakingKeyScript(tableAddr string) []byte {
+func GenerateGetStakingKeyScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + getStakingKeyFilename)
 
-	return []byte(ReplaceAddresses(code, "", "", tableAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateGetInitialWeightScript creates a script
 // that returns the initial weight of a node
-func GenerateGetInitialWeightScript(tableAddr string) []byte {
+func GenerateGetInitialWeightScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + getInitialWeightFilename)
 
-	return []byte(ReplaceAddresses(code, "", "", tableAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateGetStakedBalanceScript creates a script
 // that returns the balance of the staked tokens of a node
-func GenerateGetStakedBalanceScript(tableAddr string) []byte {
+func GenerateGetStakedBalanceScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + stakedBalanceFilename)
 
-	return []byte(ReplaceAddresses(code, "", "", tableAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateGetCommittedBalanceScript creates a script
 // that returns the balance of the committed tokens of a node
-func GenerateGetCommittedBalanceScript(tableAddr string) []byte {
+func GenerateGetCommittedBalanceScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + comittedBalanceFilename)
 
-	return []byte(ReplaceAddresses(code, "", "", tableAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateGetUnstakingBalanceScript creates a script
 // that returns the balance of the unstaking tokens of a node
-func GenerateGetUnstakingBalanceScript(tableAddr string) []byte {
+func GenerateGetUnstakingBalanceScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + unstakingBalanceFilename)
 
-	return []byte(ReplaceAddresses(code, "", "", tableAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateGetUnstakedBalanceScript creates a script
 // that returns the balance of the unstaked tokens of a node
-func GenerateGetUnstakedBalanceScript(tableAddr string) []byte {
+func GenerateGetUnstakedBalanceScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + unstakedBalanceFilename)
 
-	return []byte(ReplaceAddresses(code, "", "", tableAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateGetRewardBalanceScript creates a script
 // that returns the balance of the rewarded tokens of a node
-func GenerateGetRewardBalanceScript(tableAddr string) []byte {
+func GenerateGetRewardBalanceScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + rewardBalanceFilename)
 
-	return []byte(ReplaceAddresses(code, "", "", tableAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateGetUnstakingRequestScript creates a script
 // that returns the balance of the unstaking request for a node
-func GenerateGetUnstakingRequestScript(tableAddr string) []byte {
+func GenerateGetUnstakingRequestScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + getUnstakingRequestFilename)
 
-	return []byte(ReplaceAddresses(code, "", "", tableAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateGetTotalCommitmentBalanceScript creates a script
 // that returns the balance of the total committed tokens of a node
-func GenerateGetTotalCommitmentBalanceScript(tableAddr string) []byte {
+func GenerateGetTotalCommitmentBalanceScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + getTotalCommitmentFilename)
 
-	return []byte(ReplaceAddresses(code, "", "", tableAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateGetStakeRequirementsScript returns the stake requirement for a node type
-func GenerateGetStakeRequirementsScript(tableAddr string) []byte {
+func GenerateGetStakeRequirementsScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + stakeRequirementsFilename)
 
-	return []byte(ReplaceAddresses(code, "", "", tableAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateGetTotalTokensStakedByTypeScript returns the total tokens staked for a node type
-func GenerateGetTotalTokensStakedByTypeScript(tableAddr string) []byte {
+func GenerateGetTotalTokensStakedByTypeScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + totalStakedFilename)
 
-	return []byte(ReplaceAddresses(code, "", "", tableAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateGetRewardRatioScript gets the reward ratio for a node type
-func GenerateGetRewardRatioScript(tableAddr string) []byte {
+func GenerateGetRewardRatioScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + rewardRatioFilename)
 
-	return []byte(ReplaceAddresses(code, "", "", tableAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateGetWeeklyPayoutScript gets the total weekly reward payout
-func GenerateGetWeeklyPayoutScript(tableAddr string) []byte {
+func GenerateGetWeeklyPayoutScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + weeklyPayoutFilename)
 
-	return []byte(ReplaceAddresses(code, "", "", tableAddr))
+	return []byte(replaceAddresses(code, env))
 }
