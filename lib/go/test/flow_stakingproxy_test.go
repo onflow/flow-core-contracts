@@ -77,17 +77,9 @@ func TestStakingProxy(t *testing.T) {
 	_, err = b.CommitBlock()
 	assert.NoError(t, err)
 
-	lockedTokensCode := contracts.FlowLockedTokens(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String(), proxyAddr.String())
+	adminAccountKey := accountKeys.New()
 
-	lockedTokensAccountKey, lockedTokensSigner := accountKeys.NewWithSigner()
-
-	lockedTokensAddr, err := b.CreateAccount([]*flow.AccountKey{lockedTokensAccountKey}, lockedTokensCode)
-	if !assert.NoError(t, err) {
-		t.Log(err.Error())
-	}
-
-	_, err = b.CommitBlock()
-	assert.NoError(t, err)
+	lockedTokensAddr := deployLockedTokensContract(t, b, IDTableAddr, proxyAddr)
 
 	t.Run("Should be able to set up the admin account", func(t *testing.T) {
 
@@ -153,7 +145,7 @@ func TestStakingProxy(t *testing.T) {
 	// Create new keys for the user account
 	joshKey, joshSigner := accountKeys.NewWithSigner()
 
-	adminPublicKey := bytesToCadenceArray(lockedTokensAccountKey.Encode())
+	adminPublicKey := bytesToCadenceArray(adminAccountKey.Encode())
 	joshPublicKey := bytesToCadenceArray(joshKey.Encode())
 
 	var joshSharedAddress sdk.Address
@@ -166,15 +158,15 @@ func TestStakingProxy(t *testing.T) {
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(lockedTokensAddr).
+			AddAuthorizer(b.ServiceKey().Address).
 			AddRawArgument(jsoncdc.MustEncode(adminPublicKey)).
 			AddRawArgument(jsoncdc.MustEncode(joshPublicKey)).
 			AddRawArgument(jsoncdc.MustEncode(joshPublicKey))
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, lockedTokensAddr},
-			[]crypto.Signer{b.ServiceKey().Signer(), lockedTokensSigner},
+			[]flow.Address{b.ServiceKey().Address},
+			[]crypto.Signer{b.ServiceKey().Signer()},
 			false,
 		)
 
@@ -208,15 +200,15 @@ func TestStakingProxy(t *testing.T) {
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(lockedTokensAddr)
+			AddAuthorizer(b.ServiceKey().Address)
 
 		_ = tx.AddArgument(cadence.NewAddress(joshSharedAddress))
 		_ = tx.AddArgument(CadenceUFix64("1000000.0"))
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, lockedTokensAddr},
-			[]crypto.Signer{b.ServiceKey().Signer(), lockedTokensSigner},
+			[]flow.Address{b.ServiceKey().Address},
+			[]crypto.Signer{b.ServiceKey().Signer()},
 			false,
 		)
 	})
