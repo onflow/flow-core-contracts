@@ -1,5 +1,7 @@
 package templates
 
+//go:generate go run github.com/kevinburke/go-bindata/go-bindata -prefix ../../../transactions/... -o internal/assets/assets.go -pkg assets -nometadata -nomemcopy ../../../transactions/...
+
 import (
 	"fmt"
 	"strings"
@@ -9,9 +11,17 @@ const (
 	placeholderFungibleTokenAddress = "0xFUNGIBLETOKENADDRESS"
 	placeholderFlowTokenAddress     = "0xFLOWTOKENADDRESS"
 	placeholderIDTableAddress       = "0xIDENTITYTABLEADDRESS"
-	placeholderStakingProxyAddress  = "0xSTAKINGPROXYADDRESS"
 	placeholderLockedTokensAddress  = "0xLOCKEDTOKENADDRESS"
+	placeholderStakingProxyAddress  = "0xSTAKINGPROXYADDRESS"
 )
+
+type Environment struct {
+	FungibleTokenAddress string
+	FlowTokenAddress     string
+	IDTableAddress       string
+	LockedTokensAddress  string
+	StakingProxyAddress  string
+}
 
 func withHexPrefix(address string) string {
 	if address == "" {
@@ -25,57 +35,36 @@ func withHexPrefix(address string) string {
 	return fmt.Sprintf("0x%s", address)
 }
 
-// ReplaceAddresses replaces the import address
-// and phase in scripts that return info about a specific node and phase
-func ReplaceAddresses(
-	code,
-	fungibleTokenAddress,
-	flowTokenAddress,
-	idTableAddress string,
-) string {
+func replaceAddresses(code string, env Environment) string {
 
 	code = strings.ReplaceAll(
 		code,
 		placeholderFungibleTokenAddress,
-		withHexPrefix(fungibleTokenAddress),
+		withHexPrefix(env.FungibleTokenAddress),
 	)
 
 	code = strings.ReplaceAll(
 		code,
 		placeholderFlowTokenAddress,
-		withHexPrefix(flowTokenAddress),
+		withHexPrefix(env.FlowTokenAddress),
 	)
 
 	code = strings.ReplaceAll(
 		code,
 		placeholderIDTableAddress,
-		withHexPrefix(idTableAddress),
+		withHexPrefix(env.IDTableAddress),
 	)
-
-	return code
-}
-
-// ReplaceStakingProxyAddress replaces the import address
-// and phase in scripts that use staking proxy contract
-func ReplaceStakingProxyAddress(code, proxyAddress string) string {
-
-	code = strings.ReplaceAll(
-		code,
-		placeholderStakingProxyAddress,
-		withHexPrefix(proxyAddress),
-	)
-
-	return code
-}
-
-// ReplaceLockedTokensAddress replaces the import address
-// and phase in scripts that return info about a specific node and phase.
-func ReplaceLockedTokensAddress(code, lockedTokensAddress string) string {
 
 	code = strings.ReplaceAll(
 		code,
 		placeholderLockedTokensAddress,
-		withHexPrefix(lockedTokensAddress),
+		withHexPrefix(env.LockedTokensAddress),
+	)
+
+	code = strings.ReplaceAll(
+		code,
+		placeholderStakingProxyAddress,
+		withHexPrefix(env.StakingProxyAddress),
 	)
 
 	return code

@@ -23,88 +23,88 @@ const (
 	getDelegatorRequestFilename   = "idTableStaking/delegation/get_delegator_request.cdc"
 )
 
-func GenerateCreateDelegationScript(idTableAddr string) []byte {
+func GenerateCreateDelegationScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + createDelegationFilename)
 
-	return []byte(ReplaceAddresses(code, "", "", idTableAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
-func GenerateRegisterDelegatorScript(idTableAddr string) []byte {
+func GenerateRegisterDelegatorScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + delegatorRegisterFilename)
 
-	return []byte(ReplaceAddresses(code, "", "", idTableAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
-func GenerateDelegatorStakeNewScript(ftAddress, flowAddr, idTableAddr string) []byte {
+func GenerateDelegatorStakeNewScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + delegatorStakeNewFilename)
 
-	return []byte(ReplaceAddresses(code, ftAddress, flowAddr, idTableAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
-func GenerateDelegatorStakeUnstakedScript(idTableAddr string) []byte {
+func GenerateDelegatorStakeUnstakedScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + delegatorStakeUnstakedFilename)
 
-	return []byte(ReplaceAddresses(code, "", "", idTableAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
-func GenerateDelegatorStakeRewardedScript(idTableAddr string) []byte {
+func GenerateDelegatorStakeRewardedScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + delegatorStakeRewardedFilename)
 
-	return []byte(ReplaceAddresses(code, "", "", idTableAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
-func GenerateDelegatorRequestUnstakeScript(idTableAddr string) []byte {
+func GenerateDelegatorRequestUnstakeScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + delegatorRequestUnstakeFilename)
 
-	return []byte(ReplaceAddresses(code, "", "", idTableAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
-func GenerateDelegatorWithdrawUnstakedScript(ftAddress, flowAddr, idTableAddr string) []byte {
+func GenerateDelegatorWithdrawUnstakedScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + delegatorWithdrawUnstakedFilename)
 
-	return []byte(ReplaceAddresses(code, ftAddress, flowAddr, idTableAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
-func GenerateDelegatorWithdrawRewardsScript(ftAddress, flowAddr, idTableAddr string) []byte {
+func GenerateDelegatorWithdrawRewardsScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + delegatorWithdrawRewardsFilename)
 
-	return []byte(ReplaceAddresses(code, ftAddress, flowAddr, idTableAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
-/// Scripts
+// Scripts
 
-func GenerateGetDelegatorCommittedScript(idTableAddr string) []byte {
+func GenerateGetDelegatorCommittedScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + getDelegatorCommittedFilename)
 
-	return []byte(ReplaceAddresses(code, "", "", idTableAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
-func GenerateGetDelegatorStakedScript(idTableAddr string) []byte {
+func GenerateGetDelegatorStakedScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + getDelegatorStakedFilename)
 
-	return []byte(ReplaceAddresses(code, "", "", idTableAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
-func GenerateGetDelegatorUnstakingScript(idTableAddr string) []byte {
+func GenerateGetDelegatorUnstakingScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + getDelegatorUnstakingFilename)
 
-	return []byte(ReplaceAddresses(code, "", "", idTableAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
-func GenerateGetDelegatorUnstakedScript(idTableAddr string) []byte {
+func GenerateGetDelegatorUnstakedScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + getDelegatorUnstakedFilename)
 
-	return []byte(ReplaceAddresses(code, "", "", idTableAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
-func GenerateGetDelegatorRewardsScript(idTableAddr string) []byte {
+func GenerateGetDelegatorRewardsScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + getDelegatorRewardedFilename)
 
-	return []byte(ReplaceAddresses(code, "", "", idTableAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
-func GenerateGetDelegatorRequestScript(idTableAddr string) []byte {
+func GenerateGetDelegatorRequestScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + getDelegatorRequestFilename)
 
-	return []byte(ReplaceAddresses(code, "", "", idTableAddr))
+	return []byte(replaceAddresses(code, env))
 }

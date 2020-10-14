@@ -26,80 +26,78 @@ const (
 
 // GenerateSetupNodeAccountScript generates a script that sets up
 // a node operator's account to receive staking proxies
-func GenerateSetupNodeAccountScript(proxyAddr string) []byte {
+func GenerateSetupNodeAccountScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + setupNodeAccountFilename)
 
-	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateAddNodeInfoScript generates a script that adds the node
 // operators node info to their account
-func GenerateAddNodeInfoScript(proxyAddr string) []byte {
+func GenerateAddNodeInfoScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + addNodeInfoFilename)
 
-	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
-func GenerateRemoveNodeInfoScript(proxyAddr string) []byte {
+func GenerateRemoveNodeInfoScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + removeNodeInfoFilename)
 
-	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
-func GenerateGetNodeInfoScript(proxyAddr string) []byte {
+func GenerateGetNodeInfoScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + getNodeInfoFilename)
 
-	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
-func GenerateRemoveStakingProxyScript(proxyAddr string) []byte {
+func GenerateRemoveStakingProxyScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + removeStakingProxyFilename)
 
-	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
-func GenerateProxyStakeNewTokensScript(proxyAddr string) []byte {
+func GenerateProxyStakeNewTokensScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + proxyStakeNewTokensFilename)
 
-	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
-func GenerateProxyStakeUnstakedTokensScript(proxyAddr string) []byte {
+func GenerateProxyStakeUnstakedTokensScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + proxyStakeUnstakedTokensFilename)
 
-	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
-func GenerateProxyRequestUnstakingScript(proxyAddr string) []byte {
+func GenerateProxyRequestUnstakingScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + proxyRequestUnstakingFilename)
 
-	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
-func GenerateProxyUnstakeAllScript(proxyAddr string) []byte {
+func GenerateProxyUnstakeAllScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + proxyUnstakeAllFilename)
 
-	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
-func GenerateProxyWithdrawRewardsScript(proxyAddr string) []byte {
+func GenerateProxyWithdrawRewardsScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + proxyWithdrawRewardsFilename)
 
-	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
-func GenerateProxyWithdrawUnstakedScript(proxyAddr string) []byte {
+func GenerateProxyWithdrawUnstakedScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + proxyWithdrawUnstakedFilename)
 
-	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
+	return []byte(replaceAddresses(code, env))
 }
 
 // Transactions for the token holder
 
-func GenerateRegisterStakingProxyNodeScript(lockedTokensAddr, proxyAddr string) []byte {
+func GenerateRegisterStakingProxyNodeScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + registerNodeFilename)
 
-	code = ReplaceLockedTokensAddress(code, lockedTokensAddr)
-
-	return []byte(ReplaceStakingProxyAddress(code, proxyAddr))
+	return []byte(replaceAddresses(code, env))
 }

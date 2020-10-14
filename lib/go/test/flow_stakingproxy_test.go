@@ -21,6 +21,11 @@ import (
 func TestStakingProxy(t *testing.T) {
 	b := newEmulator()
 
+	env := templates.Environment{
+		FungibleTokenAddress: emulatorFTAddress,
+		FlowTokenAddress:     emulatorFlowTokenAddress,
+	}
+
 	accountKeys := test.AccountKeyGenerator()
 
 	// Create new keys for the ID table account
@@ -36,7 +41,7 @@ func TestStakingProxy(t *testing.T) {
 
 	// Deploy the IDTableStaking contract
 	tx := flow.NewTransaction().
-		SetScript(templates.GenerateTransferMinterAndDeployScript(emulatorFTAddress, emulatorFlowTokenAddress)).
+		SetScript(templates.GenerateTransferMinterAndDeployScript(env)).
 		SetGasLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
@@ -51,7 +56,7 @@ func TestStakingProxy(t *testing.T) {
 		false,
 	)
 
-	var IDTableAddr sdk.Address
+	var idTableAddress sdk.Address
 
 	var i uint64
 	i = 0
@@ -60,16 +65,18 @@ func TestStakingProxy(t *testing.T) {
 
 		for _, event := range results {
 			if event.Type == sdk.EventAccountCreated {
-				IDTableAddr = sdk.Address(event.Value.Fields[0].(cadence.Address))
+				idTableAddress = sdk.Address(event.Value.Fields[0].(cadence.Address))
 			}
 		}
 
 		i = i + 1
 	}
 
+	env.IDTableAddress = idTableAddress.Hex()
+
 	// Deploy the StakingProxy contract
 	stakingProxyCode := contracts.FlowStakingProxy()
-	proxyAddr, err := b.CreateAccount(nil, stakingProxyCode)
+	stakingProxyAddress, err := b.CreateAccount(nil, stakingProxyCode)
 	if !assert.NoError(t, err) {
 		t.Log(err.Error())
 	}
@@ -77,9 +84,13 @@ func TestStakingProxy(t *testing.T) {
 	_, err = b.CommitBlock()
 	assert.NoError(t, err)
 
+	env.StakingProxyAddress = stakingProxyAddress.Hex()
+
 	adminAccountKey := accountKeys.New()
 
-	lockedTokensAddr := deployLockedTokensContract(t, b, IDTableAddr, proxyAddr)
+	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress)
+
+	env.LockedTokensAddress = lockedTokensAddress.Hex()
 
 	t.Run("Should be able to set up the admin account", func(t *testing.T) {
 
@@ -90,7 +101,7 @@ func TestStakingProxy(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(b.ServiceKey().Address)
 
-		_ = tx.AddArgument(cadence.NewAddress(lockedTokensAddr))
+		_ = tx.AddArgument(cadence.NewAddress(lockedTokensAddress))
 		_ = tx.AddArgument(CadenceUFix64("1000000000.0"))
 
 		signAndSubmit(
@@ -108,7 +119,7 @@ func TestStakingProxy(t *testing.T) {
 	t.Run("Should be able to set up the node account for staking helper", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateSetupNodeAccountScript(proxyAddr.String())).
+			SetScript(templates.GenerateSetupNodeAccountScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -122,7 +133,7 @@ func TestStakingProxy(t *testing.T) {
 		)
 
 		tx = flow.NewTransaction().
-			SetScript(templates.GenerateAddNodeInfoScript(proxyAddr.String())).
+			SetScript(templates.GenerateAddNodeInfoScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -154,7 +165,7 @@ func TestStakingProxy(t *testing.T) {
 	t.Run("Should be able to create new shared accounts", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateCreateSharedAccountScript(emulatorFTAddress, emulatorFlowTokenAddress, lockedTokensAddr.String())).
+			SetScript(templates.GenerateCreateSharedAccountScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -175,7 +186,7 @@ func TestStakingProxy(t *testing.T) {
 		assert.Equal(t, flow.TransactionStatusSealed, createAccountsTxResult.Status)
 
 		for _, event := range createAccountsTxResult.Events {
-			if event.Type == fmt.Sprintf("A.%s.LockedTokens.SharedAccountRegistered", lockedTokensAddr.Hex()) {
+			if event.Type == fmt.Sprintf("A.%s.LockedTokens.SharedAccountRegistered", lockedTokensAddress.Hex()) {
 				// needs work
 				sharedAccountCreatedEvent := sharedAccountRegisteredEvent(event)
 				joshSharedAddress = sharedAccountCreatedEvent.Address()
@@ -184,7 +195,7 @@ func TestStakingProxy(t *testing.T) {
 		}
 
 		for _, event := range createAccountsTxResult.Events {
-			if event.Type == fmt.Sprintf("A.%s.LockedTokens.UnlockedAccountRegistered", lockedTokensAddr.Hex()) {
+			if event.Type == fmt.Sprintf("A.%s.LockedTokens.UnlockedAccountRegistered", lockedTokensAddress.Hex()) {
 				// needs work
 				unlockedAccountCreatedEvent := unlockedAccountRegisteredEvent(event)
 				joshAddress = unlockedAccountCreatedEvent.Address()
@@ -196,7 +207,7 @@ func TestStakingProxy(t *testing.T) {
 	t.Run("Should be able to deposit locked tokens to the shared account", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateDepositLockedTokensScript(emulatorFTAddress, emulatorFlowTokenAddress, lockedTokensAddr.String())).
+			SetScript(templates.GenerateDepositLockedTokensScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -216,7 +227,7 @@ func TestStakingProxy(t *testing.T) {
 	t.Run("Should be able to register josh as a node operator and add the staking proxy to the node's account", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateRegisterStakingProxyNodeScript(lockedTokensAddr.String(), proxyAddr.String())).
+			SetScript(templates.GenerateRegisterStakingProxyNodeScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -239,7 +250,7 @@ func TestStakingProxy(t *testing.T) {
 	t.Run("Should be able to stake locked tokens", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateProxyStakeNewTokensScript(proxyAddr.String())).
+			SetScript(templates.GenerateProxyStakeNewTokensScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -261,7 +272,7 @@ func TestStakingProxy(t *testing.T) {
 	t.Run("Should be able to stake unlocked (staking) tokens", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateProxyStakeUnstakedTokensScript(proxyAddr.String())).
+			SetScript(templates.GenerateProxyStakeUnstakedTokensScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -284,7 +295,7 @@ func TestStakingProxy(t *testing.T) {
 	t.Run("Should be able to request unstaking", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateProxyRequestUnstakingScript(proxyAddr.String())).
+			SetScript(templates.GenerateProxyRequestUnstakingScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -307,7 +318,7 @@ func TestStakingProxy(t *testing.T) {
 	t.Run("Should be able to request unstaking all tokens", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateProxyUnstakeAllScript(proxyAddr.String())).
+			SetScript(templates.GenerateProxyUnstakeAllScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -326,7 +337,7 @@ func TestStakingProxy(t *testing.T) {
 	t.Run("Should be able to withdraw unlocked (staking) tokens which are deposited to the locked vault (still locked)", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateProxyWithdrawUnstakedScript(proxyAddr.String())).
+			SetScript(templates.GenerateProxyWithdrawUnstakedScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -349,7 +360,7 @@ func TestStakingProxy(t *testing.T) {
 	t.Run("Should be able to withdraw rewards tokens which are deposited to the locked vault (increase limit)", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateProxyWithdrawRewardsScript(proxyAddr.String())).
+			SetScript(templates.GenerateProxyWithdrawRewardsScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
