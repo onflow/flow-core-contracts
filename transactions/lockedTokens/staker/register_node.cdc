@@ -5,8 +5,8 @@ transaction(id: String, role: UInt8, networkingAddress: String, networkingKey: S
 
     let holderRef: &LockedTokens.TokenHolder
 
-    prepare(acct: AuthAccount) {
-        self.holderRef = acct.borrow<&LockedTokens.TokenHolder>(from: LockedTokens.TokenHolderStoragePath)
+    prepare(account: AuthAccount) {
+        self.holderRef = account.borrow<&LockedTokens.TokenHolder>(from: LockedTokens.TokenHolderStoragePath)
             ?? panic("Could not borrow ref to TokenHolder")
     }
 
