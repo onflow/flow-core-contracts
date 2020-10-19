@@ -1,0 +1,291 @@
+{
+  "network": "mainnet",
+  "templates": [
+    {
+      "id": "TH.01",
+      "name": "Withdraw Unlocked FLOW",
+      "source": "import FungibleToken from 0xf233dcee88fe0abe\nimport FlowToken from 0x1654653399040a61\nimport LockedTokens from 0x8d0e87b65159ae63\n\ntransaction(amount: UFix64) {\n\n    let holderRef: \u0026LockedTokens.TokenHolder\n    let vaultRef: \u0026FlowToken.Vault\n\n    prepare(acct: AuthAccount) {\n        self.holderRef = acct.borrow\u003c\u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath)\n            ?? panic(\"Could not borrow a reference to TokenHolder\")\n\n        self.vaultRef = acct.borrow\u003c\u0026FlowToken.Vault\u003e(from: /storage/flowTokenVault)\n            ?? panic(\"Could not borrow flow token vault ref\")\n    }\n\n    execute {\n        self.vaultRef.deposit(from: \u003c-self.holderRef.withdraw(amount: amount))\n    }\n}\n",
+      "arguments": [
+        {
+          "type": "UFix64",
+          "name": "amount",
+          "label": "Amount"
+        }
+      ],
+      "network": "mainnet",
+      "hash": "a2146e3e6e7718779ce59376b88760c154d82b7d132fe2c377114ec7cf434e7b"
+    },
+    {
+      "id": "TH.02",
+      "name": "Deposit Unlocked FLOW",
+      "source": "import FungibleToken from 0xf233dcee88fe0abe\nimport FlowToken from 0x1654653399040a61\nimport LockedTokens from 0x8d0e87b65159ae63\n\ntransaction(amount: UFix64) {\n\n    let holderRef: \u0026LockedTokens.TokenHolder\n    let vaultRef: \u0026FlowToken.Vault\n\n    prepare(acct: AuthAccount) {\n        self.holderRef = acct.borrow\u003c\u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath)\n            ?? panic(\"Could not borrow a reference to TokenHolder\")\n\n        self.vaultRef = acct.borrow\u003c\u0026FlowToken.Vault\u003e(from: /storage/flowTokenVault)\n            ?? panic(\"Could not borrow flow token vault ref\")\n    }\n\n    execute {\n        self.holderRef.deposit(from: \u003c-self.vaultRef.withdraw(amount: amount))\n    }\n}\n",
+      "arguments": [
+        {
+          "type": "UFix64",
+          "name": "amount",
+          "label": "Amount"
+        }
+      ],
+      "network": "mainnet",
+      "hash": "74355dc8df221bc0d170b2fe8deacd6f1f554d6beea58ad9fee7a07f740eaefe"
+    },
+    {
+      "id": "TH.06",
+      "name": "Register Node",
+      "source": "import LockedTokens from 0x8d0e87b65159ae63\nimport StakingProxy from 0x62430cf28c26d095\n\ntransaction(id: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String, amount: UFix64) {\n\n    let holderRef: \u0026LockedTokens.TokenHolder\n\n    prepare(account: AuthAccount) {\n        self.holderRef = account.borrow\u003c\u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath)\n            ?? panic(\"Could not borrow ref to TokenHolder\")\n    }\n\n    execute {\n        let nodeInfo = StakingProxy.NodeInfo(id: id, role: role, networkingAddress: networkingAddress, networkingKey: networkingKey, stakingKey: stakingKey)\n\n        self.holderRef.createNodeStaker(nodeInfo: nodeInfo, amount: amount)\n    }\n}\n",
+      "arguments": [
+        {
+          "type": "String",
+          "name": "id",
+          "label": "Node ID"
+        },
+        {
+          "type": "UInt8",
+          "name": "role",
+          "label": "Node Role"
+        },
+        {
+          "type": "String",
+          "name": "networkingAddress",
+          "label": "Networking Address"
+        },
+        {
+          "type": "String",
+          "name": "networkingKey",
+          "label": "Networking Key"
+        },
+        {
+          "type": "String",
+          "name": "stakingKey",
+          "label": "Staking Key"
+        },
+        {
+          "type": "UFix64",
+          "name": "amount",
+          "label": "Amount"
+        }
+      ],
+      "network": "mainnet",
+      "hash": "6ffa49f84f795db62af8928c820aaac199876278db291d82ff66e30ae9cd513c"
+    },
+    {
+      "id": "TH.08",
+      "name": "Stake New Locked FLOW",
+      "source": "import FlowToken from 0x1654653399040a61\nimport FungibleToken from 0xf233dcee88fe0abe\n\nimport LockedTokens from 0x8d0e87b65159ae63\nimport StakingProxy from 0x62430cf28c26d095\n\ntransaction(amount: UFix64) {\n\n    let holderRef: \u0026LockedTokens.TokenHolder\n\n    let vaultRef: \u0026FlowToken.Vault\n\n    prepare(account: AuthAccount) {\n        self.holderRef = account.borrow\u003c\u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath)\n            ?? panic(\"Could not borrow reference to TokenHolder\")\n\n        self.vaultRef = account.borrow\u003c\u0026FlowToken.Vault\u003e(from: /storage/flowTokenVault)\n            ?? panic(\"Could not borrow flow token vault reference\")\n    }\n\n    execute {\n        let stakerProxy = self.holderRef.borrowStaker()\n\n        let lockedBalance = self.holderRef.getLockedAccountBalance()\n\n        if amount \u003c= lockedBalance {\n\n            stakerProxy.stakeNewTokens(amount: amount)\n\n        } else if ((amount - lockedBalance) \u003c= self.vaultRef.balance) {\n\n            self.holderRef.deposit(from: \u003c-self.vaultRef.withdraw(amount: amount - lockedBalance))\n\n            stakerProxy.stakeNewTokens(amount: amount)\n            \n        } else {\n            panic(\"Not enough tokens to stake!\")\n        }\n    }\n}\n",
+      "arguments": [
+        {
+          "type": "UFix64",
+          "name": "amount",
+          "label": "Amount"
+        }
+      ],
+      "network": "mainnet",
+      "hash": "1929e4f38894b8641848a3c0a3b9d35495b35083d42e8a3d4c928b9db4174ee8"
+    },
+    {
+      "id": "TH.09",
+      "name": "Re-stake Unstaked FLOW",
+      "source": "import LockedTokens from 0x8d0e87b65159ae63\nimport StakingProxy from 0x62430cf28c26d095\n\ntransaction(amount: UFix64) {\n\n    let holderRef: \u0026LockedTokens.TokenHolder\n\n    prepare(account: AuthAccount) {\n        self.holderRef = account.borrow\u003c\u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath)\n            ?? panic(\"Could not borrow reference to TokenHolder\")\n    }\n\n    execute {\n        let stakerProxy = self.holderRef.borrowStaker()\n\n        stakerProxy.stakeUnstakedTokens(amount: amount)\n    }\n}\n",
+      "arguments": [
+        {
+          "type": "UFix64",
+          "name": "amount",
+          "label": "Amount"
+        }
+      ],
+      "network": "mainnet",
+      "hash": "677cc0ac3962ec136ca26dbec0aa942d926640ecf8418433f0db4b7925f5d0fe"
+    },
+    {
+      "id": "TH.10",
+      "name": "Re-stake Rewarded FLOW",
+      "source": "import LockedTokens from 0x8d0e87b65159ae63\nimport StakingProxy from 0x62430cf28c26d095\n\ntransaction(amount: UFix64) {\n\n    let holderRef: \u0026LockedTokens.TokenHolder\n\n    prepare(account: AuthAccount) {\n        self.holderRef = account.borrow\u003c\u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath)\n            ?? panic(\"Could not borrow reference to TokenHolder\")\n    }\n\n    execute {\n        let stakerProxy = self.holderRef.borrowStaker()\n\n        stakerProxy.stakeRewardedTokens(amount: amount)\n    }\n}\n",
+      "arguments": [
+        {
+          "type": "UFix64",
+          "name": "amount",
+          "label": "Amount"
+        }
+      ],
+      "network": "mainnet",
+      "hash": "28d1719c5b21c88c62665db5ba04886809f3234c27057b057c36d5f265ee9de4"
+    },
+    {
+      "id": "TH.11",
+      "name": "Request Unstake of FLOW",
+      "source": "import LockedTokens from 0x8d0e87b65159ae63\nimport StakingProxy from 0x62430cf28c26d095\n\ntransaction(amount: UFix64) {\n\n    let holderRef: \u0026LockedTokens.TokenHolder\n\n    prepare(account: AuthAccount) {\n        self.holderRef = account.borrow\u003c\u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath)\n            ?? panic(\"Could not borrow reference to TokenHolder\")\n    }\n\n    execute {\n        let stakerProxy = self.holderRef.borrowStaker()\n\n        stakerProxy.requestUnstaking(amount: amount)\n    }\n}\n",
+      "arguments": [
+        {
+          "type": "UFix64",
+          "name": "amount",
+          "label": "Amount"
+        }
+      ],
+      "network": "mainnet",
+      "hash": "4e2a35541453f89c55e5dc6dbc963290380d779c81df0b3bf89c29b2a8d7a9fe"
+    },
+    {
+      "id": "TH.12",
+      "name": "Unstake All FLOW",
+      "source": "import LockedTokens from 0x8d0e87b65159ae63\nimport StakingProxy from 0x62430cf28c26d095\n\ntransaction() {\n\n    let holderRef: \u0026LockedTokens.TokenHolder\n\n    prepare(account: AuthAccount) {\n        self.holderRef = account.borrow\u003c\u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath)\n            ?? panic(\"Could not borrow reference to TokenHolder\")\n    }\n\n    execute {\n        let stakerProxy = self.holderRef.borrowStaker()\n\n        stakerProxy.unstakeAll()\n    }\n}\n",
+      "arguments": [],
+      "network": "mainnet",
+      "hash": "7099904b953b062e81e2575a2c2081b3d98bfccf5c743b4bdb224b937e292dad"
+    },
+    {
+      "id": "TH.13",
+      "name": "Withdraw Unstaked FLOW",
+      "source": "import LockedTokens from 0x8d0e87b65159ae63\nimport StakingProxy from 0x62430cf28c26d095\n\ntransaction(amount: UFix64) {\n\n    let holderRef: \u0026LockedTokens.TokenHolder\n\n    prepare(account: AuthAccount) {\n        self.holderRef = account.borrow\u003c\u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath)\n            ?? panic(\"Could not borrow reference to TokenHolder\")\n    }\n\n    execute {\n        let stakerProxy = self.holderRef.borrowStaker()\n\n        stakerProxy.withdrawUnstakedTokens(amount: amount)\n    }\n}\n",
+      "arguments": [
+        {
+          "type": "UFix64",
+          "name": "amount",
+          "label": "Amount"
+        }
+      ],
+      "network": "mainnet",
+      "hash": "dcae4faa6d689873f7caf7c5efef669f9fe1d4113e58b474b7aec1e07113a7ff"
+    },
+    {
+      "id": "TH.14",
+      "name": "Withdraw Rewarded FLOW",
+      "source": "import LockedTokens from 0x8d0e87b65159ae63\nimport StakingProxy from 0x62430cf28c26d095\n\ntransaction(amount: UFix64) {\n\n    let holderRef: \u0026LockedTokens.TokenHolder\n\n    prepare(account: AuthAccount) {\n        self.holderRef = account.borrow\u003c\u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath)\n            ?? panic(\"Could not borrow reference to TokenHolder\")\n    }\n\n    execute {\n        let stakerProxy = self.holderRef.borrowStaker()\n\n        stakerProxy.withdrawRewardedTokens(amount: amount)\n    }\n}\n",
+      "arguments": [
+        {
+          "type": "UFix64",
+          "name": "amount",
+          "label": "Amount"
+        }
+      ],
+      "network": "mainnet",
+      "hash": "4c5c67ff1581c7a51819835ddda4fcd18ea5b11acd93aaee022c324364d4532f"
+    },
+    {
+      "id": "TH.16",
+      "name": "Register Operator Node",
+      "source": "import LockedTokens from 0x8d0e87b65159ae63\nimport StakingProxy from 0x62430cf28c26d095\n\ntransaction(address: Address, id: String, amount: UFix64) {\n\n    let holderRef: \u0026LockedTokens.TokenHolder\n\n    prepare(account: AuthAccount) {\n        self.holderRef = account.borrow\u003c\u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath)\n            ?? panic(\"Could not borrow reference to TokenHolder\")\n    }\n\n    execute {\n        let nodeOperatorRef = getAccount(address).getCapability\n            \u003c\u0026StakingProxy.NodeStakerProxyHolder{StakingProxy.NodeStakerProxyHolderPublic}\u003e\n            (StakingProxy.NodeOperatorCapabilityPublicPath)!.borrow() \n            ?? panic(\"Could not borrow node operator public capability\")\n\n        let nodeInfo = nodeOperatorRef.getNodeInfo(nodeID: id)\n            ?? panic(\"Couldn't get info for nodeID=\".concat(id))\n\n        self.holderRef.createNodeStaker(nodeInfo: nodeInfo, amount: amount)\n\n        let nodeStakerProxy = self.holderRef.borrowStaker()\n\n        nodeOperatorRef.addStakingProxy(nodeID: nodeInfo.id, proxy: nodeStakerProxy)\n    }\n}\n",
+      "arguments": [
+        {
+          "type": "Address",
+          "name": "address",
+          "label": "Operator Address"
+        },
+        {
+          "type": "String",
+          "name": "id",
+          "label": "Node ID"
+        },
+        {
+          "type": "UFix64",
+          "name": "amount",
+          "label": "Amount"
+        }
+      ],
+      "network": "mainnet",
+      "hash": "97b3436482c5aefc1baf8b850e92c829202e468c57241dec707b6c27bd89d15c"
+    },
+    {
+      "id": "TH.17",
+      "name": "Register Delegator",
+      "source": "import FlowIDTableStaking from 0x8624b52f9ddcd04a\n\ntransaction(nodeID: String) {\n\n    prepare(acct: AuthAccount) {\n\n        // Create a new delegator object for the node\n        let newDelegator \u003c- FlowIDTableStaking.registerNewDelegator(nodeID: nodeID)\n\n        // Store the delegator object\n        acct.save(\u003c-newDelegator, to: FlowIDTableStaking.DelegatorStoragePath)\n    }\n\n}",
+      "arguments": [
+        {
+          "type": "String",
+          "name": "id",
+          "label": "Node ID"
+        },
+        {
+          "type": "UFix64",
+          "name": "amount",
+          "label": "Amount"
+        }
+      ],
+      "network": "mainnet",
+      "hash": "94a37cfffbd452d6139967282862be747297c60f9f0c78b1bb2c27c59cb9dbf6"
+    },
+    {
+      "id": "TH.19",
+      "name": "Delegate New Locked FLOW",
+      "source": "import FlowToken from 0x1654653399040a61\nimport FungibleToken from 0xf233dcee88fe0abe\nimport LockedTokens from 0x8d0e87b65159ae63\n\ntransaction(amount: UFix64) {\n\n    let holderRef: \u0026LockedTokens.TokenHolder\n\n    let vaultRef: \u0026FlowToken.Vault\n\n    prepare(account: AuthAccount) {\n        self.holderRef = account.borrow\u003c\u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath)\n            ?? panic(\"Could not borrow reference to TokenHolder\")\n\n        self.vaultRef = account.borrow\u003c\u0026FlowToken.Vault\u003e(from: /storage/flowTokenVault)\n            ?? panic(\"Could not borrow flow token vault reference\")\n    }\n\n    execute {\n        let stakerProxy = self.holderRef.borrowDelegator()\n\n        let lockedBalance = self.holderRef.getLockedAccountBalance()\n\n        if amount \u003c= lockedBalance {\n\n            stakerProxy.delegateNewTokens(amount: amount)\n\n        } else if ((amount - lockedBalance) \u003c= self.vaultRef.balance) {\n\n            self.holderRef.deposit(from: \u003c-self.vaultRef.withdraw(amount: amount - lockedBalance))\n\n            stakerProxy.delegateNewTokens(amount: amount)\n        } else {\n            panic(\"Not enough tokens to stake!\")\n        }\n    }\n}\n",
+      "arguments": [
+        {
+          "type": "UFix64",
+          "name": "amount",
+          "label": "Amount"
+        }
+      ],
+      "network": "mainnet",
+      "hash": "802354d8b3e7908e584bcb5217637fb9f4ef045427c32d57d81ad4a390ed1a60"
+    },
+    {
+      "id": "TH.20",
+      "name": "Re-delegate Unstaked FLOW",
+      "source": "import LockedTokens from 0x8d0e87b65159ae63\n\ntransaction(amount: UFix64) {\n    let nodeDelegatorProxy: LockedTokens.LockedNodeDelegatorProxy\n\n    prepare(account: AuthAccount) {\n        let holderRef = account.borrow\u003c\u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath) \n            ?? panic(\"TokenHolder is not saved at specified path\")\n\n        self.nodeDelegatorProxy = holderRef.borrowDelegator()\n    }\n\n    execute {\n        self.nodeDelegatorProxy.delegateUnstakedTokens(amount: amount)\n    }\n}\n",
+      "arguments": [
+        {
+          "type": "UFix64",
+          "name": "amount",
+          "label": "Amount"
+        }
+      ],
+      "network": "mainnet",
+      "hash": "2027331b72d8710a1a05feb6ecebadb5858d134bc8c95d6f261319cd9fa1bb95"
+    },
+    {
+      "id": "TH.21",
+      "name": "Re-delegate Rewarded FLOW",
+      "source": "import LockedTokens from 0x8d0e87b65159ae63\n\ntransaction(amount: UFix64) {\n    let nodeDelegatorProxy: LockedTokens.LockedNodeDelegatorProxy\n\n    prepare(account: AuthAccount) {\n        let holderRef = account.borrow\u003c\u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath) \n            ?? panic(\"TokenHolder is not saved at specified path\")\n        \n        self.nodeDelegatorProxy = holderRef.borrowDelegator()\n    }\n\n    execute {\n        self.nodeDelegatorProxy.delegateRewardedTokens(amount: amount)\n    }\n}\n",
+      "arguments": [
+        {
+          "type": "UFix64",
+          "name": "amount",
+          "label": "Amount"
+        }
+      ],
+      "network": "mainnet",
+      "hash": "864edbff384335ef21c26b3bcf17d36b2b1d894afbe2b203f58099cc457971e4"
+    },
+    {
+      "id": "TH.22",
+      "name": "Unstake Delegated FLOW",
+      "source": "import LockedTokens from 0x8d0e87b65159ae63\n\ntransaction(amount: UFix64) {\n    let nodeDelegatorProxy: LockedTokens.LockedNodeDelegatorProxy\n\n    prepare(account: AuthAccount) {\n        let holderRef = account.borrow\u003c\u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath) \n            ?? panic(\"TokenHolder is not saved at specified path\")\n        \n        self.nodeDelegatorProxy = holderRef.borrowDelegator()\n    }\n\n    execute {\n        self.nodeDelegatorProxy.requestUnstaking(amount: amount)\n    }\n}\n",
+      "arguments": [
+        {
+          "type": "UFix64",
+          "name": "amount",
+          "label": "Amount"
+        }
+      ],
+      "network": "mainnet",
+      "hash": "262aeddd3f49fd6222d706c02696bd7d359ba962b6c30232cc93d7cf4166a23e"
+    },
+    {
+      "id": "TH.23",
+      "name": "Withdraw Unstaked FLOW",
+      "source": "import LockedTokens from 0x8d0e87b65159ae63\n\ntransaction(amount: UFix64) {\n    let nodeDelegatorProxy: LockedTokens.LockedNodeDelegatorProxy\n\n    prepare(account: AuthAccount) {\n        let holderRef = account.borrow\u003c\u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath) \n            ?? panic(\"TokenHolder is not saved at specified path\")\n        \n        self.nodeDelegatorProxy = holderRef.borrowDelegator()\n    }\n\n    execute {\n        self.nodeDelegatorProxy.withdrawUnstakedTokens(amount: amount)\n    }\n}\n",
+      "arguments": [
+        {
+          "type": "UFix64",
+          "name": "amount",
+          "label": "Amount"
+        }
+      ],
+      "network": "mainnet",
+      "hash": "12675a013c064b6d0ef11dbf13f92210489bf2b3d299b2f14cd09be70b37577f"
+    },
+    {
+      "id": "TH.24",
+      "name": "Withdraw Rewarded FLOW",
+      "source": "import LockedTokens from 0x8d0e87b65159ae63\n\ntransaction(amount: UFix64) {\n    let nodeDelegatorProxy: LockedTokens.LockedNodeDelegatorProxy\n\n    prepare(account: AuthAccount) {\n        let holderRef = account.borrow\u003c\u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath) \n            ?? panic(\"TokenHolder is not saved at specified path\")\n        \n        self.nodeDelegatorProxy = holderRef.borrowDelegator()\n    }\n\n    execute {\n        self.nodeDelegatorProxy.withdrawRewardedTokens(amount: amount)\n    }\n}\n",
+      "arguments": [
+        {
+          "type": "UFix64",
+          "name": "amount",
+          "label": "Amount"
+        }
+      ],
+      "network": "mainnet",
+      "hash": "2920ed29151943c1c061ba3eb81b904bdc78f658ad18b44b95df48cd96056929"
+    }
+  ]
+}
