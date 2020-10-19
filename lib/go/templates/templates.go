@@ -16,6 +16,7 @@ const (
 )
 
 type Environment struct {
+	Network              string
 	FungibleTokenAddress string
 	FlowTokenAddress     string
 	IDTableAddress       string
