@@ -207,13 +207,29 @@ func TestLockedTokensStaker(t *testing.T) {
 	t.Run("Should be able to confirm that the account is registered", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateCheckRegistrationScript(env)).
+			SetScript(templates.GenerateCheckSharedRegistrationScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(b.ServiceKey().Address)
 
 		_ = tx.AddArgument(cadence.NewAddress(joshSharedAddress))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address},
+			[]crypto.Signer{b.ServiceKey().Signer()},
+			false,
+		)
+
+		tx = flow.NewTransaction().
+			SetScript(templates.GenerateCheckMainRegistrationScript(env)).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(b.ServiceKey().Address)
+
+		_ = tx.AddArgument(cadence.NewAddress(joshAddress))
 
 		signAndSubmit(
 			t, b, tx,
@@ -230,7 +246,7 @@ func TestLockedTokensStaker(t *testing.T) {
 	t.Run("Should fail because the accounts are not registered", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateCheckRegistrationScript(env)).
+			SetScript(templates.GenerateCheckSharedRegistrationScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -246,13 +262,29 @@ func TestLockedTokensStaker(t *testing.T) {
 		)
 
 		tx = flow.NewTransaction().
-			SetScript(templates.GenerateCheckRegistrationScript(env)).
+			SetScript(templates.GenerateCheckSharedRegistrationScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(b.ServiceKey().Address)
 
 		_ = tx.AddArgument(cadence.NewAddress(joshAddress))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address},
+			[]crypto.Signer{b.ServiceKey().Signer()},
+			true,
+		)
+
+		tx = flow.NewTransaction().
+			SetScript(templates.GenerateCheckMainRegistrationScript(env)).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(b.ServiceKey().Address)
+
+		_ = tx.AddArgument(cadence.NewAddress(maxAddress))
 
 		signAndSubmit(
 			t, b, tx,
