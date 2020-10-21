@@ -8,6 +8,7 @@ const (
 	// admin templates
 	deployLockedTokensFilename              = "lockedTokens/admin/admin_deploy_contract.cdc"
 	createLockedAccountsFilename            = "lockedTokens/admin/admin_create_shared_accounts.cdc"
+	checkRegistrationFilename               = "lockedTokens/admin/check_registration.cdc"
 	depositLockedTokensFilename             = "lockedTokens/admin/deposit_locked_tokens.cdc"
 	increaseUnlockLimitFilename             = "lockedTokens/admin/unlock_tokens.cdc"
 	depositAccountCreatorCapabilityFilename = "lockedTokens/admin/admin_deposit_account_creator.cdc"
@@ -54,6 +55,12 @@ func GenerateDeployLockedTokens() []byte {
 
 func GenerateCreateSharedAccountScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + createLockedAccountsFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateCheckRegistrationScript(env Environment) []byte {
+	code := assets.MustAssetString(filePath + checkRegistrationFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
