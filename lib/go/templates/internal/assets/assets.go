@@ -33,6 +33,7 @@
 // ../../../transactions/idTableStaking/delegation/get_delegator_staked.cdc (309B)
 // ../../../transactions/idTableStaking/delegation/get_delegator_unstaked.cdc (313B)
 // ../../../transactions/idTableStaking/delegation/get_delegator_unstaking.cdc (315B)
+// ../../../transactions/idTableStaking/delegation/get_delegator_unstaking_request.cdc (324B)
 // ../../../transactions/idTableStaking/get_current_table.cdc (190B)
 // ../../../transactions/idTableStaking/get_cut_percentage.cdc (199B)
 // ../../../transactions/idTableStaking/get_nodeType_ratio.cdc (235B)
@@ -101,7 +102,7 @@
 // ../../../transactions/stakingProxy/add_node_info.cdc (614B)
 // ../../../transactions/stakingProxy/get_node_info.cdc (529B)
 // ../../../transactions/stakingProxy/register_node.cdc (1.101kB)
-// ../../../transactions/stakingProxy/remove_node_info.cdc (305B)
+// ../../../transactions/stakingProxy/remove_node_info.cdc (301B)
 // ../../../transactions/stakingProxy/remove_staking_proxy.cdc (309B)
 // ../../../transactions/stakingProxy/request_unstaking.cdc (471B)
 // ../../../transactions/stakingProxy/setup_node_account.cdc (524B)
@@ -836,6 +837,26 @@ func TransactionsIdtablestakingDelegationGet_delegator_unstakingCdc() (*asset, e
 
 	info := bindataFileInfo{name: "../../../transactions/idTableStaking/delegation/get_delegator_unstaking.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xf8, 0xcc, 0xb4, 0xc7, 0x5b, 0x20, 0xa9, 0x46, 0xd8, 0x41, 0x41, 0x21, 0x21, 0x9e, 0x97, 0x29, 0x8a, 0x19, 0x72, 0x4e, 0x64, 0x3, 0x3a, 0xd5, 0x46, 0x41, 0xa6, 0x9f, 0xdf, 0x8d, 0xbb, 0xf6}}
+	return a, nil
+}
+
+var _TransactionsIdtablestakingDelegationGet_delegator_unstaking_requestCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x8f\xc1\x4a\xf3\x40\x14\x85\xf7\xf3\x14\x67\xf9\x17\x7e\x5a\x51\x71\x51\x70\x51\x99\x14\x06\xc4\x45\x33\x59\xb8\x9c\x34\x37\xe9\xd0\xe4\x4e\x9c\xb9\x83\x05\xf1\xdd\x25\x8d\x56\x11\x57\x97\x7b\x38\x7c\x87\xcf\x0f\x63\x88\x82\x6d\x1f\x5e\x8d\xb6\xae\xee\xa9\x14\x77\xf4\xdc\xa1\x8d\x61\xc0\xd5\xc9\xe8\xe2\xc9\x1a\xfb\x6c\x37\x0f\x8f\xc5\x46\xeb\x5d\x51\x96\x4a\xad\x56\xb0\x07\x9f\x90\xf6\xd1\x8f\x82\x48\x92\x23\x27\xc8\x81\x50\xbb\xde\xf1\x9e\x10\x5a\x64\x4e\x9f\x30\x09\x47\xe2\x34\x65\x0e\x0d\xf5\xd4\x39\x09\x51\xa9\x31\xd7\x68\x33\x63\x70\x9e\xff\x71\x68\xc8\xe8\x35\x4a\x89\x9e\xbb\xff\xdf\xbd\x29\xac\x0c\xcb\xcd\xf5\x62\x8d\x6a\xeb\x4f\x77\xb7\x78\x53\x00\xd0\x93\x4c\x35\xc3\x6d\xc0\xfd\x1f\x12\x4b\x7d\x61\x70\x1b\x2e\x0b\xf3\xfd\xb5\xf0\xe3\x59\x9c\xe1\xb3\xd4\x17\x7f\x39\x2b\xec\xe8\x25\x53\x12\x6a\x6c\xa8\xce\x76\xa4\xde\x3f\x02\x00\x00\xff\xff\xd5\x52\xe0\xa9\x44\x01\x00\x00"
+
+func TransactionsIdtablestakingDelegationGet_delegator_unstaking_requestCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_TransactionsIdtablestakingDelegationGet_delegator_unstaking_requestCdc,
+		"../../../transactions/idTableStaking/delegation/get_delegator_unstaking_request.cdc",
+	)
+}
+
+func TransactionsIdtablestakingDelegationGet_delegator_unstaking_requestCdc() (*asset, error) {
+	bytes, err := TransactionsIdtablestakingDelegationGet_delegator_unstaking_requestCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "../../../transactions/idTableStaking/delegation/get_delegator_unstaking_request.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x3a, 0x11, 0x6f, 0xac, 0xf2, 0xc9, 0x38, 0x6a, 0x2f, 0x9d, 0x96, 0xd5, 0xe2, 0xfd, 0x20, 0x61, 0x12, 0xcd, 0xc8, 0xa8, 0x97, 0x82, 0x66, 0xa4, 0xec, 0xda, 0xde, 0xae, 0xdb, 0xc0, 0x2b, 0xf1}}
 	return a, nil
 }
 
@@ -2199,7 +2220,7 @@ func TransactionsStakingproxyRegister_nodeCdc() (*asset, error) {
 	return a, nil
 }
 
-var _TransactionsStakingproxyRemove_node_infoCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x64\x8f\xc1\x4a\xc3\x40\x10\x40\xef\xfb\x15\x73\x92\xe4\x12\x3c\x07\x15\x82\x11\x0d\x42\xbb\x74\x3d\xe8\x71\xba\x99\x26\x8b\xc9\xce\x32\x4e\xb5\x45\xfa\xef\xb2\x2a\x35\xe0\x5e\x16\x86\xf7\x98\x37\x61\x4e\x2c\x0a\x4e\xf1\x35\xc4\xc1\x0a\x1f\x8e\xb0\x13\x9e\xe1\xf2\xe0\x9e\x9a\xc7\x6e\x75\x6f\x37\xeb\xe7\x97\xa6\x6d\x37\x77\xce\x19\xa3\x82\xf1\x0d\xbd\x06\x8e\x45\xe4\x9e\xba\xb6\x06\xa7\x12\xe2\x50\xc2\xa7\x31\x00\x00\x49\x28\xa1\x50\x81\xde\x6b\x0d\xcd\x5e\xc7\xc6\x7b\xde\x47\xcd\x04\xfc\xbe\x89\x14\x52\xde\xf6\xc0\x53\x4f\x02\xd7\x90\xf1\x6a\xcb\x22\xfc\x71\x75\xb1\xec\xa9\x56\xdc\x53\x1e\x90\xd8\x3f\xe3\xa6\xc8\x99\x35\x24\xfc\xc7\xae\x13\x09\x2a\xcb\x2d\x26\xdc\x86\x29\xe8\xd1\x29\x0b\x0e\x64\x51\x47\x1d\x4b\x73\xae\x58\x14\x54\x42\x33\xbf\x53\xf6\xbb\xb8\xe3\xf3\x71\x3f\x7f\xf9\xad\x9c\xcc\xc9\x7c\x05\x00\x00\xff\xff\x03\xa4\xf8\x36\x31\x01\x00\x00"
+var _TransactionsStakingproxyRemove_node_infoCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x64\x8f\xc1\x4a\xc3\x40\x10\x86\xef\xfb\x14\x73\x92\xe4\x12\x3c\x07\x15\x16\x23\x1a\x84\x76\xe9\x7a\xd0\xe3\x74\x33\x4d\x17\x93\x9d\x65\x9c\x6a\x8b\xf4\xdd\x65\x55\x6a\xc1\xb9\x0c\x0c\xff\xc7\xff\x4d\x9c\x33\x8b\x82\x57\x7c\x8d\x69\x74\xc2\xfb\x03\x6c\x84\x67\xb8\xdc\xfb\x27\xfb\xd8\x2f\xee\xdd\x6a\xf9\xfc\x62\xbb\x6e\x75\xe7\xbd\x31\x2a\x98\xde\x30\x68\xe4\x54\x25\x1e\xa8\xef\x5a\xf0\x2a\x31\x8d\x35\x7c\x1a\x03\x00\x90\x85\x32\x0a\x55\x18\x82\xb6\x60\x77\xba\xb5\x21\xf0\x2e\x69\x49\xc0\xef\x4c\xa4\x90\x4b\xdb\x03\x4f\x03\x09\x5c\x43\x89\x37\x6b\x16\xe1\x8f\xab\x8b\x73\x9f\x66\xc1\x03\x95\x03\x89\xfb\x23\x6e\xaa\xa2\xd9\xc2\xbf\xe4\x32\x93\xa0\xb2\xdc\x62\xc6\x75\x9c\xa2\x1e\xbc\xb2\xe0\x48\x0e\x75\x5b\x9b\x93\xc1\x59\x7b\x23\x34\xf3\x3b\x15\xba\x4f\x1b\x3e\x3d\xf6\xb3\xeb\x6f\xe4\x68\x8e\xe6\x2b\x00\x00\xff\xff\xb8\x18\x88\x96\x2d\x01\x00\x00"
 
 func TransactionsStakingproxyRemove_node_infoCdcBytes() ([]byte, error) {
 	return bindataRead(
@@ -2215,7 +2236,7 @@ func TransactionsStakingproxyRemove_node_infoCdc() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "../../../transactions/stakingProxy/remove_node_info.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x2b, 0xe9, 0x83, 0x42, 0xab, 0x21, 0x51, 0x74, 0x6b, 0x61, 0x69, 0xea, 0xc3, 0x49, 0x29, 0x21, 0x5e, 0xec, 0x8c, 0xa, 0x31, 0xac, 0xa8, 0x17, 0x9, 0x4d, 0x4, 0xe3, 0xfd, 0x2, 0xef, 0x34}}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x3, 0xcb, 0xfd, 0xc3, 0x16, 0xab, 0x5c, 0x55, 0x6d, 0x51, 0xbe, 0x61, 0x5f, 0x8b, 0xa5, 0x11, 0x78, 0x8b, 0x76, 0x12, 0x40, 0xc7, 0x4a, 0xaf, 0xb, 0xe9, 0x60, 0x4c, 0x1e, 0x61, 0x5d, 0xd9}}
 	return a, nil
 }
 
@@ -2503,6 +2524,7 @@ var _bindata = map[string]func() (*asset, error){
 	"../../../transactions/idTableStaking/delegation/get_delegator_staked.cdc":                   TransactionsIdtablestakingDelegationGet_delegator_stakedCdc,
 	"../../../transactions/idTableStaking/delegation/get_delegator_unstaked.cdc":                 TransactionsIdtablestakingDelegationGet_delegator_unstakedCdc,
 	"../../../transactions/idTableStaking/delegation/get_delegator_unstaking.cdc":                TransactionsIdtablestakingDelegationGet_delegator_unstakingCdc,
+	"../../../transactions/idTableStaking/delegation/get_delegator_unstaking_request.cdc":        TransactionsIdtablestakingDelegationGet_delegator_unstaking_requestCdc,
 	"../../../transactions/idTableStaking/get_current_table.cdc":                                 TransactionsIdtablestakingGet_current_tableCdc,
 	"../../../transactions/idTableStaking/get_cut_percentage.cdc":                                TransactionsIdtablestakingGet_cut_percentageCdc,
 	"../../../transactions/idTableStaking/get_nodeType_ratio.cdc":                                TransactionsIdtablestakingGet_nodetype_ratioCdc,
@@ -2659,20 +2681,21 @@ var _bintree = &bintree{nil, map[string]*bintree{
 						}},
 						"create_staking_request.cdc": &bintree{TransactionsIdtablestakingCreate_staking_requestCdc, map[string]*bintree{}},
 						"delegation": &bintree{nil, map[string]*bintree{
-							"del_register_delegator.cdc":       &bintree{TransactionsIdtablestakingDelegationDel_register_delegatorCdc, map[string]*bintree{}},
-							"del_request_unstaking.cdc":        &bintree{TransactionsIdtablestakingDelegationDel_request_unstakingCdc, map[string]*bintree{}},
-							"del_stake_new_tokens.cdc":         &bintree{TransactionsIdtablestakingDelegationDel_stake_new_tokensCdc, map[string]*bintree{}},
-							"del_stake_rewarded.cdc":           &bintree{TransactionsIdtablestakingDelegationDel_stake_rewardedCdc, map[string]*bintree{}},
-							"del_stake_unstaked.cdc":           &bintree{TransactionsIdtablestakingDelegationDel_stake_unstakedCdc, map[string]*bintree{}},
-							"del_withdraw_reward_tokens.cdc":   &bintree{TransactionsIdtablestakingDelegationDel_withdraw_reward_tokensCdc, map[string]*bintree{}},
-							"del_withdraw_unstaked_tokens.cdc": &bintree{TransactionsIdtablestakingDelegationDel_withdraw_unstaked_tokensCdc, map[string]*bintree{}},
-							"get_delegator_committed.cdc":      &bintree{TransactionsIdtablestakingDelegationGet_delegator_committedCdc, map[string]*bintree{}},
-							"get_delegator_info.cdc":           &bintree{TransactionsIdtablestakingDelegationGet_delegator_infoCdc, map[string]*bintree{}},
-							"get_delegator_request.cdc":        &bintree{TransactionsIdtablestakingDelegationGet_delegator_requestCdc, map[string]*bintree{}},
-							"get_delegator_rewarded.cdc":       &bintree{TransactionsIdtablestakingDelegationGet_delegator_rewardedCdc, map[string]*bintree{}},
-							"get_delegator_staked.cdc":         &bintree{TransactionsIdtablestakingDelegationGet_delegator_stakedCdc, map[string]*bintree{}},
-							"get_delegator_unstaked.cdc":       &bintree{TransactionsIdtablestakingDelegationGet_delegator_unstakedCdc, map[string]*bintree{}},
-							"get_delegator_unstaking.cdc":      &bintree{TransactionsIdtablestakingDelegationGet_delegator_unstakingCdc, map[string]*bintree{}},
+							"del_register_delegator.cdc":          &bintree{TransactionsIdtablestakingDelegationDel_register_delegatorCdc, map[string]*bintree{}},
+							"del_request_unstaking.cdc":           &bintree{TransactionsIdtablestakingDelegationDel_request_unstakingCdc, map[string]*bintree{}},
+							"del_stake_new_tokens.cdc":            &bintree{TransactionsIdtablestakingDelegationDel_stake_new_tokensCdc, map[string]*bintree{}},
+							"del_stake_rewarded.cdc":              &bintree{TransactionsIdtablestakingDelegationDel_stake_rewardedCdc, map[string]*bintree{}},
+							"del_stake_unstaked.cdc":              &bintree{TransactionsIdtablestakingDelegationDel_stake_unstakedCdc, map[string]*bintree{}},
+							"del_withdraw_reward_tokens.cdc":      &bintree{TransactionsIdtablestakingDelegationDel_withdraw_reward_tokensCdc, map[string]*bintree{}},
+							"del_withdraw_unstaked_tokens.cdc":    &bintree{TransactionsIdtablestakingDelegationDel_withdraw_unstaked_tokensCdc, map[string]*bintree{}},
+							"get_delegator_committed.cdc":         &bintree{TransactionsIdtablestakingDelegationGet_delegator_committedCdc, map[string]*bintree{}},
+							"get_delegator_info.cdc":              &bintree{TransactionsIdtablestakingDelegationGet_delegator_infoCdc, map[string]*bintree{}},
+							"get_delegator_request.cdc":           &bintree{TransactionsIdtablestakingDelegationGet_delegator_requestCdc, map[string]*bintree{}},
+							"get_delegator_rewarded.cdc":          &bintree{TransactionsIdtablestakingDelegationGet_delegator_rewardedCdc, map[string]*bintree{}},
+							"get_delegator_staked.cdc":            &bintree{TransactionsIdtablestakingDelegationGet_delegator_stakedCdc, map[string]*bintree{}},
+							"get_delegator_unstaked.cdc":          &bintree{TransactionsIdtablestakingDelegationGet_delegator_unstakedCdc, map[string]*bintree{}},
+							"get_delegator_unstaking.cdc":         &bintree{TransactionsIdtablestakingDelegationGet_delegator_unstakingCdc, map[string]*bintree{}},
+							"get_delegator_unstaking_request.cdc": &bintree{TransactionsIdtablestakingDelegationGet_delegator_unstaking_requestCdc, map[string]*bintree{}},
 						}},
 						"get_current_table.cdc":          &bintree{TransactionsIdtablestakingGet_current_tableCdc, map[string]*bintree{}},
 						"get_cut_percentage.cdc":         &bintree{TransactionsIdtablestakingGet_cut_percentageCdc, map[string]*bintree{}},

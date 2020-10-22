@@ -2812,4 +2812,64 @@ func TestIDTable(t *testing.T) {
 		assert.Equal(t, CadenceUFix64("1026.4"), balance.(cadence.UFix64))
 
 	})
+
+	t.Run("Should commit more delegator tokens", func(t *testing.T) {
+
+		tx = flow.NewTransaction().
+			SetScript(templates.GenerateDelegatorStakeNewScript(env)).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(maxDelegatorOneAddress)
+
+		tokenAmount, err := cadence.NewUFix64("2000.0")
+		require.NoError(t, err)
+		_ = tx.AddArgument(tokenAmount)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, maxDelegatorOneAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), maxDelegatorOneSigner},
+			false,
+		)
+
+	})
+
+	// End the staking auction, saying that Max is not on the approved node list
+	t.Run("Should refund delegators when their node is not included in the auction", func(t *testing.T) {
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GenerateEndStakingScript(env)).
+			SetGasLimit(100000).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(idTableAddress)
+
+		err := tx.AddArgument(cadence.NewArray([]cadence.Value{cadence.NewString(adminID), cadence.NewString(joshID)}))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+
+		result, err := b.ExecuteScript(templates.GenerateGetDelegatorUnstakingRequestScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(maxID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance := result.Value
+		assert.Equal(t, CadenceUFix64("100000.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetDelegatorUnstakedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(maxID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("2000.0"), balance.(cadence.UFix64))
+
+	})
 }

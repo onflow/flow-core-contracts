@@ -669,6 +669,20 @@ pub contract FlowIDTableStaking {
                     /// since they are forced to unstake
                     nodeRecord.tokensRequestedToUnstake = nodeRecord.tokensStaked.balance
 
+                    // Iterate through all delegators and reward them their share
+                    // of the rewards for the tokens they have staked for this node
+                    for delegator in nodeRecord.delegators.keys {
+                        let delRecord = nodeRecord.borrowDelegatorRecord(delegator)
+
+                        if delRecord.tokensCommitted.balance > 0.0 { 
+                            /// move their committed tokens back to their unstaked tokens
+                            delRecord.tokensUnstaked.deposit(from: <-delRecord.tokensCommitted.withdraw(amount: delRecord.tokensCommitted.balance))
+                        }
+
+                        delRecord.tokensRequestedToUnstake = delRecord.tokensStaked.balance
+
+                    }
+
                     nodeRecord.initialWeight = 0
 
                 } else {
