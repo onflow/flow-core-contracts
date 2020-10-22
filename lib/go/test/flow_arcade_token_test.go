@@ -76,13 +76,13 @@ func getDeployedContractAddress(t *testing.T, b *emulator.Blockchain) sdk.Addres
 }
 
 // Vend tokens to an account - this can and should fail in various ways
-// if the admin or recipient are incorrectly configured.
+// if the minter or recipient accounts are incorrectly configured.
 func vendTokens(
 	t *testing.T,
 	b *emulator.Blockchain,
 	fatAddress sdk.Address,
-	adminAddress sdk.Address,
-	adminSigner crypto.Signer,
+	minterAddress sdk.Address,
+	minterSigner crypto.Signer,
 	recipientAddress sdk.Address,
 	amount string,
 	shouldRevert bool,
@@ -103,14 +103,14 @@ func vendTokens(
 		SetGasLimit(100).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
-		AddAuthorizer(adminAddress)
+		AddAuthorizer(minterAddress)
 	txVend.AddArgument(cadence.NewAddress(recipientAddress))
 	txVend.AddArgument(cadenceAmount)
 
 	signAndSubmit(
 		t, b, txVend,
-		[]flow.Address{b.ServiceKey().Address, adminAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
+		[]flow.Address{b.ServiceKey().Address, minterAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), minterSigner},
 		shouldRevert,
 	)
 
@@ -226,7 +226,6 @@ func TestFlowArcadeToken(t *testing.T) {
 
 	// Create admin and minter addresses and signers
 	adminAddress, adminSigner, adminAccountKey := createAccount(t, b, accountKeys)
-	nonAdminAddress, nonAdminSigner, _ := createAccount(t, b, accountKeys)
 	minterAddress, minterSigner, _ := createAccount(t, b, accountKeys)
 
 	// Deploy the Flow Arcade Token contract.
@@ -279,9 +278,6 @@ func TestFlowArcadeToken(t *testing.T) {
 		assert.Equal(t, balanceOne.Value.(cadence.UFix64), CadenceUFix64("0.0"))
 	})
 
-	// Create addresses to test token transfer.
-	// This implicitly checks the account creation code.
-
 	t.Run("Admin should be able to give minter capability to an account", func(t *testing.T) {
 		txAddMinter := flow.NewTransaction().
 			SetScript(templates.GenerateAddMinterScript(fatAddress.String())).
@@ -317,6 +313,8 @@ func TestFlowArcadeToken(t *testing.T) {
 	})
 
 	t.Run("Non-admin should not be able to give minter capability to an account", func(t *testing.T) {
+		nonAdminAddress, nonAdminSigner, _ := createAccount(t, b, accountKeys)
+
 		txAddMinter := flow.NewTransaction().
 			SetScript(templates.GenerateAddMinterScript(fatAddress.String())).
 			SetGasLimit(100).
@@ -336,28 +334,28 @@ func TestFlowArcadeToken(t *testing.T) {
 	t.Run("Minter should be able to mint tokens to account with FAT vault", func(t *testing.T) {
 		oneAddress, _, _ := createFatReceiverAccount(t, b, accountKeys, fatAddress)
 
-		vendTokens(t, b, fatAddress, adminAddress, adminSigner, oneAddress, "99.99", false)
+		vendTokens(t, b, fatAddress, minterAddress, minterSigner, oneAddress, "99.99", false)
 	})
 
 	t.Run("Minter should be able to mint tokens to account with FAT vault multiple times", func(t *testing.T) {
 		address, _, _ := createFatReceiverAccount(t, b, accountKeys, fatAddress)
 
 		for i := 0; i < 10; i++ {
-			vendTokens(t, b, fatAddress, adminAddress, adminSigner, address, "1.0", false)
+			vendTokens(t, b, fatAddress, minterAddress, minterSigner, address, "1.0", false)
 		}
 	})
 
 	t.Run("Minter should not be able to mint tokens to account without FAT vault", func(t *testing.T) {
 		noFatVaultAddress, _, _ := createAccount(t, b, accountKeys)
 
-		vendTokens(t, b, fatAddress, adminAddress, adminSigner, noFatVaultAddress, "99.99", true)
+		vendTokens(t, b, fatAddress, minterAddress, minterSigner, noFatVaultAddress, "99.99", true)
 	})
 
 	t.Run("Non-minter should not be able to mint tokens to account with FAT vault", func(t *testing.T) {
-		nonAdminAddress, nonAdminSigner, _ := createAccount(t, b, accountKeys)
+		nonMinterAddress, nonMinterSigner, _ := createAccount(t, b, accountKeys)
 		noFatVaultAddress, _, _ := createAccount(t, b, accountKeys)
 
-		vendTokens(t, b, fatAddress, nonAdminAddress, nonAdminSigner, noFatVaultAddress, "99.99", true)
+		vendTokens(t, b, fatAddress, nonMinterAddress, nonMinterSigner, noFatVaultAddress, "99.99", true)
 	})
 
 	t.Run("Account without tokens should not be able to transfer any", func(t *testing.T) {
@@ -383,7 +381,7 @@ func TestFlowArcadeToken(t *testing.T) {
 		oneAddress, oneSigner, _ := createFatReceiverAccount(t, b, accountKeys, fatAddress)
 
 		// Admin vends tokens to first account
-		vendTokens(t, b, fatAddress, adminAddress, adminSigner, oneAddress, "1.0", false)
+		vendTokens(t, b, fatAddress, minterAddress, minterSigner, oneAddress, "1.0", false)
 
 		twoAddress, _, _ := createFatReceiverAccount(t, b, accountKeys, fatAddress)
 
@@ -405,7 +403,7 @@ func TestFlowArcadeToken(t *testing.T) {
 		oneAddress, oneSigner, _ := createFatReceiverAccount(t, b, accountKeys, fatAddress)
 
 		// Admin vends tokens to first account
-		vendTokens(t, b, fatAddress, adminAddress, adminSigner, oneAddress, "99.99", false)
+		vendTokens(t, b, fatAddress, minterAddress, minterSigner, oneAddress, "99.99", false)
 
 		twoAddress, _, _ := createFatReceiverAccount(t, b, accountKeys, fatAddress)
 
@@ -427,7 +425,7 @@ func TestFlowArcadeToken(t *testing.T) {
 		oneAddress, oneSigner, _ := createFatReceiverAccount(t, b, accountKeys, fatAddress)
 
 		// Admin vends tokens to first account
-		vendTokens(t, b, fatAddress, adminAddress, adminSigner, oneAddress, "100.0", false)
+		vendTokens(t, b, fatAddress, minterAddress, minterSigner, oneAddress, "100.0", false)
 
 		twoAddress, _, _ := createFatReceiverAccount(t, b, accountKeys, fatAddress)
 
@@ -449,7 +447,7 @@ func TestFlowArcadeToken(t *testing.T) {
 		oneAddress, oneSigner, _ := createFatReceiverAccount(t, b, accountKeys, fatAddress)
 
 		// Admin vends tokens to first account
-		vendTokens(t, b, fatAddress, adminAddress, adminSigner, oneAddress, "100.0", false)
+		vendTokens(t, b, fatAddress, minterAddress, minterSigner, oneAddress, "100.0", false)
 
 		twoAddress, _, _ := createFatReceiverAccount(t, b, accountKeys, fatAddress)
 
@@ -466,14 +464,14 @@ func TestFlowArcadeToken(t *testing.T) {
 			false,
 		)
 
-		vendTokens(t, b, fatAddress, adminAddress, adminSigner, oneAddress, "1000.0", false)
+		vendTokens(t, b, fatAddress, minterAddress, minterSigner, oneAddress, "1000.0", false)
 	})
 
 	t.Run("Accounts with tokens should be able to transfer them multiple times", func(t *testing.T) {
 		oneAddress, oneSigner, _ := createFatReceiverAccount(t, b, accountKeys, fatAddress)
 
 		// Admin vends tokens to first account
-		vendTokens(t, b, fatAddress, adminAddress, adminSigner, oneAddress, "99.99", false)
+		vendTokens(t, b, fatAddress, minterAddress, minterSigner, oneAddress, "99.99", false)
 
 		twoAddress, twoSigner, _ := createFatReceiverAccount(t, b, accountKeys, fatAddress)
 
@@ -508,7 +506,7 @@ func TestFlowArcadeToken(t *testing.T) {
 
 	t.Run("Account with minted tokens should not be able to transfer tokens to another account without FAT vault", func(t *testing.T) {
 		oneAddress, oneSigner, _ := createFatReceiverAccount(t, b, accountKeys, fatAddress)
-		vendTokens(t, b, fatAddress, adminAddress, adminSigner, oneAddress, "99.99", false)
+		vendTokens(t, b, fatAddress, minterAddress, minterSigner, oneAddress, "99.99", false)
 
 		noFatVaultAddress, _, _ := createAccount(t, b, accountKeys)
 
@@ -528,7 +526,7 @@ func TestFlowArcadeToken(t *testing.T) {
 
 	t.Run("Should not replace vault if user tries to set up account twice", func(t *testing.T) {
 		address, signer, _ := createFatReceiverAccount(t, b, accountKeys, fatAddress)
-		vendTokens(t, b, fatAddress, adminAddress, adminSigner, address, "10.11", false)
+		vendTokens(t, b, fatAddress, minterAddress, minterSigner, address, "10.11", false)
 
 		// Try to set up account again. This should not error,
 		// but it should also not replace the originally created vault.

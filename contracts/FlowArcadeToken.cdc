@@ -2,9 +2,6 @@ import FungibleToken from 0xee82856bf20e2aa6
 
 pub contract FlowArcadeToken: FungibleToken {
 
-    // Total supply of FATs in existence
-    pub var totalSupply: UFix64
-
     // Event that is emitted when the contract is created
     pub event TokensInitialized(initialSupply: UFix64)
 
@@ -19,6 +16,9 @@ pub contract FlowArcadeToken: FungibleToken {
 
     // Event that is emitted when a new minter resource is created
     pub event MinterCreated()
+
+    // Total supply of FATs in existence
+    pub var totalSupply: UFix64
 
     // Vault
     //
@@ -90,7 +90,8 @@ pub contract FlowArcadeToken: FungibleToken {
 
     // Minter
     //
-    // Resource object that token admin accounts can hold to mint new tokens.
+    // Resource object that can mint new tokens.
+    // The admin stores this and passes it to the minter account as a capability wrapper resource.
     //
     pub resource Minter {
 
@@ -107,22 +108,60 @@ pub contract FlowArcadeToken: FungibleToken {
             emit TokensMinted(amount: amount)
             return <-create Vault(balance: amount)
         }
+
+    }
+
+    // MinterProxy
+    //
+    // Resource object holding a capability that can be used to mint new tokens.
+    // The resource that this capability represents can be deleted by the admin
+    // in order to unilaterally revoke minting capability if needed.
+
+    pub resource MinterProxy {
+
+        pub let minter: Capability<&Minter>
+
+        pub fun mintTokens(amount: UFix64): @FlowArcadeToken.Vault {
+            return <- self.minter.borrow()!.mintTokens(amount:amount )
+        }
+
+        init(minterCapability: Capability<&Minter>) {
+            self.minter = minterCapability
+        }
+
     }
 
     // Administrator
     //
     // A resource that allows new minters to be created
     //
-    // We will only want one minter for now, but might need to add or replace them in future
+    // We will only want one minter for now, but might need to add or replace them in future.
+    // The Minter/Minter Proxy structure enables this.
+    // Ideally we would create this structure in a single function, generate the paths from the address
+    // and cache all of this information to enable easy revocation but String/Path comversion isn't yet supported.
+    //
     pub resource Administrator {
+
         // createNewMinter
         //
-        // Function that creates and returns a new minter resource
+        // Function that creates a Minter resource.
+        // This should be stored at a unique path in storage then a capability to it wrapped
+        // in a MinterProxy to be stored in a minter account's storage.
         //
         pub fun createNewMinter(): @Minter {
             emit MinterCreated()
             return <- create Minter()
         }
+
+        // createMinterProxy
+        //
+        // Function that creates and stores a new minter resource, then wraps it in a
+        // MinterProxy and returns that.
+        //
+        pub fun createNewMinterProxy(minterCapability: Capability<&Minter>): @MinterProxy {
+            return <- create MinterProxy(minterCapability: minterCapability)
+        }
+
     }
 
     init(adminAccount: AuthAccount) {

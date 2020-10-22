@@ -2,12 +2,12 @@ import FungibleToken from 0xFUNGIBLETOKENADDRESS
 import FlowArcadeToken from 0xARCADETOKENADDRESS
 
 transaction(recipientAddress: Address, amount: UFix64) {
-    let tokenMinter: &FlowArcadeToken.Minter
+    let tokenMinter: &FlowArcadeToken.MinterProxy
     let tokenReceiver: &{FungibleToken.Receiver}
 
     prepare(minterAccount: AuthAccount) {
         self.tokenMinter = minterAccount
-            .borrow<&FlowArcadeToken.Minter>(from: /storage/flowArcadeTokenMinter) 
+            .borrow<&FlowArcadeToken.MinterProxy>(from: /storage/flowArcadeTokenMinter)
             ?? panic("No minter available")
 
         self.tokenReceiver = getAccount(recipientAddress)
