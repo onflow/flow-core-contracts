@@ -15,12 +15,13 @@ const (
 	delegatorWithdrawRewardsFilename  = "idTableStaking/delegation/del_withdraw_reward_tokens.cdc"
 	delegatorWithdrawUnstakedFilename = "idTableStaking/delegation/del_withdraw_unstaked_tokens.cdc"
 
-	getDelegatorCommittedFilename = "idTableStaking/delegation/get_delegator_committed.cdc"
-	getDelegatorStakedFilename    = "idTableStaking/delegation/get_delegator_staked.cdc"
-	getDelegatorUnstakingFilename = "idTableStaking/delegation/get_delegator_unstaking.cdc"
-	getDelegatorUnstakedFilename  = "idTableStaking/delegation/get_delegator_unstaked.cdc"
-	getDelegatorRewardedFilename  = "idTableStaking/delegation/get_delegator_rewarded.cdc"
-	getDelegatorRequestFilename   = "idTableStaking/delegation/get_delegator_request.cdc"
+	getDelegatorCommittedFilename        = "idTableStaking/delegation/get_delegator_committed.cdc"
+	getDelegatorStakedFilename           = "idTableStaking/delegation/get_delegator_staked.cdc"
+	getDelegatorUnstakingRequestFilename = "idTableStaking/delegation/get_delegator_unstaking_request.cdc"
+	getDelegatorUnstakingFilename        = "idTableStaking/delegation/get_delegator_unstaking.cdc"
+	getDelegatorUnstakedFilename         = "idTableStaking/delegation/get_delegator_unstaked.cdc"
+	getDelegatorRewardedFilename         = "idTableStaking/delegation/get_delegator_rewarded.cdc"
+	getDelegatorRequestFilename          = "idTableStaking/delegation/get_delegator_request.cdc"
 )
 
 func GenerateCreateDelegationScript(env Environment) []byte {
@@ -81,6 +82,12 @@ func GenerateGetDelegatorCommittedScript(env Environment) []byte {
 
 func GenerateGetDelegatorStakedScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + getDelegatorStakedFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateGetDelegatorUnstakingRequestScript(env Environment) []byte {
+	code := assets.MustAssetString(filePath + getDelegatorUnstakingRequestFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
