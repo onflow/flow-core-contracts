@@ -204,6 +204,96 @@ func TestLockedTokensStaker(t *testing.T) {
 		}
 	})
 
+	t.Run("Should be able to confirm that the account is registered", func(t *testing.T) {
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GenerateCheckSharedRegistrationScript(env)).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(b.ServiceKey().Address)
+
+		_ = tx.AddArgument(cadence.NewAddress(joshSharedAddress))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address},
+			[]crypto.Signer{b.ServiceKey().Signer()},
+			false,
+		)
+
+		tx = flow.NewTransaction().
+			SetScript(templates.GenerateCheckMainRegistrationScript(env)).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(b.ServiceKey().Address)
+
+		_ = tx.AddArgument(cadence.NewAddress(joshAddress))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address},
+			[]crypto.Signer{b.ServiceKey().Signer()},
+			false,
+		)
+	})
+
+	// Create a new user account that is not registered
+	maxAccountKey, _ := accountKeys.NewWithSigner()
+	maxAddress, _ := b.CreateAccount([]*flow.AccountKey{maxAccountKey}, nil)
+
+	t.Run("Should fail because the accounts are not registered", func(t *testing.T) {
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GenerateCheckSharedRegistrationScript(env)).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(b.ServiceKey().Address)
+
+		_ = tx.AddArgument(cadence.NewAddress(maxAddress))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address},
+			[]crypto.Signer{b.ServiceKey().Signer()},
+			true,
+		)
+
+		tx = flow.NewTransaction().
+			SetScript(templates.GenerateCheckSharedRegistrationScript(env)).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(b.ServiceKey().Address)
+
+		_ = tx.AddArgument(cadence.NewAddress(joshAddress))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address},
+			[]crypto.Signer{b.ServiceKey().Signer()},
+			true,
+		)
+
+		tx = flow.NewTransaction().
+			SetScript(templates.GenerateCheckMainRegistrationScript(env)).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(b.ServiceKey().Address)
+
+		_ = tx.AddArgument(cadence.NewAddress(maxAddress))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address},
+			[]crypto.Signer{b.ServiceKey().Signer()},
+			true,
+		)
+	})
+
 	t.Run("Should be able to deposit locked tokens to the shared account", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
@@ -235,6 +325,26 @@ func TestLockedTokensStaker(t *testing.T) {
 
 		balance := result.Value
 		assert.Equal(t, CadenceUFix64("1000000.0"), balance.(cadence.UFix64))
+	})
+
+	t.Run("Should fail to deposit locked tokens to the user account", func(t *testing.T) {
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GenerateDepositLockedTokensScript(env)).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(b.ServiceKey().Address)
+
+		_ = tx.AddArgument(cadence.NewAddress(joshAddress))
+		_ = tx.AddArgument(CadenceUFix64("1000000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address},
+			[]crypto.Signer{b.ServiceKey().Signer()},
+			true,
+		)
 	})
 
 	t.Run("Should not be able to withdraw any locked tokens", func(t *testing.T) {
