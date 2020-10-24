@@ -7,16 +7,21 @@ import (
 )
 
 const (
-	addMinterFilename             = "flowArcadeToken/admin/add_minter.cdc"
-	deployFlowArcadeTokenFilename = "flowArcadeToken/admin/deploy_flow_arcade_token.cdc"
-	mintTokensFilename            = "flowArcadeToken/mint_tokens.cdc"
-	setupAccountFilename          = "flowArcadeToken/setup_account.cdc"
-	transferTokensFilename        = "flowArcadeToken/transfer_tokens.cdc"
+	depositMinterCapabilityFilename = "flowArcadeToken/admin/deposit_minter_capability.cdc"
+	deployFlowArcadeTokenFilename   = "flowArcadeToken/admin/deploy_flow_arcade_token.cdc"
+	mintTokensFilename              = "flowArcadeToken/minter/mint_tokens.cdc"
+	setupAccountFilename            = "flowArcadeToken/setup_account.cdc"
+	setupMinterAccountFilename      = "flowArcadeToken/minter/setup_minter_account.cdc"
+	transferTokensFilename          = "flowArcadeToken/transfer_tokens.cdc"
 
 	getBalanceFilename = "flowArcadeToken/scripts/get_balance.cdc"
 	getSupplyFilename  = "flowArcadeToken/scripts/get_supply.cdc"
 
-	placeholderFlowArcadeTokenAddress = "0xARCADETOKENADDRESS"
+	placeholderFlowArcadeTokenAddress   = "0xARCADETOKENADDRESS"
+	placeholderUniqueMinterPathFragment = "UNIQUEMINTERPATHFRAGMENT"
+
+	placeholderResourceStoragePath   = "/RESOURCESTORAGEPATH"
+	placeholderCapabilityPrivatePath = "/CAPABILITYPRIVATEPATH"
 )
 
 // ReplaceAddresses replaces the contract addresses in the code
@@ -36,10 +41,30 @@ func GenerateDeployFlowArcadeTokenScript() []byte {
 	return []byte(code)
 }
 
-func GenerateAddMinterScript(fatAddr string) []byte {
-	code := assets.MustAssetString(filePath + addMinterFilename)
+func GenerateSetupMinterAccountScript(fatAddr string) []byte {
+	code := assets.MustAssetString(filePath + setupMinterAccountFilename)
 
 	code = replaceFATAddress(code, fatAddr)
+
+	return []byte(code)
+}
+
+func GenerateDepositMinterCapabilityScript(fatAddr string, resourceStoragePath string, capabilityPrivatePath string) []byte {
+	code := assets.MustAssetString(filePath + depositMinterCapabilityFilename)
+
+	code = replaceFATAddress(code, fatAddr)
+
+	code = strings.ReplaceAll(
+		code,
+		placeholderResourceStoragePath,
+		resourceStoragePath,
+	)
+
+	code = strings.ReplaceAll(
+		code,
+		placeholderCapabilityPrivatePath,
+		capabilityPrivatePath,
+	)
 
 	return []byte(code)
 }

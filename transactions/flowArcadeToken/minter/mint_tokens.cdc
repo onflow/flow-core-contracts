@@ -7,7 +7,7 @@ transaction(recipientAddress: Address, amount: UFix64) {
 
     prepare(minterAccount: AuthAccount) {
         self.tokenMinter = minterAccount
-            .borrow<&FlowArcadeToken.MinterProxy>(from: /storage/flowArcadeTokenMinter)
+            .borrow<&FlowArcadeToken.MinterProxy>(from: FlowArcadeToken.MinterProxyStoragePath)
             ?? panic("No minter available")
 
         self.tokenReceiver = getAccount(recipientAddress)

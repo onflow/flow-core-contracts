@@ -14,6 +14,15 @@ pub contract FlowArcadeToken: FungibleToken {
     // Event that is emitted when new tokens are minted
     pub event TokensMinted(amount: UFix64)
 
+    // The storage path for the admin resource
+    pub let AdminStoragePath: Path
+
+    // The storage Path for minters' MinterProxy
+    pub let MinterProxyStoragePath: Path
+
+    // The public path for minters' MinterProxy capability
+    pub let MinterProxyPublicPath: Path
+
     // Event that is emitted when a new minter resource is created
     pub event MinterCreated()
 
@@ -111,24 +120,47 @@ pub contract FlowArcadeToken: FungibleToken {
 
     }
 
+    pub resource interface MinterProxyPublic {
+        pub fun setMinterCapability(cap: Capability<&Minter>)
+    }
+
     // MinterProxy
     //
     // Resource object holding a capability that can be used to mint new tokens.
     // The resource that this capability represents can be deleted by the admin
     // in order to unilaterally revoke minting capability if needed.
 
-    pub resource MinterProxy {
+    pub resource MinterProxy: MinterProxyPublic {
 
-        pub let minter: Capability<&Minter>
+        // access(self) so nobody else can copy the capability and use it.
+        access(self) var minterCapability: Capability<&Minter>?
+
+        // Anyone can call this, but only the admin can create Minter capabilities,
+        // so the type system constrains this to being called by the admin.
+        pub fun setMinterCapability(cap: Capability<&Minter>) {
+            self.minterCapability = cap
+        }
 
         pub fun mintTokens(amount: UFix64): @FlowArcadeToken.Vault {
-            return <- self.minter.borrow()!.mintTokens(amount:amount )
+            return <- self.minterCapability!
+            .borrow()!
+            .mintTokens(amount:amount)
         }
 
-        init(minterCapability: Capability<&Minter>) {
-            self.minter = minterCapability
+        init() {
+            self.minterCapability = nil
         }
 
+    }
+
+    // createMinterProxy
+    //
+    // Function that creates a MinterProxy.
+    // Anyone can call this, but the MinterProxy cannot mint without a Minter capability,
+    // and only the admin can provide that.
+    //
+    pub fun createMinterProxy(): @MinterProxy {
+        return <- create MinterProxy()
     }
 
     // Administrator
@@ -147,28 +179,27 @@ pub contract FlowArcadeToken: FungibleToken {
         // Function that creates a Minter resource.
         // This should be stored at a unique path in storage then a capability to it wrapped
         // in a MinterProxy to be stored in a minter account's storage.
+        // This is done by the minter account running:
+        // transactions/flowArcadeToken/minter/setup_minter_account.cdc
+        // then the admin account running:
+        // transactions/flowArcaddeToken/admin/deposit_minter_capability.cdc
         //
         pub fun createNewMinter(): @Minter {
             emit MinterCreated()
             return <- create Minter()
         }
 
-        // createMinterProxy
-        //
-        // Function that creates and stores a new minter resource, then wraps it in a
-        // MinterProxy and returns that.
-        //
-        pub fun createNewMinterProxy(minterCapability: Capability<&Minter>): @MinterProxy {
-            return <- create MinterProxy(minterCapability: minterCapability)
-        }
-
     }
 
     init(adminAccount: AuthAccount) {
+        self.AdminStoragePath = /storage/flowArcadeTokenAdmin
+        self.MinterProxyPublicPath = /public/flowArcadeTokenMinterProxy
+        self.MinterProxyStoragePath = /storage/flowArcadeTokenMinterProxy
+
         self.totalSupply = 0.0
 
         let admin <- create Administrator()
-        adminAccount.save(<-admin, to: /storage/flowArcadeTokenAdmin)
+        adminAccount.save(<-admin, to: self.AdminStoragePath)
 
         // Emit an event that shows that the contract was initialized
         emit TokensInitialized(initialSupply: 0.0)
