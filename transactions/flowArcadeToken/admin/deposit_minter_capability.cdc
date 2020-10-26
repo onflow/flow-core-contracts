@@ -10,9 +10,9 @@ transaction(minterAddress: Address) {
     let capabilityPrivatePath: Path
     let minterCapability: Capability<&FlowArcadeToken.Minter>
 
-    // These paths must be unique
     prepare(adminAccount: AuthAccount) {
 
+        // These paths must be unique within the FAT contract account's storage
         self.resourceStoragePath = /RESOURCESTORAGEPATH
         self.capabilityPrivatePath = /CAPABILITYPRIVATEPATH 
 

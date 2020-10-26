@@ -25,7 +25,7 @@ const (
 )
 
 // ReplaceAddresses replaces the contract addresses in the code
-func replaceFATAddress(code, fatAddr string) string {
+func ReplaceFATAddress(code, fatAddr string) string {
 	code = strings.ReplaceAll(
 		code,
 		placeholderFlowArcadeTokenAddress,
@@ -44,7 +44,7 @@ func GenerateDeployFlowArcadeTokenScript() []byte {
 func GenerateSetupMinterAccountScript(fatAddr string) []byte {
 	code := assets.MustAssetString(filePath + setupMinterAccountFilename)
 
-	code = replaceFATAddress(code, fatAddr)
+	code = ReplaceFATAddress(code, fatAddr)
 
 	return []byte(code)
 }
@@ -52,7 +52,7 @@ func GenerateSetupMinterAccountScript(fatAddr string) []byte {
 func GenerateDepositMinterCapabilityScript(fatAddr string, resourceStoragePath string, capabilityPrivatePath string) []byte {
 	code := assets.MustAssetString(filePath + depositMinterCapabilityFilename)
 
-	code = replaceFATAddress(code, fatAddr)
+	code = ReplaceFATAddress(code, fatAddr)
 
 	code = strings.ReplaceAll(
 		code,
@@ -74,7 +74,7 @@ func GenerateSetupAccountScript(ftAddr, fatAddr string) []byte {
 
 	code = ReplaceAddresses(code, ftAddr, "", "")
 
-	code = replaceFATAddress(code, fatAddr)
+	code = ReplaceFATAddress(code, fatAddr)
 
 	return []byte(code)
 }
@@ -84,7 +84,7 @@ func GenerateMintTokensScript(ftAddr, fatAddr string) []byte {
 
 	code = ReplaceAddresses(code, ftAddr, "", "")
 
-	code = replaceFATAddress(code, fatAddr)
+	code = ReplaceFATAddress(code, fatAddr)
 
 	return []byte(code)
 }
@@ -94,7 +94,7 @@ func GenerateTransferTokensScript(ftAddr, fatAddr string) []byte {
 
 	code = ReplaceAddresses(code, ftAddr, "", "")
 
-	code = replaceFATAddress(code, fatAddr)
+	code = ReplaceFATAddress(code, fatAddr)
 
 	return []byte(code)
 }
@@ -104,7 +104,7 @@ func GenerateGetBalanceScript(ftAddr, fatAddr string) []byte {
 
 	code = ReplaceAddresses(code, ftAddr, "", "")
 
-	code = replaceFATAddress(code, fatAddr)
+	code = ReplaceFATAddress(code, fatAddr)
 
 	return []byte(code)
 }
@@ -112,7 +112,7 @@ func GenerateGetBalanceScript(ftAddr, fatAddr string) []byte {
 func GenerateGetSupplyScript(fatAddr string) []byte {
 	code := assets.MustAssetString(filePath + getSupplyFilename)
 
-	code = replaceFATAddress(code, fatAddr)
+	code = ReplaceFATAddress(code, fatAddr)
 
 	return []byte(code)
 }

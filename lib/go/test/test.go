@@ -12,6 +12,7 @@ import (
 	"github.com/onflow/flow-go-sdk"
 
 	emulator "github.com/dapperlabs/flow-emulator"
+	"github.com/dapperlabs/flow-emulator/types"
 )
 
 // newEmulator returns a emulator object for testing.
@@ -38,7 +39,7 @@ func signAndSubmit(
 	signerAddresses []flow.Address,
 	signers []crypto.Signer,
 	shouldRevert bool,
-) {
+) *types.TransactionResult {
 	// sign transaction with each signer
 	for i := len(signerAddresses) - 1; i >= 0; i-- {
 		signerAddress := signerAddresses[i]
@@ -53,7 +54,7 @@ func signAndSubmit(
 		}
 	}
 
-	Submit(t, b, tx, shouldRevert)
+	return Submit(t, b, tx, shouldRevert)
 }
 
 // Submit submits a transaction and checks if it fails or not.
@@ -62,7 +63,7 @@ func Submit(
 	b *emulator.Blockchain,
 	tx *flow.Transaction,
 	shouldRevert bool,
-) {
+) *types.TransactionResult {
 	// submit the signed transaction
 	err := b.AddTransaction(*tx)
 	require.NoError(t, err)
@@ -81,6 +82,8 @@ func Submit(
 
 	_, err = b.CommitBlock()
 	assert.NoError(t, err)
+
+	return result
 }
 
 // executeScriptAndCheck executes a script and checks to make sure that it succeeded.

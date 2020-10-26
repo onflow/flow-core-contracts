@@ -284,7 +284,7 @@ func TestFlowArcadeToken(t *testing.T) {
 		assert.Equal(t, balanceOne.Value.(cadence.UFix64), CadenceUFix64("0.0"))
 	})
 
-	t.Run("Minter should be able to set up minter account", func(t *testing.T) {
+	t.Run("Minter should be able to set up minter account to receive minter capability", func(t *testing.T) {
 		txSetupMinter := flow.NewTransaction().
 			SetScript(templates.GenerateSetupMinterAccountScript(fatAddress.String())).
 			SetGasLimit(100).
@@ -326,42 +326,71 @@ func TestFlowArcadeToken(t *testing.T) {
 		)
 	})
 
-	/*	t.Run("Admin should not be able to give minter capability to an account twice", func(t *testing.T) {
-			txAddMinter := flow.NewTransaction().
-				SetScript(templates.GenerateAddMinterScript(fatAddress.String())).
-				SetGasLimit(100).
-				SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-				SetPayer(b.ServiceKey().Address).
-				AddAuthorizer(adminAddress).
-				AddAuthorizer(minterAddress)
+	t.Run("Non-admin should not be able to give minter capability to an account", func(t *testing.T) {
+		nonAdminAddress, nonAdminSigner, _ := createAccount(t, b, accountKeys)
 
-			signAndSubmit(
-				t, b, txAddMinter,
-				[]flow.Address{b.ServiceKey().Address, adminAddress, minterAddress},
-				[]crypto.Signer{b.ServiceKey().Signer(), adminSigner, minterSigner},
-				true,
-			)
-		})
+		txAddMinter := flow.NewTransaction().
+			// This is slightly hacky but we can't pass paths in as arguments yet.
+			SetScript(templates.GenerateDepositMinterCapabilityScript(
+				fatAddress.String(),
+				minterResourcePath,
+				minterCapabilityPath,
+			)).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(nonAdminAddress)
 
-		t.Run("Non-admin should not be able to give minter capability to an account", func(t *testing.T) {
-			nonAdminAddress, nonAdminSigner, _ := createAccount(t, b, accountKeys)
+		txAddMinter.AddArgument(cadence.NewAddress(minterAddress))
+		// We can't do this yet
+		//txAddMinter.AddArgument(minterResourcePath)
+		//txAddMinter.AddArgument(minterCapabilityPath)
 
-			txAddMinter := flow.NewTransaction().
-				SetScript(templates.GenerateAddMinterScript(fatAddress.String())).
-				SetGasLimit(100).
-				SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-				SetPayer(b.ServiceKey().Address).
-				AddAuthorizer(nonAdminAddress).
-				AddAuthorizer(minterAddress)
+		signAndSubmit(
+			t, b, txAddMinter,
+			[]flow.Address{b.ServiceKey().Address, nonAdminAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), nonAdminSigner},
+			true,
+		)
+	})
 
-			signAndSubmit(
-				t, b, txAddMinter,
-				[]flow.Address{b.ServiceKey().Address, nonAdminAddress, minterAddress},
-				[]crypto.Signer{b.ServiceKey().Signer(), nonAdminSigner, minterSigner},
-				true,
-			)
-		})
-	*/
+	t.Run("Minter should not be able to copy minter capability from minter proxy", func(t *testing.T) {
+		txCopyMinter := flow.NewTransaction().
+			SetScript([]byte(templates.ReplaceFATAddress(`
+import FlowArcadeToken from 0xARCADETOKENADDRESS
+
+transaction() {
+
+	let minterProxy: &FlowArcadeToken.MinterProxy
+
+    prepare(minterAccount: AuthAccount) {
+		self.minterProxy = minterAccount.borrow<&FlowArcadeToken.MinterProxy>(from: FlowArcadeToken.MinterProxyStoragePath)!
+	}
+
+	execute {
+		let cap = self.minterProxy.minterCapability!
+	}
+
+}`, fatAddress.String()))).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(minterAddress)
+
+		result := signAndSubmit(
+			t, b, txCopyMinter,
+			[]flow.Address{b.ServiceKey().Address, minterAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), minterSigner},
+			true,
+		)
+
+		assert.Equal(
+			t,
+			"Execution failed:\nChecking failed:\n    cannot access `minterCapability`: field has private access\n",
+			result.Error.Error(),
+		)
+	})
+
 	t.Run("Minter should be able to mint tokens to account with FAT vault", func(t *testing.T) {
 		oneAddress, _, _ := createFatReceiverAccount(t, b, accountKeys, fatAddress)
 
