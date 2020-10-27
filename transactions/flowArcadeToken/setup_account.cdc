@@ -10,25 +10,25 @@ transaction {
     prepare(signer: AuthAccount) {
 
         // If the account is already set up that's not a problem, but we don't want to replace it
-        if(signer.borrow<&FlowArcadeToken.Vault>(from: /storage/flowArcadeTokenVault) != nil) {
+        if(signer.borrow<&FlowArcadeToken.Vault>(from: FlowArcadeToken.VaultStoragePath) != nil) {
             return
         }
         
         // Create a new FlowArcadeToken Vault and put it in storage
-        signer.save(<-FlowArcadeToken.createEmptyVault(), to: /storage/flowArcadeTokenVault)
+        signer.save(<-FlowArcadeToken.createEmptyVault(), to: FlowArcadeToken.VaultStoragePath)
 
         // Create a public capability to the Vault that only exposes
         // the deposit function through the Receiver interface
         signer.link<&FlowArcadeToken.Vault{FungibleToken.Receiver}>(
-            /public/flowArcadeTokenReceiver,
-            target: /storage/flowArcadeTokenVault
+            FlowArcadeToken.ReceiverPublicPath,
+            target: FlowArcadeToken.VaultStoragePath
         )
 
         // Create a public capability to the Vault that only exposes
         // the balance field through the Balance interface
         signer.link<&FlowArcadeToken.Vault{FungibleToken.Balance}>(
-            /public/flowArcadeTokenBalance,
-            target: /storage/flowArcadeTokenVault
+            FlowArcadeToken.BalancePublicPath,
+            target: FlowArcadeToken.VaultStoragePath
         )
     }
 }

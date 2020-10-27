@@ -170,7 +170,7 @@ func FlowArcadeToken(fungibleTokenAddr string) []byte {
 	code = strings.ReplaceAll(
 		code,
 		placeholderFungibleTokenAddress,
-		fungibleTokenAddr,
+		withHexPrefix(fungibleTokenAddr),
 	)
 
 	return []byte(code)
