@@ -15,7 +15,7 @@ transaction(amount: UFix64) {
 
     execute {
 
-        self.stakerRef.stakeUnlockedTokens(amount: amount)
+        self.stakerRef.stakeUnstakedTokens(amount: amount)
 
     }
 }

@@ -69,7 +69,7 @@ You can find all the Staking Helper transactions in the `transactions/stakingHel
 
 ## Testing
 
-To run the tests in the repo, run `cd lib/go/test && go test -v`.
+To run the tests in the repo, use `make test`.
 
 These tests need to utilize the transaction templates that are contained in `transactions/`.
 
@@ -93,7 +93,7 @@ for staking, and add arguments to it, you would use something like this Go code.
         // providing the import addresses for the contract imports
         SetScript(templates.GenerateCreateNodeScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
         SetGasLimit(100).
-        SetProposalKey(b.ServiceKey().Address, b.ServiceKey().ID, b.ServiceKey().SequenceNumber).
+        SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
         SetPayer(b.ServiceKey().Address).
         AddAuthorizer(IDTableAddr)
 
@@ -121,5 +121,3 @@ to the team and we would be happy to help!
 The works in these folders are under the [Unlicense](https://github.com/dapperlabs/flow-core-contracts/blob/master/LICENSE):
 
 - [src/contracts](https://github.com/dapperlabs/flow-core-contracts/tree/master/contracts)
-
-

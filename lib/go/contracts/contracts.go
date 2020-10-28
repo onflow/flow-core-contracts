@@ -3,6 +3,7 @@ package contracts
 //go:generate go run github.com/kevinburke/go-bindata/go-bindata -prefix ../../../contracts/... -o internal/assets/assets.go -pkg assets -nometadata -nomemcopy ../../../contracts/...
 
 import (
+	"fmt"
 	"strings"
 
 	ftcontracts "github.com/onflow/flow-ft/lib/go/contracts"
@@ -15,14 +16,35 @@ const (
 	flowServiceAccountFilename = "../../../contracts/FlowServiceAccount.cdc"
 	flowTokenFilename          = "../../../contracts/FlowToken.cdc"
 	flowIdentityTableFilename  = "../../../contracts/FlowIDTableStaking.cdc"
+	flowQCFilename             = "../../../contracts/epochs/FlowQuorumCertificate.cdc"
+	flowDKGFilename            = "../../../contracts/epochs/FlowDKG.cdc"
+	flowEpochFilename          = "../../../contracts/epochs/FlowEpoch.cdc"
+	flowLockedTokensFilename   = "../../../contracts/LockedTokens.cdc"
+	flowStakingProxyFilename   = "../../../contracts/StakingProxy.cdc"
 
-	defaultFungibleTokenAddr = "0xee82856bf20e2aa6"
-	defaultFlowTokenAddr     = "0x0ae53cb6e3f42a79"
-	defaultIDTableAddr       = "0xFLOWIDTABLESTAKINGADDRESS"
-	defaultQCAddr            = "0xQCADDRESS"
-	defaultDKGAddr           = "0xDKGADDRESS"
-	defaultFlowFeesAddr      = "0xe5a8b7f23e8b548f"
+	// Test contracts
+	TESTFlowIdentityTableFilename = "../../../contracts/testContracts/TestFlowIDTableStaking.cdc"
+
+	placeholderFungibleTokenAddress = "0xFUNGIBLETOKENADDRESS"
+	placeholderFlowTokenAddress     = "0xFLOWTOKENADDRESS"
+	placeholderIDTableAddress       = "0xFLOWIDTABLESTAKINGADDRESS"
+	placeholderStakingProxyAddress  = "0xSTAKINGPROXYADDRESS"
+	placeholderQCAddr               = "0xQCADDRESS"
+	placeholderDKGAddr              = "0xDKGADDRESS"
+	placeholderFlowFeesAddress      = "0xFLOWFEESADDRESS"
 )
+
+func withHexPrefix(address string) string {
+	if address == "" {
+		return ""
+	}
+
+	if address[0:2] == "0x" {
+		return address
+	}
+
+	return fmt.Sprintf("0x%s", address)
+}
 
 // FungibleToken returns the FungibleToken contract interface.
 func FungibleToken() []byte {
@@ -32,13 +54,13 @@ func FungibleToken() []byte {
 // FlowToken returns the FlowToken contract.
 //
 // The returned contract will import the FungibleToken contract from the specified address.
-func FlowToken(fungibleTokenAddr string) []byte {
+func FlowToken(fungibleTokenAddress string) []byte {
 	code := assets.MustAssetString(flowTokenFilename)
 
 	code = strings.ReplaceAll(
 		code,
-		defaultFungibleTokenAddr,
-		fungibleTokenAddr,
+		placeholderFungibleTokenAddress,
+		withHexPrefix(fungibleTokenAddress),
 	)
 
 	return []byte(code)
@@ -48,19 +70,19 @@ func FlowToken(fungibleTokenAddr string) []byte {
 //
 // The returned contract will import the FungibleToken and FlowToken
 // contracts from the specified addresses.
-func FlowFees(fungibleTokenAddr, flowTokenAddr string) []byte {
+func FlowFees(fungibleTokenAddress, flowTokenAddress string) []byte {
 	code := assets.MustAssetString(flowFeesFilename)
 
 	code = strings.ReplaceAll(
 		code,
-		defaultFungibleTokenAddr,
-		fungibleTokenAddr,
+		placeholderFungibleTokenAddress,
+		withHexPrefix(fungibleTokenAddress),
 	)
 
 	code = strings.ReplaceAll(
 		code,
-		defaultFlowTokenAddr,
-		flowTokenAddr,
+		placeholderFlowTokenAddress,
+		withHexPrefix(flowTokenAddress),
 	)
 
 	return []byte(code)
@@ -70,36 +92,70 @@ func FlowFees(fungibleTokenAddr, flowTokenAddr string) []byte {
 //
 // The returned contract will import the FungibleToken, FlowToken and FlowFees
 // contracts from the specified addresses.
-func FlowServiceAccount(fungibleTokenAddr, flowTokenAddr, flowFeesAddr string) []byte {
+func FlowServiceAccount(fungibleTokenAddress, flowTokenAddress, flowFeesAddress string) []byte {
 	code := assets.MustAssetString(flowServiceAccountFilename)
 
 	code = strings.ReplaceAll(
 		code,
-		defaultFungibleTokenAddr,
-		fungibleTokenAddr,
+		placeholderFungibleTokenAddress,
+		withHexPrefix(fungibleTokenAddress),
 	)
 
 	code = strings.ReplaceAll(
 		code,
-		defaultFlowTokenAddr,
-		flowTokenAddr,
+		placeholderFlowTokenAddress,
+		withHexPrefix(flowTokenAddress),
 	)
 
 	code = strings.ReplaceAll(
 		code,
-		defaultFlowFeesAddr,
-		flowFeesAddr,
+		placeholderFlowFeesAddress,
+		withHexPrefix(flowFeesAddress),
 	)
 
 	return []byte(code)
 }
 
 // FlowIDTableStaking returns the FlowIDTableStaking contract
-func FlowIDTableStaking(ftAddr, flowTokenAddr string) []byte {
+func FlowIDTableStaking(fungibleTokenAddress, flowTokenAddress string) []byte {
 	code := assets.MustAssetString(flowIdentityTableFilename)
 
-	code = strings.ReplaceAll(code, defaultFungibleTokenAddr, ftAddr)
-	code = strings.ReplaceAll(code, defaultFlowTokenAddr, flowTokenAddr)
+	code = strings.ReplaceAll(code, placeholderFungibleTokenAddress, withHexPrefix(fungibleTokenAddress))
+	code = strings.ReplaceAll(code, placeholderFlowTokenAddress, withHexPrefix(flowTokenAddress))
+
+	return []byte(code)
+}
+
+// TESTFlowIDTableStaking returns the TestFlowIDTableStaking contract
+func TESTFlowIDTableStaking(fungibleTokenAddress, flowTokenAddress string) []byte {
+	code := assets.MustAssetString(TESTFlowIdentityTableFilename)
+
+	code = strings.ReplaceAll(code, placeholderFungibleTokenAddress, withHexPrefix(fungibleTokenAddress))
+	code = strings.ReplaceAll(code, placeholderFlowTokenAddress, withHexPrefix(flowTokenAddress))
+
+	return []byte(code)
+}
+
+// FlowStakingProxy returns the StakingProxy contract.
+func FlowStakingProxy() []byte {
+	code := assets.MustAssetString(flowStakingProxyFilename)
+
+	return []byte(code)
+}
+
+// FlowLockedTokens return the LockedTokens contract
+func FlowLockedTokens(
+	fungibleTokenAddress,
+	flowTokenAddress,
+	idTableAddress,
+	stakingProxyAddress string,
+) []byte {
+	code := assets.MustAssetString(flowLockedTokensFilename)
+
+	code = strings.ReplaceAll(code, placeholderFungibleTokenAddress, withHexPrefix(fungibleTokenAddress))
+	code = strings.ReplaceAll(code, placeholderFlowTokenAddress, withHexPrefix(flowTokenAddress))
+	code = strings.ReplaceAll(code, placeholderIDTableAddress, withHexPrefix(idTableAddress))
+	code = strings.ReplaceAll(code, placeholderStakingProxyAddress, withHexPrefix(stakingProxyAddress))
 
 	return []byte(code)
 }
