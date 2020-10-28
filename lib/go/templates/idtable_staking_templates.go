@@ -11,6 +11,7 @@ const (
 	endStakingFilename     = "idTableStaking/admin/end_staking.cdc"
 	payRewardsFilename     = "idTableStaking/admin/pay_rewards.cdc"
 	moveTokensFilename     = "idTableStaking/admin/move_tokens.cdc"
+	endEpochFilename       = "idTableStaking/admin/end_epoch.cdc"
 	changeMinimumsFilename = "idTableStaking/admin/change_minimums.cdc"
 	changeCutFilename      = "idTableStaking/admin/change_cut.cdc"
 	changePayoutFilename   = "idTableStaking/admin/change_payout.cdc"
@@ -111,6 +112,12 @@ func GeneratePayRewardsScript(env Environment) []byte {
 // GenerateMoveTokensScript creates a script that moves tokens between buckets
 func GenerateMoveTokensScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + moveTokensFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateEndEpochScript(env Environment) []byte {
+	code := assets.MustAssetString(filePath + endEpochFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
