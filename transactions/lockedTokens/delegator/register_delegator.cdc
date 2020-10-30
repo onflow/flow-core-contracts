@@ -4,8 +4,8 @@ transaction(id: String, amount: UFix64) {
 
     let holderRef: &LockedTokens.TokenHolder
 
-    prepare(acct: AuthAccount) {
-        self.holderRef = acct.borrow<&LockedTokens.TokenHolder>(from: LockedTokens.TokenHolderStoragePath) 
+    prepare(account: AuthAccount) {
+        self.holderRef = account.borrow<&LockedTokens.TokenHolder>(from: LockedTokens.TokenHolderStoragePath) 
             ?? panic("TokenHolder is not saved at specified path")
     }
 

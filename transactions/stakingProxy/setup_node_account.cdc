@@ -1,8 +1,5 @@
 import StakingProxy from 0xSTAKINGPROXYADDRESS
 
-// ID: NO.01 
-// Authorizer: Node Operator
-// 
 transaction() {
 
     prepare(nodeOperator: AuthAccount) {

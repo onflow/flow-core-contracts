@@ -27,7 +27,8 @@ const (
 	getUnlockLimitFilename          = "lockedTokens/user/get_unlock_limit.cdc"
 
 	// staker templates
-	createLockedNodeFilename             = "lockedTokens/staker/register_node.cdc"
+	registerLockedNodeFilename           = "lockedTokens/staker/register_node.cdc"
+	getNodeIDFilename                    = "lockedTokens/staker/get_node_id.cdc"
 	stakeNewLockedTokensFilename         = "lockedTokens/staker/stake_new_tokens.cdc"
 	stakeLockedUnstakedTokensFilename    = "lockedTokens/staker/stake_unstaked_tokens.cdc"
 	stakeLockedRewardedTokensFilename    = "lockedTokens/staker/stake_rewarded_tokens.cdc"
@@ -35,17 +36,16 @@ const (
 	unstakeAllLockedTokensFilename       = "lockedTokens/staker/unstake_all.cdc"
 	withdrawLockedUnstakedTokensFilename = "lockedTokens/staker/withdraw_unstaked_tokens.cdc"
 	withdrawLockedRewardedTokensFilename = "lockedTokens/staker/withdraw_rewarded_tokens.cdc"
-	getNodeIDFilename                    = "lockedTokens/staker/get_node_id.cdc"
 
 	// delegator templates
 	registerLockedDelegatorFilename               = "lockedTokens/delegator/register_delegator.cdc"
-	delegateNewLockedTokensFilename               = "lockedTokens/delegator/delegate_new_locked_tokens.cdc"
-	delegateLockedUnstakedTokensFilename          = "lockedTokens/delegator/delegate_locked_unstaked_tokens.cdc"
-	delegateLockedRewardedTokensFilename          = "lockedTokens/delegator/delegate_locked_rewarded_tokens.cdc"
-	requestUnstakingLockedDelegatedTokensFilename = "lockedTokens/delegator/request_unstaking_locked_delegated_tokens.cdc"
-	withdrawLockedUnstakedDelegatedTokensFilename = "lockedTokens/delegator/withdraw_locked_unstaked_delegated_tokens.cdc"
-	withdrawLockedRewardedDelegatedTokensFilename = "lockedTokens/delegator/withdraw_locked_rewarded_delegated_tokens.cdc"
 	getDelegatorIDFilename                        = "lockedTokens/delegator/get_delegator_id.cdc"
+	delegateNewLockedTokensFilename               = "lockedTokens/delegator/delegate_new_tokens.cdc"
+	delegateLockedUnstakedTokensFilename          = "lockedTokens/delegator/delegate_unstaked_tokens.cdc"
+	delegateLockedRewardedTokensFilename          = "lockedTokens/delegator/delegate_rewarded_tokens.cdc"
+	requestUnstakingLockedDelegatedTokensFilename = "lockedTokens/delegator/request_unstaking.cdc"
+	withdrawLockedUnstakedDelegatedTokensFilename = "lockedTokens/delegator/withdraw_unstaked_tokens.cdc"
+	withdrawLockedRewardedDelegatedTokensFilename = "lockedTokens/delegator/withdraw_rewarded_tokens.cdc"
 )
 
 /************ LockedTokens Admin Transactions ****************/
@@ -146,8 +146,8 @@ func GenerateGetUnlockLimitScript(env Environment) []byte {
 
 // CreateLockedNodeScript creates a script that creates a new
 // node request with locked tokens.
-func GenerateCreateLockedNodeScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + createLockedNodeFilename)
+func GenerateRegisterLockedNodeScript(env Environment) []byte {
+	code := assets.MustAssetString(filePath + registerLockedNodeFilename)
 
 	return []byte(replaceAddresses(code, env))
 }

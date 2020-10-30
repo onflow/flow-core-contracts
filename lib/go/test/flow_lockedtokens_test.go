@@ -525,7 +525,7 @@ func TestLockedTokensStaker(t *testing.T) {
 	t.Run("Should be able to register josh as a node operator", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateCreateLockedNodeScript(env)).
+			SetScript(templates.GenerateRegisterLockedNodeScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -569,7 +569,7 @@ func TestLockedTokensStaker(t *testing.T) {
 	t.Run("Should not be able to register a second time", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateCreateLockedNodeScript(env)).
+			SetScript(templates.GenerateRegisterLockedNodeScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -1120,7 +1120,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 	t.Run("Should not be able to register as a node operator after registering as a delegator", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateCreateLockedNodeScript(env)).
+			SetScript(templates.GenerateRegisterLockedNodeScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
