@@ -66,7 +66,7 @@ func TestIDTable(t *testing.T) {
 		AddRawArgument(jsoncdc.MustEncode(cadenceCode))
 
 	_ = tx.AddArgument(CadenceUFix64("1250000.0"))
-	_ = tx.AddArgument(CadenceUFix64("0.03"))
+	_ = tx.AddArgument(CadenceUFix64("0.08"))
 
 	signAndSubmit(
 		t, b, tx,
@@ -972,7 +972,7 @@ func TestIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(idTableAddress)
 
-		_ = tx.AddArgument(CadenceUFix64("0.03"))
+		_ = tx.AddArgument(CadenceUFix64("0.08"))
 
 		signAndSubmit(
 			t, b, tx,
@@ -987,7 +987,7 @@ func TestIDTable(t *testing.T) {
 			t.Log(result.Error.Error())
 		}
 		cut = result.Value
-		assert.Equal(t, CadenceUFix64("0.03"), cut.(cadence.UFix64))
+		assert.Equal(t, CadenceUFix64("0.08"), cut.(cadence.UFix64))
 	})
 
 	t.Run("Should be able to change the weekly payout", func(t *testing.T) {
@@ -1909,6 +1909,14 @@ func TestIDTable(t *testing.T) {
 		}
 		balance = result.Value
 		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetTotalTokensStakedScript(env), nil)
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("1650000.0"), balance.(cadence.UFix64))
 	})
 
 	t.Run("Should pay correct rewards, no delegators are paid because none are staked yet", func(t *testing.T) {
@@ -1951,13 +1959,21 @@ func TestIDTable(t *testing.T) {
 		balance = result.Value
 		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
 
+		result, err = b.ExecuteScript(templates.GenerateGetStakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("250000.0"), balance.(cadence.UFix64))
+
 		result, err = b.ExecuteScript(templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
 		}
 		balance = result.Value
-		assert.Equal(t, CadenceUFix64("210000.0"), balance.(cadence.UFix64))
+		assert.Equal(t, CadenceUFix64("187500.0"), balance.(cadence.UFix64))
 
 		result, err = b.ExecuteScript(templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(joshID))})
 		require.NoError(t, err)
@@ -2013,7 +2029,7 @@ func TestIDTable(t *testing.T) {
 			t.Log(result.Error.Error())
 		}
 		balance = result.Value
-		assert.Equal(t, CadenceUFix64("96915.0"), balance.(cadence.UFix64))
+		assert.Equal(t, CadenceUFix64("1050000.0"), balance.(cadence.UFix64))
 
 		result, err = b.ExecuteScript(templates.GenerateGetDelegatorRewardsScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(maxID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
 		require.NoError(t, err)
@@ -2089,7 +2105,7 @@ func TestIDTable(t *testing.T) {
 			t.Log(result.Error.Error())
 		}
 		balance = result.Value
-		assert.Equal(t, CadenceUFix64("210000.0"), balance.(cadence.UFix64))
+		assert.Equal(t, CadenceUFix64("187500.0"), balance.(cadence.UFix64))
 
 		// josh buckets
 
@@ -2239,7 +2255,7 @@ func TestIDTable(t *testing.T) {
 			t.Log(result.Error.Error())
 		}
 		balance = result.Value
-		assert.Equal(t, CadenceUFix64("96915.0"), balance.(cadence.UFix64))
+		assert.Equal(t, CadenceUFix64("1050000.0"), balance.(cadence.UFix64))
 
 		// Max Delegator Buckets
 
@@ -2443,7 +2459,7 @@ func TestIDTable(t *testing.T) {
 			t.Log(result.Error.Error())
 		}
 		balance := result.Value
-		assert.Equal(t, CadenceUFix64("160000.0"), balance.(cadence.UFix64))
+		assert.Equal(t, CadenceUFix64("137500.0"), balance.(cadence.UFix64))
 
 		result, err = b.ExecuteScript(templates.GenerateGetCommittedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		require.NoError(t, err)
@@ -2558,12 +2574,20 @@ func TestIDTable(t *testing.T) {
 			false,
 		)
 
-		result, err := b.ExecuteScript(templates.GenerateGetUnstakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
+		result, err := b.ExecuteScript(templates.GenerateGetStakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
 		}
 		balance := result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+
+		result, err = b.ExecuteScript(templates.GenerateGetUnstakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
 		assert.Equal(t, CadenceUFix64("300000.0"), balance.(cadence.UFix64))
 
 		result, err = b.ExecuteScript(templates.GenerateGetStakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(joshID))})
@@ -2649,7 +2673,7 @@ func TestIDTable(t *testing.T) {
 			t.Log(result.Error.Error())
 		}
 		balance := result.Value
-		assert.Equal(t, CadenceUFix64("160000.0"), balance.(cadence.UFix64))
+		assert.Equal(t, CadenceUFix64("137500.0"), balance.(cadence.UFix64))
 
 		result, err = b.ExecuteScript(templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(joshID))})
 		require.NoError(t, err)
@@ -2665,7 +2689,7 @@ func TestIDTable(t *testing.T) {
 			t.Log(result.Error.Error())
 		}
 		balance = result.Value
-		assert.Equal(t, CadenceUFix64("96915.0"), balance.(cadence.UFix64))
+		assert.Equal(t, CadenceUFix64("1050000.0"), balance.(cadence.UFix64))
 
 		tx := flow.NewTransaction().
 			SetScript(templates.GeneratePayRewardsScript(env)).
@@ -2687,7 +2711,7 @@ func TestIDTable(t *testing.T) {
 			t.Log(result.Error.Error())
 		}
 		balance = result.Value
-		assert.Equal(t, CadenceUFix64("160000.0"), balance.(cadence.UFix64))
+		assert.Equal(t, CadenceUFix64("137500.0"), balance.(cadence.UFix64))
 
 		result, err = b.ExecuteScript(templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(joshID))})
 		require.NoError(t, err)
@@ -2695,7 +2719,7 @@ func TestIDTable(t *testing.T) {
 			t.Log(result.Error.Error())
 		}
 		balance = result.Value
-		assert.Equal(t, CadenceUFix64("605886.47"), balance.(cadence.UFix64))
+		assert.Equal(t, CadenceUFix64("189540.0"), balance.(cadence.UFix64))
 
 		result, err = b.ExecuteScript(templates.GenerateGetDelegatorRewardsScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(joshID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
 		require.NoError(t, err)
@@ -2703,7 +2727,7 @@ func TestIDTable(t *testing.T) {
 			t.Log(result.Error.Error())
 		}
 		balance = result.Value
-		assert.Equal(t, CadenceUFix64("40448.03"), balance.(cadence.UFix64))
+		assert.Equal(t, CadenceUFix64("11960.0"), balance.(cadence.UFix64))
 
 		result, err = b.ExecuteScript(templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(maxID))})
 		require.NoError(t, err)
@@ -2711,7 +2735,7 @@ func TestIDTable(t *testing.T) {
 			t.Log(result.Error.Error())
 		}
 		balance = result.Value
-		assert.Equal(t, CadenceUFix64("140875.8"), balance.(cadence.UFix64))
+		assert.Equal(t, CadenceUFix64("1512800.0"), balance.(cadence.UFix64))
 
 		result, err = b.ExecuteScript(templates.GenerateGetDelegatorRewardsScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(maxID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
 		require.NoError(t, err)
@@ -2719,7 +2743,7 @@ func TestIDTable(t *testing.T) {
 			t.Log(result.Error.Error())
 		}
 		balance = result.Value
-		assert.Equal(t, CadenceUFix64("3026.40"), balance.(cadence.UFix64))
+		assert.Equal(t, CadenceUFix64("29900.0"), balance.(cadence.UFix64))
 
 		result, err = b.ExecuteScript(templates.GenerateGetDelegatorRewardsScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(maxID)), jsoncdc.MustEncode(cadence.UInt32(secondDelegatorID))})
 		require.NoError(t, err)
@@ -2727,7 +2751,7 @@ func TestIDTable(t *testing.T) {
 			t.Log(result.Error.Error())
 		}
 		balance = result.Value
-		assert.Equal(t, CadenceUFix64("6052.80"), balance.(cadence.UFix64))
+		assert.Equal(t, CadenceUFix64("59800.0"), balance.(cadence.UFix64))
 
 		result, err = b.ExecuteScript(templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(bastianID))})
 		require.NoError(t, err)
@@ -2735,7 +2759,7 @@ func TestIDTable(t *testing.T) {
 			t.Log(result.Error.Error())
 		}
 		balance = result.Value
-		assert.Equal(t, CadenceUFix64("43680.0"), balance.(cadence.UFix64))
+		assert.Equal(t, CadenceUFix64("455000.0"), balance.(cadence.UFix64))
 
 	})
 
@@ -2809,7 +2833,7 @@ func TestIDTable(t *testing.T) {
 			t.Log(result.Error.Error())
 		}
 		balance := result.Value
-		assert.Equal(t, CadenceUFix64("1026.4"), balance.(cadence.UFix64))
+		assert.Equal(t, CadenceUFix64("27900.0"), balance.(cadence.UFix64))
 
 	})
 
