@@ -2872,4 +2872,26 @@ func TestIDTable(t *testing.T) {
 		assert.Equal(t, CadenceUFix64("2000.0"), balance.(cadence.UFix64))
 
 	})
+
+	// End staking auction and move tokens in the same transaction
+	t.Run("Should end staking auction and move tokens in the same transaction", func(t *testing.T) {
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GenerateEndEpochScript(env)).
+			SetGasLimit(100000).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(idTableAddress)
+
+		err := tx.AddArgument(cadence.NewArray([]cadence.Value{cadence.NewString(adminID), cadence.NewString(joshID)}))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+
+	})
 }

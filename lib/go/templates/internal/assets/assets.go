@@ -95,18 +95,7 @@
 // ../../../transactions/lockedTokens/user/get_locked_account_balance.cdc (413B)
 // ../../../transactions/lockedTokens/user/get_unlock_limit.cdc (404B)
 // ../../../transactions/lockedTokens/user/withdraw_tokens.cdc (713B)
-<<<<<<< HEAD
-// ../../../transactions/qc/create_qc_object.cdc (624B)
-// ../../../transactions/qc/get_all_votes.cdc (126B)
-// ../../../transactions/qc/get_clusters.cdc (133B)
-// ../../../transactions/qc/get_votes_in_cluster.cdc (163B)
-// ../../../transactions/qc/reset_qc_voting.cdc (500B)
-// ../../../transactions/qc/set_collector_clusters.cdc (548B)
-// ../../../transactions/qc/submit_qc_vote.cdc (518B)
-// ../../../transactions/stakingProxy/add_node_info.cdc (614B)
-=======
 // ../../../transactions/stakingProxy/add_node_info.cdc (620B)
->>>>>>> 79941fe65b634800065a440ae5243744b2ca8a2f
 // ../../../transactions/stakingProxy/get_node_info.cdc (529B)
 // ../../../transactions/stakingProxy/register_node.cdc (1.095kB)
 // ../../../transactions/stakingProxy/remove_node_info.cdc (307B)
@@ -2087,151 +2076,7 @@ func TransactionsLockedtokensUserWithdraw_tokensCdc() (*asset, error) {
 	return a, nil
 }
 
-<<<<<<< HEAD
-var _TransactionsQcCreate_qc_objectCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x7c\x90\xcd\xae\x9b\x40\x0c\x85\xf7\x3c\x85\x7b\x17\x15\x48\xbd\xd0\x35\xca\x6d\x84\x26\xed\xaa\x6a\x45\xf2\x04\x66\x30\xc9\x54\xc3\x18\x19\x93\xb4\xaa\xf2\xee\x15\x3f\x89\x42\x15\x5d\xaf\xe6\xc7\xc7\xfe\xce\x71\x6d\xc7\xa2\xf0\xcd\xf3\xa5\x1c\x58\x86\xd6\x90\xa8\x6b\x9c\x45\x25\x68\x84\x5b\xf8\xfc\xbb\x34\xc5\x6e\xb7\xff\x7a\x38\x44\x51\xa4\x82\xa1\x47\xab\x8e\x43\x8c\x75\xeb\x42\x51\xd7\x42\x7d\x9f\xc3\x72\x48\xe0\x6f\x04\x00\x90\x65\xf0\x9d\x2d\x7a\x38\xa3\x38\xac\x3c\x41\xc3\x02\x08\x42\x0d\x09\x05\x4b\xa0\x0c\x7a\x22\x28\x0d\x14\xe3\x20\xe0\xea\x17\x59\x9d\xc4\x9e\x14\xa6\xe9\x7b\x6a\x72\xf8\xf8\x94\x2e\x9d\x54\xd1\xd4\xdf\x09\x75\x28\x14\xa3\xb5\x9a\x43\x31\xe8\xa9\xb0\x96\x87\xa0\x37\x9a\xd5\xd0\xe5\x0f\xde\xe0\x48\xba\x5c\x56\x66\x92\xe8\x2e\xca\x32\xa8\x58\x84\x2f\xcf\xd0\xf1\x7f\xee\xb1\x7a\xf2\x4d\x7a\x83\x87\xb7\xd5\xca\xf4\x48\x6a\xb0\xc3\xca\x79\xa7\x7f\x36\xef\x19\xfb\x12\x67\xdd\x50\x79\x67\xb3\x66\x6c\x32\xd3\x63\xf2\x21\x9d\x69\xe2\xe4\xbe\x6f\xac\xed\x16\x3a\x0c\xce\xc6\x2f\x86\x07\x5f\x43\x60\xbd\x61\xaf\xa0\x4b\x33\xe3\xbc\x3c\x38\x1c\x63\x09\x74\xf9\xc1\x35\xc1\xe6\x75\x8d\x9f\x5a\x21\x54\x2a\xcd\xcf\xc9\x63\xfc\x20\x1b\xa3\x4e\x7b\x3c\x53\xbc\x79\x5d\xe4\x9f\x40\x39\x87\xac\x57\x16\x3c\xd2\xc2\x3d\xa7\x33\xe3\x5e\xa3\xeb\xbf\x00\x00\x00\xff\xff\xbc\x5f\x36\xda\x70\x02\x00\x00"
-
-func TransactionsQcCreate_qc_objectCdcBytes() ([]byte, error) {
-	return bindataRead(
-		_TransactionsQcCreate_qc_objectCdc,
-		"../../../transactions/qc/create_qc_object.cdc",
-	)
-}
-
-func TransactionsQcCreate_qc_objectCdc() (*asset, error) {
-	bytes, err := TransactionsQcCreate_qc_objectCdcBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "../../../transactions/qc/create_qc_object.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x5a, 0x26, 0x2a, 0x17, 0x92, 0x83, 0xe, 0x4c, 0x3d, 0xe3, 0xec, 0x78, 0xd9, 0x94, 0xaa, 0xce, 0x24, 0x84, 0x3, 0xee, 0xf1, 0x4a, 0x98, 0xf8, 0x38, 0xde, 0x50, 0xec, 0x6d, 0x70, 0x71, 0x37}}
-	return a, nil
-}
-
-var _TransactionsQcGet_all_votesCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\xcc\xb1\x0a\xc2\x30\x10\x06\xe0\x3d\x4f\xf1\x8f\xed\x22\xce\x6e\xa5\xd5\x3d\x06\x5c\x4a\x87\x2a\x97\x72\x90\xe4\xca\x79\x87\x82\xf8\xee\xbe\x80\x2f\xf0\x71\xdd\x45\x0d\x97\x22\xaf\xe8\xa2\x5e\x47\x52\xe3\xcc\x8f\xd5\x08\x59\xa5\xe2\xf8\x8e\xe3\x30\x4d\xd7\x73\x4a\x21\xec\x7e\x47\xf6\x86\xba\x72\xeb\xfa\x13\xe6\x39\x99\x72\xdb\x96\x05\x9f\x00\x00\x4a\xe6\xda\xfe\x7b\x87\x8d\x6c\x28\x25\x8e\x37\x31\x7a\x76\x7d\xf8\xfe\x02\x00\x00\xff\xff\x25\x7c\xbf\xbd\x7e\x00\x00\x00"
-
-func TransactionsQcGet_all_votesCdcBytes() ([]byte, error) {
-	return bindataRead(
-		_TransactionsQcGet_all_votesCdc,
-		"../../../transactions/qc/get_all_votes.cdc",
-	)
-}
-
-func TransactionsQcGet_all_votesCdc() (*asset, error) {
-	bytes, err := TransactionsQcGet_all_votesCdcBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "../../../transactions/qc/get_all_votes.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x67, 0x2e, 0xc8, 0x41, 0xbd, 0xf7, 0xcc, 0x7a, 0x59, 0x5c, 0x70, 0x4b, 0xed, 0x1a, 0x69, 0x91, 0x24, 0x71, 0x21, 0xd5, 0xf, 0x68, 0x26, 0xbd, 0xf1, 0xad, 0x8, 0x42, 0xf, 0xb2, 0x56, 0x34}}
-	return a, nil
-}
-
-var _TransactionsQcGet_clustersCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\xcc\xb1\x0a\xc2\x30\x10\x06\xe0\x3d\x4f\xf1\x8f\xed\x22\xce\x6e\x92\xea\x5e\x33\x96\x0e\xb5\x5c\xca\x41\x92\x2b\xd7\x3b\x14\xc4\x77\xf7\x05\x7c\x81\x8f\xeb\x2e\x6a\xb8\x17\x79\x8d\x2e\xea\x35\x92\x1a\x67\x5e\x17\x23\x64\x95\x8a\xf3\x7b\x8c\xd7\x61\x78\xdc\x52\x0a\x61\xf7\x27\xb2\x37\xd4\x85\x5b\xd7\x5f\x30\x4d\xc9\x94\xdb\x36\xcf\xf8\x04\x00\x50\x32\xd7\xf6\xdf\x3b\x6d\x64\x51\x4a\xa1\xd5\x44\x63\xf1\xc3\x48\x8f\xae\x0f\xdf\x5f\x00\x00\x00\xff\xff\x94\xf7\x93\x87\x85\x00\x00\x00"
-
-func TransactionsQcGet_clustersCdcBytes() ([]byte, error) {
-	return bindataRead(
-		_TransactionsQcGet_clustersCdc,
-		"../../../transactions/qc/get_clusters.cdc",
-	)
-}
-
-func TransactionsQcGet_clustersCdc() (*asset, error) {
-	bytes, err := TransactionsQcGet_clustersCdcBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "../../../transactions/qc/get_clusters.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xe9, 0xa0, 0xd4, 0x3f, 0x3f, 0xfe, 0x67, 0xe2, 0xd, 0x19, 0x4d, 0x29, 0xa4, 0xc5, 0x22, 0x8c, 0xcf, 0x76, 0xdf, 0xdd, 0x4c, 0xa1, 0xe0, 0x34, 0x99, 0xc7, 0x50, 0x4f, 0x3f, 0xa3, 0xee, 0xb5}}
-	return a, nil
-}
-
-var _TransactionsQcGet_votes_in_clusterCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\xcc\xb1\xca\xc2\x30\x10\x07\xf0\x3d\x4f\xf1\xff\xb6\xaf\x8b\x38\x77\x2b\xa9\x42\xc7\x5a\x70\x11\x87\x5a\x2f\x25\x90\x5c\xca\xf5\x0e\x0b\xe2\xbb\x3b\x38\x09\xbe\xc0\x2f\xe6\xa5\x88\xe2\x98\xca\xa3\xb7\x22\x96\x3d\x89\xc6\x10\xa7\x51\x09\x41\x4a\xc6\x7e\xeb\x7d\xd3\xb6\xa7\xc3\x30\x38\xb7\xd8\x0d\xc1\x18\x79\x8c\xfc\x3f\x25\x5b\x95\xa4\xe3\x3b\x6d\x35\x3a\xd6\xaa\xc6\x65\x50\x89\x3c\x5f\xf1\x74\x00\x20\xa4\x26\xfc\x9b\xdf\xcd\xa4\x4d\x4a\xbd\x3f\x17\xa5\xb5\x63\xff\xe1\xbe\xd8\xea\xcf\xbd\xde\x01\x00\x00\xff\xff\xbe\xb9\xbc\x60\xa3\x00\x00\x00"
-
-func TransactionsQcGet_votes_in_clusterCdcBytes() ([]byte, error) {
-	return bindataRead(
-		_TransactionsQcGet_votes_in_clusterCdc,
-		"../../../transactions/qc/get_votes_in_cluster.cdc",
-	)
-}
-
-func TransactionsQcGet_votes_in_clusterCdc() (*asset, error) {
-	bytes, err := TransactionsQcGet_votes_in_clusterCdcBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "../../../transactions/qc/get_votes_in_cluster.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xab, 0x4e, 0xd8, 0x41, 0xd0, 0xca, 0x52, 0x95, 0xfa, 0xca, 0xaa, 0x2, 0x4, 0x76, 0x3c, 0xea, 0x34, 0xab, 0xca, 0xae, 0xe5, 0x52, 0xc7, 0x23, 0x34, 0xbb, 0xd9, 0x3d, 0x3a, 0xe9, 0x5, 0xad}}
-	return a, nil
-}
-
-var _TransactionsQcReset_qc_votingCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x7c\xd1\xcd\x6a\xe3\x40\x0c\x07\xf0\xbb\x9f\x42\x9b\xc3\x62\x5f\xec\x3d\x87\x6d\x83\x99\xb4\xa7\x5e\x9c\x40\xef\xf2\x44\x93\x4c\x19\x8f\x8c\xa2\x69\x52\x4a\xde\xbd\xf8\x23\x85\x94\x50\x5d\x0c\xe2\x2f\xeb\x27\xc6\x77\x3d\x8b\xc2\x73\xe0\x53\x93\x58\x52\x67\x48\xd4\x3b\x6f\x51\x09\x9c\x70\x07\xff\xce\x8d\xa9\xd7\xeb\xcd\xd3\x76\x9b\x65\x99\x0a\xc6\x23\x5a\xf5\x1c\xf3\x02\x3e\x33\x00\x80\xaa\x82\x17\xb6\x18\xe0\x1d\xc5\x63\x1b\x08\x1c\x0b\x20\x08\x39\x12\x8a\x96\x40\x19\xf4\x40\xd0\x18\xa8\x77\x9d\x8f\xc0\xed\x1b\x59\x1d\x87\x03\x29\xe0\xd0\xdc\x90\x5b\xc2\xdf\xbb\x90\x72\x9c\xca\xc6\x7c\x2f\xd4\xa3\x50\x8e\xd6\xea\x12\xea\xa4\x87\xda\x5a\x4e\x51\x07\xcd\x98\x98\x49\x2d\x8b\xf0\xe9\x1e\x03\x7f\x1a\x86\x3a\x52\x70\xe5\x15\x02\x0f\x53\x68\xfe\x75\xb9\x27\x35\xd8\x63\xeb\x83\xd7\x8f\xff\xbf\x21\x1f\xf3\xaa\x4f\x6d\xf0\xb6\x72\x43\xc8\x8c\xcd\xe2\x4f\x39\x69\xf2\xe2\x7b\xdf\x50\xab\x15\xf4\x18\xbd\xcd\x17\x86\x53\xd8\x41\x64\xbd\xb2\x6f\xd0\x8d\x99\x38\x8b\x62\xba\xf0\x32\x7d\xe8\x4c\x36\x29\xcd\xaf\x70\x7b\xc4\x7e\x43\xae\x14\x3a\x92\x36\xe6\x95\xd5\xc7\xfd\xbc\xfb\x92\x5d\xbe\x02\x00\x00\xff\xff\xd0\x9e\xd8\xdf\xf4\x01\x00\x00"
-
-func TransactionsQcReset_qc_votingCdcBytes() ([]byte, error) {
-	return bindataRead(
-		_TransactionsQcReset_qc_votingCdc,
-		"../../../transactions/qc/reset_qc_voting.cdc",
-	)
-}
-
-func TransactionsQcReset_qc_votingCdc() (*asset, error) {
-	bytes, err := TransactionsQcReset_qc_votingCdcBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "../../../transactions/qc/reset_qc_voting.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x9f, 0x4a, 0x53, 0xcb, 0x77, 0x3b, 0xd7, 0x85, 0x34, 0xe2, 0x57, 0xb1, 0x24, 0xce, 0xef, 0xd7, 0x22, 0x63, 0x89, 0x6c, 0xf2, 0xa0, 0x64, 0x86, 0x17, 0xe, 0x14, 0x3c, 0x9f, 0x1c, 0x55, 0xdb}}
-	return a, nil
-}
-
-var _TransactionsQcSet_collector_clustersCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x7c\x91\xcf\x6e\xc2\x30\x0c\x87\xef\x7d\x0a\x8f\xc3\xd4\x5e\xda\x9d\xd1\x36\x54\x85\xed\xb4\x4b\xe1\x88\x38\xa4\xc1\x81\x4c\x69\x5c\xb9\xce\x60\x9a\x78\xf7\xa9\x7f\x40\x62\x42\xf3\x25\x92\xf5\xb3\xf3\x59\x9f\x6b\x5a\x62\x81\x77\x4f\xc7\x2a\x12\xc7\x46\x21\x8b\xb3\xce\x68\x41\xb0\x4c\x0d\x3c\x9d\x2a\x55\x2e\x97\xab\xb7\xf5\x3a\x49\x12\x61\x1d\x3a\x6d\xc4\x51\x48\x8d\x8f\x9d\x20\x77\x73\xd8\x6c\xd6\xc2\x2e\xec\xb7\xdb\x0c\x7e\x12\x00\x80\xa2\x80\x0f\x32\xda\xc3\x97\x66\xa7\x6b\x8f\x60\x89\x41\x03\xa3\x45\xc6\x60\x10\x84\x40\x0e\x08\x95\x82\x72\xd7\xb8\x00\x54\x7f\xa2\x91\x61\xd8\xa3\x80\xee\x9b\x2b\xb4\x73\x78\xbc\x0b\x97\x0f\x53\xc9\x90\x6f\x19\x5b\xcd\x98\x6a\x63\x64\x0e\x65\x94\x43\x69\x0c\xc5\x20\x3d\xcd\x90\x98\x90\x6a\x62\xa6\xe3\x3d\x0c\xfd\x97\xa1\xaf\x0e\xbd\xcd\x2f\x20\xf0\x32\x86\xa6\xd5\xf9\x1e\x45\xe9\x56\xd7\xce\x3b\xf9\x7e\xfe\x0f\xf2\x35\x2d\xda\x58\x7b\x67\x0a\xdb\x87\xd4\xd0\xcc\x1e\xf2\x91\x26\xcd\xae\xff\xf5\xb5\x58\x40\xab\x83\x33\xe9\x4c\x51\xf4\x3b\x08\x24\x17\xec\x1b\xe8\x4a\x8d\x38\xb3\x6c\xbc\xf0\x3c\x3e\x78\x42\x13\x05\x27\x0b\xb7\x47\xec\x57\x68\xf3\x0e\x45\x91\xf7\x68\x84\x58\x4d\x02\xd3\x80\x47\x75\x95\x79\xd1\x9a\x4d\x7b\xcf\xbf\x01\x00\x00\xff\xff\xbf\x07\xf3\x98\x24\x02\x00\x00"
-
-func TransactionsQcSet_collector_clustersCdcBytes() ([]byte, error) {
-	return bindataRead(
-		_TransactionsQcSet_collector_clustersCdc,
-		"../../../transactions/qc/set_collector_clusters.cdc",
-	)
-}
-
-func TransactionsQcSet_collector_clustersCdc() (*asset, error) {
-	bytes, err := TransactionsQcSet_collector_clustersCdcBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "../../../transactions/qc/set_collector_clusters.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xda, 0x48, 0xe0, 0x5b, 0x3a, 0x12, 0x20, 0x14, 0x4c, 0xb8, 0x5e, 0xc, 0x99, 0xae, 0x2a, 0x6e, 0xa0, 0x8c, 0xc, 0xe, 0xd5, 0xeb, 0x4c, 0xab, 0x8e, 0xe8, 0xe5, 0x27, 0x21, 0x4, 0xb0, 0x44}}
-	return a, nil
-}
-
-var _TransactionsQcSubmit_qc_voteCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x7c\x91\x4f\x6b\xe3\x30\x10\xc5\xef\xfe\x14\x8f\x1c\x16\x07\x16\x7b\xcf\x61\x77\x43\x50\xda\x53\x29\x38\x81\xde\x65\x79\x9c\xa8\xd8\x1a\x33\x1e\x35\x81\x92\xef\x5e\xe4\xfc\x81\x94\x50\x9d\xc4\xf0\xde\x9b\x9f\xf4\x7c\x3f\xb0\x28\x9e\x3b\x3e\x54\x91\x25\xf6\x86\x44\x7d\xeb\x9d\x55\x42\x2b\xdc\xe3\xcf\xb1\x32\xab\xf5\x7a\xf3\xb4\xdd\x66\x59\xa6\x62\xc3\x68\x9d\x7a\x0e\xb9\x6f\x16\xd8\xaa\xf8\xb0\xfb\x8d\xd1\xef\x82\xd5\x28\x74\x1d\xcd\xf1\x99\x01\x40\x59\xe2\x85\x9d\xed\xf0\x61\xc5\xdb\xba\x23\xb4\x2c\xb0\x10\x6a\x49\x28\x38\x82\x32\x74\x4f\xa8\x0c\x5e\xb9\xa1\xc9\xd4\x91\x22\x70\x43\x1b\x6a\x17\xf8\xf5\x10\xae\x48\xe2\xca\x64\x93\x7e\x10\x1a\xac\x50\x6e\x9d\xd3\x05\x56\x51\xf7\x2b\xe7\x38\x06\x4d\x14\x93\xe2\x82\x52\xb3\x08\x1f\x1e\xad\x4f\xeb\xc0\xf5\x3b\x39\xbd\x19\x46\xea\xda\xe2\xc2\x81\x7f\x48\xe9\xc5\x39\xe1\xef\x8f\x50\xff\xf3\x72\x54\x16\xbb\xa3\xb2\x4d\x32\x93\xc6\xf3\x5b\x6c\x3a\xcb\x25\x06\x1b\xbc\xcb\x67\x86\x63\xd7\x20\xb0\x5e\xe1\xee\xd0\x2a\x33\x91\xcd\xce\xee\xd3\xf9\x31\x74\x24\x17\x95\x2e\x3f\xfc\x9d\xb4\x18\x63\xdd\x7b\xad\xcc\x1b\x2b\x4d\x25\xf9\xe6\xae\xa0\xdb\xf5\x1a\x7a\xfa\x0a\x00\x00\xff\xff\x36\xb8\xb9\xcf\x06\x02\x00\x00"
-
-func TransactionsQcSubmit_qc_voteCdcBytes() ([]byte, error) {
-	return bindataRead(
-		_TransactionsQcSubmit_qc_voteCdc,
-		"../../../transactions/qc/submit_qc_vote.cdc",
-	)
-}
-
-func TransactionsQcSubmit_qc_voteCdc() (*asset, error) {
-	bytes, err := TransactionsQcSubmit_qc_voteCdcBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "../../../transactions/qc/submit_qc_vote.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x97, 0x6e, 0xec, 0xd0, 0xb0, 0xb9, 0x89, 0x4, 0xd1, 0x6d, 0x64, 0x5a, 0x96, 0xe4, 0xb1, 0x1, 0x5f, 0x6c, 0xb6, 0xc2, 0xb8, 0xc1, 0xd4, 0xa3, 0xa1, 0x59, 0x3a, 0xdd, 0xa9, 0x9f, 0x2c, 0x86}}
-	return a, nil
-}
-
-var _TransactionsStakingproxyAdd_node_infoCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x91\x51\x6b\xea\x40\x10\x85\xdf\xf7\x57\x0c\x3e\x5c\x22\x88\xdc\xc7\x4b\xb8\x5e\x09\x7a\x69\x45\xd0\x60\x5a\x68\x1f\xd7\xdd\x51\x97\xc6\x9d\x65\x32\xa2\x52\xfc\xef\x65\x4d\x35\x91\x74\x1f\x42\x72\x72\x92\xf9\xce\x19\xb7\x0f\xc4\x02\x85\xe8\x0f\xe7\xb7\x39\xd3\xe9\x0c\x1b\xa6\x3d\xfc\x3e\x15\x2f\xd9\x7c\xb6\x78\xca\x57\xcb\xb7\xf7\x6c\x3a\x5d\xfd\x2f\x0a\xa5\x84\xb5\xaf\xb4\x11\x47\x3e\x71\x36\x85\x42\xd8\xf9\xed\x00\x98\x4a\x4c\xe1\x75\xe6\xe5\xcf\x00\x3c\xca\x91\x38\xfe\x30\xb3\x96\xb1\xaa\x1a\x5f\xf3\x6a\x8e\xe7\x46\xae\xea\xf9\x2d\xad\x0f\x9f\x4a\x01\x00\x04\xc6\xa0\x19\x13\x6d\x8c\xa4\x90\x1d\x64\x97\x19\x43\x07\x2f\xd1\x01\xdf\xa7\x44\x81\x10\xe1\x9f\xa9\xb4\xc8\x30\x82\x68\x1f\xae\x89\x99\x8e\x7f\x7f\xb5\xe3\x0d\x17\x64\x31\x0a\xc8\x79\xf3\xc5\xbf\x24\xa6\x4e\xa1\xe3\x5c\x06\x64\x2d\xc4\x13\x1d\xf4\xda\x95\x4e\xce\x85\x10\xeb\x2d\xe6\x5a\x76\xfd\x3b\x40\x3c\xe3\x31\x04\xed\x9d\x49\x7a\x13\x3a\x94\x16\x3c\x09\xd4\x04\xc0\xb8\x41\x46\x6f\x10\x84\x6e\x61\x6b\x60\xd8\x5d\xe7\xf7\xfa\xea\x21\x8c\x27\x8b\x33\xbf\x21\x18\x75\x91\xa2\x7e\x2d\xdf\xd9\x5b\xf1\xf1\xfa\x63\xef\x1d\xa9\xb3\x82\x87\xc7\xc7\x4d\x34\xf7\x2d\xba\x56\xcd\x43\x6d\xed\x1d\xe8\x46\x9c\xde\xd9\xeb\x76\x2e\xea\xa2\xbe\x02\x00\x00\xff\xff\xba\x90\xdc\xae\x66\x02\x00\x00"
-=======
 var _TransactionsStakingproxyAdd_node_infoCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x91\x41\x6b\xc2\x40\x10\x85\xef\xfb\x2b\x06\x0f\x25\x82\x48\x8f\x25\xd4\x4a\xd0\xd2\x8a\xa0\xc1\xb4\xd0\x1e\xd7\xec\xa8\x4b\xe3\xce\x32\x19\x51\x29\xfe\xf7\xb2\x46\x4d\x24\xdd\x43\xc8\xbe\xcc\x64\xbe\xf7\xc6\x6e\x3d\xb1\x40\x26\xfa\xc7\xba\x75\xca\x74\x38\xc2\x8a\x69\x0b\x8f\x87\xec\x23\x99\x4e\x66\x6f\xe9\x62\xfe\xf5\x9d\x8c\xc7\x8b\xd7\x2c\x53\x4a\x58\xbb\x52\xe7\x62\xc9\x45\xd6\xc4\x90\x09\x5b\xb7\xee\x01\x53\x81\x31\x7c\x4e\x9c\x3c\xf5\xc0\xa1\xec\x89\xc3\x0f\x13\x63\x18\xcb\xb2\xae\xab\x3f\x4d\xf1\x58\xcb\x65\x35\xbf\xa1\x75\xe1\x57\x29\x00\x00\xcf\xe8\x35\x63\xa4\xf3\x9c\x76\x4e\x62\x48\x76\xb2\x49\xaa\x4b\x28\x82\xcb\x29\x50\xc0\x07\xfe\x77\x2a\x0c\x32\x0c\xe0\xd2\xd1\x5f\x12\x33\xed\x9f\x1f\x9a\x26\xfb\x33\x32\x18\x04\xe4\xb4\x6e\x7a\x89\x82\xf7\x18\x5a\x95\x73\x8f\xac\x85\x78\xa4\xbd\x5e\xda\xc2\xca\x31\x13\x62\xbd\xc6\x54\xcb\xa6\x7b\x63\x08\x67\x38\x04\xaf\x9d\xcd\xa3\xce\x88\x76\x85\x01\x47\x02\x15\x01\x30\xae\x90\xd1\xe5\x08\x42\x57\xcb\x15\x33\x6c\xce\xf3\x3b\x5d\x75\xe7\xc7\x91\xc1\x89\x5b\x11\x0c\xda\x48\x41\x3f\xaf\xc0\x9a\x6b\xfc\xe1\xf9\x6f\xfa\x2d\xa9\xb5\x88\xbb\xeb\xfd\x3e\xea\xf7\x06\x5d\x23\xe9\xbe\x36\xe6\x06\x74\x25\x8e\x6f\xec\x55\x3a\x27\x75\x52\x7f\x01\x00\x00\xff\xff\x9f\x31\xb9\x98\x6c\x02\x00\x00"
->>>>>>> 79941fe65b634800065a440ae5243744b2ca8a2f
 
 func TransactionsStakingproxyAdd_node_infoCdcBytes() ([]byte, error) {
 	return bindataRead(
@@ -2562,122 +2407,6 @@ func AssetNames() []string {
 
 // _bindata is a table, holding each asset generator, mapped to its name.
 var _bindata = map[string]func() (*asset, error){
-<<<<<<< HEAD
-	"../../../transactions/FlowServiceAccount/get_account_creators.cdc":                          TransactionsFlowserviceaccountGet_account_creatorsCdc,
-	"../../../transactions/FlowServiceAccount/get_account_fee.cdc":                               TransactionsFlowserviceaccountGet_account_feeCdc,
-	"../../../transactions/FlowServiceAccount/get_tx_fee.cdc":                                    TransactionsFlowserviceaccountGet_tx_feeCdc,
-	"../../../transactions/flowToken/burn_tokens.cdc":                                            TransactionsFlowtokenBurn_tokensCdc,
-	"../../../transactions/flowToken/create_forwarder.cdc":                                       TransactionsFlowtokenCreate_forwarderCdc,
-	"../../../transactions/flowToken/mint_tokens.cdc":                                            TransactionsFlowtokenMint_tokensCdc,
-	"../../../transactions/flowToken/scripts/get_balance.cdc":                                    TransactionsFlowtokenScriptsGet_balanceCdc,
-	"../../../transactions/flowToken/scripts/get_supply.cdc":                                     TransactionsFlowtokenScriptsGet_supplyCdc,
-	"../../../transactions/flowToken/setup_account.cdc":                                          TransactionsFlowtokenSetup_accountCdc,
-	"../../../transactions/flowToken/transfer_tokens.cdc":                                        TransactionsFlowtokenTransfer_tokensCdc,
-	"../../../transactions/idTableStaking/admin/change_cut.cdc":                                  TransactionsIdtablestakingAdminChange_cutCdc,
-	"../../../transactions/idTableStaking/admin/change_minimums.cdc":                             TransactionsIdtablestakingAdminChange_minimumsCdc,
-	"../../../transactions/idTableStaking/admin/change_payout.cdc":                               TransactionsIdtablestakingAdminChange_payoutCdc,
-	"../../../transactions/idTableStaking/admin/end_epoch.cdc":                                   TransactionsIdtablestakingAdminEnd_epochCdc,
-	"../../../transactions/idTableStaking/admin/end_staking.cdc":                                 TransactionsIdtablestakingAdminEnd_stakingCdc,
-	"../../../transactions/idTableStaking/admin/move_tokens.cdc":                                 TransactionsIdtablestakingAdminMove_tokensCdc,
-	"../../../transactions/idTableStaking/admin/pay_rewards.cdc":                                 TransactionsIdtablestakingAdminPay_rewardsCdc,
-	"../../../transactions/idTableStaking/admin/remove_node.cdc":                                 TransactionsIdtablestakingAdminRemove_nodeCdc,
-	"../../../transactions/idTableStaking/admin/transfer_minter_deploy.cdc":                      TransactionsIdtablestakingAdminTransfer_minter_deployCdc,
-	"../../../transactions/idTableStaking/create_staking_request.cdc":                            TransactionsIdtablestakingCreate_staking_requestCdc,
-	"../../../transactions/idTableStaking/delegation/del_register_delegator.cdc":                 TransactionsIdtablestakingDelegationDel_register_delegatorCdc,
-	"../../../transactions/idTableStaking/delegation/del_request_unstaking.cdc":                  TransactionsIdtablestakingDelegationDel_request_unstakingCdc,
-	"../../../transactions/idTableStaking/delegation/del_stake_new_tokens.cdc":                   TransactionsIdtablestakingDelegationDel_stake_new_tokensCdc,
-	"../../../transactions/idTableStaking/delegation/del_stake_rewarded.cdc":                     TransactionsIdtablestakingDelegationDel_stake_rewardedCdc,
-	"../../../transactions/idTableStaking/delegation/del_stake_unstaked.cdc":                     TransactionsIdtablestakingDelegationDel_stake_unstakedCdc,
-	"../../../transactions/idTableStaking/delegation/del_withdraw_reward_tokens.cdc":             TransactionsIdtablestakingDelegationDel_withdraw_reward_tokensCdc,
-	"../../../transactions/idTableStaking/delegation/del_withdraw_unstaked_tokens.cdc":           TransactionsIdtablestakingDelegationDel_withdraw_unstaked_tokensCdc,
-	"../../../transactions/idTableStaking/delegation/get_delegator_committed.cdc":                TransactionsIdtablestakingDelegationGet_delegator_committedCdc,
-	"../../../transactions/idTableStaking/delegation/get_delegator_info.cdc":                     TransactionsIdtablestakingDelegationGet_delegator_infoCdc,
-	"../../../transactions/idTableStaking/delegation/get_delegator_request.cdc":                  TransactionsIdtablestakingDelegationGet_delegator_requestCdc,
-	"../../../transactions/idTableStaking/delegation/get_delegator_rewarded.cdc":                 TransactionsIdtablestakingDelegationGet_delegator_rewardedCdc,
-	"../../../transactions/idTableStaking/delegation/get_delegator_staked.cdc":                   TransactionsIdtablestakingDelegationGet_delegator_stakedCdc,
-	"../../../transactions/idTableStaking/delegation/get_delegator_unstaked.cdc":                 TransactionsIdtablestakingDelegationGet_delegator_unstakedCdc,
-	"../../../transactions/idTableStaking/delegation/get_delegator_unstaking.cdc":                TransactionsIdtablestakingDelegationGet_delegator_unstakingCdc,
-	"../../../transactions/idTableStaking/delegation/get_delegator_unstaking_request.cdc":        TransactionsIdtablestakingDelegationGet_delegator_unstaking_requestCdc,
-	"../../../transactions/idTableStaking/get_current_table.cdc":                                 TransactionsIdtablestakingGet_current_tableCdc,
-	"../../../transactions/idTableStaking/get_cut_percentage.cdc":                                TransactionsIdtablestakingGet_cut_percentageCdc,
-	"../../../transactions/idTableStaking/get_nodeType_ratio.cdc":                                TransactionsIdtablestakingGet_nodetype_ratioCdc,
-	"../../../transactions/idTableStaking/get_node_committedTokens.cdc":                          TransactionsIdtablestakingGet_node_committedtokensCdc,
-	"../../../transactions/idTableStaking/get_node_info.cdc":                                     TransactionsIdtablestakingGet_node_infoCdc,
-	"../../../transactions/idTableStaking/get_node_initial_weight.cdc":                           TransactionsIdtablestakingGet_node_initial_weightCdc,
-	"../../../transactions/idTableStaking/get_node_networking_addr.cdc":                          TransactionsIdtablestakingGet_node_networking_addrCdc,
-	"../../../transactions/idTableStaking/get_node_networking_key.cdc":                           TransactionsIdtablestakingGet_node_networking_keyCdc,
-	"../../../transactions/idTableStaking/get_node_rewardedTokens.cdc":                           TransactionsIdtablestakingGet_node_rewardedtokensCdc,
-	"../../../transactions/idTableStaking/get_node_role.cdc":                                     TransactionsIdtablestakingGet_node_roleCdc,
-	"../../../transactions/idTableStaking/get_node_stakedTokens.cdc":                             TransactionsIdtablestakingGet_node_stakedtokensCdc,
-	"../../../transactions/idTableStaking/get_node_staking_key.cdc":                              TransactionsIdtablestakingGet_node_staking_keyCdc,
-	"../../../transactions/idTableStaking/get_node_total_commitment.cdc":                         TransactionsIdtablestakingGet_node_total_commitmentCdc,
-	"../../../transactions/idTableStaking/get_node_unstakedTokens.cdc":                           TransactionsIdtablestakingGet_node_unstakedtokensCdc,
-	"../../../transactions/idTableStaking/get_node_unstakingTokens.cdc":                          TransactionsIdtablestakingGet_node_unstakingtokensCdc,
-	"../../../transactions/idTableStaking/get_node_unstaking_request.cdc":                        TransactionsIdtablestakingGet_node_unstaking_requestCdc,
-	"../../../transactions/idTableStaking/get_proposed_table.cdc":                                TransactionsIdtablestakingGet_proposed_tableCdc,
-	"../../../transactions/idTableStaking/get_stakeRequirements.cdc":                             TransactionsIdtablestakingGet_stakerequirementsCdc,
-	"../../../transactions/idTableStaking/get_table.cdc":                                         TransactionsIdtablestakingGet_tableCdc,
-	"../../../transactions/idTableStaking/get_totalStaked_by_type.cdc":                           TransactionsIdtablestakingGet_totalstaked_by_typeCdc,
-	"../../../transactions/idTableStaking/get_weeklyPayout.cdc":                                  TransactionsIdtablestakingGet_weeklypayoutCdc,
-	"../../../transactions/idTableStaking/request_unstake.cdc":                                   TransactionsIdtablestakingRequest_unstakeCdc,
-	"../../../transactions/idTableStaking/stake_new_tokens.cdc":                                  TransactionsIdtablestakingStake_new_tokensCdc,
-	"../../../transactions/idTableStaking/stake_rewarded_tokens.cdc":                             TransactionsIdtablestakingStake_rewarded_tokensCdc,
-	"../../../transactions/idTableStaking/stake_unstaked_tokens.cdc":                             TransactionsIdtablestakingStake_unstaked_tokensCdc,
-	"../../../transactions/idTableStaking/withdraw_reward_tokens.cdc":                            TransactionsIdtablestakingWithdraw_reward_tokensCdc,
-	"../../../transactions/idTableStaking/withdraw_unstaked_tokens.cdc":                          TransactionsIdtablestakingWithdraw_unstaked_tokensCdc,
-	"../../../transactions/inspect_field.cdc":                                                    TransactionsInspect_fieldCdc,
-	"../../../transactions/lockedTokens/admin/admin_create_shared_accounts.cdc":                  TransactionsLockedtokensAdminAdmin_create_shared_accountsCdc,
-	"../../../transactions/lockedTokens/admin/admin_deploy_contract.cdc":                         TransactionsLockedtokensAdminAdmin_deploy_contractCdc,
-	"../../../transactions/lockedTokens/admin/admin_deposit_account_creator.cdc":                 TransactionsLockedtokensAdminAdmin_deposit_account_creatorCdc,
-	"../../../transactions/lockedTokens/admin/check_main_registration.cdc":                       TransactionsLockedtokensAdminCheck_main_registrationCdc,
-	"../../../transactions/lockedTokens/admin/check_shared_registration.cdc":                     TransactionsLockedtokensAdminCheck_shared_registrationCdc,
-	"../../../transactions/lockedTokens/admin/custody_create_only_shared_account.cdc":            TransactionsLockedtokensAdminCustody_create_only_shared_accountCdc,
-	"../../../transactions/lockedTokens/admin/custody_create_shared_accounts.cdc":                TransactionsLockedtokensAdminCustody_create_shared_accountsCdc,
-	"../../../transactions/lockedTokens/admin/custody_setup_account_creator.cdc":                 TransactionsLockedtokensAdminCustody_setup_account_creatorCdc,
-	"../../../transactions/lockedTokens/admin/deposit_locked_tokens.cdc":                         TransactionsLockedtokensAdminDeposit_locked_tokensCdc,
-	"../../../transactions/lockedTokens/admin/unlock_tokens.cdc":                                 TransactionsLockedtokensAdminUnlock_tokensCdc,
-	"../../../transactions/lockedTokens/delegator/delegate_locked_rewarded_tokens.cdc":           TransactionsLockedtokensDelegatorDelegate_locked_rewarded_tokensCdc,
-	"../../../transactions/lockedTokens/delegator/delegate_locked_unstaked_tokens.cdc":           TransactionsLockedtokensDelegatorDelegate_locked_unstaked_tokensCdc,
-	"../../../transactions/lockedTokens/delegator/delegate_new_locked_tokens.cdc":                TransactionsLockedtokensDelegatorDelegate_new_locked_tokensCdc,
-	"../../../transactions/lockedTokens/delegator/get_delegator_id.cdc":                          TransactionsLockedtokensDelegatorGet_delegator_idCdc,
-	"../../../transactions/lockedTokens/delegator/register_delegator.cdc":                        TransactionsLockedtokensDelegatorRegister_delegatorCdc,
-	"../../../transactions/lockedTokens/delegator/request_unstaking_locked_delegated_tokens.cdc": TransactionsLockedtokensDelegatorRequest_unstaking_locked_delegated_tokensCdc,
-	"../../../transactions/lockedTokens/delegator/withdraw_locked_rewarded_delegated_tokens.cdc": TransactionsLockedtokensDelegatorWithdraw_locked_rewarded_delegated_tokensCdc,
-	"../../../transactions/lockedTokens/delegator/withdraw_locked_unstaked_delegated_tokens.cdc": TransactionsLockedtokensDelegatorWithdraw_locked_unstaked_delegated_tokensCdc,
-	"../../../transactions/lockedTokens/staker/get_node_id.cdc":                                  TransactionsLockedtokensStakerGet_node_idCdc,
-	"../../../transactions/lockedTokens/staker/register_node.cdc":                                TransactionsLockedtokensStakerRegister_nodeCdc,
-	"../../../transactions/lockedTokens/staker/request_unstaking.cdc":                            TransactionsLockedtokensStakerRequest_unstakingCdc,
-	"../../../transactions/lockedTokens/staker/stake_new_tokens.cdc":                             TransactionsLockedtokensStakerStake_new_tokensCdc,
-	"../../../transactions/lockedTokens/staker/stake_rewarded_tokens.cdc":                        TransactionsLockedtokensStakerStake_rewarded_tokensCdc,
-	"../../../transactions/lockedTokens/staker/stake_unstaked_tokens.cdc":                        TransactionsLockedtokensStakerStake_unstaked_tokensCdc,
-	"../../../transactions/lockedTokens/staker/unstake_all.cdc":                                  TransactionsLockedtokensStakerUnstake_allCdc,
-	"../../../transactions/lockedTokens/staker/withdraw_rewarded_tokens.cdc":                     TransactionsLockedtokensStakerWithdraw_rewarded_tokensCdc,
-	"../../../transactions/lockedTokens/staker/withdraw_unstaked_tokens.cdc":                     TransactionsLockedtokensStakerWithdraw_unstaked_tokensCdc,
-	"../../../transactions/lockedTokens/user/deposit_tokens.cdc":                                 TransactionsLockedtokensUserDeposit_tokensCdc,
-	"../../../transactions/lockedTokens/user/get_locked_account_address.cdc":                     TransactionsLockedtokensUserGet_locked_account_addressCdc,
-	"../../../transactions/lockedTokens/user/get_locked_account_balance.cdc":                     TransactionsLockedtokensUserGet_locked_account_balanceCdc,
-	"../../../transactions/lockedTokens/user/get_unlock_limit.cdc":                               TransactionsLockedtokensUserGet_unlock_limitCdc,
-	"../../../transactions/lockedTokens/user/withdraw_tokens.cdc":                                TransactionsLockedtokensUserWithdraw_tokensCdc,
-	"../../../transactions/qc/create_qc_object.cdc":                                              TransactionsQcCreate_qc_objectCdc,
-	"../../../transactions/qc/get_all_votes.cdc":                                                 TransactionsQcGet_all_votesCdc,
-	"../../../transactions/qc/get_clusters.cdc":                                                  TransactionsQcGet_clustersCdc,
-	"../../../transactions/qc/get_votes_in_cluster.cdc":                                          TransactionsQcGet_votes_in_clusterCdc,
-	"../../../transactions/qc/reset_qc_voting.cdc":                                               TransactionsQcReset_qc_votingCdc,
-	"../../../transactions/qc/set_collector_clusters.cdc":                                        TransactionsQcSet_collector_clustersCdc,
-	"../../../transactions/qc/submit_qc_vote.cdc":                                                TransactionsQcSubmit_qc_voteCdc,
-	"../../../transactions/stakingProxy/add_node_info.cdc":                                       TransactionsStakingproxyAdd_node_infoCdc,
-	"../../../transactions/stakingProxy/get_node_info.cdc":                                       TransactionsStakingproxyGet_node_infoCdc,
-	"../../../transactions/stakingProxy/register_node.cdc":                                       TransactionsStakingproxyRegister_nodeCdc,
-	"../../../transactions/stakingProxy/remove_node_info.cdc":                                    TransactionsStakingproxyRemove_node_infoCdc,
-	"../../../transactions/stakingProxy/remove_staking_proxy.cdc":                                TransactionsStakingproxyRemove_staking_proxyCdc,
-	"../../../transactions/stakingProxy/request_unstaking.cdc":                                   TransactionsStakingproxyRequest_unstakingCdc,
-	"../../../transactions/stakingProxy/setup_node_account.cdc":                                  TransactionsStakingproxySetup_node_accountCdc,
-	"../../../transactions/stakingProxy/stake_new_tokens.cdc":                                    TransactionsStakingproxyStake_new_tokensCdc,
-	"../../../transactions/stakingProxy/stake_unstaked_tokens.cdc":                               TransactionsStakingproxyStake_unstaked_tokensCdc,
-	"../../../transactions/stakingProxy/unstake_all.cdc":                                         TransactionsStakingproxyUnstake_allCdc,
-	"../../../transactions/stakingProxy/withdraw_rewards.cdc":                                    TransactionsStakingproxyWithdraw_rewardsCdc,
-	"../../../transactions/stakingProxy/withdraw_unstaked.cdc":                                   TransactionsStakingproxyWithdraw_unstakedCdc,
-=======
 	"../../../transactions/FlowServiceAccount/get_account_creators.cdc":                   TransactionsFlowserviceaccountGet_account_creatorsCdc,
 	"../../../transactions/FlowServiceAccount/get_account_fee.cdc":                        TransactionsFlowserviceaccountGet_account_feeCdc,
 	"../../../transactions/FlowServiceAccount/get_tx_fee.cdc":                             TransactionsFlowserviceaccountGet_tx_feeCdc,
@@ -2691,6 +2420,7 @@ var _bindata = map[string]func() (*asset, error){
 	"../../../transactions/idTableStaking/admin/change_cut.cdc":                           TransactionsIdtablestakingAdminChange_cutCdc,
 	"../../../transactions/idTableStaking/admin/change_minimums.cdc":                      TransactionsIdtablestakingAdminChange_minimumsCdc,
 	"../../../transactions/idTableStaking/admin/change_payout.cdc":                        TransactionsIdtablestakingAdminChange_payoutCdc,
+	"../../../transactions/idTableStaking/admin/end_epoch.cdc":                            TransactionsIdtablestakingAdminEnd_epochCdc,
 	"../../../transactions/idTableStaking/admin/end_staking.cdc":                          TransactionsIdtablestakingAdminEnd_stakingCdc,
 	"../../../transactions/idTableStaking/admin/move_tokens.cdc":                          TransactionsIdtablestakingAdminMove_tokensCdc,
 	"../../../transactions/idTableStaking/admin/pay_rewards.cdc":                          TransactionsIdtablestakingAdminPay_rewardsCdc,
@@ -2784,7 +2514,6 @@ var _bindata = map[string]func() (*asset, error){
 	"../../../transactions/stakingProxy/unstake_all.cdc":                                  TransactionsStakingproxyUnstake_allCdc,
 	"../../../transactions/stakingProxy/withdraw_rewards.cdc":                             TransactionsStakingproxyWithdraw_rewardsCdc,
 	"../../../transactions/stakingProxy/withdraw_unstaked.cdc":                            TransactionsStakingproxyWithdraw_unstakedCdc,
->>>>>>> 79941fe65b634800065a440ae5243744b2ca8a2f
 }
 
 // AssetDebug is true if the assets were built with the debug flag enabled.
@@ -2951,15 +2680,6 @@ var _bintree = &bintree{nil, map[string]*bintree{
 							"get_unlock_limit.cdc":           &bintree{TransactionsLockedtokensUserGet_unlock_limitCdc, map[string]*bintree{}},
 							"withdraw_tokens.cdc":            &bintree{TransactionsLockedtokensUserWithdraw_tokensCdc, map[string]*bintree{}},
 						}},
-					}},
-					"qc": &bintree{nil, map[string]*bintree{
-						"create_qc_object.cdc":       &bintree{TransactionsQcCreate_qc_objectCdc, map[string]*bintree{}},
-						"get_all_votes.cdc":          &bintree{TransactionsQcGet_all_votesCdc, map[string]*bintree{}},
-						"get_clusters.cdc":           &bintree{TransactionsQcGet_clustersCdc, map[string]*bintree{}},
-						"get_votes_in_cluster.cdc":   &bintree{TransactionsQcGet_votes_in_clusterCdc, map[string]*bintree{}},
-						"reset_qc_voting.cdc":        &bintree{TransactionsQcReset_qc_votingCdc, map[string]*bintree{}},
-						"set_collector_clusters.cdc": &bintree{TransactionsQcSet_collector_clustersCdc, map[string]*bintree{}},
-						"submit_qc_vote.cdc":         &bintree{TransactionsQcSubmit_qc_voteCdc, map[string]*bintree{}},
 					}},
 					"stakingProxy": &bintree{nil, map[string]*bintree{
 						"add_node_info.cdc":         &bintree{TransactionsStakingproxyAdd_node_infoCdc, map[string]*bintree{}},
