@@ -5,12 +5,6 @@ pub contract FlowArcadeToken: FungibleToken {
     // Event that is emitted when the contract is created
     pub event TokensInitialized(initialSupply: UFix64)
 
-    // Event that is emitted when a new minter resource is created
-    pub event MinterCreated(allowedAmount: UFix64)
-
-    // Event that is emitted when a new burner resource is created
-    pub event BurnerCreated()
-
     // Event that is emitted when tokens are withdrawn from a Vault
     pub event TokensWithdrawn(amount: UFix64, from: Address?)
 
@@ -25,6 +19,15 @@ pub contract FlowArcadeToken: FungibleToken {
 
     // The storage path for the admin resource
     pub let AdminStoragePath: Path
+
+    // The private path for the minter capability
+    pub let AdminMinterPrivatePath: Path
+
+    // The storage Path for minters' MinterProxy
+    pub let MinterProxyStoragePath: Path
+
+    // The public path for minters' MinterProxy capability
+    pub let MinterProxyPublicPath: Path
 
     // The storage path for the vault resource
     pub let VaultStoragePath: Path
@@ -82,6 +85,7 @@ pub contract FlowArcadeToken: FungibleToken {
         // It is allowed to destroy the sent Vault because the Vault
         // was a temporary holder of the tokens. The Vault's balance has
         // been consumed and therefore can be destroyed.
+        //
         pub fun deposit(from: @FungibleToken.Vault) {
             let vault <- from as! @FlowArcadeToken.Vault
             self.balance = self.balance + vault.balance
@@ -92,6 +96,15 @@ pub contract FlowArcadeToken: FungibleToken {
 
         destroy() {
             FlowArcadeToken.totalSupply = FlowArcadeToken.totalSupply - self.balance
+            // Track the case where a non-zero balance is destroyed.
+            // Burning FATs is a legitimate use case, so we do not guard against this,
+            // but when the tokens are burned the burner probably wants to signal this.
+            // If you wish to have a burn address, create an account with a FAT Vault,
+            // send the tokens to it, then have the account owner perform the burn
+            // (this can be exposed as a capability to automate it).
+            if (self.balance > 0.0) {
+                emit TokensBurned(amount: self.balance)
+            }
         }
     }
 
@@ -106,86 +119,89 @@ pub contract FlowArcadeToken: FungibleToken {
         return <-create Vault(balance: 0.0)
     }
 
-   // Minter
+    // Minter
     //
-    // Resource object that token admin accounts can hold to mint new tokens.
+    // Interface that can be used to pass around Minter capabilities.
     //
-    pub resource Minter {
-
-        // the amount of tokens that the minter is allowed to mint
-        pub var allowedAmount: UFix64
-
-        // mintTokens
-        //
-        // Function that mints new tokens, adds them to the total supply,
-        // and returns them to the calling context.
-        //
+    pub resource interface Minter {
         pub fun mintTokens(amount: UFix64): @FlowArcadeToken.Vault {
             pre {
                 amount > UFix64(0): "Amount minted must be greater than zero"
-                amount <= self.allowedAmount: "Amount minted must be less than the allowed amount"
             }
-            FlowArcadeToken.totalSupply = FlowArcadeToken.totalSupply + amount
-            self.allowedAmount = self.allowedAmount - amount
-            emit TokensMinted(amount: amount)
-            return <-create Vault(balance: amount)
-        }
-
-        init(allowedAmount: UFix64) {
-            self.allowedAmount = allowedAmount
-        }
-    }
-
-    // Burner
-    //
-    // Resource object that token admin accounts can hold to burn tokens.
-    //
-    pub resource Burner {
-
-        // burnTokens
-        //
-        // Function that destroys a Vault instance, effectively burning the tokens.
-        //
-        // Note: the burned tokens are automatically subtracted from the
-        // total supply in the Vault destructor.
-        //
-        pub fun burnTokens(from: @FlowArcadeToken.Vault) {
-            let vault <- from as! @FlowArcadeToken.Vault
-            let amount = vault.balance
-            destroy vault
-            emit TokensBurned(amount: amount)
         }
     }
 
     // Administrator
     //
-    // A resource that allows new minters and burners to be created by an admin account
+    // A resource that can mint new tokens
     //
     //
-    pub resource Administrator {
+    pub resource Administrator: Minter {
 
-        // createNewMinter
-        //
-        // Function that creates and returns a new minter resource
-        //
-        pub fun createNewMinter(allowedAmount: UFix64): @Minter {
-            emit MinterCreated(allowedAmount: allowedAmount)
-            return <-create Minter(allowedAmount: allowedAmount)
-        }
-
-        // createNewBurner
-        //
-        // Function that creates and returns a new burner resource
-        //
-        pub fun createNewBurner(): @Burner {
-            emit BurnerCreated()
-            return <-create Burner()
+        pub fun mintTokens(amount: UFix64): @FlowArcadeToken.Vault {
+            FlowArcadeToken.totalSupply = FlowArcadeToken.totalSupply + amount
+            emit TokensMinted(amount: amount)
+            return <-create Vault(balance: amount)
         }
 
     }
 
+    // MinterProxyPublic
+    //
+    // Interface that allows a Minter Capability to be set on a MinterProxy
+    //
+    pub resource interface MinterProxyPublic {
+        // This should be Ca[ability<&Administrator{Minter}> but that is currently buggy.
+        pub fun setMinterCapability(cap: Capability<&{Minter}>)
+    }
+
+    // MinterProxy
+    //
+    // Resource object holding a capability that can be used to mint new tokens.
+    // The resource that this capability represents can be deleted by the admin
+    // in order to unilaterally revoke minting capability if needed.
+
+    pub resource MinterProxy: MinterProxyPublic {
+
+        // access(self) so nobody else can copy the capability and use it.
+        access(self) var minterCapability: Capability<&{Minter}>?
+
+        // Anyone can call this, but only the admin can create Minter capabilities,
+        // so the type system constrains this to being called by the admin.
+        pub fun setMinterCapability(cap: Capability<&{Minter}>) {
+            self.minterCapability = cap
+        }
+
+        pub fun mintTokens(amount: UFix64): @FlowArcadeToken.Vault {
+            return <- self.minterCapability!
+            .borrow()!
+            .mintTokens(amount:amount)
+        }
+
+        init() {
+            self.minterCapability = nil
+        }
+
+    }
+
+    // createMinterProxy
+    //
+    // Function that creates a MinterProxy.
+    // Anyone can call this, but the MinterProxy cannot mint without a Minter capability,
+    // and only the admin can provide that.
+    //
+    pub fun createMinterProxy(): @MinterProxy {
+        return <- create MinterProxy()
+    }
+
+
     init(adminAccount: AuthAccount) {
+        // If a user of the minter capability is compromised we would move the admin resource to revoke it.
+        // But since that shouldn't happen we do store the paths to them here.
         self.AdminStoragePath = /storage/flowArcadeTokenAdmin
+        self.AdminMinterPrivatePath = /private/flowArcadeTokenMinter
+        self.MinterProxyPublicPath = /public/flowArcadeTokenMinterProxy
+        self.MinterProxyStoragePath = /storage/flowArcadeTokenMinterProxy
         self.VaultStoragePath = /storage/flowArcadeTokenVault
         self.ReceiverPublicPath = /public/flowArcadeTokenReceiver
         self.BalancePublicPath = /public/flowArcadeTokenBalance
@@ -194,6 +210,7 @@ pub contract FlowArcadeToken: FungibleToken {
 
         let admin <- create Administrator()
         adminAccount.save(<-admin, to: self.AdminStoragePath)
+        adminAccount.link<&Administrator{Minter}>(self.AdminMinterPrivatePath, target: self.AdminStoragePath)
 
         // Emit an event that shows that the contract was initialized
         emit TokensInitialized(initialSupply: 0.0)

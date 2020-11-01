@@ -2,13 +2,13 @@ import FungibleToken from 0xFUNGIBLETOKENADDRESS
 import FlowArcadeToken from 0xARCADETOKENADDRESS
 
 transaction(recipient: Address, amount: UFix64) {
-    let tokenAdmin: &FlowArcadeToken.Administrator
+    let minterProxy: &FlowArcadeToken.MinterProxy
     let tokenReceiver: &FlowArcadeToken.Vault{FungibleToken.Receiver}
 
     prepare(signer: AuthAccount) {
-        self.tokenAdmin = signer
-        .borrow<&FlowArcadeToken.Administrator>(from: FlowArcadeToken.AdminStoragePath) 
-        ?? panic("Signer is not the token admin")
+        self.minterProxy = signer
+        .borrow<&FlowArcadeToken.MinterProxy>(from: FlowArcadeToken.MinterProxyStoragePath)
+        ?? panic("Signer cannot get MinterProxy")
 
         self.tokenReceiver = getAccount(recipient)
         .getCapability(FlowArcadeToken.ReceiverPublicPath)!
@@ -17,11 +17,8 @@ transaction(recipient: Address, amount: UFix64) {
     }
 
     execute {
-        let minter <- self.tokenAdmin.createNewMinter(allowedAmount: amount)
-        let mintedVault <- minter.mintTokens(amount: amount)
+        let mintedVault <- self.minterProxy.mintTokens(amount: amount)
 
         self.tokenReceiver.deposit(from: <-mintedVault)
-
-        destroy minter
     }
 }

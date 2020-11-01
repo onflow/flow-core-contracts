@@ -7,10 +7,12 @@ import (
 )
 
 const (
-	deployFlowArcadeTokenFilename = "flowArcadeToken/admin/deploy_flow_arcade_token.cdc"
-	mintTokensFilename            = "flowArcadeToken/admin/mint_tokens.cdc"
-	setupAccountFilename          = "flowArcadeToken/setup_account.cdc"
-	transferTokensFilename        = "flowArcadeToken/transfer_tokens.cdc"
+	deployFlowArcadeTokenFilename   = "flowArcadeToken/admin/deploy_flow_arcade_token.cdc"
+	depositMinterCapabilityFilename = "flowArcadeToken/admin/deposit_minter_capability.cdc"
+	mintTokensFilename              = "flowArcadeToken/minter/mint_tokens.cdc"
+	setupAccountFilename            = "flowArcadeToken/setup_account.cdc"
+	setupMinterAccountFilename      = "flowArcadeToken/minter/setup_minter_account.cdc"
+	transferTokensFilename          = "flowArcadeToken/transfer_tokens.cdc"
 
 	getBalanceFilename = "flowArcadeToken/scripts/get_balance.cdc"
 	getSupplyFilename  = "flowArcadeToken/scripts/get_supply.cdc"
@@ -35,6 +37,22 @@ func ReplaceFATAddress(code, fatAddr string) string {
 
 func GenerateDeployFlowArcadeTokenScript() []byte {
 	code := assets.MustAssetString(filePath + deployFlowArcadeTokenFilename)
+
+	return []byte(code)
+}
+
+func GenerateSetupMinterAccountScript(fatAddr string) []byte {
+	code := assets.MustAssetString(filePath + setupMinterAccountFilename)
+
+	code = ReplaceFATAddress(code, fatAddr)
+
+	return []byte(code)
+}
+
+func GenerateDepositMinterCapabilityScript(fatAddr string) []byte {
+	code := assets.MustAssetString(filePath + depositMinterCapabilityFilename)
+
+	code = ReplaceFATAddress(code, fatAddr)
 
 	return []byte(code)
 }
