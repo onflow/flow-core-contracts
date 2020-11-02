@@ -55,6 +55,7 @@
 // ../../../transactions/idTableStaking/get_stakeRequirements.cdc (241B)
 // ../../../transactions/idTableStaking/get_table.cdc (184B)
 // ../../../transactions/idTableStaking/get_totalStaked_by_type.cdc (250B)
+// ../../../transactions/idTableStaking/get_total_staked.cdc (457B)
 // ../../../transactions/idTableStaking/get_weeklyPayout.cdc (196B)
 // ../../../transactions/idTableStaking/request_unstake.cdc (549B)
 // ../../../transactions/idTableStaking/stake_new_tokens.cdc (813B)
@@ -1276,6 +1277,26 @@ func TransactionsIdtablestakingGet_totalstaked_by_typeCdc() (*asset, error) {
 	return a, nil
 }
 
+var _TransactionsIdtablestakingGet_total_stakedCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x8f\xc1\x6b\xfa\x30\x1c\xc5\xef\xfd\x2b\x9e\x37\xe5\x07\xea\xe1\xb7\x31\x06\x3d\x28\x55\x28\x0c\x0f\x6b\x3c\x8c\xb1\x43\xac\xdf\xba\xd0\x34\x91\xe4\x9b\x4d\x19\xfe\xef\xc3\xc4\x39\x0b\xeb\xa1\x21\xf0\xde\xe7\x7d\xa2\xba\xbd\x75\x8c\xa5\xb6\x9f\x65\x21\xe4\x46\x53\xc5\xb2\x55\x66\x87\xc6\xd9\x0e\xd3\x43\x59\x2c\x56\xa2\x14\x2f\x62\x36\x7f\x5a\xcc\x8a\xe2\x79\x51\x55\x59\xb6\x0f\x1b\x34\xc1\xa0\x93\xca\x0c\x47\x8f\x58\x2f\xd5\xe1\xfe\x3f\xbe\x32\x00\xd0\xc4\xf0\x2c\x5b\xda\x0a\xdb\x92\xf1\xc8\xff\xe0\x8f\x77\xc4\xc2\xb2\xd4\x29\x53\xc5\xfc\xfc\xb8\xb2\x5b\x12\xc7\x3d\x0d\x47\x59\x64\x4d\x26\xa8\xa5\xae\x83\x96\x4c\xe0\x77\x02\x9f\x3b\x30\xa1\xdb\x90\x83\x6d\xc0\x69\x22\xed\xc5\xca\x87\x74\x29\x95\x98\x57\xb9\x1c\xd3\xf1\x34\x26\x1a\xeb\x60\x2e\x43\x50\xa6\x27\x3b\x6e\xe9\xe8\x2f\x0f\xb9\x08\x14\x16\xc6\x32\x6a\x1b\x0c\x43\xd6\x35\x79\x1f\xeb\xfe\x1a\x52\xcd\x2f\x6f\x90\x63\x5d\x1a\x7e\x18\xde\x8d\x6e\x30\xe7\xef\x46\x0a\x79\xef\xf6\xaf\xa7\xf0\xfa\xc3\x7a\x1b\x5c\xfb\xa7\x2c\xfd\xe3\xe1\x88\x83\x33\xb7\x84\xec\xf4\x1d\x00\x00\xff\xff\x92\x54\xac\x93\xc9\x01\x00\x00"
+
+func TransactionsIdtablestakingGet_total_stakedCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_TransactionsIdtablestakingGet_total_stakedCdc,
+		"../../../transactions/idTableStaking/get_total_staked.cdc",
+	)
+}
+
+func TransactionsIdtablestakingGet_total_stakedCdc() (*asset, error) {
+	bytes, err := TransactionsIdtablestakingGet_total_stakedCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "../../../transactions/idTableStaking/get_total_staked.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xed, 0xe, 0x2f, 0xe3, 0x9c, 0xa, 0x4d, 0xce, 0x85, 0x12, 0x72, 0x14, 0x74, 0x65, 0x62, 0x3b, 0x74, 0x22, 0x25, 0xaf, 0x1a, 0x94, 0x4d, 0x5d, 0x4c, 0x74, 0xb6, 0x76, 0xd3, 0x6d, 0x7e, 0xf6}}
+	return a, nil
+}
+
 var _TransactionsIdtablestakingGet_weeklypayoutCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\xce\xb1\x4b\xc4\x30\x14\xc7\xf1\x3d\x7f\xc5\x6f\xbc\x5b\x3c\x07\x71\x70\x3b\x49\x0e\x0a\x22\x62\xe3\xe0\xf8\xda\x7b\x6d\x43\xdb\xbc\x90\xbc\x60\x45\xfc\xdf\xa5\xe0\x78\xeb\x77\xf8\xf0\x0d\x6b\x92\xac\xb8\x2c\xf2\xd5\x58\x4f\xdd\xc2\xad\xd2\x1c\xe2\x88\x21\xcb\x8a\xfb\xad\xb1\xee\xd5\x37\xfe\xd3\x9f\x9f\x5f\xdc\xd9\xda\x77\xd7\xb6\xc6\x9c\x4e\xf0\x53\x28\x28\x7d\x0e\x49\x91\x59\x6b\x8e\x05\x3a\x31\x3a\x5a\x28\xf6\x0c\x19\x50\x94\x66\xbe\x42\x65\xe6\x58\xf6\x40\x88\x72\x65\x63\x52\xed\x30\xd4\x88\x95\x42\x3c\x1c\x9f\xf0\x71\x09\xdb\xe3\x03\x7e\x0c\x80\x7f\xec\xc6\xd2\xdd\xc8\xea\x92\xf4\x93\xdf\xc1\x37\xfa\x96\xaa\x87\xa3\xf9\xfd\x0b\x00\x00\xff\xff\xaa\x9e\x1d\x2b\xc4\x00\x00\x00"
 
 func TransactionsIdtablestakingGet_weeklypayoutCdcBytes() ([]byte, error) {
@@ -2462,6 +2483,7 @@ var _bindata = map[string]func() (*asset, error){
 	"../../../transactions/idTableStaking/get_stakeRequirements.cdc":                      TransactionsIdtablestakingGet_stakerequirementsCdc,
 	"../../../transactions/idTableStaking/get_table.cdc":                                  TransactionsIdtablestakingGet_tableCdc,
 	"../../../transactions/idTableStaking/get_totalStaked_by_type.cdc":                    TransactionsIdtablestakingGet_totalstaked_by_typeCdc,
+	"../../../transactions/idTableStaking/get_total_staked.cdc":                           TransactionsIdtablestakingGet_total_stakedCdc,
 	"../../../transactions/idTableStaking/get_weeklyPayout.cdc":                           TransactionsIdtablestakingGet_weeklypayoutCdc,
 	"../../../transactions/idTableStaking/request_unstake.cdc":                            TransactionsIdtablestakingRequest_unstakeCdc,
 	"../../../transactions/idTableStaking/stake_new_tokens.cdc":                           TransactionsIdtablestakingStake_new_tokensCdc,
@@ -2630,6 +2652,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 						"get_stakeRequirements.cdc":      &bintree{TransactionsIdtablestakingGet_stakerequirementsCdc, map[string]*bintree{}},
 						"get_table.cdc":                  &bintree{TransactionsIdtablestakingGet_tableCdc, map[string]*bintree{}},
 						"get_totalStaked_by_type.cdc":    &bintree{TransactionsIdtablestakingGet_totalstaked_by_typeCdc, map[string]*bintree{}},
+						"get_total_staked.cdc":           &bintree{TransactionsIdtablestakingGet_total_stakedCdc, map[string]*bintree{}},
 						"get_weeklyPayout.cdc":           &bintree{TransactionsIdtablestakingGet_weeklypayoutCdc, map[string]*bintree{}},
 						"request_unstake.cdc":            &bintree{TransactionsIdtablestakingRequest_unstakeCdc, map[string]*bintree{}},
 						"stake_new_tokens.cdc":           &bintree{TransactionsIdtablestakingStake_new_tokensCdc, map[string]*bintree{}},

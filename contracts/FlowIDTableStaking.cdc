@@ -702,14 +702,14 @@ pub contract FlowIDTableStaking {
             let flowTokenMinter = FlowIDTableStaking.account.borrow<&FlowToken.Minter>(from: /storage/flowTokenMinter)
                 ?? panic("Could not borrow minter reference")
 
-            // calculate total reward sum for each node type
-            // by multiplying the total amount of rewards by the ratio for each node type
-            var rewardsForNodeTypes: {UInt8: UFix64} = {}
-            rewardsForNodeTypes[UInt8(1)] = FlowIDTableStaking.epochTokenPayout * FlowIDTableStaking.rewardRatios[UInt8(1)]!
-            rewardsForNodeTypes[UInt8(2)] = FlowIDTableStaking.epochTokenPayout * FlowIDTableStaking.rewardRatios[UInt8(2)]!
-            rewardsForNodeTypes[UInt8(3)] = FlowIDTableStaking.epochTokenPayout * FlowIDTableStaking.rewardRatios[UInt8(3)]!
-            rewardsForNodeTypes[UInt8(4)] = FlowIDTableStaking.epochTokenPayout * FlowIDTableStaking.rewardRatios[UInt8(4)]!
-            rewardsForNodeTypes[UInt8(5)] = 0.0
+            // calculate the total number of tokens staked
+            var totalStaked: UFix64 = 0.0
+            for nodeType in FlowIDTableStaking.totalTokensStakedByNodeType.keys {
+                // Do not count access nodes
+                if nodeType != UInt8(5) {
+                    totalStaked = totalStaked + FlowIDTableStaking.totalTokensStakedByNodeType[nodeType]!
+                }
+            }
 
             /// iterate through all the nodes
             for nodeID in allNodeIDs {
@@ -719,7 +719,7 @@ pub contract FlowIDTableStaking {
                 if nodeRecord.tokensStaked.balance == 0.0 { continue }
 
                 /// Calculate the amount of tokens that this node operator receives
-                let rewardAmount = rewardsForNodeTypes[nodeRecord.role]! * (nodeRecord.tokensStaked.balance / FlowIDTableStaking.totalTokensStakedByNodeType[nodeRecord.role]!)
+                let rewardAmount = FlowIDTableStaking.epochTokenPayout * (nodeRecord.tokensStaked.balance / totalStaked)
 
                 /// Mint the tokens to reward the operator
                 let tokenReward <- flowTokenMinter.mintTokens(amount: rewardAmount)
@@ -733,7 +733,7 @@ pub contract FlowIDTableStaking {
 
                     if delRecord.tokensStaked.balance == 0.0 { continue }
 
-                    let delegatorRewardAmount = (rewardsForNodeTypes[nodeRecord.role]! * (delRecord.tokensStaked.balance / FlowIDTableStaking.totalTokensStakedByNodeType[nodeRecord.role]!))
+                    let delegatorRewardAmount = (FlowIDTableStaking.epochTokenPayout * (delRecord.tokensStaked.balance / totalStaked))
 
                     let delegatorReward <- flowTokenMinter.mintTokens(amount: delegatorRewardAmount)
 
