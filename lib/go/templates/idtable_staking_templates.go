@@ -41,7 +41,8 @@ const (
 	getCutPercentageFilename    = "idTableStaking/get_cut_percentage.cdc"
 
 	stakeRequirementsFilename = "idTableStaking/get_stakeRequirements.cdc"
-	totalStakedFilename       = "idTableStaking/get_totalStaked_by_type.cdc"
+	totalStakedByTypeFilename = "idTableStaking/get_totalStaked_by_type.cdc"
+	totalStakedFilename       = "idTableStaking/get_total_staked.cdc"
 	rewardRatioFilename       = "idTableStaking/get_nodeType_ratio.cdc"
 	weeklyPayoutFilename      = "idTableStaking/get_weeklyPayout.cdc"
 )
@@ -289,6 +290,13 @@ func GenerateGetStakeRequirementsScript(env Environment) []byte {
 
 // GenerateGetTotalTokensStakedByTypeScript returns the total tokens staked for a node type
 func GenerateGetTotalTokensStakedByTypeScript(env Environment) []byte {
+	code := assets.MustAssetString(filePath + totalStakedByTypeFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+// GenerateGetTotalTokensStakedScript returns the total tokens staked
+func GenerateGetTotalTokensStakedScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + totalStakedFilename)
 
 	return []byte(replaceAddresses(code, env))
