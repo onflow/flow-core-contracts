@@ -13,6 +13,7 @@
 // ../../../transactions/idTableStaking/admin/change_cut.cdc (644B)
 // ../../../transactions/idTableStaking/admin/change_minimums.cdc (636B)
 // ../../../transactions/idTableStaking/admin/change_payout.cdc (604B)
+// ../../../transactions/idTableStaking/admin/end_epoch.cdc (958B)
 // ../../../transactions/idTableStaking/admin/end_staking.cdc (769B)
 // ../../../transactions/idTableStaking/admin/move_tokens.cdc (559B)
 // ../../../transactions/idTableStaking/admin/pay_rewards.cdc (567B)
@@ -433,6 +434,26 @@ func TransactionsIdtablestakingAdminChange_payoutCdc() (*asset, error) {
 
 	info := bindataFileInfo{name: "../../../transactions/idTableStaking/admin/change_payout.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x2f, 0x71, 0xde, 0xb0, 0x70, 0x7b, 0x4e, 0xe0, 0xb6, 0xbf, 0x9, 0x1, 0xfd, 0xd4, 0x85, 0x6b, 0xc0, 0x17, 0x99, 0x82, 0x25, 0x8, 0x5a, 0x86, 0xf6, 0xee, 0xa6, 0xa2, 0xad, 0xd0, 0x2a, 0x66}}
+	return a, nil
+}
+
+var _TransactionsIdtablestakingAdminEnd_epochCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x74\x92\x4f\x6b\xdb\x40\x10\xc5\xef\xfa\x14\x8f\x1c\x8a\x03\xc5\xea\xd9\x34\x0d\x4e\x95\x82\x20\x84\x12\xeb\x52\x42\x08\xab\xdd\x51\xb4\x8d\xbc\x23\x76\x47\x56\x8a\xf1\x77\x2f\xab\x3f\xae\xd3\x24\x73\x31\x58\xf3\xde\xfb\xed\xcc\xd8\x6d\xcb\x5e\xf0\xa3\xe1\x3e\xcf\x0a\x55\x36\xb4\x11\xf5\x6c\xdd\x13\x2a\xcf\x5b\x7c\x79\xc9\xb3\xeb\xdb\x22\x2f\x7e\x15\xeb\xab\x9b\xeb\x75\x96\xdd\x5d\x6f\x36\x49\x92\xa6\x28\x6a\x1b\x20\x5e\xb9\xa0\xb4\x58\x76\xa0\xaa\x22\x2d\x76\x47\xcd\x1f\x90\x33\x01\x52\x13\xa8\x65\x5d\x43\x39\x83\x20\xca\x4b\x80\x82\xa3\x1e\xec\x68\x99\xa4\x69\xf4\xc9\x05\x9a\xb7\xa5\x75\x34\x29\x9c\x79\x0c\x13\x43\xd4\x6d\x79\x47\x8f\xc2\xcf\xe4\x5e\xc5\x85\xa8\xed\x6b\xab\xeb\x7f\x61\x47\x59\x37\xb4\x7c\x9e\xbe\x7b\xaa\xba\xd8\xe2\xd8\x50\x40\x6f\xa5\x86\x75\xa1\xab\x2a\xab\x2d\x39\x19\x64\x14\xed\xe6\xb8\x80\x29\xaf\x24\xe9\x89\x1c\xca\x4e\x3f\x93\x84\x24\x39\x01\x58\x58\x13\x56\xb8\xdf\x88\xb7\xee\xe9\xe1\x1c\xfb\x24\x01\x80\x34\xc5\x0d\x6b\xd5\x60\xa7\xbc\x8d\xf3\x44\xc5\x1e\x2a\x42\x90\x27\xa7\x09\xc2\x03\x6c\x9e\x61\x98\x37\xd6\x66\x6b\x1d\xb8\xfc\x4d\x5a\x06\x8b\x86\x04\x2a\xfe\x79\x47\xd5\x0a\x9f\xde\xee\x66\x39\x48\xc6\xbc\xd6\x53\xab\x3c\x2d\x94\xd6\xb2\xc2\xba\x93\x7a\xad\x35\x77\x4e\x22\x11\xa6\x4a\x53\x94\xec\x3d\xf7\xef\x81\xa8\xff\xf3\x63\x05\x6a\xaa\xe5\x0c\x81\x0b\x44\xfb\xe5\xe8\xf1\xf5\x43\xa2\x6f\x8b\x78\x34\xab\x77\xae\x69\x39\xfd\x0e\x6d\x1b\x61\xaf\x9e\xe8\xa7\x92\xfa\xfc\x18\x18\xeb\xf2\x12\xad\x72\x56\x2f\xce\xbe\x73\xd7\x18\x38\x96\x99\xfb\x15\xf5\x71\xcf\xd1\xed\x6c\xf4\x38\x8c\xe3\xa0\x17\xd2\x9d\xd0\xc9\xdb\x87\x69\xb6\xad\xe7\x1d\x99\x3c\x0b\x2b\xec\xc7\x95\xad\x70\xc5\xdc\x1c\x70\x81\xfd\xe1\xd8\x1c\x77\x65\x0d\xac\x83\x35\xe1\xc4\x24\xd6\x89\xc9\xbd\x35\x0f\xb8\x80\xf8\x8e\x8e\x2d\x13\xc0\x9b\xe1\x2d\xc9\x99\xf9\xf5\xe3\x5d\x2e\x66\xa7\x5b\x36\x34\x20\x9d\x58\x9f\x7f\x64\x13\x0f\xb3\x18\xce\x72\x31\xbf\xf8\xf0\x37\x00\x00\xff\xff\xf7\x57\xa3\x27\xbe\x03\x00\x00"
+
+func TransactionsIdtablestakingAdminEnd_epochCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_TransactionsIdtablestakingAdminEnd_epochCdc,
+		"../../../transactions/idTableStaking/admin/end_epoch.cdc",
+	)
+}
+
+func TransactionsIdtablestakingAdminEnd_epochCdc() (*asset, error) {
+	bytes, err := TransactionsIdtablestakingAdminEnd_epochCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "../../../transactions/idTableStaking/admin/end_epoch.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xd2, 0xc, 0xb1, 0x61, 0x67, 0xd6, 0x73, 0x58, 0xcf, 0xff, 0x6c, 0xdf, 0x36, 0x6, 0x72, 0x8b, 0xc5, 0xdd, 0x2a, 0xc3, 0x93, 0x95, 0x2d, 0xf8, 0x58, 0x4, 0x69, 0x98, 0x91, 0x45, 0xd0, 0x34}}
 	return a, nil
 }
 
@@ -2420,6 +2441,7 @@ var _bindata = map[string]func() (*asset, error){
 	"../../../transactions/idTableStaking/admin/change_cut.cdc":                           TransactionsIdtablestakingAdminChange_cutCdc,
 	"../../../transactions/idTableStaking/admin/change_minimums.cdc":                      TransactionsIdtablestakingAdminChange_minimumsCdc,
 	"../../../transactions/idTableStaking/admin/change_payout.cdc":                        TransactionsIdtablestakingAdminChange_payoutCdc,
+	"../../../transactions/idTableStaking/admin/end_epoch.cdc":                            TransactionsIdtablestakingAdminEnd_epochCdc,
 	"../../../transactions/idTableStaking/admin/end_staking.cdc":                          TransactionsIdtablestakingAdminEnd_stakingCdc,
 	"../../../transactions/idTableStaking/admin/move_tokens.cdc":                          TransactionsIdtablestakingAdminMove_tokensCdc,
 	"../../../transactions/idTableStaking/admin/pay_rewards.cdc":                          TransactionsIdtablestakingAdminPay_rewardsCdc,
@@ -2585,6 +2607,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 							"change_cut.cdc":             &bintree{TransactionsIdtablestakingAdminChange_cutCdc, map[string]*bintree{}},
 							"change_minimums.cdc":        &bintree{TransactionsIdtablestakingAdminChange_minimumsCdc, map[string]*bintree{}},
 							"change_payout.cdc":          &bintree{TransactionsIdtablestakingAdminChange_payoutCdc, map[string]*bintree{}},
+							"end_epoch.cdc":              &bintree{TransactionsIdtablestakingAdminEnd_epochCdc, map[string]*bintree{}},
 							"end_staking.cdc":            &bintree{TransactionsIdtablestakingAdminEnd_stakingCdc, map[string]*bintree{}},
 							"move_tokens.cdc":            &bintree{TransactionsIdtablestakingAdminMove_tokensCdc, map[string]*bintree{}},
 							"pay_rewards.cdc":            &bintree{TransactionsIdtablestakingAdminPay_rewardsCdc, map[string]*bintree{}},
