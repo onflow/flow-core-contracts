@@ -179,14 +179,14 @@ pub contract EpochClusterQCs {
     // inserted by the Epoch contract.
     pub resource QCVoterStore: QCVoterReceiver {
         pub let nodeID: String
-        pub var voter: @EpochClusterQCs.QCVoter?
+        pub var voter: @EpochClusterQCs.Voter?
 
         // Sets the Voter resource stored in the VoterStore, destroying the
         // current Voter, if one exists.
         //
         // TODO: check security assumptions - only code that has a QCVoter
         // resource is able to call this method.
-        pub fun setVoter(voter: @EpochClusterQCs.QCVoter) {
+        pub fun setVoter(voter: @EpochClusterQCs.Voter) {
             pre {
                 voter.nodeID == self.nodeID: "only accept our voter"
             }
