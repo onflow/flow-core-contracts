@@ -7,7 +7,7 @@ import (
 const (
 	createDelegationFilename = "idTableStaking/delegation/del_create_delegation.cdc"
 
-	delegatorRegisterFilename         = "idTableStaking/delegation/del_register_delegator.cdc"
+	delegatorRegisterFilename         = "idTableStaking/delegation/register_delegator.cdc"
 	delegatorStakeNewFilename         = "idTableStaking/delegation/del_stake_new_tokens.cdc"
 	delegatorStakeUnstakedFilename    = "idTableStaking/delegation/del_stake_unstaked.cdc"
 	delegatorStakeRewardedFilename    = "idTableStaking/delegation/del_stake_rewarded.cdc"
