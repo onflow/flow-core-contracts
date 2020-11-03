@@ -89,15 +89,14 @@ for staking, and add arguments to it, you would use something like this Go code.
 
 ```Go
     tx := flow.NewTransaction().
-        // Use the templates package to get the transaction script,
-        // providing the import addresses for the contract imports
-        SetScript(templates.GenerateCreateNodeScript(emulatorFTAddress, emulatorFlowTokenAddress, IDTableAddr.String())).
+        SetScript(templates.GenerateCreateNodeScript(env)).
         SetGasLimit(100).
         SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
         SetPayer(b.ServiceKey().Address).
-        AddAuthorizer(IDTableAddr)
+        AddAuthorizer(userAddress)
 
-    _ = tx.AddArgument(cadence.NewString(firstID))
+    // Invalid ID: Too short
+    _ = tx.AddArgument(cadence.NewString("3039"))
     _ = tx.AddArgument(cadence.NewUInt8(1))
     _ = tx.AddArgument(cadence.NewString("12234"))
     _ = tx.AddArgument(cadence.NewString("netkey"))
@@ -105,9 +104,6 @@ for staking, and add arguments to it, you would use something like this Go code.
     tokenAmount, err := cadence.NewUFix64("250000.0")
     require.NoError(t, err)
     _ = tx.AddArgument(tokenAmount)
-    cut, err := cadence.NewUFix64("1.0")
-    require.NoError(t, err)
-    _ = tx.AddArgument(cut)
 ```
 
 ### Packages in other languages

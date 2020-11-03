@@ -32,58 +32,28 @@ const (
 	getNetworkingKeyFilename    = "idTableStaking/get_node_networking_key.cdc"
 	getStakingKeyFilename       = "idTableStaking/get_node_staking_key.cdc"
 	getInitialWeightFilename    = "idTableStaking/get_node_initial_weight.cdc"
-	stakedBalanceFilename       = "idTableStaking/get_node_stakedTokens.cdc"
-	comittedBalanceFilename     = "idTableStaking/get_node_committedTokens.cdc"
-	unstakedBalanceFilename     = "idTableStaking/get_node_unstakedTokens.cdc"
-	rewardBalanceFilename       = "idTableStaking/get_node_rewardedTokens.cdc"
-	unstakingBalanceFilename    = "idTableStaking/get_node_unstakingTokens.cdc"
+	stakedBalanceFilename       = "idTableStaking/get_node_staked_tokens.cdc"
+	comittedBalanceFilename     = "idTableStaking/get_node_committed_tokens.cdc"
+	unstakedBalanceFilename     = "idTableStaking/get_node_unstaked_tokens.cdc"
+	rewardBalanceFilename       = "idTableStaking/get_node_rewarded_tokens.cdc"
+	unstakingBalanceFilename    = "idTableStaking/get_node_unstaking_tokens.cdc"
 	getTotalCommitmentFilename  = "idTableStaking/get_node_total_commitment.cdc"
 	getUnstakingRequestFilename = "idTableStaking/get_node_unstaking_request.cdc"
 	getCutPercentageFilename    = "idTableStaking/get_cut_percentage.cdc"
 
-	stakeRequirementsFilename = "idTableStaking/get_stakeRequirements.cdc"
-	totalStakedByTypeFilename = "idTableStaking/get_totalStaked_by_type.cdc"
+	stakeRequirementsFilename = "idTableStaking/get_stake_requirements.cdc"
+	totalStakedByTypeFilename = "idTableStaking/get_total_staked_by_type.cdc"
 	totalStakedFilename       = "idTableStaking/get_total_staked.cdc"
-	rewardRatioFilename       = "idTableStaking/get_nodeType_ratio.cdc"
-	weeklyPayoutFilename      = "idTableStaking/get_weeklyPayout.cdc"
+	rewardRatioFilename       = "idTableStaking/get_node_type_ratio.cdc"
+	weeklyPayoutFilename      = "idTableStaking/get_weekly_payout.cdc"
 )
+
+// Admin Templates -----------------------------------------------------------
 
 // GenerateTransferMinterAndDeployScript generates a script that transfers
 // a flow minter and deploys the id table account
 func GenerateTransferMinterAndDeployScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + transferDeployFilename)
-
-	return []byte(replaceAddresses(code, env))
-}
-
-// GenerateReturnTableScript creates a script that returns
-// the the whole ID table nodeIDs
-func GenerateReturnTableScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + getTableFilename)
-
-	return []byte(replaceAddresses(code, env))
-}
-
-// GenerateReturnCurrentTableScript creates a script that returns
-// the current ID table
-func GenerateReturnCurrentTableScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + currentTableFilename)
-
-	return []byte(replaceAddresses(code, env))
-}
-
-// GenerateReturnProposedTableScript creates a script that returns
-// the ID table for the proposed next epoch
-func GenerateReturnProposedTableScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + proposedTableFilename)
-
-	return []byte(replaceAddresses(code, env))
-}
-
-// GenerateCreateNodeScript creates a script that creates a new
-// node struct and stores it in the Node records
-func GenerateCreateNodeScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + createNodeStructFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -144,6 +114,16 @@ func GenerateChangePayoutScript(env Environment) []byte {
 	return []byte(replaceAddresses(code, env))
 }
 
+// Staker Templates -------------------------------------------------------------
+
+// GenerateCreateNodeScript creates a script that creates a new
+// node struct and stores it in the Node records
+func GenerateCreateNodeScript(env Environment) []byte {
+	code := assets.MustAssetString(filePath + createNodeStructFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
 // GenerateStakeNewTokensScript creates a script that stakes new
 // tokens for a node operator
 func GenerateStakeNewTokensScript(env Environment) []byte {
@@ -188,6 +168,74 @@ func GenerateWithdrawUnstakedTokensScript(env Environment) []byte {
 // for an existing node operator
 func GenerateWithdrawRewardedTokensScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + withdrawRewardedTokensFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+// GenerateReturnTableScript creates a script that returns
+// the the whole ID table nodeIDs
+func GenerateReturnTableScript(env Environment) []byte {
+	code := assets.MustAssetString(filePath + getTableFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+// Staking Data Scripts --------------------------------------------------------
+
+// GenerateGetStakeRequirementsScript returns the stake requirement for a node type
+func GenerateGetStakeRequirementsScript(env Environment) []byte {
+	code := assets.MustAssetString(filePath + stakeRequirementsFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+// GenerateGetTotalTokensStakedByTypeScript returns the total tokens staked for a node type
+func GenerateGetTotalTokensStakedByTypeScript(env Environment) []byte {
+	code := assets.MustAssetString(filePath + totalStakedByTypeFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+// GenerateGetTotalTokensStakedScript returns the total tokens staked
+func GenerateGetTotalTokensStakedScript(env Environment) []byte {
+	code := assets.MustAssetString(filePath + totalStakedFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+// GenerateGetRewardRatioScript gets the reward ratio for a node type
+func GenerateGetRewardRatioScript(env Environment) []byte {
+	code := assets.MustAssetString(filePath + rewardRatioFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+// GenerateGetWeeklyPayoutScript gets the total weekly reward payout
+func GenerateGetWeeklyPayoutScript(env Environment) []byte {
+	code := assets.MustAssetString(filePath + weeklyPayoutFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+// GenerateGetCutPercentageScript gets the delegator cut percentage
+func GenerateGetCutPercentageScript(env Environment) []byte {
+	code := assets.MustAssetString(filePath + getCutPercentageFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+// GenerateReturnCurrentTableScript creates a script that returns
+// the current ID table
+func GenerateReturnCurrentTableScript(env Environment) []byte {
+	code := assets.MustAssetString(filePath + currentTableFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+// GenerateReturnProposedTableScript creates a script that returns
+// the ID table for the proposed next epoch
+func GenerateReturnProposedTableScript(env Environment) []byte {
+	code := assets.MustAssetString(filePath + proposedTableFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -284,48 +332,6 @@ func GenerateGetUnstakingRequestScript(env Environment) []byte {
 // that returns the balance of the total committed tokens of a node
 func GenerateGetTotalCommitmentBalanceScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + getTotalCommitmentFilename)
-
-	return []byte(replaceAddresses(code, env))
-}
-
-// GenerateGetStakeRequirementsScript returns the stake requirement for a node type
-func GenerateGetStakeRequirementsScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + stakeRequirementsFilename)
-
-	return []byte(replaceAddresses(code, env))
-}
-
-// GenerateGetTotalTokensStakedByTypeScript returns the total tokens staked for a node type
-func GenerateGetTotalTokensStakedByTypeScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + totalStakedByTypeFilename)
-
-	return []byte(replaceAddresses(code, env))
-}
-
-// GenerateGetTotalTokensStakedScript returns the total tokens staked
-func GenerateGetTotalTokensStakedScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + totalStakedFilename)
-
-	return []byte(replaceAddresses(code, env))
-}
-
-// GenerateGetRewardRatioScript gets the reward ratio for a node type
-func GenerateGetRewardRatioScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + rewardRatioFilename)
-
-	return []byte(replaceAddresses(code, env))
-}
-
-// GenerateGetWeeklyPayoutScript gets the total weekly reward payout
-func GenerateGetWeeklyPayoutScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + weeklyPayoutFilename)
-
-	return []byte(replaceAddresses(code, env))
-}
-
-// GenerateGetCutPercentageScript gets the delegator cut percentage
-func GenerateGetCutPercentageScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + getCutPercentageFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
