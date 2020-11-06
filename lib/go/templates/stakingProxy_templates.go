@@ -21,7 +21,7 @@ const (
 	proxyWithdrawRewardsFilename     = "stakingProxy/withdraw_rewards.cdc"
 
 	// staking helper templates for the token holder to register their node
-	registerNodeFilename = "stakingProxy/register_node.cdc"
+	registerProxyNodeFilename = "stakingProxy/register_node.cdc"
 )
 
 // GenerateSetupNodeAccountScript generates a script that sets up
@@ -97,7 +97,7 @@ func GenerateProxyWithdrawUnstakedScript(env Environment) []byte {
 // Transactions for the token holder
 
 func GenerateRegisterStakingProxyNodeScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + registerNodeFilename)
+	code := assets.MustAssetString(filePath + registerProxyNodeFilename)
 
 	return []byte(replaceAddresses(code, env))
 }

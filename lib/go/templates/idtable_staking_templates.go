@@ -16,7 +16,7 @@ const (
 	changeCutFilename      = "idTableStaking/admin/change_cut.cdc"
 	changePayoutFilename   = "idTableStaking/admin/change_payout.cdc"
 
-	createNodeStructFilename       = "idTableStaking/create_staking_request.cdc"
+	registerNodeFilename           = "idTableStaking/register_node.cdc"
 	stakeNewTokensFilename         = "idTableStaking/stake_new_tokens.cdc"
 	stakeUnstakedTokensFilename    = "idTableStaking/stake_unstaked_tokens.cdc"
 	stakeRewardedTokensFilename    = "idTableStaking/stake_rewarded_tokens.cdc"
@@ -116,10 +116,10 @@ func GenerateChangePayoutScript(env Environment) []byte {
 
 // Staker Templates -------------------------------------------------------------
 
-// GenerateCreateNodeScript creates a script that creates a new
+// GenerateRegisterNodeScript creates a script that creates a new
 // node struct and stores it in the Node records
-func GenerateCreateNodeScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + createNodeStructFilename)
+func GenerateRegisterNodeScript(env Environment) []byte {
+	code := assets.MustAssetString(filePath + registerNodeFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
