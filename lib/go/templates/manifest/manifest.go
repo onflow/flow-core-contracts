@@ -233,7 +233,7 @@ func generateManifest(env templates.Environment) *manifest {
 	m.addTemplate(generateTemplate(
 		"TH.17", "Register Delegator",
 		env,
-		templates.GenerateRegisterDelegatorScript,
+		templates.GenerateCreateLockedDelegatorScript,
 		[]argument{
 			{
 				Type:  "String",

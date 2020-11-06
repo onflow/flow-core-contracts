@@ -187,7 +187,7 @@
     {
       "id": "TH.17",
       "name": "Register Delegator",
-      "source": "import FlowIDTableStaking from 0x8624b52f9ddcd04a\n\ntransaction(nodeID: String) {\n\n    prepare(acct: AuthAccount) {\n\n        // Create a new delegator object for the node\n        let newDelegator \u003c- FlowIDTableStaking.registerNewDelegator(nodeID: nodeID)\n\n        // Store the delegator object\n        acct.save(\u003c-newDelegator, to: FlowIDTableStaking.DelegatorStoragePath)\n    }\n\n}",
+      "source": "import LockedTokens from 0x8d0e87b65159ae63\n\ntransaction(id: String, amount: UFix64) {\n\n    let holderRef: \u0026LockedTokens.TokenHolder\n\n    prepare(account: AuthAccount) {\n        self.holderRef = account.borrow\u003c\u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath) \n            ?? panic(\"TokenHolder is not saved at specified path\")\n    }\n\n    execute {\n        self.holderRef.createNodeDelegator(nodeID: id)\n\n        let delegatorProxy = self.holderRef.borrowDelegator()\n\n        delegatorProxy.delegateNewTokens(amount: amount)\n    }\n}\n",
       "arguments": [
         {
           "type": "String",
@@ -201,7 +201,7 @@
         }
       ],
       "network": "mainnet",
-      "hash": "94a37cfffbd452d6139967282862be747297c60f9f0c78b1bb2c27c59cb9dbf6"
+      "hash": "90068c2742d17ba5ce1b34dba02bd0e4db0c38fc943bf57008c3f973b30fbb2c"
     },
     {
       "id": "TH.19",
