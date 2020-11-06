@@ -89,7 +89,7 @@ for staking, and add arguments to it, you would use something like this Go code.
 
 ```Go
     tx := flow.NewTransaction().
-        SetScript(templates.GenerateCreateNodeScript(env)).
+        SetScript(templates.GenerateRegisterNodeScript(env)).
         SetGasLimit(100).
         SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
         SetPayer(b.ServiceKey().Address).

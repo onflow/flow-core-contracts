@@ -427,7 +427,7 @@ func TestIDTable(t *testing.T) {
 	t.Run("Shouldn't be able to create invalid Node structs", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateCreateNodeScript(env)).
+			SetScript(templates.GenerateRegisterNodeScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -451,7 +451,7 @@ func TestIDTable(t *testing.T) {
 		)
 
 		tx = flow.NewTransaction().
-			SetScript(templates.GenerateCreateNodeScript(env)).
+			SetScript(templates.GenerateRegisterNodeScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -475,7 +475,7 @@ func TestIDTable(t *testing.T) {
 		)
 
 		tx = flow.NewTransaction().
-			SetScript(templates.GenerateCreateNodeScript(env)).
+			SetScript(templates.GenerateRegisterNodeScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -499,7 +499,7 @@ func TestIDTable(t *testing.T) {
 		)
 
 		tx = flow.NewTransaction().
-			SetScript(templates.GenerateCreateNodeScript(env)).
+			SetScript(templates.GenerateRegisterNodeScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -527,7 +527,7 @@ func TestIDTable(t *testing.T) {
 	t.Run("Should be able to create a valid Node struct", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateCreateNodeScript(env)).
+			SetScript(templates.GenerateRegisterNodeScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -650,7 +650,7 @@ func TestIDTable(t *testing.T) {
 	t.Run("Shouldn't be able to create Node with a duplicate id", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateCreateNodeScript(env)).
+			SetScript(templates.GenerateRegisterNodeScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -677,7 +677,7 @@ func TestIDTable(t *testing.T) {
 	t.Run("Shouldn't be able to create Nodes with duplicate fields", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateCreateNodeScript(env)).
+			SetScript(templates.GenerateRegisterNodeScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -701,7 +701,7 @@ func TestIDTable(t *testing.T) {
 		)
 
 		tx = flow.NewTransaction().
-			SetScript(templates.GenerateCreateNodeScript(env)).
+			SetScript(templates.GenerateRegisterNodeScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -725,7 +725,7 @@ func TestIDTable(t *testing.T) {
 		)
 
 		tx = flow.NewTransaction().
-			SetScript(templates.GenerateCreateNodeScript(env)).
+			SetScript(templates.GenerateRegisterNodeScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -752,7 +752,7 @@ func TestIDTable(t *testing.T) {
 	t.Run("Should be able to create more valid Node structs", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
-			SetScript(templates.GenerateCreateNodeScript(env)).
+			SetScript(templates.GenerateRegisterNodeScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -783,7 +783,7 @@ func TestIDTable(t *testing.T) {
 		assert.Equal(t, CadenceUFix64("480000.0"), balance.(cadence.UFix64))
 
 		tx = flow.NewTransaction().
-			SetScript(templates.GenerateCreateNodeScript(env)).
+			SetScript(templates.GenerateRegisterNodeScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -880,7 +880,7 @@ func TestIDTable(t *testing.T) {
 		assert.Equal(t, 2, len(idArray))
 
 		tx = flow.NewTransaction().
-			SetScript(templates.GenerateCreateNodeScript(env)).
+			SetScript(templates.GenerateRegisterNodeScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -2312,7 +2312,7 @@ func TestIDTable(t *testing.T) {
 	t.Run("Should create new execution node", func(t *testing.T) {
 
 		tx = flow.NewTransaction().
-			SetScript(templates.GenerateCreateNodeScript(env)).
+			SetScript(templates.GenerateRegisterNodeScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
