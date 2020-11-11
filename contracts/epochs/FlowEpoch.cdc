@@ -1,3 +1,11 @@
+import FungibleToken from 0xee82856bf20e2aa6
+import FlowToken from 0x0ae53cb6e3f42a79
+
+import FlowIDTableStaking from 0x01cf0e2f2f715450
+
+//import FlowQuorumCertificate from 0x03
+//import FlowDKG from 0x04
+
 // The top-level smart contract managing the lifecycle of epochs. In Flow,
 // epochs are the smallest unit of time where the identity table (the set of 
 // network operators) is static. Operators may only leave or join the network 
@@ -88,5 +96,72 @@ pub contract FlowEpochs {
         // TODO: define ordering
         clusterQCs: [String]
     )
+
+    /// Admin resource from the IdentityTable contract
+    /// Used to add and remove nodes from the proposed table
+    /// and start a new epoch record
+    access(contract) let identityTableAdmin: @FlowIDTableStaking.Admin
+
+    access(contract) let QCAdmin: @FlowQuorumCertificate.Admin
+
+    access(contract) let DKGAdmin: @FlowDKG.Admin
+
+        access(contract) let previousEpochIDs: [String]
+
+    /// The metadata from the previous epoch. Might need to be accessed
+    /// for slashing 
+    pub var previousEpochMetadata: EpochMetadata
+
+    /// The metadata from the current Epoch
+    pub var currentEpochMetadata: EpochMetadata
+
+    /// The proposed metadata for the next epoch
+    pub var nextEpochMetadata: EpochMetadata
+
+    pub struct EpochMetadata {
+
+        /// The seed used for generating the epoch setup
+        pub let seed: UInt
+
+        /// The first view of this epoch
+        pub let startView: UInt64
+
+        /// The last view of this epoch
+        pub let endView: UInt64
+
+        /// The organization of collector node IDs into clusters
+        /// determined by a round robin sorting algorithm
+        pub let collectorClusters: [[String]]
+
+        ///
+        pub var clusterQCs: Int
+
+        /// The public key associated with the Distributed Key Generation
+        /// process that consensus nodes participate in
+        pub var dkgGroupKey: String
+    }
+
+    pub resource Admin {
+
+        // borrow a reference to the id table admin resource
+        pub fun borrowIdentityTableAdmin(): &FlowIdentityTable.Admin {
+
+        }
+
+        // borrow a reference to the staking admin resource
+        pub fun borrowStakingAdmin(): &FlowStaking.Admin {
+
+        }
+
+        // registers a new node operator in the staking contract
+        pub fun registerNewNodeOperator(stakingTokens: @FlowToken.Vault, nodeInfo: FlowIdentityTable.Node): @Node {
+
+        }
+
+        // call this function every block to check the phase of the epoch
+        pub fun heartbeat() {
+
+        }
+    }
 
 }
