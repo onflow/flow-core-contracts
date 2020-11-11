@@ -1,18 +1,38 @@
 package test
 
 import (
+	"fmt"
 	"io/ioutil"
+	"os"
 	"testing"
 
+	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/onflow/cadence"
-	"github.com/onflow/flow-go-sdk"
+	sdk "github.com/onflow/flow-go-sdk"
+	"github.com/onflow/flow-go-sdk/crypto"
 
 	emulator "github.com/dapperlabs/flow-emulator"
+	"github.com/dapperlabs/flow-emulator/server/backend"
 )
+
+var (
+	fungibleTokenAddress = "notset"
+	flowTokenAddress     = "notset"
+	feesAddress          = "notset"
+)
+
+func newBlockchain() backend.Emulator {
+	networkType := os.Getenv("FLOW_NETWORK_TYPE")
+	if networkType == "testnet" {
+		return newNetwork()
+	}
+	fmt.Println("Using Emulator")
+	return newEmulator()
+}
 
 // newEmulator returns a emulator object for testing.
 func newEmulator() *emulator.Blockchain {
@@ -20,6 +40,30 @@ func newEmulator() *emulator.Blockchain {
 	if err != nil {
 		panic(err)
 	}
+	generator := sdk.NewAddressGenerator(sdk.Emulator)
+	// Skip Service account addr
+	generator.Next()
+	fungibleTokenAddress = generator.NextAddress().Hex()
+	flowTokenAddress = generator.NextAddress().Hex()
+	feesAddress = generator.NextAddress().Hex()
+
+	return b
+}
+
+func newNetwork() backend.Emulator {
+	b, err := emulator.NewNetwork(os.Getenv("FLOW_ADDRESS"), os.Getenv("FLOW_SERVICE_ACCOUNT_PRIVATE_KEY"))
+
+	if err != nil {
+		panic(err)
+	}
+
+	generator := sdk.NewAddressGenerator(sdk.Testnet)
+	// Skip Service account addr
+	generator.Next()
+	fungibleTokenAddress = generator.NextAddress().Hex()
+	flowTokenAddress = generator.NextAddress().Hex()
+	feesAddress = generator.NextAddress().Hex()
+
 	return b
 }
 
@@ -33,12 +77,16 @@ func newEmulator() *emulator.Blockchain {
 // This function asserts the correct result and commits the block if it passed.
 func signAndSubmit(
 	t *testing.T,
-	b *emulator.Blockchain,
-	tx *flow.Transaction,
-	signerAddresses []flow.Address,
+	b backend.Emulator,
+	tx *sdk.Transaction,
+	signerAddresses []sdk.Address,
 	signers []crypto.Signer,
 	shouldRevert bool,
 ) {
+	latestBlockID, err := b.GetLatestBlockID()
+	assert.NoError(t, err)
+
+	tx = tx.SetReferenceBlockID(latestBlockID)
 	// sign transaction with each signer
 	for i := len(signerAddresses) - 1; i >= 0; i-- {
 		signerAddress := signerAddresses[i]
@@ -84,7 +132,7 @@ func Submit(
 }
 
 // executeScriptAndCheck executes a script and checks to make sure that it succeeded.
-func executeScriptAndCheck(t *testing.T, b *emulator.Blockchain, script []byte) cadence.Value {
+func executeScriptAndCheck(t *testing.T, b backend.Emulator, script []byte) cadence.Value {
 	result, err := b.ExecuteScript(script, nil)
 	require.NoError(t, err)
 	if !assert.True(t, result.Succeeded()) {
