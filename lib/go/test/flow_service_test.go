@@ -13,8 +13,8 @@ func TestContracts(t *testing.T) {
 	b := newBlockchain()
 
 	// deploy the ServiceAccount contract
-	serviceAccountAddr := contracts.FlowServiceAccount(fungibleTokenAddress, flowTokenAddress, feesAddress)
-	_, err := b.CreateAccount(nil, serviceAccountCode)
+	serviceAccountCode := contracts.FlowServiceAccount(fungibleTokenAddress, flowTokenAddress, feesAddress)
+	serviceAccountAddr, err := b.CreateAccount(nil, serviceAccountCode)
 	assert.NoError(t, err)
 	_, err = b.CommitBlock()
 	assert.NoError(t, err)

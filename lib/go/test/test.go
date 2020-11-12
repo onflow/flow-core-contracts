@@ -13,7 +13,6 @@ import (
 
 	"github.com/onflow/cadence"
 	sdk "github.com/onflow/flow-go-sdk"
-	"github.com/onflow/flow-go-sdk/crypto"
 
 	emulator "github.com/onflow/flow-emulator"
 	"github.com/onflow/flow-emulator/server/backend"
@@ -107,7 +106,7 @@ func signAndSubmit(
 // Submit submits a transaction and checks if it fails or not.
 func Submit(
 	t *testing.T,
-	b *emulator.Blockchain,
+	b backend.Emulator,
 	tx *flow.Transaction,
 	shouldRevert bool,
 ) {
