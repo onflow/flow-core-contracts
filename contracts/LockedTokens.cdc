@@ -207,6 +207,7 @@ pub contract LockedTokens {
         pub fun getUnlockLimit(): UFix64
         pub fun getNodeID(): String?
         pub fun getDelegatorID(): UInt32?
+        pub fun getDelegatorNodeID(): String? 
     }
 
     /// Stored in Holder unlocked account
@@ -330,6 +331,12 @@ pub contract LockedTokens {
             let tokenManager = self.tokenManager.borrow()!
 
             return tokenManager.nodeDelegator?.id
+        }
+
+        pub fun getDelegatorNodeID(): String? {
+            let tokenManager = self.tokenManager.borrow()!
+
+            return tokenManager.nodeDelegator?.nodeID
         }
 
     }

@@ -1093,6 +1093,15 @@ func TestLockedTokensDelegator(t *testing.T) {
 		}
 		id := result.Value
 		assert.Equal(t, cadence.NewUInt32(1), id.(cadence.UInt32))
+
+		// Check the delegator node ID
+		result, err = b.ExecuteScript(templates.GenerateGetDelegatorNodeIDScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		id = result.Value
+		assert.Equal(t, cadence.NewString(joshID), id.(cadence.String))
 	})
 
 	t.Run("Should not be able to register a second time", func(t *testing.T) {

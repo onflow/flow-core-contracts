@@ -182,7 +182,7 @@ pub contract FlowIDTableStaking {
 
     pub fun registerNewDelegator(nodeID: String): @NodeDelegator {
 
-        return <-create NodeDelegator(id: 1, nodeID: "Node")
+        return <-create NodeDelegator(id: 1, nodeID: nodeID)
     }
 
     init(_ epochTokenPayout: UFix64, _ rewardCut: UFix64) {

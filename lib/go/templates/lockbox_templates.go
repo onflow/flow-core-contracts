@@ -40,6 +40,7 @@ const (
 	// delegator templates
 	registerLockedDelegatorFilename               = "lockedTokens/delegator/register_delegator.cdc"
 	getDelegatorIDFilename                        = "lockedTokens/delegator/get_delegator_id.cdc"
+	getDelegatorNodeIDFilename                    = "lockedTokens/delegator/get_delegator_node_id.cdc"
 	delegateNewLockedTokensFilename               = "lockedTokens/delegator/delegate_new_tokens.cdc"
 	delegateLockedUnstakedTokensFilename          = "lockedTokens/delegator/delegate_unstaked_tokens.cdc"
 	delegateLockedRewardedTokensFilename          = "lockedTokens/delegator/delegate_rewarded_tokens.cdc"
@@ -282,6 +283,12 @@ func GenerateWithdrawDelegatorLockedRewardedTokensScript(env Environment) []byte
 
 func GenerateGetDelegatorIDScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + getDelegatorIDFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateGetDelegatorNodeIDScript(env Environment) []byte {
+	code := assets.MustAssetString(filePath + getDelegatorNodeIDFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
