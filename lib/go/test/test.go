@@ -15,8 +15,8 @@ import (
 	sdk "github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 
-	emulator "github.com/dapperlabs/flow-emulator"
-	"github.com/dapperlabs/flow-emulator/server/backend"
+	emulator "github.com/onflow/flow-emulator"
+	"github.com/onflow/flow-emulator/server/backend"
 )
 
 var (

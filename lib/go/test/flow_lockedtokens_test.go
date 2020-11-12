@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	emulator "github.com/dapperlabs/flow-emulator"
+	emulator "github.com/onflow/flow-emulator"
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	ft_templates "github.com/onflow/flow-ft/lib/go/templates"
