@@ -11,47 +11,35 @@ pub contract EpochClusterQCs {
     // ================================================================================
 
     // Indicates whether votes are currently being collected.
+    // If false, no node operator will be able to submit votes
     pub var inProgress: Bool
 
-    // Indicates which epoch we are collecting votes for.
-    // NOTE: Since we prepare for an epoch before it begins, this will be one ahead of the
-    // current epoch.
-    pub var epoch: UInt64
-
     // The collection node clusters for the current epoch
-    pub var clusters: [Cluster]
+    access(account) var clusters: [Cluster]
+
+    // Votes that nodes claim at the beginning of each EpochSetup phase
+    access(account) var generatedVotes: {String: Vote}
 
     // Votes submitted per cluster
-    pub var votesByCluster: {UInt16: [Vote]}
+    access(account) var votesByCluster: {UInt16: [Vote]}
+
+    // Indicates if a voter resource has already been claimed by a node ID
+    access(account) var voterClaimed: {String: Bool}
 
     // ================================================================================
     // CONTRACT CONSTANTS
     // ================================================================================
 
-    // Canonical paths for various resources and capabilities.
+    // Canonical paths for admin and voter resources
     pub let AdminStoragePath: Path
-    pub let AdminCapabilityPath: Path
     pub let VoterStoragePath: Path
-    pub let VoterCapabilityPath: Path
-
-    // Returns true if we have collected enough votes for all clusters.
-    pub fun votingCompleted(): Bool {
-
-        for cluster in EpochClusterQCs.clusters {
-            let votes = EpochClusterQCs.votesByCluster[cluster.index]!
-            if UInt16(votes.length) < cluster.voteThreshold() {
-                return false
-            }
-        }
-
-        return false
-    }
 
     // Represents a collection node cluster for a given epoch. 
     pub struct Cluster {
 
         // The IDs of the nodes in the cluster.
         pub let nodeIDs: [String]
+
         // The index of the cluster within the cluster assignment. This uniquely identifies
         // a cluster for a given epoch
         pub let index: UInt16
@@ -77,80 +65,96 @@ pub contract EpochClusterQCs {
     // eventually we may want to do the aggregation and validate votes within the smart
     // contract, but in the meantime the vote contents are opaque here.
     pub struct Vote {
-        pub let nodeID: String
-        pub let raw: String
+        pub var nodeID: String
+        pub(set) var raw: String?
+        pub(set) var clusterIndex: UInt16
 
-        init(raw: String, voter: String) {
-            self.raw = raw
-            self.nodeID = voter
+        init(nodeID: String, clusterIndex: UInt16) {
+            pre {
+                nodeID.length == 32: "Voter ID must be a valid node ID"
+            }
+            self.raw = nil
+            self.nodeID = nodeID
+            self.clusterIndex = clusterIndex
         }
     }
 
-    // The Voter resource is generated for each collection node once they are confirmed 
-    // as a participant in an upcoming epoch. Each resource instance is only good for one
-    // vote submission within one epoch. 
+    // The Voter resource is generated for each collection node after they register.
+    // Each resource instance is good for all future potential epochs, but will
+    // only be valid if the node operator has been confirmed as a collector node for the next epoch.
     pub resource Voter {
+
         pub let nodeID: String
-        pub let clusterIndex: UInt16
-        pub let epoch: UInt64
+
+        pub var currentVote: Vote?
 
         // Returns whether this voter has successfully submitted a vote for this epoch.
         pub fun voted(): Bool {
-            let votes = EpochClusterQCs.votesByCluster[self.clusterIndex]!
-            for vote in votes {
-                if vote.nodeID == self.nodeID {
-                    return true
-                }
+            if EpochClusterQCs.generatedVotes[self.nodeID] == nil {
+                return true
+            } else {
+                return false
             }
-            return false
         }
 
         // Submits the given vote. Can be called only once. 
-        pub fun vote(vote: Vote) {
+        pub fun vote(raw: String) {
             pre {
-                self.epoch == EpochClusterQCs.epoch: "cannot vote for a different epoch"
-                !self.voted(): "already voted - only one vote allowed per epoch"
+                raw.length > 0: "Vote must not be empty"
+                EpochClusterQCs.generatedVotes[self.nodeID] != nil
             }
-            EpochClusterQCs.votesByCluster[self.clusterIndex]!.append(vote)
+
+            let vote = EpochClusterQCs.generatedVotes[self.nodeID]!
+
+            vote.raw = raw
+
+            EpochClusterQCs.votesByCluster[vote.clusterIndex]!.append(vote)
         }
 
-        init(nodeID: String, clusterIndex: UInt16, epoch: UInt64) {
+        init(nodeID: String) {
+            pre {
+                !EpochClusterQCs.voterClaimed[nodeID]!: "Cannot create a Voter resource for a node ID that has already been claimed"
+            }
             self.nodeID = nodeID
-            self.epoch = epoch
-            self.clusterIndex = clusterIndex
+            self.currentVote = nil
+            EpochClusterQCs.voterClaimed[nodeID] = true
         }
 
     }
 
-    // The Admin resource provides the ability to begin voting for an epoch. 
-    // TODO: I believe this can be replaced by account-scoped methods, as all
-    // the epoch contracts should be deployed to the same (service) account.
+    // The Admin resource provides the ability to begin and end voting for an epoch
     pub resource Admin {
 
-        // Configures the contract for the next epoch's clusters. Returns a list
-        // of Voter resources, one for each collection node in the next epoch.
+        /// Creates a new Voter resource for a collection node
+        pub fun createVoter(nodeID: String): @Voter {
+            return <-create Voter(nodeID: nodeID)
+        }
+
+        // Configures the contract for the next epoch's clusters
         //
         // NOTE: This will be called by the top-level FlowEpochs contract upon
-        // transitioning to the Epoch Setup Phase. That contract will be 
-        // responsible for passing along each Voter resource to the account of
-        // each node operator.
+        // transitioning to the Epoch Setup Phase.
         //
         // CAUTION: calling this erases the votes for the current/previous epoch.
-        pub fun startVoting(epoch: UInt64, clusters: [Cluster]): @[Voter] {
+        pub fun startVoting(clusters: [Cluster]) {
             EpochClusterQCs.inProgress = true
-            EpochClusterQCs.epoch = epoch
             EpochClusterQCs.clusters = clusters
+            EpochClusterQCs.generatedVotes = {}
+            EpochClusterQCs.votesByCluster = {}
 
-            let voters: @[Voter] <- []
-            // TODO: can you iterate the index+value within the for loop
             var clusterIndex: UInt16 = 0
             for cluster in clusters {
+
+                // Clear all the clusters
+                EpochClusterQCs.votesByCluster[clusterIndex] = []
+
+                // Create a new Vote struct for each participating node
                 for nodeID in cluster.nodeIDs {
-                    voters.append(<- create Voter(nodeID: nodeID, clusterIndex: clusterIndex, epoch: epoch))
+                    EpochClusterQCs.generatedVotes[nodeID] = Vote(nodeID: nodeID, clusterIndex: clusterIndex)
                 }
+
                 clusterIndex = clusterIndex + UInt16(1)
             }
-            return <-voters
         }
 
         // Stops voting for the current epoch. Can only be called once a 2/3 
@@ -163,63 +167,35 @@ pub contract EpochClusterQCs {
         }
     }
 
-    pub resource interface QCVoterReceiver {
-        pub fun setVoter(voter: @EpochClusterQCs.Voter)
+    // Gets all of the collector clusters for the current epoch
+    pub fun getClusters(): [Cluster] {
+        return self.clusters
     }
 
-    // Enables node operators to receive Voter resources for an upcoming epoch
-    // from the epoch smart contract.
-    // 
-    // TODO: Get some insight on the best way to do this. The desired behaviour
-    // is that a node operator submits one transaction that sets up their account
-    // for "node operation". After this setup is complete, the Epoch smart contract
-    // should be able to insert the appropriate resources to the operator's account
-    // without any action by that account. Essentially once that account needs to
-    // use eg. a Voter resource, the appropriate resource should already have been
-    // inserted by the Epoch contract.
-    pub resource QCVoterStore: QCVoterReceiver {
-        pub let nodeID: String
-        pub var voter: @EpochClusterQCs.Voter?
+    // Returns true if we have collected enough votes for all clusters.
+    pub fun votingCompleted(): Bool {
 
-        // Sets the Voter resource stored in the VoterStore, destroying the
-        // current Voter, if one exists.
-        //
-        // TODO: check security assumptions - only code that has a QCVoter
-        // resource is able to call this method.
-        pub fun setVoter(voter: @EpochClusterQCs.Voter) {
-            pre {
-                voter.nodeID == self.nodeID: "only accept our voter"
+        for cluster in EpochClusterQCs.clusters {
+            let votes = EpochClusterQCs.votesByCluster[cluster.index]!
+            if UInt16(votes.length) < cluster.voteThreshold() {
+                return false
             }
-            let previous <- self.voter <- voter
-            destroy previous
         }
 
-        // VoterStore always starts out empty.
-        init(nodeID: String) {
-            self.nodeID = nodeID
-            self.voter <- nil
-        }
-
-        destroy() {
-            destroy self.voter
-        }
-    }
-
-    pub fun createAdmin(): @Admin {
-        let admin <- create Admin()
-        return <-admin
+        return true
     }
 
     init() {
         self.AdminStoragePath = /storage/flowEpochsQCAdmin
-        self.AdminCapabilityPath = /storage/flowEpochsQCAdminRef
         self.VoterStoragePath = /storage/flowEpochsQCVoter
-        self.VoterCapabilityPath = /storage/flowEpochsQCVoterRef
 
         self.inProgress = false
         self.votesByCluster = {} 
         
         self.clusters = []
-        self.epoch = 0
+        self.generatedVotes = {}
+        self.voterClaimed = {}
+
+        self.account.save(<-create Admin(), to: self.AdminStoragePath)
     }
 }

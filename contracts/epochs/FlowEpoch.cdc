@@ -3,7 +3,7 @@ import FlowToken from 0x0ae53cb6e3f42a79
 
 import FlowIDTableStaking from 0x01cf0e2f2f715450
 
-//import FlowQuorumCertificate from 0x03
+//import EpochClusterQCs from 0x03
 //import FlowDKG from 0x04
 
 // The top-level smart contract managing the lifecycle of epochs. In Flow,
@@ -102,23 +102,19 @@ pub contract FlowEpochs {
     /// and start a new epoch record
     access(contract) let identityTableAdmin: @FlowIDTableStaking.Admin
 
-    access(contract) let QCAdmin: @FlowQuorumCertificate.Admin
+    access(contract) let QCAdmin: @EpochClusterQCs.Admin
 
     access(contract) let DKGAdmin: @FlowDKG.Admin
 
-        access(contract) let previousEpochIDs: [String]
+    /// The counter, or ID, of the current epoch
+    pub var currentEpochCounter: UInt64
 
-    /// The metadata from the previous epoch. Might need to be accessed
-    /// for slashing 
-    pub var previousEpochMetadata: EpochMetadata
-
-    /// The metadata from the current Epoch
-    pub var currentEpochMetadata: EpochMetadata
-
-    /// The proposed metadata for the next epoch
-    pub var nextEpochMetadata: EpochMetadata
+    /// Contains a historical record of the metadata from all previous epochs
+    access(contract) var EpochMetadata: {UInt64: EpochMetadata}
 
     pub struct EpochMetadata {
+
+        pub let counter: UInt64
 
         /// The seed used for generating the epoch setup
         pub let seed: UInt
@@ -131,7 +127,7 @@ pub contract FlowEpochs {
 
         /// The organization of collector node IDs into clusters
         /// determined by a round robin sorting algorithm
-        pub let collectorClusters: [[String]]
+        pub let collectorClusters: [EpochClusterQCs.Cluster]
 
         ///
         pub var clusterQCs: Int
@@ -143,25 +139,47 @@ pub contract FlowEpochs {
 
     pub resource Admin {
 
-        // borrow a reference to the id table admin resource
-        pub fun borrowIdentityTableAdmin(): &FlowIdentityTable.Admin {
 
-        }
-
-        // borrow a reference to the staking admin resource
-        pub fun borrowStakingAdmin(): &FlowStaking.Admin {
-
-        }
-
-        // registers a new node operator in the staking contract
-        pub fun registerNewNodeOperator(stakingTokens: @FlowToken.Vault, nodeInfo: FlowIdentityTable.Node): @Node {
-
-        }
 
         // call this function every block to check the phase of the epoch
         pub fun heartbeat() {
 
         }
+    }
+
+    /// borrow a reference to the id table admin resource
+    access(contract) fun borrowIdentityTableStakingAdmin(): &FlowIDTableStaking.Admin {
+        return &FlowEpochs.identityTableAdmin as! &FlowIDTableStaking.Admin
+    }
+
+    /// borrow a reference to the ClusterQCs resource
+    access(contract) fun borrowClusterQCAdmin(): &EpochClusterQCs.Admin {
+        return &FlowEpochs.QCAdmin as! &EpochClusterQCs.Admin
+    }
+
+    pub fun registerNode(id: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String, tokensCommitted: @FungibleToken.Vault): @FlowIDTableStaking.NodeStaker {
+        let idTableAdmin = self.borrowIdentityTableStakingAdmin()
+
+        return <-idTableAdmin.addNodeRecord(id: id, role: role, networkingAddress: networkingAddress, networkingKey: networkingKey, stakingKey: stakingKey, tokensCommitted: <-tokensCommitted)
+    }
+
+    pub fun getClusterQCVoter(nodeStaker: &FlowIDTableStaking.NodeStaker): @EpochClusterQCs.Voter {
+        let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeStaker.id)
+
+        assert (
+            nodeInfo.role == 1,
+            message: "Node operator must be a collector node to get a Voter object"
+        )
+
+        let clusterQCAdmin = self.borrowClusterQCAdmin()
+
+        return <-clusterQCAdmin.createVoter(nodeID: nodeStaker.id)
+    }
+
+    pub fun registerDelegator(nodeID: String): @FlowIDTableStaking.NodeDelegator {
+        let idTableAdmin = self.borrowIdentityTableStakingAdmin()
+
+        return <-idTableAdmin.registerDelegator(nodeID: nodeID)
     }
 
 }
