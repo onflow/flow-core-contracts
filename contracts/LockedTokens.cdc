@@ -181,6 +181,17 @@ pub contract LockedTokens {
         /// Registers a new node operator with the Flow Staking contract
         /// and commits an initial amount of locked tokens to stake
         pub fun registerNode(nodeInfo: StakingProxy.NodeInfo, amount: UFix64) {
+            if let nodeStaker <- self.nodeStaker <- nil {
+                nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeStaker.id)
+                
+                assert(
+                    nodeInfo.tokensStaked + nodeInfo.totalTokensStaked + nodeInfo.tokensCommitted + nodeInfo.tokensUnstaking + nodeInfo.tokensUnstaked + nodeInfo.tokensRewarded == 0.0,
+                    message: "Cannot register a new node until all tokens from the previous node have been withdrawn"
+                )
+
+                destroy nodeStaker
+            }
+
             let vaultRef = self.vault.borrow()!
 
             let tokens <- vaultRef.withdraw(amount: amount)
@@ -194,6 +205,17 @@ pub contract LockedTokens {
         /// the caller has to specify the ID of the node operator
         /// they are delegating to
         pub fun registerDelegator(nodeID: String) {
+                if let delegator <- self.nodeDelegator <- nil {
+                delegatorInfo = FlowIDTableStaking.DelegatorInfo(nodeID: delegator.nodeID, delegatorID: delegator.id)
+                
+                assert(
+                    delegatorInfo.tokensStaked + delegatorInfo.totalTokensStaked + delegatorInfo.tokensCommitted + delegatorInfo.tokensUnstaking + delegatorInfo.tokensUnstaked + delegatorInfo.tokensRewarded == 0.0,
+                    message: "Cannot register a new delegator until all tokens from the previous node have been withdrawn"
+                )
+
+                destroy delegator
+            }
+
             self.nodeDelegator <-! FlowIDTableStaking.registerNewDelegator(nodeID: nodeID)
         
             emit LockedAccountRegisteredAsDelegator(address: self.owner!.address, nodeID: nodeID)
@@ -278,9 +300,6 @@ pub contract LockedTokens {
         /// The user calls this function if they want to register as a node operator
         /// They have to provide all the info for their node
         pub fun createNodeStaker(nodeInfo: StakingProxy.NodeInfo, amount: UFix64) {
-            pre {
-                self.nodeStakerProxy == nil && self.nodeDelegatorProxy == nil: "Already initialized"
-            }
 
             self.borrowTokenManager().registerNode(nodeInfo: nodeInfo, amount: amount)
 
@@ -291,9 +310,6 @@ pub contract LockedTokens {
         /// The user calls this function if they want to register as a node operator
         /// They have to provide the node ID for the node they want to delegate to
         pub fun createNodeDelegator(nodeID: String) {
-            pre {
-                self.nodeStakerProxy == nil && self.nodeDelegatorProxy == nil: "Already initialized"
-            }
 
             self.borrowTokenManager().registerDelegator(nodeID: nodeID)
 
