@@ -929,6 +929,8 @@ pub contract FlowIDTableStaking {
         for nodeID in FlowIDTableStaking.getNodeIDs() {
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
 
+            // Access nodes do not have a minimum, so this makes sure they are included when they are staked,
+            // but not if they are equal to their minimum, which is zero
             if nodeRecord.tokensStaked.balance > 0.0 {
                 stakedNodes.append(nodeID)
             }
