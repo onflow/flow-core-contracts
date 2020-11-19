@@ -716,7 +716,7 @@ pub contract FlowIDTableStaking {
 
                 let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
 
-                if nodeRecord.tokensStaked.balance == 0.0 { continue }
+                if nodeRecord.tokensStaked.balance == 0.0 || nodeRecord.role == UInt8(5) { continue }
 
                 /// Calculate the amount of tokens that this node operator receives
                 let rewardAmount = FlowIDTableStaking.epochTokenPayout * (nodeRecord.tokensStaked.balance / totalStaked)
@@ -869,6 +869,11 @@ pub contract FlowIDTableStaking {
         let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
 
         assert (
+            nodeRecord.role != UInt8(5),
+            message: "Cannot register a delegator for an access node"
+        )
+
+        assert (
             FlowIDTableStaking.getTotalCommittedBalance(nodeID) > FlowIDTableStaking.minimumStakeRequired[nodeRecord.role]!,
             message: "Cannot register a delegator if the node operator is below the minimum stake"
         )
@@ -924,7 +929,11 @@ pub contract FlowIDTableStaking {
         for nodeID in FlowIDTableStaking.getNodeIDs() {
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
 
-            if nodeRecord.tokensStaked.balance >= self.minimumStakeRequired[nodeRecord.role]!  {
+            // To be considered staked, a node has to have tokens staked equal or above the minimum
+            // Access nodes have a minimum of 0, so they need to be strictly greater than zero to be considered staked
+            if ((nodeRecord.tokensStaked.balance >= self.minimumStakeRequired[nodeRecord.role]!) && nodeRecord.role != UInt8(5)) ||
+               ((nodeRecord.tokensStaked.balance > 0.0) && nodeRecord.role == UInt8(5))
+            {
                 stakedNodes.append(nodeID)
             }
         }
