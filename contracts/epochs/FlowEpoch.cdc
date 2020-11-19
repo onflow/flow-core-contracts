@@ -95,12 +95,6 @@ pub contract FlowEpochs {
         clusterQCs: [String]
     )
 
-    /// The counter, or ID, of the current epoch
-    pub var currentEpochCounter: UInt64
-
-    /// Contains a historical record of the metadata from all previous epochs
-    access(contract) var epochMetadata: {UInt64: EpochMetadata}
-
     pub struct EpochMetadata {
 
         // The identifier for the epoch
@@ -142,6 +136,42 @@ pub contract FlowEpochs {
             self.clusterQCs = clusterQCs
             self.dkgGroupKey = dkgGroupKey
         }
+    }
+
+    /// The counter, or ID, of the current epoch
+    pub var currentEpochCounter: UInt64
+
+    /// Contains a historical record of the metadata from all previous epochs
+    access(contract) var epochMetadata: {UInt64: EpochMetadata}
+
+    /// Admin resource from the IdentityTable contract
+    /// Used to add and remove nodes from the proposed table
+    /// and start a new epoch record
+    access(contract) let identityTableAdmin: @FlowIDTableStaking.Admin
+
+    pub resource Admin {
+
+        // call this function every block to check the phase of the epoch
+        pub fun heartbeat() {
+
+        }
+    }
+
+    /// borrow a reference to the id table admin resource
+    access(contract) fun borrowIdentityTableStakingAdmin(): &FlowIDTableStaking.Admin {
+        return &FlowEpochs.identityTableAdmin as! &FlowIDTableStaking.Admin
+    }
+
+    pub fun registerNode(id: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String, tokensCommitted: @FungibleToken.Vault): @FlowIDTableStaking.NodeStaker {
+        let idTableAdmin = self.borrowIdentityTableStakingAdmin()
+
+        return <-idTableAdmin.addNodeRecord(id: id, role: role, networkingAddress: networkingAddress, networkingKey: networkingKey, stakingKey: stakingKey, tokensCommitted: <-tokensCommitted)
+    }
+
+    pub fun registerDelegator(nodeID: String): @FlowIDTableStaking.NodeDelegator {
+        let idTableAdmin = self.borrowIdentityTableStakingAdmin()
+
+        return <-idTableAdmin.registerDelegator(nodeID: nodeID)
     }
 
     init () {
