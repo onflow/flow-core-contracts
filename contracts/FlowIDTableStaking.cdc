@@ -929,9 +929,11 @@ pub contract FlowIDTableStaking {
         for nodeID in FlowIDTableStaking.getNodeIDs() {
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
 
-            // Access nodes do not have a minimum, so this makes sure they are included when they are staked,
-            // but not if they are equal to their minimum, which is zero
-            if nodeRecord.tokensStaked.balance > 0.0 {
+            // To be considered staked, a node has to have tokens staked equal or above the minimum
+            // Access nodes have a minimum of 0, so they need to be strictly greater than zero to be considered staked
+            if ((nodeRecord.tokensStaked.balance >= self.minimumStakeRequired[nodeRecord.role]!) && nodeRecord.role != UInt8(5)) ||
+               ((nodeRecord.tokensStaked.balance > 0.0) && nodeRecord.role == UInt8(5))
+            {
                 stakedNodes.append(nodeID)
             }
         }
