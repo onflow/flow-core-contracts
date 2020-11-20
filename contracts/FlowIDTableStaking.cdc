@@ -659,6 +659,11 @@ pub contract FlowIDTableStaking {
         /// after the staking auction phase
         ///
         /// Also sets the initial weight of all the accepted nodes
+        /// 
+        /// Parameter: approvedNodeIDs: A list of nodeIDs that have been approved
+        /// by the protocol to be a staker for the next epoch. The node software
+        /// checks if the node that corresponds to each proposed ID is running properly
+        /// and that its node info is correct
         pub fun endStakingAuction(approvedNodeIDs: {String: Bool}) {
 
             let allNodeIDs = FlowIDTableStaking.getNodeIDs()
