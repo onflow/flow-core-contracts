@@ -441,7 +441,7 @@ pub contract FlowIDTableStaking {
 
             assert (
                 nodeRecord.delegators.length == 0 || 
-                nodeRecord.tokensStaked.balance + nodeRecord.tokensCommitted.balance  - amount >= FlowIDTableStaking.getMinimumStakeRequirements()[nodeRecord.role]!,
+                FlowIDTableStaking.isGreaterThanMinimumForRole(numTokens: FlowIDTableStaking.getTotalCommittedBalance(nodeRecord.id) - amount, role: nodeRecord.role),
                 message: "Cannot unstake below the minimum if there are delegators"
             )
 
@@ -672,8 +672,7 @@ pub contract FlowIDTableStaking {
 
                 /// If the tokens that they have committed for the next epoch
                 /// do not meet the minimum requirements
-                if (totalTokensCommitted == 0.0) || 
-                   (totalTokensCommitted < FlowIDTableStaking.minimumStakeRequired[nodeRecord.role]!) || 
+                if !FlowIDTableStaking.isGreaterThanMinimumForRole(numTokens: totalTokensCommitted, role: nodeRecord.role) ||
                    (approvedNodeIDs[nodeID] == nil) {
 
                     emit NodeRemovedAndRefunded(nodeID: nodeRecord.id, amount: nodeRecord.tokensCommitted.balance + nodeRecord.tokensStaked.balance)
@@ -900,7 +899,7 @@ pub contract FlowIDTableStaking {
         )
 
         assert (
-            FlowIDTableStaking.getTotalCommittedBalance(nodeID) >= FlowIDTableStaking.minimumStakeRequired[nodeRecord.role]!,
+            FlowIDTableStaking.isGreaterThanMinimumForRole(numTokens: self.getTotalCommittedBalance(nodeID), role: nodeRecord.role),
             message: "Cannot register a delegator if the node operator is below the minimum stake"
         )
 
@@ -939,8 +938,7 @@ pub contract FlowIDTableStaking {
 
             // To be considered proposed, a node has to have tokens staked + committed equal or above the minimum
             // Access nodes have a minimum of 0, so they need to be strictly greater than zero to be considered proposed
-            if ((self.getTotalCommittedBalance(nodeID) >= self.minimumStakeRequired[nodeRecord.role]!) && nodeRecord.role != UInt8(5)) ||
-               ((self.getTotalCommittedBalance(nodeID) > 0.0) && nodeRecord.role == UInt8(5))
+            if self.isGreaterThanMinimumForRole(numTokens: self.getTotalCommittedBalance(nodeID), role: nodeRecord.role)
             {
                 proposedNodes.append(nodeID)
             }
@@ -961,8 +959,7 @@ pub contract FlowIDTableStaking {
 
             // To be considered staked, a node has to have tokens staked equal or above the minimum
             // Access nodes have a minimum of 0, so they need to be strictly greater than zero to be considered staked
-            if ((nodeRecord.tokensStaked.balance >= self.minimumStakeRequired[nodeRecord.role]!) && nodeRecord.role != UInt8(5)) ||
-               ((nodeRecord.tokensStaked.balance > 0.0) && nodeRecord.role == UInt8(5))
+            if self.isGreaterThanMinimumForRole(numTokens: nodeRecord.tokensStaked.balance, role: nodeRecord.role)
             {
                 stakedNodes.append(nodeID)
             }
@@ -995,6 +992,16 @@ pub contract FlowIDTableStaking {
             }
 
             return sum
+        }
+    }
+
+    // Checks to make sure that the amount of tokens specified 
+    // is greater than what is required for that node role
+    pub fun isGreaterThanMinimumForRole(numTokens: UFix64, role: UInt8): Bool {
+        if role == UInt8(5) {
+            return numTokens > 0.0
+        } else {
+            return numTokens >= self.minimumStakeRequired[role]!
         }
     }
 
