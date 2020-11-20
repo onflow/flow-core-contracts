@@ -101,6 +101,8 @@ pub contract FlowEpochs {
     /// Contains a historical record of the metadata from all previous epochs
     access(contract) var epochMetadata: {UInt64: EpochMetadata}
 
+    access(contract) let QCAdmin: @EpochClusterQCs.Admin
+
     pub struct EpochMetadata {
 
         // The identifier for the epoch
@@ -142,6 +144,24 @@ pub contract FlowEpochs {
             self.clusterQCs = clusterQCs
             self.dkgGroupKey = dkgGroupKey
         }
+    }
+
+    /// borrow a reference to the ClusterQCs resource
+    access(contract) fun borrowClusterQCAdmin(): &EpochClusterQCs.Admin {
+        return &FlowEpochs.QCAdmin as! &EpochClusterQCs.Admin
+    }
+
+    pub fun getClusterQCVoter(nodeStaker: &FlowIDTableStaking.NodeStaker): @EpochClusterQCs.Voter {
+        let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeStaker.id)
+
+        assert (
+            nodeInfo.role == 1,
+            message: "Node operator must be a collector node to get a Voter object"
+        )
+
+        let clusterQCAdmin = self.borrowClusterQCAdmin()
+
+        return <-clusterQCAdmin.createVoter(nodeID: nodeStaker.id)
     }
 
     init () {
