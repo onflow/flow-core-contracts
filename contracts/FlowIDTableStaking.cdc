@@ -398,24 +398,32 @@ pub contract FlowIDTableStaking {
         /// but haven't been officially staked
         pub fun stakeUnstakedTokens(amount: UFix64) {
 
-            let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
+            if amount > 0.0 {
 
-            /// Add the removed tokens to tokens committed
-            nodeRecord.tokensCommitted.deposit(from: <-nodeRecord.tokensUnstaked.withdraw(amount: amount))
+                let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
 
-            emit TokensCommitted(nodeID: nodeRecord.id, amount: amount)
+                /// Add the removed tokens to tokens committed
+                nodeRecord.tokensCommitted.deposit(from: <-nodeRecord.tokensUnstaked.withdraw(amount: amount))
+
+                emit TokensCommitted(nodeID: nodeRecord.id, amount: amount)
+
+            }
         }
 
         /// Stake tokens that are in the tokensRewarded bucket 
         /// but haven't been officially staked
         pub fun stakeRewardedTokens(amount: UFix64) {
 
-            let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
+            if amount > 0.0 {
 
-            /// Add the removed tokens to tokens committed
-            nodeRecord.tokensCommitted.deposit(from: <-nodeRecord.tokensRewarded.withdraw(amount: amount))
+                let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
 
-            emit TokensCommitted(nodeID: nodeRecord.id, amount: amount)
+                /// Add the removed tokens to tokens committed
+                nodeRecord.tokensCommitted.deposit(from: <-nodeRecord.tokensRewarded.withdraw(amount: amount))
+
+                emit TokensCommitted(nodeID: nodeRecord.id, amount: amount)
+
+            }
         }
 
         /// Request amount tokens to be removed from staking
@@ -478,7 +486,7 @@ pub contract FlowIDTableStaking {
             }
 
             /// if the request can come from committed, withdraw from committed to unstaked
-            if nodeRecord.tokensCommitted.balance >= 0.0 {
+            if nodeRecord.tokensCommitted.balance > 0.0 {
 
                 /// withdraw the requested tokens from committed since they have not been staked yet
                 nodeRecord.tokensUnstaked.deposit(from: <-nodeRecord.tokensCommitted.withdraw(amount: nodeRecord.tokensCommitted.balance))
@@ -541,22 +549,30 @@ pub contract FlowIDTableStaking {
         /// Delegate tokens from the unstaked bucket to the node operator
         pub fun delegateUnstakedTokens(amount: UFix64) {
 
-            let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.nodeID)
+            if amount > 0.0 {
 
-            let delRecord = nodeRecord.borrowDelegatorRecord(self.id)
+                let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.nodeID)
 
-            delRecord.tokensCommitted.deposit(from: <-delRecord.tokensUnstaked.withdraw(amount: amount))
+                let delRecord = nodeRecord.borrowDelegatorRecord(self.id)
+
+                delRecord.tokensCommitted.deposit(from: <-delRecord.tokensUnstaked.withdraw(amount: amount))
+
+            }
 
         }
 
         /// Delegate tokens from the rewards bucket to the node operator
         pub fun delegateRewardedTokens(amount: UFix64) {
 
-            let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.nodeID)
+            if amount > 0.0 {
 
-            let delRecord = nodeRecord.borrowDelegatorRecord(self.id)
+                let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.nodeID)
 
-            delRecord.tokensCommitted.deposit(from: <-delRecord.tokensRewarded.withdraw(amount: amount))
+                let delRecord = nodeRecord.borrowDelegatorRecord(self.id)
+
+                delRecord.tokensCommitted.deposit(from: <-delRecord.tokensRewarded.withdraw(amount: amount))
+
+            }
 
         }
 
@@ -738,7 +754,11 @@ pub contract FlowIDTableStaking {
                     let delegatorReward <- flowTokenMinter.mintTokens(amount: delegatorRewardAmount)
 
                     // take the node operator's cut
-                    tokenReward.deposit(from: <-delegatorReward.withdraw(amount: delegatorReward.balance * FlowIDTableStaking.nodeDelegatingRewardCut))
+                    if (delegatorReward.balance * FlowIDTableStaking.nodeDelegatingRewardCut) > 0.0 {
+
+                        tokenReward.deposit(from: <-delegatorReward.withdraw(amount: delegatorReward.balance * FlowIDTableStaking.nodeDelegatingRewardCut))
+
+                    }
 
                     emit DelegatorRewardsPaid(nodeID: nodeRecord.id, delegatorID: delegator, amount: delegatorRewardAmount)
 
@@ -749,8 +769,12 @@ pub contract FlowIDTableStaking {
                     }
                 } 
 
-                /// Deposit the node Rewards into their tokensRewarded bucket
-                nodeRecord.tokensRewarded.deposit(from: <-tokenReward)  
+                if tokenReward.balance > 0.0 {
+                    /// Deposit the node Rewards into their tokensRewarded bucket
+                    nodeRecord.tokensRewarded.deposit(from: <-tokenReward)  
+                } else {
+                    destroy tokenReward
+                }
             }
         }
 

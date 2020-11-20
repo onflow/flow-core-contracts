@@ -21,6 +21,7 @@ const (
 	stakeUnstakedTokensFilename    = "idTableStaking/stake_unstaked_tokens.cdc"
 	stakeRewardedTokensFilename    = "idTableStaking/stake_rewarded_tokens.cdc"
 	unstakeTokensFilename          = "idTableStaking/request_unstake.cdc"
+	unstakeAllFilename             = "idTableStaking/unstake_all.cdc"
 	withdrawUnstakedTokensFilename = "idTableStaking/withdraw_unstaked_tokens.cdc"
 	withdrawRewardedTokensFilename = "idTableStaking/withdraw_rewarded_tokens.cdc"
 
@@ -152,6 +153,14 @@ func GenerateStakeRewardedTokensScript(env Environment) []byte {
 // for an existing node operator
 func GenerateUnstakeTokensScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + unstakeTokensFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+// GenerateUnstakeAllScript creates a script that makes an unstaking request
+// for an existing node operator to unstake all their tokens
+func GenerateUnstakeAllScript(env Environment) []byte {
+	code := assets.MustAssetString(filePath + unstakeAllFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
