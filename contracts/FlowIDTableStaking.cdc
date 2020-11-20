@@ -672,7 +672,9 @@ pub contract FlowIDTableStaking {
 
                 /// If the tokens that they have committed for the next epoch
                 /// do not meet the minimum requirements
-                if (totalTokensCommitted < FlowIDTableStaking.minimumStakeRequired[nodeRecord.role]!) || approvedNodeIDs[nodeID] == nil {
+                if (totalTokensCommitted == 0.0) || 
+                   (totalTokensCommitted < FlowIDTableStaking.minimumStakeRequired[nodeRecord.role]!) || 
+                   (approvedNodeIDs[nodeID] == nil) {
 
                     emit NodeRemovedAndRefunded(nodeID: nodeRecord.id, amount: nodeRecord.tokensCommitted.balance + nodeRecord.tokensStaked.balance)
 
@@ -898,7 +900,7 @@ pub contract FlowIDTableStaking {
         )
 
         assert (
-            FlowIDTableStaking.getTotalCommittedBalance(nodeID) > FlowIDTableStaking.minimumStakeRequired[nodeRecord.role]!,
+            FlowIDTableStaking.getTotalCommittedBalance(nodeID) >= FlowIDTableStaking.minimumStakeRequired[nodeRecord.role]!,
             message: "Cannot register a delegator if the node operator is below the minimum stake"
         )
 
@@ -933,9 +935,13 @@ pub contract FlowIDTableStaking {
         var proposedNodes: [String] = []
 
         for nodeID in FlowIDTableStaking.getNodeIDs() {
-            let delRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
+            let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
 
-            if self.getTotalCommittedBalance(nodeID) >= self.minimumStakeRequired[delRecord.role]!  {
+            // To be considered proposed, a node has to have tokens staked + committed equal or above the minimum
+            // Access nodes have a minimum of 0, so they need to be strictly greater than zero to be considered proposed
+            if ((self.getTotalCommittedBalance(nodeID) >= self.minimumStakeRequired[nodeRecord.role]!) && nodeRecord.role != UInt8(5)) ||
+               ((self.getTotalCommittedBalance(nodeID) > 0.0) && nodeRecord.role == UInt8(5))
+            {
                 proposedNodes.append(nodeID)
             }
         }
