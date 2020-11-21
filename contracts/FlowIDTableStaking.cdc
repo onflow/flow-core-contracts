@@ -743,6 +743,8 @@ pub contract FlowIDTableStaking {
                 /// Calculate the amount of tokens that this node operator receives
                 let rewardAmount = FlowIDTableStaking.epochTokenPayout * (nodeRecord.tokensStaked.balance / totalStaked)
 
+                if rewardAmount == 0.0 { continue }
+
                 /// Mint the tokens to reward the operator
                 let tokenReward <- flowTokenMinter.mintTokens(amount: rewardAmount)
 
