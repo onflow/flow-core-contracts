@@ -759,6 +759,8 @@ pub contract FlowIDTableStaking {
 
                     let delegatorRewardAmount = (FlowIDTableStaking.epochTokenPayout * (delRecord.tokensStaked.balance / totalStaked))
 
+                    if delegatorRewardAmount == 0.0 { continue }
+
                     let delegatorReward <- flowTokenMinter.mintTokens(amount: delegatorRewardAmount)
 
                     // take the node operator's cut
