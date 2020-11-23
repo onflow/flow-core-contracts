@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	emulator "github.com/dapperlabs/flow-emulator"
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	ft_templates "github.com/onflow/flow-ft/lib/go/templates"
@@ -15,6 +14,8 @@ import (
 	"github.com/onflow/flow-go-sdk/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	emulator "github.com/dapperlabs/flow-emulator"
 
 	"github.com/onflow/flow-core-contracts/lib/go/contracts"
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
@@ -1743,6 +1744,47 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 		}
 
 		// Check that that admin received the unlock limit capability
+	})
+
+	t.Run("Should be able to create new shared accounts (with locked account having only 1 x 1000 weight) as the custody provider and give the admin the admin capability", func(t *testing.T) {
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GenerateCustodyCreateAccountWithLeaseAccountScript(env)).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(custodyAddress).
+			AddRawArgument(jsoncdc.MustEncode(adminPublicKey)).
+			AddRawArgument(jsoncdc.MustEncode(joshPublicKey))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, custodyAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), custodySigner},
+			false,
+		)
+
+		createAccountsTxResult, err := b.GetTransactionResult(tx.ID())
+		assert.NoError(t, err)
+		assert.Equal(t, flow.TransactionStatusSealed, createAccountsTxResult.Status)
+
+		for _, event := range createAccountsTxResult.Events {
+			if event.Type == fmt.Sprintf("A.%s.LockedTokens.SharedAccountRegistered", lockedTokensAddress.Hex()) {
+				// needs work
+				sharedAccountCreatedEvent := sharedAccountRegisteredEvent(event)
+				joshSharedAddress = sharedAccountCreatedEvent.Address()
+				break
+			}
+		}
+
+		for _, event := range createAccountsTxResult.Events {
+			if event.Type == fmt.Sprintf("A.%s.LockedTokens.UnlockedAccountRegistered", lockedTokensAddress.Hex()) {
+				// needs work
+				unlockedAccountCreatedEvent := unlockedAccountRegisteredEvent(event)
+				joshAddress = unlockedAccountCreatedEvent.Address()
+				break
+			}
+		}
 	})
 
 	t.Run("Should be able to increase the unlock limit for the new accounts", func(t *testing.T) {
