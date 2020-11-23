@@ -61,6 +61,7 @@
 // ../../../transactions/idTableStaking/stake_new_tokens.cdc (813B)
 // ../../../transactions/idTableStaking/stake_rewarded_tokens.cdc (552B)
 // ../../../transactions/idTableStaking/stake_unstaked_tokens.cdc (531B)
+// ../../../transactions/idTableStaking/unstake_all.cdc (513B)
 // ../../../transactions/idTableStaking/withdraw_reward_tokens.cdc (826B)
 // ../../../transactions/idTableStaking/withdraw_unstaked_tokens.cdc (826B)
 // ../../../transactions/inspect_field.cdc (122B)
@@ -69,6 +70,7 @@
 // ../../../transactions/lockedTokens/admin/admin_deposit_account_creator.cdc (879B)
 // ../../../transactions/lockedTokens/admin/check_main_registration.cdc (984B)
 // ../../../transactions/lockedTokens/admin/check_shared_registration.cdc (630B)
+// ../../../transactions/lockedTokens/admin/custody_create_account_with_lease_account.cdc (3.084kB)
 // ../../../transactions/lockedTokens/admin/custody_create_only_shared_account.cdc (3.145kB)
 // ../../../transactions/lockedTokens/admin/custody_create_shared_accounts.cdc (3.196kB)
 // ../../../transactions/lockedTokens/admin/custody_setup_account_creator.cdc (643B)
@@ -1398,6 +1400,26 @@ func TransactionsIdtablestakingStake_unstaked_tokensCdc() (*asset, error) {
 	return a, nil
 }
 
+var _TransactionsIdtablestakingUnstake_allCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x8c\x91\x41\x6b\xc2\x40\x10\x85\xef\xf9\x15\x83\x87\x12\x2f\xb1\x67\x69\x2b\x69\x63\x41\x10\x29\x26\x97\x1e\xc7\xcd\x44\xb7\x6e\x76\xc2\x64\x52\x05\xf1\xbf\x97\x24\x1a\x5a\x2c\xa5\x73\xd9\x39\xcc\xbc\xf9\xf6\x3d\x5b\x56\x2c\x0a\xaf\x8e\x0f\x8b\x24\xc3\x8d\xa3\x54\x71\x6f\xfd\x16\x0a\xe1\x12\xee\x8f\x8b\x64\xbe\xca\x16\xd9\x7b\x16\x3f\x2f\xe7\x71\x92\xac\xe7\x69\x1a\x04\x81\x0a\xfa\x1a\x8d\x5a\xf6\x70\x0a\x02\x00\x80\xc9\x04\x96\x6c\xd0\xc1\x27\x8a\x6d\x95\xa0\x60\x01\x04\xa1\x82\x84\xbc\x21\x50\x06\xdd\x11\x78\xce\x09\x78\xf3\x41\x46\xbb\x45\x47\x0a\xb5\xe2\x9e\x64\x4d\xc5\x14\xee\x6e\x61\xa2\x15\xe7\x5d\x4f\xd2\xdf\xaa\x84\x2a\x14\x0a\xd1\x18\x9d\x42\xdc\xe8\x2e\x36\x86\x1b\xaf\x63\x38\x75\x03\x17\xa0\x0d\x8b\xf0\xe1\x3f\x10\x6d\xd5\xe4\x8a\x68\x20\x81\x47\x68\xe5\xa3\x5e\xe3\xe1\x6f\xac\xa7\xb0\xf5\x6b\xfa\x8b\x91\xdf\x86\x52\x65\xc1\x2d\xbd\xa1\xee\xc6\xc3\xd1\xb6\x66\x33\xa8\xd0\x5b\x13\x8e\x5e\xb8\x71\x39\x78\xd6\x2b\xfa\x0f\xf0\xfa\x92\x0d\xe6\xa5\xf5\xa3\x71\xef\xc5\xb9\x7f\xe8\x48\xa6\x51\xba\xa6\x71\xfb\x9f\xa8\xf1\x5d\x1f\x3b\x17\x0e\xab\xe7\xaf\x00\x00\x00\xff\xff\xd1\x51\x7b\x27\x01\x02\x00\x00"
+
+func TransactionsIdtablestakingUnstake_allCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_TransactionsIdtablestakingUnstake_allCdc,
+		"../../../transactions/idTableStaking/unstake_all.cdc",
+	)
+}
+
+func TransactionsIdtablestakingUnstake_allCdc() (*asset, error) {
+	bytes, err := TransactionsIdtablestakingUnstake_allCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "../../../transactions/idTableStaking/unstake_all.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x84, 0x9c, 0xa9, 0x97, 0x53, 0x7, 0x36, 0xf0, 0x21, 0x96, 0x21, 0x8c, 0xf0, 0x38, 0x21, 0x9d, 0x94, 0xec, 0xb4, 0xb5, 0x16, 0xf, 0x4d, 0x4d, 0xdc, 0x72, 0xf, 0xdb, 0xfa, 0x21, 0xf9, 0xd8}}
+	return a, nil
+}
+
 var _TransactionsIdtablestakingWithdraw_reward_tokensCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x9c\x92\xc1\x8e\xd3\x40\x0c\x86\xef\x79\x0a\x6b\x0f\xa8\x3d\x90\x70\x40\x1c\xaa\x85\x55\xa1\xad\x54\x51\x75\x51\x1b\x40\x1c\xdd\x19\x67\x3b\x34\x19\x47\x8e\x43\x2a\xa1\x7d\x77\x34\x49\x13\x52\x51\x21\x84\x2f\x4e\x94\xff\xb7\xbf\xd8\x76\x45\xc9\xa2\xb0\xca\xb9\x59\x2f\x52\x3c\xe4\xb4\x57\x3c\x39\xff\x04\x99\x70\x01\xaf\xce\xeb\xc5\x72\x9b\xae\xd3\x6f\xe9\xfc\xfd\x66\x39\x5f\x2c\x76\xcb\xfd\x3e\x1a\xb9\x52\x3e\x91\xef\xc5\xab\xcd\xe3\xd7\xf4\xf1\xe3\x72\xdb\x0b\xa3\x48\x05\x7d\x85\x46\x1d\xfb\x09\x16\x5c\x7b\x9d\xc1\xe7\x95\x3b\xbf\x79\x3d\x85\x9f\x51\x04\x00\x90\x24\xb0\x61\x83\x39\xfc\x40\x71\x01\x01\x32\x16\x40\x10\xca\x48\xc8\x1b\x02\x65\xd0\x23\x81\x67\x4b\xc0\x87\xef\x64\xb4\x35\xe6\xa4\x50\x29\x9e\x48\x76\x94\xcd\xe0\xc5\x9f\x7f\x11\x6f\xd9\xb6\xcf\x24\xd1\x60\xc9\x7a\xec\xdf\xae\xf6\x35\xfe\x82\x75\xae\x9d\xae\x14\x2a\x51\x68\x82\xc6\xe8\x0c\xe6\xb5\x1e\xe7\xc6\x04\xfa\x40\x0d\x97\x48\x12\x38\xb0\x08\x37\xff\x02\x1b\xa2\xa2\x3c\x8b\x07\x62\x78\x0b\xa1\x7c\xdc\xd5\xb8\xff\x3b\xfe\xbb\x49\x98\xf1\xec\xc6\xa6\x46\xa2\xbd\xb2\xe0\x13\x7d\x42\x3d\x4e\x87\xa6\x21\x1e\x1e\xa0\x44\xef\xcc\xe4\xee\x03\xd7\xb9\x05\xcf\xda\xa3\x5f\x81\x57\x97\xe5\xa3\x2d\x9c\xbf\x9b\x46\xd7\xe4\xe3\xc1\xdd\x82\x1f\x4d\xb1\xc7\x4d\xaa\x0e\x29\x19\xbc\xed\xe7\xff\xa3\x0b\xe7\x05\xad\xbf\x47\x7b\xee\x12\x9d\xc9\xd4\x4a\xfd\x41\xdd\x04\x8e\x2d\x95\x5c\x39\xbd\x80\xdd\xbf\xbc\x5e\x46\xdc\x38\x3d\x5a\xc1\x66\x47\x0d\x8a\x25\xdb\xfa\xaa\xe1\x66\xbb\x3c\x1d\xfa\x3e\xff\x0a\x00\x00\xff\xff\x41\x8b\x9d\xe3\x3a\x03\x00\x00"
 
 func TransactionsIdtablestakingWithdraw_reward_tokensCdcBytes() ([]byte, error) {
@@ -1555,6 +1577,26 @@ func TransactionsLockedtokensAdminCheck_shared_registrationCdc() (*asset, error)
 
 	info := bindataFileInfo{name: "../../../transactions/lockedTokens/admin/check_shared_registration.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xda, 0xb6, 0x7e, 0x98, 0xe7, 0x40, 0x4d, 0xb7, 0x6c, 0xd, 0x16, 0xb, 0xee, 0x68, 0x21, 0xce, 0x15, 0xb6, 0x5f, 0x9, 0xfb, 0x96, 0x47, 0x61, 0x89, 0x5e, 0xc2, 0x29, 0x54, 0xaa, 0x34, 0xb8}}
+	return a, nil
+}
+
+var _TransactionsLockedtokensAdminCustody_create_account_with_lease_accountCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xc4\x56\x4b\x6f\xe2\x48\x10\xbe\xfb\x57\x94\x72\x58\x19\x89\x60\xf6\xb6\xb2\x08\x11\x4b\xc8\x6e\x14\x26\xa0\x84\x4c\x0e\xa3\x39\x34\x76\x01\x2d\x4c\xb7\xa7\xdd\x86\x41\x11\xff\x7d\xd4\xed\x67\xfb\x91\x10\x4d\xa4\xf1\x81\x03\xfd\x7d\x55\xf5\xd5\xa3\xbb\xe8\x2e\xe4\x42\xc2\x6d\xc0\x0f\x0b\xbe\x45\x06\x2b\xc1\x77\xd0\xff\x79\x3b\x9d\xbd\x2c\x66\xf7\x93\x87\xd1\xcd\xcd\xe3\xe4\xe9\xc9\xca\x80\x31\x5b\xd3\x65\x80\x26\xf8\xf9\xe1\xbf\xbb\x7f\xa7\x93\x26\xc2\x94\x7b\x5b\xf4\x35\x3c\xca\xf0\xd3\xd9\xf8\x7e\x72\x63\xa0\x2d\xc7\x71\x60\x21\x08\x8b\x88\x27\x29\x67\x20\x37\x44\x02\x01\x2f\x8e\x24\xf7\x8f\x10\x0a\xbe\xa7\x3e\x0a\x38\xf0\x38\xf0\x21\xa2\x6b\xa6\x29\x92\x83\x27\x90\x48\x04\x02\xd1\x86\x08\xf4\x81\x78\x1e\x8f\x99\x04\xc2\x7c\x20\x0c\x62\x16\xe8\x10\x34\x3c\x3b\x5b\x71\x01\x04\xe2\x08\x85\x65\xc9\xc2\xab\x6d\x01\x00\xac\xe2\x20\x18\xf9\x3b\xca\xe6\xf1\x32\xa0\xde\x3d\x1e\x5d\xf8\xf6\x7c\xc7\xe4\x3f\xdf\xbb\xe0\x38\xf0\x82\x74\xbd\x91\x2e\xfc\xdd\xef\xf7\x73\xc2\x73\x84\xe2\x1c\x7c\x07\xe0\xd5\xd2\xac\x50\x60\x48\x04\xda\xa9\xc4\x79\xaa\xd0\x85\x51\x2c\x37\xa3\x24\xd0\x4e\x06\x56\x5f\x80\x32\xd5\x98\x9e\xc2\x55\x19\x6b\x87\xe4\xa8\xe8\x15\x7b\x1d\x83\xaf\x24\x7f\x8c\x9d\xd3\x0d\xd7\x3d\xe2\xfb\xb9\x5c\xbb\x9e\xb1\x12\xaf\xe4\xb2\xce\x32\xd2\xd6\x31\xb5\xee\x49\x1c\xc8\x31\x09\xc9\x92\x06\x54\x1e\xe1\xca\x0c\x21\xc7\xaa\xaf\x17\x50\xb6\x1d\xfc\x95\xf7\x71\xef\xab\x22\x0f\x6d\x27\x14\x74\x4f\x24\x3a\xab\xec\x44\x1f\x74\x41\x12\xb1\x46\xe9\x82\x13\x49\x2e\xc8\xba\x0a\xe8\x18\xd6\xaf\xaf\x21\x24\x8c\x7a\xf6\xc5\x58\xb7\x1f\xe3\x12\x94\x43\x3d\x37\x90\xcc\x82\xa6\x81\x97\x87\x7b\x51\x51\x13\x14\x83\xf0\x85\x30\xb2\x46\x01\x83\x4b\x63\x3c\x7a\x49\x27\x4f\x6b\x40\x5b\x67\xc2\xad\x26\xa4\xb5\x36\x11\xd9\xa3\x3d\xb8\xac\x7b\xec\x82\xe4\xae\xe9\xb3\xee\xed\x29\x49\xc8\x9c\xc8\x4d\x45\x82\x2c\xa1\x3e\x56\x97\x77\x5c\x0e\x6d\x83\xa4\xbe\x77\x18\xf3\xa4\xac\x2a\xc8\x6e\x8d\x9b\xd5\xf6\x7c\xa1\xb9\x89\xce\x5b\xd5\xd6\xfa\x61\x97\x56\xaf\xbd\xd4\x1a\xf7\x3f\x0f\xfc\xd6\x1a\x2f\x0a\x84\x9d\x94\x69\xe4\xfb\x02\xa3\xc8\xad\x8f\x99\xfa\xbb\x6b\xe4\xde\x6d\xa9\x44\xcb\xd0\xe9\x76\x30\x92\x34\xb8\x2c\x85\xd8\x05\xe3\xac\xd6\x21\xa5\x58\x4b\x19\x2b\xb2\xde\xe2\xb5\xa1\xf0\x25\x4b\xaf\x0d\xb5\x49\x99\x77\x6c\xc5\x4f\x43\xfb\x6d\x40\x72\x67\xe8\x40\x9a\xcb\xdd\x1c\x75\x53\xa1\xf4\xc5\xf5\xa7\xda\x39\xb9\x35\x3f\xb7\x99\xcf\xbc\xbb\x92\x6e\xae\xdc\xf7\xea\x41\x35\xda\xbc\xf9\x1a\x4b\x73\x33\x56\xcd\xcc\x05\x5c\x55\xcd\x98\x49\x5b\x72\x21\xf8\xa1\x31\x6d\xa6\xa1\xa1\xad\x36\x84\x46\xad\x26\xf0\x43\x6a\x13\xf7\x20\x70\x85\x02\x99\x87\x4a\x63\x93\x51\x43\x6a\xc3\xb9\x1a\xc6\xec\xb5\x34\x5a\xe4\xbd\xd9\xcd\x56\x90\x2a\xbc\xf2\x32\x96\x06\x5d\xb7\x85\xdb\xd8\x9f\xa5\x20\x1d\x07\x66\x7b\x14\x82\xfa\x08\x72\x83\xe0\xe3\x4a\x3f\x42\xc5\x36\x27\xd0\x43\xba\x2f\xd5\xc3\x8c\x30\x66\xaa\x13\x6c\x27\xd4\xd3\x54\x3c\x81\x8f\x29\xcd\xcc\x6d\xd9\x6f\xba\x74\x31\x3c\xe4\x3e\x92\x95\x6d\x47\xc4\x36\xca\xfe\xf3\x13\x05\x11\x90\xa8\xd8\xc3\x9a\x43\x49\x06\x6b\xc4\x8e\x8f\x18\xf1\x58\x78\xf8\x6a\xac\x9a\xbd\x2c\xa4\x53\x65\xb8\x5a\x63\x37\x27\xe9\x77\x9e\x04\x23\xe1\x61\xbc\x04\xc6\xc5\x8e\x04\x85\x70\xca\xd4\xf6\xa9\xb6\x39\x95\x93\x98\xd1\x1f\x31\x42\x58\xb6\xf1\xb9\x5a\x93\x44\xde\x9e\xa7\xb8\x65\xc1\x29\xc9\x53\xbf\x27\xeb\x64\xfd\x0a\x00\x00\xff\xff\x94\x54\x63\x74\x0c\x0c\x00\x00"
+
+func TransactionsLockedtokensAdminCustody_create_account_with_lease_accountCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_TransactionsLockedtokensAdminCustody_create_account_with_lease_accountCdc,
+		"../../../transactions/lockedTokens/admin/custody_create_account_with_lease_account.cdc",
+	)
+}
+
+func TransactionsLockedtokensAdminCustody_create_account_with_lease_accountCdc() (*asset, error) {
+	bytes, err := TransactionsLockedtokensAdminCustody_create_account_with_lease_accountCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "../../../transactions/lockedTokens/admin/custody_create_account_with_lease_account.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x2c, 0xe8, 0xa3, 0xa9, 0x77, 0xa3, 0x34, 0x69, 0x4d, 0xa4, 0xf0, 0xef, 0xef, 0x64, 0x5e, 0x6c, 0x19, 0xcf, 0x48, 0x40, 0xfd, 0xf, 0xd8, 0xa9, 0x1c, 0x71, 0xe5, 0xcb, 0xf7, 0x85, 0xda, 0xc3}}
 	return a, nil
 }
 
@@ -2449,115 +2491,117 @@ func AssetNames() []string {
 
 // _bindata is a table, holding each asset generator, mapped to its name.
 var _bindata = map[string]func() (*asset, error){
-	"../../../transactions/FlowServiceAccount/get_account_creators.cdc":                   TransactionsFlowserviceaccountGet_account_creatorsCdc,
-	"../../../transactions/FlowServiceAccount/get_account_fee.cdc":                        TransactionsFlowserviceaccountGet_account_feeCdc,
-	"../../../transactions/FlowServiceAccount/get_tx_fee.cdc":                             TransactionsFlowserviceaccountGet_tx_feeCdc,
-	"../../../transactions/flowToken/burn_tokens.cdc":                                     TransactionsFlowtokenBurn_tokensCdc,
-	"../../../transactions/flowToken/create_forwarder.cdc":                                TransactionsFlowtokenCreate_forwarderCdc,
-	"../../../transactions/flowToken/mint_tokens.cdc":                                     TransactionsFlowtokenMint_tokensCdc,
-	"../../../transactions/flowToken/scripts/get_balance.cdc":                             TransactionsFlowtokenScriptsGet_balanceCdc,
-	"../../../transactions/flowToken/scripts/get_supply.cdc":                              TransactionsFlowtokenScriptsGet_supplyCdc,
-	"../../../transactions/flowToken/setup_account.cdc":                                   TransactionsFlowtokenSetup_accountCdc,
-	"../../../transactions/flowToken/transfer_tokens.cdc":                                 TransactionsFlowtokenTransfer_tokensCdc,
-	"../../../transactions/idTableStaking/admin/change_cut.cdc":                           TransactionsIdtablestakingAdminChange_cutCdc,
-	"../../../transactions/idTableStaking/admin/change_minimums.cdc":                      TransactionsIdtablestakingAdminChange_minimumsCdc,
-	"../../../transactions/idTableStaking/admin/change_payout.cdc":                        TransactionsIdtablestakingAdminChange_payoutCdc,
-	"../../../transactions/idTableStaking/admin/end_epoch.cdc":                            TransactionsIdtablestakingAdminEnd_epochCdc,
-	"../../../transactions/idTableStaking/admin/end_staking.cdc":                          TransactionsIdtablestakingAdminEnd_stakingCdc,
-	"../../../transactions/idTableStaking/admin/move_tokens.cdc":                          TransactionsIdtablestakingAdminMove_tokensCdc,
-	"../../../transactions/idTableStaking/admin/pay_rewards.cdc":                          TransactionsIdtablestakingAdminPay_rewardsCdc,
-	"../../../transactions/idTableStaking/admin/remove_node.cdc":                          TransactionsIdtablestakingAdminRemove_nodeCdc,
-	"../../../transactions/idTableStaking/admin/transfer_minter_deploy.cdc":               TransactionsIdtablestakingAdminTransfer_minter_deployCdc,
-	"../../../transactions/idTableStaking/delegation/del_request_unstaking.cdc":           TransactionsIdtablestakingDelegationDel_request_unstakingCdc,
-	"../../../transactions/idTableStaking/delegation/del_stake_new_tokens.cdc":            TransactionsIdtablestakingDelegationDel_stake_new_tokensCdc,
-	"../../../transactions/idTableStaking/delegation/del_stake_rewarded.cdc":              TransactionsIdtablestakingDelegationDel_stake_rewardedCdc,
-	"../../../transactions/idTableStaking/delegation/del_stake_unstaked.cdc":              TransactionsIdtablestakingDelegationDel_stake_unstakedCdc,
-	"../../../transactions/idTableStaking/delegation/del_withdraw_reward_tokens.cdc":      TransactionsIdtablestakingDelegationDel_withdraw_reward_tokensCdc,
-	"../../../transactions/idTableStaking/delegation/del_withdraw_unstaked_tokens.cdc":    TransactionsIdtablestakingDelegationDel_withdraw_unstaked_tokensCdc,
-	"../../../transactions/idTableStaking/delegation/get_delegator_committed.cdc":         TransactionsIdtablestakingDelegationGet_delegator_committedCdc,
-	"../../../transactions/idTableStaking/delegation/get_delegator_info.cdc":              TransactionsIdtablestakingDelegationGet_delegator_infoCdc,
-	"../../../transactions/idTableStaking/delegation/get_delegator_request.cdc":           TransactionsIdtablestakingDelegationGet_delegator_requestCdc,
-	"../../../transactions/idTableStaking/delegation/get_delegator_rewarded.cdc":          TransactionsIdtablestakingDelegationGet_delegator_rewardedCdc,
-	"../../../transactions/idTableStaking/delegation/get_delegator_staked.cdc":            TransactionsIdtablestakingDelegationGet_delegator_stakedCdc,
-	"../../../transactions/idTableStaking/delegation/get_delegator_unstaked.cdc":          TransactionsIdtablestakingDelegationGet_delegator_unstakedCdc,
-	"../../../transactions/idTableStaking/delegation/get_delegator_unstaking.cdc":         TransactionsIdtablestakingDelegationGet_delegator_unstakingCdc,
-	"../../../transactions/idTableStaking/delegation/get_delegator_unstaking_request.cdc": TransactionsIdtablestakingDelegationGet_delegator_unstaking_requestCdc,
-	"../../../transactions/idTableStaking/delegation/register_delegator.cdc":              TransactionsIdtablestakingDelegationRegister_delegatorCdc,
-	"../../../transactions/idTableStaking/get_current_table.cdc":                          TransactionsIdtablestakingGet_current_tableCdc,
-	"../../../transactions/idTableStaking/get_cut_percentage.cdc":                         TransactionsIdtablestakingGet_cut_percentageCdc,
-	"../../../transactions/idTableStaking/get_node_committed_tokens.cdc":                  TransactionsIdtablestakingGet_node_committed_tokensCdc,
-	"../../../transactions/idTableStaking/get_node_info.cdc":                              TransactionsIdtablestakingGet_node_infoCdc,
-	"../../../transactions/idTableStaking/get_node_initial_weight.cdc":                    TransactionsIdtablestakingGet_node_initial_weightCdc,
-	"../../../transactions/idTableStaking/get_node_networking_addr.cdc":                   TransactionsIdtablestakingGet_node_networking_addrCdc,
-	"../../../transactions/idTableStaking/get_node_networking_key.cdc":                    TransactionsIdtablestakingGet_node_networking_keyCdc,
-	"../../../transactions/idTableStaking/get_node_rewarded_tokens.cdc":                   TransactionsIdtablestakingGet_node_rewarded_tokensCdc,
-	"../../../transactions/idTableStaking/get_node_role.cdc":                              TransactionsIdtablestakingGet_node_roleCdc,
-	"../../../transactions/idTableStaking/get_node_staked_tokens.cdc":                     TransactionsIdtablestakingGet_node_staked_tokensCdc,
-	"../../../transactions/idTableStaking/get_node_staking_key.cdc":                       TransactionsIdtablestakingGet_node_staking_keyCdc,
-	"../../../transactions/idTableStaking/get_node_total_commitment.cdc":                  TransactionsIdtablestakingGet_node_total_commitmentCdc,
-	"../../../transactions/idTableStaking/get_node_type_ratio.cdc":                        TransactionsIdtablestakingGet_node_type_ratioCdc,
-	"../../../transactions/idTableStaking/get_node_unstaked_tokens.cdc":                   TransactionsIdtablestakingGet_node_unstaked_tokensCdc,
-	"../../../transactions/idTableStaking/get_node_unstaking_request.cdc":                 TransactionsIdtablestakingGet_node_unstaking_requestCdc,
-	"../../../transactions/idTableStaking/get_node_unstaking_tokens.cdc":                  TransactionsIdtablestakingGet_node_unstaking_tokensCdc,
-	"../../../transactions/idTableStaking/get_proposed_table.cdc":                         TransactionsIdtablestakingGet_proposed_tableCdc,
-	"../../../transactions/idTableStaking/get_stake_requirements.cdc":                     TransactionsIdtablestakingGet_stake_requirementsCdc,
-	"../../../transactions/idTableStaking/get_table.cdc":                                  TransactionsIdtablestakingGet_tableCdc,
-	"../../../transactions/idTableStaking/get_total_staked.cdc":                           TransactionsIdtablestakingGet_total_stakedCdc,
-	"../../../transactions/idTableStaking/get_total_staked_by_type.cdc":                   TransactionsIdtablestakingGet_total_staked_by_typeCdc,
-	"../../../transactions/idTableStaking/get_weekly_payout.cdc":                          TransactionsIdtablestakingGet_weekly_payoutCdc,
-	"../../../transactions/idTableStaking/register_node.cdc":                              TransactionsIdtablestakingRegister_nodeCdc,
-	"../../../transactions/idTableStaking/request_unstake.cdc":                            TransactionsIdtablestakingRequest_unstakeCdc,
-	"../../../transactions/idTableStaking/stake_new_tokens.cdc":                           TransactionsIdtablestakingStake_new_tokensCdc,
-	"../../../transactions/idTableStaking/stake_rewarded_tokens.cdc":                      TransactionsIdtablestakingStake_rewarded_tokensCdc,
-	"../../../transactions/idTableStaking/stake_unstaked_tokens.cdc":                      TransactionsIdtablestakingStake_unstaked_tokensCdc,
-	"../../../transactions/idTableStaking/withdraw_reward_tokens.cdc":                     TransactionsIdtablestakingWithdraw_reward_tokensCdc,
-	"../../../transactions/idTableStaking/withdraw_unstaked_tokens.cdc":                   TransactionsIdtablestakingWithdraw_unstaked_tokensCdc,
-	"../../../transactions/inspect_field.cdc":                                             TransactionsInspect_fieldCdc,
-	"../../../transactions/lockedTokens/admin/admin_create_shared_accounts.cdc":           TransactionsLockedtokensAdminAdmin_create_shared_accountsCdc,
-	"../../../transactions/lockedTokens/admin/admin_deploy_contract.cdc":                  TransactionsLockedtokensAdminAdmin_deploy_contractCdc,
-	"../../../transactions/lockedTokens/admin/admin_deposit_account_creator.cdc":          TransactionsLockedtokensAdminAdmin_deposit_account_creatorCdc,
-	"../../../transactions/lockedTokens/admin/check_main_registration.cdc":                TransactionsLockedtokensAdminCheck_main_registrationCdc,
-	"../../../transactions/lockedTokens/admin/check_shared_registration.cdc":              TransactionsLockedtokensAdminCheck_shared_registrationCdc,
-	"../../../transactions/lockedTokens/admin/custody_create_only_shared_account.cdc":     TransactionsLockedtokensAdminCustody_create_only_shared_accountCdc,
-	"../../../transactions/lockedTokens/admin/custody_create_shared_accounts.cdc":         TransactionsLockedtokensAdminCustody_create_shared_accountsCdc,
-	"../../../transactions/lockedTokens/admin/custody_setup_account_creator.cdc":          TransactionsLockedtokensAdminCustody_setup_account_creatorCdc,
-	"../../../transactions/lockedTokens/admin/deposit_locked_tokens.cdc":                  TransactionsLockedtokensAdminDeposit_locked_tokensCdc,
-	"../../../transactions/lockedTokens/admin/unlock_tokens.cdc":                          TransactionsLockedtokensAdminUnlock_tokensCdc,
-	"../../../transactions/lockedTokens/delegator/delegate_new_tokens.cdc":                TransactionsLockedtokensDelegatorDelegate_new_tokensCdc,
-	"../../../transactions/lockedTokens/delegator/delegate_rewarded_tokens.cdc":           TransactionsLockedtokensDelegatorDelegate_rewarded_tokensCdc,
-	"../../../transactions/lockedTokens/delegator/delegate_unstaked_tokens.cdc":           TransactionsLockedtokensDelegatorDelegate_unstaked_tokensCdc,
-	"../../../transactions/lockedTokens/delegator/get_delegator_id.cdc":                   TransactionsLockedtokensDelegatorGet_delegator_idCdc,
-	"../../../transactions/lockedTokens/delegator/get_delegator_node_id.cdc":              TransactionsLockedtokensDelegatorGet_delegator_node_idCdc,
-	"../../../transactions/lockedTokens/delegator/register_delegator.cdc":                 TransactionsLockedtokensDelegatorRegister_delegatorCdc,
-	"../../../transactions/lockedTokens/delegator/request_unstaking.cdc":                  TransactionsLockedtokensDelegatorRequest_unstakingCdc,
-	"../../../transactions/lockedTokens/delegator/withdraw_rewarded_tokens.cdc":           TransactionsLockedtokensDelegatorWithdraw_rewarded_tokensCdc,
-	"../../../transactions/lockedTokens/delegator/withdraw_unstaked_tokens.cdc":           TransactionsLockedtokensDelegatorWithdraw_unstaked_tokensCdc,
-	"../../../transactions/lockedTokens/staker/get_node_id.cdc":                           TransactionsLockedtokensStakerGet_node_idCdc,
-	"../../../transactions/lockedTokens/staker/register_node.cdc":                         TransactionsLockedtokensStakerRegister_nodeCdc,
-	"../../../transactions/lockedTokens/staker/request_unstaking.cdc":                     TransactionsLockedtokensStakerRequest_unstakingCdc,
-	"../../../transactions/lockedTokens/staker/stake_new_tokens.cdc":                      TransactionsLockedtokensStakerStake_new_tokensCdc,
-	"../../../transactions/lockedTokens/staker/stake_rewarded_tokens.cdc":                 TransactionsLockedtokensStakerStake_rewarded_tokensCdc,
-	"../../../transactions/lockedTokens/staker/stake_unstaked_tokens.cdc":                 TransactionsLockedtokensStakerStake_unstaked_tokensCdc,
-	"../../../transactions/lockedTokens/staker/unstake_all.cdc":                           TransactionsLockedtokensStakerUnstake_allCdc,
-	"../../../transactions/lockedTokens/staker/withdraw_rewarded_tokens.cdc":              TransactionsLockedtokensStakerWithdraw_rewarded_tokensCdc,
-	"../../../transactions/lockedTokens/staker/withdraw_unstaked_tokens.cdc":              TransactionsLockedtokensStakerWithdraw_unstaked_tokensCdc,
-	"../../../transactions/lockedTokens/user/deposit_tokens.cdc":                          TransactionsLockedtokensUserDeposit_tokensCdc,
-	"../../../transactions/lockedTokens/user/get_locked_account_address.cdc":              TransactionsLockedtokensUserGet_locked_account_addressCdc,
-	"../../../transactions/lockedTokens/user/get_locked_account_balance.cdc":              TransactionsLockedtokensUserGet_locked_account_balanceCdc,
-	"../../../transactions/lockedTokens/user/get_unlock_limit.cdc":                        TransactionsLockedtokensUserGet_unlock_limitCdc,
-	"../../../transactions/lockedTokens/user/withdraw_tokens.cdc":                         TransactionsLockedtokensUserWithdraw_tokensCdc,
-	"../../../transactions/stakingProxy/add_node_info.cdc":                                TransactionsStakingproxyAdd_node_infoCdc,
-	"../../../transactions/stakingProxy/get_node_info.cdc":                                TransactionsStakingproxyGet_node_infoCdc,
-	"../../../transactions/stakingProxy/register_node.cdc":                                TransactionsStakingproxyRegister_nodeCdc,
-	"../../../transactions/stakingProxy/remove_node_info.cdc":                             TransactionsStakingproxyRemove_node_infoCdc,
-	"../../../transactions/stakingProxy/remove_staking_proxy.cdc":                         TransactionsStakingproxyRemove_staking_proxyCdc,
-	"../../../transactions/stakingProxy/request_unstaking.cdc":                            TransactionsStakingproxyRequest_unstakingCdc,
-	"../../../transactions/stakingProxy/setup_node_account.cdc":                           TransactionsStakingproxySetup_node_accountCdc,
-	"../../../transactions/stakingProxy/stake_new_tokens.cdc":                             TransactionsStakingproxyStake_new_tokensCdc,
-	"../../../transactions/stakingProxy/stake_unstaked_tokens.cdc":                        TransactionsStakingproxyStake_unstaked_tokensCdc,
-	"../../../transactions/stakingProxy/unstake_all.cdc":                                  TransactionsStakingproxyUnstake_allCdc,
-	"../../../transactions/stakingProxy/withdraw_rewards.cdc":                             TransactionsStakingproxyWithdraw_rewardsCdc,
-	"../../../transactions/stakingProxy/withdraw_unstaked.cdc":                            TransactionsStakingproxyWithdraw_unstakedCdc,
+	"../../../transactions/FlowServiceAccount/get_account_creators.cdc":                      TransactionsFlowserviceaccountGet_account_creatorsCdc,
+	"../../../transactions/FlowServiceAccount/get_account_fee.cdc":                           TransactionsFlowserviceaccountGet_account_feeCdc,
+	"../../../transactions/FlowServiceAccount/get_tx_fee.cdc":                                TransactionsFlowserviceaccountGet_tx_feeCdc,
+	"../../../transactions/flowToken/burn_tokens.cdc":                                        TransactionsFlowtokenBurn_tokensCdc,
+	"../../../transactions/flowToken/create_forwarder.cdc":                                   TransactionsFlowtokenCreate_forwarderCdc,
+	"../../../transactions/flowToken/mint_tokens.cdc":                                        TransactionsFlowtokenMint_tokensCdc,
+	"../../../transactions/flowToken/scripts/get_balance.cdc":                                TransactionsFlowtokenScriptsGet_balanceCdc,
+	"../../../transactions/flowToken/scripts/get_supply.cdc":                                 TransactionsFlowtokenScriptsGet_supplyCdc,
+	"../../../transactions/flowToken/setup_account.cdc":                                      TransactionsFlowtokenSetup_accountCdc,
+	"../../../transactions/flowToken/transfer_tokens.cdc":                                    TransactionsFlowtokenTransfer_tokensCdc,
+	"../../../transactions/idTableStaking/admin/change_cut.cdc":                              TransactionsIdtablestakingAdminChange_cutCdc,
+	"../../../transactions/idTableStaking/admin/change_minimums.cdc":                         TransactionsIdtablestakingAdminChange_minimumsCdc,
+	"../../../transactions/idTableStaking/admin/change_payout.cdc":                           TransactionsIdtablestakingAdminChange_payoutCdc,
+	"../../../transactions/idTableStaking/admin/end_epoch.cdc":                               TransactionsIdtablestakingAdminEnd_epochCdc,
+	"../../../transactions/idTableStaking/admin/end_staking.cdc":                             TransactionsIdtablestakingAdminEnd_stakingCdc,
+	"../../../transactions/idTableStaking/admin/move_tokens.cdc":                             TransactionsIdtablestakingAdminMove_tokensCdc,
+	"../../../transactions/idTableStaking/admin/pay_rewards.cdc":                             TransactionsIdtablestakingAdminPay_rewardsCdc,
+	"../../../transactions/idTableStaking/admin/remove_node.cdc":                             TransactionsIdtablestakingAdminRemove_nodeCdc,
+	"../../../transactions/idTableStaking/admin/transfer_minter_deploy.cdc":                  TransactionsIdtablestakingAdminTransfer_minter_deployCdc,
+	"../../../transactions/idTableStaking/delegation/del_request_unstaking.cdc":              TransactionsIdtablestakingDelegationDel_request_unstakingCdc,
+	"../../../transactions/idTableStaking/delegation/del_stake_new_tokens.cdc":               TransactionsIdtablestakingDelegationDel_stake_new_tokensCdc,
+	"../../../transactions/idTableStaking/delegation/del_stake_rewarded.cdc":                 TransactionsIdtablestakingDelegationDel_stake_rewardedCdc,
+	"../../../transactions/idTableStaking/delegation/del_stake_unstaked.cdc":                 TransactionsIdtablestakingDelegationDel_stake_unstakedCdc,
+	"../../../transactions/idTableStaking/delegation/del_withdraw_reward_tokens.cdc":         TransactionsIdtablestakingDelegationDel_withdraw_reward_tokensCdc,
+	"../../../transactions/idTableStaking/delegation/del_withdraw_unstaked_tokens.cdc":       TransactionsIdtablestakingDelegationDel_withdraw_unstaked_tokensCdc,
+	"../../../transactions/idTableStaking/delegation/get_delegator_committed.cdc":            TransactionsIdtablestakingDelegationGet_delegator_committedCdc,
+	"../../../transactions/idTableStaking/delegation/get_delegator_info.cdc":                 TransactionsIdtablestakingDelegationGet_delegator_infoCdc,
+	"../../../transactions/idTableStaking/delegation/get_delegator_request.cdc":              TransactionsIdtablestakingDelegationGet_delegator_requestCdc,
+	"../../../transactions/idTableStaking/delegation/get_delegator_rewarded.cdc":             TransactionsIdtablestakingDelegationGet_delegator_rewardedCdc,
+	"../../../transactions/idTableStaking/delegation/get_delegator_staked.cdc":               TransactionsIdtablestakingDelegationGet_delegator_stakedCdc,
+	"../../../transactions/idTableStaking/delegation/get_delegator_unstaked.cdc":             TransactionsIdtablestakingDelegationGet_delegator_unstakedCdc,
+	"../../../transactions/idTableStaking/delegation/get_delegator_unstaking.cdc":            TransactionsIdtablestakingDelegationGet_delegator_unstakingCdc,
+	"../../../transactions/idTableStaking/delegation/get_delegator_unstaking_request.cdc":    TransactionsIdtablestakingDelegationGet_delegator_unstaking_requestCdc,
+	"../../../transactions/idTableStaking/delegation/register_delegator.cdc":                 TransactionsIdtablestakingDelegationRegister_delegatorCdc,
+	"../../../transactions/idTableStaking/get_current_table.cdc":                             TransactionsIdtablestakingGet_current_tableCdc,
+	"../../../transactions/idTableStaking/get_cut_percentage.cdc":                            TransactionsIdtablestakingGet_cut_percentageCdc,
+	"../../../transactions/idTableStaking/get_node_committed_tokens.cdc":                     TransactionsIdtablestakingGet_node_committed_tokensCdc,
+	"../../../transactions/idTableStaking/get_node_info.cdc":                                 TransactionsIdtablestakingGet_node_infoCdc,
+	"../../../transactions/idTableStaking/get_node_initial_weight.cdc":                       TransactionsIdtablestakingGet_node_initial_weightCdc,
+	"../../../transactions/idTableStaking/get_node_networking_addr.cdc":                      TransactionsIdtablestakingGet_node_networking_addrCdc,
+	"../../../transactions/idTableStaking/get_node_networking_key.cdc":                       TransactionsIdtablestakingGet_node_networking_keyCdc,
+	"../../../transactions/idTableStaking/get_node_rewarded_tokens.cdc":                      TransactionsIdtablestakingGet_node_rewarded_tokensCdc,
+	"../../../transactions/idTableStaking/get_node_role.cdc":                                 TransactionsIdtablestakingGet_node_roleCdc,
+	"../../../transactions/idTableStaking/get_node_staked_tokens.cdc":                        TransactionsIdtablestakingGet_node_staked_tokensCdc,
+	"../../../transactions/idTableStaking/get_node_staking_key.cdc":                          TransactionsIdtablestakingGet_node_staking_keyCdc,
+	"../../../transactions/idTableStaking/get_node_total_commitment.cdc":                     TransactionsIdtablestakingGet_node_total_commitmentCdc,
+	"../../../transactions/idTableStaking/get_node_type_ratio.cdc":                           TransactionsIdtablestakingGet_node_type_ratioCdc,
+	"../../../transactions/idTableStaking/get_node_unstaked_tokens.cdc":                      TransactionsIdtablestakingGet_node_unstaked_tokensCdc,
+	"../../../transactions/idTableStaking/get_node_unstaking_request.cdc":                    TransactionsIdtablestakingGet_node_unstaking_requestCdc,
+	"../../../transactions/idTableStaking/get_node_unstaking_tokens.cdc":                     TransactionsIdtablestakingGet_node_unstaking_tokensCdc,
+	"../../../transactions/idTableStaking/get_proposed_table.cdc":                            TransactionsIdtablestakingGet_proposed_tableCdc,
+	"../../../transactions/idTableStaking/get_stake_requirements.cdc":                        TransactionsIdtablestakingGet_stake_requirementsCdc,
+	"../../../transactions/idTableStaking/get_table.cdc":                                     TransactionsIdtablestakingGet_tableCdc,
+	"../../../transactions/idTableStaking/get_total_staked.cdc":                              TransactionsIdtablestakingGet_total_stakedCdc,
+	"../../../transactions/idTableStaking/get_total_staked_by_type.cdc":                      TransactionsIdtablestakingGet_total_staked_by_typeCdc,
+	"../../../transactions/idTableStaking/get_weekly_payout.cdc":                             TransactionsIdtablestakingGet_weekly_payoutCdc,
+	"../../../transactions/idTableStaking/register_node.cdc":                                 TransactionsIdtablestakingRegister_nodeCdc,
+	"../../../transactions/idTableStaking/request_unstake.cdc":                               TransactionsIdtablestakingRequest_unstakeCdc,
+	"../../../transactions/idTableStaking/stake_new_tokens.cdc":                              TransactionsIdtablestakingStake_new_tokensCdc,
+	"../../../transactions/idTableStaking/stake_rewarded_tokens.cdc":                         TransactionsIdtablestakingStake_rewarded_tokensCdc,
+	"../../../transactions/idTableStaking/stake_unstaked_tokens.cdc":                         TransactionsIdtablestakingStake_unstaked_tokensCdc,
+	"../../../transactions/idTableStaking/unstake_all.cdc":                                   TransactionsIdtablestakingUnstake_allCdc,
+	"../../../transactions/idTableStaking/withdraw_reward_tokens.cdc":                        TransactionsIdtablestakingWithdraw_reward_tokensCdc,
+	"../../../transactions/idTableStaking/withdraw_unstaked_tokens.cdc":                      TransactionsIdtablestakingWithdraw_unstaked_tokensCdc,
+	"../../../transactions/inspect_field.cdc":                                                TransactionsInspect_fieldCdc,
+	"../../../transactions/lockedTokens/admin/admin_create_shared_accounts.cdc":              TransactionsLockedtokensAdminAdmin_create_shared_accountsCdc,
+	"../../../transactions/lockedTokens/admin/admin_deploy_contract.cdc":                     TransactionsLockedtokensAdminAdmin_deploy_contractCdc,
+	"../../../transactions/lockedTokens/admin/admin_deposit_account_creator.cdc":             TransactionsLockedtokensAdminAdmin_deposit_account_creatorCdc,
+	"../../../transactions/lockedTokens/admin/check_main_registration.cdc":                   TransactionsLockedtokensAdminCheck_main_registrationCdc,
+	"../../../transactions/lockedTokens/admin/check_shared_registration.cdc":                 TransactionsLockedtokensAdminCheck_shared_registrationCdc,
+	"../../../transactions/lockedTokens/admin/custody_create_account_with_lease_account.cdc": TransactionsLockedtokensAdminCustody_create_account_with_lease_accountCdc,
+	"../../../transactions/lockedTokens/admin/custody_create_only_shared_account.cdc":        TransactionsLockedtokensAdminCustody_create_only_shared_accountCdc,
+	"../../../transactions/lockedTokens/admin/custody_create_shared_accounts.cdc":            TransactionsLockedtokensAdminCustody_create_shared_accountsCdc,
+	"../../../transactions/lockedTokens/admin/custody_setup_account_creator.cdc":             TransactionsLockedtokensAdminCustody_setup_account_creatorCdc,
+	"../../../transactions/lockedTokens/admin/deposit_locked_tokens.cdc":                     TransactionsLockedtokensAdminDeposit_locked_tokensCdc,
+	"../../../transactions/lockedTokens/admin/unlock_tokens.cdc":                             TransactionsLockedtokensAdminUnlock_tokensCdc,
+	"../../../transactions/lockedTokens/delegator/delegate_new_tokens.cdc":                   TransactionsLockedtokensDelegatorDelegate_new_tokensCdc,
+	"../../../transactions/lockedTokens/delegator/delegate_rewarded_tokens.cdc":              TransactionsLockedtokensDelegatorDelegate_rewarded_tokensCdc,
+	"../../../transactions/lockedTokens/delegator/delegate_unstaked_tokens.cdc":              TransactionsLockedtokensDelegatorDelegate_unstaked_tokensCdc,
+	"../../../transactions/lockedTokens/delegator/get_delegator_id.cdc":                      TransactionsLockedtokensDelegatorGet_delegator_idCdc,
+	"../../../transactions/lockedTokens/delegator/get_delegator_node_id.cdc":                 TransactionsLockedtokensDelegatorGet_delegator_node_idCdc,
+	"../../../transactions/lockedTokens/delegator/register_delegator.cdc":                    TransactionsLockedtokensDelegatorRegister_delegatorCdc,
+	"../../../transactions/lockedTokens/delegator/request_unstaking.cdc":                     TransactionsLockedtokensDelegatorRequest_unstakingCdc,
+	"../../../transactions/lockedTokens/delegator/withdraw_rewarded_tokens.cdc":              TransactionsLockedtokensDelegatorWithdraw_rewarded_tokensCdc,
+	"../../../transactions/lockedTokens/delegator/withdraw_unstaked_tokens.cdc":              TransactionsLockedtokensDelegatorWithdraw_unstaked_tokensCdc,
+	"../../../transactions/lockedTokens/staker/get_node_id.cdc":                              TransactionsLockedtokensStakerGet_node_idCdc,
+	"../../../transactions/lockedTokens/staker/register_node.cdc":                            TransactionsLockedtokensStakerRegister_nodeCdc,
+	"../../../transactions/lockedTokens/staker/request_unstaking.cdc":                        TransactionsLockedtokensStakerRequest_unstakingCdc,
+	"../../../transactions/lockedTokens/staker/stake_new_tokens.cdc":                         TransactionsLockedtokensStakerStake_new_tokensCdc,
+	"../../../transactions/lockedTokens/staker/stake_rewarded_tokens.cdc":                    TransactionsLockedtokensStakerStake_rewarded_tokensCdc,
+	"../../../transactions/lockedTokens/staker/stake_unstaked_tokens.cdc":                    TransactionsLockedtokensStakerStake_unstaked_tokensCdc,
+	"../../../transactions/lockedTokens/staker/unstake_all.cdc":                              TransactionsLockedtokensStakerUnstake_allCdc,
+	"../../../transactions/lockedTokens/staker/withdraw_rewarded_tokens.cdc":                 TransactionsLockedtokensStakerWithdraw_rewarded_tokensCdc,
+	"../../../transactions/lockedTokens/staker/withdraw_unstaked_tokens.cdc":                 TransactionsLockedtokensStakerWithdraw_unstaked_tokensCdc,
+	"../../../transactions/lockedTokens/user/deposit_tokens.cdc":                             TransactionsLockedtokensUserDeposit_tokensCdc,
+	"../../../transactions/lockedTokens/user/get_locked_account_address.cdc":                 TransactionsLockedtokensUserGet_locked_account_addressCdc,
+	"../../../transactions/lockedTokens/user/get_locked_account_balance.cdc":                 TransactionsLockedtokensUserGet_locked_account_balanceCdc,
+	"../../../transactions/lockedTokens/user/get_unlock_limit.cdc":                           TransactionsLockedtokensUserGet_unlock_limitCdc,
+	"../../../transactions/lockedTokens/user/withdraw_tokens.cdc":                            TransactionsLockedtokensUserWithdraw_tokensCdc,
+	"../../../transactions/stakingProxy/add_node_info.cdc":                                   TransactionsStakingproxyAdd_node_infoCdc,
+	"../../../transactions/stakingProxy/get_node_info.cdc":                                   TransactionsStakingproxyGet_node_infoCdc,
+	"../../../transactions/stakingProxy/register_node.cdc":                                   TransactionsStakingproxyRegister_nodeCdc,
+	"../../../transactions/stakingProxy/remove_node_info.cdc":                                TransactionsStakingproxyRemove_node_infoCdc,
+	"../../../transactions/stakingProxy/remove_staking_proxy.cdc":                            TransactionsStakingproxyRemove_staking_proxyCdc,
+	"../../../transactions/stakingProxy/request_unstaking.cdc":                               TransactionsStakingproxyRequest_unstakingCdc,
+	"../../../transactions/stakingProxy/setup_node_account.cdc":                              TransactionsStakingproxySetup_node_accountCdc,
+	"../../../transactions/stakingProxy/stake_new_tokens.cdc":                                TransactionsStakingproxyStake_new_tokensCdc,
+	"../../../transactions/stakingProxy/stake_unstaked_tokens.cdc":                           TransactionsStakingproxyStake_unstaked_tokensCdc,
+	"../../../transactions/stakingProxy/unstake_all.cdc":                                     TransactionsStakingproxyUnstake_allCdc,
+	"../../../transactions/stakingProxy/withdraw_rewards.cdc":                                TransactionsStakingproxyWithdraw_rewardsCdc,
+	"../../../transactions/stakingProxy/withdraw_unstaked.cdc":                               TransactionsStakingproxyWithdraw_unstakedCdc,
 }
 
 // AssetDebug is true if the assets were built with the debug flag enabled.
@@ -2680,22 +2724,24 @@ var _bintree = &bintree{nil, map[string]*bintree{
 						"stake_new_tokens.cdc":           &bintree{TransactionsIdtablestakingStake_new_tokensCdc, map[string]*bintree{}},
 						"stake_rewarded_tokens.cdc":      &bintree{TransactionsIdtablestakingStake_rewarded_tokensCdc, map[string]*bintree{}},
 						"stake_unstaked_tokens.cdc":      &bintree{TransactionsIdtablestakingStake_unstaked_tokensCdc, map[string]*bintree{}},
+						"unstake_all.cdc":                &bintree{TransactionsIdtablestakingUnstake_allCdc, map[string]*bintree{}},
 						"withdraw_reward_tokens.cdc":     &bintree{TransactionsIdtablestakingWithdraw_reward_tokensCdc, map[string]*bintree{}},
 						"withdraw_unstaked_tokens.cdc":   &bintree{TransactionsIdtablestakingWithdraw_unstaked_tokensCdc, map[string]*bintree{}},
 					}},
 					"inspect_field.cdc": &bintree{TransactionsInspect_fieldCdc, map[string]*bintree{}},
 					"lockedTokens": &bintree{nil, map[string]*bintree{
 						"admin": &bintree{nil, map[string]*bintree{
-							"admin_create_shared_accounts.cdc":       &bintree{TransactionsLockedtokensAdminAdmin_create_shared_accountsCdc, map[string]*bintree{}},
-							"admin_deploy_contract.cdc":              &bintree{TransactionsLockedtokensAdminAdmin_deploy_contractCdc, map[string]*bintree{}},
-							"admin_deposit_account_creator.cdc":      &bintree{TransactionsLockedtokensAdminAdmin_deposit_account_creatorCdc, map[string]*bintree{}},
-							"check_main_registration.cdc":            &bintree{TransactionsLockedtokensAdminCheck_main_registrationCdc, map[string]*bintree{}},
-							"check_shared_registration.cdc":          &bintree{TransactionsLockedtokensAdminCheck_shared_registrationCdc, map[string]*bintree{}},
-							"custody_create_only_shared_account.cdc": &bintree{TransactionsLockedtokensAdminCustody_create_only_shared_accountCdc, map[string]*bintree{}},
-							"custody_create_shared_accounts.cdc":     &bintree{TransactionsLockedtokensAdminCustody_create_shared_accountsCdc, map[string]*bintree{}},
-							"custody_setup_account_creator.cdc":      &bintree{TransactionsLockedtokensAdminCustody_setup_account_creatorCdc, map[string]*bintree{}},
-							"deposit_locked_tokens.cdc":              &bintree{TransactionsLockedtokensAdminDeposit_locked_tokensCdc, map[string]*bintree{}},
-							"unlock_tokens.cdc":                      &bintree{TransactionsLockedtokensAdminUnlock_tokensCdc, map[string]*bintree{}},
+							"admin_create_shared_accounts.cdc":              &bintree{TransactionsLockedtokensAdminAdmin_create_shared_accountsCdc, map[string]*bintree{}},
+							"admin_deploy_contract.cdc":                     &bintree{TransactionsLockedtokensAdminAdmin_deploy_contractCdc, map[string]*bintree{}},
+							"admin_deposit_account_creator.cdc":             &bintree{TransactionsLockedtokensAdminAdmin_deposit_account_creatorCdc, map[string]*bintree{}},
+							"check_main_registration.cdc":                   &bintree{TransactionsLockedtokensAdminCheck_main_registrationCdc, map[string]*bintree{}},
+							"check_shared_registration.cdc":                 &bintree{TransactionsLockedtokensAdminCheck_shared_registrationCdc, map[string]*bintree{}},
+							"custody_create_account_with_lease_account.cdc": &bintree{TransactionsLockedtokensAdminCustody_create_account_with_lease_accountCdc, map[string]*bintree{}},
+							"custody_create_only_shared_account.cdc":        &bintree{TransactionsLockedtokensAdminCustody_create_only_shared_accountCdc, map[string]*bintree{}},
+							"custody_create_shared_accounts.cdc":            &bintree{TransactionsLockedtokensAdminCustody_create_shared_accountsCdc, map[string]*bintree{}},
+							"custody_setup_account_creator.cdc":             &bintree{TransactionsLockedtokensAdminCustody_setup_account_creatorCdc, map[string]*bintree{}},
+							"deposit_locked_tokens.cdc":                     &bintree{TransactionsLockedtokensAdminDeposit_locked_tokensCdc, map[string]*bintree{}},
+							"unlock_tokens.cdc":                             &bintree{TransactionsLockedtokensAdminUnlock_tokensCdc, map[string]*bintree{}},
 						}},
 						"delegator": &bintree{nil, map[string]*bintree{
 							"delegate_new_tokens.cdc":      &bintree{TransactionsLockedtokensDelegatorDelegate_new_tokensCdc, map[string]*bintree{}},

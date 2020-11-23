@@ -15,9 +15,10 @@ const (
 	depositAccountCreatorCapabilityFilename = "lockedTokens/admin/admin_deposit_account_creator.cdc"
 
 	// Custody Provider / Wallet provider Account creation templates
-	setupCustodyAccountFilename            = "lockedTokens/admin/custody_setup_account_creator.cdc"
-	custodyCreateAccountsFilename          = "lockedTokens/admin/custody_create_shared_accounts.cdc"
-	custodyCreateOnlySharedAccountFilename = "lockedTokens/admin/custody_create_only_shared_account.cdc"
+	setupCustodyAccountFilename                  = "lockedTokens/admin/custody_setup_account_creator.cdc"
+	custodyCreateAccountsFilename                = "lockedTokens/admin/custody_create_shared_accounts.cdc"
+	custodyCreateOnlySharedAccountFilename       = "lockedTokens/admin/custody_create_only_shared_account.cdc"
+	custodyCreateAccountWothLeaseAccountFilename = "lockedTokens/admin/custody_create_account_with_lease_account.cdc"
 
 	// user templates
 	withdrawTokensFilename          = "lockedTokens/user/withdraw_tokens.cdc"
@@ -107,6 +108,12 @@ func GenerateCustodyCreateAccountsScript(env Environment) []byte {
 
 func GenerateCustodyCreateOnlySharedAccountScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + custodyCreateOnlySharedAccountFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateCustodyCreateAccountWithLeaseAccountScript(env Environment) []byte {
+	code := assets.MustAssetString(filePath + custodyCreateAccountWothLeaseAccountFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
