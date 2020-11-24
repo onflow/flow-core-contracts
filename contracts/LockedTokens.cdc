@@ -182,10 +182,10 @@ pub contract LockedTokens {
         /// and commits an initial amount of locked tokens to stake
         pub fun registerNode(nodeInfo: StakingProxy.NodeInfo, amount: UFix64) {
             if let nodeStaker <- self.nodeStaker <- nil {
-                nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeStaker.id)
+                let stakingInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeStaker.id)
                 
                 assert(
-                    nodeInfo.tokensStaked + nodeInfo.totalTokensStaked + nodeInfo.tokensCommitted + nodeInfo.tokensUnstaking + nodeInfo.tokensUnstaked + nodeInfo.tokensRewarded == 0.0,
+                    stakingInfo.tokensStaked + stakingInfo.totalTokensStaked + stakingInfo.tokensCommitted + stakingInfo.tokensUnstaking + stakingInfo.tokensUnstaked + stakingInfo.tokensRewarded == 0.0,
                     message: "Cannot register a new node until all tokens from the previous node have been withdrawn"
                 )
 
@@ -196,8 +196,10 @@ pub contract LockedTokens {
 
             let tokens <- vaultRef.withdraw(amount: amount)
 
-            self.nodeStaker <-! FlowIDTableStaking.addNodeRecord(id: nodeInfo.id, role: nodeInfo.role, networkingAddress: nodeInfo.networkingAddress, networkingKey: nodeInfo.networkingKey, stakingKey: nodeInfo.stakingKey, tokensCommitted: <-tokens)
+            let nodeStaker <- self.nodeStaker <- FlowIDTableStaking.addNodeRecord(id: nodeInfo.id, role: nodeInfo.role, networkingAddress: nodeInfo.networkingAddress, networkingKey: nodeInfo.networkingKey, stakingKey: nodeInfo.stakingKey, tokensCommitted: <-tokens)
         
+            destroy nodeStaker
+
             emit LockedAccountRegisteredAsNode(address: self.owner!.address, nodeID: nodeInfo.id)
         }
 
@@ -205,19 +207,21 @@ pub contract LockedTokens {
         /// the caller has to specify the ID of the node operator
         /// they are delegating to
         pub fun registerDelegator(nodeID: String) {
-                if let delegator <- self.nodeDelegator <- nil {
-                delegatorInfo = FlowIDTableStaking.DelegatorInfo(nodeID: delegator.nodeID, delegatorID: delegator.id)
+            if let delegator <- self.nodeDelegator <- nil {
+                let delegatorInfo = FlowIDTableStaking.DelegatorInfo(nodeID: delegator.nodeID, delegatorID: delegator.id)
                 
                 assert(
-                    delegatorInfo.tokensStaked + delegatorInfo.totalTokensStaked + delegatorInfo.tokensCommitted + delegatorInfo.tokensUnstaking + delegatorInfo.tokensUnstaked + delegatorInfo.tokensRewarded == 0.0,
+                    delegatorInfo.tokensStaked + delegatorInfo.tokensCommitted + delegatorInfo.tokensUnstaking + delegatorInfo.tokensUnstaked + delegatorInfo.tokensRewarded == 0.0,
                     message: "Cannot register a new delegator until all tokens from the previous node have been withdrawn"
                 )
 
                 destroy delegator
             }
 
-            self.nodeDelegator <-! FlowIDTableStaking.registerNewDelegator(nodeID: nodeID)
+            let delegator <- self.nodeDelegator <- FlowIDTableStaking.registerNewDelegator(nodeID: nodeID)
         
+            destroy delegator
+
             emit LockedAccountRegisteredAsDelegator(address: self.owner!.address, nodeID: nodeID)
         }
     }
