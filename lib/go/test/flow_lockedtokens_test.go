@@ -1877,6 +1877,7 @@ func deployLockedTokensContract(
 
 	tx := flow.NewTransaction().
 		SetScript(templates.GenerateDeployLockedTokens()).
+		AddRawArgument(jsoncdc.MustEncode(cadence.NewString("LockedTokens"))).
 		AddRawArgument(jsoncdc.MustEncode(cadenceCode)).
 		AddRawArgument(jsoncdc.MustEncode(cadence.NewArray(nil))).
 		SetGasLimit(100).
