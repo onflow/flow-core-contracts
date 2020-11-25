@@ -82,7 +82,7 @@ func TestStakingProxy(t *testing.T) {
 	stakingProxyCode := contracts.FlowStakingProxy()
 	stakingProxyAddress, err := b.CreateAccount(nil, []sdktemplates.Contract{
 		{
-			Name: "FlowStakingProxy",
+			Name: "StakingProxy",
 			Source: string(stakingProxyCode),
 		},
 	})

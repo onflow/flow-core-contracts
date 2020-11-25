@@ -114,7 +114,7 @@ func TestLockedTokensStaker(t *testing.T) {
 	stakingProxyCode := contracts.FlowStakingProxy()
 	stakingProxyAddress, err := b.CreateAccount(nil, []sdktemplates.Contract{
 		{
-			Name: "FlowStakingProxy",
+			Name: "StakingProxy",
 			Source: string(stakingProxyCode),
 		},
 	})
@@ -964,7 +964,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 	stakingProxyCode := contracts.FlowStakingProxy()
 	stakingProxyAddress, err := b.CreateAccount(nil, []sdktemplates.Contract{
 		{
-			Name: "FlowStakingProxy",
+			Name: "StakingProxy",
 			Source: string(stakingProxyCode),
 		},
 	})
@@ -1560,7 +1560,7 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 	stakingProxyCode := contracts.FlowStakingProxy()
 	stakingProxyAddress, err := b.CreateAccount(nil, []sdktemplates.Contract{
 		{
-			Name: "FlowStakingProxy",
+			Name: "StakingProxy",
 			Source: string(stakingProxyCode),
 		},
 	})
