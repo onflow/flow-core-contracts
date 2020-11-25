@@ -7,15 +7,14 @@ import (
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
+	"github.com/onflow/flow-emulator"
 	ft_templates "github.com/onflow/flow-ft/lib/go/templates"
 	"github.com/onflow/flow-go-sdk"
-	sdk "github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
+	sdktemplates "github.com/onflow/flow-go-sdk/templates"
 	"github.com/onflow/flow-go-sdk/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	emulator "github.com/dapperlabs/flow-emulator"
 
 	"github.com/onflow/flow-core-contracts/lib/go/contracts"
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
@@ -24,31 +23,31 @@ import (
 // Shared account Registered event
 
 type SharedAccountRegisteredEvent interface {
-	Address() sdk.Address
+	Address() flow.Address
 }
 
-type sharedAccountRegisteredEvent sdk.Event
+type sharedAccountRegisteredEvent flow.Event
 
 var _ SharedAccountRegisteredEvent = (*sharedAccountRegisteredEvent)(nil)
 
 // Address returns the address of the newly-created account.
-func (evt sharedAccountRegisteredEvent) Address() sdk.Address {
-	return sdk.BytesToAddress(evt.Value.Fields[0].(cadence.Address).Bytes())
+func (evt sharedAccountRegisteredEvent) Address() flow.Address {
+	return flow.BytesToAddress(evt.Value.Fields[0].(cadence.Address).Bytes())
 }
 
 // Unlocked account Registered event
 
 type UnlockedAccountRegisteredEvent interface {
-	Address() sdk.Address
+	Address() flow.Address
 }
 
-type unlockedAccountRegisteredEvent sdk.Event
+type unlockedAccountRegisteredEvent flow.Event
 
 var _ UnlockedAccountRegisteredEvent = (*unlockedAccountRegisteredEvent)(nil)
 
 // Address returns the address of the newly-created account.
-func (evt unlockedAccountRegisteredEvent) Address() sdk.Address {
-	return sdk.BytesToAddress(evt.Value.Fields[0].(cadence.Address).Bytes())
+func (evt unlockedAccountRegisteredEvent) Address() flow.Address {
+	return flow.BytesToAddress(evt.Value.Fields[0].(cadence.Address).Bytes())
 }
 
 func TestLockedTokensStaker(t *testing.T) {
@@ -92,7 +91,7 @@ func TestLockedTokensStaker(t *testing.T) {
 		false,
 	)
 
-	var idTableAddress sdk.Address
+	var idTableAddress flow.Address
 
 	var i uint64
 	i = 0
@@ -100,8 +99,8 @@ func TestLockedTokensStaker(t *testing.T) {
 		results, _ := b.GetEventsByHeight(i, "flow.AccountCreated")
 
 		for _, event := range results {
-			if event.Type == sdk.EventAccountCreated {
-				idTableAddress = sdk.Address(event.Value.Fields[0].(cadence.Address))
+			if event.Type == flow.EventAccountCreated {
+				idTableAddress = flow.Address(event.Value.Fields[0].(cadence.Address))
 			}
 		}
 
@@ -112,7 +111,12 @@ func TestLockedTokensStaker(t *testing.T) {
 
 	// Deploy the StakingProxy contract
 	stakingProxyCode := contracts.FlowStakingProxy()
-	stakingProxyAddress, err := b.CreateAccount(nil, stakingProxyCode)
+	stakingProxyAddress, err := b.CreateAccount(nil, []sdktemplates.Contract{
+		{
+			Name: "FlowStakingProxy",
+			Source: string(stakingProxyCode),
+		},
+	})
 	if !assert.NoError(t, err) {
 		t.Log(err.Error())
 	}
@@ -160,8 +164,8 @@ func TestLockedTokensStaker(t *testing.T) {
 	adminPublicKey := bytesToCadenceArray(adminAccountKey.Encode())
 	joshPublicKey := bytesToCadenceArray(joshKey.Encode())
 
-	var joshSharedAddress sdk.Address
-	var joshAddress sdk.Address
+	var joshSharedAddress flow.Address
+	var joshAddress flow.Address
 
 	t.Run("Should be able to create new shared accounts", func(t *testing.T) {
 
@@ -936,7 +940,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 		false,
 	)
 
-	var idTableAddress sdk.Address
+	var idTableAddress flow.Address
 
 	var i uint64
 	i = 0
@@ -944,8 +948,8 @@ func TestLockedTokensDelegator(t *testing.T) {
 		results, _ := b.GetEventsByHeight(i, "flow.AccountCreated")
 
 		for _, event := range results {
-			if event.Type == sdk.EventAccountCreated {
-				idTableAddress = sdk.Address(event.Value.Fields[0].(cadence.Address))
+			if event.Type == flow.EventAccountCreated {
+				idTableAddress = flow.Address(event.Value.Fields[0].(cadence.Address))
 			}
 		}
 
@@ -956,7 +960,12 @@ func TestLockedTokensDelegator(t *testing.T) {
 
 	// Deploy the StakingProxy contract
 	stakingProxyCode := contracts.FlowStakingProxy()
-	stakingProxyAddress, err := b.CreateAccount(nil, stakingProxyCode)
+	stakingProxyAddress, err := b.CreateAccount(nil, []sdktemplates.Contract{
+		{
+			Name: "FlowStakingProxy",
+			Source: string(stakingProxyCode),
+		},
+	})
 	if !assert.NoError(t, err) {
 		t.Log(err.Error())
 	}
@@ -998,8 +1007,8 @@ func TestLockedTokensDelegator(t *testing.T) {
 	adminPublicKey := bytesToCadenceArray(adminAccountKey.Encode())
 	joshPublicKey := bytesToCadenceArray(joshKey.Encode())
 
-	var joshSharedAddress sdk.Address
-	var joshAddress sdk.Address
+	var joshSharedAddress flow.Address
+	var joshAddress flow.Address
 
 	t.Run("Should be able to create new shared accounts", func(t *testing.T) {
 
@@ -1526,7 +1535,7 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 		false,
 	)
 
-	var idTableAddress sdk.Address
+	var idTableAddress flow.Address
 
 	var i uint64
 	i = 0
@@ -1534,8 +1543,8 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 		results, _ := b.GetEventsByHeight(i, "flow.AccountCreated")
 
 		for _, event := range results {
-			if event.Type == sdk.EventAccountCreated {
-				idTableAddress = sdk.Address(event.Value.Fields[0].(cadence.Address))
+			if event.Type == flow.EventAccountCreated {
+				idTableAddress = flow.Address(event.Value.Fields[0].(cadence.Address))
 			}
 		}
 
@@ -1546,7 +1555,12 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 
 	// Deploy the StakingProxy contract
 	stakingProxyCode := contracts.FlowStakingProxy()
-	stakingProxyAddress, err := b.CreateAccount(nil, stakingProxyCode)
+	stakingProxyAddress, err := b.CreateAccount(nil, []sdktemplates.Contract{
+		{
+			Name: "FlowStakingProxy",
+			Source: string(stakingProxyCode),
+		},
+	})
 	if !assert.NoError(t, err) {
 		t.Log(err.Error())
 	}
@@ -1645,8 +1659,8 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 	adminPublicKey := bytesToCadenceArray(adminAccountKey.Encode())
 	joshPublicKey := bytesToCadenceArray(joshKey.Encode())
 
-	var joshSharedAddress sdk.Address
-	var joshAddress sdk.Address
+	var joshSharedAddress flow.Address
+	var joshAddress flow.Address
 
 	t.Run("Should be able to create new shared accounts as the custody provider and give the admin the admin capability", func(t *testing.T) {
 
@@ -1709,7 +1723,7 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 
 	maxPublicKey := bytesToCadenceArray(maxKey.Encode())
 
-	var maxSharedAddress sdk.Address
+	var maxSharedAddress flow.Address
 
 	t.Run("Should be able to create a new shared account for an existing account as the custody provider and give the admin the admin capability", func(t *testing.T) {
 
@@ -1846,8 +1860,8 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 func deployLockedTokensContract(
 	t testing.TB,
 	b *emulator.Blockchain,
-	IDTableAddr, proxyAddr sdk.Address,
-) sdk.Address {
+	IDTableAddr, proxyAddr flow.Address,
+) flow.Address {
 
 	lockedTokensCode := contracts.FlowLockedTokens(
 		emulatorFTAddress,
@@ -1858,7 +1872,7 @@ func deployLockedTokensContract(
 
 	cadenceCode := cadence.NewString(hex.EncodeToString(lockedTokensCode))
 
-	tx := sdk.NewTransaction().
+	tx := flow.NewTransaction().
 		SetScript(templates.GenerateDeployLockedTokens()).
 		AddRawArgument(jsoncdc.MustEncode(cadenceCode)).
 		AddRawArgument(jsoncdc.MustEncode(cadence.NewArray(nil))).
@@ -1877,11 +1891,11 @@ func deployLockedTokensContract(
 	require.NoError(t, err)
 	require.NoError(t, result.Error)
 
-	var lockedTokensAddr sdk.Address
+	var lockedTokensAddr flow.Address
 
 	for _, event := range result.Events {
-		if event.Type == sdk.EventAccountCreated {
-			accountCreatedEvent := sdk.AccountCreatedEvent(event)
+		if event.Type == flow.EventAccountCreated {
+			accountCreatedEvent := flow.AccountCreatedEvent(event)
 			lockedTokensAddr = accountCreatedEvent.Address()
 			break
 		}

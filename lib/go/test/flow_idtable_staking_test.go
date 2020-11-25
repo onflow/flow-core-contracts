@@ -9,7 +9,6 @@ import (
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/flow-go-sdk"
-	sdk "github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/test"
 
@@ -76,7 +75,7 @@ func TestIDTable(t *testing.T) {
 		false,
 	)
 
-	var idTableAddress sdk.Address
+	var idTableAddress flow.Address
 
 	var i uint64
 	i = 0
@@ -84,8 +83,8 @@ func TestIDTable(t *testing.T) {
 		results, _ := b.GetEventsByHeight(i, "flow.AccountCreated")
 
 		for _, event := range results {
-			if event.Type == sdk.EventAccountCreated {
-				idTableAddress = sdk.Address(event.Value.Fields[0].(cadence.Address))
+			if event.Type == flow.EventAccountCreated {
+				idTableAddress = flow.Address(event.Value.Fields[0].(cadence.Address))
 			}
 		}
 
@@ -100,6 +99,7 @@ func TestIDTable(t *testing.T) {
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
+			return
 		}
 		currentIDs := result.Value
 		idArray := currentIDs.(cadence.Array).Values
