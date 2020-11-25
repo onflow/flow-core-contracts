@@ -47,6 +47,7 @@ func TestStakingProxy(t *testing.T) {
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(b.ServiceKey().Address).
 		AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys)).
+		AddRawArgument(jsoncdc.MustEncode(cadence.NewString("FlowIDTableStaking"))).
 		AddRawArgument(jsoncdc.MustEncode(cadenceCode))
 
 	_ = tx.AddArgument(CadenceUFix64("1250000.0"))
