@@ -9,7 +9,6 @@ import (
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/flow-go-sdk"
-	sdk "github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/test"
 
@@ -64,6 +63,7 @@ func TestIDTable(t *testing.T) {
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(b.ServiceKey().Address).
 		AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys)).
+		AddRawArgument(jsoncdc.MustEncode(cadence.NewString("FlowIDTableStaking"))).
 		AddRawArgument(jsoncdc.MustEncode(cadenceCode))
 
 	_ = tx.AddArgument(CadenceUFix64("1250000.0"))
@@ -76,7 +76,7 @@ func TestIDTable(t *testing.T) {
 		false,
 	)
 
-	var idTableAddress sdk.Address
+	var idTableAddress flow.Address
 
 	var i uint64
 	i = 0
@@ -84,8 +84,8 @@ func TestIDTable(t *testing.T) {
 		results, _ := b.GetEventsByHeight(i, "flow.AccountCreated")
 
 		for _, event := range results {
-			if event.Type == sdk.EventAccountCreated {
-				idTableAddress = sdk.Address(event.Value.Fields[0].(cadence.Address))
+			if event.Type == flow.EventAccountCreated {
+				idTableAddress = flow.Address(event.Value.Fields[0].(cadence.Address))
 			}
 		}
 
@@ -100,6 +100,7 @@ func TestIDTable(t *testing.T) {
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
+			return
 		}
 		currentIDs := result.Value
 		idArray := currentIDs.(cadence.Array).Values
@@ -1256,7 +1257,7 @@ func TestIDTable(t *testing.T) {
 
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateEndStakingScript(env)).
-			SetGasLimit(10000).
+			SetGasLimit(9999).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(idTableAddress)
@@ -1408,7 +1409,7 @@ func TestIDTable(t *testing.T) {
 
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateMoveTokensScript(env)).
-			SetGasLimit(10000).
+			SetGasLimit(9999).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(idTableAddress)
@@ -1948,7 +1949,7 @@ func TestIDTable(t *testing.T) {
 
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateEndStakingScript(env)).
-			SetGasLimit(10000).
+			SetGasLimit(9999).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(idTableAddress)
@@ -2042,7 +2043,7 @@ func TestIDTable(t *testing.T) {
 
 		tx := flow.NewTransaction().
 			SetScript(templates.GeneratePayRewardsScript(env)).
-			SetGasLimit(100000).
+			SetGasLimit(9999).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(idTableAddress)
@@ -2172,7 +2173,7 @@ func TestIDTable(t *testing.T) {
 
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateMoveTokensScript(env)).
-			SetGasLimit(100000).
+			SetGasLimit(9999).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(idTableAddress)
@@ -2665,7 +2666,7 @@ func TestIDTable(t *testing.T) {
 
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateEndStakingScript(env)).
-			SetGasLimit(100000).
+			SetGasLimit(9999).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(idTableAddress)
@@ -2689,7 +2690,7 @@ func TestIDTable(t *testing.T) {
 
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateMoveTokensScript(env)).
-			SetGasLimit(100000).
+			SetGasLimit(9999).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(idTableAddress)
@@ -2820,7 +2821,7 @@ func TestIDTable(t *testing.T) {
 
 		tx := flow.NewTransaction().
 			SetScript(templates.GeneratePayRewardsScript(env)).
-			SetGasLimit(100000).
+			SetGasLimit(9999).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(idTableAddress)
@@ -2895,7 +2896,7 @@ func TestIDTable(t *testing.T) {
 
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateMoveTokensScript(env)).
-			SetGasLimit(100000).
+			SetGasLimit(9999).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(idTableAddress)
@@ -2991,7 +2992,7 @@ func TestIDTable(t *testing.T) {
 
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateEndStakingScript(env)).
-			SetGasLimit(100000).
+			SetGasLimit(9999).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(idTableAddress)
@@ -3029,7 +3030,7 @@ func TestIDTable(t *testing.T) {
 
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateEndEpochScript(env)).
-			SetGasLimit(100000).
+			SetGasLimit(9999).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(idTableAddress)
