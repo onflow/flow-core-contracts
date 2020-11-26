@@ -8,8 +8,8 @@ import (
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	ft_templates "github.com/onflow/flow-ft/lib/go/templates"
 	"github.com/onflow/flow-go-sdk"
-	sdk "github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
+	sdktemplates "github.com/onflow/flow-go-sdk/templates"
 	"github.com/onflow/flow-go-sdk/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -47,6 +47,7 @@ func TestStakingProxy(t *testing.T) {
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(b.ServiceKey().Address).
 		AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys)).
+		AddRawArgument(jsoncdc.MustEncode(cadence.NewString("FlowIDTableStaking"))).
 		AddRawArgument(jsoncdc.MustEncode(cadenceCode))
 
 	_ = tx.AddArgument(CadenceUFix64("1250000.0"))
@@ -59,7 +60,7 @@ func TestStakingProxy(t *testing.T) {
 		false,
 	)
 
-	var idTableAddress sdk.Address
+	var idTableAddress flow.Address
 
 	var i uint64
 	i = 0
@@ -67,8 +68,8 @@ func TestStakingProxy(t *testing.T) {
 		results, _ := b.GetEventsByHeight(i, "flow.AccountCreated")
 
 		for _, event := range results {
-			if event.Type == sdk.EventAccountCreated {
-				idTableAddress = sdk.Address(event.Value.Fields[0].(cadence.Address))
+			if event.Type == flow.EventAccountCreated {
+				idTableAddress = flow.Address(event.Value.Fields[0].(cadence.Address))
 			}
 		}
 
@@ -79,7 +80,12 @@ func TestStakingProxy(t *testing.T) {
 
 	// Deploy the StakingProxy contract
 	stakingProxyCode := contracts.FlowStakingProxy()
-	stakingProxyAddress, err := b.CreateAccount(nil, stakingProxyCode)
+	stakingProxyAddress, err := b.CreateAccount(nil, []sdktemplates.Contract{
+		{
+			Name: "StakingProxy",
+			Source: string(stakingProxyCode),
+		},
+	})
 	if !assert.NoError(t, err) {
 		t.Log(err.Error())
 	}
@@ -98,7 +104,11 @@ func TestStakingProxy(t *testing.T) {
 	t.Run("Should be able to set up the admin account", func(t *testing.T) {
 
 		tx = flow.NewTransaction().
-			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
+			SetScript(ft_templates.GenerateMintTokensScript(
+				flow.HexToAddress(emulatorFTAddress),
+				flow.HexToAddress(emulatorFlowTokenAddress),
+				"FlowToken",
+			)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
@@ -162,8 +172,8 @@ func TestStakingProxy(t *testing.T) {
 	adminPublicKey := bytesToCadenceArray(adminAccountKey.Encode())
 	joshPublicKey := bytesToCadenceArray(joshKey.Encode())
 
-	var joshSharedAddress sdk.Address
-	var joshAddress sdk.Address
+	var joshSharedAddress flow.Address
+	var joshAddress flow.Address
 
 	t.Run("Should be able to create new shared accounts", func(t *testing.T) {
 

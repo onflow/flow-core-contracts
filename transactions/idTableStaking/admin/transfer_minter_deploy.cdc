@@ -1,14 +1,14 @@
 import FlowToken from 0xFLOWTOKENADDRESS
 
-transaction(publicKeys: [[UInt8]], code: [UInt8], rewardAmount: UFix64, rewardCut: UFix64) {
+transaction(publicKeys: [[UInt8]], contractName: String, code: [UInt8], rewardAmount: UFix64, rewardCut: UFix64) {
 
   prepare(signer: AuthAccount) {
 
-	let acct = AuthAccount(payer: signer)
+    let acct = AuthAccount(payer: signer)
     
-	for key in publicKeys {
-		acct.addPublicKey(key)
-	}
+    for key in publicKeys {
+        acct.addPublicKey(key)
+    }
 
     /// Borrow a reference to the Flow Token Admin in the account storage
     let flowTokenAdmin = signer.borrow<&FlowToken.Administrator>(from: /storage/flowTokenAdmin)
@@ -19,7 +19,7 @@ transaction(publicKeys: [[UInt8]], code: [UInt8], rewardAmount: UFix64, rewardCu
 
     acct.save(<-flowTokenMinter, to: /storage/flowTokenMinter)
 
-	acct.setCode(code, rewardAmount, rewardCut)
+    acct.contracts.add(name: contractName, code: code, rewardAmount, rewardCut)
   }
 
 }
