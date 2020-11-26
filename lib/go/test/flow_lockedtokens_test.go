@@ -114,7 +114,7 @@ func TestLockedTokensStaker(t *testing.T) {
 	stakingProxyCode := contracts.FlowStakingProxy()
 	stakingProxyAddress, err := b.CreateAccount(nil, []sdktemplates.Contract{
 		{
-			Name: "StakingProxy",
+			Name:   "StakingProxy",
 			Source: string(stakingProxyCode),
 		},
 	})
@@ -916,7 +916,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 	stakingProxyCode := contracts.FlowStakingProxy()
 	stakingProxyAddress, err := b.CreateAccount(nil, []sdktemplates.Contract{
 		{
-			Name: "StakingProxy",
+			Name:   "StakingProxy",
 			Source: string(stakingProxyCode),
 		},
 	})
@@ -1464,7 +1464,7 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 	stakingProxyCode := contracts.FlowStakingProxy()
 	stakingProxyAddress, err := b.CreateAccount(nil, []sdktemplates.Contract{
 		{
-			Name: "StakingProxy",
+			Name:   "StakingProxy",
 			Source: string(stakingProxyCode),
 		},
 	})
@@ -1663,8 +1663,43 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 				break
 			}
 		}
+	})
 
-		// Check that that admin received the unlock limit capability
+	leaseKey, leaseSigner := accountKeys.NewWithSigner()
+	leaseAddress, _ := b.CreateAccount([]*flow.AccountKey{leaseKey}, nil)
+
+	var leaseSharedAddress flow.Address
+
+	t.Run("Should be able to create a new lease shared account for an existing account as the custody provider and give the admin the admin capability", func(t *testing.T) {
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GenerateCustodyCreateOnlyLeaseAccountScript(env)).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(custodyAddress).
+			AddAuthorizer(leaseAddress).
+			AddRawArgument(jsoncdc.MustEncode(adminPublicKey))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, custodyAddress, leaseAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), custodySigner, leaseSigner},
+			false,
+		)
+
+		createAccountsTxResult, err := b.GetTransactionResult(tx.ID())
+		assert.NoError(t, err)
+		assert.Equal(t, flow.TransactionStatusSealed, createAccountsTxResult.Status)
+
+		for _, event := range createAccountsTxResult.Events {
+			if event.Type == fmt.Sprintf("A.%s.LockedTokens.SharedAccountRegistered", lockedTokensAddress.Hex()) {
+				// needs work
+				sharedAccountCreatedEvent := sharedAccountRegisteredEvent(event)
+				leaseSharedAddress = sharedAccountCreatedEvent.Address()
+				break
+			}
+		}
 	})
 
 	t.Run("Should be able to create new shared accounts (with locked account having only 1 x 1000 weight) as the custody provider and give the admin the admin capability", func(t *testing.T) {
@@ -1760,6 +1795,32 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 		}
 		balance = result.Value
 		assert.Equal(t, CadenceUFix64("10000.0"), balance.(cadence.UFix64))
+
+		tx = flow.NewTransaction().
+			SetScript(templates.GenerateIncreaseUnlockLimitScript(env)).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(b.ServiceKey().Address)
+
+		_ = tx.AddArgument(cadence.NewAddress(leaseSharedAddress))
+		_ = tx.AddArgument(CadenceUFix64("10000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address},
+			[]crypto.Signer{b.ServiceKey().Signer()},
+			false,
+		)
+
+		// Check unlock limit of the shared account
+		result, err = b.ExecuteScript(templates.GenerateGetUnlockLimitScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(leaseAddress))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance = result.Value
+		assert.Equal(t, CadenceUFix64("10000.0"), balance.(cadence.UFix64))
 	})
 
 }
@@ -1844,6 +1905,7 @@ func TestLockedTokensRealStaking(t *testing.T) {
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(b.ServiceKey().Address).
 		AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys)).
+		AddRawArgument(jsoncdc.MustEncode(cadence.NewString("FlowIDTableStaking"))).
 		AddRawArgument(jsoncdc.MustEncode(cadenceCode))
 
 	_ = tx.AddArgument(CadenceUFix64("1250000.0"))
@@ -1856,7 +1918,7 @@ func TestLockedTokensRealStaking(t *testing.T) {
 		false,
 	)
 
-	var idTableAddress sdk.Address
+	var idTableAddress flow.Address
 
 	var i uint64
 	i = 0
@@ -1864,8 +1926,8 @@ func TestLockedTokensRealStaking(t *testing.T) {
 		results, _ := b.GetEventsByHeight(i, "flow.AccountCreated")
 
 		for _, event := range results {
-			if event.Type == sdk.EventAccountCreated {
-				idTableAddress = sdk.Address(event.Value.Fields[0].(cadence.Address))
+			if event.Type == flow.EventAccountCreated {
+				idTableAddress = flow.Address(event.Value.Fields[0].(cadence.Address))
 			}
 		}
 
@@ -1876,7 +1938,12 @@ func TestLockedTokensRealStaking(t *testing.T) {
 
 	// Deploy the StakingProxy contract
 	stakingProxyCode := contracts.FlowStakingProxy()
-	stakingProxyAddress, err := b.CreateAccount(nil, stakingProxyCode)
+	stakingProxyAddress, err := b.CreateAccount(nil, []sdktemplates.Contract{
+		{
+			Name:   "StakingProxy",
+			Source: string(stakingProxyCode),
+		},
+	})
 	if !assert.NoError(t, err) {
 		t.Log(err.Error())
 	}
@@ -1924,8 +1991,8 @@ func TestLockedTokensRealStaking(t *testing.T) {
 	adminPublicKey := bytesToCadenceArray(adminAccountKey.Encode())
 	joshPublicKey := bytesToCadenceArray(joshKey.Encode())
 
-	var joshSharedAddress sdk.Address
-	var joshAddress sdk.Address
+	var joshSharedAddress flow.Address
+	var joshAddress flow.Address
 
 	t.Run("Should be able to create new shared accounts", func(t *testing.T) {
 
@@ -2231,7 +2298,7 @@ func TestLockedTokensRealStaking(t *testing.T) {
 
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateWithdrawLockedUnstakedTokensScript(env)).
-			SetGasLimit(100).
+			SetGasLimit(9999).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshAddress)
@@ -2249,7 +2316,7 @@ func TestLockedTokensRealStaking(t *testing.T) {
 
 		tx = flow.NewTransaction().
 			SetScript(templates.GenerateRegisterLockedNodeScript(env)).
-			SetGasLimit(10000).
+			SetGasLimit(9999).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshAddress)
@@ -2273,7 +2340,7 @@ func TestLockedTokensRealStaking(t *testing.T) {
 
 }
 
-func TestLockedTokensDelegatorReal(t *testing.T) {
+func TestLockedTokensRealDelegating(t *testing.T) {
 	b := newEmulator()
 
 	env := templates.Environment{
@@ -2302,6 +2369,7 @@ func TestLockedTokensDelegatorReal(t *testing.T) {
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(b.ServiceKey().Address).
 		AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys)).
+		AddRawArgument(jsoncdc.MustEncode(cadence.NewString("FlowIDTableStaking"))).
 		AddRawArgument(jsoncdc.MustEncode(cadenceCode))
 
 	_ = tx.AddArgument(CadenceUFix64("1250000.0"))
@@ -2314,7 +2382,7 @@ func TestLockedTokensDelegatorReal(t *testing.T) {
 		false,
 	)
 
-	var idTableAddress sdk.Address
+	var idTableAddress flow.Address
 
 	var i uint64
 	i = 0
@@ -2322,8 +2390,8 @@ func TestLockedTokensDelegatorReal(t *testing.T) {
 		results, _ := b.GetEventsByHeight(i, "flow.AccountCreated")
 
 		for _, event := range results {
-			if event.Type == sdk.EventAccountCreated {
-				idTableAddress = sdk.Address(event.Value.Fields[0].(cadence.Address))
+			if event.Type == flow.EventAccountCreated {
+				idTableAddress = flow.Address(event.Value.Fields[0].(cadence.Address))
 			}
 		}
 
@@ -2334,7 +2402,12 @@ func TestLockedTokensDelegatorReal(t *testing.T) {
 
 	// Deploy the StakingProxy contract
 	stakingProxyCode := contracts.FlowStakingProxy()
-	stakingProxyAddress, err := b.CreateAccount(nil, stakingProxyCode)
+	stakingProxyAddress, err := b.CreateAccount(nil, []sdktemplates.Contract{
+		{
+			Name:   "StakingProxy",
+			Source: string(stakingProxyCode),
+		},
+	})
 	if !assert.NoError(t, err) {
 		t.Log(err.Error())
 	}
@@ -2376,8 +2449,8 @@ func TestLockedTokensDelegatorReal(t *testing.T) {
 	adminPublicKey := bytesToCadenceArray(adminAccountKey.Encode())
 	joshPublicKey := bytesToCadenceArray(joshKey.Encode())
 
-	var joshSharedAddress sdk.Address
-	var joshAddress sdk.Address
+	var joshSharedAddress flow.Address
+	var joshAddress flow.Address
 
 	t.Run("Should be able to create new shared accounts", func(t *testing.T) {
 
@@ -2473,7 +2546,7 @@ func TestLockedTokensDelegatorReal(t *testing.T) {
 
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateCreateLockedDelegatorScript(env)).
-			SetGasLimit(10000).
+			SetGasLimit(9999).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshAddress)
@@ -2703,7 +2776,7 @@ func TestLockedTokensDelegatorReal(t *testing.T) {
 
 		tx = flow.NewTransaction().
 			SetScript(templates.GenerateCreateLockedDelegatorScript(env)).
-			SetGasLimit(10000).
+			SetGasLimit(9999).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshAddress)

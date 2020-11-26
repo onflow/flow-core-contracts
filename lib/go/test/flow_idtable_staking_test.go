@@ -3124,39 +3124,35 @@ func TestIDTable(t *testing.T) {
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
 		}
-		requirement := result.Value
-		assert.Equal(t, CadenceUFix64("250000.0"), requirement.(cadence.UFix64))
+		assert.EqualValues(t, colMin, result.Value)
 
 		result, err = b.ExecuteScript(templates.GenerateGetStakeRequirementsScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(2))})
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
 		}
-		requirement = result.Value
-		assert.Equal(t, CadenceUFix64("250000.0"), requirement.(cadence.UFix64))
+		assert.EqualValues(t, conMin, result.Value)
 
 		result, err = b.ExecuteScript(templates.GenerateGetStakeRequirementsScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(3))})
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
 		}
-		requirement = result.Value
-		assert.Equal(t, CadenceUFix64("1250000.0"), requirement.(cadence.UFix64))
+		assert.EqualValues(t, exMin, result.Value)
 
 		result, err = b.ExecuteScript(templates.GenerateGetStakeRequirementsScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(4))})
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
 		}
-		requirement = result.Value
-		assert.Equal(t, CadenceUFix64("135000.0"), requirement.(cadence.UFix64))
+		assert.EqualValues(t, verMin, result.Value)
 
 		result, err = b.ExecuteScript(templates.GenerateGetStakeRequirementsScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(5))})
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
 		}
-		requirement = result.Value
+		requirement := result.Value
 		assert.Equal(t, CadenceUFix64("0.0"), requirement.(cadence.UFix64))
 
 	})
