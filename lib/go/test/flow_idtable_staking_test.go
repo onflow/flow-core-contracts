@@ -3088,4 +3088,72 @@ func TestIDTable(t *testing.T) {
 		assert.Equal(t, CadenceUFix64("40000.0"), balance.(cadence.UFix64))
 
 	})
+
+	t.Run("Should be able to change the staking minimums", func(t *testing.T) {
+
+		tx = flow.NewTransaction().
+			SetScript(templates.GenerateChangeMinimumsScript(env)).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(idTableAddress)
+
+		colMin, err := cadence.NewUFix64("250000.0")
+		require.NoError(t, err)
+		conMin, err := cadence.NewUFix64("250000.0")
+		require.NoError(t, err)
+		exMin, err := cadence.NewUFix64("1250000.0")
+		require.NoError(t, err)
+		verMin, err := cadence.NewUFix64("135000.0")
+		require.NoError(t, err)
+		accMin, err := cadence.NewUFix64("0.0")
+		require.NoError(t, err)
+
+		err = tx.AddArgument(cadence.NewArray([]cadence.Value{colMin, conMin, exMin, verMin, accMin}))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+
+		result, err := b.ExecuteScript(templates.GenerateGetStakeRequirementsScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(1))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		assert.EqualValues(t, colMin, result.Value)
+
+		result, err = b.ExecuteScript(templates.GenerateGetStakeRequirementsScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(2))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		assert.EqualValues(t, conMin, result.Value)
+
+		result, err = b.ExecuteScript(templates.GenerateGetStakeRequirementsScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(3))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		assert.EqualValues(t, exMin, result.Value)
+
+		result, err = b.ExecuteScript(templates.GenerateGetStakeRequirementsScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(4))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		assert.EqualValues(t, verMin, result.Value)
+
+		result, err = b.ExecuteScript(templates.GenerateGetStakeRequirementsScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(5))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		requirement := result.Value
+		assert.Equal(t, CadenceUFix64("0.0"), requirement.(cadence.UFix64))
+
+	})
 }
