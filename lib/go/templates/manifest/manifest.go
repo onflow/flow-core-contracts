@@ -3,6 +3,9 @@ package main
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
+
+	"github.com/onflow/flow-go-sdk"
 
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
 )
@@ -26,9 +29,10 @@ type template struct {
 }
 
 type argument struct {
-	Type  string `json:"type"`
-	Name  string `json:"name"`
-	Label string `json:"label"`
+	Type        string `json:"type"`
+	Name        string `json:"name"`
+	Label       string `json:"label"`
+	SampleValue string `json:"sampleValue"`
 }
 
 type templateGenerator func(env templates.Environment) []byte
@@ -60,14 +64,18 @@ func generateManifest(env templates.Environment) *manifest {
 		Network: env.Network,
 	}
 
+	sampleAmount := "92233720368.54775808"
+	sampleNodeID := "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"
+
 	m.addTemplate(generateTemplate(
 		"TH.01", "Withdraw Unlocked FLOW",
 		env,
 		templates.GenerateWithdrawTokensScript,
 		[]argument{{
-			Type:  "UFix64",
-			Name:  "amount",
-			Label: "Amount",
+			Type:        "UFix64",
+			Name:        "amount",
+			Label:       "Amount",
+			SampleValue: "92233720368.54775808",
 		}},
 	))
 
@@ -76,9 +84,10 @@ func generateManifest(env templates.Environment) *manifest {
 		env,
 		templates.GenerateDepositTokensScript,
 		[]argument{{
-			Type:  "UFix64",
-			Name:  "amount",
-			Label: "Amount",
+			Type:        "UFix64",
+			Name:        "amount",
+			Label:       "Amount",
+			SampleValue: sampleAmount,
 		}},
 	))
 
@@ -88,34 +97,40 @@ func generateManifest(env templates.Environment) *manifest {
 		templates.GenerateRegisterLockedNodeScript,
 		[]argument{
 			{
-				Type:  "String",
-				Name:  "id",
-				Label: "Node ID",
+				Type:        "String",
+				Name:        "id",
+				Label:       "Node ID",
+				SampleValue: sampleNodeID,
 			},
 			{
-				Type:  "UInt8",
-				Name:  "role",
-				Label: "Node Role",
+				Type:        "UInt8",
+				Name:        "role",
+				Label:       "Node Role",
+				SampleValue: "1",
 			},
 			{
-				Type:  "String",
-				Name:  "networkingAddress",
-				Label: "Networking Address",
+				Type:        "String",
+				Name:        "networkingAddress",
+				Label:       "Networking Address",
+				SampleValue: "flow-node.test:3569",
 			},
 			{
-				Type:  "String",
-				Name:  "networkingKey",
-				Label: "Networking Key",
+				Type:        "String",
+				Name:        "networkingKey",
+				Label:       "Networking Key",
+				SampleValue: "1348307bc77c688e80049de9d081aa09755da33e6997605fa059db2144fc85e560cbe6f7da8d74b453f5916618cb8fd392c2db856f3e78221dc68db1b1d914e4",
 			},
 			{
-				Type:  "String",
-				Name:  "stakingKey",
-				Label: "Staking Key",
+				Type:        "String",
+				Name:        "stakingKey",
+				Label:       "Staking Key",
+				SampleValue: "9e9ae0d645fd5fd9050792e0b0daa82cc1686d9133afa0f81a784b375c42ae48567d1545e7a9e1965f2c1a32f73cf8575ebb7a967f6e4d104d2df78eb8be409135d12da0499b8a00771f642c1b9c49397f22b440439f036c3bdee82f5309dab3",
 			},
 			{
-				Type:  "UFix64",
-				Name:  "amount",
-				Label: "Amount",
+				Type:        "UFix64",
+				Name:        "amount",
+				Label:       "Amount",
+				SampleValue: sampleAmount,
 			},
 		},
 	))
@@ -126,9 +141,10 @@ func generateManifest(env templates.Environment) *manifest {
 		templates.GenerateStakeNewLockedTokensScript,
 		[]argument{
 			{
-				Type:  "UFix64",
-				Name:  "amount",
-				Label: "Amount",
+				Type:        "UFix64",
+				Name:        "amount",
+				Label:       "Amount",
+				SampleValue: sampleAmount,
 			},
 		},
 	))
@@ -139,9 +155,10 @@ func generateManifest(env templates.Environment) *manifest {
 		templates.GenerateStakeLockedUnstakedTokensScript,
 		[]argument{
 			{
-				Type:  "UFix64",
-				Name:  "amount",
-				Label: "Amount",
+				Type:        "UFix64",
+				Name:        "amount",
+				Label:       "Amount",
+				SampleValue: sampleAmount,
 			},
 		},
 	))
@@ -153,9 +170,10 @@ func generateManifest(env templates.Environment) *manifest {
 		templates.GenerateStakeLockedRewardedTokensScript,
 		[]argument{
 			{
-				Type:  "UFix64",
-				Name:  "amount",
-				Label: "Amount",
+				Type:        "UFix64",
+				Name:        "amount",
+				Label:       "Amount",
+				SampleValue: sampleAmount,
 			},
 		},
 	))
@@ -167,9 +185,10 @@ func generateManifest(env templates.Environment) *manifest {
 		templates.GenerateUnstakeLockedTokensScript,
 		[]argument{
 			{
-				Type:  "UFix64",
-				Name:  "amount",
-				Label: "Amount",
+				Type:        "UFix64",
+				Name:        "amount",
+				Label:       "Amount",
+				SampleValue: sampleAmount,
 			},
 		},
 	))
@@ -187,9 +206,10 @@ func generateManifest(env templates.Environment) *manifest {
 		templates.GenerateWithdrawLockedUnstakedTokensScript,
 		[]argument{
 			{
-				Type:  "UFix64",
-				Name:  "amount",
-				Label: "Amount",
+				Type:        "UFix64",
+				Name:        "amount",
+				Label:       "Amount",
+				SampleValue: sampleAmount,
 			},
 		},
 	))
@@ -200,9 +220,10 @@ func generateManifest(env templates.Environment) *manifest {
 		templates.GenerateWithdrawLockedRewardedTokensScript,
 		[]argument{
 			{
-				Type:  "UFix64",
-				Name:  "amount",
-				Label: "Amount",
+				Type:        "UFix64",
+				Name:        "amount",
+				Label:       "Amount",
+				SampleValue: sampleAmount,
 			},
 		},
 	))
@@ -213,19 +234,22 @@ func generateManifest(env templates.Environment) *manifest {
 		templates.GenerateRegisterStakingProxyNodeScript,
 		[]argument{
 			{
-				Type:  "Address",
-				Name:  "address",
-				Label: "Operator Address",
+				Type:        "Address",
+				Name:        "address",
+				Label:       "Operator Address",
+				SampleValue: sampleAddress(env.Network),
 			},
 			{
-				Type:  "String",
-				Name:  "id",
-				Label: "Node ID",
+				Type:        "String",
+				Name:        "id",
+				Label:       "Node ID",
+				SampleValue: sampleNodeID,
 			},
 			{
-				Type:  "UFix64",
-				Name:  "amount",
-				Label: "Amount",
+				Type:        "UFix64",
+				Name:        "amount",
+				Label:       "Amount",
+				SampleValue: sampleAmount,
 			},
 		},
 	))
@@ -236,14 +260,16 @@ func generateManifest(env templates.Environment) *manifest {
 		templates.GenerateCreateLockedDelegatorScript,
 		[]argument{
 			{
-				Type:  "String",
-				Name:  "id",
-				Label: "Node ID",
+				Type:        "String",
+				Name:        "id",
+				Label:       "Node ID",
+				SampleValue: sampleNodeID,
 			},
 			{
-				Type:  "UFix64",
-				Name:  "amount",
-				Label: "Amount",
+				Type:        "UFix64",
+				Name:        "amount",
+				Label:       "Amount",
+				SampleValue: sampleAmount,
 			},
 		},
 	))
@@ -254,9 +280,10 @@ func generateManifest(env templates.Environment) *manifest {
 		templates.GenerateDelegateNewLockedTokensScript,
 		[]argument{
 			{
-				Type:  "UFix64",
-				Name:  "amount",
-				Label: "Amount",
+				Type:        "UFix64",
+				Name:        "amount",
+				Label:       "Amount",
+				SampleValue: sampleAmount,
 			},
 		},
 	))
@@ -267,9 +294,10 @@ func generateManifest(env templates.Environment) *manifest {
 		templates.GenerateDelegateLockedUnstakedTokensScript,
 		[]argument{
 			{
-				Type:  "UFix64",
-				Name:  "amount",
-				Label: "Amount",
+				Type:        "UFix64",
+				Name:        "amount",
+				Label:       "Amount",
+				SampleValue: sampleAmount,
 			},
 		},
 	))
@@ -280,9 +308,10 @@ func generateManifest(env templates.Environment) *manifest {
 		templates.GenerateDelegateLockedRewardedTokensScript,
 		[]argument{
 			{
-				Type:  "UFix64",
-				Name:  "amount",
-				Label: "Amount",
+				Type:        "UFix64",
+				Name:        "amount",
+				Label:       "Amount",
+				SampleValue: sampleAmount,
 			},
 		},
 	))
@@ -293,9 +322,10 @@ func generateManifest(env templates.Environment) *manifest {
 		templates.GenerateUnDelegateLockedTokensScript,
 		[]argument{
 			{
-				Type:  "UFix64",
-				Name:  "amount",
-				Label: "Amount",
+				Type:        "UFix64",
+				Name:        "amount",
+				Label:       "Amount",
+				SampleValue: sampleAmount,
 			},
 		},
 	))
@@ -306,9 +336,10 @@ func generateManifest(env templates.Environment) *manifest {
 		templates.GenerateWithdrawDelegatorLockedUnstakedTokensScript,
 		[]argument{
 			{
-				Type:  "UFix64",
-				Name:  "amount",
-				Label: "Amount",
+				Type:        "UFix64",
+				Name:        "amount",
+				Label:       "Amount",
+				SampleValue: sampleAmount,
 			},
 		},
 	))
@@ -319,12 +350,26 @@ func generateManifest(env templates.Environment) *manifest {
 		templates.GenerateWithdrawDelegatorLockedRewardedTokensScript,
 		[]argument{
 			{
-				Type:  "UFix64",
-				Name:  "amount",
-				Label: "Amount",
+				Type:        "UFix64",
+				Name:        "amount",
+				Label:       "Amount",
+				SampleValue: sampleAmount,
 			},
 		},
 	))
 
 	return m
+}
+
+func sampleAddress(network string) string {
+	var address flow.Address
+
+	switch network {
+	case testnet:
+		address = flow.NewAddressGenerator(flow.Testnet).Address()
+	case mainnet:
+		address = flow.NewAddressGenerator(flow.Mainnet).Address()
+	}
+
+	return fmt.Sprintf("0x%s", address.Hex())
 }

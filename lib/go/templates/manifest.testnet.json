@@ -9,7 +9,8 @@
         {
           "type": "UFix64",
           "name": "amount",
-          "label": "Amount"
+          "label": "Amount",
+          "sampleValue": "92233720368.54775808"
         }
       ],
       "network": "testnet",
@@ -23,7 +24,8 @@
         {
           "type": "UFix64",
           "name": "amount",
-          "label": "Amount"
+          "label": "Amount",
+          "sampleValue": "92233720368.54775808"
         }
       ],
       "network": "testnet",
@@ -37,32 +39,38 @@
         {
           "type": "String",
           "name": "id",
-          "label": "Node ID"
+          "label": "Node ID",
+          "sampleValue": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"
         },
         {
           "type": "UInt8",
           "name": "role",
-          "label": "Node Role"
+          "label": "Node Role",
+          "sampleValue": "1"
         },
         {
           "type": "String",
           "name": "networkingAddress",
-          "label": "Networking Address"
+          "label": "Networking Address",
+          "sampleValue": "flow-node.test:3569"
         },
         {
           "type": "String",
           "name": "networkingKey",
-          "label": "Networking Key"
+          "label": "Networking Key",
+          "sampleValue": "1348307bc77c688e80049de9d081aa09755da33e6997605fa059db2144fc85e560cbe6f7da8d74b453f5916618cb8fd392c2db856f3e78221dc68db1b1d914e4"
         },
         {
           "type": "String",
           "name": "stakingKey",
-          "label": "Staking Key"
+          "label": "Staking Key",
+          "sampleValue": "9e9ae0d645fd5fd9050792e0b0daa82cc1686d9133afa0f81a784b375c42ae48567d1545e7a9e1965f2c1a32f73cf8575ebb7a967f6e4d104d2df78eb8be409135d12da0499b8a00771f642c1b9c49397f22b440439f036c3bdee82f5309dab3"
         },
         {
           "type": "UFix64",
           "name": "amount",
-          "label": "Amount"
+          "label": "Amount",
+          "sampleValue": "92233720368.54775808"
         }
       ],
       "network": "testnet",
@@ -76,7 +84,8 @@
         {
           "type": "UFix64",
           "name": "amount",
-          "label": "Amount"
+          "label": "Amount",
+          "sampleValue": "92233720368.54775808"
         }
       ],
       "network": "testnet",
@@ -90,7 +99,8 @@
         {
           "type": "UFix64",
           "name": "amount",
-          "label": "Amount"
+          "label": "Amount",
+          "sampleValue": "92233720368.54775808"
         }
       ],
       "network": "testnet",
@@ -104,7 +114,8 @@
         {
           "type": "UFix64",
           "name": "amount",
-          "label": "Amount"
+          "label": "Amount",
+          "sampleValue": "92233720368.54775808"
         }
       ],
       "network": "testnet",
@@ -118,7 +129,8 @@
         {
           "type": "UFix64",
           "name": "amount",
-          "label": "Amount"
+          "label": "Amount",
+          "sampleValue": "92233720368.54775808"
         }
       ],
       "network": "testnet",
@@ -140,7 +152,8 @@
         {
           "type": "UFix64",
           "name": "amount",
-          "label": "Amount"
+          "label": "Amount",
+          "sampleValue": "92233720368.54775808"
         }
       ],
       "network": "testnet",
@@ -154,7 +167,8 @@
         {
           "type": "UFix64",
           "name": "amount",
-          "label": "Amount"
+          "label": "Amount",
+          "sampleValue": "92233720368.54775808"
         }
       ],
       "network": "testnet",
@@ -168,17 +182,20 @@
         {
           "type": "Address",
           "name": "address",
-          "label": "Operator Address"
+          "label": "Operator Address",
+          "sampleValue": "0x8624b52f9ddcd04a"
         },
         {
           "type": "String",
           "name": "id",
-          "label": "Node ID"
+          "label": "Node ID",
+          "sampleValue": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"
         },
         {
           "type": "UFix64",
           "name": "amount",
-          "label": "Amount"
+          "label": "Amount",
+          "sampleValue": "92233720368.54775808"
         }
       ],
       "network": "testnet",
@@ -192,12 +209,14 @@
         {
           "type": "String",
           "name": "id",
-          "label": "Node ID"
+          "label": "Node ID",
+          "sampleValue": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"
         },
         {
           "type": "UFix64",
           "name": "amount",
-          "label": "Amount"
+          "label": "Amount",
+          "sampleValue": "92233720368.54775808"
         }
       ],
       "network": "testnet",
@@ -211,7 +230,8 @@
         {
           "type": "UFix64",
           "name": "amount",
-          "label": "Amount"
+          "label": "Amount",
+          "sampleValue": "92233720368.54775808"
         }
       ],
       "network": "testnet",
@@ -225,7 +245,8 @@
         {
           "type": "UFix64",
           "name": "amount",
-          "label": "Amount"
+          "label": "Amount",
+          "sampleValue": "92233720368.54775808"
         }
       ],
       "network": "testnet",
@@ -239,7 +260,8 @@
         {
           "type": "UFix64",
           "name": "amount",
-          "label": "Amount"
+          "label": "Amount",
+          "sampleValue": "92233720368.54775808"
         }
       ],
       "network": "testnet",
@@ -253,7 +275,8 @@
         {
           "type": "UFix64",
           "name": "amount",
-          "label": "Amount"
+          "label": "Amount",
+          "sampleValue": "92233720368.54775808"
         }
       ],
       "network": "testnet",
@@ -267,7 +290,8 @@
         {
           "type": "UFix64",
           "name": "amount",
-          "label": "Amount"
+          "label": "Amount",
+          "sampleValue": "92233720368.54775808"
         }
       ],
       "network": "testnet",
@@ -281,7 +305,8 @@
         {
           "type": "UFix64",
           "name": "amount",
-          "label": "Amount"
+          "label": "Amount",
+          "sampleValue": "92233720368.54775808"
         }
       ],
       "network": "testnet",
