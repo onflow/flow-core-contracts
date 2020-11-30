@@ -2,7 +2,7 @@ import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
 
 // This transaction changes the staking minumums for node operators
 
-transaction(newMinimums: {UInt8: UFix64}) {
+transaction(newMinimums: [UFix64]) {
 
     // Local variable for a reference to the ID Table Admin object
     let adminRef: &FlowIDTableStaking.Admin
@@ -14,6 +14,13 @@ transaction(newMinimums: {UInt8: UFix64}) {
     }
 
     execute {
-        self.adminRef.setMinimumStakeRequirements(newMinimums)
+        let minimums: {UInt8: UFix64} = {}
+        var i: UInt8 = 1
+        for min in newMinimums {
+            minimums[i] = min
+            i = i + UInt8(1)
+        }
+
+        self.adminRef.setMinimumStakeRequirements(minimums)
     }
 }
