@@ -18,7 +18,8 @@ const (
 	setupCustodyAccountFilename                  = "lockedTokens/admin/custody_setup_account_creator.cdc"
 	custodyCreateAccountsFilename                = "lockedTokens/admin/custody_create_shared_accounts.cdc"
 	custodyCreateOnlySharedAccountFilename       = "lockedTokens/admin/custody_create_only_shared_account.cdc"
-	custodyCreateAccountWothLeaseAccountFilename = "lockedTokens/admin/custody_create_account_with_lease_account.cdc"
+	custodyCreateAccountWithLeaseAccountFilename = "lockedTokens/admin/custody_create_account_with_lease_account.cdc"
+	custodyCreateOnlyLeaseAccountFilename        = "lockedTokens/admin/custody_create_only_lease_account.cdc"
 
 	// user templates
 	withdrawTokensFilename          = "lockedTokens/user/withdraw_tokens.cdc"
@@ -113,7 +114,13 @@ func GenerateCustodyCreateOnlySharedAccountScript(env Environment) []byte {
 }
 
 func GenerateCustodyCreateAccountWithLeaseAccountScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + custodyCreateAccountWothLeaseAccountFilename)
+	code := assets.MustAssetString(filePath + custodyCreateAccountWithLeaseAccountFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateCustodyCreateOnlyLeaseAccountScript(env Environment) []byte {
+	code := assets.MustAssetString(filePath + custodyCreateOnlyLeaseAccountFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
