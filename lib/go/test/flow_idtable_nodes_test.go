@@ -30,12 +30,14 @@ const (
 
 	firstNetworkingKey = "networkingKey"
 
-	numberOfNodes = 500
+	numberOfNodes      = 20
+	numberOfDelegators = 10
 
-	numberOfDelegators = 2000
+	unstakeAllNumNodes      = 2
+	unstakeAllNumDelegators = 20
 )
 
-func TestIDTableManyNodes(t *testing.T) {
+func TestManyNodesIDTable(t *testing.T) {
 	b, err := emulator.NewBlockchain(emulator.WithTransactionMaxGasLimit(1000000))
 	if err != nil {
 		panic(err)
@@ -234,7 +236,7 @@ func TestIDTableManyNodes(t *testing.T) {
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(userAddresses[350])
+			AddAuthorizer(userAddresses[numberOfNodes-1])
 
 		tokenAmount, err := cadence.NewUFix64("100000.0")
 		require.NoError(t, err)
@@ -243,8 +245,8 @@ func TestIDTableManyNodes(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, userAddresses[350]},
-			[]crypto.Signer{b.ServiceKey().Signer(), userSigners[350]},
+			[]flow.Address{b.ServiceKey().Address, userAddresses[numberOfNodes-1]},
+			[]crypto.Signer{b.ServiceKey().Signer(), userSigners[numberOfNodes-1]},
 			false,
 		)
 	})
@@ -375,4 +377,223 @@ func TestIDTableManyNodes(t *testing.T) {
 
 	})
 
+}
+
+func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
+	b, err := emulator.NewBlockchain(emulator.WithTransactionMaxGasLimit(1000000))
+	if err != nil {
+		panic(err)
+	}
+
+	env := templates.Environment{
+		FungibleTokenAddress: emulatorFTAddress,
+		FlowTokenAddress:     emulatorFlowTokenAddress,
+	}
+
+	accountKeys := test.AccountKeyGenerator()
+
+	// Create new keys for the ID table account
+	IDTableAccountKey, _ := accountKeys.NewWithSigner()
+	IDTableCode := contracts.FlowIDTableStaking(emulatorFTAddress, emulatorFlowTokenAddress)
+
+	publicKeys := make([]cadence.Value, 1)
+
+	publicKeys[0] = bytesToCadenceArray(IDTableAccountKey.Encode())
+
+	cadencePublicKeys := cadence.NewArray(publicKeys)
+	cadenceCode := bytesToCadenceArray(IDTableCode)
+
+	// Deploy the IDTableStaking contract
+	tx := flow.NewTransaction().
+		SetScript(templates.GenerateTransferMinterAndDeployScript(env)).
+		SetGasLimit(100).
+		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+		SetPayer(b.ServiceKey().Address).
+		AddAuthorizer(b.ServiceKey().Address).
+		AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys)).
+		AddRawArgument(jsoncdc.MustEncode(cadence.NewString("FlowIDTableStaking"))).
+		AddRawArgument(jsoncdc.MustEncode(cadenceCode))
+
+	_ = tx.AddArgument(CadenceUFix64("1250000.0"))
+	_ = tx.AddArgument(CadenceUFix64("0.08"))
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address},
+		[]crypto.Signer{b.ServiceKey().Signer()},
+		false,
+	)
+
+	var idTableAddress flow.Address
+
+	var i uint64
+	i = 0
+	for i < 1000 {
+		results, _ := b.GetEventsByHeight(i, "flow.AccountCreated")
+
+		for _, event := range results {
+			if event.Type == flow.EventAccountCreated {
+				idTableAddress = flow.Address(event.Value.Fields[0].(cadence.Address))
+			}
+		}
+
+		i = i + 1
+	}
+
+	env.IDTableAddress = idTableAddress.Hex()
+
+	var userAccountKeys [unstakeAllNumNodes]*flow.AccountKey
+	var userSigners [unstakeAllNumNodes]crypto.Signer
+	var userAddresses [unstakeAllNumNodes]flow.Address
+
+	// Create many new user accounts for nodes
+	for i := 0; i < unstakeAllNumNodes; i++ {
+		userAccountKeys[i], userSigners[i] = accountKeys.NewWithSigner()
+		userAddresses[i], _ = b.CreateAccount([]*flow.AccountKey{userAccountKeys[i]}, nil)
+	}
+
+	approvedNodes := make([]cadence.Value, unstakeAllNumNodes)
+
+	var delegatorAccountKeys [unstakeAllNumDelegators]*flow.AccountKey
+	var delegatorSigners [unstakeAllNumDelegators]crypto.Signer
+	var delegatorAddresses [unstakeAllNumDelegators]flow.Address
+
+	// Create many new delegator accounts
+	for i := 0; i < unstakeAllNumDelegators; i++ {
+		delegatorAccountKeys[i], delegatorSigners[i] = accountKeys.NewWithSigner()
+		delegatorAddresses[i], _ = b.CreateAccount([]*flow.AccountKey{delegatorAccountKeys[i]}, nil)
+	}
+
+	t.Run("Should be able to mint tokens for the nodes", func(t *testing.T) {
+
+		for i := 0; i < unstakeAllNumNodes; i++ {
+
+			tx := flow.NewTransaction().
+				SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
+				SetGasLimit(9999).
+				SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+				SetPayer(b.ServiceKey().Address).
+				AddAuthorizer(b.ServiceKey().Address)
+
+			_ = tx.AddArgument(cadence.NewAddress(userAddresses[i]))
+			_ = tx.AddArgument(CadenceUFix64("2000000.0"))
+
+			signAndSubmit(
+				t, b, tx,
+				[]flow.Address{b.ServiceKey().Address},
+				[]crypto.Signer{b.ServiceKey().Signer()},
+				false,
+			)
+		}
+	})
+
+	t.Run("Should be able to mint tokens for the delegators", func(t *testing.T) {
+
+		for i := 0; i < unstakeAllNumDelegators; i++ {
+
+			tx := flow.NewTransaction().
+				SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
+				SetGasLimit(9999).
+				SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+				SetPayer(b.ServiceKey().Address).
+				AddAuthorizer(b.ServiceKey().Address)
+
+			_ = tx.AddArgument(cadence.NewAddress(delegatorAddresses[i]))
+			_ = tx.AddArgument(CadenceUFix64("2000000.0"))
+
+			signAndSubmit(
+				t, b, tx,
+				[]flow.Address{b.ServiceKey().Address},
+				[]crypto.Signer{b.ServiceKey().Signer()},
+				false,
+			)
+		}
+	})
+
+	t.Run("Should be able to create many valid Node structs", func(t *testing.T) {
+
+		for i := 0; i < unstakeAllNumNodes; i++ {
+
+			tx := flow.NewTransaction().
+				SetScript(templates.GenerateRegisterNodeScript(env)).
+				SetGasLimit(4000).
+				SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+				SetPayer(b.ServiceKey().Address).
+				AddAuthorizer(userAddresses[i])
+
+			id := fmt.Sprintf("%064d", i)
+
+			approvedNodes[i] = cadence.NewString(id)
+
+			role := uint8((i % 4) + 1)
+
+			err := tx.AddArgument(cadence.NewString(id))
+			require.NoError(t, err)
+			err = tx.AddArgument(cadence.NewUInt8(role))
+			require.NoError(t, err)
+			err = tx.AddArgument(cadence.NewString(firstNetworkingAddress + strconv.Itoa(i)))
+			require.NoError(t, err)
+			err = tx.AddArgument(cadence.NewString(firstNetworkingKey + strconv.Itoa(i)))
+			require.NoError(t, err)
+			err = tx.AddArgument(cadence.NewString(firstStakingKey + strconv.Itoa(i)))
+			require.NoError(t, err)
+			tokenAmount, err := cadence.NewUFix64("1500000.0")
+			require.NoError(t, err)
+			err = tx.AddArgument(tokenAmount)
+			require.NoError(t, err)
+
+			signAndSubmit(
+				t, b, tx,
+				[]flow.Address{b.ServiceKey().Address, userAddresses[i]},
+				[]crypto.Signer{b.ServiceKey().Signer(), userSigners[i]},
+				false,
+			)
+
+		}
+
+	})
+
+	t.Run("Should be able to register many delegators", func(t *testing.T) {
+
+		for i := 0; i < unstakeAllNumDelegators; i++ {
+
+			tx := flow.NewTransaction().
+				SetScript(templates.GenerateRegisterDelegatorScript(env)).
+				SetGasLimit(100).
+				SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+				SetPayer(b.ServiceKey().Address).
+				AddAuthorizer(delegatorAddresses[i])
+
+			nodeID := 0
+
+			err := tx.AddArgument(approvedNodes[nodeID])
+			require.NoError(t, err)
+
+			signAndSubmit(
+				t, b, tx,
+				[]flow.Address{b.ServiceKey().Address, delegatorAddresses[i]},
+				[]crypto.Signer{b.ServiceKey().Signer(), delegatorSigners[i]},
+				false,
+			)
+
+		}
+	})
+
+	t.Run("Should be able request unstake all which also requests to unstake all the delegator's tokens", func(t *testing.T) {
+
+		tx = flow.NewTransaction().
+			SetScript(templates.GenerateUnstakeAllScript(env)).
+			SetGasLimit(10000).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(userAddresses[0])
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, userAddresses[0]},
+			[]crypto.Signer{b.ServiceKey().Signer(), userSigners[0]},
+			false,
+		)
+
+	})
 }
