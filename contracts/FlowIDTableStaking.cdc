@@ -741,7 +741,9 @@ pub contract FlowIDTableStaking {
                 if nodeRecord.tokensStaked.balance == 0.0 || nodeRecord.role == UInt8(5) { continue }
 
                 /// Calculate the amount of tokens that this node operator receives
-                let rewardAmount = FlowIDTableStaking.epochTokenPayout * (nodeRecord.tokensStaked.balance / totalStaked)
+                let rewardPortion = nodeRecord.tokensStaked.balance / totalStaked
+
+                let rewardAmount = FlowIDTableStaking.epochTokenPayout * rewardPortion //(nodeRecord.tokensStaked.balance / totalStaked)
 
                 if rewardAmount == 0.0 { continue }
 
@@ -757,7 +759,9 @@ pub contract FlowIDTableStaking {
 
                     if delRecord.tokensStaked.balance == 0.0 { continue }
 
-                    let delegatorRewardAmount = (FlowIDTableStaking.epochTokenPayout * (delRecord.tokensStaked.balance / totalStaked))
+                    let delegatorRewardPortion = delRecord.tokensStaked.balance / totalStaked
+
+                    let delegatorRewardAmount = FlowIDTableStaking.epochTokenPayout * delegatorRewardPortion //(delRecord.tokensStaked.balance / totalStaked)
 
                     if delegatorRewardAmount == 0.0 { continue }
 

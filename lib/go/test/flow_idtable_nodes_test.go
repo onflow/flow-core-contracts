@@ -30,11 +30,11 @@ const (
 
 	firstNetworkingKey = "networkingKey"
 
-	numberOfNodes      = 20
-	numberOfDelegators = 10
+	numberOfNodes      = 50
+	numberOfDelegators = 50
 
 	unstakeAllNumNodes      = 2
-	unstakeAllNumDelegators = 20
+	unstakeAllNumDelegators = 50
 )
 
 func TestManyNodesIDTable(t *testing.T) {
@@ -145,28 +145,28 @@ func TestManyNodesIDTable(t *testing.T) {
 		}
 	})
 
-	t.Run("Should be able to mint tokens for the delegators", func(t *testing.T) {
+	// t.Run("Should be able to mint tokens for the delegators", func(t *testing.T) {
 
-		for i := 0; i < numberOfDelegators; i++ {
+	// 	for i := 0; i < numberOfDelegators; i++ {
 
-			tx := flow.NewTransaction().
-				SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
-				SetGasLimit(9999).
-				SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-				SetPayer(b.ServiceKey().Address).
-				AddAuthorizer(b.ServiceKey().Address)
+	// 		tx := flow.NewTransaction().
+	// 			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
+	// 			SetGasLimit(9999).
+	// 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+	// 			SetPayer(b.ServiceKey().Address).
+	// 			AddAuthorizer(b.ServiceKey().Address)
 
-			_ = tx.AddArgument(cadence.NewAddress(delegatorAddresses[i]))
-			_ = tx.AddArgument(CadenceUFix64("2000000.0"))
+	// 		_ = tx.AddArgument(cadence.NewAddress(delegatorAddresses[i]))
+	// 		_ = tx.AddArgument(CadenceUFix64("2000000.0"))
 
-			signAndSubmit(
-				t, b, tx,
-				[]flow.Address{b.ServiceKey().Address},
-				[]crypto.Signer{b.ServiceKey().Signer()},
-				false,
-			)
-		}
-	})
+	// 		signAndSubmit(
+	// 			t, b, tx,
+	// 			[]flow.Address{b.ServiceKey().Address},
+	// 			[]crypto.Signer{b.ServiceKey().Signer()},
+	// 			false,
+	// 		)
+	// 	}
+	// })
 
 	t.Run("Should be able to create many valid Node structs", func(t *testing.T) {
 
@@ -332,7 +332,7 @@ func TestManyNodesIDTable(t *testing.T) {
 
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateEndStakingScript(env)).
-			SetGasLimit(30000).
+			SetGasLimit(50000).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(idTableAddress)
@@ -349,7 +349,7 @@ func TestManyNodesIDTable(t *testing.T) {
 
 		tx = flow.NewTransaction().
 			SetScript(templates.GeneratePayRewardsScript(env)).
-			SetGasLimit(30000).
+			SetGasLimit(50000).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(idTableAddress)
@@ -363,7 +363,7 @@ func TestManyNodesIDTable(t *testing.T) {
 
 		tx = flow.NewTransaction().
 			SetScript(templates.GenerateMoveTokensScript(env)).
-			SetGasLimit(30000).
+			SetGasLimit(50000).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(idTableAddress)
