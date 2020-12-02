@@ -733,6 +733,8 @@ pub contract FlowIDTableStaking {
                 }
             }
 
+            log("found total!")
+
             /// iterate through all the nodes
             for nodeID in allNodeIDs {
 
@@ -743,7 +745,9 @@ pub contract FlowIDTableStaking {
                 /// Calculate the amount of tokens that this node operator receives
                 let rewardPortion = nodeRecord.tokensStaked.balance / totalStaked
 
-                let rewardAmount = FlowIDTableStaking.epochTokenPayout * rewardPortion //(nodeRecord.tokensStaked.balance / totalStaked)
+                let rewardAmount = FlowIDTableStaking.epochTokenPayout * rewardPortion
+
+                log("Calculated Node reward for node ".concat(nodeRecord.id))
 
                 if rewardAmount == 0.0 { continue }
 
@@ -761,11 +765,13 @@ pub contract FlowIDTableStaking {
 
                     let delegatorRewardPortion = delRecord.tokensStaked.balance / totalStaked
 
-                    let delegatorRewardAmount = FlowIDTableStaking.epochTokenPayout * delegatorRewardPortion //(delRecord.tokensStaked.balance / totalStaked)
+                    let delegatorRewardAmount = FlowIDTableStaking.epochTokenPayout * delegatorRewardPortion
 
                     if delegatorRewardAmount == 0.0 { continue }
 
                     let delegatorReward <- flowTokenMinter.mintTokens(amount: delegatorRewardAmount)
+
+                    log("Minted Delegator reward for node ".concat(nodeRecord.id))
 
                     // take the node operator's cut
                     if (delegatorReward.balance * FlowIDTableStaking.nodeDelegatingRewardCut) > 0.0 {
@@ -938,6 +944,26 @@ pub contract FlowIDTableStaking {
         return &FlowIDTableStaking.nodes[nodeID] as! &NodeRecord
     }
 
+    /// Utility Function that checks a node's overall committed balance from its borrowed record
+    access(contract) fun calculateNodeCommittedBalance(_ nodeRecord: &NodeRecord): UFix64 {
+        if (nodeRecord.tokensCommitted.balance + nodeRecord.tokensStaked.balance) < nodeRecord.tokensRequestedToUnstake {
+            return 0.0
+        } else {
+            return nodeRecord.tokensCommitted.balance + nodeRecord.tokensStaked.balance - nodeRecord.tokensRequestedToUnstake
+        }
+
+    }
+
+    /// Utility Function that checks a delegator's overall committed balance from its borrowed record
+    access(contract) fun calculateDelegatorCommittedBalance(_ delegatorRecord: &DelegatorRecord): UFix64 {
+        
+        if (delegatorRecord.tokensCommitted.balance + delegatorRecord.tokensStaked.balance) < delegatorRecord.tokensRequestedToUnstake {
+            return 0.0
+        } else {
+            return delegatorRecord.tokensCommitted.balance + delegatorRecord.tokensStaked.balance - delegatorRecord.tokensRequestedToUnstake
+        }
+    }
+
     /****************** Getter Functions for the staking Info *******************/
 
     /// Gets an array of the node IDs that are proposed for the next epoch
@@ -990,16 +1016,7 @@ pub contract FlowIDTableStaking {
     /// committed for a node for the next epoch
     pub fun getNodeCommittedBalanceWithoutDelegators(_ nodeID: String): UFix64 {
         let nodeRecord = self.borrowNodeRecord(nodeID)
-
-        if (nodeRecord.tokensCommitted.balance + nodeRecord.tokensStaked.balance) < nodeRecord.tokensRequestedToUnstake {
-            return 0.0
-        } else {
-            var sum: UFix64 = 0.0
-
-            sum = nodeRecord.tokensCommitted.balance + nodeRecord.tokensStaked.balance - nodeRecord.tokensRequestedToUnstake
-
-            return sum
-        }
+        return self.calculateNodeCommittedBalance(nodeRecord)
     }
 
     /// Gets the total amount of tokens that have been staked and
@@ -1008,20 +1025,14 @@ pub contract FlowIDTableStaking {
     pub fun getNodeCommittedBalanceWithDelegators(_ nodeID: String): UFix64 {
         let nodeRecord = self.borrowNodeRecord(nodeID)
 
-        if (nodeRecord.tokensCommitted.balance + nodeRecord.tokensStaked.balance) < nodeRecord.tokensRequestedToUnstake {
-            return 0.0
-        } else {
-            var sum: UFix64 = 0.0
+        var sum = self.calculateNodeCommittedBalance(nodeRecord)
 
-            sum = nodeRecord.tokensCommitted.balance + nodeRecord.tokensStaked.balance - nodeRecord.tokensRequestedToUnstake
-
-            for delegator in nodeRecord.delegators.keys {
-                let delRecord = nodeRecord.borrowDelegatorRecord(delegator)
-                sum = sum + delRecord.tokensCommitted.balance + delRecord.tokensStaked.balance - delRecord.tokensRequestedToUnstake
-            }
-
-            return sum
+        for delegator in nodeRecord.delegators.keys {
+            let delRecord = nodeRecord.borrowDelegatorRecord(delegator)
+            sum = sum + self.calculateDelegatorCommittedBalance(delRecord)
         }
+
+        return sum
     }
 
     /// Gets the total amount of tokens that have been staked for a node. 
