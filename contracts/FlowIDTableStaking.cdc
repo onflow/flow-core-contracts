@@ -733,8 +733,6 @@ pub contract FlowIDTableStaking {
                 }
             }
 
-            log("found total!")
-
             /// iterate through all the nodes
             for nodeID in allNodeIDs {
 
@@ -742,12 +740,18 @@ pub contract FlowIDTableStaking {
 
                 if nodeRecord.tokensStaked.balance == 0.0 || nodeRecord.role == UInt8(5) { continue }
 
+                var rewardPortion: UFix64 = 0.0
+
                 /// Calculate the amount of tokens that this node operator receives
-                let rewardPortion = nodeRecord.tokensStaked.balance / totalStaked
+                if totalStaked >= 100000000.0 {
+                    let div1000dividend = nodeRecord.tokensStaked.balance / 1000.0
+                    let div1000divisor = totalStaked / 1000.0
+                    rewardPortion = div1000dividend / div1000divisor
+                } else {
+                    rewardPortion = nodeRecord.tokensStaked.balance / totalStaked
+                }
 
                 let rewardAmount = FlowIDTableStaking.epochTokenPayout * rewardPortion
-
-                log("Calculated Node reward for node ".concat(nodeRecord.id))
 
                 if rewardAmount == 0.0 { continue }
 
@@ -763,15 +767,21 @@ pub contract FlowIDTableStaking {
 
                     if delRecord.tokensStaked.balance == 0.0 { continue }
 
-                    let delegatorRewardPortion = delRecord.tokensStaked.balance / totalStaked
+                    var delegatorRewardPortion: UFix64 = 0.0
+
+                    if totalStaked >= 100000000.0 {
+                        let div1000dividend = delRecord.tokensStaked.balance / 1000.0
+                        let div1000divisor = totalStaked / 1000.0
+                        delegatorRewardPortion = div1000dividend / div1000divisor
+                    } else {
+                        delegatorRewardPortion = delRecord.tokensStaked.balance / totalStaked
+                    }
 
                     let delegatorRewardAmount = FlowIDTableStaking.epochTokenPayout * delegatorRewardPortion
 
                     if delegatorRewardAmount == 0.0 { continue }
 
                     let delegatorReward <- flowTokenMinter.mintTokens(amount: delegatorRewardAmount)
-
-                    log("Minted Delegator reward for node ".concat(nodeRecord.id))
 
                     // take the node operator's cut
                     if (delegatorReward.balance * FlowIDTableStaking.nodeDelegatingRewardCut) > 0.0 {
