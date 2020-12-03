@@ -205,7 +205,7 @@ pub contract StorageFees {
         pre{
             paymentVault.balance == StorageFees.flowPerAccountCreation:
                 "Account creation cost exactly ".concat(StorageFees.flowPerAccountCreation.toString()).concat(" Flow tokens.")
-            account.getCapability<&StorageCapacity{StorageCapacityAccess}>(/public/storageCapacity)!.check():
+            !account.getCapability<&StorageCapacity{StorageCapacityAccess}>(/public/storageCapacity)!.check():
                 "Account already has storage setup."
         }
 

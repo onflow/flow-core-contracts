@@ -79,7 +79,7 @@ pub contract FlowServiceAccount {
 
         let tokenVault = self.defaultTokenVault(payer)
         let feeVault <- tokenVault.withdraw(amount: self.accountCreationFee)
-        let storageFeeVault <- feeVault.withdraw(amount: StorageFees.flowPerAccountCreation)
+        let storageFeeVault <- (feeVault.withdraw(amount: StorageFees.flowPerAccountCreation) as! @FlowToken.Vault)
         FlowFees.deposit(from: <-feeVault)
 
         FlowServiceAccount.initDefaultToken(newAccount)
