@@ -56,6 +56,7 @@ pub contract FlowIDTableStaking {
     pub event NewDelegatorCreated(nodeID: String, delegatorID: UInt32)
     pub event DelegatorTokensCommitted(nodeID: String, delegatorID: UInt32, amount: UFix64)
     pub event DelegatorTokensStaked(nodeID: String, delegatorID: UInt32, amount: UFix64)
+    pub event DelegatorTokensUnstaking(nodeID: String, delegatorID: UInt32, amount: UFix64)
     pub event DelegatorRewardsPaid(nodeID: String, delegatorID: UInt32, amount: UFix64)
     pub event DelegatorUnstakedTokensWithdrawn(nodeID: String, delegatorID: UInt32, amount: UFix64)
     pub event DelegatorRewardTokensWithdrawn(nodeID: String, delegatorID: UInt32, amount: UFix64)
@@ -254,6 +255,16 @@ pub contract FlowIDTableStaking {
             destroy self.delegators
         }
 
+        /// Utility Function that checks a node's overall committed balance from its borrowed record
+        access(contract) fun nodeFullCommittedBalance(): UFix64 {
+            if (self.tokensCommitted.balance + self.tokensStaked.balance) < self.tokensRequestedToUnstake {
+                return 0.0
+            } else {
+                return self.tokensCommitted.balance + self.tokensStaked.balance - self.tokensRequestedToUnstake
+            }
+
+        }
+
         /// borrow a reference to to one of the delegators for a node in the record
         /// This gives the caller access to all the public fields on the
         /// object and is basically as if the caller owned the object
@@ -349,6 +360,16 @@ pub contract FlowIDTableStaking {
             destroy self.tokensUnstaking
             destroy self.tokensRewarded
             destroy self.tokensUnstaked
+        }
+
+        /// Utility Function that checks a delegator's overall committed balance from its borrowed record
+        access(contract) fun delegatorFullCommittedBalance(): UFix64 {
+            
+            if (self.tokensCommitted.balance + self.tokensStaked.balance) < self.tokensRequestedToUnstake {
+                return 0.0
+            } else {
+                return self.tokensCommitted.balance + self.tokensStaked.balance - self.tokensRequestedToUnstake
+            }
         }
     }
 
@@ -944,26 +965,6 @@ pub contract FlowIDTableStaking {
         return &FlowIDTableStaking.nodes[nodeID] as! &NodeRecord
     }
 
-    /// Utility Function that checks a node's overall committed balance from its borrowed record
-    access(contract) fun calculateNodeCommittedBalance(_ nodeRecord: &NodeRecord): UFix64 {
-        if (nodeRecord.tokensCommitted.balance + nodeRecord.tokensStaked.balance) < nodeRecord.tokensRequestedToUnstake {
-            return 0.0
-        } else {
-            return nodeRecord.tokensCommitted.balance + nodeRecord.tokensStaked.balance - nodeRecord.tokensRequestedToUnstake
-        }
-
-    }
-
-    /// Utility Function that checks a delegator's overall committed balance from its borrowed record
-    access(contract) fun calculateDelegatorCommittedBalance(_ delegatorRecord: &DelegatorRecord): UFix64 {
-        
-        if (delegatorRecord.tokensCommitted.balance + delegatorRecord.tokensStaked.balance) < delegatorRecord.tokensRequestedToUnstake {
-            return 0.0
-        } else {
-            return delegatorRecord.tokensCommitted.balance + delegatorRecord.tokensStaked.balance - delegatorRecord.tokensRequestedToUnstake
-        }
-    }
-
     /****************** Getter Functions for the staking Info *******************/
 
     /// Gets an array of the node IDs that are proposed for the next epoch
@@ -1016,7 +1017,7 @@ pub contract FlowIDTableStaking {
     /// committed for a node for the next epoch
     pub fun getNodeCommittedBalanceWithoutDelegators(_ nodeID: String): UFix64 {
         let nodeRecord = self.borrowNodeRecord(nodeID)
-        return self.calculateNodeCommittedBalance(nodeRecord)
+        return nodeRecord.nodeFullCommittedBalance()
     }
 
     /// Gets the total amount of tokens that have been staked and
@@ -1025,11 +1026,11 @@ pub contract FlowIDTableStaking {
     pub fun getNodeCommittedBalanceWithDelegators(_ nodeID: String): UFix64 {
         let nodeRecord = self.borrowNodeRecord(nodeID)
 
-        var sum = self.calculateNodeCommittedBalance(nodeRecord)
+        var sum = nodeRecord.nodeFullCommittedBalance()
 
         for delegator in nodeRecord.delegators.keys {
             let delRecord = nodeRecord.borrowDelegatorRecord(delegator)
-            sum = sum + self.calculateDelegatorCommittedBalance(delRecord)
+            sum = sum + delRecord.delegatorFullCommittedBalance()
         }
 
         return sum

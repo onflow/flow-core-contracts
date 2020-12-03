@@ -42,9 +42,7 @@ const (
 
 func TestManyNodesIDTable(t *testing.T) {
 	b, err := emulator.NewBlockchain(emulator.WithTransactionMaxGasLimit(10000000))
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(t, err)
 
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
@@ -57,9 +55,9 @@ func TestManyNodesIDTable(t *testing.T) {
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
 	IDTableCode := contracts.FlowIDTableStaking(emulatorFTAddress, emulatorFlowTokenAddress)
 
-	publicKeys := make([]cadence.Value, 1)
-
-	publicKeys[0] = bytesToCadenceArray(IDTableAccountKey.Encode())
+	publicKeys := []cadence.Value{
+		bytesToCadenceArray(IDTableAccountKey.Encode()),
+	}
 
 	cadencePublicKeys := cadence.NewArray(publicKeys)
 	cadenceCode := bytesToCadenceArray(IDTableCode)
