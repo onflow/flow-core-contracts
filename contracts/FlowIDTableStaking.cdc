@@ -744,6 +744,8 @@ pub contract FlowIDTableStaking {
 
                 /// Calculate the amount of tokens that this node operator receives
                 if totalStaked >= 100000000.0 {
+                    // Maximum UFix64 divisor is 100M so we need to scale the numbers
+                    // in order to not cause overflow
                     let div1000dividend = nodeRecord.tokensStaked.balance / 1000.0
                     let div1000divisor = totalStaked / 1000.0
                     rewardPortion = div1000dividend / div1000divisor
@@ -769,7 +771,10 @@ pub contract FlowIDTableStaking {
 
                     var delegatorRewardPortion: UFix64 = 0.0
 
+                    /// Calculate the amount of tokens that this delegator receives
                     if totalStaked >= 100000000.0 {
+                        // Maximum UFix64 divisor is 100M so we need to scale the numbers
+                        // in order to not cause overflow
                         let div1000dividend = delRecord.tokensStaked.balance / 1000.0
                         let div1000divisor = totalStaked / 1000.0
                         delegatorRewardPortion = div1000dividend / div1000divisor

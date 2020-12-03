@@ -30,8 +30,8 @@ const (
 
 	firstNetworkingKey = "networkingKey"
 
-	numberOfNodes      = 100
-	numberOfDelegators = 10000
+	numberOfNodes      = 50
+	numberOfDelegators = 20000
 
 	unstakeAllNumNodes      = 1
 	unstakeAllNumDelegators = 1660
