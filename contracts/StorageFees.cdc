@@ -269,7 +269,7 @@ pub contract StorageFees {
                 "Refunding storage is disabled"
         }
         if storageAmount == UInt64(0) {
-            return <-FlowToken.createEmptyVault()
+            return <- (FlowToken.createEmptyVault() as! @FlowToken.Vault)
         }
         let storageCapacityCapability = getAccount(storageCapacityReference.address).getCapability<&StorageCapacity{StorageCapacityAccess}>(/public/storageCapacity)!.borrow()
         if storageCapacityCapability == nil {
