@@ -304,10 +304,11 @@ pub contract StorageFees {
     // Call this function to get the minimum amount of additional storage capacity an account needs in order for the transaction to pass.
     // The result will be a multiple of `StorageFees.minimumStorageUnit`.
     pub fun getMinimumAditionalRequiredStorageCapacity(_ address: Address): UInt64 {
-        if address.storageUsed <= address.storageCapacity {
+        let account = getAccount(address)
+        if account.storageUsed <= account.storageCapacity {
             return UInt64(0)
         }
-        return StorageFees.roundUpStorageCapacity(address.storageUsed - address.storageCapacity)
+        return StorageFees.roundUpStorageCapacity(account.storageUsed - account.storageCapacity)
     }
 
     // Call this function to get the cost of purchasing storageAmount of additional storage capacity in Flow tokens.
