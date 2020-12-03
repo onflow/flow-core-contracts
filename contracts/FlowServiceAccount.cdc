@@ -69,10 +69,10 @@ pub contract FlowServiceAccount {
         FlowFees.deposit(from: <-feeVault)
     }
 
-    // Deducts the account creation fee from a payer account and
-    // - inits the default token
-    // - inits account storage capacity
-    pub fun deductAccountCreationFee(newAccount: AuthAccount, payer: AuthAccount) {
+    // - Deducts the account creation fee from a payer account.
+    // - Inits the default token.
+    // - Inits account storage capacity.
+    pub fun setupNewAccount(newAccount: AuthAccount, payer: AuthAccount) {
         if self.accountCreationFee < StorageFees.flowPerAccountCreation {
             panic("Account creation fees setup incorrectly")
         }
