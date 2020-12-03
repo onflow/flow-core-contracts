@@ -25,6 +25,8 @@ const (
 	withdrawUnstakedTokensFilename = "idTableStaking/withdraw_unstaked_tokens.cdc"
 	withdrawRewardedTokensFilename = "idTableStaking/withdraw_rewarded_tokens.cdc"
 
+	registerManyNodesFilename = "idTableStaking/register_many_nodes.cdc"
+
 	getTableFilename                            = "idTableStaking/get_table.cdc"
 	currentTableFilename                        = "idTableStaking/get_current_table.cdc"
 	proposedTableFilename                       = "idTableStaking/get_proposed_table.cdc"
@@ -350,6 +352,14 @@ func GenerateGetTotalCommitmentBalanceScript(env Environment) []byte {
 // that returns the balance of the total committed tokens of a node without delegators
 func GenerateGetTotalCommitmentBalanceWithoutDelegatorsScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + getTotalCommitmentWithoutDelegatorsFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+// For testing
+
+func GenerateRegisterManyNodesScript(env Environment) []byte {
+	code := assets.MustAssetString(filePath + registerManyNodesFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
