@@ -3,7 +3,6 @@ package test
 import (
 	"fmt"
 	"io/ioutil"
-	"os"
 	"testing"
 
 	"github.com/onflow/cadence"
@@ -25,10 +24,10 @@ var (
 )
 
 func newBlockchain() backend.Emulator {
-	networkType := os.Getenv("FLOW_NETWORK_TYPE")
-	if networkType == "testnet" {
-		return newNetwork()
-	}
+	// networkType := os.Getenv("FLOW_NETWORK_TYPE")
+	// if networkType == "testnet" {
+	// 	return newNetwork()
+	// }
 	fmt.Println("Using Emulator")
 	return newEmulator()
 }
@@ -49,22 +48,22 @@ func newEmulator() *emulator.Blockchain {
 	return b
 }
 
-func newNetwork() backend.Emulator {
-	b, err := emulator.NewNetwork(os.Getenv("FLOW_ADDRESS"), os.Getenv("FLOW_SERVICE_ACCOUNT_PRIVATE_KEY"))
+// func newNetwork() backend.Emulator {
+// 	b, err := emulator.NewNetwork(os.Getenv("FLOW_ADDRESS"), os.Getenv("FLOW_SERVICE_ACCOUNT_PRIVATE_KEY"))
 
-	if err != nil {
-		panic(err)
-	}
+// 	if err != nil {
+// 		panic(err)
+// 	}
 
-	generator := sdk.NewAddressGenerator(sdk.Testnet)
-	// Skip Service account addr
-	generator.Next()
-	fungibleTokenAddress = generator.NextAddress().Hex()
-	flowTokenAddress = generator.NextAddress().Hex()
-	feesAddress = generator.NextAddress().Hex()
+// 	generator := sdk.NewAddressGenerator(sdk.Testnet)
+// 	// Skip Service account addr
+// 	generator.Next()
+// 	fungibleTokenAddress = generator.NextAddress().Hex()
+// 	flowTokenAddress = generator.NextAddress().Hex()
+// 	feesAddress = generator.NextAddress().Hex()
 
-	return b
-}
+// 	return b
+// }
 
 // signAndSubmit signs a transaction with an array of signers and adds their signatures to the transaction
 // before submitting it to the emulator.
@@ -82,10 +81,10 @@ func signAndSubmit(
 	signers []crypto.Signer,
 	shouldRevert bool,
 ) {
-	latestBlockID, err := b.GetLatestBlockID()
-	assert.NoError(t, err)
+	// latestBlockID, err := b.GetLatestBlockID()
+	// assert.NoError(t, err)
 
-	tx = tx.SetReferenceBlockID(latestBlockID)
+	// tx = tx.SetReferenceBlockID(latestBlockID)
 	// sign transaction with each signer
 	for i := len(signerAddresses) - 1; i >= 0; i-- {
 		signerAddress := signerAddresses[i]
