@@ -13,6 +13,7 @@ import (
 
 const (
 	flowFeesFilename           = "../../../contracts/FlowFees.cdc"
+	storageFeesFilename        = "../../../contracts/StorageFees.cdc"
 	flowServiceAccountFilename = "../../../contracts/FlowServiceAccount.cdc"
 	flowTokenFilename          = "../../../contracts/FlowToken.cdc"
 	flowIdentityTableFilename  = "../../../contracts/FlowIDTableStaking.cdc"
@@ -32,6 +33,7 @@ const (
 	placeholderQCAddr               = "0xQCADDRESS"
 	placeholderDKGAddr              = "0xDKGADDRESS"
 	placeholderFlowFeesAddress      = "0xFLOWFEESADDRESS"
+	placeholderStorageFeesAddress   = "0xSTORAGEFEES"
 )
 
 func withHexPrefix(address string) string {
@@ -88,11 +90,26 @@ func FlowFees(fungibleTokenAddress, flowTokenAddress string) []byte {
 	return []byte(code)
 }
 
+// StorageFees returns the StorageFees contract.
+//
+// The returned contract will import the FlowToken contract from the specified addresses.
+func StorageFees(flowTokenAddress string) []byte {
+	code := assets.MustAssetString(storageFeesFilename)
+	
+	code = strings.ReplaceAll(
+		code,
+		placeholderFlowTokenAddress,
+		withHexPrefix(flowTokenAddress),
+	)
+
+	return []byte(code)
+}
+
 // FlowServiceAccount returns the FlowServiceAccount contract.
 //
 // The returned contract will import the FungibleToken, FlowToken and FlowFees
 // contracts from the specified addresses.
-func FlowServiceAccount(fungibleTokenAddress, flowTokenAddress, flowFeesAddress string) []byte {
+func FlowServiceAccount(fungibleTokenAddress, flowTokenAddress, flowFeesAddress, storageFeesAddress string) []byte {
 	code := assets.MustAssetString(flowServiceAccountFilename)
 
 	code = strings.ReplaceAll(
@@ -111,6 +128,12 @@ func FlowServiceAccount(fungibleTokenAddress, flowTokenAddress, flowFeesAddress 
 		code,
 		placeholderFlowFeesAddress,
 		withHexPrefix(flowFeesAddress),
+	)
+
+	code = strings.ReplaceAll(
+		code,
+		placeholderStorageFeesAddress,
+		withHexPrefix(storageFeesAddress),
 	)
 
 	return []byte(code)

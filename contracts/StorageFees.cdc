@@ -201,22 +201,22 @@ pub contract StorageFees {
     // - Puts a public capability in the accounts public storage.
     // If the function is called on an existing account with `StorageCapacity` it will fail.
     // The paymentVault should contain the exact amount of Flow tokens needed to purchase minimum storage for an account (`StorageFees.flowPerAccountCreation`)
-    pub fun setupStorageForAccount(paymentVault: @FlowToken.Vault, authAccount: AuthAccount){
+    pub fun setupStorageForAccount(account: AuthAccount, paymentVault: @FlowToken.Vault){
         pre{
             paymentVault.balance == StorageFees.flowPerAccountCreation:
                 "Account creation cost exactly ".concat(StorageFees.flowPerAccountCreation.toString()).concat(" Flow tokens.")
-            authAccount.getCapability<&StorageCapacity{StorageCapacityAccess}>(/public/storageCapacity)!.check():
+            account.getCapability<&StorageCapacity{StorageCapacityAccess}>(/public/storageCapacity)!.check():
                 "Account already has storage setup."
         }
 
         let storageCapacity <- create StorageCapacity(
             storageCapacity: StorageFees.minimumAccountStorage,
-            address: authAccount.address,
+            address: account.address,
             vault: <- paymentVault)
 
-        authAccount.save(<- storageCapacity, to: /storage/storageCapacity)
+        account.save(<- storageCapacity, to: /storage/storageCapacity)
 
-        authAccount.link<&StorageCapacity{StorageCapacityAccess}>(
+        account.link<&StorageCapacity{StorageCapacityAccess}>(
             /public/storageCapacity,
             target: /storage/storageCapacity
         )
@@ -232,9 +232,17 @@ pub contract StorageFees {
         pre{
             storageAmount % StorageFees.minimumStorageUnit == UInt64(0):
                 "Amount of storage capacity to add must be a multiple of the minimum storage unit"
-            paymentVault.balance != StorageFees.getFlowCost(storageAmount):
+            paymentVault.balance == StorageFees.getFlowCost(storageAmount):
                 "Adding ".concat(storageAmount.toString()).concat(" storage capacity cost exactly ").concat((StorageFees.getFlowCost(storageAmount)).toString()).concat(" Flow tokens.")
             
+        }
+        if storageAmount == UInt64(0) {
+            if paymentVault.balance != 0.0 {
+                // this case is unreachable since we check `paymentVault.balance == StorageFees.getFlowCost(storageAmount)`
+                panic("Cannot purchase 0 storage!")
+            }
+            destroy paymentVault // it is empty so we can destroy it
+            return
         }
         let storageCapacityCapability = getAccount(to).getCapability<&StorageCapacity{StorageCapacityAccess}>(/public/storageCapacity)!.borrow()
         if storageCapacityCapability == nil {
@@ -259,6 +267,9 @@ pub contract StorageFees {
                 "Cannot decrease accounts storage below the minimum"
             StorageFees.refundingEnabled:
                 "Refunding storage is disabled"
+        }
+        if storageAmount == UInt64(0) {
+            return <-FlowToken.createEmptyVault()
         }
         let storageCapacityCapability = getAccount(storageCapacityReference.address).getCapability<&StorageCapacity{StorageCapacityAccess}>(/public/storageCapacity)!.borrow()
         if storageCapacityCapability == nil {
@@ -319,7 +330,7 @@ pub contract StorageFees {
         self.minimumStorageUnit = 10000 // 10kb
         self.minimumAccountStorage = 100000 //100kb
         self.flowPerByte = 0.000001 // 1kB for 1mF
-        self.flowPerAccountCreation = 0.1
+        self.flowPerAccountCreation = 0.0
         self.refundingEnabled = false
         self.idCounter = 0
 
