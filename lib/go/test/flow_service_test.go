@@ -3,6 +3,7 @@ package test
 import (
 	"testing"
 
+	sdktemplates "github.com/onflow/flow-go-sdk/templates"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/onflow/flow-core-contracts/lib/go/contracts"
@@ -13,8 +14,17 @@ func TestContracts(t *testing.T) {
 	b := newBlockchain()
 
 	// deploy the ServiceAccount contract
-	serviceAccountCode := contracts.FlowServiceAccount(fungibleTokenAddress, flowTokenAddress, feesAddress)
-	serviceAccountAddr, err := b.CreateAccount(nil, serviceAccountCode)
+	serviceAccountCode := contracts.FlowServiceAccount(
+		emulatorFTAddress,
+		emulatorFlowTokenAddress,
+		"0xe5a8b7f23e8b548f",
+	)
+	_, err := b.CreateAccount(nil, []sdktemplates.Contract{
+		{
+			Name:   "FlowServiceAccount",
+			Source: string(serviceAccountCode),
+		},
+	})
 	assert.NoError(t, err)
 	_, err = b.CommitBlock()
 	assert.NoError(t, err)

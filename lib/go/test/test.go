@@ -6,12 +6,12 @@ import (
 	"os"
 	"testing"
 
+	"github.com/onflow/cadence"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/onflow/cadence"
 	sdk "github.com/onflow/flow-go-sdk"
 
 	emulator "github.com/onflow/flow-emulator"

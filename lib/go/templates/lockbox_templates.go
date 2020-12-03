@@ -15,9 +15,11 @@ const (
 	depositAccountCreatorCapabilityFilename = "lockedTokens/admin/admin_deposit_account_creator.cdc"
 
 	// Custody Provider / Wallet provider Account creation templates
-	setupCustodyAccountFilename            = "lockedTokens/admin/custody_setup_account_creator.cdc"
-	custodyCreateAccountsFilename          = "lockedTokens/admin/custody_create_shared_accounts.cdc"
-	custodyCreateOnlySharedAccountFilename = "lockedTokens/admin/custody_create_only_shared_account.cdc"
+	setupCustodyAccountFilename                  = "lockedTokens/admin/custody_setup_account_creator.cdc"
+	custodyCreateAccountsFilename                = "lockedTokens/admin/custody_create_shared_accounts.cdc"
+	custodyCreateOnlySharedAccountFilename       = "lockedTokens/admin/custody_create_only_shared_account.cdc"
+	custodyCreateAccountWithLeaseAccountFilename = "lockedTokens/admin/custody_create_account_with_lease_account.cdc"
+	custodyCreateOnlyLeaseAccountFilename        = "lockedTokens/admin/custody_create_only_lease_account.cdc"
 
 	// user templates
 	withdrawTokensFilename          = "lockedTokens/user/withdraw_tokens.cdc"
@@ -40,6 +42,7 @@ const (
 	// delegator templates
 	registerLockedDelegatorFilename               = "lockedTokens/delegator/register_delegator.cdc"
 	getDelegatorIDFilename                        = "lockedTokens/delegator/get_delegator_id.cdc"
+	getDelegatorNodeIDFilename                    = "lockedTokens/delegator/get_delegator_node_id.cdc"
 	delegateNewLockedTokensFilename               = "lockedTokens/delegator/delegate_new_tokens.cdc"
 	delegateLockedUnstakedTokensFilename          = "lockedTokens/delegator/delegate_unstaked_tokens.cdc"
 	delegateLockedRewardedTokensFilename          = "lockedTokens/delegator/delegate_rewarded_tokens.cdc"
@@ -106,6 +109,18 @@ func GenerateCustodyCreateAccountsScript(env Environment) []byte {
 
 func GenerateCustodyCreateOnlySharedAccountScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + custodyCreateOnlySharedAccountFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateCustodyCreateAccountWithLeaseAccountScript(env Environment) []byte {
+	code := assets.MustAssetString(filePath + custodyCreateAccountWithLeaseAccountFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateCustodyCreateOnlyLeaseAccountScript(env Environment) []byte {
+	code := assets.MustAssetString(filePath + custodyCreateOnlyLeaseAccountFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -282,6 +297,12 @@ func GenerateWithdrawDelegatorLockedRewardedTokensScript(env Environment) []byte
 
 func GenerateGetDelegatorIDScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + getDelegatorIDFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateGetDelegatorNodeIDScript(env Environment) []byte {
+	code := assets.MustAssetString(filePath + getDelegatorNodeIDFilename)
 
 	return []byte(replaceAddresses(code, env))
 }

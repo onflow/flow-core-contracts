@@ -57,6 +57,46 @@ pub contract FlowIDTableStaking {
         }
     }
 
+        // Struct to create to get read-only info about a node
+    pub struct NodeInfo {
+        pub let id: String
+        pub let role: UInt8
+        pub let networkingAddress: String
+        pub let networkingKey: String
+        pub let stakingKey: String
+        pub let tokensStaked: UFix64
+        pub let totalTokensStaked: UFix64
+        pub let tokensCommitted: UFix64
+        pub let tokensUnstaking: UFix64
+        pub let tokensUnstaked: UFix64
+        pub let tokensRewarded: UFix64
+
+        /// list of delegator IDs for this node operator
+        pub let delegators: [UInt32]
+        pub let delegatorIDCounter: UInt32
+        pub let tokensRequestedToUnstake: UFix64
+        pub let initialWeight: UInt64
+
+        init(nodeID: String) {
+
+            self.id = nodeID
+            self.role = 2
+            self.networkingAddress = "address"
+            self.networkingKey = "key"
+            self.stakingKey = "key"
+            self.tokensStaked = 0.0
+            self.totalTokensStaked = 0.0
+            self.tokensCommitted = 0.0
+            self.tokensUnstaking = 0.0
+            self.tokensUnstaked = 0.0
+            self.tokensRewarded = 0.0
+            self.delegators = []
+            self.delegatorIDCounter = 0
+            self.tokensRequestedToUnstake = 0.0
+            self.initialWeight = 0
+        }
+    }
+
     /// Resource that the node operator controls for staking
     pub resource NodeStaker {
 
@@ -112,6 +152,31 @@ pub contract FlowIDTableStaking {
                 ?? panic("Could not borrow minter reference")
 
             return <- flowTokenMinter.mintTokens(amount: amount)
+        }
+
+    }
+
+    pub struct DelegatorInfo {
+
+        pub let id: UInt32
+        pub let nodeID: String
+        pub let tokensCommitted: UFix64
+        pub let tokensStaked: UFix64
+        pub let tokensUnstaking: UFix64
+        pub let tokensRewarded: UFix64
+        pub let tokensUnstaked: UFix64
+        pub let tokensRequestedToUnstake: UFix64
+
+        init(nodeID: String, delegatorID: UInt32) {
+
+            self.id = delegatorID
+            self.nodeID = nodeID
+            self.tokensCommitted = 0.0
+            self.tokensStaked = 0.0
+            self.tokensUnstaking = 0.0
+            self.tokensUnstaked = 0.0
+            self.tokensRewarded = 0.0
+            self.tokensRequestedToUnstake = 0.0
         }
 
     }
@@ -182,7 +247,7 @@ pub contract FlowIDTableStaking {
 
     pub fun registerNewDelegator(nodeID: String): @NodeDelegator {
 
-        return <-create NodeDelegator(id: 1, nodeID: "Node")
+        return <-create NodeDelegator(id: 1, nodeID: nodeID)
     }
 
     init(_ epochTokenPayout: UFix64, _ rewardCut: UFix64) {
