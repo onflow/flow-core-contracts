@@ -154,7 +154,7 @@ pub contract FlowIDTableStaking {
         pub(set) var initialWeight: UInt64
 
         init(id: String,
-             role: UInt8,  /// role that the node will have for future epochs
+             role: UInt8,
              networkingAddress: String, 
              networkingKey: String, 
              stakingKey: String, 
@@ -164,7 +164,9 @@ pub contract FlowIDTableStaking {
                 id.length == 64: "Node ID length must be 32 bytes (64 hex characters)"
                 FlowIDTableStaking.nodes[id] == nil: "The ID cannot already exist in the record"
                 role >= UInt8(1) && role <= UInt8(5): "The role must be 1, 2, 3, 4, or 5"
-                networkingAddress.length > 0: "The networkingAddress cannot be empty"
+                networkingAddress.length > 0 && networkingAddress.length <= 510: "The networkingAddress must be less than 255 bytes (510 hex characters)"
+                networkingKey.length == 128: "The networkingKey length must be exactly 64 bytes (128 hex characters)"
+                stakingKey.length == 192: "The stakingKey length must be exactly 96 bytes (192 hex characters)"
             }
 
             /// Assert that the addresses and keys are not already in use

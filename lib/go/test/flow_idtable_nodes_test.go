@@ -2,7 +2,6 @@ package test
 
 import (
 	"fmt"
-	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -23,12 +22,6 @@ import (
 
 const (
 	firstID = "0000000000000000000000000000000000000000000000000000000000000001"
-
-	firstNetworkingAddress = "netAddress"
-
-	firstStakingKey = "stakingKey"
-
-	firstNetworkingKey = "networkingKey"
 
 	numberOfNodes      = 1000
 	numberOfDelegators = 20000
@@ -160,11 +153,17 @@ func TestManyNodesIDTable(t *testing.T) {
 
 			nodeRoles[i] = cadence.NewUInt8(uint8((i % 4) + 1))
 
-			nodeNetworkingAddresses[i] = cadence.NewString(firstNetworkingAddress + strconv.Itoa(i))
+			networkingAddress := fmt.Sprintf("%0128d", i)
 
-			nodeNetworkingKeys[i] = cadence.NewString(firstNetworkingKey + strconv.Itoa(i))
+			nodeNetworkingAddresses[i] = cadence.NewString(networkingAddress)
 
-			nodeStakingKeys[i] = cadence.NewString(firstStakingKey + strconv.Itoa(i))
+			networkingKey := fmt.Sprintf("%0128d", i)
+
+			nodeNetworkingKeys[i] = cadence.NewString(networkingKey)
+
+			stakingKey := fmt.Sprintf("%0192d", i)
+
+			nodeStakingKeys[i] = cadence.NewString(stakingKey)
 
 			tokenAmount, err := cadence.NewUFix64("1500000.0")
 			require.NoError(t, err)
@@ -516,11 +515,11 @@ func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
 			require.NoError(t, err)
 			err = tx.AddArgument(cadence.NewUInt8(role))
 			require.NoError(t, err)
-			err = tx.AddArgument(cadence.NewString(firstNetworkingAddress + strconv.Itoa(i)))
+			err = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", i)))
 			require.NoError(t, err)
-			err = tx.AddArgument(cadence.NewString(firstNetworkingKey + strconv.Itoa(i)))
+			err = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", i)))
 			require.NoError(t, err)
-			err = tx.AddArgument(cadence.NewString(firstStakingKey + strconv.Itoa(i)))
+			err = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", i)))
 			require.NoError(t, err)
 			tokenAmount, err := cadence.NewUFix64("1500000.0")
 			require.NoError(t, err)

@@ -1,6 +1,7 @@
 package test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -20,10 +21,15 @@ import (
 
 const (
 	adminID   = "0000000000000000000000000000000000000000000000000000000000000001"
+	admin     = 1
 	joshID    = "0000000000000000000000000000000000000000000000000000000000000002"
+	josh      = 2
 	maxID     = "0000000000000000000000000000000000000000000000000000000000000003"
+	max       = 3
 	bastianID = "0000000000000000000000000000000000000000000000000000000000000004"
+	bastian   = 4
 	accessID  = "0000000000000000000000000000000000000000000000000000000000000005"
+	access    = 5
 
 	nonexistantID = "0000000000000000000000000000000000000000000000000000000000383838383"
 
@@ -459,9 +465,9 @@ func TestIDTable(t *testing.T) {
 		// Invalid ID: Too short
 		_ = tx.AddArgument(cadence.NewString("3039"))
 		_ = tx.AddArgument(cadence.NewUInt8(1))
-		_ = tx.AddArgument(cadence.NewString("12234"))
-		_ = tx.AddArgument(cadence.NewString("netkey"))
-		_ = tx.AddArgument(cadence.NewString("stakekey"))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", admin)))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", admin)))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", admin)))
 		tokenAmount, err := cadence.NewUFix64("250000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
@@ -483,9 +489,9 @@ func TestIDTable(t *testing.T) {
 		_ = tx.AddArgument(cadence.NewString(adminID))
 		// Invalid Role: Greater than 5
 		_ = tx.AddArgument(cadence.NewUInt8(6))
-		_ = tx.AddArgument(cadence.NewString("12234"))
-		_ = tx.AddArgument(cadence.NewString("netkey"))
-		_ = tx.AddArgument(cadence.NewString("stakekey"))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", admin)))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", admin)))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", admin)))
 		tokenAmount, err = cadence.NewUFix64("250000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
@@ -507,9 +513,9 @@ func TestIDTable(t *testing.T) {
 		_ = tx.AddArgument(cadence.NewString(adminID))
 		// Invalid Role: Less than 1
 		_ = tx.AddArgument(cadence.NewUInt8(0))
-		_ = tx.AddArgument(cadence.NewString("12234"))
-		_ = tx.AddArgument(cadence.NewString("netkey"))
-		_ = tx.AddArgument(cadence.NewString("stakekey"))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", admin)))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", admin)))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", admin)))
 		tokenAmount, err = cadence.NewUFix64("250000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
@@ -532,8 +538,8 @@ func TestIDTable(t *testing.T) {
 		_ = tx.AddArgument(cadence.NewUInt8(1))
 		// Invalid Networking Address: Length cannot be zero
 		_ = tx.AddArgument(cadence.NewString(""))
-		_ = tx.AddArgument(cadence.NewString("netkey"))
-		_ = tx.AddArgument(cadence.NewString("stakekey"))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", admin)))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", admin)))
 		tokenAmount, err = cadence.NewUFix64("250000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
@@ -560,12 +566,9 @@ func TestIDTable(t *testing.T) {
 		require.NoError(t, err)
 		err = tx.AddArgument(cadence.NewUInt8(1))
 		require.NoError(t, err)
-		err = tx.AddArgument(cadence.NewString("netaddress"))
-		require.NoError(t, err)
-		err = tx.AddArgument(cadence.NewString("netkey"))
-		require.NoError(t, err)
-		err = tx.AddArgument(cadence.NewString("stakekey"))
-		require.NoError(t, err)
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", admin)))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", admin)))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", admin)))
 		tokenAmount, err := cadence.NewUFix64("250000.0")
 		require.NoError(t, err)
 		err = tx.AddArgument(tokenAmount)
@@ -610,7 +613,7 @@ func TestIDTable(t *testing.T) {
 			t.Log(result.Error.Error())
 		}
 		addr := result.Value
-		assert.Equal(t, addr.(cadence.String), cadence.NewString("netaddress"))
+		assert.Equal(t, addr.(cadence.String), cadence.NewString(fmt.Sprintf("%0128d", admin)))
 
 		result, err = b.ExecuteScript(templates.GenerateGetNetworkingKeyScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		require.NoError(t, err)
@@ -618,7 +621,7 @@ func TestIDTable(t *testing.T) {
 			t.Log(result.Error.Error())
 		}
 		key := result.Value
-		assert.Equal(t, key.(cadence.String), cadence.NewString("netkey"))
+		assert.Equal(t, key.(cadence.String), cadence.NewString(fmt.Sprintf("%0128d", admin)))
 
 		result, err = b.ExecuteScript(templates.GenerateGetStakingKeyScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		require.NoError(t, err)
@@ -626,7 +629,7 @@ func TestIDTable(t *testing.T) {
 			t.Log(result.Error.Error())
 		}
 		key = result.Value
-		assert.Equal(t, key.(cadence.String), cadence.NewString("stakekey"))
+		assert.Equal(t, key.(cadence.String), cadence.NewString(fmt.Sprintf("%0192d", admin)))
 
 		result, err = b.ExecuteScript(templates.GenerateGetInitialWeightScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		require.NoError(t, err)
@@ -682,9 +685,9 @@ func TestIDTable(t *testing.T) {
 		// Invalid: This ID has already been used
 		_ = tx.AddArgument(cadence.NewString(adminID))
 		_ = tx.AddArgument(cadence.NewUInt8(1))
-		_ = tx.AddArgument(cadence.NewString("netaddress"))
-		_ = tx.AddArgument(cadence.NewString("netkey"))
-		_ = tx.AddArgument(cadence.NewString("stakekey"))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", josh)))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", josh)))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", josh)))
 		tokenAmount, err := cadence.NewUFix64("250000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
@@ -708,10 +711,10 @@ func TestIDTable(t *testing.T) {
 
 		_ = tx.AddArgument(cadence.NewString(joshID))
 		_ = tx.AddArgument(cadence.NewUInt8(1))
-		// Invalid: "netaddress" is already in use
-		_ = tx.AddArgument(cadence.NewString("netaddress"))
-		_ = tx.AddArgument(cadence.NewString("netkey2"))
-		_ = tx.AddArgument(cadence.NewString("stakekey2"))
+		// Invalid: first admin networking address is already in use
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", admin)))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", josh)))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", josh)))
 		tokenAmount, err := cadence.NewUFix64("250000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
@@ -732,10 +735,10 @@ func TestIDTable(t *testing.T) {
 
 		_ = tx.AddArgument(cadence.NewString(joshID))
 		_ = tx.AddArgument(cadence.NewUInt8(1))
-		_ = tx.AddArgument(cadence.NewString("netaddress2"))
-		// Invalid: "netkey" is already in use
-		_ = tx.AddArgument(cadence.NewString("netkey"))
-		_ = tx.AddArgument(cadence.NewString("stakekey2"))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", josh)))
+		// Invalid: first admin networking key is already in use
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", admin)))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", josh)))
 		tokenAmount, err = cadence.NewUFix64("250000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
@@ -756,10 +759,10 @@ func TestIDTable(t *testing.T) {
 
 		_ = tx.AddArgument(cadence.NewString(joshID))
 		_ = tx.AddArgument(cadence.NewUInt8(1))
-		_ = tx.AddArgument(cadence.NewString("netaddress2"))
-		_ = tx.AddArgument(cadence.NewString("netkey2"))
-		// Invalid: "stakekey" is already in use
-		_ = tx.AddArgument(cadence.NewString("stakekey"))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", josh)))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", josh)))
+		// Invalid: first admin stake key is already in use
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", admin)))
 		tokenAmount, err = cadence.NewUFix64("250000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
@@ -783,9 +786,9 @@ func TestIDTable(t *testing.T) {
 
 		_ = tx.AddArgument(cadence.NewString(joshID))
 		_ = tx.AddArgument(cadence.NewUInt8(2))
-		_ = tx.AddArgument(cadence.NewString("netaddress2"))
-		_ = tx.AddArgument(cadence.NewString("netkey2"))
-		_ = tx.AddArgument(cadence.NewString("stakekey2"))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", josh)))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", josh)))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", josh)))
 		tokenAmount, err := cadence.NewUFix64("480000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
@@ -814,9 +817,9 @@ func TestIDTable(t *testing.T) {
 
 		_ = tx.AddArgument(cadence.NewString(maxID))
 		_ = tx.AddArgument(cadence.NewUInt8(3))
-		_ = tx.AddArgument(cadence.NewString("netaddress3"))
-		_ = tx.AddArgument(cadence.NewString("netkey3"))
-		_ = tx.AddArgument(cadence.NewString("stakekey3"))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", max)))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", max)))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", max)))
 		tokenAmount, err = cadence.NewUFix64("1350000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
@@ -837,9 +840,9 @@ func TestIDTable(t *testing.T) {
 
 		_ = tx.AddArgument(cadence.NewString(accessID))
 		_ = tx.AddArgument(cadence.NewUInt8(5))
-		_ = tx.AddArgument(cadence.NewString("accessAddress"))
-		_ = tx.AddArgument(cadence.NewString("accessSKey"))
-		_ = tx.AddArgument(cadence.NewString("stakeSKey"))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", access)))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", access)))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", access)))
 		tokenAmount, err = cadence.NewUFix64("50000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
@@ -934,9 +937,9 @@ func TestIDTable(t *testing.T) {
 
 		_ = tx.AddArgument(cadence.NewString(joshID))
 		_ = tx.AddArgument(cadence.NewUInt8(2))
-		_ = tx.AddArgument(cadence.NewString("netaddress2"))
-		_ = tx.AddArgument(cadence.NewString("netkey2"))
-		_ = tx.AddArgument(cadence.NewString("stakekey2"))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", josh)))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", josh)))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", josh)))
 		tokenAmount, err := cadence.NewUFix64("480000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
@@ -2448,9 +2451,9 @@ func TestIDTable(t *testing.T) {
 
 		_ = tx.AddArgument(cadence.NewString(bastianID))
 		_ = tx.AddArgument(cadence.NewUInt8(3))
-		_ = tx.AddArgument(cadence.NewString("netaddress4"))
-		_ = tx.AddArgument(cadence.NewString("netkey4"))
-		_ = tx.AddArgument(cadence.NewString("stakekey4"))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", bastian)))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", bastian)))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", bastian)))
 		tokenAmount, err := cadence.NewUFix64("1400000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
