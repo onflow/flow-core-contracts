@@ -1,32 +1,47 @@
 import FlowToken from 0xFLOWTOKENADDRESS
 
+// The StorageFees smart contract
+// Each account holds a `StorageFees.StorageReservation` and a `StorageFees.StorageReservationReceiver` on a predetermined path.
+// `StorageFees.StorageReservation` holds the accounts Flow tokens that were reserved in order to increase its storage capacity.
+// An accounts storage capacity determines up to how much storage on chain it can use. An storage capacity is calculated by multiplying the amount of reserved flow with `StorageFee.storageBytesPerReservedFlow`
+// The minimum amount of flow tokens reserved for storage capacity is `StorageFees.minimumStorageReservation` this is paid during account creation, by the creator.
+// 
+// At the end of all transactions, any account that had any value changed in their storage has their storage capacity checked against their storage used and their reserved flow tokens against the minimum reservation.
+// If any account fails this check the transaction wil fail.
+//
+// An account moving/deleting its `StorageFees.StorageReservation` resource will result in the transaction failing because the account will have no storage capacity.
+// Moving the `StorageFees.StorageReservationReceiver` will result in the account being unable to receive or withdraw reserved flow. This can be fixed by calling: 
+// ```
+// account.link<&StorageFees.StorageReservation{StorageFees.StorageReservationReceiver}>(
+//     StorageFees.storageReservationPath,
+//     target: StorageFees.storageReservationReceiverPath)
+// ```
 pub contract StorageFees {
     // Emitted when storage capacity refunding is enabled or disabled.
     pub event RefundingEnabledChanged(_ enabled: Bool)
-    // Emitted when the minimum account storage capacity changes.
-    pub event MinimumAccountStorageChanged(_ minimumAccountStorage: UInt64)
-    // Emitted when the price of storage capacity changes.
-    pub event FlowPerByteChanged(_ flowPerByte: UFix64)
-    // Emitted when the flow cost of buying initial storage on a account changes.
-    pub event FlowPerAccountCreationChanged(_ flowPerAccountCreation: UFix64)
-    // Emitted when more storage capacity is added to an account.
-    pub event StorageCapacityAdded(address: Address, added: UInt64, newStorageCapacity: UInt64)
-    // Emitted when a new account is given minimum storage capacity.
-    pub event StorageCapacityCreated(address: Address, newStorageCapacity: UInt64)
-    // Emitted when an account refunds its storage.
-    pub event StorageCapacityRefunded(address: Address, refunded: UInt64, newStorageCapacity: UInt64)
+    
+    // Emitted when the amount of storage capacity an account has per reserved Flow token changes
+    pub event StorageBytesPerReservedFlowChanged(_ storageBytesPerReservedFlow: UFix64)
 
-    // Defines the minimum unit (chunk) size of storage in bytes. Storage can only be bought (or refunded) in a multiple of the minimum storage unit.
-    pub let minimumStorageUnit: UInt64
+    // Emitted when minimum amount of Flow 
+    pub event MinimumStorageReservationChanged(_ minimumStorageReservation: UFix64)
 
-    // Defines the minimum amount of storage capacity an address can have and also the amount every new account has. `minimumAccountStorage` is a multiple of `minimumStorageUnit`.
-    pub var minimumAccountStorage: UInt64
+    // Emitted when the minimum amount of Flow tokens that an account needs to have reserved for storage capacity changes.
+    pub event StorageReservationChanged(address: Address, oldStorageReservation: UFix64, oldStorageCapacity: UInt64, newStorageReservation: UFix64, newStorageCapacity: UInt64)
 
-    // Defines the cost in FLOW tokens of 1 byte of storage.
-    pub var flowPerByte: UFix64
+    // Defines the path where each account should have a `StorageReservationReceiver` capability
+    pub let storageReservationReceiverPath: PublicPath
 
-    // Defines the cost in FLOW tokens of purchasing the initial minimum storage.
-    pub var flowPerAccountCreation: UFix64
+    // Defines the path where each account should have a `StorageReservation` capability
+    pub let storageReservationPath: StoragePath
+
+    // Defines how much storage capacity an account has per reserved Flow token.
+    // definition is written per unit of flow instead of the inverse, so there is no loss of precision calculating storage from flow, but there is loss of precision when calculating flow per storage.
+    pub var storageBytesPerReservedFlow: UFix64
+
+    // Defines the minimum amount of Flow tokens that an account needs to have reserved for storage capacity.
+    // If an account has less then this amount reserved by the end of any transaction it participated in, the transaction will fail.
+    pub var minimumStorageReservation: UFix64
 
     // Enables or disables the refunding storage capacity.
     pub var refundingEnabled: Bool
@@ -41,297 +56,185 @@ pub contract StorageFees {
             emit RefundingEnabledChanged(enabled)
         }
 
-        // Changes the minimum account storage.
-        // Checks if the new minimum is a multiple of minimum storage unit.
-        pub fun setMinimumAccountStorage(_ minimumAccountStorage: UInt64) {
-            pre {
-                minimumAccountStorage % StorageFees.minimumStorageUnit == UInt64(0): "Minimum account storage must be a multiple of the minimum storage unit"
-            }
-            if StorageFees.minimumAccountStorage == minimumAccountStorage {
+        // Changes the amount storage capacity an account has per accounts' reserved storage.
+        pub fun setStorageBytesPerReservedFlow(_ storageBytesPerReservedFlow: UFix64) {
+            if StorageFees.storageBytesPerReservedFlow == storageBytesPerReservedFlow {
               return
             }
-            StorageFees.minimumAccountStorage = minimumAccountStorage
-            emit MinimumAccountStorageChanged(minimumAccountStorage)
+            StorageFees.storageBytesPerReservedFlow = storageBytesPerReservedFlow
+            emit StorageBytesPerReservedFlowChanged(storageBytesPerReservedFlow)
         }
 
-        // Changes the cost in FLOW tokens of purchasing additional storage capacity.
-        pub fun setFlowPerByte(_ flowPerByte: UFix64) {
-            if StorageFees.flowPerByte == flowPerByte {
+        // Changes the minimum amount of Flow tokens an account has to have reserved.
+        pub fun setMinimumStorageReservation(_ minimumStorageReservation: UFix64) {
+            if StorageFees.minimumStorageReservation == minimumStorageReservation {
               return
             }
-            StorageFees.flowPerByte = flowPerByte
-            emit FlowPerByteChanged(flowPerByte)
-        }
-
-        // Changes the cost in FLOW tokens of storage for newly created accounts.
-        pub fun setFlowPerAccountCreation(_ flowPerAccountCreation: UFix64) {
-            if StorageFees.flowPerAccountCreation == flowPerAccountCreation {
-              return
-            }
-            StorageFees.flowPerAccountCreation = flowPerAccountCreation
-            emit FlowPerAccountCreationChanged(flowPerAccountCreation)
+            StorageFees.minimumStorageReservation = minimumStorageReservation
+            emit MinimumStorageReservationChanged(minimumStorageReservation)
         }
 
         access(contract) init(){}
     }
 
-    // An internal type to store the past purchases of storage capacity for the purpose of refunding the same amount of Flow tokens as was used to purchase it.
-    pub struct StorageCapacityPurchase {
-        pub let storageCapacity: UInt64
-        pub let flowCost: UFix64
+    // An interface for public access to accounts' storage reservation.
+    // If `StorageReservationReceiver` capability is not on the accounts' `storageReservationReceiverPath` path
+    // the account won't be able to receive additional storage capacity or refund current storage capacity.
+    pub resource interface StorageReservationReceiver {
+        pub fun deposit(from: @FlowToken.Vault) {
+            pre {
+                self.isInstance(Type<@StorageReservation>()): "The interface StorageReservationReceiver should only point to resource StorageReservation"
+            }
+        }
 
-        access(contract) init(storageCapacity: UInt64, flowCost: UFix64) {
-            self.storageCapacity = storageCapacity
-            self.flowCost = flowCost
+        access(contract) fun verifyStorageReservation(ownerAddress: Address, storageReservationId: UInt64): Bool {
+            pre {
+                self.isInstance(Type<@StorageReservation>()): "The interface StorageReservationReceiver should only point to resource StorageReservation"
+            }
         }
     }
-    
-    // An interface for public access to accounts' storage.
-    // If `StorageCapacityAccess` capability is not on the accounts' `/public/storageCapacity` path 
-    // the account won't be able to receive additional storage capacity or refund current storage capacity.
-    pub resource interface StorageCapacityAccess {
-        // The amount of storage capacity available to the address holding the StorageCapacity resource.
-        pub var storageCapacity: UInt64
 
-        access(contract) let address: Address
-        access(contract) var storageCapacityId: UInt64
-        access(contract) fun addStorageCapacity(address: Address, storageAmount: UInt64, payment: @FlowToken.Vault)
-    }
-
-    // A counter to uniquely identify all `StorageCapacity` resources.
-    // This is needed to prevent an account refunding from a `StorageCapacity` resources that is not on its `/storage/storageCapacity` path.
+    // A counter to uniquely identify all `StorageReservation` resources.
+    // This is needed to prevent an account refunding from a `StorageReservation` resources that is not on its own `storageReservationPath` path.
     access(contract) var idCounter: UInt64
 
-    // The `StorageCapacity` resource holds the amount of storage capacity available to the account that has this resource in its storage.
-    // The `StorageCapacity` resource should be on the accounts' `/storage/storageCapacity` path. It will be put there during `setupStorageForAccount`.
-    // The `StorageCapacity` resource should not be transferable or usable by a different account than the one it was created for.
-    // At the end of every transaction where an accounts' storage used is changed its storage used is compared to the storageCapacity on this resource.
-    pub resource StorageCapacity: StorageCapacityAccess {
-        // The amount of storage capacity available to the address holding the StorageCapacity resource.
-        pub var storageCapacity: UInt64
+    // The `StorageReservation` resource holds the amount of flow reserved for the accounts storage capacity. The amount of flow reserved in this resource is the accounts storage capacity.
+    // The `StorageReservation` resource should be on the accounts' `storageReservationPath` path. It will be put there during `setupAccountStorage`.
+    // The `StorageReservation` resource is not transferable or usable by a different accounts other than the one it was created for.
+    // At the end of every transaction where any accounts' storage fields change its storage used is compared to the storage capacity calculated from the amount of flow reserved in this resource.
+    pub resource StorageReservation: StorageReservationReceiver {
+        access(self) let ownerAddress: Address
+        access(self) let storageReservationId: UInt64
+        // The `vault` holds the flow tokens reserved for storage capacity on this account
+        access(self) let reservedTokens: @FlowToken.Vault
 
-        // The `address` field exists to prevent swapping StorageCapacity resource between accounts.
-        access(contract) let address: Address
-        // The `storageCapacityId` field exists to prevent refunding a StorageCapacity resource that the account in not currently using (the resource is on accounts' `/storage/storageCapacity` path).
-        access(contract) var storageCapacityId: UInt64
-        // The `vault` hold all the payments made for this storage capacity.
-        access(self) let vault: @FlowToken.Vault
-        // `purchases` are the history of the amount of storage bought and the amount of Flow tokens it was bought for. This is to enable refunding the exact amount that was used to purchase the storage in the first place.
-        access(self) let purchases: [StorageCapacityPurchase]
-
-        // The `addStorageCapacity` function is called by the `StorageFees` contract to add additional storage capacity to this `StorageCapacity` resource.
-        // The address on the `StorageCapacity` resource is checked against the address that `StorageFees` contract expects to see when adding storage for a specific account.
-        // The calling function in StorageFees contract checks that storageAmount is a valid value and that the payment is sufficient.
-        // Storage capacity is incremented, the payment is deposited into the existing vault and an event is triggered.
-        access(contract) fun addStorageCapacity(address: Address, storageAmount: UInt64, payment: @FlowToken.Vault){
-            pre{
-                self.address == address: "Unexpected address on storage capacity"
+        // The `deposit` function allows any address to deposit additional flow tokens to this accounts storage reservation and thus adding to its storage capacity.
+        // The function verifies that this 
+        // A non 0 deposit triggers an `StorageReservationChanged` event.
+        pub fun deposit(from: @FlowToken.Vault){
+            pre {
+                self.verify(): "StorageReservation not on owners account or not on the correct path"
             }
+            if from.balance == 0.0 {
+                destroy from // it is empty so we can destroy it
+                return
+            }
+            let oldStorageReservation = self.reservedTokens.balance
+            
+            self.reservedTokens.deposit(from: <- from)
 
-            self.purchases.append(StorageCapacityPurchase(storageCapacity: storageAmount, flowCost: payment.balance))
-            self.storageCapacity = self.storageCapacity + storageAmount
-            self.vault.deposit(from: <- payment)
-
-            emit StorageCapacityAdded(address: address, added: storageAmount, newStorageCapacity: self.storageCapacity)
+            emit StorageReservationChanged(
+                address: self.ownerAddress, 
+                oldStorageReservation: oldStorageReservation, 
+                oldStorageCapacity: StorageFees.flowToStorageCapacity(oldStorageReservation), 
+                newStorageReservation: self.reservedTokens.balance, 
+                newStorageCapacity: StorageFees.flowToStorageCapacity(self.reservedTokens.balance))
         }
 
-        // The `refundStorageCapacity` function is called by the `StorageFees` contract to refund storage capacity from this `StorageCapacity` resource.
-        // The calling function in `StorageFees` contract checks that:
-        // - `storageAmount` is a valid value.
-        // - The account would not be below minimum storage capacity.
-        // - `StorageCapacity` resource is on the correct account and in the correct place in storage.
-        // The amount of Flow tokens returned is the exact amount (besides rounding errors) that was paid to purchase this storage capacity.
-        // If at the end of this transaction the account is over capacity the transaction will be reverted, so we do not need to worry about that here.
-        // This function triggers a refund event
-        access(contract) fun refundStorageCapacity(storageAmount: UInt64): @FlowToken.Vault{
-            self.storageCapacity = self.storageCapacity - storageAmount
-
-            var refundedFlowAmount = 0.0
-            var storageToRefund = storageAmount
-
-            var i = self.purchases.length
-            while i > 0 && storageToRefund > UInt64(0){
-                i = i - 1
-                let purchase = self.purchases.removeLast()
-                if purchase.storageCapacity <= storageToRefund { // refund this entire purchase
-                    
-                    storageToRefund = storageToRefund - purchase.storageCapacity
-                    refundedFlowAmount = refundedFlowAmount + purchase.flowCost
-                } else { // refund this purchase partially
-                    // possible rounding errors, but the error is not cumulative. You might receive slightly less or more flow back, but the remaining flow will add up to the correct number. 
-                    let relativeFlow = purchase.flowCost * UFix64(storageToRefund)/ UFix64(purchase.storageCapacity) 
-                    refundedFlowAmount = refundedFlowAmount + relativeFlow
-                    self.purchases.append(StorageCapacityPurchase(storageCapacity:purchase.storageCapacity - storageToRefund,  flowCost: purchase.flowCost - relativeFlow))
-                    storageToRefund = 0
-                    break;
-                }
+        // The `withdraw` function allows the owner of this resource to withdraw flow tokens from it if the owner decides that he/she/it doesn't need as much storage capacity any more.
+        pub fun withdraw(amount: UFix64): @FlowToken.Vault {
+            pre {
+                self.verify(): "StorageReservation not on owners account or not on the correct path"
+                StorageFees.refundingEnabled: "Refunding is currently disabled"
+                self.reservedTokens.balance - amount >= StorageFees.minimumStorageReservation:  "Cannot withdraw below the minimum storage reservation"
             }
-
-            if storageToRefund != UInt64(0) {
-                // could only happen due to an implementation error
-                panic("Cannot refund storage")
+            if amount == UFix64(0.0) {
+                return <- (FlowToken.createEmptyVault() as! @FlowToken.Vault)
             }
+            let oldStorageReservation = self.reservedTokens.balance
+            
+            let vault <- (self.reservedTokens.withdraw(amount: amount) as! @FlowToken.Vault)
 
-            emit StorageCapacityRefunded(address: self.address, refunded: storageAmount, newStorageCapacity: self.storageCapacity)
-            return <- (self.vault.withdraw(amount: refundedFlowAmount) as! @FlowToken.Vault)
+            emit StorageReservationChanged(
+                address: self.ownerAddress, 
+                oldStorageReservation: oldStorageReservation, 
+                oldStorageCapacity: StorageFees.flowToStorageCapacity(oldStorageReservation), 
+                newStorageReservation: self.reservedTokens.balance, 
+                newStorageCapacity: StorageFees.flowToStorageCapacity(self.reservedTokens.balance))
+
+            return <- vault
         }
 
-        // Initialize the StorageCapacity to the minimum account storage with the vault provided.
-        access(contract) init(storageCapacity: UInt64, address: Address, vault: @FlowToken.Vault) {
-            self.storageCapacityId = StorageFees.idCounter
+        // Verify itself, that it is on the expected account on the expected path and of the expected type.
+        access(self) fun verify(): Bool {
+            let receiver = StorageFees.getStorageReservationReceiver(self.ownerAddress)
+            return receiver.verifyStorageReservation(ownerAddress: self.ownerAddress, storageReservationId: self.storageReservationId)
+        }
+
+        // This is called from the method above. The StorageReservation on this location should be the one that is expected.
+        access(contract) fun verifyStorageReservation(ownerAddress: Address, storageReservationId: UInt64): Bool {
+            if self.ownerAddress != ownerAddress || self.storageReservationId != self.storageReservationId  {
+                return false
+            }
+            return true
+        }
+
+        // Initialize the StorageCapacity with the vault provided.
+        access(contract) init(ownerAddress: Address, reservedTokens: @FlowToken.Vault) {
+            self.storageReservationId = StorageFees.idCounter
             StorageFees.idCounter = StorageFees.idCounter + UInt64(1)
 
-            self.storageCapacity = storageCapacity
-            self.address = address
-            self.purchases = [StorageCapacityPurchase(storageCapacity: storageCapacity, flowCost: vault.balance)]
-            self.vault <- vault
+            self.ownerAddress = ownerAddress
+            self.reservedTokens <- reservedTokens
 
-            emit StorageCapacityCreated(address: self.address, newStorageCapacity: self.storageCapacity)
+            emit StorageReservationChanged(
+                address: self.ownerAddress, 
+                oldStorageReservation: 0.0, 
+                oldStorageCapacity: 0, 
+                newStorageReservation: self.reservedTokens.balance, 
+                newStorageCapacity: StorageFees.flowToStorageCapacity(self.reservedTokens.balance))
         }
 
         destroy() {
             // The transaction will be reverted because the account this resource was on doesn't have any capacity any more.
-            destroy self.vault
+            destroy self.reservedTokens
         }
     }
 
     // This function is called during account creation to setup the account:
-    // - Creates a new `StorageCapacity` resource.
+    // - Creates a new `StorageReservation` resource.
     // - Puts this resource in the accounts storage.
     // - Puts a public capability in the accounts public storage.
-    // If the function is called on an existing account with `StorageCapacity` it will fail.
-    // The paymentVault should contain the exact amount of Flow tokens needed to purchase minimum storage for an account (`StorageFees.flowPerAccountCreation`)
-    pub fun setupStorageForAccount(account: AuthAccount, paymentVault: @FlowToken.Vault){
+    // If the function is called on an existing account with `StorageReservation` on the account it will fail.
+    // The `storageReservation` should contain at least `StorageFees.minimumStorageReservation`
+    pub fun setupAccountStorage(account: AuthAccount, storageReservation: @FlowToken.Vault){
         pre{
-            paymentVault.balance == StorageFees.flowPerAccountCreation:
-                "Account creation cost exactly ".concat(StorageFees.flowPerAccountCreation.toString()).concat(" Flow tokens.")
-            !account.getCapability<&StorageCapacity{StorageCapacityAccess}>(/public/storageCapacity)!.check():
-                "Account already has storage setup."
+            storageReservation.balance >= StorageFees.minimumStorageReservation: "Initial storage reservation should be at least the minimum storage reservation (StorageFees.minimumStorageReservation)"
+            !account.getCapability<&StorageReservation{StorageReservationReceiver}>(self.storageReservationReceiverPath)!.check(): "Account already has storage setup."
         }
 
-        let storageCapacity <- create StorageCapacity(
-            storageCapacity: StorageFees.minimumAccountStorage,
-            address: account.address,
-            vault: <- paymentVault)
+        let storageCapacity <- create StorageReservation(
+            ownerAddress: account.address,
+            reservedTokens: <- storageReservation)
 
-        account.save(<- storageCapacity, to: /storage/storageCapacity)
+        account.save(<- storageCapacity, to: self.storageReservationPath)
 
-        account.link<&StorageCapacity{StorageCapacityAccess}>(
-            /public/storageCapacity,
-            target: /storage/storageCapacity
+        account.link<&StorageReservation{StorageReservationReceiver}>(
+            self.storageReservationReceiverPath,
+            target: self.storageReservationPath
         )
     }
 
-    // Call this function to purchase additional storage for an account.
-    // The paymentVault balance must match the cost for storageAmount worth of storage capacity (see `getFlowCost` function).
-    // storageAmount needs to be a multiple of StorageFees.minimumStorageUnit (see `roundUpStorageCapacity`).
-    // A check is made that the `StorageCapacity` resource the account is currently holding, is actually for that account.
-    // After validation internally calls `StorageCapacity.addStorageCapacity`.
-    // See `purchaseMinimumAditionalRequiredStorageCapacity` for a convenient way to keep an accounts' capacity over storage used.
-    pub fun addStorageCapacity(to: Address, storageAmount: UInt64, paymentVault: @FlowToken.Vault){
-        pre{
-            storageAmount % StorageFees.minimumStorageUnit == UInt64(0):
-                "Amount of storage capacity to add must be a multiple of the minimum storage unit"
-            paymentVault.balance == StorageFees.getFlowCost(storageAmount):
-                "Adding ".concat(storageAmount.toString()).concat(" storage capacity cost exactly ").concat((StorageFees.getFlowCost(storageAmount)).toString()).concat(" Flow tokens.")
-            
-        }
-        if storageAmount == UInt64(0) {
-            if paymentVault.balance != 0.0 {
-                // this case is unreachable since we check `paymentVault.balance == StorageFees.getFlowCost(storageAmount)`
-                panic("Cannot purchase 0 storage!")
-            }
-            destroy paymentVault // it is empty so we can destroy it
-            return
-        }
-        let storageCapacityCapability = getAccount(to).getCapability<&StorageCapacity{StorageCapacityAccess}>(/public/storageCapacity)!.borrow()
-        if storageCapacityCapability == nil {
-            panic("Account needs to be setup first")
-            // account setup should already have happened at account creation
-            // most likely the user moved his/hers `StorageCapacity` resource or the public `StorageCapacityAccess` capability
-        }
-
-        storageCapacityCapability!.addStorageCapacity(address: to, storageAmount: storageAmount, payment: <- paymentVault)
+    // This function gets a reference to a `StorageReservationReceiver` from a address
+    pub fun getStorageReservationReceiver(_ address: Address): &StorageReservation{StorageReservationReceiver} {
+        return getAccount(address).getCapability<&StorageReservation{StorageReservationReceiver}>(self.storageReservationReceiverPath)!.borrow()!
     }
 
-    // Call this method to refund some storage capacity from the StorageCapacity resource you are currently holding.
-    // This should not put the account under `StorageFees.minimumAccountStorage`.
-    // Refunding needs to be enabled.
-    // storageAmount needs to be a multiple of `StorageFees.minimumStorageUnit` (see `roundUpStorageCapacity`).
-    // After validation internally calls StorageCapacity.refundStorageCapacity.
-    pub fun refundStorageCapacity(storageCapacityReference: &StorageCapacity, storageAmount: UInt64): @FlowToken.Vault {
-        pre{
-            storageAmount % StorageFees.minimumStorageUnit == UInt64(0):
-                "Amount of storage capacity to add must be a multiple of the minimum storage unit"
-            storageCapacityReference.storageCapacity - storageAmount > StorageFees.minimumAccountStorage:
-                "Cannot decrease accounts storage below the minimum"
-            StorageFees.refundingEnabled:
-                "Refunding storage is disabled"
-        }
-        if storageAmount == UInt64(0) {
-            return <- (FlowToken.createEmptyVault() as! @FlowToken.Vault)
-        }
-        let storageCapacityCapability = getAccount(storageCapacityReference.address).getCapability<&StorageCapacity{StorageCapacityAccess}>(/public/storageCapacity)!.borrow()
-        if storageCapacityCapability == nil {
-            panic("Account needs to be setup first")
-        }
-
-        if storageCapacityCapability!.storageCapacityId != storageCapacityReference.storageCapacityId {
-            panic("Cannot refund storage from this storage capacity")
-        }
-
-        return <- storageCapacityReference.refundStorageCapacity(storageAmount: storageAmount)
+    pub fun flowToStorageCapacity(_ amount: UFix64): UInt64 {
+        return UInt64(amount * StorageFees.storageBytesPerReservedFlow)
     }
 
-    // Call this function to get the smallest multiple of `StorageFees.minimumStorageUnit` that is large (or equal to) storageAmount.
-    // e.g.: round up storageAmount.
-    pub fun roundUpStorageCapacity(_ storageAmount: UInt64): UInt64 {
-        if storageAmount % StorageFees.minimumStorageUnit == UInt64(0){
-            return storageAmount
-        }
-        return (storageAmount / StorageFees.minimumStorageUnit + UInt64(1)) * StorageFees.minimumStorageUnit
-    }
-    // Call this function to get the largest multiple of `StorageFees.minimumStorageUnit` that is smaller (or equal to) storageAmount.
-    // e.g.: round up storageAmount.
-    pub fun roundDownStorageCapacity(_ storageAmount: UInt64): UInt64 {
-        if storageAmount % StorageFees.minimumStorageUnit == UInt64(0){
-            return storageAmount
-        }
-        return (storageAmount / StorageFees.minimumStorageUnit) * StorageFees.minimumStorageUnit
-    }
-
-
-    // Call this function to get the minimum amount of additional storage capacity an account needs in order for the transaction to pass.
-    // The result will be a multiple of `StorageFees.minimumStorageUnit`.
-    pub fun getMinimumAditionalRequiredStorageCapacity(_ address: Address): UInt64 {
-        let account = getAccount(address)
-        if account.storageUsed <= account.storageCapacity {
-            return UInt64(0)
-        }
-        return StorageFees.roundUpStorageCapacity(account.storageUsed - account.storageCapacity)
-    }
-
-    // Call this function to get the cost of purchasing storageAmount of additional storage capacity in Flow tokens.
-    pub fun getFlowCost(_ storageAmount: UInt64): UFix64 {
-        return UFix64(storageAmount) * self.flowPerByte
-    }
-
-
-    // This is a convenience function to purchase the minimum amount of additional storage capacity an account needs in order for the transaction to pass.
-    // The payment vault should contain at least `getFlowCost(getMinimumAditionalRequiredStorageCapacity(address))` Flow tokens.
-    // The vault that is returned will contain the remainder of Flow tokens.
-    pub fun purchaseMinimumAditionalRequiredStorageCapacity(for: Address, paymentVault: @FlowToken.Vault): @FlowToken.Vault {
-        let storageAmount = StorageFees.getMinimumAditionalRequiredStorageCapacity(for)
-        let payment <- paymentVault.withdraw(amount: StorageFees.getFlowCost(storageAmount)) as! @FlowToken.Vault
-        StorageFees.addStorageCapacity(to: for, storageAmount: storageAmount, paymentVault: <- payment)
-        return <- paymentVault
+    pub fun storageCapacityToFlow(_ amount: UInt64): UFix64 {
+        // loss of precision
+        // putting the result back into `flowToStorageCapacity` possibly won't yield the same result
+        return UFix64(amount) / StorageFees.storageBytesPerReservedFlow
     }
 
     init(adminAccount: AuthAccount) {
-        self.minimumStorageUnit = 10000 // 10kb
-        self.minimumAccountStorage = 100000 //100kb
-        self.flowPerByte = 0.000001 // 1kB for 1mF
-        self.flowPerAccountCreation = 0.0
+        self.storageReservationReceiverPath = /public/storageReservation
+        self.storageReservationPath = /storage/storageReservation
+        self.storageBytesPerReservedFlow = 1000000.0 // 1 Mb per 1 Flow token
+        self.minimumStorageReservation = 0.0 // for testing otherwise -> // 0.1 // or 100 kb of storage capacity
         self.refundingEnabled = false
         self.idCounter = 0
 

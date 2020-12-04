@@ -1,22 +1,17 @@
 import StorageFees from 0xSTORAGEFEES
 
-transaction(storageAmount: UInt64) {
+transaction(flowAmount: UFix64) {
 
     prepare(account: AuthAccount) {
-        // Round up storage to the closest unit
-        let storage = StorageFees.roundDownStorageCapacity(storageAmount)
+        // Get a reference to the signer's stored storageReservation
+        let storageCapacityRef = account.borrow<&StorageFees.StorageReservation>(from: StorageFees.storageReservationPath)
+			?? panic("Could not borrow reference to the owner's StorageReservation!")
 
-
-        // Get a reference to the signer's stored storageCapacity
-        let storageCapacityRef = signer.borrow<&StorageFees.StorageCapacity>(from: /storage/storageCapacity)
-			?? panic("Could not borrow reference to the owner's StorageCapacity!")
-
-        
-        // Refund tokens from the signer's stored storageCapacity
-        let refunded <- StorageFees.refundStorageCapacity(storageCapacityReference: storageCapacityRef, storageAmount: storage)
+        // Refund tokens from the signer's stored storageReservation
+        let refunded <- storageCapacityRef.withdraw(amount: flowAmount)
 
         // Get a reference to the signer's Receiver
-        self.receiverRef = signer.getCapability(/public/flowTokenReceiver)!.borrow<&{FungibleToken.Receiver}>()
+        self.receiverRef = account.getCapability(/public/flowTokenReceiver)!.borrow<&{FungibleToken.Receiver}>()
 			?? panic("Could not borrow receiver reference to the recipient's Vault")
 
         // Deposit the refunded tokens

@@ -1,7 +1,7 @@
 import StorageFees from 0xSTORAGEFEES
 
 // This transaction changes the flow storage fees parameters
-transaction(refundingEnabled: Bool?, minimumAccountStorage: UInt64?, flowPerByte: UFix64?, flowPerAccountCreation: UFix64) {
+transaction(refundingEnabled: Bool?, storageBytesPerReservedFlow: UFix64?, minimumStorageReservation: UFix64?) {
     let adminRef: &StorageFees.Administrator
 
     prepare(acct: AuthAccount) {
@@ -12,16 +12,13 @@ transaction(refundingEnabled: Bool?, minimumAccountStorage: UInt64?, flowPerByte
 
     execute {
         if refundingEnabled != nil {
-            self.adminRef.setRefundingEnabled(refundingEnabled)
+            self.adminRef.setRefundingEnabled(refundingEnabled!)
         }
-        if minimumAccountStorage != nil {
-            self.adminRef.setMinimumAccountStorage(minimumAccountStorage)
+        if storageBytesPerReservedFlow != nil {
+            self.adminRef.setStorageBytesPerReservedFlow(storageBytesPerReservedFlow!)
         }
-        if flowPerByte != nil {
-            self.adminRef.setFlowPerByte(flowPerByte)
-        }
-        if flowPerAccountCreation != nil {
-            self.adminRef.setFlowPerAccountCreation(flowPerAccountCreation)
+        if minimumStorageReservation != nil {
+            self.adminRef.setMinimumStorageReservation(minimumStorageReservation!)
         }
     }
 }

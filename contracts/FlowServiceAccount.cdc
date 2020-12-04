@@ -73,17 +73,17 @@ pub contract FlowServiceAccount {
     // - Inits the default token.
     // - Inits account storage capacity.
     pub fun setupNewAccount(newAccount: AuthAccount, payer: AuthAccount) {
-        if self.accountCreationFee < StorageFees.flowPerAccountCreation {
+        if self.accountCreationFee < StorageFees.minimumStorageReservation {
             panic("Account creation fees setup incorrectly")
         }
 
         let tokenVault = self.defaultTokenVault(payer)
         let feeVault <- tokenVault.withdraw(amount: self.accountCreationFee)
-        let storageFeeVault <- (feeVault.withdraw(amount: StorageFees.flowPerAccountCreation) as! @FlowToken.Vault)
+        let storageFeeVault <- (feeVault.withdraw(amount: StorageFees.minimumStorageReservation) as! @FlowToken.Vault)
         FlowFees.deposit(from: <-feeVault)
 
         FlowServiceAccount.initDefaultToken(newAccount)
-        StorageFees.setupStorageForAccount(account: newAccount, paymentVault: <-storageFeeVault)
+        StorageFees.setupAccountStorage(account: newAccount, storageReservation: <-storageFeeVault)
     }
 
     // Returns true if the given address is permitted to create accounts, false otherwise
