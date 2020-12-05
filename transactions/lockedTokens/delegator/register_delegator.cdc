@@ -14,6 +14,20 @@ transaction(id: String, amount: UFix64) {
 
         let delegatorProxy = self.holderRef.borrowDelegator()
 
-        delegatorProxy.delegateNewTokens(amount: amount)
+        let lockedBalance = self.holderRef.getLockedAccountBalance()
+
+        if amount <= lockedBalance {
+
+            delegatorProxy.delegateNewTokens(amount: amount)
+
+        } else if ((amount - lockedBalance) <= self.vaultRef.balance) {
+
+            self.holderRef.deposit(from: <-self.vaultRef.withdraw(amount: amount - lockedBalance))
+
+            delegatorProxy.delegateNewTokens(amount: amount)
+
+        } else {
+            panic("Not enough tokens to stake!")
+        }
     }
 }
