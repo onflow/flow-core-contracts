@@ -34,6 +34,7 @@
 // ../../../transactions/idTableStaking/delegation/get_delegator_unstaking.cdc (315B)
 // ../../../transactions/idTableStaking/delegation/get_delegator_unstaking_request.cdc (324B)
 // ../../../transactions/idTableStaking/delegation/register_delegator.cdc (384B)
+// ../../../transactions/idTableStaking/delegation/register_many_delegators.cdc (540B)
 // ../../../transactions/idTableStaking/get_current_table.cdc (190B)
 // ../../../transactions/idTableStaking/get_cut_percentage.cdc (199B)
 // ../../../transactions/idTableStaking/get_node_committed_tokens.cdc (257B)
@@ -45,7 +46,8 @@
 // ../../../transactions/idTableStaking/get_node_role.cdc (225B)
 // ../../../transactions/idTableStaking/get_node_staked_tokens.cdc (254B)
 // ../../../transactions/idTableStaking/get_node_staking_key.cdc (239B)
-// ../../../transactions/idTableStaking/get_node_total_commitment.cdc (221B)
+// ../../../transactions/idTableStaking/get_node_total_commitment.cdc (235B)
+// ../../../transactions/idTableStaking/get_node_total_commitment_without_delegators.cdc (238B)
 // ../../../transactions/idTableStaking/get_node_type_ratio.cdc (235B)
 // ../../../transactions/idTableStaking/get_node_unstaked_tokens.cdc (258B)
 // ../../../transactions/idTableStaking/get_node_unstaking_request.cdc (269B)
@@ -56,6 +58,7 @@
 // ../../../transactions/idTableStaking/get_total_staked.cdc (457B)
 // ../../../transactions/idTableStaking/get_total_staked_by_type.cdc (250B)
 // ../../../transactions/idTableStaking/get_weekly_payout.cdc (196B)
+// ../../../transactions/idTableStaking/register_many_nodes.cdc (1.146kB)
 // ../../../transactions/idTableStaking/register_node.cdc (1.301kB)
 // ../../../transactions/idTableStaking/request_unstake.cdc (549B)
 // ../../../transactions/idTableStaking/stake_new_tokens.cdc (813B)
@@ -861,6 +864,26 @@ func TransactionsIdtablestakingDelegationRegister_delegatorCdc() (*asset, error)
 	return a, nil
 }
 
+var _TransactionsIdtablestakingDelegationRegister_many_delegatorsCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x50\x4d\x6b\xc2\x40\x14\xbc\xef\xaf\x98\xa3\x52\xbf\x7a\x0d\x7a\x48\x1b\x0b\x81\x22\xa5\xc9\xa5\x88\x87\x35\x3e\x93\x6d\xe3\x6e\x78\x79\x6a\x41\xfc\xef\x65\x53\xb5\x26\xf4\x9d\x96\x79\x6f\x66\x67\xc6\xec\x2a\xc7\x82\x97\xd2\x1d\xe3\x28\xd5\xeb\x92\x12\xd1\x5f\xc6\xe6\xd8\xb2\xdb\x61\xf2\x1d\x47\xf3\x45\x1a\xa7\x1f\x69\xf8\xf4\x3a\x0f\xa3\xe8\x7d\x9e\x24\x4a\x09\x6b\x5b\xeb\x4c\x8c\xb3\x3d\xeb\x36\x14\x47\x75\x80\x65\x22\x6c\x6c\xbe\x1a\xa0\xd2\x52\x78\xe0\x4d\x4b\xb1\xea\xe3\xa4\x14\x00\x54\x4c\x95\x66\xea\xe9\x2c\x93\x00\xe1\x5e\x8a\x30\xcb\xdc\xde\xca\xed\xc2\xcf\x41\x33\x0c\x66\x98\xfc\x41\x5b\xc7\x8d\x24\x8c\xfd\x95\xc6\xe9\xb6\xf3\x33\x1e\xe3\x99\x49\x0b\x41\xc3\xd2\x11\x1b\x2a\x29\xd7\xe2\x18\x6e\xfd\x49\x99\x34\x02\x52\x10\xbc\xd5\x16\xb3\x24\xf1\x8c\xe8\x46\x98\x0e\xff\xe9\x62\xc4\x94\x9b\x5a\x88\x17\x77\xa7\x97\xdc\x01\x2e\xf9\x97\x66\xd5\x57\x5d\x5b\x89\x38\xa6\xe6\xeb\xae\xa7\xd6\xa5\x6f\x64\x54\xeb\x03\xf5\xa6\xc3\x7b\x3b\x03\x88\x0b\x9a\xc8\x1d\x69\x5f\x90\xc1\x03\x1e\xdb\xe8\xd6\x2f\x66\x57\x47\xa3\x92\x6c\x2e\x45\xa7\xac\x2b\x7d\xd2\x42\xcf\xaa\xfd\x3a\x2b\x75\xfe\x09\x00\x00\xff\xff\x03\xdc\x3f\xa1\x1c\x02\x00\x00"
+
+func TransactionsIdtablestakingDelegationRegister_many_delegatorsCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_TransactionsIdtablestakingDelegationRegister_many_delegatorsCdc,
+		"../../../transactions/idTableStaking/delegation/register_many_delegators.cdc",
+	)
+}
+
+func TransactionsIdtablestakingDelegationRegister_many_delegatorsCdc() (*asset, error) {
+	bytes, err := TransactionsIdtablestakingDelegationRegister_many_delegatorsCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "../../../transactions/idTableStaking/delegation/register_many_delegators.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x32, 0x2d, 0xcf, 0xd4, 0x5b, 0xae, 0x30, 0xda, 0x82, 0x6d, 0x9a, 0x90, 0x9e, 0x28, 0xf3, 0x22, 0xc4, 0x89, 0x4f, 0x79, 0xcd, 0x84, 0xaa, 0x69, 0x21, 0x2e, 0xc8, 0x9f, 0xdf, 0x6a, 0xd7, 0x3e}}
+	return a, nil
+}
+
 var _TransactionsIdtablestakingGet_current_tableCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\xce\xb1\x4a\xc4\x40\x10\x87\xf1\x7e\x9f\xe2\x5f\xde\x35\x9e\xb5\xdd\xc9\x46\x58\x90\x2b\xdc\x6d\x44\x2c\x72\xc9\x64\x33\x98\xcc\x86\xd9\x59\x54\xc4\x77\x97\x80\xe5\x75\x5f\xf5\xe3\xe3\x75\x2b\x6a\x78\x5a\xca\x67\xf0\xa9\xbf\x2e\x14\xad\xff\x60\xc9\x98\xb4\xac\xb8\xff\x0a\xbe\xbb\xa4\x90\x5e\xd3\xf9\xf1\xb9\x3b\x7b\xff\xd2\xc5\xe8\xdc\xe9\x84\x34\x73\x45\x1d\x94\x37\x83\x92\x35\x95\x0a\x9b\x09\x43\x53\x25\x31\xf0\x48\x62\x6c\xdf\xb0\x5d\xc5\x42\x92\x6d\x76\x6e\x6b\x57\x4c\x4d\xb0\xf6\x2c\x87\xe3\x03\xde\xa2\x29\x4b\x7e\xc7\x8f\x03\xf0\x2f\xdd\xf8\xb9\xcb\x64\x7b\xd2\x78\x29\x23\x05\x5f\x0f\x47\xf7\xfb\x17\x00\x00\xff\xff\x4a\xf4\xfe\xa9\xbe\x00\x00\x00"
 
 func TransactionsIdtablestakingGet_current_tableCdcBytes() ([]byte, error) {
@@ -1081,7 +1104,7 @@ func TransactionsIdtablestakingGet_node_staking_keyCdc() (*asset, error) {
 	return a, nil
 }
 
-var _TransactionsIdtablestakingGet_node_total_commitmentCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\xce\x31\x4f\xc3\x30\x10\xc5\xf1\xdd\x9f\xe2\x8d\x74\xa1\x0c\x88\xa1\x5b\x8b\x53\x29\x12\x62\x20\x66\x60\x74\x9a\x4b\x7a\x8a\x7d\x17\xd9\x17\x51\x09\xf1\xdd\x51\x45\xc7\xae\xff\xe1\xf7\x1e\xe7\x45\x8b\xe1\x98\xf4\xbb\xf5\x21\xf6\x89\x3a\x8b\x33\xcb\x84\xb1\x68\xc6\xd3\xa5\xf5\xcd\x7b\x68\xc3\x57\xd8\x1f\xde\x9a\xbd\xf7\x1f\x4d\xd7\x39\xb7\xdd\x22\x9c\xb9\xa2\x9e\x0a\x2f\x86\x42\xb6\x16\xa9\xb0\x33\xa1\x8f\x29\xca\x89\xa0\x23\xaa\xc5\x99\x06\x98\xce\x24\xf5\x1a\x22\x44\x07\x72\x6e\x59\x7b\x8c\xab\x20\x47\x96\x87\x6b\x6a\xfd\x0e\x9d\x15\x96\x69\xb3\xc3\xe7\x91\x2f\x2f\xcf\xf8\x71\x00\x6e\xf4\x9d\x83\x8f\x13\x59\x50\x8b\xe9\x55\x73\x66\x33\x1a\x0e\xff\xcb\x37\x70\xe3\x7e\xff\x02\x00\x00\xff\xff\x3a\x6b\x0d\x1f\xdd\x00\x00\x00"
+var _TransactionsIdtablestakingGet_node_total_commitmentCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\xce\x31\x4f\xc3\x30\x10\xc5\xf1\xdd\x9f\xe2\x8d\x74\xa1\x0c\x88\xa1\x5b\x8b\x53\x29\x12\xea\x40\x8c\x10\xa3\xd3\x5c\x92\x53\xe2\xbb\xc8\xbe\x88\x4a\x88\xef\x8e\x2a\x3a\x76\xfd\x0f\xbf\xf7\x38\x2d\x9a\x0d\xc7\x59\xbf\x6b\x1f\x62\x3b\x53\x63\x71\x62\x19\xd0\x67\x4d\x78\xba\xd4\xbe\x3a\x85\x3a\x7c\x85\xfd\xe1\xad\xda\x7b\xff\x5e\x35\x8d\x73\xdb\x2d\xc2\xc8\x05\xe5\x9c\x79\x31\x64\xb2\x35\x4b\x81\x8d\x84\x36\xce\x51\xce\x04\xed\x51\x2c\x4e\xd4\xc1\x74\x22\x29\xd7\x10\x21\xda\x91\x73\xcb\xda\xa2\x5f\x05\x29\xb2\x3c\x5c\x53\xed\x77\x68\x2c\xb3\x0c\x9b\x1d\x3e\x8e\x7c\x79\x79\xc6\x8f\x03\x70\xa3\xef\x1c\x7c\x1c\xc8\x4e\xda\xd1\xab\xa6\xc4\x66\xd4\x1d\xfe\x87\x3f\xd9\x46\x4f\x33\x0d\xd1\x34\x97\x9b\xbe\x71\xbf\xee\x2f\x00\x00\xff\xff\x87\xb6\xf6\x05\xeb\x00\x00\x00"
 
 func TransactionsIdtablestakingGet_node_total_commitmentCdcBytes() ([]byte, error) {
 	return bindataRead(
@@ -1097,7 +1120,27 @@ func TransactionsIdtablestakingGet_node_total_commitmentCdc() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "../../../transactions/idTableStaking/get_node_total_commitment.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x57, 0x46, 0x91, 0x75, 0xb2, 0xa5, 0x71, 0xf8, 0xe0, 0xb8, 0x50, 0x46, 0x13, 0x27, 0xb0, 0x8d, 0xa3, 0x94, 0x7f, 0xa, 0xde, 0x7, 0xa8, 0x98, 0xb2, 0xfe, 0x3d, 0xfc, 0xde, 0xa0, 0xaa, 0xb3}}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x4c, 0x3d, 0x7c, 0xf1, 0xe, 0xb1, 0x3b, 0x92, 0x24, 0x31, 0x5d, 0x5, 0x61, 0x26, 0xc5, 0xe3, 0x6, 0x93, 0x2e, 0x90, 0xe9, 0x83, 0xef, 0x1c, 0xd4, 0xee, 0xbd, 0xfd, 0x7, 0x84, 0xb6, 0xcb}}
+	return a, nil
+}
+
+var _TransactionsIdtablestakingGet_node_total_commitment_without_delegatorsCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\xce\x31\x4f\xc3\x30\x10\xc5\xf1\xdd\x9f\xe2\x8d\x74\xa1\x0c\x88\xa1\x5b\x8b\x53\x29\x12\xea\x40\x8c\x10\xa3\xd3\x5c\x92\x53\xe2\xbb\xc8\xbe\x88\x4a\x88\xef\x8e\x2a\x3a\x76\xfd\x0f\xef\xf7\x38\x2d\x9a\x0d\xc7\x59\xbf\x6b\x1f\x62\x3b\x53\x63\x71\x62\x19\xd0\x67\x4d\x78\xba\xd4\xbe\x3a\x85\x3a\x7c\x85\xfd\xe1\xad\xda\x7b\xff\x5e\x35\x8d\x73\xdb\x2d\xc2\xc8\x05\xe5\x9c\x79\x31\x64\xb2\x35\x4b\x81\x8d\x84\x36\xce\x51\xce\x04\xed\x51\x2c\x4e\xd4\xc1\x74\x22\x29\xd7\x10\x21\xda\x91\x73\xcb\xda\xa2\x5f\x05\x29\xb2\x3c\x5c\x53\xed\x77\x68\x2c\xb3\x0c\x9b\x1d\x3e\x8e\x7c\x79\x79\xc6\x8f\x03\x70\x9b\xbe\x73\xf0\x71\x20\x3b\x69\x47\xaf\x9a\x12\x9b\x51\x77\xf8\x87\x3f\xd9\x46\x5d\xcd\xd3\x4c\x43\x34\xcd\xe5\x06\x6c\xdc\xaf\xfb\x0b\x00\x00\xff\xff\x56\xb6\x77\x52\xee\x00\x00\x00"
+
+func TransactionsIdtablestakingGet_node_total_commitment_without_delegatorsCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_TransactionsIdtablestakingGet_node_total_commitment_without_delegatorsCdc,
+		"../../../transactions/idTableStaking/get_node_total_commitment_without_delegators.cdc",
+	)
+}
+
+func TransactionsIdtablestakingGet_node_total_commitment_without_delegatorsCdc() (*asset, error) {
+	bytes, err := TransactionsIdtablestakingGet_node_total_commitment_without_delegatorsCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "../../../transactions/idTableStaking/get_node_total_commitment_without_delegators.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x2, 0x80, 0x48, 0xf2, 0x2f, 0xea, 0x67, 0x9f, 0x3a, 0xdd, 0xb0, 0xaa, 0xc2, 0x24, 0x71, 0x5e, 0xb, 0x8c, 0xe6, 0x2a, 0x16, 0x1d, 0x61, 0x3f, 0x0, 0x24, 0x6, 0x14, 0xfa, 0xe9, 0xaf, 0x1a}}
 	return a, nil
 }
 
@@ -1298,6 +1341,26 @@ func TransactionsIdtablestakingGet_weekly_payoutCdc() (*asset, error) {
 
 	info := bindataFileInfo{name: "../../../transactions/idTableStaking/get_weekly_payout.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x9b, 0xeb, 0x9b, 0x20, 0x40, 0xd3, 0x5b, 0x8, 0x6d, 0xe7, 0x22, 0xb, 0xdd, 0x87, 0xa4, 0x41, 0xf2, 0xb5, 0xc2, 0x43, 0x2d, 0x8f, 0x9a, 0x65, 0xf4, 0x31, 0xfa, 0xd2, 0x6f, 0xda, 0x4f, 0x9d}}
+	return a, nil
+}
+
+var _TransactionsIdtablestakingRegister_many_nodesCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x9c\x93\x41\x6f\xda\x40\x10\x85\xef\xfe\x15\xa3\x1c\x2a\xa3\x26\x90\x4a\x55\x55\xad\x48\x23\x1a\x40\x42\x44\xa4\x02\xb7\x55\x85\x38\x2c\xde\x01\xb6\xb1\x77\xac\xf1\x10\x27\xaa\xf2\xdf\xab\xb5\x05\x38\x4e\xa8\x50\xe7\xe0\xc3\xbe\xb7\xcf\xeb\x7d\x9f\x6d\x9a\x11\x0b\x0c\x13\x2a\x46\xfd\x48\x2f\x13\x9c\x89\xbe\xb7\x6e\x0d\x2b\xa6\x14\x2e\x1f\x47\xfd\xc1\x24\x1a\x45\xbf\xa2\xde\xd7\xdb\x41\xaf\xdf\x9f\x0e\x66\xb3\xa0\xb6\x2b\xa2\x7b\x74\x3b\xf3\xf0\xf6\xee\x67\x74\x37\x1e\x4c\x76\xc6\x40\x58\xbb\x5c\xc7\x62\xc9\x85\xd6\xe4\x0a\xe6\x33\x61\xeb\xd6\x8b\x73\x08\xa0\x36\x4c\x09\x7a\xf5\xfb\xc8\xc9\xe7\xa6\xe8\x50\x0a\x62\x7f\xaa\x9e\x31\x8c\x79\x8e\xc7\x83\x0e\xde\x31\x3e\x1d\xb7\xe5\xd5\x57\xfe\xd3\xa3\x53\xda\x3a\x29\x4f\x35\xb4\x8f\x9f\x3e\x36\xf5\x4c\xcb\xc6\xab\xdf\xb4\x6c\x16\x2d\xf8\x13\x94\x6a\xc6\x98\x69\xc6\x50\xc7\xb1\x28\xe8\x6d\x65\xd3\x8b\x63\x1f\xb4\x77\xf8\x79\xd0\x0c\x16\xae\xe0\xf2\xb0\xb4\x22\x2e\x23\xc1\xba\x2a\xba\xee\xf7\x93\xa0\xc0\x6a\x77\xe5\x53\x5c\xc1\x15\xf8\x97\xb4\x97\xc4\x4c\x45\xf7\xdd\xbe\x8e\xf6\x0f\xbd\x4d\xe4\x4b\xe8\x5b\x51\xd0\xc9\x85\x58\xaf\xb1\xb3\xdf\x5b\xca\xad\x17\xd9\x7e\xae\xaf\x21\xd3\xce\xc6\xe1\xd9\x0d\x6d\x13\x03\x8e\x04\xaa\x6c\x60\x5c\x21\xa3\x8b\x11\x84\xc0\xb7\x0c\x65\xc6\x59\xeb\xf5\x09\x1d\x99\x92\x21\x64\xe8\x5e\xbc\x01\x56\x5b\x1b\x33\x21\x83\x53\x8c\x89\x4d\x68\x8d\x02\x6b\xf2\xb9\x6d\xde\xee\xb1\xf1\xa4\xa8\x8a\x97\xd3\x37\xbd\x22\x48\xbd\x05\xd5\xff\xe4\x8d\xf1\x49\x35\xa0\x3b\x3d\xe6\x40\xa1\xaa\x13\x79\x7a\x80\xf8\x3a\xf3\x1b\x4a\x53\x2b\x82\x46\x41\xf7\xa2\x4e\x48\xbb\xb0\xb2\x31\xac\x8b\xb0\x62\x59\xed\x98\x9e\xdb\x45\xab\xd1\x5d\xa7\x03\x33\x21\x46\x90\x0d\x96\x25\x02\x2d\x7f\x63\x2c\x2f\x7f\x09\xcf\x5b\xae\x1f\x30\xec\x5e\x1c\x8a\x3e\x07\x21\x55\x32\xdb\xc8\xf4\x84\x5b\x78\x0f\x1f\xf6\xab\xcf\x41\xf5\x0c\x9e\xff\x06\x00\x00\xff\xff\xdd\xdb\x6b\x92\x7a\x04\x00\x00"
+
+func TransactionsIdtablestakingRegister_many_nodesCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_TransactionsIdtablestakingRegister_many_nodesCdc,
+		"../../../transactions/idTableStaking/register_many_nodes.cdc",
+	)
+}
+
+func TransactionsIdtablestakingRegister_many_nodesCdc() (*asset, error) {
+	bytes, err := TransactionsIdtablestakingRegister_many_nodesCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "../../../transactions/idTableStaking/register_many_nodes.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xbc, 0xdd, 0x29, 0x52, 0x71, 0x4c, 0xb3, 0x3c, 0x50, 0xcb, 0xb6, 0xc7, 0xd6, 0x56, 0xd, 0xe5, 0x54, 0x16, 0x55, 0x61, 0x26, 0x36, 0xf5, 0xbc, 0xe5, 0x81, 0x14, 0x77, 0x22, 0x3, 0xdf, 0x93}}
 	return a, nil
 }
 
@@ -2546,6 +2609,7 @@ var _bindata = map[string]func() (*asset, error){
 	"../../../transactions/idTableStaking/delegation/get_delegator_unstaking.cdc":            TransactionsIdtablestakingDelegationGet_delegator_unstakingCdc,
 	"../../../transactions/idTableStaking/delegation/get_delegator_unstaking_request.cdc":    TransactionsIdtablestakingDelegationGet_delegator_unstaking_requestCdc,
 	"../../../transactions/idTableStaking/delegation/register_delegator.cdc":                 TransactionsIdtablestakingDelegationRegister_delegatorCdc,
+	"../../../transactions/idTableStaking/delegation/register_many_delegators.cdc":           TransactionsIdtablestakingDelegationRegister_many_delegatorsCdc,
 	"../../../transactions/idTableStaking/get_current_table.cdc":                             TransactionsIdtablestakingGet_current_tableCdc,
 	"../../../transactions/idTableStaking/get_cut_percentage.cdc":                            TransactionsIdtablestakingGet_cut_percentageCdc,
 	"../../../transactions/idTableStaking/get_node_committed_tokens.cdc":                     TransactionsIdtablestakingGet_node_committed_tokensCdc,
@@ -2558,6 +2622,7 @@ var _bindata = map[string]func() (*asset, error){
 	"../../../transactions/idTableStaking/get_node_staked_tokens.cdc":                        TransactionsIdtablestakingGet_node_staked_tokensCdc,
 	"../../../transactions/idTableStaking/get_node_staking_key.cdc":                          TransactionsIdtablestakingGet_node_staking_keyCdc,
 	"../../../transactions/idTableStaking/get_node_total_commitment.cdc":                     TransactionsIdtablestakingGet_node_total_commitmentCdc,
+	"../../../transactions/idTableStaking/get_node_total_commitment_without_delegators.cdc":  TransactionsIdtablestakingGet_node_total_commitment_without_delegatorsCdc,
 	"../../../transactions/idTableStaking/get_node_type_ratio.cdc":                           TransactionsIdtablestakingGet_node_type_ratioCdc,
 	"../../../transactions/idTableStaking/get_node_unstaked_tokens.cdc":                      TransactionsIdtablestakingGet_node_unstaked_tokensCdc,
 	"../../../transactions/idTableStaking/get_node_unstaking_request.cdc":                    TransactionsIdtablestakingGet_node_unstaking_requestCdc,
@@ -2568,6 +2633,7 @@ var _bindata = map[string]func() (*asset, error){
 	"../../../transactions/idTableStaking/get_total_staked.cdc":                              TransactionsIdtablestakingGet_total_stakedCdc,
 	"../../../transactions/idTableStaking/get_total_staked_by_type.cdc":                      TransactionsIdtablestakingGet_total_staked_by_typeCdc,
 	"../../../transactions/idTableStaking/get_weekly_payout.cdc":                             TransactionsIdtablestakingGet_weekly_payoutCdc,
+	"../../../transactions/idTableStaking/register_many_nodes.cdc":                           TransactionsIdtablestakingRegister_many_nodesCdc,
 	"../../../transactions/idTableStaking/register_node.cdc":                                 TransactionsIdtablestakingRegister_nodeCdc,
 	"../../../transactions/idTableStaking/request_unstake.cdc":                               TransactionsIdtablestakingRequest_unstakeCdc,
 	"../../../transactions/idTableStaking/stake_new_tokens.cdc":                              TransactionsIdtablestakingStake_new_tokensCdc,
@@ -2718,6 +2784,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 							"get_delegator_unstaking.cdc": {TransactionsIdtablestakingDelegationGet_delegator_unstakingCdc, map[string]*bintree{}},
 							"get_delegator_unstaking_request.cdc": {TransactionsIdtablestakingDelegationGet_delegator_unstaking_requestCdc, map[string]*bintree{}},
 							"register_delegator.cdc": {TransactionsIdtablestakingDelegationRegister_delegatorCdc, map[string]*bintree{}},
+							"register_many_delegators.cdc": {TransactionsIdtablestakingDelegationRegister_many_delegatorsCdc, map[string]*bintree{}},
 						}},
 						"get_current_table.cdc": {TransactionsIdtablestakingGet_current_tableCdc, map[string]*bintree{}},
 						"get_cut_percentage.cdc": {TransactionsIdtablestakingGet_cut_percentageCdc, map[string]*bintree{}},
@@ -2731,6 +2798,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 						"get_node_staked_tokens.cdc": {TransactionsIdtablestakingGet_node_staked_tokensCdc, map[string]*bintree{}},
 						"get_node_staking_key.cdc": {TransactionsIdtablestakingGet_node_staking_keyCdc, map[string]*bintree{}},
 						"get_node_total_commitment.cdc": {TransactionsIdtablestakingGet_node_total_commitmentCdc, map[string]*bintree{}},
+						"get_node_total_commitment_without_delegators.cdc": {TransactionsIdtablestakingGet_node_total_commitment_without_delegatorsCdc, map[string]*bintree{}},
 						"get_node_type_ratio.cdc": {TransactionsIdtablestakingGet_node_type_ratioCdc, map[string]*bintree{}},
 						"get_node_unstaked_tokens.cdc": {TransactionsIdtablestakingGet_node_unstaked_tokensCdc, map[string]*bintree{}},
 						"get_node_unstaking_request.cdc": {TransactionsIdtablestakingGet_node_unstaking_requestCdc, map[string]*bintree{}},
@@ -2741,6 +2809,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 						"get_total_staked.cdc": {TransactionsIdtablestakingGet_total_stakedCdc, map[string]*bintree{}},
 						"get_total_staked_by_type.cdc": {TransactionsIdtablestakingGet_total_staked_by_typeCdc, map[string]*bintree{}},
 						"get_weekly_payout.cdc": {TransactionsIdtablestakingGet_weekly_payoutCdc, map[string]*bintree{}},
+						"register_many_nodes.cdc": {TransactionsIdtablestakingRegister_many_nodesCdc, map[string]*bintree{}},
 						"register_node.cdc": {TransactionsIdtablestakingRegister_nodeCdc, map[string]*bintree{}},
 						"request_unstake.cdc": {TransactionsIdtablestakingRequest_unstakeCdc, map[string]*bintree{}},
 						"stake_new_tokens.cdc": {TransactionsIdtablestakingStake_new_tokensCdc, map[string]*bintree{}},
