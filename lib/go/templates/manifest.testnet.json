@@ -32,7 +32,7 @@
     {
       "id": "TH.06",
       "name": "Register Node",
-      "source": "import LockedTokens from 0x95e019a17d0e23d7\nimport StakingProxy from 0x7aad92e5a0715d21\n\ntransaction(id: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String, amount: UFix64) {\n\n    let holderRef: \u0026LockedTokens.TokenHolder\n\n    prepare(account: AuthAccount) {\n        self.holderRef = account.borrow\u003c\u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath)\n            ?? panic(\"Could not borrow ref to TokenHolder\")\n    }\n\n    execute {\n        let nodeInfo = StakingProxy.NodeInfo(id: id, role: role, networkingAddress: networkingAddress, networkingKey: networkingKey, stakingKey: stakingKey)\n\n        let lockedBalance = self.holderRef.getLockedAccountBalance()\n\n        if amount \u003c= lockedBalance {\n\n            self.holderRef.createNodeStaker(nodeInfo: nodeInfo, amount: amount)\n\n        } else if ((amount - lockedBalance) \u003c= self.vaultRef.balance) {\n\n            self.holderRef.deposit(from: \u003c-self.vaultRef.withdraw(amount: amount - lockedBalance))\n\n            self.holderRef.createNodeStaker(nodeInfo: nodeInfo, amount: amount)\n\n        } else {\n            panic(\"Not enough tokens to stake!\")\n        }\n        \n    }\n}\n",
+      "source": "import FlowToken from 0x7e60df042a9c0868\nimport LockedTokens from 0x95e019a17d0e23d7\nimport StakingProxy from 0x7aad92e5a0715d21\n\ntransaction(id: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String, amount: UFix64) {\n\n    let holderRef: \u0026LockedTokens.TokenHolder\n\n    let vaultRef: \u0026FlowToken.Vault\n\n    prepare(account: AuthAccount) {\n        self.holderRef = account.borrow\u003c\u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath)\n            ?? panic(\"Could not borrow ref to TokenHolder\")\n\n        self.vaultRef = account.borrow\u003c\u0026FlowToken.Vault\u003e(from: /storage/flowTokenVault)\n            ?? panic(\"Could not borrow flow token vault reference\")\n    }\n\n    execute {\n        let nodeInfo = StakingProxy.NodeInfo(id: id, role: role, networkingAddress: networkingAddress, networkingKey: networkingKey, stakingKey: stakingKey)\n\n        let lockedBalance = self.holderRef.getLockedAccountBalance()\n\n        if amount \u003c= lockedBalance {\n\n            self.holderRef.createNodeStaker(nodeInfo: nodeInfo, amount: amount)\n\n        } else if ((amount - lockedBalance) \u003c= self.vaultRef.balance) {\n\n            self.holderRef.deposit(from: \u003c-self.vaultRef.withdraw(amount: amount - lockedBalance))\n\n            self.holderRef.createNodeStaker(nodeInfo: nodeInfo, amount: amount)\n\n        } else {\n            panic(\"Not enough tokens to stake!\")\n        }\n        \n    }\n}\n",
       "arguments": [
         {
           "type": "String",
@@ -66,7 +66,7 @@
         }
       ],
       "network": "testnet",
-      "hash": "005301b0c42a477a4326837a663a53c772acfa9b951abf5a94392eac2e98a3c3"
+      "hash": "b6a3502d2205eb05ec18772c13b91cc88a056b325c2617c57948d38cab8db600"
     },
     {
       "id": "TH.08",
@@ -187,7 +187,7 @@
     {
       "id": "TH.17",
       "name": "Register Delegator",
-      "source": "import LockedTokens from 0x95e019a17d0e23d7\n\ntransaction(id: String, amount: UFix64) {\n\n    let holderRef: \u0026LockedTokens.TokenHolder\n\n    prepare(account: AuthAccount) {\n        self.holderRef = account.borrow\u003c\u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath) \n            ?? panic(\"TokenHolder is not saved at specified path\")\n    }\n\n    execute {\n        self.holderRef.createNodeDelegator(nodeID: id)\n\n        let delegatorProxy = self.holderRef.borrowDelegator()\n\n        let lockedBalance = self.holderRef.getLockedAccountBalance()\n\n        if amount \u003c= lockedBalance {\n\n            delegatorProxy.delegateNewTokens(amount: amount)\n\n        } else if ((amount - lockedBalance) \u003c= self.vaultRef.balance) {\n\n            self.holderRef.deposit(from: \u003c-self.vaultRef.withdraw(amount: amount - lockedBalance))\n\n            delegatorProxy.delegateNewTokens(amount: amount)\n\n        } else {\n            panic(\"Not enough tokens to stake!\")\n        }\n    }\n}\n",
+      "source": "import FlowToken from 0x7e60df042a9c0868\nimport LockedTokens from 0x95e019a17d0e23d7\n\ntransaction(id: String, amount: UFix64) {\n\n    let holderRef: \u0026LockedTokens.TokenHolder\n\n    let vaultRef: \u0026FlowToken.Vault\n\n    prepare(account: AuthAccount) {\n        self.holderRef = account.borrow\u003c\u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath) \n            ?? panic(\"TokenHolder is not saved at specified path\")\n\n        self.vaultRef = account.borrow\u003c\u0026FlowToken.Vault\u003e(from: /storage/flowTokenVault)\n            ?? panic(\"Could not borrow flow token vault reference\")\n    }\n\n    execute {\n        self.holderRef.createNodeDelegator(nodeID: id)\n\n        let delegatorProxy = self.holderRef.borrowDelegator()\n\n        let lockedBalance = self.holderRef.getLockedAccountBalance()\n\n        if amount \u003c= lockedBalance {\n\n            delegatorProxy.delegateNewTokens(amount: amount)\n\n        } else if ((amount - lockedBalance) \u003c= self.vaultRef.balance) {\n\n            self.holderRef.deposit(from: \u003c-self.vaultRef.withdraw(amount: amount - lockedBalance))\n\n            delegatorProxy.delegateNewTokens(amount: amount)\n\n        } else {\n            panic(\"Not enough tokens to stake!\")\n        }\n    }\n}\n",
       "arguments": [
         {
           "type": "String",
@@ -201,7 +201,7 @@
         }
       ],
       "network": "testnet",
-      "hash": "1d7781628884271bf576c10f6520e3db4ade528e0be29f2034c3d48cd5b50cae"
+      "hash": "1378405c85e0c966344b196c0fce602f39e79f3938ec7b689e0c96a8703b018a"
     },
     {
       "id": "TH.19",

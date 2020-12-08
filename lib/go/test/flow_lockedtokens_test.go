@@ -7,7 +7,7 @@ import (
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
-	"github.com/onflow/flow-emulator"
+	emulator "github.com/onflow/flow-emulator"
 	ft_templates "github.com/onflow/flow-ft/lib/go/templates"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
@@ -779,16 +779,16 @@ func TestLockedTokensStaker(t *testing.T) {
 			false,
 		)
 
-		script := templates.GenerateGetLockedAccountBalanceScript(env)
-
 		// locked tokens balance should increase by 500
-		result, err := b.ExecuteScript(script, [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
+		result, err := b.ExecuteScript(
+			templates.GenerateGetLockedAccountBalanceScript(env),
+			[][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))},
+		)
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
 		}
-		balance := result.Value
-		assert.Equal(t, CadenceUFix64("744000.0"), balance.(cadence.UFix64))
+		assert.EqualValues(t, CadenceUFix64("744000.0"), result.Value)
 
 		// make sure the unlock limit has increased by 500.0
 		result, err = b.ExecuteScript(templates.GenerateGetUnlockLimitScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
@@ -796,8 +796,109 @@ func TestLockedTokensStaker(t *testing.T) {
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
 		}
-		balance = result.Value
-		assert.Equal(t, CadenceUFix64("6500.0"), balance.(cadence.UFix64))
+		assert.EqualValues(t, CadenceUFix64("6500.0"), result.Value)
+	})
+
+	t.Run("Should be able to register a node with tokens from the locked vault first and then the unlocked vault", func(t *testing.T) {
+
+		result, err := b.ExecuteScript(ft_templates.GenerateInspectVaultScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+
+		t.Log("unlocked balance", result.Value)
+
+		// locked tokens balance should increase by 500
+		result, err = b.ExecuteScript(
+			templates.GenerateGetLockedAccountBalanceScript(env),
+			[][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))},
+		)
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+
+		t.Log("locked balance", result.Value)
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GenerateRegisterLockedNodeScript(env)).
+			SetGasLimit(200).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(joshAddress)
+
+		_ = tx.AddArgument(cadence.NewString(joshID))
+		_ = tx.AddArgument(cadence.NewUInt8(1))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", josh)))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", josh)))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", josh)))
+		tokenAmount, err := cadence.NewUFix64("745000.0")
+		require.NoError(t, err)
+		_ = tx.AddArgument(tokenAmount)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+
+		// Check the node ID
+		result, err = b.ExecuteScript(templates.GenerateGetNodeIDScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		assert.EqualValues(t, cadence.NewString(joshID), result.Value)
+
+		// Check unlocked balance
+		result, err = b.ExecuteScript(ft_templates.GenerateInspectVaultScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		assert.EqualValues(t, CadenceUFix64("4000.0"), result.Value)
+
+		// Unlock limit should not have changed
+		result, err = b.ExecuteScript(templates.GenerateGetUnlockLimitScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		assert.EqualValues(t, CadenceUFix64("7500.0"), result.Value)
+	})
+
+	t.Run("Should be able to deposit additional locked tokens to the shared account", func(t *testing.T) {
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GenerateDepositLockedTokensScript(env)).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(b.ServiceKey().Address)
+
+		_ = tx.AddArgument(cadence.NewAddress(joshSharedAddress))
+		_ = tx.AddArgument(CadenceUFix64("1000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address},
+			[]crypto.Signer{b.ServiceKey().Signer()},
+			false,
+		)
+
+		script := templates.GenerateGetLockedAccountBalanceScript(env)
+
+		// Check balance of locked account
+		result, err := b.ExecuteScript(script, [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
+		require.NoError(t, err)
+
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+
+		assert.EqualValues(t, CadenceUFix64("1000.0"), result.Value)
 	})
 
 	t.Run("Should be able to stake tokens that come from the locked vault first and then the unlocked vault", func(t *testing.T) {
@@ -811,7 +912,7 @@ func TestLockedTokensStaker(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshAddress)
 
-		tokenAmount, err := cadence.NewUFix64("746000.0")
+		tokenAmount, err := cadence.NewUFix64("2000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
 
@@ -828,16 +929,15 @@ func TestLockedTokensStaker(t *testing.T) {
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
 		}
-		balance := result.Value
-		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
+		assert.EqualValues(t, CadenceUFix64("0.0"), result.Value)
 
+		// Check unlocked balance
 		result, err = b.ExecuteScript(ft_templates.GenerateInspectVaultScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
 		}
-		balance = result.Value
-		assert.Equal(t, CadenceUFix64("3000.0"), balance.(cadence.UFix64))
+		assert.EqualValues(t, CadenceUFix64("3000.0"), result.Value)
 
 		// unlock limit should not have changed
 		result, err = b.ExecuteScript(templates.GenerateGetUnlockLimitScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
@@ -845,11 +945,8 @@ func TestLockedTokensStaker(t *testing.T) {
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
 		}
-		balance = result.Value
-		assert.Equal(t, CadenceUFix64("8500.0"), balance.(cadence.UFix64))
-
+		assert.EqualValues(t, CadenceUFix64("8500.0"), result.Value)
 	})
-
 }
 
 func TestLockedTokensDelegator(t *testing.T) {
@@ -1315,7 +1412,6 @@ func TestLockedTokensDelegator(t *testing.T) {
 		}
 		balance = result.Value
 		assert.Equal(t, CadenceUFix64("1500.0"), balance.(cadence.UFix64))
-
 	})
 
 	t.Run("Should be able to withdraw free tokens", func(t *testing.T) {
@@ -1338,7 +1434,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 			false,
 		)
 
-		// make sure the unlock limit has increased by 500.0
+		// Check that unlock limit has decreased to zero
 		result, err := b.ExecuteScript(templates.GenerateGetUnlockLimitScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
@@ -1348,7 +1444,87 @@ func TestLockedTokensDelegator(t *testing.T) {
 		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
 	})
 
-	t.Run("Should be able to delegate tokens that come from the locked vault first and then the unlocked vault", func(t *testing.T) {
+	t.Run("Should be able to register as a delegator using tokens from the locked vault first and then the unlocked vault", func(t *testing.T) {
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GenerateCreateLockedDelegatorScript(env)).
+			SetGasLimit(200).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(joshAddress)
+
+		_ = tx.AddArgument(cadence.NewString(joshID))
+		tokenAmount, err := cadence.NewUFix64("948500.0")
+		require.NoError(t, err)
+		_ = tx.AddArgument(tokenAmount)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+
+		// Check the delegator ID
+		result, err := b.ExecuteScript(templates.GenerateGetDelegatorIDScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		id := result.Value
+		assert.Equal(t, cadence.NewUInt32(1), id.(cadence.UInt32))
+
+		// Check the delegator node ID
+		result, err = b.ExecuteScript(templates.GenerateGetDelegatorNodeIDScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		id = result.Value
+		assert.Equal(t, cadence.NewString(joshID), id.(cadence.String))
+
+		// Check that unlock limit increases by 1000.0
+		result, err = b.ExecuteScript(templates.GenerateGetUnlockLimitScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		assert.EqualValues(t, CadenceUFix64("1000.0"), result.Value)
+	})
+
+	t.Run("Should be able to deposit additional locked tokens to the shared account", func(t *testing.T) {
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GenerateDepositLockedTokensScript(env)).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(b.ServiceKey().Address)
+
+		_ = tx.AddArgument(cadence.NewAddress(joshSharedAddress))
+		_ = tx.AddArgument(CadenceUFix64("1000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address},
+			[]crypto.Signer{b.ServiceKey().Signer()},
+			false,
+		)
+
+		script := templates.GenerateGetLockedAccountBalanceScript(env)
+
+		// Check balance of locked account
+		result, err := b.ExecuteScript(script, [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
+		require.NoError(t, err)
+
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+
+		assert.EqualValues(t, CadenceUFix64("1000.0"), result.Value)
+	})
+
+	t.Run("Should be able to delegate tokens from the locked vault first and then the unlocked vault", func(t *testing.T) {
 
 		script := templates.GenerateDelegateNewLockedTokensScript(env)
 
@@ -1359,7 +1535,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshAddress)
 
-		tokenAmount, err := cadence.NewUFix64("949000.0")
+		tokenAmount, err := cadence.NewUFix64("1500.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
 
@@ -1379,6 +1555,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 		balance := result.Value
 		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
 
+		// Check balance of unlocked account
 		result, err = b.ExecuteScript(ft_templates.GenerateInspectVaultScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
@@ -1387,7 +1564,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 		balance = result.Value
 		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
 
-		// unlock limit should not have changed
+		// Unlock limit should not have changed
 		result, err = b.ExecuteScript(templates.GenerateGetUnlockLimitScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
@@ -1395,7 +1572,6 @@ func TestLockedTokensDelegator(t *testing.T) {
 		}
 		balance = result.Value
 		assert.Equal(t, CadenceUFix64("1500.0"), balance.(cadence.UFix64))
-
 	})
 
 }

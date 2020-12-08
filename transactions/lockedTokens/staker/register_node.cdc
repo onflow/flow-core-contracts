@@ -1,3 +1,4 @@
+import FlowToken from 0xFLOWTOKENADDRESS
 import LockedTokens from 0xLOCKEDTOKENADDRESS
 import StakingProxy from 0xSTAKINGPROXYADDRESS
 
@@ -5,9 +6,14 @@ transaction(id: String, role: UInt8, networkingAddress: String, networkingKey: S
 
     let holderRef: &LockedTokens.TokenHolder
 
+    let vaultRef: &FlowToken.Vault
+
     prepare(account: AuthAccount) {
         self.holderRef = account.borrow<&LockedTokens.TokenHolder>(from: LockedTokens.TokenHolderStoragePath)
             ?? panic("Could not borrow ref to TokenHolder")
+
+        self.vaultRef = account.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)
+            ?? panic("Could not borrow flow token vault reference")
     }
 
     execute {
