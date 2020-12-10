@@ -120,7 +120,7 @@ pub contract FlowIDTableStaking {
         /// the public key for staking
         pub(set) var stakingKey: String
 
-        /// The total tokens that this node currently has staked, including delegators
+        /// The total tokens that only this node currently has staked, not including delegators
         /// This value must always be above the minimum requirement to stay staked
         /// or accept delegators
         pub var tokensStaked: @FlowToken.Vault
@@ -732,8 +732,10 @@ pub contract FlowIDTableStaking {
             var totalRewardScale: UFix64 = 0.0
 
             if totalStaked >= UFix64(100000000.0) {
-                // Maximum UFix64 divisor is 100M so we need to scale the numbers
-                // in order to not cause overflow
+                // There is a limitation in the current version of Cadence that means that 
+                // dividing by a very large number will cause an overflow (>100M), or produce inaccurate results (>1M). 
+                // This should be fixed soon, but in the meantime, we can work around it 
+                // by scaling both numbers by a factor of 1000 to avoid those edge cases.
                 let div1000dividend = FlowIDTableStaking.epochTokenPayout / 1000.0
                 let div1000divisor = totalStaked / 1000.0
                 totalRewardScale = div1000dividend / div1000divisor
