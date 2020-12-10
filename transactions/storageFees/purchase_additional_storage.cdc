@@ -1,4 +1,4 @@
-import StorageFees from 0xSTORAGEFEES
+import FlowStorageFees from 0xFLOWSTORAGEFEES
 
 transaction(forAddress: Address, flowAmount: UFix64) {
     // The Vault resource that holds the tokens that will be used to pay for storage
@@ -14,7 +14,7 @@ transaction(forAddress: Address, flowAmount: UFix64) {
     }
 
     execute {
-        let storageReservationReceiver = StorageFees.getStorageReservationReceiver(forAddress)
+        let storageReservationReceiver:  = FlowStorageFees.getStorageReservationReceiver(forAddress)
         storageReservationReceiver.deposit(from: <-paymentVault)
     }
 }

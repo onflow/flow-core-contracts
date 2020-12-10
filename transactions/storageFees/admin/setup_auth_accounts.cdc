@@ -1,4 +1,4 @@
-import StorageFees from 0xSTORAGEFEES
+import FlowStorageFees from 0xFLOWSTORAGEFEES
 import FlowToken from 0xFLOWTOKENADDRESS
 
 // This transaction sets up storage on any auth accounts that were created before the storage fees.
@@ -11,7 +11,7 @@ transaction() {
         let tokenVault = service.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault) ?? panic("Unable to borrow reference to the default token vault")
         
         for a in authAccounts {
-            StorageFees.setupAccountStorage(account: a, storageReservation: <- (tokenVault.withdraw(amount: StorageFees.minimumStorageReservation) as! @FlowToken.Vault))
+            FlowStorageFees.setupAccountStorage(account: a, storageReservation: <- (tokenVault.withdraw(amount: FlowStorageFees.minimumStorageReservation) as! @FlowToken.Vault))
         }
     }
 }

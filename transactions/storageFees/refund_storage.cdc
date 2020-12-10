@@ -1,10 +1,10 @@
-import StorageFees from 0xSTORAGEFEES
+import FlowStorageFees from 0xFLOWSTORAGEFEES
 
 transaction(flowAmount: UFix64) {
 
     prepare(account: AuthAccount) {
         // Get a reference to the signer's stored storageReservation
-        let storageCapacityRef = account.borrow<&StorageFees.StorageReservation>(from: StorageFees.storageReservationPath)
+        let storageCapacityRef = account.borrow<&FlowStorageFees.StorageReservation>(from: FlowStorageFees.storageReservationPath)
 			?? panic("Could not borrow reference to the owner's StorageReservation!")
 
         // Refund tokens from the signer's stored storageReservation
