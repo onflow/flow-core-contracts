@@ -20,10 +20,7 @@ import FlowToken from 0xFLOWTOKENADDRESS
 
 pub contract FlowStorageFees {
     // Emitted when storage capacity refunding is enabled.
-    pub event RefundingDisabled()
-
-     // Emitted when storage capacity refunding is disabled.
-    pub event RefundingEnabled()
+    pub event RefundingEnabledChanged(_ refundingEnabled: Bool)
     
     // Emitted when the amount of storage capacity an account has per reserved Flow token changes
     pub event StorageBytesPerReservedFLOWChanged(_ storageBytesPerReservedFLOW: UFix64)
@@ -58,11 +55,7 @@ pub contract FlowStorageFees {
               return
             }
             FlowStorageFees.refundingEnabled = enabled
-            if enabled {
-                emit RefundingEnabled()
-            } else {
-                emit RefundingDisabled()
-            }
+            emit RefundingEnabledChanged(enabled)
         }
 
         // Changes the amount storage capacity an account has per accounts' reserved storage.
