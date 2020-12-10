@@ -96,7 +96,6 @@ pub contract FlowIDTableStaking {
     /*********** ID Table and Staking Composite Type Definitions *************/
 
     /// Contains information that is specific to a node in Flow
-    /// only lives in this contract
     pub resource NodeRecord {
 
         /// The unique ID of the node
@@ -121,8 +120,7 @@ pub contract FlowIDTableStaking {
         pub(set) var stakingKey: String
 
         /// The total tokens that only this node currently has staked, not including delegators
-        /// This value must always be above the minimum requirement to stay staked
-        /// or accept delegators
+        /// This value must always be above the minimum requirement to stay staked or accept delegators
         pub var tokensStaked: @FlowToken.Vault
 
         /// The tokens that this node has committed to stake for the next epoch.
@@ -146,8 +144,7 @@ pub contract FlowIDTableStaking {
         /// The incrementing ID used to register new delegators
         pub(set) var delegatorIDCounter: UInt32
 
-        /// The amount of tokens that this node has requested to unstake
-        /// for the next epoch
+        /// The amount of tokens that this node has requested to unstake for the next epoch
         pub(set) var tokensRequestedToUnstake: UFix64
 
         /// weight as determined by the amount staked after the staking auction
@@ -309,8 +306,7 @@ pub contract FlowIDTableStaking {
     }
 
     /// Records the staking info associated with a delegator
-    /// Stored in the NodeRecord resource for the node that a delegator
-    /// is associated with
+    /// Stored in the NodeRecord resource for the delegated to node
     pub resource DelegatorRecord {
 
         /// Tokens this delegator has committed for the next epoch
@@ -438,8 +434,7 @@ pub contract FlowIDTableStaking {
             }
         }
 
-        /// Request amount tokens to be removed from staking
-        /// at the end of the next epoch
+        /// Request amount tokens to be removed from staking at the end of the next epoch
         pub fun requestUnstaking(amount: UFix64) {
 
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
@@ -657,8 +652,6 @@ pub contract FlowIDTableStaking {
         /// it moves their committed tokens to their unstaked bucket
         /// This will only be called once per epoch
         /// after the staking auction phase
-        ///
-        /// Also sets the initial weight of all the accepted nodes
         /// 
         /// Parameter: approvedNodeIDs: A list of nodeIDs that have been approved
         /// by the protocol to be a staker for the next epoch. The node software
