@@ -131,7 +131,6 @@ pub contract FlowIDTableStaking {
         pub var tokensUnstaking: @FlowToken.Vault
 
         /// Tokens that this node is able to withdraw whenever they want
-        /// Staking rewards are paid to this bucket
         pub var tokensUnstaked: @FlowToken.Vault
 
         /// Staking rewards are paid to this bucket
@@ -306,7 +305,7 @@ pub contract FlowIDTableStaking {
     }
 
     /// Records the staking info associated with a delegator
-    /// Stored in the NodeRecord resource for the delegated to node
+    /// Stored in the node's NodeRecord
     pub resource DelegatorRecord {
 
         /// Tokens this delegator has committed for the next epoch
