@@ -22,6 +22,8 @@ const (
 	getDelegatorUnstakedFilename         = "idTableStaking/delegation/get_delegator_unstaked.cdc"
 	getDelegatorRewardedFilename         = "idTableStaking/delegation/get_delegator_rewarded.cdc"
 	getDelegatorRequestFilename          = "idTableStaking/delegation/get_delegator_request.cdc"
+
+	registerManyDelegatorsFilename = "idTableStaking/delegation/register_many_delegators.cdc"
 )
 
 func GenerateCreateDelegationScript(env Environment) []byte {
@@ -112,6 +114,14 @@ func GenerateGetDelegatorRewardsScript(env Environment) []byte {
 
 func GenerateGetDelegatorRequestScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + getDelegatorRequestFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+// Only for testing
+
+func GenerateRegisterManyDelegatorsScript(env Environment) []byte {
+	code := assets.MustAssetString(filePath + registerManyDelegatorsFilename)
 
 	return []byte(replaceAddresses(code, env))
 }

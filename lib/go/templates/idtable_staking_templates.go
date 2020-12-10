@@ -25,22 +25,25 @@ const (
 	withdrawUnstakedTokensFilename = "idTableStaking/withdraw_unstaked_tokens.cdc"
 	withdrawRewardedTokensFilename = "idTableStaking/withdraw_rewarded_tokens.cdc"
 
-	getTableFilename            = "idTableStaking/get_table.cdc"
-	currentTableFilename        = "idTableStaking/get_current_table.cdc"
-	proposedTableFilename       = "idTableStaking/get_proposed_table.cdc"
-	getRoleFilename             = "idTableStaking/get_node_role.cdc"
-	getNetworkingAddrFilename   = "idTableStaking/get_node_networking_addr.cdc"
-	getNetworkingKeyFilename    = "idTableStaking/get_node_networking_key.cdc"
-	getStakingKeyFilename       = "idTableStaking/get_node_staking_key.cdc"
-	getInitialWeightFilename    = "idTableStaking/get_node_initial_weight.cdc"
-	stakedBalanceFilename       = "idTableStaking/get_node_staked_tokens.cdc"
-	comittedBalanceFilename     = "idTableStaking/get_node_committed_tokens.cdc"
-	unstakedBalanceFilename     = "idTableStaking/get_node_unstaked_tokens.cdc"
-	rewardBalanceFilename       = "idTableStaking/get_node_rewarded_tokens.cdc"
-	unstakingBalanceFilename    = "idTableStaking/get_node_unstaking_tokens.cdc"
-	getTotalCommitmentFilename  = "idTableStaking/get_node_total_commitment.cdc"
-	getUnstakingRequestFilename = "idTableStaking/get_node_unstaking_request.cdc"
-	getCutPercentageFilename    = "idTableStaking/get_cut_percentage.cdc"
+	registerManyNodesFilename = "idTableStaking/register_many_nodes.cdc"
+
+	getTableFilename                            = "idTableStaking/get_table.cdc"
+	currentTableFilename                        = "idTableStaking/get_current_table.cdc"
+	proposedTableFilename                       = "idTableStaking/get_proposed_table.cdc"
+	getRoleFilename                             = "idTableStaking/get_node_role.cdc"
+	getNetworkingAddrFilename                   = "idTableStaking/get_node_networking_addr.cdc"
+	getNetworkingKeyFilename                    = "idTableStaking/get_node_networking_key.cdc"
+	getStakingKeyFilename                       = "idTableStaking/get_node_staking_key.cdc"
+	getInitialWeightFilename                    = "idTableStaking/get_node_initial_weight.cdc"
+	stakedBalanceFilename                       = "idTableStaking/get_node_staked_tokens.cdc"
+	comittedBalanceFilename                     = "idTableStaking/get_node_committed_tokens.cdc"
+	unstakedBalanceFilename                     = "idTableStaking/get_node_unstaked_tokens.cdc"
+	rewardBalanceFilename                       = "idTableStaking/get_node_rewarded_tokens.cdc"
+	unstakingBalanceFilename                    = "idTableStaking/get_node_unstaking_tokens.cdc"
+	getTotalCommitmentFilename                  = "idTableStaking/get_node_total_commitment.cdc"
+	getTotalCommitmentWithoutDelegatorsFilename = "idTableStaking/get_node_total_commitment_without_delegators.cdc"
+	getUnstakingRequestFilename                 = "idTableStaking/get_node_unstaking_request.cdc"
+	getCutPercentageFilename                    = "idTableStaking/get_cut_percentage.cdc"
 
 	stakeRequirementsFilename = "idTableStaking/get_stake_requirements.cdc"
 	totalStakedByTypeFilename = "idTableStaking/get_total_staked_by_type.cdc"
@@ -338,9 +341,25 @@ func GenerateGetUnstakingRequestScript(env Environment) []byte {
 }
 
 // GenerateGetTotalCommitmentBalanceScript creates a script
-// that returns the balance of the total committed tokens of a node
+// that returns the balance of the total committed tokens of a node plus delegators
 func GenerateGetTotalCommitmentBalanceScript(env Environment) []byte {
 	code := assets.MustAssetString(filePath + getTotalCommitmentFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+// GenerateGetTotalCommitmentBalanceWithoutDelegatorsScript creates a script
+// that returns the balance of the total committed tokens of a node without delegators
+func GenerateGetTotalCommitmentBalanceWithoutDelegatorsScript(env Environment) []byte {
+	code := assets.MustAssetString(filePath + getTotalCommitmentWithoutDelegatorsFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+// For testing
+
+func GenerateRegisterManyNodesScript(env Environment) []byte {
+	code := assets.MustAssetString(filePath + registerManyNodesFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
