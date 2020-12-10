@@ -82,7 +82,7 @@ func TestStakingProxy(t *testing.T) {
 	stakingProxyCode := contracts.FlowStakingProxy()
 	stakingProxyAddress, err := b.CreateAccount(nil, []sdktemplates.Contract{
 		{
-			Name: "StakingProxy",
+			Name:   "StakingProxy",
 			Source: string(stakingProxyCode),
 		},
 	})
@@ -154,9 +154,9 @@ func TestStakingProxy(t *testing.T) {
 
 		_ = tx.AddArgument(cadence.NewString(joshID))
 		_ = tx.AddArgument(cadence.NewUInt8(1))
-		_ = tx.AddArgument(cadence.NewString("12234"))
-		_ = tx.AddArgument(cadence.NewString("netkey"))
-		_ = tx.AddArgument(cadence.NewString("stakekey"))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", josh)))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", josh)))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", josh)))
 
 		signAndSubmit(
 			t, b, tx,
