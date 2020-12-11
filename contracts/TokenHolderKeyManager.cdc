@@ -4,7 +4,8 @@ import KeyManager from 0xKEYMANAGERADDRESS
 // the KeyManager interface intended for use by FLOW token holders.
 //
 // One instance is deployed to each token holder account.
-// Deployment is executed a with signature from the administrator,
+// Deployment is executed a with signature from the administrator
+// whose key has been added to the account by the account owner,
 // allowing them to take possession of a KeyAdder resource
 // upon initialization.
 pub contract TokenHolderKeyManager: KeyManager {
