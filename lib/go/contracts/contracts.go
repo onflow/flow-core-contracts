@@ -12,15 +12,17 @@ import (
 )
 
 const (
-	flowFeesFilename           = "../../../contracts/FlowFees.cdc"
-	flowServiceAccountFilename = "../../../contracts/FlowServiceAccount.cdc"
-	flowTokenFilename          = "../../../contracts/FlowToken.cdc"
-	flowIdentityTableFilename  = "../../../contracts/FlowIDTableStaking.cdc"
-	flowQCFilename             = "../../../contracts/epochs/FlowQuorumCertificate.cdc"
-	flowDKGFilename            = "../../../contracts/epochs/FlowDKG.cdc"
-	flowEpochFilename          = "../../../contracts/epochs/FlowEpoch.cdc"
-	flowLockedTokensFilename   = "../../../contracts/LockedTokens.cdc"
-	flowStakingProxyFilename   = "../../../contracts/StakingProxy.cdc"
+	flowFeesFilename              = "../../../contracts/FlowFees.cdc"
+	flowServiceAccountFilename    = "../../../contracts/FlowServiceAccount.cdc"
+	flowTokenFilename             = "../../../contracts/FlowToken.cdc"
+	flowIdentityTableFilename     = "../../../contracts/FlowIDTableStaking.cdc"
+	flowQCFilename                = "../../../contracts/epochs/FlowQuorumCertificate.cdc"
+	flowDKGFilename               = "../../../contracts/epochs/FlowDKG.cdc"
+	flowEpochFilename             = "../../../contracts/epochs/FlowEpoch.cdc"
+	flowLockedTokensFilename      = "../../../contracts/LockedTokens.cdc"
+	flowStakingProxyFilename      = "../../../contracts/StakingProxy.cdc"
+	keyManagerFilename            = "../../../contracts/KeyManager.cdc"
+	tokenHolderKeyManagerFilename = "../../../contracts/TokenHolderKeyManager.cdc"
 
 	// Test contracts
 	TESTFlowIdentityTableFilename = "../../../contracts/testContracts/TestFlowIDTableStaking.cdc"
@@ -32,6 +34,7 @@ const (
 	placeholderQCAddr               = "0xQCADDRESS"
 	placeholderDKGAddr              = "0xDKGADDRESS"
 	placeholderFlowFeesAddress      = "0xFLOWFEESADDRESS"
+	placeholderKeyManagerAddress    = "0xKEYMANAGERADDRESS"
 )
 
 func withHexPrefix(address string) string {
@@ -138,12 +141,10 @@ func TESTFlowIDTableStaking(fungibleTokenAddress, flowTokenAddress string) []byt
 
 // FlowStakingProxy returns the StakingProxy contract.
 func FlowStakingProxy() []byte {
-	code := assets.MustAssetString(flowStakingProxyFilename)
-
-	return []byte(code)
+	return assets.MustAsset(flowStakingProxyFilename)
 }
 
-// FlowLockedTokens return the LockedTokens contract
+// FlowLockedTokens returns the LockedTokens contract
 func FlowLockedTokens(
 	fungibleTokenAddress,
 	flowTokenAddress,
@@ -156,6 +157,20 @@ func FlowLockedTokens(
 	code = strings.ReplaceAll(code, placeholderFlowTokenAddress, withHexPrefix(flowTokenAddress))
 	code = strings.ReplaceAll(code, placeholderIDTableAddress, withHexPrefix(idTableAddress))
 	code = strings.ReplaceAll(code, placeholderStakingProxyAddress, withHexPrefix(stakingProxyAddress))
+
+	return []byte(code)
+}
+
+// KeyManager returns the KeyManager contract
+func KeyManager() []byte {
+	return assets.MustAsset(keyManagerFilename)
+}
+
+// TokenHolderKeyManager returns the TokenHolderKeyManager contract
+func TokenHolderKeyManager(keyManagerAddress string) []byte {
+	code := assets.MustAssetString(tokenHolderKeyManagerFilename)
+
+	code = strings.ReplaceAll(code, placeholderKeyManagerAddress, withHexPrefix(keyManagerAddress))
 
 	return []byte(code)
 }
