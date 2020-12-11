@@ -96,7 +96,6 @@ pub contract FlowIDTableStaking {
     /*********** ID Table and Staking Composite Type Definitions *************/
 
     /// Contains information that is specific to a node in Flow
-    /// only lives in this contract
     pub resource NodeRecord {
 
         /// The unique ID of the node
@@ -120,9 +119,8 @@ pub contract FlowIDTableStaking {
         /// the public key for staking
         pub(set) var stakingKey: String
 
-        /// The total tokens that this node currently has staked, including delegators
-        /// This value must always be above the minimum requirement to stay staked
-        /// or accept delegators
+        /// The total tokens that only this node currently has staked, not including delegators
+        /// This value must always be above the minimum requirement to stay staked or accept delegators
         pub var tokensStaked: @FlowToken.Vault
 
         /// The tokens that this node has committed to stake for the next epoch.
@@ -133,7 +131,6 @@ pub contract FlowIDTableStaking {
         pub var tokensUnstaking: @FlowToken.Vault
 
         /// Tokens that this node is able to withdraw whenever they want
-        /// Staking rewards are paid to this bucket
         pub var tokensUnstaked: @FlowToken.Vault
 
         /// Staking rewards are paid to this bucket
@@ -146,8 +143,7 @@ pub contract FlowIDTableStaking {
         /// The incrementing ID used to register new delegators
         pub(set) var delegatorIDCounter: UInt32
 
-        /// The amount of tokens that this node has requested to unstake
-        /// for the next epoch
+        /// The amount of tokens that this node has requested to unstake for the next epoch
         pub(set) var tokensRequestedToUnstake: UFix64
 
         /// weight as determined by the amount staked after the staking auction
@@ -309,8 +305,7 @@ pub contract FlowIDTableStaking {
     }
 
     /// Records the staking info associated with a delegator
-    /// Stored in the NodeRecord resource for the node that a delegator
-    /// is associated with
+    /// Stored in the node's NodeRecord
     pub resource DelegatorRecord {
 
         /// Tokens this delegator has committed for the next epoch
@@ -438,8 +433,7 @@ pub contract FlowIDTableStaking {
             }
         }
 
-        /// Request amount tokens to be removed from staking
-        /// at the end of the next epoch
+        /// Request amount tokens to be removed from staking at the end of the next epoch
         pub fun requestUnstaking(amount: UFix64) {
 
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
@@ -657,8 +651,6 @@ pub contract FlowIDTableStaking {
         /// it moves their committed tokens to their unstaked bucket
         /// This will only be called once per epoch
         /// after the staking auction phase
-        ///
-        /// Also sets the initial weight of all the accepted nodes
         /// 
         /// Parameter: approvedNodeIDs: A list of nodeIDs that have been approved
         /// by the protocol to be a staker for the next epoch. The node software
@@ -732,8 +724,10 @@ pub contract FlowIDTableStaking {
             var totalRewardScale: UFix64 = 0.0
 
             if totalStaked >= UFix64(100000000.0) {
-                // Maximum UFix64 divisor is 100M so we need to scale the numbers
-                // in order to not cause overflow
+                // There is a limitation in the current version of Cadence that means that 
+                // dividing by a very large number will cause an overflow (>100M), or produce inaccurate results (>1M). 
+                // This should be fixed soon, but in the meantime, we can work around it 
+                // by scaling both numbers by a factor of 1000 to avoid those edge cases.
                 let div1000dividend = FlowIDTableStaking.epochTokenPayout / 1000.0
                 let div1000divisor = totalStaked / 1000.0
                 totalRewardScale = div1000dividend / div1000divisor
