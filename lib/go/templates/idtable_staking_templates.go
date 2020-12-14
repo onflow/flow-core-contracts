@@ -57,7 +57,7 @@ const (
 // GenerateTransferMinterAndDeployScript generates a script that transfers
 // a flow minter and deploys the id table account
 func GenerateTransferMinterAndDeployScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + transferDeployFilename)
+	code := assets.MustAssetString(transferDeployFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -65,55 +65,55 @@ func GenerateTransferMinterAndDeployScript(env Environment) []byte {
 // GenerateRemoveNodeScript creates a script that removes a node
 // from the record
 func GenerateRemoveNodeScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + removeNodeFilename)
+	code := assets.MustAssetString(removeNodeFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateEndStakingScript creates a script that ends the staking auction
 func GenerateEndStakingScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + endStakingFilename)
+	code := assets.MustAssetString(endStakingFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 // GeneratePayRewardsScript creates a script that pays rewards
 func GeneratePayRewardsScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + payRewardsFilename)
+	code := assets.MustAssetString(payRewardsFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateMoveTokensScript creates a script that moves tokens between buckets
 func GenerateMoveTokensScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + moveTokensFilename)
+	code := assets.MustAssetString(moveTokensFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateEndEpochScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + endEpochFilename)
+	code := assets.MustAssetString(endEpochFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateChangeMinimumsScript creates a script that changes the staking minimums
 func GenerateChangeMinimumsScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + changeMinimumsFilename)
+	code := assets.MustAssetString(changeMinimumsFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateChangeCutScript creates a script that changes the cut percentage
 func GenerateChangeCutScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + changeCutFilename)
+	code := assets.MustAssetString(changeCutFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateChangePayoutScript creates a script that changes the weekly payout
 func GenerateChangePayoutScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + changePayoutFilename)
+	code := assets.MustAssetString(changePayoutFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -123,7 +123,7 @@ func GenerateChangePayoutScript(env Environment) []byte {
 // GenerateRegisterNodeScript creates a script that creates a new
 // node struct and stores it in the Node records
 func GenerateRegisterNodeScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + registerNodeFilename)
+	code := assets.MustAssetString(registerNodeFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -131,7 +131,7 @@ func GenerateRegisterNodeScript(env Environment) []byte {
 // GenerateStakeNewTokensScript creates a script that stakes new
 // tokens for a node operator
 func GenerateStakeNewTokensScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + stakeNewTokensFilename)
+	code := assets.MustAssetString(stakeNewTokensFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -139,7 +139,7 @@ func GenerateStakeNewTokensScript(env Environment) []byte {
 // GenerateStakeUnstakedTokensScript creates a script that stakes
 // tokens for a node operator from their unstaked bucket
 func GenerateStakeUnstakedTokensScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + stakeUnstakedTokensFilename)
+	code := assets.MustAssetString(stakeUnstakedTokensFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -147,7 +147,7 @@ func GenerateStakeUnstakedTokensScript(env Environment) []byte {
 // GenerateStakeRewardedTokensScript creates a script that stakes
 // tokens for a node operator from their rewarded bucket
 func GenerateStakeRewardedTokensScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + stakeRewardedTokensFilename)
+	code := assets.MustAssetString(stakeRewardedTokensFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -155,7 +155,7 @@ func GenerateStakeRewardedTokensScript(env Environment) []byte {
 // GenerateUnstakeTokensScript creates a script that makes an unstaking request
 // for an existing node operator
 func GenerateUnstakeTokensScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + unstakeTokensFilename)
+	code := assets.MustAssetString(unstakeTokensFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -163,7 +163,7 @@ func GenerateUnstakeTokensScript(env Environment) []byte {
 // GenerateUnstakeAllScript creates a script that makes an unstaking request
 // for an existing node operator to unstake all their tokens
 func GenerateUnstakeAllScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + unstakeAllFilename)
+	code := assets.MustAssetString(unstakeAllFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -171,7 +171,7 @@ func GenerateUnstakeAllScript(env Environment) []byte {
 // GenerateWithdrawUnstakedTokensScript creates a script that withdraws unstaked tokens
 // for an existing node operator
 func GenerateWithdrawUnstakedTokensScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + withdrawUnstakedTokensFilename)
+	code := assets.MustAssetString(withdrawUnstakedTokensFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -179,7 +179,7 @@ func GenerateWithdrawUnstakedTokensScript(env Environment) []byte {
 // GenerateWithdrawRewardedTokensScript creates a script that withdraws rewarded tokens
 // for an existing node operator
 func GenerateWithdrawRewardedTokensScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + withdrawRewardedTokensFilename)
+	code := assets.MustAssetString(withdrawRewardedTokensFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -187,7 +187,7 @@ func GenerateWithdrawRewardedTokensScript(env Environment) []byte {
 // GenerateReturnTableScript creates a script that returns
 // the the whole ID table nodeIDs
 func GenerateReturnTableScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + getTableFilename)
+	code := assets.MustAssetString(getTableFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -196,42 +196,42 @@ func GenerateReturnTableScript(env Environment) []byte {
 
 // GenerateGetStakeRequirementsScript returns the stake requirement for a node type
 func GenerateGetStakeRequirementsScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + stakeRequirementsFilename)
+	code := assets.MustAssetString(stakeRequirementsFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateGetTotalTokensStakedByTypeScript returns the total tokens staked for a node type
 func GenerateGetTotalTokensStakedByTypeScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + totalStakedByTypeFilename)
+	code := assets.MustAssetString(totalStakedByTypeFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateGetTotalTokensStakedScript returns the total tokens staked
 func GenerateGetTotalTokensStakedScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + totalStakedFilename)
+	code := assets.MustAssetString(totalStakedFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateGetRewardRatioScript gets the reward ratio for a node type
 func GenerateGetRewardRatioScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + rewardRatioFilename)
+	code := assets.MustAssetString(rewardRatioFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateGetWeeklyPayoutScript gets the total weekly reward payout
 func GenerateGetWeeklyPayoutScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + weeklyPayoutFilename)
+	code := assets.MustAssetString(weeklyPayoutFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateGetCutPercentageScript gets the delegator cut percentage
 func GenerateGetCutPercentageScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + getCutPercentageFilename)
+	code := assets.MustAssetString(getCutPercentageFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -239,7 +239,7 @@ func GenerateGetCutPercentageScript(env Environment) []byte {
 // GenerateReturnCurrentTableScript creates a script that returns
 // the current ID table
 func GenerateReturnCurrentTableScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + currentTableFilename)
+	code := assets.MustAssetString(currentTableFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -247,7 +247,7 @@ func GenerateReturnCurrentTableScript(env Environment) []byte {
 // GenerateReturnProposedTableScript creates a script that returns
 // the ID table for the proposed next epoch
 func GenerateReturnProposedTableScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + proposedTableFilename)
+	code := assets.MustAssetString(proposedTableFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -255,7 +255,7 @@ func GenerateReturnProposedTableScript(env Environment) []byte {
 // GenerateGetRoleScript creates a script
 // that returns the role of a node
 func GenerateGetRoleScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + getRoleFilename)
+	code := assets.MustAssetString(getRoleFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -263,7 +263,7 @@ func GenerateGetRoleScript(env Environment) []byte {
 // GenerateGetNetworkingAddressScript creates a script
 // that returns the networking address of a node
 func GenerateGetNetworkingAddressScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + getNetworkingAddrFilename)
+	code := assets.MustAssetString(getNetworkingAddrFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -271,7 +271,7 @@ func GenerateGetNetworkingAddressScript(env Environment) []byte {
 // GenerateGetNetworkingKeyScript creates a script
 // that returns the networking key of a node
 func GenerateGetNetworkingKeyScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + getNetworkingKeyFilename)
+	code := assets.MustAssetString(getNetworkingKeyFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -279,7 +279,7 @@ func GenerateGetNetworkingKeyScript(env Environment) []byte {
 // GenerateGetStakingKeyScript creates a script
 // that returns the staking key of a node
 func GenerateGetStakingKeyScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + getStakingKeyFilename)
+	code := assets.MustAssetString(getStakingKeyFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -287,7 +287,7 @@ func GenerateGetStakingKeyScript(env Environment) []byte {
 // GenerateGetInitialWeightScript creates a script
 // that returns the initial weight of a node
 func GenerateGetInitialWeightScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + getInitialWeightFilename)
+	code := assets.MustAssetString(getInitialWeightFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -295,7 +295,7 @@ func GenerateGetInitialWeightScript(env Environment) []byte {
 // GenerateGetStakedBalanceScript creates a script
 // that returns the balance of the staked tokens of a node
 func GenerateGetStakedBalanceScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + stakedBalanceFilename)
+	code := assets.MustAssetString(stakedBalanceFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -303,7 +303,7 @@ func GenerateGetStakedBalanceScript(env Environment) []byte {
 // GenerateGetCommittedBalanceScript creates a script
 // that returns the balance of the committed tokens of a node
 func GenerateGetCommittedBalanceScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + comittedBalanceFilename)
+	code := assets.MustAssetString(comittedBalanceFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -311,7 +311,7 @@ func GenerateGetCommittedBalanceScript(env Environment) []byte {
 // GenerateGetUnstakingBalanceScript creates a script
 // that returns the balance of the unstaking tokens of a node
 func GenerateGetUnstakingBalanceScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + unstakingBalanceFilename)
+	code := assets.MustAssetString(unstakingBalanceFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -319,7 +319,7 @@ func GenerateGetUnstakingBalanceScript(env Environment) []byte {
 // GenerateGetUnstakedBalanceScript creates a script
 // that returns the balance of the unstaked tokens of a node
 func GenerateGetUnstakedBalanceScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + unstakedBalanceFilename)
+	code := assets.MustAssetString(unstakedBalanceFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -327,7 +327,7 @@ func GenerateGetUnstakedBalanceScript(env Environment) []byte {
 // GenerateGetRewardBalanceScript creates a script
 // that returns the balance of the rewarded tokens of a node
 func GenerateGetRewardBalanceScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + rewardBalanceFilename)
+	code := assets.MustAssetString(rewardBalanceFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -335,7 +335,7 @@ func GenerateGetRewardBalanceScript(env Environment) []byte {
 // GenerateGetUnstakingRequestScript creates a script
 // that returns the balance of the unstaking request for a node
 func GenerateGetUnstakingRequestScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + getUnstakingRequestFilename)
+	code := assets.MustAssetString(getUnstakingRequestFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -343,7 +343,7 @@ func GenerateGetUnstakingRequestScript(env Environment) []byte {
 // GenerateGetTotalCommitmentBalanceScript creates a script
 // that returns the balance of the total committed tokens of a node plus delegators
 func GenerateGetTotalCommitmentBalanceScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + getTotalCommitmentFilename)
+	code := assets.MustAssetString(getTotalCommitmentFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -351,7 +351,7 @@ func GenerateGetTotalCommitmentBalanceScript(env Environment) []byte {
 // GenerateGetTotalCommitmentBalanceWithoutDelegatorsScript creates a script
 // that returns the balance of the total committed tokens of a node without delegators
 func GenerateGetTotalCommitmentBalanceWithoutDelegatorsScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + getTotalCommitmentWithoutDelegatorsFilename)
+	code := assets.MustAssetString(getTotalCommitmentWithoutDelegatorsFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -359,7 +359,7 @@ func GenerateGetTotalCommitmentBalanceWithoutDelegatorsScript(env Environment) [
 // For testing
 
 func GenerateRegisterManyNodesScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + registerManyNodesFilename)
+	code := assets.MustAssetString(registerManyNodesFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
