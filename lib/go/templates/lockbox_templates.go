@@ -54,41 +54,41 @@ const (
 /************ LockedTokens Admin Transactions ****************/
 
 func GenerateDeployLockedTokens() []byte {
-	return assets.MustAsset(filePath + deployLockedTokensFilename)
+	return assets.MustAsset(deployLockedTokensFilename)
 }
 
 func GenerateCreateSharedAccountScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + createLockedAccountsFilename)
+	code := assets.MustAssetString(createLockedAccountsFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateCheckSharedRegistrationScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + checkSharedRegistrationFilename)
+	code := assets.MustAssetString(checkSharedRegistrationFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateCheckMainRegistrationScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + checkMainRegistrationFilename)
+	code := assets.MustAssetString(checkMainRegistrationFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateDepositLockedTokensScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + depositLockedTokensFilename)
+	code := assets.MustAssetString(depositLockedTokensFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateIncreaseUnlockLimitScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + increaseUnlockLimitFilename)
+	code := assets.MustAssetString(increaseUnlockLimitFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateDepositAccountCreatorScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + depositAccountCreatorCapabilityFilename)
+	code := assets.MustAssetString(depositAccountCreatorCapabilityFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -96,31 +96,31 @@ func GenerateDepositAccountCreatorScript(env Environment) []byte {
 /************ Custody Provider Transactions ********************/
 
 func GenerateSetupCustodyAccountScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + setupCustodyAccountFilename)
+	code := assets.MustAssetString(setupCustodyAccountFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateCustodyCreateAccountsScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + custodyCreateAccountsFilename)
+	code := assets.MustAssetString(custodyCreateAccountsFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateCustodyCreateOnlySharedAccountScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + custodyCreateOnlySharedAccountFilename)
+	code := assets.MustAssetString(custodyCreateOnlySharedAccountFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateCustodyCreateAccountWithLeaseAccountScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + custodyCreateAccountWithLeaseAccountFilename)
+	code := assets.MustAssetString(custodyCreateAccountWithLeaseAccountFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateCustodyCreateOnlyLeaseAccountScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + custodyCreateOnlyLeaseAccountFilename)
+	code := assets.MustAssetString(custodyCreateOnlyLeaseAccountFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -128,31 +128,31 @@ func GenerateCustodyCreateOnlyLeaseAccountScript(env Environment) []byte {
 /************ User Transactions ********************/
 
 func GenerateWithdrawTokensScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + withdrawTokensFilename)
+	code := assets.MustAssetString(withdrawTokensFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateDepositTokensScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + depositTokensFilename)
+	code := assets.MustAssetString(depositTokensFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateGetLockedAccountAddressScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + getLockedAccountAddressFilename)
+	code := assets.MustAssetString(getLockedAccountAddressFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateGetLockedAccountBalanceScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + getLockedAccountBalanceFilename)
+	code := assets.MustAssetString(getLockedAccountBalanceFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateGetUnlockLimitScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + getUnlockLimitFilename)
+	code := assets.MustAssetString(getUnlockLimitFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -162,7 +162,7 @@ func GenerateGetUnlockLimitScript(env Environment) []byte {
 // CreateLockedNodeScript creates a script that creates a new
 // node request with locked tokens.
 func GenerateRegisterLockedNodeScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + registerLockedNodeFilename)
+	code := assets.MustAssetString(registerLockedNodeFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -170,7 +170,7 @@ func GenerateRegisterLockedNodeScript(env Environment) []byte {
 // StakeNewLockedTokensScript creates a script that stakes new
 // locked tokens.
 func GenerateStakeNewLockedTokensScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + stakeNewLockedTokensFilename)
+	code := assets.MustAssetString(stakeNewLockedTokensFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -179,7 +179,7 @@ func GenerateStakeNewLockedTokensScript(env Environment) []byte {
 // unstaked tokens.
 // The unusual name is to avoid a clash with idtables_staking_templates.go .
 func GenerateStakeLockedUnstakedTokensScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + stakeLockedUnstakedTokensFilename)
+	code := assets.MustAssetString(stakeLockedUnstakedTokensFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -188,7 +188,7 @@ func GenerateStakeLockedUnstakedTokensScript(env Environment) []byte {
 // unstaked tokens.
 // The unusual name is to avoid a clash with idtables_staking_templates.go .
 func GenerateStakeLockedRewardedTokensScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + stakeLockedRewardedTokensFilename)
+	code := assets.MustAssetString(stakeLockedRewardedTokensFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -196,7 +196,7 @@ func GenerateStakeLockedRewardedTokensScript(env Environment) []byte {
 // UnstakeLockedTokensScript creates a script that unstakes
 // locked tokens.
 func GenerateUnstakeLockedTokensScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + unstakeLockedTokensFilename)
+	code := assets.MustAssetString(unstakeLockedTokensFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -204,7 +204,7 @@ func GenerateUnstakeLockedTokensScript(env Environment) []byte {
 // UnstakeAllLockedTokensScript creates a script that unstakes
 // all locked tokens.
 func GenerateUnstakeAllLockedTokensScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + unstakeAllLockedTokensFilename)
+	code := assets.MustAssetString(unstakeAllLockedTokensFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -213,7 +213,7 @@ func GenerateUnstakeAllLockedTokensScript(env Environment) []byte {
 // a withdrawal of unstaked tokens.
 // The unusual name is to avoid a clash with idtables_staking_templates.go .
 func GenerateWithdrawLockedUnstakedTokensScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + withdrawLockedUnstakedTokensFilename)
+	code := assets.MustAssetString(withdrawLockedUnstakedTokensFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -222,13 +222,13 @@ func GenerateWithdrawLockedUnstakedTokensScript(env Environment) []byte {
 // a withdrawal of unstaked tokens.
 // The unusual name is to avoid a clash with idtables_staking_templates.go .
 func GenerateWithdrawLockedRewardedTokensScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + withdrawLockedRewardedTokensFilename)
+	code := assets.MustAssetString(withdrawLockedRewardedTokensFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateGetNodeIDScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + getNodeIDFilename)
+	code := assets.MustAssetString(getNodeIDFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -238,7 +238,7 @@ func GenerateGetNodeIDScript(env Environment) []byte {
 // CreateLockedDelegatorScript creates a script that creates a new
 // node request with locked tokens.
 func GenerateCreateLockedDelegatorScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + registerLockedDelegatorFilename)
+	code := assets.MustAssetString(registerLockedDelegatorFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -246,7 +246,7 @@ func GenerateCreateLockedDelegatorScript(env Environment) []byte {
 // DelegateNewLockedTokensScript creates a script that stakes new
 // locked tokens.
 func GenerateDelegateNewLockedTokensScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + delegateNewLockedTokensFilename)
+	code := assets.MustAssetString(delegateNewLockedTokensFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -255,7 +255,7 @@ func GenerateDelegateNewLockedTokensScript(env Environment) []byte {
 // unstaked tokens.
 // The unusual name is to avoid a clash with idtables_staking_templates.go .
 func GenerateDelegateLockedUnstakedTokensScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + delegateLockedUnstakedTokensFilename)
+	code := assets.MustAssetString(delegateLockedUnstakedTokensFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -264,7 +264,7 @@ func GenerateDelegateLockedUnstakedTokensScript(env Environment) []byte {
 // unstaked tokens.
 // The unusual name is to avoid a clash with idtables_staking_templates.go .
 func GenerateDelegateLockedRewardedTokensScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + delegateLockedRewardedTokensFilename)
+	code := assets.MustAssetString(delegateLockedRewardedTokensFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -272,7 +272,7 @@ func GenerateDelegateLockedRewardedTokensScript(env Environment) []byte {
 // UnDelegateLockedTokensScript creates a script that unstakes
 // locked tokens.
 func GenerateUnDelegateLockedTokensScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + requestUnstakingLockedDelegatedTokensFilename)
+	code := assets.MustAssetString(requestUnstakingLockedDelegatedTokensFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -281,7 +281,7 @@ func GenerateUnDelegateLockedTokensScript(env Environment) []byte {
 // a withdrawal of unstaked tokens.
 // The unusual name is to avoid a clash with idtables_staking_templates.go .
 func GenerateWithdrawDelegatorLockedUnstakedTokensScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + withdrawLockedUnstakedDelegatedTokensFilename)
+	code := assets.MustAssetString(withdrawLockedUnstakedDelegatedTokensFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -290,19 +290,19 @@ func GenerateWithdrawDelegatorLockedUnstakedTokensScript(env Environment) []byte
 // a withdrawal of unstaked tokens.
 // The unusual name is to avoid a clash with idtables_staking_templates.go .
 func GenerateWithdrawDelegatorLockedRewardedTokensScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + withdrawLockedRewardedDelegatedTokensFilename)
+	code := assets.MustAssetString(withdrawLockedRewardedDelegatedTokensFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateGetDelegatorIDScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + getDelegatorIDFilename)
+	code := assets.MustAssetString(getDelegatorIDFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateGetDelegatorNodeIDScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + getDelegatorNodeIDFilename)
+	code := assets.MustAssetString(getDelegatorNodeIDFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
