@@ -28,14 +28,14 @@ pub contract FlowStorageFees {
     // Emitted when the minimum amount of Flow tokens that an account needs to have reserved for storage capacity changes.
     pub event MinimumStorageReservationChanged(_ minimumStorageReservation: UFix64)
 
-    // Emitted when the mount of Flow tokens reserved on an account, for storage capacity, changes.
+    // Emitted when the amount of Flow tokens reserved on an account, for storage capacity, changes.
     pub event StorageReservationChanged(address: Address, oldStorageReservation: UFix64, oldStorageCapacity: UInt64, newStorageReservation: UFix64, newStorageCapacity: UInt64)
 
     // Defines the path where each account should have a `StorageReservationReceiver` capability
-    pub let storageReservationReceiverPublicPath: PublicPath
+    pub let storageReservationReceiverPublicPath: Path
 
     // Defines the path where each account should have a `StorageReservation` capability
-    pub let storageReservationStoragePath: StoragePath
+    pub let storageReservationStoragePath: Path
 
     // Defines how much storage capacity every account has per reserved Flow token.
     // definition is written per unit of flow instead of the inverse, so there is no loss of precision calculating storage from flow, but there is loss of precision when calculating flow per storage.
@@ -58,7 +58,7 @@ pub contract FlowStorageFees {
             emit RefundingEnabledChanged(enabled)
         }
 
-        // Changes the amount storage capacity an account has per accounts' reserved storage.
+        // Changes the amount of storage capacity an account has per accounts' reserved storage FLOW.
         pub fun setStorageBytesPerReservedFLOW(_ storageBytesPerReservedFLOW: UFix64) {
             if FlowStorageFees.storageBytesPerReservedFLOW == storageBytesPerReservedFLOW {
               return
@@ -67,7 +67,7 @@ pub contract FlowStorageFees {
             emit StorageBytesPerReservedFLOWChanged(storageBytesPerReservedFLOW)
         }
 
-        // Changes the minimum amount of Flow tokens an account has to have reserved.
+        // Changes the minimum amount of FLOW an account has to have reserved.
         pub fun setMinimumStorageReservation(_ minimumStorageReservation: UFix64) {
             if FlowStorageFees.minimumStorageReservation == minimumStorageReservation {
               return
@@ -177,7 +177,7 @@ pub contract FlowStorageFees {
          *   - this will return false if:
          *       i. `StorageReservation` on `ownerAccount` does not have the same `ownerAccount` (this means that this `StorageReservation` is not on its `ownerAccount` or not on the correct path)
          *       ii. `StorageReservation` on `ownerAccount` does not have the same `storageReservationId` (which is unique for each `StorageReservation`) (this means that the `StorageReservation` is not on the correct path, because a different `StorageReservation` is on that path)
-         * 4. We can now assume that the `StorageReservation` on `ownerAccount` is actually this `StorageReservation`
+         * 4. We can now assume that the `StorageReservation` on `ownerAccount` is actually this `StorageReservation` and that `ownerAccount` is this account
          */
         access(self) fun verify(): Bool {
             let receiver = FlowStorageFees.getStorageReservationReceiver(self.ownerAddress)
@@ -259,7 +259,7 @@ pub contract FlowStorageFees {
         self.storageReservationReceiverPublicPath = /public/flowStorageReservation
         self.storageReservationStoragePath = /storage/flowStorageReservation
         self.storageBytesPerReservedFLOW = 1000000.0 // 1 Mb per 1 Flow token
-        self.minimumStorageReservation = 0.0 // for testing otherwise -> // 0.1 // or 100 kb of storage capacity
+        self.minimumStorageReservation = 0.1 // or 100 kb of storage capacity
         self.refundingEnabled = false
         self.idCounter = 0
 
