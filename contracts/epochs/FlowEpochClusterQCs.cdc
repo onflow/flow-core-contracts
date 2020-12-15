@@ -1,10 +1,25 @@
 
-// Manages the process of collecting votes for the root quorum certificate of the upcoming
-// epoch for all collection node clusters assigned for the upcoming epoch.
-//
-// This contract is a member of a series of epoch smart contracts which coordinates the 
-// process of transitioning between epochs in Flow.
-pub contract EpochClusterQCs {
+/* 
+*
+*  Manages the process of collecting votes for the root quorum certificate of the upcoming
+*  epoch for all collection node clusters assigned for the upcoming epoch.
+*
+*  When collector nodes are first confirmed, they can request a voter object from this contract
+*  They'll use this object for every subsequent epoch that they are a staked collector node.
+*
+*  At the beginning of each EpochSetup phase, the admin initializes this contract with
+*  the collector clusters for the upcoming epoch. Each collector node has a single vote
+*  that is allocated for them and they can only call their `vote` function once.
+*  
+*  Once all the collector nodes have received enough votes to surpass their weight threshold,
+*  The QC generation phase is finished and the admin will end the voting.
+*  At this point, anyone can query the voting information for the clusters 
+*  by using the `getClusters` function.
+* 
+*  This contract is a member of a series of epoch smart contracts which coordinates the 
+*  process of transitioning between epochs in Flow.
+*/
+pub contract FlowEpochClusterQC {
 
     // ================================================================================
     // CONTRACT VARIABLES
@@ -17,16 +32,13 @@ pub contract EpochClusterQCs {
     // The collection node clusters for the current epoch
     access(account) var clusters: [Cluster]
 
-    // Votes that nodes claim at the beginning of each EpochSetup phase
-    // Key is node ID from the identity table contract
-    access(account) var generatedVotes: {String: Vote}
-
-    // Votes submitted per cluster
-    access(account) var votesByCluster: {UInt16: [Vote]}
-
     // Indicates if a voter resource has already been claimed by a node ID
     // from the identity table contract
     access(account) var voterClaimed: {String: Bool}
+
+    // Votes that nodes claim at the beginning of each EpochSetup phase
+    // Key is node ID from the identity table contract
+    access(account) var generatedVotes: {String: Vote}
 
     // ================================================================================
     // CONTRACT CONSTANTS
@@ -50,6 +62,9 @@ pub contract EpochClusterQCs {
 
         // The total node weight of all the nodes in the cluster
         pub let totalWeight: UInt64
+
+        // Votes submitted for the cluster
+        access(contract) var votes: [Vote]
 
         pub fun size(): UInt16 {
             return UInt16(self.nodeIDs.length) 
@@ -78,6 +93,7 @@ pub contract EpochClusterQCs {
             self.nodeIDs = nodeIDs
             self.nodeWeights = nodeWeights
             self.totalWeight = totalWeight
+            self.votes = []
         }
     }
 
@@ -93,7 +109,7 @@ pub contract EpochClusterQCs {
 
         init(nodeID: String, clusterIndex: UInt16, voteWeight: UInt64) {
             pre {
-                nodeID.length == 32: "Voter ID must be a valid node ID"
+                nodeID.length == 64: "Voter ID must be a valid node ID"
             }
             self.raw = nil
             self.nodeID = nodeID
@@ -111,7 +127,7 @@ pub contract EpochClusterQCs {
 
         // Returns whether this voter has successfully submitted a vote for this epoch.
         pub fun voted(): Bool {
-            if EpochClusterQCs.generatedVotes[self.nodeID] == nil {
+            if FlowEpochClusterQC.generatedVotes[self.nodeID] == nil {
                 return true
             } else {
                 return false
@@ -119,25 +135,29 @@ pub contract EpochClusterQCs {
         }
 
         // Submits the given vote. Can be called only once per epoch
-        pub fun vote(raw: String) {
+        pub fun vote(_ raw: String) {
             pre {
                 raw.length > 0: "Vote must not be empty"
-                EpochClusterQCs.generatedVotes[self.nodeID] != nil
+                FlowEpochClusterQC.generatedVotes[self.nodeID] != nil: "Vote must not have been claimed already"
             }
 
-            let vote = EpochClusterQCs.generatedVotes[self.nodeID]!
+            let vote = FlowEpochClusterQC.generatedVotes[self.nodeID]!
 
             vote.raw = raw
 
-            EpochClusterQCs.votesByCluster[vote.clusterIndex]!.append(vote)
+            FlowEpochClusterQC.clusters[vote.clusterIndex].votes.append(vote)
+
+            FlowEpochClusterQC.generatedVotes[self.nodeID] = nil
+
         }
 
         init(nodeID: String) {
             pre {
-                !EpochClusterQCs.voterClaimed[nodeID]!: "Cannot create a Voter resource for a node ID that has already been claimed"
+                FlowEpochClusterQC.voterClaimed[nodeID] != nil: "Cannot create a Voter for a node ID that hasn't been registered"
+                !FlowEpochClusterQC.voterClaimed[nodeID]!: "Cannot create a Voter resource for a node ID that has already been claimed"
             }
             self.nodeID = nodeID
-            EpochClusterQCs.voterClaimed[nodeID] = true
+            FlowEpochClusterQC.voterClaimed[nodeID] = true
         }
 
     }
@@ -157,20 +177,18 @@ pub contract EpochClusterQCs {
         //
         // CAUTION: calling this erases the votes for the current/previous epoch.
         pub fun startVoting(clusters: [Cluster]) {
-            EpochClusterQCs.inProgress = true
-            EpochClusterQCs.clusters = clusters
-            EpochClusterQCs.generatedVotes = {}
-            EpochClusterQCs.votesByCluster = {}
+            FlowEpochClusterQC.inProgress = true
+            FlowEpochClusterQC.clusters = clusters
+            FlowEpochClusterQC.generatedVotes = {}
+            FlowEpochClusterQC.voterClaimed = {}
 
             var clusterIndex: UInt16 = 0
             for cluster in clusters {
 
-                // Clear all the clusters
-                EpochClusterQCs.votesByCluster[clusterIndex] = []
-
                 // Create a new Vote struct for each participating node
                 for nodeID in cluster.nodeIDs {
-                    EpochClusterQCs.generatedVotes[nodeID] = Vote(nodeID: nodeID, clusterIndex: clusterIndex, voteWeight: cluster.nodeWeights[nodeID]!)
+                    FlowEpochClusterQC.generatedVotes[nodeID] = Vote(nodeID: nodeID, clusterIndex: clusterIndex, voteWeight: cluster.nodeWeights[nodeID]!)
+                    FlowEpochClusterQC.voterClaimed[nodeID] = false
                 }
 
                 clusterIndex = clusterIndex + UInt16(1)
@@ -181,9 +199,9 @@ pub contract EpochClusterQCs {
         // majority of each cluster has submitted a vote. 
         pub fun stopVoting() {
             pre {
-                !EpochClusterQCs.votingCompleted(): "voting must be complete before it can be stopped"
+                FlowEpochClusterQC.votingCompleted(): "Voting must be complete before it can be stopped"
             }
-            EpochClusterQCs.inProgress = false
+            FlowEpochClusterQC.inProgress = false
         }
     }
 
@@ -195,11 +213,10 @@ pub contract EpochClusterQCs {
     // Returns true if we have collected enough votes for all clusters.
     pub fun votingCompleted(): Bool {
 
-        for cluster in EpochClusterQCs.clusters {
-            let votes = EpochClusterQCs.votesByCluster[cluster.index]!
+        for cluster in FlowEpochClusterQC.clusters {
 
             var voteWeightSum: UInt64 = 0
-            for vote in votes {
+            for vote in cluster.votes {
                 voteWeightSum = voteWeightSum + vote.voteWeight
             }
 
@@ -215,8 +232,7 @@ pub contract EpochClusterQCs {
         self.AdminStoragePath = /storage/flowEpochsQCAdmin
         self.VoterStoragePath = /storage/flowEpochsQCVoter
 
-        self.inProgress = false
-        self.votesByCluster = {} 
+        self.inProgress = false 
         
         self.clusters = []
         self.generatedVotes = {}

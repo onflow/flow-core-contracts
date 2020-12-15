@@ -2,7 +2,7 @@ import FungibleToken from 0xee82856bf20e2aa6
 import FlowToken from 0x0ae53cb6e3f42a79
 
 import FlowIDTableStaking from 0x01cf0e2f2f715450
-import EpochClusterQCs from 0x03
+import FlowEpochClusterQC from 0x03
 
 // The top-level smart contract managing the lifecycle of epochs. In Flow,
 // epochs are the smallest unit of time where the identity table (the set of 
@@ -101,7 +101,7 @@ pub contract FlowEpochs {
     /// Contains a historical record of the metadata from all previous epochs
     access(contract) var epochMetadata: {UInt64: EpochMetadata}
 
-    access(contract) let QCAdmin: @EpochClusterQCs.Admin
+    access(contract) let QCAdmin: @FlowEpochClusterQC.Admin
 
     pub struct EpochMetadata {
 
@@ -119,7 +119,7 @@ pub contract FlowEpochs {
 
         /// The organization of collector node IDs into clusters
         /// determined by a round robin sorting algorithm
-        pub let collectorClusters: [EpochClusterQCs.Cluster]
+        pub let collectorClusters: [FlowEpochClusterQC.Cluster]
 
         /// The Quorum Certificates from the ClusterQC contract
         pub var clusterQCs: Int
@@ -132,7 +132,7 @@ pub contract FlowEpochs {
              seed: UInt,
              startView: UInt64,
              endView: UInt64,
-             collectorClusters: [EpochClusterQCs.Cluster],
+             collectorClusters: [FlowEpochClusterQC.Cluster],
              clusterQCs: Int,
              dkgGroupKey: String) {
 
@@ -147,11 +147,11 @@ pub contract FlowEpochs {
     }
 
     /// borrow a reference to the ClusterQCs resource
-    access(contract) fun borrowClusterQCAdmin(): &EpochClusterQCs.Admin {
-        return &FlowEpochs.QCAdmin as! &EpochClusterQCs.Admin
+    access(contract) fun borrowClusterQCAdmin(): &FlowEpochClusterQC.Admin {
+        return &FlowEpochs.QCAdmin as! &FlowEpochClusterQC.Admin
     }
 
-    pub fun getClusterQCVoter(nodeStaker: &FlowIDTableStaking.NodeStaker): @EpochClusterQCs.Voter {
+    pub fun getClusterQCVoter(nodeStaker: &FlowIDTableStaking.NodeStaker): @FlowEpochClusterQC.Voter {
         let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeStaker.id)
 
         assert (
@@ -167,6 +167,11 @@ pub contract FlowEpochs {
     init () {
         self.currentEpochCounter = 0
         self.epochMetadata = {}
+
+        let QCAdmin <- self.account.load(from: FlowEpochClusterQC.AdminStoragePath)
+            ?? panic("Could not load QC Admin from storage")
+
+        self.QCAdmin <- QCAdmin
     }
 
 }
