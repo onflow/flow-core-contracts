@@ -22,52 +22,54 @@ const (
 	getDelegatorUnstakedFilename         = "idTableStaking/delegation/get_delegator_unstaked.cdc"
 	getDelegatorRewardedFilename         = "idTableStaking/delegation/get_delegator_rewarded.cdc"
 	getDelegatorRequestFilename          = "idTableStaking/delegation/get_delegator_request.cdc"
+
+	registerManyDelegatorsFilename = "idTableStaking/delegation/register_many_delegators.cdc"
 )
 
 func GenerateCreateDelegationScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + createDelegationFilename)
+	code := assets.MustAssetString(createDelegationFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateRegisterDelegatorScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + delegatorRegisterFilename)
+	code := assets.MustAssetString(delegatorRegisterFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateDelegatorStakeNewScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + delegatorStakeNewFilename)
+	code := assets.MustAssetString(delegatorStakeNewFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateDelegatorStakeUnstakedScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + delegatorStakeUnstakedFilename)
+	code := assets.MustAssetString(delegatorStakeUnstakedFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateDelegatorStakeRewardedScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + delegatorStakeRewardedFilename)
+	code := assets.MustAssetString(delegatorStakeRewardedFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateDelegatorRequestUnstakeScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + delegatorRequestUnstakeFilename)
+	code := assets.MustAssetString(delegatorRequestUnstakeFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateDelegatorWithdrawUnstakedScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + delegatorWithdrawUnstakedFilename)
+	code := assets.MustAssetString(delegatorWithdrawUnstakedFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateDelegatorWithdrawRewardsScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + delegatorWithdrawRewardsFilename)
+	code := assets.MustAssetString(delegatorWithdrawRewardsFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -75,43 +77,51 @@ func GenerateDelegatorWithdrawRewardsScript(env Environment) []byte {
 // Scripts
 
 func GenerateGetDelegatorCommittedScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + getDelegatorCommittedFilename)
+	code := assets.MustAssetString(getDelegatorCommittedFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateGetDelegatorStakedScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + getDelegatorStakedFilename)
+	code := assets.MustAssetString(getDelegatorStakedFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateGetDelegatorUnstakingRequestScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + getDelegatorUnstakingRequestFilename)
+	code := assets.MustAssetString(getDelegatorUnstakingRequestFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateGetDelegatorUnstakingScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + getDelegatorUnstakingFilename)
+	code := assets.MustAssetString(getDelegatorUnstakingFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateGetDelegatorUnstakedScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + getDelegatorUnstakedFilename)
+	code := assets.MustAssetString(getDelegatorUnstakedFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateGetDelegatorRewardsScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + getDelegatorRewardedFilename)
+	code := assets.MustAssetString(getDelegatorRewardedFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateGetDelegatorRequestScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + getDelegatorRequestFilename)
+	code := assets.MustAssetString(getDelegatorRequestFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+// Only for testing
+
+func GenerateRegisterManyDelegatorsScript(env Environment) []byte {
+	code := assets.MustAssetString(registerManyDelegatorsFilename)
 
 	return []byte(replaceAddresses(code, env))
 }

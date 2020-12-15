@@ -7,7 +7,6 @@ import (
 )
 
 const (
-	filePath             = "../../../transactions/"
 	inspectFieldFilename = "inspect_field.cdc"
 	defaultField         = "transactionField"
 )
@@ -16,7 +15,7 @@ const (
 // a field from the smart contract and makes assertions
 // about its value
 func GenerateInspectFieldScript(field string) []byte {
-	code := assets.MustAssetString(filePath + inspectFieldFilename)
+	code := assets.MustAssetString(inspectFieldFilename)
 
 	code = strings.ReplaceAll(
 		code,

@@ -1,6 +1,6 @@
 package contracts
 
-//go:generate go run github.com/kevinburke/go-bindata/go-bindata -prefix ../../../contracts/... -o internal/assets/assets.go -pkg assets -nometadata -nomemcopy ../../../contracts/...
+//go:generate go run github.com/kevinburke/go-bindata/go-bindata -prefix ../../../contracts -o internal/assets/assets.go -pkg assets -nometadata -nomemcopy ../../../contracts/...
 
 import (
 	"fmt"
@@ -12,19 +12,19 @@ import (
 )
 
 const (
-	flowFeesFilename           = "../../../contracts/FlowFees.cdc"
-	storageFeesFilename        = "../../../contracts/FlowStorageFees.cdc"
-	flowServiceAccountFilename = "../../../contracts/FlowServiceAccount.cdc"
-	flowTokenFilename          = "../../../contracts/FlowToken.cdc"
-	flowIdentityTableFilename  = "../../../contracts/FlowIDTableStaking.cdc"
-	flowQCFilename             = "../../../contracts/epochs/FlowQuorumCertificate.cdc"
-	flowDKGFilename            = "../../../contracts/epochs/FlowDKG.cdc"
-	flowEpochFilename          = "../../../contracts/epochs/FlowEpoch.cdc"
-	flowLockedTokensFilename   = "../../../contracts/LockedTokens.cdc"
-	flowStakingProxyFilename   = "../../../contracts/StakingProxy.cdc"
+	flowFeesFilename           = "FlowFees.cdc"
+	storageFeesFilename        = "FlowStorageFees.cdc"
+	flowServiceAccountFilename = "FlowServiceAccount.cdc"
+	flowTokenFilename          = "FlowToken.cdc"
+	flowIdentityTableFilename  = "FlowIDTableStaking.cdc"
+	flowQCFilename             = "epochs/FlowQuorumCertificate.cdc"
+	flowDKGFilename            = "epochs/FlowDKG.cdc"
+	flowEpochFilename          = "epochs/FlowEpoch.cdc"
+	flowLockedTokensFilename   = "LockedTokens.cdc"
+	flowStakingProxyFilename   = "StakingProxy.cdc"
 
 	// Test contracts
-	TESTFlowIdentityTableFilename = "../../../contracts/testContracts/TestFlowIDTableStaking.cdc"
+	TESTFlowIdentityTableFilename = "testContracts/TestFlowIDTableStaking.cdc"
 
 	placeholderFungibleTokenAddress = "0xFUNGIBLETOKENADDRESS"
 	placeholderFlowTokenAddress     = "0xFLOWTOKENADDRESS"
