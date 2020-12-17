@@ -5,11 +5,11 @@ import FlowEpochClusterQC from 0xQCADDRESS
 
 // Arguments:
 // 
-// indecies: An array of cluster indecies
+// indices: An array of cluster indices
 // clusterNodeIDs: Array of arrays of all the node IDs in each cluster
 // nodeWeights: Array of arrays of node weights in each cluster
 
-transaction(indecies: [UInt16], clusterNodeIDs: [[String]], nodeWeights: [[UInt64]]) {
+transaction(indices: [UInt16], clusterNodeIDs: [[String]], nodeWeights: [[UInt64]]) {
 
     prepare(signer: AuthAccount) {
 
@@ -20,7 +20,7 @@ transaction(indecies: [UInt16], clusterNodeIDs: [[String]], nodeWeights: [[UInt6
         let clusters: [FlowEpochClusterQC.Cluster] = []
         
         // Iterate through each cluster and construct a Cluster object
-        for index in indecies {
+        for index in indices {
 
             let nodeWeightsDictionary: {String: UInt64} = {}
             var i = 0
@@ -38,7 +38,7 @@ transaction(indecies: [UInt16], clusterNodeIDs: [[String]], nodeWeights: [[UInt6
                 i = i + 1
             }
 
-            clusters.append(FlowEpochClusterQC.Cluster(index: index, nodeIDs: clusterNodeIDs[index], nodeWeights: nodeWeightsDictionary, totalWeight: totalWeight))
+            clusters.append(FlowEpochClusterQC.Cluster(index: index, nodeWeights: nodeWeightsDictionary, totalWeight: totalWeight))
         }
 
         // Start QC Voting with the supplied clusters

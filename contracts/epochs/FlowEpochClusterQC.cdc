@@ -34,10 +34,18 @@ pub contract FlowEpochClusterQC {
 
     // Indicates if a voter resource has already been claimed by a node ID
     // from the identity table contract
+    // Node IDs have to claim a voter capability every epoch
+    // one node will use the same specific ID for all time, but will use a different Voter capability per epoch
+    // `nil` means that there is no voting capability for the node ID
+    // false means that a voter capability for the ID, but it hasn't been claimed
+    // true means that the voter capability has been claimed by the node
     access(account) var voterClaimed: {String: Bool}
 
     // Votes that nodes claim at the beginning of each EpochSetup phase
     // Key is node ID from the identity table contract
+    // Vote resources without signatures for each node are stored here at the beginning of each epoch setup phase. 
+    // When a node submits a vote, they take it out of this map, add their signature, 
+    // then add it to the submitted vote list for their cluster.
     access(account) var generatedVotes: {String: Vote}
 
     // ================================================================================
@@ -55,9 +63,6 @@ pub contract FlowEpochClusterQC {
         // a cluster for a given epoch
         pub let index: UInt16
 
-        // The IDs of the nodes in the cluster.
-        pub let nodeIDs: [String]
-
         pub let nodeWeights: {String: UInt64}
 
         // The total node weight of all the nodes in the cluster
@@ -67,7 +72,7 @@ pub contract FlowEpochClusterQC {
         access(contract) var votes: [Vote]
 
         pub fun size(): UInt16 {
-            return UInt16(self.nodeIDs.length) 
+            return UInt16(self.nodeWeights.length) 
         }
 
         // Returns the minimum number of vote weight required in order to be able to generate a
@@ -88,9 +93,8 @@ pub contract FlowEpochClusterQC {
             return res
         }
 
-        init(index: UInt16, nodeIDs: [String], nodeWeights: {String: UInt64}, totalWeight: UInt64) {
+        init(index: UInt16, nodeWeights: {String: UInt64}, totalWeight: UInt64) {
             self.index = index
-            self.nodeIDs = nodeIDs
             self.nodeWeights = nodeWeights
             self.totalWeight = totalWeight
             self.votes = []
@@ -125,20 +129,11 @@ pub contract FlowEpochClusterQC {
 
         pub let nodeID: String
 
-        // Returns whether this voter has successfully submitted a vote for this epoch.
-        pub fun voted(): Bool {
-            if FlowEpochClusterQC.generatedVotes[self.nodeID] == nil {
-                return true
-            } else {
-                return false
-            }
-        }
-
         // Submits the given vote. Can be called only once per epoch
         pub fun vote(_ raw: String) {
             pre {
                 raw.length > 0: "Vote must not be empty"
-                FlowEpochClusterQC.generatedVotes[self.nodeID] != nil: "Vote must not have been claimed already"
+                FlowEpochClusterQC.nodeHasVoted(self.nodeID) != nil: "Vote must not have been cast already"
             }
 
             let vote = FlowEpochClusterQC.generatedVotes[self.nodeID]!
@@ -153,8 +148,8 @@ pub contract FlowEpochClusterQC {
 
         init(nodeID: String) {
             pre {
-                FlowEpochClusterQC.voterClaimed[nodeID] != nil: "Cannot create a Voter for a node ID that hasn't been registered"
-                !FlowEpochClusterQC.voterClaimed[nodeID]!: "Cannot create a Voter resource for a node ID that has already been claimed"
+                FlowEpochClusterQC.voterIsRegistered(nodeID): "Cannot create a Voter for a node ID that hasn't been registered"
+                !FlowEpochClusterQC.voterIsClaimed(nodeID)!: "Cannot create a Voter resource for a node ID that has already been claimed"
             }
             self.nodeID = nodeID
             FlowEpochClusterQC.voterClaimed[nodeID] = true
@@ -186,7 +181,7 @@ pub contract FlowEpochClusterQC {
             for cluster in clusters {
 
                 // Create a new Vote struct for each participating node
-                for nodeID in cluster.nodeIDs {
+                for nodeID in cluster.nodeWeights.keys {
                     FlowEpochClusterQC.generatedVotes[nodeID] = Vote(nodeID: nodeID, clusterIndex: clusterIndex, voteWeight: cluster.nodeWeights[nodeID]!)
                     FlowEpochClusterQC.voterClaimed[nodeID] = false
                 }
@@ -203,6 +198,29 @@ pub contract FlowEpochClusterQC {
             }
             FlowEpochClusterQC.inProgress = false
         }
+    }
+
+    pub fun voterIsRegistered(_ nodeID: String): Bool {
+        return FlowEpochClusterQC.voterClaimed[nodeID] != nil
+    }
+
+    pub fun voterIsClaimed(_ nodeID: String): Bool? {
+        return FlowEpochClusterQC.voterClaimed[nodeID]
+    }
+
+    // Returns whether this voter has successfully submitted a vote for this epoch.
+    pub fun nodeHasVoted(_ nodeID: String): Bool {
+
+        // Iterate through the clusters to find this voter
+        for cluster in FlowEpochClusterQC.clusters {
+            if cluster.nodeWeights[nodeID] != nil {
+                return FlowEpochClusterQC.generatedVotes[nodeID] == nil
+            }
+        }
+
+        // If the voter was not found, it means they are not it the current epoch
+        // and therefore have not voted
+        return false
     }
 
     // Gets all of the collector clusters for the current epoch

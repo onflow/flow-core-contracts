@@ -85,7 +85,7 @@ func TestQuroumCertificate(t *testing.T) {
 		)
 	})
 
-	clusterIndecies := make([]cadence.Value, numberOfClusters)
+	clusterIndices := make([]cadence.Value, numberOfClusters)
 	clusterNodeIDs := make([]cadence.Value, numberOfClusters)
 	clusterNodeWeights := make([]cadence.Value, numberOfClusters)
 
@@ -95,7 +95,7 @@ func TestQuroumCertificate(t *testing.T) {
 
 		for i := 0; i < numberOfClusters; i++ {
 
-			clusterIndecies[i] = cadence.NewUInt16(uint16(i))
+			clusterIndices[i] = cadence.NewUInt16(uint16(i))
 
 			nodeIDs := make([]cadence.Value, numberOfNodesPerCluster)
 			nodeWeights := make([]cadence.Value, numberOfNodesPerCluster)
@@ -126,7 +126,7 @@ func TestQuroumCertificate(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(QCAddress)
 
-		err := tx.AddArgument(cadence.NewArray(clusterIndecies))
+		err := tx.AddArgument(cadence.NewArray(clusterIndices))
 		require.NoError(t, err)
 
 		err = tx.AddArgument(cadence.NewArray(clusterNodeIDs))
@@ -186,6 +186,14 @@ func TestQuroumCertificate(t *testing.T) {
 			[]crypto.Signer{b.ServiceKey().Signer(), QCSigner},
 			false,
 		)
+
+		result, err := b.ExecuteScript(templates.GenerateGetNodeHasVotedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(clusterNodeIDStrings[0][0]))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		hasVoted := result.Value
+		assert.Equal(t, hasVoted.(cadence.Bool), cadence.NewBool(false))
 	})
 
 	t.Run("Should be able to submit a vote", func(t *testing.T) {
@@ -205,6 +213,14 @@ func TestQuroumCertificate(t *testing.T) {
 			[]crypto.Signer{b.ServiceKey().Signer(), QCSigner},
 			false,
 		)
+
+		result, err := b.ExecuteScript(templates.GenerateGetNodeHasVotedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(clusterNodeIDStrings[0][0]))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		hasVoted := result.Value
+		assert.Equal(t, hasVoted.(cadence.Bool), cadence.NewBool(true))
 	})
 
 	t.Run("Admin should be able to stop voting", func(t *testing.T) {
