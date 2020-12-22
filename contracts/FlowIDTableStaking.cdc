@@ -408,14 +408,24 @@ pub contract FlowIDTableStaking {
         /// Stake tokens that are in the tokensUnstaked bucket 
         pub fun stakeUnstakedTokens(amount: UFix64) {
 
-            if amount > 0.0 {
+            let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
 
-                let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
+            var remainingAmount = amount
+
+            if remainingAmount <= nodeRecord.tokensRequestedToUnstake {
+                nodeRecord.tokensRequestedToUnstake = nodeRecord.tokensRequestedToUnstake - remainingAmount
+                remainingAmount = 0.0
+            } else if remainingAmount > nodeRecord.tokensRequestedToUnstake {
+                remainingAmount = remainingAmount - nodeRecord.tokensRequestedToUnstake
+                nodeRecord.tokensRequestedToUnstake = 0.0
+            }
+
+            if remainingAmount > 0.0 {
 
                 /// Add the removed tokens to tokens committed
-                nodeRecord.tokensCommitted.deposit(from: <-nodeRecord.tokensUnstaked.withdraw(amount: amount))
+                nodeRecord.tokensCommitted.deposit(from: <-nodeRecord.tokensUnstaked.withdraw(amount: remainingAmount))
 
-                emit TokensCommitted(nodeID: nodeRecord.id, amount: amount)
+                emit TokensCommitted(nodeID: nodeRecord.id, amount: remainingAmount)
             }
         }
 
@@ -543,13 +553,24 @@ pub contract FlowIDTableStaking {
         /// Delegate tokens from the unstaked bucket to the node operator
         pub fun delegateUnstakedTokens(amount: UFix64) {
 
-            if amount > 0.0 {
+            let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.nodeID)
 
-                let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.nodeID)
+            let delRecord = nodeRecord.borrowDelegatorRecord(self.id)
 
-                let delRecord = nodeRecord.borrowDelegatorRecord(self.id)
+            var remainingAmount = amount
 
-                delRecord.tokensCommitted.deposit(from: <-delRecord.tokensUnstaked.withdraw(amount: amount))
+            if remainingAmount <= delRecord.tokensRequestedToUnstake {
+                delRecord.tokensRequestedToUnstake = delRecord.tokensRequestedToUnstake - remainingAmount
+                remainingAmount = 0.0
+            } else if remainingAmount > delRecord.tokensRequestedToUnstake {
+                remainingAmount = remainingAmount - delRecord.tokensRequestedToUnstake
+                delRecord.tokensRequestedToUnstake = 0.0
+            }
+
+            if remainingAmount > 0.0 {
+
+                /// Add the removed tokens to tokens committed
+                delRecord.tokensCommitted.deposit(from: <-delRecord.tokensUnstaked.withdraw(amount: remainingAmount))
 
                 emit DelegatorTokensCommitted(nodeID: self.nodeID, delegatorID: self.id, amount: amount)
             }
