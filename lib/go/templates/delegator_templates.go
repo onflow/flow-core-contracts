@@ -15,6 +15,8 @@ const (
 	delegatorWithdrawRewardsFilename  = "idTableStaking/delegation/del_withdraw_reward_tokens.cdc"
 	delegatorWithdrawUnstakedFilename = "idTableStaking/delegation/del_withdraw_unstaked_tokens.cdc"
 
+	getDelegatorInfoFilename             = "idTableStaking/delegation/get_delegator_info.cdc"
+	getDelegatorInfoFromAddressFilename  = "idTableStaking/delegation/get_delegator_info_from_address.cdc"
 	getDelegatorCommittedFilename        = "idTableStaking/delegation/get_delegator_committed.cdc"
 	getDelegatorStakedFilename           = "idTableStaking/delegation/get_delegator_staked.cdc"
 	getDelegatorUnstakingRequestFilename = "idTableStaking/delegation/get_delegator_unstaking_request.cdc"
@@ -75,6 +77,18 @@ func GenerateDelegatorWithdrawRewardsScript(env Environment) []byte {
 }
 
 // Scripts
+
+func GenerateGetDelegatorInfoScript(env Environment) []byte {
+	code := assets.MustAssetString(getDelegatorInfoFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateGetDelegatorInfoFromAddressScript(env Environment) []byte {
+	code := assets.MustAssetString(getDelegatorInfoFromAddressFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
 
 func GenerateGetDelegatorCommittedScript(env Environment) []byte {
 	code := assets.MustAssetString(getDelegatorCommittedFilename)

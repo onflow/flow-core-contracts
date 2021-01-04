@@ -46,7 +46,7 @@ func GenerateRemoveNodeInfoScript(env Environment) []byte {
 	return []byte(replaceAddresses(code, env))
 }
 
-func GenerateGetNodeInfoScript(env Environment) []byte {
+func GenerateGetRemoteNodeInfoScript(env Environment) []byte {
 	code := assets.MustAssetString(getNodeInfoFilename)
 
 	return []byte(replaceAddresses(code, env))
