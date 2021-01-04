@@ -17,14 +17,15 @@ const (
 	changePayoutFilename         = "idTableStaking/admin/change_payout.cdc"
 	endEpochChangePayoutFilename = "idTableStaking/admin/end_epoch_change_payout.cdc"
 
-	registerNodeFilename           = "idTableStaking/register_node.cdc"
-	stakeNewTokensFilename         = "idTableStaking/stake_new_tokens.cdc"
-	stakeUnstakedTokensFilename    = "idTableStaking/stake_unstaked_tokens.cdc"
-	stakeRewardedTokensFilename    = "idTableStaking/stake_rewarded_tokens.cdc"
-	unstakeTokensFilename          = "idTableStaking/request_unstake.cdc"
-	unstakeAllFilename             = "idTableStaking/unstake_all.cdc"
-	withdrawUnstakedTokensFilename = "idTableStaking/withdraw_unstaked_tokens.cdc"
-	withdrawRewardedTokensFilename = "idTableStaking/withdraw_rewarded_tokens.cdc"
+	registerNodeFilename            = "idTableStaking/register_node.cdc"
+	stakeNewTokensFilename          = "idTableStaking/stake_new_tokens.cdc"
+	stakeUnstakedTokensFilename     = "idTableStaking/stake_unstaked_tokens.cdc"
+	stakeRewardedTokensFilename     = "idTableStaking/stake_rewarded_tokens.cdc"
+	unstakeTokensFilename           = "idTableStaking/request_unstake.cdc"
+	unstakeAllFilename              = "idTableStaking/unstake_all.cdc"
+	withdrawUnstakedTokensFilename  = "idTableStaking/withdraw_unstaked_tokens.cdc"
+	withdrawRewardedTokensFilename  = "idTableStaking/withdraw_rewarded_tokens.cdc"
+	addPublicNodeCapabilityFilename = "idTableStaking/node_add_capability.cdc"
 
 	registerManyNodesFilename = "idTableStaking/register_many_nodes.cdc"
 
@@ -191,6 +192,12 @@ func GenerateWithdrawUnstakedTokensScript(env Environment) []byte {
 // for an existing node operator
 func GenerateWithdrawRewardedTokensScript(env Environment) []byte {
 	code := assets.MustAssetString(withdrawRewardedTokensFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateAddPublicNodeCapabilityScript(env Environment) []byte {
+	code := assets.MustAssetString(addPublicNodeCapabilityFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
