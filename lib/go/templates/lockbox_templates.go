@@ -31,6 +31,7 @@ const (
 	// staker templates
 	registerLockedNodeFilename           = "lockedTokens/staker/register_node.cdc"
 	getNodeIDFilename                    = "lockedTokens/staker/get_node_id.cdc"
+	getStakerInfoFilename                = "lockedTokens/staker/get_staker_info.cdc"
 	stakeNewLockedTokensFilename         = "lockedTokens/staker/stake_new_tokens.cdc"
 	stakeLockedUnstakedTokensFilename    = "lockedTokens/staker/stake_unstaked_tokens.cdc"
 	stakeLockedRewardedTokensFilename    = "lockedTokens/staker/stake_rewarded_tokens.cdc"
@@ -42,6 +43,7 @@ const (
 	// delegator templates
 	registerLockedDelegatorFilename               = "lockedTokens/delegator/register_delegator.cdc"
 	getDelegatorIDFilename                        = "lockedTokens/delegator/get_delegator_id.cdc"
+	getDelegatorInfoFilename                      = "lockedTokens/delegator/get_delegator_info.cdc"
 	getDelegatorNodeIDFilename                    = "lockedTokens/delegator/get_delegator_node_id.cdc"
 	delegateNewLockedTokensFilename               = "lockedTokens/delegator/delegate_new_tokens.cdc"
 	delegateLockedUnstakedTokensFilename          = "lockedTokens/delegator/delegate_unstaked_tokens.cdc"
@@ -233,6 +235,15 @@ func GenerateGetNodeIDScript(env Environment) []byte {
 	return []byte(replaceAddresses(code, env))
 }
 
+// GenerateGetStakerInfoScript creats a script that returns an optional
+// FlowIDTableStaking.NodeInfo? object that is associated with an account
+// that is staking locked tokens
+func GenerateGetStakerInfoScript(env Environment) []byte {
+	code := assets.MustAssetString(getStakerInfoFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
 /******************** Delegator Transactions ****************************/
 
 // CreateLockedDelegatorScript creates a script that creates a new
@@ -297,6 +308,15 @@ func GenerateWithdrawDelegatorLockedRewardedTokensScript(env Environment) []byte
 
 func GenerateGetDelegatorIDScript(env Environment) []byte {
 	code := assets.MustAssetString(getDelegatorIDFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+// GenerateGetDelegatorInfoScript creates a script that returns an optional
+// FlowIDTableStaking.DelegatorInfo object that is associated with an account
+// that is delegating locked tokens
+func GenerateGetDelegatorInfoScript(env Environment) []byte {
+	code := assets.MustAssetString(getDelegatorInfoFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
