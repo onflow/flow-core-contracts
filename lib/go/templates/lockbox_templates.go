@@ -30,7 +30,7 @@ const (
 
 	// staker templates
 	registerLockedNodeFilename           = "lockedTokens/staker/register_node.cdc"
-	getNodeIDFilename                    = "lockedTokens/staker/get_node_id.cdc"
+	getLockedNodeIDFilename              = "lockedTokens/staker/get_node_id.cdc"
 	getLockedStakerInfoFilename          = "lockedTokens/staker/get_staker_info.cdc"
 	stakeNewLockedTokensFilename         = "lockedTokens/staker/stake_new_tokens.cdc"
 	stakeLockedUnstakedTokensFilename    = "lockedTokens/staker/stake_unstaked_tokens.cdc"
@@ -42,7 +42,7 @@ const (
 
 	// delegator templates
 	registerLockedDelegatorFilename               = "lockedTokens/delegator/register_delegator.cdc"
-	getDelegatorIDFilename                        = "lockedTokens/delegator/get_delegator_id.cdc"
+	getLockedDelegatorIDFilename                  = "lockedTokens/delegator/get_delegator_id.cdc"
 	getLockedDelegatorInfoFilename                = "lockedTokens/delegator/get_delegator_info.cdc"
 	getDelegatorNodeIDFilename                    = "lockedTokens/delegator/get_delegator_node_id.cdc"
 	delegateNewLockedTokensFilename               = "lockedTokens/delegator/delegate_new_tokens.cdc"
@@ -230,7 +230,7 @@ func GenerateWithdrawLockedRewardedTokensScript(env Environment) []byte {
 }
 
 func GenerateGetNodeIDScript(env Environment) []byte {
-	code := assets.MustAssetString(getNodeIDFilename)
+	code := assets.MustAssetString(getLockedNodeIDFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -307,7 +307,7 @@ func GenerateWithdrawDelegatorLockedRewardedTokensScript(env Environment) []byte
 }
 
 func GenerateGetDelegatorIDScript(env Environment) []byte {
-	code := assets.MustAssetString(getDelegatorIDFilename)
+	code := assets.MustAssetString(getLockedDelegatorIDFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -316,7 +316,7 @@ func GenerateGetDelegatorIDScript(env Environment) []byte {
 // FlowIDTableStaking.DelegatorInfo object that is associated with an account
 // that is delegating locked tokens
 func GenerateGetLockedDelegatorInfoScript(env Environment) []byte {
-	code := assets.MustAssetString(getDelegatorInfoFilename)
+	code := assets.MustAssetString(getLockedDelegatorInfoFilename)
 
 	return []byte(replaceAddresses(code, env))
 }

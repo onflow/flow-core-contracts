@@ -2280,6 +2280,15 @@ func TestLockedTokensRealStaking(t *testing.T) {
 		assert.Equal(t, cadence.NewString(joshID), id.(cadence.String))
 	})
 
+	t.Run("Should be able to get the node info from the locked account by just using the address", func(t *testing.T) {
+
+		result, err := b.ExecuteScript(templates.GenerateGetLockedStakerInfoScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+	})
+
 	t.Run("Should be able to register as a delegator after registering as a node operator", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
@@ -2344,6 +2353,15 @@ func TestLockedTokensRealStaking(t *testing.T) {
 		balance = result.Value
 		assert.Equal(t, CadenceUFix64("0.0"), balance.(cadence.UFix64))
 
+	})
+
+	t.Run("Should be able to get the delegator info from the locked account by just using the address", func(t *testing.T) {
+
+		result, err := b.ExecuteScript(templates.GenerateGetLockedDelegatorInfoScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
 	})
 
 	t.Run("Should not be able to register a second node while the first has tokens committed", func(t *testing.T) {
