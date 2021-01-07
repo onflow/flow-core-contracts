@@ -3347,6 +3347,44 @@ func TestIDTable(t *testing.T) {
 		assert.Equal(t, CadenceUFix64("40000.0"), balance.(cadence.UFix64))
 	})
 
+	t.Run("Should end epoch and change payout in the same transaction", func(t *testing.T) {
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GenerateEndEpochChangePayoutScript(env)).
+			SetGasLimit(9999).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(idTableAddress)
+
+		err := tx.AddArgument(cadence.NewArray([]cadence.Value{cadence.NewString(adminID), cadence.NewString(joshID)}))
+		require.NoError(t, err)
+
+		tokenAmount, err := cadence.NewUFix64("4000000.0")
+		require.NoError(t, err)
+		err = tx.AddArgument(tokenAmount)
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+
+		result, err := b.ExecuteScript(templates.GenerateGetNodeInfoFromAddressScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+
+		result, err = b.ExecuteScript(templates.GenerateGetDelegatorInfoFromAddressScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshDelegatorOneAddress))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+
+	})
+
 	t.Run("Should be able to change the staking minimums", func(t *testing.T) {
 
 		tx = flow.NewTransaction().

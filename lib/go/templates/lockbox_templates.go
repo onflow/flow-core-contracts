@@ -30,8 +30,8 @@ const (
 
 	// staker templates
 	registerLockedNodeFilename           = "lockedTokens/staker/register_node.cdc"
-	getNodeIDFilename                    = "lockedTokens/staker/get_node_id.cdc"
-	getStakerInfoFilename                = "lockedTokens/staker/get_staker_info.cdc"
+	getLockedNodeIDFilename              = "lockedTokens/staker/get_node_id.cdc"
+	getLockedStakerInfoFilename          = "lockedTokens/staker/get_staker_info.cdc"
 	stakeNewLockedTokensFilename         = "lockedTokens/staker/stake_new_tokens.cdc"
 	stakeLockedUnstakedTokensFilename    = "lockedTokens/staker/stake_unstaked_tokens.cdc"
 	stakeLockedRewardedTokensFilename    = "lockedTokens/staker/stake_rewarded_tokens.cdc"
@@ -42,8 +42,8 @@ const (
 
 	// delegator templates
 	registerLockedDelegatorFilename               = "lockedTokens/delegator/register_delegator.cdc"
-	getDelegatorIDFilename                        = "lockedTokens/delegator/get_delegator_id.cdc"
-	getDelegatorInfoFilename                      = "lockedTokens/delegator/get_delegator_info.cdc"
+	getLockedDelegatorIDFilename                  = "lockedTokens/delegator/get_delegator_id.cdc"
+	getLockedDelegatorInfoFilename                = "lockedTokens/delegator/get_delegator_info.cdc"
 	getDelegatorNodeIDFilename                    = "lockedTokens/delegator/get_delegator_node_id.cdc"
 	delegateNewLockedTokensFilename               = "lockedTokens/delegator/delegate_new_tokens.cdc"
 	delegateLockedUnstakedTokensFilename          = "lockedTokens/delegator/delegate_unstaked_tokens.cdc"
@@ -230,7 +230,7 @@ func GenerateWithdrawLockedRewardedTokensScript(env Environment) []byte {
 }
 
 func GenerateGetNodeIDScript(env Environment) []byte {
-	code := assets.MustAssetString(getNodeIDFilename)
+	code := assets.MustAssetString(getLockedNodeIDFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -238,8 +238,8 @@ func GenerateGetNodeIDScript(env Environment) []byte {
 // GenerateGetStakerInfoScript creats a script that returns an optional
 // FlowIDTableStaking.NodeInfo? object that is associated with an account
 // that is staking locked tokens
-func GenerateGetStakerInfoScript(env Environment) []byte {
-	code := assets.MustAssetString(getStakerInfoFilename)
+func GenerateGetLockedStakerInfoScript(env Environment) []byte {
+	code := assets.MustAssetString(getLockedStakerInfoFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -307,7 +307,7 @@ func GenerateWithdrawDelegatorLockedRewardedTokensScript(env Environment) []byte
 }
 
 func GenerateGetDelegatorIDScript(env Environment) []byte {
-	code := assets.MustAssetString(getDelegatorIDFilename)
+	code := assets.MustAssetString(getLockedDelegatorIDFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -315,8 +315,8 @@ func GenerateGetDelegatorIDScript(env Environment) []byte {
 // GenerateGetDelegatorInfoScript creates a script that returns an optional
 // FlowIDTableStaking.DelegatorInfo object that is associated with an account
 // that is delegating locked tokens
-func GenerateGetDelegatorInfoScript(env Environment) []byte {
-	code := assets.MustAssetString(getDelegatorInfoFilename)
+func GenerateGetLockedDelegatorInfoScript(env Environment) []byte {
+	code := assets.MustAssetString(getLockedDelegatorInfoFilename)
 
 	return []byte(replaceAddresses(code, env))
 }

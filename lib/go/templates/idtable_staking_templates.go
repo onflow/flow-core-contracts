@@ -7,29 +7,33 @@ import (
 const (
 	transferDeployFilename = "idTableStaking/admin/transfer_minter_deploy.cdc"
 
-	removeNodeFilename     = "idTableStaking/admin/remove_node.cdc"
-	endStakingFilename     = "idTableStaking/admin/end_staking.cdc"
-	payRewardsFilename     = "idTableStaking/admin/pay_rewards.cdc"
-	moveTokensFilename     = "idTableStaking/admin/move_tokens.cdc"
-	endEpochFilename       = "idTableStaking/admin/end_epoch.cdc"
-	changeMinimumsFilename = "idTableStaking/admin/change_minimums.cdc"
-	changeCutFilename      = "idTableStaking/admin/change_cut.cdc"
-	changePayoutFilename   = "idTableStaking/admin/change_payout.cdc"
+	removeNodeFilename           = "idTableStaking/admin/remove_node.cdc"
+	endStakingFilename           = "idTableStaking/admin/end_staking.cdc"
+	payRewardsFilename           = "idTableStaking/admin/pay_rewards.cdc"
+	moveTokensFilename           = "idTableStaking/admin/move_tokens.cdc"
+	endEpochFilename             = "idTableStaking/admin/end_epoch.cdc"
+	changeMinimumsFilename       = "idTableStaking/admin/change_minimums.cdc"
+	changeCutFilename            = "idTableStaking/admin/change_cut.cdc"
+	changePayoutFilename         = "idTableStaking/admin/change_payout.cdc"
+	endEpochChangePayoutFilename = "idTableStaking/admin/end_epoch_change_payout.cdc"
 
-	registerNodeFilename           = "idTableStaking/register_node.cdc"
-	stakeNewTokensFilename         = "idTableStaking/stake_new_tokens.cdc"
-	stakeUnstakedTokensFilename    = "idTableStaking/stake_unstaked_tokens.cdc"
-	stakeRewardedTokensFilename    = "idTableStaking/stake_rewarded_tokens.cdc"
-	unstakeTokensFilename          = "idTableStaking/request_unstake.cdc"
-	unstakeAllFilename             = "idTableStaking/unstake_all.cdc"
-	withdrawUnstakedTokensFilename = "idTableStaking/withdraw_unstaked_tokens.cdc"
-	withdrawRewardedTokensFilename = "idTableStaking/withdraw_rewarded_tokens.cdc"
+	registerNodeFilename            = "idTableStaking/register_node.cdc"
+	stakeNewTokensFilename          = "idTableStaking/stake_new_tokens.cdc"
+	stakeUnstakedTokensFilename     = "idTableStaking/stake_unstaked_tokens.cdc"
+	stakeRewardedTokensFilename     = "idTableStaking/stake_rewarded_tokens.cdc"
+	unstakeTokensFilename           = "idTableStaking/request_unstake.cdc"
+	unstakeAllFilename              = "idTableStaking/unstake_all.cdc"
+	withdrawUnstakedTokensFilename  = "idTableStaking/withdraw_unstaked_tokens.cdc"
+	withdrawRewardedTokensFilename  = "idTableStaking/withdraw_rewarded_tokens.cdc"
+	addPublicNodeCapabilityFilename = "idTableStaking/node_add_capability.cdc"
 
 	registerManyNodesFilename = "idTableStaking/register_many_nodes.cdc"
 
 	getTableFilename                            = "idTableStaking/get_table.cdc"
 	currentTableFilename                        = "idTableStaking/get_current_table.cdc"
 	proposedTableFilename                       = "idTableStaking/get_proposed_table.cdc"
+	getNodeInfoScript                           = "idTableStaking/get_node_info.cdc"
+	getNodeInfoFromAddressScript                = "idTableStaking/get_node_info_from_address.cdc"
 	getRoleFilename                             = "idTableStaking/get_node_role.cdc"
 	getNetworkingAddrFilename                   = "idTableStaking/get_node_networking_addr.cdc"
 	getNetworkingKeyFilename                    = "idTableStaking/get_node_networking_key.cdc"
@@ -118,6 +122,14 @@ func GenerateChangePayoutScript(env Environment) []byte {
 	return []byte(replaceAddresses(code, env))
 }
 
+// GenerateEndEpochChangePayoutScript creates a script that changes the weekly payout
+// and then ends the epoch
+func GenerateEndEpochChangePayoutScript(env Environment) []byte {
+	code := assets.MustAssetString(endEpochChangePayoutFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
 // Staker Templates -------------------------------------------------------------
 
 // GenerateRegisterNodeScript creates a script that creates a new
@@ -180,6 +192,12 @@ func GenerateWithdrawUnstakedTokensScript(env Environment) []byte {
 // for an existing node operator
 func GenerateWithdrawRewardedTokensScript(env Environment) []byte {
 	code := assets.MustAssetString(withdrawRewardedTokensFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateAddPublicNodeCapabilityScript(env Environment) []byte {
+	code := assets.MustAssetString(addPublicNodeCapabilityFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -248,6 +266,18 @@ func GenerateReturnCurrentTableScript(env Environment) []byte {
 // the ID table for the proposed next epoch
 func GenerateReturnProposedTableScript(env Environment) []byte {
 	code := assets.MustAssetString(proposedTableFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateGetNodeInfoScript(env Environment) []byte {
+	code := assets.MustAssetString(getNodeInfoFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateGetNodeInfoFromAddressScript(env Environment) []byte {
+	code := assets.MustAssetString(getNodeInfoFromAddressScript)
 
 	return []byte(replaceAddresses(code, env))
 }
