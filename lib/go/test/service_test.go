@@ -1,6 +1,7 @@
 package test
 
 import (
+	"github.com/onflow/flow-go/model/flow"
 	"testing"
 
 	sdktemplates "github.com/onflow/flow-go-sdk/templates"
@@ -12,12 +13,14 @@ import (
 
 func TestContracts(t *testing.T) {
 	b := newEmulator()
+	serviceAddress := flow.Emulator.Chain().ServiceAddress()
 
 	// deploy the ServiceAccount contract
 	serviceAccountCode := contracts.FlowServiceAccount(
 		emulatorFTAddress,
 		emulatorFlowTokenAddress,
 		"0xe5a8b7f23e8b548f",
+		serviceAddress.HexWithPrefix(),
 	)
 	_, err := b.CreateAccount(nil, []sdktemplates.Contract{
 		{
