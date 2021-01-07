@@ -26,7 +26,7 @@ implemented as a regular smart contract so that it can be easily used
 just like any other token in the network. See the [flow fungible token repository](https://github.com/onflow/flow-ft)
 for more information.
 
-You can find transactions for using the Flow Token in the `transactions/FlowToken` directory.
+You can find transactions for using the Flow Token in the `transactions/flowToken` directory.
 
 ### Fee Contract
 
@@ -54,8 +54,11 @@ This contract also manages the logic for users to delegate their tokens to a nod
 and receive their own rewards. You can see an explaination of this process in the staking section
 of the [Flow Docs website](https://docs.onflow.org/token/staking/).
 
-You can find all the transactions for interacting with the IDTableStaking contract
+You can find all the transactions for interacting with the IDTableStaking contract with unlocked FLOW
 in the `transactions/idTableStaking` directory.
+
+You can also find scripts for querying info about staking and stakers in the `transactions/idTableStaking/scripts/` directory.
+These scripts are documented in the [staking scripts section of the docs](https://docs.onflow.org/staking/scripts/)
 
 ### Flow Staking Helper Contract
 
