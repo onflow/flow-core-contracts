@@ -29,28 +29,30 @@ const (
 	getUnlockLimitFilename          = "lockedTokens/user/get_unlock_limit.cdc"
 
 	// staker templates
-	registerLockedNodeFilename           = "lockedTokens/staker/register_node.cdc"
-	getNodeIDFilename                    = "lockedTokens/staker/get_node_id.cdc"
-	getStakerInfoFilename                = "lockedTokens/staker/get_staker_info.cdc"
-	stakeNewLockedTokensFilename         = "lockedTokens/staker/stake_new_tokens.cdc"
-	stakeLockedUnstakedTokensFilename    = "lockedTokens/staker/stake_unstaked_tokens.cdc"
-	stakeLockedRewardedTokensFilename    = "lockedTokens/staker/stake_rewarded_tokens.cdc"
-	unstakeLockedTokensFilename          = "lockedTokens/staker/request_unstaking.cdc"
-	unstakeAllLockedTokensFilename       = "lockedTokens/staker/unstake_all.cdc"
-	withdrawLockedUnstakedTokensFilename = "lockedTokens/staker/withdraw_unstaked_tokens.cdc"
-	withdrawLockedRewardedTokensFilename = "lockedTokens/staker/withdraw_rewarded_tokens.cdc"
+	registerLockedNodeFilename                 = "lockedTokens/staker/register_node.cdc"
+	getLockedNodeIDFilename                    = "lockedTokens/staker/get_node_id.cdc"
+	getLockedStakerInfoFilename                = "lockedTokens/staker/get_staker_info.cdc"
+	stakeNewLockedTokensFilename               = "lockedTokens/staker/stake_new_tokens.cdc"
+	stakeLockedUnstakedTokensFilename          = "lockedTokens/staker/stake_unstaked_tokens.cdc"
+	stakeLockedRewardedTokensFilename          = "lockedTokens/staker/stake_rewarded_tokens.cdc"
+	unstakeLockedTokensFilename                = "lockedTokens/staker/request_unstaking.cdc"
+	unstakeAllLockedTokensFilename             = "lockedTokens/staker/unstake_all.cdc"
+	withdrawLockedUnstakedTokensFilename       = "lockedTokens/staker/withdraw_unstaked_tokens.cdc"
+	withdrawLockedRewardedTokensFilename       = "lockedTokens/staker/withdraw_rewarded_tokens.cdc"
+	withdrawLockedRewardedTokensLockedFilename = "lockedTokens/staker/withdraw_rewarded_tokens_locked.cdc"
 
 	// delegator templates
-	registerLockedDelegatorFilename               = "lockedTokens/delegator/register_delegator.cdc"
-	getDelegatorIDFilename                        = "lockedTokens/delegator/get_delegator_id.cdc"
-	getDelegatorInfoFilename                      = "lockedTokens/delegator/get_delegator_info.cdc"
-	getDelegatorNodeIDFilename                    = "lockedTokens/delegator/get_delegator_node_id.cdc"
-	delegateNewLockedTokensFilename               = "lockedTokens/delegator/delegate_new_tokens.cdc"
-	delegateLockedUnstakedTokensFilename          = "lockedTokens/delegator/delegate_unstaked_tokens.cdc"
-	delegateLockedRewardedTokensFilename          = "lockedTokens/delegator/delegate_rewarded_tokens.cdc"
-	requestUnstakingLockedDelegatedTokensFilename = "lockedTokens/delegator/request_unstaking.cdc"
-	withdrawLockedUnstakedDelegatedTokensFilename = "lockedTokens/delegator/withdraw_unstaked_tokens.cdc"
-	withdrawLockedRewardedDelegatedTokensFilename = "lockedTokens/delegator/withdraw_rewarded_tokens.cdc"
+	registerLockedDelegatorFilename                     = "lockedTokens/delegator/register_delegator.cdc"
+	getLockedDelegatorIDFilename                        = "lockedTokens/delegator/get_delegator_id.cdc"
+	getLockedDelegatorInfoFilename                      = "lockedTokens/delegator/get_delegator_info.cdc"
+	getDelegatorNodeIDFilename                          = "lockedTokens/delegator/get_delegator_node_id.cdc"
+	delegateNewLockedTokensFilename                     = "lockedTokens/delegator/delegate_new_tokens.cdc"
+	delegateLockedUnstakedTokensFilename                = "lockedTokens/delegator/delegate_unstaked_tokens.cdc"
+	delegateLockedRewardedTokensFilename                = "lockedTokens/delegator/delegate_rewarded_tokens.cdc"
+	requestUnstakingLockedDelegatedTokensFilename       = "lockedTokens/delegator/request_unstaking.cdc"
+	withdrawLockedUnstakedDelegatedTokensFilename       = "lockedTokens/delegator/withdraw_unstaked_tokens.cdc"
+	withdrawLockedRewardedDelegatedTokensFilename       = "lockedTokens/delegator/withdraw_rewarded_tokens.cdc"
+	withdrawLockedRewardedDelegatedTokensLockedFilename = "lockedTokens/delegator/withdraw_rewarded_tokens_locked.cdc"
 )
 
 /************ LockedTokens Admin Transactions ****************/
@@ -229,8 +231,14 @@ func GenerateWithdrawLockedRewardedTokensScript(env Environment) []byte {
 	return []byte(replaceAddresses(code, env))
 }
 
+func GenerateWithdrawLockedRewardedTokensToLockedAccountScript(env Environment) []byte {
+	code := assets.MustAssetString(withdrawLockedRewardedTokensLockedFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
 func GenerateGetNodeIDScript(env Environment) []byte {
-	code := assets.MustAssetString(getNodeIDFilename)
+	code := assets.MustAssetString(getLockedNodeIDFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -238,8 +246,8 @@ func GenerateGetNodeIDScript(env Environment) []byte {
 // GenerateGetStakerInfoScript creats a script that returns an optional
 // FlowIDTableStaking.NodeInfo? object that is associated with an account
 // that is staking locked tokens
-func GenerateGetStakerInfoScript(env Environment) []byte {
-	code := assets.MustAssetString(getStakerInfoFilename)
+func GenerateGetLockedStakerInfoScript(env Environment) []byte {
+	code := assets.MustAssetString(getLockedStakerInfoFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -306,8 +314,14 @@ func GenerateWithdrawDelegatorLockedRewardedTokensScript(env Environment) []byte
 	return []byte(replaceAddresses(code, env))
 }
 
+func GenerateWithdrawDelegatorLockedRewardedTokensToLockedAccountScript(env Environment) []byte {
+	code := assets.MustAssetString(withdrawLockedRewardedDelegatedTokensLockedFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
 func GenerateGetDelegatorIDScript(env Environment) []byte {
-	code := assets.MustAssetString(getDelegatorIDFilename)
+	code := assets.MustAssetString(getLockedDelegatorIDFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -315,8 +329,8 @@ func GenerateGetDelegatorIDScript(env Environment) []byte {
 // GenerateGetDelegatorInfoScript creates a script that returns an optional
 // FlowIDTableStaking.DelegatorInfo object that is associated with an account
 // that is delegating locked tokens
-func GenerateGetDelegatorInfoScript(env Environment) []byte {
-	code := assets.MustAssetString(getDelegatorInfoFilename)
+func GenerateGetLockedDelegatorInfoScript(env Environment) []byte {
+	code := assets.MustAssetString(getLockedDelegatorInfoFilename)
 
 	return []byte(replaceAddresses(code, env))
 }

@@ -7,49 +7,53 @@ import (
 const (
 	transferDeployFilename = "idTableStaking/admin/transfer_minter_deploy.cdc"
 
-	removeNodeFilename     = "idTableStaking/admin/remove_node.cdc"
-	endStakingFilename     = "idTableStaking/admin/end_staking.cdc"
-	payRewardsFilename     = "idTableStaking/admin/pay_rewards.cdc"
-	moveTokensFilename     = "idTableStaking/admin/move_tokens.cdc"
-	endEpochFilename       = "idTableStaking/admin/end_epoch.cdc"
-	changeMinimumsFilename = "idTableStaking/admin/change_minimums.cdc"
-	changeCutFilename      = "idTableStaking/admin/change_cut.cdc"
-	changePayoutFilename   = "idTableStaking/admin/change_payout.cdc"
+	removeNodeFilename           = "idTableStaking/admin/remove_node.cdc"
+	endStakingFilename           = "idTableStaking/admin/end_staking.cdc"
+	payRewardsFilename           = "idTableStaking/admin/pay_rewards.cdc"
+	moveTokensFilename           = "idTableStaking/admin/move_tokens.cdc"
+	endEpochFilename             = "idTableStaking/admin/end_epoch.cdc"
+	changeMinimumsFilename       = "idTableStaking/admin/change_minimums.cdc"
+	changeCutFilename            = "idTableStaking/admin/change_cut.cdc"
+	changePayoutFilename         = "idTableStaking/admin/change_payout.cdc"
+	endEpochChangePayoutFilename = "idTableStaking/admin/end_epoch_change_payout.cdc"
 
-	registerNodeFilename           = "idTableStaking/register_node.cdc"
-	stakeNewTokensFilename         = "idTableStaking/stake_new_tokens.cdc"
-	stakeUnstakedTokensFilename    = "idTableStaking/stake_unstaked_tokens.cdc"
-	stakeRewardedTokensFilename    = "idTableStaking/stake_rewarded_tokens.cdc"
-	unstakeTokensFilename          = "idTableStaking/request_unstake.cdc"
-	unstakeAllFilename             = "idTableStaking/unstake_all.cdc"
-	withdrawUnstakedTokensFilename = "idTableStaking/withdraw_unstaked_tokens.cdc"
-	withdrawRewardedTokensFilename = "idTableStaking/withdraw_rewarded_tokens.cdc"
+	registerNodeFilename            = "idTableStaking/node/register_node.cdc"
+	stakeNewTokensFilename          = "idTableStaking/node/stake_new_tokens.cdc"
+	stakeUnstakedTokensFilename     = "idTableStaking/node/stake_unstaked_tokens.cdc"
+	stakeRewardedTokensFilename     = "idTableStaking/node/stake_rewarded_tokens.cdc"
+	unstakeTokensFilename           = "idTableStaking/node/request_unstake.cdc"
+	unstakeAllFilename              = "idTableStaking/node/unstake_all.cdc"
+	withdrawUnstakedTokensFilename  = "idTableStaking/node/withdraw_unstaked_tokens.cdc"
+	withdrawRewardedTokensFilename  = "idTableStaking/node/withdraw_rewarded_tokens.cdc"
+	addPublicNodeCapabilityFilename = "idTableStaking/node/node_add_capability.cdc"
 
-	registerManyNodesFilename = "idTableStaking/register_many_nodes.cdc"
+	registerManyNodesFilename = "idTableStaking/node/register_many_nodes.cdc"
 
-	getTableFilename                            = "idTableStaking/get_table.cdc"
-	currentTableFilename                        = "idTableStaking/get_current_table.cdc"
-	proposedTableFilename                       = "idTableStaking/get_proposed_table.cdc"
-	getRoleFilename                             = "idTableStaking/get_node_role.cdc"
-	getNetworkingAddrFilename                   = "idTableStaking/get_node_networking_addr.cdc"
-	getNetworkingKeyFilename                    = "idTableStaking/get_node_networking_key.cdc"
-	getStakingKeyFilename                       = "idTableStaking/get_node_staking_key.cdc"
-	getInitialWeightFilename                    = "idTableStaking/get_node_initial_weight.cdc"
-	stakedBalanceFilename                       = "idTableStaking/get_node_staked_tokens.cdc"
-	comittedBalanceFilename                     = "idTableStaking/get_node_committed_tokens.cdc"
-	unstakedBalanceFilename                     = "idTableStaking/get_node_unstaked_tokens.cdc"
-	rewardBalanceFilename                       = "idTableStaking/get_node_rewarded_tokens.cdc"
-	unstakingBalanceFilename                    = "idTableStaking/get_node_unstaking_tokens.cdc"
-	getTotalCommitmentFilename                  = "idTableStaking/get_node_total_commitment.cdc"
-	getTotalCommitmentWithoutDelegatorsFilename = "idTableStaking/get_node_total_commitment_without_delegators.cdc"
-	getUnstakingRequestFilename                 = "idTableStaking/get_node_unstaking_request.cdc"
-	getCutPercentageFilename                    = "idTableStaking/get_cut_percentage.cdc"
+	getTableFilename                            = "idTableStaking/scripts/get_table.cdc"
+	currentTableFilename                        = "idTableStaking/scripts/get_current_table.cdc"
+	proposedTableFilename                       = "idTableStaking/scripts/get_proposed_table.cdc"
+	getNodeInfoScript                           = "idTableStaking/scripts/get_node_info.cdc"
+	getNodeInfoFromAddressScript                = "idTableStaking/scripts/get_node_info_from_address.cdc"
+	getRoleFilename                             = "idTableStaking/scripts/get_node_role.cdc"
+	getNetworkingAddrFilename                   = "idTableStaking/scripts/get_node_networking_addr.cdc"
+	getNetworkingKeyFilename                    = "idTableStaking/scripts/get_node_networking_key.cdc"
+	getStakingKeyFilename                       = "idTableStaking/scripts/get_node_staking_key.cdc"
+	getInitialWeightFilename                    = "idTableStaking/scripts/get_node_initial_weight.cdc"
+	stakedBalanceFilename                       = "idTableStaking/scripts/get_node_staked_tokens.cdc"
+	comittedBalanceFilename                     = "idTableStaking/scripts/get_node_committed_tokens.cdc"
+	unstakedBalanceFilename                     = "idTableStaking/scripts/get_node_unstaked_tokens.cdc"
+	rewardBalanceFilename                       = "idTableStaking/scripts/get_node_rewarded_tokens.cdc"
+	unstakingBalanceFilename                    = "idTableStaking/scripts/get_node_unstaking_tokens.cdc"
+	getTotalCommitmentFilename                  = "idTableStaking/scripts/get_node_total_commitment.cdc"
+	getTotalCommitmentWithoutDelegatorsFilename = "idTableStaking/scripts/get_node_total_commitment_without_delegators.cdc"
+	getUnstakingRequestFilename                 = "idTableStaking/scripts/get_node_unstaking_request.cdc"
+	getCutPercentageFilename                    = "idTableStaking/scripts/get_cut_percentage.cdc"
 
-	stakeRequirementsFilename = "idTableStaking/get_stake_requirements.cdc"
-	totalStakedByTypeFilename = "idTableStaking/get_total_staked_by_type.cdc"
-	totalStakedFilename       = "idTableStaking/get_total_staked.cdc"
-	rewardRatioFilename       = "idTableStaking/get_node_type_ratio.cdc"
-	weeklyPayoutFilename      = "idTableStaking/get_weekly_payout.cdc"
+	stakeRequirementsFilename = "idTableStaking/scripts/get_stake_requirements.cdc"
+	totalStakedByTypeFilename = "idTableStaking/scripts/get_total_staked_by_type.cdc"
+	totalStakedFilename       = "idTableStaking/scripts/get_total_staked.cdc"
+	rewardRatioFilename       = "idTableStaking/scripts/get_node_type_ratio.cdc"
+	weeklyPayoutFilename      = "idTableStaking/scripts/get_weekly_payout.cdc"
 )
 
 // Admin Templates -----------------------------------------------------------
@@ -114,6 +118,14 @@ func GenerateChangeCutScript(env Environment) []byte {
 // GenerateChangePayoutScript creates a script that changes the weekly payout
 func GenerateChangePayoutScript(env Environment) []byte {
 	code := assets.MustAssetString(changePayoutFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+// GenerateEndEpochChangePayoutScript creates a script that changes the weekly payout
+// and then ends the epoch
+func GenerateEndEpochChangePayoutScript(env Environment) []byte {
+	code := assets.MustAssetString(endEpochChangePayoutFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -184,6 +196,12 @@ func GenerateWithdrawRewardedTokensScript(env Environment) []byte {
 	return []byte(replaceAddresses(code, env))
 }
 
+func GenerateAddPublicNodeCapabilityScript(env Environment) []byte {
+	code := assets.MustAssetString(addPublicNodeCapabilityFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
 // GenerateReturnTableScript creates a script that returns
 // the the whole ID table nodeIDs
 func GenerateReturnTableScript(env Environment) []byte {
@@ -248,6 +266,18 @@ func GenerateReturnCurrentTableScript(env Environment) []byte {
 // the ID table for the proposed next epoch
 func GenerateReturnProposedTableScript(env Environment) []byte {
 	code := assets.MustAssetString(proposedTableFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateGetNodeInfoScript(env Environment) []byte {
+	code := assets.MustAssetString(getNodeInfoFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateGetNodeInfoFromAddressScript(env Environment) []byte {
+	code := assets.MustAssetString(getNodeInfoFromAddressScript)
 
 	return []byte(replaceAddresses(code, env))
 }

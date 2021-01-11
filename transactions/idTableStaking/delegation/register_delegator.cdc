@@ -9,6 +9,8 @@ transaction(nodeID: String) {
 
         // Store the delegator object
         acct.save(<-newDelegator, to: FlowIDTableStaking.DelegatorStoragePath)
+
+        acct.link<&{FlowIDTableStaking.NodeDelegatorPublic}>(/public/flowStakingDelegator, target: FlowIDTableStaking.DelegatorStoragePath)
     }
 
 }

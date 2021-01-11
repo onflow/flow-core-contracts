@@ -10,7 +10,6 @@ require (
 	github.com/onflow/flow-ft/lib/go/templates v0.0.0-20201002112420-010719813062
 	github.com/onflow/flow-go v0.13.1-0.20210106202829-4c5647b83a80
 	github.com/onflow/flow-go-sdk v0.12.2
-	github.com/onflow/flow-go/crypto v0.12.0 // indirect
 	github.com/stretchr/testify v1.6.1
 )
 
