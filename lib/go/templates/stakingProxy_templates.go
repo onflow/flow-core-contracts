@@ -27,7 +27,7 @@ const (
 // GenerateSetupNodeAccountScript generates a script that sets up
 // a node operator's account to receive staking proxies
 func GenerateSetupNodeAccountScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + setupNodeAccountFilename)
+	code := assets.MustAssetString(setupNodeAccountFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -35,61 +35,61 @@ func GenerateSetupNodeAccountScript(env Environment) []byte {
 // GenerateAddNodeInfoScript generates a script that adds the node
 // operators node info to their account
 func GenerateAddNodeInfoScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + addNodeInfoFilename)
+	code := assets.MustAssetString(addNodeInfoFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateRemoveNodeInfoScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + removeNodeInfoFilename)
+	code := assets.MustAssetString(removeNodeInfoFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
-func GenerateGetNodeInfoScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + getNodeInfoFilename)
+func GenerateGetRemoteNodeInfoScript(env Environment) []byte {
+	code := assets.MustAssetString(getNodeInfoFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateRemoveStakingProxyScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + removeStakingProxyFilename)
+	code := assets.MustAssetString(removeStakingProxyFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateProxyStakeNewTokensScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + proxyStakeNewTokensFilename)
+	code := assets.MustAssetString(proxyStakeNewTokensFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateProxyStakeUnstakedTokensScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + proxyStakeUnstakedTokensFilename)
+	code := assets.MustAssetString(proxyStakeUnstakedTokensFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateProxyRequestUnstakingScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + proxyRequestUnstakingFilename)
+	code := assets.MustAssetString(proxyRequestUnstakingFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateProxyUnstakeAllScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + proxyUnstakeAllFilename)
+	code := assets.MustAssetString(proxyUnstakeAllFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateProxyWithdrawRewardsScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + proxyWithdrawRewardsFilename)
+	code := assets.MustAssetString(proxyWithdrawRewardsFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateProxyWithdrawUnstakedScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + proxyWithdrawUnstakedFilename)
+	code := assets.MustAssetString(proxyWithdrawUnstakedFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -97,7 +97,7 @@ func GenerateProxyWithdrawUnstakedScript(env Environment) []byte {
 // Transactions for the token holder
 
 func GenerateRegisterStakingProxyNodeScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + registerProxyNodeFilename)
+	code := assets.MustAssetString(registerProxyNodeFilename)
 
 	return []byte(replaceAddresses(code, env))
 }

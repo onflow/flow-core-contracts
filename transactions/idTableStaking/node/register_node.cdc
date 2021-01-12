@@ -28,6 +28,8 @@ transaction(id: String,
         
         if acct.borrow<&FlowIDTableStaking.NodeStaker>(from: FlowIDTableStaking.NodeStakerStoragePath) == nil {
             acct.save(<-nodeStaker, to: FlowIDTableStaking.NodeStakerStoragePath)
+
+            acct.link<&{FlowIDTableStaking.NodeStakerPublic}>(FlowIDTableStaking.NodeStakerPublicPath, target: FlowIDTableStaking.NodeStakerStoragePath)
         } else {
             destroy nodeStaker
         }

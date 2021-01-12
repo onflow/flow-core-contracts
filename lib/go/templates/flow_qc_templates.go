@@ -35,20 +35,20 @@ const (
 
 // GenerateStartVotingScript generates a script for the admin that starts voting
 func GenerateStartVotingScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + startVotingFilename)
+	code := assets.MustAssetString(startVotingFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateStopVotingScript generates a script for the admin that stops voting
 func GenerateStopVotingScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + stopVotingFilename)
+	code := assets.MustAssetString(stopVotingFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GeneratePublishVoterScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + publishVoterFilename)
+	code := assets.MustAssetString(publishVoterFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -57,14 +57,14 @@ func GeneratePublishVoterScript(env Environment) []byte {
 
 // GenerateCreateVoterScript generates a script that creates a qc node object
 func GenerateCreateVoterScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + createVoterFilename)
+	code := assets.MustAssetString(createVoterFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateSubmitVoteScript generates a script that submits a qc vote for a node
 func GenerateSubmitVoteScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + submitVoteFilename)
+	code := assets.MustAssetString(submitVoteFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -72,55 +72,55 @@ func GenerateSubmitVoteScript(env Environment) []byte {
 // Scripts
 
 func GenerateGetClustersScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + getClustersFilename)
+	code := assets.MustAssetString(getClustersFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateGetClusterScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + getClusterFilename)
+	code := assets.MustAssetString(getClusterFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateGetClusterVoteThresholdScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + getClusterVoteThresholdFilename)
+	code := assets.MustAssetString(getClusterVoteThresholdFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateGetClusterWeightScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + getClusterWeightFilename)
+	code := assets.MustAssetString(getClusterWeightFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateGetClusterNodeWeightsScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + getClusterNodeWeightsFilename)
+	code := assets.MustAssetString(getClusterNodeWeightsFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateGetNodeWeightScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + getNodeWeightFilename)
+	code := assets.MustAssetString(getNodeWeightFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateGetVotingCompletedScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + getVotingCompletedFilename)
+	code := assets.MustAssetString(getVotingCompletedFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateGetClusterVotesScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + getClusterVotesFilename)
+	code := assets.MustAssetString(getClusterVotesFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
 
 func GenerateGetNodeHasVotedScript(env Environment) []byte {
-	code := assets.MustAssetString(filePath + getNodeHasVotedFilename)
+	code := assets.MustAssetString(getNodeHasVotedFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
