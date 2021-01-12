@@ -28,7 +28,7 @@ func TestContracts(t *testing.T) {
 	storageFeesAccountKey, storageFeesSigner := accountKeys.NewWithSigner()
 
 	// deploy the FlowStorageFees contract
-	storageFeesCode := contracts.FlowStorageFees("placeholder")
+	storageFeesCode := contracts.FlowStorageFees(emulatorFTAddress, emulatorFlowTokenAddress)
 	storageFeesAddress, err := b.CreateAccount([]*flow.AccountKey{storageFeesAccountKey}, []sdktemplates.Contract{
 		{
 			Name:   "FlowStorageFees",

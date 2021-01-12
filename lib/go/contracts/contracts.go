@@ -92,8 +92,20 @@ func FlowFees(fungibleTokenAddress, flowTokenAddress string) []byte {
 
 // FlowStorageFees returns the FlowStorageFees contract.
 //
-func FlowStorageFees(flowtokenAddress string) []byte {
+func FlowStorageFees(fungibleTokenAddress, flowTokenAddress string) []byte {
 	code := assets.MustAssetString(storageFeesFilename)
+
+	code = strings.ReplaceAll(
+		code,
+		placeholderFungibleTokenAddress,
+		withHexPrefix(fungibleTokenAddress),
+	)
+
+	code = strings.ReplaceAll(
+		code,
+		placeholderFlowTokenAddress,
+		withHexPrefix(flowTokenAddress),
+	)
 
 	return []byte(code)
 }

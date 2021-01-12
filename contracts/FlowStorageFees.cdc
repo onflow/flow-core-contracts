@@ -11,10 +11,10 @@
  * An account moving/deleting its `FlowToken.Vault` resource will result 
  * in the transaction failing because the account will have no storage capacity.
  * 
- * This contract does not have to import `FlowToken` because it only tracks the
- * storage fee parameters. The execution environment checks the `FlowToken.Vault` balance.
- *
  */
+
+import FungibleToken from 0xFUNGIBLETOKENADDRESS
+import FlowToken from 0xFLOWTOKENADDRESS
 
 pub contract FlowStorageFees {
 
@@ -54,6 +54,21 @@ pub contract FlowStorageFees {
         }
 
         access(contract) init(){}
+    }
+
+    pub fun calculateAccountCapacity(_ accountAddress: Address): UInt64 {
+        let balanceRef = getAccount(accountAddress)
+            .getCapability<&FlowToken.Vault{FungibleToken.Balance}>(/public/flowTokenBalance)!
+            .borrow() ?? panic("Could not borrow FLOW balance capability")
+
+        // get address token balance
+        if balanceRef.balance < self.minimumStorageReservation {
+            // if < then minimum return 0
+            return 0
+        } else {
+            // return balance multiplied with bytes per flow 
+            return UInt64(balanceRef.balance * self.storageBytesPerReservedFLOW)
+        }
     }
 
     pub fun flowToStorageCapacity(_ amount: UFix64): UInt64 {
