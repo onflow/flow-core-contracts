@@ -17,10 +17,41 @@ import (
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
 )
 
-const (
-	numberOfClusters        = 1
-	numberOfNodesPerCluster = 1
-)
+// This function initializes Cluster records in order to pass the cluster information
+// as an argument to the startVoting transaction
+func initClusters(clusterNodeIDStrings [][]string, numberOfClusters, numberOfNodesPerCluster int) [][]cadence.Value {
+	clusterIndices := make([]cadence.Value, numberOfClusters)
+	clusterNodeIDs := make([]cadence.Value, numberOfClusters)
+	clusterNodeWeights := make([]cadence.Value, numberOfClusters)
+
+	for i := 0; i < numberOfClusters; i++ {
+
+		clusterIndices[i] = cadence.NewUInt16(uint16(i))
+
+		nodeIDs := make([]cadence.Value, numberOfNodesPerCluster)
+		nodeWeights := make([]cadence.Value, numberOfNodesPerCluster)
+
+		nodeIDStrings := make([]string, numberOfNodesPerCluster)
+
+		for j := 0; j < numberOfNodesPerCluster; j++ {
+			nodeID := fmt.Sprintf("%064d", i*numberOfNodesPerCluster+j)
+
+			nodeIDs[j] = cadence.NewString(nodeID)
+
+			// default weight per node
+			nodeWeights[j] = cadence.NewUInt64(uint64(100))
+
+			nodeIDStrings[j] = nodeID
+			clusterNodeIDStrings[i] = nodeIDStrings
+		}
+
+		clusterNodeIDs[i] = cadence.NewArray(nodeIDs)
+		clusterNodeWeights[i] = cadence.NewArray(nodeWeights)
+
+	}
+
+	return [][]cadence.Value{clusterIndices, clusterNodeIDs, clusterNodeWeights}
+}
 
 func TestQuroumCertificate(t *testing.T) {
 	b := newEmulator()
@@ -101,39 +132,16 @@ func TestQuroumCertificate(t *testing.T) {
 		)
 	})
 
-	clusterIndices := make([]cadence.Value, numberOfClusters)
-	clusterNodeIDs := make([]cadence.Value, numberOfClusters)
-	clusterNodeWeights := make([]cadence.Value, numberOfClusters)
+	////////////////////////// FIRST EPOCH ///////////////////////////////////
+
+	numberOfClusters := 1
+	numberOfNodesPerCluster := 1
 
 	clusterNodeIDStrings := make([][]string, numberOfClusters)
 
+	clusters := initClusters(clusterNodeIDStrings, numberOfClusters, numberOfNodesPerCluster)
+
 	t.Run("Should start voting with the admin", func(t *testing.T) {
-
-		for i := 0; i < numberOfClusters; i++ {
-
-			clusterIndices[i] = cadence.NewUInt16(uint16(i))
-
-			nodeIDs := make([]cadence.Value, numberOfNodesPerCluster)
-			nodeWeights := make([]cadence.Value, numberOfNodesPerCluster)
-
-			nodeIDStrings := make([]string, numberOfNodesPerCluster)
-
-			for j := 0; j < numberOfNodesPerCluster; j++ {
-				nodeID := fmt.Sprintf("%064d", i*numberOfNodesPerCluster+j)
-
-				nodeIDs[j] = cadence.NewString(nodeID)
-
-				// default weight per node
-				nodeWeights[j] = cadence.NewUInt64(uint64(100))
-
-				nodeIDStrings[j] = nodeID
-				clusterNodeIDStrings[i] = nodeIDStrings
-			}
-
-			clusterNodeIDs[i] = cadence.NewArray(nodeIDs)
-			clusterNodeWeights[i] = cadence.NewArray(nodeWeights)
-
-		}
 
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateStartVotingScript(env)).
@@ -142,13 +150,13 @@ func TestQuroumCertificate(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(QCAddress)
 
-		err := tx.AddArgument(cadence.NewArray(clusterIndices))
+		err := tx.AddArgument(cadence.NewArray(clusters[0]))
 		require.NoError(t, err)
 
-		err = tx.AddArgument(cadence.NewArray(clusterNodeIDs))
+		err = tx.AddArgument(cadence.NewArray(clusters[1]))
 		require.NoError(t, err)
 
-		err = tx.AddArgument(cadence.NewArray(clusterNodeWeights))
+		err = tx.AddArgument(cadence.NewArray(clusters[2]))
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -345,5 +353,45 @@ func TestQuroumCertificate(t *testing.T) {
 			[]crypto.Signer{b.ServiceKey().Signer(), QCSigner},
 			false,
 		)
+	})
+
+	///////////////////////////// Epoch 2 ////////////////////////////////////
+
+	// mature
+	// numberOfClusters = 10
+	// numberOfNodesPerCluster = 80
+
+	numberOfClusters = 5
+	numberOfNodesPerCluster = 10
+
+	clusterNodeIDStrings = make([][]string, numberOfClusters)
+
+	clusters = initClusters(clusterNodeIDStrings, numberOfClusters, numberOfNodesPerCluster)
+
+	t.Run("Should start voting with the admin with more nodes and clusters", func(t *testing.T) {
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GenerateStartVotingScript(env)).
+			SetGasLimit(9999).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(QCAddress)
+
+		err := tx.AddArgument(cadence.NewArray(clusters[0]))
+		require.NoError(t, err)
+
+		err = tx.AddArgument(cadence.NewArray(clusters[1]))
+		require.NoError(t, err)
+
+		err = tx.AddArgument(cadence.NewArray(clusters[2]))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, QCAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), QCSigner},
+			false,
+		)
+
 	})
 }
