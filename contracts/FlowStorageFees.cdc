@@ -1,7 +1,8 @@
 /*
  * The FlowStorageFees smart contract
  *
- * An account's storage capacity determines up to how much storage on chain it can use. An storage capacity is calculated by multiplying the amount of reserved flow with `StorageFee.storageBytesPerReservedFLOW`
+ * An account's storage capacity determines up to how much storage on chain it can use. 
+ * A storage capacity is calculated by multiplying the amount of reserved flow with `StorageFee.storageMegaBytesPerReservedFLOW`
  * The minimum amount of flow tokens reserved for storage capacity is `FlowStorageFees.minimumStorageReservation` this is paid during account creation, by the creator.
  * 
  * At the end of all transactions, any account that had any value changed in their storage 
@@ -19,14 +20,16 @@ import FlowToken from 0xFLOWTOKENADDRESS
 pub contract FlowStorageFees {
 
     // Emitted when the amount of storage capacity an account has per reserved Flow token changes
-    pub event StorageBytesPerReservedFLOWChanged(_ storageBytesPerReservedFLOW: UFix64)
+    pub event StorageMegaBytesPerReservedFLOWChanged(_ storageMegaBytesPerReservedFLOW: UFix64)
 
     // Emitted when the minimum amount of Flow tokens that an account needs to have reserved for storage capacity changes.
     pub event MinimumStorageReservationChanged(_ minimumStorageReservation: UFix64)
 
     // Defines how much storage capacity every account has per reserved Flow token.
-    // definition is written per unit of flow instead of the inverse, so there is no loss of precision calculating storage from flow, but there is loss of precision when calculating flow per storage.
-    pub var storageBytesPerReservedFLOW: UFix64
+    // definition is written per unit of flow instead of the inverse, 
+    // so there is no loss of precision calculating storage from flow, 
+    // but there is loss of precision when calculating flow per storage.
+    pub var storageMegaBytesPerReservedFLOW: UFix64
 
     // Defines the minimum amount of Flow tokens that every account needs to have reserved for storage capacity.
     // If an account has less then this amount reserved by the end of any transaction it participated in, the transaction will fail.
@@ -36,12 +39,12 @@ pub contract FlowStorageFees {
     pub resource Administrator {
 
         // Changes the amount of storage capacity an account has per accounts' reserved storage FLOW.
-        pub fun setStorageBytesPerReservedFLOW(_ storageBytesPerReservedFLOW: UFix64) {
-            if FlowStorageFees.storageBytesPerReservedFLOW == storageBytesPerReservedFLOW {
+        pub fun setStorageMegaBytesPerReservedFLOW(_ storageMegaBytesPerReservedFLOW: UFix64) {
+            if FlowStorageFees.storageMegaBytesPerReservedFLOW == storageMegaBytesPerReservedFLOW {
               return
             }
-            FlowStorageFees.storageBytesPerReservedFLOW = storageBytesPerReservedFLOW
-            emit StorageBytesPerReservedFLOWChanged(storageBytesPerReservedFLOW)
+            FlowStorageFees.storageMegaBytesPerReservedFLOW = storageMegaBytesPerReservedFLOW
+            emit StorageMegaBytesPerReservedFLOWChanged(storageMegaBytesPerReservedFLOW)
         }
 
         // Changes the minimum amount of FLOW an account has to have reserved.
@@ -66,23 +69,23 @@ pub contract FlowStorageFees {
             // if < then minimum return 0
             return 0
         } else {
-            // return balance multiplied with bytes per flow 
-            return UInt64(balanceRef.balance * self.storageBytesPerReservedFLOW)
+            // return balance multiplied with megabytes per flow 
+            return UInt64(balanceRef.balance * self.storageMegaBytesPerReservedFLOW)
         }
     }
 
     pub fun flowToStorageCapacity(_ amount: UFix64): UInt64 {
-        return UInt64(amount * FlowStorageFees.storageBytesPerReservedFLOW)
+        return UInt64(amount * FlowStorageFees.storageMegaBytesPerReservedFLOW)
     }
 
     pub fun storageCapacityToFlow(_ amount: UInt64): UFix64 {
         // loss of precision
         // putting the result back into `flowToStorageCapacity` possibly won't yield the same result
-        return UFix64(amount) / FlowStorageFees.storageBytesPerReservedFLOW
+        return UFix64(amount) / FlowStorageFees.storageMegaBytesPerReservedFLOW
     }
 
     init() {
-        self.storageBytesPerReservedFLOW = 1000000.0 // 1 Mb per 1 Flow token
+        self.storageMegaBytesPerReservedFLOW = 1000000.0 // 1 Mb per 1 Flow token
         self.minimumStorageReservation = 0.1 // or 100 kb of storage capacity
 
         let admin <- create Administrator()
