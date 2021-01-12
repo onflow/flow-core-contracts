@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/onflow/cadence"
+	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 	sdktemplates "github.com/onflow/flow-go-sdk/templates"
@@ -48,6 +49,14 @@ func TestContracts(t *testing.T) {
 	assert.Equal(t, CadenceUFix64("1000000.0"), conversion.(cadence.UFix64))
 
 	result, err = b.ExecuteScript(templates.GenerateGetStorageFeeMinimumScript(env), nil)
+	require.NoError(t, err)
+	if !assert.True(t, result.Succeeded()) {
+		t.Log(result.Error.Error())
+	}
+	min := result.Value
+	assert.Equal(t, CadenceUFix64("0.1"), min.(cadence.UFix64))
+
+	result, err = b.ExecuteScript(templates.GenerateGetStorageCapacityScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(storageFeesAddress))})
 	require.NoError(t, err)
 	if !assert.True(t, result.Succeeded()) {
 		t.Log(result.Error.Error())

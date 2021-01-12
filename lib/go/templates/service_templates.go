@@ -15,7 +15,8 @@ const (
 	changeStorageFeeParametersFilename = "/storageFees/admin/set_parameters.cdc"
 
 	getStorageFeeConversionFilenane = "/storageFees/scripts/get_storage_fee_conversion.cdc"
-	getStorageFeeMinimumFilename    = "get_storage_fee_min.cdc"
+	getStorageFeeMinimumFilename    = "/storageFees/scripts/get_storage_fee_min.cdc"
+	getStorageCapacityFilename      = "/storageFees/scripts/get_storage_capacity.cdc"
 )
 
 // GenerateInspectFieldScript creates a script that reads
@@ -49,6 +50,12 @@ func GenerateGetStorageFeeConversionScript(env Environment) []byte {
 
 func GenerateGetStorageFeeMinimumScript(env Environment) []byte {
 	code := assets.MustAssetString(getStorageFeeMinimumFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateGetStorageCapacityScript(env Environment) []byte {
+	code := assets.MustAssetString(getStorageCapacityFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
