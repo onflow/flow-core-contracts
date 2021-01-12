@@ -63,6 +63,7 @@ pub contract FlowEpochClusterQC {
         // a cluster for a given epoch
         pub let index: UInt16
 
+        // Weights for each nodeID in the cluster
         pub let nodeWeights: {String: UInt64}
 
         // The total node weight of all the nodes in the cluster
@@ -113,7 +114,7 @@ pub contract FlowEpochClusterQC {
 
         init(nodeID: String, clusterIndex: UInt16, voteWeight: UInt64) {
             pre {
-                nodeID.length == 64: "Voter ID must be a valid node ID"
+                nodeID.length == 64: "Voter ID must be a valid length node ID"
             }
             self.raw = nil
             self.nodeID = nodeID
@@ -132,11 +133,12 @@ pub contract FlowEpochClusterQC {
         // Submits the given vote. Can be called only once per epoch
         pub fun vote(_ raw: String) {
             pre {
-                raw.length > 0: "Vote must not be empty"
-                FlowEpochClusterQC.nodeHasVoted(self.nodeID) != nil: "Vote must not have been cast already"
+                raw.length > 0: "Vote contents must not be empty"
+                !FlowEpochClusterQC.nodeHasVoted(self.nodeID): "Vote must not have been cast already"
             }
 
-            let vote = FlowEpochClusterQC.generatedVotes[self.nodeID]!
+            let vote = FlowEpochClusterQC.generatedVotes[self.nodeID]
+                ?? panic("This node cannot vote during the current epoch")
 
             vote.raw = raw
 

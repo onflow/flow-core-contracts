@@ -16,7 +16,7 @@ const (
 	flowServiceAccountFilename = "FlowServiceAccount.cdc"
 	flowTokenFilename          = "FlowToken.cdc"
 	flowIdentityTableFilename  = "FlowIDTableStaking.cdc"
-	flowQCFilename             = "epochs/FlowQuorumCertificate.cdc"
+	flowQCFilename             = "epochs/FlowEpochClusterQC.cdc"
 	flowDKGFilename            = "epochs/FlowDKG.cdc"
 	flowEpochFilename          = "epochs/FlowEpoch.cdc"
 	flowLockedTokensFilename   = "LockedTokens.cdc"

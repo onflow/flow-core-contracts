@@ -48,6 +48,22 @@ func TestQuroumCertificate(t *testing.T) {
 
 	env.QuorumCertificateAddress = QCAddress.Hex()
 
+	// Create new user accounts
+	joshAccountKey, joshSigner := accountKeys.NewWithSigner()
+	joshAddress, _ := b.CreateAccount([]*flow.AccountKey{joshAccountKey}, nil)
+
+	// // Create a new user account
+	// maxAccountKey, maxSigner := accountKeys.NewWithSigner()
+	// maxAddress, _ := b.CreateAccount([]*flow.AccountKey{maxAccountKey}, nil)
+
+	// // Create a new user account
+	// bastianAccountKey, bastianSigner := accountKeys.NewWithSigner()
+	// bastianAddress, _ := b.CreateAccount([]*flow.AccountKey{bastianAccountKey}, nil)
+
+	// // Create a new user account for access node
+	// accessAccountKey, accessSigner := accountKeys.NewWithSigner()
+	// accessAddress, _ := b.CreateAccount([]*flow.AccountKey{accessAccountKey}, nil)
+
 	t.Run("Should be able to set up the admin account", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
@@ -196,6 +212,70 @@ func TestQuroumCertificate(t *testing.T) {
 		assert.Equal(t, hasVoted.(cadence.Bool), cadence.NewBool(false))
 	})
 
+	t.Run("Admin should not be able to stop voting until the quorum has been reached", func(t *testing.T) {
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GenerateStopVotingScript(env)).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(QCAddress)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, QCAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), QCSigner},
+			true,
+		)
+	})
+
+	t.Run("Should not be able to register a voter if the node has already been registered", func(t *testing.T) {
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GenerateCreateVoterScript(env)).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(joshAddress)
+
+		_ = tx.AddArgument(cadence.NewAddress(QCAddress))
+		_ = tx.AddArgument(cadence.NewString(adminID))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			true,
+		)
+	})
+
+	t.Run("Should not be able to submit an empty vote", func(t *testing.T) {
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GenerateSubmitVoteScript(env)).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(QCAddress)
+
+		_ = tx.AddArgument(cadence.NewString(""))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, QCAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), QCSigner},
+			true,
+		)
+
+		result, err := b.ExecuteScript(templates.GenerateGetNodeHasVotedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(clusterNodeIDStrings[0][0]))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		hasVoted := result.Value
+		assert.Equal(t, hasVoted.(cadence.Bool), cadence.NewBool(false))
+	})
+
 	t.Run("Should be able to submit a vote", func(t *testing.T) {
 
 		tx := flow.NewTransaction().
@@ -212,6 +292,33 @@ func TestQuroumCertificate(t *testing.T) {
 			[]flow.Address{b.ServiceKey().Address, QCAddress},
 			[]crypto.Signer{b.ServiceKey().Signer(), QCSigner},
 			false,
+		)
+
+		result, err := b.ExecuteScript(templates.GenerateGetNodeHasVotedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(clusterNodeIDStrings[0][0]))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		hasVoted := result.Value
+		assert.Equal(t, hasVoted.(cadence.Bool), cadence.NewBool(true))
+	})
+
+	t.Run("Should not be able to submit a vote a second time", func(t *testing.T) {
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GenerateSubmitVoteScript(env)).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(QCAddress)
+
+		_ = tx.AddArgument(cadence.NewString("0000000000000000000000000000000000000000000000000000000000000000"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, QCAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), QCSigner},
+			true,
 		)
 
 		result, err := b.ExecuteScript(templates.GenerateGetNodeHasVotedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(clusterNodeIDStrings[0][0]))})
