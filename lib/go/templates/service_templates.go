@@ -9,6 +9,13 @@ import (
 const (
 	inspectFieldFilename = "inspect_field.cdc"
 	defaultField         = "transactionField"
+
+	// FlowStorageFees templates
+
+	changeStorageFeeParametersFilename = "/storageFees/admin/set_parameters.cdc"
+
+	getStorageFeeConversionFilenane = "/storageFees/scripts/get_storage_fee_conversion.cdc"
+	getStorageFeeMinimumFilename    = "get_storage_fee_min.cdc"
 )
 
 // GenerateInspectFieldScript creates a script that reads
@@ -24,4 +31,24 @@ func GenerateInspectFieldScript(field string) []byte {
 	)
 
 	return []byte(code)
+}
+
+// StorageFees Templates
+
+func GenerateChangeStorageFeeParametersScript(env Environment) []byte {
+	code := assets.MustAssetString(changeStorageFeeParametersFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateGetStorageFeeConversionScript(env Environment) []byte {
+	code := assets.MustAssetString(getStorageFeeConversionFilenane)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateGetStorageFeeMinimumScript(env Environment) []byte {
+	code := assets.MustAssetString(getStorageFeeMinimumFilename)
+
+	return []byte(replaceAddresses(code, env))
 }

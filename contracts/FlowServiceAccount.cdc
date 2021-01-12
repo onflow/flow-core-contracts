@@ -1,7 +1,7 @@
 import FungibleToken from 0xFUNGIBLETOKENADDRESS
 import FlowToken from 0xFLOWTOKENADDRESS
 import FlowFees from 0xFLOWFEESADDRESS
-import FlowStorageFees from 0xFLOWSTORAGEFEES
+import FlowStorageFees from 0xFLOWSTORAGEFEESADDRESS
 
 pub contract FlowServiceAccount {
 
@@ -83,7 +83,10 @@ pub contract FlowServiceAccount {
         FlowFees.deposit(from: <-feeVault)
 
         FlowServiceAccount.initDefaultToken(newAccount)
-        FlowStorageFees.setupAccountStorage(account: newAccount, storageReservation: <-storageFeeVault)
+
+        let vaultRef = FlowServiceAccount.defaultTokenVault(newAccount)
+
+        vaultRef.deposit(from: <-storageFeeVault)
     }
 
     // Returns true if the given address is permitted to create accounts, false otherwise
