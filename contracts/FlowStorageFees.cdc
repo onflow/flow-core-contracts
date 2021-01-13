@@ -59,7 +59,8 @@ pub contract FlowStorageFees {
         access(contract) init(){}
     }
 
-    pub fun calculateAccountCapacity(_ accountAddress: Address): UInt64 {
+    // Returns megabytes
+    pub fun calculateAccountCapacity(_ accountAddress: Address): UFix64 {
         let balanceRef = getAccount(accountAddress)
             .getCapability<&FlowToken.Vault{FungibleToken.Balance}>(/public/flowTokenBalance)!
             .borrow() ?? panic("Could not borrow FLOW balance capability")
@@ -67,21 +68,25 @@ pub contract FlowStorageFees {
         // get address token balance
         if balanceRef.balance < self.minimumStorageReservation {
             // if < then minimum return 0
-            return 0
+            return 0.0
         } else {
             // return balance multiplied with megabytes per flow 
-            return UInt64(balanceRef.balance * self.storageMegaBytesPerReservedFLOW)
+            return balanceRef.balance * self.storageMegaBytesPerReservedFLOW
         }
     }
 
-    pub fun flowToStorageCapacity(_ amount: UFix64): UInt64 {
-        return UInt64(amount * FlowStorageFees.storageMegaBytesPerReservedFLOW)
+    // Amount in Flow tokens
+    // Returns megabytes
+    pub fun flowToStorageCapacity(_ amount: UFix64): UFix64 {
+        return amount * FlowStorageFees.storageMegaBytesPerReservedFLOW
     }
 
-    pub fun storageCapacityToFlow(_ amount: UInt64): UFix64 {
-        // loss of precision
-        // putting the result back into `flowToStorageCapacity` possibly won't yield the same result
-        return UFix64(amount) / FlowStorageFees.storageMegaBytesPerReservedFLOW
+    // Amount in megabytes
+    // Returns Flow tokens
+    pub fun storageCapacityToFlow(_ amount: UFix64): UFix64 {
+        // possible loss of precision
+        // putting the result back into `flowToStorageCapacity` might not yield the same result
+        return amount / FlowStorageFees.storageMegaBytesPerReservedFLOW
     }
 
     init() {
