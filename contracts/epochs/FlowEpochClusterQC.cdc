@@ -133,6 +133,7 @@ pub contract FlowEpochClusterQC {
         // Submits the given vote. Can be called only once per epoch
         pub fun vote(_ raw: String) {
             pre {
+                FlowEpochClusterQC.inProgress: "Voting phase is not in progress"
                 raw.length > 0: "Vote contents must not be empty"
                 !FlowEpochClusterQC.nodeHasVoted(self.nodeID): "Vote must not have been cast already"
             }
@@ -155,6 +156,10 @@ pub contract FlowEpochClusterQC {
             }
             self.nodeID = nodeID
             FlowEpochClusterQC.voterClaimed[nodeID] = true
+        }
+
+        destroy () {
+            FlowEpochClusterQC.voterClaimed[self.nodeID] = false
         }
 
     }

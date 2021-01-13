@@ -67,7 +67,7 @@ pub contract FlowEpochs {
         // The cluster assignment for the upcoming epoch. Each element in the list
         // represents one cluster and contains all the node IDs assigned to that
         // cluster, separated by commas.
-        collectorClusters: [String],
+        collectorClusters: [FlowEpochClusterQC.Cluster],
 
         // The source of randomness to seed the leader selection algorithm with 
         // for the upcoming epoch.
@@ -94,14 +94,6 @@ pub contract FlowEpochs {
         // TODO: define ordering
         clusterQCs: [String]
     )
-
-    /// The counter, or ID, of the current epoch
-    pub var currentEpochCounter: UInt64
-
-    /// Contains a historical record of the metadata from all previous epochs
-    access(contract) var epochMetadata: {UInt64: EpochMetadata}
-
-    access(contract) let QCAdmin: @FlowEpochClusterQC.Admin
 
     pub struct EpochMetadata {
 
@@ -146,6 +138,46 @@ pub contract FlowEpochs {
         }
     }
 
+    /// The counter, or ID, of the current epoch
+    pub var currentEpochCounter: UInt64
+
+    pub var numViewsinEpoch: UInt64
+
+    /// The number of collector clusters in each epoch
+    pub var numCollectorClusters: UInt8
+
+    /// Contains a historical record of the metadata from all previous epochs
+    /// indexed by epoch number
+    access(contract) var epochMetadata: {UInt64: EpochMetadata}
+
+    access(contract) let QCAdmin: @FlowEpochClusterQC.Admin
+
+    access(account) let stakingAdmin: @FlowIDTableStaking.Admin
+
+    // Emits the epoch setup event
+    access(account) fun startEpochSetup() {
+
+    }
+
+    access(account) fun endEpochSetup() {
+
+    }
+
+    // Emits the epoch committed event
+    access(account) fun startEpochCommitted() {
+        
+    }
+
+    access(contract) fun endEpochCommitted() {
+        
+    }
+
+    // Organizes the collector nodes into clusters
+    // via a round robin algorithm
+    access(account) fun createCollectorClusters(): [FlowEpochClusterQC.Cluster] {
+
+    }
+
     /// borrow a reference to the ClusterQCs resource
     access(contract) fun borrowClusterQCAdmin(): &FlowEpochClusterQC.Admin {
         return &FlowEpochs.QCAdmin as! &FlowEpochClusterQC.Admin
@@ -166,12 +198,19 @@ pub contract FlowEpochs {
 
     init () {
         self.currentEpochCounter = 0
+        self.numViewsinEpoch = 600000
+        self.numCollectorClusters = 10
         self.epochMetadata = {}
 
-        let QCAdmin <- self.account.load(from: FlowEpochClusterQC.AdminStoragePath)
+        let QCAdmin <- self.account.load<@FlowEpochClusterQC.Admin>(from: FlowEpochClusterQC.AdminStoragePath)
             ?? panic("Could not load QC Admin from storage")
 
         self.QCAdmin <- QCAdmin
+
+        let stakingAdmin <- self.account.load<@FlowIDTableStaking.Admin>(from: FlowIDTableStaking.StakingAdminStoragePath)
+            ?? panic("Could not load staking Admin from storage")
+
+        self.stakingAdmin <- stakingAdmin
     }
 
 }
