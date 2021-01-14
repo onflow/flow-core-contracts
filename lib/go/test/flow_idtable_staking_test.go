@@ -9,6 +9,7 @@ import (
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
+	emulator "github.com/onflow/flow-emulator"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/test"
@@ -40,18 +41,8 @@ const (
 	emulatorFlowTokenAddress = "0ae53cb6e3f42a79"
 )
 
-func TestIDTable(t *testing.T) {
-	b := newEmulator()
+func deployStakingContract(t *testing.T, b *emulator.Blockchain, IDTableAccountKey *flow.AccountKey, env templates.Environment) flow.Address {
 
-	env := templates.Environment{
-		FungibleTokenAddress: emulatorFTAddress,
-		FlowTokenAddress:     emulatorFlowTokenAddress,
-	}
-
-	accountKeys := test.AccountKeyGenerator()
-
-	// Create new keys for the ID table account
-	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
 	IDTableCode := contracts.FlowIDTableStaking(emulatorFTAddress, emulatorFlowTokenAddress)
 
 	publicKeys := make([]cadence.Value, 1)
@@ -97,6 +88,75 @@ func TestIDTable(t *testing.T) {
 
 		i = i + 1
 	}
+
+	return idTableAddress
+}
+
+func mintTokensForAccount(t *testing.T, b *emulator.Blockchain, recipient flow.Address) {
+	tx := flow.NewTransaction().
+		SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
+		SetGasLimit(100).
+		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+		SetPayer(b.ServiceKey().Address).
+		AddAuthorizer(b.ServiceKey().Address)
+
+	_ = tx.AddArgument(cadence.NewAddress(recipient))
+	_ = tx.AddArgument(CadenceUFix64("1000000000.0"))
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address},
+		[]crypto.Signer{b.ServiceKey().Signer()},
+		false,
+	)
+}
+
+func registerNode(t *testing.T,
+	b *emulator.Blockchain,
+	env templates.Environment,
+	authorizer flow.Address,
+	signer crypto.Signer,
+	nodeID, networkingAddress, networkingKey, stakingKey, amount string,
+	role uint8,
+	shouldFail bool) {
+
+	tx := flow.NewTransaction().
+		SetScript(templates.GenerateRegisterNodeScript(env)).
+		SetGasLimit(100).
+		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+		SetPayer(b.ServiceKey().Address).
+		AddAuthorizer(authorizer)
+
+	_ = tx.AddArgument(cadence.NewString(nodeID))
+	_ = tx.AddArgument(cadence.NewUInt8(role))
+	_ = tx.AddArgument(cadence.NewString(networkingAddress))
+	_ = tx.AddArgument(cadence.NewString(networkingKey))
+	_ = tx.AddArgument(cadence.NewString(stakingKey))
+	tokenAmount, err := cadence.NewUFix64(amount)
+	require.NoError(t, err)
+	_ = tx.AddArgument(tokenAmount)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, authorizer},
+		[]crypto.Signer{b.ServiceKey().Signer(), signer},
+		shouldFail,
+	)
+}
+
+func TestIDTableDeployment(t *testing.T) {
+	b := newEmulator()
+
+	env := templates.Environment{
+		FungibleTokenAddress: emulatorFTAddress,
+		FlowTokenAddress:     emulatorFlowTokenAddress,
+	}
+
+	accountKeys := test.AccountKeyGenerator()
+
+	// Create new keys for the ID table account
+	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
+	var idTableAddress = deployStakingContract(t, b, IDTableAccountKey, env)
 
 	env.IDTableAddress = idTableAddress.Hex()
 
@@ -259,246 +319,91 @@ func TestIDTable(t *testing.T) {
 
 	})
 
-	adminStaked := 0
-	adminRewards := 0
+	// adminStaked := 0
+	// adminRewards := 0
 
 	// Create new user accounts
 	joshAccountKey, joshSigner := accountKeys.NewWithSigner()
 	joshAddress, _ := b.CreateAccount([]*flow.AccountKey{joshAccountKey}, nil)
-	joshStaked := 0
-	joshRewards := 0
+	// joshStaked := 0
+	// joshRewards := 0
 
 	// Create a new user account
 	maxAccountKey, maxSigner := accountKeys.NewWithSigner()
 	maxAddress, _ := b.CreateAccount([]*flow.AccountKey{maxAccountKey}, nil)
-	maxStaked := 0
-	maxRewards := 0
+	// maxStaked := 0
+	// maxRewards := 0
 
 	// Create a new user account
 	bastianAccountKey, bastianSigner := accountKeys.NewWithSigner()
 	bastianAddress, _ := b.CreateAccount([]*flow.AccountKey{bastianAccountKey}, nil)
-	bastianStaked := 0
-	bastianRewards := 0
+	// bastianStaked := 0
+	// bastianRewards := 0
 
 	// Create a new user account for access node
 	accessAccountKey, accessSigner := accountKeys.NewWithSigner()
 	accessAddress, _ := b.CreateAccount([]*flow.AccountKey{accessAccountKey}, nil)
-	accessStaked := 0
-	accessRewards := 0
+	// accessStaked := 0
+	// accessRewards := 0
 
 	// Create new delegator user accounts
 	adminDelegatorAccountKey, adminDelegatorSigner := accountKeys.NewWithSigner()
 	adminDelegatorAddress, _ := b.CreateAccount([]*flow.AccountKey{adminDelegatorAccountKey}, nil)
-	adminDelegatorStaked := 0
-	adminDelegatorRewards := 0
+	// adminDelegatorStaked := 0
+	// adminDelegatorRewards := 0
 
 	joshDelegatorOneAccountKey, joshDelegatorOneSigner := accountKeys.NewWithSigner()
 	joshDelegatorOneAddress, _ := b.CreateAccount([]*flow.AccountKey{joshDelegatorOneAccountKey}, nil)
-	joshDelegatorOneStaked := 0
-	joshDelegatorOneRewards := 0
+	// joshDelegatorOneStaked := 0
+	// joshDelegatorOneRewards := 0
 
 	maxDelegatorOneAccountKey, maxDelegatorOneSigner := accountKeys.NewWithSigner()
 	maxDelegatorOneAddress, _ := b.CreateAccount([]*flow.AccountKey{maxDelegatorOneAccountKey}, nil)
-	maxDelegatorOneStaked := 0
-	maxDelegatorOneRewards := 0
+	// maxDelegatorOneStaked := 0
+	// maxDelegatorOneRewards := 0
 
 	maxDelegatorTwoAccountKey, maxDelegatorTwoSigner := accountKeys.NewWithSigner()
 	maxDelegatorTwoAddress, _ := b.CreateAccount([]*flow.AccountKey{maxDelegatorTwoAccountKey}, nil)
-	maxDelegatorTwoStaked := 0
-	maxDelegatorTwoRewards := 0
+	// maxDelegatorTwoStaked := 0
+	// maxDelegatorTwoRewards := 0
 
 	t.Run("Should be able to mint tokens for new accounts", func(t *testing.T) {
 
-		tx := flow.NewTransaction().
-			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(b.ServiceKey().Address)
+		mintTokensForAccount(t, b, idTableAddress)
 
-		_ = tx.AddArgument(cadence.NewAddress(idTableAddress))
-		_ = tx.AddArgument(CadenceUFix64("1000000000.0"))
+		mintTokensForAccount(t, b, joshAddress)
 
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
-			false,
-		)
+		mintTokensForAccount(t, b, maxAddress)
 
-		tx = flow.NewTransaction().
-			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(b.ServiceKey().Address)
+		mintTokensForAccount(t, b, accessAddress)
 
-		_ = tx.AddArgument(cadence.NewAddress(joshAddress))
-		_ = tx.AddArgument(CadenceUFix64("1000000000.0"))
+		mintTokensForAccount(t, b, bastianAddress)
 
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
-			false,
-		)
+		mintTokensForAccount(t, b, maxDelegatorOneAddress)
 
-		tx = flow.NewTransaction().
-			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(b.ServiceKey().Address)
+		mintTokensForAccount(t, b, maxDelegatorTwoAddress)
 
-		_ = tx.AddArgument(cadence.NewAddress(maxAddress))
-		_ = tx.AddArgument(CadenceUFix64("1000000000.0"))
+		mintTokensForAccount(t, b, joshDelegatorOneAddress)
 
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
-			false,
-		)
-
-		tx = flow.NewTransaction().
-			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(b.ServiceKey().Address)
-
-		_ = tx.AddArgument(cadence.NewAddress(accessAddress))
-		_ = tx.AddArgument(CadenceUFix64("1000000000.0"))
-
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
-			false,
-		)
-
-		result, err := b.ExecuteScript(ft_templates.GenerateInspectVaultScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
-		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
-		balance := result.Value
-		assert.Equal(t, CadenceUFix64("1000000000.0"), balance)
-
-		tx = flow.NewTransaction().
-			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(b.ServiceKey().Address)
-
-		_ = tx.AddArgument(cadence.NewAddress(bastianAddress))
-		_ = tx.AddArgument(CadenceUFix64("1000000000.0"))
-
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
-			false,
-		)
-
-		tx = flow.NewTransaction().
-			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(b.ServiceKey().Address)
-
-		_ = tx.AddArgument(cadence.NewAddress(maxDelegatorOneAddress))
-		_ = tx.AddArgument(CadenceUFix64("1000000000.0"))
-
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
-			false,
-		)
-
-		tx = flow.NewTransaction().
-			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(b.ServiceKey().Address)
-
-		_ = tx.AddArgument(cadence.NewAddress(maxDelegatorTwoAddress))
-		_ = tx.AddArgument(CadenceUFix64("1000000000.0"))
-
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
-			false,
-		)
-
-		tx = flow.NewTransaction().
-			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(b.ServiceKey().Address)
-
-		_ = tx.AddArgument(cadence.NewAddress(joshDelegatorOneAddress))
-		_ = tx.AddArgument(CadenceUFix64("1000000000.0"))
-
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
-			false,
-		)
-
-		tx = flow.NewTransaction().
-			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(b.ServiceKey().Address)
-
-		_ = tx.AddArgument(cadence.NewAddress(adminDelegatorAddress))
-		_ = tx.AddArgument(CadenceUFix64("1000000000.0"))
-
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
-			false,
-		)
+		mintTokensForAccount(t, b, adminDelegatorAddress)
 
 	})
 
 	t.Run("Shouldn't be able to create invalid Node structs", func(t *testing.T) {
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateRegisterNodeScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(idTableAddress)
-
 		// Invalid ID: Too short
-		_ = tx.AddArgument(cadence.NewString("3039"))
-		_ = tx.AddArgument(cadence.NewUInt8(1))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", admin)))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", admin)))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", admin)))
-		tokenAmount, err := cadence.NewUFix64("250000.0")
-		require.NoError(t, err)
-		_ = tx.AddArgument(tokenAmount)
+		registerNode(t, b, env,
+			idTableAddress,
+			IDTableSigner,
+			"3039",
+			fmt.Sprintf("%0128d", admin),
+			fmt.Sprintf("%0128d", admin),
+			fmt.Sprintf("%0192d", admin),
+			"250000.0",
+			1,
+			true)
 
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, idTableAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
-			true,
-		)
-
-		tx = flow.NewTransaction().
+		tx := flow.NewTransaction().
 			SetScript(templates.GenerateRegisterNodeScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
@@ -511,7 +416,7 @@ func TestIDTable(t *testing.T) {
 		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", admin)))
 		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", admin)))
 		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", admin)))
-		tokenAmount, err = cadence.NewUFix64("250000.0")
+		tokenAmount, err := cadence.NewUFix64("250000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
 
@@ -1111,7 +1016,7 @@ func TestIDTable(t *testing.T) {
 
 	t.Run("Should be able to commit additional tokens for a node", func(t *testing.T) {
 
-		tx = flow.NewTransaction().
+		tx := flow.NewTransaction().
 			SetScript(templates.GenerateStakeNewTokensScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
@@ -1141,7 +1046,7 @@ func TestIDTable(t *testing.T) {
 
 	t.Run("Should not be able request unstaking for more than is available", func(t *testing.T) {
 
-		tx = flow.NewTransaction().
+		tx := flow.NewTransaction().
 			SetScript(templates.GenerateUnstakeTokensScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
@@ -1163,7 +1068,7 @@ func TestIDTable(t *testing.T) {
 
 	t.Run("Should be able to request unstaking which moves from comitted to unstaked", func(t *testing.T) {
 
-		tx = flow.NewTransaction().
+		tx := flow.NewTransaction().
 			SetScript(templates.GenerateUnstakeTokensScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
@@ -1201,7 +1106,7 @@ func TestIDTable(t *testing.T) {
 
 	t.Run("Should be able to withdraw tokens from unstaked", func(t *testing.T) {
 
-		tx = flow.NewTransaction().
+		tx := flow.NewTransaction().
 			SetScript(templates.GenerateWithdrawUnstakedTokensScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
@@ -1231,7 +1136,7 @@ func TestIDTable(t *testing.T) {
 
 	t.Run("Should be able to commit unstaked tokens", func(t *testing.T) {
 
-		tx = flow.NewTransaction().
+		tx := flow.NewTransaction().
 			SetScript(templates.GenerateStakeUnstakedTokensScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
@@ -1527,7 +1432,7 @@ func TestIDTable(t *testing.T) {
 
 	t.Run("Should be able to commit unstaked and new tokens from the node who was not included", func(t *testing.T) {
 
-		tx = flow.NewTransaction().
+		tx := flow.NewTransaction().
 			SetScript(templates.GenerateStakeUnstakedTokensScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
@@ -1593,7 +1498,7 @@ func TestIDTable(t *testing.T) {
 
 	t.Run("Should be able to request unstaking from a staked node", func(t *testing.T) {
 
-		tx = flow.NewTransaction().
+		tx := flow.NewTransaction().
 			SetScript(templates.GenerateUnstakeTokensScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
@@ -1661,7 +1566,7 @@ func TestIDTable(t *testing.T) {
 
 	t.Run("Should be able to register first account to delegate to max", func(t *testing.T) {
 
-		tx = flow.NewTransaction().
+		tx := flow.NewTransaction().
 			SetScript(templates.GenerateRegisterDelegatorScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
@@ -1681,7 +1586,7 @@ func TestIDTable(t *testing.T) {
 
 	t.Run("Should be able to register second account to delegate to max", func(t *testing.T) {
 
-		tx = flow.NewTransaction().
+		tx := flow.NewTransaction().
 			SetScript(templates.GenerateRegisterDelegatorScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
@@ -1701,7 +1606,7 @@ func TestIDTable(t *testing.T) {
 
 	t.Run("Should be able to register account to delegate to josh", func(t *testing.T) {
 
-		tx = flow.NewTransaction().
+		tx := flow.NewTransaction().
 			SetScript(templates.GenerateRegisterDelegatorScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
@@ -1721,7 +1626,7 @@ func TestIDTable(t *testing.T) {
 
 	t.Run("Should not be able to register account to delegate to the admin address, because it has insufficient stake committed", func(t *testing.T) {
 
-		tx = flow.NewTransaction().
+		tx := flow.NewTransaction().
 			SetScript(templates.GenerateRegisterDelegatorScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
@@ -1741,7 +1646,7 @@ func TestIDTable(t *testing.T) {
 
 	t.Run("Should not be able to register account to delegate to the access node, because access nodes are not allowed to be delegated to", func(t *testing.T) {
 
-		tx = flow.NewTransaction().
+		tx := flow.NewTransaction().
 			SetScript(templates.GenerateRegisterDelegatorScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
@@ -1761,7 +1666,7 @@ func TestIDTable(t *testing.T) {
 
 	t.Run("Should be able to delegate new tokens to josh", func(t *testing.T) {
 
-		tx = flow.NewTransaction().
+		tx := flow.NewTransaction().
 			SetScript(templates.GenerateDelegatorStakeNewScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
@@ -1815,7 +1720,7 @@ func TestIDTable(t *testing.T) {
 
 	t.Run("Should be able to request unstake delegated tokens from Josh, which moved them from committed to unstaked", func(t *testing.T) {
 
-		tx = flow.NewTransaction().
+		tx := flow.NewTransaction().
 			SetScript(templates.GenerateDelegatorRequestUnstakeScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
@@ -1877,7 +1782,7 @@ func TestIDTable(t *testing.T) {
 
 	t.Run("Should be able to withdraw josh delegator's unstaked tokens", func(t *testing.T) {
 
-		tx = flow.NewTransaction().
+		tx := flow.NewTransaction().
 			SetScript(templates.GenerateDelegatorWithdrawUnstakedScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
@@ -1915,7 +1820,7 @@ func TestIDTable(t *testing.T) {
 
 	t.Run("Should be able to delegate unstaked tokens to josh", func(t *testing.T) {
 
-		tx = flow.NewTransaction().
+		tx := flow.NewTransaction().
 			SetScript(templates.GenerateDelegatorStakeUnstakedScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
@@ -2461,7 +2366,7 @@ func TestIDTable(t *testing.T) {
 
 	t.Run("Should create new execution node", func(t *testing.T) {
 
-		tx = flow.NewTransaction().
+		tx := flow.NewTransaction().
 			SetScript(templates.GenerateRegisterNodeScript(env)).
 			SetGasLimit(200).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
@@ -2495,7 +2400,7 @@ func TestIDTable(t *testing.T) {
 
 	t.Run("Should be able to delegate new tokens to max", func(t *testing.T) {
 
-		tx = flow.NewTransaction().
+		tx := flow.NewTransaction().
 			SetScript(templates.GenerateDelegatorStakeNewScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
@@ -2543,7 +2448,7 @@ func TestIDTable(t *testing.T) {
 		balance := result.Value
 		assert.Equal(t, CadenceUFix64("660000.0"), balance)
 
-		tx = flow.NewTransaction().
+		tx := flow.NewTransaction().
 			SetScript(templates.GenerateUnstakeTokensScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
@@ -2584,7 +2489,7 @@ func TestIDTable(t *testing.T) {
 
 	t.Run("Should be able to commit rewarded tokens", func(t *testing.T) {
 
-		tx = flow.NewTransaction().
+		tx := flow.NewTransaction().
 			SetScript(templates.GenerateStakeRewardedTokensScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
@@ -2623,7 +2528,7 @@ func TestIDTable(t *testing.T) {
 	// Josh Delegator Requests to unstake which marks their request
 	t.Run("Should be able to request unstake delegated tokens from Josh, marks as requested", func(t *testing.T) {
 
-		tx = flow.NewTransaction().
+		tx := flow.NewTransaction().
 			SetScript(templates.GenerateDelegatorRequestUnstakeScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
@@ -2685,7 +2590,7 @@ func TestIDTable(t *testing.T) {
 
 	t.Run("Should be able cancel unstake request for delegator", func(t *testing.T) {
 
-		tx = flow.NewTransaction().
+		tx := flow.NewTransaction().
 			SetScript(templates.GenerateDelegatorStakeUnstakedScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
@@ -2717,7 +2622,7 @@ func TestIDTable(t *testing.T) {
 	// Josh Delegator Requests to unstake which marks their request
 	t.Run("Should be able to request unstake delegated tokens from Josh, marks as requested", func(t *testing.T) {
 
-		tx = flow.NewTransaction().
+		tx := flow.NewTransaction().
 			SetScript(templates.GenerateDelegatorRequestUnstakeScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
@@ -3020,7 +2925,7 @@ func TestIDTable(t *testing.T) {
 	// Max Delegator Withdraws rewards
 	t.Run("Should be able to withdraw delegator rewards", func(t *testing.T) {
 
-		tx = flow.NewTransaction().
+		tx := flow.NewTransaction().
 			SetScript(templates.GenerateDelegatorWithdrawRewardsScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
@@ -3050,7 +2955,7 @@ func TestIDTable(t *testing.T) {
 
 	t.Run("Should commit more delegator tokens", func(t *testing.T) {
 
-		tx = flow.NewTransaction().
+		tx := flow.NewTransaction().
 			SetScript(templates.GenerateDelegatorStakeNewScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
@@ -3160,7 +3065,7 @@ func TestIDTable(t *testing.T) {
 		balance = result.Value
 		assert.Equal(t, CadenceUFix64("1400000.0"), balance)
 
-		tx = flow.NewTransaction().
+		tx := flow.NewTransaction().
 			SetScript(templates.GenerateUnstakeTokensScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
@@ -3250,7 +3155,7 @@ func TestIDTable(t *testing.T) {
 		balance := result.Value
 		assert.Equal(t, CadenceUFix64("0.0"), balance)
 
-		tx = flow.NewTransaction().
+		tx := flow.NewTransaction().
 			SetScript(templates.GenerateUnstakeAllScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
@@ -3284,7 +3189,7 @@ func TestIDTable(t *testing.T) {
 
 	t.Run("Should be able cancel unstake request for node operator", func(t *testing.T) {
 
-		tx = flow.NewTransaction().
+		tx := flow.NewTransaction().
 			SetScript(templates.GenerateStakeUnstakedTokensScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
@@ -3323,7 +3228,7 @@ func TestIDTable(t *testing.T) {
 
 	t.Run("Should be able request unstake all again", func(t *testing.T) {
 
-		tx = flow.NewTransaction().
+		tx := flow.NewTransaction().
 			SetScript(templates.GenerateUnstakeAllScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
@@ -3406,7 +3311,7 @@ func TestIDTable(t *testing.T) {
 
 	t.Run("Should be able to change the staking minimums", func(t *testing.T) {
 
-		tx = flow.NewTransaction().
+		tx := flow.NewTransaction().
 			SetScript(templates.GenerateChangeMinimumsScript(env)).
 			SetGasLimit(100).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
