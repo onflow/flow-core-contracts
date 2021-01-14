@@ -7,13 +7,13 @@ transaction(recipient: Address, amount: UFix64) {
 
     prepare(signer: AuthAccount) {
         self.tokenAdmin = signer
-        .borrow<&FlowToken.Administrator>(from: /storage/flowTokenAdmin) 
-        ?? panic("Signer is not the token admin")
+            .borrow<&FlowToken.Administrator>(from: /storage/flowTokenAdmin)
+            ?? panic("Signer is not the token admin")
 
         self.tokenReceiver = getAccount(recipient)
-        .getCapability(/public/flowTokenReceiver)!
-        .borrow<&{FungibleToken.Receiver}>()
-        ?? panic("Unable to borrow receiver reference")
+            .getCapability(/public/flowTokenReceiver)
+            .borrow<&{FungibleToken.Receiver}>()
+            ?? panic("Unable to borrow receiver reference")
     }
 
     execute {

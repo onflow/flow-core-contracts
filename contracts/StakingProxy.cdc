@@ -3,15 +3,15 @@
 
 // It also defines a resource that a node operator can
 // use to store staking proxies for all of their node operation
-// relationships 
+// relationships
 
 pub contract StakingProxy {
 
     /// path to store the node operator resource
     /// in the node operators account for staking helper
-    pub let NodeOperatorCapabilityStoragePath: Path
+    pub let NodeOperatorCapabilityStoragePath: StoragePath
 
-    pub let NodeOperatorCapabilityPublicPath: Path
+    pub let NodeOperatorCapabilityPublicPath: PublicPath
 
     /// Contains the node info associated with a node operator
     pub struct NodeInfo {
@@ -59,7 +59,7 @@ pub contract StakingProxy {
         pub fun delegateNewTokens(amount: UFix64)
 
         pub fun delegateUnstakedTokens(amount: UFix64)
-        
+
         pub fun delegateRewardedTokens(amount: UFix64)
 
         pub fun requestUnstaking(amount: UFix64)
@@ -73,7 +73,7 @@ pub contract StakingProxy {
     /// as in order to allow other token holders to initialize
     /// staking helper relationships with them
     pub resource interface NodeStakerProxyHolderPublic {
-        
+
         pub fun addStakingProxy(nodeID: String, proxy: AnyStruct{NodeStakerProxy})
 
         pub fun getNodeInfo(nodeID: String): NodeInfo?
@@ -97,7 +97,7 @@ pub contract StakingProxy {
             self.nodeInfo = {}
         }
 
-        /// Node operator calls this to add info about a node they 
+        /// Node operator calls this to add info about a node they
         /// want to accept tokens for
         pub fun addNodeInfo(nodeInfo: NodeInfo) {
             pre {

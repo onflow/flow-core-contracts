@@ -14,10 +14,13 @@ transaction(to: Address, amount: UFix64) {
         let vaultRef = admin.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)
 			?? panic("Could not borrow reference to the owner's Vault!")
 
-        let adminRef = admin.borrow<&LockedTokens.TokenAdminCollection>(from: LockedTokens.LockedTokenAdminCollectionStoragePath)
+        let adminRef = admin
+            .borrow<&LockedTokens.TokenAdminCollection>(
+                from: LockedTokens.LockedTokenAdminCollectionStoragePath
+            )
             ?? panic("Could not borrow a reference to the locked token admin collection")
 
-        assert (
+        assert(
             adminRef.getAccount(address: to) != nil,
             message: "The specified account is not a locked account! Cannot send locked tokens"
         )
@@ -32,7 +35,11 @@ transaction(to: Address, amount: UFix64) {
         let recipient = getAccount(to)
 
         // Get a reference to the recipient's Receiver
-        let receiverRef = recipient.getCapability<&AnyResource{FungibleToken.Receiver}>(/public/lockedFlowTokenReceiver)!.borrow()
+        let receiverRef = recipient
+            .getCapability<&AnyResource{FungibleToken.Receiver}>(
+                /public/lockedFlowTokenReceiver
+            )
+            .borrow()
 			?? panic("Could not borrow receiver reference to the recipient's locked Vault")
 
         // Deposit the withdrawn tokens in the recipient's receiver

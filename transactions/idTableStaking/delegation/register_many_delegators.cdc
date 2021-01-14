@@ -1,6 +1,6 @@
 import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
 
-transaction(nodeIDs: [String], paths: [Path]) {
+transaction(nodeIDs: [String], paths: [StoragePath]) {
 
     prepare(acct: AuthAccount) {
 

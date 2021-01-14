@@ -21,12 +21,9 @@ import (
 )
 
 const (
-	firstID = "0000000000000000000000000000000000000000000000000000000000000001"
 
 	numberOfNodes      = 1000
 	numberOfDelegators = 20000
-
-	nodeStakeAmount = 1500000
 	nodeMintAmount  = 2000000
 
 	unstakeAllNumNodes      = 1
@@ -59,7 +56,11 @@ func TestManyNodesIDTable(t *testing.T) {
 	tx := flow.NewTransaction().
 		SetScript(templates.GenerateTransferMinterAndDeployScript(env)).
 		SetGasLimit(100).
-		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+		SetProposalKey(
+			b.ServiceKey().Address,
+			b.ServiceKey().Index,
+			b.ServiceKey().SequenceNumber,
+		).
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(b.ServiceKey().Address).
 		AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys)).
@@ -125,10 +126,19 @@ func TestManyNodesIDTable(t *testing.T) {
 		totalMint := numberOfNodes * nodeMintAmount
 		mintAmount := fmt.Sprintf("%d.0", totalMint)
 
+		script := ft_templates.GenerateMintTokensScript(
+			flow.HexToAddress(emulatorFTAddress),
+			flow.HexToAddress(emulatorFlowTokenAddress),
+			"FlowToken",
+		)
 		tx := flow.NewTransaction().
-			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
+			SetScript(script).
 			SetGasLimit(9999).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetProposalKey(
+				b.ServiceKey().Address,
+				b.ServiceKey().Index,
+				b.ServiceKey().SequenceNumber,
+			).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(b.ServiceKey().Address)
 
@@ -475,8 +485,13 @@ func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
 
 		for i := 0; i < unstakeAllNumNodes; i++ {
 
+			script := ft_templates.GenerateMintTokensScript(
+				flow.HexToAddress(emulatorFTAddress),
+				flow.HexToAddress(emulatorFlowTokenAddress),
+				"FlowToken",
+			)
 			tx := flow.NewTransaction().
-				SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
+				SetScript(script).
 				SetGasLimit(9999).
 				SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 				SetPayer(b.ServiceKey().Address).
