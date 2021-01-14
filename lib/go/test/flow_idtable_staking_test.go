@@ -605,7 +605,7 @@ func TestIDTable(t *testing.T) {
 			t.Log(result.Error.Error())
 		}
 		role := result.Value
-		assert.Equal(t, role.(cadence.UInt8), cadence.NewUInt8(1))
+		assert.Equal(t, role, cadence.NewUInt8(1))
 
 		result, err = b.ExecuteScript(templates.GenerateGetNetworkingAddressScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		require.NoError(t, err)
@@ -613,7 +613,7 @@ func TestIDTable(t *testing.T) {
 			t.Log(result.Error.Error())
 		}
 		addr := result.Value
-		assert.Equal(t, addr.(cadence.String), cadence.NewString(fmt.Sprintf("%0128d", admin)))
+		assert.Equal(t, addr, cadence.NewString(fmt.Sprintf("%0128d", admin)))
 
 		result, err = b.ExecuteScript(templates.GenerateGetNetworkingKeyScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		require.NoError(t, err)
@@ -621,7 +621,7 @@ func TestIDTable(t *testing.T) {
 			t.Log(result.Error.Error())
 		}
 		key := result.Value
-		assert.Equal(t, key.(cadence.String), cadence.NewString(fmt.Sprintf("%0128d", admin)))
+		assert.Equal(t, key, cadence.NewString(fmt.Sprintf("%0128d", admin)))
 
 		result, err = b.ExecuteScript(templates.GenerateGetStakingKeyScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		require.NoError(t, err)
@@ -629,7 +629,7 @@ func TestIDTable(t *testing.T) {
 			t.Log(result.Error.Error())
 		}
 		key = result.Value
-		assert.Equal(t, key.(cadence.String), cadence.NewString(fmt.Sprintf("%0192d", admin)))
+		assert.Equal(t, key, cadence.NewString(fmt.Sprintf("%0192d", admin)))
 
 		result, err = b.ExecuteScript(templates.GenerateGetInitialWeightScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		require.NoError(t, err)
@@ -637,7 +637,7 @@ func TestIDTable(t *testing.T) {
 			t.Log(result.Error.Error())
 		}
 		weight := result.Value
-		assert.Equal(t, weight.(cadence.UInt64), cadence.NewUInt64(0))
+		assert.Equal(t, weight, cadence.NewUInt64(0))
 
 		result, err = b.ExecuteScript(templates.GenerateGetStakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		require.NoError(t, err)
