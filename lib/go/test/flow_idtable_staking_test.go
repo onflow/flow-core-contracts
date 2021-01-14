@@ -110,7 +110,7 @@ func TestIDTable(t *testing.T) {
 		}
 		currentIDs := result.Value
 		idArray := currentIDs.(cadence.Array).Values
-		assert.Equal(t, 0, len(idArray))
+		assert.Empty(t, idArray)
 
 		result, err = b.ExecuteScript(templates.GenerateReturnProposedTableScript(env), nil)
 		require.NoError(t, err)
@@ -119,7 +119,7 @@ func TestIDTable(t *testing.T) {
 		}
 		proposedIDs := result.Value
 		idArray = proposedIDs.(cadence.Array).Values
-		assert.Equal(t, 0, len(idArray))
+		assert.Empty(t, idArray)
 
 		// Check that the stake requirements for each node role are initialized correctly
 
@@ -607,7 +607,7 @@ func TestIDTable(t *testing.T) {
 		}
 		proposedIDs := result.Value
 		idArray := proposedIDs.(cadence.Array).Values
-		assert.Equal(t, 1, len(idArray))
+		assert.Len(t, idArray, 1)
 
 		result, err = b.ExecuteScript(templates.GenerateReturnProposedTableScript(env), nil)
 		require.NoError(t, err)
@@ -616,7 +616,7 @@ func TestIDTable(t *testing.T) {
 		}
 		proposedIDs = result.Value
 		idArray = proposedIDs.(cadence.Array).Values
-		assert.Equal(t, 1, len(idArray))
+		assert.Len(t, idArray, 1)
 
 		result, err = b.ExecuteScript(templates.GenerateGetRoleScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		require.NoError(t, err)
@@ -624,7 +624,7 @@ func TestIDTable(t *testing.T) {
 			t.Log(result.Error.Error())
 		}
 		role := result.Value
-		assert.Equal(t, role.(cadence.UInt8), cadence.NewUInt8(1))
+		assert.Equal(t, role, cadence.NewUInt8(1))
 
 		result, err = b.ExecuteScript(templates.GenerateGetNetworkingAddressScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		require.NoError(t, err)
@@ -632,7 +632,7 @@ func TestIDTable(t *testing.T) {
 			t.Log(result.Error.Error())
 		}
 		addr := result.Value
-		assert.Equal(t, addr.(cadence.String), cadence.NewString(fmt.Sprintf("%0128d", admin)))
+		assert.Equal(t, addr, cadence.NewString(fmt.Sprintf("%0128d", admin)))
 
 		result, err = b.ExecuteScript(templates.GenerateGetNetworkingKeyScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		require.NoError(t, err)
@@ -640,7 +640,7 @@ func TestIDTable(t *testing.T) {
 			t.Log(result.Error.Error())
 		}
 		key := result.Value
-		assert.Equal(t, key.(cadence.String), cadence.NewString(fmt.Sprintf("%0128d", admin)))
+		assert.Equal(t, key, cadence.NewString(fmt.Sprintf("%0128d", admin)))
 
 		result, err = b.ExecuteScript(templates.GenerateGetStakingKeyScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		require.NoError(t, err)
@@ -648,7 +648,7 @@ func TestIDTable(t *testing.T) {
 			t.Log(result.Error.Error())
 		}
 		key = result.Value
-		assert.Equal(t, key.(cadence.String), cadence.NewString(fmt.Sprintf("%0192d", admin)))
+		assert.Equal(t, key, cadence.NewString(fmt.Sprintf("%0192d", admin)))
 
 		result, err = b.ExecuteScript(templates.GenerateGetInitialWeightScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		require.NoError(t, err)
@@ -656,7 +656,7 @@ func TestIDTable(t *testing.T) {
 			t.Log(result.Error.Error())
 		}
 		weight := result.Value
-		assert.Equal(t, weight.(cadence.UInt64), cadence.NewUInt64(0))
+		assert.Equal(t, weight, cadence.NewUInt64(0))
 
 		result, err = b.ExecuteScript(templates.GenerateGetStakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		require.NoError(t, err)
@@ -880,7 +880,7 @@ func TestIDTable(t *testing.T) {
 		}
 		currentIDs := result.Value
 		idArray := currentIDs.(cadence.Array).Values
-		assert.Equal(t, 0, len(idArray))
+		assert.Len(t, idArray, 0)
 
 		result, err = b.ExecuteScript(templates.GenerateReturnProposedTableScript(env), nil)
 		require.NoError(t, err)
@@ -889,7 +889,7 @@ func TestIDTable(t *testing.T) {
 		}
 		proposedIDs := result.Value
 		idArray = proposedIDs.(cadence.Array).Values
-		assert.Equal(t, 3, len(idArray))
+		assert.Len(t, idArray, 3)
 	})
 
 	t.Run("Shouldn't be able to remove a Node that doesn't exist", func(t *testing.T) {
@@ -936,7 +936,7 @@ func TestIDTable(t *testing.T) {
 		}
 		currentIDs := result.Value
 		idArray := currentIDs.(cadence.Array).Values
-		assert.Equal(t, 0, len(idArray))
+		assert.Len(t, idArray, 0)
 
 		result, err = b.ExecuteScript(templates.GenerateReturnProposedTableScript(env), nil)
 		require.NoError(t, err)
@@ -945,7 +945,7 @@ func TestIDTable(t *testing.T) {
 		}
 		proposedIDs := result.Value
 		idArray = proposedIDs.(cadence.Array).Values
-		assert.Equal(t, 3, len(idArray))
+		assert.Len(t, idArray, 3)
 
 		tx = flow.NewTransaction().
 			SetScript(templates.GenerateRegisterNodeScript(env)).
@@ -977,7 +977,7 @@ func TestIDTable(t *testing.T) {
 		}
 		proposedIDs = result.Value
 		idArray = proposedIDs.(cadence.Array).Values
-		assert.Equal(t, 3, len(idArray))
+		assert.Len(t, idArray, 3)
 
 		result, err = b.ExecuteScript(templates.GenerateGetCommittedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(joshID))})
 		require.NoError(t, err)
@@ -1301,7 +1301,7 @@ func TestIDTable(t *testing.T) {
 		}
 		proposedIDs := result.Value
 		idArray := proposedIDs.(cadence.Array).Values
-		assert.Equal(t, 3, len(idArray))
+		assert.Len(t, idArray, 3)
 
 		result, err = b.ExecuteScript(templates.GenerateGetUnstakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		require.NoError(t, err)
@@ -1572,7 +1572,7 @@ func TestIDTable(t *testing.T) {
 		}
 		proposedIDs := result.Value
 		idArray := proposedIDs.(cadence.Array).Values
-		assert.Equal(t, 4, len(idArray))
+		assert.Len(t, idArray, 4)
 
 		result, err = b.ExecuteScript(templates.GenerateGetUnstakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(joshID))})
 		require.NoError(t, err)
@@ -1644,7 +1644,7 @@ func TestIDTable(t *testing.T) {
 		}
 		proposedIDs := result.Value
 		idArray := proposedIDs.(cadence.Array).Values
-		assert.Equal(t, 3, len(idArray))
+		assert.Len(t, idArray, 3)
 
 		// admin, max, and access are staked
 		result, err = b.ExecuteScript(templates.GenerateReturnCurrentTableScript(env), nil)
@@ -1654,7 +1654,7 @@ func TestIDTable(t *testing.T) {
 		}
 		currentIDs := result.Value
 		idArray = currentIDs.(cadence.Array).Values
-		assert.Equal(t, 3, len(idArray))
+		assert.Len(t, idArray, 3)
 	})
 
 	/************* Start of Delegation Tests *******************/
@@ -1993,7 +1993,7 @@ func TestIDTable(t *testing.T) {
 		}
 		proposedIDs := result.Value
 		idArray := proposedIDs.(cadence.Array).Values
-		assert.Equal(t, 3, len(idArray))
+		assert.Len(t, idArray, 3)
 
 		result, err = b.ExecuteScript(templates.GenerateReturnCurrentTableScript(env), nil)
 		require.NoError(t, err)
@@ -2002,7 +2002,7 @@ func TestIDTable(t *testing.T) {
 		}
 		currentIDs := result.Value
 		idArray = currentIDs.(cadence.Array).Values
-		assert.Equal(t, 3, len(idArray))
+		assert.Len(t, idArray, 3)
 
 		result, err = b.ExecuteScript(templates.GenerateGetUnstakingRequestScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		require.NoError(t, err)

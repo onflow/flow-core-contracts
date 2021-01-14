@@ -560,7 +560,7 @@ func TestLockedTokensStaker(t *testing.T) {
 			t.Log(result.Error.Error())
 		}
 		id := result.Value
-		assert.Equal(t, cadence.NewString(joshID), id.(cadence.String))
+		assert.Equal(t, cadence.NewString(joshID), id)
 
 		// unlock limit should not have changed
 		result, err = b.ExecuteScript(templates.GenerateGetUnlockLimitScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
@@ -1187,7 +1187,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 			t.Log(result.Error.Error())
 		}
 		id := result.Value
-		assert.Equal(t, cadence.NewUInt32(1), id.(cadence.UInt32))
+		assert.Equal(t, cadence.NewUInt32(1), id)
 
 		// Check the delegator node ID
 		result, err = b.ExecuteScript(templates.GenerateGetDelegatorNodeIDScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
@@ -1196,7 +1196,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 			t.Log(result.Error.Error())
 		}
 		id = result.Value
-		assert.Equal(t, cadence.NewString(joshID), id.(cadence.String))
+		assert.Equal(t, cadence.NewString(joshID), id)
 	})
 
 	t.Run("Should be able to delegate locked tokens", func(t *testing.T) {
@@ -1519,7 +1519,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 			t.Log(result.Error.Error())
 		}
 		id := result.Value
-		assert.Equal(t, cadence.NewUInt32(1), id.(cadence.UInt32))
+		assert.Equal(t, cadence.NewUInt32(1), id)
 
 		// Check the delegator node ID
 		result, err = b.ExecuteScript(templates.GenerateGetDelegatorNodeIDScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
@@ -1528,7 +1528,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 			t.Log(result.Error.Error())
 		}
 		id = result.Value
-		assert.Equal(t, cadence.NewString(joshID), id.(cadence.String))
+		assert.Equal(t, cadence.NewString(joshID), id)
 
 		// Check that unlock limit increases by 500.0
 		result, err = b.ExecuteScript(templates.GenerateGetUnlockLimitScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
@@ -2325,7 +2325,7 @@ func TestLockedTokensRealStaking(t *testing.T) {
 			t.Log(result.Error.Error())
 		}
 		id := result.Value
-		assert.Equal(t, cadence.NewString(joshID), id.(cadence.String))
+		assert.Equal(t, cadence.NewString(joshID), id)
 	})
 
 	t.Run("Should be able to get the node info from the locked account by just using the address", func(t *testing.T) {
