@@ -24,7 +24,6 @@ transaction(indices: [UInt16], clusterNodeIDs: [[String]], nodeWeights: [[UInt64
 
             let nodeWeightsDictionary: {String: UInt64} = {}
             var i = 0
-            var totalWeight: UInt64 = 0
 
             // Set each node's id and weight
             // Calculate the total weight for each cluster
@@ -33,12 +32,11 @@ transaction(indices: [UInt16], clusterNodeIDs: [[String]], nodeWeights: [[UInt64
                 let nodeWeight = nodes[i]
 
                 nodeWeightsDictionary[nodeID] = nodeWeight
-                totalWeight = totalWeight + nodeWeight
 
                 i = i + 1
             }
 
-            clusters.append(FlowEpochClusterQC.Cluster(index: index, nodeWeights: nodeWeightsDictionary, totalWeight: totalWeight))
+            clusters.append(FlowEpochClusterQC.Cluster(index: index, nodeWeights: nodeWeightsDictionary))
         }
 
         // Start QC Voting with the supplied clusters

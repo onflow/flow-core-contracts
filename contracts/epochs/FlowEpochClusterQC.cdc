@@ -94,9 +94,14 @@ pub contract FlowEpochClusterQC {
             return res
         }
 
-        init(index: UInt16, nodeWeights: {String: UInt64}, totalWeight: UInt64) {
+        init(index: UInt16, nodeWeights: {String: UInt64}) {
             self.index = index
             self.nodeWeights = nodeWeights
+
+            var totalWeight: UInt64 = 0
+            for weight in nodeWeights.values {
+                totalWeight = totalWeight + weight
+            }
             self.totalWeight = totalWeight
             self.votes = []
         }
