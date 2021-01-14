@@ -259,34 +259,53 @@ func TestIDTable(t *testing.T) {
 
 	})
 
+	adminStaked := 0
+	adminRewards := 0
+
 	// Create new user accounts
 	joshAccountKey, joshSigner := accountKeys.NewWithSigner()
 	joshAddress, _ := b.CreateAccount([]*flow.AccountKey{joshAccountKey}, nil)
+	joshStaked := 0
+	joshRewards := 0
 
 	// Create a new user account
 	maxAccountKey, maxSigner := accountKeys.NewWithSigner()
 	maxAddress, _ := b.CreateAccount([]*flow.AccountKey{maxAccountKey}, nil)
+	maxStaked := 0
+	maxRewards := 0
 
 	// Create a new user account
 	bastianAccountKey, bastianSigner := accountKeys.NewWithSigner()
 	bastianAddress, _ := b.CreateAccount([]*flow.AccountKey{bastianAccountKey}, nil)
+	bastianStaked := 0
+	bastianRewards := 0
 
 	// Create a new user account for access node
 	accessAccountKey, accessSigner := accountKeys.NewWithSigner()
 	accessAddress, _ := b.CreateAccount([]*flow.AccountKey{accessAccountKey}, nil)
+	accessStaked := 0
+	accessRewards := 0
 
 	// Create new delegator user accounts
 	adminDelegatorAccountKey, adminDelegatorSigner := accountKeys.NewWithSigner()
 	adminDelegatorAddress, _ := b.CreateAccount([]*flow.AccountKey{adminDelegatorAccountKey}, nil)
+	adminDelegatorStaked := 0
+	adminDelegatorRewards := 0
 
 	joshDelegatorOneAccountKey, joshDelegatorOneSigner := accountKeys.NewWithSigner()
 	joshDelegatorOneAddress, _ := b.CreateAccount([]*flow.AccountKey{joshDelegatorOneAccountKey}, nil)
+	joshDelegatorOneStaked := 0
+	joshDelegatorOneRewards := 0
 
 	maxDelegatorOneAccountKey, maxDelegatorOneSigner := accountKeys.NewWithSigner()
 	maxDelegatorOneAddress, _ := b.CreateAccount([]*flow.AccountKey{maxDelegatorOneAccountKey}, nil)
+	maxDelegatorOneStaked := 0
+	maxDelegatorOneRewards := 0
 
 	maxDelegatorTwoAccountKey, maxDelegatorTwoSigner := accountKeys.NewWithSigner()
 	maxDelegatorTwoAddress, _ := b.CreateAccount([]*flow.AccountKey{maxDelegatorTwoAccountKey}, nil)
+	maxDelegatorTwoStaked := 0
+	maxDelegatorTwoRewards := 0
 
 	t.Run("Should be able to mint tokens for new accounts", func(t *testing.T) {
 
