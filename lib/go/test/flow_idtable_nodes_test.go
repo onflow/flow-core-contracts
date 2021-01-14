@@ -226,7 +226,7 @@ func TestManyNodesIDTable(t *testing.T) {
 		}
 		proposedIDs := result.Value
 		idArray := proposedIDs.(cadence.Array).Values
-		assert.Equal(t, numberOfNodes, len(idArray))
+		assert.Len(t, idArray, numberOfNodes)
 
 		result, err = b.ExecuteScript(templates.GenerateReturnProposedTableScript(env), nil)
 		require.NoError(t, err)
@@ -235,7 +235,7 @@ func TestManyNodesIDTable(t *testing.T) {
 		}
 		proposedIDs = result.Value
 		idArray = proposedIDs.(cadence.Array).Values
-		assert.Equal(t, numberOfNodes, len(idArray))
+		assert.Len(t, idArray, numberOfNodes)
 
 	})
 
