@@ -605,7 +605,7 @@ func TestIDTable(t *testing.T) {
 			t.Log(result.Error.Error())
 		}
 		role := result.Value
-		assert.Equal(t, role, cadence.NewUInt8(1))
+		assert.Equal(t, cadence.NewUInt8(1), role)
 
 		result, err = b.ExecuteScript(templates.GenerateGetNetworkingAddressScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		require.NoError(t, err)
@@ -613,7 +613,7 @@ func TestIDTable(t *testing.T) {
 			t.Log(result.Error.Error())
 		}
 		addr := result.Value
-		assert.Equal(t, addr, cadence.NewString(fmt.Sprintf("%0128d", admin)))
+		assert.Equal(t, cadence.NewString(fmt.Sprintf("%0128d", admin)), addr)
 
 		result, err = b.ExecuteScript(templates.GenerateGetNetworkingKeyScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		require.NoError(t, err)
@@ -621,7 +621,7 @@ func TestIDTable(t *testing.T) {
 			t.Log(result.Error.Error())
 		}
 		key := result.Value
-		assert.Equal(t, key, cadence.NewString(fmt.Sprintf("%0128d", admin)))
+		assert.Equal(t, cadence.NewString(fmt.Sprintf("%0128d", admin)), key)
 
 		result, err = b.ExecuteScript(templates.GenerateGetStakingKeyScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		require.NoError(t, err)
@@ -629,7 +629,7 @@ func TestIDTable(t *testing.T) {
 			t.Log(result.Error.Error())
 		}
 		key = result.Value
-		assert.Equal(t, key, cadence.NewString(fmt.Sprintf("%0192d", admin)))
+		assert.Equal(t, cadence.NewString(fmt.Sprintf("%0192d", admin)), key)
 
 		result, err = b.ExecuteScript(templates.GenerateGetInitialWeightScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		require.NoError(t, err)
@@ -637,7 +637,7 @@ func TestIDTable(t *testing.T) {
 			t.Log(result.Error.Error())
 		}
 		weight := result.Value
-		assert.Equal(t, weight, cadence.NewUInt64(0))
+		assert.Equal(t, cadence.NewUInt64(0), weight)
 
 		result, err = b.ExecuteScript(templates.GenerateGetStakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		require.NoError(t, err)
@@ -3420,28 +3420,28 @@ func TestIDTable(t *testing.T) {
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
 		}
-		assert.EqualValues(t, colMin, result.Value)
+		assert.Equal(t, colMin, result.Value)
 
 		result, err = b.ExecuteScript(templates.GenerateGetStakeRequirementsScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(2))})
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
 		}
-		assert.EqualValues(t, conMin, result.Value)
+		assert.Equal(t, conMin, result.Value)
 
 		result, err = b.ExecuteScript(templates.GenerateGetStakeRequirementsScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(3))})
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
 		}
-		assert.EqualValues(t, exMin, result.Value)
+		assert.Equal(t, exMin, result.Value)
 
 		result, err = b.ExecuteScript(templates.GenerateGetStakeRequirementsScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(4))})
 		require.NoError(t, err)
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
 		}
-		assert.EqualValues(t, verMin, result.Value)
+		assert.Equal(t, verMin, result.Value)
 
 		result, err = b.ExecuteScript(templates.GenerateGetStakeRequirementsScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(5))})
 		require.NoError(t, err)
