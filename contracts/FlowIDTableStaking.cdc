@@ -711,24 +711,10 @@ pub contract FlowIDTableStaking {
             // calculate the total number of tokens staked
             var totalStaked = FlowIDTableStaking.getTotalStaked()
 
-            var totalRewardScale: UFix64 = 0.0
-
-            // if totalStaked >= UFix64(100000000.0) {
-            //     // There is a limitation in the current version of Cadence that means that
-            //     // dividing by a very large number will cause an overflow (>100M), or produce inaccurate results (>1M).
-            //     // This should be fixed soon, but in the meantime, we can work around it
-            //     // by scaling both numbers by a factor of 1000 to avoid those edge cases.
-            //     let div1000dividend = FlowIDTableStaking.epochTokenPayout / 1000.0
-            //     let div1000divisor = totalStaked / 1000.0
-            //     totalRewardScale = div1000dividend / div1000divisor
-            // } else if totalStaked != 0.0 {
-            //     totalRewardScale = FlowIDTableStaking.epochTokenPayout / totalStaked
-            //}
-
             if totalStaked == 0.0 {
                 return
             }
-            totalRewardScale = FlowIDTableStaking.epochTokenPayout / totalStaked
+            var totalRewardScale = FlowIDTableStaking.epochTokenPayout / totalStaked
 
             /// iterate through all the nodes
             for nodeID in allNodeIDs {
