@@ -74,7 +74,6 @@ func Submit(
 	} else {
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
-			//cmd.PrettyPrintError(result.Error, "", map[string]string{"": ""})
 		}
 	}
 

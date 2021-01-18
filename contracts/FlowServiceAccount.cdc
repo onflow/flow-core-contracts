@@ -45,7 +45,7 @@ pub contract FlowServiceAccount {
     // Get the default token balance on an account
     pub fun defaultTokenBalance(_ acct: PublicAccount): UFix64 {
         let balanceRef = acct
-            .getCapability(/public/flowTokenBalance)!
+            .getCapability(/public/flowTokenBalance)
             .borrow<&FlowToken.Vault{FungibleToken.Balance}>()!
 
         return balanceRef.balance
@@ -53,7 +53,8 @@ pub contract FlowServiceAccount {
 
     // Return a reference to the default token vault on an account
     pub fun defaultTokenVault(_ acct: AuthAccount): &FlowToken.Vault {
-        return acct.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault) ?? panic("Unable to borrow reference to the default token vault")
+        return acct.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)
+            ?? panic("Unable to borrow reference to the default token vault")
     }
 
     // Called when a transaction is submitted to deduct the fee
@@ -62,7 +63,7 @@ pub contract FlowServiceAccount {
         if self.transactionFee == UFix64(0) {
             return
         }
-        
+
         let tokenVault = self.defaultTokenVault(acct)
         let feeVault <- tokenVault.withdraw(amount: self.transactionFee)
 

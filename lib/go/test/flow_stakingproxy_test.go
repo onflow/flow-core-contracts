@@ -196,7 +196,7 @@ func TestStakingProxy(t *testing.T) {
 
 		createAccountsTxResult, err := b.GetTransactionResult(tx.ID())
 		assert.NoError(t, err)
-		assert.Equal(t, flow.TransactionStatusSealed, createAccountsTxResult.Status)
+		assertEqual(t, flow.TransactionStatusSealed, createAccountsTxResult.Status)
 
 		for _, event := range createAccountsTxResult.Events {
 			if event.Type == fmt.Sprintf("A.%s.LockedTokens.SharedAccountRegistered", lockedTokensAddress.Hex()) {
