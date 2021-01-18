@@ -40,13 +40,15 @@ func TestContracts(t *testing.T) {
 	_, err = b.CommitBlock()
 	assert.NoError(t, err)
 
+	env.StorageFeesAddress = storageFeesAddress.String()
+
 	result, err := b.ExecuteScript(templates.GenerateGetStorageFeeConversionScript(env), nil)
 	require.NoError(t, err)
 	if !assert.True(t, result.Succeeded()) {
 		t.Log(result.Error.Error())
 	}
 	conversion := result.Value
-	assert.Equal(t, CadenceUFix64("1000000.0"), conversion.(cadence.UFix64))
+	assertEqual(t, CadenceUFix64("1.0"), conversion.(cadence.UFix64))
 
 	result, err = b.ExecuteScript(templates.GenerateGetStorageFeeMinimumScript(env), nil)
 	require.NoError(t, err)
@@ -54,7 +56,7 @@ func TestContracts(t *testing.T) {
 		t.Log(result.Error.Error())
 	}
 	min := result.Value
-	assert.Equal(t, CadenceUFix64("0.1"), min.(cadence.UFix64))
+	assertEqual(t, CadenceUFix64("0.1"), min.(cadence.UFix64))
 
 	result, err = b.ExecuteScript(templates.GenerateGetStorageCapacityScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(storageFeesAddress))})
 	require.NoError(t, err)
@@ -62,7 +64,7 @@ func TestContracts(t *testing.T) {
 		t.Log(result.Error.Error())
 	}
 	min = result.Value
-	assert.Equal(t, CadenceUFix64("0.1"), min.(cadence.UFix64))
+	assertEqual(t, CadenceUFix64("0.0"), min.(cadence.UFix64))
 
 	t.Run("Should be able to change the conversion and minimum", func(t *testing.T) {
 
@@ -73,14 +75,16 @@ func TestContracts(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(storageFeesAddress)
 
-		_ = tx.AddArgument(CadenceUFix64("2000000.0"))
-		_ = tx.AddArgument(CadenceUFix64("0.2"))
+		err := tx.AddArgument(CadenceUFix64("2.0"))
+		require.NoError(t, err)
+		err = tx.AddArgument(CadenceUFix64("0.2"))
+		require.NoError(t, err)
 
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{b.ServiceKey().Address, storageFeesAddress},
 			[]crypto.Signer{b.ServiceKey().Signer(), storageFeesSigner},
-			true,
+			false,
 		)
 	})
 
@@ -90,7 +94,7 @@ func TestContracts(t *testing.T) {
 		t.Log(result.Error.Error())
 	}
 	conversion = result.Value
-	assert.Equal(t, CadenceUFix64("2000000.0"), conversion.(cadence.UFix64))
+	assertEqual(t, CadenceUFix64("2.0"), conversion.(cadence.UFix64))
 
 	result, err = b.ExecuteScript(templates.GenerateGetStorageFeeMinimumScript(env), nil)
 	require.NoError(t, err)
@@ -98,7 +102,7 @@ func TestContracts(t *testing.T) {
 		t.Log(result.Error.Error())
 	}
 	min = result.Value
-	assert.Equal(t, CadenceUFix64("0.2"), min.(cadence.UFix64))
+	assertEqual(t, CadenceUFix64("0.2"), min.(cadence.UFix64))
 
 	// deploy the ServiceAccount contract
 	serviceAccountCode := contracts.FlowServiceAccount(
@@ -116,9 +120,5 @@ func TestContracts(t *testing.T) {
 	assert.NoError(t, err)
 	_, err = b.CommitBlock()
 	assert.NoError(t, err)
-
-	// read fields on the ServiceAccount contract
-	_ = executeScriptAndCheck(t, b, templates.GenerateInspectFieldScript("transactionFee"))
-	_ = executeScriptAndCheck(t, b, templates.GenerateInspectFieldScript("accountCreationFee"))
 
 }

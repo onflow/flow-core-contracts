@@ -1,6 +1,7 @@
 package test
 
 import (
+	"fmt"
 	"io/ioutil"
 	"testing"
 
@@ -119,4 +120,27 @@ func bytesToCadenceArray(b []byte) cadence.Array {
 	}
 
 	return cadence.NewArray(values)
+}
+
+// assertEqual asserts that two objects are equal.
+//
+//    assertEqual(t, 123, 123)
+//
+// Pointer variable equality is determined based on the equality of the
+// referenced values (as opposed to the memory addresses). Function equality
+// cannot be determined and will always fail.
+//
+func assertEqual(t *testing.T, expected, actual interface{}) bool {
+
+	if assert.ObjectsAreEqual(expected, actual) {
+		return true
+	}
+
+	message := fmt.Sprintf(
+		"Not equal: \nexpected: %s\nactual  : %s",
+		expected,
+		actual,
+	)
+
+	return assert.Fail(t, message)
 }

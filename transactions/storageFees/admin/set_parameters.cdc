@@ -1,4 +1,4 @@
-import FlowStorageFees from 0xFLOWSTORAGEFEES
+import FlowStorageFees from 0xFLOWSTORAGEFEESADDRESS
 
 // This transaction changes the flow storage fees parameters
 transaction(storageBytesPerReservedFLOW: UFix64?, minimumStorageReservation: UFix64?) {
@@ -13,7 +13,7 @@ transaction(storageBytesPerReservedFLOW: UFix64?, minimumStorageReservation: UFi
 
     execute {
         if storageBytesPerReservedFLOW != nil {
-            self.adminRef.setStorageBytesPerReservedFLOW(storageBytesPerReservedFLOW!)
+            self.adminRef.setStorageMegaBytesPerReservedFLOW(storageBytesPerReservedFLOW!)
         }
         if minimumStorageReservation != nil {
             self.adminRef.setMinimumStorageReservation(minimumStorageReservation!)
