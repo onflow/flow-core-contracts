@@ -56,9 +56,6 @@ pub contract FlowIDTableStaking {
     pub event NewWeeklyPayout(newPayout: UFix64)
     pub event NewStakingMinimums(newMinimums: {UInt8: UFix64})
 
-    /// Indicates if the staking auction is currently active
-    pub var stakingEnabled: Bool
-
     /// Holds the identity table for all the nodes in the network.
     /// Includes nodes that aren't actively participating
     /// key = node ID
@@ -391,10 +388,6 @@ pub contract FlowIDTableStaking {
 
         /// Add new tokens to the system to stake during the next epoch
         pub fun stakeNewTokens(_ tokens: @FungibleToken.Vault) {
-            pre {
-                FlowIDTableStaking.stakingEnabled: "Cannot stake if the staking auction isn't in progress"
-            }
-
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
 
             emit TokensCommitted(nodeID: nodeRecord.id, amount: tokens.balance)
@@ -405,10 +398,6 @@ pub contract FlowIDTableStaking {
 
         /// Stake tokens that are in the tokensUnstaked bucket
         pub fun stakeUnstakedTokens(amount: UFix64) {
-            pre {
-                FlowIDTableStaking.stakingEnabled: "Cannot stake if the staking auction isn't in progress"
-            }
-
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
 
             var remainingAmount = amount
@@ -432,9 +421,6 @@ pub contract FlowIDTableStaking {
 
         /// Stake tokens that are in the tokensRewarded bucket
         pub fun stakeRewardedTokens(amount: UFix64) {
-            pre {
-                FlowIDTableStaking.stakingEnabled: "Cannot stake if the staking auction isn't in progress"
-            }
 
             if amount > 0.0 {
                 let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
@@ -448,10 +434,6 @@ pub contract FlowIDTableStaking {
 
         /// Request amount tokens to be removed from staking at the end of the next epoch
         pub fun requestUnstaking(amount: UFix64) {
-            pre {
-                FlowIDTableStaking.stakingEnabled: "Cannot unstake if the staking auction isn't in progress"
-            }
-
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
 
             assert (
@@ -492,10 +474,6 @@ pub contract FlowIDTableStaking {
         /// Requests to unstake all of the node operators staked and committed tokens,
         /// as well as all the staked and committed tokens of all of their delegators
         pub fun unstakeAll() {
-            pre {
-                FlowIDTableStaking.stakingEnabled: "Cannot unstake if the staking auction isn't in progress"
-            }
-
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
 
             /// if the request can come from committed, withdraw from committed to unstaked
@@ -551,10 +529,6 @@ pub contract FlowIDTableStaking {
 
         /// Delegate new tokens to the node operator
         pub fun delegateNewTokens(from: @FungibleToken.Vault) {
-            pre {
-                FlowIDTableStaking.stakingEnabled: "Cannot delegate if the staking auction isn't in progress"
-            }
-
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.nodeID)
             let delRecord = nodeRecord.borrowDelegatorRecord(self.id)
 
@@ -565,10 +539,6 @@ pub contract FlowIDTableStaking {
 
         /// Delegate tokens from the unstaked bucket to the node operator
         pub fun delegateUnstakedTokens(amount: UFix64) {
-            pre {
-                FlowIDTableStaking.stakingEnabled: "Cannot delegate if the staking auction isn't in progress"
-            }
-
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.nodeID)
             let delRecord = nodeRecord.borrowDelegatorRecord(self.id)
 
@@ -593,9 +563,6 @@ pub contract FlowIDTableStaking {
 
         /// Delegate tokens from the rewards bucket to the node operator
         pub fun delegateRewardedTokens(amount: UFix64) {
-            pre {
-                FlowIDTableStaking.stakingEnabled: "Cannot delegate if the staking auction isn't in progress"
-            }
 
             if amount > 0.0 {
                 let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.nodeID)
@@ -609,10 +576,6 @@ pub contract FlowIDTableStaking {
 
         /// Request to unstake delegated tokens during the next epoch
         pub fun requestUnstaking(amount: UFix64) {
-            pre {
-                FlowIDTableStaking.stakingEnabled: "Cannot request unstaking if the staking auction isn't in progress"
-            }
-
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.nodeID)
             let delRecord = nodeRecord.borrowDelegatorRecord(self.id)
 
@@ -678,13 +641,6 @@ pub contract FlowIDTableStaking {
             return <-node
         }
 
-        pub fun startStakingAuction() {
-            pre {
-                !FlowIDTableStaking.stakingEnabled: "Cannot start staking auction if it is already in progress"
-            }
-            FlowIDTableStaking.stakingEnabled = true
-        }
-
         /// Iterates through all the registered nodes and if it finds
         /// a node that has insufficient tokens committed for the next epoch
         /// it moves their committed tokens to their unstaked bucket
@@ -694,9 +650,6 @@ pub contract FlowIDTableStaking {
         /// checks if the node that corresponds to each proposed ID is running properly
         /// and that its node info is correct
         pub fun endStakingAuction(approvedNodeIDs: {String: Bool}) {
-            pre {
-                FlowIDTableStaking.stakingEnabled: "Cannot end the staking auction if it is not currently in progress"
-            }
 
             let allNodeIDs = FlowIDTableStaking.getNodeIDs()
 
@@ -745,16 +698,11 @@ pub contract FlowIDTableStaking {
                     nodeRecord.initialWeight = 100
                 }
             }
-            FlowIDTableStaking.stakingEnabled = false
         }
 
         /// Called at the end of the epoch to pay rewards to node operators
         /// based on the tokens that they have staked
         pub fun payRewards() {
-            pre {
-                !FlowIDTableStaking.stakingEnabled: "Cannot pay rewards if the staking auction is still in progress"
-            }
-
             let allNodeIDs = FlowIDTableStaking.getNodeIDs()
 
             let flowTokenMinter = FlowIDTableStaking.account.borrow<&FlowToken.Minter>(from: /storage/flowTokenMinter)
@@ -827,10 +775,7 @@ pub contract FlowIDTableStaking {
         /// Tokens that were unstaking during the last epoch are fully unstaked
         /// Unstaking requests are filled by moving those tokens from staked to unstaking
         pub fun moveTokens() {
-            pre {
-                !FlowIDTableStaking.stakingEnabled: "Cannot move tokens if the staking auction is still in progress"
-            }
-            
+
             let allNodeIDs = FlowIDTableStaking.getNodeIDs()
 
             for nodeID in allNodeIDs {
@@ -887,8 +832,6 @@ pub contract FlowIDTableStaking {
                 nodeRecord.tokensRequestedToUnstake = 0.0
             }
 
-            self.startStakingAuction()
-
             emit NewEpoch(totalStaked: FlowIDTableStaking.getTotalStaked(), totalRewardPayout: FlowIDTableStaking.epochTokenPayout)
         }
 
@@ -925,10 +868,6 @@ pub contract FlowIDTableStaking {
     /// Any node can call this function to register a new Node
     /// It returns the resource for nodes that they can store in their account storage
     pub fun addNodeRecord(id: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String, tokensCommitted: @FungibleToken.Vault): @NodeStaker {
-        pre {
-            FlowIDTableStaking.stakingEnabled: "Cannot register a node operator if the staking auction isn't in progress"
-        }
-        
         let initialBalance = tokensCommitted.balance
 
         let newNode <- create NodeRecord(id: id, role: role, networkingAddress: networkingAddress, networkingKey: networkingKey, stakingKey: stakingKey, tokensCommitted: <-tokensCommitted)
@@ -943,10 +882,6 @@ pub contract FlowIDTableStaking {
     /// Registers a new delegator with a unique ID for the specified node operator
     /// and returns a delegator object to the caller
     pub fun registerNewDelegator(nodeID: String): @NodeDelegator {
-        pre {
-            FlowIDTableStaking.stakingEnabled: "Cannot register a node operator if the staking auction isn't in progress"
-        }
-
         let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
 
         assert (
@@ -1106,8 +1041,6 @@ pub contract FlowIDTableStaking {
     }
 
     init(_ epochTokenPayout: UFix64, _ rewardCut: UFix64) {
-        self.stakingEnabled = false
-
         self.nodes <- {}
 
         self.NodeStakerStoragePath = /storage/flowStaker
