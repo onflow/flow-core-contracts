@@ -15,7 +15,9 @@ import (
 
 // newEmulator returns a emulator object for testing.
 func newEmulator() *emulator.Blockchain {
-	b, err := emulator.NewBlockchain()
+	b, err := emulator.NewBlockchain(
+		emulator.WithStorageLimitEnabled(false),
+	)
 	if err != nil {
 		panic(err)
 	}

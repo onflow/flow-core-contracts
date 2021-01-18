@@ -21,17 +21,19 @@ import (
 )
 
 const (
-
 	numberOfNodes      = 1000
 	numberOfDelegators = 20000
-	nodeMintAmount  = 2000000
+	nodeMintAmount     = 2000000
 
 	unstakeAllNumNodes      = 1
 	unstakeAllNumDelegators = 20000
 )
 
 func TestManyNodesIDTable(t *testing.T) {
-	b, err := emulator.NewBlockchain(emulator.WithTransactionMaxGasLimit(10000000))
+	b, err := emulator.NewBlockchain(
+		emulator.WithStorageLimitEnabled(false),
+		emulator.WithTransactionMaxGasLimit(10000000),
+	)
 	require.NoError(t, err)
 
 	env := templates.Environment{
@@ -397,7 +399,10 @@ func TestManyNodesIDTable(t *testing.T) {
 }
 
 func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
-	b, err := emulator.NewBlockchain(emulator.WithTransactionMaxGasLimit(100000000))
+	b, err := emulator.NewBlockchain(
+		emulator.WithStorageLimitEnabled(false),
+		emulator.WithTransactionMaxGasLimit(100000000),
+	)
 	if err != nil {
 		panic(err)
 	}
