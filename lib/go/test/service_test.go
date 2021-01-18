@@ -61,7 +61,7 @@ func TestContracts(t *testing.T) {
 	if !assert.True(t, result.Succeeded()) {
 		t.Log(result.Error.Error())
 	}
-	min := result.Value
+	min = result.Value
 	assert.Equal(t, CadenceUFix64("0.1"), min.(cadence.UFix64))
 
 	t.Run("Should be able to change the conversion and minimum", func(t *testing.T) {
