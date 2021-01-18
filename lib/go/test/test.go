@@ -143,4 +143,3 @@ func assertEqual(t *testing.T, expected, actual interface{}) bool {
 
 	return assert.Fail(t, message)
 }
-
