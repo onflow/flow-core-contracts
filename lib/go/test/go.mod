@@ -8,9 +8,7 @@ require (
 	github.com/onflow/flow-core-contracts/lib/go/templates v0.6.0
 	github.com/onflow/flow-emulator v0.12.6-0.20210118152714-97ea438eed1a
 	github.com/onflow/flow-ft/lib/go/templates v0.0.0-20201002112420-010719813062
-	github.com/onflow/flow-go v0.13.1-0.20210118151143-7aeb4b37d071
 	github.com/onflow/flow-go-sdk v0.12.3
-	github.com/phayes/freeport v0.0.0-20180830031419-95f893ade6f2 // indirect
 	github.com/stretchr/testify v1.6.1
 )
 

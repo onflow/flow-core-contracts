@@ -23,7 +23,7 @@ func TestFlowFeesContract(t *testing.T) {
 }
 
 func TestStorageFeesContract(t *testing.T) {
-	contract := contracts.FlowStorageFees(fakeAddr)
+	contract := contracts.FlowStorageFees(fakeAddr, fakeAddr)
 	assert.NotNil(t, contract)
 }
 
