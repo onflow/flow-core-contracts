@@ -1,13 +1,15 @@
 import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
 import FlowToken from 0xFLOWTOKENADDRESS
 
-transaction(ids: [String], 
-            roles: [UInt8], 
-            networkingAddresses: [String], 
-            networkingKeys: [String], 
-            stakingKeys: [String], 
-            amounts: [UFix64], 
-            paths: [Path]) {
+transaction(
+    ids: [String],
+    roles: [UInt8],
+    networkingAddresses: [String],
+    networkingKeys: [String],
+    stakingKeys: [String],
+    amounts: [UFix64],
+    paths: [StoragePath]
+) {
 
     prepare(acct: AuthAccount) {
 
@@ -18,12 +20,16 @@ transaction(ids: [String],
             let flowTokenRef = acct.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)
                 ?? panic("Could not borrow reference to FLOW Vault")
 
-            let nodeStaker <- FlowIDTableStaking.addNodeRecord(id: ids[i], 
-                                    role: roles[i], 
-                                    networkingAddress: networkingAddresses[i], 
-                                    networkingKey: networkingKeys[i], 
-                                    stakingKey: stakingKeys[i], 
-                                    tokensCommitted: <-flowTokenRef.withdraw(amount: amounts[i]))
+            let tokensCommitted <- flowTokenRef.withdraw(amount: amounts[i])
+
+            let nodeStaker <- FlowIDTableStaking.addNodeRecord(
+                id: ids[i],
+                role: roles[i],
+                networkingAddress: networkingAddresses[i],
+                networkingKey: networkingKeys[i],
+                stakingKey: stakingKeys[i],
+                tokensCommitted: <-tokensCommitted
+            )
 
             // Store the node object
             acct.save(<-nodeStaker, to: path)
