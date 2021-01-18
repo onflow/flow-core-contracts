@@ -30,15 +30,18 @@ import TokenForwarding from 0xFORWARDINGADDRESS
 transaction(receiver: Address) {
 
     prepare(acct: AuthAccount) {
-        let recipient = getAccount(receiver).getCapability<&{FungibleToken.Receiver}>(/public/flowTokenReceiver)!
+        let recipient = getAccount(receiver)
+            .getCapability<&{FungibleToken.Receiver}>(/public/flowTokenReceiver)
 
         let vault <- TokenForwarding.createNewForwarder(recipient: recipient)
         acct.save(<-vault, to: /storage/flowTokenForwarder)
 
-        if acct.getCapability(/public/flowTokenReceiver)!.borrow<&{FungibleToken.Receiver}>() != nil {
+        if acct.getCapability(/public/flowTokenReceiver).check<&{FungibleToken.Receiver}>() {
             acct.unlink(/public/flowTokenReceiver)
         }
-        acct.link<&{FungibleToken.Receiver}>(/public/flowTokenReceiver, target: /storage/flowTokenForwarder)
+        acct.link<&{FungibleToken.Receiver}>(
+            /public/flowTokenReceiver,
+            target: /storage/flowTokenForwarder
+        )
     }
 }
- 

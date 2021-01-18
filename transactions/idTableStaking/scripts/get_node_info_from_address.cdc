@@ -4,10 +4,10 @@ import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
 
 pub fun main(address: Address): FlowIDTableStaking.NodeInfo {
 
-    let account = getAccount(address)
-
-    let nodeStaker = account.getCapability<&{FlowIDTableStaking.NodeStakerPublic}>(FlowIDTableStaking.NodeStakerPublicPath)!
-        .borrow() ?? panic("Could not borrow reference to node staker object")
+    let nodeStaker = getAccount(address)
+        .getCapability<&{FlowIDTableStaking.NodeStakerPublic}>(FlowIDTableStaking.NodeStakerPublicPath)
+        .borrow()
+        ?? panic("Could not borrow reference to node staker object")
 
     return FlowIDTableStaking.NodeInfo(nodeID: nodeStaker.id)
 }

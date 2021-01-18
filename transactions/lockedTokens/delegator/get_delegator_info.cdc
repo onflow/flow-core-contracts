@@ -10,33 +10,35 @@ pub fun main(account: Address): [FlowIDTableStaking.DelegatorInfo] {
 
     let pubAccount = getAccount(account)
 
-    let delegator = pubAccount.getCapability<&{FlowIDTableStaking.NodeDelegatorPublic}>(/public/flowStakingDelegator)!
-        .borrow()
+    let delegatorCap = pubAccount
+        .getCapability<&{FlowIDTableStaking.NodeDelegatorPublic}>(
+            /public/flowStakingDelegator
+        )
 
-    if let delegatorRef = delegator {
-        delegatorInfoArray.append(FlowIDTableStaking.DelegatorInfo(nodeID: delegatorRef.nodeID, delegatorID: delegatorRef.id))
+    if let delegatorRef = delegatorCap.borrow() {
+        let info = FlowIDTableStaking.DelegatorInfo(
+            nodeID: delegatorRef.nodeID,
+            delegatorID: delegatorRef.id
+        )
+        delegatorInfoArray.append(info)
     }
 
     let lockedAccountInfoCap = pubAccount
-        .getCapability
-        <&LockedTokens.TokenHolder{LockedTokens.LockedAccountInfo}>
-        (LockedTokens.LockedAccountInfoPublicPath)
+        .getCapability<&LockedTokens.TokenHolder{LockedTokens.LockedAccountInfo}>(
+            LockedTokens.LockedAccountInfoPublicPath
+        )
 
-    if lockedAccountInfoCap == nil || !(lockedAccountInfoCap!.check()) {
-        return delegatorInfoArray
-    }
-
-    let lockedAccountInfo = lockedAccountInfoCap!.borrow()
-
-    if let lockedAccountInfoRef = lockedAccountInfo {
+    if let lockedAccountInfoRef = lockedAccountInfoCap.borrow() {
         let nodeID = lockedAccountInfoRef.getDelegatorNodeID()
         let delegatorID = lockedAccountInfoRef.getDelegatorID()
 
-        if (nodeID == nil || delegatorID == nil) {
-            return delegatorInfoArray
+        if nodeID != nil && delegatorID != nil {
+            let info = FlowIDTableStaking.DelegatorInfo(
+                nodeID: nodeID!,
+                delegatorID: delegatorID!
+            )
+            delegatorInfoArray.append(info)
         }
-
-        delegatorInfoArray.append(FlowIDTableStaking.DelegatorInfo(nodeID: nodeID!, delegatorID: delegatorID!))
     }
 
     return delegatorInfoArray

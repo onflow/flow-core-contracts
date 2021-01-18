@@ -2,7 +2,7 @@
 
     TestFlowIDTableStaking
 
-    This is a test contract to act as an API for 
+    This is a test contract to act as an API for
     testing the lockbox and staking proxy contracts.
 
  */
@@ -22,7 +22,7 @@ pub contract FlowIDTableStaking {
         /// Set when the node is created
         pub let id: String
 
-        /// The type of node: 
+        /// The type of node:
         /// 1 = collection
         /// 2 = consensus
         /// 3 = execution
@@ -39,12 +39,13 @@ pub contract FlowIDTableStaking {
         /// the public key for staking
         pub(set) var stakingKey: String
 
-        init(id: String,
-             role: UInt8,  /// role that the node will have for future epochs
-             networkingAddress: String, 
-             networkingKey: String, 
-             stakingKey: String, 
-             tokensCommitted: @FungibleToken.Vault
+        init(
+            id: String,
+            role: UInt8,  /// role that the node will have for future epochs
+            networkingAddress: String,
+            networkingKey: String,
+            stakingKey: String,
+            tokensCommitted: @FungibleToken.Vault
         ) {
 
             self.id = id
@@ -113,13 +114,13 @@ pub contract FlowIDTableStaking {
             destroy tokens
         }
 
-        /// Stake tokens that are in the tokensUnstaked bucket 
+        /// Stake tokens that are in the tokensUnstaked bucket
         /// but haven't been officially staked
         pub fun stakeUnstakedTokens(amount: UFix64) {
 
         }
 
-        /// Stake tokens that are in the tokensRewarded bucket 
+        /// Stake tokens that are in the tokensRewarded bucket
         /// but haven't been officially staked
         pub fun stakeRewardedTokens(amount: UFix64) {
 
@@ -134,7 +135,7 @@ pub contract FlowIDTableStaking {
         /// Requests to unstake all of the node operators staked and committed tokens,
         /// as well as all the staked and committed tokens of all of their delegators
         pub fun unstakeAll() {
-            
+
         }
 
         /// Withdraw tokens from the unstaked bucket
@@ -143,7 +144,7 @@ pub contract FlowIDTableStaking {
                 ?? panic("Could not borrow minter reference")
 
             return <- flowTokenMinter.mintTokens(amount: amount)
-            
+
         }
 
         /// Withdraw tokens from the rewarded bucket
@@ -237,12 +238,19 @@ pub contract FlowIDTableStaking {
     /// Any node can call this function to register a new Node
     /// It returns the resource for nodes that they can store in
     /// their account storage
-    pub fun addNodeRecord(id: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String, tokensCommitted: @FungibleToken.Vault): @NodeStaker {
+    pub fun addNodeRecord(
+        id: String,
+        role: UInt8,
+        networkingAddress: String,
+        networkingKey: String,
+        stakingKey: String,
+        tokensCommitted: @FungibleToken.Vault
+    ): @NodeStaker {
         destroy tokensCommitted
 
         // return a new NodeStaker object that the node operator stores in their account
         return <-create NodeStaker(id: id)
-    
+
     }
 
     pub fun registerNewDelegator(nodeID: String): @NodeDelegator {
@@ -253,4 +261,3 @@ pub contract FlowIDTableStaking {
     init(_ epochTokenPayout: UFix64, _ rewardCut: UFix64) {
     }
 }
- 
