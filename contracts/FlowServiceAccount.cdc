@@ -1,6 +1,7 @@
 import FungibleToken from 0xFUNGIBLETOKENADDRESS
 import FlowToken from 0xFLOWTOKENADDRESS
 import FlowFees from 0xFLOWFEESADDRESS
+import FlowStorageFees from 0xFLOWSTORAGEFEESADDRESS
 
 pub contract FlowServiceAccount {
 
@@ -69,16 +70,24 @@ pub contract FlowServiceAccount {
         FlowFees.deposit(from: <-feeVault)
     }
 
-    // Deducts the account creation fee from a payer account
-    pub fun deductAccountCreationFee(_ payer: AuthAccount) {
-        if self.accountCreationFee == UFix64(0) {
-            return
+    // - Deducts the account creation fee from a payer account.
+    // - Inits the default token.
+    // - Inits account storage capacity.
+    pub fun setupNewAccount(newAccount: AuthAccount, payer: AuthAccount) {
+        if self.accountCreationFee < FlowStorageFees.minimumStorageReservation {
+            panic("Account creation fees setup incorrectly")
         }
 
         let tokenVault = self.defaultTokenVault(payer)
         let feeVault <- tokenVault.withdraw(amount: self.accountCreationFee)
-
+        let storageFeeVault <- (feeVault.withdraw(amount: FlowStorageFees.minimumStorageReservation) as! @FlowToken.Vault)
         FlowFees.deposit(from: <-feeVault)
+
+        FlowServiceAccount.initDefaultToken(newAccount)
+
+        let vaultRef = FlowServiceAccount.defaultTokenVault(newAccount)
+
+        vaultRef.deposit(from: <-storageFeeVault)
     }
 
     // Returns true if the given address is permitted to create accounts, false otherwise

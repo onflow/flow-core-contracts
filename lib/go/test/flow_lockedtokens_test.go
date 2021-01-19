@@ -51,7 +51,11 @@ func (evt unlockedAccountRegisteredEvent) Address() flow.Address {
 }
 
 func TestLockedTokensStaker(t *testing.T) {
-	b := newEmulator()
+
+
+	t.Parallel()
+
+	b := newBlockchain()
 
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
@@ -984,7 +988,10 @@ func TestLockedTokensStaker(t *testing.T) {
 }
 
 func TestLockedTokensDelegator(t *testing.T) {
-	b := newEmulator()
+
+	t.Parallel()
+
+	b := newBlockchain()
 
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
@@ -1625,7 +1632,10 @@ func TestLockedTokensDelegator(t *testing.T) {
 }
 
 func TestCustodyProviderAccountCreation(t *testing.T) {
-	b := newEmulator()
+
+	t.Parallel()
+
+	b := newBlockchain()
 
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
@@ -2101,7 +2111,10 @@ func deployLockedTokensContract(
 }
 
 func TestLockedTokensRealStaking(t *testing.T) {
-	b := newEmulator()
+
+	t.Parallel()
+
+	b := newBlockchain()
 
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
@@ -2600,7 +2613,10 @@ func TestLockedTokensRealStaking(t *testing.T) {
 }
 
 func TestLockedTokensRealDelegating(t *testing.T) {
-	b := newEmulator()
+
+	t.Parallel()
+
+	b := newBlockchain()
 
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,

@@ -30,8 +30,10 @@ const (
 )
 
 func TestManyNodesIDTable(t *testing.T) {
-	b, err := emulator.NewBlockchain(emulator.WithTransactionMaxGasLimit(10000000))
-	require.NoError(t, err)
+
+	t.Parallel()
+
+	b := newBlockchain(emulator.WithTransactionMaxGasLimit(10000000))
 
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
@@ -413,10 +415,10 @@ func TestManyNodesIDTable(t *testing.T) {
 }
 
 func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
-	b, err := emulator.NewBlockchain(emulator.WithTransactionMaxGasLimit(100000000))
-	if err != nil {
-		panic(err)
-	}
+
+	t.Parallel()
+
+	b := newBlockchain(emulator.WithTransactionMaxGasLimit(100000000))
 
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,

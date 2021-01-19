@@ -124,6 +124,10 @@
 // ../../../transactions/stakingProxy/unstake_all.cdc (441B)
 // ../../../transactions/stakingProxy/withdraw_rewards.cdc (483B)
 // ../../../transactions/stakingProxy/withdraw_unstaked.cdc (483B)
+// ../../../transactions/storageFees/admin/set_parameters.cdc (831B)
+// ../../../transactions/storageFees/scripts/get_storage_capacity.cdc (173B)
+// ../../../transactions/storageFees/scripts/get_storage_fee_conversion.cdc (141B)
+// ../../../transactions/storageFees/scripts/get_storage_fee_min.cdc (135B)
 
 package assets
 
@@ -2673,6 +2677,86 @@ func stakingproxyWithdraw_unstakedCdc() (*asset, error) {
 	return a, nil
 }
 
+var _storagefeesAdminSet_parametersCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x8c\x92\x4f\x6f\xd3\x40\x10\xc5\xef\xfe\x14\xaf\x3d\x20\x57\x42\x31\x07\xc4\x21\xa2\x44\x86\xc6\x5c\xa8\x8a\xe2\x22\xce\xdb\xcd\x38\x5e\x64\xef\x5a\xb3\x63\x12\x84\xfc\xdd\xd1\xfa\x4f\x70\x09\x89\xba\x87\xe4\xe0\xf7\xde\xfc\xde\xce\x9a\xba\x71\x2c\xc8\x2a\xb7\xcf\xc5\xb1\xda\x51\x46\xe4\x51\xb0\xab\xf1\xe6\x90\x7d\x79\xf8\x9e\x3f\x3e\x6c\xd2\xcf\xeb\x6c\xbd\xce\xd3\xbb\xbb\xcd\x3a\xcf\xa3\x28\x49\xf0\x58\x1a\x0f\x61\x65\xbd\xd2\x62\x9c\x85\x2e\x95\xdd\x91\x87\x94\x84\xa2\x72\x7b\xf8\x21\x0f\x45\x08\x6c\x14\xab\x9a\x84\xd8\x47\x33\x53\x3c\x6a\x3e\xfe\x12\xf2\x5f\x89\x37\xe4\x89\x7f\xd2\x36\xcc\x5d\xe2\x5b\x66\x0e\xef\xde\xae\x5e\xa3\x36\xd6\xd4\x6d\x3d\x02\x0e\x22\x15\xfc\x47\xcd\x0d\x7e\x47\x00\xd0\xff\x54\x24\x50\xdb\xda\xd8\x0d\x15\x4b\xbc\xfa\xa7\xdb\x22\x0d\x9f\x8c\x17\x56\xe2\x38\xea\x1d\x0d\x53\xa3\x98\x62\xa5\xb5\x2c\x91\xb6\x52\xa6\x5a\xbb\xd6\xca\x94\x1b\x4e\x92\xe0\xc9\x31\xbb\x3d\x14\x98\x0a\x62\xb2\x9a\x20\xae\x6f\xdc\xcf\x83\x7b\xfa\x41\x5a\x8e\x0e\x4f\x55\xb1\x98\x48\x70\x8b\x10\xbf\x18\x32\xde\x5f\xc6\xfa\x10\x87\x0d\x2c\x91\x8c\x17\x34\xfd\x07\x65\x2f\xbc\x39\x0e\x09\x67\xb5\x42\xa3\xac\xd1\xf1\xf5\x27\xd7\x56\x5b\x58\x27\x13\xeb\x33\xd2\x67\x2b\xe9\xc1\xae\x87\xa0\x6e\xb8\x07\x3a\x90\x6e\x85\x66\xa5\x4d\x81\x0b\x3b\xc2\xd5\x2d\xac\xa9\x66\xfa\x93\xda\x0b\x4f\x32\xd6\xbc\xa7\x9d\xfa\x5f\xca\xa5\x57\x70\xf5\xb7\x68\x37\x87\x3a\xfb\x24\x5e\x88\x74\x7f\xce\x1f\x9f\x4d\x3e\x41\xe9\xa2\xee\x4f\x00\x00\x00\xff\xff\xec\x9d\x5e\x73\x3f\x03\x00\x00"
+
+func storagefeesAdminSet_parametersCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_storagefeesAdminSet_parametersCdc,
+		"storageFees/admin/set_parameters.cdc",
+	)
+}
+
+func storagefeesAdminSet_parametersCdc() (*asset, error) {
+	bytes, err := storagefeesAdminSet_parametersCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "storageFees/admin/set_parameters.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xa7, 0xa3, 0x32, 0x6, 0x3f, 0x4f, 0xeb, 0xc7, 0xce, 0x3b, 0x61, 0xd9, 0x69, 0x36, 0x97, 0xdd, 0xaf, 0xd5, 0xa1, 0x25, 0x5d, 0xda, 0xa7, 0x27, 0x20, 0xcd, 0x26, 0x35, 0xa6, 0xb4, 0x82, 0xd1}}
+	return a, nil
+}
+
+var _storagefeesScriptsGet_storage_capacityCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x5c\xcd\xb1\x0a\xc2\x30\x14\x46\xe1\x3d\x4f\xf1\x8f\x76\x11\x07\x71\xe8\x16\x6c\xe2\x22\x14\x1a\xc5\xf9\x9a\xa6\x12\x68\x93\x92\xdc\x60\x45\x7c\x77\x07\x9d\xba\x9d\xe9\x3b\x7e\x9a\x63\x62\xe8\x31\x3e\x0d\xc7\x44\x0f\xa7\x9d\xcb\x18\x52\x9c\xb0\x5b\xf4\xb9\xbd\x99\x4b\xdb\xc9\x93\xd2\x4a\x19\xd9\x34\x9d\x32\x46\x88\xb9\xdc\x31\x94\x80\x89\x7c\xd8\x90\xb5\xb1\x04\x96\x7d\x9f\x5c\xce\x35\xfe\x51\xd5\xb8\x6a\xbf\x1c\xf6\x78\x0b\x00\x48\x8e\x4b\x0a\xeb\xd3\xd6\xd2\x68\xcb\x48\xec\xe4\x8f\x39\xd2\x4c\xd6\xf3\x6b\xc5\x56\xe2\x23\xc4\x37\x00\x00\xff\xff\x28\x3f\x05\x18\xad\x00\x00\x00"
+
+func storagefeesScriptsGet_storage_capacityCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_storagefeesScriptsGet_storage_capacityCdc,
+		"storageFees/scripts/get_storage_capacity.cdc",
+	)
+}
+
+func storagefeesScriptsGet_storage_capacityCdc() (*asset, error) {
+	bytes, err := storagefeesScriptsGet_storage_capacityCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "storageFees/scripts/get_storage_capacity.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x1b, 0x18, 0xd9, 0xdf, 0xe2, 0x7a, 0x84, 0x72, 0x8c, 0xe3, 0xb1, 0x8d, 0xfc, 0x60, 0x9a, 0x3b, 0x64, 0xba, 0x43, 0xad, 0xab, 0x45, 0xaa, 0x55, 0xd9, 0x37, 0x6b, 0x76, 0x54, 0x24, 0x1f, 0x95}}
+	return a, nil
+}
+
+var _storagefeesScriptsGet_storage_fee_conversionCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xca\xcc\x2d\xc8\x2f\x2a\x51\x70\xcb\xc9\x2f\x0f\x2e\xc9\x2f\x4a\x4c\x4f\x75\x4b\x4d\x2d\x56\x48\x2b\xca\xcf\x55\x30\xa8\x70\xf3\xf1\x0f\x0f\x0e\xf1\x0f\x72\x74\x77\x75\x73\x75\x0d\x76\x74\x71\x09\x72\x0d\x0e\xe6\xe2\x2a\x28\x4d\x52\x48\x2b\xcd\x53\xc8\x4d\xcc\xcc\xd3\xd0\xb4\x52\x08\x75\xcb\xac\x30\x33\x51\xa8\xe6\x52\x50\x50\x50\x28\x4a\x2d\x29\x2d\xca\x43\x37\x52\xaf\x18\xc2\xf6\x4d\x4d\x4f\x74\xaa\x2c\x49\x2d\x0e\x48\x2d\x0a\x4a\x2d\x4e\x2d\x2a\x4b\x4d\x01\x59\xc3\x55\xcb\xc5\x05\x08\x00\x00\xff\xff\x26\x69\x66\x9f\x8d\x00\x00\x00"
+
+func storagefeesScriptsGet_storage_fee_conversionCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_storagefeesScriptsGet_storage_fee_conversionCdc,
+		"storageFees/scripts/get_storage_fee_conversion.cdc",
+	)
+}
+
+func storagefeesScriptsGet_storage_fee_conversionCdc() (*asset, error) {
+	bytes, err := storagefeesScriptsGet_storage_fee_conversionCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "storageFees/scripts/get_storage_fee_conversion.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x41, 0x34, 0x70, 0x9c, 0x9c, 0xb7, 0x42, 0x13, 0x80, 0x4a, 0x0, 0x5e, 0x5b, 0x24, 0x1a, 0xee, 0x7d, 0x4e, 0x56, 0x8c, 0x3b, 0x21, 0xe6, 0x9f, 0xf8, 0xaf, 0xb2, 0xe6, 0x4d, 0xda, 0xfa, 0xd7}}
+	return a, nil
+}
+
+var _storagefeesScriptsGet_storage_fee_minCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x5c\xcc\xb1\x0a\xc2\x30\x10\x06\xe0\xfd\x9e\xe2\x1f\x75\x11\x07\x71\x70\x2b\x34\x71\x11\x0a\x89\xe2\x1c\xe1\x2a\x07\x5e\x52\xae\x89\x16\xc4\x77\x77\x71\x72\xfd\x86\x4f\x74\x2a\x56\xe1\x1f\xe5\x15\x6b\xb1\x74\x67\xcf\x3c\x63\xb4\xa2\xd8\x2e\xfe\x34\x5c\xe3\x79\x08\xdd\xd1\x79\xe7\x62\xd7\xf7\xc1\xc5\x48\x34\xb5\x1b\xc6\x96\xa1\x49\xf2\x6a\x7d\xc0\xc5\xcb\xb2\xdf\xe1\x4d\x00\x60\x5c\x9b\xe5\xff\x72\xa3\x92\x45\x9b\xfe\x28\xf0\xcc\xf6\x4c\x55\x4a\xa6\x0f\xd1\x37\x00\x00\xff\xff\x80\x78\xb4\x0e\x87\x00\x00\x00"
+
+func storagefeesScriptsGet_storage_fee_minCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_storagefeesScriptsGet_storage_fee_minCdc,
+		"storageFees/scripts/get_storage_fee_min.cdc",
+	)
+}
+
+func storagefeesScriptsGet_storage_fee_minCdc() (*asset, error) {
+	bytes, err := storagefeesScriptsGet_storage_fee_minCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "storageFees/scripts/get_storage_fee_min.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xd3, 0x6d, 0xce, 0x10, 0xa9, 0x56, 0xe9, 0xc8, 0x0, 0xe6, 0x53, 0xcf, 0xc8, 0xb4, 0x52, 0x31, 0x44, 0xca, 0x1e, 0xe7, 0x1d, 0x2e, 0xe0, 0x25, 0xfd, 0xf5, 0x2c, 0x90, 0x3d, 0xbc, 0x7d, 0xeb}}
+	return a, nil
+}
+
 // Asset loads and returns the asset for the given name.
 // It returns an error if the asset could not be found or
 // could not be loaded.
@@ -2888,6 +2972,10 @@ var _bindata = map[string]func() (*asset, error){
 	"stakingProxy/unstake_all.cdc":                                            stakingproxyUnstake_allCdc,
 	"stakingProxy/withdraw_rewards.cdc":                                       stakingproxyWithdraw_rewardsCdc,
 	"stakingProxy/withdraw_unstaked.cdc":                                      stakingproxyWithdraw_unstakedCdc,
+	"storageFees/admin/set_parameters.cdc":                                    storagefeesAdminSet_parametersCdc,
+	"storageFees/scripts/get_storage_capacity.cdc":                            storagefeesScriptsGet_storage_capacityCdc,
+	"storageFees/scripts/get_storage_fee_conversion.cdc":                      storagefeesScriptsGet_storage_fee_conversionCdc,
+	"storageFees/scripts/get_storage_fee_min.cdc":                             storagefeesScriptsGet_storage_fee_minCdc,
 }
 
 // AssetDebug is true if the assets were built with the debug flag enabled.
@@ -3085,6 +3173,16 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"unstake_all.cdc": {stakingproxyUnstake_allCdc, map[string]*bintree{}},
 		"withdraw_rewards.cdc": {stakingproxyWithdraw_rewardsCdc, map[string]*bintree{}},
 		"withdraw_unstaked.cdc": {stakingproxyWithdraw_unstakedCdc, map[string]*bintree{}},
+	}},
+	"storageFees": {nil, map[string]*bintree{
+		"admin": {nil, map[string]*bintree{
+			"set_parameters.cdc": {storagefeesAdminSet_parametersCdc, map[string]*bintree{}},
+		}},
+		"scripts": {nil, map[string]*bintree{
+			"get_storage_capacity.cdc": {storagefeesScriptsGet_storage_capacityCdc, map[string]*bintree{}},
+			"get_storage_fee_conversion.cdc": {storagefeesScriptsGet_storage_fee_conversionCdc, map[string]*bintree{}},
+			"get_storage_fee_min.cdc": {storagefeesScriptsGet_storage_fee_minCdc, map[string]*bintree{}},
+		}},
 	}},
 }}
 

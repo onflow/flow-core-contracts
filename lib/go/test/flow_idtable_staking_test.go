@@ -38,7 +38,10 @@ const (
 )
 
 func TestIDTableDeployment(t *testing.T) {
-	b := newEmulator()
+
+	t.Parallel()
+
+	b := newBlockchain()
 
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
@@ -355,7 +358,10 @@ func TestIDTableDeployment(t *testing.T) {
 }
 
 func TestIDTableStaking(t *testing.T) {
-	b := newEmulator()
+
+	t.Parallel()
+
+	b := newBlockchain()
 
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
