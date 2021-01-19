@@ -17,7 +17,10 @@ import (
 )
 
 func TestContracts(t *testing.T) {
-	b := newEmulator()
+
+	t.Parallel()
+
+	b := newBlockchain()
 
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,

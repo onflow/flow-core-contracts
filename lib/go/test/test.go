@@ -13,9 +13,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// newEmulator returns a emulator object for testing.
-func newEmulator() *emulator.Blockchain {
-	b, err := emulator.NewBlockchain()
+// newBlockchain returns an emulator blockchain for testing.
+func newBlockchain(opts ...emulator.Option) *emulator.Blockchain {
+	b, err := emulator.NewBlockchain(
+		append(
+			[]emulator.Option{
+				emulator.WithStorageLimitEnabled(false),
+			},
+			opts...
+		)...,
+	)
 	if err != nil {
 		panic(err)
 	}
