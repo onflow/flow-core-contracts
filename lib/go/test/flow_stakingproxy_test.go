@@ -19,7 +19,10 @@ import (
 )
 
 func TestStakingProxy(t *testing.T) {
-	b := newEmulator()
+
+	t.Parallel()
+
+	b := newBlockchain()
 
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
