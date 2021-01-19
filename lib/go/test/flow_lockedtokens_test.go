@@ -2111,7 +2111,7 @@ func TestLockedTokensRealStaking(t *testing.T) {
 	accountKeys := test.AccountKeyGenerator()
 
 	// Create new keys for the ID table account
-	IDTableAccountKey, _ := accountKeys.NewWithSigner()
+	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
 	IDTableCode := contracts.FlowIDTableStaking(emulatorFTAddress, emulatorFlowTokenAddress)
 
 	publicKeys := make([]cadence.Value, 1)
@@ -2291,6 +2291,23 @@ func TestLockedTokensRealStaking(t *testing.T) {
 
 		balance := result.Value
 		assertEqual(t, CadenceUFix64("1000000.0"), balance)
+	})
+
+	t.Run("Should be able to enable the staking auction", func(t *testing.T) {
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GenerateStartStakingScript(env)).
+			SetGasLimit(9999).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(idTableAddress)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
 	})
 
 	t.Run("Should be able to register josh as a node operator", func(t *testing.T) {
@@ -2593,7 +2610,7 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 	accountKeys := test.AccountKeyGenerator()
 
 	// Create new keys for the ID table account
-	IDTableAccountKey, _ := accountKeys.NewWithSigner()
+	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
 	IDTableCode := contracts.FlowIDTableStaking(emulatorFTAddress, emulatorFlowTokenAddress)
 
 	publicKeys := make([]cadence.Value, 1)
@@ -2756,6 +2773,23 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 		)
 
 		// check balance of locked account
+	})
+
+	t.Run("Should be able to enable the staking auction", func(t *testing.T) {
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GenerateStartStakingScript(env)).
+			SetGasLimit(9999).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(idTableAddress)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
 	})
 
 	t.Run("Should be able to register as a node operator", func(t *testing.T) {

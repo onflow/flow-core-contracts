@@ -1,26 +1,3 @@
-/*
-
-    FlowIDTableStaking
-
-    The Flow ID Table and Staking contract manages
-    node operators' and delegators' information
-    and Flow tokens that are staked as part of the Flow Protocol.
-
-    Nodes submit their stake to the public addNodeInfo function
-    during the staking auction phase.
-
-    This records their info and committed tokens. They also will get a Node
-    Object that they can use to stake, unstake, and withdraw rewards.
-
-    Each node has multiple token buckets that hold their tokens
-    based on their status: committed, staked, unstaking, unstaked, and rewarded.
-
-    The Admin has the authority to remove node records,
-    refund insufficiently staked nodes, pay rewards,
-    and move tokens between buckets. These will happen once every epoch.
-
- */
-
 import FungibleToken from 0xFUNGIBLETOKENADDRESS
 import FlowToken from 0xFLOWTOKENADDRESS
 
@@ -303,22 +280,11 @@ pub contract FlowIDTableStaking {
     /// Records the staking info associated with a delegator
     /// Stored in the node's NodeRecord
     pub resource DelegatorRecord {
-        /// Tokens this delegator has committed for the next epoch
-        pub(set) var tokensCommitted: @FlowToken.Vault
-
-        /// Tokens this delegator has staked for the current epoch
-        pub(set) var tokensStaked: @FlowToken.Vault
-
-        /// Tokens this delegator has requested to unstake and is locked for the current epoch
-        pub(set) var tokensUnstaking: @FlowToken.Vault
-
-        /// Tokens this delegator has been rewarded and can withdraw
+        pub var tokensCommitted: @FlowToken.Vault
+        pub var tokensStaked: @FlowToken.Vault
+        pub var tokensUnstaking: @FlowToken.Vault
         pub let tokensRewarded: @FlowToken.Vault
-
-        /// Tokens that this delegator unstaked and can withdraw
         pub let tokensUnstaked: @FlowToken.Vault
-
-        /// Tokens that the delegator has requested to unstake
         pub(set) var tokensRequestedToUnstake: UFix64
 
         init() {
@@ -382,7 +348,6 @@ pub contract FlowIDTableStaking {
     /// Resource that the node operator controls for staking
     pub resource NodeStaker: NodeStakerPublic {
 
-        /// Unique ID for the node operator
         pub let id: String
 
         init(id: String) {
@@ -399,7 +364,6 @@ pub contract FlowIDTableStaking {
 
             emit TokensCommitted(nodeID: nodeRecord.id, amount: tokens.balance)
 
-            /// Add the new tokens to tokens committed
             nodeRecord.tokensCommitted.deposit(from: <-tokens)
         }
 
@@ -423,7 +387,6 @@ pub contract FlowIDTableStaking {
 
             if remainingAmount > 0.0 {
 
-                /// Add the removed tokens to tokens committed
                 nodeRecord.tokensCommitted.deposit(from: <-nodeRecord.tokensUnstaked.withdraw(amount: remainingAmount))
 
                 emit TokensCommitted(nodeID: nodeRecord.id, amount: remainingAmount)
@@ -439,7 +402,6 @@ pub contract FlowIDTableStaking {
             if amount > 0.0 {
                 let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
 
-                /// Add the removed tokens to tokens committed
                 nodeRecord.tokensCommitted.deposit(from: <-nodeRecord.tokensRewarded.withdraw(amount: amount))
 
                 emit TokensCommitted(nodeID: nodeRecord.id, amount: amount)
@@ -467,7 +429,6 @@ pub contract FlowIDTableStaking {
                 message: "Cannot unstake below the minimum if there are delegators"
             )
 
-            /// Get the balance of the tokens that are currently committed
             let amountCommitted = nodeRecord.tokensCommitted.balance
 
             /// If the request can come from committed, withdraw from committed to unstaked
@@ -477,7 +438,6 @@ pub contract FlowIDTableStaking {
                 nodeRecord.tokensUnstaked.deposit(from: <-nodeRecord.tokensCommitted.withdraw(amount: amount))
 
             } else {
-                /// Get the balance of the tokens that are currently committed
                 let amountCommitted = nodeRecord.tokensCommitted.balance
 
                 if amountCommitted > 0.0 {
@@ -665,8 +625,8 @@ pub contract FlowIDTableStaking {
         }
     }
 
-    /// Admin resource that has the ability to create new staker objects, remove insufficiently staked nodes
-    /// at the end of the staking auction, and pay rewards to nodes at the end of an epoch
+    /// Admin resource that has the ability to remove insufficiently staked nodes
+    /// at the end of the staking auction, pay rewards to nodes at the end of an epoch, and move tokens between buckets
     pub resource Admin {
 
         /// Remove a node from the record
@@ -690,9 +650,7 @@ pub contract FlowIDTableStaking {
         /// it moves their committed tokens to their unstaked bucket
         ///
         /// Parameter: approvedNodeIDs: A list of nodeIDs that have been approved
-        /// by the protocol to be a staker for the next epoch. The node software
-        /// checks if the node that corresponds to each proposed ID is running properly
-        /// and that its node info is correct
+        /// by the protocol to be a staker for the next epoch.
         pub fun endStakingAuction(approvedNodeIDs: {String: Bool}) {
             pre {
                 FlowIDTableStaking.stakingEnabled: "Cannot end the staking auction if it is not currently in progress"
