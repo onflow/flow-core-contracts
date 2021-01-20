@@ -53,8 +53,8 @@ pub contract FlowEpochClusterQC {
     // ================================================================================
 
     // Canonical paths for admin and voter resources
-    pub let AdminStoragePath: Path
-    pub let VoterStoragePath: Path
+    pub let AdminStoragePath: StoragePath
+    pub let VoterStoragePath: StoragePath
 
     // Represents a collection node cluster for a given epoch. 
     pub struct Cluster {

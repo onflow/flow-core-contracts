@@ -16,6 +16,7 @@ const (
 	placeholderLockedTokensAddress      = "0xLOCKEDTOKENADDRESS"
 	placeholderStakingProxyAddress      = "0xSTAKINGPROXYADDRESS"
 	placeholderQuorumCertificateAddress = "0xQCADDRESS"
+	placeholderStorageFeesAddress       = "0xFLOWSTORAGEFEESADDRESS"
 )
 
 type Environment struct {
@@ -26,6 +27,7 @@ type Environment struct {
 	LockedTokensAddress      string
 	StakingProxyAddress      string
 	QuorumCertificateAddress string
+	StorageFeesAddress       string
 }
 
 func withHexPrefix(address string) string {
@@ -76,6 +78,12 @@ func replaceAddresses(code string, env Environment) string {
 		code,
 		placeholderQuorumCertificateAddress,
 		withHexPrefix(env.QuorumCertificateAddress),
+	)
+
+	code = strings.ReplaceAll(
+		code,
+		placeholderStorageFeesAddress,
+		withHexPrefix(env.StorageFeesAddress),
 	)
 
 	return code

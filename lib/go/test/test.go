@@ -1,6 +1,7 @@
 package test
 
 import (
+	"fmt"
 	"io/ioutil"
 	"testing"
 
@@ -12,9 +13,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// newEmulator returns a emulator object for testing.
-func newEmulator() *emulator.Blockchain {
-	b, err := emulator.NewBlockchain()
+// newBlockchain returns an emulator blockchain for testing.
+func newBlockchain(opts ...emulator.Option) *emulator.Blockchain {
+	b, err := emulator.NewBlockchain(
+		append(
+			[]emulator.Option{
+				emulator.WithStorageLimitEnabled(false),
+			},
+			opts...
+		)...,
+	)
 	if err != nil {
 		panic(err)
 	}
@@ -73,7 +81,6 @@ func Submit(
 	} else {
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
-			//cmd.PrettyPrintError(result.Error, "", map[string]string{"": ""})
 		}
 	}
 
@@ -119,4 +126,27 @@ func bytesToCadenceArray(b []byte) cadence.Array {
 	}
 
 	return cadence.NewArray(values)
+}
+
+// assertEqual asserts that two objects are equal.
+//
+//    assertEqual(t, 123, 123)
+//
+// Pointer variable equality is determined based on the equality of the
+// referenced values (as opposed to the memory addresses). Function equality
+// cannot be determined and will always fail.
+//
+func assertEqual(t *testing.T, expected, actual interface{}) bool {
+
+	if assert.ObjectsAreEqual(expected, actual) {
+		return true
+	}
+
+	message := fmt.Sprintf(
+		"Not equal: \nexpected: %s\nactual  : %s",
+		expected,
+		actual,
+	)
+
+	return assert.Fail(t, message)
 }

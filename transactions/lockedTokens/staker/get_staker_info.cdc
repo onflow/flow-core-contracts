@@ -10,29 +10,26 @@ pub fun main(account: Address): [FlowIDTableStaking.NodeInfo] {
 
     let pubAccount = getAccount(account)
 
-    let nodeStaker = pubAccount.getCapability<&{FlowIDTableStaking.NodeStakerPublic}>(FlowIDTableStaking.NodeStakerPublicPath)!
-        .borrow()
+    let nodeStakerCap = pubAccount
+        .getCapability<&{FlowIDTableStaking.NodeStakerPublic}>(
+            FlowIDTableStaking.NodeStakerPublicPath
+        )
 
-    if let nodeRef = nodeStaker {
-        nodeInfoArray.append(FlowIDTableStaking.NodeInfo(nodeID: nodeRef.id))
+    if let nodeStakerRef = nodeStakerCap.borrow() {
+        let info = FlowIDTableStaking.NodeInfo(nodeID: nodeStakerRef.id)
+        nodeInfoArray.append(info)
     }
 
     let lockedAccountInfoCap = pubAccount
-        .getCapability
-        <&LockedTokens.TokenHolder{LockedTokens.LockedAccountInfo}>
-        (LockedTokens.LockedAccountInfoPublicPath)
+        .getCapability<&LockedTokens.TokenHolder{LockedTokens.LockedAccountInfo}>(
+            LockedTokens.LockedAccountInfoPublicPath
+        )
 
-    if lockedAccountInfoCap == nil || !(lockedAccountInfoCap!.check()) {
-        return nodeInfoArray
-    }
-
-    if let lockedAccountInfoRef = lockedAccountInfoCap!.borrow() {
-    
-        if (lockedAccountInfoRef.getNodeID() == nil) {
-            return nodeInfoArray
+    if let lockedAccountInfoRef = lockedAccountInfoCap.borrow() {
+        if let nodeID = lockedAccountInfoRef.getNodeID() {
+            let info = FlowIDTableStaking.NodeInfo(nodeID: nodeID)
+            nodeInfoArray.append(info)
         }
-
-        nodeInfoArray.append(FlowIDTableStaking.NodeInfo(nodeID: lockedAccountInfoRef.getNodeID()!))
     }
 
     return nodeInfoArray

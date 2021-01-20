@@ -32,33 +32,47 @@ transaction(
             .link<&LockedTokens.LockedTokenManager>(
                 LockedTokens.LockedTokenManagerPrivatePath,
                 target: LockedTokens.LockedTokenManagerStoragePath
-        )   ?? panic("Could not link token manager capability")
+            )
+            ?? panic("Could not link token manager capability")
 
-        let tokenHolder <- LockedTokens.createTokenHolder(lockedAddress: sharedAccount.address, tokenManager: tokenManagerCapability)
+        let tokenHolder <- LockedTokens.createTokenHolder(
+            lockedAddress: sharedAccount.address,
+            tokenManager: tokenManagerCapability
+        )
 
         userAccount.save(
-            <-tokenHolder, 
+            <-tokenHolder,
             to: LockedTokens.TokenHolderStoragePath,
         )
 
-        userAccount.link<&LockedTokens.TokenHolder{LockedTokens.LockedAccountInfo}>(LockedTokens.LockedAccountInfoPublicPath, target: LockedTokens.TokenHolderStoragePath)
+        userAccount.link<&LockedTokens.TokenHolder{LockedTokens.LockedAccountInfo}>(
+            LockedTokens.LockedAccountInfoPublicPath,
+            target: LockedTokens.TokenHolderStoragePath
+        )
 
         let tokenAdminCapability = sharedAccount
             .link<&LockedTokens.LockedTokenManager>(
                 LockedTokens.LockedTokenAdminPrivatePath,
-                target: LockedTokens.LockedTokenManagerStoragePath)
+                target: LockedTokens.LockedTokenManagerStoragePath
+            )
             ?? panic("Could not link token custodyProvider to token manager")
 
 
         let lockedAccountCreator = custodyProvider
-            .borrow<&LockedTokens.LockedAccountCreator>(from: LockedTokens.LockedAccountCreatorStoragePath)
+            .borrow<&LockedTokens.LockedAccountCreator>(
+                from: LockedTokens.LockedAccountCreatorStoragePath
+            )
             ?? panic("Could not borrow reference to LockedAccountCreator")
 
-        lockedAccountCreator.addAccount(sharedAccountAddress: sharedAccount.address, unlockedAccountAddress: userAccount.address, tokenAdmin: tokenAdminCapability)
+        lockedAccountCreator.addAccount(
+            sharedAccountAddress: sharedAccount.address,
+            unlockedAccountAddress: userAccount.address,
+            tokenAdmin: tokenAdminCapability
+        )
 
         // Override the default FlowToken receiver
         sharedAccount.unlink(/public/flowTokenReceiver)
-            
+
         // create new receiver that marks received tokens as unlocked
         sharedAccount.link<&AnyResource{FungibleToken.Receiver}>(
             /public/flowTokenReceiver,

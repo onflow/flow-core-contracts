@@ -7,16 +7,16 @@ import FlowToken from 0xFLOWTOKENADDRESS
 transaction {
 
     prepare(acct: AuthAccount) {
-        
-        if acct.borrow<&FlowIDTableStaking.NodeStaker>(from: FlowIDTableStaking.NodeStakerStoragePath) != nil {
 
-            let nodeCapability = acct.getCapability<&{FlowIDTableStaking.NodeStakerPublic}>(FlowIDTableStaking.NodeStakerPublicPath)!
+        if acct.borrow<&FlowIDTableStaking.NodeStaker>(from: FlowIDTableStaking.NodeStakerStoragePath) == nil ||
+            acct.getCapability<&{FlowIDTableStaking.NodeStakerPublic}>(FlowIDTableStaking.NodeStakerPublicPath).check()
+        {
+            return
+        }
 
-            let nodeRef = nodeCapability.borrow() 
-            
-            if nodeRef == nil {
-                acct.link<&{FlowIDTableStaking.NodeStakerPublic}>(FlowIDTableStaking.NodeStakerPublicPath, target: FlowIDTableStaking.NodeStakerStoragePath)
-            }
-        } 
+        acct.link<&{FlowIDTableStaking.NodeStakerPublic}>(
+            FlowIDTableStaking.NodeStakerPublicPath,
+            target: FlowIDTableStaking.NodeStakerStoragePath
+        )
     }
 }

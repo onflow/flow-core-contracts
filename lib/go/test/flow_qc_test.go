@@ -54,7 +54,7 @@ func initClusters(clusterNodeIDStrings [][]string, numberOfClusters, numberOfNod
 }
 
 func TestQuroumCertificate(t *testing.T) {
-	b := newEmulator()
+	b := newBlockchain()
 
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,

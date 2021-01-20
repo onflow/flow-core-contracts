@@ -21,12 +21,9 @@ import (
 )
 
 const (
-	firstID = "0000000000000000000000000000000000000000000000000000000000000001"
 
 	numberOfNodes      = 1000
 	numberOfDelegators = 20000
-
-	nodeStakeAmount = 1500000
 	nodeMintAmount  = 2000000
 
 	unstakeAllNumNodes      = 1
@@ -34,8 +31,10 @@ const (
 )
 
 func TestManyNodesIDTable(t *testing.T) {
-	b, err := emulator.NewBlockchain(emulator.WithTransactionMaxGasLimit(10000000))
-	require.NoError(t, err)
+
+	t.Parallel()
+
+	b := newBlockchain(emulator.WithTransactionMaxGasLimit(10000000))
 
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
@@ -59,7 +58,11 @@ func TestManyNodesIDTable(t *testing.T) {
 	tx := flow.NewTransaction().
 		SetScript(templates.GenerateTransferMinterAndDeployScript(env)).
 		SetGasLimit(100).
-		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+		SetProposalKey(
+			b.ServiceKey().Address,
+			b.ServiceKey().Index,
+			b.ServiceKey().SequenceNumber,
+		).
 		SetPayer(b.ServiceKey().Address).
 		AddAuthorizer(b.ServiceKey().Address).
 		AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys)).
@@ -125,10 +128,19 @@ func TestManyNodesIDTable(t *testing.T) {
 		totalMint := numberOfNodes * nodeMintAmount
 		mintAmount := fmt.Sprintf("%d.0", totalMint)
 
+		script := ft_templates.GenerateMintTokensScript(
+			flow.HexToAddress(emulatorFTAddress),
+			flow.HexToAddress(emulatorFlowTokenAddress),
+			"FlowToken",
+		)
 		tx := flow.NewTransaction().
-			SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
+			SetScript(script).
 			SetGasLimit(9999).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetProposalKey(
+				b.ServiceKey().Address,
+				b.ServiceKey().Index,
+				b.ServiceKey().SequenceNumber,
+			).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(b.ServiceKey().Address)
 
@@ -216,7 +228,7 @@ func TestManyNodesIDTable(t *testing.T) {
 		}
 		proposedIDs := result.Value
 		idArray := proposedIDs.(cadence.Array).Values
-		assert.Equal(t, numberOfNodes, len(idArray))
+		assert.Len(t, idArray, numberOfNodes)
 
 		result, err = b.ExecuteScript(templates.GenerateReturnProposedTableScript(env), nil)
 		require.NoError(t, err)
@@ -225,7 +237,7 @@ func TestManyNodesIDTable(t *testing.T) {
 		}
 		proposedIDs = result.Value
 		idArray = proposedIDs.(cadence.Array).Values
-		assert.Equal(t, numberOfNodes, len(idArray))
+		assert.Len(t, idArray, numberOfNodes)
 
 	})
 
@@ -387,10 +399,10 @@ func TestManyNodesIDTable(t *testing.T) {
 }
 
 func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
-	b, err := emulator.NewBlockchain(emulator.WithTransactionMaxGasLimit(100000000))
-	if err != nil {
-		panic(err)
-	}
+
+	t.Parallel()
+
+	b := newBlockchain(emulator.WithTransactionMaxGasLimit(100000000))
 
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
@@ -475,8 +487,13 @@ func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
 
 		for i := 0; i < unstakeAllNumNodes; i++ {
 
+			script := ft_templates.GenerateMintTokensScript(
+				flow.HexToAddress(emulatorFTAddress),
+				flow.HexToAddress(emulatorFlowTokenAddress),
+				"FlowToken",
+			)
 			tx := flow.NewTransaction().
-				SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
+				SetScript(script).
 				SetGasLimit(9999).
 				SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 				SetPayer(b.ServiceKey().Address).
