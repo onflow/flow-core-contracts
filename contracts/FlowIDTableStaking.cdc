@@ -3,7 +3,7 @@ import FlowToken from 0xFLOWTOKENADDRESS
 
 pub contract FlowIDTableStaking {
 
-    /********************* ID Table and Staking Events **********************/
+    /****** ID Table and Staking Events ******/
 
     pub event NewEpoch(totalStaked: UFix64, totalRewardPayout: UFix64)
 
@@ -39,8 +39,11 @@ pub contract FlowIDTableStaking {
     /// Holds the identity table for all the nodes in the network.
     /// Includes nodes that aren't actively participating
     /// key = node ID
-    /// value = the record of that node's info, tokens, and delegators
     access(contract) var nodes: @{String: NodeRecord}
+
+    access(contract) var stakingKeyClaimed: {String: Bool}
+    access(contract) var networkingKeyClaimed: {String: Bool}
+    access(contract) var networkingAddressClaimed: {String: Bool}
 
     /// The minimum amount of tokens that each node type has to stake
     /// in order to be considered valid
@@ -55,8 +58,6 @@ pub contract FlowIDTableStaking {
     access(contract) var epochTokenPayout: UFix64
 
     /// The ratio of the weekly awards that each node type gets
-    /// key = node role
-    /// value = decimal number between 0 and 1 indicating a percentage
     access(contract) var rewardRatios: {UInt8: UFix64}
 
     /// The percentage of rewards that every node operator takes from
@@ -137,23 +138,9 @@ pub contract FlowIDTableStaking {
                 networkingAddress.length > 0 && networkingAddress.length <= 510: "The networkingAddress must be less than 255 bytes (510 hex characters)"
                 networkingKey.length == 128: "The networkingKey length must be exactly 64 bytes (128 hex characters)"
                 stakingKey.length == 192: "The stakingKey length must be exactly 96 bytes (192 hex characters)"
-            }
-
-            /// Assert that the addresses and keys are not already in use
-            /// They must be unique
-            for nodeID in FlowIDTableStaking.nodes.keys {
-                assert (
-                    networkingAddress != FlowIDTableStaking.nodes[nodeID]?.networkingAddress,
-                    message: "Networking Address is already in use!"
-                )
-                assert (
-                    networkingKey != FlowIDTableStaking.nodes[nodeID]?.networkingKey,
-                    message: "Networking Key is already in use!"
-                )
-                assert (
-                    stakingKey != FlowIDTableStaking.nodes[nodeID]?.stakingKey,
-                    message: "Staking Key is already in use!"
-                )
+                FlowIDTableStaking.networkingAddressClaimed[networkingAddress] == nil: "The networkingAddress cannot have already been claimed"
+                FlowIDTableStaking.networkingKeyClaimed[networkingKey] == nil: "The networkingKey cannot have already been claimed"
+                FlowIDTableStaking.stakingKeyClaimed[stakingKey] == nil: "The stakingKey cannot have already been claimed"
             }
 
             self.id = id
@@ -164,6 +151,10 @@ pub contract FlowIDTableStaking {
             self.initialWeight = 0
             self.delegators <- {}
             self.delegatorIDCounter = 0
+
+            FlowIDTableStaking.networkingAddressClaimed[networkingAddress] = true
+            FlowIDTableStaking.networkingKeyClaimed[networkingKey] = true
+            FlowIDTableStaking.stakingKeyClaimed[stakingKey] = true
 
             self.tokensCommitted <- tokensCommitted as! @FlowToken.Vault
             self.tokensStaked <- FlowToken.createEmptyVault() as! @FlowToken.Vault
@@ -469,7 +460,6 @@ pub contract FlowIDTableStaking {
             nodeRecord.tokensRequestedToUnstake = nodeRecord.tokensStaked.balance
         }
 
-        /// Withdraw tokens from the unstaked bucket
         pub fun withdrawUnstakedTokens(amount: UFix64): @FungibleToken.Vault {
 
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
@@ -479,7 +469,6 @@ pub contract FlowIDTableStaking {
             return <- nodeRecord.tokensUnstaked.withdraw(amount: amount)
         }
 
-        /// Withdraw tokens from the rewarded bucket
         pub fun withdrawRewardedTokens(amount: UFix64): @FungibleToken.Vault {
 
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
@@ -590,7 +579,6 @@ pub contract FlowIDTableStaking {
                 delRecord.tokensUnstaked.deposit(from: <-delRecord.tokensCommitted.withdraw(amount: amount))
 
             } else {
-                /// Get the balance of the tokens that are currently committed
                 let amountCommitted = delRecord.tokensCommitted.balance
 
                 if amountCommitted > 0.0 {
@@ -602,25 +590,21 @@ pub contract FlowIDTableStaking {
             }
         }
 
-        /// Withdraw tokens from the unstaked bucket
         pub fun withdrawUnstakedTokens(amount: UFix64): @FungibleToken.Vault {
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.nodeID)
             let delRecord = nodeRecord.borrowDelegatorRecord(self.id)
 
             emit DelegatorUnstakedTokensWithdrawn(nodeID: nodeRecord.id, delegatorID: self.id, amount: amount)
 
-            /// remove the tokens from the unstaked bucket
             return <- delRecord.tokensUnstaked.withdraw(amount: amount)
         }
 
-        /// Withdraw tokens from the rewarded bucket
         pub fun withdrawRewardedTokens(amount: UFix64): @FungibleToken.Vault {
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.nodeID)
             let delRecord = nodeRecord.borrowDelegatorRecord(self.id)
 
             emit DelegatorRewardTokensWithdrawn(nodeID: nodeRecord.id, delegatorID: self.id, amount: amount)
 
-            /// remove the tokens from the rewarded bucket
             return <- delRecord.tokensRewarded.withdraw(amount: amount)
         }
     }
@@ -631,9 +615,12 @@ pub contract FlowIDTableStaking {
 
         /// Remove a node from the record
         pub fun removeNode(_ nodeID: String): @NodeRecord {
-            // Remove the node from the table
             let node <- FlowIDTableStaking.nodes.remove(key: nodeID)
                 ?? panic("Could not find a node with the specified ID")
+
+            FlowIDTableStaking.networkingAddressClaimed[node.networkingAddress] = nil
+            FlowIDTableStaking.networkingKeyClaimed[node.networkingKey] = nil
+            FlowIDTableStaking.stakingKeyClaimed[node.stakingKey] = nil
 
             return <-node
         }
@@ -1067,6 +1054,10 @@ pub contract FlowIDTableStaking {
         self.stakingEnabled = false
 
         self.nodes <- {}
+
+        self.stakingKeyClaimed = {}
+        self.networkingKeyClaimed = {}
+        self.networkingAddressClaimed = {}
 
         self.NodeStakerStoragePath = /storage/flowStaker
         self.NodeStakerPublicPath = /public/flowStaker
