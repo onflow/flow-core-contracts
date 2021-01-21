@@ -34,8 +34,8 @@ pub contract FlowEpochClusterQC {
 
     // Indicates if a voter resource has already been claimed by a node ID
     // from the identity table contract
-    // Node IDs have to claim a voter capability every epoch
-    // one node will use the same specific ID for all time, but will use a different Voter capability per epoch
+    // Node IDs have to claim a voter once
+    // one node will use the same specific ID and Voter resource for all time
     // `nil` means that there is no voting capability for the node ID
     // false means that a voter capability for the ID, but it hasn't been claimed
     // true means that the voter capability has been claimed by the node
@@ -47,6 +47,10 @@ pub contract FlowEpochClusterQC {
     // When a node submits a vote, they take it out of this map, add their signature, 
     // then add it to the submitted vote list for their cluster.
     access(account) var generatedVotes: {String: Vote}
+
+    // Indicates what cluster a node is in for the current epoch
+    // Value is a cluster index
+    access(contract) var nodeCluster: {String: UInt16}
 
     // ================================================================================
     // CONTRACT CONSTANTS
@@ -195,7 +199,12 @@ pub contract FlowEpochClusterQC {
                 // Create a new Vote struct for each participating node
                 for nodeID in cluster.nodeWeights.keys {
                     FlowEpochClusterQC.generatedVotes[nodeID] = Vote(nodeID: nodeID, clusterIndex: clusterIndex, voteWeight: cluster.nodeWeights[nodeID]!)
-                    FlowEpochClusterQC.voterClaimed[nodeID] = false
+                    FlowEpochClusterQC.nodeCluster[nodeID] = clusterIndex
+                    
+                    if FlowEpochClusterQC.voterClaimed[nodeID] == nil {
+                        FlowEpochClusterQC.voterClaimed[nodeID] = false
+                    }
+                    
                 }
 
                 clusterIndex = clusterIndex + UInt16(1)
@@ -223,15 +232,15 @@ pub contract FlowEpochClusterQC {
     // Returns whether this voter has successfully submitted a vote for this epoch.
     pub fun nodeHasVoted(_ nodeID: String): Bool {
 
-        // Iterate through the clusters to find this voter
-        for cluster in FlowEpochClusterQC.clusters {
+        if let clusterIndex = FlowEpochClusterQC.nodeCluster[nodeID] {
+
+            let cluster = FlowEpochClusterQC.clusters[clusterIndex]
+
             if cluster.nodeWeights[nodeID] != nil {
                 return FlowEpochClusterQC.generatedVotes[nodeID] == nil
             }
         }
 
-        // If the voter was not found, it means they are not it the current epoch
-        // and therefore have not voted
         return false
     }
 
@@ -267,6 +276,7 @@ pub contract FlowEpochClusterQC {
         self.clusters = []
         self.generatedVotes = {}
         self.voterClaimed = {}
+        self.nodeCluster = {}
 
         self.account.save(<-create Admin(), to: self.AdminStoragePath)
     }
