@@ -95,12 +95,6 @@ pub contract FlowEpochs {
         clusterQCs: [String]
     )
 
-    /// The counter, or ID, of the current epoch
-    pub var currentEpochCounter: UInt64
-
-    /// Contains a historical record of the metadata from all previous epochs
-    access(contract) var epochMetadata: {UInt64: EpochMetadata}
-
     pub struct EpochMetadata {
 
         // The identifier for the epoch
