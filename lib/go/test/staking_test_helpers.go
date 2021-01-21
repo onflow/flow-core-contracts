@@ -168,6 +168,8 @@ func commitNewTokens(t *testing.T,
 
 	if !shouldFail {
 		newTokensCommitted = tokensCommitted.Plus(amount).(interpreter.UFix64Value)
+	} else {
+		newTokensCommitted = tokensCommitted
 	}
 
 	return
@@ -207,6 +209,9 @@ func commitUnstaked(t *testing.T,
 	if !shouldFail {
 		newTokensCommitted = tokensCommitted.Plus(amount).(interpreter.UFix64Value)
 		newTokensUnstaked = tokensUnstaked.Minus(amount).(interpreter.UFix64Value)
+	} else {
+		newTokensCommitted = tokensCommitted
+		newTokensUnstaked = tokensUnstaked
 	}
 
 	return
@@ -245,6 +250,9 @@ func commitRewarded(t *testing.T,
 	if !shouldFail {
 		newTokensRewarded = tokensRewarded.Minus(amount).(interpreter.UFix64Value)
 		newTokensCommitted = tokensCommitted.Plus(amount).(interpreter.UFix64Value)
+	} else {
+		newTokensRewarded = tokensRewarded
+		newTokensCommitted = tokensCommitted
 	}
 
 	return
@@ -290,6 +298,10 @@ func requestUnstaking(t *testing.T,
 			newTokensUnstaked = tokensUnstaked.Plus(tokensCommitted).(interpreter.UFix64Value)
 			newTokensCommitted = 0
 		}
+	} else {
+		newRequest = request
+		newTokensUnstaked = tokensUnstaked
+		newTokensCommitted = tokensCommitted
 	}
 
 	return

@@ -16,6 +16,7 @@ const (
 	changeCutFilename            = "idTableStaking/admin/change_cut.cdc"
 	changePayoutFilename         = "idTableStaking/admin/change_payout.cdc"
 	endEpochChangePayoutFilename = "idTableStaking/admin/end_epoch_change_payout.cdc"
+	startStakingFilename         = "idTableStaking/admin/start_staking.cdc"
 
 	registerNodeFilename            = "idTableStaking/node/register_node.cdc"
 	stakeNewTokensFilename          = "idTableStaking/node/stake_new_tokens.cdc"
@@ -70,6 +71,13 @@ func GenerateTransferMinterAndDeployScript(env Environment) []byte {
 // from the record
 func GenerateRemoveNodeScript(env Environment) []byte {
 	code := assets.MustAssetString(removeNodeFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+// GenerateStartStakingScript creates a script that starts the staking auction
+func GenerateStartStakingScript(env Environment) []byte {
+	code := assets.MustAssetString(startStakingFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
