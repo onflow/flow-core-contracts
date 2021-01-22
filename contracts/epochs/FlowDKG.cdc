@@ -217,20 +217,20 @@ pub contract FlowDKG {
         return self.nodeHasSubmitted.keys
     }
 
-    // Returns true if any one set of keys has more than 50% submissions
-    pub fun dkgCompleted(): Bool {
+    /// Returns the final set of keys if any one set of keys has more than 50% submissions
+    /// Returns nil if not found
+    pub fun dkgCompleted(): [String]? {
 
         var index = 0
 
         for submission in self.uniqueFinalSubmissions {
             if self.uniqueFinalSubmissionCount[index]! > UInt64(self.nodeHasSubmitted.keys.length/2) {
-                return true
+                return submission
             }
             index = index + 1
         }
 
-        return false
-
+        return nil
     }
 
     init() {
