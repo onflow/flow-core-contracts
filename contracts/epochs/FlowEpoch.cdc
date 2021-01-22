@@ -71,7 +71,11 @@ pub contract FlowEpochs {
 
         // The source of randomness to seed the leader selection algorithm with 
         // for the upcoming epoch.
-        randomSource: String
+        randomSource: String,
+
+        DKGPhase1FinalView: UInt64,
+        DKGPhase2FinalView: UInt64,
+        DKGPhase3FinalView: UInt64
     )
 
     // The Epoch Committed service event is emitted when we transition from the Epoch
