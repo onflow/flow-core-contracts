@@ -32,6 +32,7 @@ const (
 	placeholderStakingProxyAddress  = "0xSTAKINGPROXYADDRESS"
 	placeholderQCAddr               = "0xQCADDRESS"
 	placeholderDKGAddr              = "0xDKGADDRESS"
+	placeholderEpochsAddr           = "0xEPOCHADDRESS"
 	placeholderFlowFeesAddress      = "0xFLOWFEESADDRESS"
 	placeholderStorageFeesAddress   = "0xFLOWSTORAGEFEESADDRESS"
 )
@@ -191,6 +192,13 @@ func FlowLockedTokens(
 // FlowQC returns the FlowEpochClusterQCs contract.
 func FlowQC() []byte {
 	code := assets.MustAssetString(flowQCFilename)
+
+	return []byte(code)
+}
+
+// FlowDKG returns the FlowDKG contract.
+func FlowDKG() []byte {
+	code := assets.MustAssetString(flowDKGFilename)
 
 	return []byte(code)
 }

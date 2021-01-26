@@ -1,8 +1,11 @@
 
 pub contract FlowDKG {
 
-    pub event BroadcastMessage(phase: UInt8, nodeID: String, content: String)
+    pub event StartDKG()
+    pub event NextDKGPhase(phase: UInt8)
+    pub event EndDKG(finalSubmission: [String]?)
 
+    pub event BroadcastMessage(phase: UInt8, nodeID: String, content: String)
     pub event FinalSubmission(nodeID: String, submission: [String])
 
     // ================================================================================
@@ -11,12 +14,15 @@ pub contract FlowDKG {
 
     // Indicates whether dkg submissions are currently being collected.
     pub enum DKGPhase: UInt8 {
-        pub case disabled
         pub case Phase1
         pub case Phase2
         pub case Phase3
         pub case finalSubmission
+        pub case disabled
     }
+
+    /// The length of keys that have to be submitted as a final submission
+    pub let submissionKeyLength: Int
 
     // tracks the current phase of the DKG
     access(account) var currentPhase: DKGPhase
@@ -30,11 +36,11 @@ pub contract FlowDKG {
     access(account) var nodeClaimed: {String: Bool}
 
     /// Record of whiteboard messages keyed by phase
-    access(account) var phaseMessages: {UInt8: [Message]}
+    access(account) var phaseMessages: {DKGPhase: [Message]}
 
     // Tracks if a node has submitted their final submission for the epoch
     // reset every epoch
-    access(account) var nodeHasSubmitted: {String: Bool}
+    access(account) var nodeFinalSubmission: {String: [String]}
 
     /// Array of unique final submissions from nodes
     /// if a final submission is sent that matches one that already has been submitted
@@ -52,17 +58,18 @@ pub contract FlowDKG {
     // Canonical paths for admin and participant resources
     pub let AdminStoragePath: StoragePath
     pub let ParticipantStoragePath: StoragePath
+    pub let ParticipantPublicPath: PublicPath
 
     /// Struct to represent a single whiteboard message
     pub struct Message {
 
         pub let nodeID: String
 
-        pub let phase: UInt8
+        pub let phase: DKGPhase
 
         pub let content: String
 
-        init(nodeID: String, phase: UInt8, content: String) {
+        init(nodeID: String, phase: DKGPhase, content: String) {
             self.nodeID = nodeID
             self.phase = phase
             self.content = content
@@ -77,10 +84,10 @@ pub contract FlowDKG {
         pub let nodeID: String
 
         // Submits a whiteboard message to the contract
-        pub fun sendMessage(phase: UInt8, _ content: String) {
+        pub fun sendMessage(phase: DKGPhase, _ content: String) {
             pre {
                 FlowDKG.participantIsRegistered(self.nodeID): "Cannot send whiteboard message if not registered for the current epoch"
-                phase > FlowDKG.currentPhase && phase < UInt8(4): "Phase submission is invalid"
+                phase.rawValue >= FlowDKG.currentPhase.rawValue: "Phase submission is invalid"
             }
 
             // create the message struct
@@ -89,7 +96,7 @@ pub contract FlowDKG {
             // add the message to the message record for the phase
             FlowDKG.phaseMessages[phase]!.append(message)
 
-            emit BroadcastMessage(phase: phase, nodeID: self.nodeID, content: content)
+            emit BroadcastMessage(phase: phase.rawValue, nodeID: self.nodeID, content: content)
 
         }
 
@@ -98,9 +105,9 @@ pub contract FlowDKG {
         pub fun sendFinalSubmission(_ submission: [String]) {
             pre {
                 FlowDKG.participantIsRegistered(self.nodeID): "Cannot send final submission if not registered for the current epoch"
-                !FlowDKG.nodeHasSubmittedFinal(self.nodeID)!: "Cannot submit a final submission twice"
+                FlowDKG.nodeHasSubmitted(self.nodeID)!.length == 0: "Cannot submit a final submission twice"
                 FlowDKG.currentPhase == DKGPhase.finalSubmission: "Can only send final submission in the final DKG phase"
-                // submission should be a certain length?
+                submission.length == FlowDKG.nodeFinalSubmission.keys.length + 1: "Submission must have number of elements equal to the number of nodes participating in the DKG"
             }
 
             var finalSubmissionIndex = 0
@@ -110,37 +117,16 @@ pub contract FlowDKG {
             // add to the counter for that submission
             // Otherwise, track the new submission and set its counter to 1
             for existingSubmission in FlowDKG.uniqueFinalSubmissions {
-                var index = 0
-                // If the submission length is different than the one being compared to
-                // move on to the next one
-                if submission.length != existingSubmission.length {
-                    return
-                }
 
-                // Check each key in the submiission to make sure that it matches
-                // the existing one
-                for key in submission {
-                    if key.length != 128 {
-                        // correct key length?
-                        return
-                    }
-                    // if a key is different, stop checking this submission
-                    // and move on to the next one
-                    if key != existingSubmission[index] {
-                        break
-                    }
-
-                    index = index + 1
-                }
-
-                // If we have gotten to the last key and they have all matched
+                // If the submissions are equal,
                 // update the counter for this submission and emit the event
-                if index == submission.length {
+                if FlowDKG.submissionsEqual(existingSubmission, submission) {
                     FlowDKG.uniqueFinalSubmissionCount[finalSubmissionIndex] = FlowDKG.uniqueFinalSubmissionCount[finalSubmissionIndex]! + UInt64(1)
                     emit FinalSubmission(nodeID: self.nodeID, submission: submission)
                     break
                 }
 
+                // update the index counter
                 finalSubmissionIndex = finalSubmissionIndex + 1
 
                 // If no matches were found, add this submission as a new unique one
@@ -183,8 +169,9 @@ pub contract FlowDKG {
         pub fun startDKG(nodeIDs: [String]) {
             FlowDKG.currentPhase = DKGPhase.Phase1
 
+            FlowDKG.nodeFinalSubmission = {}
             for id in nodeIDs {
-                FlowDKG.nodeHasSubmitted[id] = false
+                FlowDKG.nodeFinalSubmission[id] = []
             }
 
             FlowDKG.phaseMessages = {}
@@ -192,39 +179,95 @@ pub contract FlowDKG {
             FlowDKG.uniqueFinalSubmissions = []
 
             FlowDKG.uniqueFinalSubmissionCount = {}
+
+            emit StartDKG()
         }
 
-        pub fun setPhase(_ newPhase: DKGPhase) {
-            FlowDKG.currentPhase = newPhase
+        pub fun nextPhase() {
+            if FlowDKG.currentPhase != DKGPhase.disabled && FlowDKG.currentPhase != DKGPhase.finalSubmission {
+                FlowDKG.currentPhase = DKGPhase(rawValue: FlowDKG.currentPhase.rawValue + UInt8(1))!
+            }
+        }
+
+        pub fun endDKG() {
+            FlowDKG.currentPhase = DKGPhase.disabled
+
+            emit EndDKG(finalSubmission: FlowDKG.dkgCompleted())
         }
     }
 
+    access(account) fun submissionsEqual(_ existingSubmission: [String], _ submission: [String]): Bool {
+
+        // If the submission length is different than the one being compared to, it is not equal
+        if submission.length != existingSubmission.length {
+            return false
+        }
+
+        var index = 0
+
+        // Check each key in the submiission to make sure that it matches
+        // the existing one
+        for key in submission {
+            // If a key length is incorrect, it is an invalid submission
+            if key.length != FlowDKG.submissionKeyLength {
+                panic("Submission key length is not correct!")
+            }
+
+            // if a key is different, stop checking this submission
+            // and move on to the next one
+            if key != existingSubmission[index] {
+                return false
+            }
+
+            index = index + 1
+        }
+
+        return true
+
+    }
+
     pub fun participantIsRegistered(_ nodeID: String): Bool {
-        return FlowDKG.nodeHasSubmitted[nodeID] != nil
+        return FlowDKG.nodeFinalSubmission[nodeID] != nil
     }
 
     pub fun participantIsClaimed(_ nodeID: String): Bool? {
         return FlowDKG.nodeClaimed[nodeID]
     }
 
-    // Returns whether this participant has successfully submitted a final submission for this epoch.
-    pub fun nodeHasSubmittedFinal(_ nodeID: String): Bool? {
-        return self.nodeHasSubmitted[nodeID]
+    pub fun getCurrentPhase(): DKGPhase {
+        return self.currentPhase
+    }
+
+    pub fun getWhiteBoardMessages(): {DKGPhase: [Message]} {
+        return self.phaseMessages
+    }
+
+    /// Returns whether this node has successfully submitted a final submission for this epoch.
+    /// Returns nil if the node is not a participant
+    /// Returns empty array if the node is a participant or hasn't submitted
+    /// Returns a submission array if the node has submitted
+    pub fun nodeHasSubmitted(_ nodeID: String): [String]? {
+        return self.nodeFinalSubmission[nodeID]
     }
 
     /// Get the list of all the consensus node IDs participating
     pub fun getConsensusNodeIDs(): [String] {
-        return self.nodeHasSubmitted.keys
+        return self.nodeFinalSubmission.keys
+    }
+
+    /// Get the array of all the unique final submissions
+    pub fun getFinalSubmissions(): [[String]] {
+        return self.uniqueFinalSubmissions
     }
 
     /// Returns the final set of keys if any one set of keys has more than 50% submissions
-    /// Returns nil if not found
+    /// Returns nil if not found (incomplete)
     pub fun dkgCompleted(): [String]? {
 
         var index = 0
 
         for submission in self.uniqueFinalSubmissions {
-            if self.uniqueFinalSubmissionCount[index]! > UInt64(self.nodeHasSubmitted.keys.length/2) {
+            if self.uniqueFinalSubmissionCount[index]! > UInt64(self.nodeFinalSubmission.keys.length/2) {
                 return submission
             }
             index = index + 1
@@ -234,12 +277,15 @@ pub contract FlowDKG {
     }
 
     init() {
+        self.submissionKeyLength = 128
+
         self.AdminStoragePath = /storage/flowEpochsDKGAdmin
         self.ParticipantStoragePath = /storage/flowEpochsDKGParticipant
+        self.ParticipantPublicPath = /public/flowEpochsDKGParticipant
 
         self.currentPhase = DKGPhase.disabled
 
-        self.nodeHasSubmitted = {}
+        self.nodeFinalSubmission = {}
         self.uniqueFinalSubmissionCount = {}
         self.uniqueFinalSubmissions = []
         
@@ -249,3 +295,4 @@ pub contract FlowDKG {
         self.account.save(<-create Admin(), to: self.AdminStoragePath)
     }
 }
+ 
