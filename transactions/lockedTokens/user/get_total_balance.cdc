@@ -17,6 +17,29 @@ pub fun main(address: Address): UFix64 {
 
     sum = sum + vaultRef.balance
 
+    let nodeStakerCap = account
+        .getCapability<&{FlowIDTableStaking.NodeStakerPublic}>(
+            FlowIDTableStaking.NodeStakerPublicPath
+        )!
+
+    if let nodeStakerRef = nodeStakerCap.borrow() {
+        let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeStakerRef.id)
+        sum = sum + nodeInfo.tokensStaked + nodeInfo.totalTokensStaked + nodeInfo.tokensCommitted + nodeInfo.tokensUnstaking + nodeInfo.tokensUnstaked + nodeInfo.tokensRewarded
+    }
+
+    let delegatorCap = account
+        .getCapability<&{FlowIDTableStaking.NodeDelegatorPublic}>(
+            /public/flowStakingDelegator
+        )!
+
+    if let delegatorRef = delegatorCap.borrow() {
+        let delegatorInfo = FlowIDTableStaking.DelegatorInfo(
+            nodeID: delegatorRef.nodeID,
+            delegatorID: delegatorRef.id
+        )
+        sum = sum + delegatorInfo.tokensStaked + delegatorInfo.tokensCommitted + delegatorInfo.tokensUnstaking + delegatorInfo.tokensUnstaked + delegatorInfo.tokensRewarded
+    }
+
     let lockedAccountInfoCap = account
         .getCapability<&LockedTokens.TokenHolder{LockedTokens.LockedAccountInfo}>(
             LockedTokens.LockedAccountInfoPublicPath
