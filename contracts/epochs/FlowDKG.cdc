@@ -158,7 +158,7 @@ pub contract FlowDKG {
     pub resource Admin {
 
         /// Creates a new Participant resource for a consensus node
-        pub fun createParticipant(nodeID: String): @Participant {
+        pub fun createParticipant(_ nodeID: String): @Participant {
             let participant <-create Participant(nodeID: nodeID)
             FlowDKG.nodeClaimed[nodeID] = true
             return <-participant

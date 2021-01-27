@@ -1,17 +1,13 @@
 import FlowDKG from 0xDKGADDRESS
 
-transaction() {
-
-    let dkgParticipant: &FlowDKG.Participant
+transaction(address: Address, nodeID: String) {
 
     prepare(signer: AuthAccount) {
-        self.dkgParticipant = signer.borrow<&FlowDKG.Participant>(from: FlowDKG.ParticipantStoragePath)
-    }
+        let admin = getAccount(address).getCapability<&FlowDKG.Admin>(/public/dkgAdmin)
 
-    execute {
+        let dkgParticipant <- admin.createParticipant(nodeID)
 
-        self.dkgParticipant.
-
+        signer.save(<-dkgParticipant, to: FlowDKG.ParticipantStoragePath)
     }
 
 }
