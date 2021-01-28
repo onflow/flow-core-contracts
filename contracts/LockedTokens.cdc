@@ -266,7 +266,7 @@ pub contract LockedTokens {
         }
 
         /// Utility function to borrow a reference to the LockedTokenManager object
-        access(self) fun borrowTokenManager(): &LockedTokenManager {
+        access(account) fun borrowTokenManager(): &LockedTokenManager {
             return self.tokenManager.borrow()!
         }
 
@@ -501,6 +501,32 @@ pub contract LockedTokens {
 
             tokenManagerRef.deposit(from: <-tokenManagerRef.nodeDelegator?.withdrawRewardedTokens(amount: amount)!)
         }
+    }
+
+    pub resource LockedVaultHolder {
+        access(self) var lockedVault: Capability<&FlowToken.Vault>?
+
+        init() {
+            self.lockedVault = nil
+        }
+
+        access(account) fun addVault(lockedVault: Capability<&FlowToken.Vault>) {
+            pre {
+                lockedVault.check(): "Invalid vault capability"
+            }
+
+            self.lockedVault = lockedVault
+        }
+
+        access(account) fun withdrawFromLockedVault(amount: UFix64): @FungibleToken.Vault {
+            let vaultRef = self.lockedVault.borrow()!
+
+            return <-vaultRef.withdraw(amount: amount)
+        }
+    }
+
+    pub fun createLockedVaultHolder(): @LockedVaultHolder {
+        return <-create LockedVaultHolder()
     }
 
     pub resource interface AddAccount {
