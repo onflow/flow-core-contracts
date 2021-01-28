@@ -29,7 +29,7 @@ pub contract FlowFreeze {
         }
 
         pub fun unfreezeAccount(_ address: Address) {
-            FlowFreeze.freezeList[address] = nil
+            FlowFreeze.freezeList.remove(key: address)
         }
     }
 
