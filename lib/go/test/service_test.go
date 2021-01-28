@@ -125,3 +125,99 @@ func TestContracts(t *testing.T) {
 	assert.NoError(t, err)
 
 }
+
+func TestFreeze(t *testing.T) {
+
+	t.Parallel()
+
+	b := newBlockchain()
+
+	env := templates.Environment{
+		FungibleTokenAddress: emulatorFTAddress,
+		FlowTokenAddress:     emulatorFlowTokenAddress,
+	}
+
+	accountKeys := test.AccountKeyGenerator()
+
+	freezeAccountKey, freezeSigner := accountKeys.NewWithSigner()
+
+	// deploy the Flowfreeze contract
+	freezeCode := contracts.FlowFreeze()
+	freezeAddress, err := b.CreateAccount([]*flow.AccountKey{freezeAccountKey}, []sdktemplates.Contract{
+		{
+			Name:   "FlowFreeze",
+			Source: string(freezeCode),
+		},
+	})
+	assert.NoError(t, err)
+	_, err = b.CommitBlock()
+	assert.NoError(t, err)
+
+	env.FreezeAddress = freezeAddress.String()
+
+	joshAccountKey, _ := accountKeys.NewWithSigner()
+	joshAddress, _ := b.CreateAccount([]*flow.AccountKey{joshAccountKey}, nil)
+
+	result, err := b.ExecuteScript(templates.GenerateGetFreezeStatusScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
+	require.NoError(t, err)
+	if !assert.True(t, result.Succeeded()) {
+		t.Log(result.Error.Error())
+	}
+	frozen := result.Value
+	assertEqual(t, cadence.NewBool(false), frozen.(cadence.Bool))
+
+	t.Run("Should be able to freeze an account", func(t *testing.T) {
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GenerateFreezeAccountScript(env)).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(freezeAddress)
+
+		tx.AddArgument(cadence.NewAddress(joshAddress))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, freezeAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), freezeSigner},
+			false,
+		)
+
+		result, err = b.ExecuteScript(templates.GenerateGetFreezeStatusScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		frozen = result.Value
+		assertEqual(t, cadence.NewBool(true), frozen.(cadence.Bool))
+	})
+
+	t.Run("Should be able to unfreeze an account", func(t *testing.T) {
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GenerateUnfreezeAccountScript(env)).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(freezeAddress)
+
+		tx.AddArgument(cadence.NewAddress(joshAddress))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, freezeAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), freezeSigner},
+			false,
+		)
+
+		result, err = b.ExecuteScript(templates.GenerateGetFreezeStatusScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		frozen = result.Value
+		assertEqual(t, cadence.NewBool(false), frozen.(cadence.Bool))
+	})
+
+}

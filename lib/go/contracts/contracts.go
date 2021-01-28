@@ -22,6 +22,7 @@ const (
 	flowEpochFilename          = "epochs/FlowEpoch.cdc"
 	flowLockedTokensFilename   = "LockedTokens.cdc"
 	flowStakingProxyFilename   = "StakingProxy.cdc"
+	flowFreezeFilename         = "temporary/FlowFreeze.cdc"
 
 	// Test contracts
 	TESTFlowIdentityTableFilename = "testContracts/TestFlowIDTableStaking.cdc"
@@ -34,6 +35,8 @@ const (
 	placeholderDKGAddr              = "0xDKGADDRESS"
 	placeholderFlowFeesAddress      = "0xFLOWFEESADDRESS"
 	placeholderStorageFeesAddress   = "0xFLOWSTORAGEFEESADDRESS"
+
+	placeholderFreezeAddress = "0xFREEZEADDRESS"
 )
 
 func withHexPrefix(address string) string {
@@ -184,6 +187,13 @@ func FlowLockedTokens(
 	code = strings.ReplaceAll(code, placeholderFlowTokenAddress, withHexPrefix(flowTokenAddress))
 	code = strings.ReplaceAll(code, placeholderIDTableAddress, withHexPrefix(idTableAddress))
 	code = strings.ReplaceAll(code, placeholderStakingProxyAddress, withHexPrefix(stakingProxyAddress))
+
+	return []byte(code)
+}
+
+// FlowFreeze returns the FlowFreeze contract.
+func FlowFreeze() []byte {
+	code := assets.MustAssetString(flowFreezeFilename)
 
 	return []byte(code)
 }
