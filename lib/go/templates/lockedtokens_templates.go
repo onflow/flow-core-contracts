@@ -27,6 +27,7 @@ const (
 	getLockedAccountAddressFilename = "lockedTokens/user/get_locked_account_address.cdc"
 	getLockedAccountBalanceFilename = "lockedTokens/user/get_locked_account_balance.cdc"
 	getUnlockLimitFilename          = "lockedTokens/user/get_unlock_limit.cdc"
+	getTotalBalanceFilename         = "lockedTokens/user/get_total_balance.cdc"
 
 	// staker templates
 	registerLockedNodeFilename                 = "lockedTokens/staker/register_node.cdc"
@@ -157,6 +158,12 @@ func GenerateGetLockedAccountBalanceScript(env Environment) []byte {
 
 func GenerateGetUnlockLimitScript(env Environment) []byte {
 	code := assets.MustAssetString(getUnlockLimitFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateGetTotalBalanceScript(env Environment) []byte {
+	code := assets.MustAssetString(getTotalBalanceFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
