@@ -3201,4 +3201,38 @@ func TestIDTableStaking(t *testing.T) {
 		assertEqual(t, CadenceUFix64("0.0"), requirement)
 
 	})
+
+	t.Run("Should be able to create public Capability for node", func(t *testing.T) {
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GenerateAddPublicNodeCapabilityScript(env)).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(joshAddress)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+	})
+
+	t.Run("Should be able to create public Capability for delegator", func(t *testing.T) {
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GenerateAddPublicDelegatorCapabilityScript(env)).
+			SetGasLimit(100).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(joshDelegatorOneAddress)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshDelegatorOneAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshDelegatorOneSigner},
+			false,
+		)
+	})
 }
