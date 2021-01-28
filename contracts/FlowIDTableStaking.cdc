@@ -618,9 +618,9 @@ pub contract FlowIDTableStaking {
             let node <- FlowIDTableStaking.nodes.remove(key: nodeID)
                 ?? panic("Could not find a node with the specified ID")
 
-            FlowIDTableStaking.networkingAddressClaimed[node.networkingAddress] = nil
-            FlowIDTableStaking.networkingKeyClaimed[node.networkingKey] = nil
-            FlowIDTableStaking.stakingKeyClaimed[node.stakingKey] = nil
+            FlowIDTableStaking.networkingAddressClaimed.remove(key: node.networkingAddress)
+            FlowIDTableStaking.networkingKeyClaimed.remove(key: node.networkingKey)
+            FlowIDTableStaking.stakingKeyClaimed.remove(key: node.stakingKey)
 
             return <-node
         }
