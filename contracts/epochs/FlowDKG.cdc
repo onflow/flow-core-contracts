@@ -2,30 +2,20 @@
 pub contract FlowDKG {
 
     pub event StartDKG()
-    pub event NextDKGPhase(phase: UInt8)
     pub event EndDKG(finalSubmission: [String]?)
 
-    pub event BroadcastMessage(phase: UInt8, nodeID: String, content: String)
+    pub event BroadcastMessage(nodeID: String, content: String)
     pub event FinalSubmission(nodeID: String, submission: [String])
 
     // ================================================================================
     // CONTRACT VARIABLES
     // ================================================================================
 
-    // Indicates whether dkg submissions are currently being collected.
-    pub enum DKGPhase: UInt8 {
-        pub case Phase1
-        pub case Phase2
-        pub case Phase3
-        pub case finalSubmission
-        pub case disabled
-    }
-
     /// The length of keys that have to be submitted as a final submission
     pub let submissionKeyLength: Int
 
-    // tracks the current phase of the DKG
-    access(account) var currentPhase: DKGPhase
+    // indicates if the DKG is enabled or not
+    pub var dkgEnabled: Bool
 
     // Indicates if a Participant resource has already been claimed by a node ID
     // from the identity table contract
@@ -35,8 +25,8 @@ pub contract FlowDKG {
     // true means that the participant capability has been claimed by the node
     access(account) var nodeClaimed: {String: Bool}
 
-    /// Record of whiteboard messages keyed by phase
-    access(account) var phaseMessages: {DKGPhase: [Message]}
+    /// Record of whiteboard messages
+    access(account) var whiteboardMessages: [Message]
 
     // Tracks if a node has submitted their final submission for the epoch
     // reset every epoch
@@ -65,13 +55,10 @@ pub contract FlowDKG {
 
         pub let nodeID: String
 
-        pub let phase: DKGPhase
-
         pub let content: String
 
-        init(nodeID: String, phase: DKGPhase, content: String) {
+        init(nodeID: String, content: String) {
             self.nodeID = nodeID
-            self.phase = phase
             self.content = content
         }
     }
@@ -83,30 +70,28 @@ pub contract FlowDKG {
 
         pub let nodeID: String
 
-        // Submits a whiteboard message to the contract
-        pub fun sendMessage(phase: DKGPhase, _ content: String) {
+        // Posts a whiteboard message to the contract
+        pub fun postMessage(_ content: String) {
             pre {
                 FlowDKG.participantIsRegistered(self.nodeID): "Cannot send whiteboard message if not registered for the current epoch"
-                phase.rawValue >= FlowDKG.currentPhase.rawValue: "Phase submission is invalid"
             }
 
             // create the message struct
-            let message = Message(nodeID: self.nodeID, phase: phase, content: content)
+            let message = Message(nodeID: self.nodeID, content: content)
 
-            // add the message to the message record for the phase
-            FlowDKG.phaseMessages[phase]!.append(message)
+            // add the message to the message record
+            FlowDKG.whiteboardMessages.append(message)
 
-            emit BroadcastMessage(phase: phase.rawValue, nodeID: self.nodeID, content: content)
+            emit BroadcastMessage(nodeID: self.nodeID, content: content)
 
         }
 
         /// Sends the final key vector submission. 
-        /// Can only be called during the final phase and by consensus nodes that are registered.
+        /// Can only be called by consensus nodes that are registered.
         pub fun sendFinalSubmission(_ submission: [String]) {
             pre {
                 FlowDKG.participantIsRegistered(self.nodeID): "Cannot send final submission if not registered for the current epoch"
                 FlowDKG.nodeHasSubmitted(self.nodeID)!.length == 0: "Cannot submit a final submission twice"
-                FlowDKG.currentPhase == DKGPhase.finalSubmission: "Can only send final submission in the final DKG phase"
                 submission.length == FlowDKG.nodeFinalSubmission.keys.length + 1: "Submission must have number of elements equal to the number of nodes participating in the DKG"
             }
 
@@ -121,7 +106,7 @@ pub contract FlowDKG {
                 // If the submissions are equal,
                 // update the counter for this submission and emit the event
                 if FlowDKG.submissionsEqual(existingSubmission, submission) {
-                    FlowDKG.uniqueFinalSubmissionCount[finalSubmissionIndex] = FlowDKG.uniqueFinalSubmissionCount[finalSubmissionIndex]! + UInt64(1)
+                    FlowDKG.uniqueFinalSubmissionCount[finalSubmissionIndex] = FlowDKG.uniqueFinalSubmissionCount[finalSubmissionIndex]! + 1 as UInt64
                     emit FinalSubmission(nodeID: self.nodeID, submission: submission)
                     break
                 }
@@ -167,14 +152,14 @@ pub contract FlowDKG {
         /// Resets all the fields for tracking the current DKG process
         /// and sets the given node IDs as registered
         pub fun startDKG(nodeIDs: [String]) {
-            FlowDKG.currentPhase = DKGPhase.Phase1
+            FlowDKG.dkgEnabled = true
 
             FlowDKG.nodeFinalSubmission = {}
             for id in nodeIDs {
                 FlowDKG.nodeFinalSubmission[id] = []
             }
 
-            FlowDKG.phaseMessages = {}
+            FlowDKG.whiteboardMessages = []
 
             FlowDKG.uniqueFinalSubmissions = []
 
@@ -183,14 +168,8 @@ pub contract FlowDKG {
             emit StartDKG()
         }
 
-        pub fun nextPhase() {
-            if FlowDKG.currentPhase != DKGPhase.disabled && FlowDKG.currentPhase != DKGPhase.finalSubmission {
-                FlowDKG.currentPhase = DKGPhase(rawValue: FlowDKG.currentPhase.rawValue + UInt8(1))!
-            }
-        }
-
         pub fun endDKG() {
-            FlowDKG.currentPhase = DKGPhase.disabled
+            FlowDKG.dkgEnabled = false
 
             emit EndDKG(finalSubmission: FlowDKG.dkgCompleted())
         }
@@ -234,12 +213,9 @@ pub contract FlowDKG {
         return FlowDKG.nodeClaimed[nodeID]
     }
 
-    pub fun getCurrentPhase(): DKGPhase {
-        return self.currentPhase
-    }
-
-    pub fun getWhiteBoardMessages(): {DKGPhase: [Message]} {
-        return self.phaseMessages
+    // specify last X messages in the transaction
+    pub fun getWhiteBoardMessages(): [Message] {
+        return self.whiteboardMessages
     }
 
     /// Returns whether this node has successfully submitted a final submission for this epoch.
@@ -283,14 +259,14 @@ pub contract FlowDKG {
         self.ParticipantStoragePath = /storage/flowEpochsDKGParticipant
         self.ParticipantPublicPath = /public/flowEpochsDKGParticipant
 
-        self.currentPhase = DKGPhase.disabled
+        self.dkgEnabled = false
 
         self.nodeFinalSubmission = {}
         self.uniqueFinalSubmissionCount = {}
         self.uniqueFinalSubmissions = []
         
         self.nodeClaimed = {}
-        self.phaseMessages = {}
+        self.whiteboardMessages = []
 
         self.account.save(<-create Admin(), to: self.AdminStoragePath)
     }

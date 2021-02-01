@@ -1,6 +1,6 @@
 import FlowDKG from 0xDKGADDRESS
 
-transaction(phase: UInt8, content: String)) {
+transaction(content: String)) {
 
     let dkgParticipant: &FlowDKG.Participant
 
@@ -10,9 +10,7 @@ transaction(phase: UInt8, content: String)) {
 
     execute {
 
-        let dkgPhase: FlowDKG.DKGPhase = FlowDKG.DKGPhase(rawValue: phase)
-
-        self.dkgParticipant.sendMessage(phase: phase, _ content: content)
+        self.dkgParticipant.postMessage(content)
 
     }
 

@@ -25,6 +25,7 @@ const (
 	getConsensusNodesFilename     = "dkg/scripts/get_consensus_nodes.cdc"
 	getdkgCompletedFilename       = "dkg/scripts/get_dkg_completed.cdc"
 	getWhiteBoardMessagesFilename = "dkg/scripts/get_whiteboard_messages.cdc"
+	getLatestMessagesFilename     = "dkg/scripts/get_latest_whiteboard_messages.cdc"
 	getFinalSubmissionsFilename   = "dkg/scripts/get_final_submissions.cdc"
 
 	getNodeIsRegisteredFilename = "dkg/scripts/get_node_is_registered.cdc"
@@ -106,6 +107,12 @@ func GenerateGetDKGCompletedScript(env Environment) []byte {
 
 func GenerateGetDKGWhiteBoardMessagesScript(env Environment) []byte {
 	code := assets.MustAssetString(getWhiteBoardMessagesFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateGetDKGLatestWhiteBoardMessagesScript(env Environment) []byte {
+	code := assets.MustAssetString(getLatestMessagesFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
