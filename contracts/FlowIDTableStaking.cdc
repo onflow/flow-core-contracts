@@ -344,6 +344,8 @@ pub contract FlowIDTableStaking {
         pub let tokensUnstaked: UFix64
         pub let tokensRequestedToUnstake: UFix64
 
+        pub let totalTokensInRecord: UFix64
+
         init(nodeID: String, delegatorID: UInt32) {
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
 
@@ -357,10 +359,8 @@ pub contract FlowIDTableStaking {
             self.tokensUnstaked = delegatorRecord.tokensUnstaked.balance
             self.tokensRewarded = delegatorRecord.tokensRewarded.balance
             self.tokensRequestedToUnstake = delegatorRecord.tokensRequestedToUnstake
-        }
 
-        pub fun getTotalTokensinRecord(): UFix64 {
-            return self.tokensStaked
+            self.totalTokensInRecord = self.tokensStaked
                    + self.tokensCommitted
                    + self.tokensUnstaking
                    + self.tokensUnstaked
