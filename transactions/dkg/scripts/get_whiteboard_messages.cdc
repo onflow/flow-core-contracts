@@ -1,5 +1,5 @@
 import FlowDKG from 0xDKGADDRESS
 
-pub fun main(): {DKGPhase: [Message]} {
+pub fun main(): [FlowDKG.Message] {
     return FlowDKG.getWhiteBoardMessages() 
 }

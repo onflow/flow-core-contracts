@@ -7,6 +7,7 @@ transaction(nodeIDs: [String]) {
     prepare(signer: AuthAccount) {
 
         self.dkgAdmin = signer.borrow<&FlowDKG.Admin>(from: FlowDKG.AdminStoragePath)
+            ?? panic("Could not borrow DKG Admin reference")
 
     }
 

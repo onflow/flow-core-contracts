@@ -1,5 +1,9 @@
 import FlowDKG from 0xDKGADDRESS
 
 pub fun main(nodeID: String): Bool {
-    return FlowDKG.participantIsClaimed(nodeID)!
+    if FlowDKG.participantIsClaimed(nodeID) != nil {
+        return FlowDKG.participantIsClaimed(nodeID)!
+    } else {
+        return false
+    }
 }

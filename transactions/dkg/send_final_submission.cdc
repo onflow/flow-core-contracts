@@ -6,11 +6,12 @@ transaction(submission: [String]) {
 
     prepare(signer: AuthAccount) {
         self.dkgParticipant = signer.borrow<&FlowDKG.Participant>(from: FlowDKG.ParticipantStoragePath)
+            ?? panic("Cannot borrow dkg participant reference")
     }
 
     execute {
 
-        self.dkgParticipant.sendFinalSubmission(_ submission: submission)
+        self.dkgParticipant.sendFinalSubmission(submission)
 
     }
 

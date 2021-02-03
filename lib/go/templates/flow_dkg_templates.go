@@ -21,29 +21,23 @@ const (
 
 	// Scripts
 
-	getCurrentPhaseFilename       = "dkg/scripts/get_current_phase.cdc"
+	getDKGEnabledFilename         = "dkg/scripts/get_dkg_enabled.cdc"
 	getConsensusNodesFilename     = "dkg/scripts/get_consensus_nodes.cdc"
 	getdkgCompletedFilename       = "dkg/scripts/get_dkg_completed.cdc"
 	getWhiteBoardMessagesFilename = "dkg/scripts/get_whiteboard_messages.cdc"
 	getLatestMessagesFilename     = "dkg/scripts/get_latest_whiteboard_messages.cdc"
 	getFinalSubmissionsFilename   = "dkg/scripts/get_final_submissions.cdc"
 
-	getNodeIsRegisteredFilename = "dkg/scripts/get_node_is_registered.cdc"
-	getNodeIsClaimedFilename    = "dkg/scripts/get_node_is_claimed.cdc"
-	getNodeHasSubmittedFilename = "dkg/scripts/get_node_has_submitted.cdc"
+	getNodeIsRegisteredFilename    = "dkg/scripts/get_node_is_registered.cdc"
+	getNodeIsClaimedFilename       = "dkg/scripts/get_node_is_claimed.cdc"
+	getNodeHasSubmittedFilename    = "dkg/scripts/get_node_has_submitted.cdc"
+	getNodeFinalSubmissionFilename = "dkg/scripts/get_node_final_submission.cdc"
 )
 
 // Admin Templates -----------------------------------------------------------
 
 // GenerateStartDKGScript generates a script for the admin that starts DKG
 func GenerateStartDKGScript(env Environment) []byte {
-	code := assets.MustAssetString(startDKGFilename)
-
-	return []byte(replaceAddresses(code, env))
-}
-
-// GenerateNextDKGPhaseScript generates a script for the admin that starts the next DKG phase
-func GenerateNextDKGPhaseScript(env Environment) []byte {
 	code := assets.MustAssetString(startDKGFilename)
 
 	return []byte(replaceAddresses(code, env))
@@ -87,8 +81,8 @@ func GenerateSendDKGFinalSubmissionScript(env Environment) []byte {
 
 // Scripts
 
-func GenerateGetDKGCurrentPhaseScript(env Environment) []byte {
-	code := assets.MustAssetString(getCurrentPhaseFilename)
+func GenerateGetDKGEnabledScript(env Environment) []byte {
+	code := assets.MustAssetString(getDKGEnabledFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -137,6 +131,12 @@ func GenerateGetDKGNodeIsClaimedScript(env Environment) []byte {
 
 func GenerateGetDKGNodeHasFinalSubmittedScript(env Environment) []byte {
 	code := assets.MustAssetString(getNodeHasSubmittedFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateGetDKGNodeFinalSubmissionScript(env Environment) []byte {
+	code := assets.MustAssetString(getNodeFinalSubmissionFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
