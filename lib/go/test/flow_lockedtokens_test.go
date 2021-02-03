@@ -52,7 +52,6 @@ func (evt unlockedAccountRegisteredEvent) Address() flow.Address {
 
 func TestLockedTokensStaker(t *testing.T) {
 
-
 	t.Parallel()
 
 	b := newBlockchain()
@@ -3084,6 +3083,15 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
 			false,
 		)
+
+		// total balance among all accounts
+		result, err := b.ExecuteScript(templates.GenerateGetTotalBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
+		require.NoError(t, err)
+		if !assert.True(t, result.Succeeded()) {
+			t.Log(result.Error.Error())
+		}
+		balance := result.Value
+		assertEqual(t, CadenceUFix64("1000000.0"), balance)
 	})
 
 }

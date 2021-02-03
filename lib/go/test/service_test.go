@@ -59,7 +59,7 @@ func TestContracts(t *testing.T) {
 		t.Log(result.Error.Error())
 	}
 	min := result.Value
-	assertEqual(t, CadenceUFix64("0.1"), min.(cadence.UFix64))
+	assertEqual(t, CadenceUFix64("0.0"), min.(cadence.UFix64))
 
 	result, err = b.ExecuteScript(templates.GenerateGetStorageCapacityScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(storageFeesAddress))})
 	require.NoError(t, err)
