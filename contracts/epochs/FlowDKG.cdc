@@ -2,6 +2,7 @@
 pub contract FlowDKG {
 
     pub event StartDKG()
+
     pub event EndDKG(finalSubmission: [String]?)
 
     pub event BroadcastMessage(nodeID: String, content: String)
@@ -29,7 +30,7 @@ pub contract FlowDKG {
 
     // Tracks if a node has submitted their final submission for the epoch
     // reset every epoch
-    access(account) var nodeFinalSubmission: {String: [String]}
+    access(account) var finalSubmissionByNodeID: {String: [String]}
 
     /// Array of unique final submissions from nodes
     /// if a final submission is sent that matches one that already has been submitted
@@ -92,7 +93,7 @@ pub contract FlowDKG {
             pre {
                 FlowDKG.participantIsRegistered(self.nodeID): "Cannot send final submission if not registered for the current epoch"
                 !FlowDKG.nodeHasSubmitted(self.nodeID): "Cannot submit a final submission twice"
-                submission.length == FlowDKG.nodeFinalSubmission.keys.length + 1: "Submission must have number of elements equal to the number of nodes participating in the DKG plus 1"
+                submission.length == FlowDKG.getConsensusNodeIDs().length + 1: "Submission must have number of elements equal to the number of nodes participating in the DKG plus 1"
             }
 
             for key in submission {
@@ -130,7 +131,7 @@ pub contract FlowDKG {
                 finalSubmissionIndex = finalSubmissionIndex + 1
             }
 
-            FlowDKG.nodeFinalSubmission[self.nodeID] = submission
+            FlowDKG.finalSubmissionByNodeID[self.nodeID] = submission
         }
 
         init(nodeID: String) {
@@ -166,9 +167,9 @@ pub contract FlowDKG {
             }
             FlowDKG.dkgEnabled = true
 
-            FlowDKG.nodeFinalSubmission = {}
+            FlowDKG.finalSubmissionByNodeID = {}
             for id in nodeIDs {
-                FlowDKG.nodeFinalSubmission[id] = []
+                FlowDKG.finalSubmissionByNodeID[id] = []
             }
 
             FlowDKG.whiteboardMessages = []
@@ -192,6 +193,8 @@ pub contract FlowDKG {
         }
     }
 
+    /// Checks if two final submissions are equal by comparine each element
+    /// Each element has to be exactly the same
     access(account) fun submissionsEqual(_ existingSubmission: [String], _ submission: [String]): Bool {
 
         // If the submission length is different than the one being compared to, it is not equal
@@ -218,29 +221,34 @@ pub contract FlowDKG {
 
     }
 
+    /// Returns true if a node is registered as a consensus node for the proposed epoch
     pub fun participantIsRegistered(_ nodeID: String): Bool {
-        return FlowDKG.nodeFinalSubmission[nodeID] != nil
+        return FlowDKG.finalSubmissionByNodeID[nodeID] != nil
     }
 
+    /// Returns true if a consensus node has claimed their Participant resource
+    /// which is valid for all future epochs when the node is registered
     pub fun participantIsClaimed(_ nodeID: String): Bool? {
         return FlowDKG.nodeClaimed[nodeID]
     }
 
+    /// Gets an array of all the whiteboard messages
     pub fun getWhiteBoardMessages(): [Message] {
         return self.whiteboardMessages
     }
 
     /// Returns whether this node has successfully submitted a final submission for this epoch.
     pub fun nodeHasSubmitted(_ nodeID: String): Bool {
-        if let submission = self.nodeFinalSubmission[nodeID] {
+        if let submission = self.finalSubmissionByNodeID[nodeID] {
             return submission.length > 0
         } else {
             return false
         }
     }
 
+    /// Gets the specific final submission for a node ID
     pub fun getNodeFinalSubmission(_ nodeID: String): [String]? {
-        if let submission = self.nodeFinalSubmission[nodeID] {
+        if let submission = self.finalSubmissionByNodeID[nodeID] {
             if submission.length > 0 {
                 return submission
             } else {
@@ -253,7 +261,7 @@ pub contract FlowDKG {
 
     /// Get the list of all the consensus node IDs participating
     pub fun getConsensusNodeIDs(): [String] {
-        return self.nodeFinalSubmission.keys
+        return self.finalSubmissionByNodeID.keys
     }
 
     /// Get the array of all the unique final submissions
@@ -269,7 +277,7 @@ pub contract FlowDKG {
         var index = 0
 
         for submission in self.uniqueFinalSubmissions {
-            if self.uniqueFinalSubmissionCount[index]! > UInt64((self.nodeFinalSubmission.keys.length-1)/2) {
+            if self.uniqueFinalSubmissionCount[index]! > UInt64((self.getConsensusNodeIDs().length-1)/2) {
                 return submission
             }
             index = index + 1
@@ -287,7 +295,7 @@ pub contract FlowDKG {
 
         self.dkgEnabled = false
 
-        self.nodeFinalSubmission = {}
+        self.finalSubmissionByNodeID = {}
         self.uniqueFinalSubmissionCount = {}
         self.uniqueFinalSubmissions = []
         
