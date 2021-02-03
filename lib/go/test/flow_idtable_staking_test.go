@@ -1442,7 +1442,7 @@ func TestIDTableStaking(t *testing.T) {
 
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateRegisterDelegatorScript(env)).
-			SetGasLimit(100).
+			SetGasLimit(1000).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(maxDelegatorTwoAddress)
