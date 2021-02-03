@@ -6,8 +6,6 @@ pub contract FlowDKG {
 
     pub event BroadcastMessage(nodeID: String, content: String)
 
-    pub event FinalSubmission(nodeID: String, submission: [String])
-
     // ================================================================================
     // CONTRACT VARIABLES
     // ================================================================================
@@ -116,7 +114,6 @@ pub contract FlowDKG {
                 if finalSubmissionIndex == FlowDKG.uniqueFinalSubmissions.length {
                     FlowDKG.uniqueFinalSubmissionCount[finalSubmissionIndex] = 1
                     FlowDKG.uniqueFinalSubmissions.append(submission)
-                    emit FinalSubmission(nodeID: self.nodeID, submission: submission)
                     break
                 }
 
@@ -126,7 +123,6 @@ pub contract FlowDKG {
                 // update the counter for this submission and emit the event
                 if FlowDKG.submissionsEqual(existingSubmission, submission) {
                     FlowDKG.uniqueFinalSubmissionCount[finalSubmissionIndex] = FlowDKG.uniqueFinalSubmissionCount[finalSubmissionIndex]! + 1 as UInt64
-                    emit FinalSubmission(nodeID: self.nodeID, submission: submission)
                     break
                 }
 
@@ -210,7 +206,7 @@ pub contract FlowDKG {
         for key in submission {
 
             // if a key is different, stop checking this submission
-            // and move on to the next one
+            // and return false
             if key != existingSubmission[index] {
                 return false
             }
@@ -265,7 +261,7 @@ pub contract FlowDKG {
         return self.uniqueFinalSubmissions
     }
 
-    /// Returns the final set of keys if any one set of keys has more than 50% submissions
+    /// Returns the final set of keys if any one set of keys has strictly more than (nodes-1)/2 submissions
     /// Returns nil if not found (incomplete)
     pub fun dkgCompleted(): [String]? {
         if !self.dkgEnabled { return nil }
