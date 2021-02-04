@@ -71,7 +71,15 @@ pub contract FlowEpochs {
 
         // The source of randomness to seed the leader selection algorithm with 
         // for the upcoming epoch.
-        randomSource: String
+        randomSource: String,
+
+        // The deadlines of each phase in the DKG protocol to be completed in the upcoming
+        // EpochSetup phase. Deadlines are specified in terms of a consensus view number. 
+        // When a DKG participant observes a finalized and sealed block with view greater 
+        // than the given deadline, it can safely transition to the next phase. 
+        DKGPhase1FinalView: UInt64,
+        DKGPhase2FinalView: UInt64,
+        DKGPhase3FinalView: UInt64
     )
 
     // The Epoch Committed service event is emitted when we transition from the Epoch

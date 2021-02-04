@@ -3,6 +3,22 @@
 // ../../../transactions/FlowServiceAccount/get_account_creators.cdc (126B)
 // ../../../transactions/FlowServiceAccount/get_account_fee.cdc (124B)
 // ../../../transactions/FlowServiceAccount/get_tx_fee.cdc (120B)
+// ../../../transactions/dkg/admin/publish_participant.cdc (224B)
+// ../../../transactions/dkg/admin/start_dkg.cdc (366B)
+// ../../../transactions/dkg/admin/stop_dkg.cdc (329B)
+// ../../../transactions/dkg/create_participant.cdc (419B)
+// ../../../transactions/dkg/scripts/get_consensus_nodes.cdc (103B)
+// ../../../transactions/dkg/scripts/get_dkg_completed.cdc (99B)
+// ../../../transactions/dkg/scripts/get_dkg_enabled.cdc (88B)
+// ../../../transactions/dkg/scripts/get_final_submissions.cdc (105B)
+// ../../../transactions/dkg/scripts/get_latest_whiteboard_messages.cdc (459B)
+// ../../../transactions/dkg/scripts/get_node_final_submission.cdc (127B)
+// ../../../transactions/dkg/scripts/get_node_has_submitted.cdc (116B)
+// ../../../transactions/dkg/scripts/get_node_is_claimed.cdc (218B)
+// ../../../transactions/dkg/scripts/get_node_is_registered.cdc (123B)
+// ../../../transactions/dkg/scripts/get_whiteboard_messages.cdc (115B)
+// ../../../transactions/dkg/send_final_submission.cdc (411B)
+// ../../../transactions/dkg/send_whiteboard_message.cdc (395B)
 // ../../../transactions/flowToken/burn_tokens.cdc (1.084kB)
 // ../../../transactions/flowToken/create_forwarder.cdc (1.815kB)
 // ../../../transactions/flowToken/mint_tokens.cdc (893B)
@@ -269,6 +285,326 @@ func flowserviceaccountGet_tx_feeCdc() (*asset, error) {
 
 	info := bindataFileInfo{name: "FlowServiceAccount/get_tx_fee.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x3c, 0xe1, 0x1d, 0xb1, 0x3, 0xae, 0xe6, 0x8f, 0xff, 0xe3, 0x3, 0x1a, 0x3, 0x95, 0x3b, 0x88, 0x48, 0x19, 0xe3, 0xe8, 0xa3, 0xa3, 0x6a, 0xe4, 0x4f, 0xf4, 0xee, 0x15, 0x70, 0x19, 0xbc, 0x15}}
+	return a, nil
+}
+
+var _dkgAdminPublish_participantCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x54\xce\x41\x4b\xc3\x40\x10\x05\xe0\xfb\xfc\x8a\xe7\x45\x5a\x90\xc6\x73\x11\x21\x10\xed\xa1\x17\x31\xfe\x81\x35\xdd\x6e\x86\x6e\x66\x96\xd9\x09\x2a\xd2\xff\x2e\x1a\x05\x3b\xc7\x79\x1f\x8f\xc7\x53\x51\x73\x3c\x66\x7d\xeb\xf6\x3b\x1c\x4d\x27\xdc\xbe\x77\xfb\x5d\xdb\x75\xcf\x0f\x7d\x4f\xd4\x34\x78\x19\xb9\xc2\x2d\x48\x0d\x83\xb3\x0a\xb8\x42\x25\x7f\xe0\xa8\x06\x8f\xd5\x59\xd2\x15\xd1\x7f\xf1\x49\x04\x00\xc5\x62\x09\x16\x57\x95\x93\x44\xdb\xa2\x9d\x7d\x6c\x87\x41\x67\xf1\xf5\x9f\xf9\xbe\x25\xdf\x64\x96\xd3\xdd\xf5\xef\x98\x4d\x7b\x98\x58\xee\x57\x4d\x99\x5f\x33\x0f\xcd\xe1\x94\x7e\x3e\x37\xf0\x60\x29\xfa\x16\x17\xb0\x77\xb5\x90\xe2\x53\xf0\x71\xbd\x14\x9f\x89\xce\x5f\x01\x00\x00\xff\xff\xd0\x9c\x76\xb8\xe0\x00\x00\x00"
+
+func dkgAdminPublish_participantCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_dkgAdminPublish_participantCdc,
+		"dkg/admin/publish_participant.cdc",
+	)
+}
+
+func dkgAdminPublish_participantCdc() (*asset, error) {
+	bytes, err := dkgAdminPublish_participantCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "dkg/admin/publish_participant.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xec, 0x55, 0xff, 0x37, 0xec, 0x8, 0x49, 0xe7, 0xe0, 0xd, 0xea, 0xad, 0x75, 0x78, 0xe, 0x7e, 0x3e, 0xc5, 0xc4, 0x78, 0x6f, 0xda, 0x66, 0x26, 0x76, 0x96, 0xa0, 0x81, 0xc, 0xc3, 0xe3, 0x1c}}
+	return a, nil
+}
+
+var _dkgAdminStart_dkgCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x74\x90\x41\x4b\xc3\x40\x10\x85\xef\xf9\x15\x8f\x1e\x24\xb9\x04\xcf\x41\x2d\xc1\xd5\x20\xb9\x88\x39\x8a\x87\x75\x33\x49\x17\x93\x9d\x30\x99\xd0\x82\xf4\xbf\x4b\xdc\xda\xd2\x83\xef\xb2\x3b\xc3\xe3\x9b\x37\xe3\xc7\x89\x45\xf1\x3c\xf0\xde\xd4\x15\x3a\xe1\x11\xb7\x07\x53\x57\xa5\x31\x6f\x4f\x4d\x93\x24\x2a\x36\xcc\xd6\xa9\xe7\x90\x06\x6e\xe9\xc5\xcc\x05\xde\x1b\x15\x1f\xfa\x8f\x0c\xdf\x49\x02\x00\x03\x29\xda\xaf\xbe\x6c\x47\x1f\x0a\xdc\x9c\x78\xf9\x6f\x1d\x1d\x93\xd0\x64\x85\xd2\xd9\xf7\x81\xa4\x40\xb9\xe8\xae\x74\x8e\x97\xa0\x67\xca\xaa\x99\x86\x2e\xff\x43\xe1\x1e\xd1\x9f\x7f\xb2\x08\xef\xef\xae\xc9\x0f\xe9\x1a\xb8\xc0\x55\xb3\x51\x16\xdb\xd3\xab\xd5\x5d\x76\xa6\xae\xda\x6e\x31\xd9\xe0\x5d\xba\x79\xe4\x65\x68\x11\x58\x11\xb1\x58\x77\x8f\x03\x85\x3a\x12\x0a\x8e\x36\x59\xcc\x74\x8c\x0f\x1d\xc8\x2d\x4a\xff\x26\xcd\x67\xb5\xa2\xa6\xae\x2e\x47\x3a\x7d\x2e\x9c\xe3\x4f\x00\x00\x00\xff\xff\x07\x1f\xfa\x84\x6e\x01\x00\x00"
+
+func dkgAdminStart_dkgCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_dkgAdminStart_dkgCdc,
+		"dkg/admin/start_dkg.cdc",
+	)
+}
+
+func dkgAdminStart_dkgCdc() (*asset, error) {
+	bytes, err := dkgAdminStart_dkgCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "dkg/admin/start_dkg.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x3f, 0x9c, 0x4f, 0xf1, 0xca, 0x18, 0x35, 0xe8, 0xbf, 0xb3, 0x93, 0x79, 0x1b, 0x85, 0xe7, 0xc5, 0x4b, 0x22, 0x3, 0xa, 0x8a, 0x91, 0x42, 0xf4, 0x2e, 0x24, 0x32, 0x55, 0xba, 0xc8, 0x15, 0x5c}}
+	return a, nil
+}
+
+var _dkgAdminStop_dkgCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x74\x8f\x41\x4f\x83\x40\x10\x85\xef\xfc\x8a\x97\x1e\x0c\x5c\x88\x67\xa2\x36\x44\x94\x03\x17\x23\xbf\x60\x5d\x06\xba\x11\x66\xc8\x30\xa4\x4d\x4c\xff\xbb\xc1\xb5\x9a\x1e\xfa\x2e\x9b\x9d\xbc\xf7\xcd\x9b\x30\xcd\xa2\x86\xd7\x51\x8e\x55\x53\xa3\x57\x99\x70\x7f\xaa\x9a\xba\xac\xaa\xf7\x97\xb6\x4d\x12\x53\xc7\x8b\xf3\x16\x84\xf1\x95\x24\x00\x30\x92\xa1\xfb\x1c\xca\x6e\x0a\x5c\xe0\xee\x37\x9c\xff\xfc\xa3\x63\x56\x9a\x9d\x52\xba\x84\x81\x49\x0b\x94\xab\x1d\x4a\xef\x65\x65\xcb\x2e\x94\x4d\x0b\x8d\x7d\x7e\x41\xe1\x11\xd1\x9f\x7f\x88\xaa\x1c\x1f\xae\xc9\x4f\xe9\xd6\xae\xc0\xd5\xb0\x35\x51\x37\xd0\x9b\xb3\x43\xf6\x47\xdd\xb4\xdf\x63\x76\x1c\x7c\xba\x7b\x96\x75\xec\xc0\x62\x88\x58\x6c\x87\xc6\x85\x4a\x3d\x29\xb1\xa7\x5d\x16\x3b\x9d\xe3\x43\x27\xf2\xab\xd1\xcd\xa6\x39\x71\x57\x35\x75\xfa\x9f\x3a\x7f\x07\x00\x00\xff\xff\x74\x8c\xee\x80\x49\x01\x00\x00"
+
+func dkgAdminStop_dkgCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_dkgAdminStop_dkgCdc,
+		"dkg/admin/stop_dkg.cdc",
+	)
+}
+
+func dkgAdminStop_dkgCdc() (*asset, error) {
+	bytes, err := dkgAdminStop_dkgCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "dkg/admin/stop_dkg.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xd0, 0xe4, 0x2, 0xa5, 0xa0, 0x9b, 0xd5, 0xc3, 0xdb, 0x5d, 0x5a, 0xfa, 0xe6, 0x41, 0x85, 0x32, 0x8e, 0xae, 0x4e, 0xd8, 0x6f, 0x1a, 0x37, 0x77, 0x7, 0xb2, 0xce, 0x6, 0x29, 0x48, 0x43, 0x84}}
+	return a, nil
+}
+
+var _dkgCreate_participantCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x54\x50\xdd\x6e\xf2\x30\x0c\xbd\xcf\x53\x58\x5c\x7c\x4a\x25\x28\xdf\x75\xc5\x86\x2a\xba\xa1\x89\x1b\xb4\x3e\x81\x49\x4c\x88\x28\x49\xe4\xba\x63\xd3\xc4\xbb\x4f\x2c\x65\x02\x5f\x45\x39\x3e\x3e\x3f\xfe\x94\x22\x0b\xbc\x76\xf1\xdc\x6c\xd6\xb0\xe7\x78\x82\xff\x9f\xcd\x66\x5d\x37\xcd\xfb\x4b\xdb\x2a\x25\x8c\xa1\x47\x23\x3e\x06\x8d\xd6\x32\xf5\x7d\x05\x75\x7e\x4c\x21\x44\x4b\x6f\x4d\x05\xad\xb0\x0f\xae\x80\x6f\xa5\x00\x00\x12\x53\x42\x26\xdd\x7b\x17\x88\x2b\xa8\x07\x39\xd4\xc6\xc4\x21\xc8\x75\x07\xc6\xe9\x48\x00\xed\xc9\x07\x78\x02\x47\x32\x6e\xdc\x64\x8a\xd2\x91\xac\x30\xe1\xce\x77\x5e\xbe\x16\xff\x46\x97\x65\x7d\xa5\x3c\xeb\x79\x1a\x76\x9d\x37\x73\x7b\x74\xbf\x3f\xc5\xdf\xdd\xeb\x94\xbb\xc8\x1c\xcf\xba\x80\xe5\x12\x12\x06\x6f\xf4\x64\x15\x87\xce\x42\x88\x02\x19\x1c\xc5\x99\xf6\xc4\x14\x0c\x4d\x0a\xf5\xe0\xcd\x1e\xdd\x16\x59\xbc\xf1\x09\x83\xc0\x62\x96\x09\xa5\x61\x42\xa1\x3b\x48\xe7\x1e\xee\xe8\x39\x79\xd9\xe3\x07\xe9\xc5\xec\xf1\xd0\x14\x24\x56\xb7\xce\xcb\x3b\xa0\x95\xc8\xe8\x68\x8b\x72\xc8\x61\x2e\x4a\x5d\x7e\x02\x00\x00\xff\xff\xd6\x38\x12\x8b\xa3\x01\x00\x00"
+
+func dkgCreate_participantCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_dkgCreate_participantCdc,
+		"dkg/create_participant.cdc",
+	)
+}
+
+func dkgCreate_participantCdc() (*asset, error) {
+	bytes, err := dkgCreate_participantCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "dkg/create_participant.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xcf, 0x6a, 0x68, 0xed, 0x16, 0x2, 0xa3, 0x7a, 0xb7, 0x25, 0xeb, 0xbf, 0x75, 0xc5, 0x66, 0x27, 0x2, 0x8d, 0x9, 0x19, 0x7d, 0x9f, 0x93, 0x4b, 0xea, 0x6b, 0xcb, 0x77, 0x89, 0x88, 0x2f, 0x1d}}
+	return a, nil
+}
+
+var _dkgScriptsGet_consensus_nodesCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xca\xcc\x2d\xc8\x2f\x2a\x51\x70\xcb\xc9\x2f\x77\xf1\x76\x57\x48\x2b\xca\xcf\x55\x30\xa8\x70\xf1\x76\x77\x74\x71\x09\x72\x0d\x0e\xe6\xe2\x2a\x28\x4d\x52\x48\x2b\xcd\x53\xc8\x4d\xcc\xcc\xd3\xd0\xb4\x52\x88\x0e\x2e\x29\xca\xcc\x4b\x8f\x55\xa8\xe6\x52\x50\x50\x50\x28\x4a\x2d\x29\x2d\xca\x83\x19\xa0\x97\x9e\x5a\xe2\x9c\x9f\x57\x9c\x9a\x57\x5c\x5a\xec\x97\x9f\x92\xea\xe9\x52\xac\xa1\xc9\x55\x0b\x08\x00\x00\xff\xff\x91\x06\x0b\x94\x67\x00\x00\x00"
+
+func dkgScriptsGet_consensus_nodesCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_dkgScriptsGet_consensus_nodesCdc,
+		"dkg/scripts/get_consensus_nodes.cdc",
+	)
+}
+
+func dkgScriptsGet_consensus_nodesCdc() (*asset, error) {
+	bytes, err := dkgScriptsGet_consensus_nodesCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "dkg/scripts/get_consensus_nodes.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x62, 0xae, 0xcb, 0x31, 0x2e, 0x3e, 0x43, 0xd9, 0xec, 0xfd, 0x3f, 0x4, 0x29, 0x3c, 0xfe, 0x36, 0x20, 0xe6, 0x83, 0x77, 0x9b, 0x70, 0x2e, 0xd, 0xb3, 0x56, 0xa7, 0xfc, 0x4a, 0x1e, 0x20, 0xa0}}
+	return a, nil
+}
+
+var _dkgScriptsGet_dkg_completedCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xca\xcc\x2d\xc8\x2f\x2a\x51\x70\xcb\xc9\x2f\x77\xf1\x76\x57\x48\x2b\xca\xcf\x55\x30\xa8\x70\xf1\x76\x77\x74\x71\x09\x72\x0d\x0e\xe6\xe2\x2a\x28\x4d\x52\x48\x2b\xcd\x53\xc8\x4d\xcc\xcc\xd3\xd0\xb4\x52\x70\xca\xcf\xcf\x51\xa8\xe6\x52\x50\x50\x50\x28\x4a\x2d\x29\x2d\xca\x83\x69\xd6\x4b\xc9\x4e\x77\xce\xcf\x2d\xc8\x49\x2d\x49\x4d\xd1\xd0\x54\x50\xb4\x55\xc8\xcb\xcc\xe1\xaa\x05\x04\x00\x00\xff\xff\x31\xd8\x74\x9a\x63\x00\x00\x00"
+
+func dkgScriptsGet_dkg_completedCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_dkgScriptsGet_dkg_completedCdc,
+		"dkg/scripts/get_dkg_completed.cdc",
+	)
+}
+
+func dkgScriptsGet_dkg_completedCdc() (*asset, error) {
+	bytes, err := dkgScriptsGet_dkg_completedCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "dkg/scripts/get_dkg_completed.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x21, 0xec, 0xda, 0x75, 0xa0, 0x1a, 0x21, 0x4d, 0xc6, 0xbf, 0xec, 0xd5, 0x92, 0xde, 0x61, 0xab, 0x5b, 0x90, 0xd1, 0x2f, 0x7c, 0x24, 0x2a, 0xd9, 0x62, 0x7f, 0xda, 0xe9, 0x2c, 0x58, 0x0, 0x2a}}
+	return a, nil
+}
+
+var _dkgScriptsGet_dkg_enabledCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xca\xcc\x2d\xc8\x2f\x2a\x51\x70\xcb\xc9\x2f\x77\xf1\x76\x57\x48\x2b\xca\xcf\x55\x30\xa8\x70\xf1\x76\x77\x74\x71\x09\x72\x0d\x0e\xe6\xe2\x2a\x28\x4d\x52\x48\x2b\xcd\x53\xc8\x4d\xcc\xcc\xd3\xd0\xb4\x52\x70\xca\xcf\xcf\x51\xa8\xe6\x52\x50\x50\x50\x28\x4a\x2d\x29\x2d\xca\x83\x69\xd6\x4b\xc9\x4e\x77\xcd\x4b\x4c\xca\x49\x4d\xe1\xaa\x05\x04\x00\x00\xff\xff\xd5\x88\xda\xa0\x58\x00\x00\x00"
+
+func dkgScriptsGet_dkg_enabledCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_dkgScriptsGet_dkg_enabledCdc,
+		"dkg/scripts/get_dkg_enabled.cdc",
+	)
+}
+
+func dkgScriptsGet_dkg_enabledCdc() (*asset, error) {
+	bytes, err := dkgScriptsGet_dkg_enabledCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "dkg/scripts/get_dkg_enabled.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x6a, 0x64, 0x67, 0xbd, 0xba, 0x33, 0xa0, 0x7b, 0x26, 0xfb, 0x77, 0xc2, 0x7e, 0xe3, 0xe3, 0xc1, 0xe7, 0xc8, 0x8c, 0xd0, 0xc, 0x46, 0xaa, 0xbd, 0xb6, 0x2, 0x13, 0x35, 0xab, 0x39, 0x70, 0xd7}}
+	return a, nil
+}
+
+var _dkgScriptsGet_final_submissionsCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xca\xcc\x2d\xc8\x2f\x2a\x51\x70\xcb\xc9\x2f\x77\xf1\x76\x57\x48\x2b\xca\xcf\x55\x30\xa8\x70\xf1\x76\x77\x74\x71\x09\x72\x0d\x0e\xe6\xe2\x2a\x28\x4d\x52\x48\x2b\xcd\x53\xc8\x4d\xcc\xcc\xd3\xd0\xb4\x52\x88\x8e\x0e\x2e\x29\xca\xcc\x4b\x8f\x8d\x55\xa8\xe6\x52\x50\x50\x50\x28\x4a\x2d\x29\x2d\xca\x83\x19\xa1\x97\x9e\x5a\xe2\x96\x99\x97\x98\x13\x5c\x9a\x94\x9b\x59\x5c\x9c\x99\x9f\x57\xac\xa1\xc9\x55\x0b\x08\x00\x00\xff\xff\x33\x23\x09\x6a\x69\x00\x00\x00"
+
+func dkgScriptsGet_final_submissionsCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_dkgScriptsGet_final_submissionsCdc,
+		"dkg/scripts/get_final_submissions.cdc",
+	)
+}
+
+func dkgScriptsGet_final_submissionsCdc() (*asset, error) {
+	bytes, err := dkgScriptsGet_final_submissionsCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "dkg/scripts/get_final_submissions.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x31, 0x29, 0x53, 0xb2, 0xc4, 0x57, 0x4e, 0xa4, 0x2f, 0x5a, 0x86, 0xce, 0x2, 0x44, 0x1, 0x2a, 0x4c, 0x1c, 0xbb, 0x3, 0xb8, 0x88, 0xbc, 0x44, 0x54, 0x2f, 0xa2, 0xfd, 0x91, 0x37, 0xfd, 0x10}}
+	return a, nil
+}
+
+var _dkgScriptsGet_latest_whiteboard_messagesCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x7c\x8f\x31\x6b\xf3\x30\x10\x86\x77\xfd\x8a\x97\x4c\x36\x1f\x98\xaf\x6b\xa8\x0b\x2d\x6e\x43\x08\x5d\x9a\xa1\x43\xc8\xa0\xd4\x67\x5b\x20\x4b\xe6\x24\xd7\x29\xc1\xff\xbd\x28\x72\x6c\x0a\xa5\x37\xde\xbd\xf7\xdc\x73\xaa\xed\x2c\x7b\xbc\x68\x3b\x14\xbb\x0d\x2a\xb6\x2d\xfe\x9f\x8b\xdd\xe6\xb1\x28\xde\x9e\xf7\x7b\x21\xba\xfe\x84\xaa\x37\x68\xa5\x32\x49\x98\x6f\x4d\x49\xe7\x35\xb6\xc6\xa7\x6b\x1c\xa6\xcd\xec\x95\x9c\x93\x35\x1d\x71\x11\x00\xa0\xc9\xa3\x8d\x2d\x87\xfc\xc6\xcf\x6a\xf2\xef\x8d\xf2\xf4\x64\x25\x97\xd3\x8a\x4b\x52\x71\xdd\xf9\x94\x0c\x26\xd7\x6b\xff\x1b\x37\xc7\xe1\x18\x73\xaa\xc2\xec\x81\x87\x7c\xbe\x93\x69\x32\xb5\x6f\x26\x83\x50\x9d\x34\xea\x23\x59\xc5\xa4\xed\x3d\x6c\x05\x96\xa6\x26\x54\x96\x11\x1e\x1e\x82\xcd\x29\xd8\x2c\xba\x92\x59\x7e\xad\xd2\x2b\x65\x04\x69\x47\xb8\x88\x99\x19\x2c\x15\xf2\x45\x61\x19\x0d\x8d\xd2\x04\x85\xfb\x3f\x94\x42\xc5\x27\x33\xd9\x75\x64\xca\xe4\x96\x3d\xa8\x63\x2a\x7e\xe4\xc2\x19\x85\x7f\xb8\x9b\xbb\x63\x94\x8a\x31\x26\xdf\xb3\x99\x68\x62\xfc\x0e\x00\x00\xff\xff\x65\x23\x21\xe3\xcb\x01\x00\x00"
+
+func dkgScriptsGet_latest_whiteboard_messagesCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_dkgScriptsGet_latest_whiteboard_messagesCdc,
+		"dkg/scripts/get_latest_whiteboard_messages.cdc",
+	)
+}
+
+func dkgScriptsGet_latest_whiteboard_messagesCdc() (*asset, error) {
+	bytes, err := dkgScriptsGet_latest_whiteboard_messagesCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "dkg/scripts/get_latest_whiteboard_messages.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xcc, 0x77, 0x7c, 0x9d, 0xc2, 0xb2, 0x74, 0x3b, 0xf, 0xed, 0xa5, 0xf, 0xe3, 0xc7, 0x37, 0x62, 0x6e, 0x36, 0x90, 0xb6, 0x38, 0x7e, 0xfa, 0x10, 0xae, 0xe6, 0xf5, 0xdf, 0x7c, 0x82, 0xad, 0x3c}}
+	return a, nil
+}
+
+var _dkgScriptsGet_node_final_submissionCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x34\xcc\xb1\x0a\xc2\x30\x10\x06\xe0\x3d\x4f\xf1\xbb\xd9\x45\x9c\xbb\x09\x67\x8b\x14\x1c\xcc\x28\x0e\x2d\x4d\xcb\x41\x73\x57\xae\x09\x0a\xe2\xbb\x3b\x94\x6c\xdf\xf4\x71\x5c\xd5\x12\x9a\x45\xdf\xd4\xb5\x98\x4c\x23\xce\x1f\xea\xda\x0b\xd1\xe3\xea\xbd\x73\x6b\x1e\x30\x65\x41\xec\x59\x8e\xa2\x63\xb8\x51\x0d\x9f\x8c\x65\xae\x6a\x3c\x77\xbd\xf0\x75\x00\x60\x21\x65\x93\xd2\x9d\xe6\x90\xee\x3a\x86\x86\xa5\x5f\x7c\x1e\x22\x6f\x1b\x6b\x59\xaa\x83\xfb\xfd\x03\x00\x00\xff\xff\xaf\xb1\x04\x81\x7f\x00\x00\x00"
+
+func dkgScriptsGet_node_final_submissionCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_dkgScriptsGet_node_final_submissionCdc,
+		"dkg/scripts/get_node_final_submission.cdc",
+	)
+}
+
+func dkgScriptsGet_node_final_submissionCdc() (*asset, error) {
+	bytes, err := dkgScriptsGet_node_final_submissionCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "dkg/scripts/get_node_final_submission.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xad, 0xed, 0x8c, 0x8a, 0x98, 0xb8, 0xf0, 0x36, 0x74, 0x76, 0xd8, 0x99, 0x3, 0x43, 0x3, 0x9f, 0x15, 0x13, 0xde, 0xc8, 0x7f, 0xd8, 0x49, 0x83, 0xaa, 0x7, 0x9e, 0x3f, 0xf2, 0xf, 0x94, 0x3}}
+	return a, nil
+}
+
+var _dkgScriptsGet_node_has_submittedCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xca\xcc\x2d\xc8\x2f\x2a\x51\x70\xcb\xc9\x2f\x77\xf1\x76\x57\x48\x2b\xca\xcf\x55\x30\xa8\x70\xf1\x76\x77\x74\x71\x09\x72\x0d\x0e\xe6\xe2\x2a\x28\x4d\x52\x48\x2b\xcd\x53\xc8\x4d\xcc\xcc\xd3\xc8\xcb\x4f\x49\xf5\x74\xb1\x52\x08\x2e\x29\xca\xcc\x4b\xd7\xb4\x52\x70\xca\xcf\xcf\x51\xa8\xe6\x52\x50\x50\x50\x28\x4a\x2d\x29\x2d\xca\x83\x19\xa5\x07\x52\xea\x91\x58\x1c\x5c\x9a\x94\x9b\x59\x52\x92\x9a\x02\xd5\xab\xc9\x55\x0b\x08\x00\x00\xff\xff\xaa\x5c\x49\x68\x74\x00\x00\x00"
+
+func dkgScriptsGet_node_has_submittedCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_dkgScriptsGet_node_has_submittedCdc,
+		"dkg/scripts/get_node_has_submitted.cdc",
+	)
+}
+
+func dkgScriptsGet_node_has_submittedCdc() (*asset, error) {
+	bytes, err := dkgScriptsGet_node_has_submittedCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "dkg/scripts/get_node_has_submitted.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xdb, 0xc0, 0xa0, 0x6e, 0x6c, 0x52, 0x38, 0xeb, 0xc0, 0xf7, 0x84, 0x1f, 0x63, 0x61, 0x5f, 0x3, 0x16, 0xdd, 0x5e, 0x77, 0x5f, 0x9a, 0x30, 0x88, 0x8, 0x1a, 0xd2, 0x50, 0x23, 0xb4, 0xf, 0xbe}}
+	return a, nil
+}
+
+var _dkgScriptsGet_node_is_claimedCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x8c\xcc\xbf\xea\xc2\x30\x14\xc5\xf1\x3d\x4f\x71\xba\xfd\xba\xfc\x70\x2e\x38\xa8\xd1\x52\xba\xd9\x27\x88\x36\x91\x0b\xc9\x4d\xb8\x4d\x50\x90\xbe\xbb\xf8\xa7\x93\x8b\x67\x3e\x9f\x2f\x85\x14\x25\xe3\xe0\xe3\x55\xf7\x2d\x9c\xc4\x80\xd5\x4d\xf7\xed\x46\xeb\xe3\x7e\x18\x94\x4a\xe5\x04\x57\x18\xc1\x10\xff\x71\x1c\x6d\xa7\x1b\x0c\x59\x88\x2f\x75\x83\x6d\x8c\x1e\x77\x05\x00\xe4\x96\xcc\x7f\x32\x92\xe9\x4c\xc9\x70\xee\xa6\x9d\x37\x14\xec\xf8\xb1\x35\xaa\x35\x98\x16\xf4\x9c\xd8\x5c\x84\x7f\xc2\xd5\x0b\xcd\xb0\x7e\xb2\xdf\x05\x67\xfc\x64\xdf\x0f\x35\x3f\x02\x00\x00\xff\xff\x2a\xaf\x9b\x4a\xda\x00\x00\x00"
+
+func dkgScriptsGet_node_is_claimedCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_dkgScriptsGet_node_is_claimedCdc,
+		"dkg/scripts/get_node_is_claimed.cdc",
+	)
+}
+
+func dkgScriptsGet_node_is_claimedCdc() (*asset, error) {
+	bytes, err := dkgScriptsGet_node_is_claimedCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "dkg/scripts/get_node_is_claimed.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xa3, 0x1a, 0xe4, 0xdb, 0x6, 0xd1, 0x35, 0x6c, 0x35, 0x4b, 0xe3, 0xc7, 0x91, 0xfe, 0x2a, 0xa8, 0x37, 0x87, 0x70, 0xf3, 0x65, 0xe8, 0x6b, 0x9f, 0x81, 0x60, 0xed, 0xc4, 0x79, 0x2e, 0x36, 0x43}}
+	return a, nil
+}
+
+var _dkgScriptsGet_node_is_registeredCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x34\xcc\xb1\x0e\x82\x30\x10\x06\xe0\xbd\x4f\xf1\x8f\xb2\x18\x67\x36\x4d\x95\x10\x36\x78\x82\x2a\x07\xb9\x84\xde\x35\xc7\x35\x9a\x18\xdf\xdd\x45\x5f\xe0\xe3\x5c\xd4\x1c\xb7\x4d\x9f\x71\xe8\xb0\x98\x66\x9c\x5e\x71\xe8\xce\x31\x8e\xd7\x69\x0a\xa1\xd4\x3b\x96\x2a\xc8\x89\xe5\x20\x3a\x53\x1f\x5b\x4c\x6e\x2c\x6b\xd3\xe2\xa2\xba\xe1\x1d\x00\xc0\xc8\xab\xc9\x9f\x3a\x96\x64\xce\x0f\x2e\x49\xbc\xdf\x47\x5a\x79\x77\x32\x9a\x7f\x44\x13\x3e\xdf\x00\x00\x00\xff\xff\x0e\xf5\x2c\x2b\x7b\x00\x00\x00"
+
+func dkgScriptsGet_node_is_registeredCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_dkgScriptsGet_node_is_registeredCdc,
+		"dkg/scripts/get_node_is_registered.cdc",
+	)
+}
+
+func dkgScriptsGet_node_is_registeredCdc() (*asset, error) {
+	bytes, err := dkgScriptsGet_node_is_registeredCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "dkg/scripts/get_node_is_registered.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xad, 0xbc, 0xa5, 0x94, 0xca, 0x89, 0x42, 0xfc, 0xbd, 0x28, 0x1d, 0x72, 0xd4, 0x0, 0x1d, 0xf2, 0xeb, 0xd3, 0x6a, 0x1, 0x26, 0xf1, 0xb5, 0x35, 0x15, 0x12, 0x7a, 0xfa, 0xdf, 0x6, 0x62, 0x4a}}
+	return a, nil
+}
+
+var _dkgScriptsGet_whiteboard_messagesCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xca\xcc\x2d\xc8\x2f\x2a\x51\x70\xcb\xc9\x2f\x77\xf1\x76\x57\x48\x2b\xca\xcf\x55\x30\xa8\x70\xf1\x76\x77\x74\x71\x09\x72\x0d\x0e\xe6\xe2\x2a\x28\x4d\x52\x48\x2b\xcd\x53\xc8\x4d\xcc\xcc\xd3\xd0\xb4\x52\x88\x86\xaa\xd5\xf3\x4d\x2d\x2e\x4e\x4c\x4f\x8d\x55\xa8\xe6\x52\x50\x50\x50\x28\x4a\x2d\x29\x2d\xca\x83\x99\xa4\x97\x9e\x5a\x12\x9e\x91\x59\x92\xea\x94\x9f\x58\x94\x02\x55\x5a\xac\xa1\xa9\xc0\x55\x0b\x08\x00\x00\xff\xff\x3f\x6c\x37\x78\x73\x00\x00\x00"
+
+func dkgScriptsGet_whiteboard_messagesCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_dkgScriptsGet_whiteboard_messagesCdc,
+		"dkg/scripts/get_whiteboard_messages.cdc",
+	)
+}
+
+func dkgScriptsGet_whiteboard_messagesCdc() (*asset, error) {
+	bytes, err := dkgScriptsGet_whiteboard_messagesCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "dkg/scripts/get_whiteboard_messages.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xb3, 0xd, 0x56, 0xa1, 0x9c, 0xba, 0x39, 0x42, 0xbd, 0xc, 0x6f, 0xdb, 0x33, 0xd0, 0x81, 0xc7, 0xf4, 0xd5, 0x31, 0x3f, 0xca, 0xa0, 0x49, 0xb7, 0x7e, 0x22, 0xeb, 0xb7, 0xfe, 0x63, 0x68, 0xe0}}
+	return a, nil
+}
+
+var _dkgSend_final_submissionCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x74\x90\x41\x6b\xc2\x40\x10\x85\xef\xf9\x15\x83\x87\x92\x5c\x42\xcf\xa1\xad\x84\xa6\x7a\xf0\x22\xcd\xb1\xf4\xb0\xae\x93\x38\x34\x99\x59\x66\x27\x28\x14\xff\x7b\x09\x51\x49\x41\xdf\x71\x77\xdf\xf7\xf6\x3d\xea\x83\xa8\xc1\xaa\x93\x63\xb5\x59\x43\xa3\xd2\xc3\xf3\xa9\xda\xac\xcb\xaa\xfa\xfc\xa8\xeb\x24\x31\x75\x1c\x9d\x37\x12\x4e\xe3\xb0\xeb\x29\x46\x12\x2e\xe0\xab\x36\x25\x6e\xbf\x33\xf8\x4d\x12\x00\x80\x0e\x0d\xf6\x3f\xed\xd6\xa9\x91\xa7\xe0\xd8\x0a\x78\xba\x80\xf3\xd9\xe9\xf4\x3a\x28\x06\xa7\x98\x46\x6a\x19\xb5\x80\x72\xb0\x43\xe9\xbd\x0c\x6c\x23\x11\x2e\x8a\xd8\x35\xf9\x7f\x2a\xbc\xc2\x64\xca\x77\xa2\x2a\xc7\x97\x7b\x21\x6f\xe9\x58\xa5\x80\x3b\x57\xb5\x89\xba\x16\xb7\xce\x0e\xd9\x2d\x67\xd4\x72\x09\xc1\x31\xf9\x74\xf1\xee\x98\xc5\x60\xe2\x8f\xa5\x20\xcc\xf2\x15\x1b\x54\x64\x8f\x8b\xc9\x7f\x9e\x1a\xe1\x09\xfd\x60\x78\x9d\xe3\xc1\xef\xf3\x88\xbc\x5f\x11\xbb\xae\xbe\x8d\x39\xdb\x35\x4b\xae\xc8\xf3\x5f\x00\x00\x00\xff\xff\xe0\x44\xf6\x51\x9b\x01\x00\x00"
+
+func dkgSend_final_submissionCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_dkgSend_final_submissionCdc,
+		"dkg/send_final_submission.cdc",
+	)
+}
+
+func dkgSend_final_submissionCdc() (*asset, error) {
+	bytes, err := dkgSend_final_submissionCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "dkg/send_final_submission.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xbe, 0xab, 0x85, 0x6, 0x24, 0xbe, 0xba, 0x1c, 0xa3, 0x6c, 0x4d, 0x28, 0x15, 0x47, 0x8f, 0x9c, 0x49, 0x6a, 0x40, 0x84, 0x64, 0x14, 0x5e, 0x3, 0xf1, 0xbd, 0xa4, 0x48, 0xdd, 0x6b, 0x7e, 0x53}}
+	return a, nil
+}
+
+var _dkgSend_whiteboard_messageCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x74\x90\x41\x4b\xc3\x40\x10\x85\xef\xf9\x15\x43\x0f\x92\x5c\x82\xe7\xa0\x96\x60\xb4\x87\x22\x14\xf3\x0b\xc6\x75\x92\x2e\xa6\x33\xcb\xec\x84\x16\xa4\xff\x5d\x96\x6d\xa4\x42\x9d\xe3\xee\xbc\xef\xcd\x7b\xfe\x10\x44\x0d\x5e\x27\x39\x76\xdb\x0d\x0c\x2a\x07\xb8\x3f\x75\xdb\x4d\xdb\x75\xef\x2f\x7d\x5f\x14\xa6\xc8\x11\x9d\x79\xe1\xd2\x09\x1b\xb1\x35\xd0\x9b\x7a\x1e\x2b\xf8\x2e\x0a\x00\x80\x89\x0c\x3e\xbf\xc6\x1d\xaa\x79\xe7\x03\xa6\x95\xbb\x0b\xb3\xbe\x7a\xcd\xdb\x41\x29\xa0\x52\x19\xfd\xc8\xa4\x0d\xb4\xb3\xed\x5b\xe7\x64\x66\x4b\x44\xb8\x4c\xa4\x69\xa8\xff\x52\xe1\x11\xb2\xa8\xfe\x10\x55\x39\x3e\xdc\x32\x79\x2a\x53\x8a\x06\x6e\x7c\xf5\x26\x8a\x23\xed\xd0\xf6\xd5\xaf\x4f\x9a\xf5\x1a\x02\xb2\x77\xe5\xea\x19\x99\xc5\x20\xf3\x53\x28\x08\x57\xfe\x4a\x03\x29\xb1\xa3\x55\xd6\x9f\x73\x22\x3a\x91\x9b\x8d\x96\x3a\xfe\xb9\xbe\x0e\x12\xed\x8d\x62\xc4\x91\x96\x2a\xab\x62\xe1\x9c\x7f\x02\x00\x00\xff\xff\x42\x47\xff\x78\x8b\x01\x00\x00"
+
+func dkgSend_whiteboard_messageCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_dkgSend_whiteboard_messageCdc,
+		"dkg/send_whiteboard_message.cdc",
+	)
+}
+
+func dkgSend_whiteboard_messageCdc() (*asset, error) {
+	bytes, err := dkgSend_whiteboard_messageCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "dkg/send_whiteboard_message.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xaf, 0xbf, 0x30, 0x7e, 0x1e, 0xed, 0x99, 0xc1, 0x3d, 0xa0, 0x20, 0x22, 0x66, 0xaf, 0x3b, 0x43, 0x3f, 0x26, 0xca, 0xd8, 0xff, 0x25, 0x83, 0xbc, 0x7e, 0x33, 0x4a, 0x7b, 0xb0, 0x5d, 0xaf, 0x21}}
 	return a, nil
 }
 
@@ -3166,6 +3502,22 @@ var _bindata = map[string]func() (*asset, error){
 	"FlowServiceAccount/get_account_creators.cdc":                             flowserviceaccountGet_account_creatorsCdc,
 	"FlowServiceAccount/get_account_fee.cdc":                                  flowserviceaccountGet_account_feeCdc,
 	"FlowServiceAccount/get_tx_fee.cdc":                                       flowserviceaccountGet_tx_feeCdc,
+	"dkg/admin/publish_participant.cdc":                                       dkgAdminPublish_participantCdc,
+	"dkg/admin/start_dkg.cdc":                                                 dkgAdminStart_dkgCdc,
+	"dkg/admin/stop_dkg.cdc":                                                  dkgAdminStop_dkgCdc,
+	"dkg/create_participant.cdc":                                              dkgCreate_participantCdc,
+	"dkg/scripts/get_consensus_nodes.cdc":                                     dkgScriptsGet_consensus_nodesCdc,
+	"dkg/scripts/get_dkg_completed.cdc":                                       dkgScriptsGet_dkg_completedCdc,
+	"dkg/scripts/get_dkg_enabled.cdc":                                         dkgScriptsGet_dkg_enabledCdc,
+	"dkg/scripts/get_final_submissions.cdc":                                   dkgScriptsGet_final_submissionsCdc,
+	"dkg/scripts/get_latest_whiteboard_messages.cdc":                          dkgScriptsGet_latest_whiteboard_messagesCdc,
+	"dkg/scripts/get_node_final_submission.cdc":                               dkgScriptsGet_node_final_submissionCdc,
+	"dkg/scripts/get_node_has_submitted.cdc":                                  dkgScriptsGet_node_has_submittedCdc,
+	"dkg/scripts/get_node_is_claimed.cdc":                                     dkgScriptsGet_node_is_claimedCdc,
+	"dkg/scripts/get_node_is_registered.cdc":                                  dkgScriptsGet_node_is_registeredCdc,
+	"dkg/scripts/get_whiteboard_messages.cdc":                                 dkgScriptsGet_whiteboard_messagesCdc,
+	"dkg/send_final_submission.cdc":                                           dkgSend_final_submissionCdc,
+	"dkg/send_whiteboard_message.cdc":                                         dkgSend_whiteboard_messageCdc,
 	"flowToken/burn_tokens.cdc":                                               flowtokenBurn_tokensCdc,
 	"flowToken/create_forwarder.cdc":                                          flowtokenCreate_forwarderCdc,
 	"flowToken/mint_tokens.cdc":                                               flowtokenMint_tokensCdc,
@@ -3356,6 +3708,28 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"get_account_creators.cdc": {flowserviceaccountGet_account_creatorsCdc, map[string]*bintree{}},
 		"get_account_fee.cdc": {flowserviceaccountGet_account_feeCdc, map[string]*bintree{}},
 		"get_tx_fee.cdc": {flowserviceaccountGet_tx_feeCdc, map[string]*bintree{}},
+	}},
+	"dkg": {nil, map[string]*bintree{
+		"admin": {nil, map[string]*bintree{
+			"publish_participant.cdc": {dkgAdminPublish_participantCdc, map[string]*bintree{}},
+			"start_dkg.cdc": {dkgAdminStart_dkgCdc, map[string]*bintree{}},
+			"stop_dkg.cdc": {dkgAdminStop_dkgCdc, map[string]*bintree{}},
+		}},
+		"create_participant.cdc": {dkgCreate_participantCdc, map[string]*bintree{}},
+		"scripts": {nil, map[string]*bintree{
+			"get_consensus_nodes.cdc": {dkgScriptsGet_consensus_nodesCdc, map[string]*bintree{}},
+			"get_dkg_completed.cdc": {dkgScriptsGet_dkg_completedCdc, map[string]*bintree{}},
+			"get_dkg_enabled.cdc": {dkgScriptsGet_dkg_enabledCdc, map[string]*bintree{}},
+			"get_final_submissions.cdc": {dkgScriptsGet_final_submissionsCdc, map[string]*bintree{}},
+			"get_latest_whiteboard_messages.cdc": {dkgScriptsGet_latest_whiteboard_messagesCdc, map[string]*bintree{}},
+			"get_node_final_submission.cdc": {dkgScriptsGet_node_final_submissionCdc, map[string]*bintree{}},
+			"get_node_has_submitted.cdc": {dkgScriptsGet_node_has_submittedCdc, map[string]*bintree{}},
+			"get_node_is_claimed.cdc": {dkgScriptsGet_node_is_claimedCdc, map[string]*bintree{}},
+			"get_node_is_registered.cdc": {dkgScriptsGet_node_is_registeredCdc, map[string]*bintree{}},
+			"get_whiteboard_messages.cdc": {dkgScriptsGet_whiteboard_messagesCdc, map[string]*bintree{}},
+		}},
+		"send_final_submission.cdc": {dkgSend_final_submissionCdc, map[string]*bintree{}},
+		"send_whiteboard_message.cdc": {dkgSend_whiteboard_messageCdc, map[string]*bintree{}},
 	}},
 	"flowToken": {nil, map[string]*bintree{
 		"burn_tokens.cdc": {flowtokenBurn_tokensCdc, map[string]*bintree{}},

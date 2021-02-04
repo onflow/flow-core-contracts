@@ -20,7 +20,7 @@ func newBlockchain(opts ...emulator.Option) *emulator.Blockchain {
 			[]emulator.Option{
 				emulator.WithStorageLimitEnabled(false),
 			},
-			opts...
+			opts...,
 		)...,
 	)
 	if err != nil {
