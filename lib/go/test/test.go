@@ -29,6 +29,22 @@ func newBlockchain(opts ...emulator.Option) *emulator.Blockchain {
 	return b
 }
 
+func createTxWithTemplateAndAuthorizer(
+	b *emulator.Blockchain,
+	script []byte,
+	authorizerAddress flow.Address,
+) *flow.Transaction {
+
+	tx := flow.NewTransaction().
+		SetScript(script).
+		SetGasLimit(9999).
+		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+		SetPayer(b.ServiceKey().Address).
+		AddAuthorizer(authorizerAddress)
+
+	return tx
+}
+
 // signAndSubmit signs a transaction with an array of signers and adds their signatures to the transaction
 // before submitting it to the emulator.
 //
@@ -89,8 +105,8 @@ func Submit(
 }
 
 // executeScriptAndCheck executes a script and checks to make sure that it succeeded.
-func executeScriptAndCheck(t *testing.T, b *emulator.Blockchain, script []byte) cadence.Value {
-	result, err := b.ExecuteScript(script, nil)
+func executeScriptAndCheck(t *testing.T, b *emulator.Blockchain, script []byte, arguments [][]byte) cadence.Value {
+	result, err := b.ExecuteScript(script, arguments)
 	require.NoError(t, err)
 	if !assert.True(t, result.Succeeded()) {
 		t.Log(result.Error.Error())

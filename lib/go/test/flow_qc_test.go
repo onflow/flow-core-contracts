@@ -97,12 +97,7 @@ func TestQuroumCertificate(t *testing.T) {
 
 	t.Run("Should be able to set up the admin account", func(t *testing.T) {
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GeneratePublishVoterScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(QCAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GeneratePublishVoterScript(env), QCAddress)
 
 		signAndSubmit(
 			t, b, tx,
@@ -114,12 +109,7 @@ func TestQuroumCertificate(t *testing.T) {
 
 	t.Run("Should not be able to register a voter if the node hasn't been registered in a cluster", func(t *testing.T) {
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateCreateVoterScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(QCAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateVoterScript(env), QCAddress)
 
 		_ = tx.AddArgument(cadence.NewAddress(QCAddress))
 		_ = tx.AddArgument(cadence.NewString(adminID))
@@ -143,12 +133,7 @@ func TestQuroumCertificate(t *testing.T) {
 
 	t.Run("Should start voting with the admin", func(t *testing.T) {
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateStartVotingScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(QCAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateStartVotingScript(env), QCAddress)
 
 		err := tx.AddArgument(cadence.NewArray(clusters[0]))
 		require.NoError(t, err)
@@ -166,40 +151,23 @@ func TestQuroumCertificate(t *testing.T) {
 			false,
 		)
 
-		result, err := b.ExecuteScript(templates.GenerateGetClusterWeightScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt16(uint16(0)))})
-		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
-		weight := result.Value
-		assert.Equal(t, weight.(cadence.UInt64), cadence.NewUInt64(100))
+		result := executeScriptAndCheck(t, b, templates.GenerateGetClusterWeightScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt16(uint16(0)))})
 
-		result, err = b.ExecuteScript(templates.GenerateGetNodeWeightScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt16(uint16(0))), jsoncdc.MustEncode(cadence.String(clusterNodeIDStrings[0][0]))})
-		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
-		weight = result.Value
-		assert.Equal(t, weight.(cadence.UInt64), cadence.NewUInt64(100))
+		assert.Equal(t, cadence.NewUInt64(100), result)
 
-		result, err = b.ExecuteScript(templates.GenerateGetClusterVoteThresholdScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt16(uint16(0)))})
-		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
-		weight = result.Value
-		assert.Equal(t, weight.(cadence.UInt64), cadence.NewUInt64(67))
+		result = executeScriptAndCheck(t, b, templates.GenerateGetNodeWeightScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt16(uint16(0))), jsoncdc.MustEncode(cadence.String(clusterNodeIDStrings[0][0]))})
+
+		assert.Equal(t, cadence.NewUInt64(100), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetClusterVoteThresholdScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt16(uint16(0)))})
+
+		assert.Equal(t, cadence.NewUInt64(67), result)
 
 	})
 
 	t.Run("Should be able to register a voter", func(t *testing.T) {
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateCreateVoterScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(QCAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateVoterScript(env), QCAddress)
 
 		_ = tx.AddArgument(cadence.NewAddress(QCAddress))
 		_ = tx.AddArgument(cadence.NewString(clusterNodeIDStrings[0][0]))
@@ -211,23 +179,14 @@ func TestQuroumCertificate(t *testing.T) {
 			false,
 		)
 
-		result, err := b.ExecuteScript(templates.GenerateGetNodeHasVotedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(clusterNodeIDStrings[0][0]))})
-		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
-		hasVoted := result.Value
-		assert.Equal(t, hasVoted.(cadence.Bool), cadence.NewBool(false))
+		result := executeScriptAndCheck(t, b, templates.GenerateGetNodeHasVotedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(clusterNodeIDStrings[0][0]))})
+
+		assert.Equal(t, cadence.NewBool(false), result)
 	})
 
 	t.Run("Admin should not be able to stop voting until the quorum has been reached", func(t *testing.T) {
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateStopVotingScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(QCAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateStopVotingScript(env), QCAddress)
 
 		signAndSubmit(
 			t, b, tx,
@@ -239,12 +198,7 @@ func TestQuroumCertificate(t *testing.T) {
 
 	t.Run("Should not be able to register a voter if the node has already been registered", func(t *testing.T) {
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateCreateVoterScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(joshAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateVoterScript(env), joshAddress)
 
 		_ = tx.AddArgument(cadence.NewAddress(QCAddress))
 		_ = tx.AddArgument(cadence.NewString(adminID))
@@ -259,12 +213,7 @@ func TestQuroumCertificate(t *testing.T) {
 
 	t.Run("Should not be able to submit an empty vote", func(t *testing.T) {
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateSubmitVoteScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(QCAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), QCAddress)
 
 		_ = tx.AddArgument(cadence.NewString(""))
 
@@ -275,23 +224,14 @@ func TestQuroumCertificate(t *testing.T) {
 			true,
 		)
 
-		result, err := b.ExecuteScript(templates.GenerateGetNodeHasVotedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(clusterNodeIDStrings[0][0]))})
-		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
-		hasVoted := result.Value
-		assert.Equal(t, hasVoted.(cadence.Bool), cadence.NewBool(false))
+		result := executeScriptAndCheck(t, b, templates.GenerateGetNodeHasVotedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(clusterNodeIDStrings[0][0]))})
+
+		assert.Equal(t, cadence.NewBool(false), result)
 	})
 
 	t.Run("Should be able to submit a vote", func(t *testing.T) {
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateSubmitVoteScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(QCAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), QCAddress)
 
 		_ = tx.AddArgument(cadence.NewString("0000000000000000000000000000000000000000000000000000000000000000"))
 
@@ -302,23 +242,14 @@ func TestQuroumCertificate(t *testing.T) {
 			false,
 		)
 
-		result, err := b.ExecuteScript(templates.GenerateGetNodeHasVotedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(clusterNodeIDStrings[0][0]))})
-		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
-		hasVoted := result.Value
-		assert.Equal(t, hasVoted.(cadence.Bool), cadence.NewBool(true))
+		result := executeScriptAndCheck(t, b, templates.GenerateGetNodeHasVotedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(clusterNodeIDStrings[0][0]))})
+
+		assert.Equal(t, cadence.NewBool(true), result)
 	})
 
 	t.Run("Should not be able to submit a vote a second time", func(t *testing.T) {
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateSubmitVoteScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(QCAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), QCAddress)
 
 		_ = tx.AddArgument(cadence.NewString("0000000000000000000000000000000000000000000000000000000000000000"))
 
@@ -329,23 +260,14 @@ func TestQuroumCertificate(t *testing.T) {
 			true,
 		)
 
-		result, err := b.ExecuteScript(templates.GenerateGetNodeHasVotedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(clusterNodeIDStrings[0][0]))})
-		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
-		hasVoted := result.Value
-		assert.Equal(t, hasVoted.(cadence.Bool), cadence.NewBool(true))
+		result := executeScriptAndCheck(t, b, templates.GenerateGetNodeHasVotedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(clusterNodeIDStrings[0][0]))})
+
+		assert.Equal(t, cadence.NewBool(true), result)
 	})
 
 	t.Run("Admin should be able to stop voting", func(t *testing.T) {
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateStopVotingScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(QCAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateStopVotingScript(env), QCAddress)
 
 		signAndSubmit(
 			t, b, tx,
@@ -370,12 +292,7 @@ func TestQuroumCertificate(t *testing.T) {
 
 	t.Run("Should start voting with the admin with more nodes and clusters", func(t *testing.T) {
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateStartVotingScript(env)).
-			SetGasLimit(9999).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(QCAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateStartVotingScript(env), QCAddress)
 
 		err := tx.AddArgument(cadence.NewArray(clusters[0]))
 		require.NoError(t, err)

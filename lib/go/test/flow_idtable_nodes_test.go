@@ -54,16 +54,7 @@ func TestManyNodesIDTable(t *testing.T) {
 	cadenceCode := bytesToCadenceArray(IDTableCode)
 
 	// Deploy the IDTableStaking contract
-	tx := flow.NewTransaction().
-		SetScript(templates.GenerateTransferMinterAndDeployScript(env)).
-		SetGasLimit(100).
-		SetProposalKey(
-			b.ServiceKey().Address,
-			b.ServiceKey().Index,
-			b.ServiceKey().SequenceNumber,
-		).
-		SetPayer(b.ServiceKey().Address).
-		AddAuthorizer(b.ServiceKey().Address).
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateTransferMinterAndDeployScript(env), b.ServiceKey().Address).
 		AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys)).
 		AddRawArgument(jsoncdc.MustEncode(cadence.NewString("FlowIDTableStaking"))).
 		AddRawArgument(jsoncdc.MustEncode(cadenceCode))
@@ -132,16 +123,8 @@ func TestManyNodesIDTable(t *testing.T) {
 			flow.HexToAddress(emulatorFlowTokenAddress),
 			"FlowToken",
 		)
-		tx := flow.NewTransaction().
-			SetScript(script).
-			SetGasLimit(9999).
-			SetProposalKey(
-				b.ServiceKey().Address,
-				b.ServiceKey().Index,
-				b.ServiceKey().SequenceNumber,
-			).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(b.ServiceKey().Address)
+
+		tx := createTxWithTemplateAndAuthorizer(b, script, b.ServiceKey().Address)
 
 		_ = tx.AddArgument(cadence.NewAddress(nodeAddress))
 		_ = tx.AddArgument(CadenceUFix64(mintAmount))
@@ -439,12 +422,7 @@ func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
 	cadenceCode := bytesToCadenceArray(IDTableCode)
 
 	// Deploy the IDTableStaking contract
-	tx := flow.NewTransaction().
-		SetScript(templates.GenerateTransferMinterAndDeployScript(env)).
-		SetGasLimit(100).
-		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-		SetPayer(b.ServiceKey().Address).
-		AddAuthorizer(b.ServiceKey().Address).
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateTransferMinterAndDeployScript(env), b.ServiceKey().Address).
 		AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys)).
 		AddRawArgument(jsoncdc.MustEncode(cadence.NewString("FlowIDTableStaking"))).
 		AddRawArgument(jsoncdc.MustEncode(cadenceCode))
@@ -508,12 +486,7 @@ func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
 				flow.HexToAddress(emulatorFlowTokenAddress),
 				"FlowToken",
 			)
-			tx := flow.NewTransaction().
-				SetScript(script).
-				SetGasLimit(9999).
-				SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-				SetPayer(b.ServiceKey().Address).
-				AddAuthorizer(b.ServiceKey().Address)
+			tx := createTxWithTemplateAndAuthorizer(b, script, b.ServiceKey().Address)
 
 			_ = tx.AddArgument(cadence.NewAddress(nodeAddresses[i]))
 			_ = tx.AddArgument(CadenceUFix64("2000000.0"))
@@ -529,12 +502,7 @@ func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
 
 	t.Run("Should be able to enable the staking auction", func(t *testing.T) {
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateStartStakingScript(env)).
-			SetGasLimit(9999).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(idTableAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateStartStakingScript(env), idTableAddress)
 
 		signAndSubmit(
 			t, b, tx,
@@ -548,12 +516,7 @@ func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
 
 		for i := 0; i < unstakeAllNumNodes; i++ {
 
-			tx := flow.NewTransaction().
-				SetScript(templates.GenerateRegisterNodeScript(env)).
-				SetGasLimit(4000).
-				SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-				SetPayer(b.ServiceKey().Address).
-				AddAuthorizer(nodeAddresses[i])
+			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterNodeScript(env), nodeAddresses[i])
 
 			id := fmt.Sprintf("%064d", i)
 
@@ -618,12 +581,7 @@ func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
 
 	t.Run("Should be able request unstake all which also requests to unstake all the delegator's tokens", func(t *testing.T) {
 
-		tx = flow.NewTransaction().
-			SetScript(templates.GenerateUnstakeAllScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(nodeAddresses[0])
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateUnstakeAllScript(env), nodeAddresses[0])
 
 		signAndSubmit(
 			t, b, tx,

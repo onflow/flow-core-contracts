@@ -53,12 +53,7 @@ func TestDKG(t *testing.T) {
 
 	t.Run("Should be able to set up the admin account", func(t *testing.T) {
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GeneratePublishDKGParticipantScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(DKGAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GeneratePublishDKGParticipantScript(env), DKGAddress)
 
 		signAndSubmit(
 			t, b, tx,
@@ -70,12 +65,7 @@ func TestDKG(t *testing.T) {
 
 	t.Run("Should not be able to register a voter if the node hasn't been registered as a consensus node", func(t *testing.T) {
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateCreateDKGParticipantScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(DKGAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateDKGParticipantScript(env), DKGAddress)
 
 		_ = tx.AddArgument(cadence.NewAddress(DKGAddress))
 		_ = tx.AddArgument(cadence.NewString(adminID))
@@ -87,31 +77,18 @@ func TestDKG(t *testing.T) {
 			true,
 		)
 
-		result, err := b.ExecuteScript(templates.GenerateGetDKGNodeIsRegisteredScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
-		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
-		registered := result.Value
-		assert.Equal(t, cadence.NewBool(false), registered.(cadence.Bool))
+		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGNodeIsRegisteredScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 
-		result, err = b.ExecuteScript(templates.GenerateGetDKGNodeIsClaimedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
-		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
-		claimed := result.Value
-		assert.Equal(t, cadence.NewBool(false), claimed.(cadence.Bool))
+		assert.Equal(t, cadence.NewBool(false), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGNodeIsClaimedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
+
+		assert.Equal(t, cadence.NewBool(false), result)
 	})
 
 	t.Run("Admin should not be able to stop the dkg if it is already stopped", func(t *testing.T) {
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateStopDKGScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(DKGAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateStopDKGScript(env), DKGAddress)
 
 		signAndSubmit(
 			t, b, tx,
@@ -120,29 +97,17 @@ func TestDKG(t *testing.T) {
 			true,
 		)
 
-		result, err := b.ExecuteScript(templates.GenerateGetDKGEnabledScript(env), nil)
-		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
-		enabled := result.Value
-		assert.Equal(t, cadence.NewBool(false), enabled.(cadence.Bool))
+		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGEnabledScript(env), nil)
 
-		result, err = b.ExecuteScript(templates.GenerateGetDKGCompletedScript(env), nil)
-		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
-		registered := result.Value
-		assert.Equal(t, cadence.NewBool(false), registered.(cadence.Bool))
+		assert.Equal(t, cadence.NewBool(false), result)
 
-		result, err = b.ExecuteScript(templates.GenerateGetDKGWhiteBoardMessagesScript(env), nil)
-		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
-		messages := result.Value
-		assert.Equal(t, cadence.NewArray(make([]cadence.Value, 0)), messages.(cadence.Array))
+		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGCompletedScript(env), nil)
+
+		assert.Equal(t, cadence.NewBool(false), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGWhiteBoardMessagesScript(env), nil)
+
+		assert.Equal(t, cadence.NewArray(make([]cadence.Value, 0)), result)
 	})
 
 	////////////////////////// FIRST EPOCH ///////////////////////////////////
@@ -153,12 +118,7 @@ func TestDKG(t *testing.T) {
 
 	t.Run("Should start dkg with the admin", func(t *testing.T) {
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateStartDKGScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(DKGAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateStartDKGScript(env), DKGAddress)
 
 		err := tx.AddArgument(cadence.NewArray(dkgNodeIDStrings))
 		require.NoError(t, err)
@@ -170,57 +130,32 @@ func TestDKG(t *testing.T) {
 			false,
 		)
 
-		result, err := b.ExecuteScript(templates.GenerateGetDKGEnabledScript(env), nil)
-		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
-		enabled := result.Value
-		assert.Equal(t, cadence.NewBool(true), enabled.(cadence.Bool))
+		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGEnabledScript(env), nil)
+
+		assert.Equal(t, cadence.NewBool(true), result)
 
 		// AdminID is registered for this epoch by the admin
-		result, err = b.ExecuteScript(templates.GenerateGetDKGNodeIsRegisteredScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
-		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
-		hasRegistered := result.Value
-		assert.Equal(t, cadence.NewBool(true), hasRegistered.(cadence.Bool))
+		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGNodeIsRegisteredScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 
-		result, err = b.ExecuteScript(templates.GenerateGetConsensusNodesScript(env), nil)
-		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
-		nodes := result.Value
-		assert.Equal(t, cadence.NewArray(dkgNodeIDStrings), nodes.(cadence.Array))
+		assert.Equal(t, cadence.NewBool(true), result)
 
-		result, err = b.ExecuteScript(templates.GenerateGetDKGFinalSubmissionsScript(env), nil)
-		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
-		messages := result.Value
-		assert.Equal(t, cadence.NewArray(make([]cadence.Value, 0)), messages.(cadence.Array))
+		result = executeScriptAndCheck(t, b, templates.GenerateGetConsensusNodesScript(env), nil)
 
-		result, err = b.ExecuteScript(templates.GenerateGetDKGCompletedScript(env), nil)
-		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
-		registered := result.Value
-		assert.Equal(t, cadence.NewBool(false), registered.(cadence.Bool))
+		assert.Equal(t, cadence.NewArray(dkgNodeIDStrings), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGFinalSubmissionsScript(env), nil)
+
+		assert.Equal(t, cadence.NewArray(make([]cadence.Value, 0)), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGCompletedScript(env), nil)
+
+		assert.Equal(t, cadence.NewBool(false), result)
 
 	})
 
 	t.Run("Should not be able to start dkg when it is already running", func(t *testing.T) {
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateStartDKGScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(DKGAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateStartDKGScript(env), DKGAddress)
 
 		err := tx.AddArgument(cadence.NewArray(dkgNodeIDStrings))
 		require.NoError(t, err)
@@ -232,32 +167,19 @@ func TestDKG(t *testing.T) {
 			true,
 		)
 
-		result, err := b.ExecuteScript(templates.GenerateGetConsensusNodesScript(env), nil)
-		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
-		nodes := result.Value
-		assert.Equal(t, cadence.NewArray(dkgNodeIDStrings), nodes.(cadence.Array))
+		result := executeScriptAndCheck(t, b, templates.GenerateGetConsensusNodesScript(env), nil)
 
-		result, err = b.ExecuteScript(templates.GenerateGetDKGFinalSubmissionsScript(env), nil)
-		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
-		messages := result.Value
-		assert.Equal(t, cadence.NewArray(make([]cadence.Value, 0)), messages.(cadence.Array))
+		assert.Equal(t, cadence.NewArray(dkgNodeIDStrings), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGFinalSubmissionsScript(env), nil)
+
+		assert.Equal(t, cadence.NewArray(make([]cadence.Value, 0)), result)
 
 	})
 
 	t.Run("Should be able to register a dkg participant", func(t *testing.T) {
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateCreateDKGParticipantScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(DKGAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateDKGParticipantScript(env), DKGAddress)
 
 		_ = tx.AddArgument(cadence.NewAddress(DKGAddress))
 		_ = tx.AddArgument(cadence.NewString(adminID))
@@ -269,31 +191,18 @@ func TestDKG(t *testing.T) {
 			false,
 		)
 
-		result, err := b.ExecuteScript(templates.GenerateGetDKGNodeIsRegisteredScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
-		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
-		registered := result.Value
-		assert.Equal(t, cadence.NewBool(true), registered.(cadence.Bool))
+		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGNodeIsRegisteredScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 
-		result, err = b.ExecuteScript(templates.GenerateGetDKGNodeIsClaimedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
-		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
-		claimed := result.Value
-		assert.Equal(t, cadence.NewBool(true), claimed.(cadence.Bool))
+		assert.Equal(t, cadence.NewBool(true), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGNodeIsClaimedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
+
+		assert.Equal(t, cadence.NewBool(true), result)
 	})
 
 	t.Run("Admin should not be able to stop the dkg if not enough nodes have submitted", func(t *testing.T) {
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateStopDKGScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(DKGAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateStopDKGScript(env), DKGAddress)
 
 		signAndSubmit(
 			t, b, tx,
@@ -305,12 +214,7 @@ func TestDKG(t *testing.T) {
 
 	t.Run("Should not be able to register a dkg participant if the node has already been registered", func(t *testing.T) {
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateCreateDKGParticipantScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(joshAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateDKGParticipantScript(env), joshAddress)
 
 		_ = tx.AddArgument(cadence.NewAddress(DKGAddress))
 		_ = tx.AddArgument(cadence.NewString(adminID))
@@ -325,12 +229,7 @@ func TestDKG(t *testing.T) {
 
 	t.Run("Should not be able to post an empty message", func(t *testing.T) {
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateSendDKGWhiteboardMessageScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(DKGAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGWhiteboardMessageScript(env), DKGAddress)
 
 		_ = tx.AddArgument(cadence.NewString(""))
 
@@ -341,23 +240,14 @@ func TestDKG(t *testing.T) {
 			true,
 		)
 
-		result, err := b.ExecuteScript(templates.GenerateGetDKGNodeHasFinalSubmittedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
-		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
-		hasSubmitted := result.Value
-		assert.Equal(t, cadence.NewBool(false), hasSubmitted.(cadence.Bool))
+		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGNodeHasFinalSubmittedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
+
+		assert.Equal(t, cadence.NewBool(false), result)
 	})
 
 	t.Run("Should be able to post a message", func(t *testing.T) {
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateSendDKGWhiteboardMessageScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(DKGAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGWhiteboardMessageScript(env), DKGAddress)
 
 		_ = tx.AddArgument(cadence.NewString("hello world!"))
 
@@ -371,12 +261,7 @@ func TestDKG(t *testing.T) {
 
 	t.Run("Admin should not be able to stop the dkg if not enough submissions are in", func(t *testing.T) {
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateStopDKGScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(DKGAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateStopDKGScript(env), DKGAddress)
 
 		signAndSubmit(
 			t, b, tx,
@@ -393,12 +278,7 @@ func TestDKG(t *testing.T) {
 		finalSubmissionKeysBadLength := make([]cadence.Value, 1)
 		finalSubmissionKeysBadLength[0] = cadence.NewString(dkgKey1)
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateSendDKGFinalSubmissionScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(DKGAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGFinalSubmissionScript(env), DKGAddress)
 
 		err := tx.AddArgument(cadence.NewArray(finalSubmissionKeysBadLength))
 		require.NoError(t, err)
@@ -418,12 +298,7 @@ func TestDKG(t *testing.T) {
 		finalSubmissionKeys[0] = cadence.NewString(dkgBadKey)
 		finalSubmissionKeys[1] = cadence.NewString(dkgBadKey)
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateSendDKGFinalSubmissionScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(DKGAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGFinalSubmissionScript(env), DKGAddress)
 
 		err := tx.AddArgument(cadence.NewArray(finalSubmissionKeys))
 		require.NoError(t, err)
@@ -441,12 +316,7 @@ func TestDKG(t *testing.T) {
 		finalSubmissionKeys[0] = cadence.NewString(dkgKey1)
 		finalSubmissionKeys[1] = cadence.NewString(dkgKey1)
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateSendDKGFinalSubmissionScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(DKGAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGFinalSubmissionScript(env), DKGAddress)
 
 		err := tx.AddArgument(cadence.NewArray(finalSubmissionKeys))
 		require.NoError(t, err)
@@ -458,21 +328,13 @@ func TestDKG(t *testing.T) {
 			false,
 		)
 
-		result, err := b.ExecuteScript(templates.GenerateGetDKGNodeHasFinalSubmittedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
-		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
-		hasSubmitted := result.Value
-		assert.Equal(t, cadence.NewBool(true), hasSubmitted.(cadence.Bool))
+		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGNodeHasFinalSubmittedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 
-		result, err = b.ExecuteScript(templates.GenerateGetDKGCompletedScript(env), nil)
-		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
-		registered := result.Value
-		assert.Equal(t, cadence.NewBool(true), registered.(cadence.Bool))
+		assert.Equal(t, cadence.NewBool(true), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGCompletedScript(env), nil)
+
+		assert.Equal(t, cadence.NewBool(true), result)
 
 	})
 
@@ -481,12 +343,7 @@ func TestDKG(t *testing.T) {
 		finalSubmissionKeys[0] = cadence.NewString(dkgKey1)
 		finalSubmissionKeys[1] = cadence.NewString(dkgKey1)
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateSendDKGFinalSubmissionScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(DKGAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGFinalSubmissionScript(env), DKGAddress)
 
 		err := tx.AddArgument(cadence.NewArray(finalSubmissionKeys))
 		require.NoError(t, err)
@@ -502,31 +359,18 @@ func TestDKG(t *testing.T) {
 
 	t.Run("Admin should be able to stop the dkg", func(t *testing.T) {
 
-		result, err := b.ExecuteScript(templates.GenerateGetConsensusNodesScript(env), nil)
-		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
-		nodes := result.Value
-		assert.Equal(t, cadence.NewArray(dkgNodeIDStrings), nodes.(cadence.Array))
+		result := executeScriptAndCheck(t, b, templates.GenerateGetConsensusNodesScript(env), nil)
+
+		assert.Equal(t, cadence.NewArray(dkgNodeIDStrings), result)
 
 		finalSubmissionsArray := make([]cadence.Value, 1)
 		finalSubmissionsArray[0] = cadence.NewArray(finalSubmissionKeys)
 
-		result, err = b.ExecuteScript(templates.GenerateGetDKGFinalSubmissionsScript(env), nil)
-		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
-		messages := result.Value
-		assert.Equal(t, cadence.NewArray(finalSubmissionsArray), messages.(cadence.Array))
+		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGFinalSubmissionsScript(env), nil)
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateStopDKGScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(DKGAddress)
+		assert.Equal(t, cadence.NewArray(finalSubmissionsArray), result)
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateStopDKGScript(env), DKGAddress)
 
 		signAndSubmit(
 			t, b, tx,
@@ -535,21 +379,13 @@ func TestDKG(t *testing.T) {
 			false,
 		)
 
-		result, err = b.ExecuteScript(templates.GenerateGetDKGEnabledScript(env), nil)
-		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
-		enabled := result.Value
-		assert.Equal(t, cadence.NewBool(false), enabled.(cadence.Bool))
+		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGEnabledScript(env), nil)
 
-		result, err = b.ExecuteScript(templates.GenerateGetDKGCompletedScript(env), nil)
-		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
-		registered := result.Value
-		assert.Equal(t, cadence.NewBool(false), registered.(cadence.Bool))
+		assert.Equal(t, cadence.NewBool(false), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGCompletedScript(env), nil)
+
+		assert.Equal(t, cadence.NewBool(false), result)
 	})
 
 	// ///////////////////////////// Epoch 2 ////////////////////////////////////
@@ -569,12 +405,7 @@ func TestDKG(t *testing.T) {
 
 	t.Run("Should start dkg with the admin", func(t *testing.T) {
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateStartDKGScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(DKGAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateStartDKGScript(env), DKGAddress)
 
 		err := tx.AddArgument(cadence.NewArray(epoch2dkgNodeIDStrings))
 		require.NoError(t, err)
@@ -587,55 +418,30 @@ func TestDKG(t *testing.T) {
 		)
 
 		// AdminID is registered for this epoch by the admin
-		result, err := b.ExecuteScript(templates.GenerateGetDKGNodeIsRegisteredScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
-		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
-		hasRegistered := result.Value
-		assert.Equal(t, cadence.NewBool(false), hasRegistered.(cadence.Bool))
+		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGNodeIsRegisteredScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 
-		result, err = b.ExecuteScript(templates.GenerateGetConsensusNodesScript(env), nil)
-		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
-		nodes := result.Value
-		assert.Equal(t, cadence.NewArray(epoch2dkgNodeIDStrings), nodes.(cadence.Array))
+		assert.Equal(t, cadence.NewBool(false), result)
 
-		result, err = b.ExecuteScript(templates.GenerateGetDKGFinalSubmissionsScript(env), nil)
-		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
-		messages := result.Value
-		assert.Equal(t, cadence.NewArray(make([]cadence.Value, 0)), messages.(cadence.Array))
+		result = executeScriptAndCheck(t, b, templates.GenerateGetConsensusNodesScript(env), nil)
 
-		result, err = b.ExecuteScript(templates.GenerateGetDKGEnabledScript(env), nil)
-		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
-		enabled := result.Value
-		assert.Equal(t, cadence.NewBool(true), enabled.(cadence.Bool))
+		assert.Equal(t, cadence.NewArray(epoch2dkgNodeIDStrings), result)
 
-		result, err = b.ExecuteScript(templates.GenerateGetDKGWhiteBoardMessagesScript(env), nil)
-		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
-		messages = result.Value
-		assert.Equal(t, cadence.NewArray(make([]cadence.Value, 0)), messages.(cadence.Array))
+		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGFinalSubmissionsScript(env), nil)
+
+		assert.Equal(t, cadence.NewArray(make([]cadence.Value, 0)), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGEnabledScript(env), nil)
+
+		assert.Equal(t, cadence.NewBool(true), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGWhiteBoardMessagesScript(env), nil)
+
+		assert.Equal(t, cadence.NewArray(make([]cadence.Value, 0)), result)
 	})
 
 	t.Run("Should not be able to post a message from a node that wasn't included", func(t *testing.T) {
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateSendDKGWhiteboardMessageScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(DKGAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGWhiteboardMessageScript(env), DKGAddress)
 
 		_ = tx.AddArgument(cadence.NewString("am I still alive?"))
 
@@ -649,12 +455,7 @@ func TestDKG(t *testing.T) {
 
 	t.Run("Should be able to register, post messages and read messages", func(t *testing.T) {
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateCreateDKGParticipantScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(maxAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateDKGParticipantScript(env), maxAddress)
 
 		_ = tx.AddArgument(cadence.NewAddress(DKGAddress))
 		_ = tx.AddArgument(cadence.NewString(maxID))
@@ -666,12 +467,7 @@ func TestDKG(t *testing.T) {
 			false,
 		)
 
-		tx = flow.NewTransaction().
-			SetScript(templates.GenerateCreateDKGParticipantScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(bastianAddress)
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateDKGParticipantScript(env), bastianAddress)
 
 		_ = tx.AddArgument(cadence.NewAddress(DKGAddress))
 		_ = tx.AddArgument(cadence.NewString(bastianID))
@@ -683,12 +479,7 @@ func TestDKG(t *testing.T) {
 			false,
 		)
 
-		tx = flow.NewTransaction().
-			SetScript(templates.GenerateSendDKGWhiteboardMessageScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(maxAddress)
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGWhiteboardMessageScript(env), maxAddress)
 
 		_ = tx.AddArgument(cadence.NewString("I am the new ruler!"))
 
@@ -699,12 +490,7 @@ func TestDKG(t *testing.T) {
 			false,
 		)
 
-		tx = flow.NewTransaction().
-			SetScript(templates.GenerateSendDKGWhiteboardMessageScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(bastianAddress)
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGWhiteboardMessageScript(env), bastianAddress)
 
 		_ = tx.AddArgument(cadence.NewString("No, I am!"))
 
@@ -715,15 +501,12 @@ func TestDKG(t *testing.T) {
 			false,
 		)
 
-		result, err := b.ExecuteScript(templates.GenerateGetDKGWhiteBoardMessagesScript(env), nil)
-		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
-		messages := result.Value.(cadence.Array).Values
+		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGWhiteBoardMessagesScript(env), nil)
 
-		message0 := messages[0].(cadence.Struct)
-		message1 := messages[1].(cadence.Struct)
+		messageValues := result.(cadence.Array).Values
+
+		message0 := messageValues[0].(cadence.Struct)
+		message1 := messageValues[1].(cadence.Struct)
 
 		message0IDField := message0.Fields[0]
 		message0ContentField := message0.Fields[1]
@@ -745,12 +528,7 @@ func TestDKG(t *testing.T) {
 		finalSubmissionKeysBadLength[1] = cadence.NewString(dkgKey1)
 		finalSubmissionKeysBadLength[2] = cadence.NewString(dkgKey1)
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateSendDKGFinalSubmissionScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(DKGAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGFinalSubmissionScript(env), DKGAddress)
 
 		err := tx.AddArgument(cadence.NewArray(finalSubmissionKeysBadLength))
 		require.NoError(t, err)
