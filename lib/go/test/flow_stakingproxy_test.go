@@ -106,16 +106,11 @@ func TestStakingProxy(t *testing.T) {
 
 	t.Run("Should be able to set up the admin account", func(t *testing.T) {
 
-		tx = flow.NewTransaction().
-			SetScript(ft_templates.GenerateMintTokensScript(
-				flow.HexToAddress(emulatorFTAddress),
-				flow.HexToAddress(emulatorFlowTokenAddress),
-				"FlowToken",
-			)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(b.ServiceKey().Address)
+		tx = createTxWithTemplateAndAuthorizer(b, ft_templates.GenerateMintTokensScript(
+			flow.HexToAddress(emulatorFTAddress),
+			flow.HexToAddress(emulatorFlowTokenAddress),
+			"FlowToken",
+		), b.ServiceKey().Address)
 
 		_ = tx.AddArgument(cadence.NewAddress(lockedTokensAddress))
 		_ = tx.AddArgument(CadenceUFix64("1000000000.0"))
@@ -134,12 +129,7 @@ func TestStakingProxy(t *testing.T) {
 
 	t.Run("Should be able to set up the node account for staking helper", func(t *testing.T) {
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateSetupNodeAccountScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(nodeAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetupNodeAccountScript(env), nodeAddress)
 
 		signAndSubmit(
 			t, b, tx,
@@ -148,12 +138,7 @@ func TestStakingProxy(t *testing.T) {
 			false,
 		)
 
-		tx = flow.NewTransaction().
-			SetScript(templates.GenerateAddNodeInfoScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(nodeAddress)
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateAddNodeInfoScript(env), nodeAddress)
 
 		_ = tx.AddArgument(cadence.NewString(joshID))
 		_ = tx.AddArgument(cadence.NewUInt8(1))
@@ -180,12 +165,7 @@ func TestStakingProxy(t *testing.T) {
 
 	t.Run("Should be able to create new shared accounts", func(t *testing.T) {
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateCreateSharedAccountScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(b.ServiceKey().Address).
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateSharedAccountScript(env), b.ServiceKey().Address).
 			AddRawArgument(jsoncdc.MustEncode(adminPublicKey)).
 			AddRawArgument(jsoncdc.MustEncode(joshPublicKey)).
 			AddRawArgument(jsoncdc.MustEncode(joshPublicKey))
@@ -222,12 +202,7 @@ func TestStakingProxy(t *testing.T) {
 
 	t.Run("Should be able to deposit locked tokens to the shared account", func(t *testing.T) {
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateDepositLockedTokensScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(b.ServiceKey().Address)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDepositLockedTokensScript(env), b.ServiceKey().Address)
 
 		_ = tx.AddArgument(cadence.NewAddress(joshSharedAddress))
 		_ = tx.AddArgument(CadenceUFix64("1000000.0"))
@@ -242,12 +217,7 @@ func TestStakingProxy(t *testing.T) {
 
 	t.Run("Should be able to register josh as a node operator and add the staking proxy to the node's account", func(t *testing.T) {
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateRegisterStakingProxyNodeScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(joshAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterStakingProxyNodeScript(env), joshAddress)
 
 		_ = tx.AddArgument(cadence.NewAddress(nodeAddress))
 		_ = tx.AddArgument(cadence.NewString(joshID))
@@ -265,12 +235,7 @@ func TestStakingProxy(t *testing.T) {
 
 	t.Run("Should be able to stake locked tokens", func(t *testing.T) {
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateProxyStakeNewTokensScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(nodeAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateProxyStakeNewTokensScript(env), nodeAddress)
 
 		_ = tx.AddArgument(cadence.NewString(joshID))
 		tokenAmount, err := cadence.NewUFix64("2000.0")
@@ -287,12 +252,7 @@ func TestStakingProxy(t *testing.T) {
 
 	t.Run("Should be able to stake unlocked (staking) tokens", func(t *testing.T) {
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateProxyStakeUnstakedTokensScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(nodeAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateProxyStakeUnstakedTokensScript(env), nodeAddress)
 
 		_ = tx.AddArgument(cadence.NewString(joshID))
 		tokenAmount, err := cadence.NewUFix64("1000.0")
@@ -310,12 +270,7 @@ func TestStakingProxy(t *testing.T) {
 
 	t.Run("Should be able to request unstaking", func(t *testing.T) {
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateProxyRequestUnstakingScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(nodeAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateProxyRequestUnstakingScript(env), nodeAddress)
 
 		_ = tx.AddArgument(cadence.NewString(joshID))
 		tokenAmount, err := cadence.NewUFix64("500.0")
@@ -333,12 +288,7 @@ func TestStakingProxy(t *testing.T) {
 
 	t.Run("Should be able to request unstaking all tokens", func(t *testing.T) {
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateProxyUnstakeAllScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(nodeAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateProxyUnstakeAllScript(env), nodeAddress)
 
 		_ = tx.AddArgument(cadence.NewString(joshID))
 
@@ -352,12 +302,7 @@ func TestStakingProxy(t *testing.T) {
 
 	t.Run("Should be able to withdraw unlocked (staking) tokens which are deposited to the locked vault (still locked)", func(t *testing.T) {
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateProxyWithdrawUnstakedScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(nodeAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateProxyWithdrawUnstakedScript(env), nodeAddress)
 
 		_ = tx.AddArgument(cadence.NewString(joshID))
 		tokenAmount, err := cadence.NewUFix64("500.0")
@@ -375,12 +320,7 @@ func TestStakingProxy(t *testing.T) {
 
 	t.Run("Should be able to withdraw rewards tokens which are deposited to the locked vault (increase limit)", func(t *testing.T) {
 
-		tx := flow.NewTransaction().
-			SetScript(templates.GenerateProxyWithdrawRewardsScript(env)).
-			SetGasLimit(100).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(nodeAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateProxyWithdrawRewardsScript(env), nodeAddress)
 
 		_ = tx.AddArgument(cadence.NewString(joshID))
 		tokenAmount, err := cadence.NewUFix64("500.0")
