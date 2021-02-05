@@ -48,13 +48,13 @@ func TestContracts(t *testing.T) {
 	t.Run("Should have initialized fields correctly", func(t *testing.T) {
 
 		result := executeScriptAndCheck(t, b, templates.GenerateGetStorageFeeConversionScript(env), nil)
-		assertEqual(t, CadenceUFix64("1.0"), result.(cadence.UFix64))
+		assertEqual(t, CadenceUFix64("1.0"), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetStorageFeeMinimumScript(env), nil)
-		assertEqual(t, CadenceUFix64("0.0"), result.(cadence.UFix64))
+		assertEqual(t, CadenceUFix64("0.0"), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetStorageCapacityScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(storageFeesAddress))})
-		assertEqual(t, CadenceUFix64("0.0"), result.(cadence.UFix64))
+		assertEqual(t, CadenceUFix64("0.0"), result)
 
 	})
 
@@ -78,10 +78,10 @@ func TestContracts(t *testing.T) {
 	})
 
 	result := executeScriptAndCheck(t, b, templates.GenerateGetStorageFeeConversionScript(env), nil)
-	assertEqual(t, CadenceUFix64("2.0"), result.(cadence.UFix64))
+	assertEqual(t, CadenceUFix64("2.0"), result)
 
 	result = executeScriptAndCheck(t, b, templates.GenerateGetStorageFeeMinimumScript(env), nil)
-	assertEqual(t, CadenceUFix64("0.2"), result.(cadence.UFix64))
+	assertEqual(t, CadenceUFix64("0.2"), result)
 
 	// deploy the ServiceAccount contract
 	serviceAccountCode := contracts.FlowServiceAccount(
