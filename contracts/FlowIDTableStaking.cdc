@@ -171,41 +171,21 @@ pub contract FlowIDTableStaking {
 
         destroy() {
             let flowTokenRef = FlowIDTableStaking.account.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)!
-            if self.tokensStaked.balance > 0.0 {
-                FlowIDTableStaking.totalTokensStakedByNodeType[self.role] = FlowIDTableStaking.totalTokensStakedByNodeType[self.role]! - self.tokensStaked.balance
-                flowTokenRef.deposit(from: <-self.tokensStaked)
-            } else { destroy self.tokensStaked }
-            if self.tokensCommitted.balance > 0.0 {
-                flowTokenRef.deposit(from: <-self.tokensCommitted)
-            } else { destroy  self.tokensCommitted }
-            if self.tokensUnstaking.balance > 0.0 {
-                flowTokenRef.deposit(from: <-self.tokensUnstaking)
-            } else { destroy  self.tokensUnstaking }
-            if self.tokensUnstaked.balance > 0.0 {
-                flowTokenRef.deposit(from: <-self.tokensUnstaked)
-            } else { destroy  self.tokensUnstaked }
-            if self.tokensRewarded.balance > 0.0 {
-                flowTokenRef.deposit(from: <-self.tokensRewarded)
-            } else { destroy  self.tokensRewarded }
+            FlowIDTableStaking.totalTokensStakedByNodeType[self.role] = FlowIDTableStaking.totalTokensStakedByNodeType[self.role]! - self.tokensStaked.balance
+            flowTokenRef.deposit(from: <-self.tokensStaked)
+            flowTokenRef.deposit(from: <-self.tokensCommitted)
+            flowTokenRef.deposit(from: <-self.tokensUnstaking)
+            flowTokenRef.deposit(from: <-self.tokensUnstaked)
+            flowTokenRef.deposit(from: <-self.tokensRewarded)
 
             // Return all of the delegators' funds
             for delegator in self.delegators.keys {
                 let delRecord = self.borrowDelegatorRecord(delegator)
-                if delRecord.tokensCommitted.balance > 0.0 {
-                    flowTokenRef.deposit(from: <-delRecord.tokensCommitted.withdraw(amount: delRecord.tokensCommitted.balance))
-                }
-                if delRecord.tokensStaked.balance > 0.0 {
-                    flowTokenRef.deposit(from: <-delRecord.tokensStaked.withdraw(amount: delRecord.tokensStaked.balance))
-                }
-                if delRecord.tokensUnstaked.balance > 0.0 {
-                    flowTokenRef.deposit(from: <-delRecord.tokensUnstaked.withdraw(amount: delRecord.tokensUnstaked.balance))
-                }
-                if delRecord.tokensRewarded.balance > 0.0 {
-                    flowTokenRef.deposit(from: <-delRecord.tokensRewarded.withdraw(amount: delRecord.tokensRewarded.balance))
-                }
-                if delRecord.tokensUnstaking.balance > 0.0 {
-                    flowTokenRef.deposit(from: <-delRecord.tokensUnstaking.withdraw(amount: delRecord.tokensUnstaking.balance))
-                }
+                flowTokenRef.deposit(from: <-delRecord.tokensCommitted.withdraw(amount: delRecord.tokensCommitted.balance))
+                flowTokenRef.deposit(from: <-delRecord.tokensStaked.withdraw(amount: delRecord.tokensStaked.balance))
+                flowTokenRef.deposit(from: <-delRecord.tokensUnstaked.withdraw(amount: delRecord.tokensUnstaked.balance))
+                flowTokenRef.deposit(from: <-delRecord.tokensRewarded.withdraw(amount: delRecord.tokensRewarded.balance))
+                flowTokenRef.deposit(from: <-delRecord.tokensUnstaking.withdraw(amount: delRecord.tokensUnstaking.balance))
             }
 
             destroy self.delegators
@@ -412,12 +392,9 @@ pub contract FlowIDTableStaking {
                 nodeRecord.tokensRequestedToUnstake = 0.0
             }
 
-            if remainingAmount > 0.0 {
+            nodeRecord.tokensCommitted.deposit(from: <-nodeRecord.tokensUnstaked.withdraw(amount: remainingAmount))
 
-                nodeRecord.tokensCommitted.deposit(from: <-nodeRecord.tokensUnstaked.withdraw(amount: remainingAmount))
-
-                emit TokensCommitted(nodeID: nodeRecord.id, amount: remainingAmount)
-            }
+            emit TokensCommitted(nodeID: nodeRecord.id, amount: remainingAmount)
         }
 
         /// Stake tokens that are in the tokensRewarded bucket
@@ -426,13 +403,11 @@ pub contract FlowIDTableStaking {
                 FlowIDTableStaking.stakingEnabled: "Cannot stake if the staking auction isn't in progress"
             }
 
-            if amount > 0.0 {
-                let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
+            let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
 
-                nodeRecord.tokensCommitted.deposit(from: <-nodeRecord.tokensRewarded.withdraw(amount: amount))
+            nodeRecord.tokensCommitted.deposit(from: <-nodeRecord.tokensRewarded.withdraw(amount: amount))
 
-                emit TokensCommitted(nodeID: nodeRecord.id, amount: amount)
-            }
+            emit TokensCommitted(nodeID: nodeRecord.id, amount: amount)
         }
 
         /// Request amount tokens to be removed from staking at the end of the next epoch
@@ -467,9 +442,7 @@ pub contract FlowIDTableStaking {
             } else {
                 let amountCommitted = nodeRecord.tokensCommitted.balance
 
-                if amountCommitted > 0.0 {
-                    nodeRecord.tokensUnstaked.deposit(from: <-nodeRecord.tokensCommitted.withdraw(amount: amountCommitted))
-                }
+                nodeRecord.tokensUnstaked.deposit(from: <-nodeRecord.tokensCommitted.withdraw(amount: amountCommitted))
 
                 /// update request to show that leftover amount is requested to be unstaked
                 nodeRecord.tokensRequestedToUnstake = nodeRecord.tokensRequestedToUnstake + (amount - amountCommitted)
@@ -486,11 +459,8 @@ pub contract FlowIDTableStaking {
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
 
             /// if the request can come from committed, withdraw from committed to unstaked
-            if nodeRecord.tokensCommitted.balance > 0.0 {
-
-                /// withdraw the requested tokens from committed since they have not been staked yet
-                nodeRecord.tokensUnstaked.deposit(from: <-nodeRecord.tokensCommitted.withdraw(amount: nodeRecord.tokensCommitted.balance))
-            }
+            /// withdraw the requested tokens from committed since they have not been staked yet
+            nodeRecord.tokensUnstaked.deposit(from: <-nodeRecord.tokensCommitted.withdraw(amount: nodeRecord.tokensCommitted.balance))
 
             /// update request to show that leftover amount is requested to be unstaked
             nodeRecord.tokensRequestedToUnstake = nodeRecord.tokensStaked.balance
@@ -567,13 +537,10 @@ pub contract FlowIDTableStaking {
                 delRecord.tokensRequestedToUnstake = 0.0
             }
 
-            if remainingAmount > 0.0 {
+            /// Add the removed tokens to tokens committed
+            delRecord.tokensCommitted.deposit(from: <-delRecord.tokensUnstaked.withdraw(amount: remainingAmount))
 
-                /// Add the removed tokens to tokens committed
-                delRecord.tokensCommitted.deposit(from: <-delRecord.tokensUnstaked.withdraw(amount: remainingAmount))
-
-                emit DelegatorTokensCommitted(nodeID: self.nodeID, delegatorID: self.id, amount: amount)
-            }
+            emit DelegatorTokensCommitted(nodeID: self.nodeID, delegatorID: self.id, amount: amount)
         }
 
         /// Delegate tokens from the rewards bucket to the node operator
@@ -582,14 +549,12 @@ pub contract FlowIDTableStaking {
                 FlowIDTableStaking.stakingEnabled: "Cannot delegate if the staking auction isn't in progress"
             }
 
-            if amount > 0.0 {
-                let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.nodeID)
-                let delRecord = nodeRecord.borrowDelegatorRecord(self.id)
+            let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.nodeID)
+            let delRecord = nodeRecord.borrowDelegatorRecord(self.id)
 
-                delRecord.tokensCommitted.deposit(from: <-delRecord.tokensRewarded.withdraw(amount: amount))
+            delRecord.tokensCommitted.deposit(from: <-delRecord.tokensRewarded.withdraw(amount: amount))
 
-                emit DelegatorTokensCommitted(nodeID: self.nodeID, delegatorID: self.id, amount: amount)
-            }
+            emit DelegatorTokensCommitted(nodeID: self.nodeID, delegatorID: self.id, amount: amount)
         }
 
         /// Request to unstake delegated tokens during the next epoch
@@ -694,10 +659,8 @@ pub contract FlowIDTableStaking {
 
                     emit NodeRemovedAndRefunded(nodeID: nodeRecord.id, amount: nodeRecord.tokensCommitted.balance + nodeRecord.tokensStaked.balance)
 
-                    if nodeRecord.tokensCommitted.balance > 0.0 {
-                        /// move their committed tokens back to their unstaked tokens
-                        nodeRecord.tokensUnstaked.deposit(from: <-nodeRecord.tokensCommitted.withdraw(amount: nodeRecord.tokensCommitted.balance))
-                    }
+                    /// move their committed tokens back to their unstaked tokens
+                    nodeRecord.tokensUnstaked.deposit(from: <-nodeRecord.tokensCommitted.withdraw(amount: nodeRecord.tokensCommitted.balance))
 
                     /// Set their request to unstake equal to all their staked tokens
                     /// since they are forced to unstake
