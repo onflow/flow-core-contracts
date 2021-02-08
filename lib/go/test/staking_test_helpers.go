@@ -35,15 +35,13 @@ func deployStakingContract(t *testing.T, b *emulator.Blockchain, IDTableAccountK
 	cadenceCode := bytesToCadenceArray(IDTableCode)
 
 	// Deploy the IDTableStaking contract
-	tx := flow.NewTransaction().
-		SetScript(templates.GenerateTransferMinterAndDeployScript(env)).
-		SetGasLimit(100).
-		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-		SetPayer(b.ServiceKey().Address).
-		AddAuthorizer(b.ServiceKey().Address).
-		AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys)).
-		AddRawArgument(jsoncdc.MustEncode(cadence.NewString("FlowIDTableStaking"))).
-		AddRawArgument(jsoncdc.MustEncode(cadenceCode))
+	tx := createTxWithTemplateAndAuthorizer(b,
+		templates.GenerateTransferMinterAndDeployScript(env),
+		b.ServiceKey().Address)
+
+	tx.AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys))
+	tx.AddRawArgument(jsoncdc.MustEncode(cadence.NewString("FlowIDTableStaking")))
+	tx.AddRawArgument(jsoncdc.MustEncode(cadenceCode))
 
 	_ = tx.AddArgument(CadenceUFix64("1250000.0"))
 	_ = tx.AddArgument(CadenceUFix64("0.08"))
@@ -75,12 +73,10 @@ func deployStakingContract(t *testing.T, b *emulator.Blockchain, IDTableAccountK
 }
 
 func mintTokensForAccount(t *testing.T, b *emulator.Blockchain, recipient flow.Address) {
-	tx := flow.NewTransaction().
-		SetScript(ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken")).
-		SetGasLimit(100).
-		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-		SetPayer(b.ServiceKey().Address).
-		AddAuthorizer(b.ServiceKey().Address)
+
+	tx := createTxWithTemplateAndAuthorizer(b,
+		ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"),
+		b.ServiceKey().Address)
 
 	_ = tx.AddArgument(cadence.NewAddress(recipient))
 	_ = tx.AddArgument(CadenceUFix64("1000000000.0"))
@@ -106,12 +102,9 @@ func registerNode(t *testing.T,
 	newTokensCommitted interpreter.UFix64Value,
 ) {
 
-	tx := flow.NewTransaction().
-		SetScript(templates.GenerateRegisterNodeScript(env)).
-		SetGasLimit(100).
-		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-		SetPayer(b.ServiceKey().Address).
-		AddAuthorizer(authorizer)
+	tx := createTxWithTemplateAndAuthorizer(b,
+		templates.GenerateRegisterNodeScript(env),
+		authorizer)
 
 	_ = tx.AddArgument(cadence.NewString(nodeID))
 	_ = tx.AddArgument(cadence.NewUInt8(role))
@@ -147,12 +140,9 @@ func commitNewTokens(t *testing.T,
 	newTokensCommitted interpreter.UFix64Value,
 ) {
 
-	tx := flow.NewTransaction().
-		SetScript(templates.GenerateStakeNewTokensScript(env)).
-		SetGasLimit(100).
-		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-		SetPayer(b.ServiceKey().Address).
-		AddAuthorizer(authorizer)
+	tx := createTxWithTemplateAndAuthorizer(b,
+		templates.GenerateStakeNewTokensScript(env),
+		authorizer)
 
 	tokenAmount, err := cadence.NewUFix64(amount.String())
 	require.NoError(t, err)
@@ -187,12 +177,9 @@ func commitUnstaked(t *testing.T,
 	newTokensUnstaked interpreter.UFix64Value,
 ) {
 
-	tx := flow.NewTransaction().
-		SetScript(templates.GenerateStakeUnstakedTokensScript(env)).
-		SetGasLimit(100).
-		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-		SetPayer(b.ServiceKey().Address).
-		AddAuthorizer(authorizer)
+	tx := createTxWithTemplateAndAuthorizer(b,
+		templates.GenerateStakeUnstakedTokensScript(env),
+		authorizer)
 
 	tokenAmount, err := cadence.NewUFix64(amount.String())
 	require.NoError(t, err)
@@ -228,12 +215,9 @@ func commitRewarded(t *testing.T,
 	newTokensCommitted, newTokensRewarded interpreter.UFix64Value,
 ) {
 
-	tx := flow.NewTransaction().
-		SetScript(templates.GenerateStakeRewardedTokensScript(env)).
-		SetGasLimit(100).
-		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-		SetPayer(b.ServiceKey().Address).
-		AddAuthorizer(authorizer)
+	tx := createTxWithTemplateAndAuthorizer(b,
+		templates.GenerateStakeRewardedTokensScript(env),
+		authorizer)
 
 	tokenAmount, err := cadence.NewUFix64(amount.String())
 	require.NoError(t, err)
@@ -269,12 +253,9 @@ func requestUnstaking(t *testing.T,
 	newTokensCommitted, newTokensUnstaked, newRequest interpreter.UFix64Value,
 ) {
 
-	tx := flow.NewTransaction().
-		SetScript(templates.GenerateUnstakeTokensScript(env)).
-		SetGasLimit(100).
-		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-		SetPayer(b.ServiceKey().Address).
-		AddAuthorizer(authorizer)
+	tx := createTxWithTemplateAndAuthorizer(b,
+		templates.GenerateUnstakeTokensScript(env),
+		authorizer)
 
 	tokenAmount, err := cadence.NewUFix64(amount.String())
 	require.NoError(t, err)

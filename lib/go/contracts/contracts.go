@@ -17,7 +17,7 @@ const (
 	flowServiceAccountFilename = "FlowServiceAccount.cdc"
 	flowTokenFilename          = "FlowToken.cdc"
 	flowIdentityTableFilename  = "FlowIDTableStaking.cdc"
-	flowQCFilename             = "epochs/FlowQuorumCertificate.cdc"
+	flowQCFilename             = "epochs/FlowEpochClusterQC.cdc"
 	flowDKGFilename            = "epochs/FlowDKG.cdc"
 	flowEpochFilename          = "epochs/FlowEpoch.cdc"
 	flowLockedTokensFilename   = "LockedTokens.cdc"
@@ -32,6 +32,7 @@ const (
 	placeholderStakingProxyAddress  = "0xSTAKINGPROXYADDRESS"
 	placeholderQCAddr               = "0xQCADDRESS"
 	placeholderDKGAddr              = "0xDKGADDRESS"
+	placeholderEpochsAddr           = "0xEPOCHADDRESS"
 	placeholderFlowFeesAddress      = "0xFLOWFEESADDRESS"
 	placeholderStorageFeesAddress   = "0xFLOWSTORAGEFEESADDRESS"
 )
@@ -184,6 +185,20 @@ func FlowLockedTokens(
 	code = strings.ReplaceAll(code, placeholderFlowTokenAddress, withHexPrefix(flowTokenAddress))
 	code = strings.ReplaceAll(code, placeholderIDTableAddress, withHexPrefix(idTableAddress))
 	code = strings.ReplaceAll(code, placeholderStakingProxyAddress, withHexPrefix(stakingProxyAddress))
+
+	return []byte(code)
+}
+
+// FlowQC returns the FlowEpochClusterQCs contract.
+func FlowQC() []byte {
+	code := assets.MustAssetString(flowQCFilename)
+
+	return []byte(code)
+}
+
+// FlowDKG returns the FlowDKG contract.
+func FlowDKG() []byte {
+	code := assets.MustAssetString(flowDKGFilename)
 
 	return []byte(code)
 }
