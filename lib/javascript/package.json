@@ -3,6 +3,10 @@
 	"version": "1.0.0",
 	"main": "index.js",
 	"license": "MIT",
+	"scripts": {
+      "generate" : "node_modules/.bin/babel-node src/generator/generate.js",
+      "compile-generator-templates": "node_modules/.bin/handlebars src/generator/templates -f ./src/generator/compiled.js -e hbs -c handlebars"
+    },
 	"devDependencies": {
 		"handlebars": "^4.7.6",
 		"handlebars-loader": "^1.7.1",
@@ -13,6 +17,6 @@
 		"@babel/core": "^7.12.13",
 		"@babel/node": "^7.12.13",
 		"@babel/preset-env": "^7.12.13",
-		"flow-js-testing": "^0.1.4"
+		"flow-js-testing": "file:../../../flow-js-testing"
 	}
 }
