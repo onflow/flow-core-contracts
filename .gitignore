@@ -14,4 +14,5 @@ flow.json
 # IDE related files
 .idea
 .vscode
+.history
 git
