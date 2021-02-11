@@ -2371,10 +2371,8 @@ find-up@^4.0.0, find-up@^4.1.0:
     locate-path "^5.0.0"
     path-exists "^4.0.0"
 
-flow-js-testing@^0.1.4:
+"flow-js-testing@file:../../../flow-js-testing":
   version "0.1.4"
-  resolved "https://registry.yarnpkg.com/flow-js-testing/-/flow-js-testing-0.1.4.tgz#065504059f004bb429376664858a47e5fe9210b1"
-  integrity sha512-EEFFR1ONmWpbVQu3mFT//k9SSrzAPstn6C8tJ9vxizTs91KB2SAZZXg2UVR2jUBcSRVZwh7YeNoLUx2aXmLfpA==
   dependencies:
     "@babel/cli" "^7.11.6"
     "@babel/core" "^7.11.6"
