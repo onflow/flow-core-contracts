@@ -1,2 +1,2 @@
-generated
-generator/compiled.js
+**/generated
+**/templates/index.js
