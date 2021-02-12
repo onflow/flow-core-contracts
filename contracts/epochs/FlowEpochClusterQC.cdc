@@ -74,7 +74,7 @@ pub contract FlowEpochClusterQC {
         pub let totalWeight: UInt64
 
         // Votes submitted for the cluster
-        access(contract) var votes: [Vote]
+        pub var votes: [Vote]
 
         pub fun size(): UInt16 {
             return UInt16(self.nodeWeights.length) 
