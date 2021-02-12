@@ -1,10 +1,9 @@
 import { replaceImportAddresses } from "flow-js-testing/dist/utils/imports";
-import { getEnvironment } from "../../utils/env";
-import { reportMissingImports } from '../utils'
+import { getEnvironment } from "utils/env";
+import { reportMissingImports } from 'utils'
 
-export const NAME = "{{name}}"
 export const CODE = `
-    {{code}}
+{{ code }}
 `;
 
 /**
@@ -12,7 +11,7 @@ export const CODE = `
 * @param {Object.<string, string>} addressMap - contract name as a key and address where it's deployed as value
 * @param {( "emulator" | "testnet" | "mainnet" )} [env] - current working environment, defines default deployed contracts
 */
-export const {{assetName}} = (addressMap, env) => {
+export const {{ assetName }} = (addressMap = {}, env = "testnet") => {
     const envMap = getEnvironment(env);
     const fullMap = {
     ...envMap,
@@ -20,8 +19,7 @@ export const {{assetName}} = (addressMap, env) => {
     };
 
     // If there are any missing imports in fullMap it will be reported via console
-    const prefix = `${NAME} =>`
-    reportMissingImports(CODE, fullMap, prefix)
+    reportMissingImports(CODE, fullMap, `{{ name }} =>`)
 
     return replaceImportAddresses(CODE, fullMap);
 };
