@@ -4,8 +4,9 @@
 	"main": "index.js",
 	"license": "MIT",
 	"scripts": {
+		"test-usage": "node_modules/.bin/babel-node src/testUsage.js",
 		"generate-cadence-code": "node_modules/.bin/babel-node src/generator",
-		"precompile-handlebars": "node_modules/.bin/handlebars src/generator/templates -f ./src/generator/compiled.js -e hbs -c handlebars"
+		"precompile-handlebars": "node_modules/.bin/handlebars src/generator/templates -f ./src/generator/templates/index.js -e hbs -c handlebars"
 	},
 	"devDependencies": {
 		"handlebars": "^4.7.6",
@@ -17,6 +18,7 @@
 		"@babel/core": "^7.12.13",
 		"@babel/node": "^7.12.13",
 		"@babel/preset-env": "^7.12.13",
+		"babel-plugin-module-resolver": "^4.1.0",
 		"flow-js-testing": "file:../../../flow-js-testing"
 	}
 }
