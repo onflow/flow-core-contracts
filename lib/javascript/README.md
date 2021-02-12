@@ -1,3 +1,9 @@
+# Important Notice
+
+Please, do NOT edit or commit files in `generated` folder. All files in that folder will be deleted
+by generator on next run, meaning your work will be lost. If you want to introduce changes to those
+files - edit Handlebars templates or generator code.
+
 # Development
 
 ## First steps
