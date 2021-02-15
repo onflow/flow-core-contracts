@@ -37,7 +37,6 @@ pub fun main(address: Address): UFix64 {
         let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeStakerRef.id)
         sum = sum 
               + nodeInfo.tokensStaked
-              + nodeInfo.totalTokensStaked
               + nodeInfo.tokensCommitted
               + nodeInfo.tokensUnstaking
               + nodeInfo.tokensUnstaked
@@ -78,7 +77,6 @@ pub fun main(address: Address): UFix64 {
             let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeID)
             sum = sum
                   + nodeInfo.tokensStaked
-                  + nodeInfo.totalTokensStaked
                   + nodeInfo.tokensCommitted
                   + nodeInfo.tokensUnstaking
                   + nodeInfo.tokensUnstaked
