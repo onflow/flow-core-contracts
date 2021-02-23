@@ -100,14 +100,15 @@ func TestEpochDeployment(t *testing.T) {
 		AddRawArgument(jsoncdc.MustEncode(cadence.NewString("FlowEpoch"))).
 		AddRawArgument(jsoncdc.MustEncode(EpochByteCode))
 
+	_ = tx.AddArgument(cadence.NewUInt64(0))
 	_ = tx.AddArgument(cadence.NewUInt64(70))
 	_ = tx.AddArgument(cadence.NewUInt64(50))
 	_ = tx.AddArgument(cadence.NewUInt64(2))
 	_ = tx.AddArgument(cadence.NewUInt16(4))
 	_ = tx.AddArgument(cadence.NewString("lolsorandom"))
 	_ = tx.AddArgument(cadence.NewArray([]cadence.Value{cadence.NewString("cluster")}))
-	_ = tx.AddArgument(cadence.NewArray([]cadence.Value{cadence.NewString("key1"), cadence.NewString("key2")}))
 	_ = tx.AddArgument(cadence.NewArray([]cadence.Value{cadence.NewString("vote1"), cadence.NewString("vote2")}))
+	_ = tx.AddArgument(cadence.NewArray([]cadence.Value{cadence.NewString("key1"), cadence.NewString("key2")}))
 
 	signAndSubmit(
 		t, b, tx,

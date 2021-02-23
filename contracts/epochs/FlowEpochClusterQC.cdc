@@ -60,6 +60,14 @@ pub contract FlowEpochClusterQC {
     pub let AdminStoragePath: StoragePath
     pub let VoterStoragePath: StoragePath
 
+    pub struct ClusterQC {
+        pub var votes: [String]
+
+        init(votes: [String]) {
+            self.votes = votes
+        }
+    }
+
     // Represents a collection node cluster for a given epoch. 
     pub struct Cluster {
 
