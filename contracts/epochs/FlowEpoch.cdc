@@ -193,6 +193,8 @@ pub contract FlowEpoch {
         }
     }
 
+    access(contract) let configurableMetadata: Config
+
     /// Metadata that is managed by the smart contract
     /// and cannot be changed by the Admin
 
@@ -215,9 +217,7 @@ pub contract FlowEpoch {
 
     access(contract) let stakingAdmin: @FlowIDTableStaking.Admin
 
-    access(contract) let configurableMetadata: Config
-
-    /// Resource that can update certain some of the contract fields
+    /// Resource that can update some of the contract fields
     pub resource Admin {
         pub fun updateEpochLength(newEpochViews: UInt64) {
             if FlowEpoch.currentEpochPhase != EpochPhase.STAKINGAUCTION ||
@@ -295,12 +295,14 @@ pub contract FlowEpoch {
     /// Pays rewards, moves staking tokens between buckets,
     /// and starts the new epoch staking auction
     access(account) fun startNewEpoch() {
+
         self.stakingAdmin.payRewards()
 
         self.stakingAdmin.moveTokens()
 
         self.currentEpochPhase = EpochPhase.STAKINGAUCTION
 
+        // Update the epoch counters
         self.currentEpochCounter = self.proposedEpochCounter
         self.proposedEpochCounter = self.currentEpochCounter + 1 as UInt64
     }
@@ -323,25 +325,27 @@ pub contract FlowEpoch {
 
     /// Starts the EpochSetup phase and emits the epoch setup event
     access(account) fun startEpochSetup(randomSource: String) {
+
         // Get all the nodes that are proposed for the next epoch
         let ids = FlowIDTableStaking.getProposedNodeIDs()
 
         // Holds the node Information of all the approved nodes
         var nodeInfoArray: [FlowIDTableStaking.NodeInfo] = []
 
-        // Holds node IDs of only collector nodes
+        // Holds node IDs of only collector nodes for QC
         var collectorNodeIDs: [String] = []
 
         // Holds node IDs of only consensus nodes for DKG
         var consensusNodeIDs: [String] = []
 
+        // Get nodeinfo for all the nodes
+        // get all the collector and consensus nodes
+        // to initialize the QC and DKG
         for id in ids {
             let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: id)
 
             nodeInfoArray.append(nodeInfo)
 
-            // If the node is a collector Node, add it to a cluster
-            // via a basic round-robin algorithm
             if nodeInfo.role == 1 as UInt8 {
                 collectorNodeIDs.append(nodeInfo.id)
             }
@@ -351,6 +355,7 @@ pub contract FlowEpoch {
             }
         }
         
+        // Organize the collector nodes into clusters
         let collectorClusters = self.createCollectorClusters(nodeIDs: collectorNodeIDs)
 
         // Start QC Voting with the supplied clusters
@@ -359,6 +364,8 @@ pub contract FlowEpoch {
         // Start DKG with the consensus nodes
         self.DKGAdmin.startDKG(nodeIDs: consensusNodeIDs)
 
+        // Initialze the metadata for the next epoch
+        // QC and DKG metadata will be filled in later
         let proposedEpochMetadata = EpochMetadata(counter: self.proposedEpochCounter,
                                                 seed: randomSource,
                                                 startView: self.epochMetadata[self.currentEpochCounter]!.endView + UInt64(1),
@@ -381,9 +388,9 @@ pub contract FlowEpoch {
                         DKGPhase1FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + self.configurableMetadata.numViewsInDKGPhase,
                         DKGPhase2FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + (2 as UInt64 * self.configurableMetadata.numViewsInDKGPhase),
                         DKGPhase3FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + (3 as UInt64 * self.configurableMetadata.numViewsInDKGPhase))
-
     }
 
+    /// Ends the EpochSetup phase when the QC and DKG are completed
     access(account) fun endEpochSetup() {
         if !FlowEpochClusterQC.votingCompleted() || FlowDKG.dkgCompleted() == nil {
             return
@@ -391,8 +398,10 @@ pub contract FlowEpoch {
 
         let clusters = FlowEpochClusterQC.getClusters()
 
+        // Holds the quorum certificates for each cluster
         var clusterQCs: [FlowEpochClusterQC.ClusterQC] = []
 
+        // iterate through all the clusters and create their certificate arrays
         for cluster in clusters {
             var certificate: FlowEpochClusterQC.ClusterQC = FlowEpochClusterQC.ClusterQC(votes: [])
 
@@ -402,16 +411,16 @@ pub contract FlowEpoch {
             clusterQCs.append(certificate)
         }
 
-        // Get cluster QCs
+        // Set cluster QCs in the proposed epoch metadata
         self.epochMetadata[self.proposedEpochCounter]!.setClusterQCs(qcs: clusterQCs)
 
-        // Get DKG result keys
+        // Set DKG result keys in the proposed epoch metadata
         let dkgKeys = FlowDKG.dkgCompleted()!
         self.epochMetadata[self.proposedEpochCounter]!.setDKGGroupKey(keys: dkgKeys)
 
     }
 
-    // Emits the epoch committed event
+    /// Emits the epoch committed event with the results from the QC and DKG
     access(account) fun startEpochCommitted() {
 
         self.currentEpochPhase = EpochPhase.EPOCHCOMMITTED
@@ -422,7 +431,6 @@ pub contract FlowEpoch {
         emit EpochCommitted(counter: self.proposedEpochCounter,
                             dkgPubKeys: dkgKeys,
                             clusterQCs: clusterQCs)
-        
     }
 
     /// borrow a reference to the ClusterQCs resource
@@ -435,33 +443,7 @@ pub contract FlowEpoch {
         return &self.DKGAdmin as! &FlowDKG.Admin
     }
 
-    pub fun getClusterQCVoter(nodeStaker: &FlowIDTableStaking.NodeStaker): @FlowEpochClusterQC.Voter {
-        let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeStaker.id)
-
-        assert (
-            nodeInfo.role == 1 as UInt8,
-            message: "Node operator must be a collector node to get a QC Voter object"
-        )
-
-        let clusterQCAdmin = self.borrowClusterQCAdmin()
-
-        return <-clusterQCAdmin.createVoter(nodeID: nodeStaker.id)
-    }
-
-    pub fun getDKGParticipant(nodeStaker: &FlowIDTableStaking.NodeStaker): @FlowDKG.Participant {
-        let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeStaker.id)
-
-        assert (
-            nodeInfo.role == 2 as UInt8,
-            message: "Node operator must be a consensus node to get a DKG Participant object"
-        )
-
-        let dkgAdmin = self.borrowDKGAdmin()
-
-        return <-dkgAdmin.createParticipant(nodeID: nodeStaker.id)
-    }
-
-    pub fun createCollectorClusters(nodeIDs: [String]): [FlowEpochClusterQC.Cluster] {
+    access(contract) fun createCollectorClusters(nodeIDs: [String]): [FlowEpochClusterQC.Cluster] {
         var shuffledIDs = self.randomize(nodeIDs)
 
         // Holds cluster assignments for collector nodes
@@ -499,7 +481,7 @@ pub contract FlowEpoch {
   
     /// A function to generate a random permutation of arr[] 
     /// using the fisher yates shuffling algorithm
-    pub fun randomize(_ array: [String]): [String] {  
+    access(contract) fun randomize(_ array: [String]): [String] {  
 
         var i = array.length - 1
 
@@ -519,7 +501,37 @@ pub contract FlowEpoch {
         }
 
         return array
-    } 
+    }
+
+    /// Collector nodes call this function to get their QC Voter resource
+    /// in order to participate the the QC generation for their cluster
+    pub fun getClusterQCVoter(nodeStaker: &FlowIDTableStaking.NodeStaker): @FlowEpochClusterQC.Voter {
+        let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeStaker.id)
+
+        assert (
+            nodeInfo.role == 1 as UInt8,
+            message: "Node operator must be a collector node to get a QC Voter object"
+        )
+
+        let clusterQCAdmin = self.borrowClusterQCAdmin()
+
+        return <-clusterQCAdmin.createVoter(nodeID: nodeStaker.id)
+    }
+
+    /// Consensus nodes call this function to get their DKG Participant resource
+    /// in order to participate in the DKG for the next epoch
+    pub fun getDKGParticipant(nodeStaker: &FlowIDTableStaking.NodeStaker): @FlowDKG.Participant {
+        let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeStaker.id)
+
+        assert (
+            nodeInfo.role == 2 as UInt8,
+            message: "Node operator must be a consensus node to get a DKG Participant object"
+        )
+
+        let dkgAdmin = self.borrowDKGAdmin()
+
+        return <-dkgAdmin.createParticipant(nodeID: nodeStaker.id)
+    }
 
 
     init (currentEpochCounter: UInt64,
@@ -533,12 +545,17 @@ pub contract FlowEpoch {
           dkgPubKeys: [String]) {
 
         self.epochMetadata = {}
-
         self.configurableMetadata = Config(numViewsInEpoch: numViewsInEpoch,
                                            numViewsInStakingAuction: numViewsInStakingAuction,
                                            numViewsInDKGPhase: numViewsInDKGPhase,
                                            numCollectorClusters: numCollectorClusters)
+        
+        self.currentEpochCounter = currentEpochCounter
+        self.proposedEpochCounter = currentEpochCounter + 1 as UInt64
+        self.currentEpochPhase = EpochPhase.STAKINGAUCTION
 
+        // Load all the admin objects into the smart contract
+        
         let QCAdmin <- self.account.load<@FlowEpochClusterQC.Admin>(from: FlowEpochClusterQC.AdminStoragePath)
             ?? panic("Could not load QC Admin from storage")
 
@@ -555,10 +572,6 @@ pub contract FlowEpoch {
         self.stakingAdmin <- stakingAdmin
 
         let currentBlock = getCurrentBlock()
-
-        self.currentEpochCounter = currentEpochCounter
-        self.proposedEpochCounter = currentEpochCounter + 1 as UInt64
-        self.currentEpochPhase = EpochPhase.STAKINGAUCTION
 
         let proposedEpochMetadata = EpochMetadata(counter: self.proposedEpochCounter,
                     seed: randomSource,
