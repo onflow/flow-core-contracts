@@ -22,6 +22,6 @@ transaction(name: String,
             randomSource: randomSource,
             collectorClusters: [],
             clusterQCs: [],
-            dkgPubKeys: dkgPubKeys)
+            dkgPubKeys: [])
   }
 }

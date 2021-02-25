@@ -533,6 +533,16 @@ pub contract FlowEpoch {
         return <-dkgAdmin.createParticipant(nodeID: nodeStaker.id)
     }
 
+    /// Returns the metadata from the specified epoch
+    /// or nil if it isn't found
+    pub fun getEpochMetadata(_ epochCounter: UInt64): EpochMetadata? {
+        return self.epochMetadata[self.currentEpochCounter]
+    }
+
+    /// Returns the metadata that is able to be configured by the admin
+    pub fun getConfigMetadata(): Config {
+        return self.configurableMetadata
+    }
 
     init (currentEpochCounter: UInt64,
           numViewsInEpoch: UInt64, 
@@ -555,7 +565,7 @@ pub contract FlowEpoch {
         self.currentEpochPhase = EpochPhase.STAKINGAUCTION
 
         // Load all the admin objects into the smart contract
-        
+
         let QCAdmin <- self.account.load<@FlowEpochClusterQC.Admin>(from: FlowEpochClusterQC.AdminStoragePath)
             ?? panic("Could not load QC Admin from storage")
 
@@ -573,16 +583,16 @@ pub contract FlowEpoch {
 
         let currentBlock = getCurrentBlock()
 
-        let proposedEpochMetadata = EpochMetadata(counter: self.proposedEpochCounter,
+        let firstEpochMetadata = EpochMetadata(counter: self.currentEpochCounter,
                     seed: randomSource,
                     startView: currentBlock.view,
-                    endView: currentBlock.view + self.configurableMetadata.numViewsInEpoch - 1 as UInt64,
-                    stakingEndView: currentBlock.view + self.configurableMetadata.numViewsInStakingAuction - 1 as UInt64,
+                    endView: currentBlock.view + self.configurableMetadata.numViewsInEpoch - (1 as UInt64),
+                    stakingEndView: currentBlock.view + self.configurableMetadata.numViewsInStakingAuction - (1 as UInt64),
                     collectorClusters: collectorClusters,
                     clusterQCs: clusterQCs,
                     dkgKeys: dkgPubKeys)
 
-        self.epochMetadata[self.proposedEpochCounter] = proposedEpochMetadata
+        self.epochMetadata[self.currentEpochCounter] = firstEpochMetadata
     }
 
 }

@@ -19,8 +19,13 @@
 // ../../../transactions/dkg/scripts/get_whiteboard_messages.cdc (115B)
 // ../../../transactions/dkg/send_final_submission.cdc (411B)
 // ../../../transactions/dkg/send_whiteboard_message.cdc (395B)
-// ../../../transactions/epoch/admin/deploy_epoch.cdc (921B)
+// ../../../transactions/epoch/admin/deploy_epoch.cdc (913B)
 // ../../../transactions/epoch/admin/deploy_qc_dkg.cdc (295B)
+// ../../../transactions/epoch/scripts/get_config_metadata.cdc (115B)
+// ../../../transactions/epoch/scripts/get_epoch_counter.cdc (105B)
+// ../../../transactions/epoch/scripts/get_epoch_metadata.cdc (154B)
+// ../../../transactions/epoch/scripts/get_epoch_phase.cdc (117B)
+// ../../../transactions/epoch/scripts/get_proposed_counter.cdc (106B)
 // ../../../transactions/flowToken/burn_tokens.cdc (1.084kB)
 // ../../../transactions/flowToken/create_forwarder.cdc (1.815kB)
 // ../../../transactions/flowToken/mint_tokens.cdc (893B)
@@ -610,7 +615,7 @@ func dkgSend_whiteboard_messageCdc() (*asset, error) {
 	return a, nil
 }
 
-var _epochAdminDeploy_epochCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x8c\x93\xc1\x6a\x83\x40\x10\x86\xef\x3e\xc5\x1c\x13\x08\x81\x42\x09\x25\x37\xb1\xa5\x84\x5c\x52\xa4\xbd\x84\x1c\xb6\xeb\xa0\x12\x9d\x95\xd9\x59\x4a\x29\x79\xf7\x62\x0c\x44\xd7\x4d\x8c\x87\x45\x67\x3e\x97\xf5\xff\x46\x61\x45\x56\x69\x29\x0d\xcd\x48\xd5\xb8\x86\x54\xb8\xa4\x7c\x01\x11\xf4\x2e\x6d\x32\x5c\xc3\xfe\x73\x43\xf2\x72\x58\x0c\x5b\x8e\x19\x49\xde\x1a\xa3\x8b\xc4\x38\x12\xe4\x35\xb4\xe0\xea\x79\x08\x92\xab\xbf\x4a\xfc\xb1\x1b\x3a\xb3\x53\x50\x2a\xea\x58\x52\x1e\xbb\xf3\xe1\xa6\xe8\xd7\xed\xfb\xae\x50\x16\x6f\x72\x89\xa9\x2a\xd4\x62\x38\xa9\x9c\x15\x64\xdb\x91\x4f\x2b\xef\x4b\x59\x51\x66\xea\xd4\x38\xd6\xd7\x30\xbc\x2c\x46\x3b\xed\x3b\xee\x30\xe4\xba\xf6\x47\xd2\x03\x86\x3b\x65\xc7\x7c\xe7\xbe\xb7\xf8\xdb\x23\xe6\xf0\x17\x45\x00\x0d\x63\xa3\x18\x67\xb6\xcc\xa9\x0d\x34\x76\x52\xc4\x5a\xb7\xf9\x5e\x08\x80\xae\xb7\xd4\x86\x84\x95\x16\xbb\x54\x59\x76\x91\xd8\xae\x41\x85\xed\xfa\x80\xbf\x40\x71\x42\xa6\x57\x78\xd4\xea\xad\x8e\x77\xf8\x90\xe8\x71\x6d\xfc\x52\xc0\x7a\xa8\x7a\x77\x06\xfa\x4f\xd3\x93\xe0\xff\x1d\xfd\x21\xb8\xa3\xff\x7a\x3f\x8f\x00\x4e\xd1\xe9\x3f\x00\x00\xff\xff\x8a\xf8\xfb\xea\x99\x03\x00\x00"
+var _epochAdminDeploy_epochCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x8c\x93\xcf\x6a\x83\x40\x10\x87\xef\x3e\xc5\x1c\x13\x08\x81\x42\x09\xc5\x9b\xd8\x52\x42\x2e\x29\xd2\x5e\x82\x87\xed\x3a\xa8\x44\x67\x65\x76\x96\x52\x4a\xde\xbd\x18\x03\xf1\xcf\x26\xc6\xc3\x82\x33\x9f\xcb\xfa\xfb\x66\x85\x15\x59\xa5\xa5\x34\xb4\x20\x55\x63\x08\x89\x70\x49\xf9\x0a\x02\xe8\x3d\xda\x64\x18\xc2\xe1\x73\x4b\xf2\x92\xae\x86\x2d\xc7\x8c\x24\x6f\x8d\xd1\x45\x6c\x1c\x09\x72\x08\x2d\xb8\x79\x1e\x82\xe4\xea\xaf\x12\x7f\xec\x96\xce\xec\x1c\x94\x88\x3a\x96\x94\x47\xee\x7c\xb8\x39\xfa\x75\xf7\xbe\x2f\x94\xc5\x9b\x5c\x6c\xaa\x0a\xb5\x18\x8e\x2b\x67\x05\xd9\x76\xe4\xd3\x66\xf4\xa7\xac\x28\x33\x75\x62\x1c\xeb\x6b\x18\xa3\x2c\x26\x3b\x1d\x3a\x2e\x1d\x72\x5d\xfb\x23\xee\x01\xc3\x9d\xb2\x63\xbe\x77\xdf\x3b\xfc\xed\x11\x4b\xf8\x0b\x02\x80\x86\xb1\x51\x8c\x0b\x5b\xe6\xd4\x06\x1a\x39\x29\x22\xad\xdb\x7c\x2f\x04\x40\xd7\x5b\x6b\x43\xc2\x4a\x8b\x5d\xab\x2c\xbb\x48\x6c\x57\xaf\xc2\x76\x7d\xc0\x9f\xa7\x38\x23\x73\x54\x78\xd4\xea\xad\xce\xe8\xf0\x3e\xd1\xd3\xda\xf4\x23\x8f\x75\x5f\xf5\xee\x0c\xf4\xdf\xe6\x27\x61\x7c\x3b\xfa\x43\x70\x4f\x7f\xba\x0c\x00\x4e\xc1\xe9\x3f\x00\x00\xff\xff\xd3\x81\x6b\x88\x91\x03\x00\x00"
 
 func epochAdminDeploy_epochCdcBytes() ([]byte, error) {
 	return bindataRead(
@@ -626,7 +631,7 @@ func epochAdminDeploy_epochCdc() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "epoch/admin/deploy_epoch.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x8e, 0x5d, 0xeb, 0xed, 0xe5, 0x21, 0xc5, 0xa5, 0xc3, 0x70, 0xf7, 0x29, 0x3d, 0x70, 0x58, 0x23, 0x2b, 0x21, 0x6, 0x4c, 0xf2, 0x72, 0xc5, 0xe4, 0x18, 0xbd, 0xbd, 0xf4, 0x15, 0x96, 0x50, 0xe5}}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xa0, 0x47, 0xf8, 0xf4, 0x3c, 0xbe, 0xfc, 0x2b, 0xcf, 0x79, 0xfd, 0x23, 0xe1, 0xd6, 0xf5, 0x87, 0xec, 0xaf, 0x97, 0x1c, 0x75, 0x8f, 0x18, 0x51, 0xcb, 0x91, 0xcc, 0xd5, 0x32, 0xab, 0xdb, 0x6}}
 	return a, nil
 }
 
@@ -647,6 +652,106 @@ func epochAdminDeploy_qc_dkgCdc() (*asset, error) {
 
 	info := bindataFileInfo{name: "epoch/admin/deploy_qc_dkg.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x11, 0xe5, 0xe6, 0x5e, 0xb3, 0x8d, 0x7c, 0x34, 0x5, 0xbf, 0xe9, 0x71, 0x45, 0x48, 0x7, 0xa7, 0xaa, 0x67, 0xd5, 0x1e, 0x45, 0x4b, 0x78, 0xc9, 0x66, 0x5b, 0x35, 0x61, 0x8f, 0x22, 0xd8, 0x7d}}
+	return a, nil
+}
+
+var _epochScriptsGet_config_metadataCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xca\xcc\x2d\xc8\x2f\x2a\x51\x70\xcb\xc9\x2f\x77\x2d\xc8\x4f\xce\x50\x48\x2b\xca\xcf\x55\x30\xa8\x70\x0d\xf0\x77\xf6\x70\x74\x71\x09\x72\x0d\x0e\xe6\xe2\x2a\x28\x4d\x52\x48\x2b\xcd\x53\xc8\x4d\xcc\xcc\xd3\xd0\xb4\x42\x28\xd7\x73\xce\xcf\x4b\xcb\x4c\x57\xa8\xe6\x52\x50\x50\x50\x28\x4a\x2d\x29\x2d\xca\x43\x92\x4d\x4f\x2d\x81\x28\xf0\x4d\x2d\x49\x4c\x49\x2c\x49\xd4\xd0\xe4\xaa\x05\x04\x00\x00\xff\xff\x9e\xe7\x40\xf1\x73\x00\x00\x00"
+
+func epochScriptsGet_config_metadataCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_epochScriptsGet_config_metadataCdc,
+		"epoch/scripts/get_config_metadata.cdc",
+	)
+}
+
+func epochScriptsGet_config_metadataCdc() (*asset, error) {
+	bytes, err := epochScriptsGet_config_metadataCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "epoch/scripts/get_config_metadata.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xec, 0xb9, 0x3f, 0x2, 0xdb, 0xb7, 0x87, 0x6f, 0x92, 0x1e, 0x7e, 0x5d, 0xec, 0xa3, 0x9, 0x4a, 0xe, 0x1d, 0xa3, 0xaf, 0xd7, 0xc9, 0x3, 0xc9, 0xd3, 0x74, 0xe0, 0xee, 0xa0, 0xff, 0x9f, 0xd9}}
+	return a, nil
+}
+
+var _epochScriptsGet_epoch_counterCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xca\xcc\x2d\xc8\x2f\x2a\x51\x70\xcb\xc9\x2f\x77\x2d\xc8\x4f\xce\x50\x48\x2b\xca\xcf\x55\x30\xa8\x70\x0d\xf0\x77\xf6\x70\x74\x71\x09\x72\x0d\x0e\xe6\xe2\x2a\x28\x4d\x52\x48\x2b\xcd\x53\xc8\x4d\xcc\xcc\xd3\xd0\xb4\x52\x08\xf5\xcc\x2b\x31\x33\x51\xa8\xe6\x52\x50\x50\x50\x28\x4a\x2d\x29\x2d\xca\x43\x18\xa1\x97\x5c\x5a\x54\x94\x9a\x57\x02\xe6\x38\xe7\x97\xe6\x95\xa4\x16\x71\xd5\x02\x02\x00\x00\xff\xff\x59\x76\xbe\x5f\x69\x00\x00\x00"
+
+func epochScriptsGet_epoch_counterCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_epochScriptsGet_epoch_counterCdc,
+		"epoch/scripts/get_epoch_counter.cdc",
+	)
+}
+
+func epochScriptsGet_epoch_counterCdc() (*asset, error) {
+	bytes, err := epochScriptsGet_epoch_counterCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "epoch/scripts/get_epoch_counter.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x1e, 0x29, 0xfd, 0x4d, 0x49, 0x4c, 0x4e, 0x71, 0x61, 0x2b, 0xc3, 0xb5, 0x76, 0xb2, 0x70, 0x62, 0x3d, 0xda, 0xef, 0x24, 0x72, 0x5e, 0x7c, 0xfd, 0xab, 0x4d, 0x55, 0x13, 0x2e, 0xc, 0x79, 0x62}}
+	return a, nil
+}
+
+var _epochScriptsGet_epoch_metadataCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xca\xcc\x2d\xc8\x2f\x2a\x51\x70\xcb\xc9\x2f\x77\x2d\xc8\x4f\xce\x50\x48\x2b\xca\xcf\x55\x30\xa8\x70\x0d\xf0\x77\xf6\x70\x74\x71\x09\x72\x0d\x0e\xe6\xe2\x2a\x28\x4d\x52\x48\x2b\xcd\x53\xc8\x4d\xcc\xcc\xd3\x48\x05\xa9\x73\xce\x2f\xcd\x2b\x49\x2d\xb2\x52\x08\xf5\xcc\x2b\x31\x33\xd1\xb4\x42\x18\xa1\x07\x26\x7d\x53\x4b\x12\x53\x12\x4b\x12\x15\xaa\xb9\x14\x14\x14\x14\x8a\x52\x4b\x4a\x8b\xf2\x90\x14\xa5\xa7\x96\xa0\xa8\x43\x31\x56\x53\x91\xab\x16\x10\x00\x00\xff\xff\xea\x2c\x4c\x69\x9a\x00\x00\x00"
+
+func epochScriptsGet_epoch_metadataCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_epochScriptsGet_epoch_metadataCdc,
+		"epoch/scripts/get_epoch_metadata.cdc",
+	)
+}
+
+func epochScriptsGet_epoch_metadataCdc() (*asset, error) {
+	bytes, err := epochScriptsGet_epoch_metadataCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "epoch/scripts/get_epoch_metadata.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xa6, 0xd2, 0xe0, 0xe9, 0xc1, 0x42, 0xed, 0x3a, 0x65, 0x49, 0xb3, 0xf3, 0xb4, 0x9d, 0xf0, 0x50, 0xe, 0xeb, 0x52, 0xd, 0x4c, 0x83, 0xb5, 0x75, 0x83, 0xd3, 0x28, 0xb6, 0x8b, 0x5b, 0x57, 0xd}}
+	return a, nil
+}
+
+var _epochScriptsGet_epoch_phaseCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xca\xcc\x2d\xc8\x2f\x2a\x51\x70\xcb\xc9\x2f\x77\x2d\xc8\x4f\xce\x50\x48\x2b\xca\xcf\x55\x30\xa8\x70\x0d\xf0\x77\xf6\x70\x74\x71\x09\x72\x0d\x0e\xe6\xe2\x2a\x28\x4d\x52\x48\x2b\xcd\x53\xc8\x4d\xcc\xcc\xd3\xd0\xb4\x42\x28\xd7\x03\x93\x01\x19\x89\xc5\xa9\x0a\xd5\x5c\x0a\x0a\x0a\x0a\x45\xa9\x25\xa5\x45\x79\x48\x2a\x92\x4b\x8b\x8a\x52\xf3\x4a\x10\x0a\xb9\x6a\x01\x01\x00\x00\xff\xff\xf9\xa6\xa0\x2e\x75\x00\x00\x00"
+
+func epochScriptsGet_epoch_phaseCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_epochScriptsGet_epoch_phaseCdc,
+		"epoch/scripts/get_epoch_phase.cdc",
+	)
+}
+
+func epochScriptsGet_epoch_phaseCdc() (*asset, error) {
+	bytes, err := epochScriptsGet_epoch_phaseCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "epoch/scripts/get_epoch_phase.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x6b, 0x9b, 0xba, 0x8b, 0x67, 0x44, 0x52, 0xb3, 0x71, 0xc6, 0xa1, 0xaa, 0xc5, 0x34, 0x62, 0x95, 0x29, 0xbf, 0x2d, 0x1b, 0x65, 0xe, 0x77, 0x35, 0x1b, 0x71, 0x28, 0xe9, 0xa2, 0x1, 0xf1, 0xe6}}
+	return a, nil
+}
+
+var _epochScriptsGet_proposed_counterCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xca\xcc\x2d\xc8\x2f\x2a\x51\x70\xcb\xc9\x2f\x77\x2d\xc8\x4f\xce\x50\x48\x2b\xca\xcf\x55\x30\xa8\x70\x0d\xf0\x77\xf6\x70\x74\x71\x09\x72\x0d\x0e\xe6\xe2\x2a\x28\x4d\x52\x48\x2b\xcd\x53\xc8\x4d\xcc\xcc\xd3\xd0\xb4\x52\x08\xf5\xcc\x2b\x31\x33\x51\xa8\xe6\x52\x50\x50\x50\x28\x4a\x2d\x29\x2d\xca\x43\x18\xa1\x57\x50\x94\x5f\x90\x5f\x9c\x9a\x02\xe6\x39\xe7\x97\xe6\x95\xa4\x16\x71\xd5\x02\x02\x00\x00\xff\xff\x17\x13\x62\x92\x6a\x00\x00\x00"
+
+func epochScriptsGet_proposed_counterCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_epochScriptsGet_proposed_counterCdc,
+		"epoch/scripts/get_proposed_counter.cdc",
+	)
+}
+
+func epochScriptsGet_proposed_counterCdc() (*asset, error) {
+	bytes, err := epochScriptsGet_proposed_counterCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "epoch/scripts/get_proposed_counter.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xd7, 0xcb, 0xd1, 0x5, 0xd1, 0x5b, 0xe6, 0x56, 0xd7, 0x23, 0x38, 0x6f, 0xbb, 0x7d, 0x68, 0xb5, 0x7e, 0xd7, 0xcf, 0xfe, 0x93, 0x68, 0xdb, 0x72, 0xf8, 0xd7, 0x8a, 0x76, 0xd6, 0xa3, 0x64, 0x35}}
 	return a, nil
 }
 
@@ -3562,6 +3667,11 @@ var _bindata = map[string]func() (*asset, error){
 	"dkg/send_whiteboard_message.cdc":                                         dkgSend_whiteboard_messageCdc,
 	"epoch/admin/deploy_epoch.cdc":                                            epochAdminDeploy_epochCdc,
 	"epoch/admin/deploy_qc_dkg.cdc":                                           epochAdminDeploy_qc_dkgCdc,
+	"epoch/scripts/get_config_metadata.cdc":                                   epochScriptsGet_config_metadataCdc,
+	"epoch/scripts/get_epoch_counter.cdc":                                     epochScriptsGet_epoch_counterCdc,
+	"epoch/scripts/get_epoch_metadata.cdc":                                    epochScriptsGet_epoch_metadataCdc,
+	"epoch/scripts/get_epoch_phase.cdc":                                       epochScriptsGet_epoch_phaseCdc,
+	"epoch/scripts/get_proposed_counter.cdc":                                  epochScriptsGet_proposed_counterCdc,
 	"flowToken/burn_tokens.cdc":                                               flowtokenBurn_tokensCdc,
 	"flowToken/create_forwarder.cdc":                                          flowtokenCreate_forwarderCdc,
 	"flowToken/mint_tokens.cdc":                                               flowtokenMint_tokensCdc,
@@ -3779,6 +3889,13 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"admin": {nil, map[string]*bintree{
 			"deploy_epoch.cdc": {epochAdminDeploy_epochCdc, map[string]*bintree{}},
 			"deploy_qc_dkg.cdc": {epochAdminDeploy_qc_dkgCdc, map[string]*bintree{}},
+		}},
+		"scripts": {nil, map[string]*bintree{
+			"get_config_metadata.cdc": {epochScriptsGet_config_metadataCdc, map[string]*bintree{}},
+			"get_epoch_counter.cdc": {epochScriptsGet_epoch_counterCdc, map[string]*bintree{}},
+			"get_epoch_metadata.cdc": {epochScriptsGet_epoch_metadataCdc, map[string]*bintree{}},
+			"get_epoch_phase.cdc": {epochScriptsGet_epoch_phaseCdc, map[string]*bintree{}},
+			"get_proposed_counter.cdc": {epochScriptsGet_proposed_counterCdc, map[string]*bintree{}},
 		}},
 	}},
 	"flowToken": {nil, map[string]*bintree{
