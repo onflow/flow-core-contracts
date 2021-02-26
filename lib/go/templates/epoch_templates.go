@@ -8,9 +8,10 @@ const (
 	deployQCandDKGFilename     = "epoch/admin/deploy_qc_dkg.cdc"
 	deployEpochFilename        = "epoch/admin/deploy_epoch.cdc"
 	updateEpochViewsFilename   = "epoch/admin/update_epoch_views.cdc"
-	updateStakingViewsFilename = "epoch/admin/update_stakig_views.cdc"
+	updateStakingViewsFilename = "epoch/admin/update_staking_views.cdc"
 	updateDKGViewsFilename     = "epoch/admin/update_dkg_phase_views.cdc"
 	updateNumClustersFilename  = "epoch/admin/update_clusters.cdc"
+	advanceViewFilename        = "epoch/admin/advance_view.cdc"
 
 	// Scripts
 	getCurrentEpochCounterFilename  = "epoch/scripts/get_epoch_counter.cdc"
@@ -18,6 +19,10 @@ const (
 	getEpochMetadataFilename        = "epoch/scripts/get_epoch_metadata.cdc"
 	getConfigMetadataFilename       = "epoch/scripts/get_config_metadata.cdc"
 	getEpochPhaseFilename           = "epoch/scripts/get_epoch_phase.cdc"
+
+	// test scripts
+	getRandomizeFilename      = "epoch/scripts/get_randomize.cdc"
+	getCreateClustersFilename = "epoch/scripts/get_create_clusters.cdc"
 )
 
 // Admin Templates -------------------------------------------------------
@@ -60,6 +65,12 @@ func GenerateUpdateNumClustersScript(env Environment) []byte {
 	return []byte(replaceAddresses(code, env))
 }
 
+func GenerateAdvanceViewScript(env Environment) []byte {
+	code := assets.MustAssetString(advanceViewFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
 // Script Templates ------------------------------------------------------
 
 func GenerateGetCurrentEpochCounterScript(env Environment) []byte {
@@ -88,6 +99,18 @@ func GenerateGetEpochConfigMetadataScript(env Environment) []byte {
 
 func GenerateGetEpochPhaseScript(env Environment) []byte {
 	code := assets.MustAssetString(getEpochPhaseFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateGetRandomizeScript(env Environment) []byte {
+	code := assets.MustAssetString(getRandomizeFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateGetCreateClustersScript(env Environment) []byte {
+	code := assets.MustAssetString(getCreateClustersFilename)
 
 	return []byte(replaceAddresses(code, env))
 }

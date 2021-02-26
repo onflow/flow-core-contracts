@@ -217,7 +217,8 @@ pub contract FlowEpoch {
 
     access(contract) let stakingAdmin: @FlowIDTableStaking.Admin
 
-    pub let epochAdminStoragePath: StoragePath
+    pub let adminStoragePath: StoragePath
+    pub let heartbeatStoragePath: StoragePath
 
     /// Resource that can update some of the contract fields
     pub resource Admin {
@@ -263,7 +264,7 @@ pub contract FlowEpoch {
     pub resource Heartbeat {
 
         /// Function that is called every block to advance the epoch
-        pub fun advanceBlock(randomSource: String?, ) {
+        pub fun advanceBlock() {
 
             let currentBlock = getCurrentBlock()
             let currentEpochMetadata = FlowEpoch.epochMetadata[FlowEpoch.currentEpochCounter]!
@@ -271,26 +272,47 @@ pub contract FlowEpoch {
             if FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION {
 
                 if currentBlock.view >= currentEpochMetadata.stakingEndView {
-                    FlowEpoch.endStakingAuction()
-
-                    FlowEpoch.startEpochSetup(randomSource: randomSource!)
+                    self.endStakingAuction()
                 }
 
             } else if FlowEpoch.currentEpochPhase == EpochPhase.EPOCHSETUP {
 
                 if FlowEpochClusterQC.votingCompleted() && (FlowDKG.dkgCompleted() != nil) {
-
-                    FlowEpoch.endEpochSetup()
-
-                    FlowEpoch.startEpochCommitted()
+                    self.endEpochSetup()
                 }
 
             } else if FlowEpoch.currentEpochPhase == EpochPhase.EPOCHCOMMITTED {
                 if currentBlock.view >= currentEpochMetadata.endView {
-                    FlowEpoch.startNewEpoch()
+                    self.endEpoch()
                 }
             }
-            
+        }
+
+        pub fun endStakingAuction() {
+            pre {
+                FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION: "Can only end staking auction during the staking auction"
+            }
+
+            FlowEpoch.endStakingAuction()
+
+            FlowEpoch.startEpochSetup(randomSource: unsafeRandom().toString())
+        }
+
+        pub fun endEpochSetup() {
+            pre {
+                FlowEpoch.currentEpochPhase == EpochPhase.EPOCHSETUP: "Can only end Epoch Setup during epoch setup"
+            }
+            FlowEpoch.endEpochSetup()
+
+            FlowEpoch.startEpochCommitted()
+        }
+
+        pub fun endEpoch() {
+            pre {
+                FlowEpoch.currentEpochPhase == EpochPhase.EPOCHCOMMITTED: "Can only end epoch during Epoch Committed"
+            }
+
+            FlowEpoch.startNewEpoch()
         }
     }
 
@@ -448,7 +470,7 @@ pub contract FlowEpoch {
         return &self.DKGAdmin as! &FlowDKG.Admin
     }
 
-    access(contract) fun createCollectorClusters(nodeIDs: [String]): [FlowEpochClusterQC.Cluster] {
+    pub fun createCollectorClusters(nodeIDs: [String]): [FlowEpochClusterQC.Cluster] {
         var shuffledIDs = self.randomize(nodeIDs)
 
         // Holds cluster assignments for collector nodes
@@ -486,7 +508,7 @@ pub contract FlowEpoch {
   
     /// A function to generate a random permutation of arr[] 
     /// using the fisher yates shuffling algorithm
-    access(contract) fun randomize(_ array: [String]): [String] {  
+    pub fun randomize(_ array: [String]): [String] {  
 
         var i = array.length - 1
 
@@ -568,9 +590,11 @@ pub contract FlowEpoch {
         self.currentEpochCounter = currentEpochCounter
         self.proposedEpochCounter = currentEpochCounter + 1 as UInt64
         self.currentEpochPhase = EpochPhase.STAKINGAUCTION
-        self.epochAdminStoragePath = /storage/epochAdmin
+        self.adminStoragePath = /storage/flowEpochAdmin
+        self.heartbeatStoragePath = /storage/flowEpochHeartbeat
 
-        self.account.save(<-create Admin(), to: self.epochAdminStoragePath)
+        self.account.save(<-create Admin(), to: self.adminStoragePath)
+        self.account.save(<-create Heartbeat(), to: self.heartbeatStoragePath)
 
         // Load all the admin objects into the smart contract
 
@@ -588,6 +612,7 @@ pub contract FlowEpoch {
             ?? panic("Could not load staking Admin from storage")
 
         self.stakingAdmin <- stakingAdmin
+        self.stakingAdmin.startStakingAuction()
 
         let currentBlock = getCurrentBlock()
 

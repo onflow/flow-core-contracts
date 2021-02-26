@@ -133,6 +133,27 @@ func initializeAllEpochContracts(
 	return idTableAddress
 }
 
+func advanceView(
+	t *testing.T,
+	b *emulator.Blockchain,
+	env templates.Environment,
+	authorizer flow.Address,
+	signer crypto.Signer,
+	numBlocks int,
+	phase int) {
+
+	for i := 0; i < numBlocks; i++ {
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateAdvanceViewScript(env), authorizer)
+		_ = tx.AddArgument(cadence.NewInt(phase))
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, authorizer},
+			[]crypto.Signer{b.ServiceKey().Signer(), signer},
+			false,
+		)
+	}
+}
+
 func verifyEpochMetadata(
 	t *testing.T,
 	b *emulator.Blockchain,
@@ -191,7 +212,6 @@ func verifyEpochMetadata(
 			i = i + 1
 		}
 	}
-
 }
 
 func verifyConfigMetadata(
