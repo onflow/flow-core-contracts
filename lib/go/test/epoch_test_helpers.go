@@ -26,6 +26,16 @@ type EpochMetadata struct {
 	dkgKeys           []string
 }
 
+type ConfigMetadata struct {
+	currentEpochCounter      uint64
+	proposedEpochCounter     uint64
+	currentEpochPhase        uint8
+	numViewsInEpoch          uint64
+	numViewsInStakingAuction uint64
+	numViewsInDKGPhase       uint64
+	numCollectorClusters     uint16
+}
+
 type EpochSetup struct {
 	counter            uint64
 	firstView          uint64
@@ -129,7 +139,7 @@ func verifyEpochMetadata(
 	env templates.Environment,
 	expectedMetadata EpochMetadata) {
 
-	result := executeScriptAndCheck(t, b, templates.GenerateGetEpochMetadataScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt64(0))})
+	result := executeScriptAndCheck(t, b, templates.GenerateGetEpochMetadataScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt64(expectedMetadata.counter))})
 	metadataFields := result.(cadence.Struct).Fields
 
 	counter := metadataFields[0]
@@ -155,9 +165,17 @@ func verifyEpochMetadata(
 	if expectedMetadata.clusterQCs == nil {
 		assert.Empty(t, clusterQCs)
 	} else {
+		i := 0
 		for _, qc := range clusterQCs {
+			qcStructVotes := qc.(cadence.Struct).Fields[0].(cadence.Array).Values
+
+			j := 0
 			// Verify that each element is correct across the cluster
+			for _, vote := range qcStructVotes {
+				assertEqual(t, cadence.NewString(expectedMetadata.clusterQCs[i][j]), vote)
+			}
 			fmt.Printf(qc.String())
+			i = i + 1
 		}
 	}
 
@@ -165,11 +183,46 @@ func verifyEpochMetadata(
 	if expectedMetadata.dkgKeys == nil {
 		assert.Empty(t, dkgKeys)
 	} else {
+		i := 0
 		for _, key := range dkgKeys {
 			// Verify that each key is correct
+			assertEqual(t, cadence.NewString(expectedMetadata.dkgKeys[i]), key)
 			fmt.Printf(key.String())
+			i = i + 1
 		}
 	}
+
+}
+
+func verifyConfigMetadata(
+	t *testing.T,
+	b *emulator.Blockchain,
+	env templates.Environment,
+	expectedMetadata ConfigMetadata) {
+
+	result := executeScriptAndCheck(t, b, templates.GenerateGetCurrentEpochCounterScript(env), nil)
+	assertEqual(t, cadence.NewUInt64(expectedMetadata.currentEpochCounter), result)
+
+	result = executeScriptAndCheck(t, b, templates.GenerateGetProposedEpochCounterScript(env), nil)
+	assertEqual(t, cadence.NewUInt64(expectedMetadata.proposedEpochCounter), result)
+
+	result = executeScriptAndCheck(t, b, templates.GenerateGetEpochConfigMetadataScript(env), nil)
+	metadataFields := result.(cadence.Struct).Fields
+
+	views := metadataFields[0]
+	assertEqual(t, cadence.NewUInt64(expectedMetadata.numViewsInEpoch), views)
+
+	views = metadataFields[1]
+	assertEqual(t, cadence.NewUInt64(expectedMetadata.numViewsInStakingAuction), views)
+
+	views = metadataFields[2]
+	assertEqual(t, cadence.NewUInt64(expectedMetadata.numViewsInDKGPhase), views)
+
+	clusters := metadataFields[3]
+	assertEqual(t, cadence.NewUInt16(expectedMetadata.numCollectorClusters), clusters)
+
+	result = executeScriptAndCheck(t, b, templates.GenerateGetEpochPhaseScript(env), nil)
+	assertEqual(t, cadence.NewUInt8(expectedMetadata.currentEpochPhase), result)
 
 }
 

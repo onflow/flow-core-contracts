@@ -1,5 +1,5 @@
 import FlowEpoch from 0xEPOCHADDRESS
 
-pub fun main(): FlowEpoch.EpochPhase {
-    return FlowEpoch.currentEpochPhase
+pub fun main(): UInt8 {
+    return FlowEpoch.currentEpochPhase.rawValue
 }

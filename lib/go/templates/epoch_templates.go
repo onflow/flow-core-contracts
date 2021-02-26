@@ -5,8 +5,12 @@ import (
 )
 
 const (
-	deployQCandDKGFilename = "epoch/admin/deploy_qc_dkg.cdc"
-	deployEpochFilename    = "epoch/admin/deploy_epoch.cdc"
+	deployQCandDKGFilename     = "epoch/admin/deploy_qc_dkg.cdc"
+	deployEpochFilename        = "epoch/admin/deploy_epoch.cdc"
+	updateEpochViewsFilename   = "epoch/admin/update_epoch_views.cdc"
+	updateStakingViewsFilename = "epoch/admin/update_stakig_views.cdc"
+	updateDKGViewsFilename     = "epoch/admin/update_dkg_phase_views.cdc"
+	updateNumClustersFilename  = "epoch/admin/update_clusters.cdc"
 
 	// Scripts
 	getCurrentEpochCounterFilename  = "epoch/scripts/get_epoch_counter.cdc"
@@ -16,7 +20,7 @@ const (
 	getEpochPhaseFilename           = "epoch/scripts/get_epoch_phase.cdc"
 )
 
-// Admin Templates -----------------------------------------------------------
+// Admin Templates -------------------------------------------------------
 
 // GenerateDeployQCDKGScript
 func GenerateDeployQCDKGScript(env Environment) []byte {
@@ -32,7 +36,31 @@ func GenerateDeployEpochScript(env Environment) []byte {
 	return []byte(replaceAddresses(code, env))
 }
 
-// Script Templates ----------------------------------------------------------
+func GenerateUpdateEpochViewsScript(env Environment) []byte {
+	code := assets.MustAssetString(updateEpochViewsFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateUpdateStakingViewsScript(env Environment) []byte {
+	code := assets.MustAssetString(updateStakingViewsFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateUpdateDKGViewsScript(env Environment) []byte {
+	code := assets.MustAssetString(updateDKGViewsFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateUpdateNumClustersScript(env Environment) []byte {
+	code := assets.MustAssetString(updateNumClustersFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+// Script Templates ------------------------------------------------------
 
 func GenerateGetCurrentEpochCounterScript(env Environment) []byte {
 	code := assets.MustAssetString(getCurrentEpochCounterFilename)

@@ -217,41 +217,43 @@ pub contract FlowEpoch {
 
     access(contract) let stakingAdmin: @FlowIDTableStaking.Admin
 
+    pub let epochAdminStoragePath: StoragePath
+
     /// Resource that can update some of the contract fields
     pub resource Admin {
-        pub fun updateEpochLength(newEpochViews: UInt64) {
-            if FlowEpoch.currentEpochPhase != EpochPhase.STAKINGAUCTION ||
-               newEpochViews <= FlowEpoch.configurableMetadata.numViewsInStakingAuction ||
-               newEpochViews <= FlowEpoch.configurableMetadata.numViewsInDKGPhase {
-                return
+        pub fun updateEpochViews(_ newEpochViews: UInt64) {
+            pre {
+                FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION: "Can only update fields during the staking auction"
+                newEpochViews > FlowEpoch.configurableMetadata.numViewsInStakingAuction: "Epoch Views must be greater than staking views"
+                newEpochViews > FlowEpoch.configurableMetadata.numViewsInDKGPhase: "Epoch Views must be greater than DKG phase views"
             }
 
             FlowEpoch.configurableMetadata.numViewsInEpoch = newEpochViews
         }
 
-        pub fun updateAuctionLength(newAuctionViews: UInt64) {
-            if FlowEpoch.currentEpochPhase != EpochPhase.STAKINGAUCTION ||
-               newAuctionViews >= FlowEpoch.configurableMetadata.numViewsInEpoch ||
-               newAuctionViews <= FlowEpoch.configurableMetadata.numViewsInDKGPhase {
-                return
+        pub fun updateAuctionViews(_ newAuctionViews: UInt64) {
+            pre {
+                FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION: "Can only update fields during the staking auction"
+                newAuctionViews < FlowEpoch.configurableMetadata.numViewsInEpoch: "Epoch Views must be greater than staking views"
+                newAuctionViews > FlowEpoch.configurableMetadata.numViewsInDKGPhase: "Staking views must be greater than DKG phase views"
             }
 
             FlowEpoch.configurableMetadata.numViewsInStakingAuction = newAuctionViews
         }
 
-        pub fun updateDKGPhaseLength(newPhaseViews: UInt64) {
-            if FlowEpoch.currentEpochPhase != EpochPhase.STAKINGAUCTION ||
-               newPhaseViews >= FlowEpoch.configurableMetadata.numViewsInEpoch ||
-               newPhaseViews >= FlowEpoch.configurableMetadata.numViewsInStakingAuction {
-                return
+        pub fun updateDKGPhaseViews(_ newPhaseViews: UInt64) {
+            pre {
+                FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION: "Can only update fields during the staking auction"
+                newPhaseViews < FlowEpoch.configurableMetadata.numViewsInEpoch: "Epoch Views must be greater than DKG phase views"
+                newPhaseViews < FlowEpoch.configurableMetadata.numViewsInStakingAuction: "Staking views must be greater than DKG phase views"
             }
 
             FlowEpoch.configurableMetadata.numViewsInDKGPhase = newPhaseViews
         }
 
-        pub fun updateNumCollectorClusters(newNumClusters: UInt16) {
-            if FlowEpoch.currentEpochPhase != EpochPhase.STAKINGAUCTION {
-                return
+        pub fun updateNumCollectorClusters(_ newNumClusters: UInt16) {
+            pre {
+                FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION: "Can only update fields during the staking auction"
             }
 
             FlowEpoch.configurableMetadata.numCollectorClusters = newNumClusters
@@ -412,12 +414,15 @@ pub contract FlowEpoch {
         }
 
         // Set cluster QCs in the proposed epoch metadata
+        // and stop QC voting
         self.epochMetadata[self.proposedEpochCounter]!.setClusterQCs(qcs: clusterQCs)
+        self.QCAdmin.stopVoting()
 
         // Set DKG result keys in the proposed epoch metadata
+        // and stop DKG
         let dkgKeys = FlowDKG.dkgCompleted()!
         self.epochMetadata[self.proposedEpochCounter]!.setDKGGroupKey(keys: dkgKeys)
-
+        self.DKGAdmin.endDKG()
     }
 
     /// Emits the epoch committed event with the results from the QC and DKG
@@ -563,6 +568,9 @@ pub contract FlowEpoch {
         self.currentEpochCounter = currentEpochCounter
         self.proposedEpochCounter = currentEpochCounter + 1 as UInt64
         self.currentEpochPhase = EpochPhase.STAKINGAUCTION
+        self.epochAdminStoragePath = /storage/epochAdmin
+
+        self.account.save(<-create Admin(), to: self.epochAdminStoragePath)
 
         // Load all the admin objects into the smart contract
 
