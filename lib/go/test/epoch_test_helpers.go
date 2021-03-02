@@ -6,6 +6,7 @@ import (
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
+	"github.com/onflow/cadence/runtime/interpreter"
 	emulator "github.com/onflow/flow-emulator"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
@@ -140,7 +141,8 @@ func advanceView(
 	authorizer flow.Address,
 	signer crypto.Signer,
 	numBlocks int,
-	phase int) {
+	phase int,
+	shouldFail bool) {
 
 	for i := 0; i < numBlocks; i++ {
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateAdvanceViewScript(env), authorizer)
@@ -149,8 +151,38 @@ func advanceView(
 			t, b, tx,
 			[]flow.Address{b.ServiceKey().Address, authorizer},
 			[]crypto.Signer{b.ServiceKey().Signer(), signer},
-			false,
+			shouldFail,
 		)
+	}
+}
+
+func registerNodesForStaking(
+	t *testing.T,
+	b *emulator.Blockchain,
+	env templates.Environment,
+	authorizers []flow.Address,
+	signers []crypto.Signer,
+	ids []string) {
+
+	var amountToCommit interpreter.UFix64Value = 135000000000000
+	var committed interpreter.UFix64Value = 0
+
+	i := 0
+	for _, authorizer := range authorizers {
+
+		registerNode(t, b, env,
+			authorizer,
+			signers[i],
+			ids[i],
+			fmt.Sprintf("%0128d", i),
+			fmt.Sprintf("%0128d", i),
+			fmt.Sprintf("%0192d", i),
+			amountToCommit,
+			committed,
+			uint8((i%5)+1),
+			false)
+
+		i++
 	}
 }
 

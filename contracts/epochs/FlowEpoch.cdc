@@ -53,6 +53,15 @@ pub contract FlowEpoch {
         pub case EPOCHCOMMITTED
     }
 
+    pub enum NodeRole: UInt8 {
+        pub case NONE
+        pub case Collector
+        pub case Consensus
+        pub case Execution
+        pub case Verification
+        pub case Access
+    }
+
     // The Epoch Setup service event is emitted when we transition to the Epoch Setup
     // phase. It contains the finalized identity table for the upcoming epoch.
     pub event EpochSetup(
@@ -61,13 +70,10 @@ pub contract FlowEpoch {
         // counter for the current epoch.
         counter: UInt64,
 
-        // Identity table for the upcoming epoch.
-        //
-        // Conceptually this is [Identity], but needs to be divided into one list
-        // for each field in Identity due to Cadence event limitations.
-        //
-        // Node IDs are hex-encoded 32-byte arrays. Public keys are encoded as
-        // by the flow-go crypto library, then hex-encoded.
+        // Identity table for the upcoming epoch with all node information.
+        // Includes:
+        // nodeID, staking key, networking key, networking address, role,
+        // staking information, weight, and more.
         nodeInfo: [FlowIDTableStaking.NodeInfo]
 
         // The first view (inclusive) of the upcoming epoch.
@@ -78,7 +84,7 @@ pub contract FlowEpoch {
 
         // The cluster assignment for the upcoming epoch. Each element in the list
         // represents one cluster and contains all the node IDs assigned to that
-        // cluster, separated by commas.
+        // cluster, with their weights and votes
         collectorClusters: [FlowEpochClusterQC.Cluster],
 
         // The source of randomness to seed the leader selection algorithm with 
@@ -109,8 +115,9 @@ pub contract FlowEpoch {
         // Group public key is the last element
         dkgPubKeys: [String],
 
-        // The result of the QC aggregation process. Each element contains all the votes
-        // received for a particular cluster, comma-separated.
+        // The result of the QC aggregation process. Each element contains 
+        // all the nodes and votes received for a particular cluster
+        // QC stands for quorum certificate that each cluster generates.
         // TODO: define ordering
         clusterQCs: [FlowEpochClusterQC.ClusterQC]
     )
@@ -201,9 +208,6 @@ pub contract FlowEpoch {
     /// The counter, or ID, of the current epoch
     pub var currentEpochCounter: UInt64
 
-    /// The counter (ID) for the next epoch
-    pub var proposedEpochCounter: UInt64
-
     /// The current phase that the epoch is in
     pub var currentEpochPhase: EpochPhase
 
@@ -225,8 +229,9 @@ pub contract FlowEpoch {
         pub fun updateEpochViews(_ newEpochViews: UInt64) {
             pre {
                 FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION: "Can only update fields during the staking auction"
-                newEpochViews > FlowEpoch.configurableMetadata.numViewsInStakingAuction: "Epoch Views must be greater than staking views"
-                newEpochViews > FlowEpoch.configurableMetadata.numViewsInDKGPhase: "Epoch Views must be greater than DKG phase views"
+                FlowEpoch.isValidPhaseConfiguration(FlowEpoch.configurableMetadata.numViewsInStakingAuction,
+                    FlowEpoch.configurableMetadata.numViewsInDKGPhase,
+                    newEpochViews): "New Epoch Views must be greater than the sum of staking and DKG Phase views"
             }
 
             FlowEpoch.configurableMetadata.numViewsInEpoch = newEpochViews
@@ -235,8 +240,9 @@ pub contract FlowEpoch {
         pub fun updateAuctionViews(_ newAuctionViews: UInt64) {
             pre {
                 FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION: "Can only update fields during the staking auction"
-                newAuctionViews < FlowEpoch.configurableMetadata.numViewsInEpoch: "Epoch Views must be greater than staking views"
-                newAuctionViews > FlowEpoch.configurableMetadata.numViewsInDKGPhase: "Staking views must be greater than DKG phase views"
+                FlowEpoch.isValidPhaseConfiguration(newAuctionViews,
+                    FlowEpoch.configurableMetadata.numViewsInDKGPhase,
+                    FlowEpoch.configurableMetadata.numViewsInEpoch): "Epoch Views must be greater than the sum of new staking and DKG Phase views"
             }
 
             FlowEpoch.configurableMetadata.numViewsInStakingAuction = newAuctionViews
@@ -245,8 +251,9 @@ pub contract FlowEpoch {
         pub fun updateDKGPhaseViews(_ newPhaseViews: UInt64) {
             pre {
                 FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION: "Can only update fields during the staking auction"
-                newPhaseViews < FlowEpoch.configurableMetadata.numViewsInEpoch: "Epoch Views must be greater than DKG phase views"
-                newPhaseViews < FlowEpoch.configurableMetadata.numViewsInStakingAuction: "Staking views must be greater than DKG phase views"
+                FlowEpoch.isValidPhaseConfiguration(FlowEpoch.configurableMetadata.numViewsInStakingAuction,
+                    newPhaseViews,
+                    FlowEpoch.configurableMetadata.numViewsInEpoch): "Epoch Views must be greater than the sum of staking and new DKG Phase views"
             }
 
             FlowEpoch.configurableMetadata.numViewsInDKGPhase = newPhaseViews
@@ -269,31 +276,40 @@ pub contract FlowEpoch {
             let currentBlock = getCurrentBlock()
             let currentEpochMetadata = FlowEpoch.epochMetadata[FlowEpoch.currentEpochCounter]!
 
-            if FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION {
+            switch FlowEpoch.currentEpochPhase {
+                case EpochPhase.STAKINGAUCTION:
+                    if currentBlock.view >= currentEpochMetadata.stakingEndView {
+                        let ids = FlowIDTableStaking.getProposedNodeIDs()
 
-                if currentBlock.view >= currentEpochMetadata.stakingEndView {
-                    self.endStakingAuction()
-                }
-
-            } else if FlowEpoch.currentEpochPhase == EpochPhase.EPOCHSETUP {
-
-                if FlowEpochClusterQC.votingCompleted() && (FlowDKG.dkgCompleted() != nil) {
-                    self.endEpochSetup()
-                }
-
-            } else if FlowEpoch.currentEpochPhase == EpochPhase.EPOCHCOMMITTED {
-                if currentBlock.view >= currentEpochMetadata.endView {
-                    self.endEpoch()
-                }
+                        let approvedIDs: {String: Bool} = {}
+                        for id in ids {
+                            // Here is where we would make sure that each node's 
+                            // keys and addresses are correct, they haven't committed any violations,
+                            // and are operating properly
+                            // for now we just set approved to true for all
+                            approvedIDs[id] = true
+                        }
+                        self.endStakingAuction(approvedIDs: approvedIDs)
+                    }
+                case EpochPhase.EPOCHSETUP:
+                    if FlowEpochClusterQC.votingCompleted() && (FlowDKG.dkgCompleted() != nil) {
+                        self.endEpochSetup()
+                    }
+                case EpochPhase.EPOCHCOMMITTED:
+                    if currentBlock.view >= currentEpochMetadata.endView {
+                        self.endEpoch()
+                    }
+                default:
+                    return
             }
         }
 
-        pub fun endStakingAuction() {
+        pub fun endStakingAuction(approvedIDs: {String: Bool}) {
             pre {
                 FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION: "Can only end staking auction during the staking auction"
             }
 
-            FlowEpoch.endStakingAuction()
+            FlowEpoch.endStakingAuction(approvedIDs: approvedIDs)
 
             FlowEpoch.startEpochSetup(randomSource: unsafeRandom().toString())
         }
@@ -314,6 +330,39 @@ pub contract FlowEpoch {
 
             FlowEpoch.startNewEpoch()
         }
+
+        /// Protocol can use this to reboot the epoch with a new genesis
+        /// in case the epoch setup phase did not complete properly 
+        /// before the end of an epoch
+        pub fun resetEpoch(
+            randomSource: String,
+            collectorClusters: [FlowEpochClusterQC.Cluster],
+            clusterQCs: [FlowEpochClusterQC.ClusterQC]
+            dkgPubKeys: [String]) {
+
+            FlowEpoch.currentEpochCounter = FlowEpoch.proposedEpochCounter()
+            FlowEpoch.currentEpochPhase = EpochPhase.STAKINGAUCTION
+
+            FlowEpoch.stakingAdmin.startStakingAuction()
+
+            // end QC and DKG
+            // These will fail if not completed and need to change
+            FlowEpoch.QCAdmin.stopVoting()
+            FlowEpoch.DKGAdmin.endDKG()
+
+            let currentBlock = getCurrentBlock()
+
+            let firstEpochMetadata = EpochMetadata(counter: FlowEpoch.currentEpochCounter,
+                    seed: randomSource,
+                    startView: currentBlock.view,
+                    endView: currentBlock.view + FlowEpoch.configurableMetadata.numViewsInEpoch - (1 as UInt64),
+                    stakingEndView: currentBlock.view + FlowEpoch.configurableMetadata.numViewsInStakingAuction - (1 as UInt64),
+                    collectorClusters: collectorClusters,
+                    clusterQCs: clusterQCs,
+                    dkgKeys: dkgPubKeys)
+
+            FlowEpoch.epochMetadata[FlowEpoch.currentEpochCounter] = firstEpochMetadata
+        }
     }
 
     /// Pays rewards, moves staking tokens between buckets,
@@ -327,23 +376,11 @@ pub contract FlowEpoch {
         self.currentEpochPhase = EpochPhase.STAKINGAUCTION
 
         // Update the epoch counters
-        self.currentEpochCounter = self.proposedEpochCounter
-        self.proposedEpochCounter = self.currentEpochCounter + 1 as UInt64
+        self.currentEpochCounter = self.proposedEpochCounter()
     }
 
     /// Ends the staking Auction with all the proposed nodes approved
-    access(account) fun endStakingAuction() {
-        let ids = FlowIDTableStaking.getProposedNodeIDs()
-
-        let approvedIDs: {String: Bool} = {}
-        for id in ids {
-            // Here is where we would make sure that each node's 
-            // keys and addresses are correct, they haven't committed any violations,
-            // and are operating properly
-            // for now we just set approved to true for all
-            approvedIDs[id] = true
-        }
-
+    access(account) fun endStakingAuction(approvedIDs: {String: Bool}) {
         self.stakingAdmin.endStakingAuction(approvedNodeIDs: approvedIDs)
     }
 
@@ -370,11 +407,11 @@ pub contract FlowEpoch {
 
             nodeInfoArray.append(nodeInfo)
 
-            if nodeInfo.role == 1 as UInt8 {
+            if nodeInfo.role == NodeRole.Collector.rawValue {
                 collectorNodeIDs.append(nodeInfo.id)
             }
 
-            if nodeInfo.role == 2 as UInt8 {
+            if nodeInfo.role == NodeRole.Consensus.rawValue {
                 consensusNodeIDs.append(nodeInfo.id)
             }
         }
@@ -390,7 +427,7 @@ pub contract FlowEpoch {
 
         // Initialze the metadata for the next epoch
         // QC and DKG metadata will be filled in later
-        let proposedEpochMetadata = EpochMetadata(counter: self.proposedEpochCounter,
+        let proposedEpochMetadata = EpochMetadata(counter: self.proposedEpochCounter(),
                                                 seed: randomSource,
                                                 startView: self.epochMetadata[self.currentEpochCounter]!.endView + UInt64(1),
                                                 endView: self.epochMetadata[self.currentEpochCounter]!.endView + self.configurableMetadata.numViewsInEpoch,
@@ -399,7 +436,7 @@ pub contract FlowEpoch {
                                                 clusterQCs: [],
                                                 dkgKeys: [])
 
-        self.epochMetadata[self.proposedEpochCounter] = proposedEpochMetadata
+        self.epochMetadata[self.proposedEpochCounter()] = proposedEpochMetadata
 
         self.currentEpochPhase = EpochPhase.EPOCHSETUP
 
@@ -437,13 +474,13 @@ pub contract FlowEpoch {
 
         // Set cluster QCs in the proposed epoch metadata
         // and stop QC voting
-        self.epochMetadata[self.proposedEpochCounter]!.setClusterQCs(qcs: clusterQCs)
+        self.epochMetadata[self.proposedEpochCounter()]!.setClusterQCs(qcs: clusterQCs)
         self.QCAdmin.stopVoting()
 
         // Set DKG result keys in the proposed epoch metadata
         // and stop DKG
         let dkgKeys = FlowDKG.dkgCompleted()!
-        self.epochMetadata[self.proposedEpochCounter]!.setDKGGroupKey(keys: dkgKeys)
+        self.epochMetadata[self.proposedEpochCounter()]!.setDKGGroupKey(keys: dkgKeys)
         self.DKGAdmin.endDKG()
     }
 
@@ -452,10 +489,10 @@ pub contract FlowEpoch {
 
         self.currentEpochPhase = EpochPhase.EPOCHCOMMITTED
 
-        let dkgKeys = self.epochMetadata[self.proposedEpochCounter]!.dkgKeys
-        let clusterQCs = self.epochMetadata[self.proposedEpochCounter]!.clusterQCs
+        let dkgKeys = self.epochMetadata[self.proposedEpochCounter()]!.dkgKeys
+        let clusterQCs = self.epochMetadata[self.proposedEpochCounter()]!.clusterQCs
 
-        emit EpochCommitted(counter: self.proposedEpochCounter,
+        emit EpochCommitted(counter: self.proposedEpochCounter(),
                             dkgPubKeys: dkgKeys,
                             clusterQCs: clusterQCs)
     }
@@ -470,6 +507,10 @@ pub contract FlowEpoch {
         return &self.DKGAdmin as! &FlowDKG.Admin
     }
 
+    pub fun isValidPhaseConfiguration(_ auctionLen: UInt64, _ dkgPhaseLen: UInt64, _ epochLen: UInt64): Bool {
+        return (auctionLen + ((3 as UInt64)*dkgPhaseLen)) < epochLen
+    }
+
     pub fun createCollectorClusters(nodeIDs: [String]): [FlowEpochClusterQC.Cluster] {
         var shuffledIDs = self.randomize(nodeIDs)
 
@@ -477,14 +518,15 @@ pub contract FlowEpoch {
         let clusters: [FlowEpochClusterQC.Cluster] = []
         var clusterIndex: UInt16 = 0
         let nodeWeightsDictionary: [{String: UInt64}] = []
+        while clusterIndex < self.configurableMetadata.numCollectorClusters {
+            nodeWeightsDictionary.append({})
+            clusterIndex = clusterIndex + 1 as UInt16
+        }
+        clusterIndex = 0
 
         for id in shuffledIDs {
 
             let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: id)
-
-            if nodeWeightsDictionary[clusterIndex] == nil {
-                nodeWeightsDictionary[clusterIndex] = {}
-            }
 
             nodeWeightsDictionary[clusterIndex][id] = nodeInfo.initialWeight
             
@@ -500,6 +542,7 @@ pub contract FlowEpoch {
         clusterIndex = 0
         while clusterIndex < self.configurableMetadata.numCollectorClusters {
             clusters.append(FlowEpochClusterQC.Cluster(index: clusterIndex, nodeWeights: nodeWeightsDictionary[clusterIndex]!))
+            clusterIndex = clusterIndex + 1 as UInt16
         }
 
         return clusters
@@ -517,7 +560,8 @@ pub contract FlowEpoch {
         while i > 0
         { 
             // Pick a random index from 0 to i 
-            var randomIndex = Int(unsafeRandom()) % (i + 1)
+            var randomNum = unsafeRandom()
+            var randomIndex = randomNum % UInt64(i + 1)
     
             // Swap arr[i] with the element at random index 
             var temp = array[i]
@@ -536,7 +580,7 @@ pub contract FlowEpoch {
         let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeStaker.id)
 
         assert (
-            nodeInfo.role == 1 as UInt8,
+            nodeInfo.role == NodeRole.Collector.rawValue,
             message: "Node operator must be a collector node to get a QC Voter object"
         )
 
@@ -551,7 +595,7 @@ pub contract FlowEpoch {
         let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeStaker.id)
 
         assert (
-            nodeInfo.role == 2 as UInt8,
+            nodeInfo.role == NodeRole.Consensus.rawValue,
             message: "Node operator must be a consensus node to get a DKG Participant object"
         )
 
@@ -571,6 +615,10 @@ pub contract FlowEpoch {
         return self.configurableMetadata
     }
 
+    pub fun proposedEpochCounter(): UInt64 {
+        return self.currentEpochCounter + 1 as UInt64
+    }
+
     init (currentEpochCounter: UInt64,
           numViewsInEpoch: UInt64, 
           numViewsInStakingAuction: UInt64, 
@@ -588,7 +636,6 @@ pub contract FlowEpoch {
                                            numCollectorClusters: numCollectorClusters)
         
         self.currentEpochCounter = currentEpochCounter
-        self.proposedEpochCounter = currentEpochCounter + 1 as UInt64
         self.currentEpochPhase = EpochPhase.STAKINGAUCTION
         self.adminStoragePath = /storage/flowEpochAdmin
         self.heartbeatStoragePath = /storage/flowEpochHeartbeat

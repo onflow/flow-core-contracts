@@ -7,6 +7,7 @@ import (
 
 	"github.com/onflow/cadence"
 	"github.com/onflow/flow-emulator"
+	ft_templates "github.com/onflow/flow-ft/lib/go/templates"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/test"
@@ -43,6 +44,13 @@ func newBlockchain(opts ...emulator.Option) *emulator.Blockchain {
 		panic(err)
 	}
 	return b
+}
+
+func newAccountWithAddress(b *emulator.Blockchain, accountKeys *test.AccountKeys) (flow.Address, crypto.Signer) {
+	newAccountKey, newSigner := accountKeys.NewWithSigner()
+	newAddress, _ := b.CreateAccount([]*flow.AccountKey{newAccountKey}, nil)
+
+	return newAddress, newSigner
 }
 
 func createTxWithTemplateAndAuthorizer(
@@ -181,4 +189,39 @@ func assertEqual(t *testing.T, expected, actual interface{}) bool {
 	)
 
 	return assert.Fail(t, message)
+}
+
+func mintTokensForAccount(t *testing.T, b *emulator.Blockchain, recipient flow.Address) {
+
+	tx := createTxWithTemplateAndAuthorizer(b,
+		ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"),
+		b.ServiceKey().Address)
+
+	_ = tx.AddArgument(cadence.NewAddress(recipient))
+	_ = tx.AddArgument(CadenceUFix64("1000000000.0"))
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address},
+		[]crypto.Signer{b.ServiceKey().Signer()},
+		false,
+	)
+}
+
+func registerAndMintManyAccounts(
+	t *testing.T,
+	b *emulator.Blockchain,
+	accountKeys *test.AccountKeys,
+	numAccounts int) ([]flow.Address, []crypto.Signer) {
+
+	var userAddresses = make([]flow.Address, numAccounts)
+	var userSigners = make([]crypto.Signer, numAccounts)
+
+	for i := 0; i < numAccounts; i++ {
+		userAddresses[i], userSigners[i] = newAccountWithAddress(b, accountKeys)
+		mintTokensForAccount(t, b, userAddresses[i])
+	}
+
+	return userAddresses, userSigners
+
 }
