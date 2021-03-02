@@ -775,7 +775,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 
 	env.StakingProxyAddress = stakingProxyAddress.Hex()
 
-	adminAccountKey := accountKeys.New()
+	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
 
 	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress)
 
@@ -1101,7 +1101,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 		script := templates.GenerateDelegateNewLockedTokensScript(env)
 
 		tx := createTxWithTemplateAndAuthorizer(b, script, joshAddress)
-		_ = tx.AddArgument(CadenceUFix64("1500.0"))
+		_ = tx.AddArgument(CadenceUFix64("1400.0"))
 
 		signAndSubmit(
 			t, b, tx,
@@ -1116,11 +1116,39 @@ func TestLockedTokensDelegator(t *testing.T) {
 
 		// Check balance of unlocked account
 		result = executeScriptAndCheck(t, b, ft_templates.GenerateInspectVaultScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
-		assertEqual(t, CadenceUFix64("0.0"), result)
+		assertEqual(t, CadenceUFix64("100.0"), result)
 
 		// Unlock limit should increase by 500
 		result = executeScriptAndCheck(t, b, templates.GenerateGetUnlockLimitScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
-		assertEqual(t, CadenceUFix64("2500.0"), result)
+		assertEqual(t, CadenceUFix64("2400.0"), result)
+	})
+
+	t.Run("Should be able to remove the delegator object from the locked account", func(t *testing.T) {
+
+		script := templates.GenerateRemoveDelegatorScript(env)
+
+		tx := createTxWithTemplateAndAuthorizer(b, script, joshSharedAddress)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress, joshSharedAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner, adminSigner},
+			false,
+		)
+
+		// Should fail because the delegator does not exist any more
+		script = templates.GenerateDelegateNewLockedTokensScript(env)
+
+		tx = createTxWithTemplateAndAuthorizer(b, script, joshAddress)
+		_ = tx.AddArgument(CadenceUFix64("10.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			true,
+		)
+
 	})
 
 }
