@@ -99,11 +99,11 @@ pub contract LockedTokens {
 
         /// Optional NodeStaker resource. Will only be filled if the user
         /// signs up to be a node operator
-        pub(set) var nodeStaker: @FlowIDTableStaking.NodeStaker?
+        pub var nodeStaker: @FlowIDTableStaking.NodeStaker?
 
         /// Optional NodeDelegator resource. Will only be filled if the user
         /// signs up to be a delegator
-        pub(set) var nodeDelegator: @FlowIDTableStaking.NodeDelegator?
+        pub var nodeDelegator: @FlowIDTableStaking.NodeDelegator?
 
         init(vault: Capability<&FlowToken.Vault>) {
             self.vault = vault
@@ -223,6 +223,18 @@ pub contract LockedTokens {
             destroy delegator
 
             emit LockedAccountRegisteredAsDelegator(address: self.owner!.address, nodeID: nodeID)
+        }
+
+        pub fun removeNode(): @FlowIDTableStaking.NodeStaker {
+            let node <- self.nodeStaker <- nil
+
+            return <-node!
+        }
+
+        pub fun removeDelegator(): @FlowIDTableStaking.NodeDelegator {
+            let del <- self.nodeDelegator <- nil
+
+            return <-del!
         }
     }
 
@@ -381,7 +393,7 @@ pub contract LockedTokens {
         pub fun stakeNewTokens(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
 
-            assert (
+            assert(
                 self.nodeObjectExists(tokenManagerRef),
                 message: "Cannot stake if there is no node object!"
             )
@@ -395,7 +407,7 @@ pub contract LockedTokens {
         pub fun stakeUnstakedTokens(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
 
-            assert (
+            assert(
                 self.nodeObjectExists(tokenManagerRef),
                 message: "Cannot stake if there is no node object!"
             )
@@ -409,7 +421,7 @@ pub contract LockedTokens {
         pub fun stakeRewardedTokens(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
 
-            assert (
+            assert(
                 self.nodeObjectExists(tokenManagerRef),
                 message: "Cannot stake if there is no node object!"
             )
@@ -423,7 +435,7 @@ pub contract LockedTokens {
         pub fun requestUnstaking(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
 
-            assert (
+            assert(
                 self.nodeObjectExists(tokenManagerRef),
                 message: "Cannot stake if there is no node object!"
             )
@@ -436,7 +448,7 @@ pub contract LockedTokens {
         pub fun unstakeAll() {
             let tokenManagerRef = self.tokenManager.borrow()!
 
-            assert (
+            assert(
                 self.nodeObjectExists(tokenManagerRef),
                 message: "Cannot stake if there is no node object!"
             )
@@ -451,7 +463,7 @@ pub contract LockedTokens {
         pub fun withdrawUnstakedTokens(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
 
-            assert (
+            assert(
                 self.nodeObjectExists(tokenManagerRef),
                 message: "Cannot stake if there is no node object!"
             )
@@ -468,7 +480,7 @@ pub contract LockedTokens {
         pub fun withdrawRewardedTokens(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
 
-            assert (
+            assert(
                 self.nodeObjectExists(tokenManagerRef),
                 message: "Cannot stake if there is no node object!"
             )
@@ -497,7 +509,7 @@ pub contract LockedTokens {
         pub fun delegateNewTokens(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
 
-            assert (
+            assert(
                 self.delegatorObjectExists(tokenManagerRef),
                 message: "Cannot stake if there is no delegator object!"
             )
@@ -511,7 +523,7 @@ pub contract LockedTokens {
         pub fun delegateUnstakedTokens(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
 
-            assert (
+            assert(
                 self.delegatorObjectExists(tokenManagerRef),
                 message: "Cannot stake if there is no delegator object!"
             )
@@ -524,7 +536,7 @@ pub contract LockedTokens {
         pub fun delegateRewardedTokens(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
 
-            assert (
+            assert(
                 self.delegatorObjectExists(tokenManagerRef),
                 message: "Cannot stake if there is no delegator object!"
             )
@@ -538,7 +550,7 @@ pub contract LockedTokens {
         pub fun requestUnstaking(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
 
-            assert (
+            assert(
                 self.delegatorObjectExists(tokenManagerRef),
                 message: "Cannot stake if there is no delegator object!"
             )
@@ -551,7 +563,7 @@ pub contract LockedTokens {
         pub fun withdrawUnstakedTokens(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
 
-            assert (
+            assert(
                 self.delegatorObjectExists(tokenManagerRef),
                 message: "Cannot stake if there is no delegator object!"
             )
@@ -567,7 +579,7 @@ pub contract LockedTokens {
         pub fun withdrawRewardedTokens(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
 
-            assert (
+            assert(
                 self.delegatorObjectExists(tokenManagerRef),
                 message: "Cannot stake if there is no delegator object!"
             )
