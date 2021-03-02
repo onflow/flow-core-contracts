@@ -99,11 +99,11 @@ pub contract LockedTokens {
 
         /// Optional NodeStaker resource. Will only be filled if the user
         /// signs up to be a node operator
-        pub var nodeStaker: @FlowIDTableStaking.NodeStaker?
+        pub(set) var nodeStaker: @FlowIDTableStaking.NodeStaker?
 
         /// Optional NodeDelegator resource. Will only be filled if the user
         /// signs up to be a delegator
-        pub var nodeDelegator: @FlowIDTableStaking.NodeDelegator?
+        pub(set) var nodeDelegator: @FlowIDTableStaking.NodeDelegator?
 
         init(vault: Capability<&FlowToken.Vault>) {
             self.vault = vault
@@ -373,9 +373,18 @@ pub contract LockedTokens {
             self.tokenManager = tokenManager
         }
 
+        access(self) fun nodeObjectExists(_ managerRef: &LockedTokenManager): Bool {
+            return managerRef.nodeStaker != nil
+        }
+
         /// Stakes new locked tokens
         pub fun stakeNewTokens(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
+
+            assert (
+                self.nodeObjectExists(tokenManagerRef),
+                message: "Cannot stake if there is no node object!"
+            )
 
             let vaultRef = tokenManagerRef.vault.borrow()!
 
@@ -386,6 +395,11 @@ pub contract LockedTokens {
         pub fun stakeUnstakedTokens(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
 
+            assert (
+                self.nodeObjectExists(tokenManagerRef),
+                message: "Cannot stake if there is no node object!"
+            )
+
             tokenManagerRef.nodeStaker?.stakeUnstakedTokens(amount: amount)
         }
 
@@ -394,6 +408,11 @@ pub contract LockedTokens {
         /// because staked tokens are effectively treated as locked tokens
         pub fun stakeRewardedTokens(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
+
+            assert (
+                self.nodeObjectExists(tokenManagerRef),
+                message: "Cannot stake if there is no node object!"
+            )
 
             tokenManagerRef.nodeStaker?.stakeRewardedTokens(amount: amount)
 
@@ -404,6 +423,11 @@ pub contract LockedTokens {
         pub fun requestUnstaking(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
 
+            assert (
+                self.nodeObjectExists(tokenManagerRef),
+                message: "Cannot stake if there is no node object!"
+            )
+
             tokenManagerRef.nodeStaker?.requestUnstaking(amount: amount)
         }
 
@@ -411,6 +435,11 @@ pub contract LockedTokens {
         /// the tokens that have been delegated to the node
         pub fun unstakeAll() {
             let tokenManagerRef = self.tokenManager.borrow()!
+
+            assert (
+                self.nodeObjectExists(tokenManagerRef),
+                message: "Cannot stake if there is no node object!"
+            )
 
             tokenManagerRef.nodeStaker?.unstakeAll()
         }
@@ -421,6 +450,11 @@ pub contract LockedTokens {
         /// be locked in terms of the vesting schedule
         pub fun withdrawUnstakedTokens(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
+
+            assert (
+                self.nodeObjectExists(tokenManagerRef),
+                message: "Cannot stake if there is no node object!"
+            )
 
             let vaultRef = tokenManagerRef.vault.borrow()!
 
@@ -433,6 +467,11 @@ pub contract LockedTokens {
         /// which increases the withdraw limit
         pub fun withdrawRewardedTokens(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
+
+            assert (
+                self.nodeObjectExists(tokenManagerRef),
+                message: "Cannot stake if there is no node object!"
+            )
 
             tokenManagerRef.deposit(from: <-tokenManagerRef.nodeStaker?.withdrawRewardedTokens(amount: amount)!)
         }
@@ -450,9 +489,18 @@ pub contract LockedTokens {
             self.tokenManager = tokenManager
         }
 
+        access(self) fun delegatorObjectExists(_ managerRef: &LockedTokenManager): Bool {
+            return managerRef.nodeDelegator != nil
+        }
+
         /// delegates tokens from the locked token vault
         pub fun delegateNewTokens(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
+
+            assert (
+                self.delegatorObjectExists(tokenManagerRef),
+                message: "Cannot stake if there is no delegator object!"
+            )
 
             let vaultRef = tokenManagerRef.vault.borrow()!
 
@@ -463,6 +511,11 @@ pub contract LockedTokens {
         pub fun delegateUnstakedTokens(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
 
+            assert (
+                self.delegatorObjectExists(tokenManagerRef),
+                message: "Cannot stake if there is no delegator object!"
+            )
+
             tokenManagerRef.nodeDelegator?.delegateUnstakedTokens(amount: amount)
         }
 
@@ -470,6 +523,11 @@ pub contract LockedTokens {
         /// because these are freely withdrawable
         pub fun delegateRewardedTokens(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
+
+            assert (
+                self.delegatorObjectExists(tokenManagerRef),
+                message: "Cannot stake if there is no delegator object!"
+            )
 
             tokenManagerRef.nodeDelegator?.delegateRewardedTokens(amount: amount)
 
@@ -480,6 +538,11 @@ pub contract LockedTokens {
         pub fun requestUnstaking(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
 
+            assert (
+                self.delegatorObjectExists(tokenManagerRef),
+                message: "Cannot stake if there is no delegator object!"
+            )
+
             tokenManagerRef.nodeDelegator?.requestUnstaking(amount: amount)
         }
 
@@ -487,6 +550,11 @@ pub contract LockedTokens {
         /// This does not increase the withdraw limit
         pub fun withdrawUnstakedTokens(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
+
+            assert (
+                self.delegatorObjectExists(tokenManagerRef),
+                message: "Cannot stake if there is no delegator object!"
+            )
 
             let vaultRef = tokenManagerRef.vault.borrow()!
 
@@ -498,6 +566,11 @@ pub contract LockedTokens {
         /// are considered unstaked in terms of the vesting schedule
         pub fun withdrawRewardedTokens(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
+
+            assert (
+                self.delegatorObjectExists(tokenManagerRef),
+                message: "Cannot stake if there is no delegator object!"
+            )
 
             tokenManagerRef.deposit(from: <-tokenManagerRef.nodeDelegator?.withdrawRewardedTokens(amount: amount)!)
         }
