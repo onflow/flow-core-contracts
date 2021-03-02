@@ -225,16 +225,16 @@ pub contract LockedTokens {
             emit LockedAccountRegisteredAsDelegator(address: self.owner!.address, nodeID: nodeID)
         }
 
-        pub fun removeNode(): @FlowIDTableStaking.NodeStaker {
+        pub fun removeNode(): @FlowIDTableStaking.NodeStaker? {
             let node <- self.nodeStaker <- nil
 
-            return <-node!
+            return <-node
         }
 
-        pub fun removeDelegator(): @FlowIDTableStaking.NodeDelegator {
+        pub fun removeDelegator(): @FlowIDTableStaking.NodeDelegator? {
             let del <- self.nodeDelegator <- nil
 
-            return <-del!
+            return <-del
         }
     }
 
