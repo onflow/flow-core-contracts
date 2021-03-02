@@ -77,6 +77,8 @@ func TestEpochClusters(t *testing.T) {
 		idArray := cadence.NewArray([]cadence.Value{cadence.NewString(adminID), cadence.NewString(joshID), cadence.NewString(maxID), cadence.NewString(accessID)})
 		result := executeScriptAndCheck(t, b, templates.GenerateGetRandomizeScript(env), [][]byte{jsoncdc.MustEncode(idArray)})
 		assertEqual(t, 4, len(result.(cadence.Array).Values))
+
+		// TODO: Make sure that the ids in the array all match the provided IDs
 	})
 
 	// create new user accounts, mint tokens for them, and register them for staking
@@ -91,6 +93,8 @@ func TestEpochClusters(t *testing.T) {
 		idArray := cadence.NewArray([]cadence.Value{cadence.NewString(ids[0]), cadence.NewString(ids[1]), cadence.NewString(ids[2]), cadence.NewString(ids[3])})
 		result := executeScriptAndCheck(t, b, templates.GenerateGetCreateClustersScript(env), [][]byte{jsoncdc.MustEncode(idArray)})
 		assertEqual(t, 2, len(result.(cadence.Array).Values))
+
+		// TODO: Make sure that the clusters are correct
 	})
 
 }
@@ -279,6 +283,27 @@ func TestEpochAdvance(t *testing.T) {
 		"lolsoRandom") // random source
 
 	t.Run("Should not be able to advance to epoch committed or end epoch during staking", func(t *testing.T) {
+		// try to advance to the epoch committed phase
+		// should fail
+		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, 1, true)
+
+		// try to advance to the end epoch phase
+		// should fail
+		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, 2, true)
+	})
+
+	// create new user accounts, mint tokens for them, and register them for staking
+	addresses, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
+	ids := generateNodeIDs(numEpochAccounts)
+	registerNodesForStaking(t, b, env,
+		addresses,
+		signers,
+		ids)
+
+	// Advance to epoch Setup and make sure that the epoch cannot be ended
+	advanceView(t, b, env, idTableAddress, IDTableSigner, 1, 0, true)
+
+	t.Run("Should not be able to advance to epoch committed or end epoch during epoch committed if nothing has happened", func(t *testing.T) {
 		// try to advance to the epoch committed phase
 		// should fail
 		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, 1, true)
