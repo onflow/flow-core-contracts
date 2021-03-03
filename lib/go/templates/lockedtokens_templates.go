@@ -13,6 +13,7 @@ const (
 	depositLockedTokensFilename             = "lockedTokens/admin/deposit_locked_tokens.cdc"
 	increaseUnlockLimitFilename             = "lockedTokens/admin/unlock_tokens.cdc"
 	depositAccountCreatorCapabilityFilename = "lockedTokens/admin/admin_deposit_account_creator.cdc"
+	removeDelegatorFilename                 = "lockedTokens/admin/admin_remove_delegator.cdc"
 
 	// Custody Provider / Wallet provider Account creation templates
 	setupCustodyAccountFilename                  = "lockedTokens/admin/custody_setup_account_creator.cdc"
@@ -27,6 +28,7 @@ const (
 	getLockedAccountAddressFilename = "lockedTokens/user/get_locked_account_address.cdc"
 	getLockedAccountBalanceFilename = "lockedTokens/user/get_locked_account_balance.cdc"
 	getUnlockLimitFilename          = "lockedTokens/user/get_unlock_limit.cdc"
+	getTotalBalanceFilename         = "lockedTokens/user/get_total_balance.cdc"
 
 	// staker templates
 	registerLockedNodeFilename                 = "lockedTokens/staker/register_node.cdc"
@@ -97,6 +99,12 @@ func GenerateDepositAccountCreatorScript(env Environment) []byte {
 	return []byte(replaceAddresses(code, env))
 }
 
+func GenerateRemoveDelegatorScript(env Environment) []byte {
+	code := assets.MustAssetString(removeDelegatorFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
 /************ Custody Provider Transactions ********************/
 
 func GenerateSetupCustodyAccountScript(env Environment) []byte {
@@ -157,6 +165,12 @@ func GenerateGetLockedAccountBalanceScript(env Environment) []byte {
 
 func GenerateGetUnlockLimitScript(env Environment) []byte {
 	code := assets.MustAssetString(getUnlockLimitFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateGetTotalBalanceScript(env Environment) []byte {
+	code := assets.MustAssetString(getTotalBalanceFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
