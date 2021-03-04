@@ -345,10 +345,9 @@ pub contract FlowEpoch {
 
             FlowEpoch.stakingAdmin.startStakingAuction()
 
-            // end QC and DKG
-            // These will fail if not completed and need to change
-            FlowEpoch.QCAdmin.stopVoting()
-            FlowEpoch.DKGAdmin.endDKG()
+            // force reset the QC and DKG
+            FlowEpoch.QCAdmin.forceStopVoting()
+            FlowEpoch.DKGAdmin.forceEndDKG()
 
             let currentBlock = getCurrentBlock()
 

@@ -168,7 +168,7 @@ pub contract FlowEpochClusterQC {
 
         init(nodeID: String) {
             pre {
-                FlowEpochClusterQC.voterIsRegistered(nodeID): "Cannot create a Voter for a node ID that hasn't been registered"
+                FlowEpochClusterQC.voterIsRegistered(nodeID): "Cannot create a Voter before epoch setup starts or for a node ID that hasn't been registered"
                 !FlowEpochClusterQC.voterIsClaimed(nodeID)!: "Cannot create a Voter resource for a node ID that has already been claimed"
             }
             self.nodeID = nodeID
@@ -225,6 +225,12 @@ pub contract FlowEpochClusterQC {
             pre {
                 FlowEpochClusterQC.votingCompleted(): "Voting must be complete before it can be stopped"
             }
+            FlowEpochClusterQC.inProgress = false
+        }
+
+        /// Force a stop of the voting period
+        /// Should only be used if the protocol halts and needs to be reset
+        pub fun forceStopVoting() {
             FlowEpochClusterQC.inProgress = false
         }
     }

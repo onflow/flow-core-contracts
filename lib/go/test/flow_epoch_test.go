@@ -301,7 +301,7 @@ func TestEpochAdvance(t *testing.T) {
 		ids)
 
 	// Advance to epoch Setup and make sure that the epoch cannot be ended
-	advanceView(t, b, env, idTableAddress, IDTableSigner, 1, 0, true)
+	advanceView(t, b, env, idTableAddress, IDTableSigner, 1, 0, false)
 
 	t.Run("Should not be able to advance to epoch committed or end epoch during epoch committed if nothing has happened", func(t *testing.T) {
 		// try to advance to the epoch committed phase
@@ -313,6 +313,80 @@ func TestEpochAdvance(t *testing.T) {
 		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, 2, true)
 	})
 
+}
+
+func TestEpochQCDKGNodeRegistration(t *testing.T) {
+	b, accountKeys, env := newTestSetup(t)
+
+	// Create new keys for the epoch account
+	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
+
+	// Deploys the staking contract, qc, dkg, and epoch lifecycle contract
+	// staking contract is deployed with default values (1.25M rewards, 8% cut)
+	idTableAddress := initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
+		0,             // start epoch counter
+		70,            // num views per epoch
+		50,            // num views for staking auction
+		2,             // num views for DKG phase
+		4,             // num collector clusters
+		"lolsoRandom") // random source
+
+	// create new user accounts, mint tokens for them, and register them for staking
+	addresses, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
+	ids := generateNodeIDs(numEpochAccounts)
+	registerNodesForStaking(t, b, env,
+		addresses,
+		signers,
+		ids)
+
+	t.Run("Should not be able to register a QC voter or DKG participant if the staking auction isn't over", func(t *testing.T) {
+
+		// Should fail because nodes cannot register if it is during the staking auction
+		// even if they are the correct node type
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochRegisterQCVoterScript(env), addresses[0])
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, addresses[0]},
+			[]crypto.Signer{b.ServiceKey().Signer(), signers[0]},
+			true,
+		)
+
+		// Should fail because nodes cannot register if it is during the staking auction
+		// even if they are the correct node type
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochRegisterDKGParticipantScript(env), addresses[1])
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, addresses[1]},
+			[]crypto.Signer{b.ServiceKey().Signer(), signers[1]},
+			true,
+		)
+	})
+
+	// Advance to epoch Setup and make sure that the epoch cannot be ended
+	advanceView(t, b, env, idTableAddress, IDTableSigner, 1, 0, false)
+
+	t.Run("Should not be able to register a QC voter or DKG participant for the wrong node types", func(t *testing.T) {
+
+		// Should fail because nodes cannot register if it is during the staking auction
+		// even if they are the correct node type
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochRegisterQCVoterScript(env), addresses[1])
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, addresses[1]},
+			[]crypto.Signer{b.ServiceKey().Signer(), signers[1]},
+			true,
+		)
+
+		// Should fail because nodes cannot register if it is during the staking auction
+		// even if they are the correct node type
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochRegisterDKGParticipantScript(env), addresses[0])
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, addresses[0]},
+			[]crypto.Signer{b.ServiceKey().Signer(), signers[0]},
+			true,
+		)
+	})
 }
 
 func TestEpochStakingAuction(t *testing.T) {

@@ -5,6 +5,7 @@ import (
 )
 
 const (
+	// Admin Transactions
 	deployQCandDKGFilename     = "epoch/admin/deploy_qc_dkg.cdc"
 	deployEpochFilename        = "epoch/admin/deploy_epoch.cdc"
 	updateEpochViewsFilename   = "epoch/admin/update_epoch_views.cdc"
@@ -12,6 +13,10 @@ const (
 	updateDKGViewsFilename     = "epoch/admin/update_dkg_phase_views.cdc"
 	updateNumClustersFilename  = "epoch/admin/update_clusters.cdc"
 	advanceViewFilename        = "epoch/admin/advance_view.cdc"
+
+	// Node Transactions
+	epochRegisterQCVoterFilename        = "epoch/node/register_qc_voter.cdc"
+	epochRegisterDKGParticipantFilename = "epoch/node/register_dkg_participant.cdc"
 
 	// Scripts
 	getCurrentEpochCounterFilename  = "epoch/scripts/get_epoch_counter.cdc"
@@ -67,6 +72,20 @@ func GenerateUpdateNumClustersScript(env Environment) []byte {
 
 func GenerateAdvanceViewScript(env Environment) []byte {
 	code := assets.MustAssetString(advanceViewFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+// Node Templates -----------------------------------------------
+
+func GenerateEpochRegisterQCVoterScript(env Environment) []byte {
+	code := assets.MustAssetString(epochRegisterQCVoterFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateEpochRegisterDKGParticipantScript(env Environment) []byte {
+	code := assets.MustAssetString(epochRegisterDKGParticipantFilename)
 
 	return []byte(replaceAddresses(code, env))
 }

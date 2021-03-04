@@ -26,6 +26,8 @@
 // ../../../transactions/epoch/admin/update_dkg_phase_views.cdc (328B)
 // ../../../transactions/epoch/admin/update_epoch_views.cdc (329B)
 // ../../../transactions/epoch/admin/update_staking_views.cdc (331B)
+// ../../../transactions/epoch/node/register_dkg_participant.cdc (531B)
+// ../../../transactions/epoch/node/register_qc_voter.cdc (532B)
 // ../../../transactions/epoch/scripts/get_config_metadata.cdc (115B)
 // ../../../transactions/epoch/scripts/get_create_clusters.cdc (207B)
 // ../../../transactions/epoch/scripts/get_epoch_counter.cdc (105B)
@@ -759,6 +761,46 @@ func epochAdminUpdate_staking_viewsCdc() (*asset, error) {
 
 	info := bindataFileInfo{name: "epoch/admin/update_staking_views.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x48, 0x2e, 0xa2, 0x66, 0x2c, 0x29, 0xe2, 0xbf, 0xdd, 0x5e, 0x40, 0xcb, 0xb9, 0xb5, 0x61, 0x12, 0x2c, 0x66, 0x4a, 0x87, 0x97, 0xc8, 0xa6, 0x8f, 0x8c, 0x46, 0x9a, 0x63, 0x86, 0xf0, 0x79, 0x95}}
+	return a, nil
+}
+
+var _epochNodeRegister_dkg_participantCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x91\x41\x6f\xe2\x40\x0c\x85\xef\xf9\x15\x16\x87\x55\x90\x96\x68\xcf\x11\x5b\x94\x32\x29\x45\x54\x14\x91\x5c\x7a\x1c\x26\x26\x19\x11\xc6\x23\xc7\x94\x4a\x15\xff\xbd\x82\x34\x34\xa8\xf8\x34\x92\xbf\x79\x7e\xcf\xb6\x7b\x4f\x2c\xf0\x54\xd3\x31\xf5\x64\x2a\xd8\x32\xed\xe1\xdf\x47\xba\x7a\x9d\x3e\x27\x4a\xad\xd3\x2c\x0b\x7a\xd0\x5c\xe5\x7a\x53\x63\x26\x7a\x67\x5d\xd9\xd1\x73\x95\x2e\xf3\x79\xfe\x96\x27\x8f\x2f\xe9\x9d\x5f\x6a\x31\xeb\x50\xb5\x98\x75\x40\x20\xac\x5d\xa3\x8d\x58\x72\xe1\x10\x3e\x83\x00\x00\xc0\x33\x7a\xcd\x18\x36\xb6\x74\xc8\x31\x24\x07\xa9\x12\x63\xe8\xe0\xe4\xca\x9c\xab\x46\x01\x47\x05\xae\x71\x0b\xff\xa1\xa5\xa3\x0d\x31\xd3\x71\xfc\xe7\xb7\xd5\x68\x49\xc5\xe5\x8d\xfc\x10\x9e\xbd\xc4\x77\xf2\xf4\xa0\x4c\x88\x75\x89\x2b\x2d\xd5\xf0\x3a\xf3\x5c\x93\x09\x78\xed\xac\x09\x07\x53\x3a\xd4\x05\x38\x12\x68\xc7\x5e\xec\x00\xe3\x16\x19\x9d\xc1\x36\x71\xd3\xea\x80\xd7\x52\x0d\x86\xb7\xf6\x8b\x5d\xb9\xd2\x2c\xd6\x58\xaf\x9d\xc0\x78\xf4\x73\x87\xa8\x44\x51\x8b\x59\xaf\x1d\xba\xab\xb7\xb8\x0b\xde\xd3\xfb\x5e\x40\xa3\xdf\x31\x1c\x8f\x6e\x95\xff\x82\x50\xdc\x1d\x22\xea\x35\x6e\x42\x5e\xa4\x4e\xc1\xe9\x2b\x00\x00\xff\xff\x27\xf5\x15\x16\x13\x02\x00\x00"
+
+func epochNodeRegister_dkg_participantCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_epochNodeRegister_dkg_participantCdc,
+		"epoch/node/register_dkg_participant.cdc",
+	)
+}
+
+func epochNodeRegister_dkg_participantCdc() (*asset, error) {
+	bytes, err := epochNodeRegister_dkg_participantCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "epoch/node/register_dkg_participant.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x51, 0x7, 0xc8, 0x9e, 0x29, 0xfb, 0xa9, 0xfe, 0xec, 0xee, 0x49, 0x5a, 0x1c, 0x1a, 0x36, 0x13, 0x5e, 0x8, 0xf1, 0x41, 0xf3, 0x3a, 0xed, 0xf3, 0x7d, 0x78, 0x7, 0x7e, 0x64, 0x34, 0x92, 0x74}}
+	return a, nil
+}
+
+var _epochNodeRegister_qc_voterCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x91\x41\x6b\x83\x40\x10\x85\xef\xfe\x8a\x21\x87\x62\xa0\x91\x9e\x25\x6d\xb0\x6a\x69\xa0\xa4\x49\x94\x42\x8f\x9b\xcd\x44\xa5\x66\xc7\x8e\x63\x53\x28\xf9\xef\x25\x6b\xb4\x09\x75\x4e\x0b\xf3\xcd\x9b\xf7\x66\x8b\x7d\x45\x2c\xf0\x54\xd2\x21\xae\x48\xe7\xb0\x63\xda\xc3\xdd\x77\xbc\x7c\x0d\x9f\x83\x28\x5a\xc7\x49\xe2\x5c\x40\xf3\x28\x55\x9b\x12\x13\x51\x1f\x85\xc9\x3a\x7a\x1e\xc5\x8b\x74\x9e\xbe\xa7\xc1\xe3\x4b\x3c\x30\x65\xa5\xc3\xb2\xa9\x05\x79\x15\x76\x53\xab\xb0\x43\x1d\x61\x65\x6a\xa5\xa5\x20\xe3\x8e\xe1\xc7\x71\x00\x00\x2a\xc6\x4a\x31\xba\x75\x91\x19\x64\x1f\x82\x46\xf2\x40\x6b\x6a\x8c\xf4\xcc\xa9\x4a\x14\x30\xb4\xc5\x35\xee\xe0\x1e\x5a\xda\xdb\x10\x33\x1d\xa6\x37\xff\x4d\x7b\x0b\xda\xda\x37\xf2\x83\x7b\xb2\xe2\x0f\x24\xbb\x80\x12\x21\x56\x19\x2e\x95\xe4\xe3\x7e\xe7\xa9\x66\x33\xa8\x94\x29\xb4\x3b\x0a\xa9\x29\xb7\x60\x48\xa0\x5d\x6b\xed\x00\xe3\x0e\x19\x8d\xc6\x36\x70\xdd\xea\x40\xa5\x24\x1f\x8d\xaf\xed\x7f\xea\x37\x12\x64\x98\x4e\xfe\xee\xe5\x65\x28\xfd\xcd\x6c\xdb\x35\xbd\x29\xbf\x4b\x7c\x21\x74\x4e\x5e\xab\x2f\x74\xa7\x93\xb3\xe4\x2d\x08\xf9\x03\x9f\xe0\xd9\xee\x55\x36\x2b\x74\x74\x8e\xbf\x01\x00\x00\xff\xff\xd3\xc0\x79\xe9\x14\x02\x00\x00"
+
+func epochNodeRegister_qc_voterCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_epochNodeRegister_qc_voterCdc,
+		"epoch/node/register_qc_voter.cdc",
+	)
+}
+
+func epochNodeRegister_qc_voterCdc() (*asset, error) {
+	bytes, err := epochNodeRegister_qc_voterCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "epoch/node/register_qc_voter.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x2e, 0xa1, 0x91, 0xf3, 0x70, 0xb7, 0x25, 0x84, 0x6c, 0xbb, 0xdd, 0xa2, 0xe3, 0x5c, 0x9b, 0xce, 0xda, 0x68, 0x52, 0x89, 0x77, 0x2b, 0xb6, 0x45, 0x41, 0x6d, 0xd8, 0x83, 0xbd, 0x55, 0x99, 0x7b}}
 	return a, nil
 }
 
@@ -3819,6 +3861,8 @@ var _bindata = map[string]func() (*asset, error){
 	"epoch/admin/update_dkg_phase_views.cdc":                                  epochAdminUpdate_dkg_phase_viewsCdc,
 	"epoch/admin/update_epoch_views.cdc":                                      epochAdminUpdate_epoch_viewsCdc,
 	"epoch/admin/update_staking_views.cdc":                                    epochAdminUpdate_staking_viewsCdc,
+	"epoch/node/register_dkg_participant.cdc":                                 epochNodeRegister_dkg_participantCdc,
+	"epoch/node/register_qc_voter.cdc":                                        epochNodeRegister_qc_voterCdc,
 	"epoch/scripts/get_config_metadata.cdc":                                   epochScriptsGet_config_metadataCdc,
 	"epoch/scripts/get_create_clusters.cdc":                                   epochScriptsGet_create_clustersCdc,
 	"epoch/scripts/get_epoch_counter.cdc":                                     epochScriptsGet_epoch_counterCdc,
@@ -4048,6 +4092,10 @@ var _bintree = &bintree{nil, map[string]*bintree{
 			"update_dkg_phase_views.cdc": {epochAdminUpdate_dkg_phase_viewsCdc, map[string]*bintree{}},
 			"update_epoch_views.cdc": {epochAdminUpdate_epoch_viewsCdc, map[string]*bintree{}},
 			"update_staking_views.cdc": {epochAdminUpdate_staking_viewsCdc, map[string]*bintree{}},
+		}},
+		"node": {nil, map[string]*bintree{
+			"register_dkg_participant.cdc": {epochNodeRegister_dkg_participantCdc, map[string]*bintree{}},
+			"register_qc_voter.cdc": {epochNodeRegister_qc_voterCdc, map[string]*bintree{}},
 		}},
 		"scripts": {nil, map[string]*bintree{
 			"get_config_metadata.cdc": {epochScriptsGet_config_metadataCdc, map[string]*bintree{}},
