@@ -256,7 +256,7 @@ pub contract LockedTokens {
 
         /// Capability that is used to access the LockedTokenManager
         /// in the shared account
-        access(self) var tokenManager: Capability<&LockedTokenManager>
+        access(account) var tokenManager: Capability<&LockedTokenManager>
 
         /// Used to perform staking actions if the user has signed up
         /// as a node operator
@@ -607,6 +607,10 @@ pub contract LockedTokens {
             let vaultRef = self.lockedVault.borrow()!
 
             return <-vaultRef.withdraw(amount: amount)
+        }
+
+        access(account) fun depositToLockedVault(from: @FlowToken.Vault) {
+
         }
     }
 
