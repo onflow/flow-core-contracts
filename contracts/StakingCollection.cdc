@@ -226,91 +226,63 @@ pub contract StakingCollection {
 
         pub fun stakeNewTokens(nodeID: String, delegatorID: UInt32?, amount: UFix64) {
             pre {
-                delegatorID != nil && self.nodeDelegators[nodeID] != nil:
-                    "Specified nodeID does not exist in the nodeDelegators record"
-
-                delegatorID != nil && self.nodeDelegators[nodeID][delegatorID] != nil:
-                    "Specified delegatorID for specified nodeID does not exist in the nodeDelegators record"
-
-                delegatorID == nil && self.nodeStakers[nodeID] != nil:
-                    "Specified delegatorID for specified nodeID does not exist in the nodeStakers record"
+                self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID) == false : "Specified stake does not exist"
             }
 
-            if (delegatorID != nil) {
-                let delegator = self.nodeDelegators[nodeID][delegatorID]
+            if let _delegatorID = delegatorID {
+                let delegator = self.nodeDelegators[nodeID] != nil && self.nodeDelegators[nodeID][_delegatorID] != nil ? self.nodeDelegators[nodeID][_delegatorID] : self.tokenHolder.borrowDelegator()
 
-                delegator.delegateNewTokens(from: <- getTokens(nodeID: nodeID, delegatorID: delegatorID, amount: amount))
+                self.nodeDelegators[nodeID] != nil && self.nodeDelegators[nodeID][_delegatorID] != nil ? delegator.delegateNewTokens(from: <- getTokens(nodeID: nodeID, delegatorID: delegatorID, amount: amount)) : delegator.delegateNewTokens(amount: amount)
             } else {
-                let delegator = self.nodeDelegators[nodeID][delegatorID]
+                let staker = self.nodeStakers[nodeID] != nil ? self.nodeStakers[nodeID] != nil : self.tokenHolder.borrowStaker()
 
-                node.stakeNewTokens(from: <- getTokens(nodeID: nodeID, delegatorID: delegatorID, amount: amount))
+                self.nodeStakers[nodeID] != nil ? staker.stakeNewTokens(from: <- getTokens(nodeID: nodeID, delegatorID: delegatorID, amount: amount)) : staker.stakeNewTokens(amount: amount)
             }
         }
 
         pub fun stakeUnstakedTokens(nodeID: String, delegatorID: UInt32?, amount: UFix64) {
             pre {
-                delegatorID != nil && self.nodeDelegators[nodeID] != nil:
-                    "Specified nodeID does not exist in the nodeDelegators record"
-
-                delegatorID != nil && self.nodeDelegators[nodeID][delegatorID] != nil:
-                    "Specified delegatorID for specified nodeID does not exist in the nodeDelegators record"
-
-                delegatorID == nil && self.nodeStakers[nodeID] != nil:
-                    "Specified delegatorID for specified nodeID does not exist in the nodeStakers record"
+                self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID) == false : "Specified stake does not exist"
             }
 
-            if (delegatorID != nil) {
-                let delegator = self.nodeDelegators[nodeID][delegatorID]
+            if let _delegatorID = delegatorID {
+                let delegator = self.nodeDelegators[nodeID] != nil && self.nodeDelegators[nodeID][_delegatorID] != nil ? self.nodeDelegators[nodeID][_delegatorID] : self.tokenHolder.borrowDelegator()
 
                 delegator.delegateUnstakedTokens(amount: amount)
             } else {
-                let node = self.nodeStakers[nodeID]
+                let staker = self.nodeStakers[nodeID] != nil ? self.nodeStakers[nodeID] != nil : self.tokenHolder.borrowStaker()
 
-                node.stakeUnstakedTokens(amount: amount)
+                staker.stakeUnstakedTokens(amount: amount)
             }
         }
 
         pub fun stakeRewardedTokens(nodeID: String, delegatorID: UInt32?, amount: UFix64) {
             pre {
-                delegatorID != nil && self.nodeDelegators[nodeID] != nil:
-                    "Specified nodeID does not exist in the nodeDelegators record"
-
-                delegatorID != nil && self.nodeDelegators[nodeID][delegatorID] != nil:
-                    "Specified delegatorID for specified nodeID does not exist in the nodeDelegators record"
-
-                delegatorID == nil && self.nodeStakers[nodeID] != nil:
-                    "Specified delegatorID for specified nodeID does not exist in the nodeStakers record"
+                self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID) == false : "Specified stake does not exist"
             }
 
-            if (delegatorID != nil) {
-                let delegator = self.nodeDelegators[nodeID][delegatorID]
+            if let _delegatorID = delegatorID {
+                let delegator = self.nodeDelegators[nodeID] != nil && self.nodeDelegators[nodeID][_delegatorID] != nil ? self.nodeDelegators[nodeID][_delegatorID] : self.tokenHolder.borrowDelegator()
 
                 delegator.delegateRewardedTokens(amount: amount)
             } else {
-                let node = self.nodeStakers[nodeID]
+                let staker = self.nodeStakers[nodeID] != nil ? self.nodeStakers[nodeID] != nil : self.tokenHolder.borrowStaker()
 
-                node.stakeRewardedTokens(amount: amount)
+                staker.stakeRewardedTokens(amount: amount)
             }
         }
 
         pub fun requestUnstaking(nodeID: String, delegatorID: UInt32?, amount: UFix64) { 
             pre {
-                delegatorID != nil && self.nodeDelegators[nodeID] != nil:
-                    "Specified nodeID does not exist in the nodeDelegators record"
-
-                delegatorID != nil && self.nodeDelegators[nodeID][delegatorID] != nil:
-                    "Specified delegatorID for specified nodeID does not exist in the nodeDelegators record"
-
-                delegatorID == nil && self.nodeStakers[nodeID] != nil:
-                    "Specified delegatorID for specified nodeID does not exist in the nodeStakers record"
+                self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID) == false : "Specified stake does not exist"
             }
 
-            if (delegatorID != nil) {
-                let delegator = self.nodeDelegators[nodeID][delegatorID]
+            if let _delegatorID = delegatorID {
+                let delegator = self.nodeDelegators[nodeID] != nil && self.nodeDelegators[nodeID][_delegatorID] != nil ? self.nodeDelegators[nodeID][_delegatorID] : self.tokenHolder.borrowDelegator()
 
                 delegator.requestUnstaking(amount: amount)
             } else {
-                let node = self.nodeStakers[nodeID]
+                let staker = self.nodeStakers[nodeID] != nil ? self.nodeStakers[nodeID] != nil : self.tokenHolder.borrowStaker()
                 
                 node.requestUnstaking(amount: amount)
             }
@@ -318,70 +290,71 @@ pub contract StakingCollection {
 
         pub fun unstakeAll(nodeID: String, delegatorID: UInt32?) {
             pre {
-                delegatorID != nil && self.nodeDelegators[nodeID] != nil:
-                    "Specified nodeID does not exist in the nodeDelegators record"
-
-                delegatorID != nil && self.nodeDelegators[nodeID][delegatorID] != nil:
-                    "Specified delegatorID for specified nodeID does not exist in the nodeDelegators record"
-
-                delegatorID == nil && self.nodeStakers[nodeID] != nil:
-                    "Specified delegatorID for specified nodeID does not exist in the nodeStakers record"
+                self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID) == false : "Specified stake does not exist"
             }
 
-            let node = self.nodeStakers[nodeID]
+            let staker = self.nodeStakers[nodeID] != nil ? self.nodeStakers[nodeID] != nil : self.tokenHolder.borrowStaker()
             
-            node.unstakeAll(amount: amount)
+            staker.unstakeAll(amount: amount)
         }
 
         pub fun withdrawUnstakedTokens(nodeID: String, delegatorID: UInt32?, amount: UFix64) { 
             pre {
-                delegatorID != nil && self.nodeDelegators[nodeID] != nil:
-                    "Specified nodeID does not exist in the nodeDelegators record"
-
-                delegatorID != nil && self.nodeDelegators[nodeID][delegatorID] != nil:
-                    "Specified delegatorID for specified nodeID does not exist in the nodeDelegators record"
-
-                delegatorID == nil && self.nodeStakers[nodeID] != nil:
-                    "Specified delegatorID for specified nodeID does not exist in the nodeStakers record"
+                self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID) == false : "Specified stake does not exist"
             }
 
-            if (delegatorID != nil) {
-                let delegator = self.nodeDelegators[nodeID][delegatorID]
+            if let _delegatorID = delegatorID {
+                let delegator = self.nodeDelegators[nodeID] != nil && self.nodeDelegators[nodeID][_delegatorID] != nil ? self.nodeDelegators[nodeID][_delegatorID] : self.tokenHolder.borrowDelegator()
 
-                self.depositTokens(nodeID: nodeID, delegatorID: delegatorID, from: <- node.withdrawUnstakedTokens(amount: amount))
+                self.nodeDelegators[nodeID] != nil && self.nodeDelegators[nodeID][_delegatorID] != nil ?
+                    self.depositTokens(nodeID: nodeID, delegatorID: delegatorID, from: <- delegator.withdrawUnstakedTokens(amount: amount))
+                    :
+                    delegator.withdrawUnstakedTokens(amount: amount)
+
             } else {
-                let node = self.nodeStakers[nodeID]
+                let staker = self.nodeStakers[nodeID] != nil ? self.nodeStakers[nodeID] != nil : self.tokenHolder.borrowStaker()
 
-                self.depositTokens(nodeID: nodeID, delegatorID: delegatorID, from: <- node.withdrawUnstakedTokens(amount: amount))
+                self.nodeStakers[nodeID] != nil ?     
+                    self.depositTokens(nodeID: nodeID, delegatorID: delegatorID, from: <- staker.withdrawUnstakedTokens(amount: amount))
+                    :
+                    staker.withdrawUnstakedTokens(amount: amount)
             }
         }
 
         pub fun withdrawRewardedTokens(nodeID: String, delegatorID: UInt32?, amount: UFix64) {
             pre {
-                delegatorID != nil && self.nodeDelegators[nodeID] != nil:
-                    "Specified nodeID does not exist in the nodeDelegators record"
-
-                delegatorID != nil && self.nodeDelegators[nodeID][delegatorID] != nil:
-                    "Specified delegatorID for specified nodeID does not exist in the nodeDelegators record"
-
-                delegatorID == nil && self.nodeStakers[nodeID] != nil:
-                    "Specified delegatorID for specified nodeID does not exist in the nodeStakers record"
+                self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID) == false : "Specified stake does not exist"
             }
 
-            if (delegatorID != nil) {
-                let delegator = self.nodeDelegators[nodeID][delegatorID]
+            if let _delegatorID = delegatorID {
+                let delegator = self.nodeDelegators[nodeID] != nil && self.nodeDelegators[nodeID][_delegatorID] != nil ? self.nodeDelegators[nodeID][_delegatorID] : self.tokenHolder.borrowDelegator()
 
-                self.depositTokens(nodeID: nodeID, delegatorID: delegatorID, from: <- node.withdrawRewardedTokens(amount: amount))
+                self.nodeDelegators[nodeID] != nil && self.nodeDelegators[nodeID][_delegatorID] != nil ?
+                    self.depositTokens(nodeID: nodeID, delegatorID: delegatorID, from: <- delegator.withdrawRewardedTokens(amount: amount))
+                    :
+                    delegator.withdrawRewardedTokens(amount: amount)
             } else {
-                let node = self.nodeStakers[nodeID]
+                let staker = self.nodeStakers[nodeID] != nil ? self.nodeStakers[nodeID] != nil : self.tokenHolder.borrowStaker()
 
-                self.depositTokens(nodeID: nodeID, delegatorID: delegatorID, from: <- node.withdrawRewardedTokens(amount: amount))
+                self.nodeStakers[nodeID] != nil ?     
+                    self.depositTokens(nodeID: nodeID, delegatorID: delegatorID, from: <- staker.withdrawRewardedTokens(amount: amount))
+                    :
+                    staker.withdrawRewardedTokens(amount: amount)
             }
         }
 
         // Getters
 
         pub fun getNodeIDs(): [String] {
+            let nodeIDs: [String] = []
+
+            if let _tokenHolder = self.tokenHolder {
+                let tokenHolderNodeID = _tokenHolder.getNodeID()
+                if let _tokenHolderNodeID = tokenHolderNodeID {
+                    nodeIDs.append(_tokenHolderNodeID)
+                }
+            }
+
             return self.nodeStakers.keys
         }
         
@@ -393,6 +366,16 @@ pub contract StakingCollection {
 
                 for delegatorID in delegatorIDs {
                     ret.append(DelegatorID(nodeID: nodeID, delegatorID: delegatorID))
+                }
+            }
+
+            if let _tokenHolder = self.tokenHolder {
+                let tokenHolderDelegatorNodeID = _tokenHolder.getDelegatorNodeID()
+                let tokenHolderDelegatorID = _tokenHolder.getDelegatorID()
+                if let _tokenHolderDelegatorNodeID = tokenHolderDelegatorNodeID {
+                    if let _tokenHolderDelegatorID = tokenHolderDelegatorID {
+                        nodeIDs.append(DelegatorID(nodeID: _tokenHolderDelegatorNodeID, delegatorID: _tokenHolderDelegatorID))
+                    }
                 }
             }
 
