@@ -5,6 +5,7 @@ import (
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
 	"github.com/onflow/flow-go-sdk"
@@ -12,7 +13,13 @@ import (
 )
 
 const (
-	numEpochAccounts = 4
+	numEpochAccounts  = 4
+	numClusters       = 4
+	startEpochCounter = 0
+	numEpochViews     = 70
+	numStakingViews   = 50
+	numDKGViews       = 2
+	randomSource      = "lolsoRandom"
 )
 
 func TestEpochDeployment(t *testing.T) {
@@ -24,32 +31,32 @@ func TestEpochDeployment(t *testing.T) {
 	// Deploys the staking contract, qc, dkg, and epoch lifecycle contract
 	// staking contract is deployed with default values (1.25M rewards, 8% cut)
 	initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
-		0,             // start epoch counter
-		70,            // num views per epoch
-		50,            // num views for staking auction
-		2,             // num views for DKG phase
-		4,             // num collector clusters
-		"lolsoRandom") // random source
+		startEpochCounter, // start epoch counter
+		numEpochViews,     // num views per epoch
+		numStakingViews,   // num views for staking auction
+		numDKGViews,       // num views for DKG phase
+		numClusters,       // num collector clusters
+		randomSource)      // random source
 
 	// Verify that the global config data for epochs was initialized correctly
 	verifyConfigMetadata(t, b, env,
 		ConfigMetadata{
-			currentEpochCounter:      0,
-			proposedEpochCounter:     1,
+			currentEpochCounter:      startEpochCounter,
+			proposedEpochCounter:     startEpochCounter + 1,
 			currentEpochPhase:        0,
-			numViewsInEpoch:          70,
-			numViewsInStakingAuction: 50,
-			numViewsInDKGPhase:       2,
-			numCollectorClusters:     4})
+			numViewsInEpoch:          numEpochViews,
+			numViewsInStakingAuction: numStakingViews,
+			numViewsInDKGPhase:       numDKGViews,
+			numCollectorClusters:     numClusters})
 
 	// Verify that the current epoch was initialized correctly
 	verifyEpochMetadata(t, b, env,
 		EpochMetadata{
-			counter:           0,
+			counter:           startEpochCounter,
 			seed:              "lolsoRandom",
 			startView:         0,
-			endView:           69,
-			stakingEndView:    49,
+			endView:           numEpochViews - 1,
+			stakingEndView:    numStakingViews - 1,
 			collectorClusters: nil,
 			clusterQCs:        nil,
 			dkgKeys:           nil})
@@ -64,13 +71,13 @@ func TestEpochClusters(t *testing.T) {
 
 	// Deploys the staking contract, qc, dkg, and epoch lifecycle contract
 	// staking contract is deployed with default values (1.25M rewards, 8% cut)
-	_ = initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
-		0,             // start epoch counter
-		8,             // num views per epoch
-		3,             // num views for staking auction
-		1,             // num views for DKG phase
-		2,             // num collector clusters
-		"lolsoRandom") // random source
+	initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
+		startEpochCounter, // start epoch counter
+		numEpochViews,     // num views per epoch
+		numStakingViews,   // num views for staking auction
+		numDKGViews,       // num views for DKG phase
+		numClusters,       // num collector clusters
+		randomSource)      // random source
 
 	t.Run("Should be able to randomize an array of strings", func(t *testing.T) {
 
@@ -78,12 +85,12 @@ func TestEpochClusters(t *testing.T) {
 		result := executeScriptAndCheck(t, b, templates.GenerateGetRandomizeScript(env), [][]byte{jsoncdc.MustEncode(idArray)})
 		assertEqual(t, 4, len(result.(cadence.Array).Values))
 
-		// TODO: Make sure that the ids in the array all match the provided IDs
+		// TODO: Make sure that the ids in the array all match the provided IDs and are in a different order
 	})
 
 	// create new user accounts, mint tokens for them, and register them for staking
 	addresses, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
-	ids := generateNodeIDs(numEpochAccounts)
+	ids, _, _ := generateNodeIDs(numEpochAccounts)
 	registerNodesForStaking(t, b, env,
 		addresses,
 		signers,
@@ -92,9 +99,9 @@ func TestEpochClusters(t *testing.T) {
 	t.Run("Should be able to create collector clusters from an array of ids signed up for staking", func(t *testing.T) {
 		idArray := cadence.NewArray([]cadence.Value{cadence.NewString(ids[0]), cadence.NewString(ids[1]), cadence.NewString(ids[2]), cadence.NewString(ids[3])})
 		result := executeScriptAndCheck(t, b, templates.GenerateGetCreateClustersScript(env), [][]byte{jsoncdc.MustEncode(idArray)})
-		assertEqual(t, 2, len(result.(cadence.Array).Values))
+		assertEqual(t, 4, len(result.(cadence.Array).Values))
 
-		// TODO: Make sure that the clusters are correct
+		// TODO: Make sure that the clusters are correct and are in a different order than the original array
 	})
 
 }
@@ -201,7 +208,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 
 	// create new user accounts, mint tokens for them, and register them for staking
 	addresses, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
-	ids := generateNodeIDs(numEpochAccounts)
+	ids, _, _ := generateNodeIDs(numEpochAccounts)
 	registerNodesForStaking(t, b, env,
 		addresses,
 		signers,
@@ -275,12 +282,12 @@ func TestEpochAdvance(t *testing.T) {
 	// Deploys the staking contract, qc, dkg, and epoch lifecycle contract
 	// staking contract is deployed with default values (1.25M rewards, 8% cut)
 	idTableAddress := initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
-		0,             // start epoch counter
-		70,            // num views per epoch
-		50,            // num views for staking auction
-		2,             // num views for DKG phase
-		4,             // num collector clusters
-		"lolsoRandom") // random source
+		startEpochCounter, // start epoch counter
+		numEpochViews,     // num views per epoch
+		numStakingViews,   // num views for staking auction
+		numDKGViews,       // num views for DKG phase
+		numClusters,       // num collector clusters
+		randomSource)      // random source
 
 	t.Run("Should not be able to advance to epoch committed or end epoch during staking", func(t *testing.T) {
 		// try to advance to the epoch committed phase
@@ -294,22 +301,101 @@ func TestEpochAdvance(t *testing.T) {
 
 	// create new user accounts, mint tokens for them, and register them for staking
 	addresses, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
-	ids := generateNodeIDs(numEpochAccounts)
+	ids, _, dkgIDs := generateNodeIDs(numEpochAccounts)
 	registerNodesForStaking(t, b, env,
 		addresses,
 		signers,
 		ids)
 
-	// Advance to epoch Setup and make sure that the epoch cannot be ended
-	advanceView(t, b, env, idTableAddress, IDTableSigner, 1, 0, false)
+	t.Run("Proposed metadata, QC, and DKG should have been created properly for epoch setup", func(t *testing.T) {
+
+		// Advance to epoch Setup and make sure that the epoch cannot be ended
+		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, 0, false)
+
+		verifyConfigMetadata(t, b, env,
+			ConfigMetadata{
+				currentEpochCounter:      startEpochCounter,
+				proposedEpochCounter:     startEpochCounter + 1,
+				currentEpochPhase:        1,
+				numViewsInEpoch:          numEpochViews,
+				numViewsInStakingAuction: numStakingViews,
+				numViewsInDKGPhase:       numDKGViews,
+				numCollectorClusters:     numClusters})
+
+		// Verify that the proposed epoch metadata was initialized correctly
+		clusters := []Cluster{Cluster{index: 0, totalWeight: 100, size: 1},
+			Cluster{index: 1, totalWeight: 0, size: 0},
+			Cluster{index: 2, totalWeight: 0, size: 0},
+			Cluster{index: 3, totalWeight: 0, size: 0}}
+
+		verifyEpochMetadata(t, b, env,
+			EpochMetadata{
+				counter:           startEpochCounter + 1,
+				seed:              "",
+				startView:         numEpochViews,
+				endView:           2*numEpochViews - 1,
+				stakingEndView:    numEpochViews + numStakingViews - 1,
+				collectorClusters: clusters,
+				clusterQCs:        nil,
+				dkgKeys:           nil})
+
+		verifyEpochSetup(t, b, idTableAddress,
+			EpochSetup{
+				counter:            startEpochCounter + 1,
+				nodeInfoLength:     numEpochAccounts,
+				firstView:          numEpochViews,
+				finalView:          2*numEpochViews - 1,
+				collectorClusters:  clusters,
+				randomSource:       "",
+				dkgPhase1FinalView: numEpochViews + numStakingViews + numDKGViews - 1,
+				dkgPhase2FinalView: numEpochViews + numStakingViews + 2*numDKGViews - 1,
+				dkgPhase3FinalView: numEpochViews + numStakingViews + 3*numDKGViews - 1})
+
+		// QC Contract Checks
+		result := executeScriptAndCheck(t, b, templates.GenerateGetClusterWeightScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt16(uint16(0)))})
+		assert.Equal(t, cadence.NewUInt64(100), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetNodeWeightScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt16(uint16(0))), jsoncdc.MustEncode(cadence.String(ids[0]))})
+		assert.Equal(t, cadence.NewUInt64(100), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetClusterVoteThresholdScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt16(uint16(0)))})
+		assert.Equal(t, cadence.NewUInt64(67), result)
+
+		// DKG Contract Checks
+		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGEnabledScript(env), nil)
+		assert.Equal(t, cadence.NewBool(true), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGNodeIsRegisteredScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(ids[1]))})
+		assert.Equal(t, cadence.NewBool(true), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetConsensusNodesScript(env), nil)
+		assert.Equal(t, cadence.NewArray(dkgIDs), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGFinalSubmissionsScript(env), nil)
+		assert.Equal(t, cadence.NewArray(make([]cadence.Value, 0)), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGCompletedScript(env), nil)
+		assert.Equal(t, cadence.NewBool(false), result)
+
+	})
 
 	t.Run("Should not be able to advance to epoch committed or end epoch during epoch committed if nothing has happened", func(t *testing.T) {
 		// try to advance to the epoch committed phase
-		// should fail
-		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, 1, true)
+		// will not panic, but no state has changed
+		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, 1, false)
+
+		verifyConfigMetadata(t, b, env,
+			ConfigMetadata{
+				currentEpochCounter:      startEpochCounter,
+				proposedEpochCounter:     startEpochCounter + 1,
+				currentEpochPhase:        1,
+				numViewsInEpoch:          numEpochViews,
+				numViewsInStakingAuction: numStakingViews,
+				numViewsInDKGPhase:       numDKGViews,
+				numCollectorClusters:     numClusters})
 
 		// try to advance to the end epoch phase
-		// should fail
+		// will fail
 		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, 2, true)
 	})
 
@@ -333,7 +419,7 @@ func TestEpochQCDKGNodeRegistration(t *testing.T) {
 
 	// create new user accounts, mint tokens for them, and register them for staking
 	addresses, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
-	ids := generateNodeIDs(numEpochAccounts)
+	ids, _, _ := generateNodeIDs(numEpochAccounts)
 	registerNodesForStaking(t, b, env,
 		addresses,
 		signers,
@@ -385,6 +471,29 @@ func TestEpochQCDKGNodeRegistration(t *testing.T) {
 			[]flow.Address{b.ServiceKey().Address, addresses[0]},
 			[]crypto.Signer{b.ServiceKey().Signer(), signers[0]},
 			true,
+		)
+	})
+
+	t.Run("Should be able to register a QC voter or DKG participant during epoch setup", func(t *testing.T) {
+
+		// Should fail because nodes cannot register if it is during the staking auction
+		// even if they are the correct node type
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochRegisterQCVoterScript(env), addresses[0])
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, addresses[0]},
+			[]crypto.Signer{b.ServiceKey().Signer(), signers[0]},
+			false,
+		)
+
+		// Should fail because nodes cannot register if it is during the staking auction
+		// even if they are the correct node type
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochRegisterDKGParticipantScript(env), addresses[1])
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, addresses[1]},
+			[]crypto.Signer{b.ServiceKey().Signer(), signers[1]},
+			false,
 		)
 	})
 }

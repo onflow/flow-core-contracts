@@ -16,13 +16,19 @@ import (
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
 )
 
+type Cluster struct {
+	index       uint16
+	totalWeight uint64
+	size        uint16
+}
+
 type EpochMetadata struct {
 	counter           uint64
 	seed              string
 	startView         uint64
 	endView           uint64
 	stakingEndView    uint64
-	collectorClusters []uint16
+	collectorClusters []Cluster
 	clusterQCs        [][]string
 	dkgKeys           []string
 }
@@ -39,12 +45,45 @@ type ConfigMetadata struct {
 
 type EpochSetup struct {
 	counter            uint64
+	nodeInfoLength     int
 	firstView          uint64
 	finalView          uint64
+	collectorClusters  []Cluster
 	randomSource       string
 	dkgPhase1FinalView uint64
 	dkgPhase2FinalView uint64
 	dkgPhase3FinalView uint64
+}
+
+type EpochSetupEvent flow.Event
+
+func (evt EpochSetupEvent) Counter() cadence.UInt64 {
+	return evt.Value.Fields[0].(cadence.UInt64)
+}
+
+func (evt EpochSetupEvent) NodeInfo() cadence.Array {
+	return evt.Value.Fields[1].(cadence.Array)
+}
+
+func (evt EpochSetupEvent) firstView() cadence.UInt64 {
+	return evt.Value.Fields[2].(cadence.UInt64)
+}
+
+func (evt EpochSetupEvent) finalView() cadence.UInt64 {
+	return evt.Value.Fields[3].(cadence.UInt64)
+}
+
+func (evt EpochSetupEvent) collectorClusters() cadence.Array {
+	return evt.Value.Fields[4].(cadence.Array)
+}
+
+func (evt EpochSetupEvent) randomSource() cadence.String {
+	return evt.Value.Fields[5].(cadence.String)
+}
+
+func (evt EpochSetupEvent) dkgFinalViews() (cadence.UInt64, cadence.UInt64, cadence.UInt64) {
+	fields := evt.Value.Fields
+	return fields[6].(cadence.UInt64), fields[7].(cadence.UInt64), fields[8].(cadence.UInt64)
 }
 
 type EpochCommitted struct {
@@ -186,6 +225,31 @@ func registerNodesForStaking(
 	}
 }
 
+func verifyClusters(
+	t *testing.T,
+	expectedClusters []Cluster,
+	actualClusters []cadence.Value) {
+
+	i := 0
+
+	// Iterate through all the clusters and make sure their index, weight, and size is correct
+	for _, expectedCluster := range expectedClusters {
+		cluster := actualClusters[i].(cadence.Struct).Fields
+
+		index := cluster[0]
+		assertEqual(t, cadence.NewUInt16(expectedCluster.index), index)
+
+		totalWeight := cluster[2]
+		assertEqual(t, cadence.NewUInt64(expectedCluster.totalWeight), totalWeight)
+
+		size := len(cluster[1].(cadence.Dictionary).Pairs)
+		assertEqual(t, cadence.NewUInt16(expectedCluster.size), cadence.NewUInt16(uint16(size)))
+
+		i = i + 1
+	}
+
+}
+
 func verifyEpochMetadata(
 	t *testing.T,
 	b *emulator.Blockchain,
@@ -198,8 +262,10 @@ func verifyEpochMetadata(
 	counter := metadataFields[0]
 	assertEqual(t, cadence.NewUInt64(expectedMetadata.counter), counter)
 
-	seed := metadataFields[1]
-	assertEqual(t, cadence.NewString(expectedMetadata.seed), seed)
+	if len(expectedMetadata.seed) != 0 {
+		seed := metadataFields[1]
+		assertEqual(t, cadence.NewString(expectedMetadata.seed), seed)
+	}
 
 	startView := metadataFields[2]
 	assertEqual(t, cadence.NewUInt64(expectedMetadata.startView), startView)
@@ -211,7 +277,9 @@ func verifyEpochMetadata(
 	assertEqual(t, cadence.NewUInt64(expectedMetadata.stakingEndView), stakingEndView)
 
 	if expectedMetadata.collectorClusters != nil {
-		// check collector clusters
+		clusters := metadataFields[5].(cadence.Array).Values
+
+		verifyClusters(t, expectedMetadata.collectorClusters, clusters)
 	}
 
 	clusterQCs := metadataFields[6].(cadence.Array).Values
@@ -278,14 +346,45 @@ func verifyConfigMetadata(
 
 }
 
-// func verifyEpochSetup(
-// 	t *testing.T,
-// 	b *emulator.Blockchain,
-// 	epochAddress flow.Address,
-// 	setup EpochSetup)
-// {
+func verifyEpochSetup(
+	t *testing.T,
+	b *emulator.Blockchain,
+	epochAddress flow.Address,
+	expectedSetup EpochSetup) {
 
-// }
+	var emittedEvent EpochSetupEvent
+
+	var i uint64
+	i = 0
+	for i < 1000 {
+		results, _ := b.GetEventsByHeight(i, "A."+epochAddress.String()+".FlowEpoch.EpochSetup")
+
+		for _, event := range results {
+			if event.Type == "A."+epochAddress.String()+".FlowEpoch.EpochSetup" {
+				emittedEvent = EpochSetupEvent(event)
+			}
+		}
+
+		i = i + 1
+	}
+
+	assertEqual(t, cadence.NewUInt64(expectedSetup.counter), emittedEvent.Counter())
+
+	// node info
+	assertEqual(t, expectedSetup.nodeInfoLength, len(emittedEvent.NodeInfo().Values))
+
+	assertEqual(t, cadence.NewUInt64(expectedSetup.firstView), emittedEvent.firstView())
+	assertEqual(t, cadence.NewUInt64(expectedSetup.finalView), emittedEvent.finalView())
+
+	// clusters
+	verifyClusters(t, expectedSetup.collectorClusters, emittedEvent.collectorClusters().Values)
+
+	phase1View, phase2View, phase3View := emittedEvent.dkgFinalViews()
+	assertEqual(t, cadence.NewUInt64(expectedSetup.dkgPhase1FinalView), phase1View)
+	assertEqual(t, cadence.NewUInt64(expectedSetup.dkgPhase2FinalView), phase2View)
+	assertEqual(t, cadence.NewUInt64(expectedSetup.dkgPhase3FinalView), phase3View)
+
+}
 
 // func verifyEpochCommitted(
 // 	t *testing.T,

@@ -384,6 +384,7 @@ pub contract FlowEpoch {
     }
 
     /// Starts the EpochSetup phase and emits the epoch setup event
+    /// This has to be called directly after `endStakingAuction`
     access(account) fun startEpochSetup(randomSource: String) {
 
         // Get all the nodes that are proposed for the next epoch
@@ -398,8 +399,8 @@ pub contract FlowEpoch {
         // Holds node IDs of only consensus nodes for DKG
         var consensusNodeIDs: [String] = []
 
-        // Get nodeinfo for all the nodes
-        // get all the collector and consensus nodes
+        // Get NodeInfo for all the nodes
+        // Get all the collector and consensus nodes
         // to initialize the QC and DKG
         for id in ids {
             let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: id)
@@ -445,9 +446,9 @@ pub contract FlowEpoch {
                         finalView: proposedEpochMetadata.endView,
                         collectorClusters: collectorClusters,
                         randomSource: randomSource,
-                        DKGPhase1FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + self.configurableMetadata.numViewsInDKGPhase,
-                        DKGPhase2FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + (2 as UInt64 * self.configurableMetadata.numViewsInDKGPhase),
-                        DKGPhase3FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + (3 as UInt64 * self.configurableMetadata.numViewsInDKGPhase))
+                        DKGPhase1FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + self.configurableMetadata.numViewsInDKGPhase - 1 as UInt64,
+                        DKGPhase2FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + (2 as UInt64 * self.configurableMetadata.numViewsInDKGPhase) - 1 as UInt64,
+                        DKGPhase3FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + (3 as UInt64 * self.configurableMetadata.numViewsInDKGPhase) - 1 as UInt64)
     }
 
     /// Ends the EpochSetup phase when the QC and DKG are completed
@@ -485,6 +486,9 @@ pub contract FlowEpoch {
 
     /// Emits the epoch committed event with the results from the QC and DKG
     access(account) fun startEpochCommitted() {
+        if !FlowEpochClusterQC.votingCompleted() || FlowDKG.dkgCompleted() == nil {
+            return
+        }
 
         self.currentEpochPhase = EpochPhase.EPOCHCOMMITTED
 
@@ -606,7 +610,7 @@ pub contract FlowEpoch {
     /// Returns the metadata from the specified epoch
     /// or nil if it isn't found
     pub fun getEpochMetadata(_ epochCounter: UInt64): EpochMetadata? {
-        return self.epochMetadata[self.currentEpochCounter]
+        return self.epochMetadata[epochCounter]
     }
 
     /// Returns the metadata that is able to be configured by the admin

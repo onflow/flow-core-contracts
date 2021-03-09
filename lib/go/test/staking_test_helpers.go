@@ -71,14 +71,22 @@ func deployStakingContract(t *testing.T, b *emulator.Blockchain, IDTableAccountK
 	return idTableAddress
 }
 
-func generateNodeIDs(numNodes int) []string {
+func generateNodeIDs(numNodes int) ([]string, []cadence.Value, []cadence.Value) {
 	ids := make([]string, numNodes)
+	qcIDs := make([]cadence.Value, numNodes/5+1)
+	dkgIDs := make([]cadence.Value, numNodes/5+1)
 
 	for i := 0; i < numNodes; i++ {
 		ids[i] = fmt.Sprintf("%064d", i)
+
+		if i == 0 {
+			qcIDs[i/5] = cadence.NewString(ids[i])
+		} else if i == 1 {
+			dkgIDs[i/5] = cadence.NewString(ids[i])
+		}
 	}
 
-	return ids
+	return ids, qcIDs, dkgIDs
 }
 
 func registerNode(t *testing.T,
