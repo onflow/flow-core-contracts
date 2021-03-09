@@ -5,11 +5,11 @@
 
  */
 
-// import FungibleToken from 0xFUNGIBLETOKENADDRESS
-// import FlowToken from 0xFLOWTOKENADDRESS
-// import FlowIDTableStaking from 0xFLOWIDTABLESTAKINGADDRESS
-// import StakingProxy from 0xSTAKINGPROXYADDRESS
-// import LockedTokens from 0xLOCKEDTOKENSADDRESS
+import FungibleToken from 0xFUNGIBLETOKENADDRESS
+import FlowToken from 0xFLOWTOKENADDRESS
+import FlowIDTableStaking from 0xFLOWIDTABLESTAKINGADDRESS
+import StakingProxy from 0xSTAKINGPROXYADDRESS
+import LockedTokens from 0xLOCKEDTOKENSADDRESS
 
 pub contract StakingCollection {
 
@@ -138,14 +138,12 @@ pub contract StakingCollection {
                         _lockedValutHolder.deposit(from: <- from.withdraw(amount: self.unlockedTokensUsed))
                     }
                 }
-                
+
             }
 
-            if from.balance > 0 {
-                self.lockedTokensUsed = self.lockedTokensUsed - from.balance
+            self.lockedTokensUsed = self.lockedTokensUsed - from.balance
 
-                _lockedValutHolder.deposit(from: <-from)
-            }
+            _lockedValutHolder.deposit(from: <-from)
         }
 
         access(self) fun doesStakeExist(nodeID: String, delegatorID: UInt32?): Bool {
@@ -418,10 +416,10 @@ pub contract StakingCollection {
         }
         
         pub fun getDelegatorIDs(): [DelegatorID] {
-            let nodeIDs: [String] = self.nodeStakers.keys
+            let nodeIDs: [String] = self.nodeDelegators.keys
             let delegatorIDs: [DelegatorID] = []
             for nodeID in nodeIDs {
-                let delegatorIDs: [UInt32] = self.nodeStakers[nodeID]
+                let delegatorIDs: [UInt32] = self.nodeDelegators[nodeID]
 
                 for delegatorID in delegatorIDs {
                     ret.append(DelegatorID(nodeID: nodeID, delegatorID: delegatorID))
@@ -443,27 +441,91 @@ pub contract StakingCollection {
         }
 
         pub fun getAllNodeInfo(): {String: FlowIDTableStaking.NodeInfo} {
-            return self.nodeStakers
+            let nodeInfo = {}
+
+            let nodeIDs: [String] = self.nodeStakers.keys
+            for nodeID in nodeIDs {
+                nodeInfo[nodeID] = FlowIDTableStaking.NodeInfo(nodeID: nodeID)
+            }
+
+            if let _tokenHolder = self.tokenHolder {
+                let tokenHolderNodeID = _tokenHolder.getNodeID()
+                if let _tokenHolderNodeID = tokenHolderNodeID {
+                    nodeInfo[_tokenHolderNodeID] = FlowIDTableStaking.NodeInfo(nodeID: _tokenHolderNodeID)
+                }
+            }
+
+            return nodeInfo
         }
 
         pub fun getAllDelegatorInfo(): {String: {UInt32: FlowIDTableStaking.DelegatorInfo}} {
-            return self.nodeDelegators
+            let nodeInfo = {}
+
+            let nodeIDs: [String] = self.nodeDelegators.keys
+            for nodeID in nodeIDs {
+                let delegatorIDs: [UInt32] = self.nodeDelegators[nodeID]
+
+                for delegatorID in delegatorIDs {
+                    nodeInfo[nodeID][delegatorID] = FlowIDTableStaking.DelegatorInfo(nodeID: nodeID, delegatorID: delegatorID)
+                }
+            }
+
+            if let _tokenHolder = self.tokenHolder {
+                let tokenHolderDelegatorNodeID = _tokenHolder.getDelegatorNodeID()
+                let tokenHolderDelegatorID = _tokenHolder.getDelegatorID()
+
+                if let _tokenHolderDelegatorNodeID = tokenHolderDelegatorNodeID {
+                    if let _tokenHolderDelegatorID = tokenHolderDelegatorID {
+                        nodeInfo[_tokenHolderDelegatorNodeID][_tokenHolderDelegatorID] = FlowIDTableStaking.DelegatorInfo(nodeID: _tokenHolderDelegatorNodeID, delegatorID: _tokenHolderDelegatorID)
+                    }
+                }
+            }
+
+            return nodeInfo
         }
 
     } 
 
     // getter functions for account staking information
 
-    pub fun getNodeIDs(address: Address): [String] {}
+    pub fun getNodeIDs(address: Address): [String] {
+        let account = getAccount(address)
+
+        let stakingCollectionRef = account.borrow<&Collection{StakingCollectionPublic}>(from: StakingCollectionPublicPath)
+            ?? panic("Could not borrow ref to StakingCollection")
+
+        return stakingCollectionRef.getNodeIDs()
+    }
         
-    pub fun getDelegatorIDs(address: Address): [DelegatorIDs] {}
+    pub fun getDelegatorIDs(address: Address): [DelegatorIDs] {
+        let account = getAccount(address)
 
-    pub fun getAllNodeInfo(address: Address): [{String: FlowIDTableStaking.NodeInfo} {}
+        let stakingCollectionRef = account.borrow<&Collection{StakingCollectionPublic}>(from: StakingCollectionPublicPath)
+            ?? panic("Could not borrow ref to StakingCollection")
 
-    pub fun getAllDelegatorInfo(address: Address): {String: {UInt32: FlowIDTableStaking.DelegatorInfo}} {}
+        return stakingCollectionRef.getDelegatorIDs()
+    }
+
+    pub fun getAllNodeInfo(address: Address): {String: FlowIDTableStaking.NodeInfo} {
+        let account = getAccount(address)
+
+        let stakingCollectionRef = account.borrow<&Collection{StakingCollectionPublic}>(from: StakingCollectionPublicPath)
+            ?? panic("Could not borrow ref to StakingCollection")
+
+        return stakingCollectionRef.getAllNodeInfo()
+    }
+
+    pub fun getAllDelegatorInfo(address: Address): {String: {UInt32: FlowIDTableStaking.DelegatorInfo}} {
+        let account = getAccount(address)
+
+        let stakingCollectionRef = account.borrow<&Collection{StakingCollectionPublic}>(from: StakingCollectionPublicPath)
+            ?? panic("Could not borrow ref to StakingCollection")
+
+        return stakingCollectionRef.getAllDelegatorInfo()
+    }
 
     init() {
-        self.StakingCollectionStoragePath = /storage/nodeOperator
-        self.StakingCollectionPublicPath = /public/nodeOperator
+        self.StakingCollectionStoragePath = /storage/stakingCollection
+        self.StakingCollectionPublicPath = /public/stakingCollection
     }
 }
