@@ -109,17 +109,17 @@ pub contract FlowEpoch {
         // previous EpochSetup event.
         counter: UInt64,
 
-        // The resulting public keys from the DKG process, encoded as by the flow-go
-        // crypto library, then hex-encoded.
-        // TODO: define ordering
-        // Group public key is the last element
-        dkgPubKeys: [String],
-
         // The result of the QC aggregation process. Each element contains 
         // all the nodes and votes received for a particular cluster
         // QC stands for quorum certificate that each cluster generates.
         // TODO: define ordering
         clusterQCs: [FlowEpochClusterQC.ClusterQC]
+
+        // The resulting public keys from the DKG process, encoded as by the flow-go
+        // crypto library, then hex-encoded.
+        // TODO: define ordering
+        // Group public key is the last element
+        dkgPubKeys: [String],
     )
 
     pub struct EpochMetadata {
@@ -293,7 +293,7 @@ pub contract FlowEpoch {
                     }
                 case EpochPhase.EPOCHSETUP:
                     if FlowEpochClusterQC.votingCompleted() && (FlowDKG.dkgCompleted() != nil) {
-                        self.endEpochSetup()
+                        self.startEpochCommitted()
                     }
                 case EpochPhase.EPOCHCOMMITTED:
                     if currentBlock.view >= currentEpochMetadata.endView {
@@ -314,11 +314,10 @@ pub contract FlowEpoch {
             FlowEpoch.startEpochSetup(randomSource: unsafeRandom().toString())
         }
 
-        pub fun endEpochSetup() {
+        pub fun startEpochCommitted() {
             pre {
                 FlowEpoch.currentEpochPhase == EpochPhase.EPOCHSETUP: "Can only end Epoch Setup during epoch setup"
             }
-            FlowEpoch.endEpochSetup()
 
             FlowEpoch.startEpochCommitted()
         }
@@ -452,7 +451,8 @@ pub contract FlowEpoch {
     }
 
     /// Ends the EpochSetup phase when the QC and DKG are completed
-    access(account) fun endEpochSetup() {
+    /// and emits the EpochCommitted event with the results
+    access(account) fun startEpochCommitted() {
         if !FlowEpochClusterQC.votingCompleted() || FlowDKG.dkgCompleted() == nil {
             return
         }
@@ -482,22 +482,12 @@ pub contract FlowEpoch {
         let dkgKeys = FlowDKG.dkgCompleted()!
         self.epochMetadata[self.proposedEpochCounter()]!.setDKGGroupKey(keys: dkgKeys)
         self.DKGAdmin.endDKG()
-    }
-
-    /// Emits the epoch committed event with the results from the QC and DKG
-    access(account) fun startEpochCommitted() {
-        if !FlowEpochClusterQC.votingCompleted() || FlowDKG.dkgCompleted() == nil {
-            return
-        }
 
         self.currentEpochPhase = EpochPhase.EPOCHCOMMITTED
 
-        let dkgKeys = self.epochMetadata[self.proposedEpochCounter()]!.dkgKeys
-        let clusterQCs = self.epochMetadata[self.proposedEpochCounter()]!.clusterQCs
-
         emit EpochCommitted(counter: self.proposedEpochCounter(),
-                            dkgPubKeys: dkgKeys,
-                            clusterQCs: clusterQCs)
+                            clusterQCs: clusterQCs,
+                            dkgPubKeys: dkgKeys)
     }
 
     /// borrow a reference to the ClusterQCs resource

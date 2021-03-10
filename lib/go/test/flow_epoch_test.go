@@ -1,11 +1,13 @@
 package test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
 	"github.com/onflow/flow-go-sdk"
@@ -498,7 +500,7 @@ func TestEpochQCDKGNodeRegistration(t *testing.T) {
 	})
 }
 
-func TestEpochStakingAuction(t *testing.T) {
+func TestEpochQCDKG(t *testing.T) {
 	b, accountKeys, env := newTestSetup(t)
 
 	// Create new keys for the epoch account
@@ -506,28 +508,174 @@ func TestEpochStakingAuction(t *testing.T) {
 
 	// Deploys the staking contract, qc, dkg, and epoch lifecycle contract
 	// staking contract is deployed with default values (1.25M rewards, 8% cut)
-	_ = initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
-		0,             // start epoch counter
-		8,             // num views per epoch
-		3,             // num views for staking auction
-		1,             // num views for DKG phase
-		1,             // num collector clusters
-		"lolsoRandom") // random source
+	idTableAddress := initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
+		startEpochCounter, // start epoch counter
+		numEpochViews,     // num views per epoch
+		numStakingViews,   // num views for staking auction
+		numDKGViews,       // num views for DKG phase
+		numClusters,       // num collector clusters
+		randomSource)      // random source
 
-	// t.Run("Should be able to advance to epoch setup", func(t *testing.T) {
+	// create new user accounts, mint tokens for them, and register them for staking
+	addresses, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
+	ids, _, _ := generateNodeIDs(numEpochAccounts)
+	registerNodesForStaking(t, b, env,
+		addresses,
+		signers,
+		ids)
 
-	// 	advanceView(t, b, env, idTableAddress, IDTableSigner, 1, 0)
+	// Advance to epoch Setup and make sure that the epoch cannot be ended
+	advanceView(t, b, env, idTableAddress, IDTableSigner, 1, 0, false)
 
-	// 	verifyConfigMetadata(t, b, env,
-	// 		ConfigMetadata{
-	// 			currentEpochCounter:      0,
-	// 			proposedEpochCounter:     1,
-	// 			currentEpochPhase:        1,
-	// 			numViewsInEpoch:          10,
-	// 			numViewsInStakingAuction: 4,
-	// 			numViewsInDKGPhase:       2,
-	// 			numCollectorClusters:     2})
+	// Should fail because nodes cannot register if it is during the staking auction
+	// even if they are the correct node type
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochRegisterQCVoterScript(env), addresses[0])
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, addresses[0]},
+		[]crypto.Signer{b.ServiceKey().Signer(), signers[0]},
+		false,
+	)
 
-	// })
+	// Should fail because nodes cannot register if it is during the staking auction
+	// even if they are the correct node type
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochRegisterDKGParticipantScript(env), addresses[1])
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, addresses[1]},
+		[]crypto.Signer{b.ServiceKey().Signer(), signers[1]},
+		false,
+	)
 
+	dkgKey1 := fmt.Sprintf("%0192d", admin)
+	finalKeyStrings := make([]string, 2)
+	finalKeyStrings[0] = dkgKey1
+	finalKeyStrings[1] = dkgKey1
+	finalSubmissionKeys := make([]cadence.Value, 2)
+	finalSubmissionKeys[0] = cadence.NewString(dkgKey1)
+	finalSubmissionKeys[1] = cadence.NewString(dkgKey1)
+
+	t.Run("Can perform DKG actions during Epoch Setup but cannot advance until QC is complete", func(t *testing.T) {
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGWhiteboardMessageScript(env), addresses[1])
+
+		_ = tx.AddArgument(cadence.NewString("hello world!"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, addresses[1]},
+			[]crypto.Signer{b.ServiceKey().Signer(), signers[1]},
+			false,
+		)
+
+		finalSubmissionKeys[0] = cadence.NewString(dkgKey1)
+		finalSubmissionKeys[1] = cadence.NewString(dkgKey1)
+
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGFinalSubmissionScript(env), addresses[1])
+
+		err := tx.AddArgument(cadence.NewArray(finalSubmissionKeys))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, addresses[1]},
+			[]crypto.Signer{b.ServiceKey().Signer(), signers[1]},
+			false,
+		)
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGCompletedScript(env), nil)
+		assert.Equal(t, cadence.NewBool(true), result)
+
+		// try to advance to the epoch committed phase
+		// will not panic, but no state has changed
+		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, 1, false)
+
+		verifyConfigMetadata(t, b, env,
+			ConfigMetadata{
+				currentEpochCounter:      startEpochCounter,
+				proposedEpochCounter:     startEpochCounter + 1,
+				currentEpochPhase:        1,
+				numViewsInEpoch:          numEpochViews,
+				numViewsInStakingAuction: numStakingViews,
+				numViewsInDKGPhase:       numDKGViews,
+				numCollectorClusters:     numClusters})
+
+	})
+
+	clusterQCs := make([][]string, numClusters)
+	clusterQCs[0] = make([]string, 1)
+	clusterQCs[0][0] = "0000000000000000000000000000000000000000000000000000000000000000"
+
+	t.Run("Can perform QC actions during Epoch Setup and advance to EpochCommitted", func(t *testing.T) {
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), addresses[0])
+
+		_ = tx.AddArgument(cadence.NewString("0000000000000000000000000000000000000000000000000000000000000000"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, addresses[0]},
+			[]crypto.Signer{b.ServiceKey().Signer(), signers[0]},
+			false,
+		)
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetNodeHasVotedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(ids[0]))})
+		assert.Equal(t, cadence.NewBool(true), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetVotingCompletedScript(env), nil)
+		assert.Equal(t, cadence.NewBool(true), result)
+
+		// Advance to epoch committed
+		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, 1, false)
+
+		verifyConfigMetadata(t, b, env,
+			ConfigMetadata{
+				currentEpochCounter:      startEpochCounter,
+				proposedEpochCounter:     startEpochCounter + 1,
+				currentEpochPhase:        2,
+				numViewsInEpoch:          numEpochViews,
+				numViewsInStakingAuction: numStakingViews,
+				numViewsInDKGPhase:       numDKGViews,
+				numCollectorClusters:     numClusters})
+
+		verifyEpochCommitted(t, b, idTableAddress,
+			EpochCommitted{
+				counter:    startEpochCounter + 1,
+				dkgPubKeys: finalKeyStrings,
+				clusterQCs: clusterQCs})
+
+	})
+
+	t.Run("Can end the Epoch and start a new Epoch", func(t *testing.T) {
+
+		// Advance to new epoch
+		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, 2, false)
+
+		verifyConfigMetadata(t, b, env,
+			ConfigMetadata{
+				currentEpochCounter:      startEpochCounter + 1,
+				proposedEpochCounter:     startEpochCounter + 2,
+				currentEpochPhase:        0,
+				numViewsInEpoch:          numEpochViews,
+				numViewsInStakingAuction: numStakingViews,
+				numViewsInDKGPhase:       numDKGViews,
+				numCollectorClusters:     numClusters})
+
+		clusters := []Cluster{Cluster{index: 0, totalWeight: 100, size: 1},
+			Cluster{index: 1, totalWeight: 0, size: 0},
+			Cluster{index: 2, totalWeight: 0, size: 0},
+			Cluster{index: 3, totalWeight: 0, size: 0}}
+
+		verifyEpochMetadata(t, b, env,
+			EpochMetadata{
+				counter:           startEpochCounter + 1,
+				seed:              "",
+				startView:         numEpochViews,
+				endView:           2*numEpochViews - 1,
+				stakingEndView:    numEpochViews + numStakingViews - 1,
+				collectorClusters: clusters,
+				clusterQCs:        clusterQCs,
+				dkgKeys:           finalKeyStrings})
+
+	})
 }

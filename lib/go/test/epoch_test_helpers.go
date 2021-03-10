@@ -88,8 +88,22 @@ func (evt EpochSetupEvent) dkgFinalViews() (cadence.UInt64, cadence.UInt64, cade
 
 type EpochCommitted struct {
 	counter    uint64
-	dkgPubKeys []string
 	clusterQCs [][]string
+	dkgPubKeys []string
+}
+
+type EpochCommittedEvent flow.Event
+
+func (evt EpochCommittedEvent) Counter() cadence.UInt64 {
+	return evt.Value.Fields[0].(cadence.UInt64)
+}
+
+func (evt EpochCommittedEvent) clusterQCs() cadence.Array {
+	return evt.Value.Fields[1].(cadence.Array)
+}
+
+func (evt EpochCommittedEvent) dkgPubKeys() cadence.Array {
+	return evt.Value.Fields[2].(cadence.Array)
 }
 
 func deployQCDKGContract(t *testing.T, b *emulator.Blockchain, idTableAddress flow.Address, IDTableSigner crypto.Signer, env templates.Environment) {
@@ -250,6 +264,29 @@ func verifyClusters(
 
 }
 
+func verifyClusterQCs(
+	t *testing.T,
+	expectedQCs [][]string,
+	actualQCs []cadence.Value) {
+
+	if expectedQCs == nil {
+		assert.Empty(t, actualQCs)
+	} else {
+		i := 0
+		for _, qc := range actualQCs {
+			qcStructVotes := qc.(cadence.Struct).Fields[0].(cadence.Array).Values
+
+			j := 0
+			// Verify that each element is correct across the cluster
+			for _, vote := range qcStructVotes {
+				assertEqual(t, cadence.NewString(expectedQCs[i][j]), vote)
+			}
+			fmt.Printf(qc.String())
+			i = i + 1
+		}
+	}
+}
+
 func verifyEpochMetadata(
 	t *testing.T,
 	b *emulator.Blockchain,
@@ -283,22 +320,7 @@ func verifyEpochMetadata(
 	}
 
 	clusterQCs := metadataFields[6].(cadence.Array).Values
-	if expectedMetadata.clusterQCs == nil {
-		assert.Empty(t, clusterQCs)
-	} else {
-		i := 0
-		for _, qc := range clusterQCs {
-			qcStructVotes := qc.(cadence.Struct).Fields[0].(cadence.Array).Values
-
-			j := 0
-			// Verify that each element is correct across the cluster
-			for _, vote := range qcStructVotes {
-				assertEqual(t, cadence.NewString(expectedMetadata.clusterQCs[i][j]), vote)
-			}
-			fmt.Printf(qc.String())
-			i = i + 1
-		}
-	}
+	verifyClusterQCs(t, expectedMetadata.clusterQCs, clusterQCs)
 
 	dkgKeys := metadataFields[7].(cadence.Array).Values
 	if expectedMetadata.dkgKeys == nil {
@@ -386,11 +408,33 @@ func verifyEpochSetup(
 
 }
 
-// func verifyEpochCommitted(
-// 	t *testing.T,
-// 	b *emulator.Blockchain,
-// 	epochAddress flow.Address,
-// 	committed EpochCommitted)
-// {
+func verifyEpochCommitted(
+	t *testing.T,
+	b *emulator.Blockchain,
+	epochAddress flow.Address,
+	expectedCommitted EpochCommitted) {
+	var emittedEvent EpochCommittedEvent
 
-// }
+	var i uint64
+	i = 0
+	for i < 1000 {
+		results, _ := b.GetEventsByHeight(i, "A."+epochAddress.String()+".FlowEpoch.EpochCommitted")
+
+		for _, event := range results {
+			if event.Type == "A."+epochAddress.String()+".FlowEpoch.EpochCommitted" {
+				emittedEvent = EpochCommittedEvent(event)
+			}
+		}
+
+		i = i + 1
+	}
+
+	assertEqual(t, cadence.NewUInt64(expectedCommitted.counter), emittedEvent.Counter())
+
+	// dkg result
+	assertEqual(t, len(expectedCommitted.dkgPubKeys), len(emittedEvent.dkgPubKeys().Values))
+
+	// quorum certificates
+	verifyClusterQCs(t, expectedCommitted.clusterQCs, emittedEvent.clusterQCs().Values)
+
+}

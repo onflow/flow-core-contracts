@@ -19,7 +19,7 @@ transaction(phase: Int) {
             }
             heartbeat.endStakingAuction(approvedIDs: approvedIDs)
         } else if phase == 1 {
-            heartbeat.endEpochSetup()
+            heartbeat.startEpochCommitted()
         } else if phase == 2 {
             heartbeat.endEpoch()
         } else {
