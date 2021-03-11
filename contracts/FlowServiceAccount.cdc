@@ -5,16 +5,11 @@ import FlowStorageFees from 0xFLOWSTORAGEFEESADDRESS
 
 pub contract FlowServiceAccount {
 
-    pub event TransactionFeeUpdated(newFee: UFix64)
-
     pub event AccountCreationFeeUpdated(newFee: UFix64)
 
     pub event AccountCreatorAdded(accountCreator: Address)
 
     pub event AccountCreatorRemoved(accountCreator: Address)
-
-    // A fixed-rate fee charged to execute a transaction
-    pub var transactionFee: UFix64
 
     // A fixed-rate fee charged to create a new account
     pub var accountCreationFee: UFix64
@@ -57,17 +52,14 @@ pub contract FlowServiceAccount {
             ?? panic("Unable to borrow reference to the default token vault")
     }
 
-    // Called when a transaction is submitted to deduct the fee
+    // Called when a transaction is submitted to deduct the transaction fees
     // from the AuthAccount that submitted it
-    pub fun deductTransactionFee(_ acct: AuthAccount) {
-        if self.transactionFee == UFix64(0) {
-            return
-        }
-
-        let tokenVault = self.defaultTokenVault(acct)
-        let feeVault <- tokenVault.withdraw(amount: self.transactionFee)
-
-        FlowFees.deposit(from: <-feeVault)
+    pub fun deductTransactionFees(account: AuthAccount, computationEffort: UInt64, inclusionEffort: UInt64, transactionFees: UFix64) {
+        FlowFees.deductTransactionFees(
+            account: account,
+            computationEffort: computationEffort,
+            inclusionEffort: inclusionEffort,
+            transactionFees: transactionFees)
     }
 
     // - Deducts the account creation fee from a payer account.
@@ -98,12 +90,6 @@ pub contract FlowServiceAccount {
     // Authorization resource to change the fields of the contract
     pub resource Administrator {
 
-        // sets the transaction fee
-        pub fun setTransactionFee(_ newFee: UFix64) {
-            FlowServiceAccount.transactionFee = newFee
-            emit TransactionFeeUpdated(newFee: newFee)
-        }
-
         // sets the account creation fee
         pub fun setAccountCreationFee(_ newFee: UFix64) {
             FlowServiceAccount.accountCreationFee = newFee
@@ -124,7 +110,6 @@ pub contract FlowServiceAccount {
     }
 
     init() {
-        self.transactionFee = 0.0
         self.accountCreationFee = 0.0
 
         self.accountCreators = {}
