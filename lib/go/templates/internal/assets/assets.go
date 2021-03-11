@@ -22,6 +22,7 @@
 // ../../../transactions/epoch/admin/advance_view.cdc (1.084kB)
 // ../../../transactions/epoch/admin/deploy_epoch.cdc (913B)
 // ../../../transactions/epoch/admin/deploy_qc_dkg.cdc (295B)
+// ../../../transactions/epoch/admin/reset_epoch.cdc (646B)
 // ../../../transactions/epoch/admin/update_clusters.cdc (338B)
 // ../../../transactions/epoch/admin/update_dkg_phase_views.cdc (328B)
 // ../../../transactions/epoch/admin/update_epoch_views.cdc (329B)
@@ -158,6 +159,7 @@
 // ../../../transactions/quorumCertificate/scripts/get_clusters.cdc (280B)
 // ../../../transactions/quorumCertificate/scripts/get_node_has_voted.cdc (214B)
 // ../../../transactions/quorumCertificate/scripts/get_node_weight.cdc (216B)
+// ../../../transactions/quorumCertificate/scripts/get_qc_enabled.cdc (111B)
 // ../../../transactions/quorumCertificate/scripts/get_voting_completed.cdc (197B)
 // ../../../transactions/quorumCertificate/submit_vote.cdc (379B)
 // ../../../transactions/stakingProxy/add_node_info.cdc (620B)
@@ -682,6 +684,26 @@ func epochAdminDeploy_qc_dkgCdc() (*asset, error) {
 
 	info := bindataFileInfo{name: "epoch/admin/deploy_qc_dkg.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x11, 0xe5, 0xe6, 0x5e, 0xb3, 0x8d, 0x7c, 0x34, 0x5, 0xbf, 0xe9, 0x71, 0x45, 0x48, 0x7, 0xa7, 0xaa, 0x67, 0xd5, 0x1e, 0x45, 0x4b, 0x78, 0xc9, 0x66, 0x5b, 0x35, 0x61, 0x8f, 0x22, 0xd8, 0x7d}}
+	return a, nil
+}
+
+var _epochAdminReset_epochCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x84\x91\x41\x6b\xa3\x50\x10\xc7\xef\x7e\x8a\x21\x87\xc5\xc0\x22\x7b\x96\xdd\x0d\x56\x2d\x09\x2d\x6d\x5a\xbd\x94\x92\xc3\xf3\x65\xaa\x92\x97\x37\x32\x8e\xa4\xa5\xe4\xbb\x97\x44\xb4\xcf\xb6\x90\xb9\x89\xbf\xf9\xcf\xe3\xf7\xaf\xf7\x0d\xb1\xc0\xb5\xa1\x43\xda\x90\xae\xe0\x85\x69\x0f\x7f\x5e\xd3\xf5\x7d\xbc\x8c\x92\xe4\x31\xcd\x32\xcf\x81\x56\x49\xae\x0a\x83\x99\xa8\x5d\x6d\xcb\x81\x5e\x25\xe9\x5d\xbe\xca\x9f\xf2\xe8\xea\x36\x1d\xb6\x3c\x61\x65\x5b\xa5\xa5\x26\xeb\xb3\xb2\x5b\xda\x67\xd4\xb1\xc6\x10\x32\xe1\xda\x96\xbf\x3d\x70\x46\x93\x31\xa8\x85\x38\x36\x5d\x2b\xc8\x6d\x08\xcf\x3d\xb7\x99\x72\xfd\xef\x87\xd8\x01\xa6\x49\xdb\x5d\xb9\xee\x8a\x1b\x7c\x73\x88\x39\xbc\x7b\x67\xa8\x61\x6c\x14\xa3\xdf\xd6\xa5\x45\x0e\x21\xea\xa4\x8a\xb4\xa6\xce\xca\x89\x19\x32\x0c\x0a\x54\xa8\x58\x0a\x54\x02\xff\xa0\xc7\x83\x82\x98\xe9\xf0\xf7\xd7\xe8\x2b\x58\x0e\xd0\x7f\xff\x24\x23\xfc\x54\x19\x8c\xfb\x99\x10\xab\x12\xd7\x4a\xaa\xf9\xe4\xa5\x8b\x05\x34\xca\xd6\xda\x9f\xc5\xd4\x99\x2d\x58\x12\xe8\x4f\x38\xc7\xcf\x8e\xdb\x3e\x02\x1a\x25\xd5\x6c\xee\x8d\x29\x23\x16\x30\xb6\x28\xe7\xc3\x5f\x64\xbb\x5f\x53\x51\xdf\xe6\xa7\x0e\x36\x97\x76\xdc\x3e\x2e\xc1\x93\x6a\x36\xbd\x8c\xa3\x77\xfc\x08\x00\x00\xff\xff\xb0\x72\xe8\x4c\x86\x02\x00\x00"
+
+func epochAdminReset_epochCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_epochAdminReset_epochCdc,
+		"epoch/admin/reset_epoch.cdc",
+	)
+}
+
+func epochAdminReset_epochCdc() (*asset, error) {
+	bytes, err := epochAdminReset_epochCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "epoch/admin/reset_epoch.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x48, 0x72, 0x44, 0x2d, 0x99, 0xd5, 0xfa, 0x4f, 0x53, 0x9f, 0x90, 0x50, 0x1, 0xe, 0x42, 0xb0, 0x87, 0x6b, 0xd6, 0x5e, 0x50, 0xbd, 0xc8, 0x3b, 0x59, 0x50, 0x5c, 0xda, 0xb9, 0xbd, 0x5e, 0x6a}}
 	return a, nil
 }
 
@@ -3405,6 +3427,26 @@ func quorumcertificateScriptsGet_node_weightCdc() (*asset, error) {
 	return a, nil
 }
 
+var _quorumcertificateScriptsGet_qc_enabledCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\xcc\xb1\x0d\x42\x21\x10\x06\xe0\xfe\xa6\xf8\x4b\x6d\x8c\xb5\x9d\xf2\xb0\x16\x99\x40\x0d\x28\x09\xdc\x91\x83\x8b\x26\xc6\xdd\x5d\xe0\x2d\xf0\x95\xd6\x45\x27\xce\x55\xde\xbe\xcb\xe3\xe5\xaa\x8d\x99\x34\x38\x64\x95\x86\xfd\x27\xb8\xe3\xb2\x5c\x7d\x8c\x44\xdd\xee\xc8\xc6\x68\xb7\xc2\x9b\xed\x01\x27\x91\x8a\x2f\x11\x00\x68\x9a\xa6\xbc\xe2\xec\x0a\x5f\x54\x9e\x9a\xc6\x20\xfa\xfd\x03\x00\x00\xff\xff\x31\x45\x5f\x5a\x6f\x00\x00\x00"
+
+func quorumcertificateScriptsGet_qc_enabledCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_quorumcertificateScriptsGet_qc_enabledCdc,
+		"quorumCertificate/scripts/get_qc_enabled.cdc",
+	)
+}
+
+func quorumcertificateScriptsGet_qc_enabledCdc() (*asset, error) {
+	bytes, err := quorumcertificateScriptsGet_qc_enabledCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "quorumCertificate/scripts/get_qc_enabled.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x81, 0x1a, 0xdc, 0x1, 0x37, 0x57, 0x63, 0xad, 0x3c, 0x43, 0x3a, 0xfc, 0x49, 0x6c, 0xf4, 0x27, 0x73, 0x6, 0xc1, 0x4b, 0x35, 0x38, 0x35, 0xc6, 0xad, 0xd9, 0xfe, 0x2d, 0x66, 0x50, 0xe0, 0x17}}
+	return a, nil
+}
+
 var _quorumcertificateScriptsGet_voting_completedCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\xce\x31\x4e\xc4\x30\x10\x05\xd0\x7e\x4e\xf1\xcb\xdd\x86\xa5\xa6\x03\xef\xd2\x27\x39\x81\x13\x8f\xc9\x48\xb6\xc7\xb2\xc7\x01\x09\x71\x77\x14\x6a\x4e\xf0\x9e\xe4\xaa\xcd\xf0\x9e\xf4\xf3\x51\x75\xdb\x5d\x1a\xdd\xb8\x4d\x0e\xb1\x69\xc6\xf3\xd7\xe4\x5e\xef\xf7\xf9\xb1\x2c\x44\xb7\x1b\x66\xb6\xd1\x4a\x87\xc7\xaa\x9a\xd8\x17\x48\x09\xb2\x79\x93\xf2\x01\x89\xf0\x28\x1a\x18\xbb\xef\xe8\x63\xcd\x62\xc6\x01\x1e\x87\x1a\x23\x6a\x83\xed\xd2\xc1\x27\x44\x54\xc7\x8a\x38\x0a\xb2\x97\x72\xb9\xbe\xe0\x4d\x35\xe1\x9b\x08\x00\xda\x9f\xf3\x4f\xeb\xe9\xd0\xd3\x72\x9a\x6b\x62\xe3\x70\xb9\x12\xfd\xfc\x06\x00\x00\xff\xff\x6a\xfc\x0f\x69\xc5\x00\x00\x00"
 
 func quorumcertificateScriptsGet_voting_completedCdcBytes() ([]byte, error) {
@@ -3878,6 +3920,7 @@ var _bindata = map[string]func() (*asset, error){
 	"epoch/admin/advance_view.cdc":                                            epochAdminAdvance_viewCdc,
 	"epoch/admin/deploy_epoch.cdc":                                            epochAdminDeploy_epochCdc,
 	"epoch/admin/deploy_qc_dkg.cdc":                                           epochAdminDeploy_qc_dkgCdc,
+	"epoch/admin/reset_epoch.cdc":                                             epochAdminReset_epochCdc,
 	"epoch/admin/update_clusters.cdc":                                         epochAdminUpdate_clustersCdc,
 	"epoch/admin/update_dkg_phase_views.cdc":                                  epochAdminUpdate_dkg_phase_viewsCdc,
 	"epoch/admin/update_epoch_views.cdc":                                      epochAdminUpdate_epoch_viewsCdc,
@@ -4014,6 +4057,7 @@ var _bindata = map[string]func() (*asset, error){
 	"quorumCertificate/scripts/get_clusters.cdc":                              quorumcertificateScriptsGet_clustersCdc,
 	"quorumCertificate/scripts/get_node_has_voted.cdc":                        quorumcertificateScriptsGet_node_has_votedCdc,
 	"quorumCertificate/scripts/get_node_weight.cdc":                           quorumcertificateScriptsGet_node_weightCdc,
+	"quorumCertificate/scripts/get_qc_enabled.cdc":                            quorumcertificateScriptsGet_qc_enabledCdc,
 	"quorumCertificate/scripts/get_voting_completed.cdc":                      quorumcertificateScriptsGet_voting_completedCdc,
 	"quorumCertificate/submit_vote.cdc":                                       quorumcertificateSubmit_voteCdc,
 	"stakingProxy/add_node_info.cdc":                                          stakingproxyAdd_node_infoCdc,
@@ -4110,6 +4154,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 			"advance_view.cdc": {epochAdminAdvance_viewCdc, map[string]*bintree{}},
 			"deploy_epoch.cdc": {epochAdminDeploy_epochCdc, map[string]*bintree{}},
 			"deploy_qc_dkg.cdc": {epochAdminDeploy_qc_dkgCdc, map[string]*bintree{}},
+			"reset_epoch.cdc": {epochAdminReset_epochCdc, map[string]*bintree{}},
 			"update_clusters.cdc": {epochAdminUpdate_clustersCdc, map[string]*bintree{}},
 			"update_dkg_phase_views.cdc": {epochAdminUpdate_dkg_phase_viewsCdc, map[string]*bintree{}},
 			"update_epoch_views.cdc": {epochAdminUpdate_epoch_viewsCdc, map[string]*bintree{}},
@@ -4280,6 +4325,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 			"get_clusters.cdc": {quorumcertificateScriptsGet_clustersCdc, map[string]*bintree{}},
 			"get_node_has_voted.cdc": {quorumcertificateScriptsGet_node_has_votedCdc, map[string]*bintree{}},
 			"get_node_weight.cdc": {quorumcertificateScriptsGet_node_weightCdc, map[string]*bintree{}},
+			"get_qc_enabled.cdc": {quorumcertificateScriptsGet_qc_enabledCdc, map[string]*bintree{}},
 			"get_voting_completed.cdc": {quorumcertificateScriptsGet_voting_completedCdc, map[string]*bintree{}},
 		}},
 		"submit_vote.cdc": {quorumcertificateSubmit_voteCdc, map[string]*bintree{}},

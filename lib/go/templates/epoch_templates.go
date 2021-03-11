@@ -13,6 +13,7 @@ const (
 	updateDKGViewsFilename     = "epoch/admin/update_dkg_phase_views.cdc"
 	updateNumClustersFilename  = "epoch/admin/update_clusters.cdc"
 	advanceViewFilename        = "epoch/admin/advance_view.cdc"
+	resetEpochFilename         = "epoch/admin/reset_epoch.cdc"
 
 	// Node Transactions
 	epochRegisterQCVoterFilename        = "epoch/node/register_qc_voter.cdc"
@@ -72,6 +73,12 @@ func GenerateUpdateNumClustersScript(env Environment) []byte {
 
 func GenerateAdvanceViewScript(env Environment) []byte {
 	code := assets.MustAssetString(advanceViewFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateResetEpochScript(env Environment) []byte {
+	code := assets.MustAssetString(resetEpochFilename)
 
 	return []byte(replaceAddresses(code, env))
 }

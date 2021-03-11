@@ -339,14 +339,12 @@ pub contract FlowEpoch {
             clusterQCs: [FlowEpochClusterQC.ClusterQC]
             dkgPubKeys: [String]) {
 
-            FlowEpoch.currentEpochCounter = FlowEpoch.proposedEpochCounter()
-            FlowEpoch.currentEpochPhase = EpochPhase.STAKINGAUCTION
-
-            FlowEpoch.stakingAdmin.startStakingAuction()
-
             // force reset the QC and DKG
             FlowEpoch.QCAdmin.forceStopVoting()
             FlowEpoch.DKGAdmin.forceEndDKG()
+
+            // Start a new Epoch
+            FlowEpoch.startNewEpoch()
 
             let currentBlock = getCurrentBlock()
 
