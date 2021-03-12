@@ -1,5 +1,5 @@
-// import FlowEpoch from 0xEPOCHADDRESS
-// import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
+import FlowEpoch from 0xEPOCHADDRESS
+import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
 
 transaction(phase: String) {
     prepare(signer: AuthAccount) {

@@ -269,6 +269,8 @@ func registerNodesForStaking(
 	}
 }
 
+/// Verifies that the clusters provided are the same as the expected clusters
+///
 func verifyClusters(
 	t *testing.T,
 	expectedClusters []Cluster,
@@ -294,6 +296,8 @@ func verifyClusters(
 
 }
 
+/// Verifies that the cluster quorum certificates are equal to the provided expected values
+///
 func verifyClusterQCs(
 	t *testing.T,
 	expectedQCs [][]string,
@@ -317,6 +321,7 @@ func verifyClusterQCs(
 	}
 }
 
+/// Verifies that the epoch metadata is equal to the provided expected values
 func verifyEpochMetadata(
 	t *testing.T,
 	b *emulator.Blockchain,
@@ -366,6 +371,7 @@ func verifyEpochMetadata(
 	}
 }
 
+/// Verifies that the configurable epoch metadata is equal to the provided values
 func verifyConfigMetadata(
 	t *testing.T,
 	b *emulator.Blockchain,
@@ -398,6 +404,7 @@ func verifyConfigMetadata(
 
 }
 
+/// Verifies that the epoch setup event values are equal to the provided expected values
 func verifyEpochSetup(
 	t *testing.T,
 	b *emulator.Blockchain,
@@ -438,6 +445,8 @@ func verifyEpochSetup(
 
 }
 
+/// Verifies that the epoch committed event values are equal to the provided expected values
+///
 func verifyEpochCommitted(
 	t *testing.T,
 	b *emulator.Blockchain,

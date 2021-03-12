@@ -219,7 +219,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 	t.Run("Should not be able change metadata outside of Staking Auction", func(t *testing.T) {
 
 		// advance to the epoch setup phase
-		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, 0, false)
+		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHSETUP", false)
 
 		// Should succeed because it is greater than the sum of the views
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateEpochViewsScript(env), idTableAddress)
@@ -294,11 +294,11 @@ func TestEpochAdvance(t *testing.T) {
 	t.Run("Should not be able to advance to epoch committed or end epoch during staking", func(t *testing.T) {
 		// try to advance to the epoch committed phase
 		// should fail
-		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, 1, true)
+		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHCOMMITTED", true)
 
 		// try to advance to the end epoch phase
 		// should fail
-		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, 2, true)
+		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "ENDEPOCH", true)
 	})
 
 	// create new user accounts, mint tokens for them, and register them for staking
@@ -312,7 +312,7 @@ func TestEpochAdvance(t *testing.T) {
 	t.Run("Proposed metadata, QC, and DKG should have been created properly for epoch setup", func(t *testing.T) {
 
 		// Advance to epoch Setup and make sure that the epoch cannot be ended
-		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, 0, false)
+		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHSETUP", false)
 
 		verifyConfigMetadata(t, b, env,
 			ConfigMetadata{
@@ -384,7 +384,7 @@ func TestEpochAdvance(t *testing.T) {
 	t.Run("Should not be able to advance to epoch committed or end epoch during epoch committed if nothing has happened", func(t *testing.T) {
 		// try to advance to the epoch committed phase
 		// will not panic, but no state has changed
-		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, 1, false)
+		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHCOMMITTED", false)
 
 		verifyConfigMetadata(t, b, env,
 			ConfigMetadata{
@@ -398,7 +398,7 @@ func TestEpochAdvance(t *testing.T) {
 
 		// try to advance to the end epoch phase
 		// will fail
-		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, 2, true)
+		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "ENDEPOCH", true)
 	})
 
 }
@@ -451,7 +451,7 @@ func TestEpochQCDKGNodeRegistration(t *testing.T) {
 	})
 
 	// Advance to epoch Setup and make sure that the epoch cannot be ended
-	advanceView(t, b, env, idTableAddress, IDTableSigner, 1, 0, false)
+	advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHSETUP", false)
 
 	t.Run("Should not be able to register a QC voter or DKG participant for the wrong node types", func(t *testing.T) {
 
@@ -525,7 +525,7 @@ func TestEpochQCDKG(t *testing.T) {
 		ids)
 
 	// Advance to epoch Setup and make sure that the epoch cannot be ended
-	advanceView(t, b, env, idTableAddress, IDTableSigner, 1, 0, false)
+	advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHSETUP", false)
 
 	// Register a QC voter
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochRegisterQCVoterScript(env), addresses[0])
@@ -586,7 +586,7 @@ func TestEpochQCDKG(t *testing.T) {
 
 		// try to advance to the epoch committed phase
 		// will not panic, but no state has changed
-		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, 1, false)
+		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHCOMMITTED", false)
 
 		verifyConfigMetadata(t, b, env,
 			ConfigMetadata{
@@ -624,7 +624,7 @@ func TestEpochQCDKG(t *testing.T) {
 		assert.Equal(t, cadence.NewBool(true), result)
 
 		// Advance to epoch committed
-		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, 1, false)
+		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHCOMMITTED", false)
 
 		verifyConfigMetadata(t, b, env,
 			ConfigMetadata{
@@ -647,7 +647,7 @@ func TestEpochQCDKG(t *testing.T) {
 	t.Run("Can end the Epoch and start a new Epoch", func(t *testing.T) {
 
 		// Advance to new epoch
-		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, 2, false)
+		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "ENDEPOCH", false)
 
 		verifyConfigMetadata(t, b, env,
 			ConfigMetadata{
@@ -703,7 +703,7 @@ func TestEpochReset(t *testing.T) {
 		ids)
 
 	// Advance to epoch Setup and make sure that the epoch cannot be ended
-	advanceView(t, b, env, idTableAddress, IDTableSigner, 1, 0, false)
+	advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHSETUP", false)
 
 	// Register a QC voter
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochRegisterQCVoterScript(env), addresses[0])
@@ -747,7 +747,7 @@ func TestEpochReset(t *testing.T) {
 		assert.Equal(t, cadence.NewBool(true), result)
 
 		// will not fail but the state hasn't changed since we cannot advance to epoch committed
-		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, 1, false)
+		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHCOMMITTED", false)
 
 		verifyConfigMetadata(t, b, env,
 			ConfigMetadata{
