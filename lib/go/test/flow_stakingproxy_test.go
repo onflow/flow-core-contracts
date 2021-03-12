@@ -1,7 +1,6 @@
 package test
 
 import (
-	"encoding/hex"
 	"fmt"
 	"testing"
 
