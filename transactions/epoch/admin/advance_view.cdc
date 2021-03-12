@@ -1,12 +1,12 @@
-import FlowEpoch from 0xEPOCHADDRESS
-import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
+// import FlowEpoch from 0xEPOCHADDRESS
+// import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
 
-transaction(phase: Int) {
+transaction(phase: String) {
     prepare(signer: AuthAccount) {
         let heartbeat = signer.borrow<&FlowEpoch.Heartbeat>(from: FlowEpoch.heartbeatStoragePath)
             ?? panic("Could not borrow heartbeat from storage path")
 
-        if phase == 0 {
+        if phase == "EPOCHSETUP" {
             let ids = FlowIDTableStaking.getProposedNodeIDs()
 
             let approvedIDs: {String: Bool} = {}
@@ -18,11 +18,11 @@ transaction(phase: Int) {
                 approvedIDs[id] = true
             }
             heartbeat.endStakingAuction(approvedIDs: approvedIDs)
-        } else if phase == 1 {
+        } else if phase == "EPOCHCOMMITTED" {
             heartbeat.startEpochCommitted()
-        } else if phase == 2 {
+        } else if phase == "ENDEPOCH" {
             heartbeat.endEpoch()
-        } else {
+        } else if phase == "BLOCK" {
             heartbeat.advanceBlock()
         }
     }

@@ -16,12 +16,21 @@ import (
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
 )
 
+/*
+*
+* This file includes many definitions for functions and structs that are valuable
+* for using and interacting with the epoch smart contracts
+*
+ */
+
+/// Used to verify the values of the clusters in the smart contract
 type Cluster struct {
 	index       uint16
 	totalWeight uint64
 	size        uint16
 }
 
+/// Used to verify epoch metadata in tests
 type EpochMetadata struct {
 	counter           uint64
 	seed              string
@@ -33,6 +42,7 @@ type EpochMetadata struct {
 	dkgKeys           []string
 }
 
+/// Used to verify the configurable Epoch metadata in tests
 type ConfigMetadata struct {
 	currentEpochCounter      uint64
 	proposedEpochCounter     uint64
@@ -43,6 +53,7 @@ type ConfigMetadata struct {
 	numCollectorClusters     uint16
 }
 
+/// Used to verify the EpochSetup event fields in tests
 type EpochSetup struct {
 	counter            uint64
 	nodeInfoLength     int
@@ -54,6 +65,16 @@ type EpochSetup struct {
 	dkgPhase2FinalView uint64
 	dkgPhase3FinalView uint64
 }
+
+/// Used to verify the EpochCommitted event fields in tests
+type EpochCommitted struct {
+	counter    uint64
+	clusterQCs [][]string
+	dkgPubKeys []string
+}
+
+// Go event definitions for the epoch events
+// Can be used with the SDK to retreive and parse epoch events
 
 type EpochSetupEvent flow.Event
 
@@ -86,12 +107,6 @@ func (evt EpochSetupEvent) dkgFinalViews() (cadence.UInt64, cadence.UInt64, cade
 	return fields[6].(cadence.UInt64), fields[7].(cadence.UInt64), fields[8].(cadence.UInt64)
 }
 
-type EpochCommitted struct {
-	counter    uint64
-	clusterQCs [][]string
-	dkgPubKeys []string
-}
-
 type EpochCommittedEvent flow.Event
 
 func (evt EpochCommittedEvent) Counter() cadence.UInt64 {
@@ -106,6 +121,8 @@ func (evt EpochCommittedEvent) dkgPubKeys() cadence.Array {
 	return evt.Value.Fields[2].(cadence.Array)
 }
 
+/// Deploys the Quroum Certificate and Distributed Key Generation contracts to the provided account
+///
 func deployQCDKGContract(t *testing.T, b *emulator.Blockchain, idTableAddress flow.Address, IDTableSigner crypto.Signer, env templates.Environment) {
 
 	QCCode := contracts.FlowQC()
@@ -129,6 +146,8 @@ func deployQCDKGContract(t *testing.T, b *emulator.Blockchain, idTableAddress fl
 	)
 }
 
+/// Deploys the epoch lifecycle contract to the provided account with all the specified init values
+/// uses empty clusters, qcs, and dkg keys for now
 func deployEpochContract(
 	t *testing.T,
 	b *emulator.Blockchain,
@@ -164,6 +183,7 @@ func deployEpochContract(
 	)
 }
 
+/// Deploys the staking contract, qc, dkg, and epoch contracts
 func initializeAllEpochContracts(
 	t *testing.T,
 	b *emulator.Blockchain,
@@ -187,6 +207,9 @@ func initializeAllEpochContracts(
 	return idTableAddress
 }
 
+/// Attempts to advance the epoch to the specified phase
+/// "EPOCHSETUP", "EPOCHCOMMITTED", or "ENDEPOCH",
+/// "BLOCK" allows the contract to just advance a block
 func advanceView(
 	t *testing.T,
 	b *emulator.Blockchain,
@@ -194,12 +217,12 @@ func advanceView(
 	authorizer flow.Address,
 	signer crypto.Signer,
 	numBlocks int,
-	phase int,
+	phase string,
 	shouldFail bool) {
 
 	for i := 0; i < numBlocks; i++ {
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateAdvanceViewScript(env), authorizer)
-		_ = tx.AddArgument(cadence.NewInt(phase))
+		_ = tx.AddArgument(cadence.NewString(phase))
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{b.ServiceKey().Address, authorizer},
@@ -209,6 +232,8 @@ func advanceView(
 	}
 }
 
+/// Registers the specified number of nodes for staking with the specified IDs
+/// Does an even distrubution of node roles
 func registerNodesForStaking(
 	t *testing.T,
 	b *emulator.Blockchain,
@@ -216,6 +241,11 @@ func registerNodesForStaking(
 	authorizers []flow.Address,
 	signers []crypto.Signer,
 	ids []string) {
+
+	if len(authorizers) != len(signers) ||
+		len(authorizers) != len(ids) {
+		t.Fail()
+	}
 
 	var amountToCommit interpreter.UFix64Value = 135000000000000
 	var committed interpreter.UFix64Value = 0
