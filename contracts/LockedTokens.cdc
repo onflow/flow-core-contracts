@@ -595,6 +595,12 @@ pub contract LockedTokens {
             self.lockedVault = nil
         }
 
+        access(account) from getVaultBalance(): UFix64 {
+            let vaultRef = self.lockedVault.borrow()!
+
+            return vaultRef.balance
+        }
+
         access(account) fun addVault(lockedVault: Capability<&FlowToken.Vault>) {
             pre {
                 lockedVault.check(): "Invalid vault capability"
