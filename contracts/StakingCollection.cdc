@@ -5,13 +5,16 @@
 
  */
 
+// import FungibleToken from 0xee82856bf20e2aa6
+// import FlowToken from 0x0ae53cb6e3f42a79
+
 import FungibleToken from 0xFUNGIBLETOKENADDRESS
 import FlowToken from 0xFLOWTOKENADDRESS
 import FlowIDTableStaking from 0xFLOWIDTABLESTAKINGADDRESS
 import StakingProxy from 0xSTAKINGPROXYADDRESS
 import LockedTokens from 0xLOCKEDTOKENSADDRESS
 
-pub contract StakingCollection {
+pub contract FlowStakingCollection {
 
     pub let StakingCollectionStoragePath: StoragePath
     pub let StakingCollectionPublicPath: PublicPath
@@ -33,9 +36,9 @@ pub contract StakingCollection {
         
         pub fun getDelegatorIDs(): [DelegatorIDs]
 
-        pub fun getAllNodeInfo(): [FlowIDTableStaking.NodeInfo]
+        pub fun getAllNodeInfo(): {String: FlowIDTableStaking.NodeInfo}
 
-        pub fun getAllDelegatorInfo(): [FlowIDTableStaking.DelegatorInfo]
+        pub fun getAllDelegatorInfo(): {String: {UInt32: FlowIDTableStaking.DelegatorInfo}}
     }
 
     /// The resource that stakers store in their accounts to store
@@ -52,7 +55,7 @@ pub contract StakingCollection {
         access(self) var nodeStakers: @{String: FlowIDTableStaking.NodeStaker}
         access(self) var nodeDelegators: @{String: {UInt32: FlowIDTableStaking.NodeDelegator}}
 
-        access(self) var tokenHolder: Capability<@LockedTokens.TokenHolder>?
+        access(self) var tokenHolder: Capability<&LockedTokens.TokenHolder>?
 
         // Tracks how many locked tokens each node or delegator uses
         // When committing new locked tokens, add those tokens to the value
@@ -64,7 +67,7 @@ pub contract StakingCollection {
         access(self) var lockedTokensUsed: UFix64
         access(self) var unlockedTokensUsed: UFix64
 
-        init(vaultCapability: Capability<&FlowToken.Vault>, tokenHolder: Capability<@LockedTokens.TokenHolder>?) {
+        init(vaultCapability: Capability<&FlowToken.Vault>, tokenHolder: Capability<&LockedTokens.TokenHolder>?) {
             pre {
                 vaultCapability.check(): "Invalid FlowToken.Vault capability"
             }
@@ -84,21 +87,28 @@ pub contract StakingCollection {
             if let tokenHolderObj = self.tokenHolder {
                 let lockedVaultHolder <- LockedTokens.createLockedVaultHolder()
 
-                let lockedTokenManager <- tokenHolderObj.borrowTokenManager()
+                let lockedTokenManager = tokenHolderObj.borrow()!.borrowTokenManager()
 
                 lockedVaultHolder.addVault(lockedVault: lockedTokenManager.vault)
                 
-                self.lockedVaultHolder <- lockedVaultHolder
+                self.lockedVaultHolder <-! lockedVaultHolder
             } else {
-                self.lockedVaultHolder <- nil
+                self.lockedVaultHolder <-! nil
             }
+        }
+
+        destroy() {
+            destroy self.lockedVaultHolder
+            destroy self.nodeStakers
+            destroy self.nodeDelegators
         }
 
         // Gets tokens to commit to a node. Uses locked tokens first, if possible
         access(self) fun getTokens(amount: UFix64): @FungibleToken.Vault {
-            if let _lockedValutHolder <- self.lockedVaultHolder {
+            if let _lockedValutHolder <- self.lockedVaultHolder <- nil {
+
                 var lockedBalance: UFix64 = _lockedValutHolder.getVaultBalance()
-                var unlockedBalance: UFix64 = self.vaultCapability.balance
+                var unlockedBalance: UFix64 = self.vaultCapability.borrow()!.balance
 
                 assert(
                     lockedBalance + unlockedBalance < amount,
@@ -108,70 +118,72 @@ pub contract StakingCollection {
                 if (amount <= lockedBalance) {
                     self.lockedTokensUsed = self.lockedTokensUsed + amount
 
-                    let tokens = _lockedValutHolder.withdrawFromLockedVault(amount: amount)
+                    let tokens <- _lockedValutHolder.withdrawFromLockedVault(amount: amount)
 
-                    self.lockedVaultHolder <- _lockedValutHolder
+                    self.lockedVaultHolder <-! _lockedValutHolder
 
-                    return tokens
+                    return <-tokens
                 } else {
                     self.lockedTokensUsed = self.lockedTokensUsed + lockedBalance
                     self.unlockedTokensUsed = self.unlockedTokensUsed + (amount - lockedBalance)
 
-                    let tokens = _lockedValutHolder.withdrawFromLockedVault(amount: lockedBalance).depositToLockedVault(from: self.vaultCapability.withdraw(amount: amount - lockedBalance))
+                    let tokens <- FlowToken.createEmptyVault()
 
-                    self.lockedVaultHolder <- _lockedValutHolder
+                    let lockedPortion <- _lockedValutHolder.withdrawFromLockedVault(amount: lockedBalance)
+                    let unlockedPortion <- self.vaultCapability.borrow()!.withdraw(amount: amount - lockedBalance)
 
-                    return tokens
+                    tokens.deposit(from: <-lockedPortion)
+                    tokens.deposit(from: <-unlockedPortion)
+
+                    self.lockedVaultHolder <-! _lockedValutHolder
+
+                    return <-tokens
                 }
             } else {
-                var unlockedBalance: UFix64 = self.vaultCapability.balance
+                var unlockedBalance: UFix64 = self.vaultCapability.borrow()!.balance
 
                 assert(
-                    unlockedBalance <= amount,
+                    unlockedBalance < amount,
                     message: "Insufficient total Flow balance"
                 )
 
                 self.unlockedTokensUsed = self.unlockedTokensUsed + amount
 
-                return self.vaultCapability.withdraw(amount: amount)
+                return <-self.vaultCapability.borrow()!.withdraw(amount: amount)
             }
         }
 
         // Deposits tokens after being withdrawn from a Stake or Delegation. Deposits to unlocked tokens first, if possible.
         access(self) fun depositTokens(from: @FungibleToken.Vault) {
-            if let _lockedValutHolder <- self.lockedVaultHolder {
+            if let _lockedValutHolder <- self.lockedVaultHolder <- nil {
 
                 if self.unlockedTokensUsed > UFix64(0.0) {
                     
                     if (from.balance < self.unlockedTokensUsed) {
                         self.unlockedTokensUsed = self.unlockedTokensUsed - from.balance
 
-                        _lockedValutHolder.depositToLockedVault(from: <- from.withdraw(amount: from.balance))
+                        _lockedValutHolder.depositToLockedVault(from: <-from.withdraw(amount: from.balance))
                     } else {
-                        self.unlockedTokensUsed = self.unlockedTokensUsed - self.unlockedTokensUsed
+                        _lockedValutHolder.depositToLockedVault(from: <-from.withdraw(amount: self.unlockedTokensUsed))
 
-                        _lockedValutHolder.depositToLockedVault(from: <- from.withdraw(amount: self.unlockedTokensUsed))
+                        self.unlockedTokensUsed = self.unlockedTokensUsed - self.unlockedTokensUsed
                     }
                 }
 
                 self.lockedTokensUsed = self.lockedTokensUsed - from.balance
 
-                _lockedValutHolder.depositToLockedVault(from: <- from)
+                _lockedValutHolder.depositToLockedVault(from: <-from)
 
-                self.lockedVaultHolder <- _lockedValutHolder
+                self.lockedVaultHolder <-! _lockedValutHolder
 
-            } else {
-                 self.unlockedTokensUsed = self.unlockedTokensUsed - from.balance
-
-                 self.vaultCapability.deposit(from: <- from)
             }
         }
 
         // Returns true if a Stake or Delegation record exists in the StakingCollection for a given nodeID and optional delegatorID, otherwise false.
         access(self) fun doesStakeExist(nodeID: String, delegatorID: UInt32?): Bool {
-            var tokenHolderNodeID = nil
-            var tokenHolderDelegatorNodeID = nil
-            var tokenHolderDelegatorID = nil
+            var tokenHolderNodeID: String? = nil
+            var tokenHolderDelegatorNodeID: String? = nil
+            var tokenHolderDelegatorID: UInt32?  = nil
 
             if let _tokenHolder = self.tokenHolder!.borrow() {
                 tokenHolderNodeID = _tokenHolder!.getNodeID()
@@ -180,13 +192,27 @@ pub contract StakingCollection {
             }
 
             if let _delegatorID = delegatorID {
-                if (tokenHolderDelegatorNodeID != nil && tokenHolderDelegatorID != nil && tokenHolderDelegatorNodeID == nodeID && tokenHolderDelegatorID == _delegatorID) {
+                if (tokenHolderDelegatorNodeID != nil && tokenHolderDelegatorID != nil && tokenHolderDelegatorNodeID! == nodeID && tokenHolderDelegatorID! == _delegatorID) {
                     return true
                 }
 
-                return self.nodeDelegators[nodeID] != nil && self.nodeDelegators[nodeID]![_delegatorID] != nil
+                if self.nodeDelegators[nodeID] != nil {
+                    if let delegators <- self.nodeDelegators[nodeID] <- nil {
+                        if delegators[_delegatorID] != nil {
+                            self.nodeDelegators[nodeID] <-! delegators
+                            return true
+                        } else {
+                            self.nodeDelegators[nodeID] <-! delegators
+                            return false
+                        }
+                    } else {
+                        return false
+                    }
+                } else {
+                    return false
+                }
             } else {
-                if (tokenHolderNodeID != nil && tokenHolderNodeID == nodeID) {
+                if (tokenHolderNodeID != nil && tokenHolderNodeID! == nodeID) {
                     return true
                 }
 
@@ -195,67 +221,71 @@ pub contract StakingCollection {
         }
 
         // Function to add an existing NodeStaker object
-        pub fun addNodeObject(node: @FlowIDTableStaking.NodeStaker) {
-            self.nodeStakers[node.id] <- node
+        pub fun addNodeObject(_ node: @FlowIDTableStaking.NodeStaker) {
+            self.nodeStakers[node.id] <-! node
         }
 
         // Function to add an existing NodeDelegator object
-        pub fun addDelegatorObject(delegator: @FlowIDTableStaking.NodeDelegator) {
-            self.nodeStakers[delegator.nodeID][delegator.id] <- delegator
+        pub fun addDelegatorObject(_ delegator: @FlowIDTableStaking.NodeDelegator) {
+            let id = delegator.id
+            let nodeID = delegator.nodeID
+
+            if self.nodeStakers[delegator.nodeID] == nil {
+                let delegators: @{UInt32: FlowIDTableStaking.NodeDelegator} <- {}
+                delegators[id] <-! delegator
+                self.nodeDelegators[nodeID] <-! delegators
+            } else {
+                if let delegators <- self.nodeDelegators[delegator.nodeID] <- nil {
+                    delegators[id] <-! delegator
+                    self.nodeDelegators[nodeID] <-! delegators
+                }
+            }
         }
 
         // Operations to register new staking objects
 
         // Function to register a new Staking Record to the Staking Collection
         pub fun registerNode(nodeInfo: StakingProxy.NodeInfo, amount: UFix64) {
-            if let _tokenHolder <- self.tokenHolder!.borrow() {
-                if let nodeID = _tokenHolder.getNodeID() {
-                    let stakingInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeID)
-
-                    assert(
-                        stakingInfo.tokensStaked + stakingInfo.totalTokensStaked + stakingInfo.tokensCommitted + stakingInfo.tokensUnstaking + stakingInfo.tokensUnstaked + stakingInfo.tokensRewarded == 0.0,
-                        message: "Cannot register a new node until all tokens from the previous node have been withdrawn"
-                    )
-                }
-
-                destroy _tokenHolder
-            }
 
             let tokens <- self.getTokens(amount: amount)
 
             let nodeStaker <- FlowIDTableStaking.addNodeRecord(id: nodeInfo.id, role: nodeInfo.role, networkingAddress: nodeInfo.networkingAddress, networkingKey: nodeInfo.networkingKey, stakingKey: nodeInfo.stakingKey, tokensCommitted: <-tokens)
 
-            self.nodeStakers[nodeInfo.id] <- nodeStaker
+            self.nodeStakers[nodeInfo.id] <-! nodeStaker
 
             // Maybe should emit event here?
         }
 
         // Function to register a new Delegator Record to the Staking Collection
         pub fun registerDelegator(nodeID: String, amount: UFix64) {
-            if let _tokenHolder <- self.tokenHolder!.borrow() {
-                if let delegatorNodeID = _tokenHolder.getDelegatorNodeID() {
-                    if let delegatorID =  _tokenHolder.getDelegatorID() {
-                        let delegatorInfo = FlowIDTableStaking.DelegatorInfo(nodeID: delegatorNodeID, delegatorID: delegatorID)
-
-                        assert(
-                            delegatorInfo.tokensStaked + delegatorInfo.totalTokensStaked + delegatorInfo.tokensCommitted + delegatorInfo.tokensUnstaking + delegatorInfo.tokensUnstaked + delegatorInfo.tokensRewarded == 0.0,
-                            message: "Cannot register a new node until all tokens from the previous node have been withdrawn"
-                        )
-                    }
-                }
-
-                destroy _tokenHolder
-            }
             
-            let tokens <- self.getTokens(amount: amount, nodeID)
+            let tokens <- self.getTokens(amount: amount)
 
             let nodeDelegator <- FlowIDTableStaking.registerNewDelegator(nodeID: nodeID)
 
             nodeDelegator.delegateNewTokens(from: <- tokens)
 
-            self.nodeDelegators[nodeID][nodeDelegator.id] <- nodeDelegator
+            self.addDelegatorObject(<-nodeDelegator)
 
             // Maybe should emit event here?
+        }
+
+        access(self) fun borrowNode(_ nodeID: String): &FlowIDTableStaking.NodeStaker? {
+            return &self.nodeStakers[nodeID] as? &FlowIDTableStaking.NodeStaker
+        }
+
+        access(self) fun getDelegator(_ nodeID: String, _ delegatorID: UInt32): @FlowIDTableStaking.NodeDelegator? {
+            if let delegators <- self.nodeDelegators[nodeID] <- nil {
+                if let delegator <- delegators[delegatorID] <- nil {
+                    self.nodeDelegators[nodeID] <-! delegators
+                    return <-delegator
+                } else {
+                    self.nodeDelegators[nodeID] <-! delegators
+                    return nil
+                }
+            } else {
+                return nil
+            }
         }
 
         // Staking Operations
@@ -267,27 +297,25 @@ pub contract StakingCollection {
             }
 
             if let _delegatorID = delegatorID {                
-                var delegatorExistsInNodeDelegatorsDictionary = false
 
-                if (self.nodeDelegators[nodeID] != nil) {
-                    delegatorExistsInNodeDelegatorsDictionary = self.nodeDelegators[nodeID]![_delegatorID] != nil
-                }
+                if let delegator <- self.getDelegator(nodeID, _delegatorID) {
 
-                if (delegatorExistsInNodeDelegatorsDictionary) {
-                    self.nodeDelegators[nodeID]![_delegatorID].delegateNewTokens(from: <- self.getTokens(amount: amount))
+                    delegator.delegateNewTokens(from: <- self.getTokens(amount: amount))
+
+                    self.addDelegatorObject(<-delegator)
+
                 } else {
-                    let delegator = self.tokenHolder!.borrowDelegator()
+                    let delegator = self.tokenHolder!.borrow()!.borrowDelegator()
                     
-                    delegator.delegateUnstakedTokens(amount: amount)
+                    delegator.delegateNewTokens(amount: amount)
                 }
                 
             } else {
-                var stakerExistsInNodeStakersDictionary = self.nodeStakers[nodeID] != nil
 
-                if (stakerExistsInNodeStakersDictionary) {
-                    self.nodeStakers[nodeID].stakeNewTokens(from: <- self.getTokens(amount: amount))
+                if let node = self.borrowNode(nodeID) {
+                    node.stakeNewTokens(<-self.getTokens(amount: amount))
                 } else {
-                    let staker = self.tokenHolder!.borrowStaker()
+                    let staker = self.tokenHolder!.borrow()!.borrowStaker()
                     
                     staker.stakeNewTokens(amount: amount)
                 }
@@ -301,26 +329,21 @@ pub contract StakingCollection {
             }
 
             if let _delegatorID = delegatorID {
-                var delegatorExistsInNodeDelegatorsDictionary = false
+                if let delegator <- self.getDelegator(nodeID, _delegatorID) {
 
-                if (self.nodeDelegators[nodeID] != nil) {
-                    delegatorExistsInNodeDelegatorsDictionary = self.nodeDelegators[nodeID]![_delegatorID] != nil
-                }
+                    delegator.delegateUnstakedTokens(amount: amount)
 
-                if (delegatorExistsInNodeDelegatorsDictionary) {
-                    self.nodeDelegators[nodeID]![_delegatorID].delegateUnstakedTokens(amount: amount)
+                    self.addDelegatorObject(<-delegator)
                 } else {
-                    let delegator = self.tokenHolder!.borrowDelegator()
+                    let delegator = self.tokenHolder!.borrow()!.borrowDelegator()
                     
                     delegator.delegateUnstakedTokens(amount: amount)
                 }
             } else {
-                var stakerExistsInNodeStakersDictionary = self.nodeStakers[nodeID] != nil
-
-                if (stakerExistsInNodeStakersDictionary) {
-                    self.nodeStakers[nodeID].stakeUnstakedTokens(amount: amount)
+                if let node = self.borrowNode(nodeID) {
+                    node.stakeUnstakedTokens(amount: amount)
                 } else {
-                    let staker = self.tokenHolder!.borrowStaker()
+                    let staker = self.tokenHolder!.borrow()!.borrowStaker()
                     
                     staker.stakeUnstakedTokens(amount: amount)
                 }
@@ -334,26 +357,21 @@ pub contract StakingCollection {
             }
 
             if let _delegatorID = delegatorID {
-                var delegatorExistsInNodeDelegatorsDictionary = false
+                if let delegator <- self.getDelegator(nodeID, _delegatorID) {
 
-                if (self.nodeDelegators[nodeID] != nil) {
-                    delegatorExistsInNodeDelegatorsDictionary = self.nodeDelegators[nodeID]![_delegatorID] != nil
-                }
+                    delegator.delegateRewardedTokens(amount: amount)
 
-                if (delegatorExistsInNodeDelegatorsDictionary) {
-                    self.nodeDelegators[nodeID]![_delegatorID].delegateRewardedTokens(amount: amount)
+                    self.addDelegatorObject(<-delegator)
                 } else {
-                    let delegator = self.tokenHolder!.borrowDelegator()
+                    let delegator = self.tokenHolder!.borrow()!.borrowDelegator()
                     
                     delegator.delegateRewardedTokens(amount: amount)
                 }
             } else {
-                var stakerExistsInNodeStakersDictionary = self.nodeStakers[nodeID] != nil
-
-                if (stakerExistsInNodeStakersDictionary) {
-                    self.nodeStakers[nodeID].stakeRewardedTokens(amount: amount)
+                if let node = self.borrowNode(nodeID) {
+                    node.stakeRewardedTokens(amount: amount)
                 } else {
-                    let staker = self.tokenHolder!.borrowStaker()
+                    let staker = self.tokenHolder!.borrow()!.borrowStaker()
                     
                     staker.stakeRewardedTokens(amount: amount)
                 }
@@ -367,26 +385,21 @@ pub contract StakingCollection {
             }
 
             if let _delegatorID = delegatorID {
-                var delegatorExistsInNodeDelegatorsDictionary = false
+                if let delegator <- self.getDelegator(nodeID, _delegatorID) {
 
-                if (self.nodeDelegators[nodeID] != nil) {
-                    delegatorExistsInNodeDelegatorsDictionary = self.nodeDelegators[nodeID]![_delegatorID] != nil
-                }
+                    delegator.requestUnstaking(amount: amount)
 
-                if (delegatorExistsInNodeDelegatorsDictionary) {
-                    self.nodeDelegators[nodeID]![_delegatorID].requestUnstaking(amount: amount)
+                    self.addDelegatorObject(<-delegator)
                 } else {
-                    let delegator = self.tokenHolder!.borrowDelegator()
+                    let delegator = self.tokenHolder!.borrow()!.borrowDelegator()
                     
                     delegator.requestUnstaking(amount: amount)
                 }
             } else {
-                var stakerExistsInNodeStakersDictionary = self.nodeStakers[nodeID] != nil
-
-                if (stakerExistsInNodeStakersDictionary) {
-                    self.nodeStakers[nodeID].requestUnstaking(amount: amount)
+                if let node = self.borrowNode(nodeID) {
+                    node.requestUnstaking(amount: amount)
                 } else {
-                    let staker = self.tokenHolder!.borrowStaker()
+                    let staker = self.tokenHolder!.borrow()!.borrowStaker()
                     
                     staker.requestUnstaking(amount: amount)
                 }
@@ -399,14 +412,12 @@ pub contract StakingCollection {
                 self.doesStakeExist(nodeID: nodeID, delegatorID: nil) == false : "Specified stake does not exist"
             }
     
-            var stakerExistsInNodeStakersDictionary = self.nodeStakers[nodeID] != nil
-
-            if (stakerExistsInNodeStakersDictionary) {
-                self.nodeStakers[nodeID].unstakeAll(amount: amount)
+            if let node = self.borrowNode(nodeID) {
+                node.unstakeAll()
             } else {
-                let staker = self.tokenHolder!.borrowStaker()
+                let staker = self.tokenHolder!.borrow()!.borrowStaker()
                 
-                staker.unstakeAll(amount: amount)
+                staker.unstakeAll()
             }
         }
 
@@ -417,26 +428,23 @@ pub contract StakingCollection {
             }
 
             if let _delegatorID = delegatorID {
-                var delegatorExistsInNodeDelegatorsDictionary = false
+                if let delegator <- self.getDelegator(nodeID, _delegatorID) {
 
-                if (self.nodeDelegators[nodeID] != nil) {
-                    delegatorExistsInNodeDelegatorsDictionary = self.nodeDelegators[nodeID]![_delegatorID] != nil
-                }
+                    let tokens <- delegator.withdrawUnstakedTokens(amount: amount)
+                    self.depositTokens(from: <-tokens)
 
-                if (delegatorExistsInNodeDelegatorsDictionary) {
-                    self.depositTokens(from: <- self.nodeDelegators[nodeID]![_delegatorID].withdrawUnstakedTokens(amount: amount))
+                    self.addDelegatorObject(<-delegator)
                 } else {
-                    let delegator = self.tokenHolder!.borrowDelegator()
+                    let delegator = self.tokenHolder!.borrow()!.borrowDelegator()
                     
                     delegator.withdrawUnstakedTokens(amount: amount)
                 }
             } else {
-                var stakerExistsInNodeStakersDictionary = self.nodeStakers[nodeID] != nil
-
-                if (stakerExistsInNodeStakersDictionary) {
-                    self.depositTokens(from: <- self.nodeStakers[nodeID].withdrawUnstakedTokens(amount: amount))
+                if let node = self.borrowNode(nodeID) {
+                    let tokens <- node.withdrawUnstakedTokens(amount: amount)
+                    self.depositTokens(from: <-tokens)
                 } else {
-                    let staker = self.tokenHolder!.borrowStaker()
+                    let staker = self.tokenHolder!.borrow()!.borrowStaker()
                     
                     staker.withdrawUnstakedTokens(amount: amount)
                 }
@@ -450,26 +458,23 @@ pub contract StakingCollection {
             }
 
             if let _delegatorID = delegatorID {
-                var delegatorExistsInNodeDelegatorsDictionary = false
+                if let delegator <- self.getDelegator(nodeID, _delegatorID) {
 
-                if (self.nodeDelegators[nodeID] != nil) {
-                    delegatorExistsInNodeDelegatorsDictionary = self.nodeDelegators[nodeID]![_delegatorID] != nil
-                }
+                    let tokens <- delegator.withdrawRewardedTokens(amount: amount)
+                    self.depositTokens(from: <-tokens)
 
-                if (delegatorExistsInNodeDelegatorsDictionary) {
-                    self.depositTokens(from: <- self.nodeDelegators[nodeID]![_delegatorID].withdrawRewardedTokens(amount: amount))
+                    self.addDelegatorObject(<-delegator)
                 } else {
-                    let delegator = self.tokenHolder!.borrowDelegator()
+                    let delegator = self.tokenHolder!.borrow()!.borrowDelegator()
                     
                     delegator.withdrawRewardedTokens(amount: amount)
                 }
             } else {
-                var stakerExistsInNodeStakersDictionary = self.nodeStakers[nodeID] != nil
-
-                if (stakerExistsInNodeStakersDictionary) {
-                    self.depositTokens(from: <- self.nodeStakers[nodeID].withdrawRewardedTokens(amount: amount))
+                if let node = self.borrowNode(nodeID) {
+                    let tokens <- node.withdrawRewardedTokens(amount: amount)
+                    self.depositTokens(from: <-tokens)
                 } else {
-                    let staker = self.tokenHolder!.borrowStaker()
+                    let staker = self.tokenHolder!.borrow()!.borrowStaker()
                     
                     staker.withdrawRewardedTokens(amount: amount)
                 }
@@ -482,7 +487,9 @@ pub contract StakingCollection {
         pub fun getNodeIDs(): [String] {
             let nodeIDs: [String] = self.nodeStakers.keys
 
-            if let _tokenHolder = self.tokenHolder {
+            if let tokenHolderCapability = self.tokenHolder {
+                let _tokenHolder = tokenHolderCapability.borrow()!
+
                 let tokenHolderNodeID = _tokenHolder!.getNodeID()
                 if let _tokenHolderNodeID = tokenHolderNodeID {
                     nodeIDs.append(_tokenHolderNodeID)
@@ -496,21 +503,24 @@ pub contract StakingCollection {
         pub fun getDelegatorIDs(): [DelegatorIDs] {
             let nodeIDs: [String] = self.nodeDelegators.keys
             let delegatorIDs: [DelegatorIDs] = []
-            for nodeID in nodeIDs {
-                let delegatorIDs: [UInt32] = self.nodeDelegators[nodeID].keys
 
-                for delegatorID in delegatorIDs {
-                    ret.append(DelegatorIDs(nodeID: nodeID, delegatorID: delegatorID))
+            for nodeID in nodeIDs {
+                let delIDs: [UInt32] = self.nodeDelegators[nodeID]?.keys!
+
+                for delegatorID in delIDs {
+                    delegatorIDs.append(DelegatorIDs(nodeID: nodeID, delegatorID: delegatorID))
                 }
             }
 
-            if let _tokenHolder = self.tokenHolder {
-                let tokenHolderDelegatorNodeID = _tokenHolder!.getDelegatorNodeID()
-                let tokenHolderDelegatorID = _tokenHolder!.getDelegatorID()
+            if let tokenHolderCapability = self.tokenHolder {
+                let _tokenHolder = tokenHolderCapability.borrow()!
+
+                let tokenHolderDelegatorNodeID = _tokenHolder.getDelegatorNodeID()
+                let tokenHolderDelegatorID = _tokenHolder.getDelegatorID()
 
                 if let _tokenHolderDelegatorNodeID = tokenHolderDelegatorNodeID {
                     if let _tokenHolderDelegatorID = tokenHolderDelegatorID {
-                        nodeIDs.append(DelegatorIDs(nodeID: _tokenHolderDelegatorNodeID, delegatorID: _tokenHolderDelegatorID))
+                        delegatorIDs.append(DelegatorIDs(nodeID: _tokenHolderDelegatorNodeID, delegatorID: _tokenHolderDelegatorID))
                     }
                 }
             }
@@ -524,13 +534,15 @@ pub contract StakingCollection {
 
             let nodeIDs: [String] = self.nodeStakers.keys
             for nodeID in nodeIDs {
-                nodeInfo[nodeID] <- FlowIDTableStaking.NodeInfo(nodeID: nodeID)
+                nodeInfo[nodeID] = FlowIDTableStaking.NodeInfo(nodeID: nodeID)
             }
 
-            if let _tokenHolder = self.tokenHolder {
+            if let tokenHolderCapability = self.tokenHolder {
+                let _tokenHolder = tokenHolderCapability.borrow()!
+
                 let tokenHolderNodeID = _tokenHolder.getNodeID()
                 if let _tokenHolderNodeID = tokenHolderNodeID {
-                    nodeInfo[_tokenHolderNodeID] <- FlowIDTableStaking.NodeInfo(nodeID: _tokenHolderNodeID)
+                    nodeInfo[_tokenHolderNodeID] = FlowIDTableStaking.NodeInfo(nodeID: _tokenHolderNodeID)
                 }
             }
 
@@ -542,21 +554,43 @@ pub contract StakingCollection {
             let delegatorInfo: {String: {UInt32: FlowIDTableStaking.DelegatorInfo}} = {}
 
             let nodeIDs: [String] = self.nodeDelegators.keys
-            for nodeID in nodeIDs {
-                let delegatorIDs: [UInt32] = self.nodeDelegators[nodeID].keys
 
-                for delegatorID in delegatorIDs {
-                    delegatorInfo[nodeID][delegatorID] <- FlowIDTableStaking.DelegatorInfo(nodeID: nodeID, delegatorID: delegatorID)
+            for nodeID in nodeIDs {
+                if let delegators <- self.nodeDelegators[nodeID] <- nil {
+                    let delegatorIDs: [UInt32] = delegators.keys
+
+                    for delegatorID in delegatorIDs {
+                        let info = FlowIDTableStaking.DelegatorInfo(nodeID: nodeID, delegatorID: delegatorID)
+                        if let delegatorInfos = delegatorInfo[nodeID] {
+                            delegatorInfos[delegatorID] = info
+                            delegatorInfo[nodeID] = delegatorInfos
+                        } else {
+                            let delegatorInfos: {UInt32: FlowIDTableStaking.DelegatorInfo} = {}
+                            delegatorInfos[delegatorID] = info
+                            delegatorInfo[nodeID] = delegatorInfos
+                        }
+                    }
+                    self.nodeDelegators[nodeID] <-! delegators
                 }
             }
 
-            if let _tokenHolder = self.tokenHolder {
+            if let tokenHolderCapability = self.tokenHolder {
+                let _tokenHolder = tokenHolderCapability.borrow()!
+
                 let tokenHolderDelegatorNodeID = _tokenHolder.getDelegatorNodeID()
                 let tokenHolderDelegatorID = _tokenHolder.getDelegatorID()
 
                 if let _tokenHolderDelegatorNodeID = tokenHolderDelegatorNodeID {
                     if let _tokenHolderDelegatorID = tokenHolderDelegatorID {
-                        delegatorInfo[_tokenHolderDelegatorNodeID][_tokenHolderDelegatorID] <- FlowIDTableStaking.DelegatorInfo(nodeID: _tokenHolderDelegatorNodeID, delegatorID: _tokenHolderDelegatorID)
+                        let info = FlowIDTableStaking.DelegatorInfo(nodeID: _tokenHolderDelegatorNodeID, delegatorID: _tokenHolderDelegatorID)
+                        if let delegatorInfos = delegatorInfo[_tokenHolderDelegatorNodeID] {
+                            delegatorInfos[_tokenHolderDelegatorID] = info
+                            delegatorInfo[_tokenHolderDelegatorNodeID] = delegatorInfos
+                        } else {
+                            let delegatorInfos: {UInt32: FlowIDTableStaking.DelegatorInfo} = {}
+                            delegatorInfos[_tokenHolderDelegatorID] = info
+                            delegatorInfo[_tokenHolderDelegatorNodeID] = delegatorInfos
+                        }
                     }
                 }
             }
@@ -572,7 +606,7 @@ pub contract StakingCollection {
     pub fun getNodeIDs(address: Address): [String] {
         let account = getAccount(address)
 
-        let stakingCollectionRef = account.borrow<&Collection{StakingCollectionPublic}>(from: StakingCollectionPublicPath)
+        let stakingCollectionRef = account.getCapability<&Collection{StakingCollectionPublic}>(self.StakingCollectionPublicPath).borrow()
             ?? panic("Could not borrow ref to StakingCollection")
 
         return stakingCollectionRef.getNodeIDs()
@@ -582,7 +616,7 @@ pub contract StakingCollection {
     pub fun getDelegatorIDs(address: Address): [DelegatorIDs] {
         let account = getAccount(address)
 
-        let stakingCollectionRef = account.borrow<&Collection{StakingCollectionPublic}>(from: StakingCollectionPublicPath)
+        let stakingCollectionRef = account.getCapability<&Collection{StakingCollectionPublic}>(self.StakingCollectionPublicPath).borrow()
             ?? panic("Could not borrow ref to StakingCollection")
 
         return stakingCollectionRef.getDelegatorIDs()
@@ -592,7 +626,7 @@ pub contract StakingCollection {
     pub fun getAllNodeInfo(address: Address): {String: FlowIDTableStaking.NodeInfo} {
         let account = getAccount(address)
 
-        let stakingCollectionRef = account.borrow<&Collection{StakingCollectionPublic}>(from: StakingCollectionPublicPath)
+        let stakingCollectionRef = account.getCapability<&Collection{StakingCollectionPublic}>(self.StakingCollectionPublicPath).borrow()
             ?? panic("Could not borrow ref to StakingCollection")
 
         return stakingCollectionRef.getAllNodeInfo()
@@ -602,7 +636,7 @@ pub contract StakingCollection {
     pub fun getAllDelegatorInfo(address: Address): {String: {UInt32: FlowIDTableStaking.DelegatorInfo}} {
         let account = getAccount(address)
 
-        let stakingCollectionRef = account.borrow<&Collection{StakingCollectionPublic}>(from: StakingCollectionPublicPath)
+        let stakingCollectionRef = account.getCapability<&Collection{StakingCollectionPublic}>(self.StakingCollectionPublicPath).borrow()
             ?? panic("Could not borrow ref to StakingCollection")
 
         return stakingCollectionRef.getAllDelegatorInfo()
@@ -613,3 +647,4 @@ pub contract StakingCollection {
         self.StakingCollectionPublicPath = /public/stakingCollection
     }
 }
+ 

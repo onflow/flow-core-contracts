@@ -617,7 +617,7 @@ pub contract LockedTokens {
             return <-vaultRef.withdraw(amount: amount)
         }
 
-        access(account) fun depositToLockedVault(from: @FlowToken.Vault) {
+        access(account) fun depositToLockedVault(from: @FungibleToken.Vault) {
             let vaultRef = self.lockedVault!.borrow()!
 
             vaultRef.deposit(from: <-from)

@@ -1,8 +1,14 @@
 package test
 
 import (
+	"encoding/hex"
 	"testing"
 
+	"github.com/onflow/cadence"
+	jsoncdc "github.com/onflow/cadence/encoding/json"
+	emulator "github.com/onflow/flow-emulator"
+	"github.com/onflow/flow-go-sdk"
+	"github.com/onflow/flow-go-sdk/crypto"
 	sdktemplates "github.com/onflow/flow-go-sdk/templates"
 
 	"github.com/onflow/flow-go-sdk/test"
@@ -12,6 +18,24 @@ import (
 	"github.com/onflow/flow-core-contracts/lib/go/contracts"
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
 )
+
+func deployCollectionContract(t *testing.T, b *emulator.Blockchain, idTableAddress, stakingProxyAddress, lockedTokensAddress flow.Address, lockedTokensSigner crypto.Signer, env templates.Environment) {
+
+	FlowStakingCollectionCode := contracts.FlowStakingCollection(emulatorFTAddress, emulatorFlowTokenAddress, idTableAddress.String(), stakingProxyAddress.String(), lockedTokensAddress.String())
+	FlowStakingCollectionByteCode := cadence.NewString(hex.EncodeToString(FlowStakingCollectionCode))
+
+	// Deploy the QC and DKG contracts
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDeployStakingCollectionScript(), lockedTokensAddress).
+		AddRawArgument(jsoncdc.MustEncode(cadence.NewString("FlowStakingCollection"))).
+		AddRawArgument(jsoncdc.MustEncode(FlowStakingCollectionByteCode))
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, lockedTokensAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), lockedTokensSigner},
+		false,
+	)
+}
 
 func TestStakingCollection(t *testing.T) {
 
@@ -50,28 +74,14 @@ func TestStakingCollection(t *testing.T) {
 	_, err = b.CommitBlock()
 	assert.NoError(t, err)
 
-	//adminAccountKey := accountKeys.New()
-	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress)
+	lockedTokensAccountKey, lockedTokensSigner := accountKeys.NewWithSigner()
+	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress, lockedTokensAccountKey)
 	env.StakingProxyAddress = stakingProxyAddress.Hex()
 	env.LockedTokensAddress = lockedTokensAddress.Hex()
 
 	// DEPLOY StakingCollection
 
-	//FlowStakingCollectionKey, _ := accountKeys.NewWithSigner()
-	FlowStakingCollectionCode := contracts.FlowStakingCollection(emulatorFTAddress, emulatorFlowTokenAddress, idTableAddress.String(), stakingProxyAddress.String(), lockedTokensAddress.String())
-
-	//stakingCollectionAddress, err := b.CreateAccount(nil, []sdktemplates.Contract{
-	_, err = b.CreateAccount(nil, []sdktemplates.Contract{
-		{
-			Name:   "StakingCollection",
-			Source: string(FlowStakingCollectionCode),
-		},
-	})
-	if !assert.NoError(t, err) {
-		t.Log(err.Error())
-	}
-	_, err = b.CommitBlock()
-	assert.NoError(t, err)
+	deployCollectionContract(t, b, idTableAddress, stakingProxyAddress, lockedTokensAddress, lockedTokensSigner, env)
 
 	t.Run("Should be able to set up the admin account", func(t *testing.T) {
 
