@@ -588,11 +588,19 @@ pub contract LockedTokens {
         }
     }
 
+    // Provides access to the locked vault in the token manager resource 
+    // to other contracts that are deployed to the same account as the locked tokens contract
     pub resource LockedVaultHolder {
         access(self) var lockedVault: Capability<&FlowToken.Vault>?
 
         init() {
             self.lockedVault = nil
+        }
+
+        access(account) fun getVaultBalance(): UFix64 {
+            let vaultRef = self.lockedVault!.borrow()!
+
+            return vaultRef.balance
         }
 
         access(account) fun addVault(lockedVault: Capability<&FlowToken.Vault>) {
@@ -604,13 +612,15 @@ pub contract LockedTokens {
         }
 
         access(account) fun withdrawFromLockedVault(amount: UFix64): @FungibleToken.Vault {
-            let vaultRef = self.lockedVault.borrow()!
+            let vaultRef = self.lockedVault!.borrow()!
 
             return <-vaultRef.withdraw(amount: amount)
         }
 
-        access(account) fun depositToLockedVault(from: @FlowToken.Vault) {
+        access(account) fun depositToLockedVault(from: @FungibleToken.Vault) {
+            let vaultRef = self.lockedVault!.borrow()!
 
+            vaultRef.deposit(from: <-from)
         }
     }
 

@@ -54,6 +54,7 @@ func deployLockedTokensContract(
 	t testing.TB,
 	b *emulator.Blockchain,
 	IDTableAddr, proxyAddr flow.Address,
+	lockedTokensAccountKey *flow.AccountKey,
 ) flow.Address {
 
 	lockedTokensCode := contracts.FlowLockedTokens(
@@ -63,13 +64,18 @@ func deployLockedTokensContract(
 		proxyAddr.Hex(),
 	)
 
+	publicKeys := make([]cadence.Value, 1)
+	publicKeys[0] = bytesToCadenceArray(lockedTokensAccountKey.Encode())
+
+	cadencePublicKeys := cadence.NewArray(publicKeys)
+
 	cadenceCode := cadence.NewString(hex.EncodeToString(lockedTokensCode))
 
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDeployLockedTokens(), b.ServiceKey().Address)
 
 	tx.AddRawArgument(jsoncdc.MustEncode(cadence.NewString("LockedTokens")))
 	tx.AddRawArgument(jsoncdc.MustEncode(cadenceCode))
-	tx.AddRawArgument(jsoncdc.MustEncode(cadence.NewArray(nil)))
+	tx.AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys))
 
 	err := tx.SignEnvelope(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().Signer())
 	require.NoError(t, err)
@@ -166,7 +172,7 @@ func TestLockedTokensStaker(t *testing.T) {
 	assert.NoError(t, err)
 
 	adminAccountKey := accountKeys.New()
-	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress)
+	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress, nil)
 	env.StakingProxyAddress = stakingProxyAddress.Hex()
 	env.LockedTokensAddress = lockedTokensAddress.Hex()
 
@@ -777,7 +783,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 
 	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
 
-	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress)
+	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress, nil)
 
 	env.LockedTokensAddress = lockedTokensAddress.Hex()
 
@@ -1230,7 +1236,7 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 
 	adminAccountKey := accountKeys.New()
 
-	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress)
+	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress, nil)
 
 	env.LockedTokensAddress = lockedTokensAddress.Hex()
 
@@ -1569,7 +1575,7 @@ func TestLockedTokensRealStaking(t *testing.T) {
 	assert.NoError(t, err)
 
 	adminAccountKey := accountKeys.New()
-	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress)
+	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress, nil)
 	env.StakingProxyAddress = stakingProxyAddress.Hex()
 	env.LockedTokensAddress = lockedTokensAddress.Hex()
 
@@ -1913,7 +1919,7 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 
 	env.StakingProxyAddress = stakingProxyAddress.Hex()
 	adminAccountKey := accountKeys.New()
-	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress)
+	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress, nil)
 	env.LockedTokensAddress = lockedTokensAddress.Hex()
 
 	t.Run("Should be able to set up the admin account", func(t *testing.T) {

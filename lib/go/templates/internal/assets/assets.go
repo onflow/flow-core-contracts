@@ -114,6 +114,7 @@
 // ../../../transactions/lockedTokens/user/get_total_balance.cdc (3.628kB)
 // ../../../transactions/lockedTokens/user/get_unlock_limit.cdc (433B)
 // ../../../transactions/lockedTokens/user/withdraw_tokens.cdc (713B)
+// ../../../transactions/stakingCollection/deploy_collection_contract.cdc (169B)
 // ../../../transactions/stakingProxy/add_node_info.cdc (620B)
 // ../../../transactions/stakingProxy/get_node_info.cdc (506B)
 // ../../../transactions/stakingProxy/register_node.cdc (1.123kB)
@@ -2479,6 +2480,26 @@ func lockedtokensUserWithdraw_tokensCdc() (*asset, error) {
 	return a, nil
 }
 
+var _stakingcollectionDeploy_collection_contractCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x4c\x8d\x31\x0a\xc3\x30\x0c\x45\x77\x9f\x42\xa3\x0d\xc5\x07\xc8\x96\xad\x53\x97\x9e\x40\x48\xa2\xf5\x10\x39\x28\x0a\x14\x8a\xef\x5e\x6c\x70\x89\x86\x2f\x84\x3e\xef\xb9\xa1\x1e\x48\x5e\xaa\x46\xaa\xea\x86\xe4\x0f\xdc\x64\x81\xa7\x5b\xd1\xd7\x0d\xa8\xf2\xff\x4a\xf0\x0d\x00\x00\x23\x76\x93\x1d\x4d\x22\xf2\x56\x74\x81\xf5\xf4\xf7\x4a\x54\x4f\xf5\x59\xeb\x33\xbe\x79\xa2\x8f\x8c\xcc\x51\x87\xe0\xaa\x9b\x9a\x9e\x99\xa5\xaf\xbb\x7c\x62\x4a\x83\xd3\x42\x0b\xbf\x00\x00\x00\xff\xff\xf4\xcc\x39\x83\xa9\x00\x00\x00"
+
+func stakingcollectionDeploy_collection_contractCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_stakingcollectionDeploy_collection_contractCdc,
+		"stakingCollection/deploy_collection_contract.cdc",
+	)
+}
+
+func stakingcollectionDeploy_collection_contractCdc() (*asset, error) {
+	bytes, err := stakingcollectionDeploy_collection_contractCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "stakingCollection/deploy_collection_contract.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x88, 0x6f, 0x7b, 0xcb, 0x19, 0xe5, 0x85, 0xa1, 0xcd, 0xb8, 0xde, 0x63, 0xa1, 0x19, 0xe1, 0x2f, 0x59, 0x12, 0x29, 0x5f, 0xdc, 0x9b, 0xb0, 0x4c, 0x51, 0xbf, 0xa8, 0x21, 0x92, 0x2b, 0xd7, 0x2e}}
+	return a, nil
+}
+
 var _stakingproxyAdd_node_infoCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x91\x41\x6b\xc2\x40\x10\x85\xef\xfb\x2b\x06\x0f\x25\x82\x48\x8f\x25\xd4\x4a\xd0\xd2\x8a\xa0\xc1\xb4\xd0\x1e\xd7\xec\xa8\x4b\xe3\xce\x32\x19\x51\x29\xfe\xf7\xb2\x46\x4d\x24\xdd\x43\xc8\xbe\xcc\x64\xbe\xf7\xc6\x6e\x3d\xb1\x40\x26\xfa\xc7\xba\x75\xca\x74\x38\xc2\x8a\x69\x0b\x8f\x87\xec\x23\x99\x4e\x66\x6f\xe9\x62\xfe\xf5\x9d\x8c\xc7\x8b\xd7\x2c\x53\x4a\x58\xbb\x52\xe7\x62\xc9\x45\xd6\xc4\x90\x09\x5b\xb7\xee\x01\x53\x81\x31\x7c\x4e\x9c\x3c\xf5\xc0\xa1\xec\x89\xc3\x0f\x13\x63\x18\xcb\xb2\xae\xab\x3f\x4d\xf1\x58\xcb\x65\x35\xbf\xa1\x75\xe1\x57\x29\x00\x00\xcf\xe8\x35\x63\xa4\xf3\x9c\x76\x4e\x62\x48\x76\xb2\x49\xaa\x4b\x28\x82\xcb\x29\x50\xc0\x07\xfe\x77\x2a\x0c\x32\x0c\xe0\xd2\xd1\x5f\x12\x33\xed\x9f\x1f\x9a\x26\xfb\x33\x32\x18\x04\xe4\xb4\x6e\x7a\x89\x82\xf7\x18\x5a\x95\x73\x8f\xac\x85\x78\xa4\xbd\x5e\xda\xc2\xca\x31\x13\x62\xbd\xc6\x54\xcb\xa6\x7b\x63\x08\x67\x38\x04\xaf\x9d\xcd\xa3\xce\x88\x76\x85\x01\x47\x02\x15\x01\x30\xae\x90\xd1\xe5\x08\x42\x57\xcb\x15\x33\x6c\xce\xf3\x3b\x5d\x75\xe7\xc7\x91\xc1\x89\x5b\x11\x0c\xda\x48\x41\x3f\xaf\xc0\x9a\x6b\xfc\xe1\xf9\x6f\xfa\x2d\xa9\xb5\x88\xbb\xeb\xfd\x3e\xea\xf7\x06\x5d\x23\xe9\xbe\x36\xe6\x06\x74\x25\x8e\x6f\xec\x55\x3a\x27\x75\x52\x7f\x01\x00\x00\xff\xff\x9f\x31\xb9\x98\x6c\x02\x00\x00"
 
 func stakingproxyAdd_node_infoCdcBytes() ([]byte, error) {
@@ -3004,6 +3025,7 @@ var _bindata = map[string]func() (*asset, error){
 	"lockedTokens/user/get_total_balance.cdc":                                 lockedtokensUserGet_total_balanceCdc,
 	"lockedTokens/user/get_unlock_limit.cdc":                                  lockedtokensUserGet_unlock_limitCdc,
 	"lockedTokens/user/withdraw_tokens.cdc":                                   lockedtokensUserWithdraw_tokensCdc,
+	"stakingCollection/deploy_collection_contract.cdc":                        stakingcollectionDeploy_collection_contractCdc,
 	"stakingProxy/add_node_info.cdc":                                          stakingproxyAdd_node_infoCdc,
 	"stakingProxy/get_node_info.cdc":                                          stakingproxyGet_node_infoCdc,
 	"stakingProxy/register_node.cdc":                                          stakingproxyRegister_nodeCdc,
@@ -3205,6 +3227,9 @@ var _bintree = &bintree{nil, map[string]*bintree{
 			"get_unlock_limit.cdc": {lockedtokensUserGet_unlock_limitCdc, map[string]*bintree{}},
 			"withdraw_tokens.cdc": {lockedtokensUserWithdraw_tokensCdc, map[string]*bintree{}},
 		}},
+	}},
+	"stakingCollection": {nil, map[string]*bintree{
+		"deploy_collection_contract.cdc": {stakingcollectionDeploy_collection_contractCdc, map[string]*bintree{}},
 	}},
 	"stakingProxy": {nil, map[string]*bintree{
 		"add_node_info.cdc": {stakingproxyAdd_node_infoCdc, map[string]*bintree{}},
