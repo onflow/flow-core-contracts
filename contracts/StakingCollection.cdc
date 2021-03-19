@@ -180,7 +180,7 @@ pub contract FlowStakingCollection {
         }
 
         // Returns true if a Stake or Delegation record exists in the StakingCollection for a given nodeID and optional delegatorID, otherwise false.
-        access(self) fun doesStakeExist(nodeID: String, delegatorID: UInt32?): Bool {
+        pub fun doesStakeExist(nodeID: String, delegatorID: UInt32?): Bool {
             var tokenHolderNodeID: String? = nil
             var tokenHolderDelegatorNodeID: String? = nil
             var tokenHolderDelegatorID: UInt32?  = nil

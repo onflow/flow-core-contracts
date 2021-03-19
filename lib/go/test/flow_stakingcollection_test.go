@@ -19,7 +19,12 @@ import (
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
 )
 
-func deployCollectionContract(t *testing.T, b *emulator.Blockchain, idTableAddress, stakingProxyAddress, lockedTokensAddress flow.Address, lockedTokensSigner crypto.Signer, env templates.Environment) {
+func deployCollectionContract(t *testing.T, b *emulator.Blockchain,
+	idTableAddress,
+	stakingProxyAddress,
+	lockedTokensAddress flow.Address,
+	lockedTokensSigner crypto.Signer,
+	env templates.Environment) {
 
 	FlowStakingCollectionCode := contracts.FlowStakingCollection(emulatorFTAddress, emulatorFlowTokenAddress, idTableAddress.String(), stakingProxyAddress.String(), lockedTokensAddress.String())
 	FlowStakingCollectionByteCode := cadence.NewString(hex.EncodeToString(FlowStakingCollectionCode))
