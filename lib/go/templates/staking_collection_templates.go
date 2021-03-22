@@ -23,6 +23,12 @@ const (
 	collectionUnstakeAllFilename = "stakingCollection/unstake_all.cdc"
 	collectionWithdrawRewardedTokensFilename = "stakingCollection/withdraw_rewarded_tokens.cdc"
 	collectionWithdrawUnstakedTokensFilename = "stakingCollection/withdraw_unstaked_tokens.cdc"
+
+	// scripts
+	collectionGetNodeIDs = "stakingCollection/get_node_ids.cdc"
+	collectionGetDelegatorIDs = "stakingCollection/get_delegator_ids.cdc"
+	collectionGetAllNodeInfo = "stakingCollection/get_all_node_info.cdc"
+	collectionGetAllDelegatorInfo = "stakingCollection/get_all_delegator_info.cdc"
 )
 
 func GenerateDeployStakingCollectionScript() []byte {
@@ -97,4 +103,28 @@ func GenerateCollectionWithdrawUnstakedTokens(env Environment) []byte {
 	return []byte(replaceAddresses(code, env))
 }
 
-// script templates
+// Script templates
+
+func GenerateCollectionGetNodeIDs(env Environment) []byte {
+	code := assets.MustAssetString(collectionGetNodeIDs)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateCollectionGetDelegatorIDs(env Environment) []byte {
+	code := assets.MustAssetString(collectionGetDelegatorIDs)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateCollectionGetAllNodeInfo(env Environment) []byte {
+	code := assets.MustAssetString(collectionGetAllNodeInfo)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateCollectionGetAllDelegatorInfo(env Environment) []byte {
+	code := assets.MustAssetString(collectionGetAllDelegatorInfo)
+
+	return []byte(replaceAddresses(code, env))
+}
