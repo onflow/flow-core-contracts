@@ -126,6 +126,12 @@ pub contract FlowIDTableStaking {
         /// weight as determined by the amount staked after the staking auction
         pub(set) var initialWeight: UInt64
 
+        /// Weight that can be changed because of slashing or other mid-epoch changes
+        pub(set) var dynamicWeight: UInt64
+
+        /// Indicates if the node has been ejected from the protocol completely
+        pub(set) var ejected: Bool
+
         init(
             id: String,
             role: UInt8,
@@ -152,6 +158,8 @@ pub contract FlowIDTableStaking {
             self.networkingKey = networkingKey
             self.stakingKey = stakingKey
             self.initialWeight = 0
+            self.dynamicWeight = 0
+            self.ejected = false
             self.delegators <- {}
             self.delegatorIDCounter = 0
 
@@ -228,6 +236,8 @@ pub contract FlowIDTableStaking {
         pub let delegatorIDCounter: UInt32
         pub let tokensRequestedToUnstake: UFix64
         pub let initialWeight: UInt64
+        pub let dynamicWeight: UInt64
+        pub let ejected: Bool
 
         /// Derived Fields
         pub let totalCommittedWithDelegators: UFix64
@@ -252,6 +262,8 @@ pub contract FlowIDTableStaking {
             self.delegatorIDCounter = nodeRecord.delegatorIDCounter
             self.tokensRequestedToUnstake = nodeRecord.tokensRequestedToUnstake
             self.initialWeight = nodeRecord.initialWeight
+            self.dynamicWeight = nodeRecord.dynamicWeight
+            self.ejected = nodeRecord.ejected
 
             self.totalCommittedWithoutDelegators = nodeRecord.nodeFullCommittedBalance()
             var committedSum = self.totalCommittedWithoutDelegators
@@ -682,11 +694,13 @@ pub contract FlowIDTableStaking {
                     }
 
                     nodeRecord.initialWeight = 0
+                    nodeRecord.dynamicWeight = 0
 
                 } else {
                     /// Set initial weight of all the committed nodes
                     /// TODO: Figure out how to calculate the initial weight for each node
                     nodeRecord.initialWeight = 100
+                    nodeRecord.dynamicWeight = 100
                 }
             }
             FlowIDTableStaking.stakingEnabled = false

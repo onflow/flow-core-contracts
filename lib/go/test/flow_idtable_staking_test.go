@@ -59,7 +59,6 @@ func TestIDTableDeployment(t *testing.T) {
 	t.Run("Should be able to read empty table fields and initialized fields", func(t *testing.T) {
 
 		result := executeScriptAndCheck(t, b, templates.GenerateReturnCurrentTableScript(env), nil)
-
 		idArray := result.(cadence.Array).Values
 		assert.Empty(t, idArray)
 

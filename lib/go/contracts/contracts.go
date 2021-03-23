@@ -202,3 +202,21 @@ func FlowDKG() []byte {
 
 	return []byte(code)
 }
+
+// FlowEpoch returns the FlowEpoch contract.
+func FlowEpoch(fungibleTokenAddress,
+	flowTokenAddress,
+	idTableAddress,
+	qcAddress,
+	dkgAddress string,
+) []byte {
+	code := assets.MustAssetString(flowEpochFilename)
+
+	code = strings.ReplaceAll(code, placeholderFungibleTokenAddress, withHexPrefix(fungibleTokenAddress))
+	code = strings.ReplaceAll(code, placeholderFlowTokenAddress, withHexPrefix(flowTokenAddress))
+	code = strings.ReplaceAll(code, placeholderIDTableAddress, withHexPrefix(idTableAddress))
+	code = strings.ReplaceAll(code, placeholderQCAddr, withHexPrefix(qcAddress))
+	code = strings.ReplaceAll(code, placeholderDKGAddr, withHexPrefix(dkgAddress))
+
+	return []byte(code)
+}

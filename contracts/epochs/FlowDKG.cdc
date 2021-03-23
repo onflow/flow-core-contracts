@@ -136,7 +136,7 @@ pub contract FlowDKG {
 
         init(nodeID: String) {
             pre {
-                FlowDKG.participantIsRegistered(nodeID): "Cannot create a Participant for a node ID that hasn't been registered"
+                FlowDKG.participantIsRegistered(nodeID): "Cannot create a Participant before epoch setup starts or for a node ID that hasn't been registered"
                 FlowDKG.participantIsClaimed(nodeID) == nil: "Cannot create a Participant resource for a node ID that has already been claimed"
             }
             self.nodeID = nodeID
@@ -153,7 +153,7 @@ pub contract FlowDKG {
     pub resource Admin {
 
         /// Creates a new Participant resource for a consensus node
-        pub fun createParticipant(_ nodeID: String): @Participant {
+        pub fun createParticipant(nodeID: String): @Participant {
             let participant <-create Participant(nodeID: nodeID)
             FlowDKG.nodeClaimed[nodeID] = true
             return <-participant
@@ -187,6 +187,14 @@ pub contract FlowDKG {
                 FlowDKG.dkgCompleted() != nil: "Cannot end the DKG until enough final arrays have been submitted"
             }
 
+            FlowDKG.dkgEnabled = false
+
+            emit EndDKG(finalSubmission: FlowDKG.dkgCompleted())
+        }
+
+        /// Ends the DKG without checking if it is completed
+        /// Should only be used if the protocol halts and needs to be reset
+        pub fun forceEndDKG() {
             FlowDKG.dkgEnabled = false
 
             emit EndDKG(finalSubmission: FlowDKG.dkgCompleted())
