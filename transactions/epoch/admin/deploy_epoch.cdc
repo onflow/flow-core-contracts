@@ -8,7 +8,8 @@ transaction(name: String,
             randomSource: String,
             collectorClusters: [String]
             clusterQCs: [String],
-            dkgPubKeys: [String]) {
+            dkgPubKeys: [String],
+            totalRewards: UFix64) {
 
   prepare(signer: AuthAccount) {
 
@@ -22,6 +23,7 @@ transaction(name: String,
             randomSource: randomSource,
             collectorClusters: [],
             clusterQCs: [],
-            dkgPubKeys: [])
+            dkgPubKeys: [],
+            totalRewards: totalRewards)
   }
 }

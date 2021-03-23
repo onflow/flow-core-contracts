@@ -40,6 +40,7 @@ type EpochMetadata struct {
 	collectorClusters []Cluster
 	clusterQCs        [][]string
 	dkgKeys           []string
+	totalRewards      string
 }
 
 /// Used to verify the configurable Epoch metadata in tests
@@ -51,6 +52,7 @@ type ConfigMetadata struct {
 	numViewsInStakingAuction uint64
 	numViewsInDKGPhase       uint64
 	numCollectorClusters     uint16
+	rewardPercentage         string
 }
 
 /// Used to verify the EpochSetup event fields in tests
@@ -155,7 +157,7 @@ func deployEpochContract(
 	IDTableSigner crypto.Signer,
 	env templates.Environment,
 	epochCounter, epochViews, stakingViews, dkgViews, numClusters uint64,
-	randomSource string) {
+	randomSource, totalRewards string) {
 
 	EpochCode := contracts.FlowEpoch(emulatorFTAddress, emulatorFlowTokenAddress, idTableAddress.String(), idTableAddress.String(), idTableAddress.String())
 	EpochByteCode := bytesToCadenceArray(EpochCode)
@@ -174,6 +176,7 @@ func deployEpochContract(
 	_ = tx.AddArgument(cadence.NewArray([]cadence.Value{}))
 	_ = tx.AddArgument(cadence.NewArray([]cadence.Value{}))
 	_ = tx.AddArgument(cadence.NewArray([]cadence.Value{}))
+	_ = tx.AddArgument(CadenceUFix64(totalRewards))
 
 	signAndSubmit(
 		t, b, tx,
@@ -191,13 +194,13 @@ func initializeAllEpochContracts(
 	IDTableSigner crypto.Signer,
 	env *templates.Environment,
 	epochCounter, epochViews, stakingViews, dkgViews, numClusters uint64,
-	randomSource string) flow.Address {
+	randomSource, totalRewards string) flow.Address {
 
 	var idTableAddress = deployStakingContract(t, b, IDTableAccountKey, *env)
 	env.IDTableAddress = idTableAddress.Hex()
 
 	deployQCDKGContract(t, b, idTableAddress, IDTableSigner, *env)
-	deployEpochContract(t, b, idTableAddress, IDTableSigner, *env, epochCounter, epochViews, stakingViews, dkgViews, numClusters, randomSource)
+	deployEpochContract(t, b, idTableAddress, IDTableSigner, *env, epochCounter, epochViews, stakingViews, dkgViews, numClusters, randomSource, totalRewards)
 
 	env.QuorumCertificateAddress = idTableAddress.String()
 	env.DkgAddress = idTableAddress.String()
