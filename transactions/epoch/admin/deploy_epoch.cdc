@@ -4,12 +4,12 @@ transaction(name: String,
             numViewsInEpoch: UInt64,
             numViewsInStakingAuction: UInt64,
             numViewsInDKGPhase: UInt64,
-            numCollectorClusters: UInt16, 
+            numCollectorClusters: UInt16,
+            FLOWsupplyIncreasePercentage: UFix64,
             randomSource: String,
             collectorClusters: [String]
             clusterQCs: [String],
-            dkgPubKeys: [String],
-            totalRewards: UFix64) {
+            dkgPubKeys: [String]) {
 
   prepare(signer: AuthAccount) {
 
@@ -19,11 +19,11 @@ transaction(name: String,
             numViewsInEpoch: numViewsInEpoch,
             numViewsInStakingAuction: numViewsInStakingAuction, 
             numViewsInDKGPhase: numViewsInDKGPhase, 
-            numCollectorClusters: numCollectorClusters, 
+            numCollectorClusters: numCollectorClusters,
+            FLOWsupplyIncreasePercentage: FLOWsupplyIncreasePercentage,
             randomSource: randomSource,
             collectorClusters: [],
             clusterQCs: [],
-            dkgPubKeys: [],
-            totalRewards: totalRewards)
+            dkgPubKeys: [])
   }
 }

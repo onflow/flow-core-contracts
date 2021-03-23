@@ -4,8 +4,7 @@ import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
 transaction(randomSource: String,
             collectorClusters: [String]
             clusterQCs: [String],
-            dkgPubKeys: [String],
-            totalRewards: totalRewards) {
+            dkgPubKeys: [String]) {
 
     prepare(signer: AuthAccount) {
         let heartbeat = signer.borrow<&FlowEpoch.Heartbeat>(from: FlowEpoch.heartbeatStoragePath)
@@ -14,7 +13,6 @@ transaction(randomSource: String,
         heartbeat.resetEpoch(randomSource: randomSource,
                              collectorClusters: [],
                              clusterQCs: [],
-                             dkgPubKeys: [],
-                             totalRewards: totalRewards)
+                             dkgPubKeys: [])
     }
 }

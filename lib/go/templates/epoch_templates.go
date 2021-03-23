@@ -6,14 +6,15 @@ import (
 
 const (
 	// Admin Transactions
-	deployQCandDKGFilename     = "epoch/admin/deploy_qc_dkg.cdc"
-	deployEpochFilename        = "epoch/admin/deploy_epoch.cdc"
-	updateEpochViewsFilename   = "epoch/admin/update_epoch_views.cdc"
-	updateStakingViewsFilename = "epoch/admin/update_staking_views.cdc"
-	updateDKGViewsFilename     = "epoch/admin/update_dkg_phase_views.cdc"
-	updateNumClustersFilename  = "epoch/admin/update_clusters.cdc"
-	advanceViewFilename        = "epoch/admin/advance_view.cdc"
-	resetEpochFilename         = "epoch/admin/reset_epoch.cdc"
+	deployQCandDKGFilename         = "epoch/admin/deploy_qc_dkg.cdc"
+	deployEpochFilename            = "epoch/admin/deploy_epoch.cdc"
+	updateEpochViewsFilename       = "epoch/admin/update_epoch_views.cdc"
+	updateStakingViewsFilename     = "epoch/admin/update_staking_views.cdc"
+	updateDKGViewsFilename         = "epoch/admin/update_dkg_phase_views.cdc"
+	updateNumClustersFilename      = "epoch/admin/update_clusters.cdc"
+	updateRewardPercentageFilename = "epoch/admin/update_reward.cdc"
+	advanceViewFilename            = "epoch/admin/advance_view.cdc"
+	resetEpochFilename             = "epoch/admin/reset_epoch.cdc"
 
 	// Node Transactions
 	epochRegisterQCVoterFilename        = "epoch/node/register_qc_voter.cdc"
@@ -67,6 +68,12 @@ func GenerateUpdateDKGViewsScript(env Environment) []byte {
 
 func GenerateUpdateNumClustersScript(env Environment) []byte {
 	code := assets.MustAssetString(updateNumClustersFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateUpdateRewardPercentageScript(env Environment) []byte {
+	code := assets.MustAssetString(updateRewardPercentageFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
