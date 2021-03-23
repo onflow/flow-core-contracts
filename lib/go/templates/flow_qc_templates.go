@@ -19,6 +19,8 @@ const (
 
 	// Scripts
 
+	getQCEnabledScript = "quorumCertificate/scripts/get_qc_enabled.cdc"
+
 	getClustersFilename        = "quorumCertificate/scripts/get_clusters.cdc"
 	getClusterFilename         = "quorumCertificate/scripts/get_cluster.cdc"
 	getVotingCompletedFilename = "quorumCertificate/scripts/get_voting_completed.cdc"
@@ -70,6 +72,12 @@ func GenerateSubmitVoteScript(env Environment) []byte {
 }
 
 // Scripts
+
+func GenerateGetQCEnabledScript(env Environment) []byte {
+	code := assets.MustAssetString(getQCEnabledScript)
+
+	return []byte(replaceAddresses(code, env))
+}
 
 func GenerateGetClustersScript(env Environment) []byte {
 	code := assets.MustAssetString(getClustersFilename)

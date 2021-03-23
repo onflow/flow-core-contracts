@@ -1,6 +1,7 @@
 package test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -11,8 +12,6 @@ import (
 	emulator "github.com/onflow/flow-emulator"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
-
-	ft_templates "github.com/onflow/flow-ft/lib/go/templates"
 
 	"github.com/onflow/flow-core-contracts/lib/go/contracts"
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
@@ -72,21 +71,22 @@ func deployStakingContract(t *testing.T, b *emulator.Blockchain, IDTableAccountK
 	return idTableAddress
 }
 
-func mintTokensForAccount(t *testing.T, b *emulator.Blockchain, recipient flow.Address) {
+func generateNodeIDs(numNodes int) ([]string, []cadence.Value, []cadence.Value) {
+	ids := make([]string, numNodes)
+	qcIDs := make([]cadence.Value, numNodes/5+1)
+	dkgIDs := make([]cadence.Value, numNodes/5+1)
 
-	tx := createTxWithTemplateAndAuthorizer(b,
-		ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"),
-		b.ServiceKey().Address)
+	for i := 0; i < numNodes; i++ {
+		ids[i] = fmt.Sprintf("%064d", i)
 
-	_ = tx.AddArgument(cadence.NewAddress(recipient))
-	_ = tx.AddArgument(CadenceUFix64("1000000000.0"))
+		if i == 0 {
+			qcIDs[i/5] = cadence.NewString(ids[i])
+		} else if i == 1 {
+			dkgIDs[i/5] = cadence.NewString(ids[i])
+		}
+	}
 
-	signAndSubmit(
-		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address},
-		[]crypto.Signer{b.ServiceKey().Signer()},
-		false,
-	)
+	return ids, qcIDs, dkgIDs
 }
 
 func registerNode(t *testing.T,

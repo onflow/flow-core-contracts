@@ -60,6 +60,14 @@ pub contract FlowEpochClusterQC {
     pub let AdminStoragePath: StoragePath
     pub let VoterStoragePath: StoragePath
 
+    pub struct ClusterQC {
+        pub var votes: [String]
+
+        init(votes: [String]) {
+            self.votes = votes
+        }
+    }
+
     // Represents a collection node cluster for a given epoch. 
     pub struct Cluster {
 
@@ -74,7 +82,7 @@ pub contract FlowEpochClusterQC {
         pub let totalWeight: UInt64
 
         // Votes submitted for the cluster
-        access(contract) var votes: [Vote]
+        pub var votes: [Vote]
 
         pub fun size(): UInt16 {
             return UInt16(self.nodeWeights.length) 
@@ -83,6 +91,10 @@ pub contract FlowEpochClusterQC {
         // Returns the minimum number of vote weight required in order to be able to generate a
         // valid quorum certificate for this cluster.
         pub fun voteThreshold(): UInt64 {
+            if self.totalWeight == 0 as UInt64 {
+                return 0 as UInt64
+            }
+
             let floorOneThird = self.totalWeight / UInt64(3) // integer division, includes floor
 
             var res = UInt64(2) * floorOneThird
@@ -160,7 +172,7 @@ pub contract FlowEpochClusterQC {
 
         init(nodeID: String) {
             pre {
-                FlowEpochClusterQC.voterIsRegistered(nodeID): "Cannot create a Voter for a node ID that hasn't been registered"
+                FlowEpochClusterQC.voterIsRegistered(nodeID): "Cannot create a Voter before epoch setup starts or for a node ID that hasn't been registered"
                 !FlowEpochClusterQC.voterIsClaimed(nodeID)!: "Cannot create a Voter resource for a node ID that has already been claimed"
             }
             self.nodeID = nodeID
@@ -217,6 +229,12 @@ pub contract FlowEpochClusterQC {
             pre {
                 FlowEpochClusterQC.votingCompleted(): "Voting must be complete before it can be stopped"
             }
+            FlowEpochClusterQC.inProgress = false
+        }
+
+        /// Force a stop of the voting period
+        /// Should only be used if the protocol halts and needs to be reset
+        pub fun forceStopVoting() {
             FlowEpochClusterQC.inProgress = false
         }
     }
