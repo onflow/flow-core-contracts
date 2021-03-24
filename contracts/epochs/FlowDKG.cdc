@@ -70,6 +70,18 @@ pub contract FlowDKG {
 
         pub let nodeID: String
 
+        init(nodeID: String) {
+            pre {
+                FlowDKG.participantIsClaimed(nodeID) == nil: "Cannot create a Participant resource for a node ID that has already been claimed"
+            }
+            self.nodeID = nodeID
+            FlowDKG.nodeClaimed[nodeID] = true
+        }
+
+        destroy () {
+            FlowDKG.nodeClaimed[self.nodeID] = false
+        }
+
         // Posts a whiteboard message to the contract
         pub fun postMessage(_ content: String) {
             pre {
@@ -133,20 +145,6 @@ pub contract FlowDKG {
 
             FlowDKG.finalSubmissionByNodeID[self.nodeID] = submission
         }
-
-        init(nodeID: String) {
-            pre {
-                FlowDKG.participantIsRegistered(nodeID): "Cannot create a Participant before epoch setup starts or for a node ID that hasn't been registered"
-                FlowDKG.participantIsClaimed(nodeID) == nil: "Cannot create a Participant resource for a node ID that has already been claimed"
-            }
-            self.nodeID = nodeID
-            FlowDKG.nodeClaimed[nodeID] = true
-        }
-
-        destroy () {
-            FlowDKG.nodeClaimed[self.nodeID] = false
-        }
-
     }
 
     // The Admin resource provides the ability to begin and end voting for an epoch

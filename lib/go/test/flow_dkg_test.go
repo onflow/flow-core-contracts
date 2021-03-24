@@ -51,6 +51,9 @@ func TestDKG(t *testing.T) {
 	joshAccountKey, joshSigner := accountKeys.NewWithSigner()
 	joshAddress, _ := b.CreateAccount([]*flow.AccountKey{joshAccountKey}, nil)
 
+	jordanAccountKey, jordanSigner := accountKeys.NewWithSigner()
+	jordanAddress, _ := b.CreateAccount([]*flow.AccountKey{jordanAccountKey}, nil)
+
 	t.Run("Should be able to set up the admin account", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GeneratePublishDKGParticipantScript(env), DKGAddress)
@@ -63,27 +66,27 @@ func TestDKG(t *testing.T) {
 		)
 	})
 
-	t.Run("Should not be able to register a voter if the node hasn't been registered as a consensus node", func(t *testing.T) {
+	t.Run("Should be able to register a voter before the dkg is enabled", func(t *testing.T) {
 
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateDKGParticipantScript(env), DKGAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateDKGParticipantScript(env), jordanAddress)
 
 		_ = tx.AddArgument(cadence.NewAddress(DKGAddress))
-		_ = tx.AddArgument(cadence.NewString(adminID))
+		_ = tx.AddArgument(cadence.NewString(accessID))
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, DKGAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), DKGSigner},
-			true,
+			[]flow.Address{b.ServiceKey().Address, jordanAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), jordanSigner},
+			false,
 		)
 
-		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGNodeIsRegisteredScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
+		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGNodeIsRegisteredScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(accessID))})
 
 		assert.Equal(t, cadence.NewBool(false), result)
 
-		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGNodeIsClaimedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
+		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGNodeIsClaimedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(accessID))})
 
-		assert.Equal(t, cadence.NewBool(false), result)
+		assert.Equal(t, cadence.NewBool(true), result)
 	})
 
 	t.Run("Admin should not be able to stop the dkg if it is already stopped", func(t *testing.T) {
