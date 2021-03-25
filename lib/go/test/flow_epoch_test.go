@@ -213,7 +213,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 			true,
 		)
 
-		// Should succeed because it is > 1
+		// Should succeed because it is < 1
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateRewardPercentageScript(env), idTableAddress)
 		_ = tx.AddArgument(CadenceUFix64("0.04"))
 		signAndSubmit(
@@ -693,6 +693,17 @@ func TestEpochQCDKG(t *testing.T) {
 
 	t.Run("Can end the Epoch and start a new Epoch", func(t *testing.T) {
 
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochPaySetRewardsScript(env), idTableAddress)
+
+		_ = tx.AddArgument(CadenceUFix64("1300000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+
 		// Advance to new epoch
 		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "ENDEPOCH", false)
 
@@ -719,7 +730,7 @@ func TestEpochQCDKG(t *testing.T) {
 				startView:         numEpochViews,
 				endView:           2*numEpochViews - 1,
 				stakingEndView:    numEpochViews + numStakingViews - 1,
-				totalRewards:      "0.0",
+				totalRewards:      "1300000.0",
 				collectorClusters: clusters,
 				clusterQCs:        clusterQCs,
 				dkgKeys:           finalKeyStrings})
@@ -819,6 +830,7 @@ func TestEpochReset(t *testing.T) {
 		_ = tx.AddArgument(cadence.NewArray([]cadence.Value{}))
 		_ = tx.AddArgument(cadence.NewArray([]cadence.Value{}))
 		_ = tx.AddArgument(cadence.NewArray([]cadence.Value{}))
+
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{b.ServiceKey().Address, idTableAddress},

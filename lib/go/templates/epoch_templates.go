@@ -15,6 +15,7 @@ const (
 	updateRewardPercentageFilename = "epoch/admin/update_reward.cdc"
 	advanceViewFilename            = "epoch/admin/advance_view.cdc"
 	resetEpochFilename             = "epoch/admin/reset_epoch.cdc"
+	epochPaySetRewardsFilename     = "epoch/admin/pay_rewards.cdc"
 
 	// Node Transactions
 	epochRegisterQCVoterFilename        = "epoch/node/register_qc_voter.cdc"
@@ -86,6 +87,12 @@ func GenerateAdvanceViewScript(env Environment) []byte {
 
 func GenerateResetEpochScript(env Environment) []byte {
 	code := assets.MustAssetString(resetEpochFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateEpochPaySetRewardsScript(env Environment) []byte {
+	code := assets.MustAssetString(epochPaySetRewardsFilename)
 
 	return []byte(replaceAddresses(code, env))
 }

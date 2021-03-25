@@ -21,7 +21,6 @@ transaction(phase: String) {
         } else if phase == "EPOCHCOMMITTED" {
             heartbeat.startEpochCommitted()
         } else if phase == "ENDEPOCH" {
-            heartbeat.payRewards(newPayout: nil)
             heartbeat.endEpoch()
         } else if phase == "BLOCK" {
             heartbeat.advanceBlock()

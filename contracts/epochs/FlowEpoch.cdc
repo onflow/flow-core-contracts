@@ -174,6 +174,10 @@ pub contract FlowEpoch {
             self.dkgKeys = dkgKeys
         }
 
+        pub fun setTotalRewards(_ newRewards: UFix64) {
+            self.totalRewards = newRewards
+        }
+
         pub fun setClusterQCs(qcs: [FlowEpochClusterQC.ClusterQC]) {
             self.clusterQCs = qcs
         }
@@ -197,7 +201,8 @@ pub contract FlowEpoch {
         /// The number of collector clusters in each epoch
         pub(set) var numCollectorClusters: UInt16
 
-        /// Tracks the percentage of FLOW total supply that is minted as rewards at the end of an epoch
+        /// Tracks the annualized percentage of FLOW total supply that is minted as rewards at the end of an epoch
+        /// Calculation for a single epoch would be (totalSupply * FLOWsupplyIncreasePercentage) / 52
         pub(set) var FLOWsupplyIncreasePercentage: UFix64
 
         init(numViewsInEpoch: UInt64, numViewsInStakingAuction: UInt64, numViewsInDKGPhase: UInt64, numCollectorClusters: UInt16, FLOWsupplyIncreasePercentage: UFix64) {
@@ -348,8 +353,8 @@ pub contract FlowEpoch {
             FlowEpoch.startNewEpoch()
         }
 
-        pub fun payRewards(newPayout: UFix64?) {
-            FlowEpoch.payRewards(newPayout)
+        pub fun payAndSetRewards(_ newPayout: UFix64?) {
+            FlowEpoch.payAndSetRewards(newPayout)
         }
 
         /// Protocol can use this to reboot the epoch with a new genesis
@@ -385,8 +390,9 @@ pub contract FlowEpoch {
     }
 
     /// Pays rewards to staked nodes and delegators,
-    /// Calculates a new token payout, and sets the new payout
-    access(account) fun payRewards(_ newPayout: UFix64?) {
+    /// Calculates a new token payout for the next epoch
+    /// and sets the new payout
+    access(account) fun payAndSetRewards(_ newPayout: UFix64?) {
 
         self.stakingAdmin.payRewards()
 
@@ -396,6 +402,7 @@ pub contract FlowEpoch {
 
         if let payout = newPayout {
             self.stakingAdmin.setEpochTokenPayout(payout)
+            self.epochMetadata[self.proposedEpochCounter()]!.setTotalRewards(payout)
         }
     }
 
