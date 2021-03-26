@@ -46,11 +46,11 @@ func newBlockchain(opts ...emulator.Option) *emulator.Blockchain {
 	return b
 }
 
-func newAccountWithAddress(b *emulator.Blockchain, accountKeys *test.AccountKeys) (flow.Address, crypto.Signer) {
+func newAccountWithAddress(b *emulator.Blockchain, accountKeys *test.AccountKeys) (flow.Address, *flow.AccountKey, crypto.Signer) {
 	newAccountKey, newSigner := accountKeys.NewWithSigner()
 	newAddress, _ := b.CreateAccount([]*flow.AccountKey{newAccountKey}, nil)
 
-	return newAddress, newSigner
+	return newAddress, newAccountKey, newSigner
 }
 
 func createTxWithTemplateAndAuthorizer(
@@ -212,16 +212,17 @@ func registerAndMintManyAccounts(
 	t *testing.T,
 	b *emulator.Blockchain,
 	accountKeys *test.AccountKeys,
-	numAccounts int) ([]flow.Address, []crypto.Signer) {
+	numAccounts int) ([]flow.Address, []*flow.AccountKey, []crypto.Signer) {
 
 	var userAddresses = make([]flow.Address, numAccounts)
+	var userPublicKeys = make([]*flow.AccountKey, numAccounts)
 	var userSigners = make([]crypto.Signer, numAccounts)
 
 	for i := 0; i < numAccounts; i++ {
-		userAddresses[i], userSigners[i] = newAccountWithAddress(b, accountKeys)
+		userAddresses[i], userPublicKeys[i], userSigners[i] = newAccountWithAddress(b, accountKeys)
 		mintTokensForAccount(t, b, userAddresses[i])
 	}
 
-	return userAddresses, userSigners
+	return userAddresses, userPublicKeys, userSigners
 
 }

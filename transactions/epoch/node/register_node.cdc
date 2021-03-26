@@ -15,7 +15,7 @@ transaction(
     networkingKey: String,
     stakingKey: String,
     amount: UFix64,
-    publicKeys: [String]
+    publicKeys: [[UInt8]]
 ) {
 
     let flowTokenRef: &FlowToken.Vault
@@ -45,7 +45,7 @@ transaction(
             )
         }
 
-        let nodeRef = signer.borrow<&FlowIDTableStaking.NodeStaker>(from: FlowIDTableStaking.NodeStakerStoragePath)
+        let nodeRef = acct.borrow<&FlowIDTableStaking.NodeStaker>(from: FlowIDTableStaking.NodeStakerStoragePath)
             ?? panic("Could not borrow node reference from storage path")
 
         let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeRef.id)
@@ -53,25 +53,25 @@ transaction(
         // If the node is a collector or consensus node, create a secondary account for their specific objects
         if nodeInfo.role == 1 as UInt8 {
 
-            let newAcct = AuthAccount(payer: newAcct)
+            let newAcct = AuthAccount(payer: acct)
             for key in publicKeys {
-                newAcct.addPublicKey(key.decodeHex())
+                newAcct.addPublicKey(key)
             }
 
             let qcVoter <- FlowEpoch.getClusterQCVoter(nodeStaker: nodeRef)
 
-            signer.save(<-qcVoter, to: FlowEpochClusterQC.VoterStoragePath)
+            newAcct.save(<-qcVoter, to: FlowEpochClusterQC.VoterStoragePath)
 
         } else if nodeInfo.role == 2 as UInt8 {
 
-            let newAcct = AuthAccount(payer: newAcct)
+            let newAcct = AuthAccount(payer: acct)
             for key in publicKeys {
-                newAcct.addPublicKey(key.decodeHex())
+                newAcct.addPublicKey(key)
             }
 
             let dkgParticipant <- FlowEpoch.getDKGParticipant(nodeStaker: nodeRef)
 
-            signer.save(<-dkgParticipant, to: FlowDKG.ParticipantStoragePath)
+            newAcct.save(<-dkgParticipant, to: FlowDKG.ParticipantStoragePath)
 
         }
 

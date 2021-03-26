@@ -97,7 +97,7 @@ func TestEpochClusters(t *testing.T) {
 	})
 
 	// create new user accounts, mint tokens for them, and register them for staking
-	addresses, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
+	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
 	registerNodesForStaking(t, b, env,
 		addresses,
@@ -213,7 +213,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 			true,
 		)
 
-		// Should succeed because it is > 1
+		// Should succeed because it is < 1
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateRewardPercentageScript(env), idTableAddress)
 		_ = tx.AddArgument(CadenceUFix64("0.04"))
 		signAndSubmit(
@@ -237,7 +237,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 	})
 
 	// create new user accounts, mint tokens for them, and register them for staking
-	addresses, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
+	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
 	registerNodesForStaking(t, b, env,
 		addresses,
@@ -342,7 +342,7 @@ func TestEpochAdvance(t *testing.T) {
 	})
 
 	// create new user accounts, mint tokens for them, and register them for staking
-	addresses, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
+	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
 	ids, _, dkgIDs := generateNodeIDs(numEpochAccounts)
 	registerNodesForStaking(t, b, env,
 		addresses,
@@ -464,35 +464,12 @@ func TestEpochQCDKGNodeRegistration(t *testing.T) {
 		rewardAPY)
 
 	// create new user accounts, mint tokens for them, and register them for staking
-	addresses, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
+	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
 	registerNodesForStaking(t, b, env,
 		addresses,
 		signers,
 		ids)
-
-	t.Run("Should not be able to register a QC voter or DKG participant if the staking auction isn't over", func(t *testing.T) {
-
-		// Should fail because nodes cannot register if it is during the staking auction
-		// even if they are the correct node type
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochRegisterQCVoterScript(env), addresses[0])
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, addresses[0]},
-			[]crypto.Signer{b.ServiceKey().Signer(), signers[0]},
-			true,
-		)
-
-		// Should fail because nodes cannot register if it is during the staking auction
-		// even if they are the correct node type
-		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochRegisterDKGParticipantScript(env), addresses[1])
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, addresses[1]},
-			[]crypto.Signer{b.ServiceKey().Signer(), signers[1]},
-			true,
-		)
-	})
 
 	// Advance to epoch Setup and make sure that the epoch cannot be ended
 	advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHSETUP", false)
@@ -544,6 +521,33 @@ func TestEpochQCDKGNodeRegistration(t *testing.T) {
 	})
 }
 
+func TestEpochFullNodeRegistration(t *testing.T) {
+	b, accountKeys, env := newTestSetup(t)
+
+	// Create new keys for the epoch account
+	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
+
+	// Deploys the staking contract, qc, dkg, and epoch lifecycle contract
+	// staking contract is deployed with default values (1.25M rewards, 8% cut)
+	_ = initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
+		0,             // start epoch counter
+		70,            // num views per epoch
+		50,            // num views for staking auction
+		2,             // num views for DKG phase
+		4,             // num collector clusters
+		"lolsoRandom", // random source
+		rewardAPY)
+
+	// create new user accounts, mint tokens for them, and register them for staking
+	addresses, publicKeys, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
+	ids, _, _ := generateNodeIDs(numEpochAccounts)
+	registerNodesForEpochs(t, b, env,
+		addresses,
+		signers,
+		publicKeys,
+		ids)
+}
+
 func TestEpochQCDKG(t *testing.T) {
 	b, accountKeys, env := newTestSetup(t)
 
@@ -562,7 +566,7 @@ func TestEpochQCDKG(t *testing.T) {
 		rewardAPY)
 
 	// create new user accounts, mint tokens for them, and register them for staking
-	addresses, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
+	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
 	registerNodesForStaking(t, b, env,
 		addresses,
@@ -693,6 +697,17 @@ func TestEpochQCDKG(t *testing.T) {
 
 	t.Run("Can end the Epoch and start a new Epoch", func(t *testing.T) {
 
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochPaySetRewardsScript(env), idTableAddress)
+
+		_ = tx.AddArgument(CadenceUFix64("1300000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+
 		// Advance to new epoch
 		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "ENDEPOCH", false)
 
@@ -719,7 +734,7 @@ func TestEpochQCDKG(t *testing.T) {
 				startView:         numEpochViews,
 				endView:           2*numEpochViews - 1,
 				stakingEndView:    numEpochViews + numStakingViews - 1,
-				totalRewards:      "0.0",
+				totalRewards:      "1300000.0",
 				collectorClusters: clusters,
 				clusterQCs:        clusterQCs,
 				dkgKeys:           finalKeyStrings})
@@ -745,7 +760,7 @@ func TestEpochReset(t *testing.T) {
 		rewardAPY)
 
 	// create new user accounts, mint tokens for them, and register them for staking
-	addresses, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
+	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
 	registerNodesForStaking(t, b, env,
 		addresses,
@@ -819,6 +834,7 @@ func TestEpochReset(t *testing.T) {
 		_ = tx.AddArgument(cadence.NewArray([]cadence.Value{}))
 		_ = tx.AddArgument(cadence.NewArray([]cadence.Value{}))
 		_ = tx.AddArgument(cadence.NewArray([]cadence.Value{}))
+
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{b.ServiceKey().Address, idTableAddress},

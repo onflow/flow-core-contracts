@@ -83,9 +83,9 @@ func TestQuroumCertificate(t *testing.T) {
 	joshAccountKey, joshSigner := accountKeys.NewWithSigner()
 	joshAddress, _ := b.CreateAccount([]*flow.AccountKey{joshAccountKey}, nil)
 
-	// // Create a new user account
-	// maxAccountKey, maxSigner := accountKeys.NewWithSigner()
-	// maxAddress, _ := b.CreateAccount([]*flow.AccountKey{maxAccountKey}, nil)
+	// Create a new user account
+	maxAccountKey, maxSigner := accountKeys.NewWithSigner()
+	maxAddress, _ := b.CreateAccount([]*flow.AccountKey{maxAccountKey}, nil)
 
 	// // Create a new user account
 	// bastianAccountKey, bastianSigner := accountKeys.NewWithSigner()
@@ -107,18 +107,18 @@ func TestQuroumCertificate(t *testing.T) {
 		)
 	})
 
-	t.Run("Should not be able to register a voter if the node hasn't been registered in a cluster", func(t *testing.T) {
+	t.Run("Should be able to register a voter even if the node hasn't been registered in a cluster", func(t *testing.T) {
 
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateVoterScript(env), QCAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateVoterScript(env), maxAddress)
 
 		_ = tx.AddArgument(cadence.NewAddress(QCAddress))
-		_ = tx.AddArgument(cadence.NewString(adminID))
+		_ = tx.AddArgument(cadence.NewString(maxID))
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, QCAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), QCSigner},
-			true,
+			[]flow.Address{b.ServiceKey().Address, maxAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), maxSigner},
+			false,
 		)
 	})
 
@@ -201,7 +201,7 @@ func TestQuroumCertificate(t *testing.T) {
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateVoterScript(env), joshAddress)
 
 		_ = tx.AddArgument(cadence.NewAddress(QCAddress))
-		_ = tx.AddArgument(cadence.NewString(adminID))
+		_ = tx.AddArgument(cadence.NewString(clusterNodeIDStrings[0][0]))
 
 		signAndSubmit(
 			t, b, tx,
