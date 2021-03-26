@@ -53,25 +53,25 @@ transaction(
         // If the node is a collector or consensus node, create a secondary account for their specific objects
         if nodeInfo.role == 1 as UInt8 {
 
-            let newAcct = AuthAccount(payer: acct)
+            let machineAcct = AuthAccount(payer: acct)
             for key in publicKeys {
-                newAcct.addPublicKey(key)
+                machineAcct.addPublicKey(key)
             }
 
             let qcVoter <- FlowEpoch.getClusterQCVoter(nodeStaker: nodeRef)
 
-            newAcct.save(<-qcVoter, to: FlowEpochClusterQC.VoterStoragePath)
+            machineAcct.save(<-qcVoter, to: FlowEpochClusterQC.VoterStoragePath)
 
         } else if nodeInfo.role == 2 as UInt8 {
 
-            let newAcct = AuthAccount(payer: acct)
+            let machineAcct = AuthAccount(payer: acct)
             for key in publicKeys {
-                newAcct.addPublicKey(key)
+                machineAcct.addPublicKey(key)
             }
 
             let dkgParticipant <- FlowEpoch.getDKGParticipant(nodeStaker: nodeRef)
 
-            newAcct.save(<-dkgParticipant, to: FlowDKG.ParticipantStoragePath)
+            machineAcct.save(<-dkgParticipant, to: FlowDKG.ParticipantStoragePath)
 
         }
 

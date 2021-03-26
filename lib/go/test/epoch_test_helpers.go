@@ -284,7 +284,7 @@ func registerNodeWithSetupAccount(t *testing.T,
 	return
 }
 
-/// Resters the specified number of nodes for staking and qc/dkg in the same transaction
+/// Registers the specified number of nodes for staking and qc/dkg in the same transaction
 /// creates a secondary account for the nodes who have the qc or dkg resources
 /// with the same keys as the first account
 func registerNodesForEpochs(
