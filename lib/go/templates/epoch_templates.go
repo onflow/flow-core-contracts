@@ -18,6 +18,7 @@ const (
 	epochPaySetRewardsFilename     = "epoch/admin/pay_rewards.cdc"
 
 	// Node Transactions
+	epochRegisterNodeFilename           = "epoch/node/register_node.cdc"
 	epochRegisterQCVoterFilename        = "epoch/node/register_qc_voter.cdc"
 	epochRegisterDKGParticipantFilename = "epoch/node/register_dkg_participant.cdc"
 
@@ -98,6 +99,12 @@ func GenerateEpochPaySetRewardsScript(env Environment) []byte {
 }
 
 // Node Templates -----------------------------------------------
+
+func GenerateEpochRegisterNodeScript(env Environment) []byte {
+	code := assets.MustAssetString(epochRegisterNodeFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
 
 func GenerateEpochRegisterQCVoterScript(env Environment) []byte {
 	code := assets.MustAssetString(epochRegisterQCVoterFilename)

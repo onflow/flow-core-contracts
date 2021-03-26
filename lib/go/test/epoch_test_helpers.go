@@ -11,6 +11,7 @@ import (
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/onflow/flow-core-contracts/lib/go/contracts"
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
@@ -235,14 +236,64 @@ func advanceView(
 	}
 }
 
-/// Registers the specified number of nodes for staking with the specified IDs
-/// Does an even distrubution of node roles
-func registerNodesForStaking(
+func registerNodeWithSetupAccount(t *testing.T,
+	b *emulator.Blockchain,
+	env templates.Environment,
+	authorizer flow.Address,
+	signer crypto.Signer,
+	nodeID, networkingAddress, networkingKey, stakingKey string,
+	amount, tokensCommitted interpreter.UFix64Value,
+	role uint8,
+	publicKey *flow.AccountKey,
+	shouldFail bool,
+) (
+	newTokensCommitted interpreter.UFix64Value,
+) {
+
+	publicKeys := make([]cadence.Value, 1)
+	publicKeys[0] = bytesToCadenceArray(publicKey.Encode())
+
+	cadencePublicKeys := cadence.NewArray(publicKeys)
+
+	tx := createTxWithTemplateAndAuthorizer(b,
+		templates.GenerateEpochRegisterNodeScript(env),
+		authorizer)
+
+	_ = tx.AddArgument(cadence.NewString(nodeID))
+	_ = tx.AddArgument(cadence.NewUInt8(role))
+	_ = tx.AddArgument(cadence.NewString(networkingAddress))
+	_ = tx.AddArgument(cadence.NewString(networkingKey))
+	_ = tx.AddArgument(cadence.NewString(stakingKey))
+	tokenAmount, err := cadence.NewUFix64(amount.String())
+	require.NoError(t, err)
+	_ = tx.AddArgument(tokenAmount)
+
+	tx.AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys))
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, authorizer},
+		[]crypto.Signer{b.ServiceKey().Signer(), signer},
+		shouldFail,
+	)
+
+	if !shouldFail {
+		newTokensCommitted = tokensCommitted.Plus(amount).(interpreter.UFix64Value)
+	}
+
+	return
+}
+
+/// Registers the specified number of nodes for staking and qc/dkg in the same transaction
+/// creates a secondary account for the nodes who have the qc or dkg resources
+/// with the same keys as the first account
+func registerNodesForEpochs(
 	t *testing.T,
 	b *emulator.Blockchain,
 	env templates.Environment,
 	authorizers []flow.Address,
 	signers []crypto.Signer,
+	publicKeys []*flow.AccountKey,
 	ids []string) {
 
 	if len(authorizers) != len(signers) ||
@@ -256,7 +307,7 @@ func registerNodesForStaking(
 	i := 0
 	for _, authorizer := range authorizers {
 
-		registerNode(t, b, env,
+		registerNodeWithSetupAccount(t, b, env,
 			authorizer,
 			signers[i],
 			ids[i],
@@ -266,6 +317,7 @@ func registerNodesForStaking(
 			amountToCommit,
 			committed,
 			uint8((i%5)+1),
+			publicKeys[i],
 			false)
 
 		i++

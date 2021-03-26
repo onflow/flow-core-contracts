@@ -129,6 +129,43 @@ func registerNode(t *testing.T,
 	return
 }
 
+/// Registers the specified number of nodes for staking with the specified IDs
+/// Does an even distrubution of node roles
+func registerNodesForStaking(
+	t *testing.T,
+	b *emulator.Blockchain,
+	env templates.Environment,
+	authorizers []flow.Address,
+	signers []crypto.Signer,
+	ids []string) {
+
+	if len(authorizers) != len(signers) ||
+		len(authorizers) != len(ids) {
+		t.Fail()
+	}
+
+	var amountToCommit interpreter.UFix64Value = 135000000000000
+	var committed interpreter.UFix64Value = 0
+
+	i := 0
+	for _, authorizer := range authorizers {
+
+		registerNode(t, b, env,
+			authorizer,
+			signers[i],
+			ids[i],
+			fmt.Sprintf("%0128d", i),
+			fmt.Sprintf("%0128d", i),
+			fmt.Sprintf("%0192d", i),
+			amountToCommit,
+			committed,
+			uint8((i%5)+1),
+			false)
+
+		i++
+	}
+}
+
 func commitNewTokens(t *testing.T,
 	b *emulator.Blockchain,
 	env templates.Environment,

@@ -175,15 +175,14 @@ pub contract FlowEpochClusterQC {
 
         init(nodeID: String) {
             pre {
-                FlowEpochClusterQC.voterIsRegistered(nodeID): "Cannot create a Voter before epoch setup starts or for a node ID that hasn't been registered"
-                !FlowEpochClusterQC.voterIsClaimed(nodeID)!: "Cannot create a Voter resource for a node ID that has already been claimed"
+                !FlowEpochClusterQC.voterIsClaimed(nodeID): "Cannot create a Voter resource for a node ID that has already been claimed"
             }
             self.nodeID = nodeID
             FlowEpochClusterQC.voterClaimed[nodeID] = true
         }
 
         destroy () {
-            FlowEpochClusterQC.voterClaimed[self.nodeID] = false
+            FlowEpochClusterQC.voterClaimed[self.nodeID] = nil
         }
 
     }
@@ -214,12 +213,7 @@ pub contract FlowEpochClusterQC {
                 // Create a new Vote struct for each participating node
                 for nodeID in cluster.nodeWeights.keys {
                     FlowEpochClusterQC.generatedVotes[nodeID] = Vote(nodeID: nodeID, clusterIndex: clusterIndex, voteWeight: cluster.nodeWeights[nodeID]!)
-                    FlowEpochClusterQC.nodeCluster[nodeID] = clusterIndex
-                    
-                    if FlowEpochClusterQC.voterClaimed[nodeID] == nil {
-                        FlowEpochClusterQC.voterClaimed[nodeID] = false
-                    }
-                    
+                    FlowEpochClusterQC.nodeCluster[nodeID] = clusterIndex                   
                 }
 
                 clusterIndex = clusterIndex + UInt16(1)
@@ -243,11 +237,11 @@ pub contract FlowEpochClusterQC {
     }
 
     pub fun voterIsRegistered(_ nodeID: String): Bool {
-        return FlowEpochClusterQC.voterClaimed[nodeID] != nil
+        return FlowEpochClusterQC.generatedVotes[nodeID] != nil
     }
 
-    pub fun voterIsClaimed(_ nodeID: String): Bool? {
-        return FlowEpochClusterQC.voterClaimed[nodeID]
+    pub fun voterIsClaimed(_ nodeID: String): Bool {
+        return FlowEpochClusterQC.voterClaimed[nodeID] != nil
     }
 
     // Returns whether this voter has successfully submitted a vote for this epoch.
