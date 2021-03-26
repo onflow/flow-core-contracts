@@ -8,11 +8,11 @@
 // import FungibleToken from 0xee82856bf20e2aa6
 // import FlowToken from 0x0ae53cb6e3f42a79
 
-import FungibleToken from 0xFUNGIBLETOKENADDRESS
-import FlowToken from 0xFLOWTOKENADDRESS
-import FlowIDTableStaking from 0xFLOWIDTABLESTAKINGADDRESS
-import StakingProxy from 0xSTAKINGPROXYADDRESS
-import LockedTokens from 0xLOCKEDTOKENSADDRESS
+// import FungibleToken from 0xFUNGIBLETOKENADDRESS
+// import FlowToken from 0xFLOWTOKENADDRESS
+// import FlowIDTableStaking from 0xFLOWIDTABLESTAKINGADDRESS
+// import StakingProxy from 0xSTAKINGPROXYADDRESS
+// import LockedTokens from 0xLOCKEDTOKENSADDRESS
 
 pub contract FlowStakingCollection {
 
@@ -30,40 +30,40 @@ pub contract FlowStakingCollection {
         }
     }
 
+    // Public interface that users can publish for their staking collection
+    // so that others can query their staking info
     pub resource interface StakingCollectionPublic {
-
         pub fun getNodeIDs(): [String]
-        
         pub fun getDelegatorIDs(): [DelegatorIDs]
-
         pub fun getAllNodeInfo(): {String: FlowIDTableStaking.NodeInfo}
-
         pub fun getAllDelegatorInfo(): {String: {UInt32: FlowIDTableStaking.DelegatorInfo}}
     }
 
     /// The resource that stakers store in their accounts to store
-    /// all their staking objects and staking proxies
+    /// all their staking objects and capability to the locked account object
+    /// Keeps track of how many locked and unlocked tokens are staked
+    /// so it knows which tokens to give to the user when they deposit and withdraw
+    /// different types of tokens
 
     pub resource Collection: StakingCollectionPublic {
 
-        // unlocked vault
+        /// unlocked vault
         access(self) var vaultCapability: Capability<&FlowToken.Vault>
 
-        // locked vault
+        /// locked vault
         access(self) var lockedVaultHolder: @LockedTokens.LockedVaultHolder?
 
+        /// staking objects need to be private for now because they could be using locked tokens
         access(self) var nodeStakers: @{String: FlowIDTableStaking.NodeStaker}
         access(self) var nodeDelegators: @{String: {UInt32: FlowIDTableStaking.NodeDelegator}}
 
+        /// Capabilty to the TokenHolder object in the unlocked account
+        /// Accounts without a locked account will not store this, it will be nil
         access(self) var tokenHolder: Capability<&LockedTokens.TokenHolder>?
 
-        // Tracks how many locked tokens each node or delegator uses
-        // When committing new locked tokens, add those tokens to the value
-        // when withdrawing locked tokens, subtract from the value
-        //
-        // access(self) var lockedTokensForNode: {String: UFix64}
-        // access(self) var tokensForDelegator: {String: {UInt32: UFix64}}
-
+        // Tracks how many locked and unlocked tokens the staker is using for all their nodes and/or delegators
+        // When committing new tokens, locked tokens are used first, followed by unlocked tokens
+        // When withdrawing tokens, unlocked tokens are withdrawn first, followed by locked tokens
         access(self) var lockedTokensUsed: UFix64
         access(self) var unlockedTokensUsed: UFix64
 
@@ -73,22 +73,25 @@ pub contract FlowStakingCollection {
             }
             self.vaultCapability = vaultCapability
 
-            self.lockedVaultHolder <- nil
+            // Set to `nil` if no locked account
             self.tokenHolder = tokenHolder
 
             self.nodeStakers <- {}
             self.nodeDelegators <- {}
 
-            self.lockedTokensUsed = UFix64(0)
-            self.unlockedTokensUsed = UFix64(0)
+            self.lockedTokensUsed = 0.0
+            self.unlockedTokensUsed = 0.0
 
             // If the account has a locked account, initialize its token holder
             // and locked vault holder from the LockedTokens contract
             if let tokenHolderObj = self.tokenHolder {
                 let lockedVaultHolder <- LockedTokens.createLockedVaultHolder()
 
+                // borrow the main token manager object from the locked account 
+                // to get access to the locked vault
                 let lockedTokenManager = tokenHolderObj.borrow()!.borrowTokenManager()
 
+                // Add the locked vault to the holder
                 lockedVaultHolder.addVault(lockedVault: lockedTokenManager.vault)
                 
                 self.lockedVaultHolder <-! lockedVaultHolder
@@ -97,14 +100,18 @@ pub contract FlowStakingCollection {
             }
         }
 
+        /// TODO: Panic if there are still tokens staked in any of the objects
         destroy() {
             destroy self.lockedVaultHolder
             destroy self.nodeStakers
             destroy self.nodeDelegators
         }
 
-        // Gets tokens to commit to a node. Uses locked tokens first, if possible
+        /// Called when committing tokens for staking. Gets tokens from either or both vaults
+        /// Uses locked tokens first, then unlocked if any more are still needed
         access(self) fun getTokens(amount: UFix64): @FungibleToken.Vault {
+
+            // If there is a locked account, use the locked vault first
             if let _lockedValutHolder <- self.lockedVaultHolder <- nil {
 
                 var lockedBalance: UFix64 = _lockedValutHolder.getVaultBalance()
@@ -115,6 +122,7 @@ pub contract FlowStakingCollection {
                     message: "Insufficient total Flow balance"
                 )
 
+                // If all the tokens can be removed from locked, withdraw and return them
                 if (amount <= lockedBalance) {
                     self.lockedTokensUsed = self.lockedTokensUsed + amount
 
@@ -123,23 +131,33 @@ pub contract FlowStakingCollection {
                     self.lockedVaultHolder <-! _lockedValutHolder
 
                     return <-tokens
+                
+                // If not all can be removed from locked, remove what can be, then remove the rest from unlocked
                 } else {
+
+                    // update locked tokens used record by adding the rest of the locked balance
                     self.lockedTokensUsed = self.lockedTokensUsed + lockedBalance
+                    // Update the unlocked tokens used record by adding the amount requested
+                    // minus whatever was used from the locked tokens
                     self.unlockedTokensUsed = self.unlockedTokensUsed + (amount - lockedBalance)
 
                     let tokens <- FlowToken.createEmptyVault()
 
+                    // Get the actual tokens from each vault
                     let lockedPortion <- _lockedValutHolder.withdrawFromLockedVault(amount: lockedBalance)
                     let unlockedPortion <- self.vaultCapability.borrow()!.withdraw(amount: amount - lockedBalance)
 
+                    // Deposit them into the same vault
                     tokens.deposit(from: <-lockedPortion)
                     tokens.deposit(from: <-unlockedPortion)
 
+                    // Return the locked vault holder to its field
                     self.lockedVaultHolder <-! _lockedValutHolder
 
                     return <-tokens
                 }
             } else {
+                // Since there is no locked account, all tokens have to come from the normal unlocked balance
                 var unlockedBalance: UFix64 = self.vaultCapability.borrow()!.balance
 
                 assert(
@@ -153,29 +171,36 @@ pub contract FlowStakingCollection {
             }
         }
 
-        // Deposits tokens after being withdrawn from a Stake or Delegation. Deposits to unlocked tokens first, if possible.
+        /// Deposits tokens back to a vault after being withdrawn from a Stake or Delegation.
+        /// Deposits to unlocked tokens first, if possible, followed by locked tokens
         access(self) fun depositTokens(from: @FungibleToken.Vault) {
+            /// If there is a locked account, get the locked vault holder for depositing
             if let _lockedValutHolder <- self.lockedVaultHolder <- nil {
+  
+                if (from.balance <= self.unlockedTokensUsed) {
+                    self.unlockedTokensUsed = self.unlockedTokensUsed - from.balance
 
-                if self.unlockedTokensUsed > UFix64(0.0) {
-                    
-                    if (from.balance < self.unlockedTokensUsed) {
-                        self.unlockedTokensUsed = self.unlockedTokensUsed - from.balance
+                    self.vaultCapability.borrow()!.deposit(from: <-from)
+                    return
+                } else {
+                    // Return unlocked tokens first
+                    self.vaultCapability.borrow()!.deposit(from: <-from.withdraw(amount: self.unlockedTokenUsed))
 
-                        _lockedValutHolder.depositToLockedVault(from: <-from.withdraw(amount: from.balance))
-                    } else {
-                        _lockedValutHolder.depositToLockedVault(from: <-from.withdraw(amount: self.unlockedTokensUsed))
+                    self.lockedTokensUsed = self.lockedTokensUsed - from.balance
+                    // followed by returning the locked tokens
+                    _lockedValutHolder.depositToLockedVault(from: <-from)
 
-                        self.unlockedTokensUsed = self.unlockedTokensUsed - self.unlockedTokensUsed
-                    }
+                    self.unlockedTokensUsed = self.unlockedTokensUsed - self.unlockedTokensUsed
                 }
-
-                self.lockedTokensUsed = self.lockedTokensUsed - from.balance
-
-                _lockedValutHolder.depositToLockedVault(from: <-from)
 
                 self.lockedVaultHolder <-! _lockedValutHolder
 
+            } else {
+
+                self.unlockedTokensUsed = self.unlockedTokensUsed - from.balance
+                
+                // If there is no locked account, get the users vault capability and deposit tokens to it.
+                self.vaultCapability.borrow()!.deposit(from: <-from)
             }
         }
 
@@ -185,17 +210,20 @@ pub contract FlowStakingCollection {
             var tokenHolderDelegatorNodeID: String? = nil
             var tokenHolderDelegatorID: UInt32?  = nil
 
+            // If there is a locked account, get the staking info from that account
             if let _tokenHolder = self.tokenHolder!.borrow() {
                 tokenHolderNodeID = _tokenHolder!.getNodeID()
                 tokenHolderDelegatorNodeID = _tokenHolder!.getDelegatorNodeID()
                 tokenHolderDelegatorID = _tokenHolder!.getDelegatorID()
             }
 
+            // If the request is for a delegator, check all possible delegators for possible matches
             if let _delegatorID = delegatorID {
                 if (tokenHolderDelegatorNodeID != nil && tokenHolderDelegatorID != nil && tokenHolderDelegatorNodeID! == nodeID && tokenHolderDelegatorID! == _delegatorID) {
                     return true
                 }
 
+                // Look for delegators for the specified node ID
                 if self.nodeDelegators[nodeID] != nil {
                     if let delegators <- self.nodeDelegators[nodeID] <- nil {
                         if delegators[_delegatorID] != nil {

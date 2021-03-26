@@ -41,8 +41,6 @@ pub contract LockedTokens {
     pub event LockedAccountRegisteredAsNode(address: Address, nodeID: String)
     pub event LockedAccountRegisteredAsDelegator(address: Address, nodeID: String)
 
-    pub event LockedTokensDeposited(address: Address, amount: UFix64)
-
     /// Path to store the locked token manager resource
     /// in the shared account
     pub let LockedTokenManagerStoragePath: StoragePath
@@ -588,9 +586,11 @@ pub contract LockedTokens {
         }
     }
 
-    // Provides access to the locked vault in the token manager resource 
-    // to other contracts that are deployed to the same account as the locked tokens contract
+    /// Provides access to the locked vault in the token manager resource 
+    /// to other contracts that are deployed to the same account as the locked tokens contract
+    /// Enables the StakingCollection to access the locked vault without the user being able to access it
     pub resource LockedVaultHolder {
+        // Capability to the vault in the locked account
         access(self) var lockedVault: Capability<&FlowToken.Vault>?
 
         init() {
@@ -603,6 +603,9 @@ pub contract LockedTokens {
             return vaultRef.balance
         }
 
+        // A contract in the same account can call these functions when given a LockedVaultHolder,
+        // but nobody else can
+        
         access(account) fun addVault(lockedVault: Capability<&FlowToken.Vault>) {
             pre {
                 lockedVault.check(): "Invalid vault capability"
@@ -660,7 +663,7 @@ pub contract LockedTokens {
         }
 
         /// Get an accounts capability
-        pub fun getAccount(address: Address): Capability<&LockedTokenManager>? {
+        pub fun getAccount(address: Address): Capability<&LockedTokenManager{TokenAdmin}>? {
             return self.accounts[address]
         }
 
