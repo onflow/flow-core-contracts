@@ -22,6 +22,8 @@ const (
 	numStakingViews   = 50
 	numDKGViews       = 2
 	randomSource      = "lolsoRandom"
+	totalRewards      = "1250000.0"
+	rewardAPY         = "0.05"
 )
 
 func TestEpochDeployment(t *testing.T) {
@@ -38,7 +40,8 @@ func TestEpochDeployment(t *testing.T) {
 		numStakingViews,   // num views for staking auction
 		numDKGViews,       // num views for DKG phase
 		numClusters,       // num collector clusters
-		randomSource)      // random source
+		randomSource,      // random source
+		rewardAPY)
 
 	// Verify that the global config data for epochs was initialized correctly
 	verifyConfigMetadata(t, b, env,
@@ -49,7 +52,8 @@ func TestEpochDeployment(t *testing.T) {
 			numViewsInEpoch:          numEpochViews,
 			numViewsInStakingAuction: numStakingViews,
 			numViewsInDKGPhase:       numDKGViews,
-			numCollectorClusters:     numClusters})
+			numCollectorClusters:     numClusters,
+			rewardPercentage:         rewardAPY})
 
 	// Verify that the current epoch was initialized correctly
 	verifyEpochMetadata(t, b, env,
@@ -59,6 +63,7 @@ func TestEpochDeployment(t *testing.T) {
 			startView:         0,
 			endView:           numEpochViews - 1,
 			stakingEndView:    numStakingViews - 1,
+			totalRewards:      totalRewards,
 			collectorClusters: nil,
 			clusterQCs:        nil,
 			dkgKeys:           nil})
@@ -79,7 +84,8 @@ func TestEpochClusters(t *testing.T) {
 		numStakingViews,   // num views for staking auction
 		numDKGViews,       // num views for DKG phase
 		numClusters,       // num collector clusters
-		randomSource)      // random source
+		randomSource,      // random source
+		rewardAPY)
 
 	t.Run("Should be able to randomize an array of strings", func(t *testing.T) {
 
@@ -122,7 +128,8 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 		3,             // num views for staking auction
 		1,             // num views for DKG phase
 		1,             // num collector clusters
-		"lolsoRandom") // random source
+		"lolsoRandom", // random source
+		rewardAPY)
 
 	t.Run("Should be able to change the configurable metadata during the staking auction", func(t *testing.T) {
 
@@ -196,6 +203,26 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 			false,
 		)
 
+		// Should fail because it is > 1
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateRewardPercentageScript(env), idTableAddress)
+		_ = tx.AddArgument(CadenceUFix64("2.04"))
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			true,
+		)
+
+		// Should succeed because it is < 1
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateRewardPercentageScript(env), idTableAddress)
+		_ = tx.AddArgument(CadenceUFix64("0.04"))
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+
 		// Verify that the global config data for epochs was initialized correctly
 		verifyConfigMetadata(t, b, env,
 			ConfigMetadata{
@@ -205,7 +232,8 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 				numViewsInEpoch:          12,
 				numViewsInStakingAuction: 4,
 				numViewsInDKGPhase:       2,
-				numCollectorClusters:     2})
+				numCollectorClusters:     2,
+				rewardPercentage:         "0.04"})
 	})
 
 	// create new user accounts, mint tokens for them, and register them for staking
@@ -261,6 +289,16 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 			true,
 		)
 
+		// Should fail because it is not the staking Auction
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateRewardPercentageScript(env), idTableAddress)
+		_ = tx.AddArgument(CadenceUFix64("0.05"))
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			true,
+		)
+
 		// metadata should still be the same
 		verifyConfigMetadata(t, b, env,
 			ConfigMetadata{
@@ -270,7 +308,8 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 				numViewsInEpoch:          12,
 				numViewsInStakingAuction: 4,
 				numViewsInDKGPhase:       2,
-				numCollectorClusters:     2})
+				numCollectorClusters:     2,
+				rewardPercentage:         "0.04"})
 
 	})
 }
@@ -289,7 +328,8 @@ func TestEpochAdvance(t *testing.T) {
 		numStakingViews,   // num views for staking auction
 		numDKGViews,       // num views for DKG phase
 		numClusters,       // num collector clusters
-		randomSource)      // random source
+		randomSource,      // random source
+		rewardAPY)
 
 	t.Run("Should not be able to advance to epoch committed or end epoch during staking", func(t *testing.T) {
 		// try to advance to the epoch committed phase
@@ -322,7 +362,8 @@ func TestEpochAdvance(t *testing.T) {
 				numViewsInEpoch:          numEpochViews,
 				numViewsInStakingAuction: numStakingViews,
 				numViewsInDKGPhase:       numDKGViews,
-				numCollectorClusters:     numClusters})
+				numCollectorClusters:     numClusters,
+				rewardPercentage:         rewardAPY})
 
 		// Verify that the proposed epoch metadata was initialized correctly
 		clusters := []Cluster{Cluster{index: 0, totalWeight: 100, size: 1},
@@ -337,6 +378,7 @@ func TestEpochAdvance(t *testing.T) {
 				startView:         numEpochViews,
 				endView:           2*numEpochViews - 1,
 				stakingEndView:    numEpochViews + numStakingViews - 1,
+				totalRewards:      "0.0",
 				collectorClusters: clusters,
 				clusterQCs:        nil,
 				dkgKeys:           nil})
@@ -394,7 +436,8 @@ func TestEpochAdvance(t *testing.T) {
 				numViewsInEpoch:          numEpochViews,
 				numViewsInStakingAuction: numStakingViews,
 				numViewsInDKGPhase:       numDKGViews,
-				numCollectorClusters:     numClusters})
+				numCollectorClusters:     numClusters,
+				rewardPercentage:         rewardAPY})
 
 		// try to advance to the end epoch phase
 		// will fail
@@ -417,7 +460,8 @@ func TestEpochQCDKGNodeRegistration(t *testing.T) {
 		50,            // num views for staking auction
 		2,             // num views for DKG phase
 		4,             // num collector clusters
-		"lolsoRandom") // random source
+		"lolsoRandom", // random source
+		rewardAPY)
 
 	// create new user accounts, mint tokens for them, and register them for staking
 	addresses, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
@@ -514,7 +558,8 @@ func TestEpochQCDKG(t *testing.T) {
 		numStakingViews,   // num views for staking auction
 		numDKGViews,       // num views for DKG phase
 		numClusters,       // num collector clusters
-		randomSource)      // random source
+		randomSource,      // random source
+		rewardAPY)
 
 	// create new user accounts, mint tokens for them, and register them for staking
 	addresses, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
@@ -596,7 +641,8 @@ func TestEpochQCDKG(t *testing.T) {
 				numViewsInEpoch:          numEpochViews,
 				numViewsInStakingAuction: numStakingViews,
 				numViewsInDKGPhase:       numDKGViews,
-				numCollectorClusters:     numClusters})
+				numCollectorClusters:     numClusters,
+				rewardPercentage:         rewardAPY})
 
 	})
 
@@ -634,7 +680,8 @@ func TestEpochQCDKG(t *testing.T) {
 				numViewsInEpoch:          numEpochViews,
 				numViewsInStakingAuction: numStakingViews,
 				numViewsInDKGPhase:       numDKGViews,
-				numCollectorClusters:     numClusters})
+				numCollectorClusters:     numClusters,
+				rewardPercentage:         rewardAPY})
 
 		verifyEpochCommitted(t, b, idTableAddress,
 			EpochCommitted{
@@ -645,6 +692,17 @@ func TestEpochQCDKG(t *testing.T) {
 	})
 
 	t.Run("Can end the Epoch and start a new Epoch", func(t *testing.T) {
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochPaySetRewardsScript(env), idTableAddress)
+
+		_ = tx.AddArgument(CadenceUFix64("1300000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
 
 		// Advance to new epoch
 		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "ENDEPOCH", false)
@@ -657,7 +715,8 @@ func TestEpochQCDKG(t *testing.T) {
 				numViewsInEpoch:          numEpochViews,
 				numViewsInStakingAuction: numStakingViews,
 				numViewsInDKGPhase:       numDKGViews,
-				numCollectorClusters:     numClusters})
+				numCollectorClusters:     numClusters,
+				rewardPercentage:         rewardAPY})
 
 		clusters := []Cluster{Cluster{index: 0, totalWeight: 100, size: 1},
 			Cluster{index: 1, totalWeight: 0, size: 0},
@@ -671,6 +730,7 @@ func TestEpochQCDKG(t *testing.T) {
 				startView:         numEpochViews,
 				endView:           2*numEpochViews - 1,
 				stakingEndView:    numEpochViews + numStakingViews - 1,
+				totalRewards:      "1300000.0",
 				collectorClusters: clusters,
 				clusterQCs:        clusterQCs,
 				dkgKeys:           finalKeyStrings})
@@ -692,7 +752,8 @@ func TestEpochReset(t *testing.T) {
 		numStakingViews,   // num views for staking auction
 		numDKGViews,       // num views for DKG phase
 		numClusters,       // num collector clusters
-		randomSource)      // random source
+		randomSource,      // random source
+		rewardAPY)
 
 	// create new user accounts, mint tokens for them, and register them for staking
 	addresses, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
@@ -757,7 +818,8 @@ func TestEpochReset(t *testing.T) {
 				numViewsInEpoch:          numEpochViews,
 				numViewsInStakingAuction: numStakingViews,
 				numViewsInDKGPhase:       numDKGViews,
-				numCollectorClusters:     numClusters})
+				numCollectorClusters:     numClusters,
+				rewardPercentage:         rewardAPY})
 
 	})
 
@@ -768,6 +830,7 @@ func TestEpochReset(t *testing.T) {
 		_ = tx.AddArgument(cadence.NewArray([]cadence.Value{}))
 		_ = tx.AddArgument(cadence.NewArray([]cadence.Value{}))
 		_ = tx.AddArgument(cadence.NewArray([]cadence.Value{}))
+
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{b.ServiceKey().Address, idTableAddress},
@@ -782,6 +845,7 @@ func TestEpochReset(t *testing.T) {
 				startView:         0,
 				endView:           numEpochViews - 1,
 				stakingEndView:    numStakingViews - 1,
+				totalRewards:      totalRewards,
 				collectorClusters: nil,
 				clusterQCs:        nil,
 				dkgKeys:           nil})

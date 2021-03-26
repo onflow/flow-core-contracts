@@ -139,6 +139,9 @@ pub contract FlowEpoch {
         /// The last view of the staking auction
         pub let stakingEndView: UInt64
 
+        /// The total rewards that are paid out for the epoch
+        pub var totalRewards: UFix64
+
         /// The organization of collector node IDs into clusters
         /// determined by a round robin sorting algorithm
         pub let collectorClusters: [FlowEpochClusterQC.Cluster]
@@ -155,6 +158,7 @@ pub contract FlowEpoch {
              startView: UInt64,
              endView: UInt64,
              stakingEndView: UInt64,
+             totalRewards: UFix64,
              collectorClusters: [FlowEpochClusterQC.Cluster],
              clusterQCs: [FlowEpochClusterQC.ClusterQC],
              dkgKeys: [String]) {
@@ -164,9 +168,14 @@ pub contract FlowEpoch {
             self.startView = startView
             self.endView = endView
             self.stakingEndView = stakingEndView
+            self.totalRewards = totalRewards
             self.collectorClusters = collectorClusters
             self.clusterQCs = clusterQCs
             self.dkgKeys = dkgKeys
+        }
+
+        pub fun setTotalRewards(_ newRewards: UFix64) {
+            self.totalRewards = newRewards
         }
 
         pub fun setClusterQCs(qcs: [FlowEpochClusterQC.ClusterQC]) {
@@ -192,11 +201,16 @@ pub contract FlowEpoch {
         /// The number of collector clusters in each epoch
         pub(set) var numCollectorClusters: UInt16
 
-        init(numViewsInEpoch: UInt64, numViewsInStakingAuction: UInt64, numViewsInDKGPhase: UInt64, numCollectorClusters: UInt16) {
+        /// Tracks the annualized percentage of FLOW total supply that is minted as rewards at the end of an epoch
+        /// Calculation for a single epoch would be (totalSupply * FLOWsupplyIncreasePercentage) / 52
+        pub(set) var FLOWsupplyIncreasePercentage: UFix64
+
+        init(numViewsInEpoch: UInt64, numViewsInStakingAuction: UInt64, numViewsInDKGPhase: UInt64, numCollectorClusters: UInt16, FLOWsupplyIncreasePercentage: UFix64) {
             self.numViewsInEpoch = numViewsInEpoch
             self.numViewsInStakingAuction = numViewsInStakingAuction
             self.numViewsInDKGPhase = numViewsInDKGPhase
             self.numCollectorClusters = numCollectorClusters
+            self.FLOWsupplyIncreasePercentage = FLOWsupplyIncreasePercentage
         }
     }
 
@@ -266,6 +280,15 @@ pub contract FlowEpoch {
 
             FlowEpoch.configurableMetadata.numCollectorClusters = newNumClusters
         }
+
+        pub fun updateFLOWSupplyIncreasePercentage(_ newPercentage: UFix64) {
+            pre {
+                FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION: "Can only update fields during the staking auction"
+                newPercentage <= 1.0 as UFix64: "New value must be between zero and one"
+            }
+
+            FlowEpoch.configurableMetadata.FLOWsupplyIncreasePercentage = newPercentage
+        }
     }
 
     pub resource Heartbeat {
@@ -330,8 +353,12 @@ pub contract FlowEpoch {
             FlowEpoch.startNewEpoch()
         }
 
+        pub fun payAndSetRewards(_ newPayout: UFix64?) {
+            FlowEpoch.payAndSetRewards(newPayout)
+        }
+
         /// Protocol can use this to reboot the epoch with a new genesis
-        /// in case the epoch setup phase did not complete properly 
+        /// in case the epoch setup phase did not complete properly
         /// before the end of an epoch
         pub fun resetEpoch(
             randomSource: String,
@@ -353,6 +380,7 @@ pub contract FlowEpoch {
                     startView: currentBlock.view,
                     endView: currentBlock.view + FlowEpoch.configurableMetadata.numViewsInEpoch - (1 as UInt64),
                     stakingEndView: currentBlock.view + FlowEpoch.configurableMetadata.numViewsInStakingAuction - (1 as UInt64),
+                    totalRewards: FlowIDTableStaking.getEpochTokenPayout(),
                     collectorClusters: collectorClusters,
                     clusterQCs: clusterQCs,
                     dkgKeys: dkgPubKeys)
@@ -361,11 +389,26 @@ pub contract FlowEpoch {
         }
     }
 
-    /// Pays rewards, moves staking tokens between buckets,
-    /// and starts the new epoch staking auction
-    access(account) fun startNewEpoch() {
+    /// Pays rewards to staked nodes and delegators,
+    /// Calculates a new token payout for the next epoch
+    /// and sets the new payout
+    access(account) fun payAndSetRewards(_ newPayout: UFix64?) {
 
         self.stakingAdmin.payRewards()
+
+        // Calculate the new epoch's payout
+        // disabled until we enable automated rewards calculations
+        // let newPayout = FlowToken.totalSupply * (FlowEpoch.configurableMetadata.FLOWsupplyIncreasePercentage / 52.0)
+
+        if let payout = newPayout {
+            self.stakingAdmin.setEpochTokenPayout(payout)
+            self.epochMetadata[self.proposedEpochCounter()]!.setTotalRewards(payout)
+        }
+    }
+
+    /// Moves staking tokens between buckets,
+    /// and starts the new epoch staking auction
+    access(account) fun startNewEpoch() {
 
         self.stakingAdmin.moveTokens()
 
@@ -429,6 +472,7 @@ pub contract FlowEpoch {
                                                 startView: self.epochMetadata[self.currentEpochCounter]!.endView + UInt64(1),
                                                 endView: self.epochMetadata[self.currentEpochCounter]!.endView + self.configurableMetadata.numViewsInEpoch,
                                                 stakingEndView: self.epochMetadata[self.currentEpochCounter]!.endView + self.configurableMetadata.numViewsInStakingAuction,
+                                                totalRewards: 0.0 as UFix64,
                                                 collectorClusters: collectorClusters,
                                                 clusterQCs: [],
                                                 dkgKeys: [])
@@ -462,7 +506,7 @@ pub contract FlowEpoch {
 
         // iterate through all the clusters and create their certificate arrays
         for cluster in clusters {
-            var certificate: FlowEpochClusterQC.ClusterQC = FlowEpochClusterQC.ClusterQC(votes: [])
+            var certificate: FlowEpochClusterQC.ClusterQC = FlowEpochClusterQC.ClusterQC(index: cluster.index, votes: [])
 
             for vote in cluster.votes {
                 certificate.votes.append(vote.raw!)
@@ -614,17 +658,19 @@ pub contract FlowEpoch {
           numViewsInEpoch: UInt64, 
           numViewsInStakingAuction: UInt64, 
           numViewsInDKGPhase: UInt64, 
-          numCollectorClusters: UInt16, 
+          numCollectorClusters: UInt16,
+          FLOWsupplyIncreasePercentage: UFix64,
           randomSource: String,
           collectorClusters: [FlowEpochClusterQC.Cluster],
-          clusterQCs: [FlowEpochClusterQC.ClusterQC]
+          clusterQCs: [FlowEpochClusterQC.ClusterQC],
           dkgPubKeys: [String]) {
 
         self.epochMetadata = {}
         self.configurableMetadata = Config(numViewsInEpoch: numViewsInEpoch,
                                            numViewsInStakingAuction: numViewsInStakingAuction,
                                            numViewsInDKGPhase: numViewsInDKGPhase,
-                                           numCollectorClusters: numCollectorClusters)
+                                           numCollectorClusters: numCollectorClusters,
+                                           FLOWsupplyIncreasePercentage: FLOWsupplyIncreasePercentage)
         
         self.currentEpochCounter = currentEpochCounter
         self.currentEpochPhase = EpochPhase.STAKINGAUCTION
@@ -659,6 +705,7 @@ pub contract FlowEpoch {
                     startView: currentBlock.view,
                     endView: currentBlock.view + self.configurableMetadata.numViewsInEpoch - (1 as UInt64),
                     stakingEndView: currentBlock.view + self.configurableMetadata.numViewsInStakingAuction - (1 as UInt64),
+                    totalRewards: FlowIDTableStaking.getEpochTokenPayout(),
                     collectorClusters: collectorClusters,
                     clusterQCs: clusterQCs,
                     dkgKeys: dkgPubKeys)

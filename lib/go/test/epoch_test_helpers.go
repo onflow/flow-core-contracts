@@ -37,6 +37,7 @@ type EpochMetadata struct {
 	startView         uint64
 	endView           uint64
 	stakingEndView    uint64
+	totalRewards      string
 	collectorClusters []Cluster
 	clusterQCs        [][]string
 	dkgKeys           []string
@@ -49,6 +50,7 @@ type ConfigMetadata struct {
 	currentEpochPhase        uint8
 	numViewsInEpoch          uint64
 	numViewsInStakingAuction uint64
+	rewardPercentage         string
 	numViewsInDKGPhase       uint64
 	numCollectorClusters     uint16
 }
@@ -155,7 +157,7 @@ func deployEpochContract(
 	IDTableSigner crypto.Signer,
 	env templates.Environment,
 	epochCounter, epochViews, stakingViews, dkgViews, numClusters uint64,
-	randomSource string) {
+	randomSource, rewardAPY string) {
 
 	EpochCode := contracts.FlowEpoch(emulatorFTAddress, emulatorFlowTokenAddress, idTableAddress.String(), idTableAddress.String(), idTableAddress.String())
 	EpochByteCode := bytesToCadenceArray(EpochCode)
@@ -170,6 +172,7 @@ func deployEpochContract(
 	_ = tx.AddArgument(cadence.NewUInt64(stakingViews))
 	_ = tx.AddArgument(cadence.NewUInt64(dkgViews))
 	_ = tx.AddArgument(cadence.NewUInt16(uint16(numClusters)))
+	_ = tx.AddArgument(CadenceUFix64(rewardAPY))
 	_ = tx.AddArgument(cadence.NewString(randomSource))
 	_ = tx.AddArgument(cadence.NewArray([]cadence.Value{}))
 	_ = tx.AddArgument(cadence.NewArray([]cadence.Value{}))
@@ -191,13 +194,13 @@ func initializeAllEpochContracts(
 	IDTableSigner crypto.Signer,
 	env *templates.Environment,
 	epochCounter, epochViews, stakingViews, dkgViews, numClusters uint64,
-	randomSource string) flow.Address {
+	randomSource, rewardsAPY string) flow.Address {
 
 	var idTableAddress = deployStakingContract(t, b, IDTableAccountKey, *env)
 	env.IDTableAddress = idTableAddress.Hex()
 
 	deployQCDKGContract(t, b, idTableAddress, IDTableSigner, *env)
-	deployEpochContract(t, b, idTableAddress, IDTableSigner, *env, epochCounter, epochViews, stakingViews, dkgViews, numClusters, randomSource)
+	deployEpochContract(t, b, idTableAddress, IDTableSigner, *env, epochCounter, epochViews, stakingViews, dkgViews, numClusters, randomSource, rewardsAPY)
 
 	env.QuorumCertificateAddress = idTableAddress.String()
 	env.DkgAddress = idTableAddress.String()
@@ -308,7 +311,7 @@ func verifyClusterQCs(
 	} else {
 		i := 0
 		for _, qc := range actualQCs {
-			qcStructVotes := qc.(cadence.Struct).Fields[0].(cadence.Array).Values
+			qcStructVotes := qc.(cadence.Struct).Fields[1].(cadence.Array).Values
 
 			j := 0
 			// Verify that each element is correct across the cluster
@@ -348,16 +351,19 @@ func verifyEpochMetadata(
 	stakingEndView := metadataFields[4]
 	assertEqual(t, cadence.NewUInt64(expectedMetadata.stakingEndView), stakingEndView)
 
+	totalRewards := metadataFields[5]
+	assertEqual(t, CadenceUFix64(expectedMetadata.totalRewards), totalRewards)
+
 	if expectedMetadata.collectorClusters != nil {
-		clusters := metadataFields[5].(cadence.Array).Values
+		clusters := metadataFields[6].(cadence.Array).Values
 
 		verifyClusters(t, expectedMetadata.collectorClusters, clusters)
 	}
 
-	clusterQCs := metadataFields[6].(cadence.Array).Values
+	clusterQCs := metadataFields[7].(cadence.Array).Values
 	verifyClusterQCs(t, expectedMetadata.clusterQCs, clusterQCs)
 
-	dkgKeys := metadataFields[7].(cadence.Array).Values
+	dkgKeys := metadataFields[8].(cadence.Array).Values
 	if expectedMetadata.dkgKeys == nil {
 		assert.Empty(t, dkgKeys)
 	} else {
@@ -398,6 +404,9 @@ func verifyConfigMetadata(
 
 	clusters := metadataFields[3]
 	assertEqual(t, cadence.NewUInt16(expectedMetadata.numCollectorClusters), clusters)
+
+	apy := metadataFields[4]
+	assertEqual(t, CadenceUFix64(expectedMetadata.rewardPercentage), apy)
 
 	result = executeScriptAndCheck(t, b, templates.GenerateGetEpochPhaseScript(env), nil)
 	assertEqual(t, cadence.NewUInt8(expectedMetadata.currentEpochPhase), result)
