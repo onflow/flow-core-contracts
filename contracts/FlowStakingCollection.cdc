@@ -118,9 +118,9 @@ pub contract FlowStakingCollection {
         access(self) fun getTokens(amount: UFix64): @FungibleToken.Vault {
 
             // If there is a locked account, use the locked vault first
-            if let _lockedValutHolder <- self.lockedVaultHolder <- nil {
+            if self.lockedVaultHolder != nil {
 
-                var lockedBalance: UFix64 = _lockedValutHolder.getVaultBalance()
+                var lockedBalance: UFix64 = self.lockedVaultHolder?.getVaultBalance()!
                 var unlockedBalance: UFix64 = self.vaultCapability.borrow()!.balance
 
                 assert(
@@ -132,9 +132,7 @@ pub contract FlowStakingCollection {
                 if (amount <= lockedBalance) {
                     self.lockedTokensUsed = self.lockedTokensUsed + amount
 
-                    let tokens <- _lockedValutHolder.withdrawFromLockedVault(amount: amount)
-
-                    self.lockedVaultHolder <-! _lockedValutHolder
+                    let tokens <- self.lockedVaultHolder?.withdrawFromLockedVault(amount: amount)!
 
                     return <-tokens
                 
@@ -150,15 +148,12 @@ pub contract FlowStakingCollection {
                     let tokens <- FlowToken.createEmptyVault()
 
                     // Get the actual tokens from each vault
-                    let lockedPortion <- _lockedValutHolder.withdrawFromLockedVault(amount: lockedBalance)
+                    let lockedPortion <- self.lockedVaultHolder?.withdrawFromLockedVault(amount: lockedBalance)!
                     let unlockedPortion <- self.vaultCapability.borrow()!.withdraw(amount: amount - lockedBalance)
 
                     // Deposit them into the same vault
                     tokens.deposit(from: <-lockedPortion)
                     tokens.deposit(from: <-unlockedPortion)
-
-                    // Return the locked vault holder to its field
-                    self.lockedVaultHolder <-! _lockedValutHolder
 
                     return <-tokens
                 }
@@ -181,7 +176,7 @@ pub contract FlowStakingCollection {
         /// Deposits to unlocked tokens first, if possible, followed by locked tokens
         access(self) fun depositTokens(from: @FungibleToken.Vault) {
             /// If there is a locked account, get the locked vault holder for depositing
-            if let _lockedValutHolder <- self.lockedVaultHolder <- nil {
+            if self.lockedVaultHolder != nil {
   
                 if (from.balance <= self.unlockedTokensUsed) {
                     self.unlockedTokensUsed = self.unlockedTokensUsed - from.balance
@@ -193,12 +188,10 @@ pub contract FlowStakingCollection {
 
                     self.lockedTokensUsed = self.lockedTokensUsed - from.balance
                     // followed by returning the locked tokens
-                    _lockedValutHolder.depositToLockedVault(from: <-from)
+                    self.lockedVaultHolder?.depositToLockedVault(from: <-from)
 
                     self.unlockedTokensUsed = self.unlockedTokensUsed - self.unlockedTokensUsed
                 }
-
-                self.lockedVaultHolder <-! _lockedValutHolder
 
             } else {
 

@@ -215,14 +215,14 @@ func assertEqual(t *testing.T, expected, actual interface{}) bool {
 
 // Mints 1 billion FLOW tokens for the specified account address
 // Using the mint tokens template from the onflow/flow-ft repo
-func mintTokensForAccount(t *testing.T, b *emulator.Blockchain, recipient flow.Address) {
+func mintTokensForAccount(t *testing.T, b *emulator.Blockchain, recipient flow.Address, amount string) {
 
 	tx := createTxWithTemplateAndAuthorizer(b,
 		ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"),
 		b.ServiceKey().Address)
 
 	_ = tx.AddArgument(cadence.NewAddress(recipient))
-	_ = tx.AddArgument(CadenceUFix64("1000000000.0"))
+	_ = tx.AddArgument(CadenceUFix64(amount))
 
 	signAndSubmit(
 		t, b, tx,
@@ -246,7 +246,7 @@ func registerAndMintManyAccounts(
 
 	for i := 0; i < numAccounts; i++ {
 		userAddresses[i], userPublicKeys[i], userSigners[i] = newAccountWithAddress(b, accountKeys)
-		mintTokensForAccount(t, b, userAddresses[i])
+		mintTokensForAccount(t, b, userAddresses[i], "1000000000.0")
 	}
 
 	return userAddresses, userPublicKeys, userSigners

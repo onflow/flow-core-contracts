@@ -266,23 +266,23 @@ func TestIDTableStaking(t *testing.T) {
 
 	t.Run("Should be able to mint tokens for new accounts", func(t *testing.T) {
 
-		mintTokensForAccount(t, b, idTableAddress)
+		mintTokensForAccount(t, b, idTableAddress, "1000000.0")
 
-		mintTokensForAccount(t, b, joshAddress)
+		mintTokensForAccount(t, b, joshAddress, "1000000.0")
 
-		mintTokensForAccount(t, b, maxAddress)
+		mintTokensForAccount(t, b, maxAddress, "1000000.0")
 
-		mintTokensForAccount(t, b, accessAddress)
+		mintTokensForAccount(t, b, accessAddress, "1000000.0")
 
-		mintTokensForAccount(t, b, bastianAddress)
+		mintTokensForAccount(t, b, bastianAddress, "1000000.0")
 
-		mintTokensForAccount(t, b, maxDelegatorOneAddress)
+		mintTokensForAccount(t, b, maxDelegatorOneAddress, "1000000.0")
 
-		mintTokensForAccount(t, b, maxDelegatorTwoAddress)
+		mintTokensForAccount(t, b, maxDelegatorTwoAddress, "1000000.0")
 
-		mintTokensForAccount(t, b, joshDelegatorOneAddress)
+		mintTokensForAccount(t, b, joshDelegatorOneAddress, "1000000.0")
 
-		mintTokensForAccount(t, b, adminDelegatorAddress)
+		mintTokensForAccount(t, b, adminDelegatorAddress, "1000000.0")
 
 	})
 

@@ -257,7 +257,7 @@ func createLockedAccountPairWithBalances(
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDepositLockedTokensScript(env), b.ServiceKey().Address)
 		_ = tx.AddArgument(cadence.NewAddress(newUserSharedAddress))
-		_ = tx.AddArgument(CadenceUFix64("1000000.0"))
+		_ = tx.AddArgument(CadenceUFix64(lockedBalance))
 
 		signAndSubmit(
 			t, b, tx,
@@ -270,11 +270,11 @@ func createLockedAccountPairWithBalances(
 
 		// check balance of locked account
 		result := executeScriptAndCheck(t, b, script, [][]byte{jsoncdc.MustEncode(cadence.Address(newUserAddress))})
-		assertEqual(t, CadenceUFix64("1000000.0"), result)
+		assertEqual(t, CadenceUFix64(lockedBalance), result)
 	}
 
 	if unlockedBalance != "0.0" {
-		mintTokensForAccount(t, b, newUserAddress)
+		mintTokensForAccount(t, b, newUserAddress, unlockedBalance)
 	}
 
 	return newUserAddress, newUserSharedAddress, newUserSigner
