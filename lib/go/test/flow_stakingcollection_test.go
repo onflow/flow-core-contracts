@@ -1,110 +1,253 @@
 package test
 
 import (
-	"encoding/hex"
 	"testing"
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
-	emulator "github.com/onflow/flow-emulator"
+	ft_templates "github.com/onflow/flow-ft/lib/go/templates"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
-	sdktemplates "github.com/onflow/flow-go-sdk/templates"
 
-	"github.com/onflow/flow-go-sdk/test"
-
-	"github.com/stretchr/testify/assert"
-
-	"github.com/onflow/flow-core-contracts/lib/go/contracts"
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
 )
 
-func deployCollectionContract(t *testing.T, b *emulator.Blockchain,
-	idTableAddress,
-	stakingProxyAddress,
-	lockedTokensAddress flow.Address,
-	lockedTokensSigner crypto.Signer,
-	env templates.Environment) {
-
-	FlowStakingCollectionCode := contracts.FlowStakingCollection(emulatorFTAddress, emulatorFlowTokenAddress, idTableAddress.String(), stakingProxyAddress.String(), lockedTokensAddress.String())
-	FlowStakingCollectionByteCode := cadence.NewString(hex.EncodeToString(FlowStakingCollectionCode))
-
-	// Deploy the QC and DKG contracts
-	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDeployStakingCollectionScript(), lockedTokensAddress).
-		AddRawArgument(jsoncdc.MustEncode(cadence.NewString("FlowStakingCollection"))).
-		AddRawArgument(jsoncdc.MustEncode(FlowStakingCollectionByteCode))
-
-	signAndSubmit(
-		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, lockedTokensAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), lockedTokensSigner},
-		false,
-	)
+func TestStakingCollectionDeploy(t *testing.T) {
+	b, accountKeys, env := newTestSetup(t)
+	_ = deployAllCollectionContracts(t, b, accountKeys, &env)
 }
 
-func TestStakingCollection(t *testing.T) {
+func TestStakingCollectionGetTokens(t *testing.T) {
+	b, accountKeys, env := newTestSetup(t)
+	_ = deployAllCollectionContracts(t, b, accountKeys, &env)
 
-	t.Parallel()
+	// create regular account
 
-	b := newBlockchain()
+	regAccountAddress, _, regAccountSigner := newAccountWithAddress(b, accountKeys)
 
-	env := templates.Environment{
-		FungibleTokenAddress: emulatorFTAddress,
-		FlowTokenAddress:     emulatorFlowTokenAddress,
-	}
+	// Add 1Billion tokens to regular account
+	mintTokensForAccount(t, b, regAccountAddress)
 
-	accountKeys := test.AccountKeyGenerator()
+	// add a staking collection to a regular account with no locked account
+	t.Run("should be able to setup an account with a staking collection", func(t *testing.T) {
 
-	// DEPLOY IDTableStaking
+		addStakingCollectionToRegAcctWithNoLockedAcctTx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionSetup(env), regAccountAddress)
 
-	// Create new keys for the ID table account
-	IDTableAccountKey, _ := accountKeys.NewWithSigner()
-	var idTableAddress = deployStakingContract(t, b, IDTableAccountKey, env)
+		signAndSubmit(
+			t, b, addStakingCollectionToRegAcctWithNoLockedAcctTx,
+			[]flow.Address{b.ServiceKey().Address, regAccountAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), regAccountSigner},
+			false,
+		)
 
-	env.IDTableAddress = idTableAddress.Hex()
+		// check balance of unlocked account
+		result := executeScriptAndCheck(t, b, ft_templates.GenerateInspectVaultScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), [][]byte{jsoncdc.MustEncode(cadence.Address(regAccountAddress))})
+		assertEqual(t, CadenceUFix64("1000000000.0"), result)
 
-	// DEPLOY StakingProxy
+		// check unlocked tokens used
+		result = executeScriptAndCheck(t, b, templates.GenerateCollectionGetUnlockedTokensUsedScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(regAccountAddress))})
+		assertEqual(t, CadenceUFix64("0.0"), result)
 
-	// Deploy the StakingProxy contract
-	stakingProxyCode := contracts.FlowStakingProxy()
-	stakingProxyAddress, err := b.CreateAccount(nil, []sdktemplates.Contract{
-		{
-			Name:   "StakingProxy",
-			Source: string(stakingProxyCode),
-		},
-	})
-	if !assert.NoError(t, err) {
-		t.Log(err.Error())
-	}
-	_, err = b.CommitBlock()
-	assert.NoError(t, err)
-
-	lockedTokensAccountKey, lockedTokensSigner := accountKeys.NewWithSigner()
-	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress, lockedTokensAccountKey)
-	env.StakingProxyAddress = stakingProxyAddress.Hex()
-	env.LockedTokensAddress = lockedTokensAddress.Hex()
-
-	// DEPLOY StakingCollection
-
-	deployCollectionContract(t, b, idTableAddress, stakingProxyAddress, lockedTokensAddress, lockedTokensSigner, env)
-
-	t.Run("Should be able to set up the admin account", func(t *testing.T) {
-
-		// tx = createTxWithTemplateAndAuthorizer(b, ft_templates.GenerateMintTokensScript(
-		// 	flow.HexToAddress(emulatorFTAddress),
-		// 	flow.HexToAddress(emulatorFlowTokenAddress),
-		// 	"FlowToken",
-		// ), b.ServiceKey().Address)
-
-		// _ = tx.AddArgument(cadence.NewAddress(lockedTokensAddress))
-		// _ = tx.AddArgument(CadenceUFix64("1000000000.0"))
-
-		// signAndSubmit(
-		// 	t, b, tx,
-		// 	[]flow.Address{b.ServiceKey().Address},
-		// 	[]crypto.Signer{b.ServiceKey().Signer()},
-		// 	false,
-		// )
+		// check unlocked tokens used
+		result = executeScriptAndCheck(t, b, templates.GenerateCollectionGetLockedTokensUsedScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(regAccountAddress))})
+		assertEqual(t, CadenceUFix64("0.0"), result)
 	})
 
+	t.Run("should be able to get tokens with sufficient balance in normal account", func(t *testing.T) {
+		// get tokens with insufficient balance
+		// should fail
+		getTokensWithInsufficientBalanceTx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionGetTokensScript(env), regAccountAddress)
+		_ = getTokensWithInsufficientBalanceTx.AddArgument(CadenceUFix64("1000000001.0"))
+
+		signAndSubmit(
+			t, b, getTokensWithInsufficientBalanceTx,
+			[]flow.Address{b.ServiceKey().Address, regAccountAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), regAccountSigner},
+			true,
+		)
+
+		// get tokens with sufficient balance
+		getTokensWithSufficientBalanceTx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionGetTokensScript(env), regAccountAddress)
+		_ = getTokensWithSufficientBalanceTx.AddArgument(CadenceUFix64("1000000000.0"))
+
+		signAndSubmit(
+			t, b, getTokensWithSufficientBalanceTx,
+			[]flow.Address{b.ServiceKey().Address, regAccountAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), regAccountSigner},
+			false,
+		)
+
+		// check balance of unlocked account
+		result := executeScriptAndCheck(t, b, ft_templates.GenerateInspectVaultScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), [][]byte{jsoncdc.MustEncode(cadence.Address(regAccountAddress))})
+		assertEqual(t, CadenceUFix64("0.0"), result)
+
+		// check unlocked tokens used
+		result = executeScriptAndCheck(t, b, templates.GenerateCollectionGetUnlockedTokensUsedScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(regAccountAddress))})
+		assertEqual(t, CadenceUFix64("1000000000.0"), result)
+
+		// check locked tokens used
+		result = executeScriptAndCheck(t, b, templates.GenerateCollectionGetLockedTokensUsedScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(regAccountAddress))})
+		assertEqual(t, CadenceUFix64("0.0"), result)
+	})
+
+	// // Create a locked account pair with only tokens in the locked account
+	// joshAddress, _, joshSigner := createLockedAccountPairWithBalances(
+	// 	t, b,
+	// 	accountKeys,
+	// 	env,
+	// 	"1000.0", "0.0")
+
+	// // add a staking collection to the main account
+	// tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionSetup(env), joshAddress)
+
+	// signAndSubmit(
+	// 	t, b, tx,
+	// 	[]flow.Address{b.ServiceKey().Address, joshAddress},
+	// 	[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+	// 	false,
+	// )
+
+	// // get tokens with insufficient balance
+	// t.Run("should be able to get tokens with sufficient balance in unlocked account", func(t *testing.T) {
+	// 	// Should fail because the amount is too high
+	// 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionGetTokensScript(env), joshAddress)
+	// 	_ = tx.AddArgument(CadenceUFix64("1000000.0"))
+
+	// 	signAndSubmit(
+	// 		t, b, tx,
+	// 		[]flow.Address{b.ServiceKey().Address, joshAddress},
+	// 		[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+	// 		false,
+	// 	)
+
+	// 	// Should succeed because the amount is enough
+	// 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionGetTokensScript(env), joshAddress)
+	// 	_ = tx.AddArgument(CadenceUFix64("100.0"))
+
+	// 	signAndSubmit(
+	// 		t, b, tx,
+	// 		[]flow.Address{b.ServiceKey().Address, joshAddress},
+	// 		[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+	// 		false,
+	// 	)
+
+	// 	// check balance of unlocked account
+	// 	result := executeScriptAndCheck(t, b, ft_templates.GenerateInspectVaultScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
+	// 	assertEqual(t, CadenceUFix64("900.0"), result)
+
+	// 	// check unlocked tokens used
+	// 	result = executeScriptAndCheck(t, b, templates.GenerateCollectionGetUnlockedTokensUsedScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
+	// 	assertEqual(t, CadenceUFix64("1000000.0"), result)
+	// })
+
+	// // Create a locked account pair with only tokens in the unlocked account
+	// maxAddress, _, maxSigner := createLockedAccountPairWithBalances(
+	// 	t, b,
+	// 	accountKeys,
+	// 	env,
+	// 	"0.0", "1000.0")
+
+	// // add a staking collection to the main account
+	// tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionSetup(env), maxAddress)
+
+	// signAndSubmit(
+	// 	t, b, tx,
+	// 	[]flow.Address{b.ServiceKey().Address, maxAddress},
+	// 	[]crypto.Signer{b.ServiceKey().Signer(), maxSigner},
+	// 	false,
+	// )
+
+	// // get tokens with insufficient balance
+	// t.Run("should be able to get tokens with sufficient balance in the locked account", func(t *testing.T) {
+	// 	// Should fail because the amount is too high
+	// 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionGetTokensScript(env), maxAddress)
+	// 	_ = tx.AddArgument(CadenceUFix64("1000000.0"))
+
+	// 	signAndSubmit(
+	// 		t, b, tx,
+	// 		[]flow.Address{b.ServiceKey().Address, maxAddress},
+	// 		[]crypto.Signer{b.ServiceKey().Signer(), maxSigner},
+	// 		false,
+	// 	)
+
+	// 	// Should succeed because the amount is enough
+	// 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionGetTokensScript(env), maxAddress)
+	// 	_ = tx.AddArgument(CadenceUFix64("100.0"))
+
+	// 	signAndSubmit(
+	// 		t, b, tx,
+	// 		[]flow.Address{b.ServiceKey().Address, maxAddress},
+	// 		[]crypto.Signer{b.ServiceKey().Signer(), maxSigner},
+	// 		false,
+	// 	)
+	// })
+
+	// // Create a locked account pair with tokens in both accounts
+	// jeffAddress, _, jeffSigner := createLockedAccountPairWithBalances(
+	// 	t, b,
+	// 	accountKeys,
+	// 	env,
+	// 	"1000.0", "1000.0")
+
+	// // add a staking collection to the main account
+	// tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionSetup(env), jeffAddress)
+
+	// signAndSubmit(
+	// 	t, b, tx,
+	// 	[]flow.Address{b.ServiceKey().Address, jeffAddress},
+	// 	[]crypto.Signer{b.ServiceKey().Signer(), jeffSigner},
+	// 	false,
+	// )
+
+	// t.Run("should be able to get tokens with sufficient balance in both accounts", func(t *testing.T) {
+	// 	// Should fail because there is enough in locked account, but not enough in unlocked account
+	// 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionGetTokensScript(env), jeffAddress)
+	// 	_ = tx.AddArgument(CadenceUFix64("1000000.0"))
+
+	// 	signAndSubmit(
+	// 		t, b, tx,
+	// 		[]flow.Address{b.ServiceKey().Address, jeffAddress},
+	// 		[]crypto.Signer{b.ServiceKey().Signer(), jeffSigner},
+	// 		false,
+	// 	)
+
+	// 	// Should succeed because there is enough sum in both accounts, should increase both used numbers
+	// 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionGetTokensScript(env), jeffAddress)
+	// 	_ = tx.AddArgument(CadenceUFix64("1500.0"))
+
+	// 	signAndSubmit(
+	// 		t, b, tx,
+	// 		[]flow.Address{b.ServiceKey().Address, jeffAddress},
+	// 		[]crypto.Signer{b.ServiceKey().Signer(), jeffSigner},
+	// 		false,
+	// 	)
+	// })
+}
+
+func TestStakingCollectionDepositTokens(t *testing.T) {
+	b, accountKeys, env := newTestSetup(t)
+	_ = deployAllCollectionContracts(t, b, accountKeys, &env)
+
+	t.Run("", func(t *testing.T) {
+
+	})
+
+}
+
+func TestStakingCollectionRegisterNode(t *testing.T) {
+	b, accountKeys, env := newTestSetup(t)
+	_ = deployAllCollectionContracts(t, b, accountKeys, &env)
+
+	t.Run("", func(t *testing.T) {
+
+	})
+}
+
+func TestStakingCollectionDoesStakeExist(t *testing.T) {
+	b, accountKeys, env := newTestSetup(t)
+	_ = deployAllCollectionContracts(t, b, accountKeys, &env)
+
+	t.Run("", func(t *testing.T) {
+
+	})
 }

@@ -12,23 +12,29 @@ const (
 	collectionSetupFilename = "stakingCollection/setup_staking_collection.cdc"
 
 	// user templates
-	collectionAddDelegatorFilename = "stakingCollection/add_delegator.cdc"
-	collectionAddNodeFilename = "stakingCollection/add_node.cdc"
-	collectionRegisterDelegatorFilename = "stakingCollection/register_delegator.cdc"
-	collectionRegisterNodeFilename = "stakingCollection/register_node.cdc"
-	collectionRequestUnstakingFilename = "stakingCollection/request_unstaking.cdc"
-	collectionStakeNewTokensFilename = "stakingCollection/stake_new_tokens.cdc"
-	collectionStakeRewardedTokensFilename = "stakingCollection/stake_rewarded_tokens.cdc"
-	collectionStakeUnstakedTokensFilename = "stakingCollection/stake_unstaked_tokens.cdc"
-	collectionUnstakeAllFilename = "stakingCollection/unstake_all.cdc"
+	collectionAddDelegatorFilename           = "stakingCollection/add_delegator.cdc"
+	collectionAddNodeFilename                = "stakingCollection/add_node.cdc"
+	collectionRegisterDelegatorFilename      = "stakingCollection/register_delegator.cdc"
+	collectionRegisterNodeFilename           = "stakingCollection/register_node.cdc"
+	collectionRequestUnstakingFilename       = "stakingCollection/request_unstaking.cdc"
+	collectionStakeNewTokensFilename         = "stakingCollection/stake_new_tokens.cdc"
+	collectionStakeRewardedTokensFilename    = "stakingCollection/stake_rewarded_tokens.cdc"
+	collectionStakeUnstakedTokensFilename    = "stakingCollection/stake_unstaked_tokens.cdc"
+	collectionUnstakeAllFilename             = "stakingCollection/unstake_all.cdc"
 	collectionWithdrawRewardedTokensFilename = "stakingCollection/withdraw_rewarded_tokens.cdc"
 	collectionWithdrawUnstakedTokensFilename = "stakingCollection/withdraw_unstaked_tokens.cdc"
 
 	// scripts
-	collectionGetNodeIDs = "stakingCollection/get_node_ids.cdc"
-	collectionGetDelegatorIDs = "stakingCollection/get_delegator_ids.cdc"
-	collectionGetAllNodeInfo = "stakingCollection/get_all_node_info.cdc"
-	collectionGetAllDelegatorInfo = "stakingCollection/get_all_delegator_info.cdc"
+	collectionGetNodeIDs                    = "stakingCollection/scripts/get_node_ids.cdc"
+	collectionGetDelegatorIDs               = "stakingCollection/scripts/get_delegator_ids.cdc"
+	collectionGetAllNodeInfo                = "stakingCollection/scripts/get_all_node_info.cdc"
+	collectionGetAllDelegatorInfo           = "stakingCollection/scripts/get_all_delegator_info.cdc"
+	collectionGetLockedTokensUsedFilename   = "stakingCollection/scripts/get_locked_tokens_used.cdc"
+	collectionGetUnlockedTokensUsedFilename = "stakingCollection/scripts/get_unlocked_tokens_used.cdc"
+
+	// tests
+	getCollectionTokensFilename     = "stakingCollection/test/get_tokens.cdc"
+	depositCollectionTokensFilename = "stakingCollection/test/deposit_tokens.cdc"
 )
 
 func GenerateDeployStakingCollectionScript() []byte {
@@ -36,6 +42,12 @@ func GenerateDeployStakingCollectionScript() []byte {
 }
 
 // User Templates
+
+func GenerateCollectionSetup(env Environment) []byte {
+	code := assets.MustAssetString(collectionSetupFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
 
 func GenerateCollectionAddDelegator(env Environment) []byte {
 	code := assets.MustAssetString(collectionAddDelegatorFilename)
@@ -125,6 +137,32 @@ func GenerateCollectionGetAllNodeInfo(env Environment) []byte {
 
 func GenerateCollectionGetAllDelegatorInfo(env Environment) []byte {
 	code := assets.MustAssetString(collectionGetAllDelegatorInfo)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateCollectionGetUnlockedTokensUsedScript(env Environment) []byte {
+	code := assets.MustAssetString(collectionGetUnlockedTokensUsedFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateCollectionGetLockedTokensUsedScript(env Environment) []byte {
+	code := assets.MustAssetString(collectionGetLockedTokensUsedFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+// Test Templates
+
+func GenerateCollectionGetTokensScript(env Environment) []byte {
+	code := assets.MustAssetString(getCollectionTokensFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateCollectionDepositTokensScript(env Environment) []byte {
+	code := assets.MustAssetString(depositCollectionTokensFilename)
 
 	return []byte(replaceAddresses(code, env))
 }

@@ -12,8 +12,6 @@ import (
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 
-	ft_templates "github.com/onflow/flow-ft/lib/go/templates"
-
 	"github.com/onflow/flow-core-contracts/lib/go/contracts"
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
 )
@@ -73,23 +71,6 @@ func deployStakingContract(t *testing.T,
 	}
 
 	return idTableAddress
-}
-
-func mintTokensForAccount(t *testing.T, b *emulator.Blockchain, recipient flow.Address) {
-
-	tx := createTxWithTemplateAndAuthorizer(b,
-		ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"),
-		b.ServiceKey().Address)
-
-	_ = tx.AddArgument(cadence.NewAddress(recipient))
-	_ = tx.AddArgument(CadenceUFix64("1000000000.0"))
-
-	signAndSubmit(
-		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address},
-		[]crypto.Signer{b.ServiceKey().Signer()},
-		false,
-	)
 }
 
 func registerNode(t *testing.T,
