@@ -99,7 +99,7 @@ pub contract FlowStakingCollection {
                 // Add the locked vault to the holder
                 lockedVaultHolder.addVault(lockedVault: lockedTokenManager.vault)
                 
-                self.lockedVaultHolder <-! lockedVaultHolder
+                self.lockedVaultHolder <- lockedVaultHolder
             } else {
                 self.tokenHolder = tokenHolder
                 self.lockedVaultHolder <- nil

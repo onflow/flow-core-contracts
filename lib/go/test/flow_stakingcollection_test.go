@@ -238,6 +238,23 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 	b, accountKeys, env := newTestSetup(t)
 	_ = deployAllCollectionContracts(t, b, accountKeys, &env)
 
+	// Create a locked account pair with only tokens in the locked account
+	joshAddress, _, joshSigner := createLockedAccountPairWithBalances(
+		t, b,
+		accountKeys,
+		env,
+		"1000.0", "0.0")
+
+	// add a staking collection to the main account
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionSetup(env), joshAddress)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, joshAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+		false,
+	)
+
 	t.Run("", func(t *testing.T) {
 
 	})

@@ -269,7 +269,7 @@ func createLockedAccountPairWithBalances(
 		script := templates.GenerateGetLockedAccountBalanceScript(env)
 
 		// check balance of locked account
-		result := executeScriptAndCheck(t, b, script, [][]byte{jsoncdc.MustEncode(cadence.Address(newUserSharedAddress))})
+		result := executeScriptAndCheck(t, b, script, [][]byte{jsoncdc.MustEncode(cadence.Address(newUserAddress))})
 		assertEqual(t, CadenceUFix64("1000000.0"), result)
 	}
 
