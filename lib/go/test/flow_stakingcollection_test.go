@@ -238,14 +238,25 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 	b, accountKeys, env := newTestSetup(t)
 	_ = deployAllCollectionContracts(t, b, accountKeys, &env)
 
+	// Create a regular account and register a normal node
+
+	// setup the staking collection which should put the normal node in the collection
+
+	// Create a regular account and register a delegator
+
+	// setup the staking collection which should put the normal delegator in the collection
+
 	// Create a locked account pair with only tokens in the locked account
 	joshAddress, _, joshSigner := createLockedAccountPairWithBalances(
 		t, b,
 		accountKeys,
 		env,
-		"1000.0", "0.0")
+		"1000.0", "1000.0")
+
+	// Register a node and a delegator in the locked account
 
 	// add a staking collection to the main account
+	// the node and delegator in the locked account should be accesible through the staking collection
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionSetup(env), joshAddress)
 
 	signAndSubmit(
@@ -255,7 +266,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		false,
 	)
 
-	t.Run("", func(t *testing.T) {
+	t.Run("Should be able to register a node with the staking collection", func(t *testing.T) {
 
 	})
 }
