@@ -113,6 +113,29 @@ func registerNode(t *testing.T,
 	return
 }
 
+func registerDelegator(t *testing.T,
+	b *emulator.Blockchain,
+	env templates.Environment,
+	authorizer flow.Address,
+	signer crypto.Signer,
+	nodeID string,
+	shouldFail bool,
+) {
+
+	tx := createTxWithTemplateAndAuthorizer(b,
+		templates.GenerateRegisterDelegatorScript(env),
+		authorizer)
+
+	_ = tx.AddArgument(cadence.NewString(nodeID))
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, authorizer},
+		[]crypto.Signer{b.ServiceKey().Signer(), signer},
+		shouldFail,
+	)
+}
+
 func commitNewTokens(t *testing.T,
 	b *emulator.Blockchain,
 	env templates.Environment,

@@ -209,10 +209,12 @@ pub contract FlowStakingCollection {
             var tokenHolderDelegatorID: UInt32?  = nil
 
             // If there is a locked account, get the staking info from that account
-            if let _tokenHolder = self.tokenHolder!.borrow() {
-                tokenHolderNodeID = _tokenHolder!.getNodeID()
-                tokenHolderDelegatorNodeID = _tokenHolder!.getDelegatorNodeID()
-                tokenHolderDelegatorID = _tokenHolder!.getDelegatorID()
+            if self.tokenHolder != nil {
+                if let _tokenHolder = self.tokenHolder!.borrow() {
+                    tokenHolderNodeID = _tokenHolder!.getNodeID()
+                    tokenHolderDelegatorNodeID = _tokenHolder!.getDelegatorNodeID()
+                    tokenHolderDelegatorID = _tokenHolder!.getDelegatorID()
+                }
             }
 
             // If the request is for a delegator, check all possible delegators for possible matches
@@ -235,7 +237,7 @@ pub contract FlowStakingCollection {
         // Function to add an existing NodeStaker object
         pub fun addNodeObject(_ node: @FlowIDTableStaking.NodeStaker) {
             let stakingInfo = FlowIDTableStaking.NodeInfo(nodeID: node.id)
-            let totalStaked = stakingInfo.tokensStaked + stakingInfo.tokensCommitted + stakingInfo.tokensUnstaking + stakingInfo.tokensUnstaked + stakingInfo.tokensRewarded
+            let totalStaked = stakingInfo.tokensStaked + stakingInfo.tokensCommitted + stakingInfo.tokensUnstaking + stakingInfo.tokensUnstaked
             self.unlockedTokensUsed = self.unlockedTokensUsed + totalStaked
             self.nodeStakers[node.id] <-! node
         }
@@ -243,7 +245,7 @@ pub contract FlowStakingCollection {
         // Function to add an existing NodeDelegator object
         pub fun addDelegatorObject(_ delegator: @FlowIDTableStaking.NodeDelegator) {
             let stakingInfo = FlowIDTableStaking.DelegatorInfo(nodeID: delegator.nodeID, delegatorID: delegator.id)
-            let totalStaked = stakingInfo.tokensStaked + stakingInfo.tokensCommitted + stakingInfo.tokensUnstaking + stakingInfo.tokensUnstaked + stakingInfo.tokensRewarded
+            let totalStaked = stakingInfo.tokensStaked + stakingInfo.tokensCommitted + stakingInfo.tokensUnstaking + stakingInfo.tokensUnstaked
             self.unlockedTokensUsed = self.unlockedTokensUsed + totalStaked
             self.nodeDelegators[delegator.nodeID] <-! delegator
         }
@@ -273,17 +275,24 @@ pub contract FlowStakingCollection {
 
             //emit NewDelegatorCreated(nodeID: nodeDelegator.nodeID, delegatorID: nodeDelegator.id, amountCommitted: amount)
 
-            self.addDelegatorObject(<-nodeDelegator)
+            self.nodeDelegators[nodeDelegator.nodeID] <-! nodeDelegator
         }
 
         access(self) fun borrowNode(_ nodeID: String): &FlowIDTableStaking.NodeStaker? {
-            return &self.nodeStakers[nodeID] as? &FlowIDTableStaking.NodeStaker
+            if self.nodeStakers[nodeID] != nil {
+                return &self.nodeStakers[nodeID] as? &FlowIDTableStaking.NodeStaker
+            } else {
+                return nil
+            }
         }
 
         access(self) fun borrowDelegator(_ nodeID: String, _ delegatorID: UInt32): &FlowIDTableStaking.NodeDelegator? {
-            let delegatorRef = &self.nodeDelegators[nodeID] as? &FlowIDTableStaking.NodeDelegator
-
-            if delegatorRef.id == delegatorID { return delegatorRef } else { return nil }
+            if self.nodeDelegators[nodeID] != nil {
+                let delegatorRef = &self.nodeDelegators[nodeID] as? &FlowIDTableStaking.NodeDelegator
+                if delegatorRef.id == delegatorID { return delegatorRef } else { return nil }
+            } else {
+                return nil
+            }
         }
 
         // Staking Operations
@@ -291,7 +300,7 @@ pub contract FlowStakingCollection {
         // Function to stake new tokens for an existing Stake or Delegation record in the StakingCollection
         pub fun stakeNewTokens(nodeID: String, delegatorID: UInt32?, amount: UFix64) {
             pre {
-                self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID) == false : "Specified stake does not exist"
+                self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID): "Specified stake does not exist"
             }
 
             if let _delegatorID = delegatorID {                
@@ -315,7 +324,7 @@ pub contract FlowStakingCollection {
         // Function to stake unstaked tokens for an existing Stake or Delegation record in the StakingCollection
         pub fun stakeUnstakedTokens(nodeID: String, delegatorID: UInt32?, amount: UFix64) {
             pre {
-                self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID) == false : "Specified stake does not exist"
+                self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID): "Specified stake does not exist"
             }
 
             if let _delegatorID = delegatorID {
@@ -342,7 +351,7 @@ pub contract FlowStakingCollection {
         // Function to stake rewarded tokens for an existing Stake or Delegation record in the StakingCollection
         pub fun stakeRewardedTokens(nodeID: String, delegatorID: UInt32?, amount: UFix64) {
             pre {
-                self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID) == false : "Specified stake does not exist"
+                self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID): "Specified stake does not exist"
             }
 
             if let _delegatorID = delegatorID {
@@ -370,7 +379,7 @@ pub contract FlowStakingCollection {
         // Function to request tokens to be unstaked for an existing Stake or Delegation record in the StakingCollection
         pub fun requestUnstaking(nodeID: String, delegatorID: UInt32?, amount: UFix64) { 
             pre {
-                self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID) == false : "Specified stake does not exist"
+                self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID): "Specified stake does not exist"
             }
 
             if let _delegatorID = delegatorID {
@@ -397,7 +406,7 @@ pub contract FlowStakingCollection {
         // Function to unstake all tokens for an existing Staking record in the StakingCollection
         pub fun unstakeAll(nodeID: String) {
             pre {
-                self.doesStakeExist(nodeID: nodeID, delegatorID: nil) == false : "Specified stake does not exist"
+                self.doesStakeExist(nodeID: nodeID, delegatorID: nil): "Specified stake does not exist"
             }
     
             if let node = self.borrowNode(nodeID) {
@@ -412,7 +421,7 @@ pub contract FlowStakingCollection {
         // Function to withdraw unstaked tokens for an existing Stake or Delegation record in the StakingCollection
         pub fun withdrawUnstakedTokens(nodeID: String, delegatorID: UInt32?, amount: UFix64) { 
             pre {
-                self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID) == false : "Specified stake does not exist"
+                self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID): "Specified stake does not exist"
             }
 
             if let _delegatorID = delegatorID {
@@ -441,7 +450,7 @@ pub contract FlowStakingCollection {
         // Function to withdraw rewarded tokens for an existing Stake or Delegation record in the StakingCollection
         pub fun withdrawRewardedTokens(nodeID: String, delegatorID: UInt32?, amount: UFix64) {
             pre {
-                self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID) == false : "Specified stake does not exist"
+                self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID): "Specified stake does not exist"
             }
 
             if let _delegatorID = delegatorID {
@@ -574,7 +583,17 @@ pub contract FlowStakingCollection {
 
     // Getter functions for accounts StakingCollection information
 
-    // Function to get all node ids for all Staking records in a users StakingCollection, if one exists.
+    // Function to get see if a node or delegator exists in an accounts staking collection
+    pub fun doesStakeExist(address: Address, nodeID: String, delegatorID: UInt32?): Bool {
+        let account = getAccount(address)
+
+        let stakingCollectionRef = account.getCapability<&StakingCollection{StakingCollectionPublic}>(self.StakingCollectionPublicPath).borrow()
+            ?? panic("Could not borrow ref to StakingCollection")
+
+        return stakingCollectionRef.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID)
+    }
+
+    // Function to get the unlocked tokens used amount for an account
     pub fun getUnlockedTokensUsed(address: Address): UFix64 {
         let account = getAccount(address)
 
@@ -584,7 +603,7 @@ pub contract FlowStakingCollection {
         return stakingCollectionRef.unlockedTokensUsed
     }
 
-    // Function to get all node ids for all Staking records in a users StakingCollection, if one exists.
+    // Function to get the locked tokens used amount for an account
     pub fun getLockedTokensUsed(address: Address): UFix64 {
         let account = getAccount(address)
 

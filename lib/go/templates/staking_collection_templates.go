@@ -25,6 +25,7 @@ const (
 	collectionWithdrawUnstakedTokensFilename = "stakingCollection/withdraw_unstaked_tokens.cdc"
 
 	// scripts
+	collectionGetDoesStakeExistFilename     = "stakingCollection/scripts/get_does_stake_exist.cdc"
 	collectionGetNodeIDs                    = "stakingCollection/scripts/get_node_ids.cdc"
 	collectionGetDelegatorIDs               = "stakingCollection/scripts/get_delegator_ids.cdc"
 	collectionGetAllNodeInfo                = "stakingCollection/scripts/get_all_node_info.cdc"
@@ -116,6 +117,12 @@ func GenerateCollectionWithdrawUnstakedTokens(env Environment) []byte {
 }
 
 // Script templates
+
+func GenerateCollectionGetDoesStakeExistScript(env Environment) []byte {
+	code := assets.MustAssetString(collectionGetDoesStakeExistFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
 
 func GenerateCollectionGetNodeIDs(env Environment) []byte {
 	code := assets.MustAssetString(collectionGetNodeIDs)

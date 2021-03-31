@@ -1,13 +1,16 @@
 package test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
+	"github.com/onflow/cadence/runtime/interpreter"
 	ft_templates "github.com/onflow/flow-ft/lib/go/templates"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
+	"github.com/stretchr/testify/require"
 
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
 )
@@ -251,31 +254,110 @@ func TestStakingCollectionDepositTokens(t *testing.T) {
 
 func TestStakingCollectionRegisterNode(t *testing.T) {
 	b, accountKeys, env := newTestSetup(t)
-	_ = deployAllCollectionContracts(t, b, accountKeys, &env)
+	IDTableSigner := deployAllCollectionContracts(t, b, accountKeys, &env)
 
 	// Create regular accounts
-	//userAddresses, userAccountKeys, userSigners := registerAndMintManyAccounts(t, b, accountKeys, 4)
+	userAddresses, _, userSigners := registerAndMintManyAccounts(t, b, accountKeys, 4)
 
-	// and register a normal node
+	var amountToCommit interpreter.UFix64Value = 48000000000000
 
-	// setup the staking collection which should put the normal node in the collection
+	// and register a normal node outside of the collection
+	registerNode(t, b, env,
+		userAddresses[0],
+		userSigners[0],
+		adminID,
+		fmt.Sprintf("%0128d", admin),
+		fmt.Sprintf("%0128d", admin),
+		fmt.Sprintf("%0192d", admin),
+		amountToCommit,
+		amountToCommit,
+		1,
+		false)
 
-	// Create a regular account and register a delegator
+	// register a normal delegator outside of the collection
+	registerDelegator(t, b, env,
+		userAddresses[0],
+		userSigners[0],
+		adminID,
+		false)
 
-	// setup the staking collection which should put the normal delegator in the collection
+	// end staking auction and epoch, then pay rewards
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), flow.HexToAddress(env.IDTableAddress))
+	err := tx.AddArgument(cadence.NewArray([]cadence.Value{cadence.NewString(adminID), cadence.NewString(joshID)}))
+	require.NoError(t, err)
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, flow.HexToAddress(env.IDTableAddress)},
+		[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+		false,
+	)
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GeneratePayRewardsScript(env), flow.HexToAddress(env.IDTableAddress))
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, flow.HexToAddress(env.IDTableAddress)},
+		[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+		false,
+	)
+
+	t.Run("Should be able to set up staking collection, which moves the node and delegator to the collection", func(t *testing.T) {
+
+		// setup the staking collection which should put the normal node and delegator in the collection
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionSetup(env), userAddresses[0])
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, userAddresses[0]},
+			[]crypto.Signer{b.ServiceKey().Signer(), userSigners[0]},
+			false,
+		)
+
+		// check balance of unlocked account
+		result := executeScriptAndCheck(t, b, ft_templates.GenerateInspectVaultScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), [][]byte{jsoncdc.MustEncode(cadence.Address(userAddresses[0]))})
+		assertEqual(t, CadenceUFix64("999520000.0"), result)
+
+		// check unlocked tokens used
+		result = executeScriptAndCheck(t, b, templates.GenerateCollectionGetUnlockedTokensUsedScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(userAddresses[0]))})
+		assertEqual(t, CadenceUFix64("480000.0"), result)
+
+		// check locked tokens used
+		result = executeScriptAndCheck(t, b, templates.GenerateCollectionGetLockedTokensUsedScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(userAddresses[0]))})
+		assertEqual(t, CadenceUFix64("0.0"), result)
+
+		// check node ID
+		result = executeScriptAndCheck(t, b, templates.GenerateCollectionGetDoesStakeExistScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(userAddresses[0])), jsoncdc.MustEncode(cadence.String(adminID)), jsoncdc.MustEncode(cadence.NewOptional(nil))})
+		assertEqual(t, cadence.NewBool(true), result)
+
+		// check delegator ID
+		result = executeScriptAndCheck(t, b, templates.GenerateCollectionGetDoesStakeExistScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(userAddresses[0])), jsoncdc.MustEncode(cadence.String(adminID)), jsoncdc.MustEncode(cadence.NewOptional(cadence.NewUInt32(1)))})
+		assertEqual(t, cadence.NewBool(true), result)
+
+		// should be false if the node doesn't exist
+		result = executeScriptAndCheck(t, b, templates.GenerateCollectionGetDoesStakeExistScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(userAddresses[0])), jsoncdc.MustEncode(cadence.String(joshID)), jsoncdc.MustEncode(cadence.NewOptional(nil))})
+		assertEqual(t, cadence.NewBool(false), result)
+
+		// should be false if the delegator doesn't exist
+		result = executeScriptAndCheck(t, b, templates.GenerateCollectionGetDoesStakeExistScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(userAddresses[0])), jsoncdc.MustEncode(cadence.String(adminID)), jsoncdc.MustEncode(cadence.NewOptional(cadence.NewUInt32(2)))})
+		assertEqual(t, cadence.NewBool(false), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
+		assertEqual(t, CadenceUFix64("1249999.9968"), result)
+	})
 
 	// Create a locked account pair with only tokens in the locked account
-	joshAddress, _, joshSigner := createLockedAccountPairWithBalances(
+	joshAddress, joshSharedAddress, joshSigner := createLockedAccountPairWithBalances(
 		t, b,
 		accountKeys,
 		env,
-		"1000.0", "1000.0")
+		"1000000.0", "1000000.0")
 
 	// Register a node and a delegator in the locked account
-
-	// add a staking collection to the main account
-	// the node and delegator in the locked account should be accesible through the staking collection
-	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionSetup(env), joshAddress)
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), joshAddress)
+	_ = tx.AddArgument(cadence.NewString(joshID))
+	_ = tx.AddArgument(cadence.NewUInt8(4))
+	_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", josh)))
+	_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", josh)))
+	_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", josh)))
+	_ = tx.AddArgument(CadenceUFix64("320000.0"))
 
 	signAndSubmit(
 		t, b, tx,
@@ -284,16 +366,115 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		false,
 	)
 
-	t.Run("Should be able to register a node with the staking collection", func(t *testing.T) {
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateLockedDelegatorScript(env), joshAddress)
+	_ = tx.AddArgument(cadence.NewString(joshID))
+	_ = tx.AddArgument(CadenceUFix64("50000.0"))
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, joshAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+		false,
+	)
+
+	t.Run("Should be able to setup staking collection which recognizes the locked staking objects", func(t *testing.T) {
+
+		// add a staking collection to the main account
+		// the node and delegator in the locked account should be accesible through the staking collection
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionSetup(env), joshAddress)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+
+		// check balance of unlocked account
+		result := executeScriptAndCheck(t, b, ft_templates.GenerateInspectVaultScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
+		assertEqual(t, CadenceUFix64("1000000.0"), result)
+
+		// check balance of locked account
+		result = executeScriptAndCheck(t, b, ft_templates.GenerateInspectVaultScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), [][]byte{jsoncdc.MustEncode(cadence.Address(joshSharedAddress))})
+		assertEqual(t, CadenceUFix64("630000.0"), result)
+
+		// check unlocked tokens used
+		result = executeScriptAndCheck(t, b, templates.GenerateCollectionGetUnlockedTokensUsedScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
+		assertEqual(t, CadenceUFix64("0.0"), result)
+
+		// check locked tokens used, should be zero because the collection doesn't count staked tokens from the locked account
+		result = executeScriptAndCheck(t, b, templates.GenerateCollectionGetLockedTokensUsedScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
+		assertEqual(t, CadenceUFix64("0.0"), result)
+
+		// check node ID
+		result = executeScriptAndCheck(t, b, templates.GenerateCollectionGetDoesStakeExistScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress)), jsoncdc.MustEncode(cadence.String(joshID)), jsoncdc.MustEncode(cadence.NewOptional(nil))})
+		assertEqual(t, cadence.NewBool(true), result)
+
+		// check delegator ID
+		result = executeScriptAndCheck(t, b, templates.GenerateCollectionGetDoesStakeExistScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress)), jsoncdc.MustEncode(cadence.String(joshID)), jsoncdc.MustEncode(cadence.NewOptional(cadence.NewUInt32(1)))})
+		assertEqual(t, cadence.NewBool(true), result)
+
+		// should be false if the node doesn't exist
+		result = executeScriptAndCheck(t, b, templates.GenerateCollectionGetDoesStakeExistScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress)), jsoncdc.MustEncode(cadence.String(maxID)), jsoncdc.MustEncode(cadence.NewOptional(nil))})
+		assertEqual(t, cadence.NewBool(false), result)
+
+		// should be false if the delegator doesn't exist
+		result = executeScriptAndCheck(t, b, templates.GenerateCollectionGetDoesStakeExistScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress)), jsoncdc.MustEncode(cadence.String(joshID)), jsoncdc.MustEncode(cadence.NewOptional(cadence.NewUInt32(2)))})
+		assertEqual(t, cadence.NewBool(false), result)
 
 	})
-}
 
-func TestStakingCollectionDoesStakeExist(t *testing.T) {
-	b, accountKeys, env := newTestSetup(t)
-	_ = deployAllCollectionContracts(t, b, accountKeys, &env)
+	t.Run("Should be able to register a second node and delegator in the staking collection", func(t *testing.T) {
 
-	t.Run("", func(t *testing.T) {
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterNode(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(maxID))
+		_ = tx.AddArgument(cadence.NewUInt8(2))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", max)))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", max)))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", max)))
+		_ = tx.AddArgument(CadenceUFix64("500000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterDelegator(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(maxID))
+		_ = tx.AddArgument(CadenceUFix64("500000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+
+		// check balance of unlocked account
+		result := executeScriptAndCheck(t, b, ft_templates.GenerateInspectVaultScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
+		assertEqual(t, CadenceUFix64("630000.0"), result)
+
+		// check balance of locked account
+		result = executeScriptAndCheck(t, b, ft_templates.GenerateInspectVaultScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), [][]byte{jsoncdc.MustEncode(cadence.Address(joshSharedAddress))})
+		assertEqual(t, CadenceUFix64("0.0"), result)
+
+		// check unlocked tokens used
+		result = executeScriptAndCheck(t, b, templates.GenerateCollectionGetUnlockedTokensUsedScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
+		assertEqual(t, CadenceUFix64("370000.0"), result)
+
+		// check locked tokens used, should be zero because the collection doesn't count staked tokens from the locked account
+		result = executeScriptAndCheck(t, b, templates.GenerateCollectionGetLockedTokensUsedScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
+		assertEqual(t, CadenceUFix64("630000.0"), result)
+
+		// check node ID
+		result = executeScriptAndCheck(t, b, templates.GenerateCollectionGetDoesStakeExistScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress)), jsoncdc.MustEncode(cadence.String(maxID)), jsoncdc.MustEncode(cadence.NewOptional(nil))})
+		assertEqual(t, cadence.NewBool(true), result)
+
+		// check delegator ID
+		result = executeScriptAndCheck(t, b, templates.GenerateCollectionGetDoesStakeExistScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress)), jsoncdc.MustEncode(cadence.String(maxID)), jsoncdc.MustEncode(cadence.NewOptional(cadence.NewUInt32(1)))})
+		assertEqual(t, cadence.NewBool(true), result)
 
 	})
 }
