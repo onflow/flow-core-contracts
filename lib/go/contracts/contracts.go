@@ -176,7 +176,8 @@ func FlowLockedTokens(
 	fungibleTokenAddress,
 	flowTokenAddress,
 	idTableAddress,
-	stakingProxyAddress string,
+	stakingProxyAddress,
+	storageFeesAddress string,
 ) []byte {
 	code := assets.MustAssetString(flowLockedTokensFilename)
 
@@ -184,6 +185,7 @@ func FlowLockedTokens(
 	code = strings.ReplaceAll(code, placeholderFlowTokenAddress, withHexPrefix(flowTokenAddress))
 	code = strings.ReplaceAll(code, placeholderIDTableAddress, withHexPrefix(idTableAddress))
 	code = strings.ReplaceAll(code, placeholderStakingProxyAddress, withHexPrefix(stakingProxyAddress))
+	code = strings.ReplaceAll(code, placeholderStorageFeesAddress, withHexPrefix(storageFeesAddress))
 
 	return []byte(code)
 }
