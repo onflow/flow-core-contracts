@@ -129,6 +129,24 @@ func deployLockedTokensContract(
 	return lockedTokensAddr
 }
 
+/****************** Staking Collection utilities ************************/
+
+type DelegatorIDs struct {
+	nodeID string
+	id     uint32
+}
+
+/// Used to verify staking collection info in tests
+type StakingCollectionInfo struct {
+	accountAddress     string
+	unlockedBalance    string
+	lockedBalance      string
+	unlockedTokensUsed string
+	lockedTokensUsed   string
+	nodes              []string
+	delegators         []DelegatorIDs
+}
+
 // Deploys the staking collection contract to the specified lockedTokensAddress
 // because the staking collection needs to be deployed to the same account as LockedTokens
 func deployCollectionContract(t *testing.T, b *emulator.Blockchain,
@@ -278,4 +296,50 @@ func createLockedAccountPairWithBalances(
 	}
 
 	return newUserAddress, newUserSharedAddress, newUserSigner
+}
+
+func verifyStakingCollectionInfo(
+	t *testing.T,
+	b *emulator.Blockchain,
+	env templates.Environment,
+	expectedInfo StakingCollectionInfo,
+) {
+	// check balance of unlocked account
+	result := executeScriptAndCheck(t, b, ft_templates.GenerateInspectVaultScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), [][]byte{jsoncdc.MustEncode(cadence.Address(flow.HexToAddress(expectedInfo.accountAddress)))})
+	assertEqual(t, CadenceUFix64(expectedInfo.unlockedBalance), result)
+
+	// check balance of locked account if it exists
+	if len(expectedInfo.lockedBalance) > 0 {
+		result = executeScriptAndCheck(t, b, templates.GenerateGetLockedAccountBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(flow.HexToAddress(expectedInfo.accountAddress)))})
+		assertEqual(t, CadenceUFix64(expectedInfo.lockedBalance), result)
+	}
+
+	// check unlocked tokens used
+	result = executeScriptAndCheck(t, b, templates.GenerateCollectionGetUnlockedTokensUsedScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(flow.HexToAddress(expectedInfo.accountAddress)))})
+	assertEqual(t, CadenceUFix64(expectedInfo.unlockedTokensUsed), result)
+
+	// check locked tokens used
+	result = executeScriptAndCheck(t, b, templates.GenerateCollectionGetLockedTokensUsedScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(flow.HexToAddress(expectedInfo.accountAddress)))})
+	assertEqual(t, CadenceUFix64(expectedInfo.lockedTokensUsed), result)
+
+	// check node IDs
+	result = executeScriptAndCheck(t, b, templates.GenerateCollectionGetNodeIDsScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(flow.HexToAddress(expectedInfo.accountAddress)))})
+	nodeArray := result.(cadence.Array).Values
+	i := 0
+	for _, nodeID := range expectedInfo.nodes {
+		assertEqual(t, cadence.NewString(nodeID), nodeArray[i])
+		i = i + 1
+	}
+
+	// check delegator IDs
+	result = executeScriptAndCheck(t, b, templates.GenerateCollectionGetDelegatorIDsScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(flow.HexToAddress(expectedInfo.accountAddress)))})
+	delegatorArray := result.(cadence.Array).Values
+	i = 0
+	for _, delegator := range expectedInfo.delegators {
+		nodeID := delegatorArray[i].(cadence.Struct).Fields[0]
+		delegatorID := delegatorArray[i].(cadence.Struct).Fields[1]
+		assertEqual(t, cadence.NewString(delegator.nodeID), nodeID)
+		assertEqual(t, cadence.NewUInt32(delegator.id), delegatorID)
+		i = i + 1
+	}
 }

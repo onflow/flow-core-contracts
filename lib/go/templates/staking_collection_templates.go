@@ -124,25 +124,25 @@ func GenerateCollectionGetDoesStakeExistScript(env Environment) []byte {
 	return []byte(replaceAddresses(code, env))
 }
 
-func GenerateCollectionGetNodeIDs(env Environment) []byte {
+func GenerateCollectionGetNodeIDsScript(env Environment) []byte {
 	code := assets.MustAssetString(collectionGetNodeIDs)
 
 	return []byte(replaceAddresses(code, env))
 }
 
-func GenerateCollectionGetDelegatorIDs(env Environment) []byte {
+func GenerateCollectionGetDelegatorIDsScript(env Environment) []byte {
 	code := assets.MustAssetString(collectionGetDelegatorIDs)
 
 	return []byte(replaceAddresses(code, env))
 }
 
-func GenerateCollectionGetAllNodeInfo(env Environment) []byte {
+func GenerateCollectionGetAllNodeInfoScript(env Environment) []byte {
 	code := assets.MustAssetString(collectionGetAllNodeInfo)
 
 	return []byte(replaceAddresses(code, env))
 }
 
-func GenerateCollectionGetAllDelegatorInfo(env Environment) []byte {
+func GenerateCollectionGetAllDelegatorInfoScript(env Environment) []byte {
 	code := assets.MustAssetString(collectionGetAllDelegatorInfo)
 
 	return []byte(replaceAddresses(code, env))
