@@ -89,6 +89,16 @@ func TestStakingCollectionGetTokens(t *testing.T) {
 		// check locked tokens used
 		result = executeScriptAndCheck(t, b, templates.GenerateCollectionGetLockedTokensUsedScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(regAccountAddress))})
 		assertEqual(t, CadenceUFix64("0.0"), result)
+
+		verifyStakingCollectionInfo(t, b, env, StakingCollectionInfo{
+			accountAddress:     regAccountAddress.String(),
+			unlockedBalance:    "0.0",
+			lockedBalance:      "",
+			unlockedTokensUsed: "1000000000.0",
+			lockedTokensUsed:   "0.0",
+			nodes:              []string{},
+			delegators:         []DelegatorIDs{},
+		})
 	})
 
 	// Create a locked account pair with only tokens in the locked account
@@ -439,7 +449,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		assertEqual(t, CadenceUFix64("1249999.9968"), result)
 	})
 
-	// Create a locked account pair with only tokens in the locked account
+	// Create a locked account pair with tokens in both accounts
 	joshAddress, _, joshSigner := createLockedAccountPairWithBalances(
 		t, b,
 		accountKeys,
@@ -544,4 +554,71 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 			delegators:         []DelegatorIDs{DelegatorIDs{nodeID: maxID, id: 1}, DelegatorIDs{nodeID: joshID, id: 1}},
 		})
 	})
+}
+
+func TestStakingCollectionStakeTokens(t *testing.T) {
+	b, accountKeys, env := newTestSetup(t)
+	_ = deployAllCollectionContracts(t, b, accountKeys, &env)
+
+	joshAddress, _, joshSigner, joshID1, joshID2 := registerStakingCollectionNodesAndDelegators(
+		t, b,
+		accountKeys,
+		env,
+		"1000000.0", "1000000.0")
+
+	t.Run("Should be able to commit new tokens to the node or delegator in both accounts", func(t *testing.T) {
+
+		// Stake new tokens to the locked account node
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionStakeNewTokens(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(joshID1))
+		_ = tx.AddArgument(cadence.NewOptional(nil))
+		_ = tx.AddArgument(CadenceUFix64("10000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+
+		// Stake new tokens to the unlocked account node
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionStakeNewTokens(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(joshID2))
+		_ = tx.AddArgument(cadence.NewOptional(nil))
+		_ = tx.AddArgument(CadenceUFix64("10000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+
+		// Stake new tokens to the locked account delegator
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionStakeNewTokens(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(joshID1))
+		_ = tx.AddArgument(cadence.NewUInt32(1))
+		_ = tx.AddArgument(CadenceUFix64("10000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+
+		// Stake new tokens to the unlocked account delegator
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionStakeNewTokens(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(joshID2))
+		_ = tx.AddArgument(cadence.NewUInt32(1))
+		_ = tx.AddArgument(CadenceUFix64("10000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+	})
+
 }

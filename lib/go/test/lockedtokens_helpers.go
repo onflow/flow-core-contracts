@@ -299,6 +299,89 @@ func createLockedAccountPairWithBalances(
 	return newUserAddress, newUserSharedAddress, newUserSigner
 }
 
+func registerStakingCollectionNodesAndDelegators(
+	t *testing.T,
+	b *emulator.Blockchain,
+	accountKeys *test.AccountKeys,
+	env templates.Environment,
+	lockedBalance, unlockedBalance string,
+) (flow.Address, flow.Address, crypto.Signer, string, string) {
+	// Create a locked account pair with tokens in both accounts
+	newUserAddress, newUserSharedAddress, newUserSigner := createLockedAccountPairWithBalances(
+		t, b,
+		accountKeys,
+		env,
+		lockedBalance, unlockedBalance)
+
+	userNodeID1 := "0000000000000000000000000000000000000000000000000000000000000001"
+	userNodeID2 := "0000000000000000000000000000000000000000000000000000000000000002"
+
+	// Register a node and a delegator in the locked account
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), newUserAddress)
+	_ = tx.AddArgument(cadence.NewString(userNodeID1))
+	_ = tx.AddArgument(cadence.NewUInt8(4))
+	_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", 1)))
+	_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", 1)))
+	_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", 1)))
+	_ = tx.AddArgument(CadenceUFix64("320000.0"))
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, newUserAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), newUserSigner},
+		false,
+	)
+
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateLockedDelegatorScript(env), newUserAddress)
+	_ = tx.AddArgument(cadence.NewString(userNodeID1))
+	_ = tx.AddArgument(CadenceUFix64("50000.0"))
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, newUserAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), newUserSigner},
+		false,
+	)
+
+	// add a staking collection to the main account
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionSetup(env), newUserAddress)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, newUserAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), newUserSigner},
+		false,
+	)
+
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterNode(env), newUserAddress)
+	_ = tx.AddArgument(cadence.NewString(userNodeID2))
+	_ = tx.AddArgument(cadence.NewUInt8(2))
+	_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", 2)))
+	_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", 2)))
+	_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", 2)))
+	_ = tx.AddArgument(CadenceUFix64("500000.0"))
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, newUserAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), newUserSigner},
+		false,
+	)
+
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterDelegator(env), newUserAddress)
+	_ = tx.AddArgument(cadence.NewString(userNodeID2))
+	_ = tx.AddArgument(CadenceUFix64("500000.0"))
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, newUserAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), newUserSigner},
+		false,
+	)
+
+	return newUserAddress, newUserSharedAddress, newUserSigner, userNodeID1, userNodeID2
+}
+
 func verifyStakingCollectionInfo(
 	t *testing.T,
 	b *emulator.Blockchain,
