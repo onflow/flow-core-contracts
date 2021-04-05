@@ -13,8 +13,8 @@ transaction(amount: UFix64) {
         let flowTokenRef = signer.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)
             ?? panic("Could not borrow reference to FLOW Vault")
 
-        let tokens <- 
+        let tokens <- collectionRef.getTokens(amount: amount)
             
-        collectionRef.depositTokens(from: )
+        collectionRef.depositTokens(from: <-tokens)
     }
 }

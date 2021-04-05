@@ -244,10 +244,118 @@ func TestStakingCollectionDepositTokens(t *testing.T) {
 	b, accountKeys, env := newTestSetup(t)
 	_ = deployAllCollectionContracts(t, b, accountKeys, &env)
 
-	t.Run("", func(t *testing.T) {
+	// create regular account
+	regAccountAddress, _, regAccountSigner := newAccountWithAddress(b, accountKeys)
+	// Add 1Billion tokens to regular account
+	mintTokensForAccount(t, b, regAccountAddress, "1000000000.0")
+	addStakingCollectionToRegAcctWithNoLockedAcctTx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionSetup(env), regAccountAddress)
+	signAndSubmit(
+		t, b, addStakingCollectionToRegAcctWithNoLockedAcctTx,
+		[]flow.Address{b.ServiceKey().Address, regAccountAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), regAccountSigner},
+		false,
+	)
 
+	t.Run("should be able to get and deposit tokens from just normal account", func(t *testing.T) {
+		// deposit tokens with sufficient balance
+		getTokensWithSufficientBalanceTx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionDepositTokensScript(env), regAccountAddress)
+		_ = getTokensWithSufficientBalanceTx.AddArgument(CadenceUFix64("1000000000.0"))
+
+		signAndSubmit(
+			t, b, getTokensWithSufficientBalanceTx,
+			[]flow.Address{b.ServiceKey().Address, regAccountAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), regAccountSigner},
+			false,
+		)
+
+		verifyStakingCollectionInfo(t, b, env, StakingCollectionInfo{
+			accountAddress:     regAccountAddress.String(),
+			unlockedBalance:    "1000000000.0",
+			lockedBalance:      "",
+			unlockedTokensUsed: "0.0",
+			lockedTokensUsed:   "0.0",
+			nodes:              []string{},
+			delegators:         []DelegatorIDs{},
+		})
 	})
 
+	// Create a locked account pair with only tokens in the locked account
+	joshAddress, _, joshSigner := createLockedAccountPairWithBalances(
+		t, b,
+		accountKeys,
+		env,
+		"1000.0", "0.0")
+
+	// add a staking collection to the main account
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionSetup(env), joshAddress)
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, joshAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+		false,
+	)
+
+	t.Run("should be able to get and deposit tokens with sufficient balance in locked account", func(t *testing.T) {
+		// Should succeed because the amount is enough
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionDepositTokensScript(env), joshAddress)
+		_ = tx.AddArgument(CadenceUFix64("100.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+
+		verifyStakingCollectionInfo(t, b, env, StakingCollectionInfo{
+			accountAddress:     joshAddress.String(),
+			unlockedBalance:    "0.0",
+			lockedBalance:      "1000.0",
+			unlockedTokensUsed: "0.0",
+			lockedTokensUsed:   "0.0",
+			nodes:              []string{},
+			delegators:         []DelegatorIDs{},
+		})
+	})
+
+	// Create a locked account pair with tokens in both accounts
+	jeffAddress, _, jeffSigner := createLockedAccountPairWithBalances(
+		t, b,
+		accountKeys,
+		env,
+		"1000.0", "1000.0")
+	// add a staking collection to the main account
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionSetup(env), jeffAddress)
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, jeffAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), jeffSigner},
+		false,
+	)
+
+	t.Run("should be able to get tokens with sufficient balance in both accounts", func(t *testing.T) {
+
+		// Should succeed because there is enough sum in both accounts, should increase both used numbers
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionDepositTokensScript(env), jeffAddress)
+		_ = tx.AddArgument(CadenceUFix64("1500.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, jeffAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), jeffSigner},
+			false,
+		)
+
+		verifyStakingCollectionInfo(t, b, env, StakingCollectionInfo{
+			accountAddress:     jeffAddress.String(),
+			unlockedBalance:    "1000.0",
+			lockedBalance:      "1000.0",
+			unlockedTokensUsed: "0.0",
+			lockedTokensUsed:   "0.0",
+			nodes:              []string{},
+			delegators:         []DelegatorIDs{},
+		})
+	})
 }
 
 func TestStakingCollectionRegisterNode(t *testing.T) {

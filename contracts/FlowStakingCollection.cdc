@@ -175,6 +175,12 @@ pub contract FlowStakingCollection {
         /// Deposits tokens back to a vault after being withdrawn from a Stake or Delegation.
         /// Deposits to unlocked tokens first, if possible, followed by locked tokens
         access(self) fun depositTokens(from: @FungibleToken.Vault) {
+            pre {
+                // This error should never be triggered in production becasue the tokens used fields
+                // should be properly managed by all the other functions
+                from.balance <= self.unlockedTokensUsed + self.lockedTokensUsed: "Cannot deposit more than is already used"
+            }
+
             /// If there is a locked account, get the locked vault holder for depositing
             if self.lockedVaultHolder != nil {
   
@@ -185,16 +191,13 @@ pub contract FlowStakingCollection {
                 } else {
                     // Return unlocked tokens first
                     self.vaultCapability.borrow()!.deposit(from: <-from.withdraw(amount: self.unlockedTokensUsed))
+                    self.unlockedTokensUsed = 0.0
 
                     self.lockedTokensUsed = self.lockedTokensUsed - from.balance
-                    // followed by returning the locked tokens
+                    // followed by returning the difference as locked tokens
                     self.lockedVaultHolder?.depositToLockedVault(from: <-from)
-
-                    self.unlockedTokensUsed = self.unlockedTokensUsed - self.unlockedTokensUsed
                 }
-
             } else {
-
                 self.unlockedTokensUsed = self.unlockedTokensUsed - from.balance
                 
                 // If there is no locked account, get the users vault capability and deposit tokens to it.
@@ -266,6 +269,10 @@ pub contract FlowStakingCollection {
 
         // Function to register a new Delegator Record to the Staking Collection
         pub fun registerDelegator(nodeID: String, amount: UFix64) {
+            let delegatorIDs = self.getDelegatorIDs()
+            for idInfo in delegatorIDs {
+                if idInfo.delegatorNodeID == nodeID { panic("Cannot register a delegator for a node that is already being delegated to") }
+            }
             
             let tokens <- self.getTokens(amount: amount)
 
