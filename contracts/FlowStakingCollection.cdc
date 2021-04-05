@@ -321,7 +321,19 @@ pub contract FlowStakingCollection {
                 if let delegator = self.borrowDelegator(nodeID, _delegatorID) {
                     delegator.delegateNewTokens(from: <- self.getTokens(amount: amount))
                 } else {
-                    // If it is stored in the locked account, use that version instead
+                    // Get any needed unlocked tokens, and deposit them to the locked vault.
+                    let lockedBalance = self.lockedVaultHolder?.getVaultBalance()!  
+                    if (amount > lockedBalance) {
+                        if self.lockedVaultHolder != nil {
+                            self.lockedVaultHolder?.depositToLockedVault(from: 
+                                <- self.vaultCapability.borrow()!.withdraw(amount: amount - lockedBalance)
+                            )
+                        } else {
+                            panic("LockedVaultHolder needed but not present on StakingCollection")
+                        }
+                    }   
+
+                    // Use the delegator stored in the locked account
                     let delegator = self.tokenHolder!.borrow()!.borrowDelegator()
                     delegator.delegateNewTokens(amount: amount)
                 }
@@ -331,7 +343,19 @@ pub contract FlowStakingCollection {
                 if let node = self.borrowNode(nodeID) {
                     node.stakeNewTokens(<-self.getTokens(amount: amount))
                 } else {
-                    // If it is stored in the locked account, use that version instead
+                    // Get any needed unlocked tokens, and deposit them to the locked vault.
+                    let lockedBalance = self.lockedVaultHolder?.getVaultBalance()!  
+                    if (amount > lockedBalance) {
+                        if self.lockedVaultHolder != nil {
+                            self.lockedVaultHolder?.depositToLockedVault(from: 
+                                <- self.vaultCapability.borrow()!.withdraw(amount: amount - lockedBalance)
+                            )
+                        } else {
+                            panic("LockedVaultHolder needed but not present on StakingCollection")
+                        }
+                    } 
+
+                    // Use the staker stored in the locked account
                     let staker = self.tokenHolder!.borrow()!.borrowStaker()
                     staker.stakeNewTokens(amount: amount)
                 }
