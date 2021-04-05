@@ -230,7 +230,7 @@ pub contract FlowStakingCollection {
                     return true
                 }
 
-                return self.nodeStakers[nodeID] != nil
+                return self.borrowNode(nodeID) != nil
             }
         }
 
@@ -297,24 +297,34 @@ pub contract FlowStakingCollection {
 
         // Staking Operations
 
+        // The owner calls the same function whether or not they are staking for a node or delegating.
+        // If they are staking for a node, they provide their node ID and `nil` as the delegator ID
+        // If they are staking for a delegator, they provide the node ID for the node they are delegating to
+        // and their delegator ID to specify that it is for their delegator object
+
         // Function to stake new tokens for an existing Stake or Delegation record in the StakingCollection
         pub fun stakeNewTokens(nodeID: String, delegatorID: UInt32?, amount: UFix64) {
             pre {
                 self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID): "Specified stake does not exist"
             }
 
-            if let _delegatorID = delegatorID {                
+            // If staking as a delegator, use the delegate functionality
+            if let _delegatorID = delegatorID {       
+                // If the delegator is stored in the collection, borrow it         
                 if let delegator = self.borrowDelegator(nodeID, _delegatorID) {
                     delegator.delegateNewTokens(from: <- self.getTokens(amount: amount))
                 } else {
+                    // If it is stored in the locked account, use that version instead
                     let delegator = self.tokenHolder!.borrow()!.borrowDelegator()
                     delegator.delegateNewTokens(amount: amount)
                 }
                 
             } else {
+                // If the node is stored in the collection, borrow it    
                 if let node = self.borrowNode(nodeID) {
                     node.stakeNewTokens(<-self.getTokens(amount: amount))
                 } else {
+                    // If it is stored in the locked account, use that version instead
                     let staker = self.tokenHolder!.borrow()!.borrowStaker()
                     staker.stakeNewTokens(amount: amount)
                 }
@@ -329,12 +339,10 @@ pub contract FlowStakingCollection {
 
             if let _delegatorID = delegatorID {
                 if let delegator = self.borrowDelegator(nodeID, _delegatorID) {
-
                     delegator.delegateUnstakedTokens(amount: amount)
 
                 } else {
                     let delegator = self.tokenHolder!.borrow()!.borrowDelegator()
-                    
                     delegator.delegateUnstakedTokens(amount: amount)
                 }
             } else {
@@ -342,7 +350,6 @@ pub contract FlowStakingCollection {
                     node.stakeUnstakedTokens(amount: amount)
                 } else {
                     let staker = self.tokenHolder!.borrow()!.borrowStaker()
-                    
                     staker.stakeUnstakedTokens(amount: amount)
                 }
             }
@@ -356,12 +363,14 @@ pub contract FlowStakingCollection {
 
             if let _delegatorID = delegatorID {
                 if let delegator = self.borrowDelegator(nodeID, _delegatorID) {
+                    // We add the amount to the unlocked tokens used because rewards are newly minted tokens
+                    // and aren't immediately reflected in the tokens used fields
                     self.unlockedTokensUsed = self.unlockedTokensUsed + amount
-
                     delegator.delegateRewardedTokens(amount: amount)
                 } else {
+                    // Staking tokens in the locked account staking objects are not reflected in the tokens used fields,
+                    // so they are not updated here
                     let delegator = self.tokenHolder!.borrow()!.borrowDelegator()
-                    
                     delegator.delegateRewardedTokens(amount: amount)
                 }
             } else {
@@ -370,7 +379,6 @@ pub contract FlowStakingCollection {
                     node.stakeRewardedTokens(amount: amount)
                 } else {
                     let staker = self.tokenHolder!.borrow()!.borrowStaker()
-                    
                     staker.stakeRewardedTokens(amount: amount)
                 }
             }
@@ -384,12 +392,10 @@ pub contract FlowStakingCollection {
 
             if let _delegatorID = delegatorID {
                 if let delegator = self.borrowDelegator(nodeID, _delegatorID) {
-
                     delegator.requestUnstaking(amount: amount)
 
                 } else {
                     let delegator = self.tokenHolder!.borrow()!.borrowDelegator()
-                    
                     delegator.requestUnstaking(amount: amount)
                 }
             } else {
@@ -397,13 +403,13 @@ pub contract FlowStakingCollection {
                     node.requestUnstaking(amount: amount)
                 } else {
                     let staker = self.tokenHolder!.borrow()!.borrowStaker()
-                    
                     staker.requestUnstaking(amount: amount)
                 }
             }
         }
 
-        // Function to unstake all tokens for an existing Staking record in the StakingCollection
+        // Function to unstake all tokens for an existing node staking record in the StakingCollection
+        // Only available for node operators
         pub fun unstakeAll(nodeID: String) {
             pre {
                 self.doesStakeExist(nodeID: nodeID, delegatorID: nil): "Specified stake does not exist"
@@ -413,7 +419,6 @@ pub contract FlowStakingCollection {
                 node.unstakeAll()
             } else {
                 let staker = self.tokenHolder!.borrow()!.borrowStaker()
-                
                 staker.unstakeAll()
             }
         }
@@ -427,21 +432,17 @@ pub contract FlowStakingCollection {
             if let _delegatorID = delegatorID {
                 if let delegator = self.borrowDelegator(nodeID, _delegatorID) {
                     let tokens <- delegator.withdrawUnstakedTokens(amount: amount)
-
                     self.depositTokens(from: <-tokens)
                 } else {
                     let delegator = self.tokenHolder!.borrow()!.borrowDelegator()
-                    
                     delegator.withdrawUnstakedTokens(amount: amount)
                 }
             } else {
                 if let node = self.borrowNode(nodeID) {
                     let tokens <- node.withdrawUnstakedTokens(amount: amount)
-
                     self.depositTokens(from: <-tokens)
                 } else {
                     let staker = self.tokenHolder!.borrow()!.borrowStaker()
-                    
                     staker.withdrawUnstakedTokens(amount: amount)
                 }
             }
@@ -455,6 +456,8 @@ pub contract FlowStakingCollection {
 
             if let _delegatorID = delegatorID {
                 if let delegator = self.borrowDelegator(nodeID, _delegatorID) {
+                    // We update the unlocked tokens used field before withdrawing because 
+                    // rewards are newly minted and not immediately reflected in the tokens used fields
                     self.unlockedTokensUsed = self.unlockedTokensUsed + amount
 
                     let tokens <- delegator.withdrawRewardedTokens(amount: amount)
