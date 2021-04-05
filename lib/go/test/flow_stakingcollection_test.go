@@ -562,8 +562,21 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 
 	t.Run("Should be able to commit new tokens to the node or delegator in both accounts", func(t *testing.T) {
 
-		// Stake new tokens to the locked account node
+		// Should fail because stake doesn't exist
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionStakeNewTokens(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(accessID))
+		_ = tx.AddArgument(cadence.NewOptional(nil))
+		_ = tx.AddArgument(CadenceUFix64("10000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+
+		// Stake new tokens to the locked account node
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionStakeNewTokens(env), joshAddress)
 		_ = tx.AddArgument(cadence.NewString(joshID1))
 		_ = tx.AddArgument(cadence.NewOptional(nil))
 		_ = tx.AddArgument(CadenceUFix64("10000.0"))
@@ -615,4 +628,408 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 		)
 	})
 
+	t.Run("Should be able to unstake tokens from the node or delegator in both accounts", func(t *testing.T) {
+
+		// Should fail because stake doesn't exist
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRequestUnstaking(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(accessID))
+		_ = tx.AddArgument(cadence.NewOptional(nil))
+		_ = tx.AddArgument(CadenceUFix64("10000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+
+		// unstake tokens from the locked account node
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRequestUnstaking(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(joshID1))
+		_ = tx.AddArgument(cadence.NewOptional(nil))
+		_ = tx.AddArgument(CadenceUFix64("10000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+
+		// unstake tokens from the unlocked account node
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRequestUnstaking(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(joshID2))
+		_ = tx.AddArgument(cadence.NewOptional(nil))
+		_ = tx.AddArgument(CadenceUFix64("10000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+
+		// unstake tokens from the locked account delegator
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRequestUnstaking(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(joshID1))
+		_ = tx.AddArgument(cadence.NewUInt32(1))
+		_ = tx.AddArgument(CadenceUFix64("10000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+
+		// unstake tokens from the unlocked account delegator
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRequestUnstaking(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(joshID2))
+		_ = tx.AddArgument(cadence.NewUInt32(1))
+		_ = tx.AddArgument(CadenceUFix64("10000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+	})
+
+	t.Run("Should be able to stake unstaked tokens from the node or delegator in both accounts", func(t *testing.T) {
+
+		// Should fail because stake doesn't exist
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionStakeUnstakedTokens(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(accessID))
+		_ = tx.AddArgument(cadence.NewOptional(nil))
+		_ = tx.AddArgument(CadenceUFix64("5000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+
+		// Stake unstaked tokens to the locked account node
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionStakeUnstakedTokens(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(joshID1))
+		_ = tx.AddArgument(cadence.NewOptional(nil))
+		_ = tx.AddArgument(CadenceUFix64("5000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+
+		// Stake unstaked tokens to the unlocked account node
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionStakeUnstakedTokens(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(joshID2))
+		_ = tx.AddArgument(cadence.NewOptional(nil))
+		_ = tx.AddArgument(CadenceUFix64("5000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+
+		// Stake unstaked tokens to the locked account delegator
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionStakeUnstakedTokens(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(joshID1))
+		_ = tx.AddArgument(cadence.NewUInt32(1))
+		_ = tx.AddArgument(CadenceUFix64("5000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+
+		// Stake unstaked tokens to the unlocked account delegator
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionStakeUnstakedTokens(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(joshID2))
+		_ = tx.AddArgument(cadence.NewUInt32(1))
+		_ = tx.AddArgument(CadenceUFix64("5000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+	})
+
+	t.Run("Should be able to withdraw unstaked tokens from the node or delegator in both accounts", func(t *testing.T) {
+
+		// Should fail because stake doesn't exist
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionWithdrawUnstakedTokens(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(accessID))
+		_ = tx.AddArgument(cadence.NewOptional(nil))
+		_ = tx.AddArgument(CadenceUFix64("5000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+
+		// withdraw unstaked tokens from locked account node
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionWithdrawUnstakedTokens(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(joshID1))
+		_ = tx.AddArgument(cadence.NewOptional(nil))
+		_ = tx.AddArgument(CadenceUFix64("5000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+
+		// withdraw unstaked tokens from the unlocked account node
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionWithdrawUnstakedTokens(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(joshID2))
+		_ = tx.AddArgument(cadence.NewOptional(nil))
+		_ = tx.AddArgument(CadenceUFix64("5000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+
+		// withdraw unstaked tokens from the locked account delegator
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionWithdrawUnstakedTokens(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(joshID1))
+		_ = tx.AddArgument(cadence.NewUInt32(1))
+		_ = tx.AddArgument(CadenceUFix64("5000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+
+		// withdraw unstaked tokens from the unlocked account delegator
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionWithdrawUnstakedTokens(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(joshID2))
+		_ = tx.AddArgument(cadence.NewUInt32(1))
+		_ = tx.AddArgument(CadenceUFix64("5000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+	})
+}
+
+func TestStakingCollectionRewards(t *testing.T) {
+	b, accountKeys, env := newTestSetup(t)
+	IDTableSigner := deployAllCollectionContracts(t, b, accountKeys, &env)
+
+	joshAddress, _, joshSigner, joshID1, joshID2 := registerStakingCollectionNodesAndDelegators(
+		t, b,
+		accountKeys,
+		env,
+		"1000000.0", "1000000.0")
+
+	// end staking auction and epoch, then pay rewards
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), flow.HexToAddress(env.IDTableAddress))
+	err := tx.AddArgument(cadence.NewArray([]cadence.Value{cadence.NewString(adminID), cadence.NewString(joshID)}))
+	require.NoError(t, err)
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, flow.HexToAddress(env.IDTableAddress)},
+		[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+		false,
+	)
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GeneratePayRewardsScript(env), flow.HexToAddress(env.IDTableAddress))
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, flow.HexToAddress(env.IDTableAddress)},
+		[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+		false,
+	)
+
+	t.Run("Should be able to withdraw rewarded tokens from the node or delegator in both accounts", func(t *testing.T) {
+
+		// Should fail because stake doesn't exist
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionWithdrawRewardedTokens(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(accessID))
+		_ = tx.AddArgument(cadence.NewOptional(nil))
+		_ = tx.AddArgument(CadenceUFix64("5000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+
+		// withdraw rewarded tokens to the locked account node
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionWithdrawRewardedTokens(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(joshID1))
+		_ = tx.AddArgument(cadence.NewOptional(nil))
+		_ = tx.AddArgument(CadenceUFix64("5000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+
+		// withdraw rewarded tokens to the unlocked account node
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionWithdrawRewardedTokens(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(joshID2))
+		_ = tx.AddArgument(cadence.NewOptional(nil))
+		_ = tx.AddArgument(CadenceUFix64("5000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+
+		// withdraw rewarded tokens to the locked account delegator
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionWithdrawRewardedTokens(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(joshID1))
+		_ = tx.AddArgument(cadence.NewUInt32(1))
+		_ = tx.AddArgument(CadenceUFix64("5000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+
+		// withdraw rewarded tokens to the unlocked account delegator
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionWithdrawRewardedTokens(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(joshID2))
+		_ = tx.AddArgument(cadence.NewUInt32(1))
+		_ = tx.AddArgument(CadenceUFix64("5000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+	})
+
+	t.Run("Should be able to stake rewarded tokens for the node or delegator in both accounts", func(t *testing.T) {
+
+		// Should fail because stake doesn't exist
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionStakeRewardedTokens(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(accessID))
+		_ = tx.AddArgument(cadence.NewOptional(nil))
+		_ = tx.AddArgument(CadenceUFix64("5000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+
+		// withdraw rewarded tokens to the locked account node
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionStakeRewardedTokens(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(joshID1))
+		_ = tx.AddArgument(cadence.NewOptional(nil))
+		_ = tx.AddArgument(CadenceUFix64("5000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+
+		// withdraw rewarded tokens to the unlocked account node
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionStakeRewardedTokens(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(joshID2))
+		_ = tx.AddArgument(cadence.NewOptional(nil))
+		_ = tx.AddArgument(CadenceUFix64("5000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+
+		// withdraw rewarded tokens to the locked account delegator
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionStakeRewardedTokens(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(joshID1))
+		_ = tx.AddArgument(cadence.NewUInt32(1))
+		_ = tx.AddArgument(CadenceUFix64("5000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+
+		// withdraw rewarded tokens to the unlocked account delegator
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionStakeRewardedTokens(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(joshID2))
+		_ = tx.AddArgument(cadence.NewUInt32(1))
+		_ = tx.AddArgument(CadenceUFix64("5000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+	})
+
+	t.Run("Should be able to unstake All tokens from node in locked and unlocked accounts", func(t *testing.T) {
+
+		// Should fail because stake doesn't exist
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionUnstakeAll(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(accessID))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+
+		// unstake all tokens to the locked account node
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionUnstakeAll(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(joshID1))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+
+		// unstake all tokens to the unlocked account node
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionUnstakeAll(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(joshID2))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+	})
 }
