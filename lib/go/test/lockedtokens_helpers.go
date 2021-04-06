@@ -144,6 +144,7 @@ type StakingCollectionInfo struct {
 	lockedBalance      string
 	unlockedTokensUsed string
 	lockedTokensUsed   string
+	unlockLimit        string
 	nodes              []string
 	delegators         []DelegatorIDs
 }
@@ -405,6 +406,17 @@ func verifyStakingCollectionInfo(
 	// check locked tokens used
 	result = executeScriptAndCheck(t, b, templates.GenerateCollectionGetLockedTokensUsedScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(flow.HexToAddress(expectedInfo.accountAddress)))})
 	assertEqual(t, CadenceUFix64(expectedInfo.lockedTokensUsed), result)
+
+	// Check unlock limit of the shared account if it exists
+	if len(expectedInfo.unlockLimit) > 0 {
+		result = executeScriptAndCheck(t, b,
+			templates.GenerateGetUnlockLimitScript(env),
+			[][]byte{
+				jsoncdc.MustEncode(cadence.Address(flow.HexToAddress(expectedInfo.accountAddress))),
+			},
+		)
+		assertEqual(t, CadenceUFix64(expectedInfo.unlockLimit), result)
+	}
 
 	// check node IDs
 	result = executeScriptAndCheck(t, b, templates.GenerateCollectionGetNodeIDsScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(flow.HexToAddress(expectedInfo.accountAddress)))})

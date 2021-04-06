@@ -49,6 +49,7 @@ func TestStakingCollectionGetTokens(t *testing.T) {
 			lockedBalance:      "",
 			unlockedTokensUsed: "0.0",
 			lockedTokensUsed:   "0.0",
+			unlockLimit:        "",
 			nodes:              []string{},
 			delegators:         []DelegatorIDs{},
 		})
@@ -84,6 +85,7 @@ func TestStakingCollectionGetTokens(t *testing.T) {
 			lockedBalance:      "",
 			unlockedTokensUsed: "1000000000.0",
 			lockedTokensUsed:   "0.0",
+			unlockLimit:        "",
 			nodes:              []string{},
 			delegators:         []DelegatorIDs{},
 		})
@@ -135,6 +137,7 @@ func TestStakingCollectionGetTokens(t *testing.T) {
 			lockedBalance:      "900.0",
 			unlockedTokensUsed: "0.0",
 			lockedTokensUsed:   "100.0",
+			unlockLimit:        "0.0",
 			nodes:              []string{},
 			delegators:         []DelegatorIDs{},
 		})
@@ -187,6 +190,7 @@ func TestStakingCollectionGetTokens(t *testing.T) {
 			lockedBalance:      "0.0",
 			unlockedTokensUsed: "100.0",
 			lockedTokensUsed:   "0.0",
+			unlockLimit:        "0.0",
 			nodes:              []string{},
 			delegators:         []DelegatorIDs{},
 		})
@@ -238,6 +242,7 @@ func TestStakingCollectionGetTokens(t *testing.T) {
 			lockedBalance:      "0.0",
 			unlockedTokensUsed: "500.0",
 			lockedTokensUsed:   "1000.0",
+			unlockLimit:        "0.0",
 			nodes:              []string{},
 			delegators:         []DelegatorIDs{},
 		})
@@ -278,6 +283,7 @@ func TestStakingCollectionDepositTokens(t *testing.T) {
 			lockedBalance:      "",
 			unlockedTokensUsed: "0.0",
 			lockedTokensUsed:   "0.0",
+			unlockLimit:        "",
 			nodes:              []string{},
 			delegators:         []DelegatorIDs{},
 		})
@@ -317,6 +323,7 @@ func TestStakingCollectionDepositTokens(t *testing.T) {
 			lockedBalance:      "1000.0",
 			unlockedTokensUsed: "0.0",
 			lockedTokensUsed:   "0.0",
+			unlockLimit:        "0.0",
 			nodes:              []string{},
 			delegators:         []DelegatorIDs{},
 		})
@@ -356,6 +363,7 @@ func TestStakingCollectionDepositTokens(t *testing.T) {
 			lockedBalance:      "1000.0",
 			unlockedTokensUsed: "0.0",
 			lockedTokensUsed:   "0.0",
+			unlockLimit:        "0.0",
 			nodes:              []string{},
 			delegators:         []DelegatorIDs{},
 		})
@@ -427,6 +435,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 			lockedBalance:      "",
 			unlockedTokensUsed: "480000.0",
 			lockedTokensUsed:   "0.0",
+			unlockLimit:        "",
 			nodes:              []string{adminID},
 			delegators:         []DelegatorIDs{DelegatorIDs{nodeID: adminID, id: 1}},
 		})
@@ -496,6 +505,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 			lockedBalance:      "630000.0",
 			unlockedTokensUsed: "0.0",
 			lockedTokensUsed:   "0.0",
+			unlockLimit:        "0.0",
 			nodes:              []string{joshID},
 			delegators:         []DelegatorIDs{DelegatorIDs{nodeID: joshID, id: 1}},
 		})
@@ -544,6 +554,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 			lockedBalance:      "0.0",
 			unlockedTokensUsed: "370000.0",
 			lockedTokensUsed:   "630000.0",
+			unlockLimit:        "0.0",
 			nodes:              []string{maxID, joshID},
 			delegators:         []DelegatorIDs{DelegatorIDs{nodeID: maxID, id: 1}, DelegatorIDs{nodeID: joshID, id: 1}},
 		})
@@ -633,6 +644,7 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 			lockedBalance:      "0.0",
 			unlockedTokensUsed: "390000.0",
 			lockedTokensUsed:   "630000.0",
+			unlockLimit:        "20000.0",
 			nodes:              []string{joshID2, joshID1},
 			delegators:         []DelegatorIDs{DelegatorIDs{nodeID: joshID2, id: 1}, DelegatorIDs{nodeID: joshID1, id: 1}},
 		})
@@ -755,6 +767,7 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 			lockedBalance:      "0.0",
 			unlockedTokensUsed: "390000.0",
 			lockedTokensUsed:   "630000.0",
+			unlockLimit:        "20000.0",
 			nodes:              []string{joshID2, joshID1},
 			delegators:         []DelegatorIDs{DelegatorIDs{nodeID: joshID2, id: 1}, DelegatorIDs{nodeID: joshID1, id: 1}},
 		})
@@ -877,6 +890,7 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 			lockedBalance:      "0.0",
 			unlockedTokensUsed: "390000.0",
 			lockedTokensUsed:   "630000.0",
+			unlockLimit:        "20000.0",
 			nodes:              []string{joshID2, joshID1},
 			delegators:         []DelegatorIDs{DelegatorIDs{nodeID: joshID2, id: 1}, DelegatorIDs{nodeID: joshID1, id: 1}},
 		})
@@ -999,6 +1013,7 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 			lockedBalance:      "10000.0",
 			unlockedTokensUsed: "380000.0",
 			lockedTokensUsed:   "630000.0",
+			unlockLimit:        "20000.0",
 			nodes:              []string{joshID2, joshID1},
 			delegators:         []DelegatorIDs{DelegatorIDs{nodeID: joshID2, id: 1}, DelegatorIDs{nodeID: joshID1, id: 1}},
 		})
@@ -1150,6 +1165,7 @@ func TestStakingCollectionRewards(t *testing.T) {
 			lockedBalance:      "0.0",
 			unlockedTokensUsed: "370000.0",
 			lockedTokensUsed:   "630000.0",
+			unlockLimit:        "0.0",
 			nodes:              []string{joshID2, joshID1},
 			delegators:         []DelegatorIDs{DelegatorIDs{nodeID: joshID2, id: 1}, DelegatorIDs{nodeID: joshID1, id: 1}},
 		})
@@ -1265,6 +1281,61 @@ func TestStakingCollectionRewards(t *testing.T) {
 			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
 			false,
 		)
+
+		verifyStakingCollectionInfo(t, b, env, StakingCollectionInfo{
+			accountAddress:     joshAddress.String(),
+			unlockedBalance:    "650000.0",
+			lockedBalance:      "0.0",
+			unlockedTokensUsed: "380000.0",
+			lockedTokensUsed:   "630000.0",
+			unlockLimit:        "10000.0",
+			nodes:              []string{joshID2, joshID1},
+			delegators:         []DelegatorIDs{DelegatorIDs{nodeID: joshID2, id: 1}, DelegatorIDs{nodeID: joshID1, id: 1}},
+		})
+
+		verifyStakingInfo(t, b, env, StakingInfo{
+			nodeID:                   joshID1,
+			delegatorID:              0,
+			tokensCommitted:          "5000.0",
+			tokensStaked:             "320000.0",
+			tokensRequestedToUnstake: "0.0",
+			tokensUnstaking:          "0.0",
+			tokensUnstaked:           "0.0",
+			tokensRewarded:           "285620.435",
+		})
+
+		verifyStakingInfo(t, b, env, StakingInfo{
+			nodeID:                   joshID2,
+			delegatorID:              0,
+			tokensCommitted:          "5000.0",
+			tokensStaked:             "500000.0",
+			tokensRequestedToUnstake: "0.0",
+			tokensUnstaking:          "0.0",
+			tokensUnstaked:           "0.0",
+			tokensRewarded:           "482700.725",
+		})
+
+		verifyStakingInfo(t, b, env, StakingInfo{
+			nodeID:                   joshID1,
+			delegatorID:              1,
+			tokensCommitted:          "5000.0",
+			tokensStaked:             "50000.0",
+			tokensRequestedToUnstake: "0.0",
+			tokensUnstaking:          "0.0",
+			tokensUnstaked:           "0.0",
+			tokensRewarded:           "31970.8025",
+		})
+
+		verifyStakingInfo(t, b, env, StakingInfo{
+			nodeID:                   joshID2,
+			delegatorID:              1,
+			tokensCommitted:          "5000.0",
+			tokensStaked:             "500000.0",
+			tokensRequestedToUnstake: "0.0",
+			tokensUnstaking:          "0.0",
+			tokensUnstaked:           "0.0",
+			tokensRewarded:           "409708.025",
+		})
 	})
 
 	t.Run("Should be able to unstake All tokens from node in locked and unlocked accounts", func(t *testing.T) {
@@ -1301,5 +1372,60 @@ func TestStakingCollectionRewards(t *testing.T) {
 			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
 			false,
 		)
+
+		verifyStakingCollectionInfo(t, b, env, StakingCollectionInfo{
+			accountAddress:     joshAddress.String(),
+			unlockedBalance:    "650000.0",
+			lockedBalance:      "0.0",
+			unlockedTokensUsed: "380000.0",
+			lockedTokensUsed:   "630000.0",
+			unlockLimit:        "10000.0",
+			nodes:              []string{joshID2, joshID1},
+			delegators:         []DelegatorIDs{DelegatorIDs{nodeID: joshID2, id: 1}, DelegatorIDs{nodeID: joshID1, id: 1}},
+		})
+
+		verifyStakingInfo(t, b, env, StakingInfo{
+			nodeID:                   joshID1,
+			delegatorID:              0,
+			tokensCommitted:          "0.0",
+			tokensStaked:             "320000.0",
+			tokensRequestedToUnstake: "320000.0",
+			tokensUnstaking:          "0.0",
+			tokensUnstaked:           "5000.0",
+			tokensRewarded:           "285620.435",
+		})
+
+		verifyStakingInfo(t, b, env, StakingInfo{
+			nodeID:                   joshID2,
+			delegatorID:              0,
+			tokensCommitted:          "0.0",
+			tokensStaked:             "500000.0",
+			tokensRequestedToUnstake: "500000.0",
+			tokensUnstaking:          "0.0",
+			tokensUnstaked:           "5000.0",
+			tokensRewarded:           "482700.725",
+		})
+
+		verifyStakingInfo(t, b, env, StakingInfo{
+			nodeID:                   joshID1,
+			delegatorID:              1,
+			tokensCommitted:          "5000.0",
+			tokensStaked:             "50000.0",
+			tokensRequestedToUnstake: "0.0",
+			tokensUnstaking:          "0.0",
+			tokensUnstaked:           "0.0",
+			tokensRewarded:           "31970.8025",
+		})
+
+		verifyStakingInfo(t, b, env, StakingInfo{
+			nodeID:                   joshID2,
+			delegatorID:              1,
+			tokensCommitted:          "5000.0",
+			tokensStaked:             "500000.0",
+			tokensRequestedToUnstake: "0.0",
+			tokensUnstaking:          "0.0",
+			tokensUnstaked:           "0.0",
+			tokensRewarded:           "409708.025",
+		})
 	})
 }
