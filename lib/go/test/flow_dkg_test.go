@@ -519,6 +519,8 @@ func TestDKG(t *testing.T) {
 
 		assert.Equal(t, cadence.NewString(bastianID), message1IDField)
 		assert.Equal(t, cadence.NewString("No, I am!"), message1ContentField)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGLatestWhiteBoardMessagesScript(env), [][]byte{jsoncdc.MustEncode(cadence.NewInt(1))})
 	})
 
 	t.Run("Should not be able to make a final submission if not registered", func(t *testing.T) {

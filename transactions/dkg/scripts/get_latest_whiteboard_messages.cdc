@@ -3,7 +3,7 @@ import FlowDKG from 0xDKGADDRESS
 pub fun main(fromIndex: Int): [FlowDKG.Message] {
     let messages = FlowDKG.getWhiteBoardMessages()
 
-    var result: [FlowDKG.Message] = []
+    var latestMessages: [FlowDKG.Message] = []
 
     if fromIndex >= messages.length {
         panic("Index out of range for DKG whiteboard messages array")
@@ -12,11 +12,11 @@ pub fun main(fromIndex: Int): [FlowDKG.Message] {
         var i = fromIndex
 
         while i < messages.length {
-            result.append(messages[i])
+            latestMessages.append(messages[i])
 
             i = i + 1
         }
     }
 
-    return result
+    return latestMessages
 }
