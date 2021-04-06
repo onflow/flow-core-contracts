@@ -141,6 +141,7 @@ pub contract FlowStakingCollection {
 
                     // update locked tokens used record by adding the rest of the locked balance
                     self.lockedTokensUsed = self.lockedTokensUsed + lockedBalance
+
                     // Update the unlocked tokens used record by adding the amount requested
                     // minus whatever was used from the locked tokens
                     self.unlockedTokensUsed = self.unlockedTokensUsed + (amount - lockedBalance)
@@ -324,13 +325,7 @@ pub contract FlowStakingCollection {
                     // Get any needed unlocked tokens, and deposit them to the locked vault.
                     let lockedBalance = self.lockedVaultHolder?.getVaultBalance()!  
                     if (amount > lockedBalance) {
-                        if self.lockedVaultHolder != nil {
-                            self.lockedVaultHolder?.depositToLockedVault(from: 
-                                <- self.vaultCapability.borrow()!.withdraw(amount: amount - lockedBalance)
-                            )
-                        } else {
-                            panic("LockedVaultHolder needed but not present on StakingCollection")
-                        }
+                        self.tokenHolder!.borrow()!.deposit(from: <- self.vaultCapability.borrow()!.withdraw(amount: amount - lockedBalance))
                     }   
 
                     // Use the delegator stored in the locked account
@@ -346,13 +341,7 @@ pub contract FlowStakingCollection {
                     // Get any needed unlocked tokens, and deposit them to the locked vault.
                     let lockedBalance = self.lockedVaultHolder?.getVaultBalance()!  
                     if (amount > lockedBalance) {
-                        if self.lockedVaultHolder != nil {
-                            self.lockedVaultHolder?.depositToLockedVault(from: 
-                                <- self.vaultCapability.borrow()!.withdraw(amount: amount - lockedBalance)
-                            )
-                        } else {
-                            panic("LockedVaultHolder needed but not present on StakingCollection")
-                        }
+                        self.tokenHolder!.borrow()!.deposit(from: <- self.vaultCapability.borrow()!.withdraw(amount: amount - lockedBalance))
                     } 
 
                     // Use the staker stored in the locked account
@@ -498,6 +487,10 @@ pub contract FlowStakingCollection {
                     let delegator = self.tokenHolder!.borrow()!.borrowDelegator()
                     
                     delegator.withdrawRewardedTokens(amount: amount)
+
+                    // move the unlocked rewards from the locked account to the unlocked account
+                    let unlockedRewards <- self.tokenHolder!.borrow()!.withdraw(amount: amount)
+                    self.vaultCapability.borrow()!.deposit(from: <-unlockedRewards)
                 }
             } else {
                 if let node = self.borrowNode(nodeID) {
@@ -510,6 +503,10 @@ pub contract FlowStakingCollection {
                     let staker = self.tokenHolder!.borrow()!.borrowStaker()
                     
                     staker.withdrawRewardedTokens(amount: amount)
+
+                    // move the unlocked rewards from the locked account to the unlocked account
+                    let unlockedRewards <- self.tokenHolder!.borrow()!.withdraw(amount: amount)
+                    self.vaultCapability.borrow()!.deposit(from: <-unlockedRewards)
                 }
             }
         }

@@ -73,6 +73,66 @@ func deployStakingContract(t *testing.T,
 	return idTableAddress
 }
 
+/// Used to verify staking info in tests
+type StakingInfo struct {
+	nodeID                   string
+	delegatorID              uint32
+	tokensCommitted          string
+	tokensStaked             string
+	tokensRequestedToUnstake string
+	tokensUnstaking          string
+	tokensUnstaked           string
+	tokensRewarded           string
+}
+
+func verifyStakingInfo(t *testing.T,
+	b *emulator.Blockchain,
+	env templates.Environment,
+	expectedStakingInfo StakingInfo,
+) {
+
+	if expectedStakingInfo.delegatorID == 0 {
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetCommittedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(expectedStakingInfo.nodeID))})
+		assertEqual(t, CadenceUFix64(expectedStakingInfo.tokensCommitted), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetStakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(expectedStakingInfo.nodeID))})
+		assertEqual(t, CadenceUFix64(expectedStakingInfo.tokensStaked), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetUnstakingRequestScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(expectedStakingInfo.nodeID))})
+		assertEqual(t, CadenceUFix64(expectedStakingInfo.tokensRequestedToUnstake), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetUnstakingBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(expectedStakingInfo.nodeID))})
+		assertEqual(t, CadenceUFix64(expectedStakingInfo.tokensUnstaking), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetUnstakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(expectedStakingInfo.nodeID))})
+		assertEqual(t, CadenceUFix64(expectedStakingInfo.tokensUnstaked), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(expectedStakingInfo.nodeID))})
+		assertEqual(t, CadenceUFix64(expectedStakingInfo.tokensRewarded), result)
+	} else {
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetDelegatorCommittedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(expectedStakingInfo.nodeID)), jsoncdc.MustEncode(cadence.UInt32(expectedStakingInfo.delegatorID))})
+		assertEqual(t, CadenceUFix64(expectedStakingInfo.tokensCommitted), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorStakedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(expectedStakingInfo.nodeID)), jsoncdc.MustEncode(cadence.UInt32(expectedStakingInfo.delegatorID))})
+		assertEqual(t, CadenceUFix64(expectedStakingInfo.tokensStaked), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorRequestScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(expectedStakingInfo.nodeID)), jsoncdc.MustEncode(cadence.UInt32(expectedStakingInfo.delegatorID))})
+		assertEqual(t, CadenceUFix64(expectedStakingInfo.tokensRequestedToUnstake), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorUnstakingScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(expectedStakingInfo.nodeID)), jsoncdc.MustEncode(cadence.UInt32(expectedStakingInfo.delegatorID))})
+		assertEqual(t, CadenceUFix64(expectedStakingInfo.tokensUnstaking), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorUnstakedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(expectedStakingInfo.nodeID)), jsoncdc.MustEncode(cadence.UInt32(expectedStakingInfo.delegatorID))})
+		assertEqual(t, CadenceUFix64(expectedStakingInfo.tokensUnstaked), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorRewardsScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(expectedStakingInfo.nodeID)), jsoncdc.MustEncode(cadence.UInt32(expectedStakingInfo.delegatorID))})
+		assertEqual(t, CadenceUFix64(expectedStakingInfo.tokensRewarded), result)
+	}
+
+}
+
 func registerNode(t *testing.T,
 	b *emulator.Blockchain,
 	env templates.Environment,

@@ -636,6 +636,50 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 			nodes:              []string{joshID2, joshID1},
 			delegators:         []DelegatorIDs{DelegatorIDs{nodeID: joshID2, id: 1}, DelegatorIDs{nodeID: joshID1, id: 1}},
 		})
+
+		verifyStakingInfo(t, b, env, StakingInfo{
+			nodeID:                   joshID1,
+			delegatorID:              0,
+			tokensCommitted:          "330000.0",
+			tokensStaked:             "0.0",
+			tokensRequestedToUnstake: "0.0",
+			tokensUnstaking:          "0.0",
+			tokensUnstaked:           "0.0",
+			tokensRewarded:           "0.0",
+		})
+
+		verifyStakingInfo(t, b, env, StakingInfo{
+			nodeID:                   joshID2,
+			delegatorID:              0,
+			tokensCommitted:          "510000.0",
+			tokensStaked:             "0.0",
+			tokensRequestedToUnstake: "0.0",
+			tokensUnstaking:          "0.0",
+			tokensUnstaked:           "0.0",
+			tokensRewarded:           "0.0",
+		})
+
+		verifyStakingInfo(t, b, env, StakingInfo{
+			nodeID:                   joshID1,
+			delegatorID:              1,
+			tokensCommitted:          "60000.0",
+			tokensStaked:             "0.0",
+			tokensRequestedToUnstake: "0.0",
+			tokensUnstaking:          "0.0",
+			tokensUnstaked:           "0.0",
+			tokensRewarded:           "0.0",
+		})
+
+		verifyStakingInfo(t, b, env, StakingInfo{
+			nodeID:                   joshID2,
+			delegatorID:              1,
+			tokensCommitted:          "510000.0",
+			tokensStaked:             "0.0",
+			tokensRequestedToUnstake: "0.0",
+			tokensUnstaking:          "0.0",
+			tokensUnstaked:           "0.0",
+			tokensRewarded:           "0.0",
+		})
 	})
 
 	t.Run("Should be able to unstake tokens from the node or delegator in both accounts", func(t *testing.T) {
@@ -704,6 +748,60 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
 			false,
 		)
+
+		verifyStakingCollectionInfo(t, b, env, StakingCollectionInfo{
+			accountAddress:     joshAddress.String(),
+			unlockedBalance:    "590000.0",
+			lockedBalance:      "0.0",
+			unlockedTokensUsed: "390000.0",
+			lockedTokensUsed:   "630000.0",
+			nodes:              []string{joshID2, joshID1},
+			delegators:         []DelegatorIDs{DelegatorIDs{nodeID: joshID2, id: 1}, DelegatorIDs{nodeID: joshID1, id: 1}},
+		})
+
+		verifyStakingInfo(t, b, env, StakingInfo{
+			nodeID:                   joshID1,
+			delegatorID:              0,
+			tokensCommitted:          "320000.0",
+			tokensStaked:             "0.0",
+			tokensRequestedToUnstake: "0.0",
+			tokensUnstaking:          "0.0",
+			tokensUnstaked:           "10000.0",
+			tokensRewarded:           "0.0",
+		})
+
+		verifyStakingInfo(t, b, env, StakingInfo{
+			nodeID:                   joshID2,
+			delegatorID:              0,
+			tokensCommitted:          "500000.0",
+			tokensStaked:             "0.0",
+			tokensRequestedToUnstake: "0.0",
+			tokensUnstaking:          "0.0",
+			tokensUnstaked:           "10000.0",
+			tokensRewarded:           "0.0",
+		})
+
+		verifyStakingInfo(t, b, env, StakingInfo{
+			nodeID:                   joshID1,
+			delegatorID:              1,
+			tokensCommitted:          "50000.0",
+			tokensStaked:             "0.0",
+			tokensRequestedToUnstake: "0.0",
+			tokensUnstaking:          "0.0",
+			tokensUnstaked:           "10000.0",
+			tokensRewarded:           "0.0",
+		})
+
+		verifyStakingInfo(t, b, env, StakingInfo{
+			nodeID:                   joshID2,
+			delegatorID:              1,
+			tokensCommitted:          "500000.0",
+			tokensStaked:             "0.0",
+			tokensRequestedToUnstake: "0.0",
+			tokensUnstaking:          "0.0",
+			tokensUnstaked:           "10000.0",
+			tokensRewarded:           "0.0",
+		})
 	})
 
 	t.Run("Should be able to stake unstaked tokens from the node or delegator in both accounts", func(t *testing.T) {
@@ -772,6 +870,60 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
 			false,
 		)
+
+		verifyStakingCollectionInfo(t, b, env, StakingCollectionInfo{
+			accountAddress:     joshAddress.String(),
+			unlockedBalance:    "590000.0",
+			lockedBalance:      "0.0",
+			unlockedTokensUsed: "390000.0",
+			lockedTokensUsed:   "630000.0",
+			nodes:              []string{joshID2, joshID1},
+			delegators:         []DelegatorIDs{DelegatorIDs{nodeID: joshID2, id: 1}, DelegatorIDs{nodeID: joshID1, id: 1}},
+		})
+
+		verifyStakingInfo(t, b, env, StakingInfo{
+			nodeID:                   joshID1,
+			delegatorID:              0,
+			tokensCommitted:          "325000.0",
+			tokensStaked:             "0.0",
+			tokensRequestedToUnstake: "0.0",
+			tokensUnstaking:          "0.0",
+			tokensUnstaked:           "5000.0",
+			tokensRewarded:           "0.0",
+		})
+
+		verifyStakingInfo(t, b, env, StakingInfo{
+			nodeID:                   joshID2,
+			delegatorID:              0,
+			tokensCommitted:          "505000.0",
+			tokensStaked:             "0.0",
+			tokensRequestedToUnstake: "0.0",
+			tokensUnstaking:          "0.0",
+			tokensUnstaked:           "5000.0",
+			tokensRewarded:           "0.0",
+		})
+
+		verifyStakingInfo(t, b, env, StakingInfo{
+			nodeID:                   joshID1,
+			delegatorID:              1,
+			tokensCommitted:          "55000.0",
+			tokensStaked:             "0.0",
+			tokensRequestedToUnstake: "0.0",
+			tokensUnstaking:          "0.0",
+			tokensUnstaked:           "5000.0",
+			tokensRewarded:           "0.0",
+		})
+
+		verifyStakingInfo(t, b, env, StakingInfo{
+			nodeID:                   joshID2,
+			delegatorID:              1,
+			tokensCommitted:          "505000.0",
+			tokensStaked:             "0.0",
+			tokensRequestedToUnstake: "0.0",
+			tokensUnstaking:          "0.0",
+			tokensUnstaked:           "5000.0",
+			tokensRewarded:           "0.0",
+		})
 	})
 
 	t.Run("Should be able to withdraw unstaked tokens from the node or delegator in both accounts", func(t *testing.T) {
@@ -840,6 +992,60 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
 			false,
 		)
+
+		verifyStakingCollectionInfo(t, b, env, StakingCollectionInfo{
+			accountAddress:     joshAddress.String(),
+			unlockedBalance:    "600000.0",
+			lockedBalance:      "10000.0",
+			unlockedTokensUsed: "380000.0",
+			lockedTokensUsed:   "630000.0",
+			nodes:              []string{joshID2, joshID1},
+			delegators:         []DelegatorIDs{DelegatorIDs{nodeID: joshID2, id: 1}, DelegatorIDs{nodeID: joshID1, id: 1}},
+		})
+
+		verifyStakingInfo(t, b, env, StakingInfo{
+			nodeID:                   joshID1,
+			delegatorID:              0,
+			tokensCommitted:          "325000.0",
+			tokensStaked:             "0.0",
+			tokensRequestedToUnstake: "0.0",
+			tokensUnstaking:          "0.0",
+			tokensUnstaked:           "0.0",
+			tokensRewarded:           "0.0",
+		})
+
+		verifyStakingInfo(t, b, env, StakingInfo{
+			nodeID:                   joshID2,
+			delegatorID:              0,
+			tokensCommitted:          "505000.0",
+			tokensStaked:             "0.0",
+			tokensRequestedToUnstake: "0.0",
+			tokensUnstaking:          "0.0",
+			tokensUnstaked:           "0.0",
+			tokensRewarded:           "0.0",
+		})
+
+		verifyStakingInfo(t, b, env, StakingInfo{
+			nodeID:                   joshID1,
+			delegatorID:              1,
+			tokensCommitted:          "55000.0",
+			tokensStaked:             "0.0",
+			tokensRequestedToUnstake: "0.0",
+			tokensUnstaking:          "0.0",
+			tokensUnstaked:           "0.0",
+			tokensRewarded:           "0.0",
+		})
+
+		verifyStakingInfo(t, b, env, StakingInfo{
+			nodeID:                   joshID2,
+			delegatorID:              1,
+			tokensCommitted:          "505000.0",
+			tokensStaked:             "0.0",
+			tokensRequestedToUnstake: "0.0",
+			tokensUnstaking:          "0.0",
+			tokensUnstaked:           "0.0",
+			tokensRewarded:           "0.0",
+		})
 	})
 }
 
@@ -937,6 +1143,60 @@ func TestStakingCollectionRewards(t *testing.T) {
 			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
 			false,
 		)
+
+		verifyStakingCollectionInfo(t, b, env, StakingCollectionInfo{
+			accountAddress:     joshAddress.String(),
+			unlockedBalance:    "650000.0",
+			lockedBalance:      "0.0",
+			unlockedTokensUsed: "370000.0",
+			lockedTokensUsed:   "630000.0",
+			nodes:              []string{joshID2, joshID1},
+			delegators:         []DelegatorIDs{DelegatorIDs{nodeID: joshID2, id: 1}, DelegatorIDs{nodeID: joshID1, id: 1}},
+		})
+
+		verifyStakingInfo(t, b, env, StakingInfo{
+			nodeID:                   joshID1,
+			delegatorID:              0,
+			tokensCommitted:          "0.0",
+			tokensStaked:             "320000.0",
+			tokensRequestedToUnstake: "0.0",
+			tokensUnstaking:          "0.0",
+			tokensUnstaked:           "0.0",
+			tokensRewarded:           "290620.435",
+		})
+
+		verifyStakingInfo(t, b, env, StakingInfo{
+			nodeID:                   joshID2,
+			delegatorID:              0,
+			tokensCommitted:          "0.0",
+			tokensStaked:             "500000.0",
+			tokensRequestedToUnstake: "0.0",
+			tokensUnstaking:          "0.0",
+			tokensUnstaked:           "0.0",
+			tokensRewarded:           "487700.725",
+		})
+
+		verifyStakingInfo(t, b, env, StakingInfo{
+			nodeID:                   joshID1,
+			delegatorID:              1,
+			tokensCommitted:          "0.0",
+			tokensStaked:             "50000.0",
+			tokensRequestedToUnstake: "0.0",
+			tokensUnstaking:          "0.0",
+			tokensUnstaked:           "0.0",
+			tokensRewarded:           "36970.8025",
+		})
+
+		verifyStakingInfo(t, b, env, StakingInfo{
+			nodeID:                   joshID2,
+			delegatorID:              1,
+			tokensCommitted:          "0.0",
+			tokensStaked:             "500000.0",
+			tokensRequestedToUnstake: "0.0",
+			tokensUnstaking:          "0.0",
+			tokensUnstaked:           "0.0",
+			tokensRewarded:           "414708.025",
+		})
 	})
 
 	t.Run("Should be able to stake rewarded tokens for the node or delegator in both accounts", func(t *testing.T) {
