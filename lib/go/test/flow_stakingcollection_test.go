@@ -572,7 +572,7 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 			t, b, tx,
 			[]flow.Address{b.ServiceKey().Address, joshAddress},
 			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
-			false,
+			true,
 		)
 
 		// Stake new tokens to the locked account node
@@ -626,6 +626,16 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
 			false,
 		)
+
+		verifyStakingCollectionInfo(t, b, env, StakingCollectionInfo{
+			accountAddress:     joshAddress.String(),
+			unlockedBalance:    "590000.0",
+			lockedBalance:      "0.0",
+			unlockedTokensUsed: "390000.0",
+			lockedTokensUsed:   "630000.0",
+			nodes:              []string{joshID2, joshID1},
+			delegators:         []DelegatorIDs{DelegatorIDs{nodeID: joshID2, id: 1}, DelegatorIDs{nodeID: joshID1, id: 1}},
+		})
 	})
 
 	t.Run("Should be able to unstake tokens from the node or delegator in both accounts", func(t *testing.T) {
@@ -640,7 +650,7 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 			t, b, tx,
 			[]flow.Address{b.ServiceKey().Address, joshAddress},
 			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
-			false,
+			true,
 		)
 
 		// unstake tokens from the locked account node
@@ -708,7 +718,7 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 			t, b, tx,
 			[]flow.Address{b.ServiceKey().Address, joshAddress},
 			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
-			false,
+			true,
 		)
 
 		// Stake unstaked tokens to the locked account node
@@ -776,7 +786,7 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 			t, b, tx,
 			[]flow.Address{b.ServiceKey().Address, joshAddress},
 			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
-			false,
+			true,
 		)
 
 		// withdraw unstaked tokens from locked account node
@@ -873,7 +883,7 @@ func TestStakingCollectionRewards(t *testing.T) {
 			t, b, tx,
 			[]flow.Address{b.ServiceKey().Address, joshAddress},
 			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
-			false,
+			true,
 		)
 
 		// withdraw rewarded tokens to the locked account node
@@ -941,7 +951,7 @@ func TestStakingCollectionRewards(t *testing.T) {
 			t, b, tx,
 			[]flow.Address{b.ServiceKey().Address, joshAddress},
 			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
-			false,
+			true,
 		)
 
 		// withdraw rewarded tokens to the locked account node
@@ -1007,7 +1017,7 @@ func TestStakingCollectionRewards(t *testing.T) {
 			t, b, tx,
 			[]flow.Address{b.ServiceKey().Address, joshAddress},
 			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
-			false,
+			true,
 		)
 
 		// unstake all tokens to the locked account node
