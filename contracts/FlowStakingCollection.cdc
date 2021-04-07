@@ -521,7 +521,7 @@ pub contract FlowStakingCollection {
             }
 
             if let _delegatorID = delegatorID {
-                let delegatorInfo = FlowIDTableStaking.DelegatorInfo(nodeID: nodeID)
+                let delegatorInfo = FlowIDTableStaking.DelegatorInfo(nodeID: nodeID, delegatorID: delegatorID)
 
                 assert(
                     delegatorInfo.tokensStaked + delegatorInfo.tokensCommitted + delegatorInfo.tokensUnstaking == 0.0,
@@ -556,6 +556,7 @@ pub contract FlowStakingCollection {
                 }
 
                 let staker <- self.nodeStakers[nodeID] <- nil
+
                 destroy staker
             }
         }
