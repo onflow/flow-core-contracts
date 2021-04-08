@@ -612,7 +612,6 @@ pub contract FlowIDTableStaking {
                 !FlowIDTableStaking.stakingEnabled(): "Cannot start staking auction if it is already in progress"
             }
             let stakingEnabled = FlowIDTableStaking.account.load<Bool>(from: /storage/stakingEnabled)
-                ?? panic("Could not retreive staking enabled")
 
             FlowIDTableStaking.account.save(true, to: /storage/stakingEnabled)
         }
@@ -627,7 +626,6 @@ pub contract FlowIDTableStaking {
             self.removeUnapprovedNodes(approvedNodeIDs: approvedNodeIDs)
 
             let stakingEnabled = FlowIDTableStaking.account.load<Bool>(from: /storage/stakingEnabled)
-                ?? panic("Could not retreive staking enabled")
 
             FlowIDTableStaking.account.save(false, to: /storage/stakingEnabled)
         }
@@ -935,12 +933,12 @@ pub contract FlowIDTableStaking {
     }
 
     pub fun stakingEnabled(): Bool {
-        let stakingEnabled = self.account.load<Bool>(from: /storage/stakingEnabled)
-            ?? panic("Could not retreive staking enabled")
-
-        self.account.save(stakingEnabled, to: /storage/stakingEnabled)
-
-        return stakingEnabled
+        if let stakingEnabled = self.account.load<Bool>(from: /storage/stakingEnabled) {
+            self.account.save(stakingEnabled, to: /storage/stakingEnabled)
+            return stakingEnabled
+        } else {
+            return false
+        }
     }
 
     /// Gets an array of the node IDs that are proposed for the next epoch
