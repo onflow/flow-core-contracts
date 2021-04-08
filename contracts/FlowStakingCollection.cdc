@@ -515,13 +515,13 @@ pub contract FlowStakingCollection {
 
         // Closes an existing stake or delegation, moving all withdrawable tokens back to the users account and removing the stake
         // or delegator object from the StakingCollection.
-        pub fun closeStake(nodeID: String, delegatorID: String?) {
+        pub fun closeStake(nodeID: String, delegatorID: UInt32?) {
             pre {
                 self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID): "Specified stake does not exist"
             }
 
             if let _delegatorID = delegatorID {
-                let delegatorInfo = FlowIDTableStaking.DelegatorInfo(nodeID: nodeID, delegatorID: delegatorID)
+                let delegatorInfo = FlowIDTableStaking.DelegatorInfo(nodeID: nodeID, delegatorID: _delegatorID)
 
                 assert(
                     delegatorInfo.tokensStaked + delegatorInfo.tokensCommitted + delegatorInfo.tokensUnstaking == 0.0,
@@ -529,16 +529,25 @@ pub contract FlowStakingCollection {
                 )
 
                 if (delegatorInfo.tokensUnstaked > 0.0) {
-                    self.withdrawUnstakedTokens(nodeID: nodeID, delegatorID: delegatorID, amount: delegatorInfo.tokensUnstaked)
+                    self.withdrawUnstakedTokens(nodeID: nodeID, delegatorID: _delegatorID, amount: delegatorInfo.tokensUnstaked)
                 }
 
                 if (delegatorInfo.tokensRewarded > 0.0) {
-                    self.withdrawRewardedTokens(nodeID: nodeID, delegatorID: delegatorID, amount: delegatorInfo.tokensRewarded)
+                    self.withdrawRewardedTokens(nodeID: nodeID, delegatorID: _delegatorID, amount: delegatorInfo.tokensRewarded)
                 }
 
-                let delegator <- self.nodeDelegators[nodeID] <- nil
-
-                destroy delegator
+                if let delegator = self.borrowDelegator(nodeID, _delegatorID) {
+                    let delegator <- self.nodeDelegators[nodeID] <- nil
+                    destroy delegator
+                } else {
+                    if let tokenHolderCapability = self.tokenHolder {
+                        let tokenManager = tokenHolderCapability.borrow()!.borrowTokenManager()
+                        let delegator <- tokenManager.removeDelegator()
+                        destroy delegator
+                    } else {
+                        panic("Token Holder capability needed and not found.")
+                    }
+                }
             } else {
                 let stakeInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeID)
 
@@ -555,9 +564,18 @@ pub contract FlowStakingCollection {
                     self.withdrawRewardedTokens(nodeID: nodeID, delegatorID: delegatorID, amount: stakeInfo.tokensRewarded)
                 }
 
-                let staker <- self.nodeStakers[nodeID] <- nil
-
-                destroy staker
+                if let node = self.borrowNode(nodeID) {
+                    let staker <- self.nodeStakers[nodeID] <- nil
+                    destroy staker
+                } else {
+                    if let tokenHolderCapability = self.tokenHolder {
+                        let tokenManager = tokenHolderCapability.borrow()!.borrowTokenManager()
+                        let staker <- tokenManager.removeNode()
+                        destroy staker
+                    } else {
+                        panic("Token Holder capability needed and not found.")
+                    }
+                }
             }
         }
 

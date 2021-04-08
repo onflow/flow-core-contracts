@@ -1429,3 +1429,170 @@ func TestStakingCollectionRewards(t *testing.T) {
 		})
 	})
 }
+
+
+func TestStakingCollectionCloseStake(t *testing.T) {
+	b, accountKeys, env := newTestSetup(t)
+	IDTableSigner := deployAllCollectionContracts(t, b, accountKeys, &env)
+
+	joshAddress, _, joshSigner, joshID1, joshID2 := registerStakingCollectionNodesAndDelegators(
+		t, b,
+		accountKeys,
+		env,
+		"1000000.0", "1000000.0")
+
+	// End staking auction and epoch
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), flow.HexToAddress(env.IDTableAddress))
+	err := tx.AddArgument(cadence.NewArray([]cadence.Value{cadence.NewString(adminID), cadence.NewString(joshID)}))
+	require.NoError(t, err)
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, flow.HexToAddress(env.IDTableAddress)},
+		[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+		false,
+	)
+
+	t.Run("Should be able to unstake All tokens from node in locked and unlocked accounts", func(t *testing.T) {
+
+		// Should fail because node isn't ready to be closed.
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionCloseStake(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(accessID))
+		_ = tx.AddArgument(cadence.NewOptional(nil))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			true,
+		)
+
+		verifyStakingCollectionInfo(t, b, env, StakingCollectionInfo{
+			accountAddress:     joshAddress.String(),
+			unlockedBalance:    "630000.0",
+			lockedBalance:      "0.0",
+			unlockedTokensUsed: "370000.0",
+			lockedTokensUsed:   "630000.0",
+			unlockLimit:        "0.0",
+			nodes:              []string{joshID2, joshID1},
+			delegators:         []DelegatorIDs{DelegatorIDs{nodeID: joshID2, id: 1}, DelegatorIDs{nodeID: joshID1, id: 1}},
+		})
+
+		// Request Unstaking all delegated tokens to joshID1
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRequestUnstaking(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(joshID1))
+		_ = tx.AddArgument(cadence.NewOptional(cadence.NewUInt32(1)))
+		_ = tx.AddArgument(CadenceUFix64("50000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+
+		// End staking auction and epoch
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), flow.HexToAddress(env.IDTableAddress))
+		err = tx.AddArgument(cadence.NewArray([]cadence.Value{cadence.NewString(adminID), cadence.NewString(joshID)}))
+		require.NoError(t, err)
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, flow.HexToAddress(env.IDTableAddress)},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+		// End staking auction and epoch
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), flow.HexToAddress(env.IDTableAddress))
+		err = tx.AddArgument(cadence.NewArray([]cadence.Value{cadence.NewString(adminID), cadence.NewString(joshID)}))
+		require.NoError(t, err)
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, flow.HexToAddress(env.IDTableAddress)},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+
+		verifyStakingInfo(t, b, env, StakingInfo{
+			nodeID:                   joshID1,
+			delegatorID:              1,
+			tokensCommitted:          "0.0",
+			tokensStaked:             "0.0",
+			tokensRequestedToUnstake: "0.0",
+			tokensUnstaking:          "0.0",
+			tokensUnstaked:           "50000.0",
+			tokensRewarded:           "0.0",
+		})
+
+		// Request Unstaking all staked tokens from joshID1
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionUnstakeAll(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(joshID1))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+
+		// End staking auction and epoch
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), flow.HexToAddress(env.IDTableAddress))
+		err = tx.AddArgument(cadence.NewArray([]cadence.Value{cadence.NewString(adminID), cadence.NewString(joshID)}))
+		require.NoError(t, err)
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, flow.HexToAddress(env.IDTableAddress)},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+		// End staking auction and epoch
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), flow.HexToAddress(env.IDTableAddress))
+		err = tx.AddArgument(cadence.NewArray([]cadence.Value{cadence.NewString(adminID), cadence.NewString(joshID)}))
+		require.NoError(t, err)
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, flow.HexToAddress(env.IDTableAddress)},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+		// tx = createTxWithTemplateAndAuthorizer(b, templates.GeneratePayRewardsScript(env), flow.HexToAddress(env.IDTableAddress))
+		// signAndSubmit(
+		// 	t, b, tx,
+		// 	[]flow.Address{b.ServiceKey().Address, flow.HexToAddress(env.IDTableAddress)},
+		// 	[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+		// 	false,
+		// )
+
+		verifyStakingInfo(t, b, env, StakingInfo{
+			nodeID:                   joshID1,
+			delegatorID:              0,
+			tokensCommitted:          "0.0",
+			tokensStaked:             "0.0",
+			tokensRequestedToUnstake: "0.0",
+			tokensUnstaking:          "0.0",
+			tokensUnstaked:           "320000.0",
+			tokensRewarded:           "0.0",
+		})
+
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionCloseStake(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(joshID1))
+		_ = tx.AddArgument(cadence.NewOptional(nil))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+
+		verifyStakingCollectionInfo(t, b, env, StakingCollectionInfo{
+			accountAddress:     joshAddress.String(),
+			unlockedBalance:    "630000.0",
+			lockedBalance:      "320000.0",
+			unlockedTokensUsed: "370000.0",
+			lockedTokensUsed:   "630000.0",
+			unlockLimit:        "0.0",
+			nodes:              []string{joshID2},
+			delegators:         []DelegatorIDs{DelegatorIDs{nodeID: joshID2, id: 1}},
+		})
+	})
+
+}
