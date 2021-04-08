@@ -2077,4 +2077,20 @@ func TestIDTableStaking(t *testing.T) {
 			false,
 		)
 	})
+
+	t.Run("Should be able to remove unapproved nodes from the table without ending staking", func(t *testing.T) {
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRemoveUnapprovedNodesScript(env), idTableAddress)
+
+		err := tx.AddArgument(cadence.NewArray([]cadence.Value{cadence.NewString(adminID), cadence.NewString(joshID), cadence.NewString(bastianID)}))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+
+	})
 }
