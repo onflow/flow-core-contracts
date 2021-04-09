@@ -14,6 +14,7 @@ import (
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/test"
 
+	"github.com/onflow/flow-core-contracts/lib/go/contracts"
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
 )
 
@@ -199,21 +200,6 @@ func TestIDTableDeployment(t *testing.T) {
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetWeeklyPayoutScript(env), nil)
 		assertEqual(t, CadenceUFix64("1250000.0"), result)
-	})
-
-	t.Run("Cannot end the staking auction if it isn't currently in progress", func(t *testing.T) {
-
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndStakingScript(env), idTableAddress)
-
-		err := tx.AddArgument(cadence.NewArray([]cadence.Value{cadence.NewString(adminID), cadence.NewString(joshID), cadence.NewString(maxID), cadence.NewString(accessID)}))
-		require.NoError(t, err)
-
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, idTableAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
-			true,
-		)
 	})
 }
 
@@ -438,6 +424,19 @@ func TestIDTableStaking(t *testing.T) {
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetUnstakingBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		assertEqual(t, CadenceUFix64(unstaking[adminID].String()), result)
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateUpgradeSetClaimedScript(env), idTableAddress)
+
+		IDTableCode := contracts.FlowIDTableStaking(emulatorFTAddress, emulatorFlowTokenAddress)
+		cadenceCode := bytesToCadenceArray(IDTableCode)
+		tx.AddRawArgument(jsoncdc.MustEncode(cadenceCode))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
 
 		registerNode(t, b, env,
 			idTableAddress,

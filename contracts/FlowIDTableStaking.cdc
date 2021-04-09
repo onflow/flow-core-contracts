@@ -1,8 +1,5 @@
-// import FungibleToken from 0xFUNGIBLETOKENADDRESS
-// import FlowToken from 0xFLOWTOKENADDRESS
-
-import FungibleToken from 0xee82856bf20e2aa6
-import FlowToken from 0x0ae53cb6e3f42a79
+import FungibleToken from 0xFUNGIBLETOKENADDRESS
+import FlowToken from 0xFLOWTOKENADDRESS
 
 pub contract FlowIDTableStaking {
 
@@ -36,17 +33,10 @@ pub contract FlowIDTableStaking {
     pub event NewWeeklyPayout(newPayout: UFix64)
     pub event NewStakingMinimums(newMinimums: {UInt8: UFix64})
 
-    /// Indicates if the staking auction is currently active
-    pub var stakingEnabled: Bool
-
     /// Holds the identity table for all the nodes in the network.
     /// Includes nodes that aren't actively participating
     /// key = node ID
     access(contract) var nodes: @{String: NodeRecord}
-
-    access(contract) var stakingKeyClaimed: {String: Bool}
-    access(contract) var networkingKeyClaimed: {String: Bool}
-    access(contract) var networkingAddressClaimed: {String: Bool}
 
     /// The minimum amount of tokens that each node type has to stake
     /// in order to be considered valid
@@ -126,12 +116,6 @@ pub contract FlowIDTableStaking {
         /// weight as determined by the amount staked after the staking auction
         pub(set) var initialWeight: UInt64
 
-        /// Weight that can be changed because of slashing or other mid-epoch changes
-        pub(set) var dynamicWeight: UInt64
-
-        /// Indicates if the node has been ejected from the protocol completely
-        pub(set) var ejected: Bool
-
         init(
             id: String,
             role: UInt8,
@@ -147,9 +131,9 @@ pub contract FlowIDTableStaking {
                 networkingAddress.length > 0 && networkingAddress.length <= 510: "The networkingAddress must be less than 255 bytes (510 hex characters)"
                 networkingKey.length == 128: "The networkingKey length must be exactly 64 bytes (128 hex characters)"
                 stakingKey.length == 192: "The stakingKey length must be exactly 96 bytes (192 hex characters)"
-                FlowIDTableStaking.networkingAddressClaimed[networkingAddress] == nil: "The networkingAddress cannot have already been claimed"
-                FlowIDTableStaking.networkingKeyClaimed[networkingKey] == nil: "The networkingKey cannot have already been claimed"
-                FlowIDTableStaking.stakingKeyClaimed[stakingKey] == nil: "The stakingKey cannot have already been claimed"
+                !FlowIDTableStaking.getNetworkingAddressClaimed(address: networkingAddress): "The networkingAddress cannot have already been claimed"
+                !FlowIDTableStaking.getNetworkingKeyClaimed(key: networkingKey): "The networkingKey cannot have already been claimed"
+                !FlowIDTableStaking.getStakingKeyClaimed(key: stakingKey): "The stakingKey cannot have already been claimed"
             }
 
             self.id = id
@@ -158,14 +142,12 @@ pub contract FlowIDTableStaking {
             self.networkingKey = networkingKey
             self.stakingKey = stakingKey
             self.initialWeight = 0
-            self.dynamicWeight = 0
-            self.ejected = false
             self.delegators <- {}
             self.delegatorIDCounter = 0
 
-            FlowIDTableStaking.networkingAddressClaimed[networkingAddress] = true
-            FlowIDTableStaking.networkingKeyClaimed[networkingKey] = true
-            FlowIDTableStaking.stakingKeyClaimed[stakingKey] = true
+            FlowIDTableStaking.updateClaimed(path: /storage/networkingAddressesClaimed, networkingAddress, claimed: true)
+            FlowIDTableStaking.updateClaimed(path: /storage/networkingKeysClaimed, networkingKey, claimed: true)
+            FlowIDTableStaking.updateClaimed(path: /storage/stakingKeysClaimed, stakingKey, claimed: true)
 
             self.tokensCommitted <- tokensCommitted as! @FlowToken.Vault
             self.tokensStaked <- FlowToken.createEmptyVault() as! @FlowToken.Vault
@@ -218,7 +200,7 @@ pub contract FlowIDTableStaking {
         }
     }
 
-    // Struct to create to get read-only info about a node
+    // Read-only info about a node
     pub struct NodeInfo {
         pub let id: String
         pub let role: UInt8
@@ -236,8 +218,6 @@ pub contract FlowIDTableStaking {
         pub let delegatorIDCounter: UInt32
         pub let tokensRequestedToUnstake: UFix64
         pub let initialWeight: UInt64
-        pub let dynamicWeight: UInt64
-        pub let ejected: Bool
 
         /// Derived Fields
         pub let totalCommittedWithDelegators: UFix64
@@ -262,8 +242,6 @@ pub contract FlowIDTableStaking {
             self.delegatorIDCounter = nodeRecord.delegatorIDCounter
             self.tokensRequestedToUnstake = nodeRecord.tokensRequestedToUnstake
             self.initialWeight = nodeRecord.initialWeight
-            self.dynamicWeight = nodeRecord.dynamicWeight
-            self.ejected = nodeRecord.ejected
 
             self.totalCommittedWithoutDelegators = nodeRecord.nodeFullCommittedBalance()
             var committedSum = self.totalCommittedWithoutDelegators
@@ -283,13 +261,9 @@ pub contract FlowIDTableStaking {
                                        + self.tokensUnstaking
                                        + self.tokensUnstaked
                                        + self.tokensRewarded
-
-
         }
     }
 
-    /// Records the staking info associated with a delegator
-    /// Stored in the node's NodeRecord
     pub resource DelegatorRecord {
         pub var tokensCommitted: @FlowToken.Vault
         pub var tokensStaked: @FlowToken.Vault
@@ -325,7 +299,7 @@ pub contract FlowIDTableStaking {
         }
     }
 
-    /// Struct that can be returned to show all the info about a delegator
+    /// Read-only info about a delegator
     pub struct DelegatorInfo {
         pub let id: UInt32
         pub let nodeID: String
@@ -376,7 +350,7 @@ pub contract FlowIDTableStaking {
         /// Add new tokens to the system to stake during the next epoch
         pub fun stakeNewTokens(_ tokens: @FungibleToken.Vault) {
             pre {
-                FlowIDTableStaking.stakingEnabled: "Cannot stake if the staking auction isn't in progress"
+                FlowIDTableStaking.stakingEnabled(): "Cannot stake if the staking auction isn't in progress"
             }
 
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
@@ -389,7 +363,7 @@ pub contract FlowIDTableStaking {
         /// Stake tokens that are in the tokensUnstaked bucket
         pub fun stakeUnstakedTokens(amount: UFix64) {
             pre {
-                FlowIDTableStaking.stakingEnabled: "Cannot stake if the staking auction isn't in progress"
+                FlowIDTableStaking.stakingEnabled(): "Cannot stake if the staking auction isn't in progress"
             }
 
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
@@ -412,7 +386,7 @@ pub contract FlowIDTableStaking {
         /// Stake tokens that are in the tokensRewarded bucket
         pub fun stakeRewardedTokens(amount: UFix64) {
             pre {
-                FlowIDTableStaking.stakingEnabled: "Cannot stake if the staking auction isn't in progress"
+                FlowIDTableStaking.stakingEnabled(): "Cannot stake if the staking auction isn't in progress"
             }
 
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
@@ -425,7 +399,7 @@ pub contract FlowIDTableStaking {
         /// Request amount tokens to be removed from staking at the end of the next epoch
         pub fun requestUnstaking(amount: UFix64) {
             pre {
-                FlowIDTableStaking.stakingEnabled: "Cannot unstake if the staking auction isn't in progress"
+                FlowIDTableStaking.stakingEnabled(): "Cannot unstake if the staking auction isn't in progress"
             }
 
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
@@ -462,10 +436,9 @@ pub contract FlowIDTableStaking {
         }
 
         /// Requests to unstake all of the node operators staked and committed tokens,
-        /// as well as all the staked and committed tokens of all of their delegators
         pub fun unstakeAll() {
             pre {
-                FlowIDTableStaking.stakingEnabled: "Cannot unstake if the staking auction isn't in progress"
+                FlowIDTableStaking.stakingEnabled(): "Cannot unstake if the staking auction isn't in progress"
             }
 
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
@@ -502,13 +475,11 @@ pub contract FlowIDTableStaking {
         pub let nodeID: String
     }
 
-    /// Resource object that the delegator stores in their account to perform staking actions
     pub resource NodeDelegator: NodeDelegatorPublic {
 
         /// Each delegator for a node operator has a unique ID
         pub let id: UInt32
 
-        /// The ID of the node operator that this delegator delegates to
         pub let nodeID: String
 
         init(id: UInt32, nodeID: String) {
@@ -519,7 +490,7 @@ pub contract FlowIDTableStaking {
         /// Delegate new tokens to the node operator
         pub fun delegateNewTokens(from: @FungibleToken.Vault) {
             pre {
-                FlowIDTableStaking.stakingEnabled: "Cannot delegate if the staking auction isn't in progress"
+                FlowIDTableStaking.stakingEnabled(): "Cannot delegate if the staking auction isn't in progress"
             }
 
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.nodeID)
@@ -533,7 +504,7 @@ pub contract FlowIDTableStaking {
         /// Delegate tokens from the unstaked bucket to the node operator
         pub fun delegateUnstakedTokens(amount: UFix64) {
             pre {
-                FlowIDTableStaking.stakingEnabled: "Cannot delegate if the staking auction isn't in progress"
+                FlowIDTableStaking.stakingEnabled(): "Cannot delegate if the staking auction isn't in progress"
             }
 
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.nodeID)
@@ -558,7 +529,7 @@ pub contract FlowIDTableStaking {
         /// Delegate tokens from the rewards bucket to the node operator
         pub fun delegateRewardedTokens(amount: UFix64) {
             pre {
-                FlowIDTableStaking.stakingEnabled: "Cannot delegate if the staking auction isn't in progress"
+                FlowIDTableStaking.stakingEnabled(): "Cannot delegate if the staking auction isn't in progress"
             }
 
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.nodeID)
@@ -572,7 +543,7 @@ pub contract FlowIDTableStaking {
         /// Request to unstake delegated tokens during the next epoch
         pub fun requestUnstaking(amount: UFix64) {
             pre {
-                FlowIDTableStaking.stakingEnabled: "Cannot request unstaking if the staking auction isn't in progress"
+                FlowIDTableStaking.stakingEnabled(): "Cannot request unstaking if the staking auction isn't in progress"
             }
 
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.nodeID)
@@ -622,8 +593,6 @@ pub contract FlowIDTableStaking {
         }
     }
 
-    /// Admin resource that has the ability to remove insufficiently staked nodes
-    /// at the end of the staking auction, pay rewards to nodes at the end of an epoch, and move tokens between buckets
     pub resource Admin {
 
         /// Remove a node from the record
@@ -631,63 +600,52 @@ pub contract FlowIDTableStaking {
             let node <- FlowIDTableStaking.nodes.remove(key: nodeID)
                 ?? panic("Could not find a node with the specified ID")
 
-            FlowIDTableStaking.networkingAddressClaimed.remove(key: node.networkingAddress)
-            FlowIDTableStaking.networkingKeyClaimed.remove(key: node.networkingKey)
-            FlowIDTableStaking.stakingKeyClaimed.remove(key: node.stakingKey)
+            FlowIDTableStaking.updateClaimed(path: /storage/networkingAddressesClaimed, node.networkingAddress, claimed: false)
+            FlowIDTableStaking.updateClaimed(path: /storage/networkingKeysClaimed, node.networkingKey, claimed: false)
+            FlowIDTableStaking.updateClaimed(path: /storage/stakingKeysClaimed, node.stakingKey, claimed: false)
 
             return <-node
         }
 
         pub fun startStakingAuction() {
-            pre {
-                !FlowIDTableStaking.stakingEnabled: "Cannot start staking auction if it is already in progress"
-            }
-            FlowIDTableStaking.stakingEnabled = true
+            FlowIDTableStaking.account.load<Bool>(from: /storage/stakingEnabled)
+            FlowIDTableStaking.account.save(true, to: /storage/stakingEnabled)
         }
 
         /// Ends the staking Auction by removing any unapproved nodes
         /// and setting stakingEnabled to false
         pub fun endStakingAuction(approvedNodeIDs: {String: Bool}) {
-            pre {
-                FlowIDTableStaking.stakingEnabled: "Cannot end the staking auction if it is not currently in progress"
-            }
-
             self.removeUnapprovedNodes(approvedNodeIDs: approvedNodeIDs)
 
-            FlowIDTableStaking.stakingEnabled = false
+            FlowIDTableStaking.account.load<Bool>(from: /storage/stakingEnabled)
+            FlowIDTableStaking.account.save(false, to: /storage/stakingEnabled)
         }
 
         /// Iterates through all the registered nodes and if it finds
-        /// a node that has insufficient tokens committed for the next epoch
+        /// a node that has insufficient tokens committed for the next epoch or isn't in the approved list
         /// it moves their committed tokens to their unstaked bucket
-        ///
-        /// Parameter: approvedNodeIDs: A list of nodeIDs that have been approved
-        /// by the protocol to be a staker for the next epoch.
         pub fun removeUnapprovedNodes(approvedNodeIDs: {String: Bool}) {
             let allNodeIDs = FlowIDTableStaking.getNodeIDs()
 
-            /// remove nodes that have insufficient stake
             for nodeID in allNodeIDs {
                 let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
 
                 let totalTokensCommitted = nodeRecord.nodeFullCommittedBalance()
 
-                /// If the tokens that they have committed for the next epoch
-                /// do not meet the minimum requirements
+                // if they do not meet the minimum staking requirements
                 if !FlowIDTableStaking.isGreaterThanMinimumForRole(numTokens: totalTokensCommitted, role: nodeRecord.role) ||
                    (approvedNodeIDs[nodeID] == nil) {
 
                     emit NodeRemovedAndRefunded(nodeID: nodeRecord.id, amount: nodeRecord.tokensCommitted.balance + nodeRecord.tokensStaked.balance)
 
-                    /// move their committed tokens back to their unstaked tokens
+                    // move their committed tokens back to their unstaked tokens
                     nodeRecord.tokensUnstaked.deposit(from: <-nodeRecord.tokensCommitted.withdraw(amount: nodeRecord.tokensCommitted.balance))
 
-                    /// Set their request to unstake equal to all their staked tokens
-                    /// since they are forced to unstake
+                    // Set their request to unstake equal to all their staked tokens
+                    // since they are forced to unstake
                     nodeRecord.tokensRequestedToUnstake = nodeRecord.tokensStaked.balance
 
-                    // Iterate through all delegators and reward them their share
-                    // of the rewards for the tokens they have staked for this node
+                    // Iterate through all delegators and unstake their tokens
                     for delegator in nodeRecord.delegators.keys {
                         let delRecord = nodeRecord.borrowDelegatorRecord(delegator)
 
@@ -702,22 +660,17 @@ pub contract FlowIDTableStaking {
                     }
 
                     nodeRecord.initialWeight = 0
-                    nodeRecord.dynamicWeight = 0
 
                 } else {
-                    /// Set initial weight of all the committed nodes
                     /// TODO: Actual initial weight calculation will come at a later date
                     nodeRecord.initialWeight = 100
-                    nodeRecord.dynamicWeight = 100
                 }
             }
         }
 
-        /// Called at the end of the epoch to pay rewards to node operators
-        /// based on the tokens that they have staked
         pub fun payRewards() {
             pre {
-                !FlowIDTableStaking.stakingEnabled: "Cannot pay rewards if the staking auction is still in progress"
+                !FlowIDTableStaking.stakingEnabled(): "Cannot pay rewards if the staking auction is still in progress"
             }
 
             let allNodeIDs = FlowIDTableStaking.getNodeIDs()
@@ -725,7 +678,6 @@ pub contract FlowIDTableStaking {
             let flowTokenMinter = FlowIDTableStaking.account.borrow<&FlowToken.Minter>(from: /storage/flowTokenMinter)
                 ?? panic("Could not borrow minter reference")
 
-            // calculate the total number of tokens staked
             var totalStaked = FlowIDTableStaking.getTotalStaked()
 
             if totalStaked == 0.0 {
@@ -788,12 +740,9 @@ pub contract FlowIDTableStaking {
 
         /// Called at the end of the epoch to move tokens between buckets
         /// for stakers
-        /// Tokens that have been committed are moved to the staked bucket
-        /// Tokens that were unstaking during the last epoch are fully unstaked
-        /// Unstaking requests are filled by moving those tokens from staked to unstaking
         pub fun moveTokens() {
             pre {
-                !FlowIDTableStaking.stakingEnabled: "Cannot move tokens if the staking auction is still in progress"
+                !FlowIDTableStaking.stakingEnabled(): "Cannot move tokens if the staking auction is still in progress"
             }
             
             let allNodeIDs = FlowIDTableStaking.getNodeIDs()
@@ -873,8 +822,6 @@ pub contract FlowIDTableStaking {
             emit NewWeeklyPayout(newPayout: newPayout)
         }
 
-        /// Admin calls this to change the percentage
-        /// of delegator rewards every node operator takes
         pub fun setCutPercentage(_ newCutPercentage: UFix64) {
             pre {
                 newCutPercentage > 0.0 && newCutPercentage < 1.0:
@@ -885,13 +832,35 @@ pub contract FlowIDTableStaking {
 
             emit NewDelegatorCutPercentage(newCutPercentage: FlowIDTableStaking.nodeDelegatingRewardCut)
         }
+
+        pub fun setClaimed() {
+
+            let claimedNetAddressDictionary = FlowIDTableStaking.account.load<{String: Bool}>(from: /storage/networkingAddressesClaimed)
+                ?? panic("Invalid path for networking address dictionary")
+
+            let claimedNetKeyDictionary = FlowIDTableStaking.account.load<{String: Bool}>(from: /storage/networkingKeysClaimed)
+                ?? panic("Invalid path for networking key dictionary")
+
+            let claimedStakingKeysDictionary = FlowIDTableStaking.account.load<{String: Bool}>(from: /storage/stakingKeysClaimed)
+                ?? panic("Invalid path for staking key dictionary")
+
+            for nodeID in FlowIDTableStaking.nodes.keys {
+                claimedNetAddressDictionary[FlowIDTableStaking.nodes[nodeID]?.networkingAddress!] = true
+                claimedNetKeyDictionary[FlowIDTableStaking.nodes[nodeID]?.networkingKey!] = true
+                claimedStakingKeysDictionary[FlowIDTableStaking.nodes[nodeID]?.stakingKey!] = true
+            }
+
+            FlowIDTableStaking.account.save(claimedNetAddressDictionary, to: /storage/networkingAddressesClaimed)
+            FlowIDTableStaking.account.save(claimedNetKeyDictionary, to: /storage/networkingKeysClaimed)
+            FlowIDTableStaking.account.save(claimedStakingKeysDictionary, to: /storage/stakingKeysClaimed)
+        }
     }
 
     /// Any node can call this function to register a new Node
     /// It returns the resource for nodes that they can store in their account storage
     pub fun addNodeRecord(id: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String, tokensCommitted: @FungibleToken.Vault): @NodeStaker {
         pre {
-            FlowIDTableStaking.stakingEnabled: "Cannot register a node operator if the staking auction isn't in progress"
+            FlowIDTableStaking.stakingEnabled(): "Cannot register a node operator if the staking auction isn't in progress"
         }
         
         let initialBalance = tokensCommitted.balance
@@ -901,7 +870,6 @@ pub contract FlowIDTableStaking {
         // Insert the node to the table
         FlowIDTableStaking.nodes[id] <-! newNode
 
-        // return a new NodeStaker object that the node operator stores in their account
         return <-create NodeStaker(id: id)
     }
 
@@ -909,7 +877,7 @@ pub contract FlowIDTableStaking {
     /// and returns a delegator object to the caller
     pub fun registerNewDelegator(nodeID: String): @NodeDelegator {
         pre {
-            FlowIDTableStaking.stakingEnabled: "Cannot register a node operator if the staking auction isn't in progress"
+            FlowIDTableStaking.stakingEnabled(): "Cannot register a node operator if the staking auction isn't in progress"
         }
 
         let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
@@ -934,7 +902,7 @@ pub contract FlowIDTableStaking {
     }
 
     /// borrow a reference to to one of the nodes in the record
-    access(contract) fun borrowNodeRecord(_ nodeID: String): &NodeRecord {
+    access(account) fun borrowNodeRecord(_ nodeID: String): &NodeRecord {
         pre {
             FlowIDTableStaking.nodes[nodeID] != nil:
                 "Specified node ID does not exist in the record"
@@ -942,7 +910,22 @@ pub contract FlowIDTableStaking {
         return &FlowIDTableStaking.nodes[nodeID] as! &NodeRecord
     }
 
-    /****************** Getter Functions for the staking Info *******************/
+    access(account) fun updateClaimed(path: StoragePath, _ key: String, claimed: Bool) {
+        let claimedDictionary = self.account.load<{String: Bool}>(from: path)
+            ?? panic("Invalid path for dictionary")
+
+        if claimed {
+            claimedDictionary[key] = true
+        } else {
+            claimedDictionary[key] = nil
+        }
+
+        self.account.save(claimedDictionary, to: path)
+    }
+
+    pub fun stakingEnabled(): Bool {
+        return self.account.copy<Bool>(from: /storage/stakingEnabled) ?? false
+    }
 
     /// Gets an array of the node IDs that are proposed for the next epoch
     /// Nodes that are proposed are nodes that have enough tokens staked + committed
@@ -964,10 +947,6 @@ pub contract FlowIDTableStaking {
         return proposedNodes
     }
 
-    /// Gets an array of all the nodeIDs that are staked.
-    /// Only nodes that are participating in the current epoch
-    /// can be staked, so this is an array of all the active
-    /// node operators
     pub fun getStakedNodeIDs(): [String] {
         var stakedNodes: [String] = []
 
@@ -985,13 +964,10 @@ pub contract FlowIDTableStaking {
         return stakedNodes
     }
 
-    /// Gets an array of all the node IDs that have ever applied
     pub fun getNodeIDs(): [String] {
         return FlowIDTableStaking.nodes.keys
     }
 
-    // Checks to make sure that the amount of tokens specified
-    // is greater than what is required for that node role
     pub fun isGreaterThanMinimumForRole(numTokens: UFix64, role: UInt8): Bool {
         if role == UInt8(5) {
             return numTokens > 0.0
@@ -1000,7 +976,23 @@ pub contract FlowIDTableStaking {
         }
     }
 
-    /// Functions to return contract fields
+    pub fun getNetworkingAddressClaimed(address: String): Bool {
+        return self.getClaimed(path: /storage/networkingAddressesClaimed, key: address)
+    }
+
+    pub fun getNetworkingKeyClaimed(key: String): Bool {
+        return self.getClaimed(path: /storage/networkingKeysClaimed, key: key)
+    }
+
+    pub fun getStakingKeyClaimed(key: String): Bool {
+        return self.getClaimed(path: /storage/stakingKeysClaimed, key: key)
+    }
+
+    access(account) fun getClaimed(path: StoragePath, key: String): Bool {
+		let claimedDictionary = self.account.borrow<&{String: Bool}>(from: path)
+            ?? panic("Invalid path for dictionary")
+        return claimedDictionary[key] ?? false
+    }
 
     pub fun getMinimumStakeRequirements(): {UInt8: UFix64} {
         return self.minimumStakeRequired
@@ -1034,13 +1026,16 @@ pub contract FlowIDTableStaking {
     }
 
     init(_ epochTokenPayout: UFix64, _ rewardCut: UFix64) {
-        self.stakingEnabled = false
+        self.account.save(false, to: /storage/stakingEnabled)
 
         self.nodes <- {}
 
-        self.stakingKeyClaimed = {}
-        self.networkingKeyClaimed = {}
-        self.networkingAddressClaimed = {}
+        let stakingKeyClaimed: {String: Bool} = {}
+        self.account.save(stakingKeyClaimed, to: /storage/stakingKeysClaimed)
+        let networkingKeyClaimed: {String: Bool} = {}
+        self.account.save(networkingKeyClaimed, to: /storage/networkingKeysClaimed)
+        let networkingAddressClaimed: {String: Bool} = {}
+        self.account.save(networkingAddressClaimed, to: /storage/networkingAddressesClaimed)
 
         self.NodeStakerStoragePath = /storage/flowStaker
         self.NodeStakerPublicPath = /public/flowStaker
