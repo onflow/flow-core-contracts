@@ -58,6 +58,7 @@
 // ../../../transactions/idTableStaking/admin/remove_unapproved_nodes.cdc (773B)
 // ../../../transactions/idTableStaking/admin/start_staking.cdc (576B)
 // ../../../transactions/idTableStaking/admin/transfer_minter_deploy.cdc (840B)
+// ../../../transactions/idTableStaking/admin/upgrade_set_claimed.cdc (668B)
 // ../../../transactions/idTableStaking/delegation/del_request_unstaking.cdc (569B)
 // ../../../transactions/idTableStaking/delegation/del_stake_new_tokens.cdc (842B)
 // ../../../transactions/idTableStaking/delegation/del_stake_rewarded.cdc (575B)
@@ -1409,6 +1410,26 @@ func idtablestakingAdminTransfer_minter_deployCdc() (*asset, error) {
 
 	info := bindataFileInfo{name: "idTableStaking/admin/transfer_minter_deploy.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xce, 0xe, 0x83, 0xc7, 0x17, 0x4, 0xc6, 0x45, 0xee, 0xd2, 0x3d, 0x61, 0xb5, 0x66, 0xc6, 0x5b, 0x67, 0x82, 0x37, 0xb5, 0x64, 0x6b, 0x97, 0x21, 0xe7, 0x49, 0x49, 0xba, 0xf3, 0x9f, 0xe4, 0x33}}
+	return a, nil
+}
+
+var _idtablestakingAdminUpgrade_set_claimedCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x74\x92\xdf\x6b\x9c\x40\x10\xc7\xdf\xfd\x2b\xbe\xdc\x43\xf1\xa0\x68\x1f\x8b\xb4\x0d\x36\x5e\x41\x08\xa5\x44\xfb\x50\x4a\x09\x73\xeb\x18\xb7\x59\x77\x65\x77\xec\x5d\x09\xf9\xdf\xcb\x6a\x2e\xfd\x91\xeb\x3c\x28\xe8\xce\x77\x3e\x1f\x66\xf5\x38\x39\x2f\xf8\x60\xdc\xa1\xae\x5a\xda\x1b\x6e\x84\xee\xb4\xbd\x45\xef\xdd\x88\x57\xc7\xba\xda\x7d\x6c\xeb\xf6\x4b\x5b\xbe\xbf\xda\x95\x55\x75\xbd\x6b\x9a\x24\xc9\x73\xb4\x83\x0e\x10\x4f\x36\x90\x12\xed\x2c\x26\xfa\x19\xe0\xf9\x40\xbe\x0b\x10\x07\x32\x06\x32\x30\x82\xd0\x1d\x77\xb0\xae\xe3\x90\x24\x7f\x74\xa4\xca\x75\x5c\xe0\xeb\xe7\xda\xca\xeb\x6f\x5b\xdc\x27\x09\x00\xe4\x39\xae\x9c\x22\x83\x1f\xe4\x75\x24\x42\xef\x3c\x08\x9e\x7b\xf6\x6c\x15\xc7\xf0\x18\x5c\x57\x58\x88\x51\x76\xa3\xb6\x70\xfb\xef\xac\x64\x89\x30\x2c\xa0\xf8\xf1\x9a\xfb\x02\x2f\x9e\xdb\x65\x4b\xcb\x3a\x6f\xf2\x3c\x91\xe7\x94\x94\x92\x02\xe5\x2c\x43\xa9\x94\x9b\xad\x3c\x11\xc5\x8a\x7f\x33\xe5\xac\x78\x52\x12\xb2\x79\xea\x48\xf8\xe6\x86\x8f\x13\x7b\x3d\xb2\x15\x32\xa9\xa5\x91\x0b\x6c\x9e\x8f\xdb\xbc\xc4\xea\x1a\x9f\xdb\xdf\xa1\x79\x8e\xbd\xf3\xde\x1d\xce\xe9\xd1\xbf\x56\xb1\x02\x9b\x3e\x3b\xa9\xe1\xed\x8a\xb5\x66\xbc\xf9\xaf\xe7\xbb\x34\x2e\xb3\x38\xb3\xe5\xec\xf1\xbd\x1c\x6b\xc4\x79\xba\xe5\x4f\x24\xc3\xf6\x69\x60\xac\x8b\x0b\x4c\x64\xb5\x4a\x37\x97\x6e\x36\x71\x95\x72\xe2\xfe\x8b\x3a\x3c\x5e\x9d\x85\x6f\xb3\x66\x3c\xac\xb6\x7c\x64\x35\x0b\xe3\xfe\xbc\x49\x16\x58\x2e\x0d\xe9\x91\xbb\xf4\xd4\xf7\xf0\x2b\x00\x00\xff\xff\x46\x0d\x04\xc2\x9c\x02\x00\x00"
+
+func idtablestakingAdminUpgrade_set_claimedCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_idtablestakingAdminUpgrade_set_claimedCdc,
+		"idTableStaking/admin/upgrade_set_claimed.cdc",
+	)
+}
+
+func idtablestakingAdminUpgrade_set_claimedCdc() (*asset, error) {
+	bytes, err := idtablestakingAdminUpgrade_set_claimedCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "idTableStaking/admin/upgrade_set_claimed.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xbd, 0x60, 0x96, 0xc9, 0xe2, 0xe7, 0xb2, 0xfc, 0xfa, 0x4c, 0xe, 0x98, 0xd8, 0x18, 0xe0, 0x48, 0x7e, 0x34, 0xa6, 0xf3, 0xa9, 0xb0, 0x10, 0xd5, 0xc5, 0xdf, 0xb5, 0x7c, 0xcb, 0xbb, 0xd4, 0x3f}}
 	return a, nil
 }
 
@@ -4061,6 +4082,7 @@ var _bindata = map[string]func() (*asset, error){
 	"idTableStaking/admin/remove_unapproved_nodes.cdc":                        idtablestakingAdminRemove_unapproved_nodesCdc,
 	"idTableStaking/admin/start_staking.cdc":                                  idtablestakingAdminStart_stakingCdc,
 	"idTableStaking/admin/transfer_minter_deploy.cdc":                         idtablestakingAdminTransfer_minter_deployCdc,
+	"idTableStaking/admin/upgrade_set_claimed.cdc":                            idtablestakingAdminUpgrade_set_claimedCdc,
 	"idTableStaking/delegation/del_request_unstaking.cdc":                     idtablestakingDelegationDel_request_unstakingCdc,
 	"idTableStaking/delegation/del_stake_new_tokens.cdc":                      idtablestakingDelegationDel_stake_new_tokensCdc,
 	"idTableStaking/delegation/del_stake_rewarded.cdc":                        idtablestakingDelegationDel_stake_rewardedCdc,
@@ -4312,6 +4334,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 			"remove_unapproved_nodes.cdc": {idtablestakingAdminRemove_unapproved_nodesCdc, map[string]*bintree{}},
 			"start_staking.cdc": {idtablestakingAdminStart_stakingCdc, map[string]*bintree{}},
 			"transfer_minter_deploy.cdc": {idtablestakingAdminTransfer_minter_deployCdc, map[string]*bintree{}},
+			"upgrade_set_claimed.cdc": {idtablestakingAdminUpgrade_set_claimedCdc, map[string]*bintree{}},
 		}},
 		"delegation": {nil, map[string]*bintree{
 			"del_request_unstaking.cdc": {idtablestakingDelegationDel_request_unstakingCdc, map[string]*bintree{}},

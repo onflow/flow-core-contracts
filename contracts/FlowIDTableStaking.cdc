@@ -608,25 +608,16 @@ pub contract FlowIDTableStaking {
         }
 
         pub fun startStakingAuction() {
-            pre {
-                !FlowIDTableStaking.stakingEnabled(): "Cannot start staking auction if it is already in progress"
-            }
-            let stakingEnabled = FlowIDTableStaking.account.load<Bool>(from: /storage/stakingEnabled)
-
+            FlowIDTableStaking.account.load<Bool>(from: /storage/stakingEnabled)
             FlowIDTableStaking.account.save(true, to: /storage/stakingEnabled)
         }
 
         /// Ends the staking Auction by removing any unapproved nodes
         /// and setting stakingEnabled to false
         pub fun endStakingAuction(approvedNodeIDs: {String: Bool}) {
-            pre {
-                FlowIDTableStaking.stakingEnabled(): "Cannot end the staking auction if it is not currently in progress"
-            }
-
             self.removeUnapprovedNodes(approvedNodeIDs: approvedNodeIDs)
 
-            let stakingEnabled = FlowIDTableStaking.account.load<Bool>(from: /storage/stakingEnabled)
-
+            FlowIDTableStaking.account.load<Bool>(from: /storage/stakingEnabled)
             FlowIDTableStaking.account.save(false, to: /storage/stakingEnabled)
         }
 
@@ -854,9 +845,9 @@ pub contract FlowIDTableStaking {
                 ?? panic("Invalid path for staking key dictionary")
 
             for nodeID in FlowIDTableStaking.nodes.keys {
-                claimedNetAddressDictionary[FlowIDTableStaking.nodes[nodeID]?.networkingAddress!]
-                claimedNetKeyDictionary[FlowIDTableStaking.nodes[nodeID]?.networkingKey!]
-                claimedStakingKeysDictionary[FlowIDTableStaking.nodes[nodeID]?.stakingKey!]
+                claimedNetAddressDictionary[FlowIDTableStaking.nodes[nodeID]?.networkingAddress!] = true
+                claimedNetKeyDictionary[FlowIDTableStaking.nodes[nodeID]?.networkingKey!] = true
+                claimedStakingKeysDictionary[FlowIDTableStaking.nodes[nodeID]?.stakingKey!] = true
             }
 
             FlowIDTableStaking.account.save(claimedNetAddressDictionary, to: /storage/networkingAddressesClaimed)
@@ -933,12 +924,7 @@ pub contract FlowIDTableStaking {
     }
 
     pub fun stakingEnabled(): Bool {
-        if let stakingEnabled = self.account.load<Bool>(from: /storage/stakingEnabled) {
-            self.account.save(stakingEnabled, to: /storage/stakingEnabled)
-            return stakingEnabled
-        } else {
-            return false
-        }
+        return self.account.copy<Bool>(from: /storage/stakingEnabled) ?? false
     }
 
     /// Gets an array of the node IDs that are proposed for the next epoch
@@ -1003,17 +989,9 @@ pub contract FlowIDTableStaking {
     }
 
     access(account) fun getClaimed(path: StoragePath, key: String): Bool {
-        let claimedDictionary = self.account.load<{String: Bool}>(from: path)
+		let claimedDictionary = self.account.borrow<&{String: Bool}>(from: path)
             ?? panic("Invalid path for dictionary")
-
-        var claimed = false
-        if claimedDictionary[key] != nil {
-            claimed = true
-        } else {
-            claimed = false
-        }
-        self.account.save(claimedDictionary, to: path)
-        return claimed
+        return claimedDictionary[key] ?? false
     }
 
     pub fun getMinimumStakeRequirements(): {UInt8: UFix64} {

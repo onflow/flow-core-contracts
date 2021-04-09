@@ -18,6 +18,7 @@ const (
 	changePayoutFilename          = "idTableStaking/admin/change_payout.cdc"
 	endEpochChangePayoutFilename  = "idTableStaking/admin/end_epoch_change_payout.cdc"
 	startStakingFilename          = "idTableStaking/admin/start_staking.cdc"
+	upgradeSetClaimedFilename     = "idTableStaking/admin/upgrade_set_claimed.cdc"
 
 	registerNodeFilename            = "idTableStaking/node/register_node.cdc"
 	stakeNewTokensFilename          = "idTableStaking/node/stake_new_tokens.cdc"
@@ -141,6 +142,14 @@ func GenerateChangePayoutScript(env Environment) []byte {
 // and then ends the epoch
 func GenerateEndEpochChangePayoutScript(env Environment) []byte {
 	code := assets.MustAssetString(endEpochChangePayoutFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+// GenerateUpgradeSetClaimedScript creates a script that upgrades the staking contract
+// then sets the new metadata claimed fields in the same TX
+func GenerateUpgradeSetClaimedScript(env Environment) []byte {
+	code := assets.MustAssetString(upgradeSetClaimedFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
