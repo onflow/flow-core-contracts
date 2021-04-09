@@ -10,24 +10,23 @@ import (
 )
 
 const (
-	placeholderFungibleTokenAddress       = "0xFUNGIBLETOKENADDRESS"
-	placeholderFlowTokenAddress           = "0xFLOWTOKENADDRESS"
-	placeholderIDTableAddress             = "0xIDENTITYTABLEADDRESS"
-	placeholderLockedTokensAddress        = "0xLOCKEDTOKENADDRESS"
-	placeholderStakingProxyAddress        = "0xSTAKINGPROXYADDRESS"
-	placeholderStorageFeesAddress         = "0xFLOWSTORAGEFEESADDRESS"
-	placeholderStakingCollectionAddress   = "0xSTAKINGCOLLECTIONADDRESS"
+	placeholderFungibleTokenAddress     = "0xFUNGIBLETOKENADDRESS"
+	placeholderFlowTokenAddress         = "0xFLOWTOKENADDRESS"
+	placeholderIDTableAddress           = "0xIDENTITYTABLEADDRESS"
+	placeholderLockedTokensAddress      = "0xLOCKEDTOKENADDRESS"
+	placeholderStakingProxyAddress      = "0xSTAKINGPROXYADDRESS"
+	placeholderStorageFeesAddress       = "0xFLOWSTORAGEFEESADDRESS"
+	placeholderStakingCollectionAddress = "0xSTAKINGCOLLECTIONADDRESS"
 )
 
 type Environment struct {
-	Network                    string
-	FungibleTokenAddress       string
-	FlowTokenAddress           string
-	IDTableAddress             string
-	LockedTokensAddress        string
-	StakingProxyAddress        string
-	StorageFeesAddress         string
-	StakingCollectionAddress   string
+	Network              string
+	FungibleTokenAddress string
+	FlowTokenAddress     string
+	IDTableAddress       string
+	LockedTokensAddress  string
+	StakingProxyAddress  string
+	StorageFeesAddress   string
 }
 
 func withHexPrefix(address string) string {
@@ -83,7 +82,7 @@ func replaceAddresses(code string, env Environment) string {
 	code = strings.ReplaceAll(
 		code,
 		placeholderStakingCollectionAddress,
-		withHexPrefix(env.StakingCollectionAddress),
+		withHexPrefix(env.LockedTokensAddress),
 	)
 
 	return code

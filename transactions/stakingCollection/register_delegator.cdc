@@ -1,15 +1,15 @@
-import StakingCollection from 0xSTAKINGCOLLECTION
+import FlowStakingCollection from 0xSTAKINGCOLLECTIONADDRESS
 
-transaction(id: String) {
+transaction(id: String, amount: UFix64) {
     
-    let stakingCollectionRef: &StakingCollection.Collection
+    let stakingCollectionRef: &FlowStakingCollection.StakingCollection
 
     prepare(account: AuthAccount) {
-        self.stakingCollectionRef = account.borrow<&StakingCollection.Collection>(from: StakingCollection.StakingCollectionStoragePath)
+        self.stakingCollectionRef = account.borrow<&FlowStakingCollection.StakingCollection>(from: FlowStakingCollection.StakingCollectionStoragePath)
             ?? panic("Could not borrow ref to StakingCollection")
     }
 
     execute {
-        stakingCollectionRef.registerDelegator(nodeId: id, amount: amount)       
+        self.stakingCollectionRef.registerDelegator(nodeID: id, amount: amount)      
     }
 }
