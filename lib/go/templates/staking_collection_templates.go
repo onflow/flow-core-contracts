@@ -23,6 +23,7 @@ const (
 	collectionUnstakeAllFilename             = "stakingCollection/unstake_all.cdc"
 	collectionWithdrawRewardedTokensFilename = "stakingCollection/withdraw_rewarded_tokens.cdc"
 	collectionWithdrawUnstakedTokensFilename = "stakingCollection/withdraw_unstaked_tokens.cdc"
+	collectionCloseStakeFilename			 = "stakingCollection/close_stake.cdc"
 
 	// scripts
 	collectionGetDoesStakeExistFilename     = "stakingCollection/scripts/get_does_stake_exist.cdc"
@@ -112,6 +113,12 @@ func GenerateCollectionWithdrawRewardedTokens(env Environment) []byte {
 
 func GenerateCollectionWithdrawUnstakedTokens(env Environment) []byte {
 	code := assets.MustAssetString(collectionWithdrawUnstakedTokensFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateCollectionCloseStake(env Environment) []byte {
+	code := assets.MustAssetString(collectionCloseStakeFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
