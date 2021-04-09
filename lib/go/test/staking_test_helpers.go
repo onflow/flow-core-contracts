@@ -196,6 +196,26 @@ func registerDelegator(t *testing.T,
 	)
 }
 
+func endStakingMoveTokens(t *testing.T,
+	b *emulator.Blockchain,
+	env templates.Environment,
+	authorizer flow.Address,
+	signer crypto.Signer,
+	nodeIDs []cadence.Value,
+) {
+	// End staking auction and epoch
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), authorizer)
+
+	err := tx.AddArgument(cadence.NewArray(nodeIDs))
+	require.NoError(t, err)
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, authorizer},
+		[]crypto.Signer{b.ServiceKey().Signer(), signer},
+		false,
+	)
+}
+
 func commitNewTokens(t *testing.T,
 	b *emulator.Blockchain,
 	env templates.Environment,

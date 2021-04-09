@@ -116,6 +116,7 @@
 // ../../../transactions/lockedTokens/user/withdraw_tokens.cdc (713B)
 // ../../../transactions/stakingCollection/add_delegator.cdc (587B)
 // ../../../transactions/stakingCollection/add_node.cdc (564B)
+// ../../../transactions/stakingCollection/close_stake.cdc (560B)
 // ../../../transactions/stakingCollection/deploy_collection_contract.cdc (169B)
 // ../../../transactions/stakingCollection/register_delegator.cdc (549B)
 // ../../../transactions/stakingCollection/register_node.cdc (721B)
@@ -2541,6 +2542,26 @@ func stakingcollectionAdd_nodeCdc() (*asset, error) {
 	return a, nil
 }
 
+var _stakingcollectionClose_stakeCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x8c\x51\x41\x6b\xb3\x40\x10\xbd\xfb\x2b\x86\x1c\x3e\x0c\x7c\x48\x69\x6f\xd2\x56\x44\xd3\x22\x0d\x49\xc9\xa6\x3f\x60\xbb\x8e\x46\xba\xd9\x91\x71\x24\x81\x92\xff\x5e\xd4\x26\x94\xe8\x21\x73\xd8\x65\x86\xd9\xf7\xde\xbe\x57\xed\x6b\x62\x81\x17\x4b\x07\x25\xfa\xab\x72\x65\x42\xd6\xa2\x91\x8a\x1c\x14\x4c\x7b\xb8\x3b\xaa\x6d\xfc\x96\xad\x5e\x93\xf5\x72\xb9\x48\xb6\xd9\x7a\x15\xa7\xe9\x66\xa1\x94\xe7\x09\x6b\xd7\xe8\x7e\xd9\x77\x94\x63\x96\x86\xa0\x84\x2b\x57\xfe\x87\x1c\x2d\x96\x5a\x88\xbb\xe1\x47\xe6\xe4\xe1\x3e\x9a\xc3\xb7\x07\x00\xd0\x1f\x16\x05\x9a\x6b\xce\x0d\x16\x21\xfc\x9b\x94\x13\x8c\x26\x5e\x8f\x53\x33\xd6\x9a\xd1\xd7\xc6\x50\xeb\x24\x84\xb8\x95\x5d\x3c\x34\x67\xc2\xae\x1a\xb4\x45\x30\x45\x08\x4f\xf0\xfb\x36\xf8\x24\x66\x3a\x3c\xde\x2a\xe0\xd9\xef\x2c\x0a\xa7\xed\x1b\xaf\x2b\x21\xd6\x25\xbe\x6b\xd9\xcd\x2f\xb2\xba\x8a\x22\xa8\xb5\xab\x8c\x3f\x4b\xa8\xb5\x39\x38\x12\x18\xa4\x00\x63\x01\x42\x30\xc2\x9a\x0d\x08\xa7\xc1\x03\x3c\xa2\x69\x05\x6f\xf9\x6d\x60\x2c\x35\xd8\xe1\xe1\x25\xb3\xe1\xbe\xca\xec\x4f\x73\xe6\x3a\x79\x3f\x01\x00\x00\xff\xff\x6d\x0b\x94\x15\x30\x02\x00\x00"
+
+func stakingcollectionClose_stakeCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_stakingcollectionClose_stakeCdc,
+		"stakingCollection/close_stake.cdc",
+	)
+}
+
+func stakingcollectionClose_stakeCdc() (*asset, error) {
+	bytes, err := stakingcollectionClose_stakeCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "stakingCollection/close_stake.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x2f, 0x4e, 0x85, 0x38, 0x55, 0xe7, 0xa3, 0xb3, 0xe7, 0x5e, 0x34, 0xd6, 0x9e, 0x47, 0xd, 0x32, 0x10, 0x97, 0x20, 0x46, 0x53, 0xd, 0x9a, 0x71, 0xf7, 0x10, 0xee, 0x52, 0xb4, 0x25, 0x67, 0xd0}}
+	return a, nil
+}
+
 var _stakingcollectionDeploy_collection_contractCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x4c\x8d\x31\x0a\xc3\x30\x0c\x45\x77\x9f\x42\xa3\x0d\xc5\x07\xc8\x96\xad\x53\x97\x9e\x40\x48\xa2\xf5\x10\x39\x28\x0a\x14\x8a\xef\x5e\x6c\x70\x89\x86\x2f\x84\x3e\xef\xb9\xa1\x1e\x48\x5e\xaa\x46\xaa\xea\x86\xe4\x0f\xdc\x64\x81\xa7\x5b\xd1\xd7\x0d\xa8\xf2\xff\x4a\xf0\x0d\x00\x00\x23\x76\x93\x1d\x4d\x22\xf2\x56\x74\x81\xf5\xf4\xf7\x4a\x54\x4f\xf5\x59\xeb\x33\xbe\x79\xa2\x8f\x8c\xcc\x51\x87\xe0\xaa\x9b\x9a\x9e\x99\xa5\xaf\xbb\x7c\x62\x4a\x83\xd3\x42\x0b\xbf\x00\x00\x00\xff\xff\xf4\xcc\x39\x83\xa9\x00\x00\x00"
 
 func stakingcollectionDeploy_collection_contractCdcBytes() ([]byte, error) {
@@ -3468,6 +3489,7 @@ var _bindata = map[string]func() (*asset, error){
 	"lockedTokens/user/withdraw_tokens.cdc":                                   lockedtokensUserWithdraw_tokensCdc,
 	"stakingCollection/add_delegator.cdc":                                     stakingcollectionAdd_delegatorCdc,
 	"stakingCollection/add_node.cdc":                                          stakingcollectionAdd_nodeCdc,
+	"stakingCollection/close_stake.cdc":                                       stakingcollectionClose_stakeCdc,
 	"stakingCollection/deploy_collection_contract.cdc":                        stakingcollectionDeploy_collection_contractCdc,
 	"stakingCollection/register_delegator.cdc":                                stakingcollectionRegister_delegatorCdc,
 	"stakingCollection/register_node.cdc":                                     stakingcollectionRegister_nodeCdc,
@@ -3693,6 +3715,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	"stakingCollection": {nil, map[string]*bintree{
 		"add_delegator.cdc": {stakingcollectionAdd_delegatorCdc, map[string]*bintree{}},
 		"add_node.cdc": {stakingcollectionAdd_nodeCdc, map[string]*bintree{}},
+		"close_stake.cdc": {stakingcollectionClose_stakeCdc, map[string]*bintree{}},
 		"deploy_collection_contract.cdc": {stakingcollectionDeploy_collection_contractCdc, map[string]*bintree{}},
 		"register_delegator.cdc": {stakingcollectionRegister_delegatorCdc, map[string]*bintree{}},
 		"register_node.cdc": {stakingcollectionRegister_nodeCdc, map[string]*bintree{}},
