@@ -299,7 +299,7 @@ pub contract FlowIDTableStaking {
         }
     }
 
-    /// Read-only nfo about a delegator
+    /// Read-only info about a delegator
     pub struct DelegatorInfo {
         pub let id: UInt32
         pub let nodeID: String
