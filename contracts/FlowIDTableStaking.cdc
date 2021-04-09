@@ -645,17 +645,25 @@ pub contract FlowIDTableStaking {
             FlowIDTableStaking.stakingEnabled = true
         }
 
+        /// Ends the staking Auction by removing any unapproved nodes
+        /// and setting stakingEnabled to false
+        pub fun endStakingAuction(approvedNodeIDs: {String: Bool}) {
+            pre {
+                FlowIDTableStaking.stakingEnabled: "Cannot end the staking auction if it is not currently in progress"
+            }
+
+            self.removeUnapprovedNodes(approvedNodeIDs: approvedNodeIDs)
+
+            FlowIDTableStaking.stakingEnabled = false
+        }
+
         /// Iterates through all the registered nodes and if it finds
         /// a node that has insufficient tokens committed for the next epoch
         /// it moves their committed tokens to their unstaked bucket
         ///
         /// Parameter: approvedNodeIDs: A list of nodeIDs that have been approved
         /// by the protocol to be a staker for the next epoch.
-        pub fun endStakingAuction(approvedNodeIDs: {String: Bool}) {
-            pre {
-                FlowIDTableStaking.stakingEnabled: "Cannot end the staking auction if it is not currently in progress"
-            }
-
+        pub fun removeUnapprovedNodes(approvedNodeIDs: {String: Bool}) {
             let allNodeIDs = FlowIDTableStaking.getNodeIDs()
 
             /// remove nodes that have insufficient stake
@@ -698,12 +706,11 @@ pub contract FlowIDTableStaking {
 
                 } else {
                     /// Set initial weight of all the committed nodes
-                    /// TODO: Figure out how to calculate the initial weight for each node
+                    /// TODO: Actual initial weight calculation will come at a later date
                     nodeRecord.initialWeight = 100
                     nodeRecord.dynamicWeight = 100
                 }
             }
-            FlowIDTableStaking.stakingEnabled = false
         }
 
         /// Called at the end of the epoch to pay rewards to node operators

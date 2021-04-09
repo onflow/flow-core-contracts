@@ -7,16 +7,17 @@ import (
 const (
 	transferDeployFilename = "idTableStaking/admin/transfer_minter_deploy.cdc"
 
-	removeNodeFilename           = "idTableStaking/admin/remove_node.cdc"
-	endStakingFilename           = "idTableStaking/admin/end_staking.cdc"
-	payRewardsFilename           = "idTableStaking/admin/pay_rewards.cdc"
-	moveTokensFilename           = "idTableStaking/admin/move_tokens.cdc"
-	endEpochFilename             = "idTableStaking/admin/end_epoch.cdc"
-	changeMinimumsFilename       = "idTableStaking/admin/change_minimums.cdc"
-	changeCutFilename            = "idTableStaking/admin/change_cut.cdc"
-	changePayoutFilename         = "idTableStaking/admin/change_payout.cdc"
-	endEpochChangePayoutFilename = "idTableStaking/admin/end_epoch_change_payout.cdc"
-	startStakingFilename         = "idTableStaking/admin/start_staking.cdc"
+	removeNodeFilename            = "idTableStaking/admin/remove_node.cdc"
+	endStakingFilename            = "idTableStaking/admin/end_staking.cdc"
+	removeUnapprovedNodesFilename = "idTableStaking/admin/remove_unapproved_nodes.cdc"
+	payRewardsFilename            = "idTableStaking/admin/pay_rewards.cdc"
+	moveTokensFilename            = "idTableStaking/admin/move_tokens.cdc"
+	endEpochFilename              = "idTableStaking/admin/end_epoch.cdc"
+	changeMinimumsFilename        = "idTableStaking/admin/change_minimums.cdc"
+	changeCutFilename             = "idTableStaking/admin/change_cut.cdc"
+	changePayoutFilename          = "idTableStaking/admin/change_payout.cdc"
+	endEpochChangePayoutFilename  = "idTableStaking/admin/end_epoch_change_payout.cdc"
+	startStakingFilename          = "idTableStaking/admin/start_staking.cdc"
 
 	registerNodeFilename            = "idTableStaking/node/register_node.cdc"
 	stakeNewTokensFilename          = "idTableStaking/node/stake_new_tokens.cdc"
@@ -85,6 +86,12 @@ func GenerateStartStakingScript(env Environment) []byte {
 // GenerateEndStakingScript creates a script that ends the staking auction
 func GenerateEndStakingScript(env Environment) []byte {
 	code := assets.MustAssetString(endStakingFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateRemoveUnapprovedNodesScript(env Environment) []byte {
+	code := assets.MustAssetString(removeUnapprovedNodesFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
