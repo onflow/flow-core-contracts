@@ -219,12 +219,6 @@ pub contract FlowIDTableStaking {
         pub let tokensRequestedToUnstake: UFix64
         pub let initialWeight: UInt64
 
-        /// Derived Fields
-        pub let totalCommittedWithDelegators: UFix64
-        pub let totalCommittedWithoutDelegators: UFix64
-        pub let totalStakedWithDelegators: UFix64
-        pub let totalTokensInRecord: UFix64
-
         init(nodeID: String) {
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
 
@@ -242,25 +236,36 @@ pub contract FlowIDTableStaking {
             self.delegatorIDCounter = nodeRecord.delegatorIDCounter
             self.tokensRequestedToUnstake = nodeRecord.tokensRequestedToUnstake
             self.initialWeight = nodeRecord.initialWeight
+        }
 
-            self.totalCommittedWithoutDelegators = nodeRecord.nodeFullCommittedBalance()
-            var committedSum = self.totalCommittedWithoutDelegators
-            var stakedSum = self.tokensStaked
-
+        /// Derived Fields
+        pub fun totalCommittedWithDelegators(): UFix64 {
+            let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
+            var committedSum = self.totalCommittedWithoutDelegators()
             for delegator in self.delegators {
                 let delRecord = nodeRecord.borrowDelegatorRecord(delegator)
                 committedSum = committedSum + delRecord.delegatorFullCommittedBalance()
+            }
+            return committedSum
+        }
+
+        pub fun totalCommittedWithoutDelegators(): UFix64 {
+            let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
+            return nodeRecord.nodeFullCommittedBalance()
+        }
+
+        pub fun totalStakedWithDelegators(): UFix64 {
+            let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
+            var stakedSum = self.tokensStaked
+            for delegator in self.delegators {
+                let delRecord = nodeRecord.borrowDelegatorRecord(delegator)
                 stakedSum = stakedSum + delRecord.tokensStaked.balance
             }
-            self.totalCommittedWithDelegators = committedSum
+            return stakedSum
+        }
 
-            self.totalStakedWithDelegators = stakedSum
-
-            self.totalTokensInRecord = self.tokensStaked
-                                       + self.tokensCommitted
-                                       + self.tokensUnstaking
-                                       + self.tokensUnstaked
-                                       + self.tokensRewarded
+        pub fun totalTokensInRecord(): UFix64 {
+            return self.tokensStaked + self.tokensCommitted + self.tokensUnstaking + self.tokensUnstaked + self.tokensRewarded
         }
     }
 
@@ -310,8 +315,6 @@ pub contract FlowIDTableStaking {
         pub let tokensUnstaked: UFix64
         pub let tokensRequestedToUnstake: UFix64
 
-        pub let totalTokensInRecord: UFix64
-
         init(nodeID: String, delegatorID: UInt32) {
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
 
@@ -325,12 +328,10 @@ pub contract FlowIDTableStaking {
             self.tokensUnstaked = delegatorRecord.tokensUnstaked.balance
             self.tokensRewarded = delegatorRecord.tokensRewarded.balance
             self.tokensRequestedToUnstake = delegatorRecord.tokensRequestedToUnstake
+        }
 
-            self.totalTokensInRecord = self.tokensStaked
-                   + self.tokensCommitted
-                   + self.tokensUnstaking
-                   + self.tokensUnstaked
-                   + self.tokensRewarded
+        pub fun totalTokensInRecord(): UFix64 {
+            return self.tokensStaked + self.tokensCommitted + self.tokensUnstaking + self.tokensUnstaked + self.tokensRewarded
         }
     }
 
@@ -413,7 +414,7 @@ pub contract FlowIDTableStaking {
 
             assert (
                 nodeRecord.delegators.length == 0 ||
-                FlowIDTableStaking.isGreaterThanMinimumForRole(numTokens: FlowIDTableStaking.NodeInfo(nodeID: nodeRecord.id).totalCommittedWithoutDelegators - amount, role: nodeRecord.role),
+                FlowIDTableStaking.isGreaterThanMinimumForRole(numTokens: FlowIDTableStaking.NodeInfo(nodeID: nodeRecord.id).totalCommittedWithoutDelegators() - amount, role: nodeRecord.role),
                 message: "Cannot unstake below the minimum if there are delegators"
             )
 
@@ -938,7 +939,7 @@ pub contract FlowIDTableStaking {
 
             // To be considered proposed, a node has to have tokens staked + committed equal or above the minimum
             // Access nodes have a minimum of 0, so they need to be strictly greater than zero to be considered proposed
-            if self.isGreaterThanMinimumForRole(numTokens: self.NodeInfo(nodeID: nodeRecord.id).totalCommittedWithoutDelegators, role: nodeRecord.role)
+            if self.isGreaterThanMinimumForRole(numTokens: self.NodeInfo(nodeID: nodeRecord.id).totalCommittedWithoutDelegators(), role: nodeRecord.role)
             {
                 proposedNodes.append(nodeID)
             }
