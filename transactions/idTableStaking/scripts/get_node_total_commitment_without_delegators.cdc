@@ -4,5 +4,5 @@ import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
 
 pub fun main(nodeID: String): UFix64 {
     let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeID)
-    return nodeInfo.totalCommittedWithoutDelegators
+    return nodeInfo.totalCommittedWithoutDelegators()
 }
