@@ -1,5 +1,7 @@
 import FlowStakingCollection from 0xSTAKINGCOLLECTIONADDRESS
 
+/// Requests to unstake ALL tokens for the specified node or delegator in the staking collection
+
 transaction(nodeID: String) {
     
     let stakingCollectionRef: &FlowStakingCollection.StakingCollection

@@ -3,6 +3,8 @@ import FlowToken from 0xFLOWTOKENADDRESS
 import FungibleToken from 0xFUNGIBLETOKENADDRESS
 import LockedTokens from 0xLOCKEDTOKENADDRESS
 
+// Used only for test purposes to test the get tokens function in the staking collection
+
 transaction(amount: UFix64) {
 
     prepare(signer: AuthAccount) {

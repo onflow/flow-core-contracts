@@ -180,7 +180,8 @@ func FlowStakingCollection(
 	flowTokenAddress,
 	idTableAddress,
 	stakingProxyAddress,
-	lockedTokensAddress string,
+	lockedTokensAddress,
+	storageFeesAddress string,
 ) []byte {
 	code := assets.MustAssetString(flowStakingCollectionFilename)
 
@@ -189,6 +190,7 @@ func FlowStakingCollection(
 	code = strings.ReplaceAll(code, placeholderIDTableAddress, withHexPrefix(idTableAddress))
 	code = strings.ReplaceAll(code, placeholderStakingProxyAddress, withHexPrefix(stakingProxyAddress))
 	code = strings.ReplaceAll(code, placeholderLockedTokensAddress, withHexPrefix(lockedTokensAddress))
+	code = strings.ReplaceAll(code, placeholderStorageFeesAddress, withHexPrefix(storageFeesAddress))
 
 	return []byte(code)
 }
@@ -199,7 +201,8 @@ func TESTFlowStakingCollection(
 	flowTokenAddress,
 	idTableAddress,
 	stakingProxyAddress,
-	lockedTokensAddress string,
+	lockedTokensAddress,
+	storageFeesAddress string,
 ) []byte {
 	code := assets.MustAssetString(flowStakingCollectionFilename)
 
@@ -208,6 +211,7 @@ func TESTFlowStakingCollection(
 	code = strings.ReplaceAll(code, placeholderIDTableAddress, withHexPrefix(idTableAddress))
 	code = strings.ReplaceAll(code, placeholderStakingProxyAddress, withHexPrefix(stakingProxyAddress))
 	code = strings.ReplaceAll(code, placeholderLockedTokensAddress, withHexPrefix(lockedTokensAddress))
+	code = strings.ReplaceAll(code, placeholderStorageFeesAddress, withHexPrefix(storageFeesAddress))
 
 	code = strings.ReplaceAll(code, "access(self)", "pub")
 

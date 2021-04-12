@@ -1,6 +1,14 @@
 import FlowStakingCollection from 0xSTAKINGCOLLECTIONADDRESS
 
-transaction(id: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String, amount: UFix64) {
+/// Registers a delegator in the staking collection resource
+/// for the specified node information and the amount of tokens to commit
+
+transaction(id: String,
+            role: UInt8,
+            networkingAddress: String,
+            networkingKey: String,
+            stakingKey: String,
+            amount: UFix64) {
     
     let stakingCollectionRef: &FlowStakingCollection.StakingCollection
 
@@ -10,6 +18,12 @@ transaction(id: String, role: UInt8, networkingAddress: String, networkingKey: S
     }
 
     execute {
-        self.stakingCollectionRef.registerNode(id: id, role: role, networkingAddress: networkingAddress, networkingKey: networkingKey, stakingKey: stakingKey, amount: amount)
+        self.stakingCollectionRef.registerNode(
+            id: id,
+            role: role,
+            networkingAddress: networkingAddress,
+            networkingKey: networkingKey,
+            stakingKey: stakingKey,
+            amount: amount)
     }
 }
