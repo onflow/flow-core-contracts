@@ -1,5 +1,7 @@
 import FlowStakingCollection from 0xSTAKINGCOLLECTIONADDRESS
 
+/// Commits rewarded tokens to stake for the specified node or delegator in the staking collection
+
 transaction(nodeID: String, delegatorID: UInt32?, amount: UFix64) {
     
     let stakingCollectionRef: &FlowStakingCollection.StakingCollection
