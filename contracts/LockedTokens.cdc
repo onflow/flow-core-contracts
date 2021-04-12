@@ -186,7 +186,7 @@ pub contract LockedTokens {
                 let stakingInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeStaker.id)
 
                 assert(
-                    stakingInfo.tokensStaked + stakingInfo.totalTokensStaked + stakingInfo.tokensCommitted + stakingInfo.tokensUnstaking + stakingInfo.tokensUnstaked + stakingInfo.tokensRewarded == 0.0,
+                    stakingInfo.tokensStaked + stakingInfo.tokensCommitted + stakingInfo.tokensUnstaking + stakingInfo.tokensUnstaked + stakingInfo.tokensRewarded == 0.0,
                     message: "Cannot register a new node until all tokens from the previous node have been withdrawn"
                 )
 

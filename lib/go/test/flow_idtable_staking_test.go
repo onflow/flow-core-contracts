@@ -1617,7 +1617,10 @@ func TestIDTableStaking(t *testing.T) {
 	// Move tokens. make sure josh delegators unstaking tokens are moved into their unstaked bucket
 	t.Run("Should Move tokens between buckets", func(t *testing.T) {
 
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateMoveTokensScript(env), idTableAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), idTableAddress)
+
+		err := tx.AddArgument(cadence.NewArray([]cadence.Value{cadence.NewString(adminID), cadence.NewString(joshID), cadence.NewString(maxID)}))
+		require.NoError(t, err)
 
 		signAndSubmit(
 			t, b, tx,

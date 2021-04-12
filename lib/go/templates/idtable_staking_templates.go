@@ -7,15 +7,18 @@ import (
 const (
 	transferDeployFilename = "idTableStaking/admin/transfer_minter_deploy.cdc"
 
-	removeNodeFilename           = "idTableStaking/admin/remove_node.cdc"
-	endStakingFilename           = "idTableStaking/admin/end_staking.cdc"
-	payRewardsFilename           = "idTableStaking/admin/pay_rewards.cdc"
-	moveTokensFilename           = "idTableStaking/admin/move_tokens.cdc"
-	endEpochFilename             = "idTableStaking/admin/end_epoch.cdc"
-	changeMinimumsFilename       = "idTableStaking/admin/change_minimums.cdc"
-	changeCutFilename            = "idTableStaking/admin/change_cut.cdc"
-	changePayoutFilename         = "idTableStaking/admin/change_payout.cdc"
-	endEpochChangePayoutFilename = "idTableStaking/admin/end_epoch_change_payout.cdc"
+	removeNodeFilename            = "idTableStaking/admin/remove_node.cdc"
+	endStakingFilename            = "idTableStaking/admin/end_staking.cdc"
+	removeUnapprovedNodesFilename = "idTableStaking/admin/remove_unapproved_nodes.cdc"
+	payRewardsFilename            = "idTableStaking/admin/pay_rewards.cdc"
+	moveTokensFilename            = "idTableStaking/admin/move_tokens.cdc"
+	endEpochFilename              = "idTableStaking/admin/end_epoch.cdc"
+	changeMinimumsFilename        = "idTableStaking/admin/change_minimums.cdc"
+	changeCutFilename             = "idTableStaking/admin/change_cut.cdc"
+	changePayoutFilename          = "idTableStaking/admin/change_payout.cdc"
+	endEpochChangePayoutFilename  = "idTableStaking/admin/end_epoch_change_payout.cdc"
+	startStakingFilename          = "idTableStaking/admin/start_staking.cdc"
+	upgradeSetClaimedFilename     = "idTableStaking/admin/upgrade_set_claimed.cdc"
 
 	registerNodeFilename            = "idTableStaking/node/register_node.cdc"
 	stakeNewTokensFilename          = "idTableStaking/node/stake_new_tokens.cdc"
@@ -74,9 +77,22 @@ func GenerateRemoveNodeScript(env Environment) []byte {
 	return []byte(replaceAddresses(code, env))
 }
 
+// GenerateStartStakingScript creates a script that starts the staking auction
+func GenerateStartStakingScript(env Environment) []byte {
+	code := assets.MustAssetString(startStakingFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
 // GenerateEndStakingScript creates a script that ends the staking auction
 func GenerateEndStakingScript(env Environment) []byte {
 	code := assets.MustAssetString(endStakingFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateRemoveUnapprovedNodesScript(env Environment) []byte {
+	code := assets.MustAssetString(removeUnapprovedNodesFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -126,6 +142,14 @@ func GenerateChangePayoutScript(env Environment) []byte {
 // and then ends the epoch
 func GenerateEndEpochChangePayoutScript(env Environment) []byte {
 	code := assets.MustAssetString(endEpochChangePayoutFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+// GenerateUpgradeSetClaimedScript creates a script that upgrades the staking contract
+// then sets the new metadata claimed fields in the same TX
+func GenerateUpgradeSetClaimedScript(env Environment) []byte {
+	code := assets.MustAssetString(upgradeSetClaimedFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
