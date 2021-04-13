@@ -1758,3 +1758,32 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 	})
 
 }
+
+
+func TestStakingCollectionCheck(t *testing.T) {
+
+	b, accountKeys, env := newTestSetup(t)
+	_ = deployAllCollectionContracts(t, b, accountKeys, &env)
+
+	t.Run("Should fail because account was not created with staking collection", func(t *testing.T) {
+		joshAddress, _, _ := createLockedAccountPairWithBalances(
+			t, b,
+			accountKeys,
+			env,
+			"1000000.0", "1000000.0")
+
+		result := executeScriptAndCheck(t, b, templates.GenerateCollectionCheck(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
+		assertEqual(t, cadence.NewBool(false), result)
+	})
+
+	t.Run("Should fail because account was not created with staking collection", func(t *testing.T) {
+		joshAddress, _, _, _, _ := registerStakingCollectionNodesAndDelegators(
+			t, b,
+			accountKeys,
+			env,
+			"1000000.0", "1000000.0")
+
+		result := executeScriptAndCheck(t, b, templates.GenerateCollectionCheck(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
+		assertEqual(t, cadence.NewBool(true), result)
+	})
+}

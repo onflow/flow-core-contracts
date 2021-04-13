@@ -33,6 +33,7 @@ const (
 	collectionGetAllDelegatorInfo           = "stakingCollection/scripts/get_all_delegator_info.cdc"
 	collectionGetLockedTokensUsedFilename   = "stakingCollection/scripts/get_locked_tokens_used.cdc"
 	collectionGetUnlockedTokensUsedFilename = "stakingCollection/scripts/get_unlocked_tokens_used.cdc"
+	collectionCheckFilename  				= "stakingCollection/scripts/check_staking_collection.cdc"
 
 	// tests
 	getCollectionTokensFilename     = "stakingCollection/test/get_tokens.cdc"
@@ -163,6 +164,12 @@ func GenerateCollectionGetUnlockedTokensUsedScript(env Environment) []byte {
 
 func GenerateCollectionGetLockedTokensUsedScript(env Environment) []byte {
 	code := assets.MustAssetString(collectionGetLockedTokensUsedFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateCollectionCheck(env Environment) []byte {
+	code := assets.MustAssetString(collectionCheckFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
