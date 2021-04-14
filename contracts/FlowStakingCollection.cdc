@@ -762,7 +762,7 @@ pub contract FlowStakingCollection {
         return stakingCollectionRef.getAllDelegatorInfo()
     }
 
-    /// Checks if an account is set up with a Staking Collection
+    /// Determines if an account is set up with a Staking Collection
     pub fun doesAccountHaveStakingCollection(address: Address): Bool {
         let account = getAccount(address)
 
