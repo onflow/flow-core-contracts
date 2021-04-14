@@ -763,9 +763,9 @@ pub contract FlowStakingCollection {
     }
 
     /// Checks if an account is set up with a Staking Collection
-    pub fun checkStakingCollection(address: Address): Bool {
+    pub fun doesAccountHaveStakingCollection(address: Address): Bool {
         let account = getAccount(address)
-        
+
         return account.getCapability<&StakingCollection{StakingCollectionPublic}>(self.StakingCollectionPublicPath).check()
     }
 

@@ -26,14 +26,14 @@ const (
 	collectionCloseStakeFilename			 = "stakingCollection/close_stake.cdc"
 
 	// scripts
-	collectionGetDoesStakeExistFilename     = "stakingCollection/scripts/get_does_stake_exist.cdc"
-	collectionGetNodeIDs                    = "stakingCollection/scripts/get_node_ids.cdc"
-	collectionGetDelegatorIDs               = "stakingCollection/scripts/get_delegator_ids.cdc"
-	collectionGetAllNodeInfo                = "stakingCollection/scripts/get_all_node_info.cdc"
-	collectionGetAllDelegatorInfo           = "stakingCollection/scripts/get_all_delegator_info.cdc"
-	collectionGetLockedTokensUsedFilename   = "stakingCollection/scripts/get_locked_tokens_used.cdc"
-	collectionGetUnlockedTokensUsedFilename = "stakingCollection/scripts/get_unlocked_tokens_used.cdc"
-	collectionCheckFilename  				= "stakingCollection/scripts/check_staking_collection.cdc"
+	collectionGetDoesStakeExistFilename     			= "stakingCollection/scripts/get_does_stake_exist.cdc"
+	collectionGetNodeIDs                    			= "stakingCollection/scripts/get_node_ids.cdc"
+	collectionGetDelegatorIDs               			= "stakingCollection/scripts/get_delegator_ids.cdc"
+	collectionGetAllNodeInfo                			= "stakingCollection/scripts/get_all_node_info.cdc"
+	collectionGetAllDelegatorInfo           			= "stakingCollection/scripts/get_all_delegator_info.cdc"
+	collectionGetLockedTokensUsedFilename   			= "stakingCollection/scripts/get_locked_tokens_used.cdc"
+	collectionGetUnlockedTokensUsedFilename 			= "stakingCollection/scripts/get_unlocked_tokens_used.cdc"
+	collectionDoesAccountHaveStakingCollectionFilename  = "stakingCollection/scripts/does_account_have_staking_collection.cdc"
 
 	// tests
 	getCollectionTokensFilename     = "stakingCollection/test/get_tokens.cdc"
@@ -168,8 +168,8 @@ func GenerateCollectionGetLockedTokensUsedScript(env Environment) []byte {
 	return []byte(replaceAddresses(code, env))
 }
 
-func GenerateCollectionCheck(env Environment) []byte {
-	code := assets.MustAssetString(collectionCheckFilename)
+func GenerateCollectionDoesAccountHaveStakingCollection(env Environment) []byte {
+	code := assets.MustAssetString(collectionDoesAccountHaveStakingCollectionFilename)
 
 	return []byte(replaceAddresses(code, env))
 }

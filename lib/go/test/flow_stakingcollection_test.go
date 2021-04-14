@@ -1760,7 +1760,7 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 }
 
 
-func TestStakingCollectionCheck(t *testing.T) {
+func TestDoesAccountHaveStakingCollection(t *testing.T) {
 
 	b, accountKeys, env := newTestSetup(t)
 	_ = deployAllCollectionContracts(t, b, accountKeys, &env)
@@ -1772,7 +1772,7 @@ func TestStakingCollectionCheck(t *testing.T) {
 			env,
 			"1000000.0", "1000000.0")
 
-		result := executeScriptAndCheck(t, b, templates.GenerateCollectionCheck(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
+		result := executeScriptAndCheck(t, b, templates.GenerateCollectionDoesAccountHaveStakingCollection(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
 		assertEqual(t, cadence.NewBool(false), result)
 	})
 
@@ -1783,7 +1783,7 @@ func TestStakingCollectionCheck(t *testing.T) {
 			env,
 			"1000000.0", "1000000.0")
 
-		result := executeScriptAndCheck(t, b, templates.GenerateCollectionCheck(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
+		result := executeScriptAndCheck(t, b, templates.GenerateCollectionDoesAccountHaveStakingCollection(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
 		assertEqual(t, cadence.NewBool(true), result)
 	})
 }
