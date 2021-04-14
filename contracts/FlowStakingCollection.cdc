@@ -762,6 +762,13 @@ pub contract FlowStakingCollection {
         return stakingCollectionRef.getAllDelegatorInfo()
     }
 
+    /// Determines if an account is set up with a Staking Collection
+    pub fun doesAccountHaveStakingCollection(address: Address): Bool {
+        let account = getAccount(address)
+
+        return account.getCapability<&StakingCollection{StakingCollectionPublic}>(self.StakingCollectionPublicPath).check()
+    }
+
     /// Creates a brand new empty staking collection resource and returns it to the caller
     pub fun createStakingCollection(unlockedVault: Capability<&FlowToken.Vault>, tokenHolder: Capability<&LockedTokens.TokenHolder>?): @StakingCollection {
         return <- create StakingCollection(unlockedVault: unlockedVault, tokenHolder: tokenHolder)
