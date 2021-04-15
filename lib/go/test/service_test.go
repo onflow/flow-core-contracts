@@ -77,7 +77,10 @@ func TestContracts(t *testing.T) {
 		)
 	})
 
-	result := executeScriptAndCheck(t, b, templates.GenerateGetStorageFeeConversionScript(env), nil)
+	result := executeScriptAndCheck(t, b, templates.GenerateGetAccountUsableBalanceFilenameScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(storageFeesAddress))})
+	assertEqual(t, CadenceUFix64("0.0"), result)
+
+	result = executeScriptAndCheck(t, b, templates.GenerateGetStorageFeeConversionScript(env), nil)
 	assertEqual(t, CadenceUFix64("2.0"), result)
 
 	result = executeScriptAndCheck(t, b, templates.GenerateGetStorageFeeMinimumScript(env), nil)
