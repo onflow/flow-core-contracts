@@ -833,14 +833,9 @@ pub contract FlowIDTableStaking {
 
         pub fun setClaimed() {
 
-            let claimedNetAddressDictionary = FlowIDTableStaking.account.load<{String: Bool}>(from: /storage/networkingAddressesClaimed)
-                ?? panic("Invalid path for networking address dictionary")
-
-            let claimedNetKeyDictionary = FlowIDTableStaking.account.load<{String: Bool}>(from: /storage/networkingKeysClaimed)
-                ?? panic("Invalid path for networking key dictionary")
-
-            let claimedStakingKeysDictionary = FlowIDTableStaking.account.load<{String: Bool}>(from: /storage/stakingKeysClaimed)
-                ?? panic("Invalid path for staking key dictionary")
+            let claimedNetAddressDictionary: {String: Bool} = {}
+            let claimedNetKeyDictionary: {String: Bool} = {}
+            let claimedStakingKeysDictionary: {String: Bool} = {}
 
             for nodeID in FlowIDTableStaking.nodes.keys {
                 claimedNetAddressDictionary[FlowIDTableStaking.nodes[nodeID]?.networkingAddress!] = true
