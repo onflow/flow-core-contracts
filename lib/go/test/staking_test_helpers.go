@@ -1,6 +1,7 @@
 package test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -21,12 +22,9 @@ const (
 	emulatorFlowTokenAddress = "0ae53cb6e3f42a79"
 )
 
-func deployStakingContract(t *testing.T,
-	b *emulator.Blockchain,
-	IDTableAccountKey *flow.AccountKey,
-	env templates.Environment) flow.Address {
+func deployStakingContract(t *testing.T, b *emulator.Blockchain, IDTableAccountKey *flow.AccountKey, env templates.Environment, latest bool) flow.Address {
 
-	IDTableCode := contracts.FlowIDTableStaking(emulatorFTAddress, emulatorFlowTokenAddress)
+	IDTableCode := contracts.FlowIDTableStaking(emulatorFTAddress, emulatorFlowTokenAddress, latest)
 
 	publicKeys := make([]cadence.Value, 1)
 
@@ -130,7 +128,24 @@ func verifyStakingInfo(t *testing.T,
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorRewardsScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(expectedStakingInfo.nodeID)), jsoncdc.MustEncode(cadence.UInt32(expectedStakingInfo.delegatorID))})
 		assertEqual(t, CadenceUFix64(expectedStakingInfo.tokensRewarded), result)
 	}
+}
 
+func generateNodeIDs(numNodes int) ([]string, []cadence.Value, []cadence.Value) {
+	ids := make([]string, numNodes)
+	qcIDs := make([]cadence.Value, numNodes/5+1)
+	dkgIDs := make([]cadence.Value, numNodes/5+1)
+
+	for i := 0; i < numNodes; i++ {
+		ids[i] = fmt.Sprintf("%064d", i)
+
+		if i == 0 {
+			qcIDs[i/5] = cadence.NewString(ids[i])
+		} else if i == 1 {
+			dkgIDs[i/5] = cadence.NewString(ids[i])
+		}
+	}
+
+	return ids, qcIDs, dkgIDs
 }
 
 func registerNode(t *testing.T,
@@ -216,6 +231,43 @@ func endStakingMoveTokens(t *testing.T,
 	)
 }
 
+/// Registers the specified number of nodes for staking with the specified IDs
+/// Does an even distrubution of node roles
+func registerNodesForStaking(
+	t *testing.T,
+	b *emulator.Blockchain,
+	env templates.Environment,
+	authorizers []flow.Address,
+	signers []crypto.Signer,
+	ids []string) {
+
+	if len(authorizers) != len(signers) ||
+		len(authorizers) != len(ids) {
+		t.Fail()
+	}
+
+	var amountToCommit interpreter.UFix64Value = 135000000000000
+	var committed interpreter.UFix64Value = 0
+
+	i := 0
+	for _, authorizer := range authorizers {
+
+		registerNode(t, b, env,
+			authorizer,
+			signers[i],
+			ids[i],
+			fmt.Sprintf("%0128d", i),
+			fmt.Sprintf("%0128d", i),
+			fmt.Sprintf("%0192d", i),
+			amountToCommit,
+			committed,
+			uint8((i%5)+1),
+			false)
+
+		i++
+	}
+}
+
 func commitNewTokens(t *testing.T,
 	b *emulator.Blockchain,
 	env templates.Environment,
@@ -245,6 +297,8 @@ func commitNewTokens(t *testing.T,
 
 	if !shouldFail {
 		newTokensCommitted = tokensCommitted.Plus(amount).(interpreter.UFix64Value)
+	} else {
+		newTokensCommitted = tokensCommitted
 	}
 
 	return
@@ -281,6 +335,9 @@ func commitUnstaked(t *testing.T,
 	if !shouldFail {
 		newTokensCommitted = tokensCommitted.Plus(amount).(interpreter.UFix64Value)
 		newTokensUnstaked = tokensUnstaked.Minus(amount).(interpreter.UFix64Value)
+	} else {
+		newTokensCommitted = tokensCommitted
+		newTokensUnstaked = tokensUnstaked
 	}
 
 	return
@@ -316,6 +373,9 @@ func commitRewarded(t *testing.T,
 	if !shouldFail {
 		newTokensRewarded = tokensRewarded.Minus(amount).(interpreter.UFix64Value)
 		newTokensCommitted = tokensCommitted.Plus(amount).(interpreter.UFix64Value)
+	} else {
+		newTokensRewarded = tokensRewarded
+		newTokensCommitted = tokensCommitted
 	}
 
 	return
@@ -358,6 +418,10 @@ func requestUnstaking(t *testing.T,
 			newTokensUnstaked = tokensUnstaked.Plus(tokensCommitted).(interpreter.UFix64Value)
 			newTokensCommitted = 0
 		}
+	} else {
+		newRequest = request
+		newTokensUnstaked = tokensUnstaked
+		newTokensCommitted = tokensCommitted
 	}
 
 	return

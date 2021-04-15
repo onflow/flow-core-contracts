@@ -44,7 +44,7 @@ func TestManyNodesIDTable(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	IDTableCode := contracts.FlowIDTableStaking(emulatorFTAddress, emulatorFlowTokenAddress)
+	IDTableCode := contracts.FlowIDTableStaking(emulatorFTAddress, emulatorFlowTokenAddress, true)
 
 	publicKeys := []cadence.Value{
 		bytesToCadenceArray(IDTableAccountKey.Encode()),
@@ -133,6 +133,23 @@ func TestManyNodesIDTable(t *testing.T) {
 			t, b, tx,
 			[]flow.Address{b.ServiceKey().Address},
 			[]crypto.Signer{b.ServiceKey().Signer()},
+			false,
+		)
+	})
+
+	t.Run("Should be able to enable the staking auction", func(t *testing.T) {
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GenerateStartStakingScript(env)).
+			SetGasLimit(9999).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(idTableAddress)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
 			false,
 		)
 	})
@@ -308,7 +325,7 @@ func TestManyNodesIDTable(t *testing.T) {
 
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateEndStakingScript(env)).
-			SetGasLimit(150000).
+			SetGasLimit(200000).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(idTableAddress)
@@ -394,8 +411,8 @@ func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
 	accountKeys := test.AccountKeyGenerator()
 
 	// Create new keys for the ID table account
-	IDTableAccountKey, _ := accountKeys.NewWithSigner()
-	IDTableCode := contracts.FlowIDTableStaking(emulatorFTAddress, emulatorFlowTokenAddress)
+	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
+	IDTableCode := contracts.FlowIDTableStaking(emulatorFTAddress, emulatorFlowTokenAddress, true)
 
 	publicKeys := make([]cadence.Value, 1)
 
@@ -481,6 +498,18 @@ func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
 				false,
 			)
 		}
+	})
+
+	t.Run("Should be able to enable the staking auction", func(t *testing.T) {
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateStartStakingScript(env), idTableAddress)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
 	})
 
 	t.Run("Should be able to create many valid Node structs", func(t *testing.T) {

@@ -148,8 +148,14 @@ func FlowServiceAccount(fungibleTokenAddress, flowTokenAddress, flowFeesAddress,
 }
 
 // FlowIDTableStaking returns the FlowIDTableStaking contract
-func FlowIDTableStaking(fungibleTokenAddress, flowTokenAddress string) []byte {
-	code := assets.MustAssetString(flowIdentityTableFilename)
+func FlowIDTableStaking(fungibleTokenAddress, flowTokenAddress string, latest bool) []byte {
+	var code string
+
+	if latest {
+		code = assets.MustAssetString(flowIdentityTableFilename)
+	} else {
+		code = assets.MustAssetString("FlowIDTableStaking_old.cdc")
+	}
 
 	code = strings.ReplaceAll(code, placeholderFungibleTokenAddress, withHexPrefix(fungibleTokenAddress))
 	code = strings.ReplaceAll(code, placeholderFlowTokenAddress, withHexPrefix(flowTokenAddress))

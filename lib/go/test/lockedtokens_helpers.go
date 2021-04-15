@@ -187,7 +187,7 @@ func deployAllCollectionContracts(t *testing.T,
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
 
 	// DEPLOY IDTableStaking
-	var idTableAddress = deployStakingContract(t, b, IDTableAccountKey, *env)
+	var idTableAddress = deployStakingContract(t, b, IDTableAccountKey, *env, true)
 
 	env.IDTableAddress = idTableAddress.Hex()
 
