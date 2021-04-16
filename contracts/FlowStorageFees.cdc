@@ -100,7 +100,7 @@ pub contract FlowStorageFees {
 
     // Gets "usable" balance of an account
     // The usable balance is its default token balance - what is reserved for storage.
-    pub fun defaultTokenUsableBalance(_ accountAddress: Address): UFix64 {
+    pub fun defaultTokenAvailableBalance(_ accountAddress: Address): UFix64 {
         let acct = getAccount(accountAddress)
         let balanceRef = acct
             .getCapability(/public/flowTokenBalance)

@@ -1,6 +1,6 @@
 import FlowStorageFees from 0xFLOWSTORAGEFEESADDRESS
 
 pub fun main(accountAddress: Address): UFix64 {
-    return FlowStorageFees.defaultTokenUsableBalance(accountAddress)
+    return FlowStorageFees.defaultTokenAvailableBalance(accountAddress)
 }
 

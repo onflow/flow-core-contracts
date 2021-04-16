@@ -12,9 +12,9 @@ const (
 
 	getStorageFeeConversionFilenane = "storageFees/scripts/get_storage_fee_conversion.cdc"
 
-	getAccountUsableBalanceFilename = "storageFees/scripts/get_account_usable_balance.cdc"
-	getStorageFeeMinimumFilename    = "storageFees/scripts/get_storage_fee_min.cdc"
-	getStorageCapacityFilename      = "storageFees/scripts/get_storage_capacity.cdc"
+	getAccountAvailableBalanceFilename = "storageFees/scripts/get_account_available_balance.cdc"
+	getStorageFeeMinimumFilename       = "storageFees/scripts/get_storage_fee_min.cdc"
+	getStorageCapacityFilename         = "storageFees/scripts/get_storage_capacity.cdc"
 )
 
 // StorageFees Templates
@@ -31,8 +31,8 @@ func GenerateGetStorageFeeConversionScript(env Environment) []byte {
 	return []byte(replaceAddresses(code, env))
 }
 
-func GenerateGetAccountUsableBalanceFilenameScript(env Environment) []byte {
-	code := assets.MustAssetString(getAccountUsableBalanceFilename)
+func GenerateGetAccountAvailableBalanceFilenameScript(env Environment) []byte {
+	code := assets.MustAssetString(getAccountAvailableBalanceFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
