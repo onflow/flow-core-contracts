@@ -736,8 +736,7 @@ pub contract FlowIDTableStaking {
             }
         }
 
-        /// Called at the end of the epoch to move tokens between buckets
-        /// for stakers
+        /// Called at the end of the epoch to move tokens between buckets for stakers
         pub fun moveTokens() {
             pre {
                 !FlowIDTableStaking.stakingEnabled(): "Cannot move tokens if the staking auction is still in progress"

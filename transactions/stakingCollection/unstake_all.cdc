@@ -2,7 +2,7 @@ import FlowStakingCollection from 0xSTAKINGCOLLECTIONADDRESS
 
 /// Requests to unstake ALL tokens for the specified node or delegator in the staking collection
 
-transaction(nodeID: String) {
+transaction(nodeID: String, delegatorID: UInt32?) {
     
     let stakingCollectionRef: &FlowStakingCollection.StakingCollection
 
@@ -12,6 +12,6 @@ transaction(nodeID: String) {
     }
 
     execute {
-        self.stakingCollectionRef.unstakeAll(nodeID: nodeID)
+        self.stakingCollectionRef.unstakeAll(nodeID: nodeID, delegatorID: delegatorID)
     }
 }
