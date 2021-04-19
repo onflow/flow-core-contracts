@@ -79,6 +79,7 @@
 // ../../../transactions/lockedTokens/admin/admin_create_shared_accounts.cdc (3.522kB)
 // ../../../transactions/lockedTokens/admin/admin_deploy_contract.cdc (345B)
 // ../../../transactions/lockedTokens/admin/admin_deposit_account_creator.cdc (856B)
+// ../../../transactions/lockedTokens/admin/admin_remove_delegator.cdc (448B)
 // ../../../transactions/lockedTokens/admin/check_main_registration.cdc (994B)
 // ../../../transactions/lockedTokens/admin/check_shared_registration.cdc (630B)
 // ../../../transactions/lockedTokens/admin/custody_create_account_with_lease_account.cdc (3.084kB)
@@ -129,6 +130,7 @@
 // ../../../transactions/stakingProxy/withdraw_rewards.cdc (483B)
 // ../../../transactions/stakingProxy/withdraw_unstaked.cdc (483B)
 // ../../../transactions/storageFees/admin/set_parameters.cdc (831B)
+// ../../../transactions/storageFees/scripts/get_account_available_balance.cdc (177B)
 // ../../../transactions/storageFees/scripts/get_storage_capacity.cdc (173B)
 // ../../../transactions/storageFees/scripts/get_storage_fee_conversion.cdc (141B)
 // ../../../transactions/storageFees/scripts/get_storage_fee_min.cdc (135B)
@@ -1781,6 +1783,26 @@ func lockedtokensAdminAdmin_deposit_account_creatorCdc() (*asset, error) {
 	return a, nil
 }
 
+var _lockedtokensAdminAdmin_remove_delegatorCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x84\x8f\xc1\x4f\xfa\x50\x0c\xc7\xef\xfb\x2b\xfa\xe3\xf0\xcb\x76\x90\x78\x26\x28\x99\x6c\x26\x04\x04\xc3\xde\xc5\x63\x79\x2b\x63\xe1\xed\x75\xe9\x8a\x68\x0c\xff\xbb\x99\x73\x32\x4f\xf6\xd6\xf4\xf3\x69\xbf\x2d\xab\x9a\x45\xe1\xd1\xf1\x79\x91\x18\xdc\x39\xca\x14\x8f\xa5\x2f\x60\x2f\x5c\xc1\xed\xdb\x22\x49\xd7\x66\x61\x5e\x4c\xfc\xb0\x4a\xe3\x24\xd9\xa6\x59\x16\x7c\x5b\x2b\xb6\x47\xca\x0d\x1f\xc9\x37\x3d\xbf\xda\xcc\x97\x69\x62\x36\xcb\x74\xdd\xd3\x81\x0a\xfa\x06\xad\x96\xec\xe1\x23\x08\x00\x00\x6a\xa1\x1a\x85\xc2\xa6\x2c\x3c\xc9\x04\xe2\x93\x1e\x62\x6b\xf9\xe4\x35\xea\x99\xb6\x1c\x29\x54\xe8\xb1\x20\xd9\xd2\x1e\xee\xa0\x13\xc6\x3b\x16\xe1\xf3\xf4\xff\x30\xc2\x78\xd0\x3c\x75\xce\x7d\xd8\xc6\x9a\xc0\x1f\x58\xa6\x2c\x58\xd0\x33\xea\x21\xfa\x39\xdd\xd6\x6c\x06\x35\xfa\xd2\x86\xa3\x39\x9f\x5c\x0e\x9e\x15\xba\xd3\x80\x20\xb4\x27\x21\x6f\x09\x94\x41\x0f\x04\xee\x6b\x31\x68\xbb\xb9\x4f\x3d\x8a\x7e\x3f\x93\x93\xa3\x02\x95\x05\xa6\x37\x83\xcf\xc6\x42\x15\xbf\x52\xd2\x4f\xc3\xe8\xdf\xd5\xcb\xa9\x51\xe1\xf7\xab\xdb\x8d\x2e\xc1\x25\xf8\x0c\x00\x00\xff\xff\x33\x91\x55\x64\xc0\x01\x00\x00"
+
+func lockedtokensAdminAdmin_remove_delegatorCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_lockedtokensAdminAdmin_remove_delegatorCdc,
+		"lockedTokens/admin/admin_remove_delegator.cdc",
+	)
+}
+
+func lockedtokensAdminAdmin_remove_delegatorCdc() (*asset, error) {
+	bytes, err := lockedtokensAdminAdmin_remove_delegatorCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "lockedTokens/admin/admin_remove_delegator.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x7b, 0x45, 0x4f, 0xc6, 0x2d, 0xa8, 0x8, 0x67, 0x3d, 0x3b, 0x76, 0x24, 0x7e, 0x97, 0xc8, 0x6, 0x34, 0xe8, 0xea, 0xfa, 0x7b, 0x91, 0x9c, 0x76, 0x38, 0x88, 0x31, 0x29, 0xb2, 0x25, 0x1, 0xf6}}
+	return a, nil
+}
+
 var _lockedtokensAdminCheck_main_registrationCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x9c\x92\x4f\x6b\xdb\x40\x10\xc5\xef\xfa\x14\x13\x1f\x8a\x0c\x45\xf4\x2c\xea\x04\x55\x76\xda\x10\x13\x87\xd8\xa5\xe7\xf1\x6a\x24\x2f\x59\xed\x8a\xdd\x11\x69\x09\xfe\xee\x45\xab\x3f\x68\x1b\xe3\x43\xf7\x22\xb4\xfa\xcd\xbc\x37\x4f\x23\xeb\xc6\x58\x86\xfb\x56\x57\xf2\xa8\xe8\x60\x5e\x49\x43\x69\x4d\x0d\x5f\x7e\xdf\xff\x7c\xfa\xfe\xf0\x6d\xbb\x39\xec\x1e\x37\x4f\xd9\x7a\xfd\xb2\xd9\xef\xa3\xb1\x40\x99\xb7\x10\xde\xee\x7e\x05\xe0\x48\x6e\x8d\x78\xa5\xc2\xb3\x6e\x84\xb7\xbb\xfc\x71\xb3\x0e\x71\xb6\xa8\x1d\x0a\x96\x46\xc7\x35\x4a\x9d\x09\x61\x5a\xcd\x29\x64\x45\x61\xc9\xb9\x25\xbc\x47\x11\x00\x40\x63\xa9\x41\x4b\xb1\x93\x95\x26\x9b\x42\xd6\xf2\x69\x80\x27\xa6\x3b\x8a\x18\xb0\xa8\xa5\x7e\xa1\x12\x56\xd0\xe3\xc9\xd1\x58\x6b\xde\xbe\x7e\x9a\xdb\x4a\xfc\x23\xeb\xd8\xdc\x28\x45\xde\xc4\x6d\xdc\x99\x4d\x03\xff\xc9\xec\xe5\x1f\x7c\xcf\xc6\x62\x45\xcf\xc8\xa7\xe5\x64\xa1\x3b\x77\x77\xd0\xa0\x96\x22\x5e\xe4\xa6\x55\x05\x68\xc3\xd0\x9b\x00\x04\x4b\x25\x59\xd2\x82\x80\x0d\xf0\x89\x40\x79\x01\x60\x1f\xad\x77\x0f\x62\xd2\x58\x2c\xc3\xe9\x7a\x78\x98\xfd\x41\x97\xa6\x9f\xb4\x22\x1e\xee\xe6\x41\x86\xae\x92\x8a\x38\xc7\x06\x8f\x52\x49\xfe\x73\x29\x8e\x1f\x46\x15\x64\xdf\x2f\x8c\x3f\x13\x3c\xdf\xc6\xd7\x81\xe7\xf6\xa8\xa4\xf8\x98\xca\xf0\x1f\xe2\xff\xcd\xaa\xf1\x7d\xe1\x83\xde\xd5\x88\x60\x75\x31\xb2\x2e\x8b\xa0\xd1\xb0\x71\xf1\xac\x17\x3a\x47\x96\xe3\xc0\xed\xb8\x5c\xc9\x2c\x70\xec\x4b\xd3\x50\x68\x09\x37\x2b\xd0\x52\x7d\x0e\xea\x6b\x72\x0e\x2b\x4a\x61\x71\x38\x11\xb8\x86\x84\x2c\x25\x15\x80\x83\x5b\xe9\x7c\x00\x38\x2e\xc5\x70\x7f\x03\x39\xea\xee\x83\x23\x5d\x04\x0b\xe3\x16\x53\xff\x3e\xd7\x73\x74\x8e\xfe\x06\x00\x00\xff\xff\xfe\xf4\xaf\xdc\xe2\x03\x00\x00"
 
 func lockedtokensAdminCheck_main_registrationCdcBytes() ([]byte, error) {
@@ -2781,6 +2803,26 @@ func storagefeesAdminSet_parametersCdc() (*asset, error) {
 	return a, nil
 }
 
+var _storagefeesScriptsGet_account_available_balanceCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x5c\xcd\xb1\x0e\x82\x30\x14\x46\xe1\xbd\x4f\xf1\x8f\xb2\x18\x07\xe3\xc0\x56\x43\xeb\x62\x42\x42\x31\xce\x17\xb8\x98\xc6\xd2\x92\xd2\x2a\x89\xf1\xdd\x5d\x9c\xd8\xce\x74\x3e\x3b\xcd\x21\x26\x68\x17\xde\x26\x85\x48\x0f\xd6\xcc\x0b\xc6\x18\x26\x1c\x56\x7d\xad\xef\xa6\xad\x1b\x79\x51\x5a\x29\x23\xab\xaa\x51\xc6\x08\x31\xe7\x0e\x63\xf6\x98\xc8\xfa\x1d\xf5\x7d\xc8\x3e\xc9\x61\x88\xbc\x2c\x25\xfe\x51\x94\xb8\x69\xbb\x9e\x8e\xf8\x08\x00\x88\x9c\x72\xf4\x5b\x69\x3f\xf0\x48\xd9\xa5\x36\x3c\xd9\xcb\x17\x59\x47\x9d\xe3\x33\x39\xf2\x3d\x6f\xd6\x85\xf8\x0a\xf1\x0b\x00\x00\xff\xff\x79\xc3\x9c\x46\xb1\x00\x00\x00"
+
+func storagefeesScriptsGet_account_available_balanceCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_storagefeesScriptsGet_account_available_balanceCdc,
+		"storageFees/scripts/get_account_available_balance.cdc",
+	)
+}
+
+func storagefeesScriptsGet_account_available_balanceCdc() (*asset, error) {
+	bytes, err := storagefeesScriptsGet_account_available_balanceCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "storageFees/scripts/get_account_available_balance.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x19, 0xfd, 0x85, 0x8, 0x30, 0x9, 0x65, 0xb6, 0x3a, 0x50, 0x6, 0x71, 0x64, 0x59, 0xeb, 0x4d, 0xb0, 0x14, 0xfb, 0xae, 0xc5, 0xa0, 0x16, 0xaa, 0x51, 0xa, 0x9a, 0x9d, 0x98, 0x6e, 0xb0, 0x97}}
+	return a, nil
+}
+
 var _storagefeesScriptsGet_storage_capacityCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x5c\xcd\xb1\x0a\xc2\x30\x14\x46\xe1\x3d\x4f\xf1\x8f\x76\x11\x07\x71\xe8\x16\x6c\xe2\x22\x14\x1a\xc5\xf9\x9a\xa6\x12\x68\x93\x92\xdc\x60\x45\x7c\x77\x07\x9d\xba\x9d\xe9\x3b\x7e\x9a\x63\x62\xe8\x31\x3e\x0d\xc7\x44\x0f\xa7\x9d\xcb\x18\x52\x9c\xb0\x5b\xf4\xb9\xbd\x99\x4b\xdb\xc9\x93\xd2\x4a\x19\xd9\x34\x9d\x32\x46\x88\xb9\xdc\x31\x94\x80\x89\x7c\xd8\x90\xb5\xb1\x04\x96\x7d\x9f\x5c\xce\x35\xfe\x51\xd5\xb8\x6a\xbf\x1c\xf6\x78\x0b\x00\x48\x8e\x4b\x0a\xeb\xd3\xd6\xd2\x68\xcb\x48\xec\xe4\x8f\x39\xd2\x4c\xd6\xf3\x6b\xc5\x56\xe2\x23\xc4\x37\x00\x00\xff\xff\x28\x3f\x05\x18\xad\x00\x00\x00"
 
 func storagefeesScriptsGet_storage_capacityCdcBytes() ([]byte, error) {
@@ -3011,6 +3053,7 @@ var _bindata = map[string]func() (*asset, error){
 	"lockedTokens/admin/admin_create_shared_accounts.cdc":                     lockedtokensAdminAdmin_create_shared_accountsCdc,
 	"lockedTokens/admin/admin_deploy_contract.cdc":                            lockedtokensAdminAdmin_deploy_contractCdc,
 	"lockedTokens/admin/admin_deposit_account_creator.cdc":                    lockedtokensAdminAdmin_deposit_account_creatorCdc,
+	"lockedTokens/admin/admin_remove_delegator.cdc":                           lockedtokensAdminAdmin_remove_delegatorCdc,
 	"lockedTokens/admin/check_main_registration.cdc":                          lockedtokensAdminCheck_main_registrationCdc,
 	"lockedTokens/admin/check_shared_registration.cdc":                        lockedtokensAdminCheck_shared_registrationCdc,
 	"lockedTokens/admin/custody_create_account_with_lease_account.cdc":        lockedtokensAdminCustody_create_account_with_lease_accountCdc,
@@ -3061,6 +3104,7 @@ var _bindata = map[string]func() (*asset, error){
 	"stakingProxy/withdraw_rewards.cdc":                                       stakingproxyWithdraw_rewardsCdc,
 	"stakingProxy/withdraw_unstaked.cdc":                                      stakingproxyWithdraw_unstakedCdc,
 	"storageFees/admin/set_parameters.cdc":                                    storagefeesAdminSet_parametersCdc,
+	"storageFees/scripts/get_account_available_balance.cdc":                   storagefeesScriptsGet_account_available_balanceCdc,
 	"storageFees/scripts/get_storage_capacity.cdc":                            storagefeesScriptsGet_storage_capacityCdc,
 	"storageFees/scripts/get_storage_fee_conversion.cdc":                      storagefeesScriptsGet_storage_fee_conversionCdc,
 	"storageFees/scripts/get_storage_fee_min.cdc":                             storagefeesScriptsGet_storage_fee_minCdc,
@@ -3209,6 +3253,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 			"admin_create_shared_accounts.cdc": {lockedtokensAdminAdmin_create_shared_accountsCdc, map[string]*bintree{}},
 			"admin_deploy_contract.cdc": {lockedtokensAdminAdmin_deploy_contractCdc, map[string]*bintree{}},
 			"admin_deposit_account_creator.cdc": {lockedtokensAdminAdmin_deposit_account_creatorCdc, map[string]*bintree{}},
+			"admin_remove_delegator.cdc": {lockedtokensAdminAdmin_remove_delegatorCdc, map[string]*bintree{}},
 			"check_main_registration.cdc": {lockedtokensAdminCheck_main_registrationCdc, map[string]*bintree{}},
 			"check_shared_registration.cdc": {lockedtokensAdminCheck_shared_registrationCdc, map[string]*bintree{}},
 			"custody_create_account_with_lease_account.cdc": {lockedtokensAdminCustody_create_account_with_lease_accountCdc, map[string]*bintree{}},
@@ -3273,6 +3318,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 			"set_parameters.cdc": {storagefeesAdminSet_parametersCdc, map[string]*bintree{}},
 		}},
 		"scripts": {nil, map[string]*bintree{
+			"get_account_available_balance.cdc": {storagefeesScriptsGet_account_available_balanceCdc, map[string]*bintree{}},
 			"get_storage_capacity.cdc": {storagefeesScriptsGet_storage_capacityCdc, map[string]*bintree{}},
 			"get_storage_fee_conversion.cdc": {storagefeesScriptsGet_storage_fee_conversionCdc, map[string]*bintree{}},
 			"get_storage_fee_min.cdc": {storagefeesScriptsGet_storage_fee_minCdc, map[string]*bintree{}},

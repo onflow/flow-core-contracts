@@ -34,6 +34,15 @@ You can find transactions for using the Flow Token in the `transactions/flowToke
 
 This contract defines fees that are spent for executing transactions and creating accounts.
 
+### Storage Fee Contract
+
+`contracts/FlowStorageFees.cdc`
+
+This contract defines fees that are spent to pay for the storage that an account uses.
+There is a minimum balance that an account needs to maintain in its main `FlowToken` Vault
+in order to pay for the storage it uses.
+You can see [more docs about storage capacity and fees here.](https://docs.onflow.org/concepts/storage/#overview)
+
 ### Service Account Contract
 
 `contracts/FlowServiceAccount.cdc`
@@ -60,15 +69,12 @@ in the `transactions/idTableStaking` directory.
 You can also find scripts for querying info about staking and stakers in the `transactions/idTableStaking/scripts/` directory.
 These scripts are documented in the [staking scripts section of the docs](https://docs.onflow.org/staking/scripts/)
 
-### Flow Staking Helper Contract
+### Flow Locked Tokens contract
 
-`contracts/FlowStakingHelper.cdc`
+`contracts/LockedTokens.cdc`
 
-The Flow staking helper contract manages the relationship between a user who wants to operate a node
-and a token holder who wants to stake all their tokens for them. The staking helper contract draft is
-in the `max/staking-helper` branch in a PR and will be merged very soon.
-
-You can find all the Staking Helper transactions in the `transactions/stakingHelper` directory.
+This contract manages the two year lockup of Flow tokens that backers purchased in the initial
+token sale in October of 2020. See more documentation about `LockedTokens` [here.](https://docs.onflow.org/flow-token/locked-account-setup/)
 
 ## Testing
 

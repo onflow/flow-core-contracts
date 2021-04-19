@@ -13,6 +13,7 @@ const (
 	depositLockedTokensFilename             = "lockedTokens/admin/deposit_locked_tokens.cdc"
 	increaseUnlockLimitFilename             = "lockedTokens/admin/unlock_tokens.cdc"
 	depositAccountCreatorCapabilityFilename = "lockedTokens/admin/admin_deposit_account_creator.cdc"
+	removeDelegatorFilename                 = "lockedTokens/admin/admin_remove_delegator.cdc"
 
 	// Custody Provider / Wallet provider Account creation templates
 	setupCustodyAccountFilename                  = "lockedTokens/admin/custody_setup_account_creator.cdc"
@@ -94,6 +95,12 @@ func GenerateIncreaseUnlockLimitScript(env Environment) []byte {
 
 func GenerateDepositAccountCreatorScript(env Environment) []byte {
 	code := assets.MustAssetString(depositAccountCreatorCapabilityFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateRemoveDelegatorScript(env Environment) []byte {
+	code := assets.MustAssetString(removeDelegatorFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
