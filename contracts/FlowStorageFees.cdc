@@ -89,6 +89,40 @@ pub contract FlowStorageFees {
         return amount / FlowStorageFees.storageMegaBytesPerReservedFLOW
     }
 
+    // converts storage used from UInt64 Bytes to UFix64 Megabytes.
+    pub fun convertUInt64StorageBytesToUFix64Megabytes(_ storage: UInt64): UFix64 {
+        // safe convert UInt64 to UFix64 (without overflow)
+        let f = UFix64(storage % 100000000 as UInt64) * 0.00000001 as UFix64 + UFix64(storage / 100000000 as UInt64)
+        // decimal point correction. Megabytes to bytes have a conversion of 10^-6 while UFix64 minimum value is 10^-8
+        let storageMb = f * 100.0 as UFix64
+        return storageMb
+    }
+
+    // Gets "available" balance of an account
+    // The available balance is its default token balance minus what is reserved for storage.
+    pub fun defaultTokenAvailableBalance(_ accountAddress: Address): UFix64 {
+        //get balance of account
+        let acct = getAccount(accountAddress)
+        let balanceRef = acct
+            .getCapability(/public/flowTokenBalance)
+            .borrow<&FlowToken.Vault{FungibleToken.Balance}>()!
+        let balance = balanceRef.balance
+
+        // get how much should be reserved for storage
+        var reserved = self.storageCapacityToFlow(self.convertUInt64StorageBytesToUFix64Megabytes(acct.storageUsed))
+        // at least self.minimumStorageReservation should be reserved
+        if reserved < self.minimumStorageReservation {
+            reserved = self.minimumStorageReservation
+        }
+
+        // balance could be less that what the account needs to have reserved for storage. In that case return 0.
+        if reserved > balance {
+            return 0.0
+        }
+        
+        return balance - reserved
+    }
+
     init() {
         self.storageMegaBytesPerReservedFLOW = 1.0 // 1 Mb per 1 Flow token
         self.minimumStorageReservation = 0.0 // or 0 kb of minimum storage reservation
