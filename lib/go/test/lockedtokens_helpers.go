@@ -3,6 +3,7 @@ package test
 import (
 	"encoding/hex"
 	"fmt"
+	"crypto/rand"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -300,6 +301,14 @@ func createLockedAccountPairWithBalances(
 	return newUserAddress, newUserSharedAddress, newUserSigner
 }
 
+func randomHex(n int) (string, error) {
+	bytes := make([]byte, n)
+	if _, err := rand.Read(bytes); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(bytes), nil
+}
+
 func registerStakingCollectionNodesAndDelegators(
 	t *testing.T,
 	b *emulator.Blockchain,
@@ -314,16 +323,20 @@ func registerStakingCollectionNodesAndDelegators(
 		env,
 		lockedBalance, unlockedBalance)
 
-	userNodeID1 := "0000000000000000000000000000000000000000000000000000000000000001"
-	userNodeID2 := "0000000000000000000000000000000000000000000000000000000000000002"
+	userNodeID1, _ := randomHex(32)
+	userNodeID2, _ := randomHex(32)
+
+	nodeAddr1, _ := randomHex(32)
+	nodeNetworkKey1, _ := randomHex(64)
+	nodStakingKey1, _ := randomHex(96)
 
 	// Register a node and a delegator in the locked account
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), newUserAddress)
 	_ = tx.AddArgument(cadence.NewString(userNodeID1))
 	_ = tx.AddArgument(cadence.NewUInt8(4))
-	_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", 1)))
-	_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", 1)))
-	_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", 1)))
+	_ = tx.AddArgument(cadence.NewString(nodeAddr1))
+	_ = tx.AddArgument(cadence.NewString(nodeNetworkKey1))
+	_ = tx.AddArgument(cadence.NewString(nodStakingKey1))
 	_ = tx.AddArgument(CadenceUFix64("320000.0"))
 
 	signAndSubmit(
@@ -354,12 +367,16 @@ func registerStakingCollectionNodesAndDelegators(
 		false,
 	)
 
+	nodeAddr2, _ := randomHex(32)
+	nodeNetworkKey2, _ := randomHex(64)
+	nodStakingKey2, _ := randomHex(96)
+
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterNode(env), newUserAddress)
 	_ = tx.AddArgument(cadence.NewString(userNodeID2))
 	_ = tx.AddArgument(cadence.NewUInt8(2))
-	_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", 2)))
-	_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", 2)))
-	_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", 2)))
+	_ = tx.AddArgument(cadence.NewString(nodeAddr2))
+	_ = tx.AddArgument(cadence.NewString(nodeNetworkKey2))
+	_ = tx.AddArgument(cadence.NewString(nodStakingKey2))
 	_ = tx.AddArgument(CadenceUFix64("500000.0"))
 
 	signAndSubmit(

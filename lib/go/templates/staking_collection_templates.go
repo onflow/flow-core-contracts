@@ -24,6 +24,8 @@ const (
 	collectionWithdrawRewardedTokensFilename = "stakingCollection/withdraw_rewarded_tokens.cdc"
 	collectionWithdrawUnstakedTokensFilename = "stakingCollection/withdraw_unstaked_tokens.cdc"
 	collectionCloseStakeFilename			 = "stakingCollection/close_stake.cdc"
+	collectionTransferNodeFilename			 = "stakingCollection/transfer_node.cdc"
+	collectionTransferDelegatorFilename	     = "stakingCollection/transfer_delegator.cdc"
 
 	// scripts
 	collectionGetDoesStakeExistFilename     			= "stakingCollection/scripts/get_does_stake_exist.cdc"
@@ -120,6 +122,18 @@ func GenerateCollectionWithdrawUnstakedTokens(env Environment) []byte {
 
 func GenerateCollectionCloseStake(env Environment) []byte {
 	code := assets.MustAssetString(collectionCloseStakeFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateCollectionTransferNode(env Environment) []byte {
+	code := assets.MustAssetString(collectionTransferNodeFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateCollectionTransferDelegator(env Environment) []byte {
+	code := assets.MustAssetString(collectionTransferDelegatorFilename)
 
 	return []byte(replaceAddresses(code, env))
 }

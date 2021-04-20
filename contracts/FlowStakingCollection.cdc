@@ -41,6 +41,8 @@ pub contract FlowStakingCollection {
     pub resource interface StakingCollectionPublic {
         pub var lockedTokensUsed: UFix64
         pub var unlockedTokensUsed: UFix64
+        pub fun addNodeObject(_ node: @FlowIDTableStaking.NodeStaker): Void
+        pub fun addDelegatorObject(_ delegator: @FlowIDTableStaking.NodeDelegator): Void
         pub fun doesStakeExist(nodeID: String, delegatorID: UInt32?): Bool
         pub fun getNodeIDs(): [String]
         pub fun getDelegatorIDs(): [DelegatorIDs]
@@ -260,6 +262,57 @@ pub contract FlowStakingCollection {
             let totalStaked = stakingInfo.tokensStaked + stakingInfo.tokensCommitted + stakingInfo.tokensUnstaking + stakingInfo.tokensUnstaked
             self.unlockedTokensUsed = self.unlockedTokensUsed + totalStaked
             self.nodeDelegators[delegator.nodeID] <-! delegator
+        }
+
+        /// Function to remove an existing NodeStaker object
+        pub fun removeNode(nodeID: String): @FlowIDTableStaking.NodeStaker? {
+            pre {
+                self.doesStakeExist(nodeID: nodeID, delegatorID: nil): "Specified node does not exist"
+                self.lockedTokensUsed == UFix64(0.0): "Cannot remove node if locked tokens are used"
+            }
+            
+            if self.nodeStakers[nodeID] != nil {
+                let stakingInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeID)
+                let totalStaked = stakingInfo.tokensStaked + stakingInfo.tokensCommitted + stakingInfo.tokensUnstaking + stakingInfo.tokensUnstaked
+
+                self.unlockedTokensUsed = self.unlockedTokensUsed - totalStaked
+
+                let nodeStaker <- self.nodeStakers[nodeID] <- nil
+                
+                return <- nodeStaker
+            } else {
+                panic("Cannot remove node stored in locked account.")
+            }
+
+            return nil
+        }
+
+        /// Function to remove an existing NodeDelegator object
+        pub fun removeDelegator(nodeID: String, delegatorID: UInt32): @FlowIDTableStaking.NodeDelegator? {
+            pre {
+                self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID): "Specified delegator does not exist"
+                self.lockedTokensUsed == UFix64(0.0): "Cannot remove delegator if locked tokens are used"
+            }
+            
+            if self.nodeDelegators[nodeID] != nil {
+                let delegatorRef = &self.nodeDelegators[nodeID] as? &FlowIDTableStaking.NodeDelegator
+                if delegatorRef.id == delegatorID { 
+                    let nodeDelegator <- self.nodeDelegators[nodeID] <- nil
+
+                    let stakingInfo = FlowIDTableStaking.DelegatorInfo(nodeID: nodeID, delegatorID: delegatorID)
+                    let totalStaked = stakingInfo.tokensStaked + stakingInfo.tokensCommitted + stakingInfo.tokensUnstaking + stakingInfo.tokensUnstaked
+
+                    self.unlockedTokensUsed = self.unlockedTokensUsed - totalStaked
+
+                    return <- nodeDelegator
+                } else { 
+                    panic("Expected delegatorID does not correspond to the delegator in the Staking Collection.")
+                }
+            } else {
+                panic("Cannot remove delegator stored in locked account.")
+            }
+
+            return nil
         }
 
         /// Operations to register new staking objects
