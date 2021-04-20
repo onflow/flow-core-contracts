@@ -264,7 +264,7 @@ pub contract FlowStakingCollection {
             self.nodeDelegators[delegator.nodeID] <-! delegator
         }
 
-        /// Function to remove an existing NodeStaker object
+        /// Function to remove an existing NodeStaker object.
         /// If the user has used any locked tokens, removing NodeStaker objects is not allowed.
         pub fun removeNode(nodeID: String): @FlowIDTableStaking.NodeStaker? {
             pre {
@@ -279,7 +279,7 @@ pub contract FlowStakingCollection {
                 /// Since the NodeStaker object is being removed, the total number of unlocked tokens staked to it is deducted from the counter.
                 self.unlockedTokensUsed = self.unlockedTokensUsed - totalStaked
 
-                /// Removes the NodeStaker object from the Staking Collections internal nodeStaker map
+                /// Removes the NodeStaker object from the Staking Collections internal nodeStakers map.
                 let nodeStaker <- self.nodeStakers[nodeID] <- nil
                 
                 return <- nodeStaker
@@ -291,7 +291,7 @@ pub contract FlowStakingCollection {
             return nil
         }
 
-        /// Function to remove an existing NodeDelegator object
+        /// Function to remove an existing NodeDelegator object.
         /// If the user has used any locked tokens, removing NodeDelegator objects is not allowed.
         pub fun removeDelegator(nodeID: String, delegatorID: UInt32): @FlowIDTableStaking.NodeDelegator? {
             pre {
@@ -308,7 +308,7 @@ pub contract FlowStakingCollection {
                     /// Since the NodeDelegator object is being removed, the total number of unlocked tokens delegated to it is deducted from the counter.
                     self.unlockedTokensUsed = self.unlockedTokensUsed - totalStaked
 
-                    /// Removes the NodeDelegator object from the Staking Collections internal nodeStaker map
+                    /// Removes the NodeDelegator object from the Staking Collections internal nodeDelegators map.
                     let nodeDelegator <- self.nodeDelegators[nodeID] <- nil
 
                     return <- nodeDelegator
@@ -316,7 +316,7 @@ pub contract FlowStakingCollection {
                     panic("Expected delegatorID does not correspond to the delegator in the Staking Collection.")
                 }
             } else {
-                /// The function does not allow for removing a NodeStaker stored in the locked account, if one exists.
+                /// The function does not allow for removing a NodeDelegator stored in the locked account, if one exists.
                 panic("Cannot remove delegator stored in locked account.")
             }
 
