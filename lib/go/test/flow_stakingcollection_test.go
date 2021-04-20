@@ -1787,3 +1787,272 @@ func TestDoesAccountHaveStakingCollection(t *testing.T) {
 		assertEqual(t, cadence.NewBool(true), result)
 	})
 }
+
+func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
+
+	b, accountKeys, env := newTestSetup(t)
+	_ = deployAllCollectionContracts(t, b, accountKeys, &env)
+
+	t.Run("Should fail to transfer a node staker because account uses locked tokens", func(t *testing.T) {
+		jeffAddress1, _, jeffSigner1, jeffID1_1, _ := registerStakingCollectionNodesAndDelegators(
+			t, b,
+			accountKeys,
+			env,
+			"1000000.0", "1000000.0")
+
+		jeffAddress2, _, _, _, _ := registerStakingCollectionNodesAndDelegators(
+			t, b,
+			accountKeys,
+			env,
+			"1000000.0", "1000000.0")
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionTransferNode(env), jeffAddress1)
+		_ = tx.AddArgument(cadence.NewString(jeffID1_1))
+		_ = tx.AddArgument(cadence.NewAddress(jeffAddress2))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, jeffAddress1},
+			[]crypto.Signer{b.ServiceKey().Signer(), jeffSigner1},
+			true,
+		)
+	})
+
+	t.Run("Should fail to transfer a node delegator because account uses locked tokens", func(t *testing.T) {
+		jeffAddress1, _, jeffSigner1, jeffID1_1, _ := registerStakingCollectionNodesAndDelegators(
+			t, b,
+			accountKeys,
+			env,
+			"1000000.0", "1000000.0")
+
+		jeffAddress2, _, _, _, _ := registerStakingCollectionNodesAndDelegators(
+			t, b,
+			accountKeys,
+			env,
+			"1000000.0", "1000000.0")
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionTransferDelegator(env), jeffAddress1)
+		_ = tx.AddArgument(cadence.NewString(jeffID1_1))
+		_ = tx.AddArgument(cadence.NewAddress(jeffAddress2))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, jeffAddress1},
+			[]crypto.Signer{b.ServiceKey().Signer(), jeffSigner1},
+			true,
+		)
+	})
+
+	t.Run("Should be able to transfer a node staker stored in Staking Collection between accounts.", func(t *testing.T) {
+		jeffAddress1, _, jeffSigner1, jeffID1_1, jeffID1_2 := registerStakingCollectionNodesAndDelegators(
+			t, b,
+			accountKeys,
+			env,
+			"0.0", "2000000.0")
+
+		jeffAddress2, _, _, jeffID2_1, jeffID2_2 := registerStakingCollectionNodesAndDelegators(
+			t, b,
+			accountKeys,
+			env,
+			"0.0", "2000000.0")
+
+		verifyStakingCollectionInfo(t, b, env, StakingCollectionInfo{
+			accountAddress:     jeffAddress1.String(),
+			unlockedBalance:    "630000.00000000",
+			lockedBalance:      "0.00000000",
+			unlockedTokensUsed: "1000000.00000000",
+			lockedTokensUsed:   "0.00000000",
+			unlockLimit:        "370000.00000000",
+			nodes:              []string{jeffID1_2, jeffID1_1},
+			delegators:         []DelegatorIDs{DelegatorIDs{nodeID: jeffID1_2, id: 1}, DelegatorIDs{nodeID: jeffID1_1, id: 1}},
+		})
+
+		verifyStakingCollectionInfo(t, b, env, StakingCollectionInfo{
+			accountAddress:     jeffAddress2.String(),
+			unlockedBalance:    "630000.00000000",
+			lockedBalance:      "0.00000000",
+			unlockedTokensUsed: "1000000.00000000",
+			lockedTokensUsed:   "0.00000000",
+			unlockLimit:        "370000.00000000",
+			nodes:              []string{jeffID2_2, jeffID2_1},
+			delegators:         []DelegatorIDs{DelegatorIDs{nodeID: jeffID2_2, id: 1}, DelegatorIDs{nodeID: jeffID2_1, id: 1}},
+		})
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionTransferNode(env), jeffAddress1)
+		_ = tx.AddArgument(cadence.NewString(jeffID1_2))
+		_ = tx.AddArgument(cadence.NewAddress(jeffAddress2))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, jeffAddress1},
+			[]crypto.Signer{b.ServiceKey().Signer(), jeffSigner1},
+			false,
+		)
+
+		verifyStakingCollectionInfo(t, b, env, StakingCollectionInfo{
+			accountAddress:     jeffAddress2.String(),
+			unlockedBalance:    "630000.0",
+			lockedBalance:      "0.0",
+			unlockedTokensUsed: "1500000.0",
+			lockedTokensUsed:   "0.0",
+			unlockLimit:        "370000.0",
+			nodes:              []string{jeffID2_2, jeffID1_2, jeffID2_1},
+			delegators:         []DelegatorIDs{DelegatorIDs{nodeID: jeffID2_2, id: 1}, DelegatorIDs{nodeID: jeffID2_1, id: 1}},
+		})
+	})
+
+	t.Run("Should be able to transfer a delegator stored in Staking Collection between accounts.", func(t *testing.T) {
+		jeffAddress1, _, jeffSigner1, jeffID1_1, jeffID1_2 := registerStakingCollectionNodesAndDelegators(
+			t, b,
+			accountKeys,
+			env,
+			"0.0", "2000000.0")
+
+		jeffAddress2, _, _, jeffID2_1, jeffID2_2 := registerStakingCollectionNodesAndDelegators(
+			t, b,
+			accountKeys,
+			env,
+			"0.0", "2000000.0")
+
+		verifyStakingCollectionInfo(t, b, env, StakingCollectionInfo{
+			accountAddress:     jeffAddress1.String(),
+			unlockedBalance:    "630000.00000000",
+			lockedBalance:      "0.00000000",
+			unlockedTokensUsed: "1000000.00000000",
+			lockedTokensUsed:   "0.00000000",
+			unlockLimit:        "370000.00000000",
+			nodes:              []string{jeffID1_2, jeffID1_1},
+			delegators:         []DelegatorIDs{DelegatorIDs{nodeID: jeffID1_2, id: 1}, DelegatorIDs{nodeID: jeffID1_1, id: 1}},
+		})
+
+		verifyStakingCollectionInfo(t, b, env, StakingCollectionInfo{
+			accountAddress:     jeffAddress2.String(),
+			unlockedBalance:    "630000.00000000",
+			lockedBalance:      "0.00000000",
+			unlockedTokensUsed: "1000000.00000000",
+			lockedTokensUsed:   "0.00000000",
+			unlockLimit:        "370000.00000000",
+			nodes:              []string{jeffID2_2, jeffID2_1},
+			delegators:         []DelegatorIDs{DelegatorIDs{nodeID: jeffID2_2, id: 1}, DelegatorIDs{nodeID: jeffID2_1, id: 1}},
+		})
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionTransferDelegator(env), jeffAddress1)
+		_ = tx.AddArgument(cadence.NewString(jeffID1_2))
+		_ = tx.AddArgument(cadence.NewUInt32(1))
+		_ = tx.AddArgument(cadence.NewAddress(jeffAddress2))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, jeffAddress1},
+			[]crypto.Signer{b.ServiceKey().Signer(), jeffSigner1},
+			false,
+		)
+
+		verifyStakingCollectionInfo(t, b, env, StakingCollectionInfo{
+			accountAddress:     jeffAddress2.String(),
+			unlockedBalance:    "630000.0",
+			lockedBalance:      "0.0",
+			unlockedTokensUsed: "1500000.0",
+			lockedTokensUsed:   "0.0",
+			unlockLimit:        "370000.0",
+			nodes:              []string{jeffID2_2, jeffID2_1},
+			delegators:         []DelegatorIDs{DelegatorIDs{nodeID: jeffID2_2, id: 1}, DelegatorIDs{nodeID: jeffID1_2, id: 1}, DelegatorIDs{nodeID: jeffID2_1, id: 1}},
+		})
+	})
+
+	t.Run("Should fail because attempts to transfer node stored in locked account.", func(t *testing.T) {
+		jeffAddress1, _, jeffSigner1, jeffID1_1, jeffID1_2 := registerStakingCollectionNodesAndDelegators(
+			t, b,
+			accountKeys,
+			env,
+			"0.0", "2000000.0")
+
+		jeffAddress2, _, _, jeffID2_1, jeffID2_2 := registerStakingCollectionNodesAndDelegators(
+			t, b,
+			accountKeys,
+			env,
+			"0.0", "2000000.0")
+
+		verifyStakingCollectionInfo(t, b, env, StakingCollectionInfo{
+			accountAddress:     jeffAddress1.String(),
+			unlockedBalance:    "630000.00000000",
+			lockedBalance:      "0.00000000",
+			unlockedTokensUsed: "1000000.00000000",
+			lockedTokensUsed:   "0.00000000",
+			unlockLimit:        "370000.00000000",
+			nodes:              []string{jeffID1_2, jeffID1_1},
+			delegators:         []DelegatorIDs{DelegatorIDs{nodeID: jeffID1_2, id: 1}, DelegatorIDs{nodeID: jeffID1_1, id: 1}},
+		})
+
+		verifyStakingCollectionInfo(t, b, env, StakingCollectionInfo{
+			accountAddress:     jeffAddress2.String(),
+			unlockedBalance:    "630000.00000000",
+			lockedBalance:      "0.00000000",
+			unlockedTokensUsed: "1000000.00000000",
+			lockedTokensUsed:   "0.00000000",
+			unlockLimit:        "370000.00000000",
+			nodes:              []string{jeffID2_2, jeffID2_1},
+			delegators:         []DelegatorIDs{DelegatorIDs{nodeID: jeffID2_2, id: 1}, DelegatorIDs{nodeID: jeffID2_1, id: 1}},
+		})
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionTransferNode(env), jeffAddress1)
+		_ = tx.AddArgument(cadence.NewString(jeffID1_1))
+		_ = tx.AddArgument(cadence.NewAddress(jeffAddress2))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, jeffAddress1},
+			[]crypto.Signer{b.ServiceKey().Signer(), jeffSigner1},
+			true,
+		)
+	})
+
+	t.Run("Should fail because attempts to transfer delegator stored in locked account.", func(t *testing.T) {
+		jeffAddress1, _, jeffSigner1, jeffID1_1, jeffID1_2 := registerStakingCollectionNodesAndDelegators(
+			t, b,
+			accountKeys,
+			env,
+			"0.0", "2000000.0")
+
+		jeffAddress2, _, _, jeffID2_1, jeffID2_2 := registerStakingCollectionNodesAndDelegators(
+			t, b,
+			accountKeys,
+			env,
+			"0.0", "2000000.0")
+
+		verifyStakingCollectionInfo(t, b, env, StakingCollectionInfo{
+			accountAddress:     jeffAddress1.String(),
+			unlockedBalance:    "630000.00000000",
+			lockedBalance:      "0.00000000",
+			unlockedTokensUsed: "1000000.00000000",
+			lockedTokensUsed:   "0.00000000",
+			unlockLimit:        "370000.00000000",
+			nodes:              []string{jeffID1_2, jeffID1_1},
+			delegators:         []DelegatorIDs{DelegatorIDs{nodeID: jeffID1_2, id: 1}, DelegatorIDs{nodeID: jeffID1_1, id: 1}},
+		})
+
+		verifyStakingCollectionInfo(t, b, env, StakingCollectionInfo{
+			accountAddress:     jeffAddress2.String(),
+			unlockedBalance:    "630000.00000000",
+			lockedBalance:      "0.00000000",
+			unlockedTokensUsed: "1000000.00000000",
+			lockedTokensUsed:   "0.00000000",
+			unlockLimit:        "370000.00000000",
+			nodes:              []string{jeffID2_2, jeffID2_1},
+			delegators:         []DelegatorIDs{DelegatorIDs{nodeID: jeffID2_2, id: 1}, DelegatorIDs{nodeID: jeffID2_1, id: 1}},
+		})
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionTransferDelegator(env), jeffAddress1)
+		_ = tx.AddArgument(cadence.NewString(jeffID1_1))
+		_ = tx.AddArgument(cadence.NewUInt32(1))
+		_ = tx.AddArgument(cadence.NewAddress(jeffAddress2))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, jeffAddress1},
+			[]crypto.Signer{b.ServiceKey().Signer(), jeffSigner1},
+			true,
+		)
+	})
+
+}
