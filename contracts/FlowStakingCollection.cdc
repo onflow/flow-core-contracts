@@ -41,8 +41,8 @@ pub contract FlowStakingCollection {
     pub resource interface StakingCollectionPublic {
         pub var lockedTokensUsed: UFix64
         pub var unlockedTokensUsed: UFix64
-        pub fun addNodeObject(_ node: @FlowIDTableStaking.NodeStaker): Void
-        pub fun addDelegatorObject(_ delegator: @FlowIDTableStaking.NodeDelegator): Void
+        pub fun addNodeObject(_ node: @FlowIDTableStaking.NodeStaker)
+        pub fun addDelegatorObject(_ delegator: @FlowIDTableStaking.NodeDelegator)
         pub fun doesStakeExist(nodeID: String, delegatorID: UInt32?): Bool
         pub fun getNodeIDs(): [String]
         pub fun getDelegatorIDs(): [DelegatorIDs]
@@ -265,6 +265,7 @@ pub contract FlowStakingCollection {
         }
 
         /// Function to remove an existing NodeStaker object
+        /// If the user has used any locked tokens, removing NodeStaker objects is not allowed.
         pub fun removeNode(nodeID: String): @FlowIDTableStaking.NodeStaker? {
             pre {
                 self.doesStakeExist(nodeID: nodeID, delegatorID: nil): "Specified node does not exist"
@@ -275,12 +276,16 @@ pub contract FlowStakingCollection {
                 let stakingInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeID)
                 let totalStaked = stakingInfo.tokensStaked + stakingInfo.tokensCommitted + stakingInfo.tokensUnstaking + stakingInfo.tokensUnstaked
 
+                /// Since the NodeStaker object is being removed, the total number of unlocked tokens staked to it
+                /// is deducted from the counter.
                 self.unlockedTokensUsed = self.unlockedTokensUsed - totalStaked
 
+                /// Removes the NodeStaker object from the Staking Collections internal nodeStaker map
                 let nodeStaker <- self.nodeStakers[nodeID] <- nil
                 
                 return <- nodeStaker
             } else {
+                /// The function does not allow for removing a NodeStaker stored in the locked account, if one exists.
                 panic("Cannot remove node stored in locked account.")
             }
 
@@ -288,6 +293,7 @@ pub contract FlowStakingCollection {
         }
 
         /// Function to remove an existing NodeDelegator object
+        /// If the user has used any locked tokens, removing NodeDelegator objects is not allowed.
         pub fun removeDelegator(nodeID: String, delegatorID: UInt32): @FlowIDTableStaking.NodeDelegator? {
             pre {
                 self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID): "Specified delegator does not exist"
@@ -297,18 +303,22 @@ pub contract FlowStakingCollection {
             if self.nodeDelegators[nodeID] != nil {
                 let delegatorRef = &self.nodeDelegators[nodeID] as? &FlowIDTableStaking.NodeDelegator
                 if delegatorRef.id == delegatorID { 
-                    let nodeDelegator <- self.nodeDelegators[nodeID] <- nil
-
                     let stakingInfo = FlowIDTableStaking.DelegatorInfo(nodeID: nodeID, delegatorID: delegatorID)
                     let totalStaked = stakingInfo.tokensStaked + stakingInfo.tokensCommitted + stakingInfo.tokensUnstaking + stakingInfo.tokensUnstaked
 
+                    /// Since the NodeDelegator object is being removed, the total number of unlocked tokens delegated to it
+                    /// is deducted from the counter.
                     self.unlockedTokensUsed = self.unlockedTokensUsed - totalStaked
+
+                    /// Removes the NodeDelegator object from the Staking Collections internal nodeStaker map
+                    let nodeDelegator <- self.nodeDelegators[nodeID] <- nil
 
                     return <- nodeDelegator
                 } else { 
                     panic("Expected delegatorID does not correspond to the delegator in the Staking Collection.")
                 }
             } else {
+                /// The function does not allow for removing a NodeStaker stored in the locked account, if one exists.
                 panic("Cannot remove delegator stored in locked account.")
             }
 

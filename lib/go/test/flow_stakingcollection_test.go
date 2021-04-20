@@ -1793,7 +1793,7 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 	b, accountKeys, env := newTestSetup(t)
 	_ = deployAllCollectionContracts(t, b, accountKeys, &env)
 
-	t.Run("Should fail because account uses locked tokens", func(t *testing.T) {
+	t.Run("Should fail to transfer a node staker because account uses locked tokens", func(t *testing.T) {
 		jeffAddress1, _, jeffSigner1, jeffID1_1, _ := registerStakingCollectionNodesAndDelegators(
 			t, b,
 			accountKeys,
@@ -1807,6 +1807,31 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 			"1000000.0", "1000000.0")
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionTransferNode(env), jeffAddress1)
+		_ = tx.AddArgument(cadence.NewString(jeffID1_1))
+		_ = tx.AddArgument(cadence.NewAddress(jeffAddress2))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, jeffAddress1},
+			[]crypto.Signer{b.ServiceKey().Signer(), jeffSigner1},
+			true,
+		)
+	})
+
+	t.Run("Should fail to transfer a node delegator because account uses locked tokens", func(t *testing.T) {
+		jeffAddress1, _, jeffSigner1, jeffID1_1, _ := registerStakingCollectionNodesAndDelegators(
+			t, b,
+			accountKeys,
+			env,
+			"1000000.0", "1000000.0")
+
+		jeffAddress2, _, _, _, _ := registerStakingCollectionNodesAndDelegators(
+			t, b,
+			accountKeys,
+			env,
+			"1000000.0", "1000000.0")
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionTransferDelegator(env), jeffAddress1)
 		_ = tx.AddArgument(cadence.NewString(jeffID1_1))
 		_ = tx.AddArgument(cadence.NewAddress(jeffAddress2))
 
