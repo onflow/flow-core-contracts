@@ -276,8 +276,7 @@ pub contract FlowStakingCollection {
                 let stakingInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeID)
                 let totalStaked = stakingInfo.tokensStaked + stakingInfo.tokensCommitted + stakingInfo.tokensUnstaking + stakingInfo.tokensUnstaked
 
-                /// Since the NodeStaker object is being removed, the total number of unlocked tokens staked to it
-                /// is deducted from the counter.
+                /// Since the NodeStaker object is being removed, the total number of unlocked tokens staked to it is deducted from the counter.
                 self.unlockedTokensUsed = self.unlockedTokensUsed - totalStaked
 
                 /// Removes the NodeStaker object from the Staking Collections internal nodeStaker map
@@ -306,8 +305,7 @@ pub contract FlowStakingCollection {
                     let stakingInfo = FlowIDTableStaking.DelegatorInfo(nodeID: nodeID, delegatorID: delegatorID)
                     let totalStaked = stakingInfo.tokensStaked + stakingInfo.tokensCommitted + stakingInfo.tokensUnstaking + stakingInfo.tokensUnstaked
 
-                    /// Since the NodeDelegator object is being removed, the total number of unlocked tokens delegated to it
-                    /// is deducted from the counter.
+                    /// Since the NodeDelegator object is being removed, the total number of unlocked tokens delegated to it is deducted from the counter.
                     self.unlockedTokensUsed = self.unlockedTokensUsed - totalStaked
 
                     /// Removes the NodeDelegator object from the Staking Collections internal nodeStaker map
