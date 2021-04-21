@@ -615,8 +615,8 @@ func TestEpochQCDKG(t *testing.T) {
 			false,
 		)
 
-		finalSubmissionKeys[0] = cadence.NewString(dkgKey1)
-		finalSubmissionKeys[1] = cadence.NewString(dkgKey1)
+		finalSubmissionKeys[0] = cadence.NewOptional(cadence.NewString(dkgKey1))
+		finalSubmissionKeys[1] = cadence.NewOptional(cadence.NewString(dkgKey1))
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGFinalSubmissionScript(env), addresses[1])
 
@@ -693,6 +693,13 @@ func TestEpochQCDKG(t *testing.T) {
 				dkgPubKeys: finalKeyStrings,
 				clusterQCs: clusterQCs})
 
+		// DKG and QC have not been disabled yet
+		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGEnabledScript(env), nil)
+		assert.Equal(t, cadence.NewBool(true), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetQCEnabledScript(env), nil)
+		assert.Equal(t, cadence.NewBool(true), result)
+
 	})
 
 	t.Run("Can end the Epoch and start a new Epoch", func(t *testing.T) {
@@ -738,6 +745,13 @@ func TestEpochQCDKG(t *testing.T) {
 				collectorClusters: clusters,
 				clusterQCs:        clusterQCs,
 				dkgKeys:           finalKeyStrings})
+
+		// DKG and QC are disabled at the end of the epoch
+		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGEnabledScript(env), nil)
+		assert.Equal(t, cadence.NewBool(false), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetQCEnabledScript(env), nil)
+		assert.Equal(t, cadence.NewBool(false), result)
 
 	})
 }

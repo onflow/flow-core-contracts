@@ -1,6 +1,6 @@
 import FlowDKG from 0xDKGADDRESS
 
-transaction(submission: [String]) {
+transaction(submission: [String?]) {
 
     let dkgParticipant: &FlowDKG.Participant
 
