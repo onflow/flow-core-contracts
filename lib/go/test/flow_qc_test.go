@@ -163,6 +163,9 @@ func TestQuroumCertificate(t *testing.T) {
 
 		assert.Equal(t, cadence.NewUInt64(67), result)
 
+		result = executeScriptAndCheck(t, b, templates.GenerateGetQCEnabledScript(env), nil)
+		assert.Equal(t, cadence.NewBool(true), result)
+
 	})
 
 	t.Run("Should be able to register a voter", func(t *testing.T) {
