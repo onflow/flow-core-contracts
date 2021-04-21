@@ -219,20 +219,8 @@ pub contract FlowDKG {
 
             // if a key is different, stop checking this submission
             // and return false
-            if let keyUnwrap = key {
-                if let existingKeyUnwrap = existingSubmission[index] {
-                    if keyUnwrap != existingKeyUnwrap {
-                        return false
-                    }
-                } else {
-                    // key was non-nil, but existingKey was nil
-                    return false
-                }
-            } else {
-                if existingSubmission[index] != nil {
-                    // key was nil, but existingKey was non-nil
-                    return false
-                }
+            if key != existingSubmission[index] {
+                return false
             }
 
             index = index + 1

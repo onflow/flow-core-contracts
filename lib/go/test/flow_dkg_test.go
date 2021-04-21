@@ -41,9 +41,7 @@ func TestDKG(t *testing.T) {
 			Source: string(DKGCode),
 		},
 	})
-	if !assert.NoError(t, err) {
-		t.Log(err.Error())
-	}
+	assert.NoError(t, err)
 
 	env.DkgAddress = DKGAddress.Hex()
 
@@ -568,9 +566,7 @@ func TestDKGNil(t *testing.T) {
 			Source: string(DKGCode),
 		},
 	})
-	if !assert.NoError(t, err) {
-		t.Log(err.Error())
-	}
+	assert.NoError(t, err)
 
 	env.DkgAddress = DKGAddress.Hex()
 
