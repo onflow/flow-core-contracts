@@ -368,8 +368,11 @@ func TestDKG(t *testing.T) {
 		finalSubmissionsArray[0] = cadence.NewArray(finalSubmissionKeys)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGFinalSubmissionsScript(env), nil)
-
 		assert.Equal(t, cadence.NewArray(finalSubmissionsArray), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGCanonicalFinalSubmissionScript(env), nil)
+		resultValue := result.(cadence.Optional).Value
+		assert.Equal(t, cadence.NewArray(finalSubmissionKeys), resultValue)
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateStopDKGScript(env), DKGAddress)
 
