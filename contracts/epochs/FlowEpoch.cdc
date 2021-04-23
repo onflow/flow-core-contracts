@@ -111,8 +111,7 @@ pub contract FlowEpoch {
 
         // The resulting public keys from the DKG process, encoded as by the flow-go
         // crypto library, then hex-encoded.
-        // TODO: define ordering
-        // Group public key is the last element
+        // Group public key is the first element, followed by the individual keys
         dkgPubKeys: [String],
     )
 
