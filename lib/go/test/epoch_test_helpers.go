@@ -197,7 +197,7 @@ func initializeAllEpochContracts(
 	epochCounter, epochViews, stakingViews, dkgViews, numClusters uint64,
 	randomSource, rewardsAPY string) flow.Address {
 
-	var idTableAddress = deployStakingContract(t, b, IDTableAccountKey, *env)
+	var idTableAddress = deployStakingContract(t, b, IDTableAccountKey, *env, true)
 	env.IDTableAddress = idTableAddress.Hex()
 
 	deployQCDKGContract(t, b, idTableAddress, IDTableSigner, *env)

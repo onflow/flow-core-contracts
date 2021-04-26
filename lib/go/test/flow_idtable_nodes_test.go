@@ -44,7 +44,7 @@ func TestManyNodesIDTable(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	IDTableCode := contracts.FlowIDTableStaking(emulatorFTAddress, emulatorFlowTokenAddress)
+	IDTableCode := contracts.FlowIDTableStaking(emulatorFTAddress, emulatorFlowTokenAddress, true)
 
 	publicKeys := []cadence.Value{
 		bytesToCadenceArray(IDTableAccountKey.Encode()),
@@ -412,7 +412,7 @@ func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	IDTableCode := contracts.FlowIDTableStaking(emulatorFTAddress, emulatorFlowTokenAddress)
+	IDTableCode := contracts.FlowIDTableStaking(emulatorFTAddress, emulatorFlowTokenAddress, true)
 
 	publicKeys := make([]cadence.Value, 1)
 
