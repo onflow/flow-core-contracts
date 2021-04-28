@@ -697,7 +697,7 @@ func TestEpochQCDKG(t *testing.T) {
 
 	t.Run("Can end the Epoch and start a new Epoch", func(t *testing.T) {
 
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochPaySetRewardsScript(env), idTableAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochCalculateSetRewardsScript(env), idTableAddress)
 
 		_ = tx.AddArgument(CadenceUFix64("1300000.0"))
 
@@ -831,6 +831,7 @@ func TestEpochReset(t *testing.T) {
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateResetEpochScript(env), idTableAddress)
 		_ = tx.AddArgument(cadence.NewString("stillSoRandom"))
+		_ = tx.AddArgument(CadenceUFix64("1300000.0"))
 		_ = tx.AddArgument(cadence.NewArray([]cadence.Value{}))
 		_ = tx.AddArgument(cadence.NewArray([]cadence.Value{}))
 		_ = tx.AddArgument(cadence.NewArray([]cadence.Value{}))
@@ -849,7 +850,7 @@ func TestEpochReset(t *testing.T) {
 				startView:         0,
 				endView:           numEpochViews - 1,
 				stakingEndView:    numStakingViews - 1,
-				totalRewards:      totalRewards,
+				totalRewards:      "1300000.0",
 				collectorClusters: nil,
 				clusterQCs:        nil,
 				dkgKeys:           nil})

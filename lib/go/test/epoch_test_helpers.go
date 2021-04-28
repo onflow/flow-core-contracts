@@ -407,15 +407,15 @@ func verifyEpochMetadata(
 	assertEqual(t, CadenceUFix64(expectedMetadata.totalRewards), totalRewards)
 
 	if expectedMetadata.collectorClusters != nil {
-		clusters := metadataFields[6].(cadence.Array).Values
+		clusters := metadataFields[7].(cadence.Array).Values
 
 		verifyClusters(t, expectedMetadata.collectorClusters, clusters)
 	}
 
-	clusterQCs := metadataFields[7].(cadence.Array).Values
+	clusterQCs := metadataFields[8].(cadence.Array).Values
 	verifyClusterQCs(t, expectedMetadata.clusterQCs, clusterQCs)
 
-	dkgKeys := metadataFields[8].(cadence.Array).Values
+	dkgKeys := metadataFields[9].(cadence.Array).Values
 	if expectedMetadata.dkgKeys == nil {
 		assert.Empty(t, dkgKeys)
 	} else {

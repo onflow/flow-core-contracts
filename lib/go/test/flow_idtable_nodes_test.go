@@ -344,7 +344,7 @@ func TestManyNodesIDTable(t *testing.T) {
 	t.Run("Should pay rewards", func(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(templates.GeneratePayRewardsScript(env)).
-			SetGasLimit(200000).
+			SetGasLimit(300000).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(idTableAddress)
