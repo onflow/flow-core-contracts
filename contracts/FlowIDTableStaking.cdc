@@ -690,8 +690,7 @@ pub contract FlowIDTableStaking {
             }
         }
 
-        pub fun payRewards() {
-            let rewardsBreakdownArray = self.calculateRewards()
+        pub fun payRewards(_ rewardsBreakdownArray: [RewardsBreakdown]) {
 
             let flowTokenMinter = FlowIDTableStaking.account.borrow<&FlowToken.Minter>(from: /storage/flowTokenMinter)
                 ?? panic("Could not borrow minter reference")

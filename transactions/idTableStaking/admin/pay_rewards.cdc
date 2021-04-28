@@ -14,6 +14,7 @@ transaction {
     }
 
     execute {
-        self.adminRef.payRewards()
+        let rewardsArray = self.adminRef.calculateRewards()
+        self.adminRef.payRewards(rewardsArray)
     }
 }

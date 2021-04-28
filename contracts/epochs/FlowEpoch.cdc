@@ -421,21 +421,7 @@ pub contract FlowEpoch {
 
     access(account) fun payRewards() {
         let rewardsBreakdownArray = self.epochMetadata[self.currentEpochCounter - 1 as UInt64]!.rewardAmounts
-
-        let flowTokenMinter = FlowEpoch.account.borrow<&FlowToken.Minter>(from: /storage/flowTokenMinter)
-                ?? panic("Could not borrow minter reference")
-
-        for rewardBreakdown in rewardsBreakdownArray {
-            let nodeRecord = FlowIDTableStaking.borrowNodeRecord(rewardBreakdown.nodeID)
-            nodeRecord.tokensRewarded.deposit(from: <-flowTokenMinter.mintTokens(amount: rewardBreakdown.nodeRewards))
-            //emit RewardsPaid(nodeID: rewardBreakdown.nodeID, amount: rewardBreakdown.nodeRewards)
-
-            for delegator in rewardBreakdown.delegatorRewards.keys {
-                let delRecord = nodeRecord.borrowDelegatorRecord(delegator)
-                delRecord.tokensRewarded.deposit(from: <-flowTokenMinter.mintTokens(amount: rewardBreakdown.delegatorRewards[delegator]!))
-                //emit DelegatorRewardsPaid(nodeID: rewardBreakdown.nodeID, delegatorID: delegator, amount: rewardBreakdown.delegatorRewards[delegator]!)
-            }
-        }
+        self.stakingAdmin.payRewards(rewardsBreakdownArray)
     }
 
     /// Moves staking tokens between buckets,
