@@ -143,7 +143,8 @@ pub contract FlowEpoch {
         pub var totalRewards: UFix64
 
         /// The reward amounts that are paid to each individual node and its delegators
-        pub var rewardAmounts: [FlowIDTableStaking.RewardsBreakdown]
+        /// If it is nil, rewards have already been paid
+        pub var rewardAmounts: [FlowIDTableStaking.RewardsBreakdown]?
 
         /// The organization of collector node IDs into clusters
         /// determined by a round robin sorting algorithm
@@ -182,7 +183,7 @@ pub contract FlowEpoch {
             self.totalRewards = newRewards
         }
 
-        pub fun setRewardAmounts(_ rewardBreakdown: [FlowIDTableStaking.RewardsBreakdown]) {
+        pub fun setRewardAmounts(_ rewardBreakdown: [FlowIDTableStaking.RewardsBreakdown]?) {
             self.rewardAmounts = rewardBreakdown
         }
 
@@ -325,7 +326,9 @@ pub contract FlowEpoch {
                     }
                 case EpochPhase.EPOCHCOMMITTED:
                     if currentBlock.view >= currentEpochMetadata.endView {
+                        self.calculateAndSetRewards(nil)
                         self.endEpoch()
+                        self.payRewards()
                     }
                 default:
                     return
@@ -358,6 +361,8 @@ pub contract FlowEpoch {
             FlowEpoch.startNewEpoch()
         }
 
+        /// Needs to be called before the epoch is over
+        /// Calculates rewards for the current epoch and stores them in epoch metadata
         pub fun calculateAndSetRewards(_ newPayout: UFix64?) {
             FlowEpoch.calculateAndSetRewards(newPayout)
         }
@@ -420,8 +425,10 @@ pub contract FlowEpoch {
     }
 
     access(account) fun payRewards() {
-        let rewardsBreakdownArray = self.epochMetadata[self.currentEpochCounter - 1 as UInt64]!.rewardAmounts
-        self.stakingAdmin.payRewards(rewardsBreakdownArray)
+        if let rewardsBreakdownArray = self.epochMetadata[self.currentEpochCounter - 1 as UInt64]!.rewardAmounts {
+            self.stakingAdmin.payRewards(rewardsBreakdownArray)
+            self.epochMetadata[self.currentEpochCounter]!.setRewardAmounts(nil)
+        }
     }
 
     /// Moves staking tokens between buckets,

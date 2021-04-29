@@ -201,6 +201,18 @@ func TestIDTableDeployment(t *testing.T) {
 		result = executeScriptAndCheck(t, b, templates.GenerateGetWeeklyPayoutScript(env), nil)
 		assertEqual(t, CadenceUFix64("1250000.0"), result)
 	})
+
+	t.Run("Should be able to test scaling rewards properly", func(t *testing.T) {
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateScaleRewardsTestScript(env), idTableAddress)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+	})
 }
 
 func TestIDTableStakingUpgrade(t *testing.T) {

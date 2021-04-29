@@ -596,24 +596,22 @@ pub contract FlowIDTableStaking {
             self.delegatorRewards = {}
         }
 
-        /// Scale the rewards of the node or a single delegator by a scaling factor
-        pub fun scaleRewards(delegatorID: UInt32?, scalingFactor: UFix64) {
-            if let _delegatorID = delegatorID {
-                if let reward = self.delegatorRewards[_delegatorID] {
-                    self.delegatorRewards[_delegatorID] = reward * scalingFactor
-                } else {
-                    return
-                }
-            } else {
-                self.nodeRewards = self.nodeRewards * scalingFactor
+        /// Scale the rewards of a single delegator by a scaling factor
+        pub fun scaleDelegatorRewards(delegatorID: UInt32, scalingFactor: UFix64) {
+            if let reward = self.delegatorRewards[delegatorID] {
+                    self.delegatorRewards[delegatorID] = reward * scalingFactor
             }
+        }
+        
+        pub fun scaleOperatorRewards(scalingFactor: UFix64) {
+            self.nodeRewards = self.nodeRewards * scalingFactor
         }
 
         /// Scale the rewards of all the stakers in the record
         pub fun scaleAllRewards(scalingFactor: UFix64) {
-            self.scaleRewards(delegatorID: nil, scalingFactor: scalingFactor)
+            self.scaleOperatorRewards(scalingFactor: scalingFactor)
             for id in self.delegatorRewards.keys {
-                self.scaleRewards(delegatorID: id, scalingFactor: scalingFactor)
+                self.scaleDelegatorRewards(delegatorID: id, scalingFactor: scalingFactor)
             }
         }
     }
