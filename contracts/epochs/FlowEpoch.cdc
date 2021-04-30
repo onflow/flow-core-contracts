@@ -143,8 +143,10 @@ pub contract FlowEpoch {
         pub var totalRewards: UFix64
 
         /// The reward amounts that are paid to each individual node and its delegators
-        /// If it is nil, rewards have already been paid
-        pub var rewardAmounts: [FlowIDTableStaking.RewardsBreakdown]?
+        pub var rewardAmounts: [FlowIDTableStaking.RewardsBreakdown]
+
+        /// Tracks if rewards have been paid for this epoch
+        pub var rewardsPaid: Bool
 
         /// The organization of collector node IDs into clusters
         /// determined by a round robin sorting algorithm
@@ -174,24 +176,29 @@ pub contract FlowEpoch {
             self.stakingEndView = stakingEndView
             self.totalRewards = totalRewards
             self.rewardAmounts = []
+            self.rewardsPaid = false
             self.collectorClusters = collectorClusters
             self.clusterQCs = clusterQCs
             self.dkgKeys = dkgKeys
         }
 
-        pub fun setTotalRewards(_ newRewards: UFix64) {
+        access(account) fun setTotalRewards(_ newRewards: UFix64) {
             self.totalRewards = newRewards
         }
 
-        pub fun setRewardAmounts(_ rewardBreakdown: [FlowIDTableStaking.RewardsBreakdown]?) {
+        access(account) fun setRewardAmounts(_ rewardBreakdown: [FlowIDTableStaking.RewardsBreakdown]) {
             self.rewardAmounts = rewardBreakdown
         }
 
-        pub fun setClusterQCs(qcs: [FlowEpochClusterQC.ClusterQC]) {
+        access(account) fun setRewardsPaid(_ rewardsPaid: Bool) {
+            self.rewardsPaid = rewardsPaid
+        } 
+
+        access(account) fun setClusterQCs(qcs: [FlowEpochClusterQC.ClusterQC]) {
             self.clusterQCs = qcs
         }
 
-        pub fun setDKGGroupKey(keys: [String]) {
+        access(account) fun setDKGGroupKey(keys: [String]) {
             self.dkgKeys = keys
         }
     }
@@ -406,9 +413,8 @@ pub contract FlowEpoch {
         }
     }
 
-    /// Pays rewards to staked nodes and delegators,
-    /// Calculates a new token payout for the next epoch
-    /// and sets the new payout
+    /// Calculates a new token payout for the current epoch
+    /// and sets the new payout for the next epoch
     access(account) fun calculateAndSetRewards(_ newPayout: UFix64?) {
 
         let rewardsBreakdown = self.stakingAdmin.calculateRewards()
@@ -424,10 +430,14 @@ pub contract FlowEpoch {
         }
     }
 
+    /// Pays rewards to the nodes and delegators of the previous epoch
     access(account) fun payRewards() {
-        if let rewardsBreakdownArray = self.epochMetadata[self.currentEpochCounter - 1 as UInt64]!.rewardAmounts {
-            self.stakingAdmin.payRewards(rewardsBreakdownArray)
-            self.epochMetadata[self.currentEpochCounter]!.setRewardAmounts(nil)
+        if let previousEpochMetadata = self.epochMetadata[self.currentEpochCounter - 1 as UInt64] {
+            if !previousEpochMetadata.rewardsPaid {
+                let rewardsBreakdownArray = previousEpochMetadata.rewardAmounts
+                self.stakingAdmin.payRewards(rewardsBreakdownArray)
+                previousEpochMetadata.setRewardsPaid(true)
+            }
         }
     }
 

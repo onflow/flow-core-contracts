@@ -58,15 +58,17 @@ func TestEpochDeployment(t *testing.T) {
 	// Verify that the current epoch was initialized correctly
 	verifyEpochMetadata(t, b, env,
 		EpochMetadata{
-			counter:           startEpochCounter,
-			seed:              "lolsoRandom",
-			startView:         0,
-			endView:           numEpochViews - 1,
-			stakingEndView:    numStakingViews - 1,
-			totalRewards:      totalRewards,
-			collectorClusters: nil,
-			clusterQCs:        nil,
-			dkgKeys:           nil})
+			counter:               startEpochCounter,
+			seed:                  "lolsoRandom",
+			startView:             0,
+			endView:               numEpochViews - 1,
+			stakingEndView:        numStakingViews - 1,
+			totalRewards:          totalRewards,
+			rewardsBreakdownArray: 0,
+			rewardsPaid:           false,
+			collectorClusters:     nil,
+			clusterQCs:            nil,
+			dkgKeys:               nil})
 
 }
 
@@ -373,15 +375,17 @@ func TestEpochAdvance(t *testing.T) {
 
 		verifyEpochMetadata(t, b, env,
 			EpochMetadata{
-				counter:           startEpochCounter + 1,
-				seed:              "",
-				startView:         numEpochViews,
-				endView:           2*numEpochViews - 1,
-				stakingEndView:    numEpochViews + numStakingViews - 1,
-				totalRewards:      "0.0",
-				collectorClusters: clusters,
-				clusterQCs:        nil,
-				dkgKeys:           nil})
+				counter:               startEpochCounter + 1,
+				seed:                  "",
+				startView:             numEpochViews,
+				endView:               2*numEpochViews - 1,
+				stakingEndView:        numEpochViews + numStakingViews - 1,
+				totalRewards:          "0.0",
+				rewardsBreakdownArray: 0,
+				rewardsPaid:           false,
+				collectorClusters:     clusters,
+				clusterQCs:            nil,
+				dkgKeys:               nil})
 
 		verifyEpochSetup(t, b, idTableAddress,
 			EpochSetup{
@@ -729,15 +733,17 @@ func TestEpochQCDKG(t *testing.T) {
 
 		verifyEpochMetadata(t, b, env,
 			EpochMetadata{
-				counter:           startEpochCounter + 1,
-				seed:              "",
-				startView:         numEpochViews,
-				endView:           2*numEpochViews - 1,
-				stakingEndView:    numEpochViews + numStakingViews - 1,
-				totalRewards:      "1300000.0",
-				collectorClusters: clusters,
-				clusterQCs:        clusterQCs,
-				dkgKeys:           finalKeyStrings})
+				counter:               startEpochCounter + 1,
+				seed:                  "",
+				startView:             numEpochViews,
+				endView:               2*numEpochViews - 1,
+				stakingEndView:        numEpochViews + numStakingViews - 1,
+				totalRewards:          "1300000.0",
+				rewardsBreakdownArray: 0,
+				rewardsPaid:           false,
+				collectorClusters:     clusters,
+				clusterQCs:            clusterQCs,
+				dkgKeys:               finalKeyStrings})
 
 	})
 }
@@ -845,15 +851,17 @@ func TestEpochReset(t *testing.T) {
 
 		verifyEpochMetadata(t, b, env,
 			EpochMetadata{
-				counter:           startEpochCounter + 1,
-				seed:              "stillSoRandom",
-				startView:         0,
-				endView:           numEpochViews - 1,
-				stakingEndView:    numStakingViews - 1,
-				totalRewards:      "1300000.0",
-				collectorClusters: nil,
-				clusterQCs:        nil,
-				dkgKeys:           nil})
+				counter:               startEpochCounter + 1,
+				seed:                  "stillSoRandom",
+				startView:             0,
+				endView:               numEpochViews - 1,
+				stakingEndView:        numStakingViews - 1,
+				totalRewards:          "1300000.0",
+				rewardsBreakdownArray: 0,
+				rewardsPaid:           false,
+				collectorClusters:     nil,
+				clusterQCs:            nil,
+				dkgKeys:               nil})
 
 		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGEnabledScript(env), nil)
 		assert.Equal(t, cadence.NewBool(false), result)
