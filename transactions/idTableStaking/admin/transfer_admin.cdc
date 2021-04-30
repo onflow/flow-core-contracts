@@ -5,7 +5,7 @@ transaction {
 
     // Link the staking admin capability to a private place
     owner.link<&FlowIDTableStaking.Admin>(/private/flowStakingAdmin, target: FlowIDTableStaking.StakingAdminStoragePath)
-    let flowStakingAdmin = owner.getCapability<&FlowIDTableStaking.Admin>(/private/flowStakingAdmin)!
+    let flowStakingAdmin = owner.getCapability<&FlowIDTableStaking.Admin>(/private/flowStakingAdmin)
 
     // Save the capability to the receiver's account storage
     receiver.save(flowStakingAdmin, to: FlowIDTableStaking.StakingAdminStoragePath)
