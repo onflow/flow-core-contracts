@@ -142,6 +142,12 @@ pub contract FlowEpoch {
         /// The total rewards that are paid out for the epoch
         pub var totalRewards: UFix64
 
+        /// The reward amounts that are paid to each individual node and its delegators
+        pub var rewardAmounts: [FlowIDTableStaking.RewardsBreakdown]
+
+        /// Tracks if rewards have been paid for this epoch
+        pub var rewardsPaid: Bool
+
         /// The organization of collector node IDs into clusters
         /// determined by a round robin sorting algorithm
         pub let collectorClusters: [FlowEpochClusterQC.Cluster]
@@ -169,20 +175,30 @@ pub contract FlowEpoch {
             self.endView = endView
             self.stakingEndView = stakingEndView
             self.totalRewards = totalRewards
+            self.rewardAmounts = []
+            self.rewardsPaid = false
             self.collectorClusters = collectorClusters
             self.clusterQCs = clusterQCs
             self.dkgKeys = dkgKeys
         }
 
-        pub fun setTotalRewards(_ newRewards: UFix64) {
+        access(account) fun setTotalRewards(_ newRewards: UFix64) {
             self.totalRewards = newRewards
         }
 
-        pub fun setClusterQCs(qcs: [FlowEpochClusterQC.ClusterQC]) {
+        access(account) fun setRewardAmounts(_ rewardBreakdown: [FlowIDTableStaking.RewardsBreakdown]) {
+            self.rewardAmounts = rewardBreakdown
+        }
+
+        access(account) fun setRewardsPaid(_ rewardsPaid: Bool) {
+            self.rewardsPaid = rewardsPaid
+        } 
+
+        access(account) fun setClusterQCs(qcs: [FlowEpochClusterQC.ClusterQC]) {
             self.clusterQCs = qcs
         }
 
-        pub fun setDKGGroupKey(keys: [String]) {
+        access(account) fun setDKGGroupKey(keys: [String]) {
             self.dkgKeys = keys
         }
     }
@@ -230,9 +246,7 @@ pub contract FlowEpoch {
     access(contract) var epochMetadata: {UInt64: EpochMetadata}
 
     access(contract) let QCAdmin: @FlowEpochClusterQC.Admin
-
     access(contract) let DKGAdmin: @FlowDKG.Admin
-
     access(contract) let stakingAdmin: @FlowIDTableStaking.Admin
 
     pub let adminStoragePath: StoragePath
@@ -292,7 +306,6 @@ pub contract FlowEpoch {
     }
 
     pub resource Heartbeat {
-
         /// Function that is called every block to advance the epoch
         pub fun advanceBlock() {
 
@@ -320,7 +333,9 @@ pub contract FlowEpoch {
                     }
                 case EpochPhase.EPOCHCOMMITTED:
                     if currentBlock.view >= currentEpochMetadata.endView {
+                        self.calculateAndSetRewards(nil)
                         self.endEpoch()
+                        self.payRewards()
                     }
                 default:
                     return
@@ -353,8 +368,14 @@ pub contract FlowEpoch {
             FlowEpoch.startNewEpoch()
         }
 
-        pub fun payAndSetRewards(_ newPayout: UFix64?) {
-            FlowEpoch.payAndSetRewards(newPayout)
+        /// Needs to be called before the epoch is over
+        /// Calculates rewards for the current epoch and stores them in epoch metadata
+        pub fun calculateAndSetRewards(_ newPayout: UFix64?) {
+            FlowEpoch.calculateAndSetRewards(newPayout)
+        }
+
+        pub fun payRewards() {
+            FlowEpoch.payRewards()
         }
 
         /// Protocol can use this to reboot the epoch with a new genesis
@@ -362,6 +383,7 @@ pub contract FlowEpoch {
         /// before the end of an epoch
         pub fun resetEpoch(
             randomSource: String,
+            newPayout: UFix64?,
             collectorClusters: [FlowEpochClusterQC.Cluster],
             clusterQCs: [FlowEpochClusterQC.ClusterQC]
             dkgPubKeys: [String]) {
@@ -370,12 +392,14 @@ pub contract FlowEpoch {
             FlowEpoch.QCAdmin.forceStopVoting()
             FlowEpoch.DKGAdmin.forceEndDKG()
 
-            // Start a new Epoch
+            FlowEpoch.calculateAndSetRewards(newPayout)
+
+            // Start a new Epoch, which increments the current epoch counter
             FlowEpoch.startNewEpoch()
 
             let currentBlock = getCurrentBlock()
 
-            let firstEpochMetadata = EpochMetadata(counter: FlowEpoch.currentEpochCounter,
+            let newEpochMetadata = EpochMetadata(counter: FlowEpoch.currentEpochCounter,
                     seed: randomSource,
                     startView: currentBlock.view,
                     endView: currentBlock.view + FlowEpoch.configurableMetadata.numViewsInEpoch - (1 as UInt64),
@@ -385,16 +409,16 @@ pub contract FlowEpoch {
                     clusterQCs: clusterQCs,
                     dkgKeys: dkgPubKeys)
 
-            FlowEpoch.epochMetadata[FlowEpoch.currentEpochCounter] = firstEpochMetadata
+            FlowEpoch.epochMetadata[FlowEpoch.currentEpochCounter] = newEpochMetadata
         }
     }
 
-    /// Pays rewards to staked nodes and delegators,
-    /// Calculates a new token payout for the next epoch
-    /// and sets the new payout
-    access(account) fun payAndSetRewards(_ newPayout: UFix64?) {
+    /// Calculates a new token payout for the current epoch
+    /// and sets the new payout for the next epoch
+    access(account) fun calculateAndSetRewards(_ newPayout: UFix64?) {
 
-        self.stakingAdmin.payRewards()
+        let rewardsBreakdown = self.stakingAdmin.calculateRewards()
+        self.epochMetadata[self.currentEpochCounter]!.setRewardAmounts(rewardsBreakdown)
 
         // Calculate the new epoch's payout
         // disabled until we enable automated rewards calculations
@@ -406,10 +430,20 @@ pub contract FlowEpoch {
         }
     }
 
+    /// Pays rewards to the nodes and delegators of the previous epoch
+    access(account) fun payRewards() {
+        if let previousEpochMetadata = self.epochMetadata[self.currentEpochCounter - 1 as UInt64] {
+            if !previousEpochMetadata.rewardsPaid {
+                let rewardsBreakdownArray = previousEpochMetadata.rewardAmounts
+                self.stakingAdmin.payRewards(rewardsBreakdownArray)
+                previousEpochMetadata.setRewardsPaid(true)
+            }
+        }
+    }
+
     /// Moves staking tokens between buckets,
     /// and starts the new epoch staking auction
     access(account) fun startNewEpoch() {
-
         self.stakingAdmin.moveTokens()
 
         self.currentEpochPhase = EpochPhase.STAKINGAUCTION
@@ -581,7 +615,6 @@ pub contract FlowEpoch {
         }
 
         return clusters
-
     }
   
     /// A function to generate a random permutation of arr[] 
@@ -620,7 +653,6 @@ pub contract FlowEpoch {
         )
 
         let clusterQCAdmin = self.borrowClusterQCAdmin()
-
         return <-clusterQCAdmin.createVoter(nodeID: nodeStaker.id)
     }
 
@@ -635,7 +667,6 @@ pub contract FlowEpoch {
         )
 
         let dkgAdmin = self.borrowDKGAdmin()
-
         return <-dkgAdmin.createParticipant(nodeID: nodeStaker.id)
     }
 
@@ -684,17 +715,14 @@ pub contract FlowEpoch {
 
         let QCAdmin <- self.account.load<@FlowEpochClusterQC.Admin>(from: FlowEpochClusterQC.AdminStoragePath)
             ?? panic("Could not load QC Admin from storage")
-
         self.QCAdmin <- QCAdmin
 
         let DKGAdmin <- self.account.load<@FlowDKG.Admin>(from: FlowDKG.AdminStoragePath)
             ?? panic("Could not load DKG Admin from storage")
-
         self.DKGAdmin <- DKGAdmin
 
         let stakingAdmin <- self.account.load<@FlowIDTableStaking.Admin>(from: FlowIDTableStaking.StakingAdminStoragePath)
             ?? panic("Could not load staking Admin from storage")
-
         self.stakingAdmin <- stakingAdmin
         self.stakingAdmin.startStakingAuction()
 
@@ -709,8 +737,6 @@ pub contract FlowEpoch {
                     collectorClusters: collectorClusters,
                     clusterQCs: clusterQCs,
                     dkgKeys: dkgPubKeys)
-
         self.epochMetadata[self.currentEpochCounter] = firstEpochMetadata
     }
-
 }

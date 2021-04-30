@@ -33,15 +33,17 @@ type Cluster struct {
 
 /// Used to verify epoch metadata in tests
 type EpochMetadata struct {
-	counter           uint64
-	seed              string
-	startView         uint64
-	endView           uint64
-	stakingEndView    uint64
-	totalRewards      string
-	collectorClusters []Cluster
-	clusterQCs        [][]string
-	dkgKeys           []string
+	counter               uint64
+	seed                  string
+	startView             uint64
+	endView               uint64
+	stakingEndView        uint64
+	totalRewards          string
+	rewardsBreakdownArray int
+	rewardsPaid           bool
+	collectorClusters     []Cluster
+	clusterQCs            [][]string
+	dkgKeys               []string
 }
 
 /// Used to verify the configurable Epoch metadata in tests
@@ -406,16 +408,24 @@ func verifyEpochMetadata(
 	totalRewards := metadataFields[5]
 	assertEqual(t, CadenceUFix64(expectedMetadata.totalRewards), totalRewards)
 
+	rewardsArray := metadataFields[6].(cadence.Array).Values
+	if expectedMetadata.rewardsBreakdownArray == 0 {
+		assertEqual(t, len(rewardsArray), 0)
+	}
+
+	rewardsPaid := metadataFields[7]
+	assertEqual(t, cadence.NewBool(expectedMetadata.rewardsPaid), rewardsPaid)
+
 	if expectedMetadata.collectorClusters != nil {
-		clusters := metadataFields[6].(cadence.Array).Values
+		clusters := metadataFields[8].(cadence.Array).Values
 
 		verifyClusters(t, expectedMetadata.collectorClusters, clusters)
 	}
 
-	clusterQCs := metadataFields[7].(cadence.Array).Values
+	clusterQCs := metadataFields[9].(cadence.Array).Values
 	verifyClusterQCs(t, expectedMetadata.clusterQCs, clusterQCs)
 
-	dkgKeys := metadataFields[8].(cadence.Array).Values
+	dkgKeys := metadataFields[10].(cadence.Array).Values
 	if expectedMetadata.dkgKeys == nil {
 		assert.Empty(t, dkgKeys)
 	} else {
