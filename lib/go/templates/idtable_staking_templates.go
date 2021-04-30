@@ -7,15 +7,17 @@ import (
 const (
 	transferDeployFilename = "idTableStaking/admin/transfer_minter_deploy.cdc"
 
-	removeNodeFilename           = "idTableStaking/admin/remove_node.cdc"
-	endStakingFilename           = "idTableStaking/admin/end_staking.cdc"
-	payRewardsFilename           = "idTableStaking/admin/pay_rewards.cdc"
-	moveTokensFilename           = "idTableStaking/admin/move_tokens.cdc"
-	endEpochFilename             = "idTableStaking/admin/end_epoch.cdc"
-	changeMinimumsFilename       = "idTableStaking/admin/change_minimums.cdc"
-	changeCutFilename            = "idTableStaking/admin/change_cut.cdc"
-	changePayoutFilename         = "idTableStaking/admin/change_payout.cdc"
-	endEpochChangePayoutFilename = "idTableStaking/admin/end_epoch_change_payout.cdc"
+	removeNodeFilename              = "idTableStaking/admin/remove_node.cdc"
+	endStakingFilename              = "idTableStaking/admin/end_staking.cdc"
+	payRewardsFilename              = "idTableStaking/admin/pay_rewards.cdc"
+	moveTokensFilename              = "idTableStaking/admin/move_tokens.cdc"
+	endEpochFilename                = "idTableStaking/admin/end_epoch.cdc"
+	changeMinimumsFilename          = "idTableStaking/admin/change_minimums.cdc"
+	changeCutFilename               = "idTableStaking/admin/change_cut.cdc"
+	changePayoutFilename            = "idTableStaking/admin/change_payout.cdc"
+	endEpochChangePayoutFilename    = "idTableStaking/admin/end_epoch_change_payout.cdc"
+	transferAdminCapabilityFilename = "idTableStaking/admin/transfer_admin.cdc"
+	capabilityEndEpochFilename      = "idTableStaking/admin/capability_end_epoch.cdc"
 
 	registerNodeFilename            = "idTableStaking/node/register_node.cdc"
 	stakeNewTokensFilename          = "idTableStaking/node/stake_new_tokens.cdc"
@@ -126,6 +128,18 @@ func GenerateChangePayoutScript(env Environment) []byte {
 // and then ends the epoch
 func GenerateEndEpochChangePayoutScript(env Environment) []byte {
 	code := assets.MustAssetString(endEpochChangePayoutFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateTransferAdminCapabilityScript(env Environment) []byte {
+	code := assets.MustAssetString(transferAdminCapabilityFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateCapabilityEndEpochScript(env Environment) []byte {
+	code := assets.MustAssetString(capabilityEndEpochFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
