@@ -61,13 +61,15 @@ pub contract FlowEpochClusterQC {
     pub let VoterStoragePath: StoragePath
 
     pub struct ClusterQC {
+
         pub let index: UInt16
-
         pub var votes: [String]
+        pub var voterIDs: [String]
 
-        init(index: UInt16, votes: [String]) {
+        init(index: UInt16, votes: [String], voterIDs: [String]) {
             self.index = index
             self.votes = votes
+            self.voterIDs = voterIDs
         }
     }
 
