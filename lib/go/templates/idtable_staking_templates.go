@@ -7,19 +7,21 @@ import (
 const (
 	transferDeployFilename = "idTableStaking/admin/transfer_minter_deploy.cdc"
 
-	removeNodeFilename            = "idTableStaking/admin/remove_node.cdc"
-	endStakingFilename            = "idTableStaking/admin/end_staking.cdc"
-	removeUnapprovedNodesFilename = "idTableStaking/admin/remove_unapproved_nodes.cdc"
-	payRewardsFilename            = "idTableStaking/admin/pay_rewards.cdc"
-	moveTokensFilename            = "idTableStaking/admin/move_tokens.cdc"
-	endEpochFilename              = "idTableStaking/admin/end_epoch.cdc"
-	changeMinimumsFilename        = "idTableStaking/admin/change_minimums.cdc"
-	changeCutFilename             = "idTableStaking/admin/change_cut.cdc"
-	changePayoutFilename          = "idTableStaking/admin/change_payout.cdc"
-	endEpochChangePayoutFilename  = "idTableStaking/admin/end_epoch_change_payout.cdc"
-	startStakingFilename          = "idTableStaking/admin/start_staking.cdc"
-	upgradeStakingFilename        = "idTableStaking/admin/upgrade_staking.cdc"
-	setClaimedFilename            = "idTableStaking/admin/set_claimed.cdc"
+	removeNodeFilename              = "idTableStaking/admin/remove_node.cdc"
+	endStakingFilename              = "idTableStaking/admin/end_staking.cdc"
+	removeUnapprovedNodesFilename   = "idTableStaking/admin/remove_unapproved_nodes.cdc"
+	payRewardsFilename              = "idTableStaking/admin/pay_rewards.cdc"
+	moveTokensFilename              = "idTableStaking/admin/move_tokens.cdc"
+	endEpochFilename                = "idTableStaking/admin/end_epoch.cdc"
+	changeMinimumsFilename          = "idTableStaking/admin/change_minimums.cdc"
+	changeCutFilename               = "idTableStaking/admin/change_cut.cdc"
+	changePayoutFilename            = "idTableStaking/admin/change_payout.cdc"
+	endEpochChangePayoutFilename    = "idTableStaking/admin/end_epoch_change_payout.cdc"
+	startStakingFilename            = "idTableStaking/admin/start_staking.cdc"
+	upgradeStakingFilename          = "idTableStaking/admin/upgrade_staking.cdc"
+	setClaimedFilename              = "idTableStaking/admin/set_claimed.cdc"
+	transferAdminCapabilityFilename = "idTableStaking/admin/transfer_admin.cdc"
+	capabilityEndEpochFilename      = "idTableStaking/admin/capability_end_epoch.cdc"
 
 	registerNodeFilename            = "idTableStaking/node/register_node.cdc"
 	stakeNewTokensFilename          = "idTableStaking/node/stake_new_tokens.cdc"
@@ -157,6 +159,18 @@ func GenerateUpgradeStakingScript(env Environment) []byte {
 // GenerateSetClaimedScript creates a script that sets the new metadata claimed fields
 func GenerateSetClaimedScript(env Environment) []byte {
 	code := assets.MustAssetString(setClaimedFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateTransferAdminCapabilityScript(env Environment) []byte {
+	code := assets.MustAssetString(transferAdminCapabilityFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateCapabilityEndEpochScript(env Environment) []byte {
+	code := assets.MustAssetString(capabilityEndEpochFilename)
 
 	return []byte(replaceAddresses(code, env))
 }

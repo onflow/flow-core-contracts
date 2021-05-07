@@ -202,6 +202,65 @@ func TestIDTableDeployment(t *testing.T) {
 		result = executeScriptAndCheck(t, b, templates.GenerateGetWeeklyPayoutScript(env), nil)
 		assertEqual(t, CadenceUFix64("1250000.0"), result)
 	})
+}
+
+func TestStakingTransferAdmin(t *testing.T) {
+
+	t.Parallel()
+
+	b := newBlockchain()
+
+	env := templates.Environment{
+		FungibleTokenAddress: emulatorFTAddress,
+		FlowTokenAddress:     emulatorFlowTokenAddress,
+	}
+
+	accountKeys := test.AccountKeyGenerator()
+
+	// Create new keys for the ID table account
+	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
+	var idTableAddress = deployStakingContract(t, b, IDTableAccountKey, env, true)
+
+	env.IDTableAddress = idTableAddress.Hex()
+
+	t.Run("Should be able to transfer the admin capability to another account", func(t *testing.T) {
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GenerateTransferAdminCapabilityScript(env)).
+			SetGasLimit(9999).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(idTableAddress).
+			AddAuthorizer(b.ServiceKey().Address)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+	})
+
+	t.Run("Should be able to end epoch with the admin capability", func(t *testing.T) {
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GenerateCapabilityEndEpochScript(env)).
+			SetGasLimit(9999).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(b.ServiceKey().Address)
+
+		err := tx.AddArgument(cadence.NewArray([]cadence.Value{cadence.NewString(adminID), cadence.NewString(joshID), cadence.NewString(maxID), cadence.NewString(accessID)}))
+		require.NoError(t, err)
+		tx.AddArgument(CadenceUFix64("1300000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+	})
 
 }
 
