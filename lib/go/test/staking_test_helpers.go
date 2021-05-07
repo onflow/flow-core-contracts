@@ -22,9 +22,9 @@ const (
 	emulatorFlowTokenAddress = "0ae53cb6e3f42a79"
 )
 
-func deployStakingContract(t *testing.T, b *emulator.Blockchain, IDTableAccountKey *flow.AccountKey, env templates.Environment) flow.Address {
+func deployStakingContract(t *testing.T, b *emulator.Blockchain, IDTableAccountKey *flow.AccountKey, env templates.Environment, latest bool) flow.Address {
 
-	IDTableCode := contracts.FlowIDTableStaking(emulatorFTAddress, emulatorFlowTokenAddress)
+	IDTableCode := contracts.FlowIDTableStaking(emulatorFTAddress, emulatorFlowTokenAddress, latest)
 
 	publicKeys := make([]cadence.Value, 1)
 

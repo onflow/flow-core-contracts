@@ -18,7 +18,11 @@ const (
 	changePayoutFilename          = "idTableStaking/admin/change_payout.cdc"
 	endEpochChangePayoutFilename  = "idTableStaking/admin/end_epoch_change_payout.cdc"
 	startStakingFilename          = "idTableStaking/admin/start_staking.cdc"
-	upgradeSetClaimedFilename     = "idTableStaking/admin/upgrade_set_claimed.cdc"
+	upgradeStakingFilename        = "idTableStaking/admin/upgrade_staking.cdc"
+	setClaimedFilename            = "idTableStaking/admin/set_claimed.cdc"
+
+	// for testing only
+	scaleRewardsTestFilename = "idTableStaking/admin/scale_rewards_test.cdc"
 
 	registerNodeFilename            = "idTableStaking/node/register_node.cdc"
 	stakeNewTokensFilename          = "idTableStaking/node/stake_new_tokens.cdc"
@@ -146,10 +150,23 @@ func GenerateEndEpochChangePayoutScript(env Environment) []byte {
 	return []byte(replaceAddresses(code, env))
 }
 
-// GenerateUpgradeSetClaimedScript creates a script that upgrades the staking contract
-// then sets the new metadata claimed fields in the same TX
-func GenerateUpgradeSetClaimedScript(env Environment) []byte {
-	code := assets.MustAssetString(upgradeSetClaimedFilename)
+// GenerateUpgradeStakingScript creates a script that upgrades the staking contract
+func GenerateUpgradeStakingScript(env Environment) []byte {
+	code := assets.MustAssetString(upgradeStakingFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+// GenerateSetClaimedScript creates a script that sets the new metadata claimed fields
+func GenerateSetClaimedScript(env Environment) []byte {
+	code := assets.MustAssetString(setClaimedFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+// For testing only
+func GenerateScaleRewardsTestScript(env Environment) []byte {
+	code := assets.MustAssetString(scaleRewardsTestFilename)
 
 	return []byte(replaceAddresses(code, env))
 }

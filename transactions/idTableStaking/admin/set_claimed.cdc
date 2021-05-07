@@ -8,13 +8,14 @@ transaction {
     let adminRef: &FlowIDTableStaking.Admin
 
     prepare(acct: AuthAccount) {
+
         // borrow a reference to the admin object
         self.adminRef = acct.borrow<&FlowIDTableStaking.Admin>(from: FlowIDTableStaking.StakingAdminStoragePath)
             ?? panic("Could not borrow reference to staking admin")
     }
 
     execute {
-        let rewardsArray = self.adminRef.calculateRewards()
-        self.adminRef.payRewards(rewardsArray)
+        self.adminRef.setClaimed()
+        self.adminRef.startStakingAuction()
     }
 }
