@@ -8,6 +8,7 @@
 // ../../../transactions/dkg/admin/stop_dkg.cdc (329B)
 // ../../../transactions/dkg/create_participant.cdc (427B)
 // ../../../transactions/dkg/scripts/get_consensus_nodes.cdc (103B)
+// ../../../transactions/dkg/scripts/get_dkg_canonical_final_submission.cdc (98B)
 // ../../../transactions/dkg/scripts/get_dkg_completed.cdc (99B)
 // ../../../transactions/dkg/scripts/get_dkg_enabled.cdc (88B)
 // ../../../transactions/dkg/scripts/get_final_submissions.cdc (106B)
@@ -415,6 +416,26 @@ func dkgScriptsGet_consensus_nodesCdc() (*asset, error) {
 
 	info := bindataFileInfo{name: "dkg/scripts/get_consensus_nodes.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x62, 0xae, 0xcb, 0x31, 0x2e, 0x3e, 0x43, 0xd9, 0xec, 0xfd, 0x3f, 0x4, 0x29, 0x3c, 0xfe, 0x36, 0x20, 0xe6, 0x83, 0x77, 0x9b, 0x70, 0x2e, 0xd, 0xb3, 0x56, 0xa7, 0xfc, 0x4a, 0x1e, 0x20, 0xa0}}
+	return a, nil
+}
+
+var _dkgScriptsGet_dkg_canonical_final_submissionCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xca\xcc\x2d\xc8\x2f\x2a\x51\x70\xcb\xc9\x2f\x77\xf1\x76\x57\x48\x2b\xca\xcf\x55\x30\xa8\x70\xf1\x76\x77\x74\x71\x09\x72\x0d\x0e\xe6\xe2\x2a\x28\x4d\x52\x48\x2b\xcd\x53\xc8\x4d\xcc\xcc\xd3\xd0\xb4\x52\x88\x0e\x2e\x29\xca\xcc\x4b\xb7\x8f\xb5\x57\xa8\xe6\x52\x50\x50\x50\x28\x4a\x2d\x29\x2d\xca\x83\x19\xa1\x97\x92\x9d\xee\x9c\x9f\x5b\x90\x93\x5a\x92\x9a\xa2\xa1\xc9\x55\x0b\x08\x00\x00\xff\xff\x17\xf1\xc7\xb8\x62\x00\x00\x00"
+
+func dkgScriptsGet_dkg_canonical_final_submissionCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_dkgScriptsGet_dkg_canonical_final_submissionCdc,
+		"dkg/scripts/get_dkg_canonical_final_submission.cdc",
+	)
+}
+
+func dkgScriptsGet_dkg_canonical_final_submissionCdc() (*asset, error) {
+	bytes, err := dkgScriptsGet_dkg_canonical_final_submissionCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "dkg/scripts/get_dkg_canonical_final_submission.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xc9, 0x35, 0x32, 0x9f, 0x12, 0x28, 0xdf, 0x16, 0x2d, 0x78, 0x9a, 0x80, 0x36, 0xb5, 0x94, 0x18, 0x7f, 0xf, 0x47, 0x10, 0x4, 0x13, 0xdb, 0xe8, 0x78, 0xfd, 0x78, 0x31, 0xa0, 0xb8, 0xf7, 0xf3}}
 	return a, nil
 }
 
@@ -4137,6 +4158,7 @@ var _bindata = map[string]func() (*asset, error){
 	"dkg/admin/stop_dkg.cdc":                                                  dkgAdminStop_dkgCdc,
 	"dkg/create_participant.cdc":                                              dkgCreate_participantCdc,
 	"dkg/scripts/get_consensus_nodes.cdc":                                     dkgScriptsGet_consensus_nodesCdc,
+	"dkg/scripts/get_dkg_canonical_final_submission.cdc":                      dkgScriptsGet_dkg_canonical_final_submissionCdc,
 	"dkg/scripts/get_dkg_completed.cdc":                                       dkgScriptsGet_dkg_completedCdc,
 	"dkg/scripts/get_dkg_enabled.cdc":                                         dkgScriptsGet_dkg_enabledCdc,
 	"dkg/scripts/get_final_submissions.cdc":                                   dkgScriptsGet_final_submissionsCdc,
@@ -4378,6 +4400,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"create_participant.cdc": {dkgCreate_participantCdc, map[string]*bintree{}},
 		"scripts": {nil, map[string]*bintree{
 			"get_consensus_nodes.cdc": {dkgScriptsGet_consensus_nodesCdc, map[string]*bintree{}},
+			"get_dkg_canonical_final_submission.cdc": {dkgScriptsGet_dkg_canonical_final_submissionCdc, map[string]*bintree{}},
 			"get_dkg_completed.cdc": {dkgScriptsGet_dkg_completedCdc, map[string]*bintree{}},
 			"get_dkg_enabled.cdc": {dkgScriptsGet_dkg_enabledCdc, map[string]*bintree{}},
 			"get_final_submissions.cdc": {dkgScriptsGet_final_submissionsCdc, map[string]*bintree{}},

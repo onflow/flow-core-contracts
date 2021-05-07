@@ -759,6 +759,13 @@ func TestEpochQCDKG(t *testing.T) {
 		result = executeScriptAndCheck(t, b, templates.GenerateGetQCEnabledScript(env), nil)
 		assert.Equal(t, cadence.NewBool(false), result)
 
+		// DKG and QC are disabled at the end of the epoch
+		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGEnabledScript(env), nil)
+		assert.Equal(t, cadence.NewBool(false), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetQCEnabledScript(env), nil)
+		assert.Equal(t, cadence.NewBool(false), result)
+
 	})
 }
 
