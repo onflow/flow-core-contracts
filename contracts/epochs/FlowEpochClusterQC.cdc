@@ -61,13 +61,20 @@ pub contract FlowEpochClusterQC {
     pub let VoterStoragePath: StoragePath
 
     pub struct ClusterQC {
+
+        /// The index of the qc in the cluster record
         pub let index: UInt16
 
+        /// The votes from all the nodes in the cluster
         pub var votes: [String]
 
-        init(index: UInt16, votes: [String]) {
+        /// The node IDs that correspond to each vote
+        pub var voterIDs: [String]
+
+        init(index: UInt16, votes: [String], voterIDs: [String]) {
             self.index = index
             self.votes = votes
+            self.voterIDs = voterIDs
         }
     }
 

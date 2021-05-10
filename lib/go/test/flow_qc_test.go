@@ -53,7 +53,7 @@ func initClusters(clusterNodeIDStrings [][]string, numberOfClusters, numberOfNod
 	return [][]cadence.Value{clusterIndices, clusterNodeIDs, clusterNodeWeights}
 }
 
-func TestQuroumCertificate(t *testing.T) {
+func TestQuorumCertificate(t *testing.T) {
 	b := newBlockchain()
 
 	env := templates.Environment{
