@@ -62,14 +62,23 @@ pub contract FlowEpochClusterQC {
 
     pub struct ClusterQC {
 
+        /// The index of the qc in the cluster record
         pub let index: UInt16
+
+        /// The votes from all the nodes in the cluster
         pub var votes: [String]
+
+        /// The node IDs that correspond to each vote
         pub var voterIDs: [String]
 
-        init(index: UInt16, votes: [String], voterIDs: [String]) {
+        /// The block IDs when the votes were submitted
+        pub let blockIDs: [[UInt8; 32]]
+
+        init(index: UInt16, votes: [String], voterIDs: [String], blockIDs: [[UInt8; 32]]) {
             self.index = index
             self.votes = votes
             self.voterIDs = voterIDs
+            self.blockIDs = blockIDs
         }
     }
 
@@ -137,6 +146,7 @@ pub contract FlowEpochClusterQC {
         pub(set) var raw: String?
         pub let clusterIndex: UInt16
         pub let voteWeight: UInt64
+        pub let blockID: [UInt8; 32]
 
         init(nodeID: String, clusterIndex: UInt16, voteWeight: UInt64) {
             pre {
@@ -146,6 +156,7 @@ pub contract FlowEpochClusterQC {
             self.nodeID = nodeID
             self.clusterIndex = clusterIndex
             self.voteWeight = voteWeight
+            self.blockID = getCurrentBlock().id
         }
     }
 
