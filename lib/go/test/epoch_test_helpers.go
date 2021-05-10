@@ -365,7 +365,10 @@ func verifyClusterQCs(
 	} else {
 		i := 0
 		for _, qc := range actualQCs {
+			qcVoterIDs := qc.(cadence.Struct).Fields[2].(cadence.Array).Values
 			qcStructVotes := qc.(cadence.Struct).Fields[1].(cadence.Array).Values
+
+			assertEqual(t, len(qcVoterIDs), len(qcStructVotes))
 
 			j := 0
 			// Verify that each element is correct across the cluster

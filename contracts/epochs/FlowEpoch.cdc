@@ -1,9 +1,3 @@
-// import FungibleToken from 0xee82856bf20e2aa6
-// import FlowToken from 0x0ae53cb6e3f42a79
-// import FlowIDTableStaking from 0x01cf0e2f2f715450
-// import FlowEpochClusterQC from 0x03
-// import FlowDKG from 0x04
-
 import FungibleToken from 0xFUNGIBLETOKENADDRESS
 import FlowToken from 0xFLOWTOKENADDRESS
 import FlowIDTableStaking from 0xFLOWIDTABLESTAKINGADDRESS
@@ -117,8 +111,7 @@ pub contract FlowEpoch {
 
         // The resulting public keys from the DKG process, encoded as by the flow-go
         // crypto library, then hex-encoded.
-        // TODO: define ordering
-        // Group public key is the last element
+        // Group public key is the first element, followed by the individual keys
         dkgPubKeys: [String],
     )
 
@@ -444,6 +437,15 @@ pub contract FlowEpoch {
     /// Moves staking tokens between buckets,
     /// and starts the new epoch staking auction
     access(account) fun startNewEpoch() {
+
+        // End QC and DKG if they are still enabled
+        if FlowEpochClusterQC.inProgress {
+            self.QCAdmin.stopVoting()
+        }
+        if FlowDKG.dkgEnabled {
+            self.DKGAdmin.endDKG()
+        }
+
         self.stakingAdmin.moveTokens()
 
         self.currentEpochPhase = EpochPhase.STAKINGAUCTION
@@ -552,19 +554,21 @@ pub contract FlowEpoch {
         // Set cluster QCs in the proposed epoch metadata
         // and stop QC voting
         self.epochMetadata[self.proposedEpochCounter()]!.setClusterQCs(qcs: clusterQCs)
-        self.QCAdmin.stopVoting()
 
         // Set DKG result keys in the proposed epoch metadata
         // and stop DKG
         let dkgKeys = FlowDKG.dkgCompleted()!
-        self.epochMetadata[self.proposedEpochCounter()]!.setDKGGroupKey(keys: dkgKeys)
-        self.DKGAdmin.endDKG()
+        let unwrappedKeys: [String] = []
+        for key in dkgKeys {
+            unwrappedKeys.append(key!)
+        }
+        self.epochMetadata[self.proposedEpochCounter()]!.setDKGGroupKey(keys: unwrappedKeys)
 
         self.currentEpochPhase = EpochPhase.EPOCHCOMMITTED
 
         emit EpochCommitted(counter: self.proposedEpochCounter(),
                             clusterQCs: clusterQCs,
-                            dkgPubKeys: dkgKeys)
+                            dkgPubKeys: unwrappedKeys)
     }
 
     /// borrow a reference to the ClusterQCs resource

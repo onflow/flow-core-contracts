@@ -21,12 +21,13 @@ const (
 
 	// Scripts
 
-	getDKGEnabledFilename         = "dkg/scripts/get_dkg_enabled.cdc"
-	getConsensusNodesFilename     = "dkg/scripts/get_consensus_nodes.cdc"
-	getdkgCompletedFilename       = "dkg/scripts/get_dkg_completed.cdc"
-	getWhiteBoardMessagesFilename = "dkg/scripts/get_whiteboard_messages.cdc"
-	getLatestMessagesFilename     = "dkg/scripts/get_latest_whiteboard_messages.cdc"
-	getFinalSubmissionsFilename   = "dkg/scripts/get_final_submissions.cdc"
+	getDKGEnabledFilename               = "dkg/scripts/get_dkg_enabled.cdc"
+	getConsensusNodesFilename           = "dkg/scripts/get_consensus_nodes.cdc"
+	getdkgCompletedFilename             = "dkg/scripts/get_dkg_completed.cdc"
+	getWhiteBoardMessagesFilename       = "dkg/scripts/get_whiteboard_messages.cdc"
+	getLatestMessagesFilename           = "dkg/scripts/get_latest_whiteboard_messages.cdc"
+	getFinalSubmissionsFilename         = "dkg/scripts/get_final_submissions.cdc"
+	getCanonicalFinalSubmissionFilename = "dkg/scripts/get_dkg_canonical_final_submission.cdc"
 
 	getNodeIsRegisteredFilename    = "dkg/scripts/get_node_is_registered.cdc"
 	getNodeIsClaimedFilename       = "dkg/scripts/get_node_is_claimed.cdc"
@@ -137,6 +138,12 @@ func GenerateGetDKGNodeHasFinalSubmittedScript(env Environment) []byte {
 
 func GenerateGetDKGNodeFinalSubmissionScript(env Environment) []byte {
 	code := assets.MustAssetString(getNodeFinalSubmissionFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateGetDKGCanonicalFinalSubmissionScript(env Environment) []byte {
+	code := assets.MustAssetString(getCanonicalFinalSubmissionFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
