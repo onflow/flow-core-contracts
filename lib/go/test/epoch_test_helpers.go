@@ -244,12 +244,10 @@ func registerNodeWithSetupAccount(t *testing.T,
 	authorizer flow.Address,
 	signer crypto.Signer,
 	nodeID, networkingAddress, networkingKey, stakingKey string,
-	amount, tokensCommitted interpreter.UFix64Value,
+	amount interpreter.UFix64Value,
 	role uint8,
 	publicKey *flow.AccountKey,
 	shouldFail bool,
-) (
-	newTokensCommitted interpreter.UFix64Value,
 ) {
 
 	publicKeys := make([]cadence.Value, 1)
@@ -278,12 +276,6 @@ func registerNodeWithSetupAccount(t *testing.T,
 		[]crypto.Signer{b.ServiceKey().Signer(), signer},
 		shouldFail,
 	)
-
-	if !shouldFail {
-		newTokensCommitted = tokensCommitted.Plus(amount).(interpreter.UFix64Value)
-	}
-
-	return
 }
 
 /// Registers the specified number of nodes for staking and qc/dkg in the same transaction
@@ -304,7 +296,6 @@ func registerNodesForEpochs(
 	}
 
 	var amountToCommit interpreter.UFix64Value = 135000000000000
-	var committed interpreter.UFix64Value = 0
 
 	i := 0
 	for _, authorizer := range authorizers {
@@ -317,7 +308,6 @@ func registerNodesForEpochs(
 			fmt.Sprintf("%0128d", i),
 			fmt.Sprintf("%0192d", i),
 			amountToCommit,
-			committed,
 			uint8((i%5)+1),
 			publicKeys[i],
 			false)

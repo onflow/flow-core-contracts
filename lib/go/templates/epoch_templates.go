@@ -29,6 +29,7 @@ const (
 	getEpochMetadataFilename        = "epoch/scripts/get_epoch_metadata.cdc"
 	getConfigMetadataFilename       = "epoch/scripts/get_config_metadata.cdc"
 	getEpochPhaseFilename           = "epoch/scripts/get_epoch_phase.cdc"
+	getMachineAccountFilename       = "epoch/scripts/get_machine_account.cdc"
 
 	// test scripts
 	getRandomizeFilename      = "epoch/scripts/get_randomize.cdc"
@@ -165,6 +166,12 @@ func GenerateGetRandomizeScript(env Environment) []byte {
 
 func GenerateGetCreateClustersScript(env Environment) []byte {
 	code := assets.MustAssetString(getCreateClustersFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateGetMachineAccountScript(env Environment) []byte {
+	code := assets.MustAssetString(getMachineAccountFilename)
 
 	return []byte(replaceAddresses(code, env))
 }

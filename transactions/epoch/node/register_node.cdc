@@ -62,6 +62,11 @@ transaction(
 
             machineAcct.save(<-qcVoter, to: FlowEpochClusterQC.VoterStoragePath)
 
+            let voterRef = machineAcct.borrow<&FlowEpochClusterQC.Voter>(from: FlowEpochClusterQC.VoterStoragePath)
+                ?? panic("Could not borrow reference to qc voter")
+
+            FlowEpoch.updateMachineAccountForNode(qcVoterReference: voterRef, dkgParticipantReference: nil)
+
         } else if nodeInfo.role == 2 as UInt8 {
 
             let machineAcct = AuthAccount(payer: acct)
@@ -72,6 +77,11 @@ transaction(
             let dkgParticipant <- FlowEpoch.getDKGParticipant(nodeStaker: nodeRef)
 
             machineAcct.save(<-dkgParticipant, to: FlowDKG.ParticipantStoragePath)
+
+            let dkgParticipantRef = machineAcct.borrow<&FlowDKG.Participant>(from: FlowDKG.ParticipantStoragePath)
+                ?? panic("Cannot borrow dkg participant reference")
+
+            FlowEpoch.updateMachineAccountForNode(qcVoterReference: nil, dkgParticipantReference: dkgParticipantRef)
 
         }
 

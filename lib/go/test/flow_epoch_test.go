@@ -544,12 +544,17 @@ func TestEpochFullNodeRegistration(t *testing.T) {
 
 	// create new user accounts, mint tokens for them, and register them for staking
 	addresses, publicKeys, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
-	ids, _, _ := generateNodeIDs(numEpochAccounts)
+	ids, qcIDs, dkgIDs := generateNodeIDs(numEpochAccounts)
 	registerNodesForEpochs(t, b, env,
 		addresses,
 		signers,
 		publicKeys,
 		ids)
+
+	// Should not fail getting the addresses for the collector and consensus nodes
+	executeScriptAndCheck(t, b, templates.GenerateGetMachineAccountScript(env), [][]byte{jsoncdc.MustEncode(qcIDs[0])})
+	executeScriptAndCheck(t, b, templates.GenerateGetMachineAccountScript(env), [][]byte{jsoncdc.MustEncode(dkgIDs[0])})
+
 }
 
 func TestEpochQCDKG(t *testing.T) {

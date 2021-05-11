@@ -244,6 +244,7 @@ pub contract FlowEpoch {
 
     pub let adminStoragePath: StoragePath
     pub let heartbeatStoragePath: StoragePath
+    pub let machineAccountsStoragePath: StoragePath
 
     /// Resource that can update some of the contract fields
     pub resource Admin {
@@ -647,6 +648,22 @@ pub contract FlowEpoch {
         return array
     }
 
+    /// Gets the the address of the secondary account that is associated
+    /// with collector and consensus nodes
+    pub fun updateMachineAccountForNode(qcVoterReference: &FlowEpochClusterQC.Voter?, dkgParticipantReference: &FlowDKG.Participant?) {
+        let accountDictionary = self.account.load<{String: Address}>(from: self.machineAccountsStoragePath)
+            ?? panic("Invalid path for machine account dictionary")
+
+        if let voterRef = qcVoterReference {
+            accountDictionary[voterRef.nodeID] = voterRef.owner!.address
+
+        } else if let participantRef = dkgParticipantReference {
+            accountDictionary[participantRef.nodeID] = participantRef.owner!.address
+        }
+
+        self.account.save(accountDictionary, to: self.machineAccountsStoragePath)
+    }
+
     /// Collector nodes call this function to get their QC Voter resource
     /// in order to participate the the QC generation for their cluster
     pub fun getClusterQCVoter(nodeStaker: &FlowIDTableStaking.NodeStaker): @FlowEpochClusterQC.Voter {
@@ -690,6 +707,13 @@ pub contract FlowEpoch {
         return self.currentEpochCounter + 1 as UInt64
     }
 
+    pub fun getMachineAccountForNode(_ nodeID: String): Address? {
+        let accountDictionary = self.account.copy<{String: Address}>(from: self.machineAccountsStoragePath)
+            ?? panic("Invalid path for machine account dictionary")
+
+        return accountDictionary[nodeID]
+    }
+
     init (currentEpochCounter: UInt64,
           numViewsInEpoch: UInt64, 
           numViewsInStakingAuction: UInt64, 
@@ -712,6 +736,12 @@ pub contract FlowEpoch {
         self.currentEpochPhase = EpochPhase.STAKINGAUCTION
         self.adminStoragePath = /storage/flowEpochAdmin
         self.heartbeatStoragePath = /storage/flowEpochHeartbeat
+        self.machineAccountsStoragePath = /storage/flowEpochMachineAccounts
+
+        // Store the dictionary that will track the secondary accounts
+        // that hold the collector and consensus node objects for epoch setup
+        let accountDictionary: {String: Address} = {}
+        self.account.save(accountDictionary, to: self.machineAccountsStoragePath)
 
         self.account.save(<-create Admin(), to: self.adminStoragePath)
         self.account.save(<-create Heartbeat(), to: self.heartbeatStoragePath)
