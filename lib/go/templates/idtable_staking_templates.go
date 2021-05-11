@@ -22,7 +22,9 @@ const (
 	setClaimedFilename            = "idTableStaking/admin/set_claimed.cdc"
 
 	// for testing only
-	scaleRewardsTestFilename = "idTableStaking/admin/scale_rewards_test.cdc"
+	scaleRewardsTestFilename        = "idTableStaking/admin/scale_rewards_test.cdc"
+	transferAdminCapabilityFilename = "idTableStaking/admin/transfer_admin.cdc"
+	capabilityEndEpochFilename      = "idTableStaking/admin/capability_end_epoch.cdc"
 
 	registerNodeFilename            = "idTableStaking/node/register_node.cdc"
 	stakeNewTokensFilename          = "idTableStaking/node/stake_new_tokens.cdc"
@@ -153,7 +155,6 @@ func GenerateEndEpochChangePayoutScript(env Environment) []byte {
 // GenerateUpgradeStakingScript creates a script that upgrades the staking contract
 func GenerateUpgradeStakingScript(env Environment) []byte {
 	code := assets.MustAssetString(upgradeStakingFilename)
-
 	return []byte(replaceAddresses(code, env))
 }
 
@@ -164,10 +165,21 @@ func GenerateSetClaimedScript(env Environment) []byte {
 	return []byte(replaceAddresses(code, env))
 }
 
+func GenerateTransferAdminCapabilityScript(env Environment) []byte {
+	code := assets.MustAssetString(transferAdminCapabilityFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateCapabilityEndEpochScript(env Environment) []byte {
+	code := assets.MustAssetString(capabilityEndEpochFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
 // For testing only
 func GenerateScaleRewardsTestScript(env Environment) []byte {
 	code := assets.MustAssetString(scaleRewardsTestFilename)
-
 	return []byte(replaceAddresses(code, env))
 }
 
