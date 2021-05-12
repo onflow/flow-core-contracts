@@ -16,6 +16,9 @@ import (
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
 )
 
+// This test tests the contracts associated with the service account, such as
+// FlowFees, FlowStorageFees, and FlowServiceAccount
+
 func TestContracts(t *testing.T) {
 
 	t.Parallel()

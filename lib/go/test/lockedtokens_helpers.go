@@ -22,12 +22,16 @@ import (
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
 )
 
+// Contains utility functions that are used for testing the locked tokens
+// contracts with the flow emulator, as
+
+/************ Event Definitions ***************/
+
 // Shared account Registered event
 
 type SharedAccountRegisteredEvent interface {
 	Address() flow.Address
 }
-
 type sharedAccountRegisteredEvent flow.Event
 
 var _ SharedAccountRegisteredEvent = (*sharedAccountRegisteredEvent)(nil)
@@ -38,11 +42,9 @@ func (evt sharedAccountRegisteredEvent) Address() flow.Address {
 }
 
 // Unlocked account Registered event
-
 type UnlockedAccountRegisteredEvent interface {
 	Address() flow.Address
 }
-
 type unlockedAccountRegisteredEvent flow.Event
 
 var _ UnlockedAccountRegisteredEvent = (*unlockedAccountRegisteredEvent)(nil)
@@ -130,95 +132,6 @@ func deployLockedTokensContract(
 	return lockedTokensAddr
 }
 
-/****************** Staking Collection utilities ************************/
-
-type DelegatorIDs struct {
-	nodeID string
-	id     uint32
-}
-
-/// Used to verify staking collection info in tests
-type StakingCollectionInfo struct {
-	accountAddress     string
-	unlockedBalance    string
-	lockedBalance      string
-	unlockedTokensUsed string
-	lockedTokensUsed   string
-	unlockLimit        string
-	nodes              []string
-	delegators         []DelegatorIDs
-}
-
-// Deploys the staking collection contract to the specified lockedTokensAddress
-// because the staking collection needs to be deployed to the same account as LockedTokens
-func deployCollectionContract(t *testing.T, b *emulator.Blockchain,
-	idTableAddress,
-	stakingProxyAddress,
-	lockedTokensAddress flow.Address,
-	lockedTokensSigner crypto.Signer,
-	env *templates.Environment) {
-
-	// Get the test version of the staking collection contract that has all public fields
-	// for testing purposes
-	FlowStakingCollectionCode := contracts.TESTFlowStakingCollection(emulatorFTAddress, emulatorFlowTokenAddress, idTableAddress.String(), stakingProxyAddress.String(), lockedTokensAddress.String(), b.ServiceKey().Address.String())
-	FlowStakingCollectionByteCode := cadence.NewString(hex.EncodeToString(FlowStakingCollectionCode))
-
-	// Deploy the staking collection contract
-	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDeployStakingCollectionScript(), lockedTokensAddress).
-		AddRawArgument(jsoncdc.MustEncode(cadence.NewString("FlowStakingCollection"))).
-		AddRawArgument(jsoncdc.MustEncode(FlowStakingCollectionByteCode))
-
-	signAndSubmit(
-		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, lockedTokensAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), lockedTokensSigner},
-		false,
-	)
-}
-
-// Deploys the staking contract, staking proxy, locked tokens contract,
-// and staking collection contract.
-func deployAllCollectionContracts(t *testing.T,
-	b *emulator.Blockchain,
-	accountKeys *test.AccountKeys,
-	env *templates.Environment) crypto.Signer {
-
-	// Create new keys for the ID table account
-	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-
-	// DEPLOY IDTableStaking
-	var idTableAddress = deployStakingContract(t, b, IDTableAccountKey, *env, true)
-
-	env.IDTableAddress = idTableAddress.Hex()
-
-	// DEPLOY StakingProxy
-
-	// Deploy the StakingProxy contract
-	stakingProxyCode := contracts.FlowStakingProxy()
-	stakingProxyAddress, err := b.CreateAccount(nil, []sdktemplates.Contract{
-		{
-			Name:   "StakingProxy",
-			Source: string(stakingProxyCode),
-		},
-	})
-	if !assert.NoError(t, err) {
-		t.Log(err.Error())
-	}
-	_, err = b.CommitBlock()
-	assert.NoError(t, err)
-
-	lockedTokensAccountKey, lockedTokensSigner := accountKeys.NewWithSigner()
-	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress, lockedTokensAccountKey)
-	env.StakingProxyAddress = stakingProxyAddress.Hex()
-	env.LockedTokensAddress = lockedTokensAddress.Hex()
-
-	// DEPLOY StakingCollection
-
-	deployCollectionContract(t, b, idTableAddress, stakingProxyAddress, lockedTokensAddress, lockedTokensSigner, env)
-
-	return IDTableSigner
-}
-
 /// Creates a new pair of normal and locked accounts
 /// with their balances initialized to the provided values
 func createLockedAccountPairWithBalances(
@@ -300,6 +213,101 @@ func createLockedAccountPairWithBalances(
 	return newUserAddress, newUserSharedAddress, newUserSigner
 }
 
+/****************** Staking Collection utilities ************************/
+
+// Struct for each delegator that specifies their node ID and delegator ID
+type DelegatorIDs struct {
+	nodeID string
+	id     uint32
+}
+
+/// Used to verify staking collection info in tests
+type StakingCollectionInfo struct {
+	accountAddress     string
+	unlockedBalance    string
+	lockedBalance      string
+	unlockedTokensUsed string
+	lockedTokensUsed   string
+	unlockLimit        string
+	nodes              []string
+	delegators         []DelegatorIDs
+}
+
+// Deploys the staking collection contract to the specified lockedTokensAddress
+// because the staking collection needs to be deployed to the same account as LockedTokens
+func deployCollectionContract(t *testing.T, b *emulator.Blockchain,
+	idTableAddress,
+	stakingProxyAddress,
+	lockedTokensAddress flow.Address,
+	lockedTokensSigner crypto.Signer,
+	env *templates.Environment) {
+
+	// Get the test version of the staking collection contract that has all public fields
+	// for testing purposes
+	FlowStakingCollectionCode := contracts.TESTFlowStakingCollection(emulatorFTAddress, emulatorFlowTokenAddress, idTableAddress.String(), stakingProxyAddress.String(), lockedTokensAddress.String(), b.ServiceKey().Address.String())
+	FlowStakingCollectionByteCode := cadence.NewString(hex.EncodeToString(FlowStakingCollectionCode))
+
+	// Deploy the staking collection contract
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDeployStakingCollectionScript(), lockedTokensAddress).
+		AddRawArgument(jsoncdc.MustEncode(cadence.NewString("FlowStakingCollection"))).
+		AddRawArgument(jsoncdc.MustEncode(FlowStakingCollectionByteCode))
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, lockedTokensAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), lockedTokensSigner},
+		false,
+	)
+}
+
+// Deploys the staking contract, staking proxy, locked tokens contract,
+// and staking collection contract all in the same function
+func deployAllCollectionContracts(t *testing.T,
+	b *emulator.Blockchain,
+	accountKeys *test.AccountKeys,
+	env *templates.Environment) crypto.Signer {
+
+	// Create new keys for the ID table account
+	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
+
+	// DEPLOY IDTableStaking
+	var idTableAddress = deployStakingContract(t, b, IDTableAccountKey, *env, true)
+
+	env.IDTableAddress = idTableAddress.Hex()
+
+	// DEPLOY StakingProxy
+
+	// Deploy the StakingProxy contract
+	stakingProxyCode := contracts.FlowStakingProxy()
+	stakingProxyAddress, err := b.CreateAccount(nil, []sdktemplates.Contract{
+		{
+			Name:   "StakingProxy",
+			Source: string(stakingProxyCode),
+		},
+	})
+	if !assert.NoError(t, err) {
+		t.Log(err.Error())
+	}
+	_, err = b.CommitBlock()
+	assert.NoError(t, err)
+
+	lockedTokensAccountKey, lockedTokensSigner := accountKeys.NewWithSigner()
+	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress, lockedTokensAccountKey)
+	env.StakingProxyAddress = stakingProxyAddress.Hex()
+	env.LockedTokensAddress = lockedTokensAddress.Hex()
+
+	// DEPLOY StakingCollection
+
+	deployCollectionContract(t, b, idTableAddress, stakingProxyAddress, lockedTokensAddress, lockedTokensSigner, env)
+
+	return IDTableSigner
+}
+
+// Creates a locked account pair with balances in both accounts,
+// registers a node and a delegator in the locked account,
+// creates a staking collection and stores it in the unlocked account,
+// and registers a node and a delegator in the unlocked account.
+//
 func registerStakingCollectionNodesAndDelegators(
 	t *testing.T,
 	b *emulator.Blockchain,
@@ -307,6 +315,7 @@ func registerStakingCollectionNodesAndDelegators(
 	env templates.Environment,
 	lockedBalance, unlockedBalance string,
 ) (flow.Address, flow.Address, crypto.Signer, string, string) {
+
 	// Create a locked account pair with tokens in both accounts
 	newUserAddress, newUserSharedAddress, newUserSigner := createLockedAccountPairWithBalances(
 		t, b,
@@ -314,10 +323,11 @@ func registerStakingCollectionNodesAndDelegators(
 		env,
 		lockedBalance, unlockedBalance)
 
+	// Initialize the two node IDs
 	userNodeID1 := "0000000000000000000000000000000000000000000000000000000000000001"
 	userNodeID2 := "0000000000000000000000000000000000000000000000000000000000000002"
 
-	// Register a node and a delegator in the locked account
+	// Register a node in the locked account
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), newUserAddress)
 	_ = tx.AddArgument(cadence.NewString(userNodeID1))
 	_ = tx.AddArgument(cadence.NewUInt8(4))
@@ -333,6 +343,7 @@ func registerStakingCollectionNodesAndDelegators(
 		false,
 	)
 
+	// Register a delegator in the locked account
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateLockedDelegatorScript(env), newUserAddress)
 	_ = tx.AddArgument(cadence.NewString(userNodeID1))
 	_ = tx.AddArgument(CadenceUFix64("50000.0"))
@@ -354,6 +365,7 @@ func registerStakingCollectionNodesAndDelegators(
 		false,
 	)
 
+	// Register a node with the staking collection
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterNode(env), newUserAddress)
 	_ = tx.AddArgument(cadence.NewString(userNodeID2))
 	_ = tx.AddArgument(cadence.NewUInt8(2))
@@ -369,6 +381,7 @@ func registerStakingCollectionNodesAndDelegators(
 		false,
 	)
 
+	// Register a delegator with the staking collection
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterDelegator(env), newUserAddress)
 	_ = tx.AddArgument(cadence.NewString(userNodeID2))
 	_ = tx.AddArgument(CadenceUFix64("500000.0"))
@@ -383,6 +396,9 @@ func registerStakingCollectionNodesAndDelegators(
 	return newUserAddress, newUserSharedAddress, newUserSigner, userNodeID1, userNodeID2
 }
 
+// Queries all the important information from a user's staking collection
+// and verifies it against the provided expectedInfo struct
+//
 func verifyStakingCollectionInfo(
 	t *testing.T,
 	b *emulator.Blockchain,

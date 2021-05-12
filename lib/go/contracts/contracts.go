@@ -11,6 +11,16 @@ import (
 	"github.com/onflow/flow-core-contracts/lib/go/contracts/internal/assets"
 )
 
+/// This package contains utility functions to get contract code for the contracts in this repo
+/// To use this package, import the `flow-core-contracts/lib/go/contracts` package,
+/// then use the contracts package to call one of these functions.
+/// They will return the byte array version of the contract.
+///
+/// Example
+///
+/// flowTokenCode := contracts.FlowToken(fungibleTokenAddr)
+///
+
 const (
 	flowFeesFilename              = "FlowFees.cdc"
 	storageFeesFilename           = "FlowStorageFees.cdc"
@@ -25,6 +35,7 @@ const (
 	flowStakingCollectionFilename = "FlowStakingCollection.cdc"
 
 	// Test contracts
+	// only used for testing
 	TESTFlowIdentityTableFilename = "testContracts/TestFlowIDTableStaking.cdc"
 
 	placeholderFungibleTokenAddress     = "0xFUNGIBLETOKENADDRESS"
@@ -39,6 +50,7 @@ const (
 	placeholderStakingCollectionAddress = "0xFLOWSTAKINGCOLLECTIONADDRESS"
 )
 
+// Adds a `0x` prefix to the provided address string
 func withHexPrefix(address string) string {
 	if address == "" {
 		return ""
@@ -62,6 +74,8 @@ func FungibleToken() []byte {
 func FlowToken(fungibleTokenAddress string) []byte {
 	code := assets.MustAssetString(flowTokenFilename)
 
+	// Replace the fungible token placeholder address
+	// with the provided address
 	code = strings.ReplaceAll(
 		code,
 		placeholderFungibleTokenAddress,
@@ -93,7 +107,8 @@ func FlowFees(fungibleTokenAddress, flowTokenAddress string) []byte {
 	return []byte(code)
 }
 
-// FlowStorageFees returns the FlowStorageFees contract.
+// FlowStorageFees returns the FlowStorageFees contract
+// which imports the fungible token and flow token contracts
 //
 func FlowStorageFees(fungibleTokenAddress, flowTokenAddress string) []byte {
 	code := assets.MustAssetString(storageFeesFilename)
@@ -115,7 +130,7 @@ func FlowStorageFees(fungibleTokenAddress, flowTokenAddress string) []byte {
 
 // FlowServiceAccount returns the FlowServiceAccount contract.
 //
-// The returned contract will import the FungibleToken, FlowToken and FlowFees
+// The returned contract will import the FungibleToken, FlowToken, FlowFees, and FlowStorageFees
 // contracts from the specified addresses.
 func FlowServiceAccount(fungibleTokenAddress, flowTokenAddress, flowFeesAddress, storageFeesAddress string) []byte {
 	code := assets.MustAssetString(flowServiceAccountFilename)
@@ -148,6 +163,10 @@ func FlowServiceAccount(fungibleTokenAddress, flowTokenAddress, flowFeesAddress,
 }
 
 // FlowIDTableStaking returns the FlowIDTableStaking contract
+//
+// The staking contract imports the FungibleToken and FlowToken contracts
+//
+// Parameter: latest: indicates if the contract is the latest version, or an old version. Used to test upgrades
 func FlowIDTableStaking(fungibleTokenAddress, flowTokenAddress string, latest bool) []byte {
 	var code string
 
@@ -163,20 +182,9 @@ func FlowIDTableStaking(fungibleTokenAddress, flowTokenAddress string, latest bo
 	return []byte(code)
 }
 
-// TESTFlowIDTableStaking returns the TestFlowIDTableStaking contract
-func TESTFlowIDTableStaking(fungibleTokenAddress, flowTokenAddress string) []byte {
-	code := assets.MustAssetString(TESTFlowIdentityTableFilename)
-
-	code = strings.ReplaceAll(code, placeholderFungibleTokenAddress, withHexPrefix(fungibleTokenAddress))
-	code = strings.ReplaceAll(code, placeholderFlowTokenAddress, withHexPrefix(flowTokenAddress))
-
-	return []byte(code)
-}
-
 // FlowStakingProxy returns the StakingProxy contract.
 func FlowStakingProxy() []byte {
 	code := assets.MustAssetString(flowStakingProxyFilename)
-
 	return []byte(code)
 }
 
@@ -225,6 +233,9 @@ func TESTFlowStakingCollection(
 }
 
 // FlowLockedTokens return the LockedTokens contract
+//
+// Locked Tokens imports FungibleToken, FlowToken, FlowIDTableStaking, StakingProxy, and FlowStorageFees
+//
 func FlowLockedTokens(
 	fungibleTokenAddress,
 	flowTokenAddress,
@@ -239,6 +250,18 @@ func FlowLockedTokens(
 	code = strings.ReplaceAll(code, placeholderIDTableAddress, withHexPrefix(idTableAddress))
 	code = strings.ReplaceAll(code, placeholderStakingProxyAddress, withHexPrefix(stakingProxyAddress))
 	code = strings.ReplaceAll(code, placeholderStorageFeesAddress, withHexPrefix(storageFeesAddress))
+
+	return []byte(code)
+}
+
+/******************** Test contracts *********************/
+
+// TESTFlowIDTableStaking returns the TestFlowIDTableStaking contract
+func TESTFlowIDTableStaking(fungibleTokenAddress, flowTokenAddress string) []byte {
+	code := assets.MustAssetString(TESTFlowIdentityTableFilename)
+
+	code = strings.ReplaceAll(code, placeholderFungibleTokenAddress, withHexPrefix(fungibleTokenAddress))
+	code = strings.ReplaceAll(code, placeholderFlowTokenAddress, withHexPrefix(flowTokenAddress))
 
 	return []byte(code)
 }
