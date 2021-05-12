@@ -1,102 +1,21 @@
 package test
 
 import (
-	"encoding/hex"
 	"fmt"
 	"testing"
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
-	emulator "github.com/onflow/flow-emulator"
 	ft_templates "github.com/onflow/flow-ft/lib/go/templates"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 	sdktemplates "github.com/onflow/flow-go-sdk/templates"
 	"github.com/onflow/flow-go-sdk/test"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	"github.com/onflow/flow-core-contracts/lib/go/contracts"
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
 )
-
-// Shared account Registered event
-
-type SharedAccountRegisteredEvent interface {
-	Address() flow.Address
-}
-
-type sharedAccountRegisteredEvent flow.Event
-
-var _ SharedAccountRegisteredEvent = (*sharedAccountRegisteredEvent)(nil)
-
-// Address returns the address of the newly-created account.
-func (evt sharedAccountRegisteredEvent) Address() flow.Address {
-	return flow.BytesToAddress(evt.Value.Fields[0].(cadence.Address).Bytes())
-}
-
-// Unlocked account Registered event
-
-type UnlockedAccountRegisteredEvent interface {
-	Address() flow.Address
-}
-
-type unlockedAccountRegisteredEvent flow.Event
-
-var _ UnlockedAccountRegisteredEvent = (*unlockedAccountRegisteredEvent)(nil)
-
-// Address returns the address of the newly-created account.
-func (evt unlockedAccountRegisteredEvent) Address() flow.Address {
-	return flow.BytesToAddress(evt.Value.Fields[0].(cadence.Address).Bytes())
-}
-
-func deployLockedTokensContract(
-	t testing.TB,
-	b *emulator.Blockchain,
-	IDTableAddr, proxyAddr flow.Address,
-) flow.Address {
-
-	lockedTokensCode := contracts.FlowLockedTokens(
-		emulatorFTAddress,
-		emulatorFlowTokenAddress,
-		IDTableAddr.Hex(),
-		proxyAddr.Hex(),
-		b.ServiceKey().Address.String(),
-	)
-
-	cadenceCode := cadence.NewString(hex.EncodeToString(lockedTokensCode))
-
-	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDeployLockedTokens(), b.ServiceKey().Address)
-
-	tx.AddRawArgument(jsoncdc.MustEncode(cadence.NewString("LockedTokens")))
-	tx.AddRawArgument(jsoncdc.MustEncode(cadenceCode))
-	tx.AddRawArgument(jsoncdc.MustEncode(cadence.NewArray(nil)))
-
-	err := tx.SignEnvelope(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().Signer())
-	require.NoError(t, err)
-
-	err = b.AddTransaction(*tx)
-	require.NoError(t, err)
-
-	result, err := b.ExecuteNextTransaction()
-	require.NoError(t, err)
-	require.NoError(t, result.Error)
-
-	var lockedTokensAddr flow.Address
-
-	for _, event := range result.Events {
-		if event.Type == flow.EventAccountCreated {
-			accountCreatedEvent := flow.AccountCreatedEvent(event)
-			lockedTokensAddr = accountCreatedEvent.Address()
-			break
-		}
-	}
-
-	_, err = b.CommitBlock()
-	require.NoError(t, err)
-
-	return lockedTokensAddr
-}
 
 func TestLockedTokensStaker(t *testing.T) {
 	t.Parallel()
@@ -167,28 +86,10 @@ func TestLockedTokensStaker(t *testing.T) {
 	assert.NoError(t, err)
 
 	adminAccountKey := accountKeys.New()
-	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress)
+	lockedTokensAccountKey, _ := accountKeys.NewWithSigner()
+	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress, lockedTokensAccountKey)
 	env.StakingProxyAddress = stakingProxyAddress.Hex()
 	env.LockedTokensAddress = lockedTokensAddress.Hex()
-
-	t.Run("Should be able to set up the admin account", func(t *testing.T) {
-
-		script := ft_templates.GenerateMintTokensScript(
-			flow.HexToAddress(emulatorFTAddress),
-			flow.HexToAddress(emulatorFlowTokenAddress),
-			"FlowToken",
-		)
-		tx = createTxWithTemplateAndAuthorizer(b, script, b.ServiceKey().Address)
-		_ = tx.AddArgument(cadence.NewAddress(lockedTokensAddress))
-		_ = tx.AddArgument(CadenceUFix64("1000000000.0"))
-
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
-			false,
-		)
-	})
 
 	// Create new keys for the user account
 	joshKey, joshSigner := accountKeys.NewWithSigner()
@@ -778,23 +679,10 @@ func TestLockedTokensDelegator(t *testing.T) {
 
 	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
 
-	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress)
+	lockedTokensAccountKey, _ := accountKeys.NewWithSigner()
+	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress, lockedTokensAccountKey)
 
 	env.LockedTokensAddress = lockedTokensAddress.Hex()
-
-	t.Run("Should be able to set up the admin account", func(t *testing.T) {
-
-		tx = createTxWithTemplateAndAuthorizer(b, ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), b.ServiceKey().Address)
-		_ = tx.AddArgument(cadence.NewAddress(lockedTokensAddress))
-		_ = tx.AddArgument(CadenceUFix64("1000000000.0"))
-
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
-			false,
-		)
-	})
 
 	// Create new keys for the user account
 	joshKey, joshSigner := accountKeys.NewWithSigner()
@@ -1231,23 +1119,10 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 
 	adminAccountKey := accountKeys.New()
 
-	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress)
+	lockedTokensAccountKey, _ := accountKeys.NewWithSigner()
+	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress, lockedTokensAccountKey)
 
 	env.LockedTokensAddress = lockedTokensAddress.Hex()
-
-	t.Run("Should be able to set up the admin account", func(t *testing.T) {
-
-		tx = createTxWithTemplateAndAuthorizer(b, ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), b.ServiceKey().Address)
-		_ = tx.AddArgument(cadence.NewAddress(lockedTokensAddress))
-		_ = tx.AddArgument(CadenceUFix64("1000000000.0"))
-
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
-			false,
-		)
-	})
 
 	// Create new custody provider account
 	custodyAccountKey, custodySigner := accountKeys.NewWithSigner()
@@ -1570,29 +1445,10 @@ func TestLockedTokensRealStaking(t *testing.T) {
 	assert.NoError(t, err)
 
 	adminAccountKey := accountKeys.New()
-	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress)
+	lockedTokensAccountKey, _ := accountKeys.NewWithSigner()
+	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress, lockedTokensAccountKey)
 	env.StakingProxyAddress = stakingProxyAddress.Hex()
 	env.LockedTokensAddress = lockedTokensAddress.Hex()
-
-	t.Run("Should be able to set up the admin account", func(t *testing.T) {
-
-		script := ft_templates.GenerateMintTokensScript(
-			flow.HexToAddress(emulatorFTAddress),
-			flow.HexToAddress(emulatorFlowTokenAddress),
-			"FlowToken",
-		)
-
-		tx = createTxWithTemplateAndAuthorizer(b, script, b.ServiceKey().Address)
-		_ = tx.AddArgument(cadence.NewAddress(lockedTokensAddress))
-		_ = tx.AddArgument(CadenceUFix64("1000000000.0"))
-
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
-			false,
-		)
-	})
 
 	// Create new keys for the user account
 	joshKey, joshSigner := accountKeys.NewWithSigner()
@@ -1926,22 +1782,9 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 
 	env.StakingProxyAddress = stakingProxyAddress.Hex()
 	adminAccountKey := accountKeys.New()
-	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress)
+	lockedTokensAccountKey, _ := accountKeys.NewWithSigner()
+	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress, lockedTokensAccountKey)
 	env.LockedTokensAddress = lockedTokensAddress.Hex()
-
-	t.Run("Should be able to set up the admin account", func(t *testing.T) {
-
-		tx = createTxWithTemplateAndAuthorizer(b, ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), b.ServiceKey().Address)
-		_ = tx.AddArgument(cadence.NewAddress(lockedTokensAddress))
-		_ = tx.AddArgument(CadenceUFix64("1000000000.0"))
-
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
-			false,
-		)
-	})
 
 	// Create new keys for the user account
 	joshKey, joshSigner := accountKeys.NewWithSigner()
