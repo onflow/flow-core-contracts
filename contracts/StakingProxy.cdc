@@ -43,8 +43,6 @@ pub contract StakingProxy {
 
         pub fun stakeUnstakedTokens(amount: UFix64)
 
-        pub fun stakeRewardedTokens(amount: UFix64)
-
         pub fun requestUnstaking(amount: UFix64)
 
         pub fun unstakeAll()
