@@ -152,12 +152,14 @@ func GenerateEndEpochChangePayoutScript(env Environment) []byte {
 // GenerateUpgradeStakingScript creates a script that upgrades the staking contract
 func GenerateUpgradeStakingScript(env Environment) []byte {
 	code := assets.MustAssetString(upgradeStakingFilename)
+
 	return []byte(replaceAddresses(code, env))
 }
 
 // GenerateSetClaimedScript creates a script that sets the new metadata claimed fields
 func GenerateSetClaimedScript(env Environment) []byte {
 	code := assets.MustAssetString(setClaimedFilename)
+
 	return []byte(replaceAddresses(code, env))
 }
 
