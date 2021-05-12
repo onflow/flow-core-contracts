@@ -276,7 +276,7 @@ func TestManyNodesIDTable(t *testing.T) {
 
 		tx = flow.NewTransaction().
 			SetScript(templates.GenerateMoveTokensScript(env)).
-			SetGasLimit(40000).
+			SetGasLimit(60000).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(idTableAddress)
@@ -361,7 +361,7 @@ func TestManyNodesIDTable(t *testing.T) {
 
 		tx = flow.NewTransaction().
 			SetScript(templates.GenerateMoveTokensScript(env)).
-			SetGasLimit(250000).
+			SetGasLimit(280000).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(idTableAddress)
