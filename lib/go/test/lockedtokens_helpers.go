@@ -20,12 +20,16 @@ import (
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
 )
 
+// Contains utility functions that are used for testing the locked tokens
+// contracts with the flow emulator, as
+
+/************ Event Definitions ***************/
+
 // Shared account Registered event
 
 type SharedAccountRegisteredEvent interface {
 	Address() flow.Address
 }
-
 type sharedAccountRegisteredEvent flow.Event
 
 var _ SharedAccountRegisteredEvent = (*sharedAccountRegisteredEvent)(nil)
@@ -36,11 +40,9 @@ func (evt sharedAccountRegisteredEvent) Address() flow.Address {
 }
 
 // Unlocked account Registered event
-
 type UnlockedAccountRegisteredEvent interface {
 	Address() flow.Address
 }
-
 type unlockedAccountRegisteredEvent flow.Event
 
 var _ UnlockedAccountRegisteredEvent = (*unlockedAccountRegisteredEvent)(nil)

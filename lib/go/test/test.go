@@ -17,7 +17,27 @@ import (
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
 )
 
-// Sets up testing and emulator objects
+/***********************************************
+*
+*    flow-core-contracts/lib/go/test/test.go
+*
+*    Provides common testing utilities for automated testing using the Flow emulator
+*    such as setting up the emulator, submitting transactions and scripts,
+*    constructing cadence values, creating accounts, and minting tokens
+*
+*    To use, import the `onflow/flow-core-contracts/lib/go/test` package
+*    and call any of these functions, such as:
+*
+*    test.newTestSetup(t)
+*
+************************************************/
+
+const (
+	emulatorFTAddress        = "ee82856bf20e2aa6"
+	emulatorFlowTokenAddress = "0ae53cb6e3f42a79"
+)
+
+// Sets up testing and emulator objects and initialize the emulator default addresses
 //
 func newTestSetup(t *testing.T) (*emulator.Blockchain, *test.AccountKeys, templates.Environment) {
 	// Set for parallel processing
@@ -213,14 +233,17 @@ func assertEqual(t *testing.T, expected, actual interface{}) bool {
 	return assert.Fail(t, message)
 }
 
-// Mints 1 billion FLOW tokens for the specified account address
+// Mints the specified amount of FLOW tokens for the specified account address
 // Using the mint tokens template from the onflow/flow-ft repo
+// signed by the service account
 func mintTokensForAccount(t *testing.T, b *emulator.Blockchain, recipient flow.Address, amount string) {
 
+	// Create a new mint FLOW transaction template authorized by the service account
 	tx := createTxWithTemplateAndAuthorizer(b,
 		ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"),
 		b.ServiceKey().Address)
 
+	// Add the recipient and amount as arguments
 	_ = tx.AddArgument(cadence.NewAddress(recipient))
 	_ = tx.AddArgument(CadenceUFix64(amount))
 
@@ -240,10 +263,12 @@ func registerAndMintManyAccounts(
 	accountKeys *test.AccountKeys,
 	numAccounts int) ([]flow.Address, []*flow.AccountKey, []crypto.Signer) {
 
+	// make new addresses, keys, and signers
 	var userAddresses = make([]flow.Address, numAccounts)
 	var userPublicKeys = make([]*flow.AccountKey, numAccounts)
 	var userSigners = make([]crypto.Signer, numAccounts)
 
+	// Create each new account and mint 1B tokens for it
 	for i := 0; i < numAccounts; i++ {
 		userAddresses[i], userPublicKeys[i], userSigners[i] = newAccountWithAddress(b, accountKeys)
 		mintTokensForAccount(t, b, userAddresses[i], "1000000000.0")
