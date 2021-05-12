@@ -33,6 +33,6 @@ func TestFlowServiceAccountContract(t *testing.T) {
 }
 
 func TestFlowIdentityTableContract(t *testing.T) {
-	contract := contracts.FlowIDTableStaking(fakeAddr, fakeAddr)
+	contract := contracts.FlowIDTableStaking(fakeAddr, fakeAddr, true)
 	assert.NotNil(t, contract)
 }

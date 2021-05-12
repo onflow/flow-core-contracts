@@ -43,12 +43,7 @@ func TestStakingProxy(t *testing.T) {
 	cadenceCode := bytesToCadenceArray(IDTableCode)
 
 	// Deploy the IDTableStaking contract
-	tx := flow.NewTransaction().
-		SetScript(templates.GenerateTransferMinterAndDeployScript(env)).
-		SetGasLimit(100).
-		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
-		SetPayer(b.ServiceKey().Address).
-		AddAuthorizer(b.ServiceKey().Address).
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateTransferMinterAndDeployScript(env), b.ServiceKey().Address).
 		AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys)).
 		AddRawArgument(jsoncdc.MustEncode(cadence.NewString("FlowIDTableStaking"))).
 		AddRawArgument(jsoncdc.MustEncode(cadenceCode))

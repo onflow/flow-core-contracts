@@ -14,6 +14,7 @@ import (
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/test"
 
+	"github.com/onflow/flow-core-contracts/lib/go/contracts"
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
 )
 
@@ -52,7 +53,7 @@ func TestIDTableDeployment(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	var idTableAddress = deployStakingContract(t, b, IDTableAccountKey, env)
+	var idTableAddress = deployStakingContract(t, b, IDTableAccountKey, env, true)
 
 	env.IDTableAddress = idTableAddress.Hex()
 
@@ -218,7 +219,7 @@ func TestStakingTransferAdmin(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	var idTableAddress = deployStakingContract(t, b, IDTableAccountKey, env)
+	var idTableAddress = deployStakingContract(t, b, IDTableAccountKey, env, true)
 
 	env.IDTableAddress = idTableAddress.Hex()
 
@@ -263,6 +264,130 @@ func TestStakingTransferAdmin(t *testing.T) {
 
 }
 
+func TestIDTableStakingUpgrade(t *testing.T) {
+
+	t.Parallel()
+
+	b := newBlockchain()
+
+	env := templates.Environment{
+		FungibleTokenAddress: emulatorFTAddress,
+		FlowTokenAddress:     emulatorFlowTokenAddress,
+	}
+
+	accountKeys := test.AccountKeyGenerator()
+
+	// Create new keys for the ID table account
+	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
+	var idTableAddress = deployStakingContract(t, b, IDTableAccountKey, env, false)
+
+	env.IDTableAddress = idTableAddress.Hex()
+
+	// Create new user accounts
+	joshAccountKey, joshSigner := accountKeys.NewWithSigner()
+	joshAddress, _ := b.CreateAccount([]*flow.AccountKey{joshAccountKey}, nil)
+
+	mintTokensForAccount(t, b, idTableAddress)
+	mintTokensForAccount(t, b, joshAddress)
+
+	var amountToCommit interpreter.UFix64Value = 25000000000000
+
+	registerNode(t, b, env,
+		idTableAddress,
+		IDTableSigner,
+		adminID,
+		fmt.Sprintf("%0128d", admin),
+		fmt.Sprintf("%0128d", admin),
+		fmt.Sprintf("%0192d", admin),
+		amountToCommit,
+		0,
+		1,
+		false)
+
+	upgradeIDTableCode := contracts.FlowIDTableStaking(emulatorFTAddress, emulatorFlowTokenAddress, true)
+	cadenceCode := bytesToCadenceArray(upgradeIDTableCode)
+
+	// Upgrade the IDTableStaking contract
+	tx := createTxWithTemplateAndAuthorizer(b,
+		templates.GenerateUpgradeStakingScript(env),
+		idTableAddress)
+
+	tx.AddRawArgument(jsoncdc.MustEncode(cadenceCode))
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, idTableAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+		false,
+	)
+
+	// Set the claimed metadata fields
+	tx = createTxWithTemplateAndAuthorizer(b,
+		templates.GenerateSetClaimedScript(env),
+		idTableAddress)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, idTableAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+		false,
+	)
+
+	// Cannot register nodes with any of the used metadata, even after the upgrade
+
+	registerNode(t, b, env,
+		idTableAddress,
+		IDTableSigner,
+		// Invalid: Admin ID is already in use
+		adminID,
+		fmt.Sprintf("%0128d", admin),
+		fmt.Sprintf("%0128d", admin),
+		fmt.Sprintf("%0192d", admin),
+		amountToCommit,
+		0,
+		1,
+		true)
+
+	registerNode(t, b, env,
+		joshAddress,
+		joshSigner,
+		joshID,
+		// Invalid: first admin networking address is already in use
+		fmt.Sprintf("%0128d", admin),
+		fmt.Sprintf("%0128d", admin),
+		fmt.Sprintf("%0192d", admin),
+		amountToCommit,
+		0,
+		1,
+		true)
+
+	registerNode(t, b, env,
+		joshAddress,
+		joshSigner,
+		joshID,
+		fmt.Sprintf("%0128d", josh),
+		// Invalid: first admin networking key is already in use
+		fmt.Sprintf("%0128d", admin),
+		fmt.Sprintf("%0192d", josh),
+		amountToCommit,
+		0,
+		1,
+		true)
+
+	registerNode(t, b, env,
+		joshAddress,
+		joshSigner,
+		joshID,
+		fmt.Sprintf("%0128d", josh),
+		fmt.Sprintf("%0128d", josh),
+		// Invalid: first admin stake key is already in use
+		fmt.Sprintf("%0192d", admin),
+		amountToCommit,
+		0,
+		1,
+		true)
+}
+
 func TestIDTableStaking(t *testing.T) {
 
 	t.Parallel()
@@ -281,7 +406,7 @@ func TestIDTableStaking(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	var idTableAddress = deployStakingContract(t, b, IDTableAccountKey, env)
+	var idTableAddress = deployStakingContract(t, b, IDTableAccountKey, env, true)
 
 	env.IDTableAddress = idTableAddress.Hex()
 
@@ -410,7 +535,6 @@ func TestIDTableStaking(t *testing.T) {
 			idTableAddress,
 			IDTableSigner,
 			adminID,
-			// Invalid Networking Address: Length cannot be zero
 			fmt.Sprintf("%0128d", admin),
 			fmt.Sprintf("%0128d", admin),
 			fmt.Sprintf("%0192d", admin),
@@ -1676,7 +1800,10 @@ func TestIDTableStaking(t *testing.T) {
 	// Move tokens. make sure josh delegators unstaking tokens are moved into their unstaked bucket
 	t.Run("Should Move tokens between buckets", func(t *testing.T) {
 
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateMoveTokensScript(env), idTableAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), idTableAddress)
+
+		err := tx.AddArgument(cadence.NewArray([]cadence.Value{cadence.NewString(adminID), cadence.NewString(joshID), cadence.NewString(maxID)}))
+		require.NoError(t, err)
 
 		signAndSubmit(
 			t, b, tx,

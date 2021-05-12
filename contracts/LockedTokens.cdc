@@ -29,7 +29,6 @@ import FlowToken from 0xFLOWTOKENADDRESS
 import FungibleToken from 0xFUNGIBLETOKENADDRESS
 import FlowIDTableStaking from 0xFLOWIDTABLESTAKINGADDRESS
 import FlowStorageFees from 0xFLOWSTORAGEFEESADDRESS
-
 import StakingProxy from 0xSTAKINGPROXYADDRESS
 
 pub contract LockedTokens {
@@ -41,8 +40,6 @@ pub contract LockedTokens {
 
     pub event LockedAccountRegisteredAsNode(address: Address, nodeID: String)
     pub event LockedAccountRegisteredAsDelegator(address: Address, nodeID: String)
-
-    pub event LockedTokensDeposited(address: Address, amount: UFix64)
 
     /// Path to store the locked token manager resource
     /// in the shared account
@@ -186,7 +183,7 @@ pub contract LockedTokens {
                 let stakingInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeStaker.id)
 
                 assert(
-                    stakingInfo.tokensStaked + stakingInfo.totalTokensStaked + stakingInfo.tokensCommitted + stakingInfo.tokensUnstaking + stakingInfo.tokensUnstaked + stakingInfo.tokensRewarded == 0.0,
+                    stakingInfo.tokensStaked + stakingInfo.tokensCommitted + stakingInfo.tokensUnstaking + stakingInfo.tokensUnstaked + stakingInfo.tokensRewarded == 0.0,
                     message: "Cannot register a new node until all tokens from the previous node have been withdrawn"
                 )
 
@@ -257,7 +254,7 @@ pub contract LockedTokens {
 
         /// Capability that is used to access the LockedTokenManager
         /// in the shared account
-        access(self) var tokenManager: Capability<&LockedTokenManager>
+        access(account) var tokenManager: Capability<&LockedTokenManager>
 
         /// Used to perform staking actions if the user has signed up
         /// as a node operator
@@ -279,7 +276,7 @@ pub contract LockedTokens {
         }
 
         /// Utility function to borrow a reference to the LockedTokenManager object
-        access(self) fun borrowTokenManager(): &LockedTokenManager {
+        access(account) fun borrowTokenManager(): &LockedTokenManager {
             return self.tokenManager.borrow()!
         }
 
@@ -623,7 +620,7 @@ pub contract LockedTokens {
         }
 
         /// Get an accounts capability
-        pub fun getAccount(address: Address): Capability<&LockedTokenManager>? {
+        pub fun getAccount(address: Address): Capability<&LockedTokenManager{TokenAdmin}>? {
             return self.accounts[address]
         }
 

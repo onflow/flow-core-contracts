@@ -9,6 +9,7 @@ const (
 
 	removeNodeFilename              = "idTableStaking/admin/remove_node.cdc"
 	endStakingFilename              = "idTableStaking/admin/end_staking.cdc"
+	removeUnapprovedNodesFilename   = "idTableStaking/admin/remove_unapproved_nodes.cdc"
 	payRewardsFilename              = "idTableStaking/admin/pay_rewards.cdc"
 	moveTokensFilename              = "idTableStaking/admin/move_tokens.cdc"
 	endEpochFilename                = "idTableStaking/admin/end_epoch.cdc"
@@ -16,6 +17,9 @@ const (
 	changeCutFilename               = "idTableStaking/admin/change_cut.cdc"
 	changePayoutFilename            = "idTableStaking/admin/change_payout.cdc"
 	endEpochChangePayoutFilename    = "idTableStaking/admin/end_epoch_change_payout.cdc"
+	startStakingFilename            = "idTableStaking/admin/start_staking.cdc"
+	upgradeStakingFilename          = "idTableStaking/admin/upgrade_staking.cdc"
+	setClaimedFilename              = "idTableStaking/admin/set_claimed.cdc"
 	transferAdminCapabilityFilename = "idTableStaking/admin/transfer_admin.cdc"
 	capabilityEndEpochFilename      = "idTableStaking/admin/capability_end_epoch.cdc"
 
@@ -76,9 +80,22 @@ func GenerateRemoveNodeScript(env Environment) []byte {
 	return []byte(replaceAddresses(code, env))
 }
 
+// GenerateStartStakingScript creates a script that starts the staking auction
+func GenerateStartStakingScript(env Environment) []byte {
+	code := assets.MustAssetString(startStakingFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
 // GenerateEndStakingScript creates a script that ends the staking auction
 func GenerateEndStakingScript(env Environment) []byte {
 	code := assets.MustAssetString(endStakingFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateRemoveUnapprovedNodesScript(env Environment) []byte {
+	code := assets.MustAssetString(removeUnapprovedNodesFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -128,6 +145,20 @@ func GenerateChangePayoutScript(env Environment) []byte {
 // and then ends the epoch
 func GenerateEndEpochChangePayoutScript(env Environment) []byte {
 	code := assets.MustAssetString(endEpochChangePayoutFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+// GenerateUpgradeStakingScript creates a script that upgrades the staking contract
+func GenerateUpgradeStakingScript(env Environment) []byte {
+	code := assets.MustAssetString(upgradeStakingFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+// GenerateSetClaimedScript creates a script that sets the new metadata claimed fields
+func GenerateSetClaimedScript(env Environment) []byte {
+	code := assets.MustAssetString(setClaimedFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
