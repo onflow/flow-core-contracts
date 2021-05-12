@@ -71,6 +71,65 @@ func deployStakingContract(t *testing.T, b *emulator.Blockchain, IDTableAccountK
 	return idTableAddress
 }
 
+/// Used to verify staking info in tests
+type StakingInfo struct {
+	nodeID                   string
+	delegatorID              uint32
+	tokensCommitted          string
+	tokensStaked             string
+	tokensRequestedToUnstake string
+	tokensUnstaking          string
+	tokensUnstaked           string
+	tokensRewarded           string
+}
+
+func verifyStakingInfo(t *testing.T,
+	b *emulator.Blockchain,
+	env templates.Environment,
+	expectedStakingInfo StakingInfo,
+) {
+
+	if expectedStakingInfo.delegatorID == 0 {
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetCommittedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(expectedStakingInfo.nodeID))})
+		assertEqual(t, CadenceUFix64(expectedStakingInfo.tokensCommitted), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetStakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(expectedStakingInfo.nodeID))})
+		assertEqual(t, CadenceUFix64(expectedStakingInfo.tokensStaked), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetUnstakingRequestScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(expectedStakingInfo.nodeID))})
+		assertEqual(t, CadenceUFix64(expectedStakingInfo.tokensRequestedToUnstake), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetUnstakingBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(expectedStakingInfo.nodeID))})
+		assertEqual(t, CadenceUFix64(expectedStakingInfo.tokensUnstaking), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetUnstakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(expectedStakingInfo.nodeID))})
+		assertEqual(t, CadenceUFix64(expectedStakingInfo.tokensUnstaked), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(expectedStakingInfo.nodeID))})
+		assertEqual(t, CadenceUFix64(expectedStakingInfo.tokensRewarded), result)
+	} else {
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetDelegatorCommittedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(expectedStakingInfo.nodeID)), jsoncdc.MustEncode(cadence.UInt32(expectedStakingInfo.delegatorID))})
+		assertEqual(t, CadenceUFix64(expectedStakingInfo.tokensCommitted), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorStakedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(expectedStakingInfo.nodeID)), jsoncdc.MustEncode(cadence.UInt32(expectedStakingInfo.delegatorID))})
+		assertEqual(t, CadenceUFix64(expectedStakingInfo.tokensStaked), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorRequestScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(expectedStakingInfo.nodeID)), jsoncdc.MustEncode(cadence.UInt32(expectedStakingInfo.delegatorID))})
+		assertEqual(t, CadenceUFix64(expectedStakingInfo.tokensRequestedToUnstake), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorUnstakingScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(expectedStakingInfo.nodeID)), jsoncdc.MustEncode(cadence.UInt32(expectedStakingInfo.delegatorID))})
+		assertEqual(t, CadenceUFix64(expectedStakingInfo.tokensUnstaking), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorUnstakedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(expectedStakingInfo.nodeID)), jsoncdc.MustEncode(cadence.UInt32(expectedStakingInfo.delegatorID))})
+		assertEqual(t, CadenceUFix64(expectedStakingInfo.tokensUnstaked), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorRewardsScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(expectedStakingInfo.nodeID)), jsoncdc.MustEncode(cadence.UInt32(expectedStakingInfo.delegatorID))})
+		assertEqual(t, CadenceUFix64(expectedStakingInfo.tokensRewarded), result)
+	}
+}
+
 func generateNodeIDs(numNodes int) ([]string, []cadence.Value, []cadence.Value) {
 	ids := make([]string, numNodes)
 	qcIDs := make([]cadence.Value, numNodes/5+1)
@@ -127,6 +186,49 @@ func registerNode(t *testing.T,
 	}
 
 	return
+}
+
+func registerDelegator(t *testing.T,
+	b *emulator.Blockchain,
+	env templates.Environment,
+	authorizer flow.Address,
+	signer crypto.Signer,
+	nodeID string,
+	shouldFail bool,
+) {
+
+	tx := createTxWithTemplateAndAuthorizer(b,
+		templates.GenerateRegisterDelegatorScript(env),
+		authorizer)
+
+	_ = tx.AddArgument(cadence.NewString(nodeID))
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, authorizer},
+		[]crypto.Signer{b.ServiceKey().Signer(), signer},
+		shouldFail,
+	)
+}
+
+func endStakingMoveTokens(t *testing.T,
+	b *emulator.Blockchain,
+	env templates.Environment,
+	authorizer flow.Address,
+	signer crypto.Signer,
+	nodeIDs []cadence.Value,
+) {
+	// End staking auction and epoch
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), authorizer)
+
+	err := tx.AddArgument(cadence.NewArray(nodeIDs))
+	require.NoError(t, err)
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, authorizer},
+		[]crypto.Signer{b.ServiceKey().Signer(), signer},
+		false,
+	)
 }
 
 /// Registers the specified number of nodes for staking with the specified IDs
