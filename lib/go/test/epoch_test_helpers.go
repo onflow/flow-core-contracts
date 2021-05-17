@@ -197,7 +197,7 @@ func initializeAllEpochContracts(
 	IDTableSigner crypto.Signer,
 	env *templates.Environment,
 	epochCounter, epochViews, stakingViews, dkgViews, numClusters uint64,
-	randomSource, rewardsAPY string) flow.Address {
+	randomSource, rewardsAPY string) (flow.Address, uint64) {
 
 	var idTableAddress = deployStakingContract(t, b, IDTableAccountKey, *env, true)
 	env.IDTableAddress = idTableAddress.Hex()
@@ -205,12 +205,15 @@ func initializeAllEpochContracts(
 	deployQCDKGContract(t, b, idTableAddress, IDTableSigner, *env)
 	deployEpochContract(t, b, idTableAddress, IDTableSigner, *env, epochCounter, epochViews, stakingViews, dkgViews, numClusters, randomSource, rewardsAPY)
 
+	result := executeScriptAndCheck(t, b, templates.GenerateGetCurrentViewScript(*env), nil)
+	startView := uint64(result.(cadence.UInt64))
+
 	env.QuorumCertificateAddress = idTableAddress.String()
 	env.DkgAddress = idTableAddress.String()
 	env.EpochAddress = idTableAddress.String()
 	env.IDTableAddress = idTableAddress.String()
 
-	return idTableAddress
+	return idTableAddress, startView
 }
 
 /// Attempts to advance the epoch to the specified phase

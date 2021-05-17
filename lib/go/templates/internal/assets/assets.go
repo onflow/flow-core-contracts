@@ -36,6 +36,7 @@
 // ../../../transactions/epoch/node/register_qc_voter.cdc (532B)
 // ../../../transactions/epoch/scripts/get_config_metadata.cdc (115B)
 // ../../../transactions/epoch/scripts/get_create_clusters.cdc (207B)
+// ../../../transactions/epoch/scripts/get_current_view.cdc (138B)
 // ../../../transactions/epoch/scripts/get_epoch_counter.cdc (105B)
 // ../../../transactions/epoch/scripts/get_epoch_metadata.cdc (154B)
 // ../../../transactions/epoch/scripts/get_epoch_phase.cdc (111B)
@@ -48,6 +49,7 @@
 // ../../../transactions/flowToken/scripts/get_supply.cdc (203B)
 // ../../../transactions/flowToken/setup_account.cdc (1.147kB)
 // ../../../transactions/flowToken/transfer_tokens.cdc (1.301kB)
+// ../../../transactions/idTableStaking/admin/capability_end_epoch.cdc (1.389kB)
 // ../../../transactions/idTableStaking/admin/change_cut.cdc (644B)
 // ../../../transactions/idTableStaking/admin/change_minimums.cdc (797B)
 // ../../../transactions/idTableStaking/admin/change_payout.cdc (604B)
@@ -61,6 +63,7 @@
 // ../../../transactions/idTableStaking/admin/scale_rewards_test.cdc (693B)
 // ../../../transactions/idTableStaking/admin/set_claimed.cdc (612B)
 // ../../../transactions/idTableStaking/admin/start_staking.cdc (576B)
+// ../../../transactions/idTableStaking/admin/transfer_admin.cdc (561B)
 // ../../../transactions/idTableStaking/admin/transfer_minter_deploy.cdc (840B)
 // ../../../transactions/idTableStaking/admin/upgrade_set_claimed.cdc (668B)
 // ../../../transactions/idTableStaking/admin/upgrade_staking.cdc (156B)
@@ -979,6 +982,26 @@ func epochScriptsGet_create_clustersCdc() (*asset, error) {
 	return a, nil
 }
 
+var _epochScriptsGet_current_viewCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xd2\xd7\x57\x08\x4a\x2d\x29\x2d\xca\x2b\x56\x28\xc9\x48\x55\x28\xcb\x4c\x2d\x57\xc8\x4f\x03\xb3\x93\x4b\x8b\x8a\x52\xf3\x4a\x14\x92\x72\xf2\x93\xb3\xb9\xb8\x0a\x4a\x93\x14\xd2\x4a\xf3\x14\x72\x13\x33\xf3\x34\x34\xad\x14\x42\x3d\xf3\x4a\xcc\x4c\x14\xaa\xb9\x14\x14\x14\x14\x72\x52\x4b\x60\xea\x9d\x40\xca\x15\x6c\x15\xd2\x53\x4b\x9c\x91\x44\x34\x34\xc1\x0a\x8b\xc0\x96\xa1\xa8\xd5\x03\x59\xca\x55\x0b\x08\x00\x00\xff\xff\xc5\x9c\xf3\xf5\x8a\x00\x00\x00"
+
+func epochScriptsGet_current_viewCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_epochScriptsGet_current_viewCdc,
+		"epoch/scripts/get_current_view.cdc",
+	)
+}
+
+func epochScriptsGet_current_viewCdc() (*asset, error) {
+	bytes, err := epochScriptsGet_current_viewCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "epoch/scripts/get_current_view.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x41, 0xe7, 0xfb, 0x19, 0x77, 0x21, 0xb8, 0x52, 0x37, 0x51, 0xd3, 0x1, 0xe3, 0x74, 0xbc, 0x18, 0x86, 0x2d, 0x47, 0xe3, 0x12, 0xb4, 0x61, 0x2a, 0xbd, 0x26, 0xf9, 0xb3, 0x34, 0x69, 0xa8, 0xe}}
+	return a, nil
+}
+
 var _epochScriptsGet_epoch_counterCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xca\xcc\x2d\xc8\x2f\x2a\x51\x70\xcb\xc9\x2f\x77\x2d\xc8\x4f\xce\x50\x48\x2b\xca\xcf\x55\x30\xa8\x70\x0d\xf0\x77\xf6\x70\x74\x71\x09\x72\x0d\x0e\xe6\xe2\x2a\x28\x4d\x52\x48\x2b\xcd\x53\xc8\x4d\xcc\xcc\xd3\xd0\xb4\x52\x08\xf5\xcc\x2b\x31\x33\x51\xa8\xe6\x52\x50\x50\x50\x28\x4a\x2d\x29\x2d\xca\x43\x18\xa1\x97\x5c\x5a\x54\x94\x9a\x57\x02\xe6\x38\xe7\x97\xe6\x95\xa4\x16\x71\xd5\x02\x02\x00\x00\xff\xff\x59\x76\xbe\x5f\x69\x00\x00\x00"
 
 func epochScriptsGet_epoch_counterCdcBytes() ([]byte, error) {
@@ -1216,6 +1239,26 @@ func flowtokenTransfer_tokensCdc() (*asset, error) {
 
 	info := bindataFileInfo{name: "flowToken/transfer_tokens.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x85, 0xa4, 0x80, 0x7b, 0x7, 0xe0, 0x6e, 0xa7, 0xff, 0xc4, 0x37, 0xf4, 0x66, 0x87, 0x8a, 0x20, 0x73, 0x73, 0xdb, 0x44, 0x60, 0xdd, 0xfe, 0x20, 0x1c, 0x22, 0x9c, 0x38, 0x17, 0x58, 0x62, 0xa3}}
+	return a, nil
+}
+
+var _idtablestakingAdminCapability_end_epochCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x84\x54\x4d\x6b\xeb\x4a\x0c\xdd\xfb\x57\x88\x2e\x1e\x2e\x14\xfb\x2d\x1e\x6f\x61\xfa\x41\xda\xa4\x10\x28\xa5\x34\xb9\x8b\x4b\x29\x45\x9e\x91\xe3\xb9\x75\x66\xcc\x8c\x5c\x27\x94\xfc\xf7\xcb\x78\x1c\xd7\xee\x6d\xb9\xda\x04\x32\x3a\x47\x3a\xd2\x91\xd5\xb6\x36\x96\xe1\xb6\x32\xed\x72\xbe\xc6\xbc\xa2\x15\xe3\xab\xd2\x1b\x28\xac\xd9\xc2\xbf\xbb\xe5\x7c\x71\xbf\x5e\xae\x7f\xae\x67\xd7\x77\x8b\xd9\x7c\xfe\xb8\x58\xad\xa2\x28\x4d\x61\x5d\x2a\x07\x6c\x51\x3b\x14\xac\x8c\x86\xc6\x91\x03\x04\xd7\xe3\x51\x6e\x95\x06\x81\x35\xe6\xaa\x52\xbc\xf7\x18\x36\x50\xe3\x1e\x2c\xb5\x68\xa5\x3b\x03\xd2\x12\xb8\xa4\x0f\x4c\xd3\x51\x9d\x01\x6a\x39\x3c\x52\x6d\x44\x99\x44\x69\xea\x19\x96\x0c\xc2\x6c\x73\xa5\xc9\x75\x8f\x35\xee\x5f\xc6\x74\x2f\x03\x95\x96\xb0\x35\x6f\xf4\xc2\xe6\x95\xf4\xa4\x53\xe7\x89\xda\x52\x89\xd2\x23\xdc\xd7\x1d\x84\x77\x4b\x45\xe3\x53\xb4\x91\xe4\xa0\x55\x5c\x82\xd2\xae\x29\x0a\x25\x14\x69\xee\x60\xe4\xe9\x8e\xe5\x1c\xf4\xf5\x72\xe2\x96\x48\x43\xde\x88\x57\x62\xd7\xf7\x8e\x95\x33\xe0\x88\xfd\xa0\x34\xb5\x21\xd9\x8b\x30\x0d\x43\x61\x6c\xd7\x8b\xa6\x1d\x07\xd5\x51\x34\x6a\x3b\x56\xd2\x65\xf0\xb4\x62\xab\xf4\xe6\xf9\xcc\xe3\x1f\x3a\x60\x06\x3f\x6e\xd5\xee\xff\xff\x4e\xe1\x3d\x8a\x00\x00\xd2\x14\xee\x8c\xc0\x0a\xde\xd0\x2a\xbf\xd3\x8e\x1a\xbd\x1a\xb2\xa4\x05\xf9\x45\xf8\x4a\xcb\x39\x74\x3b\x87\x59\xb7\x2c\x93\xff\x22\xc1\x1d\x45\x45\x1c\x36\xf8\x48\x45\x06\xff\xfc\xe9\x8f\xa4\x83\x84\x7a\xb5\xa5\x1a\x2d\xc5\x28\x04\x67\x30\x6b\xb8\x9c\x09\x61\x1a\xcd\xbe\x23\xe8\x63\x60\xbc\x19\x2c\x01\x17\xe0\x21\x89\x30\xf5\xfe\xfc\xe3\xef\xcb\xd8\x7b\x2f\xfb\xc2\x94\x49\xff\xdb\xd5\x5e\xb1\xb1\xb8\xa1\x07\xe4\xf2\x74\xa8\xe2\xe3\xea\x0a\x6a\xd4\x4a\xc4\x27\x37\xa6\xa9\x24\x68\xc3\xb0\x21\x1e\x79\x31\x98\x1b\x43\x93\xe0\x02\xd1\xc9\x69\x34\xd0\xa4\x29\xe4\xc6\x5a\xd3\x7e\x35\x35\xfc\x3c\x2c\x1f\x8e\xaa\x22\x39\x4e\xcc\x0b\x9b\x4a\x4d\x02\xdd\xf9\xb7\x93\xbc\x8c\xff\x2e\xa2\x6f\x69\xd2\xd0\xe4\xdc\x4e\x02\xc7\x21\x08\xa1\x1d\x89\x86\xe9\xf3\x0e\xea\xda\x9a\x37\x92\xcb\xb9\xcb\xe0\x3d\xb8\x29\x83\x6b\x63\xaa\x03\x5c\xc0\xfb\x61\x48\xf6\x9e\x51\x12\x94\x06\x25\xdd\x88\xc4\xc7\x88\xe4\x49\xc9\x67\xb8\x00\xb6\x0d\x0d\x29\x87\x68\x52\xb2\x3f\xd0\x99\xb5\xe8\x77\x3e\x19\x55\x22\xb0\x12\x4d\x85\x4c\x8f\x21\x6b\x34\x87\x69\x62\x8d\xfb\x63\xca\x98\x70\xb4\xb5\x69\xbe\x23\x5e\xf8\x23\x5a\xfb\x1b\x0b\x97\x12\x0f\x37\xf3\x2d\x8a\xb4\x3c\x9a\x2c\x7c\x0a\xe2\xa3\xd6\x7b\x23\xa9\x1b\xda\x48\xfc\xb7\x34\xfe\x5b\xd0\x15\x3e\xea\x39\x44\x87\xe8\x77\x00\x00\x00\xff\xff\x0b\xe8\x53\x8a\x6d\x05\x00\x00"
+
+func idtablestakingAdminCapability_end_epochCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_idtablestakingAdminCapability_end_epochCdc,
+		"idTableStaking/admin/capability_end_epoch.cdc",
+	)
+}
+
+func idtablestakingAdminCapability_end_epochCdc() (*asset, error) {
+	bytes, err := idtablestakingAdminCapability_end_epochCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "idTableStaking/admin/capability_end_epoch.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xeb, 0xe5, 0xf9, 0xe8, 0x39, 0x92, 0x70, 0xc2, 0x51, 0x3a, 0x72, 0x74, 0xaa, 0x11, 0x6c, 0x7c, 0xe2, 0x9c, 0xab, 0x6c, 0x13, 0xc1, 0xea, 0x95, 0x58, 0x9c, 0x2e, 0x25, 0x2c, 0x6b, 0xae, 0x9d}}
 	return a, nil
 }
 
@@ -1476,6 +1519,26 @@ func idtablestakingAdminStart_stakingCdc() (*asset, error) {
 
 	info := bindataFileInfo{name: "idTableStaking/admin/start_staking.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xc0, 0x1d, 0x9b, 0xaf, 0xf6, 0x47, 0xd8, 0xb, 0x3a, 0x65, 0x23, 0x93, 0x9b, 0xb7, 0x9, 0x9f, 0xd1, 0x20, 0x8d, 0x22, 0xc0, 0xe4, 0xc8, 0x10, 0x6b, 0xf7, 0x84, 0x52, 0xb9, 0xf6, 0xe2, 0x24}}
+	return a, nil
+}
+
+var _idtablestakingAdminTransfer_adminCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x9c\x90\x41\x4f\xc2\x40\x14\x84\xef\xfb\x2b\xe6\xa4\x90\x90\xd6\x33\x51\x93\x6a\x31\x21\x21\xc6\xd8\x5e\x3c\x3e\xea\xa3\x6c\x58\x76\x37\xdb\x47\xab\x21\xfc\x77\xc3\x52\x88\x22\x17\xbd\xee\xec\xbc\x99\xf9\xf4\xda\xbb\x20\x78\x32\xae\x9b\xe6\x25\xcd\x0d\x17\x42\x2b\x6d\x6b\x2c\x82\x5b\xe3\xe6\x63\x9a\x4f\x9e\xcb\x69\xf9\x56\x66\x0f\xb3\x49\x96\xe7\xaf\x93\xa2\x50\x4a\x02\xd9\x86\x2a\xd1\xce\x62\xab\x00\x1f\xd8\x53\xe0\x81\xeb\x2c\x87\x31\xb2\x8d\x2c\xb3\xaa\x72\x1b\x2b\x23\x04\xae\x58\xb7\x67\xcf\x43\x6c\x95\x02\x80\x34\xc5\x4c\xdb\x15\x64\xc9\x68\xfa\x68\x7a\x5f\x6b\x8b\x8a\x3c\xcd\xb5\xd1\xf2\x09\x71\x20\xf8\xa0\x5b\x12\x86\x37\x54\x71\xf4\xc6\xb4\xc4\x68\xbb\xba\xbd\xfa\xbd\x20\xc9\xf6\x67\xee\x07\x69\x6f\x4c\x17\xc6\x75\xbd\x16\xa5\x11\x84\x42\xcd\x32\xbe\x30\x3f\xf9\xfe\xb1\x10\x17\xa8\xe6\x17\x92\xe5\x30\x06\x1b\x16\x9c\x5f\xc3\x5d\xdf\xa7\x66\x79\x3c\x55\xff\x57\xb1\xe1\x09\x4d\x41\x2d\x47\x34\x3f\x61\xec\x5f\x8e\x58\xaf\x1b\xd0\x81\x29\x9a\x43\xcf\x68\x3e\xca\x49\x43\x2d\x0f\x2e\x4c\x77\x7f\x9d\xbd\x53\x3b\x05\xf5\x15\x00\x00\xff\xff\x48\x8f\x60\x34\x31\x02\x00\x00"
+
+func idtablestakingAdminTransfer_adminCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_idtablestakingAdminTransfer_adminCdc,
+		"idTableStaking/admin/transfer_admin.cdc",
+	)
+}
+
+func idtablestakingAdminTransfer_adminCdc() (*asset, error) {
+	bytes, err := idtablestakingAdminTransfer_adminCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "idTableStaking/admin/transfer_admin.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xf3, 0xe2, 0x4f, 0xcf, 0x78, 0x80, 0xb5, 0xc0, 0xdf, 0x12, 0x32, 0xda, 0x41, 0x46, 0xf6, 0xac, 0x4a, 0xe4, 0xca, 0x1b, 0xbc, 0xe9, 0x50, 0x5f, 0x11, 0xdd, 0x4c, 0x91, 0x78, 0x8f, 0x7d, 0xa7}}
 	return a, nil
 }
 
@@ -4186,6 +4249,7 @@ var _bindata = map[string]func() (*asset, error){
 	"epoch/node/register_qc_voter.cdc":                                        epochNodeRegister_qc_voterCdc,
 	"epoch/scripts/get_config_metadata.cdc":                                   epochScriptsGet_config_metadataCdc,
 	"epoch/scripts/get_create_clusters.cdc":                                   epochScriptsGet_create_clustersCdc,
+	"epoch/scripts/get_current_view.cdc":                                      epochScriptsGet_current_viewCdc,
 	"epoch/scripts/get_epoch_counter.cdc":                                     epochScriptsGet_epoch_counterCdc,
 	"epoch/scripts/get_epoch_metadata.cdc":                                    epochScriptsGet_epoch_metadataCdc,
 	"epoch/scripts/get_epoch_phase.cdc":                                       epochScriptsGet_epoch_phaseCdc,
@@ -4198,6 +4262,7 @@ var _bindata = map[string]func() (*asset, error){
 	"flowToken/scripts/get_supply.cdc":                                        flowtokenScriptsGet_supplyCdc,
 	"flowToken/setup_account.cdc":                                             flowtokenSetup_accountCdc,
 	"flowToken/transfer_tokens.cdc":                                           flowtokenTransfer_tokensCdc,
+	"idTableStaking/admin/capability_end_epoch.cdc":                           idtablestakingAdminCapability_end_epochCdc,
 	"idTableStaking/admin/change_cut.cdc":                                     idtablestakingAdminChange_cutCdc,
 	"idTableStaking/admin/change_minimums.cdc":                                idtablestakingAdminChange_minimumsCdc,
 	"idTableStaking/admin/change_payout.cdc":                                  idtablestakingAdminChange_payoutCdc,
@@ -4211,6 +4276,7 @@ var _bindata = map[string]func() (*asset, error){
 	"idTableStaking/admin/scale_rewards_test.cdc":                             idtablestakingAdminScale_rewards_testCdc,
 	"idTableStaking/admin/set_claimed.cdc":                                    idtablestakingAdminSet_claimedCdc,
 	"idTableStaking/admin/start_staking.cdc":                                  idtablestakingAdminStart_stakingCdc,
+	"idTableStaking/admin/transfer_admin.cdc":                                 idtablestakingAdminTransfer_adminCdc,
 	"idTableStaking/admin/transfer_minter_deploy.cdc":                         idtablestakingAdminTransfer_minter_deployCdc,
 	"idTableStaking/admin/upgrade_set_claimed.cdc":                            idtablestakingAdminUpgrade_set_claimedCdc,
 	"idTableStaking/admin/upgrade_staking.cdc":                                idtablestakingAdminUpgrade_stakingCdc,
@@ -4436,6 +4502,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"scripts": {nil, map[string]*bintree{
 			"get_config_metadata.cdc": {epochScriptsGet_config_metadataCdc, map[string]*bintree{}},
 			"get_create_clusters.cdc": {epochScriptsGet_create_clustersCdc, map[string]*bintree{}},
+			"get_current_view.cdc": {epochScriptsGet_current_viewCdc, map[string]*bintree{}},
 			"get_epoch_counter.cdc": {epochScriptsGet_epoch_counterCdc, map[string]*bintree{}},
 			"get_epoch_metadata.cdc": {epochScriptsGet_epoch_metadataCdc, map[string]*bintree{}},
 			"get_epoch_phase.cdc": {epochScriptsGet_epoch_phaseCdc, map[string]*bintree{}},
@@ -4456,6 +4523,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	}},
 	"idTableStaking": {nil, map[string]*bintree{
 		"admin": {nil, map[string]*bintree{
+			"capability_end_epoch.cdc": {idtablestakingAdminCapability_end_epochCdc, map[string]*bintree{}},
 			"change_cut.cdc": {idtablestakingAdminChange_cutCdc, map[string]*bintree{}},
 			"change_minimums.cdc": {idtablestakingAdminChange_minimumsCdc, map[string]*bintree{}},
 			"change_payout.cdc": {idtablestakingAdminChange_payoutCdc, map[string]*bintree{}},
@@ -4469,6 +4537,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 			"scale_rewards_test.cdc": {idtablestakingAdminScale_rewards_testCdc, map[string]*bintree{}},
 			"set_claimed.cdc": {idtablestakingAdminSet_claimedCdc, map[string]*bintree{}},
 			"start_staking.cdc": {idtablestakingAdminStart_stakingCdc, map[string]*bintree{}},
+			"transfer_admin.cdc": {idtablestakingAdminTransfer_adminCdc, map[string]*bintree{}},
 			"transfer_minter_deploy.cdc": {idtablestakingAdminTransfer_minter_deployCdc, map[string]*bintree{}},
 			"upgrade_set_claimed.cdc": {idtablestakingAdminUpgrade_set_claimedCdc, map[string]*bintree{}},
 			"upgrade_staking.cdc": {idtablestakingAdminUpgrade_stakingCdc, map[string]*bintree{}},
