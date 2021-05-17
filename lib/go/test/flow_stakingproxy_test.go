@@ -95,7 +95,8 @@ func TestStakingProxy(t *testing.T) {
 
 	adminAccountKey := accountKeys.New()
 
-	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress)
+	lockedTokensAccountKey, _ := accountKeys.NewWithSigner()
+	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress, lockedTokensAccountKey)
 
 	env.LockedTokensAddress = lockedTokensAddress.Hex()
 

@@ -215,6 +215,66 @@ func TestIDTableDeployment(t *testing.T) {
 	})
 }
 
+func TestStakingTransferAdmin(t *testing.T) {
+
+	t.Parallel()
+
+	b := newBlockchain()
+
+	env := templates.Environment{
+		FungibleTokenAddress: emulatorFTAddress,
+		FlowTokenAddress:     emulatorFlowTokenAddress,
+	}
+
+	accountKeys := test.AccountKeyGenerator()
+
+	// Create new keys for the ID table account
+	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
+	var idTableAddress = deployStakingContract(t, b, IDTableAccountKey, env, true)
+
+	env.IDTableAddress = idTableAddress.Hex()
+
+	t.Run("Should be able to transfer the admin capability to another account", func(t *testing.T) {
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GenerateTransferAdminCapabilityScript(env)).
+			SetGasLimit(9999).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(idTableAddress).
+			AddAuthorizer(b.ServiceKey().Address)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+	})
+
+	t.Run("Should be able to end epoch with the admin capability", func(t *testing.T) {
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GenerateCapabilityEndEpochScript(env)).
+			SetGasLimit(9999).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(b.ServiceKey().Address)
+
+		err := tx.AddArgument(cadence.NewArray([]cadence.Value{cadence.NewString(adminID), cadence.NewString(joshID), cadence.NewString(maxID), cadence.NewString(accessID)}))
+		require.NoError(t, err)
+		tx.AddArgument(CadenceUFix64("1300000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+	})
+
+}
+
 func TestIDTableStakingUpgrade(t *testing.T) {
 
 	t.Parallel()
@@ -238,8 +298,8 @@ func TestIDTableStakingUpgrade(t *testing.T) {
 	joshAccountKey, joshSigner := accountKeys.NewWithSigner()
 	joshAddress, _ := b.CreateAccount([]*flow.AccountKey{joshAccountKey}, nil)
 
-	mintTokensForAccount(t, b, idTableAddress)
-	mintTokensForAccount(t, b, joshAddress)
+	mintTokensForAccount(t, b, idTableAddress, "1000000000.0")
+	mintTokensForAccount(t, b, joshAddress, "1000000000.0")
 
 	var amountToCommit interpreter.UFix64Value = 25000000000000
 
@@ -401,53 +461,24 @@ func TestIDTableStaking(t *testing.T) {
 
 	t.Run("Should be able to mint tokens for new accounts", func(t *testing.T) {
 
-		mintTokensForAccount(t, b, idTableAddress)
+		mintTokensForAccount(t, b, idTableAddress, "1000000000.0")
 
-		mintTokensForAccount(t, b, joshAddress)
+		mintTokensForAccount(t, b, joshAddress, "1000000000.0")
 
-		mintTokensForAccount(t, b, maxAddress)
+		mintTokensForAccount(t, b, maxAddress, "1000000000.0")
 
-		mintTokensForAccount(t, b, accessAddress)
+		mintTokensForAccount(t, b, accessAddress, "1000000000.0")
 
-		mintTokensForAccount(t, b, bastianAddress)
+		mintTokensForAccount(t, b, bastianAddress, "1000000000.0")
 
-		mintTokensForAccount(t, b, maxDelegatorOneAddress)
+		mintTokensForAccount(t, b, maxDelegatorOneAddress, "1000000000.0")
 
-		mintTokensForAccount(t, b, maxDelegatorTwoAddress)
+		mintTokensForAccount(t, b, maxDelegatorTwoAddress, "1000000000.0")
 
-		mintTokensForAccount(t, b, joshDelegatorOneAddress)
+		mintTokensForAccount(t, b, joshDelegatorOneAddress, "1000000000.0")
 
-		mintTokensForAccount(t, b, adminDelegatorAddress)
+		mintTokensForAccount(t, b, adminDelegatorAddress, "1000000000.0")
 
-	})
-
-	t.Run("Shouldn't be able to create a Node struct when staking isn't enabled", func(t *testing.T) {
-
-		var amountToCommit interpreter.UFix64Value = 25000000000000
-
-		registerNode(t, b, env,
-			idTableAddress,
-			IDTableSigner,
-			adminID,
-			fmt.Sprintf("%0128d", admin),
-			fmt.Sprintf("%0128d", admin),
-			fmt.Sprintf("%0192d", admin),
-			amountToCommit,
-			committed[adminID],
-			1,
-			true)
-	})
-
-	t.Run("Should be able to enable the staking auction", func(t *testing.T) {
-
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateStartStakingScript(env), idTableAddress)
-
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, idTableAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
-			false,
-		)
 	})
 
 	t.Run("Shouldn't be able to create invalid Node structs", func(t *testing.T) {

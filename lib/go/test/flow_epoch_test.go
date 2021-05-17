@@ -34,7 +34,7 @@ func TestEpochDeployment(t *testing.T) {
 
 	// Deploys the staking contract, qc, dkg, and epoch lifecycle contract
 	// staking contract is deployed with default values (1.25M rewards, 8% cut)
-	initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
+	_, startView := initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
 		startEpochCounter, // start epoch counter
 		numEpochViews,     // num views per epoch
 		numStakingViews,   // num views for staking auction
@@ -60,9 +60,9 @@ func TestEpochDeployment(t *testing.T) {
 		EpochMetadata{
 			counter:               startEpochCounter,
 			seed:                  "lolsoRandom",
-			startView:             0,
-			endView:               numEpochViews - 1,
-			stakingEndView:        numStakingViews - 1,
+			startView:             startView,
+			endView:               startView + numEpochViews - 1,
+			stakingEndView:        startView + numStakingViews - 1,
 			totalRewards:          totalRewards,
 			rewardsBreakdownArray: 0,
 			rewardsPaid:           false,
@@ -124,7 +124,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 
 	// Deploys the staking contract, qc, dkg, and epoch lifecycle contract
 	// staking contract is deployed with default values (1.25M rewards, 8% cut)
-	idTableAddress := initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
+	idTableAddress, _ := initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
 		0,             // start epoch counter
 		8,             // num views per epoch
 		3,             // num views for staking auction
@@ -324,7 +324,7 @@ func TestEpochAdvance(t *testing.T) {
 
 	// Deploys the staking contract, qc, dkg, and epoch lifecycle contract
 	// staking contract is deployed with default values (1.25M rewards, 8% cut)
-	idTableAddress := initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
+	idTableAddress, startView := initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
 		startEpochCounter, // start epoch counter
 		numEpochViews,     // num views per epoch
 		numStakingViews,   // num views for staking auction
@@ -377,9 +377,9 @@ func TestEpochAdvance(t *testing.T) {
 			EpochMetadata{
 				counter:               startEpochCounter + 1,
 				seed:                  "",
-				startView:             numEpochViews,
-				endView:               2*numEpochViews - 1,
-				stakingEndView:        numEpochViews + numStakingViews - 1,
+				startView:             startView + numEpochViews,
+				endView:               startView + 2*numEpochViews - 1,
+				stakingEndView:        startView + numEpochViews + numStakingViews - 1,
 				totalRewards:          "0.0",
 				rewardsBreakdownArray: 0,
 				rewardsPaid:           false,
@@ -391,13 +391,13 @@ func TestEpochAdvance(t *testing.T) {
 			EpochSetup{
 				counter:            startEpochCounter + 1,
 				nodeInfoLength:     numEpochAccounts,
-				firstView:          numEpochViews,
-				finalView:          2*numEpochViews - 1,
+				firstView:          startView + numEpochViews,
+				finalView:          startView + 2*numEpochViews - 1,
 				collectorClusters:  clusters,
 				randomSource:       "",
-				dkgPhase1FinalView: numEpochViews + numStakingViews + numDKGViews - 1,
-				dkgPhase2FinalView: numEpochViews + numStakingViews + 2*numDKGViews - 1,
-				dkgPhase3FinalView: numEpochViews + numStakingViews + 3*numDKGViews - 1})
+				dkgPhase1FinalView: startView + numEpochViews + numStakingViews + numDKGViews - 1,
+				dkgPhase2FinalView: startView + numEpochViews + numStakingViews + 2*numDKGViews - 1,
+				dkgPhase3FinalView: startView + numEpochViews + numStakingViews + 3*numDKGViews - 1})
 
 		// QC Contract Checks
 		result := executeScriptAndCheck(t, b, templates.GenerateGetClusterWeightScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt16(uint16(0)))})
@@ -458,7 +458,7 @@ func TestEpochQCDKGNodeRegistration(t *testing.T) {
 
 	// Deploys the staking contract, qc, dkg, and epoch lifecycle contract
 	// staking contract is deployed with default values (1.25M rewards, 8% cut)
-	idTableAddress := initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
+	idTableAddress, _ := initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
 		0,             // start epoch counter
 		70,            // num views per epoch
 		50,            // num views for staking auction
@@ -533,7 +533,7 @@ func TestEpochFullNodeRegistration(t *testing.T) {
 
 	// Deploys the staking contract, qc, dkg, and epoch lifecycle contract
 	// staking contract is deployed with default values (1.25M rewards, 8% cut)
-	_ = initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
+	_, _ = initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
 		0,             // start epoch counter
 		70,            // num views per epoch
 		50,            // num views for staking auction
@@ -560,7 +560,7 @@ func TestEpochQCDKG(t *testing.T) {
 
 	// Deploys the staking contract, qc, dkg, and epoch lifecycle contract
 	// staking contract is deployed with default values (1.25M rewards, 8% cut)
-	idTableAddress := initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
+	idTableAddress, startView := initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
 		startEpochCounter, // start epoch counter
 		numEpochViews,     // num views per epoch
 		numStakingViews,   // num views for staking auction
@@ -742,9 +742,9 @@ func TestEpochQCDKG(t *testing.T) {
 			EpochMetadata{
 				counter:               startEpochCounter + 1,
 				seed:                  "",
-				startView:             numEpochViews,
-				endView:               2*numEpochViews - 1,
-				stakingEndView:        numEpochViews + numStakingViews - 1,
+				startView:             startView + numEpochViews,
+				endView:               startView + 2*numEpochViews - 1,
+				stakingEndView:        startView + numEpochViews + numStakingViews - 1,
 				totalRewards:          "1300000.0",
 				rewardsBreakdownArray: 0,
 				rewardsPaid:           false,
@@ -777,7 +777,7 @@ func TestEpochReset(t *testing.T) {
 
 	// Deploys the staking contract, qc, dkg, and epoch lifecycle contract
 	// staking contract is deployed with default values (1.25M rewards, 8% cut)
-	idTableAddress := initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
+	idTableAddress, _ := initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
 		startEpochCounter, // start epoch counter
 		numEpochViews,     // num views per epoch
 		numStakingViews,   // num views for staking auction
@@ -870,13 +870,16 @@ func TestEpochReset(t *testing.T) {
 			false,
 		)
 
+		result := executeScriptAndCheck(t, b, templates.GenerateGetCurrentViewScript(env), nil)
+		startView := uint64(result.(cadence.UInt64))
+
 		verifyEpochMetadata(t, b, env,
 			EpochMetadata{
 				counter:               startEpochCounter + 1,
 				seed:                  "stillSoRandom",
-				startView:             0,
-				endView:               numEpochViews - 1,
-				stakingEndView:        numStakingViews - 1,
+				startView:             startView,
+				endView:               startView + numEpochViews - 1,
+				stakingEndView:        startView + numStakingViews - 1,
 				totalRewards:          "1300000.0",
 				rewardsBreakdownArray: 0,
 				rewardsPaid:           false,
@@ -884,7 +887,7 @@ func TestEpochReset(t *testing.T) {
 				clusterQCs:            nil,
 				dkgKeys:               nil})
 
-		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGEnabledScript(env), nil)
+		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGEnabledScript(env), nil)
 		assert.Equal(t, cadence.NewBool(false), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetQCEnabledScript(env), nil)
