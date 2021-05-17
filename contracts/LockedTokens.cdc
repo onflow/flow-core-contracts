@@ -41,6 +41,8 @@ pub contract LockedTokens {
     pub event LockedAccountRegisteredAsNode(address: Address, nodeID: String)
     pub event LockedAccountRegisteredAsDelegator(address: Address, nodeID: String)
 
+    pub event LockedTokensDeposited(address: Address, amount: UFix64)
+
     /// Path to store the locked token manager resource
     /// in the shared account
     pub let LockedTokenManagerStoragePath: StoragePath
