@@ -1,4 +1,4 @@
-module github.com/onflow/lib/go/flow-core-contracts
+module github.com/onflow/flow-core-contracts/lib/go/test
 
 go 1.13
 
