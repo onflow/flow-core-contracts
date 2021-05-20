@@ -13,6 +13,9 @@ import FlowToken from 0xFLOWTOKENADDRESS
 import FlowIDTableStaking from 0xFLOWIDTABLESTAKINGADDRESS
 import LockedTokens from 0xLOCKEDTOKENSADDRESS
 import FlowStorageFees from 0xFLOWSTORAGEFEESADDRESS
+import FlowEpochClusterQC from 0xQCADDRESS
+import FlowDKG from 0xDKGADDRESS
+import FlowEpoch from 0xEPOCHADDRESS
 
 pub contract FlowStakingCollection {
 
@@ -46,6 +49,7 @@ pub contract FlowStakingCollection {
         pub fun getDelegatorIDs(): [DelegatorIDs]
         pub fun getAllNodeInfo(): [FlowIDTableStaking.NodeInfo]
         pub fun getAllDelegatorInfo(): [FlowIDTableStaking.DelegatorInfo]
+        pub fun getMachineAccounts(): {String: Address}
     }
 
     /// The resource that stakers store in their accounts to store
@@ -247,11 +251,13 @@ pub contract FlowStakingCollection {
         }
 
         /// Function to add an existing NodeStaker object
-        pub fun addNodeObject(_ node: @FlowIDTableStaking.NodeStaker) {
-            let stakingInfo = FlowIDTableStaking.NodeInfo(nodeID: node.id)
+        pub fun addNodeObject(_ node: @FlowIDTableStaking.NodeStaker, machineAccount: Address?) {
+            let id = node.id
+            let stakingInfo = FlowIDTableStaking.NodeInfo(nodeID: id)
             let totalStaked = stakingInfo.tokensStaked + stakingInfo.tokensCommitted + stakingInfo.tokensUnstaking + stakingInfo.tokensUnstaked
             self.unlockedTokensUsed = self.unlockedTokensUsed + totalStaked
-            self.nodeStakers[node.id] <-! node
+            self.nodeStakers[id] <-! node
+            FlowStakingCollection.setMachineAccount(nodeID: id, address: machineAccount)
         }
 
         /// Function to add an existing NodeDelegator object
@@ -265,7 +271,7 @@ pub contract FlowStakingCollection {
         /// Operations to register new staking objects
 
         /// Function to register a new Staking Record to the Staking Collection
-        pub fun registerNode(id: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String, amount: UFix64) {
+        pub fun registerNode(id: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String, amount: UFix64, payer: AuthAccount): AuthAccount? {
 
             let tokens <- self.getTokens(amount: amount)
 
@@ -274,6 +280,83 @@ pub contract FlowStakingCollection {
             //emit NewNodeCreated(nodeID: nodeStaker.id, role: nodeStaker.id, amountCommitted: amount)
 
             self.nodeStakers[id] <-! nodeStaker
+
+            let nodeReference = self.borrowNode(id)
+                ?? panic("Could not borrow node reference")
+
+            return self.registerMachineAccount(nodeReference: nodeReference, payer: payer)
+        }
+
+        /// Registers the secondary machine account for a node
+        /// to store their epoch-related objects
+        access(self) fun registerMachineAccount(nodeReference: &FlowIDTableStaking.NodeStaker, payer: AuthAccount): AuthAccount? {
+
+            // Create the new account
+            let machineAcct = AuthAccount(payer: payer)
+
+            let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeReference.id)
+            
+            // If they are a collector node, create a QC Voter object and store it in the account
+            if nodeInfo.role == FlowEpoch.NodeRole.Collector.rawValue {
+
+                let qcVoter <- FlowEpoch.getClusterQCVoter(nodeStaker: nodeReference)
+
+                machineAcct.save(<-qcVoter, to: FlowEpochClusterQC.VoterStoragePath)
+
+                FlowStakingCollection.setMachineAccount(nodeID: nodeReference.id, address: machineAcct.address)
+
+                return machineAcct
+
+            } else if nodeInfo.role == FlowEpoch.NodeRole.Consensus.rawValue {
+
+                let dkgParticipant <- FlowEpoch.getDKGParticipant(nodeStaker: nodeReference)
+
+                machineAcct.save(<-dkgParticipant, to: FlowDKG.ParticipantStoragePath)
+
+                FlowStakingCollection.setMachineAccount(nodeID: nodeReference.id, address: machineAcct.address)
+
+                return machineAcct
+            }
+
+            return nil
+        }
+
+        /// Allows the owner to set the machine account address for one of their nodes
+        /// This is used if the owner decides to transfer the machine account resource to another account
+        /// or if they are initializing an existing node object with a machine account
+        pub fun addMachineAccountRecord(nodeID: String, address: Address?) {
+            pre {
+                self.doesStakeExist(nodeID: nodeID, delegatorID: nil)
+            }
+            FlowStakingCollection.setMachineAccount(nodeID: nodeID, address: address)
+        }
+
+        /// If a user has created a node before epochs were enabled, they'll need to use this function
+        /// to create their machine account with their node 
+        pub fun createMachineAccountForExistingNode(nodeID: String, payer: AuthAccount): AuthAccount? {
+            pre {
+                self.doesStakeExist(nodeID: nodeID, delegatorID: nil)
+            }
+
+            let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeID)
+
+            if let nodeReference = self.borrowNode(nodeID) {
+                return self.registerMachineAccount(nodeReference: nodeReference, payer: payer)
+            } else {
+                if let tokenHolderObj = self.tokenHolder {
+
+                    // borrow the main token manager object from the locked account 
+                    // to get access to the locked vault capability
+                    let lockedTokenManager = tokenHolderObj.borrow()!.borrowTokenManager()
+                
+                    let lockedNodeReference = lockedTokenManager.borrowNode()
+                        ?? panic("Could not borrow a node reference from the locked account")
+
+                    return self.registerMachineAccount(nodeReference: lockedNodeReference, payer: payer)
+                }
+            }
+
+            return nil
         }
 
         /// Function to register a new Delegator Record to the Staking Collection
@@ -688,7 +771,43 @@ pub contract FlowStakingCollection {
             return delegatorInfo
         }
 
+        /// Function to get the list of all of the machine accounts for a node in the collection
+        /// Key: Node ID
+        /// Value: Account address for the account that stores the QC or dkg object
+        pub fun getMachineAccounts(): {String: Address} {
+            let accountsRecord = FlowStakingCollection.account.copy<{String: Address}>(from: /storage/epochMachineAccounts)
+                ?? panic("Could not load machine account record from storage")
+
+            let nodeIDs = self.nodeStakers.keys
+
+            if let tokenHolderCapability = self.tokenHolder {
+                let _tokenHolder = tokenHolderCapability.borrow()!
+
+                let tokenHolderNodeID = _tokenHolder.getNodeID()
+                if let _tokenHolderNodeID = tokenHolderNodeID {
+                    nodeIDs.append(_tokenHolderNodeID)
+                }
+            }
+
+            let machineAccounts: {String: Address} = {}
+
+            for id in nodeIDs {
+                machineAccounts[id] = accountsRecord[id]
+            }
+
+            return machineAccounts
+        }
     } 
+
+    /// Function to set the secondary machine account for a node
+    access(contract) fun setMachineAccount(nodeID: String, address: Address?) {
+        let accountsRecord = self.account.copy<{String: Address}>(from: /storage/epochMachineAccounts)
+            ?? panic("Could not load machine account record from storage")
+
+        accountsRecord[nodeID] = address
+
+        self.account.save(accountsRecord, to: /storage/epochMachineAccounts)
+    }
 
     // Getter functions for accounts StakingCollection information
 
@@ -762,6 +881,15 @@ pub contract FlowStakingCollection {
         return stakingCollectionRef.getAllDelegatorInfo()
     }
 
+    pub fun getMachineAccounts(address: Address): {String: Address} {
+        let account = getAccount(address)
+
+        let stakingCollectionRef = account.getCapability<&StakingCollection{StakingCollectionPublic}>(self.StakingCollectionPublicPath).borrow()
+            ?? panic("Could not borrow ref to StakingCollection")
+
+        return stakingCollectionRef.getMachineAccounts()
+    }
+
     /// Determines if an account is set up with a Staking Collection
     pub fun doesAccountHaveStakingCollection(address: Address): Bool {
         let account = getAccount(address)
@@ -778,6 +906,9 @@ pub contract FlowStakingCollection {
         self.StakingCollectionStoragePath = /storage/stakingCollection
         self.StakingCollectionPrivatePath = /private/stakingCollection
         self.StakingCollectionPublicPath = /public/stakingCollection
+
+        let machineAccountRecord: {String: Address} = {}
+        self.account.save(machineAccountRecord, to: /storage/epochMachineAccounts)
     }
 }
  

@@ -244,7 +244,16 @@ func deployCollectionContract(t *testing.T, b *emulator.Blockchain,
 
 	// Get the test version of the staking collection contract that has all public fields
 	// for testing purposes
-	FlowStakingCollectionCode := contracts.TESTFlowStakingCollection(emulatorFTAddress, emulatorFlowTokenAddress, idTableAddress.String(), stakingProxyAddress.String(), lockedTokensAddress.String(), b.ServiceKey().Address.String())
+	FlowStakingCollectionCode := contracts.TESTFlowStakingCollection(emulatorFTAddress,
+		emulatorFlowTokenAddress,
+		idTableAddress.String(),
+		stakingProxyAddress.String(),
+		lockedTokensAddress.String(),
+		b.ServiceKey().Address.String(),
+		env.QuorumCertificateAddress,
+		env.DkgAddress,
+		env.EpochAddress)
+
 	FlowStakingCollectionByteCode := cadence.NewString(hex.EncodeToString(FlowStakingCollectionCode))
 
 	// Deploy the staking collection contract
@@ -265,15 +274,7 @@ func deployCollectionContract(t *testing.T, b *emulator.Blockchain,
 func deployAllCollectionContracts(t *testing.T,
 	b *emulator.Blockchain,
 	accountKeys *test.AccountKeys,
-	env *templates.Environment) crypto.Signer {
-
-	// Create new keys for the ID table account
-	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-
-	// DEPLOY IDTableStaking
-	var idTableAddress = deployStakingContract(t, b, IDTableAccountKey, *env, true)
-
-	env.IDTableAddress = idTableAddress.Hex()
+	env *templates.Environment) {
 
 	// DEPLOY StakingProxy
 
@@ -292,15 +293,13 @@ func deployAllCollectionContracts(t *testing.T,
 	assert.NoError(t, err)
 
 	lockedTokensAccountKey, lockedTokensSigner := accountKeys.NewWithSigner()
-	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress, lockedTokensAccountKey)
+	lockedTokensAddress := deployLockedTokensContract(t, b, flow.HexToAddress(env.IDTableAddress), stakingProxyAddress, lockedTokensAccountKey)
 	env.StakingProxyAddress = stakingProxyAddress.Hex()
 	env.LockedTokensAddress = lockedTokensAddress.Hex()
 
 	// DEPLOY StakingCollection
 
-	deployCollectionContract(t, b, idTableAddress, stakingProxyAddress, lockedTokensAddress, lockedTokensSigner, env)
-
-	return IDTableSigner
+	deployCollectionContract(t, b, flow.HexToAddress(env.IDTableAddress), stakingProxyAddress, lockedTokensAddress, lockedTokensSigner, env)
 }
 
 // Creates a locked account pair with balances in both accounts,

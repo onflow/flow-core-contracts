@@ -46,6 +46,7 @@ const (
 	placeholderStakingProxyAddress      = "0xSTAKINGPROXYADDRESS"
 	placeholderQCAddr                   = "0xQCADDRESS"
 	placeholderDKGAddr                  = "0xDKGADDRESS"
+	placeholderEpochAddr                = "0xEPOCHADDRESS"
 	placeholderFlowFeesAddress          = "0xFLOWFEESADDRESS"
 	placeholderStorageFeesAddress       = "0xFLOWSTORAGEFEESADDRESS"
 	placeholderLockedTokensAddress      = "0xLOCKEDTOKENSADDRESS"
@@ -197,7 +198,10 @@ func FlowStakingCollection(
 	idTableAddress,
 	stakingProxyAddress,
 	lockedTokensAddress,
-	storageFeesAddress string,
+	storageFeesAddress,
+	qcAddress,
+	dkgAddress,
+	epochAddress string,
 ) []byte {
 	code := assets.MustAssetString(flowStakingCollectionFilename)
 
@@ -207,6 +211,9 @@ func FlowStakingCollection(
 	code = strings.ReplaceAll(code, placeholderStakingProxyAddress, withHexPrefix(stakingProxyAddress))
 	code = strings.ReplaceAll(code, placeholderLockedTokensAddress, withHexPrefix(lockedTokensAddress))
 	code = strings.ReplaceAll(code, placeholderStorageFeesAddress, withHexPrefix(storageFeesAddress))
+	code = strings.ReplaceAll(code, placeholderQCAddr, withHexPrefix(qcAddress))
+	code = strings.ReplaceAll(code, placeholderDKGAddr, withHexPrefix(dkgAddress))
+	code = strings.ReplaceAll(code, placeholderEpochAddr, withHexPrefix(epochAddress))
 
 	return []byte(code)
 }
@@ -284,7 +291,10 @@ func TESTFlowStakingCollection(
 	idTableAddress,
 	stakingProxyAddress,
 	lockedTokensAddress,
-	storageFeesAddress string,
+	storageFeesAddress,
+	qcAddress,
+	dkgAddress,
+	epochAddress string,
 ) []byte {
 	code := assets.MustAssetString(flowStakingCollectionFilename)
 
@@ -294,6 +304,9 @@ func TESTFlowStakingCollection(
 	code = strings.ReplaceAll(code, placeholderStakingProxyAddress, withHexPrefix(stakingProxyAddress))
 	code = strings.ReplaceAll(code, placeholderLockedTokensAddress, withHexPrefix(lockedTokensAddress))
 	code = strings.ReplaceAll(code, placeholderStorageFeesAddress, withHexPrefix(storageFeesAddress))
+	code = strings.ReplaceAll(code, placeholderQCAddr, withHexPrefix(qcAddress))
+	code = strings.ReplaceAll(code, placeholderDKGAddr, withHexPrefix(dkgAddress))
+	code = strings.ReplaceAll(code, placeholderEpochAddr, withHexPrefix(epochAddress))
 
 	code = strings.ReplaceAll(code, "access(self)", "pub")
 
