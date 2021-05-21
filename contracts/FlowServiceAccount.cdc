@@ -13,16 +13,16 @@ pub contract FlowServiceAccount {
 
     pub event AccountCreatorRemoved(accountCreator: Address)
 
-    /// A fixed-rate fee charged to execute a transaction
+    // A fixed-rate fee charged to execute a transaction
     pub var transactionFee: UFix64
 
-    /// A fixed-rate fee charged to create a new account
+    // A fixed-rate fee charged to create a new account
     pub var accountCreationFee: UFix64
 
     /// The list of account addresses that have permission to create accounts
     access(contract) var accountCreators: {Address: Bool}
 
-    /// Initialize an account with a FlowToken Vault and publish capabilities.
+    // Initialize an account with a FlowToken Vault and publish capabilities.
     pub fun initDefaultToken(_ acct: AuthAccount) {
         // Create a new FlowToken Vault and save it in storage
         acct.save(<-FlowToken.createEmptyVault(), to: /storage/flowTokenVault)
@@ -42,7 +42,7 @@ pub contract FlowServiceAccount {
         )
     }
 
-    /// Get the default token balance on an account
+    // Get the default token balance on an account
     pub fun defaultTokenBalance(_ acct: PublicAccount): UFix64 {
         let balanceRef = acct
             .getCapability(/public/flowTokenBalance)
@@ -51,14 +51,14 @@ pub contract FlowServiceAccount {
         return balanceRef.balance
     }
 
-    /// Return a reference to the default token vault on an account
+    // Return a reference to the default token vault on an account
     pub fun defaultTokenVault(_ acct: AuthAccount): &FlowToken.Vault {
         return acct.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)
             ?? panic("Unable to borrow reference to the default token vault")
     }
 
-    /// Called when a transaction is submitted to deduct the fee
-    /// from the AuthAccount that submitted it
+    // Called when a transaction is submitted to deduct the fee
+    // from the AuthAccount that submitted it
     pub fun deductTransactionFee(_ acct: AuthAccount) {
         if self.transactionFee == UFix64(0) {
             return
@@ -70,9 +70,9 @@ pub contract FlowServiceAccount {
         FlowFees.deposit(from: <-feeVault)
     }
 
-    /// - Deducts the account creation fee from a payer account.
-    /// - Inits the default token.
-    /// - Inits account storage capacity.
+    // - Deducts the account creation fee from a payer account.
+    // - Inits the default token.
+    // - Inits account storage capacity.
     pub fun setupNewAccount(newAccount: AuthAccount, payer: AuthAccount) {
         if self.accountCreationFee < FlowStorageFees.minimumStorageReservation {
             panic("Account creation fees setup incorrectly")
@@ -90,7 +90,7 @@ pub contract FlowServiceAccount {
         vaultRef.deposit(from: <-storageFeeVault)
     }
 
-    /// Returns true if the given address is permitted to create accounts, false otherwise
+    // Returns true if the given address is permitted to create accounts, false otherwise
     pub fun isAccountCreator(_ address: Address): Bool {
         return self.accountCreators[address] ?? false
     }
@@ -103,25 +103,25 @@ pub contract FlowServiceAccount {
     /// Authorization resource to change the fields of the contract
     pub resource Administrator {
 
-        /// Sets the transaction fee
+        // sets the transaction fee
         pub fun setTransactionFee(_ newFee: UFix64) {
             FlowServiceAccount.transactionFee = newFee
             emit TransactionFeeUpdated(newFee: newFee)
         }
 
-        /// Sets the account creation fee
+        // sets the account creation fee
         pub fun setAccountCreationFee(_ newFee: UFix64) {
             FlowServiceAccount.accountCreationFee = newFee
             emit AccountCreationFeeUpdated(newFee: newFee)
         }
 
-        /// Adds an account address as an authorized account creator
+        // adds an account address as an authorized account creator
         pub fun addAccountCreator(_ accountCreator: Address) {
             FlowServiceAccount.accountCreators[accountCreator] = true
             emit AccountCreatorAdded(accountCreator: accountCreator)
         }
 
-        /// Removes an account address as an authorized account creator
+        // removes an account address as an authorized account creator
         pub fun removeAccountCreator(_ accountCreator: Address) {
             FlowServiceAccount.accountCreators.remove(key: accountCreator)
             emit AccountCreatorRemoved(accountCreator: accountCreator)
