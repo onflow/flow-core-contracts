@@ -688,6 +688,7 @@ pub contract FlowIDTableStaking {
             }
         }
     }
+    
     /// Admin resource that has the ability to create new staker objects, remove insufficiently staked nodes
     /// at the end of the staking auction, and pay rewards to nodes at the end of an epoch
     pub resource Admin {
