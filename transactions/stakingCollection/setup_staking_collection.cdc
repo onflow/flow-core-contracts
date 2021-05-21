@@ -39,7 +39,7 @@ transaction() {
         // If there is a node staker object in the account, put it in the staking collection
         if signer.borrow<&FlowIDTableStaking.NodeStaker>(from: FlowIDTableStaking.NodeStakerStoragePath) != nil {
             let node <- signer.load<@FlowIDTableStaking.NodeStaker>(from: FlowIDTableStaking.NodeStakerStoragePath)!
-            collectionRef.addNodeObject(<-node)
+            collectionRef.addNodeObject(<-node, machineAccount: signer.address)
         }
 
         // If there is a delegator object in the account, put it in the staking collection

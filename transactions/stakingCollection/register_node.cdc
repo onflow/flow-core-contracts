@@ -27,7 +27,7 @@ transaction(id: String,
             payer: account) 
         {
             for key in publicKeys {
-                machineAcct.addPublicKey(key)
+                machineAccount.addPublicKey(key)
             }
         }
     }

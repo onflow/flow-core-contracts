@@ -8,6 +8,8 @@ import (
 
 	ftcontracts "github.com/onflow/flow-ft/lib/go/contracts"
 
+	_ "github.com/kevinburke/go-bindata"
+
 	"github.com/onflow/flow-core-contracts/lib/go/contracts/internal/assets"
 )
 

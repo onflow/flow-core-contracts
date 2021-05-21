@@ -801,7 +801,7 @@ pub contract FlowStakingCollection {
 
     /// Function to set the secondary machine account for a node
     access(contract) fun setMachineAccount(nodeID: String, address: Address?) {
-        let accountsRecord = self.account.copy<{String: Address}>(from: /storage/epochMachineAccounts)
+        let accountsRecord = self.account.load<{String: Address}>(from: /storage/epochMachineAccounts)
             ?? panic("Could not load machine account record from storage")
 
         accountsRecord[nodeID] = address

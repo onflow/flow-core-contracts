@@ -372,6 +372,7 @@ func registerStakingCollectionNodesAndDelegators(
 	_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", 2)))
 	_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", 2)))
 	_ = tx.AddArgument(CadenceUFix64("500000.0"))
+	_ = tx.AddArgument(cadence.NewArray([]cadence.Value{}))
 
 	signAndSubmit(
 		t, b, tx,

@@ -275,6 +275,18 @@ func TestStakingCollectionGetTokens(t *testing.T) {
 
 func TestStakingCollectionDepositTokens(t *testing.T) {
 	b, accountKeys, env := newTestSetup(t)
+	// Create new keys for the epoch account
+	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
+
+	_, _ = initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
+		startEpochCounter, // start epoch counter
+		numEpochViews,     // num views per epoch
+		numStakingViews,   // num views for staking auction
+		numDKGViews,       // num views for DKG phase
+		numClusters,       // num collector clusters
+		randomSource,      // random source
+		rewardAPY)
+
 	deployAllCollectionContracts(t, b, accountKeys, &env)
 
 	// create regular account
@@ -565,6 +577,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", max)))
 		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", max)))
 		_ = tx.AddArgument(CadenceUFix64("500000.0"))
+		_ = tx.AddArgument(cadence.NewArray([]cadence.Value{}))
 
 		signAndSubmit(
 			t, b, tx,
@@ -599,6 +612,18 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 func TestStakingCollectionStakeTokens(t *testing.T) {
 	b, accountKeys, env := newTestSetup(t)
+	// Create new keys for the epoch account
+	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
+
+	_, _ = initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
+		startEpochCounter, // start epoch counter
+		numEpochViews,     // num views per epoch
+		numStakingViews,   // num views for staking auction
+		numDKGViews,       // num views for DKG phase
+		numClusters,       // num collector clusters
+		randomSource,      // random source
+		rewardAPY)
+
 	deployAllCollectionContracts(t, b, accountKeys, &env)
 
 	joshAddress, _, joshSigner, joshID1, joshID2 := registerStakingCollectionNodesAndDelegators(
@@ -1822,6 +1847,18 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 func TestDoesAccountHaveStakingCollection(t *testing.T) {
 
 	b, accountKeys, env := newTestSetup(t)
+	// Create new keys for the epoch account
+	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
+
+	_, _ = initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
+		startEpochCounter, // start epoch counter
+		numEpochViews,     // num views per epoch
+		numStakingViews,   // num views for staking auction
+		numDKGViews,       // num views for DKG phase
+		numClusters,       // num collector clusters
+		randomSource,      // random source
+		rewardAPY)
+
 	deployAllCollectionContracts(t, b, accountKeys, &env)
 
 	t.Run("Should fail because account was not created with staking collection", func(t *testing.T) {
