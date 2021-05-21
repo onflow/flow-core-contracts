@@ -19,8 +19,8 @@ pub contract FlowServiceAccount {
     // A fixed-rate fee charged to create a new account
     pub var accountCreationFee: UFix64
 
-    // The list of account addresses that have permission to create accounts
-    pub var accountCreators: {Address: Bool}
+    /// The list of account addresses that have permission to create accounts
+    access(contract) var accountCreators: {Address: Bool}
 
     // Initialize an account with a FlowToken Vault and publish capabilities.
     pub fun initDefaultToken(_ acct: AuthAccount) {
@@ -95,7 +95,12 @@ pub contract FlowServiceAccount {
         return self.accountCreators[address] ?? false
     }
 
-    // Authorization resource to change the fields of the contract
+    /// Returns all addresses permitted to create accounts
+    pub fun getAccountCreators(): [Address] {
+        return self.accountCreators.keys
+    }
+
+    /// Authorization resource to change the fields of the contract
     pub resource Administrator {
 
         // sets the transaction fee
