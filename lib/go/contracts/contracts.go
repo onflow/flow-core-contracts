@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	_ "github.com/kevinburke/go-bindata"
 	ftcontracts "github.com/onflow/flow-ft/lib/go/contracts"
 
 	"github.com/onflow/flow-core-contracts/lib/go/contracts/internal/assets"

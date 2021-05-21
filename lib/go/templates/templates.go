@@ -7,6 +7,10 @@ package templates
 import (
 	"fmt"
 	"strings"
+
+	_ "github.com/kevinburke/go-bindata"
+	_ "github.com/psiemens/sconfig"
+	_ "github.com/spf13/cobra"
 )
 
 const (
