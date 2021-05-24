@@ -856,9 +856,14 @@ func TestEpochReset(t *testing.T) {
 
 	t.Run("Can reset the epoch and have everything return to normal", func(t *testing.T) {
 
+		var startView uint64 = 100
+		var endView uint64 = 160
+
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateResetEpochScript(env), idTableAddress)
 		_ = tx.AddArgument(cadence.NewString("stillSoRandom"))
 		_ = tx.AddArgument(CadenceUFix64("1300000.0"))
+		_ = tx.AddArgument(cadence.NewUInt64(startView))
+		_ = tx.AddArgument(cadence.NewUInt64(endView))
 		_ = tx.AddArgument(cadence.NewArray([]cadence.Value{}))
 		_ = tx.AddArgument(cadence.NewArray([]cadence.Value{}))
 		_ = tx.AddArgument(cadence.NewArray([]cadence.Value{}))
@@ -870,15 +875,12 @@ func TestEpochReset(t *testing.T) {
 			false,
 		)
 
-		result := executeScriptAndCheck(t, b, templates.GenerateGetCurrentViewScript(env), nil)
-		startView := uint64(result.(cadence.UInt64))
-
 		verifyEpochMetadata(t, b, env,
 			EpochMetadata{
 				counter:               startEpochCounter + 1,
 				seed:                  "stillSoRandom",
 				startView:             startView,
-				endView:               startView + numEpochViews - 1,
+				endView:               endView,
 				stakingEndView:        startView + numStakingViews - 1,
 				totalRewards:          "1300000.0",
 				rewardsBreakdownArray: 0,
@@ -887,7 +889,7 @@ func TestEpochReset(t *testing.T) {
 				clusterQCs:            nil,
 				dkgKeys:               nil})
 
-		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGEnabledScript(env), nil)
+		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGEnabledScript(env), nil)
 		assert.Equal(t, cadence.NewBool(false), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetQCEnabledScript(env), nil)

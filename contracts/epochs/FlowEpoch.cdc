@@ -377,9 +377,12 @@ pub contract FlowEpoch {
         pub fun resetEpoch(
             randomSource: String,
             newPayout: UFix64?,
+            startView: UInt64,
+            endView: UInt64,
             collectorClusters: [FlowEpochClusterQC.Cluster],
             clusterQCs: [FlowEpochClusterQC.ClusterQC]
-            dkgPubKeys: [String]) {
+            dkgPubKeys: [String])
+        {
 
             // force reset the QC and DKG
             FlowEpoch.QCAdmin.forceStopVoting()
@@ -394,9 +397,9 @@ pub contract FlowEpoch {
 
             let newEpochMetadata = EpochMetadata(counter: FlowEpoch.currentEpochCounter,
                     seed: randomSource,
-                    startView: currentBlock.view,
-                    endView: currentBlock.view + FlowEpoch.configurableMetadata.numViewsInEpoch - (1 as UInt64),
-                    stakingEndView: currentBlock.view + FlowEpoch.configurableMetadata.numViewsInStakingAuction - (1 as UInt64),
+                    startView: startView,
+                    endView: endView,
+                    stakingEndView: startView + FlowEpoch.configurableMetadata.numViewsInStakingAuction - (1 as UInt64),
                     totalRewards: FlowIDTableStaking.getEpochTokenPayout(),
                     collectorClusters: collectorClusters,
                     clusterQCs: clusterQCs,
