@@ -74,6 +74,11 @@ pub contract FlowServiceAccount {
     // - Inits the default token.
     // - Inits account storage capacity.
     pub fun setupNewAccount(newAccount: AuthAccount, payer: AuthAccount) {
+        if !FlowServiceAccount.isAccountCreator(payer.address) {
+            panic("Account not authorized to create accounts")
+        }
+
+
         if self.accountCreationFee < FlowStorageFees.minimumStorageReservation {
             panic("Account creation fees setup incorrectly")
         }
@@ -92,7 +97,16 @@ pub contract FlowServiceAccount {
 
     // Returns true if the given address is permitted to create accounts, false otherwise
     pub fun isAccountCreator(_ address: Address): Bool {
+        if !self.isRestrictedAccountCreationEnabled() {
+            return true
+        }
         return self.accountCreators[address] ?? false
+    }
+
+    pub fun isRestrictedAccountCreationEnabled(): Bool {
+        let value = self.account.load<Bool>(from: /storage/isRestrictedAccountCreationEnabled) ?? false
+        self.account.save<Bool>(value ,to: /storage/isRestrictedAccountCreationEnabled)
+        return value
     }
 
     // Authorization resource to change the fields of the contract
@@ -120,6 +134,11 @@ pub contract FlowServiceAccount {
         pub fun removeAccountCreator(_ accountCreator: Address) {
             FlowServiceAccount.accountCreators.remove(key: accountCreator)
             emit AccountCreatorRemoved(accountCreator: accountCreator)
+        }
+
+         pub fun setRestrictedAccountCreationEnabled(_ enabled: Bool) {
+            FlowServiceAccount.account.load<Bool>(from: /storage/isRestrictedAccountCreationEnabled)
+            FlowServiceAccount.account.save<Bool>(enabled ,to: /storage/isRestrictedAccountCreationEnabled)
         }
     }
 
