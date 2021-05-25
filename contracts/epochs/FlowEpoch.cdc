@@ -383,6 +383,10 @@ pub contract FlowEpoch {
             clusterQCs: [FlowEpochClusterQC.ClusterQC]
             dkgPubKeys: [String])
         {
+            pre {
+                FlowEpoch.isValidPhaseConfiguration(FlowEpoch.configurableMetadata.numViewsInStakingAuction, FlowEpoch.configurableMetadata.numViewsInDKGPhase, endView-startView + (1 as UInt64)):
+                    "Invalid startView and endView configuration"
+            }
 
             // force reset the QC and DKG
             FlowEpoch.QCAdmin.forceStopVoting()
@@ -422,7 +426,8 @@ pub contract FlowEpoch {
 
         if let payout = newPayout {
             self.stakingAdmin.setEpochTokenPayout(payout)
-            self.epochMetadata[self.proposedEpochCounter()]!.setTotalRewards(payout)
+
+            self.epochMetadata[self.proposedEpochCounter()]?.setTotalRewards(payout)
         }
     }
 
