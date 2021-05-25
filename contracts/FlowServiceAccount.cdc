@@ -97,15 +97,17 @@ pub contract FlowServiceAccount {
 
     /// Returns true if the given address is permitted to create accounts, false otherwise
     pub fun isAccountCreator(_ address: Address): Bool {
-        if !self.isRestrictedAccountCreationEnabled() {
+        // If account creation is not restricted, then anyone can create an account
+        if !self.isAccountCreationRestricted() {
             return true
         }
         return self.accountCreators[address] ?? false
     }
 
-    pub fun isRestrictedAccountCreationEnabled(): Bool {
-        let value = self.account.load<Bool>(from: /storage/isRestrictedAccountCreationEnabled) ?? false
-        self.account.save<Bool>(value ,to: /storage/isRestrictedAccountCreationEnabled)
+    /// Is true if new acconts can only be created by approved accounts `self.accountCreators`
+    pub fun isAccountCreationRestricted(): Bool {
+        let value = self.account.load<Bool>(from: /storage/isAccountCreationRestricted) ?? false
+        self.account.save<Bool>(value ,to: /storage/isAccountCreationRestricted)
         return value
     }
 
@@ -142,9 +144,9 @@ pub contract FlowServiceAccount {
             emit AccountCreatorRemoved(accountCreator: accountCreator)
         }
 
-         pub fun setRestrictedAccountCreationEnabled(_ enabled: Bool) {
-            FlowServiceAccount.account.load<Bool>(from: /storage/isRestrictedAccountCreationEnabled)
-            FlowServiceAccount.account.save<Bool>(enabled ,to: /storage/isRestrictedAccountCreationEnabled)
+         pub fun setIsAccountCreationRestricted(_ enabled: Bool) {
+            FlowServiceAccount.account.load<Bool>(from: /storage/isAccountCreationRestricted)
+            FlowServiceAccount.account.save<Bool>(enabled ,to: /storage/isAccountCreationRestricted)
         }
     }
 

@@ -15,6 +15,13 @@ const (
 	getAccountAvailableBalanceFilename = "storageFees/scripts/get_account_available_balance.cdc"
 	getStorageFeeMinimumFilename       = "storageFees/scripts/get_storage_fee_min.cdc"
 	getStorageCapacityFilename         = "storageFees/scripts/get_storage_capacity.cdc"
+
+	getAccountCreators = "FlowServiceAccount/scripts/get_account_creators.cdc"
+	getIsAccountCreationRestricted = "FlowServiceAccount/scripts/get_is_account_creation_restricted.cdc"
+	getIsAccountCreator = "FlowServiceAccount/scripts/get_is_account_creator.cdc"
+	setIsAccountCreationRestricted = "FlowServiceAccount/set_is_account_creation_restricted.cdc"
+	addAccountCreator = "FlowServiceAccount/add_account_creator.cdc"
+	removeAccountCreator = "FlowServiceAccount/remove_account_creator.cdc"
 )
 
 // StorageFees Templates
@@ -45,6 +52,43 @@ func GenerateGetStorageFeeMinimumScript(env Environment) []byte {
 
 func GenerateGetStorageCapacityScript(env Environment) []byte {
 	code := assets.MustAssetString(getStorageCapacityFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateGetIsAccountCreationRestricted(env Environment) []byte {
+	code := assets.MustAssetString(getIsAccountCreationRestricted)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateGetAccountCreators(env Environment) []byte {
+	code := assets.MustAssetString(getAccountCreators)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+
+func GenerateSetIsAccountCreationRestricted(env Environment) []byte {
+	code := assets.MustAssetString(setIsAccountCreationRestricted)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateGetIsAccountCreator(env Environment) []byte {
+	code := assets.MustAssetString(getIsAccountCreator)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateAddAccountCreator(env Environment) []byte {
+	code := assets.MustAssetString(addAccountCreator)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateRemoveAccountCreator(env Environment) []byte {
+	code := assets.MustAssetString(removeAccountCreator)
 
 	return []byte(replaceAddresses(code, env))
 }
