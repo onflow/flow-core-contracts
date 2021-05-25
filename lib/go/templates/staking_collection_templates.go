@@ -36,6 +36,7 @@ const (
 	collectionGetLockedTokensUsedFilename              = "stakingCollection/scripts/get_locked_tokens_used.cdc"
 	collectionGetUnlockedTokensUsedFilename            = "stakingCollection/scripts/get_unlocked_tokens_used.cdc"
 	collectionDoesAccountHaveStakingCollectionFilename = "stakingCollection/scripts/does_account_have_staking_collection.cdc"
+	collectionGetMachineAccountsFilename               = "stakingCollection/scripts/get_machine_accounts.cdc"
 
 	// tests
 	getCollectionTokensFilename     = "stakingCollection/test/get_tokens.cdc"
@@ -184,6 +185,12 @@ func GenerateCollectionGetLockedTokensUsedScript(env Environment) []byte {
 
 func GenerateCollectionDoesAccountHaveStakingCollection(env Environment) []byte {
 	code := assets.MustAssetString(collectionDoesAccountHaveStakingCollectionFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateCollectionGetMachineAccountsScript(env Environment) []byte {
+	code := assets.MustAssetString(collectionGetMachineAccountsFilename)
 
 	return []byte(replaceAddresses(code, env))
 }

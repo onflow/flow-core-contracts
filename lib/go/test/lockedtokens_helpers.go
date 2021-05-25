@@ -3,6 +3,7 @@ package test
 import (
 	"encoding/hex"
 	"fmt"
+	"github.com/onflow/flow-emulator/types"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -231,6 +232,31 @@ type StakingCollectionInfo struct {
 	unlockLimit        string
 	nodes              []string
 	delegators         []DelegatorIDs
+	machineAccounts    map[cadence.String]flow.Address
+}
+
+type MachineAccountCreatedEvent interface {
+	NodeID()  cadence.String
+	Role()    cadence.UInt8
+	Address() flow.Address
+}
+type machineAccountCreatedEvent flow.Event
+
+var _ MachineAccountCreatedEvent = (*machineAccountCreatedEvent)(nil)
+
+// Address returns the address of the newly-created account.
+func (evt machineAccountCreatedEvent) NodeID() cadence.String {
+	return evt.Value.Fields[0].(cadence.String)
+}
+
+// Address returns the address of the newly-created account.
+func (evt machineAccountCreatedEvent) Role() cadence.UInt8 {
+	return evt.Value.Fields[1].(cadence.UInt8)
+}
+
+// Address returns the address of the newly-created account.
+func (evt machineAccountCreatedEvent) Address() flow.Address {
+	return flow.BytesToAddress(evt.Value.Fields[2].(cadence.Address).Bytes())
 }
 
 // Deploys the staking collection contract to the specified lockedTokensAddress
@@ -356,6 +382,7 @@ func registerStakingCollectionNodesAndDelegators(
 
 	// add a staking collection to the main account
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionSetup(env), newUserAddress)
+	_ = tx.AddArgument(cadence.NewAddress(flow.HexToAddress(env.LockedTokensAddress)))
 
 	signAndSubmit(
 		t, b, tx,
@@ -454,4 +481,35 @@ func verifyStakingCollectionInfo(
 		assertEqual(t, cadence.NewUInt32(delegator.id), delegatorID)
 		i = i + 1
 	}
+
+	if len(expectedInfo.machineAccounts) != 0 {
+		// check machine accounts
+		result = executeScriptAndCheck(t, b, templates.GenerateCollectionGetMachineAccountsScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(flow.HexToAddress(expectedInfo.accountAddress)))})
+		machineAccountsDictionary := result.(cadence.Dictionary).Pairs
+		for _, accountPair := range machineAccountsDictionary {
+			nodeID := accountPair.Key.(cadence.String)
+			machineAccount := accountPair.Value.(cadence.Address)
+			assertEqual(t, cadence.NewAddress(expectedInfo.machineAccounts[nodeID]), machineAccount)
+		}
+	}
+}
+
+// Queries the machine account address of a recently registered Node
+func getMachineAccountFromEvent(
+	t *testing.T,
+	b *emulator.Blockchain,
+	env templates.Environment,
+	result *types.TransactionResult,
+) flow.Address {
+
+	for _, event := range result.Events {
+		fmt.Println(event.Type)
+		if event.Type == fmt.Sprintf("A.%s.FlowStakingCollection.MachineAccountCreated", env.LockedTokensAddress) {
+			// needs work
+			machineAccountEvent := machineAccountCreatedEvent(event)
+			newMachineAccountAddress := machineAccountEvent.Address()
+			return newMachineAccountAddress
+		}
+	}
+	return flow.Address{}
 }

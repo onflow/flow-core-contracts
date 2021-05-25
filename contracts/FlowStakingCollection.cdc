@@ -28,6 +28,8 @@ pub contract FlowStakingCollection {
     pub event NewNodeCreated(nodeID: String, role: UInt8, amountCommitted: UFix64, address: Address)
     pub event NewDelegatorCreated(nodeID: String, delegatorID: UInt32, amountCommitted: UFix64, address: Address)
 
+    pub event MachineAccountCreated(nodeID: String, role: UInt8, address: Address)
+
     /// Struct that stores delegator ID info
     pub struct DelegatorIDs {
         pub let delegatorNodeID: String
@@ -376,6 +378,8 @@ pub contract FlowStakingCollection {
                 // Set this node's machine account
                 FlowStakingCollection.setMachineAccount(nodeID: nodeReference.id, address: machineAcct.address)
 
+                emit MachineAccountCreated(nodeID: nodeReference.id, role: FlowEpoch.NodeRole.Collector.rawValue, address: machineAcct.address)
+
                 return machineAcct
 
             // If they are a consensus node, create a DKG Participant object and store it in the account
@@ -387,6 +391,8 @@ pub contract FlowStakingCollection {
 
                 // set this node's machine account
                 FlowStakingCollection.setMachineAccount(nodeID: nodeReference.id, address: machineAcct.address)
+
+                emit MachineAccountCreated(nodeID: nodeReference.id, role: FlowEpoch.NodeRole.Consensus.rawValue, address: machineAcct.address)
 
                 return machineAcct
             }
