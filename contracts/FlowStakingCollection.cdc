@@ -44,9 +44,9 @@ pub contract FlowStakingCollection {
         pub let nodeID: String
         pub let role: UInt8
         pub let machineAccountAddress: Address
-        access(contract) let machineAccountVaultProvider: Capability<&FlowToken.Vault{FungibleToken.Provider}>
+        access(contract) let machineAccountVaultProvider: Capability<&FlowToken.Vault>
 
-        init(nodeID: String, role: UInt8, machineAccountAddress: Address, machineAccountVaultProvider: Capability<&FlowToken.Vault{FungibleToken.Provider}>) {
+        init(nodeID: String, role: UInt8, machineAccountAddress: Address, machineAccountVaultProvider: Capability<&FlowToken.Vault>) {
             self.nodeID = nodeID
             self.role = role
             self.machineAccountAddress = machineAccountAddress
