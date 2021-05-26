@@ -99,7 +99,7 @@ pub contract FlowStakingCollection {
         pub var lockedTokensUsed: UFix64
         pub var unlockedTokensUsed: UFix64
 
-        /// Tracks the machine account's associated with nodes
+        /// Tracks the machine accounts associated with nodes
         access(self) var machineAccounts: {String: MachineAccountInfo}
 
         init(unlockedVault: Capability<&FlowToken.Vault>, tokenHolder: Capability<&LockedTokens.TokenHolder>?) {
