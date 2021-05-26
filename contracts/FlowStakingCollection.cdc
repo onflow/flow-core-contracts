@@ -39,6 +39,21 @@ pub contract FlowStakingCollection {
         }
     }
 
+    /// Contains information about a node's machine Account
+    pub struct MachineAccountInfo {
+        pub let nodeID: String
+        pub let role: UInt8
+        pub let machineAccountAddress: Address
+        access(contract) let machineAccountVaultProvider: Capability<&FlowToken.Vault>
+
+        init(nodeID: String, role: UInt8, machineAccountAddress: Address, machineAccountVaultProvider: Capability<&FlowToken.Vault>) {
+            self.nodeID = nodeID
+            self.role = role
+            self.machineAccountAddress = machineAccountAddress
+            self.machineAccountVaultProvider = machineAccountVaultProvider
+        }
+    }
+
     /// Public interface that users can publish for their staking collection
     /// so that others can query their staking info
     pub resource interface StakingCollectionPublic {
@@ -51,6 +66,7 @@ pub contract FlowStakingCollection {
         pub fun getDelegatorIDs(): [DelegatorIDs]
         pub fun getAllNodeInfo(): [FlowIDTableStaking.NodeInfo]
         pub fun getAllDelegatorInfo(): [FlowIDTableStaking.DelegatorInfo]
+        pub fun getMachineAccounts(): {String: MachineAccountInfo}
     }
 
     /// The resource that stakers store in their accounts to store
@@ -83,6 +99,9 @@ pub contract FlowStakingCollection {
         pub var lockedTokensUsed: UFix64
         pub var unlockedTokensUsed: UFix64
 
+        /// Tracks the machine account's associated with nodes
+        access(self) var machineAccounts: {String: MachineAccountInfo}
+
         init(unlockedVault: Capability<&FlowToken.Vault>, tokenHolder: Capability<&LockedTokens.TokenHolder>?) {
             pre {
                 unlockedVault.check(): "Invalid FlowToken.Vault capability"
@@ -108,6 +127,8 @@ pub contract FlowStakingCollection {
                 self.tokenHolder = nil
                 self.lockedVault = nil
             }
+
+            self.machineAccounts = {}
         }
 
         /// Close all the stakes before destroying everything
@@ -663,7 +684,7 @@ pub contract FlowStakingCollection {
             }
         }
 
-        // Getters
+        /// Getters
 
         /// Function to get all node ids for all Staking records in the StakingCollection
         pub fun getNodeIDs(): [String] {
@@ -762,6 +783,11 @@ pub contract FlowStakingCollection {
             return delegatorInfo
         }
 
+        /// Gets a users list of machine account information
+        pub fun getMachineAccounts(): {String: MachineAccountInfo} {
+            return self.machineAccounts
+        }
+
     } 
 
     // Getter functions for accounts StakingCollection information
@@ -834,6 +860,16 @@ pub contract FlowStakingCollection {
             ?? panic("Could not borrow ref to StakingCollection")
 
         return stakingCollectionRef.getAllDelegatorInfo()
+    }
+
+    /// Global function to get all the machine account info for all the nodes managed by an address' staking collection
+    pub fun getMachineAccounts(address: Address): {String: MachineAccountInfo} {
+        let account = getAccount(address)
+
+        let stakingCollectionRef = account.getCapability<&StakingCollection{StakingCollectionPublic}>(self.StakingCollectionPublicPath).borrow()
+            ?? panic("Could not borrow ref to StakingCollection")
+
+        return stakingCollectionRef.getMachineAccounts()
     }
 
     /// Determines if an account is set up with a Staking Collection
