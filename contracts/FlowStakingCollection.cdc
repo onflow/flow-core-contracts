@@ -22,8 +22,11 @@ pub contract FlowStakingCollection {
     pub let StakingCollectionPublicPath: PublicPath
 
     /// Events
-    pub event NewNodeCreated(nodeID: String, role: UInt8, amountCommitted: UFix64, address: Address)
-    pub event NewDelegatorCreated(nodeID: String, delegatorID: UInt32, amountCommitted: UFix64, address: Address)
+    pub event NodeAddedToStakingCollection(nodeID: String, role: UInt8, amountCommitted: UFix64, address: Address?)
+    pub event DelegatorAddedToStakingCollection(nodeID: String, delegatorID: UInt32, amountCommitted: UFix64, address: Address?)
+
+    pub event NodeRemovedFromStakingCollection(nodeID: String, role: UInt8, address: Address?)
+    pub event DelegatorRemovedFromStakingCollection(nodeID: String, delegatorID: UInt32, role: UInt8, address: Address?)
 
     /// Struct that stores delegator ID info
     pub struct DelegatorIDs {
@@ -127,11 +130,14 @@ pub contract FlowStakingCollection {
         /// Uses locked tokens first, then unlocked if any more are still needed
         access(self) fun getTokens(amount: UFix64): @FungibleToken.Vault {
 
+            let unlockedVault = self.unlockedVault.borrow()!
+            let unlockedBalance = unlockedVault.balance - FlowStorageFees.minimumStorageReservation
+
             // If there is a locked account, use the locked vault first
             if self.lockedVault != nil {
 
-                var lockedBalance: UFix64 = self.lockedVault!.borrow()!.balance - FlowStorageFees.minimumStorageReservation
-                var unlockedBalance: UFix64 = self.unlockedVault.borrow()!.balance - FlowStorageFees.minimumStorageReservation
+                let lockedVault = self.lockedVault!.borrow()!
+                let lockedBalance = lockedVault.balance - FlowStorageFees.minimumStorageReservation
 
                 assert(
                     amount <= lockedBalance + unlockedBalance,
@@ -142,7 +148,7 @@ pub contract FlowStakingCollection {
                 if (amount <= lockedBalance) {
                     self.lockedTokensUsed = self.lockedTokensUsed + amount
 
-                    return <-self.lockedVault!.borrow()!.withdraw(amount: amount)
+                    return <-lockedVault.withdraw(amount: amount)
                 
                 // If not all can be removed from locked, remove what can be, then remove the rest from unlocked
                 } else {
@@ -150,15 +156,17 @@ pub contract FlowStakingCollection {
                     // update locked tokens used record by adding the rest of the locked balance
                     self.lockedTokensUsed = self.lockedTokensUsed + lockedBalance
 
+                    let numUnlockedTokensToUse = amount - lockedBalance
+
                     // Update the unlocked tokens used record by adding the amount requested
                     // minus whatever was used from the locked tokens
-                    self.unlockedTokensUsed = self.unlockedTokensUsed + (amount - lockedBalance)
+                    self.unlockedTokensUsed = self.unlockedTokensUsed + numUnlockedTokensToUse
 
                     let tokens <- FlowToken.createEmptyVault()
 
                     // Get the actual tokens from each vault
-                    let lockedPortion <- self.lockedVault!.borrow()!.withdraw(amount: lockedBalance)
-                    let unlockedPortion <- self.unlockedVault.borrow()!.withdraw(amount: amount - lockedBalance)
+                    let lockedPortion <- lockedVault.withdraw(amount: lockedBalance)
+                    let unlockedPortion <- unlockedVault.withdraw(amount: numUnlockedTokensToUse)
 
                     // Deposit them into the same vault
                     tokens.deposit(from: <-lockedPortion)
@@ -168,7 +176,6 @@ pub contract FlowStakingCollection {
                 }
             } else {
                 // Since there is no locked account, all tokens have to come from the normal unlocked balance
-                var unlockedBalance: UFix64 = self.unlockedVault.borrow()!.balance - FlowStorageFees.minimumStorageReservation
 
                 assert(
                     amount <= unlockedBalance,
@@ -177,7 +184,7 @@ pub contract FlowStakingCollection {
 
                 self.unlockedTokensUsed = self.unlockedTokensUsed + amount
 
-                return <-self.unlockedVault.borrow()!.withdraw(amount: amount)
+                return <-unlockedVault.withdraw(amount: amount)
             }
         }
 
@@ -190,16 +197,18 @@ pub contract FlowStakingCollection {
                 from.balance <= self.unlockedTokensUsed + self.lockedTokensUsed: "Cannot deposit more than is already used"
             }
 
+            let unlockedVault = self.unlockedVault.borrow()!
+
             /// If there is a locked account, get the locked vault holder for depositing
             if self.lockedVault != nil {
   
                 if (from.balance <= self.unlockedTokensUsed) {
                     self.unlockedTokensUsed = self.unlockedTokensUsed - from.balance
 
-                    self.unlockedVault.borrow()!.deposit(from: <-from)
+                    unlockedVault.deposit(from: <-from)
                 } else {
                     // Return unlocked tokens first
-                    self.unlockedVault.borrow()!.deposit(from: <-from.withdraw(amount: self.unlockedTokensUsed))
+                    unlockedVault.deposit(from: <-from.withdraw(amount: self.unlockedTokensUsed))
                     self.unlockedTokensUsed = 0.0
 
                     self.lockedTokensUsed = self.lockedTokensUsed - from.balance
@@ -210,7 +219,7 @@ pub contract FlowStakingCollection {
                 self.unlockedTokensUsed = self.unlockedTokensUsed - from.balance
                 
                 // If there is no locked account, get the users vault capability and deposit tokens to it.
-                self.unlockedVault.borrow()!.deposit(from: <-from)
+                unlockedVault.deposit(from: <-from)
             }
         }
 
@@ -223,20 +232,24 @@ pub contract FlowStakingCollection {
             // If there is a locked account, get the staking info from that account
             if self.tokenHolder != nil {
                 if let _tokenHolder = self.tokenHolder!.borrow() {
-                    tokenHolderNodeID = _tokenHolder!.getNodeID()
-                    tokenHolderDelegatorNodeID = _tokenHolder!.getDelegatorNodeID()
-                    tokenHolderDelegatorID = _tokenHolder!.getDelegatorID()
+                    tokenHolderNodeID = _tokenHolder.getNodeID()
+                    tokenHolderDelegatorNodeID = _tokenHolder.getDelegatorNodeID()
+                    tokenHolderDelegatorID = _tokenHolder.getDelegatorID()
                 }
             }
 
             // If the request is for a delegator, check all possible delegators for possible matches
-            if let _delegatorID = delegatorID {
-                if (tokenHolderDelegatorNodeID != nil && tokenHolderDelegatorID != nil && tokenHolderDelegatorNodeID! == nodeID && tokenHolderDelegatorID! == _delegatorID) {
+            if let delegatorID = delegatorID {
+                if (tokenHolderDelegatorNodeID != nil
+                    && tokenHolderDelegatorID != nil
+                    && tokenHolderDelegatorNodeID! == nodeID
+                    && tokenHolderDelegatorID! == delegatorID)
+                {
                     return true
                 }
 
                 // Look for a delegator with the specified node ID and delegator ID
-                return self.borrowDelegator(nodeID, _delegatorID) != nil 
+                return self.borrowDelegator(nodeID: nodeID, delegatorID: delegatorID) != nil 
             } else {
                 if (tokenHolderNodeID != nil && tokenHolderNodeID! == nodeID) {
                     return true
@@ -249,16 +262,18 @@ pub contract FlowStakingCollection {
         /// Function to add an existing NodeStaker object
         pub fun addNodeObject(_ node: @FlowIDTableStaking.NodeStaker) {
             let stakingInfo = FlowIDTableStaking.NodeInfo(nodeID: node.id)
-            let totalStaked = stakingInfo.tokensStaked + stakingInfo.tokensCommitted + stakingInfo.tokensUnstaking + stakingInfo.tokensUnstaked
+            let totalStaked = stakingInfo.totalTokensInRecord() - stakingInfo.tokensRewarded
             self.unlockedTokensUsed = self.unlockedTokensUsed + totalStaked
+            emit NodeAddedToStakingCollection(nodeID: stakingInfo.id, role: stakingInfo.role, amountCommitted: stakingInfo.totalCommittedWithoutDelegators(), address: self.owner?.address)
             self.nodeStakers[node.id] <-! node
         }
 
         /// Function to add an existing NodeDelegator object
         pub fun addDelegatorObject(_ delegator: @FlowIDTableStaking.NodeDelegator) {
             let stakingInfo = FlowIDTableStaking.DelegatorInfo(nodeID: delegator.nodeID, delegatorID: delegator.id)
-            let totalStaked = stakingInfo.tokensStaked + stakingInfo.tokensCommitted + stakingInfo.tokensUnstaking + stakingInfo.tokensUnstaked
+            let totalStaked = stakingInfo.totalTokensInRecord() - stakingInfo.tokensRewarded
             self.unlockedTokensUsed = self.unlockedTokensUsed + totalStaked
+            emit DelegatorAddedToStakingCollection(nodeID: stakingInfo.nodeID, delegatorID: stakingInfo.id, amountCommitted: stakingInfo.tokensStaked + stakingInfo.tokensCommitted - stakingInfo.tokensRequestedToUnstake, address: self.owner?.address)
             self.nodeDelegators[delegator.nodeID] <-! delegator
         }
 
@@ -271,7 +286,7 @@ pub contract FlowStakingCollection {
 
             let nodeStaker <- FlowIDTableStaking.addNodeRecord(id: id, role: role, networkingAddress: networkingAddress, networkingKey: networkingKey, stakingKey: stakingKey, tokensCommitted: <-tokens)
 
-            //emit NewNodeCreated(nodeID: nodeStaker.id, role: nodeStaker.id, amountCommitted: amount)
+            emit NodeAddedToStakingCollection(nodeID: nodeStaker.id, role: role, amountCommitted: amount, address: self.owner?.address)
 
             self.nodeStakers[id] <-! nodeStaker
         }
@@ -280,7 +295,9 @@ pub contract FlowStakingCollection {
         pub fun registerDelegator(nodeID: String, amount: UFix64) {
             let delegatorIDs = self.getDelegatorIDs()
             for idInfo in delegatorIDs {
-                if idInfo.delegatorNodeID == nodeID { panic("Cannot register a delegator for a node that is already being delegated to") }
+                if idInfo.delegatorNodeID == nodeID { 
+                    panic("Cannot register a delegator for a node that is already being delegated to")
+                }
             }
             
             let tokens <- self.getTokens(amount: amount)
@@ -289,7 +306,7 @@ pub contract FlowStakingCollection {
 
             nodeDelegator.delegateNewTokens(from: <- tokens)
 
-            //emit NewDelegatorCreated(nodeID: nodeDelegator.nodeID, delegatorID: nodeDelegator.id, amountCommitted: amount)
+            emit DelegatorAddedToStakingCollection(nodeID: nodeDelegator.nodeID, delegatorID: nodeDelegator.id, amountCommitted: amount, address: self.owner?.address)
 
             self.nodeDelegators[nodeDelegator.nodeID] <-! nodeDelegator
         }
@@ -304,7 +321,7 @@ pub contract FlowStakingCollection {
         }
 
         /// Borrows a reference to a delegator in the collection
-        access(self) fun borrowDelegator(_ nodeID: String, _ delegatorID: UInt32): &FlowIDTableStaking.NodeDelegator? {
+        access(self) fun borrowDelegator(nodeID: String, delegatorID: UInt32): &FlowIDTableStaking.NodeDelegator? {
             if self.nodeDelegators[nodeID] != nil {
                 let delegatorRef = &self.nodeDelegators[nodeID] as? &FlowIDTableStaking.NodeDelegator
                 if delegatorRef.id == delegatorID { return delegatorRef } else { return nil }
@@ -327,37 +344,37 @@ pub contract FlowStakingCollection {
             }
 
             // If staking as a delegator, use the delegate functionality
-            if let _delegatorID = delegatorID {       
+            if let delegatorID = delegatorID {       
                 // If the delegator is stored in the collection, borrow it         
-                if let delegator = self.borrowDelegator(nodeID, _delegatorID) {
+                if let delegator = self.borrowDelegator(nodeID: nodeID, delegatorID: delegatorID) {
                     delegator.delegateNewTokens(from: <- self.getTokens(amount: amount))
                 } else {
                     // Get any needed unlocked tokens, and deposit them to the locked vault.
                     let lockedBalance = self.lockedVault!.borrow()!.balance - FlowStorageFees.minimumStorageReservation
                     if (amount > lockedBalance) {
-                        self.tokenHolder!.borrow()!.deposit(from: <- self.unlockedVault.borrow()!.withdraw(amount: amount - lockedBalance))
+                        let numUnlockedTokensToUse = amount - lockedBalance
+                        self.tokenHolder!.borrow()!.deposit(from: <- self.unlockedVault.borrow()!.withdraw(amount: numUnlockedTokensToUse))
                     }   
 
                     // Use the delegator stored in the locked account
                     let delegator = self.tokenHolder!.borrow()!.borrowDelegator()
                     delegator.delegateNewTokens(amount: amount)
                 }
-                
-            } else {
-                // If the node is stored in the collection, borrow it    
-                if let node = self.borrowNode(nodeID) {
-                    node.stakeNewTokens(<-self.getTokens(amount: amount))
-                } else {
-                    // Get any needed unlocked tokens, and deposit them to the locked vault.
-                    let lockedBalance = self.lockedVault!.borrow()!.balance - FlowStorageFees.minimumStorageReservation
-                    if (amount > lockedBalance) {
-                        self.tokenHolder!.borrow()!.deposit(from: <- self.unlockedVault.borrow()!.withdraw(amount: amount - lockedBalance))
-                    } 
 
-                    // Use the staker stored in the locked account
-                    let staker = self.tokenHolder!.borrow()!.borrowStaker()
-                    staker.stakeNewTokens(amount: amount)
-                }
+            // If the node is stored in the collection, borrow it 
+            } else if let node = self.borrowNode(nodeID) {
+                node.stakeNewTokens(<-self.getTokens(amount: amount))
+            } else {
+                // Get any needed unlocked tokens, and deposit them to the locked vault.
+                let lockedBalance = self.lockedVault!.borrow()!.balance - FlowStorageFees.minimumStorageReservation
+                if (amount > lockedBalance) {
+                    let numUnlockedTokensToUse = amount - lockedBalance
+                    self.tokenHolder!.borrow()!.deposit(from: <- self.unlockedVault.borrow()!.withdraw(amount: numUnlockedTokensToUse))
+                } 
+
+                // Use the staker stored in the locked account
+                let staker = self.tokenHolder!.borrow()!.borrowStaker()
+                staker.stakeNewTokens(amount: amount)
             }
         }
 
@@ -367,21 +384,19 @@ pub contract FlowStakingCollection {
                 self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID): "Specified stake does not exist"
             }
 
-            if let _delegatorID = delegatorID {
-                if let delegator = self.borrowDelegator(nodeID, _delegatorID) {
+            if let delegatorID = delegatorID {
+                if let delegator = self.borrowDelegator(nodeID: nodeID, delegatorID: delegatorID) {
                     delegator.delegateUnstakedTokens(amount: amount)
 
                 } else {
                     let delegator = self.tokenHolder!.borrow()!.borrowDelegator()
                     delegator.delegateUnstakedTokens(amount: amount)
                 }
+            } else if let node = self.borrowNode(nodeID) {
+                node.stakeUnstakedTokens(amount: amount)
             } else {
-                if let node = self.borrowNode(nodeID) {
-                    node.stakeUnstakedTokens(amount: amount)
-                } else {
-                    let staker = self.tokenHolder!.borrow()!.borrowStaker()
-                    staker.stakeUnstakedTokens(amount: amount)
-                }
+                let staker = self.tokenHolder!.borrow()!.borrowStaker()
+                staker.stakeUnstakedTokens(amount: amount)
             }
         }
 
@@ -391,8 +406,8 @@ pub contract FlowStakingCollection {
                 self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID): "Specified stake does not exist"
             }
 
-            if let _delegatorID = delegatorID {
-                if let delegator = self.borrowDelegator(nodeID, _delegatorID) {
+            if let delegatorID = delegatorID {
+                if let delegator = self.borrowDelegator(nodeID: nodeID, delegatorID: delegatorID) {
                     // We add the amount to the unlocked tokens used because rewards are newly minted tokens
                     // and aren't immediately reflected in the tokens used fields
                     self.unlockedTokensUsed = self.unlockedTokensUsed + amount
@@ -403,14 +418,12 @@ pub contract FlowStakingCollection {
                     let delegator = self.tokenHolder!.borrow()!.borrowDelegator()
                     delegator.delegateRewardedTokens(amount: amount)
                 }
+            } else if let node = self.borrowNode(nodeID) {
+                self.unlockedTokensUsed = self.unlockedTokensUsed + amount
+                node.stakeRewardedTokens(amount: amount)
             } else {
-                if let node = self.borrowNode(nodeID) {
-                    self.unlockedTokensUsed = self.unlockedTokensUsed + amount
-                    node.stakeRewardedTokens(amount: amount)
-                } else {
-                    let staker = self.tokenHolder!.borrow()!.borrowStaker()
-                    staker.stakeRewardedTokens(amount: amount)
-                }
+                let staker = self.tokenHolder!.borrow()!.borrowStaker()
+                staker.stakeRewardedTokens(amount: amount)
             }
         }
 
@@ -420,21 +433,19 @@ pub contract FlowStakingCollection {
                 self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID): "Specified stake does not exist"
             }
 
-            if let _delegatorID = delegatorID {
-                if let delegator = self.borrowDelegator(nodeID, _delegatorID) {
+            if let delegatorID = delegatorID {
+                if let delegator = self.borrowDelegator(nodeID: nodeID, delegatorID: delegatorID) {
                     delegator.requestUnstaking(amount: amount)
 
                 } else {
                     let delegator = self.tokenHolder!.borrow()!.borrowDelegator()
                     delegator.requestUnstaking(amount: amount)
                 }
+            } else if let node = self.borrowNode(nodeID) {
+                node.requestUnstaking(amount: amount)
             } else {
-                if let node = self.borrowNode(nodeID) {
-                    node.requestUnstaking(amount: amount)
-                } else {
-                    let staker = self.tokenHolder!.borrow()!.borrowStaker()
-                    staker.requestUnstaking(amount: amount)
-                }
+                let staker = self.tokenHolder!.borrow()!.borrowStaker()
+                staker.requestUnstaking(amount: amount)
             }
         }
 
@@ -459,22 +470,20 @@ pub contract FlowStakingCollection {
                 self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID): "Specified stake does not exist"
             }
 
-            if let _delegatorID = delegatorID {
-                if let delegator = self.borrowDelegator(nodeID, _delegatorID) {
+            if let delegatorID = delegatorID {
+                if let delegator = self.borrowDelegator(nodeID: nodeID, delegatorID: delegatorID) {
                     let tokens <- delegator.withdrawUnstakedTokens(amount: amount)
                     self.depositTokens(from: <-tokens)
                 } else {
                     let delegator = self.tokenHolder!.borrow()!.borrowDelegator()
                     delegator.withdrawUnstakedTokens(amount: amount)
                 }
+            } else if let node = self.borrowNode(nodeID) {
+                let tokens <- node.withdrawUnstakedTokens(amount: amount)
+                self.depositTokens(from: <-tokens)
             } else {
-                if let node = self.borrowNode(nodeID) {
-                    let tokens <- node.withdrawUnstakedTokens(amount: amount)
-                    self.depositTokens(from: <-tokens)
-                } else {
-                    let staker = self.tokenHolder!.borrow()!.borrowStaker()
-                    staker.withdrawUnstakedTokens(amount: amount)
-                }
+                let staker = self.tokenHolder!.borrow()!.borrowStaker()
+                staker.withdrawUnstakedTokens(amount: amount)
             }
         }
 
@@ -484,8 +493,8 @@ pub contract FlowStakingCollection {
                 self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID): "Specified stake does not exist"
             }
 
-            if let _delegatorID = delegatorID {
-                if let delegator = self.borrowDelegator(nodeID, _delegatorID) {
+            if let delegatorID = delegatorID {
+                if let delegator = self.borrowDelegator(nodeID: nodeID, delegatorID: delegatorID) {
                     // We update the unlocked tokens used field before withdrawing because 
                     // rewards are newly minted and not immediately reflected in the tokens used fields
                     self.unlockedTokensUsed = self.unlockedTokensUsed + amount
@@ -502,22 +511,20 @@ pub contract FlowStakingCollection {
                     let unlockedRewards <- self.tokenHolder!.borrow()!.withdraw(amount: amount)
                     self.unlockedVault.borrow()!.deposit(from: <-unlockedRewards)
                 }
+            } else if let node = self.borrowNode(nodeID) {
+                self.unlockedTokensUsed = self.unlockedTokensUsed + amount
+
+                let tokens <- node.withdrawRewardedTokens(amount: amount)
+
+                self.depositTokens(from: <-tokens)
             } else {
-                if let node = self.borrowNode(nodeID) {
-                    self.unlockedTokensUsed = self.unlockedTokensUsed + amount
+                let staker = self.tokenHolder!.borrow()!.borrowStaker()
+                
+                staker.withdrawRewardedTokens(amount: amount)
 
-                    let tokens <- node.withdrawRewardedTokens(amount: amount)
-
-                    self.depositTokens(from: <-tokens)
-                } else {
-                    let staker = self.tokenHolder!.borrow()!.borrowStaker()
-                    
-                    staker.withdrawRewardedTokens(amount: amount)
-
-                    // move the unlocked rewards from the locked account to the unlocked account
-                    let unlockedRewards <- self.tokenHolder!.borrow()!.withdraw(amount: amount)
-                    self.unlockedVault.borrow()!.deposit(from: <-unlockedRewards)
-                }
+                // move the unlocked rewards from the locked account to the unlocked account
+                let unlockedRewards <- self.tokenHolder!.borrow()!.withdraw(amount: amount)
+                self.unlockedVault.borrow()!.deposit(from: <-unlockedRewards)
             }
         }
 
@@ -530,33 +537,31 @@ pub contract FlowStakingCollection {
                 self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID): "Specified stake does not exist"
             }
 
-            if let _delegatorID = delegatorID {
-                let delegatorInfo = FlowIDTableStaking.DelegatorInfo(nodeID: nodeID, delegatorID: _delegatorID)
+            if let delegatorID = delegatorID {
+                let delegatorInfo = FlowIDTableStaking.DelegatorInfo(nodeID: nodeID, delegatorID: delegatorID)
 
                 assert(
                     delegatorInfo.tokensStaked + delegatorInfo.tokensCommitted + delegatorInfo.tokensUnstaking == 0.0,
                     message: "Cannot close a delegation until all tokens have been withdrawn, or moved to a withdrawable state."
                 )
 
-                if (delegatorInfo.tokensUnstaked > 0.0) {
-                    self.withdrawUnstakedTokens(nodeID: nodeID, delegatorID: _delegatorID, amount: delegatorInfo.tokensUnstaked)
+                if delegatorInfo.tokensUnstaked > 0.0 {
+                    self.withdrawUnstakedTokens(nodeID: nodeID, delegatorID: delegatorID, amount: delegatorInfo.tokensUnstaked)
                 }
 
-                if (delegatorInfo.tokensRewarded > 0.0) {
-                    self.withdrawRewardedTokens(nodeID: nodeID, delegatorID: _delegatorID, amount: delegatorInfo.tokensRewarded)
+                if delegatorInfo.tokensRewarded > 0.0 {
+                    self.withdrawRewardedTokens(nodeID: nodeID, delegatorID: delegatorID, amount: delegatorInfo.tokensRewarded)
                 }
 
-                if let delegator = self.borrowDelegator(nodeID, _delegatorID) {
+                if let delegator = self.borrowDelegator(nodeID: nodeID, delegatorID: delegatorID) {
                     let delegator <- self.nodeDelegators[nodeID] <- nil
                     destroy delegator
+                } else if let tokenHolderCapability = self.tokenHolder {
+                    let tokenManager = tokenHolderCapability.borrow()!.borrowTokenManager()
+                    let delegator <- tokenManager.removeDelegator()
+                    destroy delegator
                 } else {
-                    if let tokenHolderCapability = self.tokenHolder {
-                        let tokenManager = tokenHolderCapability.borrow()!.borrowTokenManager()
-                        let delegator <- tokenManager.removeDelegator()
-                        destroy delegator
-                    } else {
-                        panic("Token Holder capability needed and not found.")
-                    }
+                    panic("Token Holder capability needed and not found.")
                 }
             } else {
                 let stakeInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeID)
@@ -566,25 +571,23 @@ pub contract FlowStakingCollection {
                     message: "Cannot close a stake until all tokens have been withdrawn, or moved to a withdrawable state."
                 )
 
-                if (stakeInfo.tokensUnstaked > 0.0) {
+                if stakeInfo.tokensUnstaked > 0.0 {
                     self.withdrawUnstakedTokens(nodeID: nodeID, delegatorID: delegatorID, amount: stakeInfo.tokensUnstaked)
                 }
 
-                if (stakeInfo.tokensRewarded > 0.0) {
+                if stakeInfo.tokensRewarded > 0.0 {
                     self.withdrawRewardedTokens(nodeID: nodeID, delegatorID: delegatorID, amount: stakeInfo.tokensRewarded)
                 }
 
                 if let node = self.borrowNode(nodeID) {
                     let staker <- self.nodeStakers[nodeID] <- nil
                     destroy staker
+                } else if let tokenHolderCapability = self.tokenHolder {
+                    let tokenManager = tokenHolderCapability.borrow()!.borrowTokenManager()
+                    let staker <- tokenManager.removeNode()
+                    destroy staker
                 } else {
-                    if let tokenHolderCapability = self.tokenHolder {
-                        let tokenManager = tokenHolderCapability.borrow()!.borrowTokenManager()
-                        let staker <- tokenManager.removeNode()
-                        destroy staker
-                    } else {
-                        panic("Token Holder capability needed and not found.")
-                    }
+                    panic("Token Holder capability needed and not found.")
                 }
             }
         }
@@ -598,7 +601,7 @@ pub contract FlowStakingCollection {
             if let tokenHolderCapability = self.tokenHolder {
                 let _tokenHolder = tokenHolderCapability.borrow()!
 
-                let tokenHolderNodeID = _tokenHolder!.getNodeID()
+                let tokenHolderNodeID = _tokenHolder.getNodeID()
                 if let _tokenHolderNodeID = tokenHolderNodeID {
                     nodeIDs.append(_tokenHolderNodeID)
                 }

@@ -1,6 +1,7 @@
 package templates
 
 import (
+	_ "github.com/kevinburke/go-bindata"
 	"github.com/onflow/flow-core-contracts/lib/go/templates/internal/assets"
 )
 
