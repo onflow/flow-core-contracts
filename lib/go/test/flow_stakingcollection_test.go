@@ -589,6 +589,30 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 	machineAccounts := make(map[cadence.String]flow.Address)
 	machineAccounts[cadence.NewString(joshID)] = joshAddress
 
+	t.Run("Should not be able to register a consensus node without a machine account public key", func(t *testing.T) {
+
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterNode(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(maxID))
+		_ = tx.AddArgument(cadence.NewUInt8(2))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", max)))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", max)))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", max)))
+		_ = tx.AddArgument(CadenceUFix64("500000.0"))
+		_ = tx.AddArgument(cadence.NewOptional(nil))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			true,
+		)
+	})
+
+	publicKeys := make([]cadence.Value, 1)
+	machineAccountKey, _ := accountKeys.NewWithSigner()
+	publicKeys[0] = bytesToCadenceArray(machineAccountKey.Encode())
+	cadencePublicKeys := cadence.NewArray(publicKeys)
+
 	t.Run("Should be able to register a second node and delegator in the staking collection", func(t *testing.T) {
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterNode(env), joshAddress)
@@ -598,7 +622,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", max)))
 		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", max)))
 		_ = tx.AddArgument(CadenceUFix64("500000.0"))
-		_ = tx.AddArgument(cadence.NewArray([]cadence.Value{}))
+		_ = tx.AddArgument(cadence.NewOptional(cadencePublicKeys))
 
 		result := signAndSubmit(
 			t, b, tx,
@@ -642,7 +666,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", bastian)))
 		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", bastian)))
 		_ = tx.AddArgument(CadenceUFix64("10000.0"))
-		_ = tx.AddArgument(cadence.NewArray([]cadence.Value{}))
+		_ = tx.AddArgument(cadence.NewOptional(cadencePublicKeys))
 
 		result := signAndSubmit(
 			t, b, tx,
@@ -675,7 +699,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", execution)))
 		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", execution)))
 		_ = tx.AddArgument(CadenceUFix64("10000.0"))
-		_ = tx.AddArgument(cadence.NewArray([]cadence.Value{}))
+		_ = tx.AddArgument(cadence.NewOptional(nil))
 
 		signAndSubmit(
 			t, b, tx,
@@ -691,7 +715,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", verification)))
 		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", verification)))
 		_ = tx.AddArgument(CadenceUFix64("10000.0"))
-		_ = tx.AddArgument(cadence.NewArray([]cadence.Value{}))
+		_ = tx.AddArgument(cadence.NewOptional(nil))
 
 		signAndSubmit(
 			t, b, tx,

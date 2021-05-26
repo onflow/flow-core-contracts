@@ -352,6 +352,11 @@ func registerStakingCollectionNodesAndDelegators(
 	userNodeID1 := "0000000000000000000000000000000000000000000000000000000000000001"
 	userNodeID2 := "0000000000000000000000000000000000000000000000000000000000000002"
 
+	publicKeys := make([]cadence.Value, 1)
+	machineAccountKey, _ := accountKeys.NewWithSigner()
+	publicKeys[0] = bytesToCadenceArray(machineAccountKey.Encode())
+	cadencePublicKeys := cadence.NewArray(publicKeys)
+
 	// Register a node in the locked account
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), newUserAddress)
 	_ = tx.AddArgument(cadence.NewString(userNodeID1))
@@ -399,7 +404,7 @@ func registerStakingCollectionNodesAndDelegators(
 	_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", 2)))
 	_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", 2)))
 	_ = tx.AddArgument(CadenceUFix64("500000.0"))
-	_ = tx.AddArgument(cadence.NewArray([]cadence.Value{}))
+	_ = tx.AddArgument(cadence.NewOptional(cadencePublicKeys))
 
 	signAndSubmit(
 		t, b, tx,
@@ -503,7 +508,6 @@ func getMachineAccountFromEvent(
 ) flow.Address {
 
 	for _, event := range result.Events {
-		fmt.Println(event.Type)
 		if event.Type == fmt.Sprintf("A.%s.FlowStakingCollection.MachineAccountCreated", env.LockedTokensAddress) {
 			// needs work
 			machineAccountEvent := machineAccountCreatedEvent(event)
