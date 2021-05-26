@@ -413,15 +413,17 @@ pub contract FlowStakingCollection {
                 if let delegator = self.borrowDelegator(nodeID: nodeID, delegatorID: delegatorID) {
                     delegator.delegateNewTokens(from: <- self.getTokens(amount: amount))
                 } else {
+                    let tokenHolder = self.tokenHolder!.borrow()!
+
                     // Get any needed unlocked tokens, and deposit them to the locked vault.
                     let lockedBalance = self.lockedVault!.borrow()!.balance - FlowStorageFees.minimumStorageReservation
                     if (amount > lockedBalance) {
                         let numUnlockedTokensToUse = amount - lockedBalance
-                        self.tokenHolder!.borrow()!.deposit(from: <- self.unlockedVault.borrow()!.withdraw(amount: numUnlockedTokensToUse))
+                        tokenHolder.deposit(from: <- self.unlockedVault.borrow()!.withdraw(amount: numUnlockedTokensToUse))
                     }   
 
                     // Use the delegator stored in the locked account
-                    let delegator = self.tokenHolder!.borrow()!.borrowDelegator()
+                    let delegator = tokenHolder.borrowDelegator()
                     delegator.delegateNewTokens(amount: amount)
                 }
 
