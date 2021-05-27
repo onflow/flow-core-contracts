@@ -26,8 +26,9 @@ func TestContracts(t *testing.T) {
 	b := newBlockchain()
 
 	env := templates.Environment{
-		FungibleTokenAddress: emulatorFTAddress,
-		FlowTokenAddress:     emulatorFlowTokenAddress,
+		FungibleTokenAddress:  emulatorFTAddress,
+		FlowTokenAddress:      emulatorFlowTokenAddress,
+		ServiceAccountAddress: b.ServiceKey().Address.Hex(),
 	}
 
 	accountKeys := test.AccountKeyGenerator()
@@ -88,6 +89,119 @@ func TestContracts(t *testing.T) {
 
 	result = executeScriptAndCheck(t, b, templates.GenerateGetStorageFeeMinimumScript(env), nil)
 	assertEqual(t, CadenceUFix64("0.2"), result)
+
+	t.Run("Zero conversion should not result in a divide by zero error", func(t *testing.T) {
+
+		tx := createTxWithTemplateAndAuthorizer(b,
+			templates.GenerateChangeStorageFeeParametersScript(env),
+			storageFeesAddress)
+
+		err := tx.AddArgument(CadenceUFix64("0.0"))
+		require.NoError(t, err)
+		err = tx.AddArgument(CadenceUFix64("0.2"))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, storageFeesAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), storageFeesSigner},
+			false,
+		)
+	})
+
+	result = executeScriptAndCheck(t, b, templates.GenerateGetAccountAvailableBalanceFilenameScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(storageFeesAddress))})
+	assertEqual(t, CadenceUFix64("0.0"), result)
+
+	result = executeScriptAndCheck(t, b, templates.GenerateGetStorageFeeConversionScript(env), nil)
+	assertEqual(t, CadenceUFix64("0.0"), result)
+
+	t.Run("restricted account creation", func(t *testing.T) {
+		accountCreatorAddress := cadence.NewAddress(flow.HexToAddress(emulatorFTAddress))
+
+		// account creation is off
+		result := executeScriptAndCheck(t, b, templates.GenerateGetIsAccountCreationRestricted(env), [][]byte{})
+		assertEqual(t, cadence.Bool(false), result)
+
+		// service address is an account creator
+		result = executeScriptAndCheck(t, b, templates.GenerateGetIsAccountCreator(env), [][]byte{jsoncdc.MustEncode(accountCreatorAddress)})
+		assertEqual(t, cadence.Bool(true), result)
+
+		// set restricted account creation
+		tx := createTxWithTemplateAndAuthorizer(b,
+			templates.GenerateSetIsAccountCreationRestricted(env),
+			b.ServiceKey().Address)
+
+		err := tx.AddArgument(cadence.Bool(true))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address},
+			[]crypto.Signer{b.ServiceKey().Signer()},
+			false,
+		)
+
+		// restricted account creation is on
+		result = executeScriptAndCheck(t, b, templates.GenerateGetIsAccountCreationRestricted(env), [][]byte{})
+		assertEqual(t, cadence.Bool(true), result)
+
+		// service address is not an account creator
+		result = executeScriptAndCheck(t, b, templates.GenerateGetIsAccountCreator(env), [][]byte{jsoncdc.MustEncode(accountCreatorAddress)})
+		assertEqual(t, cadence.Bool(false), result)
+
+		// set the service address to be an account creator
+		tx = createTxWithTemplateAndAuthorizer(b,
+			templates.GenerateAddAccountCreator(env),
+			b.ServiceKey().Address)
+
+		err = tx.AddArgument(accountCreatorAddress)
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address},
+			[]crypto.Signer{b.ServiceKey().Signer()},
+			false,
+		)
+
+		// service address is an account creator
+		result = executeScriptAndCheck(t, b, templates.GenerateGetIsAccountCreator(env), [][]byte{jsoncdc.MustEncode(accountCreatorAddress)})
+		assertEqual(t, cadence.Bool(true), result)
+
+		// remove the service address as an account creator
+		tx = createTxWithTemplateAndAuthorizer(b,
+			templates.GenerateRemoveAccountCreator(env),
+			b.ServiceKey().Address)
+
+		err = tx.AddArgument(accountCreatorAddress)
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address},
+			[]crypto.Signer{b.ServiceKey().Signer()},
+			false,
+		)
+
+		// service address is not an account creator
+		result = executeScriptAndCheck(t, b, templates.GenerateGetIsAccountCreator(env), [][]byte{jsoncdc.MustEncode(accountCreatorAddress)})
+		assertEqual(t, cadence.Bool(false), result)
+
+		// unset restricted account creation
+		tx = createTxWithTemplateAndAuthorizer(b,
+			templates.GenerateSetIsAccountCreationRestricted(env),
+			b.ServiceKey().Address)
+
+		err = tx.AddArgument(cadence.Bool(false))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address},
+			[]crypto.Signer{b.ServiceKey().Signer()},
+			false,
+		)
+	})
 
 	// deploy the ServiceAccount contract
 	serviceAccountCode := contracts.FlowServiceAccount(
