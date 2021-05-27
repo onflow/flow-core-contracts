@@ -13,6 +13,8 @@ pub contract FlowServiceAccount {
 
     pub event AccountCreatorRemoved(accountCreator: Address)
 
+    pub event IsAccountCreationRestrictedUpdated(isRestricted: Bool)
+
     /// A fixed-rate fee charged to execute a transaction
     pub var transactionFee: UFix64
 
@@ -106,9 +108,7 @@ pub contract FlowServiceAccount {
 
     /// Is true if new acconts can only be created by approved accounts `self.accountCreators`
     pub fun isAccountCreationRestricted(): Bool {
-        let value = self.account.load<Bool>(from: /storage/isAccountCreationRestricted) ?? false
-        self.account.save<Bool>(value ,to: /storage/isAccountCreationRestricted)
-        return value
+        return self.account.copy<Bool>(from: /storage/isAccountCreationRestricted) ?? false
     }
 
     // Authorization resource to change the fields of the contract
@@ -145,8 +145,12 @@ pub contract FlowServiceAccount {
         }
 
          pub fun setIsAccountCreationRestricted(_ enabled: Bool) {
-            FlowServiceAccount.account.load<Bool>(from: /storage/isAccountCreationRestricted)
-            FlowServiceAccount.account.save<Bool>(enabled ,to: /storage/isAccountCreationRestricted)
+            let path = /storage/isAccountCreationRestricted
+            let oldValue = FlowServiceAccount.account.load<Bool>(from: path)
+            FlowServiceAccount.account.save<Bool>(enabled, to: path)
+            if enabled != oldValue {
+                emit IsAccountCreationRestrictedUpdated(isRestricted: enabled)
+            }
         }
     }
 
