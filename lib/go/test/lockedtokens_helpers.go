@@ -493,8 +493,9 @@ func verifyStakingCollectionInfo(
 		machineAccountsDictionary := result.(cadence.Dictionary).Pairs
 		for _, accountPair := range machineAccountsDictionary {
 			nodeID := accountPair.Key.(cadence.String)
-			machineAccount := accountPair.Value.(cadence.Address)
-			assertEqual(t, cadence.NewAddress(expectedInfo.machineAccounts[nodeID]), machineAccount)
+			machineAccountInfo := accountPair.Value.(cadence.Struct).Fields
+			address := machineAccountInfo[2].(cadence.Address)
+			assertEqual(t, cadence.NewAddress(expectedInfo.machineAccounts[nodeID]), address)
 		}
 	}
 }

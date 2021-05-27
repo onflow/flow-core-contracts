@@ -2056,7 +2056,6 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionTransferNode(env), jeffAddress1)
 		_ = tx.AddArgument(cadence.NewString(jeffID1_1))
 		_ = tx.AddArgument(cadence.NewAddress(jeffAddress2))
-		_ = tx.AddArgument(cadence.NewAddress(jeffAddress1))
 
 		signAndSubmit(
 			t, b, tx,
@@ -2182,7 +2181,6 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionTransferNode(env), jeffAddress1)
 		_ = tx.AddArgument(cadence.NewString(jeffID1_2))
 		_ = tx.AddArgument(cadence.NewAddress(jeffAddress2))
-		_ = tx.AddArgument(cadence.NewAddress(jeffAddress1))
 
 		signAndSubmit(
 			t, b, tx,
@@ -2341,7 +2339,6 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionTransferNode(env), jeffAddress1)
 		_ = tx.AddArgument(cadence.NewString(jeffID1_1))
 		_ = tx.AddArgument(cadence.NewAddress(jeffAddress2))
-		_ = tx.AddArgument(cadence.NewAddress(jeffAddress1))
 
 		signAndSubmit(
 			t, b, tx,

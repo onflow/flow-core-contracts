@@ -3,6 +3,8 @@ import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
 
 transaction(randomSource: String,
             newPayout: UFix64,
+            startView: UInt64,
+            endView: UInt64,
             collectorClusters: [String]
             clusterQCs: [String],
             dkgPubKeys: [String]) {
@@ -13,6 +15,8 @@ transaction(randomSource: String,
 
         heartbeat.resetEpoch(randomSource: randomSource,
                              newPayout: newPayout,
+                             startView: startView,
+                             endView: endView,
                              collectorClusters: [],
                              clusterQCs: [],
                              dkgPubKeys: [])
