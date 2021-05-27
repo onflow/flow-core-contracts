@@ -81,6 +81,40 @@ func TestContracts(t *testing.T) {
 		)
 	})
 
+	result := executeScriptAndCheck(t, b, templates.GenerateGetAccountAvailableBalanceFilenameScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(storageFeesAddress))})
+	assertEqual(t, CadenceUFix64("0.0"), result)
+
+	result = executeScriptAndCheck(t, b, templates.GenerateGetStorageFeeConversionScript(env), nil)
+	assertEqual(t, CadenceUFix64("2.0"), result)
+
+	result = executeScriptAndCheck(t, b, templates.GenerateGetStorageFeeMinimumScript(env), nil)
+	assertEqual(t, CadenceUFix64("0.2"), result)
+
+	t.Run("Zero conversion should not result in a divide by zero error", func(t *testing.T) {
+
+		tx := createTxWithTemplateAndAuthorizer(b,
+			templates.GenerateChangeStorageFeeParametersScript(env),
+			storageFeesAddress)
+
+		err := tx.AddArgument(CadenceUFix64("0.0"))
+		require.NoError(t, err)
+		err = tx.AddArgument(CadenceUFix64("0.2"))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, storageFeesAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), storageFeesSigner},
+			false,
+		)
+	})
+
+	result = executeScriptAndCheck(t, b, templates.GenerateGetAccountAvailableBalanceFilenameScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(storageFeesAddress))})
+	assertEqual(t, CadenceUFix64("0.0"), result)
+
+	result = executeScriptAndCheck(t, b, templates.GenerateGetStorageFeeConversionScript(env), nil)
+	assertEqual(t, CadenceUFix64("0.0"), result)
+
 	t.Run("restricted account creation", func(t *testing.T) {
 		accountCreatorAddress := cadence.NewAddress(flow.HexToAddress(emulatorFTAddress))
 
@@ -168,15 +202,6 @@ func TestContracts(t *testing.T) {
 			false,
 		)
 	})
-
-	result := executeScriptAndCheck(t, b, templates.GenerateGetAccountAvailableBalanceFilenameScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(storageFeesAddress))})
-	assertEqual(t, CadenceUFix64("0.0"), result)
-
-	result = executeScriptAndCheck(t, b, templates.GenerateGetStorageFeeConversionScript(env), nil)
-	assertEqual(t, CadenceUFix64("2.0"), result)
-
-	result = executeScriptAndCheck(t, b, templates.GenerateGetStorageFeeMinimumScript(env), nil)
-	assertEqual(t, CadenceUFix64("0.2"), result)
 
 	// deploy the ServiceAccount contract
 	serviceAccountCode := contracts.FlowServiceAccount(
