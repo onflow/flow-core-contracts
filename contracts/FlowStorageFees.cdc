@@ -84,6 +84,9 @@ pub contract FlowStorageFees {
     // Amount in megabytes
     // Returns Flow tokens
     pub fun storageCapacityToFlow(_ amount: UFix64): UFix64 {
+        if FlowStorageFees.storageMegaBytesPerReservedFLOW == 0.0 as UFix64 {
+            return 0.0 as UFix64
+        }
         // possible loss of precision
         // putting the result back into `flowToStorageCapacity` might not yield the same result
         return amount / FlowStorageFees.storageMegaBytesPerReservedFLOW
