@@ -13,6 +13,8 @@ pub contract FlowServiceAccount {
 
     pub event AccountCreatorRemoved(accountCreator: Address)
 
+    pub event IsAccountCreationRestrictedUpdated(isRestricted: Bool)
+
     /// A fixed-rate fee charged to execute a transaction
     pub var transactionFee: UFix64
 
@@ -74,6 +76,11 @@ pub contract FlowServiceAccount {
     /// - Inits the default token.
     /// - Inits account storage capacity.
     pub fun setupNewAccount(newAccount: AuthAccount, payer: AuthAccount) {
+        if !FlowServiceAccount.isAccountCreator(payer.address) {
+            panic("Account not authorized to create accounts")
+        }
+
+
         if self.accountCreationFee < FlowStorageFees.minimumStorageReservation {
             panic("Account creation fees setup incorrectly")
         }
@@ -92,9 +99,19 @@ pub contract FlowServiceAccount {
 
     /// Returns true if the given address is permitted to create accounts, false otherwise
     pub fun isAccountCreator(_ address: Address): Bool {
+        // If account creation is not restricted, then anyone can create an account
+        if !self.isAccountCreationRestricted() {
+            return true
+        }
         return self.accountCreators[address] ?? false
     }
 
+    /// Is true if new acconts can only be created by approved accounts `self.accountCreators`
+    pub fun isAccountCreationRestricted(): Bool {
+        return self.account.copy<Bool>(from: /storage/isAccountCreationRestricted) ?? false
+    }
+
+    // Authorization resource to change the fields of the contract
     /// Returns all addresses permitted to create accounts
     pub fun getAccountCreators(): [Address] {
         return self.accountCreators.keys
@@ -125,6 +142,15 @@ pub contract FlowServiceAccount {
         pub fun removeAccountCreator(_ accountCreator: Address) {
             FlowServiceAccount.accountCreators.remove(key: accountCreator)
             emit AccountCreatorRemoved(accountCreator: accountCreator)
+        }
+
+         pub fun setIsAccountCreationRestricted(_ enabled: Bool) {
+            let path = /storage/isAccountCreationRestricted
+            let oldValue = FlowServiceAccount.account.load<Bool>(from: path)
+            FlowServiceAccount.account.save<Bool>(enabled, to: path)
+            if enabled != oldValue {
+                emit IsAccountCreationRestrictedUpdated(isRestricted: enabled)
+            }
         }
     }
 
