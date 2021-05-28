@@ -450,19 +450,47 @@ pub contract FlowStakingCollection {
             return nil
         }
 
-        /// Allows the owner to set the machine account address for one of their nodes
-        /// This is used if the owner decides to transfer the machine account resource to another account,
+        /// Allows the owner to set the machine account for one of their nodes
+        /// This is used if the owner decides to transfer the machine account resource to another account
+        /// without also transferring the old machine account record,
         /// or if they decide they want to use a different machine account for one of their nodes
         /// If they want to use a different machine account, it is their responsibility to
         /// transfer the qc or dkg object to the new account
-        pub fun addMachineAccountRecord(nodeID: String, address: Address, vaultProvider: Capability<&FlowToken.Vault>) {
+        pub fun addMachineAccountRecord(nodeID: String, machineAccount: AuthAccount) {
             pre {
                 self.doesStakeExist(nodeID: nodeID, delegatorID: nil): "Cannot add a machine account record for a node that you do not own"
-                vaultProvider.check(): "Invalid Flow Token Vault Provider"
-                vaultProvider.borrow()!.owner!.address == address: "Vault provider must be stored in the machine account address provided"
             }
+
             let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID)
-            let machineAccountInfo = MachineAccountInfo(nodeID: nodeID, role: nodeInfo.role, machineAccountAddress: address, machineAccountVaultProvider: vaultProvider)
+
+            // Make sure that the QC or DKG object in the machine account is correct for this node ID
+
+            if nodeInfo.role == FlowEpoch.NodeRole.Collector.rawValue {
+                let qcVoterRef = machineAccount.borrow<&FlowEpochClusterQC.Voter>(from: FlowEpochClusterQC.VoterStoragePath)
+                    ?? panic("Could not access QC Voter object")
+
+                assert(
+                    nodeID == qcVoterRef.nodeID,
+                    message: "QC Voter Object in machine account does not match machine node ID"
+                )
+            } else if nodeInfo.role == FlowEpoch.NodeRole.Consensus.rawValue {
+                let dkgParticipantRef = machineAccount.borrow<&FlowDKG.Participant>(from: FlowDKG.ParticipantStoragePath)
+                    ?? panic("Could not access DKG Participant object")
+
+                assert(
+                    nodeID == dkgParticipantRef.nodeID,
+                    message: "DKG Participant Object in machine account does not match machine node ID"
+                )
+            }
+
+            // Make sure that the vault capability is created
+            var machineAccountVaultProvider = machineAccount.getCapability<&FlowToken.Vault>(/private/machineAccountPrivateVault)
+            if !machineAccountVaultProvider.check() {
+                machineAccountVaultProvider = machineAccount.link<&FlowToken.Vault>(/private/machineAccountPrivateVault, target: /storage/flowTokenVault)!
+            }
+            
+            // Create the new Machine account info object and store it
+            let machineAccountInfo = MachineAccountInfo(nodeID: nodeID, role: nodeInfo.role, machineAccountAddress: machineAccount.address, machineAccountVaultProvider: machineAccountVaultProvider)
             self.machineAccounts[nodeID] = machineAccountInfo
         }
 
