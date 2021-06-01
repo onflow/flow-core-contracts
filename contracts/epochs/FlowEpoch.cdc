@@ -238,10 +238,6 @@ pub contract FlowEpoch {
     /// indexed by epoch number
     access(contract) var epochMetadata: {UInt64: EpochMetadata}
 
-    access(contract) let QCAdmin: @FlowEpochClusterQC.Admin
-    access(contract) let DKGAdmin: @FlowDKG.Admin
-    access(contract) let stakingAdmin: @FlowIDTableStaking.Admin
-
     pub let adminStoragePath: StoragePath
     pub let heartbeatStoragePath: StoragePath
 
@@ -389,8 +385,8 @@ pub contract FlowEpoch {
             }
 
             // force reset the QC and DKG
-            FlowEpoch.QCAdmin.forceStopVoting()
-            FlowEpoch.DKGAdmin.forceEndDKG()
+            FlowEpoch.borrowClusterQCAdmin().forceStopVoting()
+            FlowEpoch.borrowDKGAdmin().forceEndDKG()
 
             FlowEpoch.calculateAndSetRewards(newPayout)
 
@@ -417,7 +413,7 @@ pub contract FlowEpoch {
     /// and sets the new payout for the next epoch
     access(account) fun calculateAndSetRewards(_ newPayout: UFix64?) {
 
-        let rewardsBreakdown = self.stakingAdmin.calculateRewards()
+        let rewardsBreakdown = self.borrowStakingAdmin().calculateRewards()
         self.epochMetadata[self.currentEpochCounter]!.setRewardAmounts(rewardsBreakdown)
 
         // Calculate the new epoch's payout
@@ -425,9 +421,8 @@ pub contract FlowEpoch {
         // let newPayout = FlowToken.totalSupply * (FlowEpoch.configurableMetadata.FLOWsupplyIncreasePercentage / 52.0)
 
         if let payout = newPayout {
-            self.stakingAdmin.setEpochTokenPayout(payout)
-
-            self.epochMetadata[self.proposedEpochCounter()]?.setTotalRewards(payout)
+            self.borrowStakingAdmin().setEpochTokenPayout(payout)
+            self.epochMetadata[self.proposedEpochCounter()]!.setTotalRewards(payout)
         }
     }
 
@@ -436,7 +431,7 @@ pub contract FlowEpoch {
         if let previousEpochMetadata = self.epochMetadata[self.currentEpochCounter - 1 as UInt64] {
             if !previousEpochMetadata.rewardsPaid {
                 let rewardsBreakdownArray = previousEpochMetadata.rewardAmounts
-                self.stakingAdmin.payRewards(rewardsBreakdownArray)
+                self.borrowStakingAdmin().payRewards(rewardsBreakdownArray)
                 previousEpochMetadata.setRewardsPaid(true)
             }
         }
@@ -448,13 +443,13 @@ pub contract FlowEpoch {
 
         // End QC and DKG if they are still enabled
         if FlowEpochClusterQC.inProgress {
-            self.QCAdmin.stopVoting()
+            self.borrowClusterQCAdmin().stopVoting()
         }
         if FlowDKG.dkgEnabled {
-            self.DKGAdmin.endDKG()
+            self.borrowDKGAdmin().endDKG()
         }
 
-        self.stakingAdmin.moveTokens()
+        self.borrowStakingAdmin().moveTokens()
 
         self.currentEpochPhase = EpochPhase.STAKINGAUCTION
 
@@ -464,7 +459,7 @@ pub contract FlowEpoch {
 
     /// Ends the staking Auction with all the proposed nodes approved
     access(account) fun endStakingAuction(approvedIDs: {String: Bool}) {
-        self.stakingAdmin.endStakingAuction(approvedNodeIDs: approvedIDs)
+        self.borrowStakingAdmin().endStakingAuction(approvedNodeIDs: approvedIDs)
     }
 
     /// Starts the EpochSetup phase and emits the epoch setup event
@@ -504,10 +499,10 @@ pub contract FlowEpoch {
         let collectorClusters = self.createCollectorClusters(nodeIDs: collectorNodeIDs)
 
         // Start QC Voting with the supplied clusters
-        self.QCAdmin.startVoting(clusters: collectorClusters)
+        self.borrowClusterQCAdmin().startVoting(clusters: collectorClusters)
 
         // Start DKG with the consensus nodes
-        self.DKGAdmin.startDKG(nodeIDs: consensusNodeIDs)
+        self.borrowDKGAdmin().startDKG(nodeIDs: consensusNodeIDs)
 
         // Initialze the metadata for the next epoch
         // QC and DKG metadata will be filled in later
@@ -579,14 +574,27 @@ pub contract FlowEpoch {
                             dkgPubKeys: unwrappedKeys)
     }
 
+    access(contract) fun borrowStakingAdmin(): &FlowIDTableStaking.Admin {
+        let adminRef = self.account.borrow<&FlowIDTableStaking.Admin>(from: FlowIDTableStaking.StakingAdminStoragePath)
+            ?? panic("Could not borrow staking admin")
+
+        return adminRef
+    }
+
     /// borrow a reference to the ClusterQCs resource
     access(contract) fun borrowClusterQCAdmin(): &FlowEpochClusterQC.Admin {
-        return &self.QCAdmin as! &FlowEpochClusterQC.Admin
+        let adminRef = self.account.borrow<&FlowEpochClusterQC.Admin>(from: FlowEpochClusterQC.AdminStoragePath)
+            ?? panic("Could not borrow qc admin")
+
+        return adminRef
     }
 
     /// borrow a reference to the DKG Admin resource
     access(contract) fun borrowDKGAdmin(): &FlowDKG.Admin {
-        return &self.DKGAdmin as! &FlowDKG.Admin
+        let adminRef = self.account.borrow<&FlowDKG.Admin>(from: FlowDKG.AdminStoragePath)
+            ?? panic("Could not borrow dkg admin")
+
+        return adminRef
     }
 
     pub fun isValidPhaseConfiguration(_ auctionLen: UInt64, _ dkgPhaseLen: UInt64, _ epochLen: UInt64): Bool {
@@ -724,20 +732,7 @@ pub contract FlowEpoch {
         self.account.save(<-create Admin(), to: self.adminStoragePath)
         self.account.save(<-create Heartbeat(), to: self.heartbeatStoragePath)
 
-        // Load all the admin objects into the smart contract
-
-        let QCAdmin <- self.account.load<@FlowEpochClusterQC.Admin>(from: FlowEpochClusterQC.AdminStoragePath)
-            ?? panic("Could not load QC Admin from storage")
-        self.QCAdmin <- QCAdmin
-
-        let DKGAdmin <- self.account.load<@FlowDKG.Admin>(from: FlowDKG.AdminStoragePath)
-            ?? panic("Could not load DKG Admin from storage")
-        self.DKGAdmin <- DKGAdmin
-
-        let stakingAdmin <- self.account.load<@FlowIDTableStaking.Admin>(from: FlowIDTableStaking.StakingAdminStoragePath)
-            ?? panic("Could not load staking Admin from storage")
-        self.stakingAdmin <- stakingAdmin
-        self.stakingAdmin.startStakingAuction()
+        self.borrowStakingAdmin().startStakingAuction()
 
         let currentBlock = getCurrentBlock()
 

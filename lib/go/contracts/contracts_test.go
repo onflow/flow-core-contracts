@@ -43,6 +43,6 @@ func TestFlowQCContract(t *testing.T) {
 }
 
 func TestStakingCollection(t *testing.T) {
-	contract := contracts.FlowStakingCollection(fakeAddr, fakeAddr, fakeAddr, fakeAddr, fakeAddr, fakeAddr)
+	contract := contracts.FlowStakingCollection(fakeAddr, fakeAddr, fakeAddr, fakeAddr, fakeAddr, fakeAddr, fakeAddr, fakeAddr, fakeAddr)
 	assert.NotNil(t, contract)
 }
