@@ -14,13 +14,14 @@ import (
 )
 
 const (
-	placeholderFungibleTokenAddress  = "0xFUNGIBLETOKENADDRESS"
-	placeholderFlowTokenAddress      = "0xFLOWTOKENADDRESS"
-	placeholderIDTableAddress        = "0xIDENTITYTABLEADDRESS"
-	placeholderLockedTokensAddress   = "0xLOCKEDTOKENADDRESS"
-	placeholderStakingProxyAddress   = "0xSTAKINGPROXYADDRESS"
-	placeholderStorageFeesAddress    = "0xFLOWSTORAGEFEESADDRESS"
-	placeholderServiceAccountAddress = "0xFLOWSERVICEADDRESS"
+	placeholderFungibleTokenAddress     = "0xFUNGIBLETOKENADDRESS"
+	placeholderFlowTokenAddress         = "0xFLOWTOKENADDRESS"
+	placeholderIDTableAddress           = "0xIDENTITYTABLEADDRESS"
+	placeholderLockedTokensAddress      = "0xLOCKEDTOKENADDRESS"
+	placeholderStakingProxyAddress      = "0xSTAKINGPROXYADDRESS"
+	placeholderStorageFeesAddress       = "0xFLOWSTORAGEFEESADDRESS"
+	placeholderServiceAccountAddress    = "0xFLOWSERVICEADDRESS"
+	placeholderStakingCollectionAddress = "0xSTAKINGCOLLECTIONADDRESS"
 )
 
 type Environment struct {
@@ -82,6 +83,12 @@ func replaceAddresses(code string, env Environment) string {
 		code,
 		placeholderStorageFeesAddress,
 		withHexPrefix(env.StorageFeesAddress),
+	)
+
+	code = strings.ReplaceAll(
+		code,
+		placeholderStakingCollectionAddress,
+		withHexPrefix(env.LockedTokensAddress),
 	)
 
 	code = strings.ReplaceAll(

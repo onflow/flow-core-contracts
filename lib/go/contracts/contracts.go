@@ -23,31 +23,32 @@ import (
 ///
 
 const (
-	flowFeesFilename           = "FlowFees.cdc"
-	storageFeesFilename        = "FlowStorageFees.cdc"
-	flowServiceAccountFilename = "FlowServiceAccount.cdc"
-	flowTokenFilename          = "FlowToken.cdc"
-	flowIdentityTableFilename  = "FlowIDTableStaking.cdc"
-	flowQCFilename             = "epochs/FlowQuorumCertificate.cdc"
-	flowDKGFilename            = "epochs/FlowDKG.cdc"
-	flowEpochFilename          = "epochs/FlowEpoch.cdc"
-	flowLockedTokensFilename   = "LockedTokens.cdc"
-	flowStakingProxyFilename   = "StakingProxy.cdc"
+	flowFeesFilename              = "FlowFees.cdc"
+	storageFeesFilename           = "FlowStorageFees.cdc"
+	flowServiceAccountFilename    = "FlowServiceAccount.cdc"
+	flowTokenFilename             = "FlowToken.cdc"
+	flowIdentityTableFilename     = "FlowIDTableStaking.cdc"
+	flowQCFilename                = "epochs/FlowQuorumCertificate.cdc"
+	flowDKGFilename               = "epochs/FlowDKG.cdc"
+	flowEpochFilename             = "epochs/FlowEpoch.cdc"
+	flowLockedTokensFilename      = "LockedTokens.cdc"
+	flowStakingProxyFilename      = "StakingProxy.cdc"
+	flowStakingCollectionFilename = "FlowStakingCollection.cdc"
 
 	// Test contracts
 	// only used for testing
 	TESTFlowIdentityTableFilename = "testContracts/TestFlowIDTableStaking.cdc"
 
-	// Each contract has placeholder addresses that need to be replaced
-	// depending on which network they are being used with
-	placeholderFungibleTokenAddress = "0xFUNGIBLETOKENADDRESS"
-	placeholderFlowTokenAddress     = "0xFLOWTOKENADDRESS"
-	placeholderIDTableAddress       = "0xFLOWIDTABLESTAKINGADDRESS"
-	placeholderStakingProxyAddress  = "0xSTAKINGPROXYADDRESS"
-	placeholderQCAddr               = "0xQCADDRESS"
-	placeholderDKGAddr              = "0xDKGADDRESS"
-	placeholderFlowFeesAddress      = "0xFLOWFEESADDRESS"
-	placeholderStorageFeesAddress   = "0xFLOWSTORAGEFEESADDRESS"
+	placeholderFungibleTokenAddress     = "0xFUNGIBLETOKENADDRESS"
+	placeholderFlowTokenAddress         = "0xFLOWTOKENADDRESS"
+	placeholderIDTableAddress           = "0xFLOWIDTABLESTAKINGADDRESS"
+	placeholderStakingProxyAddress      = "0xSTAKINGPROXYADDRESS"
+	placeholderQCAddr                   = "0xQCADDRESS"
+	placeholderDKGAddr                  = "0xDKGADDRESS"
+	placeholderFlowFeesAddress          = "0xFLOWFEESADDRESS"
+	placeholderStorageFeesAddress       = "0xFLOWSTORAGEFEESADDRESS"
+	placeholderLockedTokensAddress      = "0xLOCKEDTOKENSADDRESS"
+	placeholderStakingCollectionAddress = "0xFLOWSTAKINGCOLLECTIONADDRESS"
 )
 
 // Adds a `0x` prefix to the provided address string
@@ -185,6 +186,50 @@ func FlowIDTableStaking(fungibleTokenAddress, flowTokenAddress string, latest bo
 // FlowStakingProxy returns the StakingProxy contract.
 func FlowStakingProxy() []byte {
 	code := assets.MustAssetString(flowStakingProxyFilename)
+	return []byte(code)
+}
+
+// FlowStakingCollection returns the StakingCollection contract.
+func FlowStakingCollection(
+	fungibleTokenAddress,
+	flowTokenAddress,
+	idTableAddress,
+	stakingProxyAddress,
+	lockedTokensAddress,
+	storageFeesAddress string,
+) []byte {
+	code := assets.MustAssetString(flowStakingCollectionFilename)
+
+	code = strings.ReplaceAll(code, placeholderFungibleTokenAddress, withHexPrefix(fungibleTokenAddress))
+	code = strings.ReplaceAll(code, placeholderFlowTokenAddress, withHexPrefix(flowTokenAddress))
+	code = strings.ReplaceAll(code, placeholderIDTableAddress, withHexPrefix(idTableAddress))
+	code = strings.ReplaceAll(code, placeholderStakingProxyAddress, withHexPrefix(stakingProxyAddress))
+	code = strings.ReplaceAll(code, placeholderLockedTokensAddress, withHexPrefix(lockedTokensAddress))
+	code = strings.ReplaceAll(code, placeholderStorageFeesAddress, withHexPrefix(storageFeesAddress))
+
+	return []byte(code)
+}
+
+// TESTFlowStakingCollection returns the StakingCollection contract with all public fields and functions.
+func TESTFlowStakingCollection(
+	fungibleTokenAddress,
+	flowTokenAddress,
+	idTableAddress,
+	stakingProxyAddress,
+	lockedTokensAddress,
+	storageFeesAddress string,
+) []byte {
+	code := assets.MustAssetString(flowStakingCollectionFilename)
+
+	code = strings.ReplaceAll(code, placeholderFungibleTokenAddress, withHexPrefix(fungibleTokenAddress))
+	code = strings.ReplaceAll(code, placeholderFlowTokenAddress, withHexPrefix(flowTokenAddress))
+	code = strings.ReplaceAll(code, placeholderIDTableAddress, withHexPrefix(idTableAddress))
+	code = strings.ReplaceAll(code, placeholderStakingProxyAddress, withHexPrefix(stakingProxyAddress))
+	code = strings.ReplaceAll(code, placeholderLockedTokensAddress, withHexPrefix(lockedTokensAddress))
+	code = strings.ReplaceAll(code, placeholderStorageFeesAddress, withHexPrefix(storageFeesAddress))
+
+	code = strings.ReplaceAll(code, "access(self)", "pub")
+
 	return []byte(code)
 }
 

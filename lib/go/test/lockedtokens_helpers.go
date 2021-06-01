@@ -16,6 +16,8 @@ import (
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/test"
 
+	sdktemplates "github.com/onflow/flow-go-sdk/templates"
+
 	"github.com/onflow/flow-core-contracts/lib/go/contracts"
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
 )
@@ -209,4 +211,247 @@ func createLockedAccountPairWithBalances(
 	}
 
 	return newUserAddress, newUserSharedAddress, newUserSigner
+}
+
+/****************** Staking Collection utilities ************************/
+
+// Struct for each delegator that specifies their node ID and delegator ID
+type DelegatorIDs struct {
+	nodeID string
+	id     uint32
+}
+
+/// Used to verify staking collection info in tests
+type StakingCollectionInfo struct {
+	accountAddress     string
+	unlockedBalance    string
+	lockedBalance      string
+	unlockedTokensUsed string
+	lockedTokensUsed   string
+	unlockLimit        string
+	nodes              []string
+	delegators         []DelegatorIDs
+}
+
+// Deploys the staking collection contract to the specified lockedTokensAddress
+// because the staking collection needs to be deployed to the same account as LockedTokens
+func deployCollectionContract(t *testing.T, b *emulator.Blockchain,
+	idTableAddress,
+	stakingProxyAddress,
+	lockedTokensAddress flow.Address,
+	lockedTokensSigner crypto.Signer,
+	env *templates.Environment) {
+
+	// Get the test version of the staking collection contract that has all public fields
+	// for testing purposes
+	FlowStakingCollectionCode := contracts.TESTFlowStakingCollection(emulatorFTAddress, emulatorFlowTokenAddress, idTableAddress.String(), stakingProxyAddress.String(), lockedTokensAddress.String(), b.ServiceKey().Address.String())
+	FlowStakingCollectionByteCode := cadence.NewString(hex.EncodeToString(FlowStakingCollectionCode))
+
+	// Deploy the staking collection contract
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDeployStakingCollectionScript(), lockedTokensAddress).
+		AddRawArgument(jsoncdc.MustEncode(cadence.NewString("FlowStakingCollection"))).
+		AddRawArgument(jsoncdc.MustEncode(FlowStakingCollectionByteCode))
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, lockedTokensAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), lockedTokensSigner},
+		false,
+	)
+}
+
+// Deploys the staking contract, staking proxy, locked tokens contract,
+// and staking collection contract all in the same function
+func deployAllCollectionContracts(t *testing.T,
+	b *emulator.Blockchain,
+	accountKeys *test.AccountKeys,
+	env *templates.Environment) crypto.Signer {
+
+	// Create new keys for the ID table account
+	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
+
+	// DEPLOY IDTableStaking
+	var idTableAddress = deployStakingContract(t, b, IDTableAccountKey, *env, true)
+
+	env.IDTableAddress = idTableAddress.Hex()
+
+	// DEPLOY StakingProxy
+
+	// Deploy the StakingProxy contract
+	stakingProxyCode := contracts.FlowStakingProxy()
+	stakingProxyAddress, err := b.CreateAccount(nil, []sdktemplates.Contract{
+		{
+			Name:   "StakingProxy",
+			Source: string(stakingProxyCode),
+		},
+	})
+	if !assert.NoError(t, err) {
+		t.Log(err.Error())
+	}
+	_, err = b.CommitBlock()
+	assert.NoError(t, err)
+
+	lockedTokensAccountKey, lockedTokensSigner := accountKeys.NewWithSigner()
+	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress, lockedTokensAccountKey)
+	env.StakingProxyAddress = stakingProxyAddress.Hex()
+	env.LockedTokensAddress = lockedTokensAddress.Hex()
+
+	// DEPLOY StakingCollection
+
+	deployCollectionContract(t, b, idTableAddress, stakingProxyAddress, lockedTokensAddress, lockedTokensSigner, env)
+
+	return IDTableSigner
+}
+
+// Creates a locked account pair with balances in both accounts,
+// registers a node and a delegator in the locked account,
+// creates a staking collection and stores it in the unlocked account,
+// and registers a node and a delegator in the unlocked account.
+//
+func registerStakingCollectionNodesAndDelegators(
+	t *testing.T,
+	b *emulator.Blockchain,
+	accountKeys *test.AccountKeys,
+	env templates.Environment,
+	lockedBalance, unlockedBalance string,
+) (flow.Address, flow.Address, crypto.Signer, string, string) {
+
+	// Create a locked account pair with tokens in both accounts
+	newUserAddress, newUserSharedAddress, newUserSigner := createLockedAccountPairWithBalances(
+		t, b,
+		accountKeys,
+		env,
+		lockedBalance, unlockedBalance)
+
+	// Initialize the two node IDs
+	userNodeID1 := "0000000000000000000000000000000000000000000000000000000000000001"
+	userNodeID2 := "0000000000000000000000000000000000000000000000000000000000000002"
+
+	// Register a node in the locked account
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), newUserAddress)
+	_ = tx.AddArgument(cadence.NewString(userNodeID1))
+	_ = tx.AddArgument(cadence.NewUInt8(4))
+	_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", 1)))
+	_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", 1)))
+	_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", 1)))
+	_ = tx.AddArgument(CadenceUFix64("320000.0"))
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, newUserAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), newUserSigner},
+		false,
+	)
+
+	// Register a delegator in the locked account
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateLockedDelegatorScript(env), newUserAddress)
+	_ = tx.AddArgument(cadence.NewString(userNodeID1))
+	_ = tx.AddArgument(CadenceUFix64("50000.0"))
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, newUserAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), newUserSigner},
+		false,
+	)
+
+	// add a staking collection to the main account
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionSetup(env), newUserAddress)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, newUserAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), newUserSigner},
+		false,
+	)
+
+	// Register a node with the staking collection
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterNode(env), newUserAddress)
+	_ = tx.AddArgument(cadence.NewString(userNodeID2))
+	_ = tx.AddArgument(cadence.NewUInt8(2))
+	_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", 2)))
+	_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", 2)))
+	_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", 2)))
+	_ = tx.AddArgument(CadenceUFix64("500000.0"))
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, newUserAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), newUserSigner},
+		false,
+	)
+
+	// Register a delegator with the staking collection
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterDelegator(env), newUserAddress)
+	_ = tx.AddArgument(cadence.NewString(userNodeID2))
+	_ = tx.AddArgument(CadenceUFix64("500000.0"))
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, newUserAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), newUserSigner},
+		false,
+	)
+
+	return newUserAddress, newUserSharedAddress, newUserSigner, userNodeID1, userNodeID2
+}
+
+// Queries all the important information from a user's staking collection
+// and verifies it against the provided expectedInfo struct
+//
+func verifyStakingCollectionInfo(
+	t *testing.T,
+	b *emulator.Blockchain,
+	env templates.Environment,
+	expectedInfo StakingCollectionInfo,
+) {
+	// check balance of unlocked account
+	result := executeScriptAndCheck(t, b, ft_templates.GenerateInspectVaultScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), [][]byte{jsoncdc.MustEncode(cadence.Address(flow.HexToAddress(expectedInfo.accountAddress)))})
+	assertEqual(t, CadenceUFix64(expectedInfo.unlockedBalance), result)
+
+	// check balance of locked account if it exists
+	if len(expectedInfo.lockedBalance) > 0 {
+		result = executeScriptAndCheck(t, b, templates.GenerateGetLockedAccountBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(flow.HexToAddress(expectedInfo.accountAddress)))})
+		assertEqual(t, CadenceUFix64(expectedInfo.lockedBalance), result)
+	}
+
+	// check unlocked tokens used
+	result = executeScriptAndCheck(t, b, templates.GenerateCollectionGetUnlockedTokensUsedScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(flow.HexToAddress(expectedInfo.accountAddress)))})
+	assertEqual(t, CadenceUFix64(expectedInfo.unlockedTokensUsed), result)
+
+	// check locked tokens used
+	result = executeScriptAndCheck(t, b, templates.GenerateCollectionGetLockedTokensUsedScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(flow.HexToAddress(expectedInfo.accountAddress)))})
+	assertEqual(t, CadenceUFix64(expectedInfo.lockedTokensUsed), result)
+
+	// Check unlock limit of the shared account if it exists
+	if len(expectedInfo.unlockLimit) > 0 {
+		result = executeScriptAndCheck(t, b,
+			templates.GenerateGetUnlockLimitScript(env),
+			[][]byte{
+				jsoncdc.MustEncode(cadence.Address(flow.HexToAddress(expectedInfo.accountAddress))),
+			},
+		)
+		assertEqual(t, CadenceUFix64(expectedInfo.unlockLimit), result)
+	}
+
+	// check node IDs
+	result = executeScriptAndCheck(t, b, templates.GenerateCollectionGetNodeIDsScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(flow.HexToAddress(expectedInfo.accountAddress)))})
+	nodeArray := result.(cadence.Array).Values
+	i := 0
+	for _, nodeID := range expectedInfo.nodes {
+		assertEqual(t, cadence.NewString(nodeID), nodeArray[i])
+		i = i + 1
+	}
+
+	// check delegator IDs
+	result = executeScriptAndCheck(t, b, templates.GenerateCollectionGetDelegatorIDsScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(flow.HexToAddress(expectedInfo.accountAddress)))})
+	delegatorArray := result.(cadence.Array).Values
+	i = 0
+	for _, delegator := range expectedInfo.delegators {
+		nodeID := delegatorArray[i].(cadence.Struct).Fields[0]
+		delegatorID := delegatorArray[i].(cadence.Struct).Fields[1]
+		assertEqual(t, cadence.NewString(delegator.nodeID), nodeID)
+		assertEqual(t, cadence.NewUInt32(delegator.id), delegatorID)
+		i = i + 1
+	}
 }
