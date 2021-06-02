@@ -6,6 +6,8 @@
     which allows users to stake and delegate for as many nodes as they want in a single account.
     It is compatible with the locked token account setup.
 
+    See the onflow/flow-core-contracts README for more high level information about the staking collection.
+
  */
 
 import FungibleToken from 0xFUNGIBLETOKENADDRESS
@@ -45,10 +47,15 @@ pub contract FlowStakingCollection {
     }
 
     /// Contains information about a node's machine Account
+    /// which is a secondary account that is only meant to hold
+    /// the QC or DKG object and FLOW to automatically pay for transaction fees
+    /// related to QC or DKG operations.
     pub struct MachineAccountInfo {
         pub let nodeID: String
         pub let role: UInt8
         pub let address: Address
+        // Capability to the FLOW Vault to allow the owner
+        // to withdraw or deposit to their machine account if needed
         access(contract) let machineAccountVaultProvider: Capability<&FlowToken.Vault>
 
         init(nodeID: String, role: UInt8, machineAccountAddress: Address, machineAccountVaultProvider: Capability<&FlowToken.Vault>) {
@@ -70,6 +77,7 @@ pub contract FlowStakingCollection {
         pub var unlockedTokensUsed: UFix64
         pub fun addNodeObject(_ node: @FlowIDTableStaking.NodeStaker, machineAccountInfo: MachineAccountInfo?)
         pub fun addDelegatorObject(_ delegator: @FlowIDTableStaking.NodeDelegator)
+        //pub fun depositToMachineAccount(nodeID: String, from: @FlowToken.Vault)
         pub fun doesStakeExist(nodeID: String, delegatorID: UInt32?): Bool
         pub fun getNodeIDs(): [String]
         pub fun getDelegatorIDs(): [DelegatorIDs]
@@ -467,7 +475,7 @@ pub contract FlowStakingCollection {
 
             if nodeInfo.role == FlowEpoch.NodeRole.Collector.rawValue {
                 let qcVoterRef = machineAccount.borrow<&FlowEpochClusterQC.Voter>(from: FlowEpochClusterQC.VoterStoragePath)
-                    ?? panic("Could not access QC Voter object")
+                    ?? panic("Could not access QC Voter object from the provided machine account")
 
                 assert(
                     nodeID == qcVoterRef.nodeID,
@@ -475,7 +483,7 @@ pub contract FlowStakingCollection {
                 )
             } else if nodeInfo.role == FlowEpoch.NodeRole.Consensus.rawValue {
                 let dkgParticipantRef = machineAccount.borrow<&FlowDKG.Participant>(from: FlowDKG.ParticipantStoragePath)
-                    ?? panic("Could not access DKG Participant object")
+                    ?? panic("Could not access DKG Participant object from the provided machine account")
 
                 assert(
                     nodeID == dkgParticipantRef.nodeID,
@@ -1053,4 +1061,3 @@ pub contract FlowStakingCollection {
         self.StakingCollectionPublicPath = /public/stakingCollection
     }
 }
- 
