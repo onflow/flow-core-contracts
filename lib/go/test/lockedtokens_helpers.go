@@ -3,8 +3,9 @@ package test
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/onflow/flow-emulator/types"
 	"testing"
+
+	"github.com/onflow/flow-emulator/types"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -236,8 +237,8 @@ type StakingCollectionInfo struct {
 }
 
 type MachineAccountCreatedEvent interface {
-	NodeID()  cadence.String
-	Role()    cadence.UInt8
+	NodeID() cadence.String
+	Role() cadence.UInt8
 	Address() flow.Address
 }
 type machineAccountCreatedEvent flow.Event
