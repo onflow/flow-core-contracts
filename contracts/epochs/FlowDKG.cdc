@@ -1,10 +1,39 @@
+/* 
+*
+*  Manages the process of generating a group key with the participation of all the consensus nodes
+*  for the upcoming epoch.
+*
+*  When consensus nodes are first confirmed, they can request a Participant object from this contract
+*  They'll use this object for every subsequent epoch that they are a staked consensus node.
+*
+*  At the beginning of each EpochSetup phase, the admin initializes this contract with
+*  the list of consensus nodes for the upcoming epoch. Each consensus node
+*  can post as many messages as they want to the DKG "whiteboard" with the `Participant.postMessage()` method,
+*  but each node can only submit a final submission once per epoch via the `Participant.sendFinalSubmission() method.
+*  
+*  Once all the consensus nodes have submitted the exact same set of keys,
+*  the DKG phase is technically finished.
+*  Anyone can query the state of the submissions with the FlowDKG.getFinalSubmissions()
+*  or FlowDKG.dkgCompleted() methods.
+*  Consensus nodes can continue to submit final messages even after the required amount have been submitted though.
+* 
+*  This contract is a member of a series of epoch smart contracts which coordinates the 
+*  process of transitioning between epochs in Flow.
+*/
 
 pub contract FlowDKG {
 
+    // ===================================================================
+    // DKG EVENTS
+    // ===================================================================
+
+    /// Emitted when the admin enables the DKG
     pub event StartDKG()
 
+    /// Emitted when the admin ends the DKG after enough submissions have been recorded
     pub event EndDKG(finalSubmission: [String?]?)
 
+    /// Emitted when a consensus node has posted a message to the DKG whiteboard
     pub event BroadcastMessage(nodeID: String, content: String)
 
     // ================================================================================
@@ -14,22 +43,27 @@ pub contract FlowDKG {
     /// The length of keys that have to be submitted as a final submission
     pub let submissionKeyLength: Int
 
-    // indicates if the DKG is enabled or not
+    /// Indicates if the DKG is enabled or not
     pub var dkgEnabled: Bool
 
-    // Indicates if a Participant resource has already been claimed by a node ID
-    // from the identity table contract
-    // Node IDs have to claim a participant once
-    // one node will use the same specific ID and Participant resource for all time
-    // `nil` or false means that there is no voting capability for the node ID
-    // true means that the participant capability has been claimed by the node
+    /// Indicates if a Participant resource has already been claimed by a node ID
+    /// from the identity table contract
+    /// Node IDs have to claim a participant once
+    /// one node will use the same specific ID and Participant resource for all time
+    /// `nil` or false means that there is no voting capability for the node ID
+    /// true means that the participant capability has been claimed by the node
     access(account) var nodeClaimed: {String: Bool}
 
-    /// Record of whiteboard messages
+    /// Record of whiteboard messages for the current epoch
+    /// This is reset at the beginning of every DKG phase (once per epoch)
     access(account) var whiteboardMessages: [Message]
 
-    // Tracks if a node has submitted their final submission for the epoch
-    // reset every epoch
+    /// Tracks a node's final submission for the current epoch
+    /// Key: node ID
+    /// Value: Set of public keys from the final submission
+    /// If the value is `nil`, the node is not registered as a consensus node
+    /// If the value is an empty array, the node has not submitted yet
+    /// This mapping is reset at the beginning of every DKG phase (once per epoch)
     access(account) var finalSubmissionByNodeID: {String: [String?]}
 
     /// Array of unique final submissions from nodes
@@ -53,8 +87,11 @@ pub contract FlowDKG {
     /// Struct to represent a single whiteboard message
     pub struct Message {
 
+        /// The ID of the node who submitted the message
         pub let nodeID: String
 
+        /// The content of the message
+        /// We make no assumptions or assertions about the content of the message
         pub let content: String
 
         init(nodeID: String, content: String) {
@@ -63,30 +100,36 @@ pub contract FlowDKG {
         }
     }
 
-    // The Participant resource is generated for each consensus node when they register.
-    // Each resource instance is good for all future potential epochs, but will
-    // only be valid if the node operator has been confirmed as a consensus node for the next epoch.
+    /// The Participant resource is generated for each consensus node when they register.
+    /// Each resource instance is good for all future potential epochs, but will
+    /// only be valid if the node operator has been confirmed as a consensus node for the next epoch.
     pub resource Participant {
 
+        /// The node ID of the participant
         pub let nodeID: String
 
         init(nodeID: String) {
             pre {
-                FlowDKG.participantIsClaimed(nodeID) == nil: "Cannot create a Participant resource for a node ID that has already been claimed"
+                FlowDKG.participantIsClaimed(nodeID) == nil:
+                    "Cannot create a Participant resource for a node ID that has already been claimed"
             }
             self.nodeID = nodeID
             FlowDKG.nodeClaimed[nodeID] = true
         }
 
+        /// If the Participant resource is destroyed,
+        /// It could potentially be claimed again
         destroy () {
             FlowDKG.nodeClaimed[self.nodeID] = false
         }
 
-        // Posts a whiteboard message to the contract
+        /// Posts a whiteboard message to the contract
         pub fun postMessage(_ content: String) {
             pre {
-                FlowDKG.participantIsRegistered(self.nodeID): "Cannot send whiteboard message if not registered for the current epoch"
-                content.length > 0: "Cannot post an empty message to the whiteboard"
+                FlowDKG.participantIsRegistered(self.nodeID):
+                    "Cannot send whiteboard message if not registered for the current epoch"
+                content.length > 0:
+                    "Cannot post an empty message to the whiteboard"
             }
 
             // create the message struct
@@ -100,14 +143,20 @@ pub contract FlowDKG {
         }
 
         /// Sends the final key vector submission. 
-        /// Can only be called by consensus nodes that are registered.
+        /// Can only be called by consensus nodes that are registered
+        /// and can only be called once per consensus node
         pub fun sendFinalSubmission(_ submission: [String?]) {
             pre {
-                FlowDKG.participantIsRegistered(self.nodeID): "Cannot send final submission if not registered for the current epoch"
-                !FlowDKG.nodeHasSubmitted(self.nodeID): "Cannot submit a final submission twice"
-                submission.length == FlowDKG.getConsensusNodeIDs().length + 1: "Submission must have number of elements equal to the number of nodes participating in the DKG plus 1"
+                FlowDKG.participantIsRegistered(self.nodeID):
+                    "Cannot send final submission if not registered for the current epoch"
+                !FlowDKG.nodeHasSubmitted(self.nodeID):
+                    "Cannot submit a final submission twice"
+                submission.length == FlowDKG.getConsensusNodeIDs().length + 1:
+                    "Submission must have number of elements equal to the number of nodes participating in the DKG plus 1"
             }
 
+            // iterate through each key in the vector
+            // and make sure all of them are the correct length
             for key in submission {
                 // nil keys are a valid submission
                 if let keyValue = key {
@@ -138,7 +187,7 @@ pub contract FlowDKG {
                 // If the submissions are equal,
                 // update the counter for this submission and emit the event
                 if FlowDKG.submissionsEqual(existingSubmission, submission) {
-                    FlowDKG.uniqueFinalSubmissionCount[finalSubmissionIndex] = FlowDKG.uniqueFinalSubmissionCount[finalSubmissionIndex]! + 1 as UInt64
+                    FlowDKG.uniqueFinalSubmissionCount[finalSubmissionIndex] = FlowDKG.uniqueFinalSubmissionCount[finalSubmissionIndex]! + (1 as UInt64)
                     break
                 }
 
@@ -150,7 +199,7 @@ pub contract FlowDKG {
         }
     }
 
-    // The Admin resource provides the ability to begin and end voting for an epoch
+    /// The Admin resource provides the ability to begin and end voting for an epoch
     pub resource Admin {
 
         /// Creates a new Participant resource for a consensus node
@@ -166,22 +215,24 @@ pub contract FlowDKG {
             pre {
                 FlowDKG.dkgEnabled == false: "Cannot start the DKG when it is already running"
             }
-            FlowDKG.dkgEnabled = true
 
             FlowDKG.finalSubmissionByNodeID = {}
             for id in nodeIDs {
                 FlowDKG.finalSubmissionByNodeID[id] = []
             }
 
+            // Clear all of the contract fields
             FlowDKG.whiteboardMessages = []
-
             FlowDKG.uniqueFinalSubmissions = []
-
             FlowDKG.uniqueFinalSubmissionCount = {}
+
+            FlowDKG.dkgEnabled = true
 
             emit StartDKG()
         }
 
+        /// Disables the DKG and closes the opportunity for messages and submissions
+        /// until the next time the DKG is enabled
         pub fun endDKG() {
             pre { 
                 FlowDKG.dkgEnabled == true: "Cannot end the DKG when it is already disabled"
@@ -194,7 +245,8 @@ pub contract FlowDKG {
         }
 
         /// Ends the DKG without checking if it is completed
-        /// Should only be used if the protocol halts and needs to be reset
+        /// Should only be used if something goes wrong with the DKG,
+        /// the protocol halts, or needs to be reset for some reason
         pub fun forceEndDKG() {
             FlowDKG.dkgEnabled = false
 
@@ -202,8 +254,8 @@ pub contract FlowDKG {
         }
     }
 
-    /// Checks if two final submissions are equal by comparine each element
-    /// Each element has to be exactly the same
+    /// Checks if two final submissions are equal by comparing each element
+    /// Each element has to be exactly the same and in the same order
     access(account) fun submissionsEqual(_ existingSubmission: [String?], _ submission: [String?]): Bool {
 
         // If the submission length is different than the one being compared to, it is not equal
@@ -227,7 +279,6 @@ pub contract FlowDKG {
         }
 
         return true
-
     }
 
     /// Returns true if a node is registered as a consensus node for the proposed epoch
@@ -236,12 +287,13 @@ pub contract FlowDKG {
     }
 
     /// Returns true if a consensus node has claimed their Participant resource
-    /// which is valid for all future epochs when the node is registered
+    /// which is valid for all future epochs where the node is registered
     pub fun participantIsClaimed(_ nodeID: String): Bool? {
         return FlowDKG.nodeClaimed[nodeID]
     }
 
     /// Gets an array of all the whiteboard messages
+    /// that have been submitted by all nodes in the DKG
     pub fun getWhiteBoardMessages(): [Message] {
         return self.whiteboardMessages
     }
@@ -256,6 +308,7 @@ pub contract FlowDKG {
     }
 
     /// Gets the specific final submission for a node ID
+    /// If the node hasn't submitted or registered, this returns `nil`
     pub fun getNodeFinalSubmission(_ nodeID: String): [String?]? {
         if let submission = self.finalSubmissionByNodeID[nodeID] {
             if submission.length > 0 {

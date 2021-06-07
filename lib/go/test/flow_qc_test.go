@@ -166,9 +166,17 @@ func TestQuorumCertificate(t *testing.T) {
 		result = executeScriptAndCheck(t, b, templates.GenerateGetQCEnabledScript(env), nil)
 		assert.Equal(t, cadence.NewBool(true), result)
 
+		result = executeScriptAndCheck(t, b, templates.GenerateGetVoterIsRegisteredScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(clusterNodeIDStrings[0][0]))})
+
+		assert.Equal(t, cadence.NewBool(true), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetVoterIsRegisteredScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(maxID))})
+
+		assert.Equal(t, cadence.NewBool(false), result)
+
 	})
 
-	t.Run("Should be able to register a voter", func(t *testing.T) {
+	t.Run("Should be able to get a voter object", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateVoterScript(env), QCAddress)
 
@@ -246,6 +254,10 @@ func TestQuorumCertificate(t *testing.T) {
 		)
 
 		result := executeScriptAndCheck(t, b, templates.GenerateGetNodeHasVotedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(clusterNodeIDStrings[0][0]))})
+
+		assert.Equal(t, cadence.NewBool(true), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetVoterIsRegisteredScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(clusterNodeIDStrings[0][0]))})
 
 		assert.Equal(t, cadence.NewBool(true), result)
 	})

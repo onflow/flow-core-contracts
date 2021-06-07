@@ -56,68 +56,70 @@ pub contract FlowEpoch {
         pub case Access
     }
 
-    // The Epoch Setup service event is emitted when we transition to the Epoch Setup
-    // phase. It contains the finalized identity table for the upcoming epoch.
+    /// The Epoch Setup service event is emitted when we transition to the Epoch Setup
+    /// phase. It contains the finalized identity table for the upcoming epoch.
     pub event EpochSetup(
         
-        // The counter for the upcoming epoch. Must be one greater than the
-        // counter for the current epoch.
+        /// The counter for the upcoming epoch. Must be one greater than the
+        /// counter for the current epoch.
         counter: UInt64,
 
-        // Identity table for the upcoming epoch with all node information.
-        // Includes:
-        // nodeID, staking key, networking key, networking address, role,
-        // staking information, weight, and more.
+        /// Identity table for the upcoming epoch with all node information.
+        /// Includes:
+        /// nodeID, staking key, networking key, networking address, role,
+        /// staking information, weight, and more.
         nodeInfo: [FlowIDTableStaking.NodeInfo]
 
-        // The first view (inclusive) of the upcoming epoch.
+        /// The first view (inclusive) of the upcoming epoch.
         firstView: UInt64,
 
-        // The last view (inclusive) of the upcoming epoch.
+        /// The last view (inclusive) of the upcoming epoch.
         finalView: UInt64,
 
-        // The cluster assignment for the upcoming epoch. Each element in the list
-        // represents one cluster and contains all the node IDs assigned to that
-        // cluster, with their weights and votes
+        /// The cluster assignment for the upcoming epoch. Each element in the list
+        /// represents one cluster and contains all the node IDs assigned to that
+        /// cluster, with their weights and votes
         collectorClusters: [FlowEpochClusterQC.Cluster],
 
-        // The source of randomness to seed the leader selection algorithm with 
-        // for the upcoming epoch.
+        /// The source of randomness to seed the leader selection algorithm with 
+        /// for the upcoming epoch.
         randomSource: String,
 
-        // The deadlines of each phase in the DKG protocol to be completed in the upcoming
-        // EpochSetup phase. Deadlines are specified in terms of a consensus view number. 
-        // When a DKG participant observes a finalized and sealed block with view greater 
-        // than the given deadline, it can safely transition to the next phase. 
+        /// The deadlines of each phase in the DKG protocol to be completed in the upcoming
+        /// EpochSetup phase. Deadlines are specified in terms of a consensus view number. 
+        /// When a DKG participant observes a finalized and sealed block with view greater 
+        /// than the given deadline, it can safely transition to the next phase. 
         DKGPhase1FinalView: UInt64,
         DKGPhase2FinalView: UInt64,
         DKGPhase3FinalView: UInt64
     )
 
-    // The Epoch Committed service event is emitted when we transition from the Epoch
-    // Committed phase. It is emitted only when all preparation for the upcoming epoch
-    // has been completed
+    /// The Epoch Committed service event is emitted when we transition from the Epoch
+    /// Committed phase. It is emitted only when all preparation for the upcoming epoch
+    /// has been completed
     pub event EpochCommitted(
 
-        // The counter for the upcoming epoch. Must be equal to the counter in the
-        // previous EpochSetup event.
+        /// The counter for the upcoming epoch. Must be equal to the counter in the
+        /// previous EpochSetup event.
         counter: UInt64,
 
-        // The result of the QC aggregation process. Each element contains 
-        // all the nodes and votes received for a particular cluster
-        // QC stands for quorum certificate that each cluster generates.
-        // TODO: define ordering
+        /// The result of the QC aggregation process. Each element contains 
+        /// all the nodes and votes received for a particular cluster
+        /// QC stands for quorum certificate that each cluster generates.
+        /// TODO: define ordering
         clusterQCs: [FlowEpochClusterQC.ClusterQC]
 
-        // The resulting public keys from the DKG process, encoded as by the flow-go
-        // crypto library, then hex-encoded.
-        // Group public key is the first element, followed by the individual keys
+        /// The resulting public keys from the DKG process, encoded as by the flow-go
+        /// crypto library, then hex-encoded.
+        /// Group public key is the first element, followed by the individual keys
         dkgPubKeys: [String],
     )
 
+    /// Contains specific metadata about a particular epoch
+    /// All historical epoch metadata is stored permanently
     pub struct EpochMetadata {
 
-        // The identifier for the epoch
+        /// The identifier for the epoch
         pub let counter: UInt64
 
         /// The seed used for generating the epoch setup
@@ -150,6 +152,7 @@ pub contract FlowEpoch {
 
         /// The public keys associated with the Distributed Key Generation
         /// process that consensus nodes participate in
+        /// Group key is the last element at index: length - 1
         pub var dkgKeys: [String]
 
         init(counter: UInt64,
@@ -223,6 +226,7 @@ pub contract FlowEpoch {
         }
     }
 
+    /// Holds the `FlowEpoch.Config` struct with the configurable metadata
     access(contract) let configurableMetadata: Config
 
     /// Metadata that is managed by the smart contract
@@ -238,7 +242,10 @@ pub contract FlowEpoch {
     /// indexed by epoch number
     access(contract) var epochMetadata: {UInt64: EpochMetadata}
 
+    /// Path where the `FlowEpoch.Admin` resource is stored
     pub let adminStoragePath: StoragePath
+
+    /// Path where the `FlowEpoch.Heartbeat` resource is stored
     pub let heartbeatStoragePath: StoragePath
 
     /// Resource that can update some of the contract fields
@@ -294,8 +301,13 @@ pub contract FlowEpoch {
         }
     }
 
+    /// Resource that is controlled by the protocol and is used
+    /// to change the current phase of the epoch or reset the epoch if needed
+    /// 
     pub resource Heartbeat {
+
         /// Function that is called every block to advance the epoch
+        /// and change phase if the required conditions have been met
         pub fun advanceBlock() {
 
             let currentBlock = getCurrentBlock()
@@ -331,6 +343,8 @@ pub contract FlowEpoch {
             }
         }
 
+        /// Calls `FlowEpoch` functions to end the staking auction phase
+        /// and start the Epoch Setup phase
         pub fun endStakingAuction(approvedIDs: {String: Bool}) {
             pre {
                 FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION: "Can only end staking auction during the staking auction"
@@ -341,6 +355,8 @@ pub contract FlowEpoch {
             FlowEpoch.startEpochSetup(randomSource: unsafeRandom().toString())
         }
 
+        /// Calls `FlowEpoch` functions to end the Epoch Setup phase
+        /// and start the Epoch Setup Phase
         pub fun startEpochCommitted() {
             pre {
                 FlowEpoch.currentEpochPhase == EpochPhase.EPOCHSETUP: "Can only end Epoch Setup during epoch setup"
@@ -349,6 +365,8 @@ pub contract FlowEpoch {
             FlowEpoch.startEpochCommitted()
         }
 
+        /// Calls `FlowEpoch` functions to end the Epoch Committed phase
+        /// and start the Staking Auction phase of a new epoch
         pub fun endEpoch() {
             pre {
                 FlowEpoch.currentEpochPhase == EpochPhase.EPOCHCOMMITTED: "Can only end epoch during Epoch Committed"
@@ -371,15 +389,16 @@ pub contract FlowEpoch {
         /// in case the epoch setup phase did not complete properly
         /// before the end of an epoch
         pub fun resetEpoch(
+            currentEpochCounter: UInt64,
             randomSource: String,
             newPayout: UFix64?,
             startView: UInt64,
             endView: UInt64,
-            collectorClusters: [FlowEpochClusterQC.Cluster],
-            clusterQCs: [FlowEpochClusterQC.ClusterQC]
-            dkgPubKeys: [String])
+            collectorClusters: [FlowEpochClusterQC.Cluster])
         {
             pre {
+                currentEpochCounter == FlowEpoch.currentEpochCounter:
+                    "Cannot submit a current Epoch counter that does not the current counter stored in the smart contract"
                 FlowEpoch.isValidPhaseConfiguration(FlowEpoch.configurableMetadata.numViewsInStakingAuction, FlowEpoch.configurableMetadata.numViewsInDKGPhase, endView-startView + (1 as UInt64)):
                     "Invalid startView and endView configuration"
             }
@@ -402,8 +421,8 @@ pub contract FlowEpoch {
                     stakingEndView: startView + FlowEpoch.configurableMetadata.numViewsInStakingAuction - (1 as UInt64),
                     totalRewards: FlowIDTableStaking.getEpochTokenPayout(),
                     collectorClusters: collectorClusters,
-                    clusterQCs: clusterQCs,
-                    dkgKeys: dkgPubKeys)
+                    clusterQCs: [],
+                    dkgKeys: [])
 
             FlowEpoch.epochMetadata[FlowEpoch.currentEpochCounter] = newEpochMetadata
         }
@@ -574,6 +593,7 @@ pub contract FlowEpoch {
                             dkgPubKeys: unwrappedKeys)
     }
 
+    /// Borrow a reference to the FlowIDTableStaking Admin resource
     access(contract) fun borrowStakingAdmin(): &FlowIDTableStaking.Admin {
         let adminRef = self.account.borrow<&FlowIDTableStaking.Admin>(from: FlowIDTableStaking.StakingAdminStoragePath)
             ?? panic("Could not borrow staking admin")
@@ -581,7 +601,7 @@ pub contract FlowEpoch {
         return adminRef
     }
 
-    /// borrow a reference to the ClusterQCs resource
+    /// Borrow a reference to the ClusterQCs Admin resource
     access(contract) fun borrowClusterQCAdmin(): &FlowEpochClusterQC.Admin {
         let adminRef = self.account.borrow<&FlowEpochClusterQC.Admin>(from: FlowEpochClusterQC.AdminStoragePath)
             ?? panic("Could not borrow qc admin")
@@ -589,7 +609,7 @@ pub contract FlowEpoch {
         return adminRef
     }
 
-    /// borrow a reference to the DKG Admin resource
+    /// Borrow a reference to the DKG Admin resource
     access(contract) fun borrowDKGAdmin(): &FlowDKG.Admin {
         let adminRef = self.account.borrow<&FlowDKG.Admin>(from: FlowDKG.AdminStoragePath)
             ?? panic("Could not borrow dkg admin")
@@ -597,10 +617,14 @@ pub contract FlowEpoch {
         return adminRef
     }
 
+    /// Makes sure the set of phase lengths (in views) are valid.
+    /// Sub-phases cannot be greater than the full epoch length.
     pub fun isValidPhaseConfiguration(_ auctionLen: UInt64, _ dkgPhaseLen: UInt64, _ epochLen: UInt64): Bool {
         return (auctionLen + ((3 as UInt64)*dkgPhaseLen)) < epochLen
     }
 
+    /// Randomizes the list of collector node ID and uses a round robin algorithm
+    /// to assign all collector nodes to equal sized clusters
     pub fun createCollectorClusters(nodeIDs: [String]): [FlowEpochClusterQC.Cluster] {
         var shuffledIDs = self.randomize(nodeIDs)
 
@@ -702,6 +726,7 @@ pub contract FlowEpoch {
         return self.configurableMetadata
     }
 
+    /// The proposed Epoch counter is always the current counter plus 1
     pub fun proposedEpochCounter(): UInt64 {
         return self.currentEpochCounter + 1 as UInt64
     }
