@@ -232,21 +232,54 @@ pub contract FlowEpoch {
     /// Metadata that is managed by the smart contract
     /// and cannot be changed by the Admin
 
+    /// Contains a historical record of the metadata from all previous epochs
+    /// indexed by epoch number
+
+    /// Returns the metadata from the specified epoch
+    /// or nil if it isn't found
+    /// Epoch Metadata is stored in account storage so the growing dictionary
+    /// does not have to be loaded every time the contract is loaded
+    pub fun getEpochMetadata(_ epochCounter: UInt64): EpochMetadata? {
+        if let metadataDictionary = self.account.copy<{UInt64: EpochMetadata}>(from: self.metadataStoragePath) {
+            return metadataDictionary[epochCounter]
+        }
+        return nil
+    }
+
+    /// Saves a modified EpochMetadata struct to the metadata in account storage
+    /// 
+    access(contract) fun saveEpochMetadata(_ newMetadata: EpochMetadata) {
+        pre {
+            self.currentEpochCounter == (0 as UInt64) ||
+            (newMetadata.counter >= self.currentEpochCounter - (1 as UInt64) &&
+            newMetadata.counter <= self.proposedEpochCounter()):
+                "Cannot modify epoch metadata from epochs after the proposed epoch or before the previous epoch"
+        }
+        if let metadataDictionary = self.account.load<{UInt64: EpochMetadata}>(from: self.metadataStoragePath) {
+            if let metadata = metadataDictionary[newMetadata.counter] {
+                assert (
+                    metadata.counter == newMetadata.counter,
+                    message: "Cannot save metadata with mismatching epoch counters"
+                )
+            }
+            metadataDictionary[newMetadata.counter] = newMetadata
+            self.account.save<{UInt64: EpochMetadata}>(metadataDictionary, to: self.metadataStoragePath)
+        }
+    }
+
     /// The counter, or ID, of the current epoch
     pub var currentEpochCounter: UInt64
 
     /// The current phase that the epoch is in
     pub var currentEpochPhase: EpochPhase
 
-    /// Contains a historical record of the metadata from all previous epochs
-    /// indexed by epoch number
-    access(contract) var epochMetadata: {UInt64: EpochMetadata}
-
     /// Path where the `FlowEpoch.Admin` resource is stored
     pub let adminStoragePath: StoragePath
 
     /// Path where the `FlowEpoch.Heartbeat` resource is stored
     pub let heartbeatStoragePath: StoragePath
+
+    pub let metadataStoragePath: StoragePath
 
     /// Resource that can update some of the contract fields
     pub resource Admin {
@@ -311,7 +344,7 @@ pub contract FlowEpoch {
         pub fun advanceBlock() {
 
             let currentBlock = getCurrentBlock()
-            let currentEpochMetadata = FlowEpoch.epochMetadata[FlowEpoch.currentEpochCounter]!
+            let currentEpochMetadata = FlowEpoch.getEpochMetadata(FlowEpoch.currentEpochCounter)!
 
             switch FlowEpoch.currentEpochPhase {
                 case EpochPhase.STAKINGAUCTION:
@@ -424,7 +457,7 @@ pub contract FlowEpoch {
                     clusterQCs: [],
                     dkgKeys: [])
 
-            FlowEpoch.epochMetadata[FlowEpoch.currentEpochCounter] = newEpochMetadata
+            FlowEpoch.saveEpochMetadata(newEpochMetadata)
         }
     }
 
@@ -433,7 +466,9 @@ pub contract FlowEpoch {
     access(account) fun calculateAndSetRewards(_ newPayout: UFix64?) {
 
         let rewardsBreakdown = self.borrowStakingAdmin().calculateRewards()
-        self.epochMetadata[self.currentEpochCounter]!.setRewardAmounts(rewardsBreakdown)
+        let currentMetadata = self.getEpochMetadata(self.currentEpochCounter)!
+        currentMetadata.setRewardAmounts(rewardsBreakdown)
+        self.saveEpochMetadata(currentMetadata)
 
         // Calculate the new epoch's payout
         // disabled until we enable automated rewards calculations
@@ -441,17 +476,20 @@ pub contract FlowEpoch {
 
         if let payout = newPayout {
             self.borrowStakingAdmin().setEpochTokenPayout(payout)
-            self.epochMetadata[self.proposedEpochCounter()]!.setTotalRewards(payout)
+            let proposedMetadata = self.getEpochMetadata(self.proposedEpochCounter())!
+            proposedMetadata.setTotalRewards(payout)
+            self.saveEpochMetadata(proposedMetadata)
         }
     }
 
     /// Pays rewards to the nodes and delegators of the previous epoch
     access(account) fun payRewards() {
-        if let previousEpochMetadata = self.epochMetadata[self.currentEpochCounter - 1 as UInt64] {
+        if let previousEpochMetadata = self.getEpochMetadata(self.currentEpochCounter - (1 as UInt64)) {
             if !previousEpochMetadata.rewardsPaid {
                 let rewardsBreakdownArray = previousEpochMetadata.rewardAmounts
                 self.borrowStakingAdmin().payRewards(rewardsBreakdownArray)
                 previousEpochMetadata.setRewardsPaid(true)
+                self.saveEpochMetadata(previousEpochMetadata)
             }
         }
     }
@@ -523,19 +561,21 @@ pub contract FlowEpoch {
         // Start DKG with the consensus nodes
         self.borrowDKGAdmin().startDKG(nodeIDs: consensusNodeIDs)
 
+        let currentEpochMetadata = self.getEpochMetadata(self.currentEpochCounter)!
+
         // Initialze the metadata for the next epoch
         // QC and DKG metadata will be filled in later
         let proposedEpochMetadata = EpochMetadata(counter: self.proposedEpochCounter(),
                                                 seed: randomSource,
-                                                startView: self.epochMetadata[self.currentEpochCounter]!.endView + UInt64(1),
-                                                endView: self.epochMetadata[self.currentEpochCounter]!.endView + self.configurableMetadata.numViewsInEpoch,
-                                                stakingEndView: self.epochMetadata[self.currentEpochCounter]!.endView + self.configurableMetadata.numViewsInStakingAuction,
+                                                startView: currentEpochMetadata.endView + UInt64(1),
+                                                endView: currentEpochMetadata.endView + self.configurableMetadata.numViewsInEpoch,
+                                                stakingEndView: currentEpochMetadata.endView + self.configurableMetadata.numViewsInStakingAuction,
                                                 totalRewards: 0.0 as UFix64,
                                                 collectorClusters: collectorClusters,
                                                 clusterQCs: [],
                                                 dkgKeys: [])
 
-        self.epochMetadata[self.proposedEpochCounter()] = proposedEpochMetadata
+        self.saveEpochMetadata(proposedEpochMetadata)
 
         self.currentEpochPhase = EpochPhase.EPOCHSETUP
 
@@ -575,7 +615,8 @@ pub contract FlowEpoch {
 
         // Set cluster QCs in the proposed epoch metadata
         // and stop QC voting
-        self.epochMetadata[self.proposedEpochCounter()]!.setClusterQCs(qcs: clusterQCs)
+        let proposedEpochMetadata = self.getEpochMetadata(self.proposedEpochCounter())!
+        proposedEpochMetadata.setClusterQCs(qcs: clusterQCs)
 
         // Set DKG result keys in the proposed epoch metadata
         // and stop DKG
@@ -584,7 +625,9 @@ pub contract FlowEpoch {
         for key in dkgKeys {
             unwrappedKeys.append(key!)
         }
-        self.epochMetadata[self.proposedEpochCounter()]!.setDKGGroupKey(keys: unwrappedKeys)
+        proposedEpochMetadata.setDKGGroupKey(keys: unwrappedKeys)
+
+        self.saveEpochMetadata(proposedEpochMetadata)
 
         self.currentEpochPhase = EpochPhase.EPOCHCOMMITTED
 
@@ -715,12 +758,6 @@ pub contract FlowEpoch {
         return <-dkgAdmin.createParticipant(nodeID: nodeStaker.id)
     }
 
-    /// Returns the metadata from the specified epoch
-    /// or nil if it isn't found
-    pub fun getEpochMetadata(_ epochCounter: UInt64): EpochMetadata? {
-        return self.epochMetadata[epochCounter]
-    }
-
     /// Returns the metadata that is able to be configured by the admin
     pub fun getConfigMetadata(): Config {
         return self.configurableMetadata
@@ -742,7 +779,6 @@ pub contract FlowEpoch {
           clusterQCs: [FlowEpochClusterQC.ClusterQC],
           dkgPubKeys: [String]) {
 
-        self.epochMetadata = {}
         self.configurableMetadata = Config(numViewsInEpoch: numViewsInEpoch,
                                            numViewsInStakingAuction: numViewsInStakingAuction,
                                            numViewsInDKGPhase: numViewsInDKGPhase,
@@ -753,6 +789,10 @@ pub contract FlowEpoch {
         self.currentEpochPhase = EpochPhase.STAKINGAUCTION
         self.adminStoragePath = /storage/flowEpochAdmin
         self.heartbeatStoragePath = /storage/flowEpochHeartbeat
+        self.metadataStoragePath = /storage/flowEpochMetadata
+
+        let epochMetadata: {UInt64: EpochMetadata} = {}
+        self.account.save<{UInt64: EpochMetadata}>(epochMetadata, to: self.metadataStoragePath)
 
         self.account.save(<-create Admin(), to: self.adminStoragePath)
         self.account.save(<-create Heartbeat(), to: self.heartbeatStoragePath)
@@ -770,6 +810,6 @@ pub contract FlowEpoch {
                     collectorClusters: collectorClusters,
                     clusterQCs: clusterQCs,
                     dkgKeys: dkgPubKeys)
-        self.epochMetadata[self.currentEpochCounter] = firstEpochMetadata
+        self.saveEpochMetadata(firstEpochMetadata)
     }
 }
