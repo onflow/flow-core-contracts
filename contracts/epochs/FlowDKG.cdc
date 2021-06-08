@@ -11,7 +11,7 @@
 *  can post as many messages as they want to the DKG "whiteboard" with the `Participant.postMessage()` method,
 *  but each node can only submit a final submission once per epoch via the `Participant.sendFinalSubmission() method.
 *  
-*  Once all the consensus nodes have submitted the exact same set of keys,
+*  Once a >50% threshold of consensus nodes have submitted the exact same set of keys,
 *  the DKG phase is technically finished.
 *  Anyone can query the state of the submissions with the FlowDKG.getFinalSubmissions()
 *  or FlowDKG.dkgCompleted() methods.
@@ -144,7 +144,7 @@ pub contract FlowDKG {
 
         /// Sends the final key vector submission. 
         /// Can only be called by consensus nodes that are registered
-        /// and can only be called once per consensus node
+        /// and can only be called once per consensus node per epoch
         pub fun sendFinalSubmission(_ submission: [String?]) {
             pre {
                 FlowDKG.participantIsRegistered(self.nodeID):
