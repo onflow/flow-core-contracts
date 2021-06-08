@@ -854,19 +854,37 @@ func TestEpochReset(t *testing.T) {
 
 	})
 
+	t.Run("Cannot reset the epoch if the current epoch counter does not match", func(t *testing.T) {
+
+		var startView uint64 = 100
+		var endView uint64 = 200
+
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateResetEpochScript(env), idTableAddress)
+		_ = tx.AddArgument(cadence.NewUInt64(startEpochCounter + 1))
+		_ = tx.AddArgument(cadence.NewString("stillSoRandom"))
+		_ = tx.AddArgument(CadenceUFix64("1300000.0"))
+		_ = tx.AddArgument(cadence.NewUInt64(startView))
+		_ = tx.AddArgument(cadence.NewUInt64(endView))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			true,
+		)
+	})
+
 	t.Run("Cannot reset the epoch if the phase endView isn't high enough", func(t *testing.T) {
 
 		var startView uint64 = 100
 		var endView uint64 = 130
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateResetEpochScript(env), idTableAddress)
+		_ = tx.AddArgument(cadence.NewUInt64(startEpochCounter))
 		_ = tx.AddArgument(cadence.NewString("stillSoRandom"))
 		_ = tx.AddArgument(CadenceUFix64("1300000.0"))
 		_ = tx.AddArgument(cadence.NewUInt64(startView))
 		_ = tx.AddArgument(cadence.NewUInt64(endView))
-		_ = tx.AddArgument(cadence.NewArray([]cadence.Value{}))
-		_ = tx.AddArgument(cadence.NewArray([]cadence.Value{}))
-		_ = tx.AddArgument(cadence.NewArray([]cadence.Value{}))
 
 		signAndSubmit(
 			t, b, tx,
@@ -882,13 +900,11 @@ func TestEpochReset(t *testing.T) {
 		var endView uint64 = 160
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateResetEpochScript(env), idTableAddress)
+		_ = tx.AddArgument(cadence.NewUInt64(startEpochCounter))
 		_ = tx.AddArgument(cadence.NewString("stillSoRandom"))
 		_ = tx.AddArgument(CadenceUFix64("1300000.0"))
 		_ = tx.AddArgument(cadence.NewUInt64(startView))
 		_ = tx.AddArgument(cadence.NewUInt64(endView))
-		_ = tx.AddArgument(cadence.NewArray([]cadence.Value{}))
-		_ = tx.AddArgument(cadence.NewArray([]cadence.Value{}))
-		_ = tx.AddArgument(cadence.NewArray([]cadence.Value{}))
 
 		signAndSubmit(
 			t, b, tx,

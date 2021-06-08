@@ -30,6 +30,7 @@ const (
 	getClusterWeightFilename        = "quorumCertificate/scripts/get_cluster_weight.cdc"
 	getClusterNodeWeightsFilename   = "quorumCertificate/scripts/get_cluster_node_weights.cdc"
 	getNodeWeightFilename           = "quorumCertificate/scripts/get_node_weight.cdc"
+	getVoterIsRegisteredFilename    = "quorumCertificate/scripts/get_voter_is_registered.cdc"
 	getNodeHasVotedFilename         = "quorumCertificate/scripts/get_node_has_voted.cdc"
 )
 
@@ -123,6 +124,12 @@ func GenerateGetVotingCompletedScript(env Environment) []byte {
 
 func GenerateGetClusterVotesScript(env Environment) []byte {
 	code := assets.MustAssetString(getClusterVotesFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateGetVoterIsRegisteredScript(env Environment) []byte {
+	code := assets.MustAssetString(getVoterIsRegisteredFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
