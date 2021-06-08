@@ -865,7 +865,6 @@ func TestEpochReset(t *testing.T) {
 		_ = tx.AddArgument(CadenceUFix64("1300000.0"))
 		_ = tx.AddArgument(cadence.NewUInt64(startView))
 		_ = tx.AddArgument(cadence.NewUInt64(endView))
-		_ = tx.AddArgument(cadence.NewArray([]cadence.Value{}))
 
 		signAndSubmit(
 			t, b, tx,
@@ -886,7 +885,6 @@ func TestEpochReset(t *testing.T) {
 		_ = tx.AddArgument(CadenceUFix64("1300000.0"))
 		_ = tx.AddArgument(cadence.NewUInt64(startView))
 		_ = tx.AddArgument(cadence.NewUInt64(endView))
-		_ = tx.AddArgument(cadence.NewArray([]cadence.Value{}))
 
 		signAndSubmit(
 			t, b, tx,
@@ -907,7 +905,6 @@ func TestEpochReset(t *testing.T) {
 		_ = tx.AddArgument(CadenceUFix64("1300000.0"))
 		_ = tx.AddArgument(cadence.NewUInt64(startView))
 		_ = tx.AddArgument(cadence.NewUInt64(endView))
-		_ = tx.AddArgument(cadence.NewArray([]cadence.Value{}))
 
 		signAndSubmit(
 			t, b, tx,

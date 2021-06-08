@@ -46,6 +46,8 @@ pub contract FlowEpochClusterQC {
     /// Vote resources without signatures for each node are stored here at the beginning of each epoch setup phase. 
     /// When a node submits a vote, they take it out of this map, add their signature, 
     /// then add it to the submitted vote list for their cluster.
+    /// If a node has voted, their `raw` field will be non-nil
+    /// If a node hasn't voted, their `raw` field will be nil
     access(account) var generatedVotes: {String: Vote}
 
     /// Indicates what cluster a node is in for the current epoch

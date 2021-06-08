@@ -5,8 +5,7 @@ transaction(currentEpochCounter: UInt64,
             randomSource: String,
             newPayout: UFix64,
             startView: UInt64,
-            endView: UInt64,
-            collectorClusters: [String]) {
+            endView: UInt64) {
 
     prepare(signer: AuthAccount) {
         let heartbeat = signer.borrow<&FlowEpoch.Heartbeat>(from: FlowEpoch.heartbeatStoragePath)
@@ -17,6 +16,8 @@ transaction(currentEpochCounter: UInt64,
                              newPayout: newPayout,
                              startView: startView,
                              endView: endView,
-                             collectorClusters: [])
+                             collectorClusters: [],
+                             clusterQCs: [],
+                             dkgPubKeys: [])
     }
 }
