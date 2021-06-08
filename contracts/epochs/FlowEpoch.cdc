@@ -279,6 +279,7 @@ pub contract FlowEpoch {
     /// Path where the `FlowEpoch.Heartbeat` resource is stored
     pub let heartbeatStoragePath: StoragePath
 
+    /// Path where the `{UInt64: EpochMetadata}` dictionary is stored
     pub let metadataStoragePath: StoragePath
 
     /// Resource that can update some of the contract fields
