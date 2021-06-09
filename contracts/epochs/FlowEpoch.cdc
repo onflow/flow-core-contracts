@@ -795,7 +795,7 @@ pub contract FlowEpoch {
         self.metadataStoragePath = /storage/flowEpochMetadata
 
         let epochMetadata: {UInt64: EpochMetadata} = {}
-        self.account.save<{UInt64: EpochMetadata}>(epochMetadata, to: self.metadataStoragePath)
+        self.account.save(epochMetadata, to: self.metadataStoragePath)
 
         self.account.save(<-create Admin(), to: self.adminStoragePath)
         self.account.save(<-create Heartbeat(), to: self.heartbeatStoragePath)
