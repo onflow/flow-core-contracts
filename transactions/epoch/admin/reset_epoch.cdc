@@ -3,7 +3,7 @@ import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
 
 transaction(currentEpochCounter: UInt64,
             randomSource: String,
-            newPayout: UFix64,
+            newPayout: UFix64?,
             startView: UInt64,
             endView: UInt64) {
 
