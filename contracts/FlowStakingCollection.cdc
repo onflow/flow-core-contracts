@@ -530,6 +530,25 @@ pub contract FlowStakingCollection {
             return nil
         }
 
+        /// Allows the owner to withdraw any available FLOW from their machine account
+        pub fun withdrawFromMachineAccount(nodeID: String, amount: UFix64) {
+            pre {
+                self.doesStakeExist(nodeID: nodeID, delegatorID: nil): "Specified stake does not exist in this collection"
+            }
+            if let machineAccountInfo = self.machineAccounts[nodeID] {
+                let vaultRef = machineAccountInfo.machineAccountVaultProvider.borrow()
+                    ?? panic("Could not borrow reference to machine account vault")
+
+                let tokens <- vaultRef.withdraw(amount: amount)
+
+                let unlockedVault = self.unlockedVault.borrow()!
+                unlockedVault.deposit(from: <-tokens)
+
+            } else {
+                panic("Could not find a machine account for the specified node ID")
+            }
+        }
+
         /// Function to register a new Delegator Record to the Staking Collection
         pub fun registerDelegator(nodeID: String, amount: UFix64) {
             let delegatorIDs = self.getDelegatorIDs()

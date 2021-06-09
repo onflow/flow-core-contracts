@@ -690,6 +690,47 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		})
 	})
 
+	t.Run("Should be able to deposit and withdraw tokens from the machine account", func(t *testing.T) {
+
+		// Add 100 tokens to the machine account
+		mintTokensForAccount(t, b, machineAccounts[cadence.NewString(bastianID)], "100.0")
+
+		// Should fail because this node does not exist in the collection
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionWithdrawFromMachineAccountScript(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(executionID))
+		_ = tx.AddArgument(CadenceUFix64("50.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			true,
+		)
+
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionWithdrawFromMachineAccountScript(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(bastianID))
+		_ = tx.AddArgument(CadenceUFix64("50.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+
+		verifyStakingCollectionInfo(t, b, env, StakingCollectionInfo{
+			accountAddress:     joshAddress.String(),
+			unlockedBalance:    "620050.0",
+			lockedBalance:      "0.0",
+			unlockedTokensUsed: "380000.0",
+			lockedTokensUsed:   "630000.0",
+			unlockLimit:        "0.0",
+			nodes:              []string{maxID, bastianID, joshID},
+			delegators:         []DelegatorIDs{DelegatorIDs{nodeID: maxID, id: 1}, DelegatorIDs{nodeID: joshID, id: 1}},
+			machineAccounts:    machineAccounts,
+		})
+	})
+
 	t.Run("Should be able to register a execution and verification node in the staking collection and not create machine accounts", func(t *testing.T) {
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterNode(env), joshAddress)
@@ -706,6 +747,18 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 			[]flow.Address{b.ServiceKey().Address, joshAddress},
 			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
 			false,
+		)
+
+		// Should fail because the execution node does not have a machine account
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionWithdrawFromMachineAccountScript(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(executionID))
+		_ = tx.AddArgument(CadenceUFix64("50.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			true,
 		)
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterNode(env), joshAddress)
@@ -726,7 +779,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 		verifyStakingCollectionInfo(t, b, env, StakingCollectionInfo{
 			accountAddress:     joshAddress.String(),
-			unlockedBalance:    "600000.0",
+			unlockedBalance:    "600050.0",
 			lockedBalance:      "0.0",
 			unlockedTokensUsed: "400000.0",
 			lockedTokensUsed:   "630000.0",
