@@ -71,8 +71,8 @@ type EpochSetup struct {
 	dkgPhase3FinalView uint64
 }
 
-/// Used to verify the EpochCommitted event fields in tests
-type EpochCommitted struct {
+/// Used to verify the EpochCommit event fields in tests
+type EpochCommit struct {
 	counter    uint64
 	clusterQCs [][]string
 	dkgPubKeys []string
@@ -112,17 +112,17 @@ func (evt EpochSetupEvent) dkgFinalViews() (cadence.UInt64, cadence.UInt64, cade
 	return fields[6].(cadence.UInt64), fields[7].(cadence.UInt64), fields[8].(cadence.UInt64)
 }
 
-type EpochCommittedEvent flow.Event
+type EpochCommitEvent flow.Event
 
-func (evt EpochCommittedEvent) Counter() cadence.UInt64 {
+func (evt EpochCommitEvent) Counter() cadence.UInt64 {
 	return evt.Value.Fields[0].(cadence.UInt64)
 }
 
-func (evt EpochCommittedEvent) clusterQCs() cadence.Array {
+func (evt EpochCommitEvent) clusterQCs() cadence.Array {
 	return evt.Value.Fields[1].(cadence.Array)
 }
 
-func (evt EpochCommittedEvent) dkgPubKeys() cadence.Array {
+func (evt EpochCommitEvent) dkgPubKeys() cadence.Array {
 	return evt.Value.Fields[2].(cadence.Array)
 }
 
@@ -217,7 +217,7 @@ func initializeAllEpochContracts(
 }
 
 /// Attempts to advance the epoch to the specified phase
-/// "EPOCHSETUP", "EPOCHCOMMITTED", or "ENDEPOCH",
+/// "EPOCHSETUP", "EPOCHCOMMIT", or "ENDEPOCH",
 /// "BLOCK" allows the contract to just advance a block
 func advanceView(
 	t *testing.T,
@@ -522,23 +522,23 @@ func verifyEpochSetup(
 
 }
 
-/// Verifies that the epoch committed event values are equal to the provided expected values
+/// Verifies that the EpochCommit event values are equal to the provided expected values
 ///
-func verifyEpochCommitted(
+func verifyEpochCommit(
 	t *testing.T,
 	b *emulator.Blockchain,
 	epochAddress flow.Address,
-	expectedCommitted EpochCommitted) {
-	var emittedEvent EpochCommittedEvent
+	expectedCommitted EpochCommit) {
+	var emittedEvent EpochCommitEvent
 
 	var i uint64
 	i = 0
 	for i < 1000 {
-		results, _ := b.GetEventsByHeight(i, "A."+epochAddress.String()+".FlowEpoch.EpochCommitted")
+		results, _ := b.GetEventsByHeight(i, "A."+epochAddress.String()+".FlowEpoch.EpochCommit")
 
 		for _, event := range results {
-			if event.Type == "A."+epochAddress.String()+".FlowEpoch.EpochCommitted" {
-				emittedEvent = EpochCommittedEvent(event)
+			if event.Type == "A."+epochAddress.String()+".FlowEpoch.EpochCommit" {
+				emittedEvent = EpochCommitEvent(event)
 			}
 		}
 

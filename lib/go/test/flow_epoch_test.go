@@ -333,10 +333,10 @@ func TestEpochAdvance(t *testing.T) {
 		randomSource,      // random source
 		rewardAPY)
 
-	t.Run("Should not be able to advance to epoch committed or end epoch during staking", func(t *testing.T) {
-		// try to advance to the epoch committed phase
+	t.Run("Should not be able to advance to epoch commit or end epoch during staking", func(t *testing.T) {
+		// try to advance to the epoch commit phase
 		// should fail
-		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHCOMMITTED", true)
+		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHCOMMIT", true)
 
 		// try to advance to the end epoch phase
 		// should fail
@@ -427,10 +427,10 @@ func TestEpochAdvance(t *testing.T) {
 
 	})
 
-	t.Run("Should not be able to advance to epoch committed or end epoch during epoch committed if nothing has happened", func(t *testing.T) {
-		// try to advance to the epoch committed phase
+	t.Run("Should not be able to advance to epoch commit or end epoch during epoch commit if nothing has happened", func(t *testing.T) {
+		// try to advance to the epoch commit phase
 		// will not panic, but no state has changed
-		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHCOMMITTED", false)
+		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHCOMMIT", false)
 
 		verifyConfigMetadata(t, b, env,
 			ConfigMetadata{
@@ -637,9 +637,9 @@ func TestEpochQCDKG(t *testing.T) {
 		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGCompletedScript(env), nil)
 		assert.Equal(t, cadence.NewBool(true), result)
 
-		// try to advance to the epoch committed phase
+		// try to advance to the epoch commit phase
 		// will not panic, but no state has changed
-		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHCOMMITTED", false)
+		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHCOMMIT", false)
 
 		verifyConfigMetadata(t, b, env,
 			ConfigMetadata{
@@ -658,7 +658,7 @@ func TestEpochQCDKG(t *testing.T) {
 	clusterQCs[0] = make([]string, 1)
 	clusterQCs[0][0] = "0000000000000000000000000000000000000000000000000000000000000000"
 
-	t.Run("Can perform QC actions during Epoch Setup and advance to EpochCommitted", func(t *testing.T) {
+	t.Run("Can perform QC actions during Epoch Setup and advance to EpochCommit", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), addresses[0])
 
@@ -677,8 +677,8 @@ func TestEpochQCDKG(t *testing.T) {
 		result = executeScriptAndCheck(t, b, templates.GenerateGetVotingCompletedScript(env), nil)
 		assert.Equal(t, cadence.NewBool(true), result)
 
-		// Advance to epoch committed
-		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHCOMMITTED", false)
+		// Advance to epoch commit
+		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHCOMMIT", false)
 
 		verifyConfigMetadata(t, b, env,
 			ConfigMetadata{
@@ -691,8 +691,8 @@ func TestEpochQCDKG(t *testing.T) {
 				numCollectorClusters:     numClusters,
 				rewardPercentage:         rewardAPY})
 
-		verifyEpochCommitted(t, b, idTableAddress,
-			EpochCommitted{
+		verifyEpochCommit(t, b, idTableAddress,
+			EpochCommit{
 				counter:    startEpochCounter + 1,
 				dkgPubKeys: finalKeyStrings,
 				clusterQCs: clusterQCs})
@@ -819,7 +819,7 @@ func TestEpochReset(t *testing.T) {
 	clusterQCs[0] = make([]string, 1)
 	clusterQCs[0][0] = "0000000000000000000000000000000000000000000000000000000000000000"
 
-	t.Run("Can perform QC actions during Epoch Setup but cannot advance to EpochCommitted if DKG isn't complete", func(t *testing.T) {
+	t.Run("Can perform QC actions during Epoch Setup but cannot advance to EpochCommit if DKG isn't complete", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), addresses[0])
 
@@ -838,8 +838,8 @@ func TestEpochReset(t *testing.T) {
 		result = executeScriptAndCheck(t, b, templates.GenerateGetVotingCompletedScript(env), nil)
 		assert.Equal(t, cadence.NewBool(true), result)
 
-		// will not fail but the state hasn't changed since we cannot advance to epoch committed
-		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHCOMMITTED", false)
+		// will not fail but the state hasn't changed since we cannot advance to epoch commit
+		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHCOMMIT", false)
 
 		verifyConfigMetadata(t, b, env,
 			ConfigMetadata{
