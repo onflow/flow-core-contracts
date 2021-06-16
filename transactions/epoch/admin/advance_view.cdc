@@ -18,8 +18,8 @@ transaction(phase: String) {
                 approvedIDs[id] = true
             }
             heartbeat.endStakingAuction(approvedIDs: approvedIDs)
-        } else if phase == "EPOCHCOMMITTED" {
-            heartbeat.startEpochCommitted()
+        } else if phase == "EPOCHCOMMIT" {
+            heartbeat.startEpochCommit()
         } else if phase == "ENDEPOCH" {
             heartbeat.endEpoch()
         } else if phase == "BLOCK" {

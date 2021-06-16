@@ -30,8 +30,8 @@ import FlowDKG from 0xDKGADDRESS
 // nodes submit votes for their cluster's root quorum certificate and consensus
 // nodes run the distributed key generation protocol (DKG) to set up the random
 // beacon. When these preparations are complete, the Epoch smart contract emits the
-// EpochCommitted service event containing the artifacts of the set process, which
-// initiates the transition to the Epoch Committed Phase.
+// EpochCommit service event containing the artifacts of the set process, which
+// initiates the transition to the Epoch Commit Phase.
 //
 // 3) COMMITTED PHASE
 // When this phase begins, the network is fully prepared to transition to the next
@@ -44,7 +44,7 @@ pub contract FlowEpoch {
     pub enum EpochPhase: UInt8 {
         pub case STAKINGAUCTION
         pub case EPOCHSETUP
-        pub case EPOCHCOMMITTED
+        pub case EPOCHCOMMIT
     }
 
     pub enum NodeRole: UInt8 {
@@ -94,10 +94,10 @@ pub contract FlowEpoch {
         DKGPhase3FinalView: UInt64
     )
 
-    /// The Epoch Committed service event is emitted when we transition from the Epoch
+    /// The EpochCommit service event is emitted when we transition from the Epoch
     /// Committed phase. It is emitted only when all preparation for the upcoming epoch
     /// has been completed
-    pub event EpochCommitted(
+    pub event EpochCommit(
 
         /// The counter for the upcoming epoch. Must be equal to the counter in the
         /// previous EpochSetup event.
@@ -364,13 +364,12 @@ pub contract FlowEpoch {
                     }
                 case EpochPhase.EPOCHSETUP:
                     if FlowEpochClusterQC.votingCompleted() && (FlowDKG.dkgCompleted() != nil) {
-                        self.startEpochCommitted()
+                        self.startEpochCommit()
                     }
-                case EpochPhase.EPOCHCOMMITTED:
+                case EpochPhase.EPOCHCOMMIT:
                     if currentBlock.view >= currentEpochMetadata.endView {
                         self.calculateAndSetRewards(nil)
                         self.endEpoch()
-                        self.payRewards()
                     }
                 default:
                     return
@@ -391,19 +390,19 @@ pub contract FlowEpoch {
 
         /// Calls `FlowEpoch` functions to end the Epoch Setup phase
         /// and start the Epoch Setup Phase
-        pub fun startEpochCommitted() {
+        pub fun startEpochCommit() {
             pre {
-                FlowEpoch.currentEpochPhase == EpochPhase.EPOCHSETUP: "Can only end Epoch Setup during epoch setup"
+                FlowEpoch.currentEpochPhase == EpochPhase.EPOCHSETUP: "Can only end Epoch Setup during Epoch Setup"
             }
 
-            FlowEpoch.startEpochCommitted()
+            FlowEpoch.startEpochCommit()
         }
 
-        /// Calls `FlowEpoch` functions to end the Epoch Committed phase
+        /// Calls `FlowEpoch` functions to end the Epoch Commit phase
         /// and start the Staking Auction phase of a new epoch
         pub fun endEpoch() {
             pre {
-                FlowEpoch.currentEpochPhase == EpochPhase.EPOCHCOMMITTED: "Can only end epoch during Epoch Committed"
+                FlowEpoch.currentEpochPhase == EpochPhase.EPOCHCOMMIT: "Can only end epoch during Epoch Commit"
             }
 
             FlowEpoch.startNewEpoch()
@@ -594,8 +593,8 @@ pub contract FlowEpoch {
     }
 
     /// Ends the EpochSetup phase when the QC and DKG are completed
-    /// and emits the EpochCommitted event with the results
-    access(account) fun startEpochCommitted() {
+    /// and emits the EpochCommit event with the results
+    access(account) fun startEpochCommit() {
         if !FlowEpochClusterQC.votingCompleted() || FlowDKG.dkgCompleted() == nil {
             return
         }
@@ -632,9 +631,9 @@ pub contract FlowEpoch {
 
         self.saveEpochMetadata(proposedEpochMetadata)
 
-        self.currentEpochPhase = EpochPhase.EPOCHCOMMITTED
+        self.currentEpochPhase = EpochPhase.EPOCHCOMMIT
 
-        emit EpochCommitted(counter: self.proposedEpochCounter(),
+        emit EpochCommit(counter: self.proposedEpochCounter(),
                             clusterQCs: clusterQCs,
                             dkgPubKeys: unwrappedKeys)
     }
