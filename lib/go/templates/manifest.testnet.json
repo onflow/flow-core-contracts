@@ -183,7 +183,7 @@
           "type": "Address",
           "name": "address",
           "label": "Operator Address",
-          "sampleValue": "0x8624b52f9ddcd04a"
+          "sampleValue": "0x8c5303eaa26202d6"
         },
         {
           "type": "String",

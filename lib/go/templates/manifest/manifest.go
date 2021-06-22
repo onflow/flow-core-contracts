@@ -366,9 +366,9 @@ func sampleAddress(network string) string {
 
 	switch network {
 	case testnet:
-		address = flow.NewAddressGenerator(flow.Testnet).Address()
+		address = flow.NewAddressGenerator(flow.Testnet).NextAddress()
 	case mainnet:
-		address = flow.NewAddressGenerator(flow.Mainnet).Address()
+		address = flow.NewAddressGenerator(flow.Mainnet).NextAddress()
 	}
 
 	return fmt.Sprintf("0x%s", address.Hex())
