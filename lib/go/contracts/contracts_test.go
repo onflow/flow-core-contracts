@@ -22,12 +22,22 @@ func TestFlowFeesContract(t *testing.T) {
 	assert.NotNil(t, contract)
 }
 
+func TestStorageFeesContract(t *testing.T) {
+	contract := contracts.FlowStorageFees(fakeAddr, fakeAddr)
+	assert.NotNil(t, contract)
+}
+
 func TestFlowServiceAccountContract(t *testing.T) {
-	contract := contracts.FlowServiceAccount(fakeAddr, fakeAddr, fakeAddr)
+	contract := contracts.FlowServiceAccount(fakeAddr, fakeAddr, fakeAddr, fakeAddr)
 	assert.NotNil(t, contract)
 }
 
 func TestFlowIdentityTableContract(t *testing.T) {
-	contract := contracts.FlowIDTableStaking(fakeAddr, fakeAddr)
+	contract := contracts.FlowIDTableStaking(fakeAddr, fakeAddr, true)
+	assert.NotNil(t, contract)
+}
+
+func TestStakingCollection(t *testing.T) {
+	contract := contracts.FlowStakingCollection(fakeAddr, fakeAddr, fakeAddr, fakeAddr, fakeAddr, fakeAddr)
 	assert.NotNil(t, contract)
 }

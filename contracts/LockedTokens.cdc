@@ -5,12 +5,12 @@
 
     Each token holder gets two accounts. One account is their locked token
     account. It will be jointly controlled by the user and the token administrator.
-    The token administrator must co-sign the transfer of any locked tokens. 
-    The token admin cannot interact with the account 
-    without approval from the token holder, 
-    except to deposit additional locked FLOW 
+    The token administrator must co-sign the transfer of any locked tokens.
+    The token admin cannot interact with the account
+    without approval from the token holder,
+    except to deposit additional locked FLOW
     or to unlock existing FLOW at each milestone in the token vesting period.
-        
+
     The second account is the unlocked user account. This account is
     in full possesion and control of the user and they can do whatever
     they want with it. This account will store a capability that allows
@@ -20,7 +20,7 @@
     When a user account is created, both accounts are initialized with
     their respective objects: LockedTokenManager for the shared account,
     and TokenHolder for the unlocked account. The user calls functions
-    on TokenHolder to withdraw tokens from the shared account and to 
+    on TokenHolder to withdraw tokens from the shared account and to
     perform staking actions with the locked tokens
 
  */
@@ -28,7 +28,7 @@
 import FlowToken from 0xFLOWTOKENADDRESS
 import FungibleToken from 0xFUNGIBLETOKENADDRESS
 import FlowIDTableStaking from 0xFLOWIDTABLESTAKINGADDRESS
-
+import FlowStorageFees from 0xFLOWSTORAGEFEESADDRESS
 import StakingProxy from 0xSTAKINGPROXYADDRESS
 
 pub contract LockedTokens {
@@ -43,38 +43,38 @@ pub contract LockedTokens {
 
     pub event LockedTokensDeposited(address: Address, amount: UFix64)
 
-    /// Path to store the locked token manager resource 
+    /// Path to store the locked token manager resource
     /// in the shared account
-    pub let LockedTokenManagerStoragePath: Path
+    pub let LockedTokenManagerStoragePath: StoragePath
 
     /// Path to store the private capability for the token
     /// manager
-    pub let LockedTokenManagerPrivatePath: Path
+    pub let LockedTokenManagerPrivatePath: PrivatePath
 
     /// Path to store the private locked token admin link
     /// in the shared account
-    pub let LockedTokenAdminPrivatePath: Path
+    pub let LockedTokenAdminPrivatePath: PrivatePath
 
-    /// Path to store the admin collection 
+    /// Path to store the admin collection
     /// in the admin account
-    pub let LockedTokenAdminCollectionStoragePath: Path
+    pub let LockedTokenAdminCollectionStoragePath: StoragePath
 
     /// Path to store the token holder resource
     /// in the unlocked account
-    pub let TokenHolderStoragePath: Path
+    pub let TokenHolderStoragePath: StoragePath
 
     /// Public path to store the capability that allows
     /// reading information about a locked account
-    pub let LockedAccountInfoPublicPath: Path
+    pub let LockedAccountInfoPublicPath: PublicPath
 
     /// Path that an account creator would store
     /// the resource that they use to create locked accounts
-    pub let LockedAccountCreatorStoragePath: Path
+    pub let LockedAccountCreatorStoragePath: StoragePath
 
     /// Path that an account creator would publish
-    /// their capability for the token admin to 
+    /// their capability for the token admin to
     /// deposit the account creation capability
-    pub let LockedAccountCreatorPublicPath: Path
+    pub let LockedAccountCreatorPublicPath: PublicPath
 
     /// The TokenAdmin capability allows the token administrator to unlock tokens at each
     /// milestone in the vesting period.
@@ -82,18 +82,18 @@ pub contract LockedTokens {
         pub fun increaseUnlockLimit(delta: UFix64)
     }
 
-    /// This token manager resource is stored in the shared account to manage access 
+    /// This token manager resource is stored in the shared account to manage access
     /// to the locked token vault and to the staking/delegating resources.
     pub resource LockedTokenManager: FungibleToken.Receiver, FungibleToken.Provider, TokenAdmin {
-    
-        /// This is a reference to the default FLOW vault stored in the shared account. 
+
+        /// This is a reference to the default FLOW vault stored in the shared account.
         ///
         /// All locked FLOW tokens are stored in this vault, which can be accessed in two ways:
         ///   1) Directly, in a transaction co-signed by both the token holder and token administrator
         ///   2) Indirectly via the LockedTokenManager, in a transaction signed by the token holder
         pub var vault: Capability<&FlowToken.Vault>
 
-        /// The amount of tokens that the user can withdraw. 
+        /// The amount of tokens that the user can withdraw.
         /// It is decreased when the user withdraws
         pub var unlockLimit: UFix64
 
@@ -164,14 +164,14 @@ pub contract LockedTokens {
             return vaultRef.balance
         }
 
-        access(self) fun decreaseUnlockLimit(delta: UFix64) {  
+        access(self) fun decreaseUnlockLimit(delta: UFix64) {
             self.unlockLimit = self.unlockLimit - delta
         }
 
         // LockedTokens.TokenAdmin actions
 
         /// Called by the admin every time a vesting release happens
-        pub fun increaseUnlockLimit(delta: UFix64) {  
+        pub fun increaseUnlockLimit(delta: UFix64) {
             self.unlockLimit = self.unlockLimit + delta
             emit UnlockLimitIncreased(address: self.owner!.address, increaseAmount: delta, newLimit: self.unlockLimit)
         }
@@ -181,12 +181,25 @@ pub contract LockedTokens {
         /// Registers a new node operator with the Flow Staking contract
         /// and commits an initial amount of locked tokens to stake
         pub fun registerNode(nodeInfo: StakingProxy.NodeInfo, amount: UFix64) {
+            if let nodeStaker <- self.nodeStaker <- nil {
+                let stakingInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeStaker.id)
+
+                assert(
+                    stakingInfo.tokensStaked + stakingInfo.tokensCommitted + stakingInfo.tokensUnstaking + stakingInfo.tokensUnstaked + stakingInfo.tokensRewarded == 0.0,
+                    message: "Cannot register a new node until all tokens from the previous node have been withdrawn"
+                )
+
+                destroy nodeStaker
+            }
+
             let vaultRef = self.vault.borrow()!
 
             let tokens <- vaultRef.withdraw(amount: amount)
 
-            self.nodeStaker <-! FlowIDTableStaking.addNodeRecord(id: nodeInfo.id, role: nodeInfo.role, networkingAddress: nodeInfo.networkingAddress, networkingKey: nodeInfo.networkingKey, stakingKey: nodeInfo.stakingKey, tokensCommitted: <-tokens)
-        
+            let nodeStaker <- self.nodeStaker <- FlowIDTableStaking.addNodeRecord(id: nodeInfo.id, role: nodeInfo.role, networkingAddress: nodeInfo.networkingAddress, networkingKey: nodeInfo.networkingKey, stakingKey: nodeInfo.stakingKey, tokensCommitted: <-tokens)
+
+            destroy nodeStaker
+
             emit LockedAccountRegisteredAsNode(address: self.owner!.address, nodeID: nodeInfo.id)
         }
 
@@ -194,9 +207,34 @@ pub contract LockedTokens {
         /// the caller has to specify the ID of the node operator
         /// they are delegating to
         pub fun registerDelegator(nodeID: String) {
-            self.nodeDelegator <-! FlowIDTableStaking.registerNewDelegator(nodeID: nodeID)
-        
+            if let delegator <- self.nodeDelegator <- nil {
+                let delegatorInfo = FlowIDTableStaking.DelegatorInfo(nodeID: delegator.nodeID, delegatorID: delegator.id)
+
+                assert(
+                    delegatorInfo.tokensStaked + delegatorInfo.tokensCommitted + delegatorInfo.tokensUnstaking + delegatorInfo.tokensUnstaked + delegatorInfo.tokensRewarded == 0.0,
+                    message: "Cannot register a new delegator until all tokens from the previous node have been withdrawn"
+                )
+
+                destroy delegator
+            }
+
+            let delegator <- self.nodeDelegator <- FlowIDTableStaking.registerNewDelegator(nodeID: nodeID)
+
+            destroy delegator
+
             emit LockedAccountRegisteredAsDelegator(address: self.owner!.address, nodeID: nodeID)
+        }
+
+        pub fun removeNode(): @FlowIDTableStaking.NodeStaker? {
+            let node <- self.nodeStaker <- nil
+
+            return <-node
+        }
+
+        pub fun removeDelegator(): @FlowIDTableStaking.NodeDelegator? {
+            let del <- self.nodeDelegator <- nil
+
+            return <-del
         }
     }
 
@@ -207,7 +245,7 @@ pub contract LockedTokens {
         pub fun getUnlockLimit(): UFix64
         pub fun getNodeID(): String?
         pub fun getDelegatorID(): UInt32?
-        pub fun getDelegatorNodeID(): String? 
+        pub fun getDelegatorNodeID(): String?
     }
 
     /// Stored in Holder unlocked account
@@ -218,7 +256,7 @@ pub contract LockedTokens {
 
         /// Capability that is used to access the LockedTokenManager
         /// in the shared account
-        access(self) var tokenManager: Capability<&LockedTokenManager>
+        access(account) var tokenManager: Capability<&LockedTokenManager>
 
         /// Used to perform staking actions if the user has signed up
         /// as a node operator
@@ -240,7 +278,7 @@ pub contract LockedTokens {
         }
 
         /// Utility function to borrow a reference to the LockedTokenManager object
-        access(self) fun borrowTokenManager(): &LockedTokenManager {
+        access(account) fun borrowTokenManager(): &LockedTokenManager {
             return self.tokenManager.borrow()!
         }
 
@@ -252,8 +290,10 @@ pub contract LockedTokens {
         }
 
         /// Returns the locked account balance for this token holder.
+        /// Subtracts the minimum storage reservation from the value because that portion
+        /// of the locked balance is not available to use
         pub fun getLockedAccountBalance(): UFix64 {
-            return self.borrowTokenManager().getBalance()
+            return self.borrowTokenManager().getBalance() - FlowStorageFees.minimumStorageReservation
         }
 
         // Returns the unlocked limit for this token holder.
@@ -261,7 +301,7 @@ pub contract LockedTokens {
             return self.borrowTokenManager().unlockLimit
         }
 
-        /// Deposits tokens in the locked vault, which marks them as 
+        /// Deposits tokens in the locked vault, which marks them as
         /// unlocked and available to withdraw
         pub fun deposit(from: @FungibleToken.Vault) {
             self.borrowTokenManager().deposit(from: <-from)
@@ -278,9 +318,6 @@ pub contract LockedTokens {
         /// The user calls this function if they want to register as a node operator
         /// They have to provide all the info for their node
         pub fun createNodeStaker(nodeInfo: StakingProxy.NodeInfo, amount: UFix64) {
-            pre {
-                self.nodeStakerProxy == nil && self.nodeDelegatorProxy == nil: "Already initialized"
-            }
 
             self.borrowTokenManager().registerNode(nodeInfo: nodeInfo, amount: amount)
 
@@ -291,9 +328,6 @@ pub contract LockedTokens {
         /// The user calls this function if they want to register as a node operator
         /// They have to provide the node ID for the node they want to delegate to
         pub fun createNodeDelegator(nodeID: String) {
-            pre {
-                self.nodeStakerProxy == nil && self.nodeDelegatorProxy == nil: "Already initialized"
-            }
 
             self.borrowTokenManager().registerDelegator(nodeID: nodeID)
 
@@ -353,9 +387,18 @@ pub contract LockedTokens {
             self.tokenManager = tokenManager
         }
 
+        access(self) fun nodeObjectExists(_ managerRef: &LockedTokenManager): Bool {
+            return managerRef.nodeStaker != nil
+        }
+
         /// Stakes new locked tokens
         pub fun stakeNewTokens(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
+
+            assert(
+                self.nodeObjectExists(tokenManagerRef),
+                message: "Cannot stake if there is no node object!"
+            )
 
             let vaultRef = tokenManagerRef.vault.borrow()!
 
@@ -366,6 +409,11 @@ pub contract LockedTokens {
         pub fun stakeUnstakedTokens(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
 
+            assert(
+                self.nodeObjectExists(tokenManagerRef),
+                message: "Cannot stake if there is no node object!"
+            )
+
             tokenManagerRef.nodeStaker?.stakeUnstakedTokens(amount: amount)
         }
 
@@ -374,6 +422,11 @@ pub contract LockedTokens {
         /// because staked tokens are effectively treated as locked tokens
         pub fun stakeRewardedTokens(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
+
+            assert(
+                self.nodeObjectExists(tokenManagerRef),
+                message: "Cannot stake if there is no node object!"
+            )
 
             tokenManagerRef.nodeStaker?.stakeRewardedTokens(amount: amount)
 
@@ -384,6 +437,11 @@ pub contract LockedTokens {
         pub fun requestUnstaking(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
 
+            assert(
+                self.nodeObjectExists(tokenManagerRef),
+                message: "Cannot stake if there is no node object!"
+            )
+
             tokenManagerRef.nodeStaker?.requestUnstaking(amount: amount)
         }
 
@@ -392,15 +450,25 @@ pub contract LockedTokens {
         pub fun unstakeAll() {
             let tokenManagerRef = self.tokenManager.borrow()!
 
+            assert(
+                self.nodeObjectExists(tokenManagerRef),
+                message: "Cannot stake if there is no node object!"
+            )
+
             tokenManagerRef.nodeStaker?.unstakeAll()
         }
 
-        /// Withdraw the unstaked tokens back to 
+        /// Withdraw the unstaked tokens back to
         /// the locked token vault. This does not increase the withdraw
         /// limit because staked/unstaked tokens are considered to still
         /// be locked in terms of the vesting schedule
         pub fun withdrawUnstakedTokens(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
+
+            assert(
+                self.nodeObjectExists(tokenManagerRef),
+                message: "Cannot stake if there is no node object!"
+            )
 
             let vaultRef = tokenManagerRef.vault.borrow()!
 
@@ -409,10 +477,15 @@ pub contract LockedTokens {
             vaultRef.deposit(from: <-withdrawnTokens)
         }
 
-        /// Withdraw reward tokens to the locked vault, 
+        /// Withdraw reward tokens to the locked vault,
         /// which increases the withdraw limit
         pub fun withdrawRewardedTokens(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
+
+            assert(
+                self.nodeObjectExists(tokenManagerRef),
+                message: "Cannot stake if there is no node object!"
+            )
 
             tokenManagerRef.deposit(from: <-tokenManagerRef.nodeStaker?.withdrawRewardedTokens(amount: amount)!)
         }
@@ -430,9 +503,18 @@ pub contract LockedTokens {
             self.tokenManager = tokenManager
         }
 
+        access(self) fun delegatorObjectExists(_ managerRef: &LockedTokenManager): Bool {
+            return managerRef.nodeDelegator != nil
+        }
+
         /// delegates tokens from the locked token vault
         pub fun delegateNewTokens(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
+
+            assert(
+                self.delegatorObjectExists(tokenManagerRef),
+                message: "Cannot stake if there is no delegator object!"
+            )
 
             let vaultRef = tokenManagerRef.vault.borrow()!
 
@@ -443,6 +525,11 @@ pub contract LockedTokens {
         pub fun delegateUnstakedTokens(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
 
+            assert(
+                self.delegatorObjectExists(tokenManagerRef),
+                message: "Cannot stake if there is no delegator object!"
+            )
+
             tokenManagerRef.nodeDelegator?.delegateUnstakedTokens(amount: amount)
         }
 
@@ -450,6 +537,11 @@ pub contract LockedTokens {
         /// because these are freely withdrawable
         pub fun delegateRewardedTokens(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
+
+            assert(
+                self.delegatorObjectExists(tokenManagerRef),
+                message: "Cannot stake if there is no delegator object!"
+            )
 
             tokenManagerRef.nodeDelegator?.delegateRewardedTokens(amount: amount)
 
@@ -460,6 +552,11 @@ pub contract LockedTokens {
         pub fun requestUnstaking(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
 
+            assert(
+                self.delegatorObjectExists(tokenManagerRef),
+                message: "Cannot stake if there is no delegator object!"
+            )
+
             tokenManagerRef.nodeDelegator?.requestUnstaking(amount: amount)
         }
 
@@ -468,16 +565,26 @@ pub contract LockedTokens {
         pub fun withdrawUnstakedTokens(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
 
+            assert(
+                self.delegatorObjectExists(tokenManagerRef),
+                message: "Cannot stake if there is no delegator object!"
+            )
+
             let vaultRef = tokenManagerRef.vault.borrow()!
 
             vaultRef.deposit(from: <-tokenManagerRef.nodeDelegator?.withdrawUnstakedTokens(amount: amount)!)
         }
 
         /// Withdraw rewarded tokens back to the locked vault,
-        /// which increases the withdraw limit because these 
+        /// which increases the withdraw limit because these
         /// are considered unstaked in terms of the vesting schedule
         pub fun withdrawRewardedTokens(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!
+
+            assert(
+                self.delegatorObjectExists(tokenManagerRef),
+                message: "Cannot stake if there is no delegator object!"
+            )
 
             tokenManagerRef.deposit(from: <-tokenManagerRef.nodeDelegator?.withdrawRewardedTokens(amount: amount)!)
         }
@@ -485,7 +592,7 @@ pub contract LockedTokens {
 
     pub resource interface AddAccount {
         pub fun addAccount(
-            sharedAccountAddress: Address, 
+            sharedAccountAddress: Address,
             unlockedAccountAddress: Address,
             tokenAdmin: Capability<&LockedTokenManager>)
     }
@@ -494,7 +601,7 @@ pub contract LockedTokens {
     /// stores in their account to manage the vesting schedule
     /// for all the token holders
     pub resource TokenAdminCollection: AddAccount {
-        
+
         /// Mapping of account addresses to LockedTokenManager capabilities
         access(self) var accounts: {Address: Capability<&LockedTokenManager>}
 
@@ -505,9 +612,9 @@ pub contract LockedTokens {
         /// Add a new account's locked token manager capability
         /// to the record
         pub fun addAccount(
-            sharedAccountAddress: Address, 
+            sharedAccountAddress: Address,
             unlockedAccountAddress: Address,
-            tokenAdmin: Capability<&LockedTokenManager>) 
+            tokenAdmin: Capability<&LockedTokenManager>)
         {
             self.accounts[sharedAccountAddress] = tokenAdmin
             emit SharedAccountRegistered(address: sharedAccountAddress)
@@ -515,7 +622,7 @@ pub contract LockedTokens {
         }
 
         /// Get an accounts capability
-        pub fun getAccount(address: Address): Capability<&LockedTokenManager>? {
+        pub fun getAccount(address: Address): Capability<&LockedTokenManager{TokenAdmin}>? {
             return self.accounts[address]
         }
 
@@ -545,20 +652,20 @@ pub contract LockedTokens {
             self.addAccountCapability = cap
         }
 
-        pub fun addAccount(sharedAccountAddress: Address, 
+        pub fun addAccount(sharedAccountAddress: Address,
                            unlockedAccountAddress: Address,
                            tokenAdmin: Capability<&LockedTokenManager>) {
-            
+
             pre {
-                self.addAccountCapability != nil: 
+                self.addAccountCapability != nil:
                     "Cannot add account until the token admin has deposited the account registration capability"
                 tokenAdmin.borrow() != nil:
                     "Invalid tokenAdmin capability"
             }
-            
+
             let adminRef = self.addAccountCapability!.borrow()!
 
-            adminRef.addAccount(sharedAccountAddress: sharedAccountAddress, 
+            adminRef.addAccount(sharedAccountAddress: sharedAccountAddress,
                            unlockedAccountAddress: unlockedAccountAddress,
                            tokenAdmin: tokenAdmin)
         }
@@ -595,7 +702,7 @@ pub contract LockedTokens {
 
         /// create a single admin collection and store it
         admin.save(<-create TokenAdminCollection(), to: self.LockedTokenAdminCollectionStoragePath)
-        
+
         admin.link<&LockedTokens.TokenAdminCollection>(
             LockedTokens.LockedTokenAdminPrivatePath,
             target: LockedTokens.LockedTokenAdminCollectionStoragePath

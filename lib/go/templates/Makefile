@@ -1,10 +1,15 @@
+.PHONY: test
+test:
+	go test ./...
+
 .PHONY: generate
 generate:
 	go generate
 
-.PHONY: check-generated
-check-generated:
-	git diff -- lib/go/templates/ --exit-code
+.PHONY: check-tidy
+check-tidy: generate
+	go mod tidy
+	git diff --exit-code
 
 .PHONY: ci
-ci: generate check-generated
+ci: check-tidy test

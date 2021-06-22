@@ -26,13 +26,22 @@ implemented as a regular smart contract so that it can be easily used
 just like any other token in the network. See the [flow fungible token repository](https://github.com/onflow/flow-ft)
 for more information.
 
-You can find transactions for using the Flow Token in the `transactions/FlowToken` directory.
+You can find transactions for using the Flow Token in the `transactions/flowToken` directory.
 
 ### Fee Contract
 
 `contracts/FlowFees.cdc`
 
 This contract defines fees that are spent for executing transactions and creating accounts.
+
+### Storage Fee Contract
+
+`contracts/FlowStorageFees.cdc`
+
+This contract defines fees that are spent to pay for the storage that an account uses.
+There is a minimum balance that an account needs to maintain in its main `FlowToken` Vault
+in order to pay for the storage it uses.
+You can see [more docs about storage capacity and fees here.](https://docs.onflow.org/concepts/storage/#overview)
 
 ### Service Account Contract
 
@@ -54,18 +63,18 @@ This contract also manages the logic for users to delegate their tokens to a nod
 and receive their own rewards. You can see an explaination of this process in the staking section
 of the [Flow Docs website](https://docs.onflow.org/token/staking/).
 
-You can find all the transactions for interacting with the IDTableStaking contract
+You can find all the transactions for interacting with the IDTableStaking contract with unlocked FLOW
 in the `transactions/idTableStaking` directory.
 
-### Flow Staking Helper Contract
+You can also find scripts for querying info about staking and stakers in the `transactions/idTableStaking/scripts/` directory.
+These scripts are documented in the [staking scripts section of the docs](https://docs.onflow.org/staking/scripts/)
 
-`contracts/FlowStakingHelper.cdc`
+### Flow Locked Tokens contract
 
-The Flow staking helper contract manages the relationship between a user who wants to operate a node
-and a token holder who wants to stake all their tokens for them. The staking helper contract draft is
-in the `max/staking-helper` branch in a PR and will be merged very soon.
+`contracts/LockedTokens.cdc`
 
-You can find all the Staking Helper transactions in the `transactions/stakingHelper` directory.
+This contract manages the two year lockup of Flow tokens that backers purchased in the initial
+token sale in October of 2020. See more documentation about `LockedTokens` [here.](https://docs.onflow.org/flow-token/locked-account-setup/)
 
 ## Testing
 

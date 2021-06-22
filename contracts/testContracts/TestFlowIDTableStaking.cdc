@@ -2,7 +2,7 @@
 
     TestFlowIDTableStaking
 
-    This is a test contract to act as an API for 
+    This is a test contract to act as an API for
     testing the lockbox and staking proxy contracts.
 
  */
@@ -22,7 +22,7 @@ pub contract FlowIDTableStaking {
         /// Set when the node is created
         pub let id: String
 
-        /// The type of node: 
+        /// The type of node:
         /// 1 = collection
         /// 2 = consensus
         /// 3 = execution
@@ -39,12 +39,13 @@ pub contract FlowIDTableStaking {
         /// the public key for staking
         pub(set) var stakingKey: String
 
-        init(id: String,
-             role: UInt8,  /// role that the node will have for future epochs
-             networkingAddress: String, 
-             networkingKey: String, 
-             stakingKey: String, 
-             tokensCommitted: @FungibleToken.Vault
+        init(
+            id: String,
+            role: UInt8,  /// role that the node will have for future epochs
+            networkingAddress: String,
+            networkingKey: String,
+            stakingKey: String,
+            tokensCommitted: @FungibleToken.Vault
         ) {
 
             self.id = id
@@ -54,6 +55,46 @@ pub contract FlowIDTableStaking {
             self.stakingKey = stakingKey
 
             destroy tokensCommitted
+        }
+    }
+
+        // Struct to create to get read-only info about a node
+    pub struct NodeInfo {
+        pub let id: String
+        pub let role: UInt8
+        pub let networkingAddress: String
+        pub let networkingKey: String
+        pub let stakingKey: String
+        pub let tokensStaked: UFix64
+        pub let totalTokensStaked: UFix64
+        pub let tokensCommitted: UFix64
+        pub let tokensUnstaking: UFix64
+        pub let tokensUnstaked: UFix64
+        pub let tokensRewarded: UFix64
+
+        /// list of delegator IDs for this node operator
+        pub let delegators: [UInt32]
+        pub let delegatorIDCounter: UInt32
+        pub let tokensRequestedToUnstake: UFix64
+        pub let initialWeight: UInt64
+
+        init(nodeID: String) {
+
+            self.id = nodeID
+            self.role = 2
+            self.networkingAddress = "address"
+            self.networkingKey = "key"
+            self.stakingKey = "key"
+            self.tokensStaked = 0.0
+            self.totalTokensStaked = 0.0
+            self.tokensCommitted = 0.0
+            self.tokensUnstaking = 0.0
+            self.tokensUnstaked = 0.0
+            self.tokensRewarded = 0.0
+            self.delegators = []
+            self.delegatorIDCounter = 0
+            self.tokensRequestedToUnstake = 0.0
+            self.initialWeight = 0
         }
     }
 
@@ -73,13 +114,13 @@ pub contract FlowIDTableStaking {
             destroy tokens
         }
 
-        /// Stake tokens that are in the tokensUnstaked bucket 
+        /// Stake tokens that are in the tokensUnstaked bucket
         /// but haven't been officially staked
         pub fun stakeUnstakedTokens(amount: UFix64) {
 
         }
 
-        /// Stake tokens that are in the tokensRewarded bucket 
+        /// Stake tokens that are in the tokensRewarded bucket
         /// but haven't been officially staked
         pub fun stakeRewardedTokens(amount: UFix64) {
 
@@ -94,7 +135,7 @@ pub contract FlowIDTableStaking {
         /// Requests to unstake all of the node operators staked and committed tokens,
         /// as well as all the staked and committed tokens of all of their delegators
         pub fun unstakeAll() {
-            
+
         }
 
         /// Withdraw tokens from the unstaked bucket
@@ -103,7 +144,7 @@ pub contract FlowIDTableStaking {
                 ?? panic("Could not borrow minter reference")
 
             return <- flowTokenMinter.mintTokens(amount: amount)
-            
+
         }
 
         /// Withdraw tokens from the rewarded bucket
@@ -112,6 +153,31 @@ pub contract FlowIDTableStaking {
                 ?? panic("Could not borrow minter reference")
 
             return <- flowTokenMinter.mintTokens(amount: amount)
+        }
+
+    }
+
+    pub struct DelegatorInfo {
+
+        pub let id: UInt32
+        pub let nodeID: String
+        pub let tokensCommitted: UFix64
+        pub let tokensStaked: UFix64
+        pub let tokensUnstaking: UFix64
+        pub let tokensRewarded: UFix64
+        pub let tokensUnstaked: UFix64
+        pub let tokensRequestedToUnstake: UFix64
+
+        init(nodeID: String, delegatorID: UInt32) {
+
+            self.id = delegatorID
+            self.nodeID = nodeID
+            self.tokensCommitted = 0.0
+            self.tokensStaked = 0.0
+            self.tokensUnstaking = 0.0
+            self.tokensUnstaked = 0.0
+            self.tokensRewarded = 0.0
+            self.tokensRequestedToUnstake = 0.0
         }
 
     }
@@ -172,12 +238,19 @@ pub contract FlowIDTableStaking {
     /// Any node can call this function to register a new Node
     /// It returns the resource for nodes that they can store in
     /// their account storage
-    pub fun addNodeRecord(id: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String, tokensCommitted: @FungibleToken.Vault): @NodeStaker {
+    pub fun addNodeRecord(
+        id: String,
+        role: UInt8,
+        networkingAddress: String,
+        networkingKey: String,
+        stakingKey: String,
+        tokensCommitted: @FungibleToken.Vault
+    ): @NodeStaker {
         destroy tokensCommitted
 
         // return a new NodeStaker object that the node operator stores in their account
         return <-create NodeStaker(id: id)
-    
+
     }
 
     pub fun registerNewDelegator(nodeID: String): @NodeDelegator {
@@ -188,4 +261,3 @@ pub contract FlowIDTableStaking {
     init(_ epochTokenPayout: UFix64, _ rewardCut: UFix64) {
     }
 }
- 

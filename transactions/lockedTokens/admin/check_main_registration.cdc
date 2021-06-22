@@ -11,12 +11,13 @@ transaction(mainAccount: Address) {
             ?? panic("Could not borrow a reference to the locked token admin collection")
 
         let lockedAccountInfoRef = getAccount(mainAccount)
-            .getCapability<&LockedTokens.TokenHolder{LockedTokens.LockedAccountInfo}>(LockedTokens.LockedAccountInfoPublicPath)!
-            .borrow() ?? panic("Could not borrow a reference to public LockedAccountInfo")
+            .getCapability<&LockedTokens.TokenHolder{LockedTokens.LockedAccountInfo}>(LockedTokens.LockedAccountInfoPublicPath)
+            .borrow()
+            ?? panic("Could not borrow a reference to public LockedAccountInfo")
 
         let lockedAccount = lockedAccountInfoRef.getLockedAccountAddress()
 
-        assert (
+        assert(
             adminRef.getAccount(address: lockedAccount) != nil,
             message: "The specified account is not a locked account! Cannot send locked tokens"
         )

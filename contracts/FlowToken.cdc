@@ -143,7 +143,7 @@ pub contract FlowToken: FungibleToken {
             self.allowedAmount = allowedAmount
         }
     }
-    
+
     // Burner
     //
     // Resource object that token admin accounts can hold to burn tokens.
@@ -154,7 +154,7 @@ pub contract FlowToken: FungibleToken {
         //
         // Function that destroys a Vault instance, effectively burning the tokens.
         //
-        // Note: the burned tokens are automatically subtracted from the 
+        // Note: the burned tokens are automatically subtracted from the
         // total supply in the Vault destructor.
         //
         pub fun burnTokens(from: @FungibleToken.Vault) {
