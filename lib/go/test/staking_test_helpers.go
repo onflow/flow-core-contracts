@@ -45,7 +45,7 @@ func deployStakingContract(t *testing.T, b *emulator.Blockchain, IDTableAccountK
 
 	// Add the keys argument, contract name, and code
 	tx.AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys))
-	tx.AddRawArgument(jsoncdc.MustEncode(cadence.NewString("FlowIDTableStaking")))
+	tx.AddRawArgument(jsoncdc.MustEncode(cadence.String("FlowIDTableStaking")))
 	tx.AddRawArgument(jsoncdc.MustEncode(cadenceCode))
 
 	// Set the weekly payount amount and delegator cut percentage
@@ -177,9 +177,9 @@ func generateNodeIDs(numNodes int) ([]string, []cadence.Value, []cadence.Value) 
 
 		// If the ID is for a collector or consensus node, add the ID to the respective array
 		if i == 0 {
-			collectorIDs[i/5] = cadence.NewString(ids[i])
+			collectorIDs[i/5] = cadence.String(ids[i])
 		} else if i == 1 {
-			consensusIDs[i/5] = cadence.NewString(ids[i])
+			consensusIDs[i/5] = cadence.String(ids[i])
 		}
 	}
 
@@ -207,11 +207,11 @@ func registerNode(t *testing.T,
 		templates.GenerateRegisterNodeScript(env),
 		authorizer)
 
-	_ = tx.AddArgument(cadence.NewString(nodeID))
+	_ = tx.AddArgument(cadence.String(nodeID))
 	_ = tx.AddArgument(cadence.NewUInt8(role))
-	_ = tx.AddArgument(cadence.NewString(networkingAddress))
-	_ = tx.AddArgument(cadence.NewString(networkingKey))
-	_ = tx.AddArgument(cadence.NewString(stakingKey))
+	_ = tx.AddArgument(cadence.String(networkingAddress))
+	_ = tx.AddArgument(cadence.String(networkingKey))
+	_ = tx.AddArgument(cadence.String(stakingKey))
 	tokenAmount, err := cadence.NewUFix64(amount.String())
 	require.NoError(t, err)
 	_ = tx.AddArgument(tokenAmount)
@@ -247,7 +247,7 @@ func registerDelegator(t *testing.T,
 		templates.GenerateRegisterDelegatorScript(env),
 		authorizer)
 
-	_ = tx.AddArgument(cadence.NewString(nodeID))
+	_ = tx.AddArgument(cadence.String(nodeID))
 
 	signAndSubmit(
 		t, b, tx,

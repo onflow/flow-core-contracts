@@ -42,7 +42,7 @@ func TestLockedTokensStaker(t *testing.T) {
 	// Deploy the IDTableStaking contract
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateTransferMinterAndDeployScript(env), b.ServiceKey().Address).
 		AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys)).
-		AddRawArgument(jsoncdc.MustEncode(cadence.NewString("FlowIDTableStaking"))).
+		AddRawArgument(jsoncdc.MustEncode(cadence.String("FlowIDTableStaking"))).
 		AddRawArgument(jsoncdc.MustEncode(cadenceCode))
 	_ = tx.AddArgument(CadenceUFix64("1250000.0"))
 	_ = tx.AddArgument(CadenceUFix64("0.03"))
@@ -334,11 +334,11 @@ func TestLockedTokensStaker(t *testing.T) {
 	t.Run("Should be able to register josh as a node operator", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID))
+		_ = tx.AddArgument(cadence.String(joshID))
 		_ = tx.AddArgument(cadence.NewUInt8(1))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", josh)))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", josh)))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", josh)))
+		_ = tx.AddArgument(cadence.String(fmt.Sprintf("%0128d", josh)))
+		_ = tx.AddArgument(cadence.String(fmt.Sprintf("%0128d", josh)))
+		_ = tx.AddArgument(cadence.String(fmt.Sprintf("%0192d", josh)))
 		_ = tx.AddArgument(CadenceUFix64("250000.0"))
 
 		signAndSubmit(
@@ -350,7 +350,7 @@ func TestLockedTokensStaker(t *testing.T) {
 
 		// Check the node ID
 		result := executeScriptAndCheck(t, b, templates.GenerateGetNodeIDScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
-		assertEqual(t, cadence.NewString(joshID), result)
+		assertEqual(t, cadence.String(joshID), result)
 
 		// unlock limit should not have changed
 		result = executeScriptAndCheck(t, b, templates.GenerateGetUnlockLimitScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
@@ -526,11 +526,11 @@ func TestLockedTokensStaker(t *testing.T) {
 		t.Log("locked balance", result)
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID))
+		_ = tx.AddArgument(cadence.String(joshID))
 		_ = tx.AddArgument(cadence.NewUInt8(1))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", josh)))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", josh)))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", josh)))
+		_ = tx.AddArgument(cadence.String(fmt.Sprintf("%0128d", josh)))
+		_ = tx.AddArgument(cadence.String(fmt.Sprintf("%0128d", josh)))
+		_ = tx.AddArgument(cadence.String(fmt.Sprintf("%0192d", josh)))
 		_ = tx.AddArgument(CadenceUFix64("745000.0"))
 
 		signAndSubmit(
@@ -542,7 +542,7 @@ func TestLockedTokensStaker(t *testing.T) {
 
 		// Check the node ID
 		result = executeScriptAndCheck(t, b, templates.GenerateGetNodeIDScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
-		assertEqual(t, cadence.NewString(joshID), result)
+		assertEqual(t, cadence.String(joshID), result)
 
 		// Check unlocked balance
 		result = executeScriptAndCheck(t, b, ft_templates.GenerateInspectVaultScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
@@ -629,7 +629,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 	// Deploy the IDTableStaking contract
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateTransferMinterAndDeployScript(env), b.ServiceKey().Address).
 		AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys)).
-		AddRawArgument(jsoncdc.MustEncode(cadence.NewString("FlowIDTableStaking"))).
+		AddRawArgument(jsoncdc.MustEncode(cadence.String("FlowIDTableStaking"))).
 		AddRawArgument(jsoncdc.MustEncode(cadenceCode))
 
 	_ = tx.AddArgument(CadenceUFix64("1250000.0"))
@@ -749,7 +749,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 	t.Run("Should be able to register josh as a delegator", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateLockedDelegatorScript(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID))
+		_ = tx.AddArgument(cadence.String(joshID))
 		_ = tx.AddArgument(CadenceUFix64("50000.0"))
 
 		signAndSubmit(
@@ -765,7 +765,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 
 		// Check the delegator node ID
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorNodeIDScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
-		assertEqual(t, cadence.NewString(joshID), result)
+		assertEqual(t, cadence.String(joshID), result)
 	})
 
 	t.Run("Should be able to delegate locked tokens", func(t *testing.T) {
@@ -942,7 +942,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 	t.Run("Should be able to register as a delegator using tokens from the locked vault first and then the unlocked vault", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateLockedDelegatorScript(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID))
+		_ = tx.AddArgument(cadence.String(joshID))
 		_ = tx.AddArgument(CadenceUFix64("949500.0"))
 
 		signAndSubmit(
@@ -958,7 +958,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 
 		// Check the delegator node ID
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorNodeIDScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
-		assertEqual(t, cadence.NewString(joshID), result)
+		assertEqual(t, cadence.String(joshID), result)
 
 		// Check that unlock limit increases by 500.0
 		result = executeScriptAndCheck(t, b, templates.GenerateGetUnlockLimitScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
@@ -1069,7 +1069,7 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 	// Deploy the IDTableStaking contract
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateTransferMinterAndDeployScript(env), b.ServiceKey().Address).
 		AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys)).
-		AddRawArgument(jsoncdc.MustEncode(cadence.NewString("FlowIDTableStaking"))).
+		AddRawArgument(jsoncdc.MustEncode(cadence.String("FlowIDTableStaking"))).
 		AddRawArgument(jsoncdc.MustEncode(cadenceCode))
 
 	_ = tx.AddArgument(CadenceUFix64("1250000.0"))
@@ -1399,7 +1399,7 @@ func TestLockedTokensRealStaking(t *testing.T) {
 	// Deploy the IDTableStaking contract
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateTransferMinterAndDeployScript(env), b.ServiceKey().Address).
 		AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys)).
-		AddRawArgument(jsoncdc.MustEncode(cadence.NewString("FlowIDTableStaking"))).
+		AddRawArgument(jsoncdc.MustEncode(cadence.String("FlowIDTableStaking"))).
 		AddRawArgument(jsoncdc.MustEncode(cadenceCode))
 
 	_ = tx.AddArgument(CadenceUFix64("1250000.0"))
@@ -1530,11 +1530,11 @@ func TestLockedTokensRealStaking(t *testing.T) {
 	t.Run("Should be able to register josh as a node operator", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID))
+		_ = tx.AddArgument(cadence.String(joshID))
 		_ = tx.AddArgument(cadence.NewUInt8(1))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", josh)))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", josh)))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", josh)))
+		_ = tx.AddArgument(cadence.String(fmt.Sprintf("%0128d", josh)))
+		_ = tx.AddArgument(cadence.String(fmt.Sprintf("%0128d", josh)))
+		_ = tx.AddArgument(cadence.String(fmt.Sprintf("%0192d", josh)))
 		_ = tx.AddArgument(CadenceUFix64("250000.0"))
 
 		signAndSubmit(
@@ -1546,7 +1546,7 @@ func TestLockedTokensRealStaking(t *testing.T) {
 
 		// Check the node ID
 		result := executeScriptAndCheck(t, b, templates.GenerateGetNodeIDScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
-		assertEqual(t, cadence.NewString(joshID), result)
+		assertEqual(t, cadence.String(joshID), result)
 	})
 
 	t.Run("Should be able to get the node info from the locked account by just using the address", func(t *testing.T) {
@@ -1556,7 +1556,7 @@ func TestLockedTokensRealStaking(t *testing.T) {
 	t.Run("Should be able to register as a delegator after registering as a node operator", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateLockedDelegatorScript(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID))
+		_ = tx.AddArgument(cadence.String(joshID))
 		_ = tx.AddArgument(CadenceUFix64("20000.0"))
 
 		signAndSubmit(
@@ -1599,11 +1599,11 @@ func TestLockedTokensRealStaking(t *testing.T) {
 	t.Run("Should not be able to register a second node while the first has tokens committed", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(maxID))
+		_ = tx.AddArgument(cadence.String(maxID))
 		_ = tx.AddArgument(cadence.NewUInt8(2))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", josh)))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", josh)))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", josh)))
+		_ = tx.AddArgument(cadence.String(fmt.Sprintf("%0128d", josh)))
+		_ = tx.AddArgument(cadence.String(fmt.Sprintf("%0128d", josh)))
+		_ = tx.AddArgument(cadence.String(fmt.Sprintf("%0192d", josh)))
 		_ = tx.AddArgument(CadenceUFix64("250000.0"))
 
 		signAndSubmit(
@@ -1643,11 +1643,11 @@ func TestLockedTokensRealStaking(t *testing.T) {
 	t.Run("Should not be able to register a second node while the first has tokens unstaked", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(maxID))
+		_ = tx.AddArgument(cadence.String(maxID))
 		_ = tx.AddArgument(cadence.NewUInt8(2))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", josh)))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", josh)))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", josh)))
+		_ = tx.AddArgument(cadence.String(fmt.Sprintf("%0128d", josh)))
+		_ = tx.AddArgument(cadence.String(fmt.Sprintf("%0128d", josh)))
+		_ = tx.AddArgument(cadence.String(fmt.Sprintf("%0192d", josh)))
 		_ = tx.AddArgument(CadenceUFix64("250000.0"))
 
 		signAndSubmit(
@@ -1691,11 +1691,11 @@ func TestLockedTokensRealStaking(t *testing.T) {
 		)
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(maxID))
+		_ = tx.AddArgument(cadence.String(maxID))
 		_ = tx.AddArgument(cadence.NewUInt8(2))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", max)))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", max)))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", max)))
+		_ = tx.AddArgument(cadence.String(fmt.Sprintf("%0128d", max)))
+		_ = tx.AddArgument(cadence.String(fmt.Sprintf("%0128d", max)))
+		_ = tx.AddArgument(cadence.String(fmt.Sprintf("%0192d", max)))
 		_ = tx.AddArgument(CadenceUFix64("250000.0"))
 
 		signAndSubmit(
@@ -1734,7 +1734,7 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 	// Deploy the IDTableStaking contract
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateTransferMinterAndDeployScript(env), b.ServiceKey().Address).
 		AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys)).
-		AddRawArgument(jsoncdc.MustEncode(cadence.NewString("FlowIDTableStaking"))).
+		AddRawArgument(jsoncdc.MustEncode(cadence.String("FlowIDTableStaking"))).
 		AddRawArgument(jsoncdc.MustEncode(cadenceCode))
 
 	_ = tx.AddArgument(CadenceUFix64("1250000.0"))
@@ -1861,11 +1861,11 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 	t.Run("Should be able to register as a node operator", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID))
+		_ = tx.AddArgument(cadence.String(joshID))
 		_ = tx.AddArgument(cadence.NewUInt8(1))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", josh)))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", josh)))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", josh)))
+		_ = tx.AddArgument(cadence.String(fmt.Sprintf("%0128d", josh)))
+		_ = tx.AddArgument(cadence.String(fmt.Sprintf("%0128d", josh)))
+		_ = tx.AddArgument(cadence.String(fmt.Sprintf("%0192d", josh)))
 		_ = tx.AddArgument(CadenceUFix64("320000.0"))
 
 		signAndSubmit(
@@ -1879,7 +1879,7 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 	t.Run("Should be able to register josh as a delegator", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateLockedDelegatorScript(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID))
+		_ = tx.AddArgument(cadence.String(joshID))
 		_ = tx.AddArgument(CadenceUFix64("50000.0"))
 
 		signAndSubmit(
@@ -1893,7 +1893,7 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 	t.Run("Should not be able to register josh as a new delegator since there are still tokens in committed", func(t *testing.T) {
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateLockedDelegatorScript(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID))
+		_ = tx.AddArgument(cadence.String(joshID))
 		_ = tx.AddArgument(CadenceUFix64("50000.0"))
 
 		signAndSubmit(
@@ -1942,7 +1942,7 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 	t.Run("Should not be able to register josh as a delegator while there are still tokens committed or unstaked", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateLockedDelegatorScript(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID))
+		_ = tx.AddArgument(cadence.String(joshID))
 		_ = tx.AddArgument(CadenceUFix64("50000.0"))
 
 		signAndSubmit(
@@ -1980,7 +1980,7 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 	t.Run("Should not be able to register josh as a new delegator since there are still tokens in staking", func(t *testing.T) {
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateLockedDelegatorScript(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID))
+		_ = tx.AddArgument(cadence.String(joshID))
 		_ = tx.AddArgument(CadenceUFix64("50000.0"))
 
 		signAndSubmit(
@@ -2014,7 +2014,7 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 		)
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateLockedDelegatorScript(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID))
+		_ = tx.AddArgument(cadence.String(joshID))
 		_ = tx.AddArgument(CadenceUFix64("50000.0"))
 
 		signAndSubmit(

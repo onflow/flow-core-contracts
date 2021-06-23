@@ -73,7 +73,8 @@ func deployLockedTokensContract(
 		b.ServiceKey().Address.String(),
 	)
 	// Encode the contract as a Cadence string
-	cadenceCode := cadence.NewString(hex.EncodeToString(lockedTokensCode))
+	cadenceCode, err := cadence.NewString(hex.EncodeToString(lockedTokensCode))
+	require.NoError(t, err)
 
 	// Create the locked tokens account key array and a key
 	publicKeys := make([]cadence.Value, 1)
@@ -83,12 +84,12 @@ func deployLockedTokensContract(
 	// Create the transaction template to deploy the locked tokens contract
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDeployLockedTokens(), b.ServiceKey().Address)
 	// Add the arguments for contract name, contract code, and public keys for the account
-	tx.AddRawArgument(jsoncdc.MustEncode(cadence.NewString("LockedTokens")))
+	tx.AddRawArgument(jsoncdc.MustEncode(cadence.String("LockedTokens")))
 	tx.AddRawArgument(jsoncdc.MustEncode(cadenceCode))
 	tx.AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys))
 
 	// Sign and submit the transaction
-	err := tx.SignEnvelope(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().Signer())
+	err = tx.SignEnvelope(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().Signer())
 	require.NoError(t, err)
 	err = b.AddTransaction(*tx)
 	require.NoError(t, err)
@@ -245,11 +246,12 @@ func deployCollectionContract(t *testing.T, b *emulator.Blockchain,
 	// Get the test version of the staking collection contract that has all public fields
 	// for testing purposes
 	FlowStakingCollectionCode := contracts.TESTFlowStakingCollection(emulatorFTAddress, emulatorFlowTokenAddress, idTableAddress.String(), stakingProxyAddress.String(), lockedTokensAddress.String(), b.ServiceKey().Address.String())
-	FlowStakingCollectionByteCode := cadence.NewString(hex.EncodeToString(FlowStakingCollectionCode))
+	FlowStakingCollectionByteCode, err := cadence.NewString(hex.EncodeToString(FlowStakingCollectionCode))
+	require.NoError(t, err)
 
 	// Deploy the staking collection contract
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDeployStakingCollectionScript(), lockedTokensAddress).
-		AddRawArgument(jsoncdc.MustEncode(cadence.NewString("FlowStakingCollection"))).
+		AddRawArgument(jsoncdc.MustEncode(cadence.String("FlowStakingCollection"))).
 		AddRawArgument(jsoncdc.MustEncode(FlowStakingCollectionByteCode))
 
 	signAndSubmit(
@@ -329,11 +331,11 @@ func registerStakingCollectionNodesAndDelegators(
 
 	// Register a node in the locked account
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), newUserAddress)
-	_ = tx.AddArgument(cadence.NewString(userNodeID1))
+	_ = tx.AddArgument(cadence.String(userNodeID1))
 	_ = tx.AddArgument(cadence.NewUInt8(4))
-	_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", 1)))
-	_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", 1)))
-	_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", 1)))
+	_ = tx.AddArgument(cadence.String(fmt.Sprintf("%0128d", 1)))
+	_ = tx.AddArgument(cadence.String(fmt.Sprintf("%0128d", 1)))
+	_ = tx.AddArgument(cadence.String(fmt.Sprintf("%0192d", 1)))
 	_ = tx.AddArgument(CadenceUFix64("320000.0"))
 
 	signAndSubmit(
@@ -345,7 +347,7 @@ func registerStakingCollectionNodesAndDelegators(
 
 	// Register a delegator in the locked account
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateLockedDelegatorScript(env), newUserAddress)
-	_ = tx.AddArgument(cadence.NewString(userNodeID1))
+	_ = tx.AddArgument(cadence.String(userNodeID1))
 	_ = tx.AddArgument(CadenceUFix64("50000.0"))
 
 	signAndSubmit(
@@ -367,11 +369,11 @@ func registerStakingCollectionNodesAndDelegators(
 
 	// Register a node with the staking collection
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterNode(env), newUserAddress)
-	_ = tx.AddArgument(cadence.NewString(userNodeID2))
+	_ = tx.AddArgument(cadence.String(userNodeID2))
 	_ = tx.AddArgument(cadence.NewUInt8(2))
-	_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", 2)))
-	_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", 2)))
-	_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", 2)))
+	_ = tx.AddArgument(cadence.String(fmt.Sprintf("%0128d", 2)))
+	_ = tx.AddArgument(cadence.String(fmt.Sprintf("%0128d", 2)))
+	_ = tx.AddArgument(cadence.String(fmt.Sprintf("%0192d", 2)))
 	_ = tx.AddArgument(CadenceUFix64("500000.0"))
 
 	signAndSubmit(
@@ -383,7 +385,7 @@ func registerStakingCollectionNodesAndDelegators(
 
 	// Register a delegator with the staking collection
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterDelegator(env), newUserAddress)
-	_ = tx.AddArgument(cadence.NewString(userNodeID2))
+	_ = tx.AddArgument(cadence.String(userNodeID2))
 	_ = tx.AddArgument(CadenceUFix64("500000.0"))
 
 	signAndSubmit(
@@ -439,7 +441,7 @@ func verifyStakingCollectionInfo(
 	nodeArray := result.(cadence.Array).Values
 	i := 0
 	for _, nodeID := range expectedInfo.nodes {
-		assertEqual(t, cadence.NewString(nodeID), nodeArray[i])
+		assertEqual(t, cadence.String(nodeID), nodeArray[i])
 		i = i + 1
 	}
 
@@ -450,7 +452,7 @@ func verifyStakingCollectionInfo(
 	for _, delegator := range expectedInfo.delegators {
 		nodeID := delegatorArray[i].(cadence.Struct).Fields[0]
 		delegatorID := delegatorArray[i].(cadence.Struct).Fields[1]
-		assertEqual(t, cadence.NewString(delegator.nodeID), nodeID)
+		assertEqual(t, cadence.String(delegator.nodeID), nodeID)
 		assertEqual(t, cadence.NewUInt32(delegator.id), delegatorID)
 		i = i + 1
 	}

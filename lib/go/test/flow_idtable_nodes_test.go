@@ -56,7 +56,7 @@ func TestManyNodesIDTable(t *testing.T) {
 	// Deploy the IDTableStaking contract
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateTransferMinterAndDeployScript(env), b.ServiceKey().Address).
 		AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys)).
-		AddRawArgument(jsoncdc.MustEncode(cadence.NewString("FlowIDTableStaking"))).
+		AddRawArgument(jsoncdc.MustEncode(cadence.String("FlowIDTableStaking"))).
 		AddRawArgument(jsoncdc.MustEncode(cadenceCode))
 
 	_ = tx.AddArgument(CadenceUFix64("1250000.0"))
@@ -158,23 +158,11 @@ func TestManyNodesIDTable(t *testing.T) {
 
 		for i := 0; i < numberOfNodes; i++ {
 
-			id := fmt.Sprintf("%064d", i)
-
-			approvedNodes[i] = cadence.NewString(id)
-
+			approvedNodes[i] = cadence.String(fmt.Sprintf("%064d", i))
 			nodeRoles[i] = cadence.NewUInt8(uint8((i % 4) + 1))
-
-			networkingAddress := fmt.Sprintf("%0128d", i)
-
-			nodeNetworkingAddresses[i] = cadence.NewString(networkingAddress)
-
-			networkingKey := fmt.Sprintf("%0128d", i)
-
-			nodeNetworkingKeys[i] = cadence.NewString(networkingKey)
-
-			stakingKey := fmt.Sprintf("%0192d", i)
-
-			nodeStakingKeys[i] = cadence.NewString(stakingKey)
+			nodeNetworkingAddresses[i] = cadence.String(fmt.Sprintf("%0128d", i))
+			nodeNetworkingKeys[i] = cadence.String(fmt.Sprintf("%0128d", i))
+			nodeStakingKeys[i] = cadence.String(fmt.Sprintf("%0192d", i))
 
 			tokenAmount, err := cadence.NewUFix64("1500000.0")
 			require.NoError(t, err)
@@ -424,7 +412,7 @@ func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
 	// Deploy the IDTableStaking contract
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateTransferMinterAndDeployScript(env), b.ServiceKey().Address).
 		AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys)).
-		AddRawArgument(jsoncdc.MustEncode(cadence.NewString("FlowIDTableStaking"))).
+		AddRawArgument(jsoncdc.MustEncode(cadence.String("FlowIDTableStaking"))).
 		AddRawArgument(jsoncdc.MustEncode(cadenceCode))
 
 	_ = tx.AddArgument(CadenceUFix64("1250000.0"))
@@ -520,19 +508,19 @@ func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
 
 			id := fmt.Sprintf("%064d", i)
 
-			approvedNodes[i] = cadence.NewString(id)
+			approvedNodes[i] = cadence.String(id)
 
 			role := uint8((i % 4) + 1)
 
-			err := tx.AddArgument(cadence.NewString(id))
+			err := tx.AddArgument(cadence.String(id))
 			require.NoError(t, err)
 			err = tx.AddArgument(cadence.NewUInt8(role))
 			require.NoError(t, err)
-			err = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", i)))
+			err = tx.AddArgument(cadence.String(fmt.Sprintf("%0128d", i)))
 			require.NoError(t, err)
-			err = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", i)))
+			err = tx.AddArgument(cadence.String(fmt.Sprintf("%0128d", i)))
 			require.NoError(t, err)
-			err = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", i)))
+			err = tx.AddArgument(cadence.String(fmt.Sprintf("%0192d", i)))
 			require.NoError(t, err)
 			tokenAmount, err := cadence.NewUFix64("1500000.0")
 			require.NoError(t, err)
