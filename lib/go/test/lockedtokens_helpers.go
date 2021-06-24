@@ -355,7 +355,8 @@ func registerStakingCollectionNodesAndDelegators(
 
 	publicKeys := make([]cadence.Value, 1)
 	machineAccountKey, _ := accountKeys.NewWithSigner()
-	publicKeys[0] = bytesToCadenceArray(machineAccountKey.Encode())
+	machineAccountKeyString := hex.EncodeToString(machineAccountKey.Encode())
+	publicKeys[0] = cadence.NewString(machineAccountKeyString)
 	cadencePublicKeys := cadence.NewArray(publicKeys)
 
 	// Register a node in the locked account

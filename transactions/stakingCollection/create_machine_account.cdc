@@ -3,7 +3,7 @@ import FlowStakingCollection from 0xSTAKINGCOLLECTIONADDRESS
 /// Creates a machine account for a node that is already in the staking collection
 /// and adds public keys to the new account
 
-transaction(nodeID: String, publicKeys: [[UInt8]]?) {
+transaction(nodeID: String, publicKeys: [String]?) {
     
     let stakingCollectionRef: &FlowStakingCollection.StakingCollection
 
@@ -16,7 +16,7 @@ transaction(nodeID: String, publicKeys: [[UInt8]]?) {
                 panic("Cannot provide zero keys for the machine account")
             }
             for key in publicKeys! {
-                machineAccount.addPublicKey(key)
+                machineAccount.addPublicKey(key.decodeHex())
             }
         } else {
             panic("Could not create a machine account for the node")
