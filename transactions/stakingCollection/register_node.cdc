@@ -9,7 +9,7 @@ transaction(id: String,
             networkingKey: String,
             stakingKey: String,
             amount: UFix64,
-            publicKeys: [[UInt8]]?) {
+            publicKeys: [String]?) {
     
     let stakingCollectionRef: &FlowStakingCollection.StakingCollection
 
@@ -30,7 +30,7 @@ transaction(id: String,
                 panic("Cannot provide zero keys for the machine account")
             }
             for key in publicKeys! {
-                machineAccount.addPublicKey(key)
+                machineAccount.addPublicKey(key.decodeHex())
             }
         }
     }

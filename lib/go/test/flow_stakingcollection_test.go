@@ -1,6 +1,7 @@
 package test
 
 import (
+	"encoding/hex"
 	"fmt"
 	"testing"
 
@@ -591,7 +592,8 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 	publicKeys := make([]cadence.Value, 1)
 	machineAccountKey, _ := accountKeys.NewWithSigner()
-	publicKeys[0] = bytesToCadenceArray(machineAccountKey.Encode())
+	machineAccountKeyString := hex.EncodeToString(machineAccountKey.Encode())
+	publicKeys[0] = cadence.NewString(machineAccountKeyString)
 	cadencePublicKeys := cadence.NewArray(publicKeys)
 
 	t.Run("Should be able to register a second node and delegator in the staking collection", func(t *testing.T) {
@@ -826,7 +828,8 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 
 	publicKeys := make([]cadence.Value, 1)
 	machineAccountKey, _ := accountKeys.NewWithSigner()
-	publicKeys[0] = bytesToCadenceArray(machineAccountKey.Encode())
+	machineAccountKeyString := hex.EncodeToString(machineAccountKey.Encode())
+	publicKeys[0] = cadence.NewString(machineAccountKeyString)
 	cadencePublicKeys := cadence.NewArray(publicKeys)
 
 	t.Run("Should be able to set up staking collection, which moves the node and delegator to the collection", func(t *testing.T) {
@@ -854,7 +857,7 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionCreateMachineAccountForNodeScript(env), userAddresses[0])
 		_ = tx.AddArgument(cadence.NewString(adminID))
-		_ = tx.AddArgument(cadence.NewOptional(cadencePublicKeys))
+		_ = tx.AddArgument(cadencePublicKeys)
 
 		result := signAndSubmit(
 			t, b, tx,
@@ -929,7 +932,7 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionCreateMachineAccountForNodeScript(env), joshAddress)
 		_ = tx.AddArgument(cadence.NewString(joshID))
-		_ = tx.AddArgument(cadence.NewOptional(cadencePublicKeys))
+		_ = tx.AddArgument(cadencePublicKeys)
 
 		result := signAndSubmit(
 			t, b, tx,
