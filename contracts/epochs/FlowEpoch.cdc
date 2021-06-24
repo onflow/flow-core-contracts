@@ -743,7 +743,7 @@ pub contract FlowEpoch {
         )
 
         let clusterQCAdmin = self.borrowClusterQCAdmin()
-        return <-clusterQCAdmin.createVoter(nodeID: nodeStaker.id)
+        return <-clusterQCAdmin.createVoter(nodeID: nodeStaker.id, stakingKey: nodeInfo.stakingKey)
     }
 
     /// Consensus nodes call this function to get their DKG Participant resource

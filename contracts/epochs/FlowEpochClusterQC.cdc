@@ -19,6 +19,9 @@
 *  This contract is a member of a series of epoch smart contracts which coordinates the 
 *  process of transitioning between epochs in Flow.
 */
+
+import Crypto
+
 pub contract FlowEpochClusterQC {
 
     // ================================================================================
@@ -46,8 +49,8 @@ pub contract FlowEpochClusterQC {
     /// Vote resources without signatures for each node are stored here at the beginning of each epoch setup phase. 
     /// When a node submits a vote, they take it out of this map, add their signature, 
     /// then add it to the submitted vote list for their cluster.
-    /// If a node has voted, their `raw` field will be non-nil
-    /// If a node hasn't voted, their `raw` field will be nil
+    /// If a node has voted, their `signature` field will be non-nil
+    /// If a node hasn't voted, their `signature` field will be nil
     access(account) var generatedVotes: {String: Vote}
 
     /// Indicates what cluster a node is in for the current epoch
@@ -123,7 +126,8 @@ pub contract FlowEpochClusterQC {
     /// contract, but in the meantime the vote contents are opaque here.
     pub struct Vote {
         pub var nodeID: String
-        pub(set) var raw: String?
+        pub(set) var signature: String?
+        pub(set) var message: String?
         pub let clusterIndex: UInt16
         pub let voteWeight: UInt64
 
@@ -131,7 +135,8 @@ pub contract FlowEpochClusterQC {
             pre {
                 nodeID.length == 64: "Voter ID must be a valid length node ID"
             }
-            self.raw = nil
+            self.signature = nil
+            self.message = nil
             self.nodeID = nodeID
             self.clusterIndex = clusterIndex
             self.voteWeight = voteWeight
@@ -165,35 +170,57 @@ pub contract FlowEpochClusterQC {
 
         pub let nodeID: String
 
-        /// Submits the given vote. Can be called only once per epoch
-        pub fun vote(_ raw: String) {
-            pre {
-                FlowEpochClusterQC.inProgress: "Voting phase is not in progress"
-                raw.length > 0: "Vote contents must not be empty"
-                !FlowEpochClusterQC.nodeHasVoted(self.nodeID): "Vote must not have been cast already"
-            }
+        pub let stakingKey: String
 
-            let vote = FlowEpochClusterQC.generatedVotes[self.nodeID]
-                ?? panic("This node cannot vote during the current epoch")
-
-            vote.raw = raw
-
-            FlowEpochClusterQC.clusters[vote.clusterIndex].votes.append(vote)
-
-            FlowEpochClusterQC.generatedVotes[self.nodeID] = vote
-
-        }
-
-        init(nodeID: String) {
+        init(nodeID: String, stakingKey: String) {
             pre {
                 !FlowEpochClusterQC.voterIsClaimed(nodeID): "Cannot create a Voter resource for a node ID that has already been claimed"
             }
             self.nodeID = nodeID
+            self.stakingKey = stakingKey
             FlowEpochClusterQC.voterClaimed[nodeID] = true
         }
 
         destroy () {
             FlowEpochClusterQC.voterClaimed[self.nodeID] = nil
+        }
+
+        /// Submits the given vote. Can be called only once per epoch
+        pub fun vote(voteSignature: String, voteMessage: String) {
+            pre {
+                FlowEpochClusterQC.inProgress: "Voting phase is not in progress"
+                voteSignature.length > 0: "Vote signature must not be empty"
+                voteMessage.length > 0: "Vote message must not be empty"
+                !FlowEpochClusterQC.nodeHasVoted(self.nodeID): "Vote must not have been cast already"
+            }
+
+            let publicKey = PublicKey(
+                publicKey: self.stakingKey.decodeHex(),
+                signatureAlgorithm: SignatureAlgorithm.BLS_BLS12_381
+            )
+
+            let isValid = publicKey.verify(
+                signature: voteSignature.decodeHex(),
+                signedData: voteMessage.decodeHex(),
+                domainSeparationTag: "Collector-Vote",
+                hashAlgorithm: HashAlgorithm.KMAC128_BLS_BLS12_381
+            )
+
+            assert (
+                isValid,
+                message: "Vote Signature cannot be verified"
+            )
+
+            let vote = FlowEpochClusterQC.generatedVotes[self.nodeID]
+                ?? panic("This node cannot vote during the current epoch")
+
+            vote.signature = voteSignature
+            vote.message = voteMessage
+
+            FlowEpochClusterQC.clusters[vote.clusterIndex].votes.append(vote)
+
+            FlowEpochClusterQC.generatedVotes[self.nodeID] = vote
+
         }
 
     }
@@ -203,8 +230,8 @@ pub contract FlowEpochClusterQC {
     pub resource Admin {
 
         /// Creates a new Voter resource for a collection node
-        pub fun createVoter(nodeID: String): @Voter {
-            return <-create Voter(nodeID: nodeID)
+        pub fun createVoter(nodeID: String, stakingKey: String): @Voter {
+            return <-create Voter(nodeID: nodeID, stakingKey: stakingKey)
         }
 
         /// Configures the contract for the next epoch's clusters
@@ -268,7 +295,7 @@ pub contract FlowEpochClusterQC {
             let cluster = FlowEpochClusterQC.clusters[clusterIndex]
 
             if cluster.nodeWeights[nodeID] != nil {
-                return FlowEpochClusterQC.generatedVotes[nodeID]!.raw != nil
+                return FlowEpochClusterQC.generatedVotes[nodeID]!.signature != nil
             }
         }
 

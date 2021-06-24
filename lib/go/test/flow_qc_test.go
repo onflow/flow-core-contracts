@@ -87,14 +87,6 @@ func TestQuorumCertificate(t *testing.T) {
 	maxAccountKey, maxSigner := accountKeys.NewWithSigner()
 	maxAddress, _ := b.CreateAccount([]*flow.AccountKey{maxAccountKey}, nil)
 
-	// // Create a new user account
-	// bastianAccountKey, bastianSigner := accountKeys.NewWithSigner()
-	// bastianAddress, _ := b.CreateAccount([]*flow.AccountKey{bastianAccountKey}, nil)
-
-	// // Create a new user account for access node
-	// accessAccountKey, accessSigner := accountKeys.NewWithSigner()
-	// accessAddress, _ := b.CreateAccount([]*flow.AccountKey{accessAccountKey}, nil)
-
 	t.Run("Should be able to set up the admin account", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GeneratePublishVoterScript(env), QCAddress)
@@ -222,10 +214,30 @@ func TestQuorumCertificate(t *testing.T) {
 		)
 	})
 
-	t.Run("Should not be able to submit an empty vote", func(t *testing.T) {
+	t.Run("Should not be able to submit an empty vote signature", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), QCAddress)
 
+		_ = tx.AddArgument(cadence.NewString(""))
+		_ = tx.AddArgument(cadence.NewString("not empty"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, QCAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), QCSigner},
+			true,
+		)
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetNodeHasVotedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(clusterNodeIDStrings[0][0]))})
+
+		assert.Equal(t, cadence.NewBool(false), result)
+	})
+
+	t.Run("Should not be able to submit an empty vote message", func(t *testing.T) {
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), QCAddress)
+
+		_ = tx.AddArgument(cadence.NewString("not empty"))
 		_ = tx.AddArgument(cadence.NewString(""))
 
 		signAndSubmit(
@@ -240,11 +252,31 @@ func TestQuorumCertificate(t *testing.T) {
 		assert.Equal(t, cadence.NewBool(false), result)
 	})
 
-	t.Run("Should be able to submit a vote", func(t *testing.T) {
+	t.Run("Should not be able to submit a vote that is an invalid signature", func(t *testing.T) {
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), QCAddress)
+
+		_ = tx.AddArgument(cadence.NewString(""))
+		_ = tx.AddArgument(cadence.NewString(""))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, QCAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), QCSigner},
+			true,
+		)
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetNodeHasVotedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(clusterNodeIDStrings[0][0]))})
+
+		assert.Equal(t, cadence.NewBool(false), result)
+	})
+
+	t.Run("Should be able to submit a valid vote", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), QCAddress)
 
 		_ = tx.AddArgument(cadence.NewString("0000000000000000000000000000000000000000000000000000000000000000"))
+		_ = tx.AddArgument(cadence.NewString(""))
 
 		signAndSubmit(
 			t, b, tx,
@@ -267,6 +299,7 @@ func TestQuorumCertificate(t *testing.T) {
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), QCAddress)
 
 		_ = tx.AddArgument(cadence.NewString("0000000000000000000000000000000000000000000000000000000000000000"))
+		_ = tx.AddArgument(cadence.NewString(""))
 
 		signAndSubmit(
 			t, b, tx,
