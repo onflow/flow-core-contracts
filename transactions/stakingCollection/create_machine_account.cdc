@@ -3,7 +3,7 @@ import FlowStakingCollection from 0xSTAKINGCOLLECTIONADDRESS
 /// Creates a machine account for a node that is already in the staking collection
 /// and adds public keys to the new account
 
-transaction(nodeID: String, publicKeys: [String]?) {
+transaction(nodeID: String, publicKeys: [String]) {
     
     let stakingCollectionRef: &FlowStakingCollection.StakingCollection
 

@@ -857,7 +857,7 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionCreateMachineAccountForNodeScript(env), userAddresses[0])
 		_ = tx.AddArgument(cadence.NewString(adminID))
-		_ = tx.AddArgument(cadence.NewOptional(cadencePublicKeys))
+		_ = tx.AddArgument(cadencePublicKeys)
 
 		result := signAndSubmit(
 			t, b, tx,
@@ -932,7 +932,7 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionCreateMachineAccountForNodeScript(env), joshAddress)
 		_ = tx.AddArgument(cadence.NewString(joshID))
-		_ = tx.AddArgument(cadence.NewOptional(cadencePublicKeys))
+		_ = tx.AddArgument(cadencePublicKeys)
 
 		result := signAndSubmit(
 			t, b, tx,
