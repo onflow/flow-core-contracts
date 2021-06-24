@@ -355,7 +355,8 @@ func registerStakingCollectionNodesAndDelegators(
 
 	publicKeys := make([]cadence.Value, 1)
 	machineAccountKey, _ := accountKeys.NewWithSigner()
-	publicKeys[0] = bytesToCadenceArray(machineAccountKey.Encode())
+	machineAccountKeyString := hex.EncodeToString(machineAccountKey.Encode())
+	publicKeys[0] = cadence.NewString(machineAccountKeyString)
 	cadencePublicKeys := cadence.NewArray(publicKeys)
 
 	// Register a node in the locked account
@@ -388,7 +389,6 @@ func registerStakingCollectionNodesAndDelegators(
 
 	// add a staking collection to the main account
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionSetup(env), newUserAddress)
-	_ = tx.AddArgument(cadence.NewAddress(flow.HexToAddress(env.LockedTokensAddress)))
 
 	signAndSubmit(
 		t, b, tx,
@@ -492,6 +492,7 @@ func verifyStakingCollectionInfo(
 		// check machine accounts
 		result = executeScriptAndCheck(t, b, templates.GenerateCollectionGetMachineAccountsScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(flow.HexToAddress(expectedInfo.accountAddress)))})
 		machineAccountsDictionary := result.(cadence.Dictionary).Pairs
+		assertEqual(t, len(expectedInfo.machineAccounts), len(machineAccountsDictionary))
 		for _, accountPair := range machineAccountsDictionary {
 			nodeID := accountPair.Key.(cadence.String)
 			machineAccountInfo := accountPair.Value.(cadence.Struct).Fields
