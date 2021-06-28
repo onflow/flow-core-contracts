@@ -1,6 +1,7 @@
 package test
 
 import (
+	"encoding/hex"
 	"fmt"
 	"testing"
 
@@ -12,6 +13,9 @@ import (
 	"github.com/onflow/flow-go-sdk/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	flow_crypto "github.com/onflow/flow-go/crypto"
+	"github.com/onflow/flow-go/model/encoding"
 
 	"github.com/onflow/flow-core-contracts/lib/go/contracts"
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
@@ -82,10 +86,14 @@ func TestQuorumCertificate(t *testing.T) {
 	// Create new user accounts
 	joshAccountKey, joshSigner := accountKeys.NewWithSigner()
 	joshAddress, _ := b.CreateAccount([]*flow.AccountKey{joshAccountKey}, nil)
+	joshPrivateStakingKey, joshPublicStakingKey, _, _ := generateKeysForNodeRegistration(t)
 
 	// Create a new user account
 	maxAccountKey, maxSigner := accountKeys.NewWithSigner()
 	maxAddress, _ := b.CreateAccount([]*flow.AccountKey{maxAccountKey}, nil)
+	maxPrivateStakingKey, maxPublicStakingKey, _, _ := generateKeysForNodeRegistration(t)
+
+	collectorVoteHasher := flow_crypto.NewBLSKMAC(encoding.CollectorVoteTag)
 
 	t.Run("Should be able to set up the admin account", func(t *testing.T) {
 
@@ -105,6 +113,7 @@ func TestQuorumCertificate(t *testing.T) {
 
 		_ = tx.AddArgument(cadence.NewAddress(QCAddress))
 		_ = tx.AddArgument(cadence.NewString(maxID))
+		_ = tx.AddArgument(cadence.NewString(maxPublicStakingKey))
 
 		signAndSubmit(
 			t, b, tx,
@@ -174,6 +183,7 @@ func TestQuorumCertificate(t *testing.T) {
 
 		_ = tx.AddArgument(cadence.NewAddress(QCAddress))
 		_ = tx.AddArgument(cadence.NewString(clusterNodeIDStrings[0][0]))
+		_ = tx.AddArgument(cadence.NewString(maxPublicStakingKey))
 
 		signAndSubmit(
 			t, b, tx,
@@ -205,6 +215,7 @@ func TestQuorumCertificate(t *testing.T) {
 
 		_ = tx.AddArgument(cadence.NewAddress(QCAddress))
 		_ = tx.AddArgument(cadence.NewString(clusterNodeIDStrings[0][0]))
+		_ = tx.AddArgument(cadence.NewString(joshPublicStakingKey))
 
 		signAndSubmit(
 			t, b, tx,
@@ -254,10 +265,18 @@ func TestQuorumCertificate(t *testing.T) {
 
 	t.Run("Should not be able to submit a vote that is an invalid signature", func(t *testing.T) {
 
+		// construct an invalid signature, signed by the wrong key (josh key)
+		msg, _ := hex.DecodeString("deadbeef")
+		invalidSignature, err := joshPrivateStakingKey.Sign(msg, collectorVoteHasher)
+		invalidSignatureString := invalidSignature.String()[2:]
+		assert.NoError(t, err)
+
+		fmt.Println(invalidSignatureString)
+
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), QCAddress)
 
-		_ = tx.AddArgument(cadence.NewString(""))
-		_ = tx.AddArgument(cadence.NewString(""))
+		_ = tx.AddArgument(cadence.NewString(invalidSignatureString))
+		_ = tx.AddArgument(cadence.NewString("deadbeef"))
 
 		signAndSubmit(
 			t, b, tx,
@@ -269,14 +288,66 @@ func TestQuorumCertificate(t *testing.T) {
 		result := executeScriptAndCheck(t, b, templates.GenerateGetNodeHasVotedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(clusterNodeIDStrings[0][0]))})
 
 		assert.Equal(t, cadence.NewBool(false), result)
+
+		// construct with the wrong tag
+		wrongHasher := flow_crypto.NewBLSKMAC(encoding.ConsensusVoteTag)
+
+		msg, _ = hex.DecodeString("deadbeef")
+		invalidSignature, err = maxPrivateStakingKey.Sign(msg, wrongHasher)
+		invalidSignatureString = invalidSignature.String()[2:]
+		assert.NoError(t, err)
+
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), QCAddress)
+
+		_ = tx.AddArgument(cadence.NewString(invalidSignatureString))
+		_ = tx.AddArgument(cadence.NewString("deadbeef"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, QCAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), QCSigner},
+			true,
+		)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetNodeHasVotedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(clusterNodeIDStrings[0][0]))})
+
+		assert.Equal(t, cadence.NewBool(false), result)
+
+		// construct with a mismatch of the message
+		msg, _ = hex.DecodeString("beefdead")
+		invalidSignature, err = joshPrivateStakingKey.Sign(msg, collectorVoteHasher)
+		invalidSignatureString = invalidSignature.String()[2:]
+		assert.NoError(t, err)
+
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), QCAddress)
+
+		_ = tx.AddArgument(cadence.NewString(invalidSignatureString))
+		_ = tx.AddArgument(cadence.NewString("deadbeef"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, QCAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), QCSigner},
+			true,
+		)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetNodeHasVotedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(clusterNodeIDStrings[0][0]))})
+
+		assert.Equal(t, cadence.NewBool(false), result)
 	})
 
 	t.Run("Should be able to submit a valid vote", func(t *testing.T) {
 
+		// Construct a valid message and signature with max Key
+		msg, _ := hex.DecodeString("deadbeef")
+		validSignature, err := maxPrivateStakingKey.Sign(msg, collectorVoteHasher)
+		validSignatureString := validSignature.String()[2:]
+		assert.NoError(t, err)
+
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), QCAddress)
 
-		_ = tx.AddArgument(cadence.NewString("0000000000000000000000000000000000000000000000000000000000000000"))
-		_ = tx.AddArgument(cadence.NewString(""))
+		_ = tx.AddArgument(cadence.NewString(validSignatureString))
+		_ = tx.AddArgument(cadence.NewString("deadbeef"))
 
 		signAndSubmit(
 			t, b, tx,
@@ -296,10 +367,15 @@ func TestQuorumCertificate(t *testing.T) {
 
 	t.Run("Should not be able to submit a vote a second time", func(t *testing.T) {
 
+		// Construct a valid signature with max key but will fail because it has already been submitted
+		validSignature, err := maxPrivateStakingKey.Sign([]byte("deadbeef"), collectorVoteHasher)
+		validSignatureString := validSignature.String()[2:]
+		assert.NoError(t, err)
+
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), QCAddress)
 
-		_ = tx.AddArgument(cadence.NewString("0000000000000000000000000000000000000000000000000000000000000000"))
-		_ = tx.AddArgument(cadence.NewString(""))
+		_ = tx.AddArgument(cadence.NewString(validSignatureString))
+		_ = tx.AddArgument(cadence.NewString("deadbeef"))
 
 		signAndSubmit(
 			t, b, tx,

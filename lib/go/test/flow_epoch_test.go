@@ -1,11 +1,14 @@
 package test
 
 import (
+	"encoding/hex"
 	"fmt"
 	"testing"
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
+	flow_crypto "github.com/onflow/flow-go/crypto"
+	"github.com/onflow/flow-go/model/encoding"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -589,7 +592,7 @@ func TestEpochQCDKG(t *testing.T) {
 	// create new user accounts, mint tokens for them, and register them for staking
 	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
-	_, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
+	stakingPrivateKeys, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
 	registerNodesForStaking(t, b, env,
 		addresses,
 		signers,
@@ -676,13 +679,21 @@ func TestEpochQCDKG(t *testing.T) {
 
 	clusterQCs := make([][]string, numClusters)
 	clusterQCs[0] = make([]string, 1)
-	clusterQCs[0][0] = "0000000000000000000000000000000000000000000000000000000000000000"
+
+	collectorVoteHasher := flow_crypto.NewBLSKMAC(encoding.CollectorVoteTag)
 
 	t.Run("Can perform QC actions during Epoch Setup and advance to EpochCommit", func(t *testing.T) {
 
+		msg, _ := hex.DecodeString("deadbeef")
+		validSignature, err := stakingPrivateKeys[0].Sign(msg, collectorVoteHasher)
+		validSignatureString := validSignature.String()[2:]
+		assert.NoError(t, err)
+		clusterQCs[0][0] = validSignatureString
+
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), addresses[0])
 
-		_ = tx.AddArgument(cadence.NewString("0000000000000000000000000000000000000000000000000000000000000000"))
+		_ = tx.AddArgument(cadence.NewString(validSignatureString))
+		_ = tx.AddArgument(cadence.NewString("deadbeef"))
 
 		signAndSubmit(
 			t, b, tx,
@@ -809,7 +820,7 @@ func TestEpochReset(t *testing.T) {
 	// create new user accounts, mint tokens for them, and register them for staking
 	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
-	_, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
+	stakingPrivateKeys, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
 	registerNodesForStaking(t, b, env,
 		addresses,
 		signers,
@@ -842,11 +853,19 @@ func TestEpochReset(t *testing.T) {
 	clusterQCs[0] = make([]string, 1)
 	clusterQCs[0][0] = "0000000000000000000000000000000000000000000000000000000000000000"
 
+	collectorVoteHasher := flow_crypto.NewBLSKMAC(encoding.CollectorVoteTag)
+
 	t.Run("Can perform QC actions during Epoch Setup but cannot advance to EpochCommit if DKG isn't complete", func(t *testing.T) {
+
+		msg, _ := hex.DecodeString("deadbeef")
+		validSignature, err := stakingPrivateKeys[0].Sign(msg, collectorVoteHasher)
+		validSignatureString := validSignature.String()[2:]
+		assert.NoError(t, err)
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), addresses[0])
 
-		_ = tx.AddArgument(cadence.NewString("0000000000000000000000000000000000000000000000000000000000000000"))
+		_ = tx.AddArgument(cadence.NewString(validSignatureString))
+		_ = tx.AddArgument(cadence.NewString("deadbeef"))
 
 		signAndSubmit(
 			t, b, tx,

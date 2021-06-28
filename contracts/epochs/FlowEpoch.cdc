@@ -606,10 +606,11 @@ pub contract FlowEpoch {
 
         // iterate through all the clusters and create their certificate arrays
         for cluster in clusters {
-            var certificate: FlowEpochClusterQC.ClusterQC = FlowEpochClusterQC.ClusterQC(index: cluster.index, votes: [], voterIDs: [])
+            var certificate: FlowEpochClusterQC.ClusterQC = FlowEpochClusterQC.ClusterQC(index: cluster.index, signatures: [], messages: [], voterIDs: [])
 
             for vote in cluster.votes {
-                certificate.votes.append(vote.raw!)
+                certificate.voteSignatures.append(vote.signature!)
+                certificate.voteMessages.append(vote.message!)
                 certificate.voterIDs.append(vote.nodeID)
             }
             clusterQCs.append(certificate)

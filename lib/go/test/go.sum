@@ -1101,6 +1101,8 @@ github.com/onflow/flow-go v0.16.3-0.20210427194927-6050c2a3ae42 h1:oPY+9K2bVcyqP
 github.com/onflow/flow-go v0.16.3-0.20210427194927-6050c2a3ae42/go.mod h1:9GUEbBhOGDVf91ZJB6QWqVNQkrM3INEudNyDtIttOu0=
 github.com/onflow/flow-go v0.18.2-canary h1:hq7qST4RELlQHJy2vvmSBJbpvNyBhbad369MFODRANI=
 github.com/onflow/flow-go v0.18.2-canary/go.mod h1:mGzTPbzG1YrckrFQfjCw6NzfflP1o3TjRxI9LRWZbpc=
+github.com/onflow/flow-go v0.18.4 h1:2VHCT+e8oo5jrAYyYLdHga6in8FcbXd6tqiQjg9YPz0=
+github.com/onflow/flow-go v0.18.4/go.mod h1:ytSpiDTsY5dg+2jyiJR9iGiMsH0cDxISPRal7fYGnpI=
 github.com/onflow/flow-go-sdk v0.13.0/go.mod h1:yqnSajzJVFfrTg68F4WXRR1Yzs1akqAjyscEDyFudPE=
 github.com/onflow/flow-go-sdk v0.18.0/go.mod h1:AjXHdxguP/PK5P8tWKHH4jR6oLISTgLoXXQrbQsHY+E=
 github.com/onflow/flow-go-sdk v0.19.0 h1:c3Cl5zHl+tvpAEoVmKggT2DwzCQcTphpc7sJ5RB2m/o=

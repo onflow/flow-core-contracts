@@ -1,6 +1,11 @@
 import FlowEpochClusterQC from 0xQCADDRESS
 
 // A node voter uses this transaction to submit a QC vote
+//
+// Parameters:
+// 
+// voteSignature: The signed message using the node's staking key
+// voteMessage: The hex-encoded string of the raw message
 
 transaction(voteSignature: String, voteMessage: String) {
 

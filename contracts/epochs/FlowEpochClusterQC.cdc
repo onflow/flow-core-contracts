@@ -150,15 +150,19 @@ pub contract FlowEpochClusterQC {
         /// The index of the qc in the cluster record
         pub let index: UInt16
 
-        /// The votes from all the nodes in the cluster
-        pub var votes: [String]
+        /// The vote signatures from all the nodes in the cluster
+        pub var voteSignatures: [String]
+
+        /// The vote messages from all the nodes in the cluster
+        pub var voteMessages: [String]
 
         /// The node IDs that correspond to each vote
         pub var voterIDs: [String]
 
-        init(index: UInt16, votes: [String], voterIDs: [String]) {
+        init(index: UInt16, signatures: [String], messages: [String], voterIDs: [String]) {
             self.index = index
-            self.votes = votes
+            self.voteSignatures = signatures
+            self.voteMessages = messages
             self.voterIDs = voterIDs
         }
     }
@@ -176,6 +180,7 @@ pub contract FlowEpochClusterQC {
             pre {
                 !FlowEpochClusterQC.voterIsClaimed(nodeID): "Cannot create a Voter resource for a node ID that has already been claimed"
             }
+
             self.nodeID = nodeID
             self.stakingKey = stakingKey
             FlowEpochClusterQC.voterClaimed[nodeID] = true
@@ -194,18 +199,21 @@ pub contract FlowEpochClusterQC {
                 !FlowEpochClusterQC.nodeHasVoted(self.nodeID): "Vote must not have been cast already"
             }
 
+            // Get the public key object from the stored key
             let publicKey = PublicKey(
                 publicKey: self.stakingKey.decodeHex(),
                 signatureAlgorithm: SignatureAlgorithm.BLS_BLS12_381
             )
 
+            // Check to see that the signature on the message is valid 
             let isValid = publicKey.verify(
                 signature: voteSignature.decodeHex(),
                 signedData: voteMessage.decodeHex(),
-                domainSeparationTag: "Collector-Vote",
+                domainSeparationTag: "FLOW-V0.0_Collector-Vote",
                 hashAlgorithm: HashAlgorithm.KMAC128_BLS_BLS12_381
             )
 
+            // Assert the validity
             assert (
                 isValid,
                 message: "Vote Signature cannot be verified"
