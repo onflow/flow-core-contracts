@@ -29,6 +29,7 @@
 
 import FungibleToken from 0xFUNGIBLETOKENADDRESS
 import FlowToken from 0xFLOWTOKENADDRESS
+import Crypto
 
 pub contract FlowIDTableStaking {
 
@@ -166,6 +167,26 @@ pub contract FlowIDTableStaking {
                 !FlowIDTableStaking.getNetworkingKeyClaimed(key: networkingKey): "The networkingKey cannot have already been claimed"
                 !FlowIDTableStaking.getStakingKeyClaimed(key: stakingKey): "The stakingKey cannot have already been claimed"
             }
+
+            let stakeKey = PublicKey(
+                publicKey: stakingKey.decodeHex(),
+                signatureAlgorithm: SignatureAlgorithm.BLS_BLS12_381
+            )
+
+            assert(
+                stakeKey.isValid,
+                message: "Staking Key is invalid"
+            )
+
+            let netKey = PublicKey(
+                publicKey: networkingKey.decodeHex(),
+                signatureAlgorithm: SignatureAlgorithm.ECDSA_P256
+            )
+
+            assert(
+                netKey.isValid,
+                message: "Networking Key is invalid"
+            )
 
             self.id = id
             self.role = role

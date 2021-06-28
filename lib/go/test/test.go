@@ -2,18 +2,22 @@ package test
 
 import (
 	"fmt"
-	"github.com/onflow/flow-emulator/types"
 	"io/ioutil"
+	"math/rand"
 	"testing"
 
+	"github.com/onflow/flow-emulator/types"
+
 	"github.com/onflow/cadence"
-	"github.com/onflow/flow-emulator"
+	emulator "github.com/onflow/flow-emulator"
 	ft_templates "github.com/onflow/flow-ft/lib/go/templates"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	flow_crypto "github.com/onflow/flow-go/crypto"
 
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
 )
@@ -278,4 +282,19 @@ func registerAndMintManyAccounts(
 	}
 
 	return userAddresses, userPublicKeys, userSigners
+}
+
+// Generates a new private/public key pair
+func generateKeys(t *testing.T, algorithmName flow_crypto.SigningAlgorithm) (crypto.PrivateKey, crypto.PublicKey) {
+	seedMinLength := 48
+	seed := make([]byte, seedMinLength)
+	n, err := rand.Read(seed)
+	require.Equal(t, n, seedMinLength)
+	require.NoError(t, err)
+	sk, err := flow_crypto.GeneratePrivateKey(algorithmName, seed)
+	require.NoError(t, err)
+
+	publicKey := sk.PublicKey()
+
+	return sk, publicKey
 }

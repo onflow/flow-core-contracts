@@ -101,9 +101,12 @@ func TestEpochClusters(t *testing.T) {
 	// create new user accounts, mint tokens for them, and register them for staking
 	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
+	_, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
 	registerNodesForStaking(t, b, env,
 		addresses,
 		signers,
+		stakingPublicKeys,
+		networkingPublicKeys,
 		ids)
 
 	t.Run("Should be able to create collector clusters from an array of ids signed up for staking", func(t *testing.T) {
@@ -241,9 +244,12 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 	// create new user accounts, mint tokens for them, and register them for staking
 	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
+	_, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
 	registerNodesForStaking(t, b, env,
 		addresses,
 		signers,
+		stakingPublicKeys,
+		networkingPublicKeys,
 		ids)
 
 	t.Run("Should not be able change metadata outside of Staking Auction", func(t *testing.T) {
@@ -346,9 +352,12 @@ func TestEpochAdvance(t *testing.T) {
 	// create new user accounts, mint tokens for them, and register them for staking
 	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
 	ids, _, dkgIDs := generateNodeIDs(numEpochAccounts)
+	_, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
 	registerNodesForStaking(t, b, env,
 		addresses,
 		signers,
+		stakingPublicKeys,
+		networkingPublicKeys,
 		ids)
 
 	t.Run("Proposed metadata, QC, and DKG should have been created properly for epoch setup", func(t *testing.T) {
@@ -470,9 +479,12 @@ func TestEpochQCDKGNodeRegistration(t *testing.T) {
 	// create new user accounts, mint tokens for them, and register them for staking
 	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
+	_, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
 	registerNodesForStaking(t, b, env,
 		addresses,
 		signers,
+		stakingPublicKeys,
+		networkingPublicKeys,
 		ids)
 
 	// Advance to epoch Setup and make sure that the epoch cannot be ended
@@ -545,11 +557,16 @@ func TestEpochFullNodeRegistration(t *testing.T) {
 	// create new user accounts, mint tokens for them, and register them for staking
 	addresses, publicKeys, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
+	_, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
 	registerNodesForEpochs(t, b, env,
 		addresses,
 		signers,
 		publicKeys,
-		ids)
+		ids,
+		stakingPublicKeys,
+		networkingPublicKeys,
+	)
+
 }
 
 func TestEpochQCDKG(t *testing.T) {
@@ -572,9 +589,12 @@ func TestEpochQCDKG(t *testing.T) {
 	// create new user accounts, mint tokens for them, and register them for staking
 	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
+	_, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
 	registerNodesForStaking(t, b, env,
 		addresses,
 		signers,
+		stakingPublicKeys,
+		networkingPublicKeys,
 		ids)
 
 	// Advance to epoch Setup and make sure that the epoch cannot be ended
@@ -789,9 +809,12 @@ func TestEpochReset(t *testing.T) {
 	// create new user accounts, mint tokens for them, and register them for staking
 	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
+	_, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
 	registerNodesForStaking(t, b, env,
 		addresses,
 		signers,
+		stakingPublicKeys,
+		networkingPublicKeys,
 		ids)
 
 	// Advance to epoch Setup and make sure that the epoch cannot be ended

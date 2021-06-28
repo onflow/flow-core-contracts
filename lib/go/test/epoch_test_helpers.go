@@ -299,7 +299,9 @@ func registerNodesForEpochs(
 	authorizers []flow.Address,
 	signers []crypto.Signer,
 	publicKeys []*flow.AccountKey,
-	ids []string) {
+	ids []string,
+	stakingKeys []string,
+	networkingkeys []string) {
 
 	if len(authorizers) != len(signers) ||
 		len(authorizers) != len(ids) {
@@ -317,8 +319,8 @@ func registerNodesForEpochs(
 			signers[i],
 			ids[i],
 			fmt.Sprintf("%0128d", i),
-			fmt.Sprintf("%0128d", i),
-			fmt.Sprintf("%0192d", i),
+			networkingkeys[i],
+			stakingKeys[i],
 			amountToCommit,
 			committed,
 			uint8((i%5)+1),
