@@ -10,7 +10,7 @@ import FlowEpochClusterQC from 0xQCADDRESS
 // adminAddress: the address of the QC admin to request the Voter from
 // nodeID: the id of the node that the account is operating
 
-transaction(adminAddress: Address, nodeID: String) {
+transaction(adminAddress: Address, nodeID: String, stakingKey: String) {
 
     prepare(signer: AuthAccount) {
 
@@ -20,7 +20,7 @@ transaction(adminAddress: Address, nodeID: String) {
             .borrow() ?? panic("Could not borrow a reference to the admin")
 
         // Create a voter object and save it to storage
-        let voter <- adminRef.createVoter(nodeID: nodeID)
+        let voter <- adminRef.createVoter(nodeID: nodeID, stakingKey: String)
 
         signer.save(<-voter, to: FlowEpochClusterQC.VoterStoragePath)
     }
