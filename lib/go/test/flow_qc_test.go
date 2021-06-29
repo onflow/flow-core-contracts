@@ -435,4 +435,21 @@ func TestQuorumCertificate(t *testing.T) {
 		)
 
 	})
+
+	t.Run("Should not be able to claim a voter resource for a node who has already claimed it", func(t *testing.T) {
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateVoterScript(env), joshAddress)
+
+		_ = tx.AddArgument(cadence.NewAddress(QCAddress))
+		_ = tx.AddArgument(cadence.NewString(clusterNodeIDStrings[0][0]))
+		_ = tx.AddArgument(cadence.NewString(joshPublicStakingKey))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			true,
+		)
+
+	})
 }

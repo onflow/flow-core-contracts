@@ -44,15 +44,6 @@ pub contract FlowEpochClusterQC {
     /// true means that the voter capability has been claimed by the node
     access(account) var voterClaimed: {String: Bool}
 
-    /// Votes that nodes claim at the beginning of each EpochSetup phase
-    /// Key is node ID from the identity table contract
-    /// Vote resources without signatures for each node are stored here at the beginning of each epoch setup phase. 
-    /// When a node submits a vote, they take it out of this map, add their signature, 
-    /// then add it to the submitted vote list for their cluster.
-    /// If a node has voted, their `signature` field will be non-nil
-    /// If a node hasn't voted, their `signature` field will be nil
-    access(account) var generatedVotes: {String: Vote}
-
     /// Indicates what cluster a node is in for the current epoch
     /// Value is a cluster index
     access(contract) var nodeCluster: {String: UInt16}
@@ -78,8 +69,31 @@ pub contract FlowEpochClusterQC {
         /// The total node weight of all the nodes in the cluster
         pub let totalWeight: UInt64
 
-        /// Votes submitted for the cluster
-        pub var votes: [Vote]
+        /// Votes that nodes claim at the beginning of each EpochSetup phase
+        /// Key is node ID from the identity table contract
+        /// Vote resources without signatures for each node are stored here at the beginning of each epoch setup phase. 
+        /// When a node submits a vote, they take it out of this map, add their signature, 
+        /// then add it to the submitted vote list for their cluster.
+        /// If a node has voted, their `signature` and `message` field will be non-nil
+        /// If a node hasn't voted, their `signature` and `message` field will be nil
+        pub var generatedVotes: {String: Vote}
+
+        /// Tracks how much weight has been sent
+        /// for each unique vote
+        pub var uniqueVoteMessageTotalWeights: {String: UInt64}
+
+        init(index: UInt16, nodeWeights: {String: UInt64}) {
+            self.index = index
+            self.nodeWeights = nodeWeights
+
+            var totalWeight: UInt64 = 0
+            for weight in nodeWeights.values {
+                totalWeight = totalWeight + weight
+            }
+            self.totalWeight = totalWeight
+            self.generatedVotes = {}
+            self.uniqueVoteMessageTotalWeights = {}
+        }
 
         pub fun size(): UInt16 {
             return UInt16(self.nodeWeights.length) 
@@ -107,16 +121,19 @@ pub contract FlowEpochClusterQC {
             return res
         }
 
-        init(index: UInt16, nodeWeights: {String: UInt64}) {
-            self.index = index
-            self.nodeWeights = nodeWeights
+        /// Returns the status of this cluster's QC process
+        /// If there is a number of identical votes excedded the `voteThreshold`,
+        /// Then this cluster's QC generation is considered complete
+        pub fun isComplete(): Bool {
+            
+            var i = 0
 
-            var totalWeight: UInt64 = 0
-            for weight in nodeWeights.values {
-                totalWeight = totalWeight + weight
+            for message in self.uniqueVoteMessageTotalWeights.keys {
+                if self.uniqueVoteMessageTotalWeights[message]! >= self.voteThreshold() {
+                    return true
+                }
             }
-            self.totalWeight = totalWeight
-            self.votes = []
+            return false
         }
     }
 
@@ -129,7 +146,7 @@ pub contract FlowEpochClusterQC {
         pub(set) var signature: String?
         pub(set) var message: String?
         pub let clusterIndex: UInt16
-        pub let voteWeight: UInt64
+        pub let weight: UInt64
 
         init(nodeID: String, clusterIndex: UInt16, voteWeight: UInt64) {
             pre {
@@ -139,7 +156,7 @@ pub contract FlowEpochClusterQC {
             self.message = nil
             self.nodeID = nodeID
             self.clusterIndex = clusterIndex
-            self.voteWeight = voteWeight
+            self.weight = voteWeight
         }
     }
 
@@ -174,7 +191,7 @@ pub contract FlowEpochClusterQC {
 
         pub let nodeID: String
 
-        pub let stakingKey: String
+        pub var stakingKey: String
 
         init(nodeID: String, stakingKey: String) {
             pre {
@@ -219,16 +236,22 @@ pub contract FlowEpochClusterQC {
                 message: "Vote Signature cannot be verified"
             )
 
-            let vote = FlowEpochClusterQC.generatedVotes[self.nodeID]
+            let clusterIndex = FlowEpochClusterQC.nodeCluster[self.nodeID]
                 ?? panic("This node cannot vote during the current epoch")
+
+            let cluster = FlowEpochClusterQC.clusters[clusterIndex]!
+
+            let vote = cluster.generatedVotes[self.nodeID]!
 
             vote.signature = voteSignature
             vote.message = voteMessage
 
-            FlowEpochClusterQC.clusters[vote.clusterIndex].votes.append(vote)
+            let totalWeight = cluster.uniqueVoteMessageTotalWeights[voteMessage] ?? (0 as UInt64)
+            var newWeight = totalWeight + vote.weight
+            cluster.uniqueVoteMessageTotalWeights[voteMessage] = newWeight
 
-            FlowEpochClusterQC.generatedVotes[self.nodeID] = vote
-
+            cluster.generatedVotes[self.nodeID] = vote
+            FlowEpochClusterQC.clusters[clusterIndex] = cluster
         }
 
     }
@@ -251,18 +274,17 @@ pub contract FlowEpochClusterQC {
         pub fun startVoting(clusters: [Cluster]) {
             FlowEpochClusterQC.inProgress = true
             FlowEpochClusterQC.clusters = clusters
-            FlowEpochClusterQC.generatedVotes = {}
-            FlowEpochClusterQC.voterClaimed = {}
 
             var clusterIndex: UInt16 = 0
             for cluster in clusters {
 
                 // Create a new Vote struct for each participating node
                 for nodeID in cluster.nodeWeights.keys {
-                    FlowEpochClusterQC.generatedVotes[nodeID] = Vote(nodeID: nodeID, clusterIndex: clusterIndex, voteWeight: cluster.nodeWeights[nodeID]!)
+                    cluster.generatedVotes[nodeID] = Vote(nodeID: nodeID, clusterIndex: clusterIndex, voteWeight: cluster.nodeWeights[nodeID]!)
                     FlowEpochClusterQC.nodeCluster[nodeID] = clusterIndex                   
                 }
-
+                
+                FlowEpochClusterQC.clusters[clusterIndex] = cluster
                 clusterIndex = clusterIndex + UInt16(1)
             }
         }
@@ -285,7 +307,7 @@ pub contract FlowEpochClusterQC {
 
     /// Returns a boolean telling if the voter is registered for the current voting phase
     pub fun voterIsRegistered(_ nodeID: String): Bool {
-        return FlowEpochClusterQC.generatedVotes[nodeID] != nil
+        return FlowEpochClusterQC.nodeCluster[nodeID] != nil
     }
 
     /// Returns a boolean telling if the node has claimed their `Voter` resource object
@@ -303,7 +325,7 @@ pub contract FlowEpochClusterQC {
             let cluster = FlowEpochClusterQC.clusters[clusterIndex]
 
             if cluster.nodeWeights[nodeID] != nil {
-                return FlowEpochClusterQC.generatedVotes[nodeID]!.signature != nil
+                return cluster.generatedVotes[nodeID]!.signature != nil
             }
         }
 
@@ -317,19 +339,11 @@ pub contract FlowEpochClusterQC {
 
     /// Returns true if we have collected enough votes for all clusters.
     pub fun votingCompleted(): Bool {
-
         for cluster in FlowEpochClusterQC.clusters {
-
-            var voteWeightSum: UInt64 = 0
-            for vote in cluster.votes {
-                voteWeightSum = voteWeightSum + vote.voteWeight
-            }
-
-            if voteWeightSum < cluster.voteThreshold() {
+            if !cluster.isComplete() {
                 return false
             }
         }
-
         return true
     }
 
@@ -340,7 +354,6 @@ pub contract FlowEpochClusterQC {
         self.inProgress = false 
         
         self.clusters = []
-        self.generatedVotes = {}
         self.voterClaimed = {}
         self.nodeCluster = {}
 
