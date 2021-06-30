@@ -792,7 +792,8 @@ pub contract FlowIDTableStaking {
                     // Clear initial weight because the node is not staked any more
                     nodeRecord.initialWeight = 0
                 } else {
-                    // TODO: Actual initial weight calculation will come at a later date
+                    // Set weight to 100
+                    // Calculations for node weight will come with a future version of epochs
                     nodeRecord.initialWeight = 100
                 }
             }
@@ -944,6 +945,9 @@ pub contract FlowIDTableStaking {
             // Start the new epoch's staking auction
             self.startStakingAuction()
 
+            // Indicates that the tokens have moved and the epoch has ended
+            // Tells what the new reward payout will be. The new payout is calculated and changed
+            // before this method is executed and will not be changed for the rest of the epoch
             emit NewEpoch(totalStaked: FlowIDTableStaking.getTotalStaked(), totalRewardPayout: FlowIDTableStaking.epochTokenPayout)
         }
 
@@ -958,8 +962,10 @@ pub contract FlowIDTableStaking {
 
         /// Changes the total weekly payout to a new value
         pub fun setEpochTokenPayout(_ newPayout: UFix64) {
+            if newPayout != FlowIDTableStaking.epochTokenPayout {
+                emit NewWeeklyPayout(newPayout: newPayout)
+            }
             FlowIDTableStaking.epochTokenPayout = newPayout
-            emit NewWeeklyPayout(newPayout: newPayout)
         }
 
         /// Sets a new delegator cut percentage that nodes take from delegator rewards
@@ -968,8 +974,10 @@ pub contract FlowIDTableStaking {
                 newCutPercentage > 0.0 && newCutPercentage < 1.0:
                     "Cut percentage must be between 0 and 1!"
             }
+            if newCutPercentage != FlowIDTableStaking.nodeDelegatingRewardCut {
+                emit NewDelegatorCutPercentage(newCutPercentage: newCutPercentage)
+            }
             FlowIDTableStaking.nodeDelegatingRewardCut = newCutPercentage
-            emit NewDelegatorCutPercentage(newCutPercentage: FlowIDTableStaking.nodeDelegatingRewardCut)
         }
 
         /// Called only once when the contract is upgraded to use the claimed storage fields
