@@ -1,5 +1,10 @@
+.PHONY: crypto_deps
+crypto_deps:
+	bash lib/go/test/build_crypto_dependency.sh
+
+
 .PHONY: test
-test:
+test: crypto_deps
 	$(MAKE) generate -C lib/go
 	$(MAKE) test -C lib/go
 

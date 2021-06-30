@@ -1,23 +1,6 @@
 package test
 
-import (
-	"fmt"
-	"testing"
-
-	"github.com/onflow/cadence"
-	jsoncdc "github.com/onflow/cadence/encoding/json"
-	ft_templates "github.com/onflow/flow-ft/lib/go/templates"
-	"github.com/onflow/flow-go-sdk"
-	"github.com/onflow/flow-go-sdk/crypto"
-	sdktemplates "github.com/onflow/flow-go-sdk/templates"
-	"github.com/onflow/flow-go-sdk/test"
-	"github.com/stretchr/testify/assert"
-
-	"github.com/onflow/flow-core-contracts/lib/go/contracts"
-	"github.com/onflow/flow-core-contracts/lib/go/templates"
-)
-
-func TestLockedTokensStaker(t *testing.T) {
+/*func TestLockedTokensStaker(t *testing.T) {
 	t.Parallel()
 	b := newBlockchain()
 
@@ -2028,4 +2011,4 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 		result := executeScriptAndCheck(t, b, templates.GenerateGetTotalBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
 		assertEqual(t, CadenceUFix64("1000000.0"), result)
 	})
-}
+}*/

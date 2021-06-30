@@ -14,8 +14,6 @@ require (
     github.com/onflow/flow-go/crypto v0.18.0
 )
 
-replace github.com/onflow/flow-go/crypto => ./../../../../../flow-go/crypto
-
 replace github.com/onflow/flow-core-contracts/lib/go/contracts => ../contracts
 
 replace github.com/onflow/flow-core-contracts/lib/go/templates => ../templates
