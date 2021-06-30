@@ -1,6 +1,6 @@
 .PHONY: test
 test:
-	go test ./...
+	go test ./... --tags relic
 
 .PHONY: generate
 generate:
