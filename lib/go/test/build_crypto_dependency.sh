@@ -6,6 +6,9 @@ go get github.com/onflow/flow-go/crypto
 # till the script is automatized, the version is hardcoded in the path
 cd $GOPATH/pkg/mod/github.com/onflow/flow-go/crypto\@v0.18.0
 
+# grant permissions
+sudo chmod -R 777 ./
+
 # relic version or tag
 relic_version="7a9bba7f"
 
