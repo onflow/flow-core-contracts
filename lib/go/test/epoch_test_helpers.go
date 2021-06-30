@@ -299,7 +299,9 @@ func registerNodesForEpochs(
 	authorizers []flow.Address,
 	signers []crypto.Signer,
 	publicKeys []*flow.AccountKey,
-	ids []string) {
+	ids []string,
+	stakingKeys []string,
+	networkingkeys []string) {
 
 	if len(authorizers) != len(signers) ||
 		len(authorizers) != len(ids) {
@@ -317,8 +319,8 @@ func registerNodesForEpochs(
 			signers[i],
 			ids[i],
 			fmt.Sprintf("%0128d", i),
-			fmt.Sprintf("%0128d", i),
-			fmt.Sprintf("%0192d", i),
+			networkingkeys[i],
+			stakingKeys[i],
 			amountToCommit,
 			committed,
 			uint8((i%5)+1),
@@ -378,7 +380,6 @@ func verifyClusterQCs(
 			for _, vote := range qcStructVotes {
 				assertEqual(t, cadence.NewString(expectedQCs[i][j]), vote)
 			}
-			fmt.Printf(qc.String())
 			i = i + 1
 		}
 	}
@@ -439,7 +440,6 @@ func verifyEpochMetadata(
 		for _, key := range dkgKeys {
 			// Verify that each key is correct
 			assertEqual(t, cadence.NewString(expectedMetadata.dkgKeys[i]), key)
-			fmt.Printf(key.String())
 			i = i + 1
 		}
 	}

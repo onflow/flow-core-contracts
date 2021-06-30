@@ -1,6 +1,10 @@
 .PHONY: test
-test:
-	go test ./...
+test: crypto_deps
+	go test ./... --tags relic
+
+.PHONY: crypto_deps
+crypto_deps:
+	bash build_crypto_dependency.sh
 
 .PHONY: generate
 generate:

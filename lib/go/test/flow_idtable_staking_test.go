@@ -19,20 +19,20 @@ import (
 )
 
 const (
-	adminID   = "0000000000000000000000000000000000000000000000000000000000000001"
-	admin     = 1
-	joshID    = "0000000000000000000000000000000000000000000000000000000000000002"
-	josh      = 2
-	maxID     = "0000000000000000000000000000000000000000000000000000000000000003"
-	max       = 3
-	bastianID = "0000000000000000000000000000000000000000000000000000000000000004"
-	bastian   = 4
-	accessID  = "0000000000000000000000000000000000000000000000000000000000000005"
-	access    = 5
-	executionID = "0000000000000000000000000000000000000000000000000000000000000006"
-	execution = 6
+	adminID        = "0000000000000000000000000000000000000000000000000000000000000001"
+	admin          = 1
+	joshID         = "0000000000000000000000000000000000000000000000000000000000000002"
+	josh           = 2
+	maxID          = "0000000000000000000000000000000000000000000000000000000000000003"
+	max            = 3
+	bastianID      = "0000000000000000000000000000000000000000000000000000000000000004"
+	bastian        = 4
+	accessID       = "0000000000000000000000000000000000000000000000000000000000000005"
+	access         = 5
+	executionID    = "0000000000000000000000000000000000000000000000000000000000000006"
+	execution      = 6
 	verificationID = "0000000000000000000000000000000000000000000000000000000000000007"
-	verification = 7
+	verification   = 7
 
 	nonexistantID = "0000000000000000000000000000000000000000000000000000000000383838383"
 
@@ -279,130 +279,6 @@ func TestStakingTransferAdmin(t *testing.T) {
 
 }
 
-func TestIDTableStakingUpgrade(t *testing.T) {
-
-	t.Parallel()
-
-	b := newBlockchain()
-
-	env := templates.Environment{
-		FungibleTokenAddress: emulatorFTAddress,
-		FlowTokenAddress:     emulatorFlowTokenAddress,
-	}
-
-	accountKeys := test.AccountKeyGenerator()
-
-	// Create new keys for the ID table account
-	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	var idTableAddress = deployStakingContract(t, b, IDTableAccountKey, env, false)
-
-	env.IDTableAddress = idTableAddress.Hex()
-
-	// Create new user accounts
-	joshAccountKey, joshSigner := accountKeys.NewWithSigner()
-	joshAddress, _ := b.CreateAccount([]*flow.AccountKey{joshAccountKey}, nil)
-
-	mintTokensForAccount(t, b, idTableAddress, "1000000000.0")
-	mintTokensForAccount(t, b, joshAddress, "1000000000.0")
-
-	var amountToCommit interpreter.UFix64Value = 25000000000000
-
-	registerNode(t, b, env,
-		idTableAddress,
-		IDTableSigner,
-		adminID,
-		fmt.Sprintf("%0128d", admin),
-		fmt.Sprintf("%0128d", admin),
-		fmt.Sprintf("%0192d", admin),
-		amountToCommit,
-		0,
-		1,
-		false)
-
-	upgradeIDTableCode := contracts.FlowIDTableStaking(emulatorFTAddress, emulatorFlowTokenAddress, true)
-	cadenceCode := bytesToCadenceArray(upgradeIDTableCode)
-
-	// Upgrade the IDTableStaking contract
-	tx := createTxWithTemplateAndAuthorizer(b,
-		templates.GenerateUpgradeStakingScript(env),
-		idTableAddress)
-
-	tx.AddRawArgument(jsoncdc.MustEncode(cadenceCode))
-
-	signAndSubmit(
-		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, idTableAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
-		false,
-	)
-
-	// Set the claimed metadata fields
-	tx = createTxWithTemplateAndAuthorizer(b,
-		templates.GenerateSetClaimedScript(env),
-		idTableAddress)
-
-	signAndSubmit(
-		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, idTableAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
-		false,
-	)
-
-	// Cannot register nodes with any of the used metadata, even after the upgrade
-
-	registerNode(t, b, env,
-		idTableAddress,
-		IDTableSigner,
-		// Invalid: Admin ID is already in use
-		adminID,
-		fmt.Sprintf("%0128d", admin),
-		fmt.Sprintf("%0128d", admin),
-		fmt.Sprintf("%0192d", admin),
-		amountToCommit,
-		0,
-		1,
-		true)
-
-	registerNode(t, b, env,
-		joshAddress,
-		joshSigner,
-		joshID,
-		// Invalid: first admin networking address is already in use
-		fmt.Sprintf("%0128d", admin),
-		fmt.Sprintf("%0128d", admin),
-		fmt.Sprintf("%0192d", admin),
-		amountToCommit,
-		0,
-		1,
-		true)
-
-	registerNode(t, b, env,
-		joshAddress,
-		joshSigner,
-		joshID,
-		fmt.Sprintf("%0128d", josh),
-		// Invalid: first admin networking key is already in use
-		fmt.Sprintf("%0128d", admin),
-		fmt.Sprintf("%0192d", josh),
-		amountToCommit,
-		0,
-		1,
-		true)
-
-	registerNode(t, b, env,
-		joshAddress,
-		joshSigner,
-		joshID,
-		fmt.Sprintf("%0128d", josh),
-		fmt.Sprintf("%0128d", josh),
-		// Invalid: first admin stake key is already in use
-		fmt.Sprintf("%0192d", admin),
-		amountToCommit,
-		0,
-		1,
-		true)
-}
-
 func TestIDTableStaking(t *testing.T) {
 
 	t.Parallel()
@@ -437,22 +313,27 @@ func TestIDTableStaking(t *testing.T) {
 	// Create new user accounts
 	joshAccountKey, joshSigner := accountKeys.NewWithSigner()
 	joshAddress, _ := b.CreateAccount([]*flow.AccountKey{joshAccountKey}, nil)
+	_, joshStakingKey, _, joshNetworkingKey := generateKeysForNodeRegistration(t)
 
 	// Create a new user account
 	maxAccountKey, maxSigner := accountKeys.NewWithSigner()
 	maxAddress, _ := b.CreateAccount([]*flow.AccountKey{maxAccountKey}, nil)
+	_, maxStakingKey, _, maxNetworkingKey := generateKeysForNodeRegistration(t)
 
 	// Create a new user account
 	bastianAccountKey, bastianSigner := accountKeys.NewWithSigner()
 	bastianAddress, _ := b.CreateAccount([]*flow.AccountKey{bastianAccountKey}, nil)
+	_, bastianStakingKey, _, bastianNetworkingKey := generateKeysForNodeRegistration(t)
 
 	// Create a new user account for access node
 	accessAccountKey, accessSigner := accountKeys.NewWithSigner()
 	accessAddress, _ := b.CreateAccount([]*flow.AccountKey{accessAccountKey}, nil)
+	_, accessStakingKey, _, accessNetworkingKey := generateKeysForNodeRegistration(t)
 
 	// Create new delegator user accounts
 	adminDelegatorAccountKey, adminDelegatorSigner := accountKeys.NewWithSigner()
 	adminDelegatorAddress, _ := b.CreateAccount([]*flow.AccountKey{adminDelegatorAccountKey}, nil)
+	_, adminStakingKey, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
 
 	joshDelegatorOneAccountKey, joshDelegatorOneSigner := accountKeys.NewWithSigner()
 	joshDelegatorOneAddress, _ := b.CreateAccount([]*flow.AccountKey{joshDelegatorOneAccountKey}, nil)
@@ -495,8 +376,8 @@ func TestIDTableStaking(t *testing.T) {
 			// Invalid ID: Too short
 			"3039",
 			fmt.Sprintf("%0128d", admin),
-			fmt.Sprintf("%0128d", admin),
-			fmt.Sprintf("%0192d", admin),
+			adminNetworkingKey,
+			adminStakingKey,
 			amountToCommit,
 			committed[adminID],
 			1,
@@ -507,8 +388,8 @@ func TestIDTableStaking(t *testing.T) {
 			IDTableSigner,
 			adminID,
 			fmt.Sprintf("%0128d", admin),
-			fmt.Sprintf("%0128d", admin),
-			fmt.Sprintf("%0192d", admin),
+			adminNetworkingKey,
+			adminStakingKey,
 			amountToCommit,
 			committed[adminID],
 			// Invalid Role: Greater than 5
@@ -520,8 +401,8 @@ func TestIDTableStaking(t *testing.T) {
 			IDTableSigner,
 			adminID,
 			fmt.Sprintf("%0128d", admin),
-			fmt.Sprintf("%0128d", admin),
-			fmt.Sprintf("%0192d", admin),
+			adminNetworkingKey,
+			adminStakingKey,
 			amountToCommit,
 			committed[adminID],
 			// Invalid Role: Less than 1
@@ -534,12 +415,39 @@ func TestIDTableStaking(t *testing.T) {
 			adminID,
 			// Invalid Networking Address: Length cannot be zero
 			"",
+			adminNetworkingKey,
+			adminStakingKey,
+			amountToCommit,
+			committed[adminID],
+			1,
+			true)
+
+		registerNode(t, b, env,
+			idTableAddress,
+			IDTableSigner,
+			adminID,
 			fmt.Sprintf("%0128d", admin),
+			// Invalid Networking Key: Length is correct, but not a valid ECDSA Key
+			fmt.Sprintf("%0128d", admin),
+			adminStakingKey,
+			amountToCommit,
+			committed[adminID],
+			1,
+			true)
+
+		registerNode(t, b, env,
+			idTableAddress,
+			IDTableSigner,
+			adminID,
+			fmt.Sprintf("%0128d", admin),
+			adminNetworkingKey,
+			// Invalid Staking Key: Length is correct, but not a valid BLS Key
 			fmt.Sprintf("%0192d", admin),
 			amountToCommit,
 			committed[adminID],
 			1,
 			true)
+
 	})
 
 	t.Run("Should be able to create a valid Node struct and not create duplicates", func(t *testing.T) {
@@ -551,8 +459,8 @@ func TestIDTableStaking(t *testing.T) {
 			IDTableSigner,
 			adminID,
 			fmt.Sprintf("%0128d", admin),
-			fmt.Sprintf("%0128d", admin),
-			fmt.Sprintf("%0192d", admin),
+			adminNetworkingKey,
+			adminStakingKey,
 			amountToCommit,
 			committed[adminID],
 			1,
@@ -575,10 +483,10 @@ func TestIDTableStaking(t *testing.T) {
 		assertEqual(t, cadence.NewString(fmt.Sprintf("%0128d", admin)), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetNetworkingKeyScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
-		assertEqual(t, cadence.NewString(fmt.Sprintf("%0128d", admin)), result)
+		assertEqual(t, cadence.NewString(adminNetworkingKey), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetStakingKeyScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
-		assertEqual(t, cadence.NewString(fmt.Sprintf("%0192d", admin)), result)
+		assertEqual(t, cadence.NewString(adminStakingKey), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetInitialWeightScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		assertEqual(t, cadence.NewUInt64(0), result)
@@ -613,9 +521,9 @@ func TestIDTableStaking(t *testing.T) {
 			IDTableSigner,
 			// Invalid: Admin ID is already in use
 			adminID,
-			fmt.Sprintf("%0128d", admin),
-			fmt.Sprintf("%0128d", admin),
-			fmt.Sprintf("%0192d", admin),
+			fmt.Sprintf("%0128d", josh),
+			joshNetworkingKey,
+			joshStakingKey,
 			amountToCommit,
 			committed[adminID],
 			1,
@@ -627,8 +535,8 @@ func TestIDTableStaking(t *testing.T) {
 			joshID,
 			// Invalid: first admin networking address is already in use
 			fmt.Sprintf("%0128d", admin),
-			fmt.Sprintf("%0128d", admin),
-			fmt.Sprintf("%0192d", admin),
+			joshNetworkingKey,
+			joshStakingKey,
 			amountToCommit,
 			committed[adminID],
 			1,
@@ -640,8 +548,8 @@ func TestIDTableStaking(t *testing.T) {
 			joshID,
 			fmt.Sprintf("%0128d", josh),
 			// Invalid: first admin networking key is already in use
-			fmt.Sprintf("%0128d", admin),
-			fmt.Sprintf("%0192d", josh),
+			adminNetworkingKey,
+			joshStakingKey,
 			amountToCommit,
 			committed[adminID],
 			1,
@@ -652,9 +560,9 @@ func TestIDTableStaking(t *testing.T) {
 			joshSigner,
 			joshID,
 			fmt.Sprintf("%0128d", josh),
-			fmt.Sprintf("%0128d", josh),
+			joshNetworkingKey,
 			// Invalid: first admin stake key is already in use
-			fmt.Sprintf("%0192d", admin),
+			adminStakingKey,
 			amountToCommit,
 			committed[adminID],
 			1,
@@ -685,8 +593,8 @@ func TestIDTableStaking(t *testing.T) {
 			joshSigner,
 			joshID,
 			fmt.Sprintf("%0128d", josh),
-			fmt.Sprintf("%0128d", josh),
-			fmt.Sprintf("%0192d", josh),
+			joshNetworkingKey,
+			joshStakingKey,
 			amountToCommit,
 			committed[joshID],
 			2,
@@ -702,8 +610,8 @@ func TestIDTableStaking(t *testing.T) {
 			maxSigner,
 			maxID,
 			fmt.Sprintf("%0128d", max),
-			fmt.Sprintf("%0128d", max),
-			fmt.Sprintf("%0192d", max),
+			maxNetworkingKey,
+			maxStakingKey,
 			amountToCommit,
 			committed[maxID],
 			3,
@@ -716,8 +624,8 @@ func TestIDTableStaking(t *testing.T) {
 			accessSigner,
 			accessID,
 			fmt.Sprintf("%0128d", access),
-			fmt.Sprintf("%0128d", access),
-			fmt.Sprintf("%0192d", access),
+			accessNetworkingKey,
+			accessStakingKey,
 			amountToCommit,
 			committed[accessID],
 			5,
@@ -764,8 +672,8 @@ func TestIDTableStaking(t *testing.T) {
 			IDTableSigner,
 			joshID,
 			fmt.Sprintf("%0128d", josh),
-			fmt.Sprintf("%0128d", josh),
-			fmt.Sprintf("%0192d", josh),
+			joshNetworkingKey,
+			joshStakingKey,
 			amountToCommit,
 			committed[joshID],
 			2,
@@ -1616,8 +1524,8 @@ func TestIDTableStaking(t *testing.T) {
 		_ = tx.AddArgument(cadence.NewString(bastianID))
 		_ = tx.AddArgument(cadence.NewUInt8(3))
 		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", bastian)))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", bastian)))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", bastian)))
+		_ = tx.AddArgument(cadence.NewString(bastianNetworkingKey))
+		_ = tx.AddArgument(cadence.NewString(bastianStakingKey))
 		_ = tx.AddArgument(CadenceUFix64("1400000.0"))
 
 		signAndSubmit(

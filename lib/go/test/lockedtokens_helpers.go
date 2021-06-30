@@ -353,6 +353,8 @@ func registerStakingCollectionNodesAndDelegators(
 	userNodeID1 := "0000000000000000000000000000000000000000000000000000000000000001"
 	userNodeID2 := "0000000000000000000000000000000000000000000000000000000000000002"
 
+	_, nodeOneStakingKey, _, nodeOneNetworkingKey := generateKeysForNodeRegistration(t)
+
 	publicKeys := make([]cadence.Value, 1)
 	machineAccountKey, _ := accountKeys.NewWithSigner()
 	machineAccountKeyString := hex.EncodeToString(machineAccountKey.Encode())
@@ -364,8 +366,8 @@ func registerStakingCollectionNodesAndDelegators(
 	_ = tx.AddArgument(cadence.NewString(userNodeID1))
 	_ = tx.AddArgument(cadence.NewUInt8(4))
 	_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", 1)))
-	_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", 1)))
-	_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", 1)))
+	_ = tx.AddArgument(cadence.NewString(nodeOneNetworkingKey))
+	_ = tx.AddArgument(cadence.NewString(nodeOneStakingKey))
 	_ = tx.AddArgument(CadenceUFix64("320000.0"))
 
 	signAndSubmit(
@@ -397,13 +399,15 @@ func registerStakingCollectionNodesAndDelegators(
 		false,
 	)
 
+	_, nodeTwoStakingKey, _, nodeTwoNetworkingKey := generateKeysForNodeRegistration(t)
+
 	// Register a node with the staking collection
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterNode(env), newUserAddress)
 	_ = tx.AddArgument(cadence.NewString(userNodeID2))
 	_ = tx.AddArgument(cadence.NewUInt8(2))
 	_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", 2)))
-	_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", 2)))
-	_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", 2)))
+	_ = tx.AddArgument(cadence.NewString(nodeTwoNetworkingKey))
+	_ = tx.AddArgument(cadence.NewString(nodeTwoStakingKey))
 	_ = tx.AddArgument(CadenceUFix64("500000.0"))
 	_ = tx.AddArgument(cadence.NewOptional(cadencePublicKeys))
 
