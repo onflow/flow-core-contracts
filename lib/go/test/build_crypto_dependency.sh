@@ -7,7 +7,9 @@ go get github.com/onflow/flow-go/crypto
 cd $GOPATH/pkg/mod/github.com/onflow/flow-go/crypto\@v0.18.0
 
 # grant permissions
-sudo chmod -R 777 ./
+if [[ ! -r ./  || ! -w ./ || ! -x ./ ]]; then
+   sudo chmod -R 777 ./
+fi
 
 # relic version or tag
 relic_version="7a9bba7f"
