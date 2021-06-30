@@ -11,6 +11,6 @@ jobs:
         with:
           go-version: '1.13.10'
       - name: Set GOPATH
-        run: GOPATH=$HOME/go
+        run: export GOPATH=$HOME/go
       - name: Run tests
         run: make ci
