@@ -122,18 +122,19 @@ pub contract FlowEpochClusterQC {
         }
 
         /// Returns the status of this cluster's QC process
-        /// If there is a number of identical votes excedded the `voteThreshold`,
-        /// Then this cluster's QC generation is considered complete
-        pub fun isComplete(): Bool {
-            
+        /// If there is a number of identical votes exceeding the `voteThreshold`,
+        /// Then this cluster's QC generation is considered complete and this method returns 
+        /// the vote that reached quorum
+        /// If no vote is found to reach quorum, then `nil` is returned
+        pub fun isComplete(): String? {
             var i = 0
 
             for message in self.uniqueVoteMessageTotalWeights.keys {
                 if self.uniqueVoteMessageTotalWeights[message]! >= self.voteThreshold() {
-                    return true
+                    return message
                 }
             }
-            return false
+            return nil
         }
     }
 
@@ -340,7 +341,7 @@ pub contract FlowEpochClusterQC {
     /// Returns true if we have collected enough votes for all clusters.
     pub fun votingCompleted(): Bool {
         for cluster in FlowEpochClusterQC.clusters {
-            if !cluster.isComplete() {
+            if cluster.isComplete() == nil {
                 return false
             }
         }

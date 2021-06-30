@@ -271,8 +271,6 @@ func TestQuorumCertificate(t *testing.T) {
 		invalidSignatureString := invalidSignature.String()[2:]
 		assert.NoError(t, err)
 
-		fmt.Println(invalidSignatureString)
-
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), QCAddress)
 
 		_ = tx.AddArgument(cadence.NewString(invalidSignatureString))
@@ -406,12 +404,14 @@ func TestQuorumCertificate(t *testing.T) {
 	numberOfClusters = 2
 	numberOfNodesPerCluster = 3
 
-	// Create new user accounts
-	addresses, keys, signers := addressesregisterAndMintManyAccounts(t, b, accountKeys, numberOfClusters*numberOfNodesPerCluster)
+	// // Create new user accounts
+	// addresses, keys, signers := addressesregisterAndMintManyAccounts(t, b, accountKeys, numberOfClusters*numberOfNodesPerCluster)
 
-	clusterNodeIDStrings = make([][]string, numberOfClusters*numberOfNodesPerCluster)
+	// clusterNodeIDStrings = make([][]string, numberOfClusters*numberOfNodesPerCluster)
 
-	clusters = initClusters(clusterNodeIDStrings, numberOfClusters, numberOfNodesPerCluster)
+	// stakingPrivateKeys, stakingPublicKeys, _, networkingKeys := generateManyNodeKeys(t, numberOfClusters*numberOfNodesPerCluster)
+
+	// clusters = initClusters(clusterNodeIDStrings, numberOfClusters, numberOfNodesPerCluster)
 
 	t.Run("Should start voting with the admin with more nodes and clusters", func(t *testing.T) {
 

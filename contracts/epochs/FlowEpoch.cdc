@@ -608,10 +608,14 @@ pub contract FlowEpoch {
         for cluster in clusters {
             var certificate: FlowEpochClusterQC.ClusterQC = FlowEpochClusterQC.ClusterQC(index: cluster.index, signatures: [], messages: [], voterIDs: [])
 
-            for vote in cluster.votes {
-                certificate.voteSignatures.append(vote.signature!)
-                certificate.voteMessages.append(vote.message!)
-                certificate.voterIDs.append(vote.nodeID)
+            let quorumVote = cluster.isComplete()!
+
+            for vote in cluster.generatedVotes.values {
+                if vote.message! == quorumVote {
+                    certificate.voteSignatures.append(vote.signature!)
+                    certificate.voteMessages.append(vote.message!)
+                    certificate.voterIDs.append(vote.nodeID)
+                }
             }
             clusterQCs.append(certificate)
         }
@@ -672,6 +676,9 @@ pub contract FlowEpoch {
     /// Randomizes the list of collector node ID and uses a round robin algorithm
     /// to assign all collector nodes to equal sized clusters
     pub fun createCollectorClusters(nodeIDs: [String]): [FlowEpochClusterQC.Cluster] {
+        pre {
+            UInt16(nodeIDs.length) >= self.configurableMetadata.numCollectorClusters: "Cannot have less collector nodes than clusters"
+        }
         var shuffledIDs = self.randomize(nodeIDs)
 
         // Holds cluster assignments for collector nodes
