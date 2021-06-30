@@ -15,7 +15,7 @@ rm -rf relic
 # git clone --branch $(relic_version) --single-branch --depth 1 git@github.com:relic-toolkit/relic.git
 
 # clone all the history if the version is only defined by a commit hash.
-git clone --branch main --single-branch git@github.com:relic-toolkit/relic.git
+git clone --branch main --single-branch https://github.com/relic-toolkit/relic.git
 cd relic
 git checkout $relic_version
 cd ..
