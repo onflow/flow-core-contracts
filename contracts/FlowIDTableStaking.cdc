@@ -118,6 +118,8 @@ pub contract FlowIDTableStaking {
         pub(set) var networkingKey: String
         pub(set) var stakingKey: String
 
+        /// TODO: Proof of Possession (PoP) of the staking private key
+
         /// The total tokens that only this node currently has staked, not including delegators
         /// This value must always be above the minimum requirement to stay staked or accept delegators
         pub var tokensStaked: @FlowToken.Vault
@@ -187,6 +189,8 @@ pub contract FlowIDTableStaking {
                 netKey.isValid,
                 message: "Networking Key is invalid"
             )
+
+            // TODO: Verify the provided Proof of Possession of the staking private key
 
             self.id = id
             self.role = role

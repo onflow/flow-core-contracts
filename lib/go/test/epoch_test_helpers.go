@@ -380,7 +380,6 @@ func verifyClusterQCs(
 			for _, vote := range qcStructVotes {
 				assertEqual(t, cadence.NewString(expectedQCs[i][j]), vote)
 			}
-			fmt.Printf(qc.String())
 			i = i + 1
 		}
 	}
@@ -441,7 +440,6 @@ func verifyEpochMetadata(
 		for _, key := range dkgKeys {
 			// Verify that each key is correct
 			assertEqual(t, cadence.NewString(expectedMetadata.dkgKeys[i]), key)
-			fmt.Printf(key.String())
 			i = i + 1
 		}
 	}
