@@ -403,14 +403,13 @@ func TestQuorumCertificate(t *testing.T) {
 
 	///////////////////////////// Epoch 2 ////////////////////////////////////
 
-	// mature
-	// numberOfClusters = 10
-	// numberOfNodesPerCluster = 80
+	numberOfClusters = 2
+	numberOfNodesPerCluster = 3
 
-	numberOfClusters = 5
-	numberOfNodesPerCluster = 10
+	// Create new user accounts
+	addresses, keys, signers := addressesregisterAndMintManyAccounts(t, b, accountKeys, numberOfClusters*numberOfNodesPerCluster)
 
-	clusterNodeIDStrings = make([][]string, numberOfClusters)
+	clusterNodeIDStrings = make([][]string, numberOfClusters*numberOfNodesPerCluster)
 
 	clusters = initClusters(clusterNodeIDStrings, numberOfClusters, numberOfNodesPerCluster)
 
