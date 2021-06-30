@@ -24,6 +24,7 @@ pub contract StakingProxy {
 
         init(nodeID: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String) {
             pre {
+                nodeID.length == 64: "Node ID length must be 32 bytes (64 hex characters)"
                 networkingAddress.length > 0 && networkingKey.length > 0 && stakingKey.length > 0:
                         "Address and Key have to be the correct length"
             }
