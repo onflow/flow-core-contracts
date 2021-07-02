@@ -12,6 +12,4 @@ jobs:
           go-version: '1.15'
       - name: Run tests
         run: export GOPATH=$HOME/go && make ci
-      - name: Setup tmate session
-        if: ${{ failure() }}
-        uses: mxschmitt/action-tmate@v3
+

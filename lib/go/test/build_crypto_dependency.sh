@@ -1,15 +1,20 @@
 
 #!/bin/bash
 
+# go get the package
 go get github.com/onflow/flow-go/crypto
-# the version of flow-go/crypto used for now is v0.18.0
-# till the script is automatized, the version is hardcoded in the path
-cd $GOPATH/pkg/mod/github.com/onflow/flow-go/crypto\@v0.18.0
 
-# grant permissions
-if [[ ! -r ./  || ! -w ./ || ! -x ./ ]]; then
-   sudo chmod -R 777 ./
+# the version of flow-go/crypto used for now is v0.18.0.
+# till the script is automatized, the version is hardcoded.
+VERSION="v0.18.0"
+PKG_DIR="${GOPATH}/pkg/mod/github.com/onflow/flow-go/crypto@${VERSION}"
+
+# grant permissions if not existant
+if [[ ! -r ${PKG_DIR}  || ! -w ${PKG_DIR} || ! -x ${PKG_DIR} ]]; then
+   sudo chmod -R 755 ${PKG_DIR}
 fi
+
+cd ${PKG_DIR}
 
 # relic version or tag
 relic_version="7a9bba7f"
