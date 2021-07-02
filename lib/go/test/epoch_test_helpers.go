@@ -138,7 +138,7 @@ func deployQCDKGContract(t *testing.T, b *emulator.Blockchain, idTableAddress fl
 
 	// Deploy the QC and DKG contracts
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDeployQCDKGScript(env), idTableAddress).
-		AddRawArgument(jsoncdc.MustEncode(cadence.NewString("FlowEpochClusterQC"))).
+		AddRawArgument(jsoncdc.MustEncode(cadence.NewString("FlowClusterQC"))).
 		AddRawArgument(jsoncdc.MustEncode(QCByteCode)).
 		AddRawArgument(jsoncdc.MustEncode(cadence.NewString("FlowDKG"))).
 		AddRawArgument(jsoncdc.MustEncode(DKGByteCode))

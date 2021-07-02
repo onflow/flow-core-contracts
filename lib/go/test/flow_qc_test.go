@@ -73,7 +73,7 @@ func TestQuorumCertificate(t *testing.T) {
 
 	QCAddress, err := b.CreateAccount([]*flow.AccountKey{QCAccountKey}, []sdktemplates.Contract{
 		{
-			Name:   "FlowEpochClusterQC",
+			Name:   "FlowClusterQC",
 			Source: string(QCCode),
 		},
 	})
@@ -404,14 +404,9 @@ func TestQuorumCertificate(t *testing.T) {
 	numberOfClusters = 2
 	numberOfNodesPerCluster = 3
 
-	// // Create new user accounts
-	// addresses, keys, signers := addressesregisterAndMintManyAccounts(t, b, accountKeys, numberOfClusters*numberOfNodesPerCluster)
+	clusterNodeIDStrings = make([][]string, numberOfClusters*numberOfNodesPerCluster)
 
-	// clusterNodeIDStrings = make([][]string, numberOfClusters*numberOfNodesPerCluster)
-
-	// stakingPrivateKeys, stakingPublicKeys, _, networkingKeys := generateManyNodeKeys(t, numberOfClusters*numberOfNodesPerCluster)
-
-	// clusters = initClusters(clusterNodeIDStrings, numberOfClusters, numberOfNodesPerCluster)
+	clusters = initClusters(clusterNodeIDStrings, numberOfClusters, numberOfNodesPerCluster)
 
 	t.Run("Should start voting with the admin with more nodes and clusters", func(t *testing.T) {
 
@@ -449,6 +444,178 @@ func TestQuorumCertificate(t *testing.T) {
 			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
 			true,
 		)
+
+	})
+}
+
+func TestQuorumCertificateMoreNodes(t *testing.T) {
+	b := newBlockchain()
+
+	env := templates.Environment{
+		FungibleTokenAddress: emulatorFTAddress,
+		FlowTokenAddress:     emulatorFlowTokenAddress,
+	}
+
+	accountKeys := test.AccountKeyGenerator()
+
+	// Create new keys for the QC account and deploy
+	QCAccountKey, QCSigner := accountKeys.NewWithSigner()
+	QCCode := contracts.FlowQC()
+
+	QCAddress, err := b.CreateAccount([]*flow.AccountKey{QCAccountKey}, []sdktemplates.Contract{
+		{
+			Name:   "FlowClusterQC",
+			Source: string(QCCode),
+		},
+	})
+	if !assert.NoError(t, err) {
+		t.Log(err.Error())
+	}
+
+	env.QuorumCertificateAddress = QCAddress.Hex()
+
+	collectorVoteHasher := flow_crypto.NewBLSKMAC(encoding.CollectorVoteTag)
+
+	t.Run("Should be able to set up the admin account", func(t *testing.T) {
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GeneratePublishVoterScript(env), QCAddress)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, QCAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), QCSigner},
+			false,
+		)
+	})
+
+	numberOfClusters := 2
+	numberOfNodesPerCluster := 3
+
+	// Create new user accounts
+	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numberOfClusters*numberOfNodesPerCluster)
+
+	clusterNodeIDStrings := make([][]string, numberOfClusters*numberOfNodesPerCluster)
+
+	stakingPrivateKeys, stakingPublicKeys, _, _ := generateManyNodeKeys(t, numberOfClusters*numberOfNodesPerCluster)
+
+	clusters := initClusters(clusterNodeIDStrings, numberOfClusters, numberOfNodesPerCluster)
+
+	t.Run("Should start voting with the admin with more nodes and clusters", func(t *testing.T) {
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateStartVotingScript(env), QCAddress)
+
+		err := tx.AddArgument(cadence.NewArray(clusters[0]))
+		require.NoError(t, err)
+
+		err = tx.AddArgument(cadence.NewArray(clusters[1]))
+		require.NoError(t, err)
+
+		err = tx.AddArgument(cadence.NewArray(clusters[2]))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, QCAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), QCSigner},
+			false,
+		)
+
+	})
+
+	t.Run("Should claim voter resources for new accounts", func(t *testing.T) {
+
+		for i := 0; i < numberOfClusters*numberOfNodesPerCluster; i++ {
+
+			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateVoterScript(env), addresses[i])
+
+			_ = tx.AddArgument(cadence.NewAddress(QCAddress))
+			_ = tx.AddArgument(cadence.NewString(clusterNodeIDStrings[i/3][i%3]))
+			_ = tx.AddArgument(cadence.NewString(stakingPublicKeys[i]))
+
+			signAndSubmit(
+				t, b, tx,
+				[]flow.Address{b.ServiceKey().Address, addresses[i]},
+				[]crypto.Signer{b.ServiceKey().Signer(), signers[i]},
+				false,
+			)
+		}
+
+	})
+
+	t.Run("Should register incomplete if only one of the clusters is complete", func(t *testing.T) {
+
+		for i := 0; i < 3; i++ {
+
+			// Construct a valid message and signature
+			msg, _ := hex.DecodeString("deadbeef")
+			validSignature, err := stakingPrivateKeys[i].Sign(msg, collectorVoteHasher)
+			validSignatureString := validSignature.String()[2:]
+			assert.NoError(t, err)
+
+			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), addresses[i])
+
+			_ = tx.AddArgument(cadence.NewString(validSignatureString))
+			_ = tx.AddArgument(cadence.NewString("deadbeef"))
+
+			signAndSubmit(
+				t, b, tx,
+				[]flow.Address{b.ServiceKey().Address, addresses[i]},
+				[]crypto.Signer{b.ServiceKey().Signer(), signers[i]},
+				false,
+			)
+
+			result := executeScriptAndCheck(t, b, templates.GenerateGetVotingCompletedScript(env), nil)
+			assert.Equal(t, cadence.NewBool(false), result)
+		}
+
+	})
+
+	t.Run("Should register incomplete if a cluster has different vote messages", func(t *testing.T) {
+
+		for i := 3; i < 5; i++ {
+
+			// Construct a valid message and signature
+			msg, _ := hex.DecodeString("beefdead")
+			validSignature, err := stakingPrivateKeys[i].Sign(msg, collectorVoteHasher)
+			validSignatureString := validSignature.String()[2:]
+			assert.NoError(t, err)
+
+			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), addresses[i])
+
+			_ = tx.AddArgument(cadence.NewString(validSignatureString))
+			_ = tx.AddArgument(cadence.NewString("beefdead"))
+
+			signAndSubmit(
+				t, b, tx,
+				[]flow.Address{b.ServiceKey().Address, addresses[i]},
+				[]crypto.Signer{b.ServiceKey().Signer(), signers[i]},
+				false,
+			)
+
+			result := executeScriptAndCheck(t, b, templates.GenerateGetVotingCompletedScript(env), nil)
+			assert.Equal(t, cadence.NewBool(false), result)
+		}
+
+		// Construct a valid message and signature
+		msg, _ := hex.DecodeString("deebaf")
+		validSignature, err := stakingPrivateKeys[5].Sign(msg, collectorVoteHasher)
+		validSignatureString := validSignature.String()[2:]
+		assert.NoError(t, err)
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), addresses[5])
+
+		_ = tx.AddArgument(cadence.NewString(validSignatureString))
+		_ = tx.AddArgument(cadence.NewString("deebaf"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, addresses[5]},
+			[]crypto.Signer{b.ServiceKey().Signer(), signers[5]},
+			false,
+		)
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetVotingCompletedScript(env), nil)
+		assert.Equal(t, cadence.NewBool(false), result)
 
 	})
 }
