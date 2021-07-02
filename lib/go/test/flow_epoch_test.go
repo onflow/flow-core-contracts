@@ -414,7 +414,8 @@ func TestEpochAdvance(t *testing.T) {
 		assert.Equal(t, cadence.NewUInt64(100), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetNodeWeightScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt16(uint16(1))), jsoncdc.MustEncode(cadence.String(ids[0]))})
-		assert.Equal(t, cadence.NewUInt64(100), result)
+		result2 := executeScriptAndCheck(t, b, templates.GenerateGetNodeWeightScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt16(uint16(0))), jsoncdc.MustEncode(cadence.String(ids[0]))})
+		assert.Equal(t, cadence.NewUInt64(100), result.(cadence.UInt64)+result2.(cadence.UInt64))
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetClusterVoteThresholdScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt16(uint16(0)))})
 		assert.Equal(t, cadence.NewUInt64(67), result)
@@ -684,8 +685,8 @@ func TestEpochQCDKG(t *testing.T) {
 	})
 
 	clusterQCs := make([][]string, 2)
-	clusterQCs[0] = make([]string, 1)
-	clusterQCs[1] = make([]string, 1)
+	clusterQCs[0] = make([]string, 2)
+	clusterQCs[1] = make([]string, 2)
 
 	collectorVoteHasher := flow_crypto.NewBLSKMAC(encoding.CollectorVoteTag)
 
@@ -696,6 +697,7 @@ func TestEpochQCDKG(t *testing.T) {
 		validSignatureString := validSignature.String()[2:]
 		assert.NoError(t, err)
 		clusterQCs[0][0] = validSignatureString
+		clusterQCs[0][1] = "deadbeef"
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), addresses[0])
 
@@ -714,6 +716,7 @@ func TestEpochQCDKG(t *testing.T) {
 		validSignatureString = validSignature.String()[2:]
 		assert.NoError(t, err)
 		clusterQCs[1][0] = validSignatureString
+		clusterQCs[1][1] = "beefdead"
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), addresses[5])
 

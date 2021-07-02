@@ -15,7 +15,7 @@ import FlowToken from 0xFLOWTOKENADDRESS
 import FlowIDTableStaking from 0xFLOWIDTABLESTAKINGADDRESS
 import LockedTokens from 0xLOCKEDTOKENSADDRESS
 import FlowStorageFees from 0xFLOWSTORAGEFEESADDRESS
-import FlowEpochClusterQC from 0xQCADDRESS
+import FlowClusterQC from 0xQCADDRESS
 import FlowDKG from 0xDKGADDRESS
 import FlowEpoch from 0xEPOCHADDRESS
 
@@ -431,7 +431,7 @@ pub contract FlowStakingCollection {
 
                 // Get the voter object and store it
                 let qcVoter <- FlowEpoch.getClusterQCVoter(nodeStaker: nodeReference)
-                machineAcct.save(<-qcVoter, to: FlowEpochClusterQC.VoterStoragePath)
+                machineAcct.save(<-qcVoter, to: FlowClusterQC.VoterStoragePath)
 
                 // set this node's machine account
                 self.machineAccounts[nodeInfo.id] = machineAccountInfo
@@ -474,7 +474,7 @@ pub contract FlowStakingCollection {
             // Make sure that the QC or DKG object in the machine account is correct for this node ID
 
             if nodeInfo.role == FlowEpoch.NodeRole.Collector.rawValue {
-                let qcVoterRef = machineAccount.borrow<&FlowEpochClusterQC.Voter>(from: FlowEpochClusterQC.VoterStoragePath)
+                let qcVoterRef = machineAccount.borrow<&FlowClusterQC.Voter>(from: FlowClusterQC.VoterStoragePath)
                     ?? panic("Could not access QC Voter object from the provided machine account")
 
                 assert(

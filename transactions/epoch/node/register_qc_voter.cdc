@@ -1,6 +1,6 @@
 import FlowEpoch from 0xEPOCHADDRESS
 import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
-import FlowEpochClusterQC from 0xQCADDRESS
+import FlowClusterQC from 0xQCADDRESS
 
 transaction() {
 
@@ -11,7 +11,7 @@ transaction() {
 
         let qcVoter <- FlowEpoch.getClusterQCVoter(nodeStaker: nodeRef)
 
-        signer.save(<-qcVoter, to: FlowEpochClusterQC.VoterStoragePath)
+        signer.save(<-qcVoter, to: FlowClusterQC.VoterStoragePath)
 
     }
 }

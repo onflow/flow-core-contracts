@@ -138,7 +138,7 @@ func deployQCDKGContract(t *testing.T, b *emulator.Blockchain, idTableAddress fl
 
 	// Deploy the QC and DKG contracts
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDeployQCDKGScript(env), idTableAddress).
-		AddRawArgument(jsoncdc.MustEncode(cadence.NewString("FlowEpochClusterQC"))).
+		AddRawArgument(jsoncdc.MustEncode(cadence.NewString("FlowClusterQC"))).
 		AddRawArgument(jsoncdc.MustEncode(QCByteCode)).
 		AddRawArgument(jsoncdc.MustEncode(cadence.NewString("FlowDKG"))).
 		AddRawArgument(jsoncdc.MustEncode(DKGByteCode))
@@ -342,16 +342,22 @@ func verifyClusters(
 
 	// Iterate through all the clusters and make sure their index, weight, and size is correct
 	for _, expectedCluster := range expectedClusters {
-		cluster := actualClusters[i].(cadence.Struct).Fields
 
-		index := cluster[0]
-		assertEqual(t, cadence.NewUInt16(expectedCluster.index), index)
+		found := false
 
-		totalWeight := cluster[2]
-		assertEqual(t, cadence.NewUInt64(expectedCluster.totalWeight), totalWeight)
+		for _, actualCluster := range actualClusters {
+			cluster := actualCluster.(cadence.Struct).Fields
 
-		size := len(cluster[1].(cadence.Dictionary).Pairs)
-		assertEqual(t, cadence.NewUInt16(expectedCluster.size), cadence.NewUInt16(uint16(size)))
+			totalWeight := cluster[2]
+			if cadence.NewUInt64(expectedCluster.totalWeight) == totalWeight {
+				found = true
+				assertEqual(t, cadence.NewUInt64(expectedCluster.totalWeight), totalWeight)
+				size := len(cluster[1].(cadence.Dictionary).Pairs)
+				assertEqual(t, cadence.NewUInt16(expectedCluster.size), cadence.NewUInt16(uint16(size)))
+			}
+		}
+
+		assertEqual(t, true, found)
 
 		i = i + 1
 	}
@@ -370,16 +376,29 @@ func verifyClusterQCs(
 	} else {
 		i := 0
 		for _, qc := range actualQCs {
-			qcStructVotes := qc.(cadence.Struct).Fields[1].(cadence.Array).Values
-			qcVoterIDs := qc.(cadence.Struct).Fields[2].(cadence.Array).Values
+			found := false
+			qcStructSignatures := qc.(cadence.Struct).Fields[1].(cadence.Array).Values
+			qcStructMessages := qc.(cadence.Struct).Fields[2].(cadence.Array).Values
+			qcVoterIDs := qc.(cadence.Struct).Fields[3].(cadence.Array).Values
 
-			assertEqual(t, len(qcVoterIDs), len(qcStructVotes))
+			assertEqual(t, len(qcVoterIDs), len(qcStructSignatures))
+			assertEqual(t, len(qcVoterIDs), len(qcStructMessages))
 
 			j := 0
 			// Verify that each element is correct across the cluster
-			for _, vote := range qcStructVotes {
-				assertEqual(t, cadence.NewString(expectedQCs[i][j]), vote)
+			for _, signature := range qcStructSignatures {
+				for _, qc := range expectedQCs {
+					if cadence.NewString(qc[0]) == signature {
+						found = true
+						assertEqual(t, cadence.NewString(qc[0]), signature)
+						assertEqual(t, cadence.NewString(qc[1]), qcStructMessages[j])
+					}
+				}
+				j = j + 1
 			}
+
+			assertEqual(t, true, found)
+
 			i = i + 1
 		}
 	}
