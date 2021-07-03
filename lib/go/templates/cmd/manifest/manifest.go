@@ -3,8 +3,9 @@ package main
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"fmt"
 
+	"github.com/onflow/cadence"
+	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/flow-go-sdk"
 
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
@@ -29,10 +30,27 @@ type template struct {
 }
 
 type argument struct {
-	Type        string `json:"type"`
-	Name        string `json:"name"`
-	Label       string `json:"label"`
-	SampleValue string `json:"sampleValue"`
+	Type        string       `json:"type"`
+	Name        string       `json:"name"`
+	Label       string       `json:"label"`
+	SampleValue cadenceValue `json:"sampleValue"`
+}
+
+type cadenceValue struct {
+	cadence.Value
+}
+
+func (v cadenceValue) MarshalJSON() ([]byte, error) {
+	return jsoncdc.Encode(v.Value)
+}
+
+func (v cadenceValue) UnmarshalJSON(bytes []byte) (err error) {
+	v.Value, err = jsoncdc.Decode(bytes)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 type templateGenerator func(env templates.Environment) []byte
@@ -64,37 +82,58 @@ func generateManifest(env templates.Environment) *manifest {
 		Network: env.Network,
 	}
 
-	sampleAmount := "92233720368.54775808"
-	sampleNodeID := "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"
+	sampleAmountRaw, err := cadence.NewUFix64("92233720368.54775808")
+	if err != nil {
+		panic(err)
+	}
+
+	sampleAmount := cadenceValue{sampleAmountRaw}
+
+	sampleNodeID := cadenceValue{
+		cadence.NewString("88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"),
+	}
+
+	sampleDelegatorID := cadenceValue{cadence.NewOptional(
+		cadence.NewUInt32(42),
+	)}
+
+	samplePublicKeys := cadenceValue{cadence.NewOptional(
+		cadence.NewArray([]cadence.Value{
+			cadence.NewString("f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"),
+		}),
+	)}
 
 	m.addTemplate(generateTemplate(
-		"TH.01", "Withdraw Unlocked FLOW",
+		"SCO.01", "Setup Staking Collection",
 		env,
-		templates.GenerateWithdrawTokensScript,
-		[]argument{{
-			Type:        "UFix64",
-			Name:        "amount",
-			Label:       "Amount",
-			SampleValue: "92233720368.54775808",
-		}},
+		templates.GenerateCollectionSetup,
+		[]argument{},
 	))
 
 	m.addTemplate(generateTemplate(
-		"TH.02", "Deposit Unlocked FLOW",
+		"SCO.02", "Register Delegator",
 		env,
-		templates.GenerateDepositTokensScript,
-		[]argument{{
-			Type:        "UFix64",
-			Name:        "amount",
-			Label:       "Amount",
-			SampleValue: sampleAmount,
-		}},
+		templates.GenerateCollectionRegisterDelegator,
+		[]argument{
+			{
+				Type:        "String",
+				Name:        "id",
+				Label:       "Node ID",
+				SampleValue: sampleNodeID,
+			},
+			{
+				Type:        "UFix64",
+				Name:        "amount",
+				Label:       "Amount",
+				SampleValue: sampleAmount,
+			},
+		},
 	))
 
 	m.addTemplate(generateTemplate(
-		"TH.06", "Register Node",
+		"SCO.03", "Register Node",
 		env,
-		templates.GenerateRegisterLockedNodeScript,
+		templates.GenerateCollectionRegisterNode,
 		[]argument{
 			{
 				Type:        "String",
@@ -106,25 +145,81 @@ func generateManifest(env templates.Environment) *manifest {
 				Type:        "UInt8",
 				Name:        "role",
 				Label:       "Node Role",
-				SampleValue: "1",
+				SampleValue: cadenceValue{cadence.NewUInt8(1)},
 			},
 			{
 				Type:        "String",
 				Name:        "networkingAddress",
 				Label:       "Networking Address",
-				SampleValue: "flow-node.test:3569",
+				SampleValue: cadenceValue{cadence.NewString("flow-node.test:3569")},
 			},
+			{
+				Type:  "String",
+				Name:  "networkingKey",
+				Label: "Networking Key",
+				SampleValue: cadenceValue{cadence.NewString(
+					"1348307bc77c688e80049de9d081aa09755da33e6997605fa059db2144fc85e560cbe6f7da8d74b453f5916618cb8fd392c2db856f3e78221dc68db1b1d914e4",
+				)},
+			},
+			{
+				Type:  "String",
+				Name:  "stakingKey",
+				Label: "Staking Key",
+				SampleValue: cadenceValue{cadence.NewString(
+					"9e9ae0d645fd5fd9050792e0b0daa82cc1686d9133afa0f81a784b375c42ae48567d1545e7a9e1965f2c1a32f73cf8575ebb7a967f6e4d104d2df78eb8be409135d12da0499b8a00771f642c1b9c49397f22b440439f036c3bdee82f5309dab3",
+				)},
+			},
+			{
+				Type:        "UFix64",
+				Name:        "amount",
+				Label:       "Amount",
+				SampleValue: sampleAmount,
+			},
+			{
+				Type:        "[String]?",
+				Name:        "publicKeys",
+				Label:       "Public Keys",
+				SampleValue: samplePublicKeys,
+			},
+		},
+	))
+
+	m.addTemplate(generateTemplate(
+		"SCO.04", "Create Machine Account",
+		env,
+		templates.GenerateCollectionCreateMachineAccountForNodeScript,
+		[]argument{
 			{
 				Type:        "String",
-				Name:        "networkingKey",
-				Label:       "Networking Key",
-				SampleValue: "1348307bc77c688e80049de9d081aa09755da33e6997605fa059db2144fc85e560cbe6f7da8d74b453f5916618cb8fd392c2db856f3e78221dc68db1b1d914e4",
+				Name:        "id",
+				Label:       "Node ID",
+				SampleValue: sampleNodeID,
 			},
+			{
+				Type:        "[String]?",
+				Name:        "publicKeys",
+				Label:       "Public Keys",
+				SampleValue: samplePublicKeys,
+			},
+		},
+	))
+
+	m.addTemplate(generateTemplate(
+		"SCO.05", "Request Unstaking",
+		env,
+		templates.GenerateCollectionRequestUnstaking,
+		[]argument{
 			{
 				Type:        "String",
-				Name:        "stakingKey",
-				Label:       "Staking Key",
-				SampleValue: "9e9ae0d645fd5fd9050792e0b0daa82cc1686d9133afa0f81a784b375c42ae48567d1545e7a9e1965f2c1a32f73cf8575ebb7a967f6e4d104d2df78eb8be409135d12da0499b8a00771f642c1b9c49397f22b440439f036c3bdee82f5309dab3",
+				Name:        "nodeID",
+				Label:       "Node ID",
+				SampleValue: sampleNodeID,
+			},
+			{
+				Type:        "UInt32?",
+				Name:        "delegatorID",
+				Label:       "Delegator ID",
+				SampleValue: sampleDelegatorID,
 			},
 			{
 				Type:        "UFix64",
@@ -136,10 +231,22 @@ func generateManifest(env templates.Environment) *manifest {
 	))
 
 	m.addTemplate(generateTemplate(
-		"TH.08", "Stake New Locked FLOW",
+		"SCO.06", "Stake New Tokens",
 		env,
-		templates.GenerateStakeNewLockedTokensScript,
+		templates.GenerateCollectionStakeNewTokens,
 		[]argument{
+			{
+				Type:        "String",
+				Name:        "nodeID",
+				Label:       "Node ID",
+				SampleValue: sampleNodeID,
+			},
+			{
+				Type:        "UInt32?",
+				Name:        "delegatorID",
+				Label:       "Delegator ID",
+				SampleValue: sampleDelegatorID,
+			},
 			{
 				Type:        "UFix64",
 				Name:        "amount",
@@ -150,10 +257,22 @@ func generateManifest(env templates.Environment) *manifest {
 	))
 
 	m.addTemplate(generateTemplate(
-		"TH.09", "Re-stake Unstaked FLOW",
+		"SCO.07", "Stake Rewarded Tokens",
 		env,
-		templates.GenerateStakeLockedUnstakedTokensScript,
+		templates.GenerateCollectionStakeRewardedTokens,
 		[]argument{
+			{
+				Type:        "String",
+				Name:        "nodeID",
+				Label:       "Node ID",
+				SampleValue: sampleNodeID,
+			},
+			{
+				Type:        "UInt32?",
+				Name:        "delegatorID",
+				Label:       "Delegator ID",
+				SampleValue: sampleDelegatorID,
+			},
 			{
 				Type:        "UFix64",
 				Name:        "amount",
@@ -164,11 +283,22 @@ func generateManifest(env templates.Environment) *manifest {
 	))
 
 	m.addTemplate(generateTemplate(
-		"TH.10",
-		"Re-stake Rewarded FLOW",
+		"SCO.08", "Stake Unstaked Tokens",
 		env,
-		templates.GenerateStakeLockedRewardedTokensScript,
+		templates.GenerateCollectionStakeUnstakedTokens,
 		[]argument{
+			{
+				Type:        "String",
+				Name:        "nodeID",
+				Label:       "Node ID",
+				SampleValue: sampleNodeID,
+			},
+			{
+				Type:        "UInt32?",
+				Name:        "delegatorID",
+				Label:       "Delegator ID",
+				SampleValue: sampleDelegatorID,
+			},
 			{
 				Type:        "UFix64",
 				Name:        "amount",
@@ -179,11 +309,36 @@ func generateManifest(env templates.Environment) *manifest {
 	))
 
 	m.addTemplate(generateTemplate(
-		"TH.11",
-		"Request Unstake of FLOW",
+		"SCO.09", "Unstake All",
 		env,
-		templates.GenerateUnstakeLockedTokensScript,
+		templates.GenerateCollectionUnstakeAll,
 		[]argument{
+			{
+				Type:        "String",
+				Name:        "nodeID",
+				Label:       "Node ID",
+				SampleValue: sampleNodeID,
+			},
+		},
+	))
+
+	m.addTemplate(generateTemplate(
+		"SCO.10", "Withdraw Rewarded Tokens",
+		env,
+		templates.GenerateCollectionWithdrawRewardedTokens,
+		[]argument{
+			{
+				Type:        "String",
+				Name:        "nodeID",
+				Label:       "Node ID",
+				SampleValue: sampleNodeID,
+			},
+			{
+				Type:        "UInt32?",
+				Name:        "delegatorID",
+				Label:       "Delegator ID",
+				SampleValue: sampleDelegatorID,
+			},
 			{
 				Type:        "UFix64",
 				Name:        "amount",
@@ -194,17 +349,22 @@ func generateManifest(env templates.Environment) *manifest {
 	))
 
 	m.addTemplate(generateTemplate(
-		"TH.12", "Unstake All FLOW",
+		"SCO.11", "Withdraw Unstaked Tokens",
 		env,
-		templates.GenerateUnstakeAllLockedTokensScript,
-		[]argument{},
-	))
-
-	m.addTemplate(generateTemplate(
-		"TH.13", "Withdraw Unstaked FLOW",
-		env,
-		templates.GenerateWithdrawLockedUnstakedTokensScript,
+		templates.GenerateCollectionWithdrawUnstakedTokens,
 		[]argument{
+			{
+				Type:        "String",
+				Name:        "nodeID",
+				Label:       "Node ID",
+				SampleValue: sampleNodeID,
+			},
+			{
+				Type:        "UInt32?",
+				Name:        "delegatorID",
+				Label:       "Delegator ID",
+				SampleValue: sampleDelegatorID,
+			},
 			{
 				Type:        "UFix64",
 				Name:        "amount",
@@ -215,140 +375,82 @@ func generateManifest(env templates.Environment) *manifest {
 	))
 
 	m.addTemplate(generateTemplate(
-		"TH.14", "Withdraw Rewarded FLOW",
+		"SCO.12", "Close Stake",
 		env,
-		templates.GenerateWithdrawLockedRewardedTokensScript,
+		templates.GenerateCollectionCloseStake,
 		[]argument{
 			{
-				Type:        "UFix64",
-				Name:        "amount",
-				Label:       "Amount",
-				SampleValue: sampleAmount,
+				Type:        "String",
+				Name:        "nodeID",
+				Label:       "Node ID",
+				SampleValue: sampleNodeID,
+			},
+			{
+				Type:        "UInt32?",
+				Name:        "delegatorID",
+				Label:       "Delegator ID",
+				SampleValue: sampleDelegatorID,
 			},
 		},
 	))
 
 	m.addTemplate(generateTemplate(
-		"TH.16", "Register Operator Node",
+		"SCO.13", "Transfer Node",
 		env,
-		templates.GenerateRegisterStakingProxyNodeScript,
+		templates.GenerateCollectionTransferNode,
 		[]argument{
+			{
+				Type:        "String",
+				Name:        "nodeID",
+				Label:       "Node ID",
+				SampleValue: sampleNodeID,
+			},
 			{
 				Type:        "Address",
 				Name:        "address",
-				Label:       "Operator Address",
+				Label:       "Address",
 				SampleValue: sampleAddress(env.Network),
 			},
+		},
+	))
+
+	m.addTemplate(generateTemplate(
+		"SCO.14", "Transfer Delegator",
+		env,
+		templates.GenerateCollectionTransferDelegator,
+		[]argument{
 			{
 				Type:        "String",
-				Name:        "id",
+				Name:        "nodeID",
 				Label:       "Node ID",
 				SampleValue: sampleNodeID,
 			},
 			{
-				Type:        "UFix64",
-				Name:        "amount",
-				Label:       "Amount",
-				SampleValue: sampleAmount,
+				Type:        "UInt32?",
+				Name:        "delegatorID",
+				Label:       "Delegator ID",
+				SampleValue: sampleDelegatorID,
+			},
+			{
+				Type:        "Address",
+				Name:        "address",
+				Label:       "Address",
+				SampleValue: sampleAddress(env.Network),
 			},
 		},
 	))
 
 	m.addTemplate(generateTemplate(
-		"TH.17", "Register Delegator",
+		"SCO.15", "Withdraw From Machine Account",
 		env,
-		templates.GenerateCreateLockedDelegatorScript,
+		templates.GenerateCollectionWithdrawFromMachineAccountScript,
 		[]argument{
 			{
 				Type:        "String",
-				Name:        "id",
+				Name:        "nodeID",
 				Label:       "Node ID",
 				SampleValue: sampleNodeID,
 			},
-			{
-				Type:        "UFix64",
-				Name:        "amount",
-				Label:       "Amount",
-				SampleValue: sampleAmount,
-			},
-		},
-	))
-
-	m.addTemplate(generateTemplate(
-		"TH.19", "Delegate New Locked FLOW",
-		env,
-		templates.GenerateDelegateNewLockedTokensScript,
-		[]argument{
-			{
-				Type:        "UFix64",
-				Name:        "amount",
-				Label:       "Amount",
-				SampleValue: sampleAmount,
-			},
-		},
-	))
-
-	m.addTemplate(generateTemplate(
-		"TH.20", "Re-delegate Unstaked FLOW",
-		env,
-		templates.GenerateDelegateLockedUnstakedTokensScript,
-		[]argument{
-			{
-				Type:        "UFix64",
-				Name:        "amount",
-				Label:       "Amount",
-				SampleValue: sampleAmount,
-			},
-		},
-	))
-
-	m.addTemplate(generateTemplate(
-		"TH.21", "Re-delegate Rewarded FLOW",
-		env,
-		templates.GenerateDelegateLockedRewardedTokensScript,
-		[]argument{
-			{
-				Type:        "UFix64",
-				Name:        "amount",
-				Label:       "Amount",
-				SampleValue: sampleAmount,
-			},
-		},
-	))
-
-	m.addTemplate(generateTemplate(
-		"TH.22", "Unstake Delegated FLOW",
-		env,
-		templates.GenerateUnDelegateLockedTokensScript,
-		[]argument{
-			{
-				Type:        "UFix64",
-				Name:        "amount",
-				Label:       "Amount",
-				SampleValue: sampleAmount,
-			},
-		},
-	))
-
-	m.addTemplate(generateTemplate(
-		"TH.23", "Withdraw Unstaked FLOW",
-		env,
-		templates.GenerateWithdrawDelegatorLockedUnstakedTokensScript,
-		[]argument{
-			{
-				Type:        "UFix64",
-				Name:        "amount",
-				Label:       "Amount",
-				SampleValue: sampleAmount,
-			},
-		},
-	))
-
-	m.addTemplate(generateTemplate(
-		"TH.24", "Withdraw Rewarded FLOW",
-		env,
-		templates.GenerateWithdrawDelegatorLockedRewardedTokensScript,
-		[]argument{
 			{
 				Type:        "UFix64",
 				Name:        "amount",
@@ -361,7 +463,7 @@ func generateManifest(env templates.Environment) *manifest {
 	return m
 }
 
-func sampleAddress(network string) string {
+func sampleAddress(network string) cadenceValue {
 	var address flow.Address
 
 	switch network {
@@ -371,5 +473,5 @@ func sampleAddress(network string) string {
 		address = flow.NewAddressGenerator(flow.Mainnet).NextAddress()
 	}
 
-	return fmt.Sprintf("0x%s", address.Hex())
+	return cadenceValue{cadence.Address(address)}
 }
