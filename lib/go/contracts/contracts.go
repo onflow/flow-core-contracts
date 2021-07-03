@@ -14,15 +14,15 @@ import (
 	"github.com/onflow/flow-core-contracts/lib/go/contracts/internal/assets"
 )
 
-/// This package contains utility functions to get contract code for the contracts in this repo
-/// To use this package, import the `flow-core-contracts/lib/go/contracts` package,
-/// then use the contracts package to call one of these functions.
-/// They will return the byte array version of the contract.
-///
-/// Example
-///
-/// flowTokenCode := contracts.FlowToken(fungibleTokenAddr)
-///
+// This package contains utility functions to get contract code for the contracts in this repo
+// To use this package, import the `flow-core-contracts/lib/go/contracts` package,
+// then use the contracts package to call one of these functions.
+// They will return the byte array version of the contract.
+//
+// Example
+//
+// flowTokenCode := contracts.FlowToken(fungibleTokenAddr)
+//
 
 const (
 	flowFeesFilename              = "FlowFees.cdc"
