@@ -30,10 +30,10 @@ type template struct {
 }
 
 type argument struct {
-	Type        string       `json:"type"`
-	Name        string       `json:"name"`
-	Label       string       `json:"label"`
-	SampleValue cadenceValue `json:"sampleValue"`
+	Type         string         `json:"type"`
+	Name         string         `json:"name"`
+	Label        string         `json:"label"`
+	SampleValues []cadenceValue `json:"sampleValues"`
 }
 
 type cadenceValue struct {
@@ -116,16 +116,16 @@ func generateManifest(env templates.Environment) *manifest {
 		templates.GenerateCollectionRegisterDelegator,
 		[]argument{
 			{
-				Type:        "String",
-				Name:        "id",
-				Label:       "Node ID",
-				SampleValue: sampleNodeID,
+				Type:         "String",
+				Name:         "id",
+				Label:        "Node ID",
+				SampleValues: []cadenceValue{sampleNodeID},
 			},
 			{
-				Type:        "UFix64",
-				Name:        "amount",
-				Label:       "Amount",
-				SampleValue: sampleAmount,
+				Type:         "UFix64",
+				Name:         "amount",
+				Label:        "Amount",
+				SampleValues: []cadenceValue{sampleAmount},
 			},
 		},
 	))
@@ -136,50 +136,62 @@ func generateManifest(env templates.Environment) *manifest {
 		templates.GenerateCollectionRegisterNode,
 		[]argument{
 			{
-				Type:        "String",
-				Name:        "id",
-				Label:       "Node ID",
-				SampleValue: sampleNodeID,
+				Type:         "String",
+				Name:         "id",
+				Label:        "Node ID",
+				SampleValues: []cadenceValue{sampleNodeID},
 			},
 			{
-				Type:        "UInt8",
-				Name:        "role",
-				Label:       "Node Role",
-				SampleValue: cadenceValue{cadence.NewUInt8(1)},
+				Type:  "UInt8",
+				Name:  "role",
+				Label: "Node Role",
+				SampleValues: []cadenceValue{
+					{cadence.NewUInt8(1)},
+				},
 			},
 			{
-				Type:        "String",
-				Name:        "networkingAddress",
-				Label:       "Networking Address",
-				SampleValue: cadenceValue{cadence.NewString("flow-node.test:3569")},
+				Type:  "String",
+				Name:  "networkingAddress",
+				Label: "Networking Address",
+				SampleValues: []cadenceValue{
+					{cadence.NewString("flow-node.test:3569")},
+				},
 			},
 			{
 				Type:  "String",
 				Name:  "networkingKey",
 				Label: "Networking Key",
-				SampleValue: cadenceValue{cadence.NewString(
-					"1348307bc77c688e80049de9d081aa09755da33e6997605fa059db2144fc85e560cbe6f7da8d74b453f5916618cb8fd392c2db856f3e78221dc68db1b1d914e4",
-				)},
+				SampleValues: []cadenceValue{
+					{
+						cadence.NewString(
+							"1348307bc77c688e80049de9d081aa09755da33e6997605fa059db2144fc85e560cbe6f7da8d74b453f5916618cb8fd392c2db856f3e78221dc68db1b1d914e4",
+						),
+					},
+				},
 			},
 			{
 				Type:  "String",
 				Name:  "stakingKey",
 				Label: "Staking Key",
-				SampleValue: cadenceValue{cadence.NewString(
-					"9e9ae0d645fd5fd9050792e0b0daa82cc1686d9133afa0f81a784b375c42ae48567d1545e7a9e1965f2c1a32f73cf8575ebb7a967f6e4d104d2df78eb8be409135d12da0499b8a00771f642c1b9c49397f22b440439f036c3bdee82f5309dab3",
-				)},
+				SampleValues: []cadenceValue{
+					{
+						cadence.NewString(
+							"9e9ae0d645fd5fd9050792e0b0daa82cc1686d9133afa0f81a784b375c42ae48567d1545e7a9e1965f2c1a32f73cf8575ebb7a967f6e4d104d2df78eb8be409135d12da0499b8a00771f642c1b9c49397f22b440439f036c3bdee82f5309dab3",
+						),
+					},
+				},
 			},
 			{
-				Type:        "UFix64",
-				Name:        "amount",
-				Label:       "Amount",
-				SampleValue: sampleAmount,
+				Type:         "UFix64",
+				Name:         "amount",
+				Label:        "Amount",
+				SampleValues: []cadenceValue{sampleAmount},
 			},
 			{
-				Type:        "[String]?",
-				Name:        "publicKeys",
-				Label:       "Public Keys",
-				SampleValue: samplePublicKeys,
+				Type:         "[String]?",
+				Name:         "publicKeys",
+				Label:        "Public Keys",
+				SampleValues: []cadenceValue{samplePublicKeys},
 			},
 		},
 	))
@@ -190,16 +202,16 @@ func generateManifest(env templates.Environment) *manifest {
 		templates.GenerateCollectionCreateMachineAccountForNodeScript,
 		[]argument{
 			{
-				Type:        "String",
-				Name:        "id",
-				Label:       "Node ID",
-				SampleValue: sampleNodeID,
+				Type:         "String",
+				Name:         "id",
+				Label:        "Node ID",
+				SampleValues: []cadenceValue{sampleNodeID},
 			},
 			{
-				Type:        "[String]?",
-				Name:        "publicKeys",
-				Label:       "Public Keys",
-				SampleValue: samplePublicKeys,
+				Type:         "[String]?",
+				Name:         "publicKseys",
+				Label:        "Public Keys",
+				SampleValues: []cadenceValue{samplePublicKeys},
 			},
 		},
 	))
@@ -210,22 +222,22 @@ func generateManifest(env templates.Environment) *manifest {
 		templates.GenerateCollectionRequestUnstaking,
 		[]argument{
 			{
-				Type:        "String",
-				Name:        "nodeID",
-				Label:       "Node ID",
-				SampleValue: sampleNodeID,
+				Type:         "String",
+				Name:         "nodeID",
+				Label:        "Node ID",
+				SampleValues: []cadenceValue{sampleNodeID},
 			},
 			{
-				Type:        "UInt32?",
-				Name:        "delegatorID",
-				Label:       "Delegator ID",
-				SampleValue: sampleDelegatorID,
+				Type:         "UInt32?",
+				Name:         "delegatorID",
+				Label:        "Delegator ID",
+				SampleValues: []cadenceValue{sampleDelegatorID},
 			},
 			{
-				Type:        "UFix64",
-				Name:        "amount",
-				Label:       "Amount",
-				SampleValue: sampleAmount,
+				Type:         "UFix64",
+				Name:         "amount",
+				Label:        "Amount",
+				SampleValues: []cadenceValue{sampleAmount},
 			},
 		},
 	))
@@ -236,22 +248,22 @@ func generateManifest(env templates.Environment) *manifest {
 		templates.GenerateCollectionStakeNewTokens,
 		[]argument{
 			{
-				Type:        "String",
-				Name:        "nodeID",
-				Label:       "Node ID",
-				SampleValue: sampleNodeID,
+				Type:         "String",
+				Name:         "nodeID",
+				Label:        "Node ID",
+				SampleValues: []cadenceValue{sampleNodeID},
 			},
 			{
-				Type:        "UInt32?",
-				Name:        "delegatorID",
-				Label:       "Delegator ID",
-				SampleValue: sampleDelegatorID,
+				Type:         "UInt32?",
+				Name:         "delegatorID",
+				Label:        "Delegator ID",
+				SampleValues: []cadenceValue{sampleDelegatorID},
 			},
 			{
-				Type:        "UFix64",
-				Name:        "amount",
-				Label:       "Amount",
-				SampleValue: sampleAmount,
+				Type:         "UFix64",
+				Name:         "amount",
+				Label:        "Amount",
+				SampleValues: []cadenceValue{sampleAmount},
 			},
 		},
 	))
@@ -262,22 +274,22 @@ func generateManifest(env templates.Environment) *manifest {
 		templates.GenerateCollectionStakeRewardedTokens,
 		[]argument{
 			{
-				Type:        "String",
-				Name:        "nodeID",
-				Label:       "Node ID",
-				SampleValue: sampleNodeID,
+				Type:         "String",
+				Name:         "nodeID",
+				Label:        "Node ID",
+				SampleValues: []cadenceValue{sampleNodeID},
 			},
 			{
-				Type:        "UInt32?",
-				Name:        "delegatorID",
-				Label:       "Delegator ID",
-				SampleValue: sampleDelegatorID,
+				Type:         "UInt32?",
+				Name:         "delegatorID",
+				Label:        "Delegator ID",
+				SampleValues: []cadenceValue{sampleDelegatorID},
 			},
 			{
-				Type:        "UFix64",
-				Name:        "amount",
-				Label:       "Amount",
-				SampleValue: sampleAmount,
+				Type:         "UFix64",
+				Name:         "amount",
+				Label:        "Amount",
+				SampleValues: []cadenceValue{sampleAmount},
 			},
 		},
 	))
@@ -288,22 +300,22 @@ func generateManifest(env templates.Environment) *manifest {
 		templates.GenerateCollectionStakeUnstakedTokens,
 		[]argument{
 			{
-				Type:        "String",
-				Name:        "nodeID",
-				Label:       "Node ID",
-				SampleValue: sampleNodeID,
+				Type:         "String",
+				Name:         "nodeID",
+				Label:        "Node ID",
+				SampleValues: []cadenceValue{sampleNodeID},
 			},
 			{
-				Type:        "UInt32?",
-				Name:        "delegatorID",
-				Label:       "Delegator ID",
-				SampleValue: sampleDelegatorID,
+				Type:         "UInt32?",
+				Name:         "delegatorID",
+				Label:        "Delegator ID",
+				SampleValues: []cadenceValue{sampleDelegatorID},
 			},
 			{
-				Type:        "UFix64",
-				Name:        "amount",
-				Label:       "Amount",
-				SampleValue: sampleAmount,
+				Type:         "UFix64",
+				Name:         "amount",
+				Label:        "Amount",
+				SampleValues: []cadenceValue{sampleAmount},
 			},
 		},
 	))
@@ -314,10 +326,10 @@ func generateManifest(env templates.Environment) *manifest {
 		templates.GenerateCollectionUnstakeAll,
 		[]argument{
 			{
-				Type:        "String",
-				Name:        "nodeID",
-				Label:       "Node ID",
-				SampleValue: sampleNodeID,
+				Type:         "String",
+				Name:         "nodeID",
+				Label:        "Node ID",
+				SampleValues: []cadenceValue{sampleNodeID},
 			},
 		},
 	))
@@ -328,22 +340,22 @@ func generateManifest(env templates.Environment) *manifest {
 		templates.GenerateCollectionWithdrawRewardedTokens,
 		[]argument{
 			{
-				Type:        "String",
-				Name:        "nodeID",
-				Label:       "Node ID",
-				SampleValue: sampleNodeID,
+				Type:         "String",
+				Name:         "nodeID",
+				Label:        "Node ID",
+				SampleValues: []cadenceValue{sampleNodeID},
 			},
 			{
-				Type:        "UInt32?",
-				Name:        "delegatorID",
-				Label:       "Delegator ID",
-				SampleValue: sampleDelegatorID,
+				Type:         "UInt32?",
+				Name:         "delegatorID",
+				Label:        "Delegator ID",
+				SampleValues: []cadenceValue{sampleDelegatorID},
 			},
 			{
-				Type:        "UFix64",
-				Name:        "amount",
-				Label:       "Amount",
-				SampleValue: sampleAmount,
+				Type:         "UFix64",
+				Name:         "amount",
+				Label:        "Amount",
+				SampleValues: []cadenceValue{sampleAmount},
 			},
 		},
 	))
@@ -354,22 +366,22 @@ func generateManifest(env templates.Environment) *manifest {
 		templates.GenerateCollectionWithdrawUnstakedTokens,
 		[]argument{
 			{
-				Type:        "String",
-				Name:        "nodeID",
-				Label:       "Node ID",
-				SampleValue: sampleNodeID,
+				Type:         "String",
+				Name:         "nodeID",
+				Label:        "Node ID",
+				SampleValues: []cadenceValue{sampleNodeID},
 			},
 			{
-				Type:        "UInt32?",
-				Name:        "delegatorID",
-				Label:       "Delegator ID",
-				SampleValue: sampleDelegatorID,
+				Type:         "UInt32?",
+				Name:         "delegatorID",
+				Label:        "Delegator ID",
+				SampleValues: []cadenceValue{sampleDelegatorID},
 			},
 			{
-				Type:        "UFix64",
-				Name:        "amount",
-				Label:       "Amount",
-				SampleValue: sampleAmount,
+				Type:         "UFix64",
+				Name:         "amount",
+				Label:        "Amount",
+				SampleValues: []cadenceValue{sampleAmount},
 			},
 		},
 	))
@@ -380,16 +392,16 @@ func generateManifest(env templates.Environment) *manifest {
 		templates.GenerateCollectionCloseStake,
 		[]argument{
 			{
-				Type:        "String",
-				Name:        "nodeID",
-				Label:       "Node ID",
-				SampleValue: sampleNodeID,
+				Type:         "String",
+				Name:         "nodeID",
+				Label:        "Node ID",
+				SampleValues: []cadenceValue{sampleNodeID},
 			},
 			{
-				Type:        "UInt32?",
-				Name:        "delegatorID",
-				Label:       "Delegator ID",
-				SampleValue: sampleDelegatorID,
+				Type:         "UInt32?",
+				Name:         "delegatorID",
+				Label:        "Delegator ID",
+				SampleValues: []cadenceValue{sampleDelegatorID},
 			},
 		},
 	))
@@ -400,16 +412,16 @@ func generateManifest(env templates.Environment) *manifest {
 		templates.GenerateCollectionTransferNode,
 		[]argument{
 			{
-				Type:        "String",
-				Name:        "nodeID",
-				Label:       "Node ID",
-				SampleValue: sampleNodeID,
+				Type:         "String",
+				Name:         "nodeID",
+				Label:        "Node ID",
+				SampleValues: []cadenceValue{sampleNodeID},
 			},
 			{
-				Type:        "Address",
-				Name:        "address",
-				Label:       "Address",
-				SampleValue: sampleAddress(env.Network),
+				Type:         "Address",
+				Name:         "address",
+				Label:        "Address",
+				SampleValues: []cadenceValue{sampleAddress(env.Network)},
 			},
 		},
 	))
@@ -420,22 +432,22 @@ func generateManifest(env templates.Environment) *manifest {
 		templates.GenerateCollectionTransferDelegator,
 		[]argument{
 			{
-				Type:        "String",
-				Name:        "nodeID",
-				Label:       "Node ID",
-				SampleValue: sampleNodeID,
+				Type:         "String",
+				Name:         "nodeID",
+				Label:        "Node ID",
+				SampleValues: []cadenceValue{sampleNodeID},
 			},
 			{
-				Type:        "UInt32?",
-				Name:        "delegatorID",
-				Label:       "Delegator ID",
-				SampleValue: sampleDelegatorID,
+				Type:         "UInt32?",
+				Name:         "delegatorID",
+				Label:        "Delegator ID",
+				SampleValues: []cadenceValue{sampleDelegatorID},
 			},
 			{
-				Type:        "Address",
-				Name:        "address",
-				Label:       "Address",
-				SampleValue: sampleAddress(env.Network),
+				Type:         "Address",
+				Name:         "address",
+				Label:        "Address",
+				SampleValues: []cadenceValue{sampleAddress(env.Network)},
 			},
 		},
 	))
@@ -446,16 +458,16 @@ func generateManifest(env templates.Environment) *manifest {
 		templates.GenerateCollectionWithdrawFromMachineAccountScript,
 		[]argument{
 			{
-				Type:        "String",
-				Name:        "nodeID",
-				Label:       "Node ID",
-				SampleValue: sampleNodeID,
+				Type:         "String",
+				Name:         "nodeID",
+				Label:        "Node ID",
+				SampleValues: []cadenceValue{sampleNodeID},
 			},
 			{
-				Type:        "UFix64",
-				Name:        "amount",
-				Label:       "Amount",
-				SampleValue: sampleAmount,
+				Type:         "UFix64",
+				Name:         "amount",
+				Label:        "Amount",
+				SampleValues: []cadenceValue{sampleAmount},
 			},
 		},
 	))
