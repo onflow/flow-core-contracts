@@ -118,6 +118,10 @@
           "sampleValues": [
             {
               "type": "Optional",
+              "value": null
+            },
+            {
+              "type": "Optional",
               "value": {
                 "type": "Array",
                 "value": [
@@ -157,6 +161,10 @@
           "sampleValues": [
             {
               "type": "Optional",
+              "value": null
+            },
+            {
+              "type": "Optional",
               "value": {
                 "type": "Array",
                 "value": [
@@ -194,6 +202,10 @@
           "name": "delegatorID",
           "label": "Delegator ID",
           "sampleValues": [
+            {
+              "type": "Optional",
+              "value": null
+            },
             {
               "type": "Optional",
               "value": {
@@ -241,6 +253,10 @@
           "sampleValues": [
             {
               "type": "Optional",
+              "value": null
+            },
+            {
+              "type": "Optional",
               "value": {
                 "type": "UInt32",
                 "value": "42"
@@ -284,6 +300,10 @@
           "name": "delegatorID",
           "label": "Delegator ID",
           "sampleValues": [
+            {
+              "type": "Optional",
+              "value": null
+            },
             {
               "type": "Optional",
               "value": {
@@ -335,6 +355,10 @@
                 "type": "UInt32",
                 "value": "42"
               }
+            },
+            {
+              "type": "Optional",
+              "value": null
             }
           ]
         },
@@ -400,6 +424,10 @@
                 "type": "UInt32",
                 "value": "42"
               }
+            },
+            {
+              "type": "Optional",
+              "value": null
             }
           ]
         },
@@ -445,6 +473,10 @@
                 "type": "UInt32",
                 "value": "42"
               }
+            },
+            {
+              "type": "Optional",
+              "value": null
             }
           ]
         },
@@ -490,6 +522,10 @@
                 "type": "UInt32",
                 "value": "42"
               }
+            },
+            {
+              "type": "Optional",
+              "value": null
             }
           ]
         }
@@ -555,6 +591,10 @@
                 "type": "UInt32",
                 "value": "42"
               }
+            },
+            {
+              "type": "Optional",
+              "value": null
             }
           ]
         },

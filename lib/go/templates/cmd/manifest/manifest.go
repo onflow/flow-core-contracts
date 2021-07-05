@@ -93,6 +93,8 @@ func generateManifest(env templates.Environment) *manifest {
 		cadence.NewString("88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"),
 	}
 
+	sampleNullOptional := cadenceValue{cadence.NewOptional(nil)}
+
 	sampleDelegatorID := cadenceValue{cadence.NewOptional(
 		cadence.NewUInt32(42),
 	)}
@@ -188,10 +190,13 @@ func generateManifest(env templates.Environment) *manifest {
 				SampleValues: []cadenceValue{sampleAmount},
 			},
 			{
-				Type:         "[String]?",
-				Name:         "publicKeys",
-				Label:        "Public Keys",
-				SampleValues: []cadenceValue{samplePublicKeys},
+				Type:  "[String]?",
+				Name:  "publicKeys",
+				Label: "Public Keys",
+				SampleValues: []cadenceValue{
+					sampleNullOptional,
+					samplePublicKeys,
+				},
 			},
 		},
 	))
@@ -208,10 +213,13 @@ func generateManifest(env templates.Environment) *manifest {
 				SampleValues: []cadenceValue{sampleNodeID},
 			},
 			{
-				Type:         "[String]?",
-				Name:         "publicKseys",
-				Label:        "Public Keys",
-				SampleValues: []cadenceValue{samplePublicKeys},
+				Type:  "[String]?",
+				Name:  "publicKseys",
+				Label: "Public Keys",
+				SampleValues: []cadenceValue{
+					sampleNullOptional,
+					samplePublicKeys,
+				},
 			},
 		},
 	))
@@ -228,10 +236,13 @@ func generateManifest(env templates.Environment) *manifest {
 				SampleValues: []cadenceValue{sampleNodeID},
 			},
 			{
-				Type:         "UInt32?",
-				Name:         "delegatorID",
-				Label:        "Delegator ID",
-				SampleValues: []cadenceValue{sampleDelegatorID},
+				Type:  "UInt32?",
+				Name:  "delegatorID",
+				Label: "Delegator ID",
+				SampleValues: []cadenceValue{
+					sampleNullOptional,
+					sampleDelegatorID,
+				},
 			},
 			{
 				Type:         "UFix64",
@@ -254,10 +265,13 @@ func generateManifest(env templates.Environment) *manifest {
 				SampleValues: []cadenceValue{sampleNodeID},
 			},
 			{
-				Type:         "UInt32?",
-				Name:         "delegatorID",
-				Label:        "Delegator ID",
-				SampleValues: []cadenceValue{sampleDelegatorID},
+				Type:  "UInt32?",
+				Name:  "delegatorID",
+				Label: "Delegator ID",
+				SampleValues: []cadenceValue{
+					sampleNullOptional,
+					sampleDelegatorID,
+				},
 			},
 			{
 				Type:         "UFix64",
@@ -280,10 +294,13 @@ func generateManifest(env templates.Environment) *manifest {
 				SampleValues: []cadenceValue{sampleNodeID},
 			},
 			{
-				Type:         "UInt32?",
-				Name:         "delegatorID",
-				Label:        "Delegator ID",
-				SampleValues: []cadenceValue{sampleDelegatorID},
+				Type:  "UInt32?",
+				Name:  "delegatorID",
+				Label: "Delegator ID",
+				SampleValues: []cadenceValue{
+					sampleNullOptional,
+					sampleDelegatorID,
+				},
 			},
 			{
 				Type:         "UFix64",
@@ -306,10 +323,13 @@ func generateManifest(env templates.Environment) *manifest {
 				SampleValues: []cadenceValue{sampleNodeID},
 			},
 			{
-				Type:         "UInt32?",
-				Name:         "delegatorID",
-				Label:        "Delegator ID",
-				SampleValues: []cadenceValue{sampleDelegatorID},
+				Type:  "UInt32?",
+				Name:  "delegatorID",
+				Label: "Delegator ID",
+				SampleValues: []cadenceValue{
+					sampleDelegatorID,
+					sampleNullOptional,
+				},
 			},
 			{
 				Type:         "UFix64",
@@ -346,10 +366,13 @@ func generateManifest(env templates.Environment) *manifest {
 				SampleValues: []cadenceValue{sampleNodeID},
 			},
 			{
-				Type:         "UInt32?",
-				Name:         "delegatorID",
-				Label:        "Delegator ID",
-				SampleValues: []cadenceValue{sampleDelegatorID},
+				Type:  "UInt32?",
+				Name:  "delegatorID",
+				Label: "Delegator ID",
+				SampleValues: []cadenceValue{
+					sampleDelegatorID,
+					sampleNullOptional,
+				},
 			},
 			{
 				Type:         "UFix64",
@@ -372,10 +395,13 @@ func generateManifest(env templates.Environment) *manifest {
 				SampleValues: []cadenceValue{sampleNodeID},
 			},
 			{
-				Type:         "UInt32?",
-				Name:         "delegatorID",
-				Label:        "Delegator ID",
-				SampleValues: []cadenceValue{sampleDelegatorID},
+				Type:  "UInt32?",
+				Name:  "delegatorID",
+				Label: "Delegator ID",
+				SampleValues: []cadenceValue{
+					sampleDelegatorID,
+					sampleNullOptional,
+				},
 			},
 			{
 				Type:         "UFix64",
@@ -398,10 +424,13 @@ func generateManifest(env templates.Environment) *manifest {
 				SampleValues: []cadenceValue{sampleNodeID},
 			},
 			{
-				Type:         "UInt32?",
-				Name:         "delegatorID",
-				Label:        "Delegator ID",
-				SampleValues: []cadenceValue{sampleDelegatorID},
+				Type:  "UInt32?",
+				Name:  "delegatorID",
+				Label: "Delegator ID",
+				SampleValues: []cadenceValue{
+					sampleDelegatorID,
+					sampleNullOptional,
+				},
 			},
 		},
 	))
@@ -438,10 +467,13 @@ func generateManifest(env templates.Environment) *manifest {
 				SampleValues: []cadenceValue{sampleNodeID},
 			},
 			{
-				Type:         "UInt32?",
-				Name:         "delegatorID",
-				Label:        "Delegator ID",
-				SampleValues: []cadenceValue{sampleDelegatorID},
+				Type:  "UInt32?",
+				Name:  "delegatorID",
+				Label: "Delegator ID",
+				SampleValues: []cadenceValue{
+					sampleDelegatorID,
+					sampleNullOptional,
+				},
 			},
 			{
 				Type:         "Address",
