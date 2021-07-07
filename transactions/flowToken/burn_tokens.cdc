@@ -16,7 +16,7 @@ transaction(amount: UFix64) {
 
     prepare(signer: AuthAccount) {
 
-        // Withdraw 10 tokens from the admin vault in storage
+        // Withdraw tokens from the admin vault in storage
         self.vault <- signer.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)!
             .withdraw(amount: amount)
 
