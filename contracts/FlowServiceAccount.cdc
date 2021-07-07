@@ -122,26 +122,34 @@ pub contract FlowServiceAccount {
 
         /// Sets the transaction fee
         pub fun setTransactionFee(_ newFee: UFix64) {
+            if newFee != FlowServiceAccount.transactionFee {
+                emit TransactionFeeUpdated(newFee: newFee)
+            }
             FlowServiceAccount.transactionFee = newFee
-            emit TransactionFeeUpdated(newFee: newFee)
         }
 
         /// Sets the account creation fee
         pub fun setAccountCreationFee(_ newFee: UFix64) {
+            if newFee != FlowServiceAccount.accountCreationFee {
+                emit AccountCreationFeeUpdated(newFee: newFee)
+            }
             FlowServiceAccount.accountCreationFee = newFee
-            emit AccountCreationFeeUpdated(newFee: newFee)
         }
 
         /// Adds an account address as an authorized account creator
         pub fun addAccountCreator(_ accountCreator: Address) {
+            if FlowServiceAccount.accountCreators[accountCreator] == nil {
+                emit AccountCreatorAdded(accountCreator: accountCreator)
+            }
             FlowServiceAccount.accountCreators[accountCreator] = true
-            emit AccountCreatorAdded(accountCreator: accountCreator)
         }
 
         /// Removes an account address as an authorized account creator
         pub fun removeAccountCreator(_ accountCreator: Address) {
+            if FlowServiceAccount.accountCreators[accountCreator] != nil {
+                emit AccountCreatorRemoved(accountCreator: accountCreator)
+            }
             FlowServiceAccount.accountCreators.remove(key: accountCreator)
-            emit AccountCreatorRemoved(accountCreator: accountCreator)
         }
 
          pub fun setIsAccountCreationRestricted(_ enabled: Bool) {
