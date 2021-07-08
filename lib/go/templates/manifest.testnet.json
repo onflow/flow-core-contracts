@@ -124,7 +124,34 @@
               "type": "Optional",
               "value": {
                 "type": "Array",
+                "value": []
+              }
+            },
+            {
+              "type": "Optional",
+              "value": {
+                "type": "Array",
                 "value": [
+                  {
+                    "type": "String",
+                    "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+                  }
+                ]
+              }
+            },
+            {
+              "type": "Optional",
+              "value": {
+                "type": "Array",
+                "value": [
+                  {
+                    "type": "String",
+                    "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+                  },
+                  {
+                    "type": "String",
+                    "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+                  },
                   {
                     "type": "String",
                     "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
@@ -155,25 +182,39 @@
           ]
         },
         {
-          "type": "[String]?",
-          "name": "publicKseys",
+          "type": "[String]",
+          "name": "publicKeys",
           "label": "Public Keys",
           "sampleValues": [
             {
-              "type": "Optional",
-              "value": null
+              "type": "Array",
+              "value": []
             },
             {
-              "type": "Optional",
-              "value": {
-                "type": "Array",
-                "value": [
-                  {
-                    "type": "String",
-                    "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
-                  }
-                ]
-              }
+              "type": "Array",
+              "value": [
+                {
+                  "type": "String",
+                  "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+                }
+              ]
+            },
+            {
+              "type": "Array",
+              "value": [
+                {
+                  "type": "String",
+                  "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+                },
+                {
+                  "type": "String",
+                  "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+                },
+                {
+                  "type": "String",
+                  "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+                }
+              ]
             }
           ]
         }

@@ -53,6 +53,10 @@ func (v cadenceValue) UnmarshalJSON(bytes []byte) (err error) {
 	return nil
 }
 
+func optionalCadenceValue(value cadence.Value) cadenceValue {
+	return cadenceValue{cadence.NewOptional(value)}
+}
+
 type templateGenerator func(env templates.Environment) []byte
 
 func generateTemplate(
@@ -93,17 +97,25 @@ func generateManifest(env templates.Environment) *manifest {
 		cadence.NewString("88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"),
 	}
 
-	sampleNullOptional := cadenceValue{cadence.NewOptional(nil)}
+	sampleNullOptional := cadenceValue{
+		cadence.NewOptional(nil),
+	}
 
 	sampleDelegatorID := cadenceValue{cadence.NewOptional(
 		cadence.NewUInt32(42),
 	)}
 
-	samplePublicKeys := cadenceValue{cadence.NewOptional(
-		cadence.NewArray([]cadence.Value{
-			cadence.NewString("f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"),
-		}),
-	)}
+	sampleEmptyPublicKeys := cadence.NewArray([]cadence.Value{})
+
+	sampleOnePublicKey := cadence.NewArray([]cadence.Value{
+		cadence.NewString("f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"),
+	})
+
+	sampleThreePublicKeys := cadence.NewArray([]cadence.Value{
+		cadence.NewString("f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"),
+		cadence.NewString("f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"),
+		cadence.NewString("f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"),
+	})
 
 	m.addTemplate(generateTemplate(
 		"SCO.01", "Setup Staking Collection",
@@ -195,7 +207,9 @@ func generateManifest(env templates.Environment) *manifest {
 				Label: "Public Keys",
 				SampleValues: []cadenceValue{
 					sampleNullOptional,
-					samplePublicKeys,
+					optionalCadenceValue(sampleEmptyPublicKeys),
+					optionalCadenceValue(sampleOnePublicKey),
+					optionalCadenceValue(sampleThreePublicKeys),
 				},
 			},
 		},
@@ -213,12 +227,13 @@ func generateManifest(env templates.Environment) *manifest {
 				SampleValues: []cadenceValue{sampleNodeID},
 			},
 			{
-				Type:  "[String]?",
-				Name:  "publicKseys",
+				Type:  "[String]",
+				Name:  "publicKeys",
 				Label: "Public Keys",
 				SampleValues: []cadenceValue{
-					sampleNullOptional,
-					samplePublicKeys,
+					{sampleEmptyPublicKeys},
+					{sampleOnePublicKey},
+					{sampleThreePublicKeys},
 				},
 			},
 		},
