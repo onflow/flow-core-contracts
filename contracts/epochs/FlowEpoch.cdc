@@ -1,7 +1,7 @@
 import FungibleToken from 0xFUNGIBLETOKENADDRESS
 import FlowToken from 0xFLOWTOKENADDRESS
 import FlowIDTableStaking from 0xFLOWIDTABLESTAKINGADDRESS
-import FlowEpochClusterQC from 0xQCADDRESS
+import FlowClusterQC from 0xQCADDRESS
 import FlowDKG from 0xDKGADDRESS
 
 // The top-level smart contract managing the lifecycle of epochs. In Flow,
@@ -79,7 +79,7 @@ pub contract FlowEpoch {
         /// The cluster assignment for the upcoming epoch. Each element in the list
         /// represents one cluster and contains all the node IDs assigned to that
         /// cluster, with their weights and votes
-        collectorClusters: [FlowEpochClusterQC.Cluster],
+        collectorClusters: [FlowClusterQC.Cluster],
 
         /// The source of randomness to seed the leader selection algorithm with 
         /// for the upcoming epoch.
@@ -107,7 +107,7 @@ pub contract FlowEpoch {
         /// all the nodes and votes received for a particular cluster
         /// QC stands for quorum certificate that each cluster generates.
         /// TODO: define ordering
-        clusterQCs: [FlowEpochClusterQC.ClusterQC]
+        clusterQCs: [FlowClusterQC.ClusterQC]
 
         /// The resulting public keys from the DKG process, encoded as by the flow-go
         /// crypto library, then hex-encoded.
@@ -145,10 +145,10 @@ pub contract FlowEpoch {
 
         /// The organization of collector node IDs into clusters
         /// determined by a round robin sorting algorithm
-        pub let collectorClusters: [FlowEpochClusterQC.Cluster]
+        pub let collectorClusters: [FlowClusterQC.Cluster]
 
         /// The Quorum Certificates from the ClusterQC contract
-        pub var clusterQCs: [FlowEpochClusterQC.ClusterQC]
+        pub var clusterQCs: [FlowClusterQC.ClusterQC]
 
         /// The public keys associated with the Distributed Key Generation
         /// process that consensus nodes participate in
@@ -161,8 +161,8 @@ pub contract FlowEpoch {
              endView: UInt64,
              stakingEndView: UInt64,
              totalRewards: UFix64,
-             collectorClusters: [FlowEpochClusterQC.Cluster],
-             clusterQCs: [FlowEpochClusterQC.ClusterQC],
+             collectorClusters: [FlowClusterQC.Cluster],
+             clusterQCs: [FlowClusterQC.ClusterQC],
              dkgKeys: [String]) {
 
             self.counter = counter
@@ -190,7 +190,7 @@ pub contract FlowEpoch {
             self.rewardsPaid = rewardsPaid
         } 
 
-        access(account) fun setClusterQCs(qcs: [FlowEpochClusterQC.ClusterQC]) {
+        access(account) fun setClusterQCs(qcs: [FlowClusterQC.ClusterQC]) {
             self.clusterQCs = qcs
         }
 
@@ -363,7 +363,7 @@ pub contract FlowEpoch {
                         self.endStakingAuction(approvedIDs: approvedIDs)
                     }
                 case EpochPhase.EPOCHSETUP:
-                    if FlowEpochClusterQC.votingCompleted() && (FlowDKG.dkgCompleted() != nil) {
+                    if FlowClusterQC.votingCompleted() && (FlowDKG.dkgCompleted() != nil) {
                         self.startEpochCommit()
                     }
                 case EpochPhase.EPOCHCOMMIT:
@@ -427,8 +427,8 @@ pub contract FlowEpoch {
             newPayout: UFix64?,
             startView: UInt64,
             endView: UInt64,
-            collectorClusters: [FlowEpochClusterQC.Cluster],
-            clusterQCs: [FlowEpochClusterQC.ClusterQC],
+            collectorClusters: [FlowClusterQC.Cluster],
+            clusterQCs: [FlowClusterQC.ClusterQC],
             dkgPubKeys: [String])
         {
             pre {
@@ -501,7 +501,7 @@ pub contract FlowEpoch {
     access(account) fun startNewEpoch() {
 
         // End QC and DKG if they are still enabled
-        if FlowEpochClusterQC.inProgress {
+        if FlowClusterQC.inProgress {
             self.borrowClusterQCAdmin().stopVoting()
         }
         if FlowDKG.dkgEnabled {
@@ -595,23 +595,20 @@ pub contract FlowEpoch {
     /// Ends the EpochSetup phase when the QC and DKG are completed
     /// and emits the EpochCommit event with the results
     access(account) fun startEpochCommit() {
-        if !FlowEpochClusterQC.votingCompleted() || FlowDKG.dkgCompleted() == nil {
+        if !FlowClusterQC.votingCompleted() || FlowDKG.dkgCompleted() == nil {
             return
         }
 
-        let clusters = FlowEpochClusterQC.getClusters()
+        let clusters = FlowClusterQC.getClusters()
 
         // Holds the quorum certificates for each cluster
-        var clusterQCs: [FlowEpochClusterQC.ClusterQC] = []
+        var clusterQCs: [FlowClusterQC.ClusterQC] = []
 
         // iterate through all the clusters and create their certificate arrays
         for cluster in clusters {
-            var certificate: FlowEpochClusterQC.ClusterQC = FlowEpochClusterQC.ClusterQC(index: cluster.index, votes: [], voterIDs: [])
+            var certificate = cluster.generateQuorumCertificate()
+                ?? panic("Could not generate the quorum certificate for this cluster")
 
-            for vote in cluster.votes {
-                certificate.votes.append(vote.raw!)
-                certificate.voterIDs.append(vote.nodeID)
-            }
             clusterQCs.append(certificate)
         }
 
@@ -647,8 +644,8 @@ pub contract FlowEpoch {
     }
 
     /// Borrow a reference to the ClusterQCs Admin resource
-    access(contract) fun borrowClusterQCAdmin(): &FlowEpochClusterQC.Admin {
-        let adminRef = self.account.borrow<&FlowEpochClusterQC.Admin>(from: FlowEpochClusterQC.AdminStoragePath)
+    access(contract) fun borrowClusterQCAdmin(): &FlowClusterQC.Admin {
+        let adminRef = self.account.borrow<&FlowClusterQC.Admin>(from: FlowClusterQC.AdminStoragePath)
             ?? panic("Could not borrow qc admin")
 
         return adminRef
@@ -670,11 +667,14 @@ pub contract FlowEpoch {
 
     /// Randomizes the list of collector node ID and uses a round robin algorithm
     /// to assign all collector nodes to equal sized clusters
-    pub fun createCollectorClusters(nodeIDs: [String]): [FlowEpochClusterQC.Cluster] {
+    pub fun createCollectorClusters(nodeIDs: [String]): [FlowClusterQC.Cluster] {
+        pre {
+            UInt16(nodeIDs.length) >= self.configurableMetadata.numCollectorClusters: "Cannot have less collector nodes than clusters"
+        }
         var shuffledIDs = self.randomize(nodeIDs)
 
         // Holds cluster assignments for collector nodes
-        let clusters: [FlowEpochClusterQC.Cluster] = []
+        let clusters: [FlowClusterQC.Cluster] = []
         var clusterIndex: UInt16 = 0
         let nodeWeightsDictionary: [{String: UInt64}] = []
         while clusterIndex < self.configurableMetadata.numCollectorClusters {
@@ -700,7 +700,7 @@ pub contract FlowEpoch {
         // and emitted in the EpochSetup event
         clusterIndex = 0
         while clusterIndex < self.configurableMetadata.numCollectorClusters {
-            clusters.append(FlowEpochClusterQC.Cluster(index: clusterIndex, nodeWeights: nodeWeightsDictionary[clusterIndex]!))
+            clusters.append(FlowClusterQC.Cluster(index: clusterIndex, nodeWeights: nodeWeightsDictionary[clusterIndex]!))
             clusterIndex = clusterIndex + 1 as UInt16
         }
 
@@ -734,7 +734,7 @@ pub contract FlowEpoch {
 
     /// Collector nodes call this function to get their QC Voter resource
     /// in order to participate the the QC generation for their cluster
-    pub fun getClusterQCVoter(nodeStaker: &FlowIDTableStaking.NodeStaker): @FlowEpochClusterQC.Voter {
+    pub fun getClusterQCVoter(nodeStaker: &FlowIDTableStaking.NodeStaker): @FlowClusterQC.Voter {
         let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeStaker.id)
 
         assert (
@@ -743,7 +743,7 @@ pub contract FlowEpoch {
         )
 
         let clusterQCAdmin = self.borrowClusterQCAdmin()
-        return <-clusterQCAdmin.createVoter(nodeID: nodeStaker.id)
+        return <-clusterQCAdmin.createVoter(nodeID: nodeStaker.id, stakingKey: nodeInfo.stakingKey)
     }
 
     /// Consensus nodes call this function to get their DKG Participant resource
@@ -777,8 +777,8 @@ pub contract FlowEpoch {
           numCollectorClusters: UInt16,
           FLOWsupplyIncreasePercentage: UFix64,
           randomSource: String,
-          collectorClusters: [FlowEpochClusterQC.Cluster],
-          clusterQCs: [FlowEpochClusterQC.ClusterQC],
+          collectorClusters: [FlowClusterQC.Cluster],
+          clusterQCs: [FlowClusterQC.ClusterQC],
           dkgPubKeys: [String]) {
 
         self.configurableMetadata = Config(numViewsInEpoch: numViewsInEpoch,

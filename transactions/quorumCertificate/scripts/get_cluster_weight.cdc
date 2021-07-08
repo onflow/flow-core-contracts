@@ -1,8 +1,8 @@
-import FlowEpochClusterQC from 0xQCADDRESS
+import FlowClusterQC from 0xQCADDRESS
 
 pub fun main(clusterIndex: UInt16): UInt64 {
 
-    let clusters = FlowEpochClusterQC.getClusters()
+    let clusters = FlowClusterQC.getClusters()
 
     return clusters[clusterIndex].totalWeight
 

@@ -1,4 +1,4 @@
-import FlowEpochClusterQC from 0xQCADDRESS
+import FlowClusterQC from 0xQCADDRESS
 
 // Test transaction for the QC admin to publish a reference
 // that allows accounts to register for QC voting
@@ -6,6 +6,6 @@ import FlowEpochClusterQC from 0xQCADDRESS
 transaction {
 
     prepare(signer: AuthAccount) {
-        signer.link<&FlowEpochClusterQC.Admin>(/public/voterCreator, target: FlowEpochClusterQC.AdminStoragePath)
+        signer.link<&FlowClusterQC.Admin>(/public/voterCreator, target: FlowClusterQC.AdminStoragePath)
     }
 }

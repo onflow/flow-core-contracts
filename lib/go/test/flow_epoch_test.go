@@ -1,11 +1,14 @@
 package test
 
 import (
+	"encoding/hex"
 	"fmt"
 	"testing"
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
+	flow_crypto "github.com/onflow/flow-go/crypto"
+	"github.com/onflow/flow-go/model/encoding"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -15,8 +18,8 @@ import (
 )
 
 const (
-	numEpochAccounts  = 4
-	numClusters       = 4
+	numEpochAccounts  = 6
+	numClusters       = 2
 	startEpochCounter = 0
 	numEpochViews     = 70
 	numStakingViews   = 50
@@ -112,7 +115,7 @@ func TestEpochClusters(t *testing.T) {
 	t.Run("Should be able to create collector clusters from an array of ids signed up for staking", func(t *testing.T) {
 		idArray := cadence.NewArray([]cadence.Value{cadence.NewString(ids[0]), cadence.NewString(ids[1]), cadence.NewString(ids[2]), cadence.NewString(ids[3])})
 		result := executeScriptAndCheck(t, b, templates.GenerateGetCreateClustersScript(env), [][]byte{jsoncdc.MustEncode(idArray)})
-		assertEqual(t, 4, len(result.(cadence.Array).Values))
+		assertEqual(t, 2, len(result.(cadence.Array).Values))
 
 		// TODO: Make sure that the clusters are correct and are in a different order than the original array
 	})
@@ -378,9 +381,7 @@ func TestEpochAdvance(t *testing.T) {
 
 		// Verify that the proposed epoch metadata was initialized correctly
 		clusters := []Cluster{Cluster{index: 0, totalWeight: 100, size: 1},
-			Cluster{index: 1, totalWeight: 0, size: 0},
-			Cluster{index: 2, totalWeight: 0, size: 0},
-			Cluster{index: 3, totalWeight: 0, size: 0}}
+			Cluster{index: 1, totalWeight: 100, size: 1}}
 
 		verifyEpochMetadata(t, b, env,
 			EpochMetadata{
@@ -412,8 +413,9 @@ func TestEpochAdvance(t *testing.T) {
 		result := executeScriptAndCheck(t, b, templates.GenerateGetClusterWeightScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt16(uint16(0)))})
 		assert.Equal(t, cadence.NewUInt64(100), result)
 
-		result = executeScriptAndCheck(t, b, templates.GenerateGetNodeWeightScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt16(uint16(0))), jsoncdc.MustEncode(cadence.String(ids[0]))})
-		assert.Equal(t, cadence.NewUInt64(100), result)
+		result = executeScriptAndCheck(t, b, templates.GenerateGetNodeWeightScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt16(uint16(1))), jsoncdc.MustEncode(cadence.String(ids[0]))})
+		result2 := executeScriptAndCheck(t, b, templates.GenerateGetNodeWeightScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt16(uint16(0))), jsoncdc.MustEncode(cadence.String(ids[0]))})
+		assert.Equal(t, cadence.NewUInt64(100), result.(cadence.UInt64)+result2.(cadence.UInt64))
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetClusterVoteThresholdScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt16(uint16(0)))})
 		assert.Equal(t, cadence.NewUInt64(67), result)
@@ -472,7 +474,7 @@ func TestEpochQCDKGNodeRegistration(t *testing.T) {
 		70,            // num views per epoch
 		50,            // num views for staking auction
 		2,             // num views for DKG phase
-		4,             // num collector clusters
+		2,             // num collector clusters
 		"lolsoRandom", // random source
 		rewardAPY)
 
@@ -582,14 +584,14 @@ func TestEpochQCDKG(t *testing.T) {
 		numEpochViews,     // num views per epoch
 		numStakingViews,   // num views for staking auction
 		numDKGViews,       // num views for DKG phase
-		numClusters,       // num collector clusters
+		2,                 // num collector clusters
 		randomSource,      // random source
 		rewardAPY)
 
 	// create new user accounts, mint tokens for them, and register them for staking
-	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
-	ids, _, _ := generateNodeIDs(numEpochAccounts)
-	_, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
+	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, 6)
+	ids, _, _ := generateNodeIDs(6)
+	stakingPrivateKeys, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, 6)
 	registerNodesForStaking(t, b, env,
 		addresses,
 		signers,
@@ -606,6 +608,14 @@ func TestEpochQCDKG(t *testing.T) {
 		t, b, tx,
 		[]flow.Address{b.ServiceKey().Address, addresses[0]},
 		[]crypto.Signer{b.ServiceKey().Signer(), signers[0]},
+		false,
+	)
+
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochRegisterQCVoterScript(env), addresses[5])
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, addresses[5]},
+		[]crypto.Signer{b.ServiceKey().Signer(), signers[5]},
 		false,
 	)
 
@@ -669,25 +679,54 @@ func TestEpochQCDKG(t *testing.T) {
 				numViewsInEpoch:          numEpochViews,
 				numViewsInStakingAuction: numStakingViews,
 				numViewsInDKGPhase:       numDKGViews,
-				numCollectorClusters:     numClusters,
+				numCollectorClusters:     2,
 				rewardPercentage:         rewardAPY})
 
 	})
 
-	clusterQCs := make([][]string, numClusters)
-	clusterQCs[0] = make([]string, 1)
-	clusterQCs[0][0] = "0000000000000000000000000000000000000000000000000000000000000000"
+	clusterQCs := make([][]string, 2)
+	clusterQCs[0] = make([]string, 2)
+	clusterQCs[1] = make([]string, 2)
+
+	collectorVoteHasher := flow_crypto.NewBLSKMAC(encoding.CollectorVoteTag)
 
 	t.Run("Can perform QC actions during Epoch Setup and advance to EpochCommit", func(t *testing.T) {
 
+		msg, _ := hex.DecodeString("deadbeef")
+		validSignature, err := stakingPrivateKeys[0].Sign(msg, collectorVoteHasher)
+		validSignatureString := validSignature.String()[2:]
+		assert.NoError(t, err)
+		clusterQCs[0][0] = validSignatureString
+		clusterQCs[0][1] = "deadbeef"
+
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), addresses[0])
 
-		_ = tx.AddArgument(cadence.NewString("0000000000000000000000000000000000000000000000000000000000000000"))
+		_ = tx.AddArgument(cadence.NewString(validSignatureString))
+		_ = tx.AddArgument(cadence.NewString("deadbeef"))
 
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{b.ServiceKey().Address, addresses[0]},
 			[]crypto.Signer{b.ServiceKey().Signer(), signers[0]},
+			false,
+		)
+
+		msg, _ = hex.DecodeString("beefdead")
+		validSignature, err = stakingPrivateKeys[5].Sign(msg, collectorVoteHasher)
+		validSignatureString = validSignature.String()[2:]
+		assert.NoError(t, err)
+		clusterQCs[1][0] = validSignatureString
+		clusterQCs[1][1] = "beefdead"
+
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), addresses[5])
+
+		_ = tx.AddArgument(cadence.NewString(validSignatureString))
+		_ = tx.AddArgument(cadence.NewString("beefdead"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, addresses[5]},
+			[]crypto.Signer{b.ServiceKey().Signer(), signers[5]},
 			false,
 		)
 
@@ -708,7 +747,7 @@ func TestEpochQCDKG(t *testing.T) {
 				numViewsInEpoch:          numEpochViews,
 				numViewsInStakingAuction: numStakingViews,
 				numViewsInDKGPhase:       numDKGViews,
-				numCollectorClusters:     numClusters,
+				numCollectorClusters:     2,
 				rewardPercentage:         rewardAPY})
 
 		verifyEpochCommit(t, b, idTableAddress,
@@ -750,13 +789,11 @@ func TestEpochQCDKG(t *testing.T) {
 				numViewsInEpoch:          numEpochViews,
 				numViewsInStakingAuction: numStakingViews,
 				numViewsInDKGPhase:       numDKGViews,
-				numCollectorClusters:     numClusters,
+				numCollectorClusters:     2,
 				rewardPercentage:         rewardAPY})
 
 		clusters := []Cluster{Cluster{index: 0, totalWeight: 100, size: 1},
-			Cluster{index: 1, totalWeight: 0, size: 0},
-			Cluster{index: 2, totalWeight: 0, size: 0},
-			Cluster{index: 3, totalWeight: 0, size: 0}}
+			Cluster{index: 1, totalWeight: 100, size: 1}}
 
 		verifyEpochMetadata(t, b, env,
 			EpochMetadata{
@@ -809,7 +846,7 @@ func TestEpochReset(t *testing.T) {
 	// create new user accounts, mint tokens for them, and register them for staking
 	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
-	_, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
+	stakingPrivateKeys, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
 	registerNodesForStaking(t, b, env,
 		addresses,
 		signers,
@@ -829,6 +866,14 @@ func TestEpochReset(t *testing.T) {
 		false,
 	)
 
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochRegisterQCVoterScript(env), addresses[5])
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, addresses[5]},
+		[]crypto.Signer{b.ServiceKey().Signer(), signers[5]},
+		false,
+	)
+
 	// Register a DKG Participant
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochRegisterDKGParticipantScript(env), addresses[1])
 	signAndSubmit(
@@ -840,18 +885,45 @@ func TestEpochReset(t *testing.T) {
 
 	clusterQCs := make([][]string, numClusters)
 	clusterQCs[0] = make([]string, 1)
-	clusterQCs[0][0] = "0000000000000000000000000000000000000000000000000000000000000000"
+	clusterQCs[1] = make([]string, 1)
+
+	collectorVoteHasher := flow_crypto.NewBLSKMAC(encoding.CollectorVoteTag)
 
 	t.Run("Can perform QC actions during Epoch Setup but cannot advance to EpochCommit if DKG isn't complete", func(t *testing.T) {
 
+		msg, _ := hex.DecodeString("deadbeef")
+		validSignature, err := stakingPrivateKeys[0].Sign(msg, collectorVoteHasher)
+		assert.NoError(t, err)
+		validSignatureString := validSignature.String()[2:]
+		clusterQCs[0][0] = validSignatureString
+
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), addresses[0])
 
-		_ = tx.AddArgument(cadence.NewString("0000000000000000000000000000000000000000000000000000000000000000"))
+		_ = tx.AddArgument(cadence.NewString(validSignatureString))
+		_ = tx.AddArgument(cadence.NewString("deadbeef"))
 
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{b.ServiceKey().Address, addresses[0]},
 			[]crypto.Signer{b.ServiceKey().Signer(), signers[0]},
+			false,
+		)
+
+		msg, _ = hex.DecodeString("beefdead")
+		validSignature, err = stakingPrivateKeys[5].Sign(msg, collectorVoteHasher)
+		validSignatureString = validSignature.String()[2:]
+		assert.NoError(t, err)
+		clusterQCs[1][0] = validSignatureString
+
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), addresses[5])
+
+		_ = tx.AddArgument(cadence.NewString(validSignatureString))
+		_ = tx.AddArgument(cadence.NewString("beefdead"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, addresses[5]},
+			[]crypto.Signer{b.ServiceKey().Signer(), signers[5]},
 			false,
 		)
 
