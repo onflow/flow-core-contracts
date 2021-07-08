@@ -277,6 +277,7 @@ func TestStakingCollectionGetTokens(t *testing.T) {
 
 func TestStakingCollectionDepositTokens(t *testing.T) {
 	b, accountKeys, env := newTestSetup(t)
+
 	// Create new keys for the epoch account
 	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
 
@@ -410,6 +411,7 @@ func TestStakingCollectionDepositTokens(t *testing.T) {
 
 func TestStakingCollectionRegisterNode(t *testing.T) {
 	b, accountKeys, env := newTestSetup(t)
+
 	// Create new keys for the epoch account
 	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
 
@@ -1492,6 +1494,7 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 
 func TestStakingCollectionRewards(t *testing.T) {
 	b, accountKeys, env := newTestSetup(t)
+
 	// Create new keys for the epoch account
 	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
 
@@ -1871,6 +1874,7 @@ func TestStakingCollectionRewards(t *testing.T) {
 func TestStakingCollectionCloseStake(t *testing.T) {
 
 	b, accountKeys, env := newTestSetup(t)
+
 	// Create new keys for the epoch account
 	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
 
@@ -2212,6 +2216,7 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 func TestDoesAccountHaveStakingCollection(t *testing.T) {
 
 	b, accountKeys, env := newTestSetup(t)
+
 	// Create new keys for the epoch account
 	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
 
@@ -2253,6 +2258,7 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 
 	t.Run("Should fail to transfer a node staker because account uses locked tokens", func(t *testing.T) {
 		b, accountKeys, env := newTestSetup(t)
+
 		// Create new keys for the epoch account
 		idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
 
@@ -2303,6 +2309,7 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 
 	t.Run("Should fail to transfer a node delegator because account uses locked tokens", func(t *testing.T) {
 		b, accountKeys, env := newTestSetup(t)
+
 		// Create new keys for the epoch account
 		idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
 
@@ -2354,6 +2361,7 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 
 	t.Run("Should be able to transfer a node staker stored in Staking Collection between accounts.", func(t *testing.T) {
 		b, accountKeys, env := newTestSetup(t)
+
 		// Create new keys for the epoch account
 		idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
 
@@ -2437,6 +2445,7 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 
 	t.Run("Should be able to transfer a delegator stored in Staking Collection between accounts.", func(t *testing.T) {
 		b, accountKeys, env := newTestSetup(t)
+
 		// Create new keys for the epoch account
 		idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
 
@@ -2521,6 +2530,7 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 
 	t.Run("Should fail because attempts to transfer node stored in locked account.", func(t *testing.T) {
 		b, accountKeys, env := newTestSetup(t)
+
 		// Create new keys for the epoch account
 		idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
 
@@ -2582,6 +2592,7 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 
 	t.Run("Should fail because attempts to transfer delegator stored in locked account.", func(t *testing.T) {
 		b, accountKeys, env := newTestSetup(t)
+
 		// Create new keys for the epoch account
 		idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
 

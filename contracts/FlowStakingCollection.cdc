@@ -1079,4 +1079,5 @@ pub contract FlowStakingCollection {
         self.StakingCollectionPrivatePath = /private/stakingCollection
         self.StakingCollectionPublicPath = /public/stakingCollection
     }
+
 }
