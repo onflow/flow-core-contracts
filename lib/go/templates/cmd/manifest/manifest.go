@@ -97,6 +97,22 @@ func generateManifest(env templates.Environment) *manifest {
 		cadence.NewString("88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"),
 	}
 
+	sampleNodeRole := cadenceValue{
+		cadence.NewUInt8(1),
+	}
+
+	sampleNetworkingAddress := cadenceValue{
+		cadence.NewString("flow-node.test:3569"),
+	}
+
+	sampleNetworkingKey := cadenceValue{
+		cadence.NewString("1348307bc77c688e80049de9d081aa09755da33e6997605fa059db2144fc85e560cbe6f7da8d74b453f5916618cb8fd392c2db856f3e78221dc68db1b1d914e4"),
+	}
+
+	sampleStakingKey := cadenceValue{
+		cadence.NewString("9e9ae0d645fd5fd9050792e0b0daa82cc1686d9133afa0f81a784b375c42ae48567d1545e7a9e1965f2c1a32f73cf8575ebb7a967f6e4d104d2df78eb8be409135d12da0499b8a00771f642c1b9c49397f22b440439f036c3bdee82f5309dab3"),
+	}
+
 	sampleNullOptional := cadenceValue{
 		cadence.NewOptional(nil),
 	}
@@ -116,6 +132,297 @@ func generateManifest(env templates.Environment) *manifest {
 		cadence.NewString("f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"),
 		cadence.NewString("f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"),
 	})
+
+	m.addTemplate(generateTemplate(
+		"TH.01", "Withdraw Unlocked FLOW",
+		env,
+		templates.GenerateWithdrawTokensScript,
+		[]argument{{
+			Type:         "UFix64",
+			Name:         "amount",
+			Label:        "Amount",
+			SampleValues: []cadenceValue{sampleAmount},
+		}},
+	))
+
+	m.addTemplate(generateTemplate(
+		"TH.02", "Deposit Unlocked FLOW",
+		env,
+		templates.GenerateDepositTokensScript,
+		[]argument{{
+			Type:         "UFix64",
+			Name:         "amount",
+			Label:        "Amount",
+			SampleValues: []cadenceValue{sampleAmount},
+		}},
+	))
+
+	m.addTemplate(generateTemplate(
+		"TH.06", "Register Node",
+		env,
+		templates.GenerateRegisterLockedNodeScript,
+		[]argument{
+			{
+				Type:         "String",
+				Name:         "id",
+				Label:        "Node ID",
+				SampleValues: []cadenceValue{sampleNodeID},
+			},
+			{
+				Type:         "UInt8",
+				Name:         "role",
+				Label:        "Node Role",
+				SampleValues: []cadenceValue{sampleNodeRole},
+			},
+			{
+				Type:         "String",
+				Name:         "networkingAddress",
+				Label:        "Networking Address",
+				SampleValues: []cadenceValue{sampleNetworkingAddress},
+			},
+			{
+				Type:         "String",
+				Name:         "networkingKey",
+				Label:        "Networking Key",
+				SampleValues: []cadenceValue{sampleNetworkingKey},
+			},
+			{
+				Type:         "String",
+				Name:         "stakingKey",
+				Label:        "Staking Key",
+				SampleValues: []cadenceValue{sampleStakingKey},
+			},
+			{
+				Type:         "UFix64",
+				Name:         "amount",
+				Label:        "Amount",
+				SampleValues: []cadenceValue{sampleAmount},
+			},
+		},
+	))
+
+	m.addTemplate(generateTemplate(
+		"TH.08", "Stake New Locked FLOW",
+		env,
+		templates.GenerateStakeNewLockedTokensScript,
+		[]argument{
+			{
+				Type:         "UFix64",
+				Name:         "amount",
+				Label:        "Amount",
+				SampleValues: []cadenceValue{sampleAmount},
+			},
+		},
+	))
+
+	m.addTemplate(generateTemplate(
+		"TH.09", "Re-stake Unstaked FLOW",
+		env,
+		templates.GenerateStakeLockedUnstakedTokensScript,
+		[]argument{
+			{
+				Type:         "UFix64",
+				Name:         "amount",
+				Label:        "Amount",
+				SampleValues: []cadenceValue{sampleAmount},
+			},
+		},
+	))
+
+	m.addTemplate(generateTemplate(
+		"TH.10",
+		"Re-stake Rewarded FLOW",
+		env,
+		templates.GenerateStakeLockedRewardedTokensScript,
+		[]argument{
+			{
+				Type:         "UFix64",
+				Name:         "amount",
+				Label:        "Amount",
+				SampleValues: []cadenceValue{sampleAmount},
+			},
+		},
+	))
+
+	m.addTemplate(generateTemplate(
+		"TH.11",
+		"Request Unstake of FLOW",
+		env,
+		templates.GenerateUnstakeLockedTokensScript,
+		[]argument{
+			{
+				Type:         "UFix64",
+				Name:         "amount",
+				Label:        "Amount",
+				SampleValues: []cadenceValue{sampleAmount},
+			},
+		},
+	))
+
+	m.addTemplate(generateTemplate(
+		"TH.12", "Unstake All FLOW",
+		env,
+		templates.GenerateUnstakeAllLockedTokensScript,
+		[]argument{},
+	))
+
+	m.addTemplate(generateTemplate(
+		"TH.13", "Withdraw Unstaked FLOW",
+		env,
+		templates.GenerateWithdrawLockedUnstakedTokensScript,
+		[]argument{
+			{
+				Type:         "UFix64",
+				Name:         "amount",
+				Label:        "Amount",
+				SampleValues: []cadenceValue{sampleAmount},
+			},
+		},
+	))
+
+	m.addTemplate(generateTemplate(
+		"TH.14", "Withdraw Rewarded FLOW",
+		env,
+		templates.GenerateWithdrawLockedRewardedTokensScript,
+		[]argument{
+			{
+				Type:         "UFix64",
+				Name:         "amount",
+				Label:        "Amount",
+				SampleValues: []cadenceValue{sampleAmount},
+			},
+		},
+	))
+
+	m.addTemplate(generateTemplate(
+		"TH.16", "Register Operator Node",
+		env,
+		templates.GenerateRegisterStakingProxyNodeScript,
+		[]argument{
+			{
+				Type:         "Address",
+				Name:         "address",
+				Label:        "Operator Address",
+				SampleValues: []cadenceValue{sampleAddress(env.Network)},
+			},
+			{
+				Type:         "String",
+				Name:         "id",
+				Label:        "Node ID",
+				SampleValues: []cadenceValue{sampleNodeID},
+			},
+			{
+				Type:         "UFix64",
+				Name:         "amount",
+				Label:        "Amount",
+				SampleValues: []cadenceValue{sampleAmount},
+			},
+		},
+	))
+
+	m.addTemplate(generateTemplate(
+		"TH.17", "Register Delegator",
+		env,
+		templates.GenerateCreateLockedDelegatorScript,
+		[]argument{
+			{
+				Type:         "String",
+				Name:         "id",
+				Label:        "Node ID",
+				SampleValues: []cadenceValue{sampleNodeID},
+			},
+			{
+				Type:         "UFix64",
+				Name:         "amount",
+				Label:        "Amount",
+				SampleValues: []cadenceValue{sampleAmount},
+			},
+		},
+	))
+
+	m.addTemplate(generateTemplate(
+		"TH.19", "Delegate New Locked FLOW",
+		env,
+		templates.GenerateDelegateNewLockedTokensScript,
+		[]argument{
+			{
+				Type:         "UFix64",
+				Name:         "amount",
+				Label:        "Amount",
+				SampleValues: []cadenceValue{sampleAmount},
+			},
+		},
+	))
+
+	m.addTemplate(generateTemplate(
+		"TH.20", "Re-delegate Unstaked FLOW",
+		env,
+		templates.GenerateDelegateLockedUnstakedTokensScript,
+		[]argument{
+			{
+				Type:         "UFix64",
+				Name:         "amount",
+				Label:        "Amount",
+				SampleValues: []cadenceValue{sampleAmount},
+			},
+		},
+	))
+
+	m.addTemplate(generateTemplate(
+		"TH.21", "Re-delegate Rewarded FLOW",
+		env,
+		templates.GenerateDelegateLockedRewardedTokensScript,
+		[]argument{
+			{
+				Type:         "UFix64",
+				Name:         "amount",
+				Label:        "Amount",
+				SampleValues: []cadenceValue{sampleAmount},
+			},
+		},
+	))
+
+	m.addTemplate(generateTemplate(
+		"TH.22", "Unstake Delegated FLOW",
+		env,
+		templates.GenerateUnDelegateLockedTokensScript,
+		[]argument{
+			{
+				Type:         "UFix64",
+				Name:         "amount",
+				Label:        "Amount",
+				SampleValues: []cadenceValue{sampleAmount},
+			},
+		},
+	))
+
+	m.addTemplate(generateTemplate(
+		"TH.23", "Withdraw Unstaked FLOW",
+		env,
+		templates.GenerateWithdrawDelegatorLockedUnstakedTokensScript,
+		[]argument{
+			{
+				Type:         "UFix64",
+				Name:         "amount",
+				Label:        "Amount",
+				SampleValues: []cadenceValue{sampleAmount},
+			},
+		},
+	))
+
+	m.addTemplate(generateTemplate(
+		"TH.24", "Withdraw Rewarded FLOW",
+		env,
+		templates.GenerateWithdrawDelegatorLockedRewardedTokensScript,
+		[]argument{
+			{
+				Type:         "UFix64",
+				Name:         "amount",
+				Label:        "Amount",
+				SampleValues: []cadenceValue{sampleAmount},
+			},
+		},
+	))
 
 	m.addTemplate(generateTemplate(
 		"SCO.01", "Setup Staking Collection",
@@ -156,44 +463,28 @@ func generateManifest(env templates.Environment) *manifest {
 				SampleValues: []cadenceValue{sampleNodeID},
 			},
 			{
-				Type:  "UInt8",
-				Name:  "role",
-				Label: "Node Role",
-				SampleValues: []cadenceValue{
-					{cadence.NewUInt8(1)},
-				},
+				Type:         "UInt8",
+				Name:         "role",
+				Label:        "Node Role",
+				SampleValues: []cadenceValue{sampleNodeRole},
 			},
 			{
-				Type:  "String",
-				Name:  "networkingAddress",
-				Label: "Networking Address",
-				SampleValues: []cadenceValue{
-					{cadence.NewString("flow-node.test:3569")},
-				},
+				Type:         "String",
+				Name:         "networkingAddress",
+				Label:        "Networking Address",
+				SampleValues: []cadenceValue{sampleNetworkingAddress},
 			},
 			{
-				Type:  "String",
-				Name:  "networkingKey",
-				Label: "Networking Key",
-				SampleValues: []cadenceValue{
-					{
-						cadence.NewString(
-							"1348307bc77c688e80049de9d081aa09755da33e6997605fa059db2144fc85e560cbe6f7da8d74b453f5916618cb8fd392c2db856f3e78221dc68db1b1d914e4",
-						),
-					},
-				},
+				Type:         "String",
+				Name:         "networkingKey",
+				Label:        "Networking Key",
+				SampleValues: []cadenceValue{sampleNetworkingKey},
 			},
 			{
-				Type:  "String",
-				Name:  "stakingKey",
-				Label: "Staking Key",
-				SampleValues: []cadenceValue{
-					{
-						cadence.NewString(
-							"9e9ae0d645fd5fd9050792e0b0daa82cc1686d9133afa0f81a784b375c42ae48567d1545e7a9e1965f2c1a32f73cf8575ebb7a967f6e4d104d2df78eb8be409135d12da0499b8a00771f642c1b9c49397f22b440439f036c3bdee82f5309dab3",
-						),
-					},
-				},
+				Type:         "String",
+				Name:         "stakingKey",
+				Label:        "Staking Key",
+				SampleValues: []cadenceValue{sampleStakingKey},
 			},
 			{
 				Type:         "UFix64",
