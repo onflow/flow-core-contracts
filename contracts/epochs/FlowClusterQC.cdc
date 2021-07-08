@@ -125,11 +125,9 @@ pub contract FlowClusterQC {
         /// Returns the status of this cluster's QC process
         /// If there is a number of weight for identical votes exceeding the `voteThreshold`,
         /// Then this cluster's QC generation is considered complete and this method returns 
-        /// the vote that reached quorum
+        /// the vote message that reached quorum
         /// If no vote is found to reach quorum, then `nil` is returned
         pub fun isComplete(): String? {
-            var i = 0
-
             for message in self.uniqueVoteMessageTotalWeights.keys {
                 if self.uniqueVoteMessageTotalWeights[message]! >= self.voteThreshold() {
                     return message
@@ -143,17 +141,16 @@ pub contract FlowClusterQC {
         pub fun generateQuorumCertificate(): ClusterQC? {
 
             // Only generate the QC if the voting is complete for this cluster
-            if let quorumVote = self.isComplete() {
+            if let quorumMessage = self.isComplete() {
 
                 // Create a new empty QC
-                var certificate: ClusterQC = ClusterQC(index: self.index, signatures: [], messages: [], voterIDs: [])
+                var certificate: ClusterQC = ClusterQC(index: self.index, signatures: [], message: quorumMessage, voterIDs: [])
 
                 // Add the signatures, messages, and node IDs only for votes
                 // that match the votes that reached quorum
                 for vote in self.generatedVotes.values {
-                    if vote.message! == quorumVote {
+                    if vote.message! == quorumMessage {
                         certificate.voteSignatures.append(vote.signature!)
-                        certificate.voteMessages.append(vote.message!)
                         certificate.voterIDs.append(vote.nodeID)
                     }
                 }
@@ -207,16 +204,16 @@ pub contract FlowClusterQC {
         /// The vote signatures from all the nodes in the cluster
         pub var voteSignatures: [String]
 
-        /// The vote messages from all the nodes in the cluster
-        pub var voteMessages: [String]
+        /// The vote message from all the valid voters in the cluster
+        pub var voteMessage: String
 
         /// The node IDs that correspond to each vote
         pub var voterIDs: [String]
 
-        init(index: UInt16, signatures: [String], messages: [String], voterIDs: [String]) {
+        init(index: UInt16, signatures: [String], message: String, voterIDs: [String]) {
             self.index = index
             self.voteSignatures = signatures
-            self.voteMessages = messages
+            self.voteMessage = message
             self.voterIDs = voterIDs
         }
     }

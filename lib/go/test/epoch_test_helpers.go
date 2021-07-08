@@ -378,11 +378,10 @@ func verifyClusterQCs(
 		for _, qc := range actualQCs {
 			found := false
 			qcStructSignatures := qc.(cadence.Struct).Fields[1].(cadence.Array).Values
-			qcStructMessages := qc.(cadence.Struct).Fields[2].(cadence.Array).Values
+			qcStructMessage := qc.(cadence.Struct).Fields[2].(cadence.String)
 			qcVoterIDs := qc.(cadence.Struct).Fields[3].(cadence.Array).Values
 
 			assertEqual(t, len(qcVoterIDs), len(qcStructSignatures))
-			assertEqual(t, len(qcVoterIDs), len(qcStructMessages))
 
 			j := 0
 			// Verify that each element is correct across the cluster
@@ -391,7 +390,7 @@ func verifyClusterQCs(
 					if cadence.NewString(qc[0]) == signature {
 						found = true
 						assertEqual(t, cadence.NewString(qc[0]), signature)
-						assertEqual(t, cadence.NewString(qc[1]), qcStructMessages[j])
+						assertEqual(t, cadence.NewString(qc[1]), qcStructMessage)
 					}
 				}
 				j = j + 1

@@ -893,8 +893,8 @@ func TestEpochReset(t *testing.T) {
 
 		msg, _ := hex.DecodeString("deadbeef")
 		validSignature, err := stakingPrivateKeys[0].Sign(msg, collectorVoteHasher)
-		validSignatureString := validSignature.String()[2:]
 		assert.NoError(t, err)
+		validSignatureString := validSignature.String()[2:]
 		clusterQCs[0][0] = validSignatureString
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), addresses[0])

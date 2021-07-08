@@ -171,6 +171,7 @@
 // ../../../transactions/quorumCertificate/admin/stop_voting.cdc (354B)
 // ../../../transactions/quorumCertificate/create_voter.cdc (1.107kB)
 // ../../../transactions/quorumCertificate/scripts/get_cluster.cdc (184B)
+// ../../../transactions/quorumCertificate/scripts/get_cluster_complete.cdc (236B)
 // ../../../transactions/quorumCertificate/scripts/get_cluster_node_weights.cdc (191B)
 // ../../../transactions/quorumCertificate/scripts/get_cluster_vote_threshold.cdc (185B)
 // ../../../transactions/quorumCertificate/scripts/get_cluster_votes.cdc (245B)
@@ -3715,6 +3716,26 @@ func quorumcertificateScriptsGet_clusterCdc() (*asset, error) {
 	return a, nil
 }
 
+var _quorumcertificateScriptsGet_cluster_completeCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x54\x8e\xb1\x4e\xc3\x40\x10\x44\xfb\xfd\x8a\xa1\xc2\x6e\x12\x68\x28\x22\xa5\x80\x0b\xa0\x94\x26\xa2\x42\x14\x07\xac\xc3\x49\x77\xbb\xd6\xed\x9e\x88\x84\xf8\x77\x0a\x1b\x04\xe5\x48\xef\xcd\x4c\x2a\x93\x56\xc7\x5d\xd6\x8f\x90\x9b\x39\xd7\x21\x60\xac\x5a\x70\x71\x1a\xc2\xf5\x6e\xf7\x70\x7b\x38\x10\xad\xd7\xb8\x67\x37\xf8\x3b\xc3\x3c\x7a\x33\xe8\x88\x88\xd7\xd9\x39\x37\x0c\x01\x47\x16\xae\xd1\x93\x0a\xd1\xd4\x5e\x30\x36\x41\x89\x49\xba\x85\xda\xcb\x1b\x9f\x36\x78\xdc\x8b\x5f\x5e\xf5\x1b\xdc\xa8\x66\x7c\x12\x01\x40\x66\xff\x29\x33\x6c\xff\xff\x59\x1d\xd9\x97\x60\x5d\x3f\xf3\x95\xbd\x55\xf9\x55\x9e\xfe\x4e\x3c\xaf\x92\x05\x2d\x53\x66\xe7\xae\xc7\xd9\x16\x92\x32\xd1\xd7\x77\x00\x00\x00\xff\xff\xa8\x61\x29\x9e\xec\x00\x00\x00"
+
+func quorumcertificateScriptsGet_cluster_completeCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_quorumcertificateScriptsGet_cluster_completeCdc,
+		"quorumCertificate/scripts/get_cluster_complete.cdc",
+	)
+}
+
+func quorumcertificateScriptsGet_cluster_completeCdc() (*asset, error) {
+	bytes, err := quorumcertificateScriptsGet_cluster_completeCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "quorumCertificate/scripts/get_cluster_complete.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x7a, 0xac, 0xe1, 0x2a, 0x34, 0xa3, 0x58, 0x0, 0xf9, 0xf8, 0xe3, 0xd6, 0xf7, 0x15, 0xf8, 0x4b, 0xa9, 0xd5, 0xf2, 0xf2, 0x57, 0x95, 0x98, 0xf1, 0xfa, 0x53, 0x4c, 0x36, 0x38, 0xa9, 0xa5, 0xa4}}
+	return a, nil
+}
+
 var _quorumcertificateScriptsGet_cluster_node_weightsCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x54\x8d\x41\xcb\x82\x40\x14\x45\xf7\xf3\x2b\xee\x52\x37\xf2\x7d\x10\x2e\x84\x16\xa1\x05\x2e\x4d\xa2\x45\xb4\xa8\x7c\xda\x80\xbe\x91\x99\x37\x24\x88\xff\xbd\xc5\x48\xd4\xf2\x5e\xce\xe1\xe8\x61\x34\x56\x70\xe8\xcd\x2b\xef\xbd\x13\xb2\x55\x8e\xd6\x9a\x01\x7f\x53\x95\xef\x8a\xe2\xb8\xaf\x6b\xa5\x46\x7f\x47\xeb\x19\xc3\x4d\x73\xf4\x08\x60\xc9\x0d\x4d\x19\x4e\x25\xcb\x7f\x1a\x67\x98\x6b\xb1\x9a\xbb\xf0\xa4\x9b\x05\xb3\x52\x00\xd0\x93\x60\x55\x1c\xb6\xbf\xa9\xa4\x23\x59\x87\x8b\xe2\xc0\x5b\x12\x6f\xf9\xa3\x5c\xbe\x73\xd7\x84\x4d\x43\x67\xd2\xdd\x53\x9c\x52\xcb\x3b\x00\x00\xff\xff\x3e\x1f\x66\x7e\xbf\x00\x00\x00"
 
 func quorumcertificateScriptsGet_cluster_node_weightsCdcBytes() ([]byte, error) {
@@ -5077,6 +5098,7 @@ var _bindata = map[string]func() (*asset, error){
 	"quorumCertificate/admin/stop_voting.cdc":                                 quorumcertificateAdminStop_votingCdc,
 	"quorumCertificate/create_voter.cdc":                                      quorumcertificateCreate_voterCdc,
 	"quorumCertificate/scripts/get_cluster.cdc":                               quorumcertificateScriptsGet_clusterCdc,
+	"quorumCertificate/scripts/get_cluster_complete.cdc":                      quorumcertificateScriptsGet_cluster_completeCdc,
 	"quorumCertificate/scripts/get_cluster_node_weights.cdc":                  quorumcertificateScriptsGet_cluster_node_weightsCdc,
 	"quorumCertificate/scripts/get_cluster_vote_threshold.cdc":                quorumcertificateScriptsGet_cluster_vote_thresholdCdc,
 	"quorumCertificate/scripts/get_cluster_votes.cdc":                         quorumcertificateScriptsGet_cluster_votesCdc,
@@ -5395,6 +5417,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"create_voter.cdc": {quorumcertificateCreate_voterCdc, map[string]*bintree{}},
 		"scripts": {nil, map[string]*bintree{
 			"get_cluster.cdc": {quorumcertificateScriptsGet_clusterCdc, map[string]*bintree{}},
+			"get_cluster_complete.cdc": {quorumcertificateScriptsGet_cluster_completeCdc, map[string]*bintree{}},
 			"get_cluster_node_weights.cdc": {quorumcertificateScriptsGet_cluster_node_weightsCdc, map[string]*bintree{}},
 			"get_cluster_vote_threshold.cdc": {quorumcertificateScriptsGet_cluster_vote_thresholdCdc, map[string]*bintree{}},
 			"get_cluster_votes.cdc": {quorumcertificateScriptsGet_cluster_votesCdc, map[string]*bintree{}},

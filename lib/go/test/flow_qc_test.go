@@ -23,6 +23,8 @@ import (
 
 // This function initializes Cluster records in order to pass the cluster information
 // as an argument to the startVoting transaction
+// It assigns nodes to a whole cluster first,
+// then the next cluster, and so on
 func initClusters(clusterNodeIDStrings [][]string, numberOfClusters, numberOfNodesPerCluster int) [][]cadence.Value {
 	clusterIndices := make([]cadence.Value, numberOfClusters)
 	clusterNodeIDs := make([]cadence.Value, numberOfClusters)
@@ -130,19 +132,19 @@ func TestQuorumCertificate(t *testing.T) {
 
 	clusterNodeIDStrings := make([][]string, numberOfClusters)
 
-	clusters := initClusters(clusterNodeIDStrings, numberOfClusters, numberOfNodesPerCluster)
+	startVotingArguments := initClusters(clusterNodeIDStrings, numberOfClusters, numberOfNodesPerCluster)
 
 	t.Run("Should start voting with the admin", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateStartVotingScript(env), QCAddress)
 
-		err := tx.AddArgument(cadence.NewArray(clusters[0]))
+		err := tx.AddArgument(cadence.NewArray(startVotingArguments[0]))
 		require.NoError(t, err)
 
-		err = tx.AddArgument(cadence.NewArray(clusters[1]))
+		err = tx.AddArgument(cadence.NewArray(startVotingArguments[1]))
 		require.NoError(t, err)
 
-		err = tx.AddArgument(cadence.NewArray(clusters[2]))
+		err = tx.AddArgument(cadence.NewArray(startVotingArguments[2]))
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -361,6 +363,12 @@ func TestQuorumCertificate(t *testing.T) {
 		result = executeScriptAndCheck(t, b, templates.GenerateGetVoterIsRegisteredScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(clusterNodeIDStrings[0][0]))})
 
 		assert.Equal(t, cadence.NewBool(true), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetVotingCompletedScript(env), nil)
+		assert.Equal(t, cadence.NewBool(true), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetClusterCompleteScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt16(uint16(0)))})
+		assert.Equal(t, cadence.NewBool(true), result)
 	})
 
 	t.Run("Should not be able to submit a vote a second time", func(t *testing.T) {
@@ -406,19 +414,19 @@ func TestQuorumCertificate(t *testing.T) {
 
 	clusterNodeIDStrings = make([][]string, numberOfClusters*numberOfNodesPerCluster)
 
-	clusters = initClusters(clusterNodeIDStrings, numberOfClusters, numberOfNodesPerCluster)
+	startVotingArguments = initClusters(clusterNodeIDStrings, numberOfClusters, numberOfNodesPerCluster)
 
 	t.Run("Should start voting with the admin with more nodes and clusters", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateStartVotingScript(env), QCAddress)
 
-		err := tx.AddArgument(cadence.NewArray(clusters[0]))
+		err := tx.AddArgument(cadence.NewArray(startVotingArguments[0]))
 		require.NoError(t, err)
 
-		err = tx.AddArgument(cadence.NewArray(clusters[1]))
+		err = tx.AddArgument(cadence.NewArray(startVotingArguments[1]))
 		require.NoError(t, err)
 
-		err = tx.AddArgument(cadence.NewArray(clusters[2]))
+		err = tx.AddArgument(cadence.NewArray(startVotingArguments[2]))
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -488,8 +496,8 @@ func TestQuorumCertificateMoreNodes(t *testing.T) {
 		)
 	})
 
-	numberOfClusters := 2
-	numberOfNodesPerCluster := 3
+	numberOfClusters := 3
+	numberOfNodesPerCluster := 4
 
 	// Create new user accounts
 	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numberOfClusters*numberOfNodesPerCluster)
@@ -498,19 +506,21 @@ func TestQuorumCertificateMoreNodes(t *testing.T) {
 
 	stakingPrivateKeys, stakingPublicKeys, _, _ := generateManyNodeKeys(t, numberOfClusters*numberOfNodesPerCluster)
 
-	clusters := initClusters(clusterNodeIDStrings, numberOfClusters, numberOfNodesPerCluster)
+	// initializes clusters by filling them all in in order
+	// Other tests continue this cluster organization assumption
+	startVotingArguments := initClusters(clusterNodeIDStrings, numberOfClusters, numberOfNodesPerCluster)
 
 	t.Run("Should start voting with the admin with more nodes and clusters", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateStartVotingScript(env), QCAddress)
 
-		err := tx.AddArgument(cadence.NewArray(clusters[0]))
+		err := tx.AddArgument(cadence.NewArray(startVotingArguments[0]))
 		require.NoError(t, err)
 
-		err = tx.AddArgument(cadence.NewArray(clusters[1]))
+		err = tx.AddArgument(cadence.NewArray(startVotingArguments[1]))
 		require.NoError(t, err)
 
-		err = tx.AddArgument(cadence.NewArray(clusters[2]))
+		err = tx.AddArgument(cadence.NewArray(startVotingArguments[2]))
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -529,7 +539,7 @@ func TestQuorumCertificateMoreNodes(t *testing.T) {
 			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateVoterScript(env), addresses[i])
 
 			_ = tx.AddArgument(cadence.NewAddress(QCAddress))
-			_ = tx.AddArgument(cadence.NewString(clusterNodeIDStrings[i/3][i%3]))
+			_ = tx.AddArgument(cadence.NewString(clusterNodeIDStrings[i/numberOfNodesPerCluster][i%numberOfNodesPerCluster]))
 			_ = tx.AddArgument(cadence.NewString(stakingPublicKeys[i]))
 
 			signAndSubmit(
@@ -544,7 +554,7 @@ func TestQuorumCertificateMoreNodes(t *testing.T) {
 
 	t.Run("Should register incomplete if only one of the clusters is complete", func(t *testing.T) {
 
-		for i := 0; i < 3; i++ {
+		for i := 0; i < numberOfNodesPerCluster; i++ {
 
 			// Construct a valid message and signature
 			msg, _ := hex.DecodeString("deadbeef")
@@ -563,16 +573,23 @@ func TestQuorumCertificateMoreNodes(t *testing.T) {
 				[]crypto.Signer{b.ServiceKey().Signer(), signers[i]},
 				false,
 			)
-
-			result := executeScriptAndCheck(t, b, templates.GenerateGetVotingCompletedScript(env), nil)
-			assert.Equal(t, cadence.NewBool(false), result)
 		}
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetVotingCompletedScript(env), nil)
+		assert.Equal(t, cadence.NewBool(false), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetClusterCompleteScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt16(uint16(0)))})
+		assert.Equal(t, cadence.NewBool(true), result)
 
 	})
 
+	// If a cluster has received votes with weight exceeding the quorum threshold, but those
+	// votes are spread across different vote messages such that no set of votes corresponding
+	// to any vote message represents weight exceeding the quorum threshold, the cluster voting
+	// should be considered incomplete.
 	t.Run("Should register incomplete if a cluster has different vote messages", func(t *testing.T) {
 
-		for i := 3; i < 5; i++ {
+		for i := numberOfNodesPerCluster; i < numberOfNodesPerCluster*2-2; i++ {
 
 			// Construct a valid message and signature
 			msg, _ := hex.DecodeString("beefdead")
@@ -594,28 +611,115 @@ func TestQuorumCertificateMoreNodes(t *testing.T) {
 
 			result := executeScriptAndCheck(t, b, templates.GenerateGetVotingCompletedScript(env), nil)
 			assert.Equal(t, cadence.NewBool(false), result)
+
+			result = executeScriptAndCheck(t, b, templates.GenerateGetClusterCompleteScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt16(uint16(1)))})
+			assert.Equal(t, cadence.NewBool(false), result)
 		}
 
 		// Construct a valid message and signature
 		msg, _ := hex.DecodeString("deebaf")
-		validSignature, err := stakingPrivateKeys[5].Sign(msg, collectorVoteHasher)
+
+		// Sign with the third node from the second cluster
+		validSignature, err := stakingPrivateKeys[numberOfNodesPerCluster*2-2].Sign(msg, collectorVoteHasher)
 		validSignatureString := validSignature.String()[2:]
 		assert.NoError(t, err)
 
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), addresses[5])
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), addresses[numberOfNodesPerCluster*2-2])
 
 		_ = tx.AddArgument(cadence.NewString(validSignatureString))
 		_ = tx.AddArgument(cadence.NewString("deebaf"))
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, addresses[5]},
-			[]crypto.Signer{b.ServiceKey().Signer(), signers[5]},
+			[]flow.Address{b.ServiceKey().Address, addresses[numberOfNodesPerCluster*2-2]},
+			[]crypto.Signer{b.ServiceKey().Signer(), signers[numberOfNodesPerCluster*2-2]},
 			false,
 		)
 
 		result := executeScriptAndCheck(t, b, templates.GenerateGetVotingCompletedScript(env), nil)
 		assert.Equal(t, cadence.NewBool(false), result)
+		result = executeScriptAndCheck(t, b, templates.GenerateGetClusterCompleteScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt16(uint16(1)))})
+		assert.Equal(t, cadence.NewBool(false), result)
 
+		// Sign with the fourth node from the second cluster
+		validSignature, err = stakingPrivateKeys[numberOfNodesPerCluster*2-1].Sign(msg, collectorVoteHasher)
+		validSignatureString = validSignature.String()[2:]
+		assert.NoError(t, err)
+
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), addresses[numberOfNodesPerCluster*2-1])
+
+		_ = tx.AddArgument(cadence.NewString(validSignatureString))
+		_ = tx.AddArgument(cadence.NewString("deebaf"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, addresses[numberOfNodesPerCluster*2-1]},
+			[]crypto.Signer{b.ServiceKey().Signer(), signers[numberOfNodesPerCluster*2-1]},
+			false,
+		)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetVotingCompletedScript(env), nil)
+		assert.Equal(t, cadence.NewBool(false), result)
+		result = executeScriptAndCheck(t, b, templates.GenerateGetClusterCompleteScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt16(uint16(1)))})
+		assert.Equal(t, cadence.NewBool(false), result)
+
+	})
+
+	// If a cluster has received identical votes with weight exceeding the quorum threshold,
+	// and there is a different vote that doesn't match the quroum votes,
+	// the cluster voting should still be considered complete
+	t.Run("Should register that the cluster is complete even if it has a vote different than the quorum", func(t *testing.T) {
+
+		for i := numberOfNodesPerCluster * 2; i < numberOfNodesPerCluster*3-1; i++ {
+
+			// Construct a valid message and signature
+			msg, _ := hex.DecodeString("beefdead")
+			validSignature, err := stakingPrivateKeys[i].Sign(msg, collectorVoteHasher)
+			validSignatureString := validSignature.String()[2:]
+			assert.NoError(t, err)
+
+			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), addresses[i])
+
+			_ = tx.AddArgument(cadence.NewString(validSignatureString))
+			_ = tx.AddArgument(cadence.NewString("beefdead"))
+
+			signAndSubmit(
+				t, b, tx,
+				[]flow.Address{b.ServiceKey().Address, addresses[i]},
+				[]crypto.Signer{b.ServiceKey().Signer(), signers[i]},
+				false,
+			)
+		}
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetVotingCompletedScript(env), nil)
+		assert.Equal(t, cadence.NewBool(false), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetClusterCompleteScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt16(uint16(2)))})
+		assert.Equal(t, cadence.NewBool(true), result)
+
+		// Construct a valid message and signature
+		msg, _ := hex.DecodeString("deebaf")
+
+		// Sign with the last node from the third cluster
+		validSignature, err := stakingPrivateKeys[numberOfNodesPerCluster*3-1].Sign(msg, collectorVoteHasher)
+		validSignatureString := validSignature.String()[2:]
+		assert.NoError(t, err)
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), addresses[numberOfNodesPerCluster*3-1])
+
+		_ = tx.AddArgument(cadence.NewString(validSignatureString))
+		_ = tx.AddArgument(cadence.NewString("deebaf"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, addresses[numberOfNodesPerCluster*3-1]},
+			[]crypto.Signer{b.ServiceKey().Signer(), signers[numberOfNodesPerCluster*3-1]},
+			false,
+		)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetVotingCompletedScript(env), nil)
+		assert.Equal(t, cadence.NewBool(false), result)
+		result = executeScriptAndCheck(t, b, templates.GenerateGetClusterCompleteScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt16(uint16(2)))})
+		assert.Equal(t, cadence.NewBool(true), result)
 	})
 }
