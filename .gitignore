@@ -8,7 +8,11 @@
 
 flow.json
 
+# Javascript node_modules
+**/**/node_modules
+
 # IDE related files
 .idea
 .vscode
+.history
 git

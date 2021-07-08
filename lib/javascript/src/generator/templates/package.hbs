@@ -1,0 +1,16 @@
+{{#each folders ~}}
+    import {{this}} from './{{this}}'
+{{/each}}
+
+{{#each files ~}}
+    import { {{this}} } from './{{this}}'
+{{/each}}
+
+export default {
+    {{#each folders}}
+        {{ this }},
+    {{/each}}
+    {{#each files}}
+        {{ this }},
+    {{/each}}
+}
