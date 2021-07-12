@@ -125,7 +125,6 @@ func TestStakingCollectionGetTokens(t *testing.T) {
 
 	// add a staking collection to the main account
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionSetup(env), joshAddress)
-
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{b.ServiceKey().Address, joshAddress},
