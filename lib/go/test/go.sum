@@ -774,21 +774,12 @@ github.com/onflow/flow-ft/lib/go/templates v0.2.0/go.mod h1:qwkTElMcI+PnSBGIWGu1
 github.com/onflow/flow-go v0.18.2-canary h1:hq7qST4RELlQHJy2vvmSBJbpvNyBhbad369MFODRANI=
 github.com/onflow/flow-go v0.18.2-canary/go.mod h1:mGzTPbzG1YrckrFQfjCw6NzfflP1o3TjRxI9LRWZbpc=
 github.com/onflow/flow-go-sdk v0.13.0/go.mod h1:yqnSajzJVFfrTg68F4WXRR1Yzs1akqAjyscEDyFudPE=
-<<<<<<< HEAD
 github.com/onflow/flow-go-sdk v0.20.0-alpha.1/go.mod h1:52QZyLwU3p3UZ2FXOy+sRl4JPdtvJoae1spIUBOFxA8=
 github.com/onflow/flow-go-sdk v0.20.0 h1:0xcSC7OGO8DWZ7GWk/TUorVNcaPRfudH67RTzc782Kw=
 github.com/onflow/flow-go-sdk v0.20.0/go.mod h1:52QZyLwU3p3UZ2FXOy+sRl4JPdtvJoae1spIUBOFxA8=
-=======
-github.com/onflow/flow-go-sdk v0.18.0/go.mod h1:AjXHdxguP/PK5P8tWKHH4jR6oLISTgLoXXQrbQsHY+E=
-github.com/onflow/flow-go-sdk v0.19.0/go.mod h1:52QZyLwU3p3UZ2FXOy+sRl4JPdtvJoae1spIUBOFxA8=
-github.com/onflow/flow-go-sdk v0.20.0 h1:0xcSC7OGO8DWZ7GWk/TUorVNcaPRfudH67RTzc782Kw=
-github.com/onflow/flow-go-sdk v0.20.0/go.mod h1:52QZyLwU3p3UZ2FXOy+sRl4JPdtvJoae1spIUBOFxA8=
-github.com/onflow/flow-go/crypto v0.12.0 h1:TMsqn5nsW4vrCIFG/HRE/oy/a5/sffHrDRDYqicwO98=
->>>>>>> origin/master
 github.com/onflow/flow-go/crypto v0.12.0/go.mod h1:oXuvU0Dr4lHKgye6nHEFbBXIWNv+dBQUzoVW5Go38+o=
 github.com/onflow/flow-go/crypto v0.18.0 h1:2tucSdxmld/08LfIfLxGfw+8QuSNFiHAUojX5AFvq6k=
 github.com/onflow/flow-go/crypto v0.18.0/go.mod h1:3Ah843iPyjIL+7nH9EillV3OWNptrL+DrQUbVKgg2E4=
-github.com/onflow/flow/protobuf/go/flow v0.1.8/go.mod h1:kRugbzZjwQqvevJhrnnCFMJZNmoSJmxlKt6hTGXZojM=
 github.com/onflow/flow/protobuf/go/flow v0.1.8/go.mod h1:kRugbzZjwQqvevJhrnnCFMJZNmoSJmxlKt6hTGXZojM=
 github.com/onflow/flow/protobuf/go/flow v0.1.9/go.mod h1:kRugbzZjwQqvevJhrnnCFMJZNmoSJmxlKt6hTGXZojM=
 github.com/onflow/flow/protobuf/go/flow v0.2.0 h1:a4Cg0ekoqb76zeOEo1wtSWtlnhGXwcxebp0itFwGtlE=
