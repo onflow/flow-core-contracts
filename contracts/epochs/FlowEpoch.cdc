@@ -780,6 +780,10 @@ pub contract FlowEpoch {
           collectorClusters: [FlowClusterQC.Cluster],
           clusterQCs: [FlowClusterQC.ClusterQC],
           dkgPubKeys: [String]) {
+        pre {
+            FlowEpoch.isValidPhaseConfiguration(numViewsInStakingAuction, numViewsInDKGPhase, numViewsInEpoch):
+                "Invalid startView and endView configuration"
+        }
 
         self.configurableMetadata = Config(numViewsInEpoch: numViewsInEpoch,
                                            numViewsInStakingAuction: numViewsInStakingAuction,
