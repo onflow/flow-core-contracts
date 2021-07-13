@@ -16,7 +16,6 @@
 // ../../../transactions/dkg/scripts/get_dkg_canonical_final_submission.cdc (98B)
 // ../../../transactions/dkg/scripts/get_dkg_completed.cdc (99B)
 // ../../../transactions/dkg/scripts/get_dkg_enabled.cdc (88B)
-// ../../../transactions/dkg/scripts/get_final_submission_count.cdc (275B)
 // ../../../transactions/dkg/scripts/get_final_submissions.cdc (106B)
 // ../../../transactions/dkg/scripts/get_latest_whiteboard_messages.cdc (330B)
 // ../../../transactions/dkg/scripts/get_node_final_submission.cdc (128B)
@@ -614,26 +613,6 @@ func dkgScriptsGet_dkg_enabledCdc() (*asset, error) {
 
 	info := bindataFileInfo{name: "dkg/scripts/get_dkg_enabled.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x6a, 0x64, 0x67, 0xbd, 0xba, 0x33, 0xa0, 0x7b, 0x26, 0xfb, 0x77, 0xc2, 0x7e, 0xe3, 0xe3, 0xc1, 0xe7, 0xc8, 0x8c, 0xd0, 0xc, 0x46, 0xaa, 0xbd, 0xb6, 0x2, 0x13, 0x35, 0xab, 0x39, 0x70, 0xd7}}
-	return a, nil
-}
-
-var _dkgScriptsGet_final_submission_countCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x54\x8e\x41\x4b\x03\x31\x10\x85\xcf\x99\x5f\xf1\xbc\xed\x22\x48\x14\xac\x45\xd8\x93\xa5\x52\x04\x2f\xfe\x82\x8d\x4d\x64\x60\x77\x52\x32\x89\x0a\xa5\xff\x5d\x36\x71\x05\x2f\x39\xe4\xbd\xef\x9b\xc7\xf3\x29\xa6\x8c\xfd\x14\xbf\x76\x2f\xcf\x08\x29\xce\xb0\xdf\x61\x7b\xdc\x78\x7b\xbf\xdd\x38\x3b\xde\xd9\xf7\x07\xa2\x53\x71\x08\x45\x30\x8f\x2c\x5d\xff\x88\x83\x64\x9c\xc9\x7c\x8e\x09\x5a\x9c\xb6\x8f\x01\x96\x00\x60\xf2\x19\x12\x8f\xfe\xb0\x53\x0c\xab\xfb\xe6\xc3\xe7\xa7\x28\xea\x45\x8b\xbe\xb6\xb4\xeb\x6b\x3f\xc4\xf4\xdb\x07\xcb\x1f\x79\x26\xb3\xca\xb4\xb8\xff\xa2\x85\xdf\xb3\x8c\xd3\x5b\x71\x33\xab\x72\x94\xae\x71\x3d\x19\xc3\xa1\x12\x57\x03\x84\xa7\xc5\x63\xcc\x32\x12\x43\xdd\x8a\x6b\xdc\x92\x31\x97\x7a\xba\xbd\xc9\xe7\x92\xa4\xa6\x74\xf9\x09\x00\x00\xff\xff\x44\xff\x68\x39\x13\x01\x00\x00"
-
-func dkgScriptsGet_final_submission_countCdcBytes() ([]byte, error) {
-	return bindataRead(
-		_dkgScriptsGet_final_submission_countCdc,
-		"dkg/scripts/get_final_submission_count.cdc",
-	)
-}
-
-func dkgScriptsGet_final_submission_countCdc() (*asset, error) {
-	bytes, err := dkgScriptsGet_final_submission_countCdcBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "dkg/scripts/get_final_submission_count.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x94, 0xa4, 0x68, 0xc5, 0xa2, 0x3d, 0x93, 0xba, 0x9, 0x5a, 0xba, 0xb9, 0xc1, 0x2d, 0x9, 0xc8, 0xe9, 0xbc, 0x78, 0x64, 0xa6, 0x8e, 0x60, 0x67, 0x62, 0x45, 0x9a, 0x86, 0x46, 0x5, 0x12, 0x4e}}
 	return a, nil
 }
 
@@ -4964,7 +4943,6 @@ var _bindata = map[string]func() (*asset, error){
 	"dkg/scripts/get_dkg_canonical_final_submission.cdc":                      dkgScriptsGet_dkg_canonical_final_submissionCdc,
 	"dkg/scripts/get_dkg_completed.cdc":                                       dkgScriptsGet_dkg_completedCdc,
 	"dkg/scripts/get_dkg_enabled.cdc":                                         dkgScriptsGet_dkg_enabledCdc,
-	"dkg/scripts/get_final_submission_count.cdc":                              dkgScriptsGet_final_submission_countCdc,
 	"dkg/scripts/get_final_submissions.cdc":                                   dkgScriptsGet_final_submissionsCdc,
 	"dkg/scripts/get_latest_whiteboard_messages.cdc":                          dkgScriptsGet_latest_whiteboard_messagesCdc,
 	"dkg/scripts/get_node_final_submission.cdc":                               dkgScriptsGet_node_final_submissionCdc,
@@ -5246,7 +5224,6 @@ var _bintree = &bintree{nil, map[string]*bintree{
 			"get_dkg_canonical_final_submission.cdc": {dkgScriptsGet_dkg_canonical_final_submissionCdc, map[string]*bintree{}},
 			"get_dkg_completed.cdc": {dkgScriptsGet_dkg_completedCdc, map[string]*bintree{}},
 			"get_dkg_enabled.cdc": {dkgScriptsGet_dkg_enabledCdc, map[string]*bintree{}},
-			"get_final_submission_count.cdc": {dkgScriptsGet_final_submission_countCdc, map[string]*bintree{}},
 			"get_final_submissions.cdc": {dkgScriptsGet_final_submissionsCdc, map[string]*bintree{}},
 			"get_latest_whiteboard_messages.cdc": {dkgScriptsGet_latest_whiteboard_messagesCdc, map[string]*bintree{}},
 			"get_node_final_submission.cdc": {dkgScriptsGet_node_final_submissionCdc, map[string]*bintree{}},
