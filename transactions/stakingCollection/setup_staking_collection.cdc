@@ -8,7 +8,7 @@ import FlowStakingCollection from 0xSTAKINGCOLLECTIONADDRESS
 /// It will work regardless of whether they have a regular account, a two-account locked tokens setup,
 /// or staking objects stored in the unlocked account
 
-transaction() {
+transaction {
     prepare(signer: AuthAccount) {
 
         // If there isn't already a staking collection
@@ -39,7 +39,7 @@ transaction() {
         // If there is a node staker object in the account, put it in the staking collection
         if signer.borrow<&FlowIDTableStaking.NodeStaker>(from: FlowIDTableStaking.NodeStakerStoragePath) != nil {
             let node <- signer.load<@FlowIDTableStaking.NodeStaker>(from: FlowIDTableStaking.NodeStakerStoragePath)!
-            collectionRef.addNodeObject(<-node)
+            collectionRef.addNodeObject(<-node, machineAccountInfo: nil)
         }
 
         // If there is a delegator object in the account, put it in the staking collection

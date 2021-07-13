@@ -23,6 +23,9 @@ const (
 	transferAdminCapabilityFilename = "idTableStaking/admin/transfer_admin.cdc"
 	capabilityEndEpochFilename      = "idTableStaking/admin/capability_end_epoch.cdc"
 
+	// for testing only
+	scaleRewardsTestFilename = "idTableStaking/admin/scale_rewards_test.cdc"
+
 	registerNodeFilename            = "idTableStaking/node/register_node.cdc"
 	stakeNewTokensFilename          = "idTableStaking/node/stake_new_tokens.cdc"
 	stakeUnstakedTokensFilename     = "idTableStaking/node/stake_unstaked_tokens.cdc"
@@ -172,6 +175,12 @@ func GenerateTransferAdminCapabilityScript(env Environment) []byte {
 func GenerateCapabilityEndEpochScript(env Environment) []byte {
 	code := assets.MustAssetString(capabilityEndEpochFilename)
 
+	return []byte(replaceAddresses(code, env))
+}
+
+// For testing only
+func GenerateScaleRewardsTestScript(env Environment) []byte {
+	code := assets.MustAssetString(scaleRewardsTestFilename)
 	return []byte(replaceAddresses(code, env))
 }
 

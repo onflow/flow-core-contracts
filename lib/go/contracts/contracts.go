@@ -9,6 +9,8 @@ import (
 	_ "github.com/kevinburke/go-bindata"
 	ftcontracts "github.com/onflow/flow-ft/lib/go/contracts"
 
+	_ "github.com/kevinburke/go-bindata"
+
 	"github.com/onflow/flow-core-contracts/lib/go/contracts/internal/assets"
 )
 
@@ -28,7 +30,7 @@ const (
 	flowServiceAccountFilename    = "FlowServiceAccount.cdc"
 	flowTokenFilename             = "FlowToken.cdc"
 	flowIdentityTableFilename     = "FlowIDTableStaking.cdc"
-	flowQCFilename                = "epochs/FlowQuorumCertificate.cdc"
+	flowQCFilename                = "epochs/FlowClusterQC.cdc"
 	flowDKGFilename               = "epochs/FlowDKG.cdc"
 	flowEpochFilename             = "epochs/FlowEpoch.cdc"
 	flowLockedTokensFilename      = "LockedTokens.cdc"
@@ -39,12 +41,15 @@ const (
 	// only used for testing
 	TESTFlowIdentityTableFilename = "testContracts/TestFlowIDTableStaking.cdc"
 
+	// Each contract has placeholder addresses that need to be replaced
+	// depending on which network they are being used with
 	placeholderFungibleTokenAddress     = "0xFUNGIBLETOKENADDRESS"
 	placeholderFlowTokenAddress         = "0xFLOWTOKENADDRESS"
 	placeholderIDTableAddress           = "0xFLOWIDTABLESTAKINGADDRESS"
 	placeholderStakingProxyAddress      = "0xSTAKINGPROXYADDRESS"
 	placeholderQCAddr                   = "0xQCADDRESS"
 	placeholderDKGAddr                  = "0xDKGADDRESS"
+	placeholderEpochAddr                = "0xEPOCHADDRESS"
 	placeholderFlowFeesAddress          = "0xFLOWFEESADDRESS"
 	placeholderStorageFeesAddress       = "0xFLOWSTORAGEFEESADDRESS"
 	placeholderLockedTokensAddress      = "0xLOCKEDTOKENSADDRESS"
@@ -196,7 +201,10 @@ func FlowStakingCollection(
 	idTableAddress,
 	stakingProxyAddress,
 	lockedTokensAddress,
-	storageFeesAddress string,
+	storageFeesAddress,
+	qcAddress,
+	dkgAddress,
+	epochAddress string,
 ) []byte {
 	code := assets.MustAssetString(flowStakingCollectionFilename)
 
@@ -206,29 +214,9 @@ func FlowStakingCollection(
 	code = strings.ReplaceAll(code, placeholderStakingProxyAddress, withHexPrefix(stakingProxyAddress))
 	code = strings.ReplaceAll(code, placeholderLockedTokensAddress, withHexPrefix(lockedTokensAddress))
 	code = strings.ReplaceAll(code, placeholderStorageFeesAddress, withHexPrefix(storageFeesAddress))
-
-	return []byte(code)
-}
-
-// TESTFlowStakingCollection returns the StakingCollection contract with all public fields and functions.
-func TESTFlowStakingCollection(
-	fungibleTokenAddress,
-	flowTokenAddress,
-	idTableAddress,
-	stakingProxyAddress,
-	lockedTokensAddress,
-	storageFeesAddress string,
-) []byte {
-	code := assets.MustAssetString(flowStakingCollectionFilename)
-
-	code = strings.ReplaceAll(code, placeholderFungibleTokenAddress, withHexPrefix(fungibleTokenAddress))
-	code = strings.ReplaceAll(code, placeholderFlowTokenAddress, withHexPrefix(flowTokenAddress))
-	code = strings.ReplaceAll(code, placeholderIDTableAddress, withHexPrefix(idTableAddress))
-	code = strings.ReplaceAll(code, placeholderStakingProxyAddress, withHexPrefix(stakingProxyAddress))
-	code = strings.ReplaceAll(code, placeholderLockedTokensAddress, withHexPrefix(lockedTokensAddress))
-	code = strings.ReplaceAll(code, placeholderStorageFeesAddress, withHexPrefix(storageFeesAddress))
-
-	code = strings.ReplaceAll(code, "access(self)", "pub")
+	code = strings.ReplaceAll(code, placeholderQCAddr, withHexPrefix(qcAddress))
+	code = strings.ReplaceAll(code, placeholderDKGAddr, withHexPrefix(dkgAddress))
+	code = strings.ReplaceAll(code, placeholderEpochAddr, withHexPrefix(epochAddress))
 
 	return []byte(code)
 }
@@ -255,6 +243,38 @@ func FlowLockedTokens(
 	return []byte(code)
 }
 
+// FlowQC returns the FlowClusterQCs contract.
+func FlowQC() []byte {
+	code := assets.MustAssetString(flowQCFilename)
+
+	return []byte(code)
+}
+
+// FlowDKG returns the FlowDKG contract.
+func FlowDKG() []byte {
+	code := assets.MustAssetString(flowDKGFilename)
+
+	return []byte(code)
+}
+
+// FlowEpoch returns the FlowEpoch contract.
+func FlowEpoch(fungibleTokenAddress,
+	flowTokenAddress,
+	idTableAddress,
+	qcAddress,
+	dkgAddress string,
+) []byte {
+	code := assets.MustAssetString(flowEpochFilename)
+
+	code = strings.ReplaceAll(code, placeholderFungibleTokenAddress, withHexPrefix(fungibleTokenAddress))
+	code = strings.ReplaceAll(code, placeholderFlowTokenAddress, withHexPrefix(flowTokenAddress))
+	code = strings.ReplaceAll(code, placeholderIDTableAddress, withHexPrefix(idTableAddress))
+	code = strings.ReplaceAll(code, placeholderQCAddr, withHexPrefix(qcAddress))
+	code = strings.ReplaceAll(code, placeholderDKGAddr, withHexPrefix(dkgAddress))
+
+	return []byte(code)
+}
+
 /******************** Test contracts *********************/
 
 // TESTFlowIDTableStaking returns the TestFlowIDTableStaking contract
@@ -263,6 +283,35 @@ func TESTFlowIDTableStaking(fungibleTokenAddress, flowTokenAddress string) []byt
 
 	code = strings.ReplaceAll(code, placeholderFungibleTokenAddress, withHexPrefix(fungibleTokenAddress))
 	code = strings.ReplaceAll(code, placeholderFlowTokenAddress, withHexPrefix(flowTokenAddress))
+
+	return []byte(code)
+}
+
+// TESTFlowStakingCollection returns the StakingCollection contract with all public fields and functions.
+func TESTFlowStakingCollection(
+	fungibleTokenAddress,
+	flowTokenAddress,
+	idTableAddress,
+	stakingProxyAddress,
+	lockedTokensAddress,
+	storageFeesAddress,
+	qcAddress,
+	dkgAddress,
+	epochAddress string,
+) []byte {
+	code := assets.MustAssetString(flowStakingCollectionFilename)
+
+	code = strings.ReplaceAll(code, placeholderFungibleTokenAddress, withHexPrefix(fungibleTokenAddress))
+	code = strings.ReplaceAll(code, placeholderFlowTokenAddress, withHexPrefix(flowTokenAddress))
+	code = strings.ReplaceAll(code, placeholderIDTableAddress, withHexPrefix(idTableAddress))
+	code = strings.ReplaceAll(code, placeholderStakingProxyAddress, withHexPrefix(stakingProxyAddress))
+	code = strings.ReplaceAll(code, placeholderLockedTokensAddress, withHexPrefix(lockedTokensAddress))
+	code = strings.ReplaceAll(code, placeholderStorageFeesAddress, withHexPrefix(storageFeesAddress))
+	code = strings.ReplaceAll(code, placeholderQCAddr, withHexPrefix(qcAddress))
+	code = strings.ReplaceAll(code, placeholderDKGAddr, withHexPrefix(dkgAddress))
+	code = strings.ReplaceAll(code, placeholderEpochAddr, withHexPrefix(epochAddress))
+
+	code = strings.ReplaceAll(code, "access(self)", "pub")
 
 	return []byte(code)
 }

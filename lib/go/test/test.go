@@ -3,16 +3,21 @@ package test
 import (
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"testing"
 
+	"github.com/onflow/flow-emulator/types"
+
 	"github.com/onflow/cadence"
-	"github.com/onflow/flow-emulator"
+	emulator "github.com/onflow/flow-emulator"
 	ft_templates "github.com/onflow/flow-ft/lib/go/templates"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	flow_crypto "github.com/onflow/flow-go/crypto"
 
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
 )
@@ -122,7 +127,7 @@ func signAndSubmit(
 	signerAddresses []flow.Address,
 	signers []crypto.Signer,
 	shouldRevert bool,
-) {
+) *types.TransactionResult {
 	// sign transaction with each signer
 	for i := len(signerAddresses) - 1; i >= 0; i-- {
 		signerAddress := signerAddresses[i]
@@ -137,7 +142,7 @@ func signAndSubmit(
 		}
 	}
 
-	Submit(t, b, tx, shouldRevert)
+	return Submit(t, b, tx, shouldRevert)
 }
 
 // Submit submits a transaction and checks if it fails or not, based on shouldRevert specification
@@ -146,7 +151,7 @@ func Submit(
 	b *emulator.Blockchain,
 	tx *flow.Transaction,
 	shouldRevert bool,
-) {
+) *types.TransactionResult {
 	// submit the signed transaction
 	err := b.AddTransaction(*tx)
 	require.NoError(t, err)
@@ -166,6 +171,8 @@ func Submit(
 
 	_, err = b.CommitBlock()
 	assert.NoError(t, err)
+
+	return result
 }
 
 // executeScriptAndCheck executes a script and checks to make sure that it succeeded.
@@ -275,4 +282,19 @@ func registerAndMintManyAccounts(
 	}
 
 	return userAddresses, userPublicKeys, userSigners
+}
+
+// Generates a new private/public key pair
+func generateKeys(t *testing.T, algorithmName flow_crypto.SigningAlgorithm) (crypto.PrivateKey, crypto.PublicKey) {
+	seedMinLength := 48
+	seed := make([]byte, seedMinLength)
+	n, err := rand.Read(seed)
+	require.Equal(t, n, seedMinLength)
+	require.NoError(t, err)
+	sk, err := flow_crypto.GeneratePrivateKey(algorithmName, seed)
+	require.NoError(t, err)
+
+	publicKey := sk.PublicKey()
+
+	return sk, publicKey
 }

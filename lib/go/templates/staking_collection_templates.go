@@ -13,20 +13,22 @@ const (
 	collectionSetupFilename = "stakingCollection/setup_staking_collection.cdc"
 
 	// user templates
-	collectionAddDelegatorFilename           = "stakingCollection/add_delegator.cdc"
-	collectionAddNodeFilename                = "stakingCollection/add_node.cdc"
-	collectionRegisterDelegatorFilename      = "stakingCollection/register_delegator.cdc"
-	collectionRegisterNodeFilename           = "stakingCollection/register_node.cdc"
-	collectionRequestUnstakingFilename       = "stakingCollection/request_unstaking.cdc"
-	collectionStakeNewTokensFilename         = "stakingCollection/stake_new_tokens.cdc"
-	collectionStakeRewardedTokensFilename    = "stakingCollection/stake_rewarded_tokens.cdc"
-	collectionStakeUnstakedTokensFilename    = "stakingCollection/stake_unstaked_tokens.cdc"
-	collectionUnstakeAllFilename             = "stakingCollection/unstake_all.cdc"
-	collectionWithdrawRewardedTokensFilename = "stakingCollection/withdraw_rewarded_tokens.cdc"
-	collectionWithdrawUnstakedTokensFilename = "stakingCollection/withdraw_unstaked_tokens.cdc"
-	collectionCloseStakeFilename             = "stakingCollection/close_stake.cdc"
-	collectionTransferNodeFilename           = "stakingCollection/transfer_node.cdc"
-	collectionTransferDelegatorFilename      = "stakingCollection/transfer_delegator.cdc"
+	collectionAddDelegatorFilename                = "stakingCollection/add_delegator.cdc"
+	collectionAddNodeFilename                     = "stakingCollection/add_node.cdc"
+	collectionCreateMachineAccountForNodeFilename = "stakingCollection/create_machine_account.cdc"
+	collectionRegisterDelegatorFilename           = "stakingCollection/register_delegator.cdc"
+	collectionRegisterNodeFilename                = "stakingCollection/register_node.cdc"
+	collectionRequestUnstakingFilename            = "stakingCollection/request_unstaking.cdc"
+	collectionStakeNewTokensFilename              = "stakingCollection/stake_new_tokens.cdc"
+	collectionStakeRewardedTokensFilename         = "stakingCollection/stake_rewarded_tokens.cdc"
+	collectionStakeUnstakedTokensFilename         = "stakingCollection/stake_unstaked_tokens.cdc"
+	collectionUnstakeAllFilename                  = "stakingCollection/unstake_all.cdc"
+	collectionWithdrawRewardedTokensFilename      = "stakingCollection/withdraw_rewarded_tokens.cdc"
+	collectionWithdrawUnstakedTokensFilename      = "stakingCollection/withdraw_unstaked_tokens.cdc"
+	collectionCloseStakeFilename                  = "stakingCollection/close_stake.cdc"
+	collectionTransferNodeFilename                = "stakingCollection/transfer_node.cdc"
+	collectionTransferDelegatorFilename           = "stakingCollection/transfer_delegator.cdc"
+	collectionWithdrawFromMachineAccountFilename  = "stakingCollection/withdraw_from_machine_account.cdc"
 
 	// scripts
 	collectionGetDoesStakeExistFilename                = "stakingCollection/scripts/get_does_stake_exist.cdc"
@@ -37,6 +39,7 @@ const (
 	collectionGetLockedTokensUsedFilename              = "stakingCollection/scripts/get_locked_tokens_used.cdc"
 	collectionGetUnlockedTokensUsedFilename            = "stakingCollection/scripts/get_unlocked_tokens_used.cdc"
 	collectionDoesAccountHaveStakingCollectionFilename = "stakingCollection/scripts/does_account_have_staking_collection.cdc"
+	collectionGetMachineAccountsFilename               = "stakingCollection/scripts/get_machine_accounts.cdc"
 
 	// tests
 	getCollectionTokensFilename     = "stakingCollection/test/get_tokens.cdc"
@@ -75,6 +78,12 @@ func GenerateCollectionRegisterDelegator(env Environment) []byte {
 
 func GenerateCollectionRegisterNode(env Environment) []byte {
 	code := assets.MustAssetString(collectionRegisterNodeFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateCollectionCreateMachineAccountForNodeScript(env Environment) []byte {
+	code := assets.MustAssetString(collectionCreateMachineAccountForNodeFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -139,6 +148,12 @@ func GenerateCollectionTransferDelegator(env Environment) []byte {
 	return []byte(replaceAddresses(code, env))
 }
 
+func GenerateCollectionWithdrawFromMachineAccountScript(env Environment) []byte {
+	code := assets.MustAssetString(collectionWithdrawFromMachineAccountFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
 // Script templates
 
 func GenerateCollectionGetDoesStakeExistScript(env Environment) []byte {
@@ -185,6 +200,12 @@ func GenerateCollectionGetLockedTokensUsedScript(env Environment) []byte {
 
 func GenerateCollectionDoesAccountHaveStakingCollection(env Environment) []byte {
 	code := assets.MustAssetString(collectionDoesAccountHaveStakingCollectionFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateCollectionGetMachineAccountsScript(env Environment) []byte {
+	code := assets.MustAssetString(collectionGetMachineAccountsFilename)
 
 	return []byte(replaceAddresses(code, env))
 }

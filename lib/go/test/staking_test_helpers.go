@@ -13,6 +13,8 @@ import (
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 
+	flow_crypto "github.com/onflow/flow-go/crypto"
+
 	"github.com/onflow/flow-core-contracts/lib/go/contracts"
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
 )
@@ -168,22 +170,55 @@ func verifyStakingInfo(t *testing.T,
 func generateNodeIDs(numNodes int) ([]string, []cadence.Value, []cadence.Value) {
 	// initialize the slices for all the IDs
 	ids := make([]string, numNodes)
-	collectorIDs := make([]cadence.Value, numNodes/5+1)
-	consensusIDs := make([]cadence.Value, numNodes/5+1)
+	collectorIDs := make([]cadence.Value, numNodes/6+1)
+	consensusIDs := make([]cadence.Value, numNodes/7+1)
 
 	// Create a new ID for each node
 	for i := 0; i < numNodes; i++ {
 		ids[i] = fmt.Sprintf("%064d", i)
 
 		// If the ID is for a collector or consensus node, add the ID to the respective array
-		if i == 0 {
+		if i%5 == 0 {
 			collectorIDs[i/5] = cadence.NewString(ids[i])
-		} else if i == 1 {
+		} else if i%5 == 1 {
 			consensusIDs[i/5] = cadence.NewString(ids[i])
 		}
 	}
 
 	return ids, collectorIDs, consensusIDs
+}
+
+/// Generates a key pair for staking, which uses the BLSBLS12381 signing algorithm
+/// Also generates a key pair for networking, which uses the ECDSA_P256 signing algorithm
+func generateKeysForNodeRegistration(t *testing.T) (crypto.PrivateKey, string, crypto.PrivateKey, string) {
+	stakingPrivateKey, publicKey := generateKeys(t, flow_crypto.BLSBLS12381)
+	stakingPublicKey := publicKey.String()
+	stakingPublicKey = stakingPublicKey[2:]
+	networkingPrivateKey, publicKey := generateKeys(t, flow_crypto.ECDSAP256)
+	networkingPublicKey := publicKey.String()
+	networkingPublicKey = networkingPublicKey[2:]
+
+	return stakingPrivateKey, stakingPublicKey, networkingPrivateKey, networkingPublicKey
+
+}
+
+/// Generates staking and networking key pairs for the specified number of nodes
+func generateManyNodeKeys(t *testing.T, numNodes int) ([]crypto.PrivateKey, []string, []crypto.PrivateKey, []string) {
+	stakingPrivateKeys := make([]crypto.PrivateKey, numNodes)
+	stakingPublicKeys := make([]string, numNodes)
+	networkingPrivateKeys := make([]crypto.PrivateKey, numNodes)
+	networkingPublicKeys := make([]string, numNodes)
+
+	for i := 0; i < numNodes; i++ {
+		stakingPrivateKey, stakingPublicKey, networkingPrivateKey, networkingPublicKey := generateKeysForNodeRegistration(t)
+		stakingPrivateKeys[i] = stakingPrivateKey
+		stakingPublicKeys[i] = stakingPublicKey
+		networkingPrivateKeys[i] = networkingPrivateKey
+		networkingPublicKeys[i] = networkingPublicKey
+	}
+
+	return stakingPrivateKeys, stakingPublicKeys, networkingPrivateKeys, networkingPublicKeys
+
 }
 
 // Registers a node with the staking collection using the specified node information
@@ -288,11 +323,15 @@ func registerNodesForStaking(
 	env templates.Environment,
 	authorizers []flow.Address,
 	signers []crypto.Signer,
+	stakingKeys []string,
+	networkingkeys []string,
 	ids []string) {
 
 	// If the number of authorizers is not the same as the number of signers, fail
 	if len(authorizers) != len(signers) ||
-		len(authorizers) != len(ids) {
+		len(authorizers) != len(ids) ||
+		len(authorizers) != len(stakingKeys) ||
+		len(authorizers) != len(networkingkeys) {
 		t.Fail()
 	}
 
@@ -309,8 +348,8 @@ func registerNodesForStaking(
 			signers[i],
 			ids[i],
 			fmt.Sprintf("%0128d", i),
-			fmt.Sprintf("%0128d", i),
-			fmt.Sprintf("%0192d", i),
+			networkingkeys[i],
+			stakingKeys[i],
 			amountToCommit,
 			committed,
 			uint8((i%5)+1),

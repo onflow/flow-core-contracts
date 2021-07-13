@@ -28,7 +28,8 @@ transaction(ids: [String], newPayout: UFix64) {
             approvedIDs[id] = true
         }
 
-        self.adminRef.payRewards()
+        let rewardsArray = self.adminRef.calculateRewards()
+        self.adminRef.payRewards(rewardsArray)
 
         self.adminRef.setEpochTokenPayout(newPayout)
 

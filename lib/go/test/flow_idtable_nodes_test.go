@@ -9,7 +9,7 @@ import (
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
-	"github.com/onflow/flow-emulator"
+	emulator "github.com/onflow/flow-emulator"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/test"
@@ -168,11 +168,9 @@ func TestManyNodesIDTable(t *testing.T) {
 
 			nodeNetworkingAddresses[i] = cadence.NewString(networkingAddress)
 
-			networkingKey := fmt.Sprintf("%0128d", i)
+			_, stakingKey, _, networkingKey := generateKeysForNodeRegistration(t)
 
 			nodeNetworkingKeys[i] = cadence.NewString(networkingKey)
-
-			stakingKey := fmt.Sprintf("%0192d", i)
 
 			nodeStakingKeys[i] = cadence.NewString(stakingKey)
 
@@ -344,7 +342,7 @@ func TestManyNodesIDTable(t *testing.T) {
 	t.Run("Should pay rewards", func(t *testing.T) {
 		tx = flow.NewTransaction().
 			SetScript(templates.GeneratePayRewardsScript(env)).
-			SetGasLimit(200000).
+			SetGasLimit(300000).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(idTableAddress)
@@ -524,15 +522,17 @@ func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
 
 			role := uint8((i % 4) + 1)
 
+			_, stakingKey, _, networkingKey := generateKeysForNodeRegistration(t)
+
 			err := tx.AddArgument(cadence.NewString(id))
 			require.NoError(t, err)
 			err = tx.AddArgument(cadence.NewUInt8(role))
 			require.NoError(t, err)
 			err = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", i)))
 			require.NoError(t, err)
-			err = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", i)))
+			err = tx.AddArgument(cadence.NewString(networkingKey))
 			require.NoError(t, err)
-			err = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", i)))
+			err = tx.AddArgument(cadence.NewString(stakingKey))
 			require.NoError(t, err)
 			tokenAmount, err := cadence.NewUFix64("1500000.0")
 			require.NoError(t, err)
