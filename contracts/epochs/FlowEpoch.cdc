@@ -106,7 +106,6 @@ pub contract FlowEpoch {
         /// The result of the QC aggregation process. Each element contains 
         /// all the nodes and votes received for a particular cluster
         /// QC stands for quorum certificate that each cluster generates.
-        /// TODO: define ordering
         clusterQCs: [FlowClusterQC.ClusterQC],
 
         /// The resulting public keys from the DKG process, encoded as by the flow-go
