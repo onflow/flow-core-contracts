@@ -68,7 +68,7 @@ pub contract FlowEpoch {
         /// Includes:
         /// nodeID, staking key, networking key, networking address, role,
         /// staking information, weight, and more.
-        nodeInfo: [FlowIDTableStaking.NodeInfo]
+        nodeInfo: [FlowIDTableStaking.NodeInfo],
 
         /// The first view (inclusive) of the upcoming epoch.
         firstView: UInt64,
@@ -106,8 +106,7 @@ pub contract FlowEpoch {
         /// The result of the QC aggregation process. Each element contains 
         /// all the nodes and votes received for a particular cluster
         /// QC stands for quorum certificate that each cluster generates.
-        /// TODO: define ordering
-        clusterQCs: [FlowClusterQC.ClusterQC]
+        clusterQCs: [FlowClusterQC.ClusterQC],
 
         /// The resulting public keys from the DKG process, encoded as by the flow-go
         /// crypto library, then hex-encoded.
