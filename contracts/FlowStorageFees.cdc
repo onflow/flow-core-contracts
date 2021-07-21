@@ -71,14 +71,14 @@ pub contract FlowStorageFees {
             return 0.0
         } else {
             // return balance multiplied with megabytes per flow 
-            return balanceRef.balance * self.storageMegaBytesPerReservedFLOW
+            return balanceRef.balance.saturatingMultiply(self.storageMegaBytesPerReservedFLOW)
         }
     }
 
     // Amount in Flow tokens
     // Returns megabytes
     pub fun flowToStorageCapacity(_ amount: UFix64): UFix64 {
-        return amount * FlowStorageFees.storageMegaBytesPerReservedFLOW
+        return amount.saturatingMultiply(FlowStorageFees.storageMegaBytesPerReservedFLOW)
     }
 
     // Amount in megabytes
@@ -97,7 +97,7 @@ pub contract FlowStorageFees {
         // safe convert UInt64 to UFix64 (without overflow)
         let f = UFix64(storage % 100000000 as UInt64) * 0.00000001 as UFix64 + UFix64(storage / 100000000 as UInt64)
         // decimal point correction. Megabytes to bytes have a conversion of 10^-6 while UFix64 minimum value is 10^-8
-        let storageMb = f * 100.0 as UFix64
+        let storageMb = f.saturatingMultiply(100.0 as UFix64)
         return storageMb
     }
 
@@ -118,12 +118,7 @@ pub contract FlowStorageFees {
             reserved = self.minimumStorageReservation
         }
 
-        // balance could be less that what the account needs to have reserved for storage. In that case return 0.
-        if reserved > balance {
-            return 0.0
-        }
-        
-        return balance - reserved
+        return balance.saturatingSubtract(reserved)
     }
 
     init() {
