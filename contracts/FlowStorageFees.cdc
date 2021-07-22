@@ -97,7 +97,7 @@ pub contract FlowStorageFees {
         // safe convert UInt64 to UFix64 (without overflow)
         let f = UFix64(storage % 100000000 as UInt64) * 0.00000001 as UFix64 + UFix64(storage / 100000000 as UInt64)
         // decimal point correction. Megabytes to bytes have a conversion of 10^-6 while UFix64 minimum value is 10^-8
-        let storageMb = f.saturatingMultiply(100.0 as UFix64)
+        let storageMb = f.saturatingMultiply(100.0)
         return storageMb
     }
 
