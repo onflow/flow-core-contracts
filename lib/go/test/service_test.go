@@ -90,6 +90,32 @@ func TestContracts(t *testing.T) {
 	result = executeScriptAndCheck(t, b, templates.GenerateGetStorageFeeMinimumScript(env), nil)
 	assertEqual(t, CadenceUFix64("0.2"), result)
 
+	t.Run("Getting available balance should not overflow", func(t *testing.T) {
+
+		tx := createTxWithTemplateAndAuthorizer(b,
+			templates.GenerateChangeStorageFeeParametersScript(env),
+			storageFeesAddress)
+
+		err := tx.AddArgument(CadenceUFix64("10000000.0"))
+
+		require.NoError(t, err)
+		err = tx.AddArgument(CadenceUFix64("0.2"))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, storageFeesAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), storageFeesSigner},
+			false,
+		)
+	})
+
+	result = executeScriptAndCheck(t, b, templates.GenerateGetAccountAvailableBalanceFilenameScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(b.ServiceKey().Address))})
+	assertEqual(t, CadenceUFix64("9999999999.80000000"), result)
+
+	result = executeScriptAndCheck(t, b, templates.GenerateGetStorageCapacityScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(b.ServiceKey().Address))})
+	assertEqual(t, CadenceUFix64("184467440737.09551615"), result)
+
 	t.Run("Zero conversion should not result in a divide by zero error", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b,
