@@ -67,8 +67,12 @@ pub contract FlowServiceAccount {
         }
 
         let tokenVault = self.defaultTokenVault(acct)
-        let feeVault <- tokenVault.withdraw(amount: self.transactionFee)
-
+        var feeAmount = self.transactionFee
+        if self.transactionFee > tokenVault.balance {
+            feeAmount = tokenVault.balance
+        }
+        
+        let feeVault <- tokenVault.withdraw(amount: feeAmount)
         FlowFees.deposit(from: <-feeVault)
     }
 
