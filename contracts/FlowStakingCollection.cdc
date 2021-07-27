@@ -53,19 +53,16 @@ pub contract FlowStakingCollection {
     pub struct MachineAccountInfo {
         pub let nodeID: String
         pub let role: UInt8
-        pub let address: Address
         // Capability to the FLOW Vault to allow the owner
         // to withdraw or deposit to their machine account if needed
         access(contract) let machineAccountVaultProvider: Capability<&FlowToken.Vault>
 
-        init(nodeID: String, role: UInt8, machineAccountAddress: Address, machineAccountVaultProvider: Capability<&FlowToken.Vault>) {
+        init(nodeID: String, role: UInt8, machineAccountVaultProvider: Capability<&FlowToken.Vault>) {
             pre {
                 machineAccountVaultProvider.check(): "Invalid Flow Token Vault Provider"
-                machineAccountVaultProvider.borrow()!.owner!.address == machineAccountAddress: "Vault provider must be stored in the machine account address provided"
             }
             self.nodeID = nodeID
             self.role = role
-            self.address = machineAccountAddress
             self.machineAccountVaultProvider = machineAccountVaultProvider
         }
     }
@@ -424,7 +421,7 @@ pub contract FlowStakingCollection {
 
             // Get the vault capability and create the machineAccountInfo struct
             let machineAccountVaultProvider = machineAcct.link<&FlowToken.Vault>(/private/machineAccountPrivateVault, target: /storage/flowTokenVault)!
-            let machineAccountInfo = MachineAccountInfo(nodeID: nodeInfo.id, role: nodeInfo.role, machineAccountAddress: machineAcct.address, machineAccountVaultProvider: machineAccountVaultProvider)
+            let machineAccountInfo = MachineAccountInfo(nodeID: nodeInfo.id, role: nodeInfo.role, machineAccountVaultProvider: machineAccountVaultProvider)
             
             // If they are a collector node, create a QC Voter object and store it in the account
             if nodeInfo.role == FlowEpoch.NodeRole.Collector.rawValue {
@@ -436,7 +433,7 @@ pub contract FlowStakingCollection {
                 // set this node's machine account
                 self.machineAccounts[nodeInfo.id] = machineAccountInfo
 
-                emit MachineAccountCreated(nodeID: nodeInfo.id, role: FlowEpoch.NodeRole.Collector.rawValue, address: machineAcct.address)
+                emit MachineAccountCreated(nodeID: nodeInfo.id, role: FlowEpoch.NodeRole.Collector.rawValue, address: machineAccountVaultProvider.borrow()!.owner!.address)
 
                 return machineAcct
 
@@ -450,7 +447,7 @@ pub contract FlowStakingCollection {
                 // set this node's machine account
                 self.machineAccounts[nodeInfo.id] = machineAccountInfo
 
-                emit MachineAccountCreated(nodeID: nodeInfo.id, role: FlowEpoch.NodeRole.Consensus.rawValue, address: machineAcct.address)
+                emit MachineAccountCreated(nodeID: nodeInfo.id, role: FlowEpoch.NodeRole.Consensus.rawValue, address: machineAccountVaultProvider.borrow()!.owner!.address)
 
                 return machineAcct
             }
@@ -498,7 +495,7 @@ pub contract FlowStakingCollection {
             }
             
             // Create the new Machine account info object and store it
-            let machineAccountInfo = MachineAccountInfo(nodeID: nodeID, role: nodeInfo.role, machineAccountAddress: machineAccount.address, machineAccountVaultProvider: machineAccountVaultProvider)
+            let machineAccountInfo = MachineAccountInfo(nodeID: nodeID, role: nodeInfo.role, machineAccountVaultProvider: machineAccountVaultProvider)
             self.machineAccounts[nodeID] = machineAccountInfo
         }
 
@@ -837,7 +834,7 @@ pub contract FlowStakingCollection {
                     let unlockedVault = self.unlockedVault!.borrow()!
                     var availableBalance: UFix64 = 0.0
                     if FlowStorageFees.storageMegaBytesPerReservedFLOW != (0.0 as UFix64) {
-                        availableBalance = FlowStorageFees.defaultTokenAvailableBalance(machineAccountInfo.address)
+                        availableBalance = FlowStorageFees.defaultTokenAvailableBalance(machineAccountInfo.machineAccountVaultProvider.borrow()!.owner!.address)
                     } else {
                         availableBalance = vaultRef.balance
                     }
