@@ -1117,11 +1117,7 @@ pub contract FlowIDTableStaking {
     /// Checks if the amount of tokens is greater
     /// than the minimum staking requirement for the specified role
     pub fun isGreaterThanMinimumForRole(numTokens: UFix64, role: UInt8): Bool {
-        if role == UInt8(5) {
-            return numTokens > 0.0
-        } else {
-            return numTokens >= self.minimumStakeRequired[role]!
-        }
+        return numTokens >= self.minimumStakeRequired[role]!
     }
 
     /// Indicates if the specified networking address is claimed by a node
