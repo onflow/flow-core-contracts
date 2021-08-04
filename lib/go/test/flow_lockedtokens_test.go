@@ -1550,6 +1550,23 @@ func TestLockedTokensRealStaking(t *testing.T) {
 		assertEqual(t, cadence.NewString(joshID), result)
 	})
 
+	t.Run("Should be able to change the networking address", func(t *testing.T) {
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateLockedNodeUpdateNetworkingAddressScript(env), joshAddress)
+
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", execution)))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetNetworkingAddressScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(joshID))})
+		assertEqual(t, cadence.NewString(fmt.Sprintf("%0128d", execution)), result)
+	})
+
 	t.Run("Should be able to get the node info from the locked account by just using the address", func(t *testing.T) {
 		_ = executeScriptAndCheck(t, b, templates.GenerateGetLockedStakerInfoScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
 	})

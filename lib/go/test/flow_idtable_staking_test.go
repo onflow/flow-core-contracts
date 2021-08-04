@@ -33,6 +33,7 @@ const (
 	execution      = 6
 	verificationID = "0000000000000000000000000000000000000000000000000000000000000007"
 	verification   = 7
+	newAddress     = 8
 
 	nonexistantID = "0000000000000000000000000000000000000000000000000000000000383838383"
 
@@ -567,6 +568,49 @@ func TestIDTableStaking(t *testing.T) {
 			committed[adminID],
 			1,
 			true)
+
+	})
+
+	t.Run("Should be able to change the networking address properly", func(t *testing.T) {
+
+		// Should fail because the networking address is the wrong length
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateNetworkingAddressScript(env), idTableAddress)
+
+		tx.AddArgument(cadence.NewString(fmt.Sprintf("%0511d", josh)))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			true,
+		)
+
+		// Should fail because the networking address is already claimed
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateNetworkingAddressScript(env), idTableAddress)
+
+		tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", admin)))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			true,
+		)
+
+		// Should succeed because it is a new networking address and it is the correct length
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateNetworkingAddressScript(env), idTableAddress)
+
+		tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", newAddress)))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetNetworkingAddressScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
+		assertEqual(t, cadence.NewString(fmt.Sprintf("%0128d", newAddress)), result)
 
 	})
 

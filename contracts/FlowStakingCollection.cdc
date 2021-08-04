@@ -597,6 +597,22 @@ pub contract FlowStakingCollection {
         // If they are staking for a delegator, they provide the node ID for the node they are delegating to
         // and their delegator ID to specify that it is for their delegator object
 
+        /// Updates the stored networking address for the specified node
+        pub fun updateNetworkingAddress(nodeID: String, newAddress: String) {
+            pre {
+                self.doesStakeExist(nodeID: nodeID, delegatorID: nil): "Specified stake does not exist in this collection"
+            }
+
+            // If the node is stored in the collection, borrow it 
+            if let node = self.borrowNode(nodeID) {
+                node.updateNetworkingAddress(newAddress)
+            } else {
+                // Use the node stored in the locked account
+                let node = self.tokenHolder!.borrow()!.borrowStaker()
+                node.updateNetworkingAddress(newAddress)
+            }
+        }
+
         /// Function to stake new tokens for an existing Stake or Delegation record in the StakingCollection
         pub fun stakeNewTokens(nodeID: String, delegatorID: UInt32?, amount: UFix64) {
             pre {

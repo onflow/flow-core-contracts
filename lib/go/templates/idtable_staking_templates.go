@@ -35,6 +35,7 @@ const (
 	unstakeAllFilename              = "idTableStaking/node/unstake_all.cdc"
 	withdrawUnstakedTokensFilename  = "idTableStaking/node/withdraw_unstaked_tokens.cdc"
 	withdrawRewardedTokensFilename  = "idTableStaking/node/withdraw_rewarded_tokens.cdc"
+	updateNetworkingAddressFilename = "idTableStaking/node/update_networking_address.cdc"
 	addPublicNodeCapabilityFilename = "idTableStaking/node/node_add_capability.cdc"
 
 	registerManyNodesFilename = "idTableStaking/node/register_many_nodes.cdc"
@@ -191,7 +192,7 @@ func GenerateScaleRewardsTestScript(env Environment) []byte {
 	return []byte(replaceAddresses(code, env))
 }
 
-// Staker Templates -------------------------------------------------------------
+// Node Templates -------------------------------------------------------------
 
 // GenerateRegisterNodeScript creates a script that creates a new
 // node struct and stores it in the Node records
@@ -253,6 +254,14 @@ func GenerateWithdrawUnstakedTokensScript(env Environment) []byte {
 // for an existing node operator
 func GenerateWithdrawRewardedTokensScript(env Environment) []byte {
 	code := assets.MustAssetString(withdrawRewardedTokensFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+// GenerateUpdateNetworkingAddressScript creates a script changes the networking address
+// for an existing node operator
+func GenerateUpdateNetworkingAddressScript(env Environment) []byte {
+	code := assets.MustAssetString(updateNetworkingAddressFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
