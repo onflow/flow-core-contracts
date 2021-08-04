@@ -164,7 +164,7 @@ pub contract FlowIDTableStaking {
                 FlowIDTableStaking.isValidNodeID(id): "The node ID must have only numbers and lowercase hex characters"
                 FlowIDTableStaking.nodes[id] == nil: "The ID cannot already exist in the record"
                 role >= UInt8(1) && role <= UInt8(5): "The role must be 1, 2, 3, 4, or 5"
-                networkingAddress.length > 0 && networkingAddress.length <= 510: "The networkingAddress must be less than 255 bytes (510 hex characters)"
+                networkingAddress.length > 0 && networkingAddress.length <= 510: "The networkingAddress must be less than 510 characters"
                 networkingKey.length == 128: "The networkingKey length must be exactly 64 bytes (128 hex characters)"
                 stakingKey.length == 192: "The stakingKey length must be exactly 96 bytes (192 hex characters)"
                 !FlowIDTableStaking.getNetworkingAddressClaimed(address: networkingAddress): "The networkingAddress cannot have already been claimed"
@@ -422,7 +422,7 @@ pub contract FlowIDTableStaking {
         pub fun updateNetworkingAddress(_ newAddress: String) {
             pre {
                 FlowIDTableStaking.stakingEnabled(): "Cannot update networking address if the staking auction isn't in progress"
-                newAddress.length > 0 && newAddress.length <= 510: "The networkingAddress must be less than 255 bytes (510 hex characters)"
+                newAddress.length > 0 && newAddress.length <= 510: "The networkingAddress must be less than 510 characters"
                 !FlowIDTableStaking.getNetworkingAddressClaimed(address: newAddress): "The networkingAddress cannot have already been claimed"
             }
 
