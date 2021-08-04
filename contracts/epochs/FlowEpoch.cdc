@@ -427,9 +427,15 @@ pub contract FlowEpoch {
                     "Invalid startView and endView configuration"
             }
 
-            // force reset the QC and DKG
-            FlowEpoch.borrowClusterQCAdmin().forceStopVoting()
-            FlowEpoch.borrowDKGAdmin().forceEndDKG()
+            if FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION {
+                // Since we are resetting the epoch, we do not need to
+                // start epoch setup also. We only need to end the staking auction
+                FlowEpoch.borrowStakingAdmin().endStakingAuction()
+            } else {
+                // force reset the QC and DKG
+                FlowEpoch.borrowClusterQCAdmin().forceStopVoting()
+                FlowEpoch.borrowDKGAdmin().forceEndDKG()
+            }
 
             FlowEpoch.calculateAndSetRewards(newPayout)
 
