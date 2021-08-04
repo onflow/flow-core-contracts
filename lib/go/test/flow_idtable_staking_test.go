@@ -634,7 +634,7 @@ func TestIDTableStaking(t *testing.T) {
 		result = executeScriptAndCheck(t, b, templates.GenerateReturnCurrentTableScript(env), nil)
 
 		idArray := result.(cadence.Array).Values
-		assert.Len(t, idArray, 0)
+		assert.Len(t, idArray, 1)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
 
@@ -658,7 +658,7 @@ func TestIDTableStaking(t *testing.T) {
 		result := executeScriptAndCheck(t, b, templates.GenerateReturnCurrentTableScript(env), nil)
 
 		idArray := result.(cadence.Array).Values
-		assert.Len(t, idArray, 0)
+		assert.Len(t, idArray, 1)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
 
