@@ -47,6 +47,7 @@ pub contract FlowIDTableStaking {
     pub event RewardsPaid(nodeID: String, amount: UFix64)
     pub event UnstakedTokensWithdrawn(nodeID: String, amount: UFix64)
     pub event RewardTokensWithdrawn(nodeID: String, amount: UFix64)
+    pub event NetworkingAddressUpdated(nodeID: String, newAddress: String)
 
     /// Delegator Events
     pub event NewDelegatorCreated(nodeID: String, delegatorID: UInt32)
@@ -163,7 +164,7 @@ pub contract FlowIDTableStaking {
                 FlowIDTableStaking.isValidNodeID(id): "The node ID must have only numbers and lowercase hex characters"
                 FlowIDTableStaking.nodes[id] == nil: "The ID cannot already exist in the record"
                 role >= UInt8(1) && role <= UInt8(5): "The role must be 1, 2, 3, 4, or 5"
-                networkingAddress.length > 0 && networkingAddress.length <= 510: "The networkingAddress must be less than 255 bytes (510 hex characters)"
+                networkingAddress.length > 0 && networkingAddress.length <= 510: "The networkingAddress must be less than 510 characters"
                 networkingKey.length == 128: "The networkingKey length must be exactly 64 bytes (128 hex characters)"
                 stakingKey.length == 192: "The stakingKey length must be exactly 96 bytes (192 hex characters)"
                 !FlowIDTableStaking.getNetworkingAddressClaimed(address: networkingAddress): "The networkingAddress cannot have already been claimed"
@@ -415,6 +416,22 @@ pub contract FlowIDTableStaking {
 
         init(id: String) {
             self.id = id
+        }
+
+        /// Change the node's networking address to a new one
+        pub fun updateNetworkingAddress(_ newAddress: String) {
+            pre {
+                FlowIDTableStaking.stakingEnabled(): "Cannot update networking address if the staking auction isn't in progress"
+                newAddress.length > 0 && newAddress.length <= 510: "The networkingAddress must be less than 510 characters"
+                !FlowIDTableStaking.getNetworkingAddressClaimed(address: newAddress): "The networkingAddress cannot have already been claimed"
+            }
+
+            // Borrow the node's record from the staking contract
+            let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
+
+            nodeRecord.networkingAddress = newAddress
+
+            emit NetworkingAddressUpdated(nodeID: self.id, newAddress: newAddress)
         }
 
         /// Add new tokens to the system to stake during the next epoch

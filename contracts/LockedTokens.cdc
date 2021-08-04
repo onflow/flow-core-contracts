@@ -403,6 +403,18 @@ pub contract LockedTokens {
             return managerRef.nodeStaker != nil
         }
 
+        /// Change node networking address
+        pub fun updateNetworkingAddress(_ newAddress: String) {
+            let tokenManagerRef = self.tokenManager.borrow()!
+
+            assert(
+                self.nodeObjectExists(tokenManagerRef),
+                message: "Cannot change networking address if there is no node object!"
+            )
+
+            tokenManagerRef.nodeStaker?.updateNetworkingAddress(newAddress)
+        }
+
         /// Stakes new locked tokens
         pub fun stakeNewTokens(amount: UFix64) {
             let tokenManagerRef = self.tokenManager.borrow()!

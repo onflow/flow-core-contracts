@@ -783,6 +783,23 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 			machineAccounts:    machineAccounts,
 		})
 	})
+
+	t.Run("Should be able to update the networking address for the execution node", func(t *testing.T) {
+
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionUpdateNetworkingAddressScript(env), joshAddress)
+		_ = tx.AddArgument(cadence.NewString(executionID))
+		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", newAddress)))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetNetworkingAddressScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(executionID))})
+		assertEqual(t, cadence.NewString(fmt.Sprintf("%0128d", newAddress)), result)
+	})
 }
 
 func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
