@@ -65,6 +65,11 @@ pub contract FlowStakingCollection {
             self.role = role
             self.machineAccountVaultProvider = machineAccountVaultProvider
         }
+
+        // Gets the address of the machine account
+        pub fun getAddress(): Address {
+            return self.machineAccountVaultProvider.borrow()!.owner!.address
+        }
     }
 
     /// Public interface that users can publish for their staking collection

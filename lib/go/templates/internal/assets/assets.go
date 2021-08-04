@@ -196,6 +196,7 @@
 // ../../../transactions/stakingCollection/scripts/get_delegator_ids.cdc (281B)
 // ../../../transactions/stakingCollection/scripts/get_does_stake_exist.cdc (412B)
 // ../../../transactions/stakingCollection/scripts/get_locked_tokens_used.cdc (284B)
+// ../../../transactions/stakingCollection/scripts/get_machine_account_address.cdc (470B)
 // ../../../transactions/stakingCollection/scripts/get_machine_accounts.cdc (313B)
 // ../../../transactions/stakingCollection/scripts/get_node_ids.cdc (243B)
 // ../../../transactions/stakingCollection/scripts/get_unlocked_tokens_used.cdc (289B)
@@ -4217,6 +4218,26 @@ func stakingcollectionScriptsGet_locked_tokens_usedCdc() (*asset, error) {
 	return a, nil
 }
 
+var _stakingcollectionScriptsGet_machine_account_addressCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x90\xcd\x6a\xc3\x30\x10\x84\xef\x7a\x8a\x21\x97\x3a\x50\x9a\x9e\x03\x21\x18\x3b\x0d\xa6\x69\x02\x75\x6e\xa5\x07\x55\x96\x92\xa5\xf6\xca\x48\x32\x2d\x94\xbe\x7b\xb1\xad\x98\xfe\xe9\xa8\x9d\x9d\xfd\x66\xa8\x69\xad\x0b\xb8\xab\xed\x5b\x19\xe4\x2b\xf1\x29\xb3\x75\xad\x55\x20\xcb\x30\xce\x36\xb8\x7d\x2f\x8f\xe9\x7d\xb1\xdf\x66\x87\xdd\x6e\x93\x1d\x8b\xc3\x3e\xcd\xf3\xc7\x4d\x59\x0a\xb1\x58\x2c\xb0\xd5\xc1\x23\x9c\x35\x1a\xa9\xce\xc4\x1a\x52\x29\xdb\x71\x80\xac\x2a\xa7\xbd\x87\xb1\x0e\x12\xbe\xd5\x8a\x0c\x29\xb0\xad\xf4\xb0\x48\x0c\xc9\x17\xf5\x95\x87\x1f\xef\x43\x4d\x00\x42\xb4\xdd\x0b\x4c\xc7\x68\x24\x71\x12\xa5\x4b\xa4\xa3\xf3\xf5\xe0\x55\xe4\x4b\x94\xc1\x11\x9f\xe6\xd3\x04\x1f\x02\x00\x6a\x1d\x2e\x54\xe9\xb8\xeb\xb1\xfa\x3f\xeb\xcd\x49\x87\x87\x9f\xd2\x24\x06\x58\x5e\x18\xe7\x62\x72\x8d\x3f\x05\x1b\x8b\xd5\xef\x1b\x4f\x23\xd6\xf3\xa0\xee\xdf\x7a\x8d\x56\x32\xa9\x64\x96\xd9\xae\xae\xc0\x36\xc0\x10\x57\x7f\x2a\xa3\xde\xaf\xef\xab\xef\x33\x36\xa6\xab\x21\x26\x8a\x7c\x16\x01\x9c\x0e\x9d\xe3\xef\x0c\x3d\x7d\x8c\x9e\xcc\xc5\xa7\xf8\x0a\x00\x00\xff\xff\x29\x0f\xe8\x02\xd6\x01\x00\x00"
+
+func stakingcollectionScriptsGet_machine_account_addressCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_stakingcollectionScriptsGet_machine_account_addressCdc,
+		"stakingCollection/scripts/get_machine_account_address.cdc",
+	)
+}
+
+func stakingcollectionScriptsGet_machine_account_addressCdc() (*asset, error) {
+	bytes, err := stakingcollectionScriptsGet_machine_account_addressCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "stakingCollection/scripts/get_machine_account_address.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xeb, 0xa9, 0x63, 0x4e, 0xd1, 0x47, 0x46, 0xab, 0x10, 0x58, 0xbb, 0x59, 0x4d, 0x28, 0xf4, 0xff, 0x3b, 0x73, 0x11, 0xbb, 0xa8, 0x45, 0xf5, 0x13, 0xda, 0x81, 0xca, 0xfb, 0x64, 0xd5, 0xe5, 0x4c}}
+	return a, nil
+}
+
 var _stakingcollectionScriptsGet_machine_accountsCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x74\x8f\xc1\x4a\xc3\x40\x10\x86\xef\xfb\x14\xff\xcd\xf6\x62\x3c\xe7\x16\xd2\x5a\x82\xb5\x05\xb7\x2f\xb0\x6e\x26\xe9\xe2\x66\xa6\xec\x4e\x50\x28\x7d\x77\x21\x89\x82\x60\xef\xdf\x37\xff\x37\x61\xb8\x48\x52\x3c\x47\xf9\xb4\xea\x3e\x02\xf7\xb5\xc4\x48\x5e\x83\x30\xba\x24\x03\x9e\xbe\xec\xa9\x7a\x69\x0e\xbb\xfa\xb8\xdf\x6f\xeb\x53\x73\x3c\x54\x9b\xcd\xdb\xd6\x5a\x63\x8a\xa2\xc0\x8e\x34\xc3\xc5\x08\x3d\x13\x06\xe7\xcf\x81\x09\xce\x7b\x19\x59\xe1\xda\x36\x51\xce\x94\xd1\x49\x02\x4b\x4b\x79\x92\x02\x4f\xf8\x82\x3d\x64\xe4\x79\x1c\xfe\x77\xdd\x98\xcb\xf8\x8e\x6e\x64\x0c\x2e\xf0\x6a\x41\x4b\x54\xf3\xc9\x75\x89\xab\xd5\x14\xb8\x2f\xff\xaf\x7f\x7c\x9d\x5b\xaa\x59\x6c\xb8\x93\x1b\xae\x06\x00\x12\xe9\x98\xf8\x8e\xd6\x93\xfe\x35\xf3\x6a\xf9\xa2\xfc\xe9\x5d\x9b\x9b\xf9\x0e\x00\x00\xff\xff\xc1\x21\xcf\x72\x39\x01\x00\x00"
 
 func stakingcollectionScriptsGet_machine_accountsCdcBytes() ([]byte, error) {
@@ -5144,6 +5165,7 @@ var _bindata = map[string]func() (*asset, error){
 	"stakingCollection/scripts/get_delegator_ids.cdc":                         stakingcollectionScriptsGet_delegator_idsCdc,
 	"stakingCollection/scripts/get_does_stake_exist.cdc":                      stakingcollectionScriptsGet_does_stake_existCdc,
 	"stakingCollection/scripts/get_locked_tokens_used.cdc":                    stakingcollectionScriptsGet_locked_tokens_usedCdc,
+	"stakingCollection/scripts/get_machine_account_address.cdc":               stakingcollectionScriptsGet_machine_account_addressCdc,
 	"stakingCollection/scripts/get_machine_accounts.cdc":                      stakingcollectionScriptsGet_machine_accountsCdc,
 	"stakingCollection/scripts/get_node_ids.cdc":                              stakingcollectionScriptsGet_node_idsCdc,
 	"stakingCollection/scripts/get_unlocked_tokens_used.cdc":                  stakingcollectionScriptsGet_unlocked_tokens_usedCdc,
@@ -5468,6 +5490,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 			"get_delegator_ids.cdc": {stakingcollectionScriptsGet_delegator_idsCdc, map[string]*bintree{}},
 			"get_does_stake_exist.cdc": {stakingcollectionScriptsGet_does_stake_existCdc, map[string]*bintree{}},
 			"get_locked_tokens_used.cdc": {stakingcollectionScriptsGet_locked_tokens_usedCdc, map[string]*bintree{}},
+			"get_machine_account_address.cdc": {stakingcollectionScriptsGet_machine_account_addressCdc, map[string]*bintree{}},
 			"get_machine_accounts.cdc": {stakingcollectionScriptsGet_machine_accountsCdc, map[string]*bintree{}},
 			"get_node_ids.cdc": {stakingcollectionScriptsGet_node_idsCdc, map[string]*bintree{}},
 			"get_unlocked_tokens_used.cdc": {stakingcollectionScriptsGet_unlocked_tokens_usedCdc, map[string]*bintree{}},
