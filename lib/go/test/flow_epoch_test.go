@@ -255,6 +255,23 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 		networkingPublicKeys,
 		ids)
 
+	// Set the approved node list
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
+
+	approvedNodeIDs := make([]cadence.Value, numEpochAccounts)
+	for i := 0; i < numEpochAccounts; i++ {
+		approvedNodeIDs[i] = cadence.NewString(ids[i])
+	}
+	err := tx.AddArgument(cadence.NewArray(approvedNodeIDs))
+	require.NoError(t, err)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, idTableAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+		false,
+	)
+
 	t.Run("Should not be able change metadata outside of Staking Auction", func(t *testing.T) {
 
 		// advance to the epoch setup phase
@@ -362,6 +379,23 @@ func TestEpochAdvance(t *testing.T) {
 		stakingPublicKeys,
 		networkingPublicKeys,
 		ids)
+
+	// Set the approved node list
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
+
+	approvedNodeIDs := make([]cadence.Value, numEpochAccounts)
+	for i := 0; i < numEpochAccounts; i++ {
+		approvedNodeIDs[i] = cadence.NewString(ids[i])
+	}
+	err := tx.AddArgument(cadence.NewArray(approvedNodeIDs))
+	require.NoError(t, err)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, idTableAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+		false,
+	)
 
 	t.Run("Proposed metadata, QC, and DKG should have been created properly for epoch setup", func(t *testing.T) {
 
@@ -489,6 +523,23 @@ func TestEpochQCDKGNodeRegistration(t *testing.T) {
 		networkingPublicKeys,
 		ids)
 
+	// Set the approved node list
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
+
+	approvedNodeIDs := make([]cadence.Value, numEpochAccounts)
+	for i := 0; i < numEpochAccounts; i++ {
+		approvedNodeIDs[i] = cadence.NewString(ids[i])
+	}
+	err := tx.AddArgument(cadence.NewArray(approvedNodeIDs))
+	require.NoError(t, err)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, idTableAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+		false,
+	)
+
 	// Advance to epoch Setup and make sure that the epoch cannot be ended
 	advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHSETUP", false)
 
@@ -589,9 +640,9 @@ func TestEpochQCDKG(t *testing.T) {
 		rewardAPY)
 
 	// create new user accounts, mint tokens for them, and register them for staking
-	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, 6)
-	ids, _, _ := generateNodeIDs(6)
-	stakingPrivateKeys, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, 6)
+	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
+	ids, _, _ := generateNodeIDs(numEpochAccounts)
+	stakingPrivateKeys, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
 	registerNodesForStaking(t, b, env,
 		addresses,
 		signers,
@@ -599,11 +650,28 @@ func TestEpochQCDKG(t *testing.T) {
 		networkingPublicKeys,
 		ids)
 
+	// Set the approved node list
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
+
+	approvedNodeIDs := make([]cadence.Value, numEpochAccounts)
+	for i := 0; i < numEpochAccounts; i++ {
+		approvedNodeIDs[i] = cadence.NewString(ids[i])
+	}
+	err := tx.AddArgument(cadence.NewArray(approvedNodeIDs))
+	require.NoError(t, err)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, idTableAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+		false,
+	)
+
 	// Advance to epoch Setup and make sure that the epoch cannot be ended
 	advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHSETUP", false)
 
 	// Register a QC voter
-	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochRegisterQCVoterScript(env), addresses[0])
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochRegisterQCVoterScript(env), addresses[0])
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{b.ServiceKey().Address, addresses[0]},
@@ -854,11 +922,28 @@ func TestEpochReset(t *testing.T) {
 		networkingPublicKeys,
 		ids)
 
+	// Set the approved node list
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
+
+	approvedNodeIDs := make([]cadence.Value, numEpochAccounts)
+	for i := 0; i < numEpochAccounts; i++ {
+		approvedNodeIDs[i] = cadence.NewString(ids[i])
+	}
+	err := tx.AddArgument(cadence.NewArray(approvedNodeIDs))
+	require.NoError(t, err)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, idTableAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+		false,
+	)
+
 	// Advance to epoch Setup and make sure that the epoch cannot be ended
 	advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHSETUP", false)
 
 	// Register a QC voter
-	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochRegisterQCVoterScript(env), addresses[0])
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochRegisterQCVoterScript(env), addresses[0])
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{b.ServiceKey().Address, addresses[0]},

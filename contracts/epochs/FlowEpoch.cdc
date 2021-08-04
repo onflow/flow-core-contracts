@@ -349,17 +349,7 @@ pub contract FlowEpoch {
             switch FlowEpoch.currentEpochPhase {
                 case EpochPhase.STAKINGAUCTION:
                     if currentBlock.view >= currentEpochMetadata.stakingEndView {
-                        let ids = FlowIDTableStaking.getProposedNodeIDs()
-
-                        let approvedIDs: {String: Bool} = {}
-                        for id in ids {
-                            // Here is where we would make sure that each node's 
-                            // keys and addresses are correct, they haven't committed any violations,
-                            // and are operating properly
-                            // for now we just set approved to true for all
-                            approvedIDs[id] = true
-                        }
-                        self.endStakingAuction(approvedIDs: approvedIDs)
+                        self.endStakingAuction()
                     }
                 case EpochPhase.EPOCHSETUP:
                     if FlowClusterQC.votingCompleted() && (FlowDKG.dkgCompleted() != nil) {
@@ -377,12 +367,12 @@ pub contract FlowEpoch {
 
         /// Calls `FlowEpoch` functions to end the staking auction phase
         /// and start the Epoch Setup phase
-        pub fun endStakingAuction(approvedIDs: {String: Bool}) {
+        pub fun endStakingAuction() {
             pre {
                 FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION: "Can only end staking auction during the staking auction"
             }
 
-            FlowEpoch.endStakingAuction(approvedIDs: approvedIDs)
+            FlowEpoch.endStakingAuction()
 
             FlowEpoch.startEpochSetup(randomSource: unsafeRandom().toString())
         }
@@ -516,8 +506,8 @@ pub contract FlowEpoch {
     }
 
     /// Ends the staking Auction with all the proposed nodes approved
-    access(account) fun endStakingAuction(approvedIDs: {String: Bool}) {
-        self.borrowStakingAdmin().endStakingAuction(approvedNodeIDs: approvedIDs)
+    access(account) fun endStakingAuction() {
+        self.borrowStakingAdmin().endStakingAuction()
     }
 
     /// Starts the EpochSetup phase and emits the epoch setup event

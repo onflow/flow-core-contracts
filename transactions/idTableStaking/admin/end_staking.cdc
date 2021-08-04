@@ -15,11 +15,9 @@ transaction(ids: [String]) {
     }
 
     execute {
-        let approvedIDs: {String: Bool} = {}
-        for id in ids {
-            approvedIDs[id] = true
-        }
 
-        self.adminRef.endStakingAuction(approvedNodeIDs: approvedIDs)
+        self.adminRef.setApprovedList(ids)
+
+        self.adminRef.endStakingAuction()
     }
 }

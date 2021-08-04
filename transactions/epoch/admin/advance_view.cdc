@@ -7,17 +7,7 @@ transaction(phase: String) {
             ?? panic("Could not borrow heartbeat from storage path")
 
         if phase == "EPOCHSETUP" {
-            let ids = FlowIDTableStaking.getProposedNodeIDs()
-
-            let approvedIDs: {String: Bool} = {}
-            for id in ids {
-                // Here is where we would make sure that each node's 
-                // keys and addresses are correct, they haven't committed any violations,
-                // and are operating properly
-                // for now we just set approved to true for all
-                approvedIDs[id] = true
-            }
-            heartbeat.endStakingAuction(approvedIDs: approvedIDs)
+            heartbeat.endStakingAuction()
         } else if phase == "EPOCHCOMMIT" {
             heartbeat.startEpochCommit()
         } else if phase == "ENDEPOCH" {

@@ -227,15 +227,6 @@ func TestManyNodesIDTable(t *testing.T) {
 		idArray := proposedIDs.(cadence.Array).Values
 		assert.Len(t, idArray, numberOfNodes)
 
-		result, err = b.ExecuteScript(templates.GenerateReturnProposedTableScript(env), nil)
-		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
-		}
-		proposedIDs = result.Value
-		idArray = proposedIDs.(cadence.Array).Values
-		assert.Len(t, idArray, numberOfNodes)
-
 	})
 
 	// End staking auction

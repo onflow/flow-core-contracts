@@ -474,7 +474,7 @@ func TestIDTableStaking(t *testing.T) {
 		result = executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
 
 		idArray = result.(cadence.Array).Values
-		assert.Len(t, idArray, 1)
+		assert.Len(t, idArray, 0)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetRoleScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		assertEqual(t, cadence.NewUInt8(1), result)
@@ -570,6 +570,26 @@ func TestIDTableStaking(t *testing.T) {
 
 	})
 
+	t.Run("Should be able to set the approved node list", func(t *testing.T) {
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
+
+		err := tx.AddArgument(cadence.NewArray([]cadence.Value{cadence.NewString(adminID), cadence.NewString(joshID), cadence.NewString(maxID), cadence.NewString(accessID)}))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+
+		result := executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
+
+		idArray := result.(cadence.Array).Values
+		assert.Len(t, idArray, 1)
+	})
+
 	t.Run("Shouldn't be able to remove a Node that doesn't exist", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRemoveNodeScript(env), idTableAddress)
@@ -634,7 +654,7 @@ func TestIDTableStaking(t *testing.T) {
 		result = executeScriptAndCheck(t, b, templates.GenerateReturnCurrentTableScript(env), nil)
 
 		idArray := result.(cadence.Array).Values
-		assert.Len(t, idArray, 1)
+		assert.Len(t, idArray, 0)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
 
@@ -658,7 +678,7 @@ func TestIDTableStaking(t *testing.T) {
 		result := executeScriptAndCheck(t, b, templates.GenerateReturnCurrentTableScript(env), nil)
 
 		idArray := result.(cadence.Array).Values
-		assert.Len(t, idArray, 1)
+		assert.Len(t, idArray, 0)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
 
