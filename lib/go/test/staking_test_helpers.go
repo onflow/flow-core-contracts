@@ -170,17 +170,17 @@ func verifyStakingInfo(t *testing.T,
 func generateNodeIDs(numNodes int) ([]string, []cadence.Value, []cadence.Value) {
 	// initialize the slices for all the IDs
 	ids := make([]string, numNodes)
-	collectorIDs := make([]cadence.Value, numNodes/5+1)
-	consensusIDs := make([]cadence.Value, numNodes/5+1)
+	collectorIDs := make([]cadence.Value, numNodes/6+1)
+	consensusIDs := make([]cadence.Value, numNodes/7+1)
 
 	// Create a new ID for each node
 	for i := 0; i < numNodes; i++ {
 		ids[i] = fmt.Sprintf("%064d", i)
 
 		// If the ID is for a collector or consensus node, add the ID to the respective array
-		if i == 0 {
+		if i%5 == 0 {
 			collectorIDs[i/5] = cadence.NewString(ids[i])
-		} else if i == 1 {
+		} else if i%5 == 1 {
 			consensusIDs[i/5] = cadence.NewString(ids[i])
 		}
 	}

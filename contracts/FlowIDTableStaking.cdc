@@ -47,6 +47,7 @@ pub contract FlowIDTableStaking {
     pub event RewardsPaid(nodeID: String, amount: UFix64)
     pub event UnstakedTokensWithdrawn(nodeID: String, amount: UFix64)
     pub event RewardTokensWithdrawn(nodeID: String, amount: UFix64)
+    pub event NetworkingAddressUpdated(nodeID: String, newAddress: String)
 
     /// Delegator Events
     pub event NewDelegatorCreated(nodeID: String, delegatorID: UInt32)
@@ -160,9 +161,10 @@ pub contract FlowIDTableStaking {
         ) {
             pre {
                 id.length == 64: "Node ID length must be 32 bytes (64 hex characters)"
+                FlowIDTableStaking.isValidNodeID(id): "The node ID must have only numbers and lowercase hex characters"
                 FlowIDTableStaking.nodes[id] == nil: "The ID cannot already exist in the record"
                 role >= UInt8(1) && role <= UInt8(5): "The role must be 1, 2, 3, 4, or 5"
-                networkingAddress.length > 0 && networkingAddress.length <= 510: "The networkingAddress must be less than 255 bytes (510 hex characters)"
+                networkingAddress.length > 0 && networkingAddress.length <= 510: "The networkingAddress must be less than 510 characters"
                 networkingKey.length == 128: "The networkingKey length must be exactly 64 bytes (128 hex characters)"
                 stakingKey.length == 192: "The stakingKey length must be exactly 96 bytes (192 hex characters)"
                 !FlowIDTableStaking.getNetworkingAddressClaimed(address: networkingAddress): "The networkingAddress cannot have already been claimed"
@@ -414,6 +416,22 @@ pub contract FlowIDTableStaking {
 
         init(id: String) {
             self.id = id
+        }
+
+        /// Change the node's networking address to a new one
+        pub fun updateNetworkingAddress(_ newAddress: String) {
+            pre {
+                FlowIDTableStaking.stakingEnabled(): "Cannot update networking address if the staking auction isn't in progress"
+                newAddress.length > 0 && newAddress.length <= 510: "The networkingAddress must be less than 510 characters"
+                !FlowIDTableStaking.getNetworkingAddressClaimed(address: newAddress): "The networkingAddress cannot have already been claimed"
+            }
+
+            // Borrow the node's record from the staking contract
+            let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
+
+            nodeRecord.networkingAddress = newAddress
+
+            emit NetworkingAddressUpdated(nodeID: self.id, newAddress: newAddress)
         }
 
         /// Add new tokens to the system to stake during the next epoch
@@ -728,6 +746,15 @@ pub contract FlowIDTableStaking {
             return <-node
         }
 
+        /// Sets a list of approved node IDs for the next epoch
+        /// Nodes not on this list will be unstaked at the end of the staking auction
+        /// and not considered to be a proposed/staked node
+        pub fun setApprovedList(_ nodeIDs: [String]) {
+            let list = FlowIDTableStaking.account.load<[String]>(from: /storage/idTableApproveList)
+
+            FlowIDTableStaking.account.save<[String]>(nodeIDs, to: /storage/idTableApproveList)
+        }
+
         /// Starts the staking auction, the period when nodes and delegators
         /// are allowed to perform staking related operations
         pub fun startStakingAuction() {
@@ -737,7 +764,13 @@ pub contract FlowIDTableStaking {
 
         /// Ends the staking Auction by removing any unapproved nodes
         /// and setting stakingEnabled to false
-        pub fun endStakingAuction(approvedNodeIDs: {String: Bool}) {
+        pub fun endStakingAuction() {
+            let approvedList = FlowIDTableStaking.getApprovedList()
+            let approvedNodeIDs: {String: Bool} = {}
+            for id in approvedList {
+                approvedNodeIDs[id] = true
+            }
+
             self.removeUnapprovedNodes(approvedNodeIDs: approvedNodeIDs)
 
             FlowIDTableStaking.account.load<Bool>(from: /storage/stakingEnabled)
@@ -945,6 +978,9 @@ pub contract FlowIDTableStaking {
             // Start the new epoch's staking auction
             self.startStakingAuction()
 
+            // Set the current Epoch node list
+            FlowIDTableStaking.setCurrentNodeList(FlowIDTableStaking.getApprovedList())
+
             // Indicates that the tokens have moved and the epoch has ended
             // Tells what the new reward payout will be. The new payout is calculated and changed
             // before this method is executed and will not be changed for the rest of the epoch
@@ -1067,21 +1103,50 @@ pub contract FlowIDTableStaking {
         self.account.save(claimedDictionary, to: path)
     }
 
+    /// Sets a list of approved node IDs for the current epoch
+    access(contract) fun setCurrentNodeList(_ nodeIDs: [String]) {
+        let list = self.account.load<[String]>(from: /storage/idTableCurrentList)
+
+        self.account.save<[String]>(nodeIDs, to: /storage/idTableCurrentList)
+    }
+
+    /// Checks if the given string has all numbers or lowercase hex characters
+    /// Used to ensure that there are no duplicate node IDs
+    pub fun isValidNodeID(_ input: String): Bool {
+        let byteVersion = input.utf8
+
+        for character in byteVersion {
+            if ((character < 48) || (character > 57 && character < 97) || (character > 102)) {
+                return false
+            }
+        }
+
+        return true
+    }
+
     /// Indicates if the staking auction is currently enabled
     pub fun stakingEnabled(): Bool {
         return self.account.copy<Bool>(from: /storage/stakingEnabled) ?? false
     }
 
-    /// Gets an array of the node IDs that are proposed for the next epoch
+    /// Gets an array of the node IDs that are proposed and approved for the next epoch
     pub fun getProposedNodeIDs(): [String] {
         var proposedNodes: [String] = []
 
+        let approvedList = FlowIDTableStaking.getApprovedList()
+        let approvedNodeIDs: {String: Bool} = {}
+        for id in approvedList {
+            approvedNodeIDs[id] = true
+        }
+
         for nodeID in FlowIDTableStaking.getNodeIDs() {
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
+            let approved = approvedNodeIDs[nodeID] ?? false
 
             // To be considered proposed, a node has to have tokens staked + committed equal or above the minimum
             // Access nodes have a minimum of 0, so they need to be strictly greater than zero to be considered proposed
             if self.isGreaterThanMinimumForRole(numTokens: self.NodeInfo(nodeID: nodeRecord.id).totalCommittedWithoutDelegators(), role: nodeRecord.role)
+               && approved
             {
                 proposedNodes.append(nodeID)
             }
@@ -1096,12 +1161,21 @@ pub contract FlowIDTableStaking {
     pub fun getStakedNodeIDs(): [String] {
         var stakedNodes: [String] = []
 
+        let currentList = self.account.copy<[String]>(from: /storage/idTableCurrentList)
+            ?? panic("Could not get current list")
+        let currentNodeIDs: {String: Bool} = {}
+        for id in currentList {
+            currentNodeIDs[id] = true
+        }
+
         for nodeID in FlowIDTableStaking.getNodeIDs() {
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
+            let current = currentNodeIDs[nodeID] ?? false
 
             // To be considered staked, a node has to have tokens staked equal or above the minimum
             // Access nodes have a minimum of 0, so they need to be strictly greater than zero to be considered staked
             if self.isGreaterThanMinimumForRole(numTokens: nodeRecord.tokensStaked.balance, role: nodeRecord.role)
+               && current
             {
                 stakedNodes.append(nodeID)
             }
@@ -1117,11 +1191,7 @@ pub contract FlowIDTableStaking {
     /// Checks if the amount of tokens is greater
     /// than the minimum staking requirement for the specified role
     pub fun isGreaterThanMinimumForRole(numTokens: UFix64, role: UInt8): Bool {
-        if role == UInt8(5) {
-            return numTokens > 0.0
-        } else {
-            return numTokens >= self.minimumStakeRequired[role]!
-        }
+        return numTokens >= self.minimumStakeRequired[role]!
     }
 
     /// Indicates if the specified networking address is claimed by a node
@@ -1144,6 +1214,12 @@ pub contract FlowIDTableStaking {
 		let claimedDictionary = self.account.borrow<&{String: Bool}>(from: path)
             ?? panic("Invalid path for dictionary")
         return claimedDictionary[key] ?? false
+    }
+
+    /// Returns the list of approved node IDs that the admin has set
+    pub fun getApprovedList(): [String] {
+        return self.account.copy<[String]>(from: /storage/idTableApproveList)
+            ?? panic("could not get approved list")
     }
 
     /// Gets the minimum stake requirements for all the node types
@@ -1206,6 +1282,10 @@ pub contract FlowIDTableStaking {
         self.epochTokenPayout = epochTokenPayout
         self.nodeDelegatingRewardCut = rewardCut
         self.rewardRatios = {UInt8(1): 0.168, UInt8(2): 0.518, UInt8(3): 0.078, UInt8(4): 0.236, UInt8(5): 0.0}
+
+        let list: [String] = []
+        self.setCurrentNodeList(list)
+        self.account.save<[String]>(list, to: /storage/idTableApproveList)
 
         self.account.save(<-create Admin(), to: self.StakingAdminStoragePath)
     }

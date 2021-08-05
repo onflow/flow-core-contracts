@@ -42,6 +42,7 @@ const (
 	withdrawLockedUnstakedTokensFilename       = "lockedTokens/staker/withdraw_unstaked_tokens.cdc"
 	withdrawLockedRewardedTokensFilename       = "lockedTokens/staker/withdraw_rewarded_tokens.cdc"
 	withdrawLockedRewardedTokensLockedFilename = "lockedTokens/staker/withdraw_rewarded_tokens_locked.cdc"
+	lockedNodeUpdateNetworkingAddressFilename  = "lockedTokens/staker/update_networking_address.cdc"
 
 	// delegator templates
 	registerLockedDelegatorFilename                     = "lockedTokens/delegator/register_delegator.cdc"
@@ -241,6 +242,13 @@ func GenerateWithdrawLockedUnstakedTokensScript(env Environment) []byte {
 // The unusual name is to avoid a clash with idtables_staking_templates.go .
 func GenerateWithdrawLockedRewardedTokensScript(env Environment) []byte {
 	code := assets.MustAssetString(withdrawLockedRewardedTokensFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+// Change the networking address of a locked node
+func GenerateLockedNodeUpdateNetworkingAddressScript(env Environment) []byte {
+	code := assets.MustAssetString(lockedNodeUpdateNetworkingAddressFilename)
 
 	return []byte(replaceAddresses(code, env))
 }

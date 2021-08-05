@@ -29,6 +29,7 @@ const (
 	collectionTransferNodeFilename                = "stakingCollection/transfer_node.cdc"
 	collectionTransferDelegatorFilename           = "stakingCollection/transfer_delegator.cdc"
 	collectionWithdrawFromMachineAccountFilename  = "stakingCollection/withdraw_from_machine_account.cdc"
+	collectionUpdateNetworkingAddressFilename     = "stakingCollection/update_networking_address.cdc"
 
 	// scripts
 	collectionGetDoesStakeExistFilename                = "stakingCollection/scripts/get_does_stake_exist.cdc"
@@ -40,6 +41,7 @@ const (
 	collectionGetUnlockedTokensUsedFilename            = "stakingCollection/scripts/get_unlocked_tokens_used.cdc"
 	collectionDoesAccountHaveStakingCollectionFilename = "stakingCollection/scripts/does_account_have_staking_collection.cdc"
 	collectionGetMachineAccountsFilename               = "stakingCollection/scripts/get_machine_accounts.cdc"
+	collectionGetMachineAccountAddressFilename         = "stakingCollection/scripts/get_machine_account_address.cdc"
 
 	// tests
 	getCollectionTokensFilename     = "stakingCollection/test/get_tokens.cdc"
@@ -154,6 +156,12 @@ func GenerateCollectionWithdrawFromMachineAccountScript(env Environment) []byte 
 	return []byte(replaceAddresses(code, env))
 }
 
+func GenerateCollectionUpdateNetworkingAddressScript(env Environment) []byte {
+	code := assets.MustAssetString(collectionUpdateNetworkingAddressFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
 // Script templates
 
 func GenerateCollectionGetDoesStakeExistScript(env Environment) []byte {
@@ -206,6 +214,12 @@ func GenerateCollectionDoesAccountHaveStakingCollection(env Environment) []byte 
 
 func GenerateCollectionGetMachineAccountsScript(env Environment) []byte {
 	code := assets.MustAssetString(collectionGetMachineAccountsFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateCollectionGetMachineAccountAddressScript(env Environment) []byte {
+	code := assets.MustAssetString(collectionGetMachineAccountAddressFilename)
 
 	return []byte(replaceAddresses(code, env))
 }

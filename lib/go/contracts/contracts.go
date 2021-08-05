@@ -30,7 +30,7 @@ const (
 	flowServiceAccountFilename    = "FlowServiceAccount.cdc"
 	flowTokenFilename             = "FlowToken.cdc"
 	flowIdentityTableFilename     = "FlowIDTableStaking.cdc"
-	flowQCFilename                = "epochs/FlowEpochClusterQC.cdc"
+	flowQCFilename                = "epochs/FlowClusterQC.cdc"
 	flowDKGFilename               = "epochs/FlowDKG.cdc"
 	flowEpochFilename             = "epochs/FlowEpoch.cdc"
 	flowLockedTokensFilename      = "LockedTokens.cdc"
@@ -243,7 +243,7 @@ func FlowLockedTokens(
 	return []byte(code)
 }
 
-// FlowQC returns the FlowEpochClusterQCs contract.
+// FlowQC returns the FlowClusterQCs contract.
 func FlowQC() []byte {
 	code := assets.MustAssetString(flowQCFilename)
 

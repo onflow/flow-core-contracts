@@ -23,17 +23,15 @@ transaction(ids: [String], newPayout: UFix64) {
     }
 
     execute {
-        let approvedIDs: {String: Bool} = {}
-        for id in ids {
-            approvedIDs[id] = true
-        }
 
         let rewardsArray = self.adminRef.calculateRewards()
         self.adminRef.payRewards(rewardsArray)
 
         self.adminRef.setEpochTokenPayout(newPayout)
 
-        self.adminRef.endStakingAuction(approvedNodeIDs: approvedIDs)
+        self.adminRef.setApprovedList(ids)
+
+        self.adminRef.endStakingAuction()
 
         self.adminRef.moveTokens()
     }

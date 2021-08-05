@@ -1,10 +1,10 @@
-import FlowEpochClusterQC from 0xQCADDRESS
+import FlowClusterQC from 0xQCADDRESS
 
 // Script to return an array of Collector Clusters with all of their metadata
 
-pub fun main(clusterIndex: UInt16): [FlowEpochClusterQC.Cluster] {
+pub fun main(clusterIndex: UInt16): [FlowClusterQC.Cluster] {
 
-    let clusters = FlowEpochClusterQC.getClusters()
+    let clusters = FlowClusterQC.getClusters()
 
     return clusters[clusterIndex]
 

@@ -1,4 +1,4 @@
-import FlowEpochClusterQC from 0xQCADDRESS
+import FlowClusterQC from 0xQCADDRESS
 
 // Test transaction for the QC admin to start the QC voting period
 // with a array of collector node clusters
@@ -14,11 +14,11 @@ transaction(indices: [UInt16], clusterNodeIDs: [[String]], nodeWeights: [[UInt64
     prepare(signer: AuthAccount) {
 
         // Borrow a reference to the QC admin object
-        let adminRef = signer.borrow<&FlowEpochClusterQC.Admin>(from: FlowEpochClusterQC.AdminStoragePath)
+        let adminRef = signer.borrow<&FlowClusterQC.Admin>(from: FlowClusterQC.AdminStoragePath)
             ?? panic("Could not borrow reference to qc admin")
 
-        let clusters: [FlowEpochClusterQC.Cluster] = []
-        
+        let clusters: [FlowClusterQC.Cluster] = []
+
         // Iterate through each cluster and construct a Cluster object
         for index in indices {
 
@@ -36,7 +36,7 @@ transaction(indices: [UInt16], clusterNodeIDs: [[String]], nodeWeights: [[UInt64
                 i = i + 1
             }
 
-            clusters.append(FlowEpochClusterQC.Cluster(index: index, nodeWeights: nodeWeightsDictionary))
+            clusters.append(FlowClusterQC.Cluster(index: index, nodeWeights: nodeWeightsDictionary))
         }
 
         // Start QC Voting with the supplied clusters

@@ -33,6 +33,7 @@ const (
 	execution      = 6
 	verificationID = "0000000000000000000000000000000000000000000000000000000000000007"
 	verification   = 7
+	newAddress     = 8
 
 	nonexistantID = "0000000000000000000000000000000000000000000000000000000000383838383"
 
@@ -474,7 +475,7 @@ func TestIDTableStaking(t *testing.T) {
 		result = executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
 
 		idArray = result.(cadence.Array).Values
-		assert.Len(t, idArray, 1)
+		assert.Len(t, idArray, 0)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetRoleScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		assertEqual(t, cadence.NewUInt8(1), result)
@@ -568,6 +569,69 @@ func TestIDTableStaking(t *testing.T) {
 			1,
 			true)
 
+	})
+
+	t.Run("Should be able to change the networking address properly", func(t *testing.T) {
+
+		// Should fail because the networking address is the wrong length
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateNetworkingAddressScript(env), idTableAddress)
+
+		tx.AddArgument(cadence.NewString(fmt.Sprintf("%0511d", josh)))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			true,
+		)
+
+		// Should fail because the networking address is already claimed
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateNetworkingAddressScript(env), idTableAddress)
+
+		tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", admin)))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			true,
+		)
+
+		// Should succeed because it is a new networking address and it is the correct length
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateNetworkingAddressScript(env), idTableAddress)
+
+		tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", newAddress)))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetNetworkingAddressScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
+		assertEqual(t, cadence.NewString(fmt.Sprintf("%0128d", newAddress)), result)
+
+	})
+
+	t.Run("Should be able to set the approved node list", func(t *testing.T) {
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
+
+		err := tx.AddArgument(cadence.NewArray([]cadence.Value{cadence.NewString(adminID), cadence.NewString(joshID), cadence.NewString(maxID), cadence.NewString(accessID)}))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+
+		result := executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
+
+		idArray := result.(cadence.Array).Values
+		assert.Len(t, idArray, 1)
 	})
 
 	t.Run("Shouldn't be able to remove a Node that doesn't exist", func(t *testing.T) {

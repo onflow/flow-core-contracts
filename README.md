@@ -117,11 +117,11 @@ We intend for this to be the method that all Flow Port users (ledger, blocto, et
 ## Epoch Contracts
 
 `contracts/epochs/FlowEpoch.cdc`
-`contracts/epochs/FlowEpochClusterQC.cdc`
+`contracts/epochs/FlowClusterQC.cdc`
 `contracts/epochs/FlowDKG.cdc`
 
 These contracts manage the epoch functionality of Flow, the mechanism by which Flow tracks time, changes the approved list of node operators, and bootstrap consensus between different nodes. 
-`FlowEpochClusterQC.cdc` and `FlowDKG.cdc` manage processes specific to collector and consensus nodes, respectively.
+`FlowClusterQC.cdc` and `FlowDKG.cdc` manage processes specific to collector and consensus nodes, respectively.
 `FlowEpoch.cdc` ties all of the epoch and staking contracts together into a coherent state machine that will run on its own.
 
 # Testing

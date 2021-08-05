@@ -108,6 +108,10 @@ pub contract FlowIDTableStaking {
             self.id = id
         }
 
+        pub fun updateNetworkingAddress(_ newAddress: String) {
+            
+        }
+
         /// Add new tokens to the system to stake during the next epoch
         pub fun stakeNewTokens(_ tokens: @FungibleToken.Vault) {
 

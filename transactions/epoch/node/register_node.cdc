@@ -1,6 +1,6 @@
 import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
 import FlowToken from 0xFLOWTOKENADDRESS
-import FlowEpochClusterQC from 0xQCADDRESS
+import FlowClusterQC from 0xQCADDRESS
 import FlowDKG from 0xDKGADDRESS
 import FlowEpoch from 0xEPOCHADDRESS
 
@@ -60,7 +60,7 @@ transaction(
 
             let qcVoter <- FlowEpoch.getClusterQCVoter(nodeStaker: nodeRef)
 
-            machineAcct.save(<-qcVoter, to: FlowEpochClusterQC.VoterStoragePath)
+            machineAcct.save(<-qcVoter, to: FlowClusterQC.VoterStoragePath)
 
         } else if nodeInfo.role == 2 as UInt8 {
 
