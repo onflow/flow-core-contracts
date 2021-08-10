@@ -427,7 +427,7 @@ func generateManifest(env templates.Environment) *manifest {
 	))
 
 	m.addTemplate(generateTemplate(
-		"TH.24", "Update Networking Address",
+		"TH.25", "Update Networking Address",
 		env,
 		templates.GenerateUpdateNetworkingAddressScript,
 		[]argument{
