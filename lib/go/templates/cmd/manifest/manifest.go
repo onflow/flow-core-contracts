@@ -636,7 +636,7 @@ func generateManifest(env templates.Environment) *manifest {
 				Label: "Delegator ID",
 				SampleValues: []cadenceValue{
 					sampleNullOptional,
-					sampleDelegatorID,
+					sampleDelegatorIDOptional,
 				},
 			},
 			{
@@ -708,7 +708,7 @@ func generateManifest(env templates.Environment) *manifest {
 				Label: "Delegator ID",
 				SampleValues: []cadenceValue{
 					sampleNullOptional,
-					sampleDelegatorID,
+					sampleDelegatorIDOptional,
 				},
 			},
 			{
