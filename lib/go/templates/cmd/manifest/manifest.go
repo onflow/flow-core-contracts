@@ -427,6 +427,20 @@ func generateManifest(env templates.Environment) *manifest {
 	))
 
 	m.addTemplate(generateTemplate(
+		"TH.24", "Update Networking Address",
+		env,
+		templates.GenerateUpdateNetworkingAddressScript,
+		[]argument{
+			{
+				Type:         "String",
+				Name:         "address",
+				Label:        "Address",
+				SampleValues: []cadenceValue{sampleNetworkingAddress},
+			},
+		},
+	))
+
+	m.addTemplate(generateTemplate(
 		"SCO.01", "Setup Staking Collection",
 		env,
 		templates.GenerateCollectionSetup,
@@ -812,7 +826,7 @@ func generateManifest(env templates.Environment) *manifest {
 	m.addTemplate(generateTemplate(
 		"SCO.16", "Update Networking Address",
 		env,
-		templates.GenerateUpdateNetworkingAddressScript,
+		templates.GenerateCollectionUpdateNetworkingAddressScript,
 		[]argument{
 			{
 				Type:         "String",

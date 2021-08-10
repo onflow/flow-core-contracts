@@ -438,6 +438,26 @@
       "hash": "239ffa449eae5560eec3e99633dcf9c63b1e9c99996d1c5636644dceef9ec44b"
     },
     {
+      "id": "TH.24",
+      "name": "Update Networking Address",
+      "source": "import FlowIDTableStaking from 0x8624b52f9ddcd04a\n\ntransaction(newAddress: String) {\n\n    // Local variable for a reference to the node object\n    let stakerRef: \u0026FlowIDTableStaking.NodeStaker\n\n    prepare(acct: AuthAccount) {\n        // borrow a reference to the node object\n        self.stakerRef = acct.borrow\u003c\u0026FlowIDTableStaking.NodeStaker\u003e(from: FlowIDTableStaking.NodeStakerStoragePath)\n            ?? panic(\"Could not borrow reference to staking admin\")\n    }\n\n    execute {\n\n        self.stakerRef.updateNetworkingAddress(newAddress)\n\n    }\n}",
+      "arguments": [
+        {
+          "type": "String",
+          "name": "address",
+          "label": "Address",
+          "sampleValues": [
+            {
+              "type": "String",
+              "value": "flow-node.test:3569"
+            }
+          ]
+        }
+      ],
+      "network": "mainnet",
+      "hash": "e79cb076f2f7da7a3039b5061916e081a823087f1560bdf3caea773992892873"
+    },
+    {
       "id": "SCO.01",
       "name": "Setup Staking Collection",
       "source": "import FungibleToken from 0xf233dcee88fe0abe\nimport FlowToken from 0x1654653399040a61\nimport FlowIDTableStaking from 0x8624b52f9ddcd04a\nimport LockedTokens from 0x8d0e87b65159ae63\nimport FlowStakingCollection from 0x8d0e87b65159ae63\n\n/// This transaction sets up an account to use a staking collection\n/// It will work regardless of whether they have a regular account, a two-account locked tokens setup,\n/// or staking objects stored in the unlocked account\n\ntransaction {\n    prepare(signer: AuthAccount) {\n\n        // If there isn't already a staking collection\n        if signer.borrow\u003c\u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath) == nil {\n\n            // Create private capabilities for the token holder and unlocked vault\n            let lockedHolder = signer.link\u003c\u0026LockedTokens.TokenHolder\u003e(/private/flowTokenHolder, target: LockedTokens.TokenHolderStoragePath)!\n            let flowToken = signer.link\u003c\u0026FlowToken.Vault\u003e(/private/flowTokenVault, target: /storage/flowTokenVault)!\n            \n            // Create a new Staking Collection and put it in storage\n            if lockedHolder.check() {\n                signer.save(\u003c-FlowStakingCollection.createStakingCollection(unlockedVault: flowToken, tokenHolder: lockedHolder), to: FlowStakingCollection.StakingCollectionStoragePath)\n            } else {\n                signer.save(\u003c-FlowStakingCollection.createStakingCollection(unlockedVault: flowToken, tokenHolder: nil), to: FlowStakingCollection.StakingCollectionStoragePath)\n            }\n\n            // Create a public link to the staking collection\n            signer.link\u003c\u0026FlowStakingCollection.StakingCollection{FlowStakingCollection.StakingCollectionPublic}\u003e(\n                FlowStakingCollection.StakingCollectionPublicPath,\n                target: FlowStakingCollection.StakingCollectionStoragePath\n            )\n        }\n\n        // borrow a reference to the staking collection\n        let collectionRef = signer.borrow\u003c\u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow staking collection reference\")\n\n        // If there is a node staker object in the account, put it in the staking collection\n        if signer.borrow\u003c\u0026FlowIDTableStaking.NodeStaker\u003e(from: FlowIDTableStaking.NodeStakerStoragePath) != nil {\n            let node \u003c- signer.load\u003c@FlowIDTableStaking.NodeStaker\u003e(from: FlowIDTableStaking.NodeStakerStoragePath)!\n            collectionRef.addNodeObject(\u003c-node, machineAccountInfo: nil)\n        }\n\n        // If there is a delegator object in the account, put it in the staking collection\n        if signer.borrow\u003c\u0026FlowIDTableStaking.NodeDelegator\u003e(from: FlowIDTableStaking.DelegatorStoragePath) != nil {\n            let delegator \u003c- signer.load\u003c@FlowIDTableStaking.NodeDelegator\u003e(from: FlowIDTableStaking.DelegatorStoragePath)!\n            collectionRef.addDelegatorObject(\u003c-delegator)\n        }\n    }\n}\n",
@@ -1117,7 +1137,7 @@
     {
       "id": "SCO.16",
       "name": "Update Networking Address",
-      "source": "import FlowIDTableStaking from 0x8624b52f9ddcd04a\n\ntransaction(newAddress: String) {\n\n    // Local variable for a reference to the node object\n    let stakerRef: \u0026FlowIDTableStaking.NodeStaker\n\n    prepare(acct: AuthAccount) {\n        // borrow a reference to the node object\n        self.stakerRef = acct.borrow\u003c\u0026FlowIDTableStaking.NodeStaker\u003e(from: FlowIDTableStaking.NodeStakerStoragePath)\n            ?? panic(\"Could not borrow reference to staking admin\")\n    }\n\n    execute {\n\n        self.stakerRef.updateNetworkingAddress(newAddress)\n\n    }\n}",
+      "source": "import FlowStakingCollection from 0x8d0e87b65159ae63\n\n/// Changes the networking address for the specified node\n\ntransaction(nodeID: String, newAddress: String) {\n    \n    let stakingCollectionRef: \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: AuthAccount) {\n        self.stakingCollectionRef = account.borrow\u003c\u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow ref to StakingCollection\")\n    }\n\n    execute {\n        self.stakingCollectionRef.updateNetworkingAddress(nodeID: nodeID, newAddress: newAddress)\n    }\n}\n",
       "arguments": [
         {
           "type": "String",
@@ -1143,7 +1163,7 @@
         }
       ],
       "network": "mainnet",
-      "hash": "e79cb076f2f7da7a3039b5061916e081a823087f1560bdf3caea773992892873"
+      "hash": "ff067b40ac67020ef864cd14842f62023254da34dd2ded56affa1364305bf1c5"
     }
   ]
 }
