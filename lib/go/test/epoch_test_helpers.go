@@ -199,7 +199,7 @@ func initializeAllEpochContracts(
 	epochCounter, epochViews, stakingViews, dkgViews, numClusters uint64,
 	randomSource, rewardsAPY string) (flow.Address, uint64) {
 
-	var idTableAddress = deployStakingContract(t, b, IDTableAccountKey, *env, true)
+	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, *env, true)
 	env.IDTableAddress = idTableAddress.Hex()
 
 	deployQCDKGContract(t, b, idTableAddress, IDTableSigner, *env)
@@ -537,7 +537,6 @@ func verifyEpochSetup(
 	assertEqual(t, cadence.NewUInt64(expectedSetup.dkgPhase1FinalView), phase1View)
 	assertEqual(t, cadence.NewUInt64(expectedSetup.dkgPhase2FinalView), phase2View)
 	assertEqual(t, cadence.NewUInt64(expectedSetup.dkgPhase3FinalView), phase3View)
-
 }
 
 /// Verifies that the EpochCommit event values are equal to the provided expected values

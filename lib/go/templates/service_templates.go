@@ -16,12 +16,15 @@ const (
 	getStorageFeeMinimumFilename       = "storageFees/scripts/get_storage_fee_min.cdc"
 	getStorageCapacityFilename         = "storageFees/scripts/get_storage_capacity.cdc"
 
-	getAccountCreators = "FlowServiceAccount/scripts/get_account_creators.cdc"
+	getAccountCreators             = "FlowServiceAccount/scripts/get_account_creators.cdc"
 	getIsAccountCreationRestricted = "FlowServiceAccount/scripts/get_is_account_creation_restricted.cdc"
-	getIsAccountCreator = "FlowServiceAccount/scripts/get_is_account_creator.cdc"
+	getIsAccountCreator            = "FlowServiceAccount/scripts/get_is_account_creator.cdc"
 	setIsAccountCreationRestricted = "FlowServiceAccount/set_is_account_creation_restricted.cdc"
-	addAccountCreator = "FlowServiceAccount/add_account_creator.cdc"
-	removeAccountCreator = "FlowServiceAccount/remove_account_creator.cdc"
+	addAccountCreator              = "FlowServiceAccount/add_account_creator.cdc"
+	removeAccountCreator           = "FlowServiceAccount/remove_account_creator.cdc"
+
+	depositFeesFilename    = "FlowServiceAccount/deposit_fees.cdc"
+	getFeesBalanceFilename = "FlowServiceAccount/scripts/get_fees_balance.cdc"
 )
 
 // StorageFees Templates
@@ -68,7 +71,6 @@ func GenerateGetAccountCreators(env Environment) []byte {
 	return []byte(replaceAddresses(code, env))
 }
 
-
 func GenerateSetIsAccountCreationRestricted(env Environment) []byte {
 	code := assets.MustAssetString(setIsAccountCreationRestricted)
 
@@ -89,6 +91,18 @@ func GenerateAddAccountCreator(env Environment) []byte {
 
 func GenerateRemoveAccountCreator(env Environment) []byte {
 	code := assets.MustAssetString(removeAccountCreator)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateGetFeesBalanceScript(env Environment) []byte {
+	code := assets.MustAssetString(getFeesBalanceFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateDepositFeesScript(env Environment) []byte {
+	code := assets.MustAssetString(depositFeesFilename)
 
 	return []byte(replaceAddresses(code, env))
 }

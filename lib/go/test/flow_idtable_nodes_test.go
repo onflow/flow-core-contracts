@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/onflow/cadence"
-	jsoncdc "github.com/onflow/cadence/encoding/json"
 	emulator "github.com/onflow/flow-emulator"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
@@ -16,7 +15,6 @@ import (
 
 	ft_templates "github.com/onflow/flow-ft/lib/go/templates"
 
-	"github.com/onflow/flow-core-contracts/lib/go/contracts"
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
 )
 
@@ -44,46 +42,7 @@ func TestManyNodesIDTable(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	IDTableCode := contracts.FlowIDTableStaking(emulatorFTAddress, emulatorFlowTokenAddress, true)
-
-	publicKeys := []cadence.Value{
-		bytesToCadenceArray(IDTableAccountKey.Encode()),
-	}
-
-	cadencePublicKeys := cadence.NewArray(publicKeys)
-	cadenceCode := bytesToCadenceArray(IDTableCode)
-
-	// Deploy the IDTableStaking contract
-	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateTransferMinterAndDeployScript(env), b.ServiceKey().Address).
-		AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys)).
-		AddRawArgument(jsoncdc.MustEncode(cadence.NewString("FlowIDTableStaking"))).
-		AddRawArgument(jsoncdc.MustEncode(cadenceCode))
-
-	_ = tx.AddArgument(CadenceUFix64("1250000.0"))
-	_ = tx.AddArgument(CadenceUFix64("0.08"))
-
-	signAndSubmit(
-		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address},
-		[]crypto.Signer{b.ServiceKey().Signer()},
-		false,
-	)
-
-	var idTableAddress flow.Address
-
-	var i uint64
-	i = 0
-	for i < 1000 {
-		results, _ := b.GetEventsByHeight(i, "flow.AccountCreated")
-
-		for _, event := range results {
-			if event.Type == flow.EventAccountCreated {
-				idTableAddress = flow.Address(event.Value.Fields[0].(cadence.Address))
-			}
-		}
-
-		i = i + 1
-	}
+	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true)
 
 	env.IDTableAddress = idTableAddress.Hex()
 
@@ -331,7 +290,7 @@ func TestManyNodesIDTable(t *testing.T) {
 	})
 
 	t.Run("Should pay rewards", func(t *testing.T) {
-		tx = flow.NewTransaction().
+		tx := flow.NewTransaction().
 			SetScript(templates.GeneratePayRewardsScript(env)).
 			SetGasLimit(300000).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
@@ -348,7 +307,7 @@ func TestManyNodesIDTable(t *testing.T) {
 
 	t.Run("Should move tokens", func(t *testing.T) {
 
-		tx = flow.NewTransaction().
+		tx := flow.NewTransaction().
 			SetScript(templates.GenerateMoveTokensScript(env)).
 			SetGasLimit(280000).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
@@ -401,46 +360,7 @@ func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	IDTableCode := contracts.FlowIDTableStaking(emulatorFTAddress, emulatorFlowTokenAddress, true)
-
-	publicKeys := make([]cadence.Value, 1)
-
-	publicKeys[0] = bytesToCadenceArray(IDTableAccountKey.Encode())
-
-	cadencePublicKeys := cadence.NewArray(publicKeys)
-	cadenceCode := bytesToCadenceArray(IDTableCode)
-
-	// Deploy the IDTableStaking contract
-	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateTransferMinterAndDeployScript(env), b.ServiceKey().Address).
-		AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys)).
-		AddRawArgument(jsoncdc.MustEncode(cadence.NewString("FlowIDTableStaking"))).
-		AddRawArgument(jsoncdc.MustEncode(cadenceCode))
-
-	_ = tx.AddArgument(CadenceUFix64("1250000.0"))
-	_ = tx.AddArgument(CadenceUFix64("0.08"))
-
-	signAndSubmit(
-		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address},
-		[]crypto.Signer{b.ServiceKey().Signer()},
-		false,
-	)
-
-	var idTableAddress flow.Address
-
-	var i uint64
-	i = 0
-	for i < 1000 {
-		results, _ := b.GetEventsByHeight(i, "flow.AccountCreated")
-
-		for _, event := range results {
-			if event.Type == flow.EventAccountCreated {
-				idTableAddress = flow.Address(event.Value.Fields[0].(cadence.Address))
-			}
-		}
-
-		i = i + 1
-	}
+	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true)
 
 	env.IDTableAddress = idTableAddress.Hex()
 

@@ -173,7 +173,7 @@ func FlowServiceAccount(fungibleTokenAddress, flowTokenAddress, flowFeesAddress,
 // The staking contract imports the FungibleToken and FlowToken contracts
 //
 // Parameter: latest: indicates if the contract is the latest version, or an old version. Used to test upgrades
-func FlowIDTableStaking(fungibleTokenAddress, flowTokenAddress string, latest bool) []byte {
+func FlowIDTableStaking(fungibleTokenAddress, flowTokenAddress, flowFeesAddress string, latest bool) []byte {
 	var code string
 
 	if latest {
@@ -184,6 +184,7 @@ func FlowIDTableStaking(fungibleTokenAddress, flowTokenAddress string, latest bo
 
 	code = strings.ReplaceAll(code, placeholderFungibleTokenAddress, withHexPrefix(fungibleTokenAddress))
 	code = strings.ReplaceAll(code, placeholderFlowTokenAddress, withHexPrefix(flowTokenAddress))
+	code = strings.ReplaceAll(code, placeholderFlowFeesAddress, withHexPrefix(flowFeesAddress))
 
 	return []byte(code)
 }
@@ -312,6 +313,36 @@ func TESTFlowStakingCollection(
 	code = strings.ReplaceAll(code, placeholderEpochAddr, withHexPrefix(epochAddress))
 
 	code = strings.ReplaceAll(code, "access(self)", "pub")
+
+	return []byte(code)
+}
+
+func TESTFlowFees(fungibleTokenAddress, flowTokenAddress string) []byte {
+	code := assets.MustAssetString(flowFeesFilename)
+
+	code = strings.ReplaceAll(
+		code,
+		placeholderFungibleTokenAddress,
+		withHexPrefix(fungibleTokenAddress),
+	)
+
+	code = strings.ReplaceAll(
+		code,
+		placeholderFlowTokenAddress,
+		withHexPrefix(flowTokenAddress),
+	)
+
+	code = strings.ReplaceAll(
+		code,
+		"init(adminAccount: AuthAccount)",
+		"init()",
+	)
+
+	code = strings.ReplaceAll(
+		code,
+		"adminAccount.save(<-admin, to: /storage/flowFeesAdmin)",
+		"self.account.save(<-admin, to: /storage/flowFeesAdmin)",
+	)
 
 	return []byte(code)
 }

@@ -29,6 +29,7 @@
 
 import FungibleToken from 0xFUNGIBLETOKENADDRESS
 import FlowToken from 0xFLOWTOKENADDRESS
+import FlowFees from 0xFLOWFEESADDRESS
 import Crypto
 
 pub contract FlowIDTableStaking {
@@ -36,6 +37,7 @@ pub contract FlowIDTableStaking {
     /****** ID Table and Staking Events ******/
 
     pub event NewEpoch(totalStaked: UFix64, totalRewardPayout: UFix64)
+    pub event EpochTotalRewardsPaid(total: UFix64, fromFees: UFix64, minted: UFix64, feesBurned: UFix64)
 
     /// Node Events
     pub event NewNodeCreated(nodeID: String, role: UInt8, amountCommitted: UFix64)
@@ -836,6 +838,13 @@ pub contract FlowIDTableStaking {
         /// based on the tokens that they have staked
         pub fun payRewards(_ rewardsBreakdownArray: [RewardsBreakdown]) {
 
+            let feeRewards: UFix64 = FlowFees.getFeeBalance()
+            var mintedRewards: UFix64 = 0.0
+
+            // Borrow the fee admin and withdraw all the fees that have been collected since the last rewards payment
+            let feeAdmin = FlowIDTableStaking.borrowFeesAdmin()
+            let feeVault <- feeAdmin.withdrawTokensFromFeeVault(amount: feeRewards)
+
             let allNodeIDs = FlowIDTableStaking.getNodeIDs()
 
             let flowTokenMinter = FlowIDTableStaking.account.borrow<&FlowToken.Minter>(from: /storage/flowTokenMinter)
@@ -843,15 +852,44 @@ pub contract FlowIDTableStaking {
 
             for rewardBreakdown in rewardsBreakdownArray {
                 let nodeRecord = FlowIDTableStaking.borrowNodeRecord(rewardBreakdown.nodeID)
-                nodeRecord.tokensRewarded.deposit(from: <-flowTokenMinter.mintTokens(amount: rewardBreakdown.nodeRewards))
-                emit RewardsPaid(nodeID: rewardBreakdown.nodeID, amount: rewardBreakdown.nodeRewards)
+                let nodeReward = rewardBreakdown.nodeRewards
+                if nodeReward <= feeVault.balance {
+                    nodeRecord.tokensRewarded.deposit(from: <-feeVault.withdraw(amount: nodeReward))
+                } else if feeVault.balance > 0.0 {
+                    let remainingReward = nodeReward - feeVault.balance
+                    let nodeRewardVault <- feeVault.withdraw(amount: feeVault.balance)
+                    nodeRewardVault.deposit(from: <-flowTokenMinter.mintTokens(amount: remainingReward))
+                    mintedRewards = mintedRewards + remainingReward
+                    nodeRecord.tokensRewarded.deposit(from: <-nodeRewardVault)
+                } else {
+                    nodeRecord.tokensRewarded.deposit(from: <-flowTokenMinter.mintTokens(amount: nodeReward))
+                    mintedRewards = mintedRewards + nodeReward
+                }
+                
+                emit RewardsPaid(nodeID: rewardBreakdown.nodeID, amount: nodeReward)
 
                 for delegator in rewardBreakdown.delegatorRewards.keys {
                     let delRecord = nodeRecord.borrowDelegatorRecord(delegator)
-                    delRecord.tokensRewarded.deposit(from: <-flowTokenMinter.mintTokens(amount: rewardBreakdown.delegatorRewards[delegator]!))
-                    emit DelegatorRewardsPaid(nodeID: rewardBreakdown.nodeID, delegatorID: delegator, amount: rewardBreakdown.delegatorRewards[delegator]!)
+                    let delegatorReward = rewardBreakdown.delegatorRewards[delegator]!
+                    if delegatorReward <= feeVault.balance {
+                        delRecord.tokensRewarded.deposit(from: <-feeVault.withdraw(amount: delegatorReward))
+                    } else if feeVault.balance > 0.0 {
+                        let remainingDelegatorReward = delegatorReward - feeVault.balance
+                        let delegatorRewardVault <- feeVault.withdraw(amount: feeVault.balance)
+                        delegatorRewardVault.deposit(from: <-flowTokenMinter.mintTokens(amount: remainingDelegatorReward))
+                        mintedRewards = mintedRewards + remainingDelegatorReward
+                        delRecord.tokensRewarded.deposit(from: <-delegatorRewardVault)
+                    } else {
+                        delRecord.tokensRewarded.deposit(from: <-flowTokenMinter.mintTokens(amount: delegatorReward))
+                        mintedRewards = mintedRewards + delegatorReward
+                    }
+                    emit DelegatorRewardsPaid(nodeID: rewardBreakdown.nodeID, delegatorID: delegator, amount: delegatorReward)
                 }
             }
+
+            let totalRewards = feeRewards + mintedRewards - feeVault.balance
+            emit EpochTotalRewardsPaid(total: totalRewards, fromFees: feeRewards - feeVault.balance, minted: mintedRewards, feesBurned: feeVault.balance)
+            destroy feeVault
         }
 
         pub fun calculateRewards(): [RewardsBreakdown] {
@@ -1086,6 +1124,14 @@ pub contract FlowIDTableStaking {
                 "Specified node ID does not exist in the record"
         }
         return &FlowIDTableStaking.nodes[nodeID] as! &NodeRecord
+    }
+
+    /// borrow a reference to the `FlowFees` admin resource for paying rewards
+    access(account) fun borrowFeesAdmin(): &FlowFees.Administrator {
+        let feesAdmin = self.account.borrow<&FlowFees.Administrator>(from: /storage/flowFeesAdmin)
+            ?? panic("Could not borrow a reference to the FlowFees Admin object")
+
+        return feesAdmin
     }
 
     /// Updates a claimed boolean for a specific path to indicate that
