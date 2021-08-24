@@ -317,7 +317,7 @@ func TESTFlowStakingCollection(
 	return []byte(code)
 }
 
-func TESTFlowFees(fungibleTokenAddress, flowTokenAddress string) []byte {
+func TestFlowFees(fungibleTokenAddress, flowTokenAddress string) []byte {
 	code := assets.MustAssetString(flowFeesFilename)
 
 	code = strings.ReplaceAll(

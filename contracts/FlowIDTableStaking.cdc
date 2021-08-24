@@ -855,15 +855,12 @@ pub contract FlowIDTableStaking {
                 let nodeReward = rewardBreakdown.nodeRewards
                 if nodeReward <= feeVault.balance {
                     nodeRecord.tokensRewarded.deposit(from: <-feeVault.withdraw(amount: nodeReward))
-                } else if feeVault.balance > 0.0 {
+                } else {
                     let remainingReward = nodeReward - feeVault.balance
                     let nodeRewardVault <- feeVault.withdraw(amount: feeVault.balance)
                     nodeRewardVault.deposit(from: <-flowTokenMinter.mintTokens(amount: remainingReward))
                     mintedRewards = mintedRewards + remainingReward
                     nodeRecord.tokensRewarded.deposit(from: <-nodeRewardVault)
-                } else {
-                    nodeRecord.tokensRewarded.deposit(from: <-flowTokenMinter.mintTokens(amount: nodeReward))
-                    mintedRewards = mintedRewards + nodeReward
                 }
                 
                 emit RewardsPaid(nodeID: rewardBreakdown.nodeID, amount: nodeReward)
@@ -873,15 +870,12 @@ pub contract FlowIDTableStaking {
                     let delegatorReward = rewardBreakdown.delegatorRewards[delegator]!
                     if delegatorReward <= feeVault.balance {
                         delRecord.tokensRewarded.deposit(from: <-feeVault.withdraw(amount: delegatorReward))
-                    } else if feeVault.balance > 0.0 {
+                    } else {
                         let remainingDelegatorReward = delegatorReward - feeVault.balance
                         let delegatorRewardVault <- feeVault.withdraw(amount: feeVault.balance)
                         delegatorRewardVault.deposit(from: <-flowTokenMinter.mintTokens(amount: remainingDelegatorReward))
                         mintedRewards = mintedRewards + remainingDelegatorReward
                         delRecord.tokensRewarded.deposit(from: <-delegatorRewardVault)
-                    } else {
-                        delRecord.tokensRewarded.deposit(from: <-flowTokenMinter.mintTokens(amount: delegatorReward))
-                        mintedRewards = mintedRewards + delegatorReward
                     }
                     emit DelegatorRewardsPaid(nodeID: rewardBreakdown.nodeID, delegatorID: delegator, amount: delegatorReward)
                 }
@@ -889,6 +883,8 @@ pub contract FlowIDTableStaking {
 
             let totalRewards = feeRewards + mintedRewards - feeVault.balance
             emit EpochTotalRewardsPaid(total: totalRewards, fromFees: feeRewards - feeVault.balance, minted: mintedRewards, feesBurned: feeVault.balance)
+
+            // Destroy the remaining fees, even if there are some left
             destroy feeVault
         }
 

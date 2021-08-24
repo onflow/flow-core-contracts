@@ -67,7 +67,7 @@ func deployStakingContract(t *testing.T, b *emulator.Blockchain, IDTableAccountK
 	cadencePublicKeys := cadence.NewArray(publicKeys)
 
 	// Get the code byte-array for the fees contract
-	FeesCode := contracts.TESTFlowFees(emulatorFTAddress, emulatorFlowTokenAddress)
+	FeesCode := contracts.TestFlowFees(emulatorFTAddress, emulatorFlowTokenAddress)
 
 	// Deploy the fees contract
 	feesAddr, err := b.CreateAccount([]*flow.AccountKey{IDTableAccountKey}, []sdktemplates.Contract{
