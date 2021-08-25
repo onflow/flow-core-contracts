@@ -838,54 +838,52 @@ pub contract FlowIDTableStaking {
         /// based on the tokens that they have staked
         pub fun payRewards(_ rewardsBreakdownArray: [RewardsBreakdown]) {
 
-            let feeRewards: UFix64 = FlowFees.getFeeBalance()
+            let totalRewards = FlowIDTableStaking.epochTokenPayout
+            let feeBalance = FlowFees.getFeeBalance()
             var mintedRewards: UFix64 = 0.0
+            if feeBalance < totalRewards {
+                mintedRewards = totalRewards - feeBalance
+            }
 
             // Borrow the fee admin and withdraw all the fees that have been collected since the last rewards payment
             let feeAdmin = FlowIDTableStaking.borrowFeesAdmin()
-            let feeVault <- feeAdmin.withdrawTokensFromFeeVault(amount: feeRewards)
+            let rewardsVault <- feeAdmin.withdrawTokensFromFeeVault(amount: feeBalance)
+
+            // Mint the remaining FLOW for rewards
+            if mintedRewards > 0.0 {
+                let flowTokenMinter = FlowIDTableStaking.account.borrow<&FlowToken.Minter>(from: /storage/flowTokenMinter)
+                    ?? panic("Could not borrow minter reference")
+                rewardsVault.deposit(from: <-flowTokenMinter.mintTokens(amount: mintedRewards))
+            }
 
             let allNodeIDs = FlowIDTableStaking.getNodeIDs()
-
-            let flowTokenMinter = FlowIDTableStaking.account.borrow<&FlowToken.Minter>(from: /storage/flowTokenMinter)
-                ?? panic("Could not borrow minter reference")
 
             for rewardBreakdown in rewardsBreakdownArray {
                 let nodeRecord = FlowIDTableStaking.borrowNodeRecord(rewardBreakdown.nodeID)
                 let nodeReward = rewardBreakdown.nodeRewards
-                if nodeReward <= feeVault.balance {
-                    nodeRecord.tokensRewarded.deposit(from: <-feeVault.withdraw(amount: nodeReward))
-                } else {
-                    let remainingReward = nodeReward - feeVault.balance
-                    let nodeRewardVault <- feeVault.withdraw(amount: feeVault.balance)
-                    nodeRewardVault.deposit(from: <-flowTokenMinter.mintTokens(amount: remainingReward))
-                    mintedRewards = mintedRewards + remainingReward
-                    nodeRecord.tokensRewarded.deposit(from: <-nodeRewardVault)
-                }
                 
+                nodeRecord.tokensRewarded.deposit(from: <-rewardsVault.withdraw(amount: nodeReward))
+
                 emit RewardsPaid(nodeID: rewardBreakdown.nodeID, amount: nodeReward)
 
                 for delegator in rewardBreakdown.delegatorRewards.keys {
                     let delRecord = nodeRecord.borrowDelegatorRecord(delegator)
                     let delegatorReward = rewardBreakdown.delegatorRewards[delegator]!
-                    if delegatorReward <= feeVault.balance {
-                        delRecord.tokensRewarded.deposit(from: <-feeVault.withdraw(amount: delegatorReward))
-                    } else {
-                        let remainingDelegatorReward = delegatorReward - feeVault.balance
-                        let delegatorRewardVault <- feeVault.withdraw(amount: feeVault.balance)
-                        delegatorRewardVault.deposit(from: <-flowTokenMinter.mintTokens(amount: remainingDelegatorReward))
-                        mintedRewards = mintedRewards + remainingDelegatorReward
-                        delRecord.tokensRewarded.deposit(from: <-delegatorRewardVault)
-                    }
+                        
+                    delRecord.tokensRewarded.deposit(from: <-rewardsVault.withdraw(amount: delegatorReward))
+
                     emit DelegatorRewardsPaid(nodeID: rewardBreakdown.nodeID, delegatorID: delegator, amount: delegatorReward)
                 }
             }
 
-            let totalRewards = feeRewards + mintedRewards - feeVault.balance
-            emit EpochTotalRewardsPaid(total: totalRewards, fromFees: feeRewards - feeVault.balance, minted: mintedRewards, feesBurned: feeVault.balance)
+            var fromFees = feeBalance
+            if feeBalance >= totalRewards {
+                fromFees = totalRewards
+            }
+            emit EpochTotalRewardsPaid(total: totalRewards, fromFees: fromFees, minted: mintedRewards, feesBurned: rewardsVault.balance)
 
             // Destroy the remaining fees, even if there are some left
-            destroy feeVault
+            destroy rewardsVault
         }
 
         pub fun calculateRewards(): [RewardsBreakdown] {

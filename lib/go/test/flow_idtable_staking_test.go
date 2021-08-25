@@ -1408,10 +1408,10 @@ func TestIDTableStaking(t *testing.T) {
 
 		verifyEpochTotalRewardsPaid(t, b, idTableAddress,
 			EpochTotalRewardsPaid{
-				total:      "1249999.98750000",
+				total:      "1250000.0000",
 				fromFees:   "100.0",
-				minted:     "1249899.9875",
-				feesBurned: "0.0"})
+				minted:     "1249900.0000",
+				feesBurned: "0.0125"})
 
 		totalStaked = 165000000000000
 
@@ -1911,8 +1911,8 @@ func TestIDTableStaking(t *testing.T) {
 
 		verifyEpochTotalRewardsPaid(t, b, idTableAddress,
 			EpochTotalRewardsPaid{
-				total:      "1249999.980000",
-				fromFees:   "1249999.980000",
+				total:      "1250000.000000",
+				fromFees:   "1250000.000000",
 				minted:     "0.0",
 				feesBurned: "50000.02"})
 
