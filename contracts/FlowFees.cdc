@@ -19,6 +19,11 @@ pub contract FlowFees {
         emit TokensDeposited(amount: balance)
     }
 
+    /// Get the balance of the Fees Vault
+    pub fun getFeeBalance(): UFix64 {
+        return self.vault.balance
+    }
+
     pub resource Administrator {
         // withdraw
         //

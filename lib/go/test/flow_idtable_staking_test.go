@@ -14,7 +14,6 @@ import (
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/test"
 
-	"github.com/onflow/flow-core-contracts/lib/go/contracts"
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
 )
 
@@ -58,7 +57,7 @@ func TestIDTableDeployment(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	var idTableAddress = deployStakingContract(t, b, IDTableAccountKey, env, true)
+	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true)
 
 	env.IDTableAddress = idTableAddress.Hex()
 
@@ -235,7 +234,7 @@ func TestStakingTransferAdmin(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	var idTableAddress = deployStakingContract(t, b, IDTableAccountKey, env, true)
+	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true)
 
 	env.IDTableAddress = idTableAddress.Hex()
 
@@ -298,9 +297,10 @@ func TestIDTableStaking(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	var idTableAddress = deployStakingContract(t, b, IDTableAccountKey, env, true)
+	idTableAddress, feesAddr := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true)
 
 	env.IDTableAddress = idTableAddress.Hex()
+	env.FlowFeesAddress = feesAddr.Hex()
 
 	var totalStaked interpreter.UFix64Value = 0
 
@@ -503,19 +503,6 @@ func TestIDTableStaking(t *testing.T) {
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetUnstakingBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		assertEqual(t, CadenceUFix64(unstaking[adminID].String()), result)
-
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateUpgradeStakingScript(env), idTableAddress)
-
-		IDTableCode := contracts.FlowIDTableStaking(emulatorFTAddress, emulatorFlowTokenAddress, true)
-		cadenceCode := bytesToCadenceArray(IDTableCode)
-		tx.AddRawArgument(jsoncdc.MustEncode(cadenceCode))
-
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, idTableAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
-			false,
-		)
 
 		registerNode(t, b, env,
 			idTableAddress,
@@ -1388,6 +1375,26 @@ func TestIDTableStaking(t *testing.T) {
 		)
 	})
 
+	t.Run("Should deposit money to the fees vault", func(t *testing.T) {
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDepositFeesScript(env), joshDelegatorOneAddress)
+
+		tokenAmount, err := cadence.NewUFix64("100.0")
+		require.NoError(t, err)
+		_ = tx.AddArgument(tokenAmount)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshDelegatorOneAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshDelegatorOneSigner},
+			false,
+		)
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetFeesBalanceScript(env), nil)
+		assertEqual(t, CadenceUFix64("100.0"), result)
+
+	})
+
 	t.Run("Should pay correct rewards, no delegators are paid because none are staked yet", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GeneratePayRewardsScript(env), idTableAddress)
@@ -1398,6 +1405,13 @@ func TestIDTableStaking(t *testing.T) {
 			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
 			false,
 		)
+
+		verifyEpochTotalRewardsPaid(t, b, idTableAddress,
+			EpochTotalRewardsPaid{
+				total:      "1250000.0000",
+				fromFees:   "100.0",
+				minted:     "1249900.0000",
+				feesBurned: "0.0125"})
 
 		totalStaked = 165000000000000
 
@@ -1847,9 +1861,25 @@ func TestIDTableStaking(t *testing.T) {
 	// Pay rewards and make sure josh and josh delegator got paid the right amounts based on the cut
 	t.Run("Should pay correct rewards, rewards are split up properly between stakers and delegators", func(t *testing.T) {
 
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndStakingScript(env), idTableAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDepositFeesScript(env), joshDelegatorOneAddress)
 
-		err := tx.AddArgument(cadence.NewArray([]cadence.Value{cadence.NewString(adminID), cadence.NewString(joshID), cadence.NewString(maxID), cadence.NewString(bastianID)}))
+		tokenAmount, err := cadence.NewUFix64("1300000.0")
+		require.NoError(t, err)
+		_ = tx.AddArgument(tokenAmount)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshDelegatorOneAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshDelegatorOneSigner},
+			false,
+		)
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetFeesBalanceScript(env), nil)
+		assertEqual(t, CadenceUFix64("1300000.0"), result)
+
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEndStakingScript(env), idTableAddress)
+
+		err = tx.AddArgument(cadence.NewArray([]cadence.Value{cadence.NewString(adminID), cadence.NewString(joshID), cadence.NewString(maxID), cadence.NewString(bastianID)}))
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -1859,7 +1889,7 @@ func TestIDTableStaking(t *testing.T) {
 			false,
 		)
 
-		result := executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
+		result = executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		assertEqual(t, CadenceUFix64(rewards[adminID].String()), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(joshID))})
@@ -1878,6 +1908,13 @@ func TestIDTableStaking(t *testing.T) {
 			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
 			false,
 		)
+
+		verifyEpochTotalRewardsPaid(t, b, idTableAddress,
+			EpochTotalRewardsPaid{
+				total:      "1250000.000000",
+				fromFees:   "1250000.000000",
+				minted:     "0.0",
+				feesBurned: "50000.02"})
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		assertEqual(t, CadenceUFix64(rewards[adminID].String()), result)

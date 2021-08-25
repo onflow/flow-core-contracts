@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/onflow/cadence"
@@ -12,12 +13,42 @@ import (
 	emulator "github.com/onflow/flow-emulator"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
+	sdktemplates "github.com/onflow/flow-go-sdk/templates"
 
 	flow_crypto "github.com/onflow/flow-go/crypto"
 
 	"github.com/onflow/flow-core-contracts/lib/go/contracts"
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
 )
+
+/// Used to verify the EpochSetup event fields in tests
+type EpochTotalRewardsPaid struct {
+	total      string
+	fromFees   string
+	minted     string
+	feesBurned string
+}
+
+// Go event definitions for the epoch events
+// Can be used with the SDK to retreive and parse epoch events
+
+type EpochTotalRewardsPaidEvent flow.Event
+
+func (evt EpochTotalRewardsPaidEvent) Total() cadence.UFix64 {
+	return evt.Value.Fields[0].(cadence.UFix64)
+}
+
+func (evt EpochTotalRewardsPaidEvent) FromFees() cadence.UFix64 {
+	return evt.Value.Fields[1].(cadence.UFix64)
+}
+
+func (evt EpochTotalRewardsPaidEvent) Minted() cadence.UFix64 {
+	return evt.Value.Fields[2].(cadence.UFix64)
+}
+
+func (evt EpochTotalRewardsPaidEvent) FeesBurned() cadence.UFix64 {
+	return evt.Value.Fields[3].(cadence.UFix64)
+}
 
 // Defines utility functions that are used for testing the staking contract
 // such as deploying the contract, performing staking operations,
@@ -28,16 +59,34 @@ import (
 // parameter: latest: Indicates if the contract should be the latest version.
 //                    This is only set to false when testing staking contract upgrades
 //
-func deployStakingContract(t *testing.T, b *emulator.Blockchain, IDTableAccountKey *flow.AccountKey, env templates.Environment, latest bool) flow.Address {
+func deployStakingContract(t *testing.T, b *emulator.Blockchain, IDTableAccountKey *flow.AccountKey, IDTableSigner crypto.Signer, env templates.Environment, latest bool) (flow.Address, flow.Address) {
 
-	// Get the code byte-array for the staking contract
-	IDTableCode := contracts.FlowIDTableStaking(emulatorFTAddress, emulatorFlowTokenAddress, latest)
-	cadenceCode := bytesToCadenceArray(IDTableCode)
-
-	// create the public key array for the staking account
+	// create the public key array for the staking and fees account
 	publicKeys := make([]cadence.Value, 1)
 	publicKeys[0] = bytesToCadenceArray(IDTableAccountKey.Encode())
 	cadencePublicKeys := cadence.NewArray(publicKeys)
+
+	// Get the code byte-array for the fees contract
+	FeesCode := contracts.TestFlowFees(emulatorFTAddress, emulatorFlowTokenAddress)
+
+	// Deploy the fees contract
+	feesAddr, err := b.CreateAccount([]*flow.AccountKey{IDTableAccountKey}, []sdktemplates.Contract{
+		{
+			Name:   "FlowFees",
+			Source: string(FeesCode),
+		},
+	})
+	if !assert.NoError(t, err) {
+		t.Log(err.Error())
+	}
+	_, err = b.CommitBlock()
+	assert.NoError(t, err)
+
+	env.FlowFeesAddress = feesAddr.Hex()
+
+	// Get the code byte-array for the staking contract
+	IDTableCode := contracts.FlowIDTableStaking(emulatorFTAddress, emulatorFlowTokenAddress, feesAddr.String(), latest)
+	cadenceCode := bytesToCadenceArray(IDTableCode)
 
 	// Create the deployment transaction that transfers a FlowToken minter
 	// to the new account and deploys the IDTableStaking contract
@@ -77,7 +126,23 @@ func deployStakingContract(t *testing.T, b *emulator.Blockchain, IDTableAccountK
 		i = i + 1
 	}
 
-	return idTableAddress
+	// Transfer the fees admin to the staking contract account
+	tx = flow.NewTransaction().
+		SetScript(templates.GenerateTransferFeesAdminScript(env)).
+		SetGasLimit(9999).
+		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+		SetPayer(b.ServiceKey().Address).
+		AddAuthorizer(feesAddr).
+		AddAuthorizer(idTableAddress)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, feesAddr, idTableAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner, IDTableSigner},
+		false,
+	)
+
+	return idTableAddress, feesAddr
 }
 
 /// Used to verify staking info in tests
@@ -219,6 +284,38 @@ func generateManyNodeKeys(t *testing.T, numNodes int) ([]crypto.PrivateKey, []st
 
 	return stakingPrivateKeys, stakingPublicKeys, networkingPrivateKeys, networkingPublicKeys
 
+}
+
+/// Verifies that the EpochTotalRewardsPaid event was emmitted correctly with correct values
+func verifyEpochTotalRewardsPaid(
+	t *testing.T,
+	b *emulator.Blockchain,
+	idTableAddress flow.Address,
+	expectedRewards EpochTotalRewardsPaid) {
+
+	var emittedEvent EpochTotalRewardsPaidEvent
+
+	var i uint64
+	i = 0
+	for i < 1000 {
+		results, _ := b.GetEventsByHeight(i, "A."+idTableAddress.String()+".FlowIDTableStaking.EpochTotalRewardsPaid")
+
+		for _, event := range results {
+			if event.Type == "A."+idTableAddress.String()+".FlowIDTableStaking.EpochTotalRewardsPaid" {
+				emittedEvent = EpochTotalRewardsPaidEvent(event)
+			}
+		}
+
+		i = i + 1
+	}
+
+	assertEqual(t, CadenceUFix64(expectedRewards.total), emittedEvent.Total())
+
+	assertEqual(t, CadenceUFix64(expectedRewards.fromFees), emittedEvent.FromFees())
+
+	assertEqual(t, CadenceUFix64(expectedRewards.minted), emittedEvent.Minted())
+
+	assertEqual(t, CadenceUFix64(expectedRewards.feesBurned), emittedEvent.FeesBurned())
 }
 
 // Registers a node with the staking collection using the specified node information
