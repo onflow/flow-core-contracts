@@ -599,6 +599,30 @@ func TestIDTableStaking(t *testing.T) {
 		result := executeScriptAndCheck(t, b, templates.GenerateGetNetworkingAddressScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		assertEqual(t, cadence.NewString(fmt.Sprintf("%0128d", newAddress)), result)
 
+		// Should fail because it is the same networking address as the one that was just updated
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateNetworkingAddressScript(env), idTableAddress)
+
+		tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", newAddress)))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			true,
+		)
+
+		// Should succeed because the old networking address is claimable after updating
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateNetworkingAddressScript(env), idTableAddress)
+
+		tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", admin)))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+
 	})
 
 	t.Run("Should be able to set the approved node list", func(t *testing.T) {
