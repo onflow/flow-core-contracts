@@ -431,6 +431,8 @@ pub contract FlowIDTableStaking {
             // Borrow the node's record from the staking contract
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
 
+            FlowIDTableStaking.updateClaimed(path: /storage/networkingAddressesClaimed, nodeRecord.networkingAddress, claimed: false)
+
             nodeRecord.networkingAddress = newAddress
 
             FlowIDTableStaking.updateClaimed(path: /storage/networkingAddressesClaimed, newAddress, claimed: true)
