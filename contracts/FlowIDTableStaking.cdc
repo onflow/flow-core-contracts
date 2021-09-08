@@ -433,6 +433,8 @@ pub contract FlowIDTableStaking {
 
             nodeRecord.networkingAddress = newAddress
 
+            FlowIDTableStaking.updateClaimed(path: /storage/networkingAddressesClaimed, newAddress, claimed: true)
+
             emit NetworkingAddressUpdated(nodeID: self.id, newAddress: newAddress)
         }
 
