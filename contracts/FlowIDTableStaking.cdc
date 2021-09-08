@@ -1057,17 +1057,13 @@ pub contract FlowIDTableStaking {
         pub fun setClaimed() {
 
             let claimedNetAddressDictionary: {String: Bool} = {}
-            let claimedNetKeyDictionary: {String: Bool} = {}
-            let claimedStakingKeysDictionary: {String: Bool} = {}
 
             for nodeID in FlowIDTableStaking.nodes.keys {
                 claimedNetAddressDictionary[FlowIDTableStaking.nodes[nodeID]?.networkingAddress!] = true
-                claimedNetKeyDictionary[FlowIDTableStaking.nodes[nodeID]?.networkingKey!] = true
-                claimedStakingKeysDictionary[FlowIDTableStaking.nodes[nodeID]?.stakingKey!] = true
             }
+
+            let oldDictionary = FlowIDTableStaking.account.load<{String: Bool}>(from: /storage/networkingAddressesClaimed)
             FlowIDTableStaking.account.save(claimedNetAddressDictionary, to: /storage/networkingAddressesClaimed)
-            FlowIDTableStaking.account.save(claimedNetKeyDictionary, to: /storage/networkingKeysClaimed)
-            FlowIDTableStaking.account.save(claimedStakingKeysDictionary, to: /storage/stakingKeysClaimed)
         }
     }
 
