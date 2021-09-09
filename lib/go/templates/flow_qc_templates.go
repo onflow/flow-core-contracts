@@ -27,12 +27,13 @@ const (
 	getVotingCompletedFilename = "quorumCertificate/scripts/get_voting_completed.cdc"
 	getClusterVotesFilename    = "quorumCertificate/scripts/get_cluster_votes.cdc"
 
-	getClusterVoteThresholdFilename = "quorumCertificate/scripts/get_cluster_vote_threshold.cdc"
-	getClusterWeightFilename        = "quorumCertificate/scripts/get_cluster_weight.cdc"
-	getClusterNodeWeightsFilename   = "quorumCertificate/scripts/get_cluster_node_weights.cdc"
-	getNodeWeightFilename           = "quorumCertificate/scripts/get_node_weight.cdc"
-	getVoterIsRegisteredFilename    = "quorumCertificate/scripts/get_voter_is_registered.cdc"
-	getNodeHasVotedFilename         = "quorumCertificate/scripts/get_node_has_voted.cdc"
+	getClusterVoteThresholdFilename   = "quorumCertificate/scripts/get_cluster_vote_threshold.cdc"
+	getClusterWeightFilename          = "quorumCertificate/scripts/get_cluster_weight.cdc"
+	getClusterNodeWeightsFilename     = "quorumCertificate/scripts/get_cluster_node_weights.cdc"
+	getNodeWeightFilename             = "quorumCertificate/scripts/get_node_weight.cdc"
+	getVoterIsRegisteredFilename      = "quorumCertificate/scripts/get_voter_is_registered.cdc"
+	getNodeHasVotedFilename           = "quorumCertificate/scripts/get_node_has_voted.cdc"
+	generateQuorumCertificateFilename = "quorumCertificate/scripts/generate_quorum_certificate.cdc"
 )
 
 // Admin Templates -----------------------------------------------------------
@@ -143,6 +144,12 @@ func GenerateGetVoterIsRegisteredScript(env Environment) []byte {
 
 func GenerateGetNodeHasVotedScript(env Environment) []byte {
 	code := assets.MustAssetString(getNodeHasVotedFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateGenerateQuorumCertificateScript(env Environment) []byte {
+	code := assets.MustAssetString(generateQuorumCertificateFilename)
 
 	return []byte(replaceAddresses(code, env))
 }

@@ -149,9 +149,13 @@ pub contract FlowClusterQC {
                 // Add the signatures, messages, and node IDs only for votes
                 // that match the votes that reached quorum
                 for vote in self.generatedVotes.values {
-                    if vote.message! == quorumMessage {
-                        certificate.voteSignatures.append(vote.signature!)
-                        certificate.voterIDs.append(vote.nodeID)
+                    
+                    // Only count votes that were submitted
+                    if let submittedMessage = vote.message {
+                        if submittedMessage == quorumMessage {
+                            certificate.voteSignatures.append(vote.signature!)
+                            certificate.voterIDs.append(vote.nodeID)
+                        }
                     }
                 }
 

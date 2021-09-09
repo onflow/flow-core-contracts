@@ -176,6 +176,7 @@
 // ../../../transactions/quorumCertificate/admin/start_voting.cdc (1.495kB)
 // ../../../transactions/quorumCertificate/admin/stop_voting.cdc (354B)
 // ../../../transactions/quorumCertificate/create_voter.cdc (1.107kB)
+// ../../../transactions/quorumCertificate/scripts/generate_quorum_certificate.cdc (321B)
 // ../../../transactions/quorumCertificate/scripts/get_cluster.cdc (184B)
 // ../../../transactions/quorumCertificate/scripts/get_cluster_complete.cdc (236B)
 // ../../../transactions/quorumCertificate/scripts/get_cluster_node_weights.cdc (191B)
@@ -3824,6 +3825,26 @@ func quorumcertificateCreate_voterCdc() (*asset, error) {
 	return a, nil
 }
 
+var _quorumcertificateScriptsGenerate_quorum_certificateCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x5c\x8f\x31\x4b\x03\x41\x10\x46\xfb\xfd\x15\x1f\x69\xbc\x6b\x12\x6d\x2c\x02\x12\x64\xa3\x92\xf2\x0c\x56\x62\xb1\x5e\xe6\xe2\xc2\xed\xec\x39\x3b\x83\x01\xf1\xbf\x8b\xc9\xc5\x68\xb6\x5b\x78\x6f\xde\x4c\x4c\x43\x16\xc5\x7d\x9f\x3f\x7c\x6f\x45\x49\x1a\x8f\x4e\x72\xc2\xe5\xae\xf1\xb7\xcb\xe5\xe3\xdd\x7a\xed\xdc\x6c\x86\x07\xd2\x02\x7d\x23\x14\x0d\x6a\x05\xb9\x43\x40\x7b\x70\x2e\x0a\x1a\x8f\x2d\x31\x49\xd0\x98\xd9\xb9\xc1\x5e\xd1\x19\x23\x85\xc8\xd5\x48\xad\x78\x43\xbb\x39\x9e\x56\xac\x57\xd7\xf5\xfc\x7f\x74\x7a\xca\x7f\x3a\x07\x00\x3d\xe9\x71\x7e\xc1\xcd\x19\xbd\x25\x1d\x3f\xa5\xaa\x0f\xbc\x90\x9a\xf0\xaf\xf2\xfc\xb7\xfa\x32\x1d\x97\xa3\xc6\xb2\x58\xf2\x24\x1a\xbb\xd8\x06\xa5\xaa\xde\xdb\x3f\x6f\xb1\xc0\x10\x38\xb6\xd5\xc4\x67\xeb\x37\xe0\xac\xc7\xa3\x08\xef\x7b\x11\xed\xc9\x9c\xd4\xce\x7d\x7d\x07\x00\x00\xff\xff\xc6\x91\xba\xec\x41\x01\x00\x00"
+
+func quorumcertificateScriptsGenerate_quorum_certificateCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_quorumcertificateScriptsGenerate_quorum_certificateCdc,
+		"quorumCertificate/scripts/generate_quorum_certificate.cdc",
+	)
+}
+
+func quorumcertificateScriptsGenerate_quorum_certificateCdc() (*asset, error) {
+	bytes, err := quorumcertificateScriptsGenerate_quorum_certificateCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "quorumCertificate/scripts/generate_quorum_certificate.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xe6, 0x66, 0xdb, 0xc8, 0xb6, 0x96, 0xb4, 0x7e, 0x86, 0xc, 0x90, 0x5a, 0xca, 0xd2, 0x3a, 0x4d, 0x1e, 0xfc, 0x36, 0x84, 0x76, 0x62, 0xb4, 0x4c, 0x96, 0xe0, 0x89, 0xbe, 0x4d, 0xb8, 0x59, 0x8b}}
+	return a, nil
+}
+
 var _quorumcertificateScriptsGet_clusterCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xca\xcc\x2d\xc8\x2f\x2a\x51\x70\xcb\xc9\x2f\x77\xce\x29\x2d\x2e\x49\x2d\x0a\x74\x56\x48\x2b\xca\xcf\x55\x30\xa8\x08\x74\x76\x74\x71\x09\x72\x0d\x0e\xe6\xe2\x2a\x28\x4d\x52\x48\x2b\xcd\x53\xc8\x4d\xcc\xcc\xd3\x48\x86\x28\xf4\xcc\x4b\x49\xad\xb0\x52\x08\xf5\xcc\x2b\x31\x34\xd3\xb4\x42\x35\x43\x0f\xca\x52\xa8\xe6\xe2\x52\x50\x50\x50\xc8\x49\x2d\x51\x80\xea\x2b\x56\xb0\x45\x53\x9b\x9e\x5a\x02\xe5\x14\x6b\x68\x42\xd4\x17\xa5\x96\x94\x16\xe5\xc1\xb5\x44\x23\xdb\x19\xcb\xc5\x55\x0b\x08\x00\x00\xff\xff\x6c\xe0\xad\x73\xb8\x00\x00\x00"
 
 func quorumcertificateScriptsGet_clusterCdcBytes() ([]byte, error) {
@@ -5271,6 +5292,7 @@ var _bindata = map[string]func() (*asset, error){
 	"quorumCertificate/admin/start_voting.cdc":                                quorumcertificateAdminStart_votingCdc,
 	"quorumCertificate/admin/stop_voting.cdc":                                 quorumcertificateAdminStop_votingCdc,
 	"quorumCertificate/create_voter.cdc":                                      quorumcertificateCreate_voterCdc,
+	"quorumCertificate/scripts/generate_quorum_certificate.cdc":               quorumcertificateScriptsGenerate_quorum_certificateCdc,
 	"quorumCertificate/scripts/get_cluster.cdc":                               quorumcertificateScriptsGet_clusterCdc,
 	"quorumCertificate/scripts/get_cluster_complete.cdc":                      quorumcertificateScriptsGet_cluster_completeCdc,
 	"quorumCertificate/scripts/get_cluster_node_weights.cdc":                  quorumcertificateScriptsGet_cluster_node_weightsCdc,
@@ -5598,6 +5620,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		}},
 		"create_voter.cdc": {quorumcertificateCreate_voterCdc, map[string]*bintree{}},
 		"scripts": {nil, map[string]*bintree{
+			"generate_quorum_certificate.cdc": {quorumcertificateScriptsGenerate_quorum_certificateCdc, map[string]*bintree{}},
 			"get_cluster.cdc": {quorumcertificateScriptsGet_clusterCdc, map[string]*bintree{}},
 			"get_cluster_complete.cdc": {quorumcertificateScriptsGet_cluster_completeCdc, map[string]*bintree{}},
 			"get_cluster_node_weights.cdc": {quorumcertificateScriptsGet_cluster_node_weightsCdc, map[string]*bintree{}},

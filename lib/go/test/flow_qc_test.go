@@ -723,3 +723,124 @@ func TestQuorumCertificateMoreNodes(t *testing.T) {
 		assert.Equal(t, cadence.NewBool(true), result)
 	})
 }
+
+func TestQuorumCertificateNotSubmittedVote(t *testing.T) {
+	b := newBlockchain()
+
+	env := templates.Environment{
+		FungibleTokenAddress: emulatorFTAddress,
+		FlowTokenAddress:     emulatorFlowTokenAddress,
+	}
+
+	accountKeys := test.AccountKeyGenerator()
+
+	// Create new keys for the QC account and deploy
+	QCAccountKey, QCSigner := accountKeys.NewWithSigner()
+	QCCode := contracts.FlowQC()
+
+	QCAddress, err := b.CreateAccount([]*flow.AccountKey{QCAccountKey}, []sdktemplates.Contract{
+		{
+			Name:   "FlowClusterQC",
+			Source: string(QCCode),
+		},
+	})
+	if !assert.NoError(t, err) {
+		t.Log(err.Error())
+	}
+
+	env.QuorumCertificateAddress = QCAddress.Hex()
+
+	collectorVoteHasher := flow_crypto.NewBLSKMAC(encoding.CollectorVoteTag)
+
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GeneratePublishVoterScript(env), QCAddress)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, QCAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), QCSigner},
+		false,
+	)
+
+	numberOfClusters := 1
+	numberOfNodesPerCluster := 4
+
+	// Create new user accounts
+	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numberOfClusters*numberOfNodesPerCluster)
+
+	clusterNodeIDStrings := make([][]string, numberOfClusters*numberOfNodesPerCluster)
+
+	stakingPrivateKeys, stakingPublicKeys, _, _ := generateManyNodeKeys(t, numberOfClusters*numberOfNodesPerCluster)
+
+	// initializes clusters by filling them all in in order
+	// Other tests continue this cluster organization assumption
+	startVotingArguments := initClusters(clusterNodeIDStrings, numberOfClusters, numberOfNodesPerCluster)
+
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateStartVotingScript(env), QCAddress)
+
+	err = tx.AddArgument(cadence.NewArray(startVotingArguments[0]))
+	require.NoError(t, err)
+
+	err = tx.AddArgument(cadence.NewArray(startVotingArguments[1]))
+	require.NoError(t, err)
+
+	err = tx.AddArgument(cadence.NewArray(startVotingArguments[2]))
+	require.NoError(t, err)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, QCAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), QCSigner},
+		false,
+	)
+
+	// Claim voter resources
+	for i := 0; i < numberOfClusters*numberOfNodesPerCluster; i++ {
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateVoterScript(env), addresses[i])
+
+		_ = tx.AddArgument(cadence.NewAddress(QCAddress))
+		_ = tx.AddArgument(cadence.NewString(clusterNodeIDStrings[i/numberOfNodesPerCluster][i%numberOfNodesPerCluster]))
+		_ = tx.AddArgument(cadence.NewString(stakingPublicKeys[i]))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, addresses[i]},
+			[]crypto.Signer{b.ServiceKey().Signer(), signers[i]},
+			false,
+		)
+	}
+
+	t.Run("Should generate a valid quorum certificate even if a node hasn't voted", func(t *testing.T) {
+
+		for i := 0; i < numberOfNodesPerCluster-1; i++ {
+
+			// Construct a valid message and signature
+			msg, _ := hex.DecodeString("deadbeef")
+			validSignature, err := stakingPrivateKeys[i].Sign(msg, collectorVoteHasher)
+			validSignatureString := validSignature.String()[2:]
+			assert.NoError(t, err)
+
+			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), addresses[i])
+
+			_ = tx.AddArgument(cadence.NewString(validSignatureString))
+			_ = tx.AddArgument(cadence.NewString("deadbeef"))
+
+			signAndSubmit(
+				t, b, tx,
+				[]flow.Address{b.ServiceKey().Address, addresses[i]},
+				[]crypto.Signer{b.ServiceKey().Signer(), signers[i]},
+				false,
+			)
+		}
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetVotingCompletedScript(env), nil)
+		assert.Equal(t, cadence.NewBool(true), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetClusterCompleteScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt16(uint16(0)))})
+		assert.Equal(t, cadence.NewBool(true), result)
+
+		executeScriptAndCheck(t, b, templates.GenerateGenerateQuorumCertificateScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt16(uint16(0)))})
+
+	})
+
+}
