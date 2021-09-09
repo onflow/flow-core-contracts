@@ -407,9 +407,15 @@ pub contract FlowStakingCollection {
             let nodeReference = self.borrowNode(id)
                 ?? panic("Could not borrow node reference")
 
+            let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeReference.id)
+
             // Register the machine account for the node
             // creates an auth account object and returns it to the caller
-            return self.registerMachineAccount(nodeReference: nodeReference, payer: payer)
+            if nodeInfo.role == FlowEpoch.NodeRole.Collector.rawValue || nodeInfo.role == FlowEpoch.NodeRole.Consensus.rawValue {
+                return self.registerMachineAccount(nodeReference: nodeReference, payer: payer)
+            } else {
+                return nil
+            }
         }
 
         /// Registers the secondary machine account for a node
