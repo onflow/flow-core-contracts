@@ -68,8 +68,9 @@ func TestDKG(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateDKGParticipantScript(env), jordanAddress)
 
+		stringArg, _ := cadence.NewString(accessID)
 		_ = tx.AddArgument(cadence.NewAddress(DKGAddress))
-		_ = tx.AddArgument(cadence.NewString(accessID))
+		_ = tx.AddArgument(stringArg)
 
 		signAndSubmit(
 			t, b, tx,
@@ -115,7 +116,7 @@ func TestDKG(t *testing.T) {
 
 	dkgNodeIDStrings := make([]cadence.Value, 1)
 
-	dkgNodeIDStrings[0] = cadence.NewString(adminID)
+	dkgNodeIDStrings[0], _ = cadence.NewString(adminID)
 
 	t.Run("Should start dkg with the admin", func(t *testing.T) {
 
@@ -183,7 +184,8 @@ func TestDKG(t *testing.T) {
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateDKGParticipantScript(env), DKGAddress)
 
 		_ = tx.AddArgument(cadence.NewAddress(DKGAddress))
-		_ = tx.AddArgument(cadence.NewString(adminID))
+		stringArg, _ := cadence.NewString(adminID)
+		_ = tx.AddArgument(stringArg)
 
 		signAndSubmit(
 			t, b, tx,
@@ -218,7 +220,8 @@ func TestDKG(t *testing.T) {
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateDKGParticipantScript(env), joshAddress)
 
 		_ = tx.AddArgument(cadence.NewAddress(DKGAddress))
-		_ = tx.AddArgument(cadence.NewString(adminID))
+		stringArg, _ := cadence.NewString(adminID)
+		_ = tx.AddArgument(stringArg)
 
 		signAndSubmit(
 			t, b, tx,
@@ -232,7 +235,8 @@ func TestDKG(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGWhiteboardMessageScript(env), DKGAddress)
 
-		_ = tx.AddArgument(cadence.NewString(""))
+		stringArg, _ := cadence.NewString("")
+		_ = tx.AddArgument(stringArg)
 
 		signAndSubmit(
 			t, b, tx,
@@ -250,7 +254,8 @@ func TestDKG(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGWhiteboardMessageScript(env), DKGAddress)
 
-		_ = tx.AddArgument(cadence.NewString("hello world!"))
+		stringArg, _ := cadence.NewString("hello world!")
+		_ = tx.AddArgument(stringArg)
 
 		signAndSubmit(
 			t, b, tx,
@@ -277,7 +282,8 @@ func TestDKG(t *testing.T) {
 	t.Run("Should not be able to make a final submission with an invalid submission length", func(t *testing.T) {
 
 		finalSubmissionKeysBadLength := make([]cadence.Value, 1)
-		finalSubmissionKeysBadLength[0] = cadence.NewOptional(cadence.NewString(dkgKey1))
+		stringArg, _ := cadence.NewString(dkgKey1)
+		finalSubmissionKeysBadLength[0] = cadence.NewOptional(stringArg)
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGFinalSubmissionScript(env), DKGAddress)
 
@@ -296,8 +302,9 @@ func TestDKG(t *testing.T) {
 
 	t.Run("Should not be able to make a final submission with an invalid key length", func(t *testing.T) {
 
-		finalSubmissionKeys[0] = cadence.NewOptional(cadence.NewString(dkgBadKey))
-		finalSubmissionKeys[1] = cadence.NewOptional(cadence.NewString(dkgBadKey))
+		stringArg, _ := cadence.NewString(dkgBadKey)
+		finalSubmissionKeys[0] = cadence.NewOptional(stringArg)
+		finalSubmissionKeys[1] = cadence.NewOptional(stringArg)
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGFinalSubmissionScript(env), DKGAddress)
 
@@ -314,8 +321,9 @@ func TestDKG(t *testing.T) {
 
 	t.Run("Should be able to make a final submission", func(t *testing.T) {
 
-		finalSubmissionKeys[0] = cadence.NewOptional(cadence.NewString(dkgKey1))
-		finalSubmissionKeys[1] = cadence.NewOptional(cadence.NewString(dkgKey1))
+		stringArg, _ := cadence.NewString(dkgKey1)
+		finalSubmissionKeys[0] = cadence.NewOptional(stringArg)
+		finalSubmissionKeys[1] = cadence.NewOptional(stringArg)
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGFinalSubmissionScript(env), DKGAddress)
 
@@ -341,8 +349,9 @@ func TestDKG(t *testing.T) {
 
 	t.Run("Should not be able to make a second final submission", func(t *testing.T) {
 
-		finalSubmissionKeys[0] = cadence.NewOptional(cadence.NewString(dkgKey1))
-		finalSubmissionKeys[1] = cadence.NewOptional(cadence.NewString(dkgKey1))
+		stringArg, _ := cadence.NewString(dkgKey1)
+		finalSubmissionKeys[0] = cadence.NewOptional(stringArg)
+		finalSubmissionKeys[1] = cadence.NewOptional(stringArg)
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGFinalSubmissionScript(env), DKGAddress)
 
@@ -404,8 +413,10 @@ func TestDKG(t *testing.T) {
 
 	epoch2dkgNodeIDStrings := make([]cadence.Value, 2)
 
-	epoch2dkgNodeIDStrings[0] = cadence.NewString(maxID)
-	epoch2dkgNodeIDStrings[1] = cadence.NewString(bastianID)
+	stringArg, _ := cadence.NewString(maxID)
+	epoch2dkgNodeIDStrings[0] = stringArg
+	stringArg, _ = cadence.NewString(bastianID)
+	epoch2dkgNodeIDStrings[1] = stringArg
 
 	t.Run("Should start dkg with the admin", func(t *testing.T) {
 
@@ -447,7 +458,8 @@ func TestDKG(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGWhiteboardMessageScript(env), DKGAddress)
 
-		_ = tx.AddArgument(cadence.NewString("am I still alive?"))
+		stringArg, _ := cadence.NewString("am I still alive?")
+		_ = tx.AddArgument(stringArg)
 
 		signAndSubmit(
 			t, b, tx,
@@ -462,7 +474,8 @@ func TestDKG(t *testing.T) {
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateDKGParticipantScript(env), maxAddress)
 
 		_ = tx.AddArgument(cadence.NewAddress(DKGAddress))
-		_ = tx.AddArgument(cadence.NewString(maxID))
+		stringArg, _ := cadence.NewString(maxID)
+		_ = tx.AddArgument(stringArg)
 
 		signAndSubmit(
 			t, b, tx,
@@ -474,7 +487,8 @@ func TestDKG(t *testing.T) {
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateDKGParticipantScript(env), bastianAddress)
 
 		_ = tx.AddArgument(cadence.NewAddress(DKGAddress))
-		_ = tx.AddArgument(cadence.NewString(bastianID))
+		stringArg, _ = cadence.NewString(bastianID)
+		_ = tx.AddArgument(stringArg)
 
 		signAndSubmit(
 			t, b, tx,
@@ -485,7 +499,8 @@ func TestDKG(t *testing.T) {
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGWhiteboardMessageScript(env), maxAddress)
 
-		_ = tx.AddArgument(cadence.NewString("I am the new ruler!"))
+		firstMessage, _ := cadence.NewString("I am the new ruler!")
+		_ = tx.AddArgument(firstMessage)
 
 		signAndSubmit(
 			t, b, tx,
@@ -496,7 +511,8 @@ func TestDKG(t *testing.T) {
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGWhiteboardMessageScript(env), bastianAddress)
 
-		_ = tx.AddArgument(cadence.NewString("No, I am!"))
+		secondMessage, _ := cadence.NewString("No, I am!")
+		_ = tx.AddArgument(secondMessage)
 
 		signAndSubmit(
 			t, b, tx,
@@ -518,11 +534,13 @@ func TestDKG(t *testing.T) {
 		message1IDField := message1.Fields[0]
 		message1ContentField := message1.Fields[1]
 
-		assert.Equal(t, cadence.NewString(maxID), message0IDField)
-		assert.Equal(t, cadence.NewString("I am the new ruler!"), message0ContentField)
+		stringArg, _ = cadence.NewString(maxID)
+		assert.Equal(t, stringArg, message0IDField)
+		assert.Equal(t, firstMessage, message0ContentField)
 
-		assert.Equal(t, cadence.NewString(bastianID), message1IDField)
-		assert.Equal(t, cadence.NewString("No, I am!"), message1ContentField)
+		stringArg, _ = cadence.NewString(bastianID)
+		assert.Equal(t, stringArg, message1IDField)
+		assert.Equal(t, secondMessage, message1ContentField)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGLatestWhiteBoardMessagesScript(env), [][]byte{jsoncdc.MustEncode(cadence.NewInt(1))})
 	})
@@ -530,9 +548,10 @@ func TestDKG(t *testing.T) {
 	t.Run("Should not be able to make a final submission if not registered", func(t *testing.T) {
 
 		finalSubmissionKeysBadLength := make([]cadence.Value, 3)
-		finalSubmissionKeysBadLength[0] = cadence.NewOptional(cadence.NewString(dkgKey1))
-		finalSubmissionKeysBadLength[1] = cadence.NewOptional(cadence.NewString(dkgKey1))
-		finalSubmissionKeysBadLength[2] = cadence.NewOptional(cadence.NewString(dkgKey1))
+		stringArg, _ = cadence.NewString(dkgKey1)
+		finalSubmissionKeysBadLength[0] = cadence.NewOptional(stringArg)
+		finalSubmissionKeysBadLength[1] = cadence.NewOptional(stringArg)
+		finalSubmissionKeysBadLength[2] = cadence.NewOptional(stringArg)
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGFinalSubmissionScript(env), DKGAddress)
 
@@ -592,7 +611,8 @@ func TestDKGNil(t *testing.T) {
 	// register a node dkg participant
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateDKGParticipantScript(env), jordanAddress)
 	_ = tx.AddArgument(cadence.NewAddress(DKGAddress))
-	_ = tx.AddArgument(cadence.NewString(accessID))
+	stringArg, _ := cadence.NewString(accessID)
+	_ = tx.AddArgument(stringArg)
 
 	signAndSubmit(
 		t, b, tx,
@@ -603,7 +623,8 @@ func TestDKGNil(t *testing.T) {
 
 	dkgNodeIDStrings := make([]cadence.Value, 1)
 
-	dkgNodeIDStrings[0] = cadence.NewString(adminID)
+	stringArg, _ = cadence.NewString(adminID)
+	dkgNodeIDStrings[0] = stringArg
 
 	// Start the DKG
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateStartDKGScript(env), DKGAddress)
@@ -622,7 +643,8 @@ func TestDKGNil(t *testing.T) {
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateDKGParticipantScript(env), DKGAddress)
 
 	_ = tx.AddArgument(cadence.NewAddress(DKGAddress))
-	_ = tx.AddArgument(cadence.NewString(adminID))
+	stringArg, _ = cadence.NewString(adminID)
+	_ = tx.AddArgument(stringArg)
 
 	signAndSubmit(
 		t, b, tx,

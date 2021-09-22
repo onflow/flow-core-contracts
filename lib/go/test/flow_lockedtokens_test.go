@@ -41,7 +41,7 @@ func TestLockedTokensStaker(t *testing.T) {
 	// Deploy the IDTableStaking contract
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateTransferMinterAndDeployScript(env), b.ServiceKey().Address).
 		AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys)).
-		AddRawArgument(jsoncdc.MustEncode(cadence.NewString("FlowIDTableStaking"))).
+		AddRawArgument(jsoncdc.MustEncode(CadenceString("FlowIDTableStaking"))).
 		AddRawArgument(jsoncdc.MustEncode(cadenceCode))
 	_ = tx.AddArgument(CadenceUFix64("1250000.0"))
 	_ = tx.AddArgument(CadenceUFix64("0.03"))
@@ -84,9 +84,11 @@ func TestLockedTokensStaker(t *testing.T) {
 	_, err = b.CommitBlock()
 	assert.NoError(t, err)
 
-	adminAccountKey := accountKeys.New()
+	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
+	adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
+
 	lockedTokensAccountKey, _ := accountKeys.NewWithSigner()
-	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress, lockedTokensAccountKey)
+	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress, lockedTokensAccountKey, adminAddress, adminSigner)
 	env.StakingProxyAddress = stakingProxyAddress.Hex()
 	env.LockedTokensAddress = lockedTokensAddress.Hex()
 
@@ -99,17 +101,28 @@ func TestLockedTokensStaker(t *testing.T) {
 	var joshSharedAddress flow.Address
 	var joshAddress flow.Address
 
+	tx = createTxWithTemplateAndAuthorizer(b, ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), b.ServiceKey().Address)
+	_ = tx.AddArgument(cadence.NewAddress(adminAddress))
+	_ = tx.AddArgument(CadenceUFix64("1000000000.0"))
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address},
+		[]crypto.Signer{b.ServiceKey().Signer()},
+		false,
+	)
+
 	t.Run("Should be able to create new shared accounts", func(t *testing.T) {
 
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateSharedAccountScript(env), b.ServiceKey().Address).
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateSharedAccountScript(env), adminAddress).
 			AddRawArgument(jsoncdc.MustEncode(adminPublicKey)).
 			AddRawArgument(jsoncdc.MustEncode(joshPublicKey)).
 			AddRawArgument(jsoncdc.MustEncode(joshPublicKey))
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
+			[]flow.Address{b.ServiceKey().Address, adminAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
 			false,
 		)
 
@@ -138,23 +151,23 @@ func TestLockedTokensStaker(t *testing.T) {
 
 	t.Run("Should be able to confirm that the account is registered", func(t *testing.T) {
 
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCheckSharedRegistrationScript(env), b.ServiceKey().Address)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCheckSharedRegistrationScript(env), adminAddress)
 		_ = tx.AddArgument(cadence.NewAddress(joshSharedAddress))
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
+			[]flow.Address{b.ServiceKey().Address, adminAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
 			false,
 		)
 
-		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCheckMainRegistrationScript(env), b.ServiceKey().Address)
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCheckMainRegistrationScript(env), adminAddress)
 		_ = tx.AddArgument(cadence.NewAddress(joshAddress))
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
+			[]flow.Address{b.ServiceKey().Address, adminAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
 			false,
 		)
 	})
@@ -165,47 +178,47 @@ func TestLockedTokensStaker(t *testing.T) {
 
 	t.Run("Should fail because the accounts are not registered", func(t *testing.T) {
 
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCheckSharedRegistrationScript(env), b.ServiceKey().Address)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCheckSharedRegistrationScript(env), adminAddress)
 		_ = tx.AddArgument(cadence.NewAddress(maxAddress))
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
+			[]flow.Address{b.ServiceKey().Address, adminAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
 			true,
 		)
 
-		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCheckSharedRegistrationScript(env), b.ServiceKey().Address)
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCheckSharedRegistrationScript(env), adminAddress)
 		_ = tx.AddArgument(cadence.NewAddress(joshAddress))
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
+			[]flow.Address{b.ServiceKey().Address, adminAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
 			true,
 		)
 
-		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCheckMainRegistrationScript(env), b.ServiceKey().Address)
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCheckMainRegistrationScript(env), adminAddress)
 		_ = tx.AddArgument(cadence.NewAddress(maxAddress))
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
+			[]flow.Address{b.ServiceKey().Address, adminAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
 			true,
 		)
 	})
 
 	t.Run("Should be able to deposit locked tokens to the shared account", func(t *testing.T) {
 
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDepositLockedTokensScript(env), b.ServiceKey().Address)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDepositLockedTokensScript(env), adminAddress)
 		_ = tx.AddArgument(cadence.NewAddress(joshSharedAddress))
 		_ = tx.AddArgument(CadenceUFix64("1000000.0"))
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
+			[]flow.Address{b.ServiceKey().Address, adminAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
 			false,
 		)
 
@@ -218,14 +231,14 @@ func TestLockedTokensStaker(t *testing.T) {
 
 	t.Run("Should fail to deposit locked tokens to the user account", func(t *testing.T) {
 
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDepositLockedTokensScript(env), b.ServiceKey().Address)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDepositLockedTokensScript(env), adminAddress)
 		_ = tx.AddArgument(cadence.NewAddress(joshAddress))
 		_ = tx.AddArgument(CadenceUFix64("1000000.0"))
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
+			[]flow.Address{b.ServiceKey().Address, adminAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
 			true,
 		)
 	})
@@ -255,14 +268,14 @@ func TestLockedTokensStaker(t *testing.T) {
 
 	t.Run("Should be able to unlock tokens from the shared account", func(t *testing.T) {
 
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateIncreaseUnlockLimitScript(env), b.ServiceKey().Address)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateIncreaseUnlockLimitScript(env), adminAddress)
 		_ = tx.AddArgument(cadence.NewAddress(joshSharedAddress))
 		_ = tx.AddArgument(CadenceUFix64("10000.0"))
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
+			[]flow.Address{b.ServiceKey().Address, adminAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
 			false,
 		)
 
@@ -333,11 +346,11 @@ func TestLockedTokensStaker(t *testing.T) {
 	t.Run("Should be able to register josh as a node operator", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID))
+		_ = tx.AddArgument(CadenceString(joshID))
 		_ = tx.AddArgument(cadence.NewUInt8(1))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", josh)))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", josh)))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", josh)))
+		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
+		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
+		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0192d", josh)))
 		_ = tx.AddArgument(CadenceUFix64("250000.0"))
 
 		signAndSubmit(
@@ -349,7 +362,7 @@ func TestLockedTokensStaker(t *testing.T) {
 
 		// Check the node ID
 		result := executeScriptAndCheck(t, b, templates.GenerateGetNodeIDScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
-		assertEqual(t, cadence.NewString(joshID), result)
+		assertEqual(t, CadenceString(joshID), result)
 
 		// unlock limit should not have changed
 		result = executeScriptAndCheck(t, b, templates.GenerateGetUnlockLimitScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
@@ -525,11 +538,11 @@ func TestLockedTokensStaker(t *testing.T) {
 		t.Log("locked balance", result)
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID))
+		_ = tx.AddArgument(CadenceString(joshID))
 		_ = tx.AddArgument(cadence.NewUInt8(1))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", josh)))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", josh)))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", josh)))
+		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
+		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
+		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0192d", josh)))
 		_ = tx.AddArgument(CadenceUFix64("745000.0"))
 
 		signAndSubmit(
@@ -541,7 +554,7 @@ func TestLockedTokensStaker(t *testing.T) {
 
 		// Check the node ID
 		result = executeScriptAndCheck(t, b, templates.GenerateGetNodeIDScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
-		assertEqual(t, cadence.NewString(joshID), result)
+		assertEqual(t, CadenceString(joshID), result)
 
 		// Check unlocked balance
 		result = executeScriptAndCheck(t, b, ft_templates.GenerateInspectVaultScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
@@ -554,14 +567,14 @@ func TestLockedTokensStaker(t *testing.T) {
 
 	t.Run("Should be able to deposit additional locked tokens to the shared account", func(t *testing.T) {
 
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDepositLockedTokensScript(env), b.ServiceKey().Address)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDepositLockedTokensScript(env), adminAddress)
 		_ = tx.AddArgument(cadence.NewAddress(joshSharedAddress))
 		_ = tx.AddArgument(CadenceUFix64("1000.0"))
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
+			[]flow.Address{b.ServiceKey().Address, adminAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
 			false,
 		)
 
@@ -628,7 +641,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 	// Deploy the IDTableStaking contract
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateTransferMinterAndDeployScript(env), b.ServiceKey().Address).
 		AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys)).
-		AddRawArgument(jsoncdc.MustEncode(cadence.NewString("FlowIDTableStaking"))).
+		AddRawArgument(jsoncdc.MustEncode(CadenceString("FlowIDTableStaking"))).
 		AddRawArgument(jsoncdc.MustEncode(cadenceCode))
 
 	_ = tx.AddArgument(CadenceUFix64("1250000.0"))
@@ -677,9 +690,10 @@ func TestLockedTokensDelegator(t *testing.T) {
 	env.StakingProxyAddress = stakingProxyAddress.Hex()
 
 	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
+	adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
 
 	lockedTokensAccountKey, _ := accountKeys.NewWithSigner()
-	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress, lockedTokensAccountKey)
+	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress, lockedTokensAccountKey, adminAddress, adminSigner)
 
 	env.LockedTokensAddress = lockedTokensAddress.Hex()
 
@@ -692,17 +706,28 @@ func TestLockedTokensDelegator(t *testing.T) {
 	var joshSharedAddress flow.Address
 	var joshAddress flow.Address
 
+	tx = createTxWithTemplateAndAuthorizer(b, ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), b.ServiceKey().Address)
+	_ = tx.AddArgument(cadence.NewAddress(adminAddress))
+	_ = tx.AddArgument(CadenceUFix64("1000000000.0"))
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address},
+		[]crypto.Signer{b.ServiceKey().Signer()},
+		false,
+	)
+
 	t.Run("Should be able to create new shared accounts", func(t *testing.T) {
 
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateSharedAccountScript(env), b.ServiceKey().Address).
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateSharedAccountScript(env), adminAddress).
 			AddRawArgument(jsoncdc.MustEncode(adminPublicKey)).
 			AddRawArgument(jsoncdc.MustEncode(joshPublicKey)).
 			AddRawArgument(jsoncdc.MustEncode(joshPublicKey))
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
+			[]flow.Address{b.ServiceKey().Address, adminAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
 			false,
 		)
 
@@ -731,14 +756,14 @@ func TestLockedTokensDelegator(t *testing.T) {
 
 	t.Run("Should be able to deposit locked tokens to the shared account", func(t *testing.T) {
 
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDepositLockedTokensScript(env), b.ServiceKey().Address)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDepositLockedTokensScript(env), adminAddress)
 		_ = tx.AddArgument(cadence.NewAddress(joshSharedAddress))
 		_ = tx.AddArgument(CadenceUFix64("1000000.0"))
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
+			[]flow.Address{b.ServiceKey().Address, adminAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
 			false,
 		)
 
@@ -748,7 +773,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 	t.Run("Should be able to register josh as a delegator", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateLockedDelegatorScript(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID))
+		_ = tx.AddArgument(CadenceString(joshID))
 		_ = tx.AddArgument(CadenceUFix64("50000.0"))
 
 		signAndSubmit(
@@ -764,7 +789,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 
 		// Check the delegator node ID
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorNodeIDScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
-		assertEqual(t, cadence.NewString(joshID), result)
+		assertEqual(t, CadenceString(joshID), result)
 	})
 
 	t.Run("Should be able to delegate locked tokens", func(t *testing.T) {
@@ -941,7 +966,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 	t.Run("Should be able to register as a delegator using tokens from the locked vault first and then the unlocked vault", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateLockedDelegatorScript(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID))
+		_ = tx.AddArgument(CadenceString(joshID))
 		_ = tx.AddArgument(CadenceUFix64("949500.0"))
 
 		signAndSubmit(
@@ -957,7 +982,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 
 		// Check the delegator node ID
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorNodeIDScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
-		assertEqual(t, cadence.NewString(joshID), result)
+		assertEqual(t, CadenceString(joshID), result)
 
 		// Check that unlock limit increases by 500.0
 		result = executeScriptAndCheck(t, b, templates.GenerateGetUnlockLimitScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
@@ -966,14 +991,14 @@ func TestLockedTokensDelegator(t *testing.T) {
 
 	t.Run("Should be able to deposit additional locked tokens to the locked account", func(t *testing.T) {
 
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDepositLockedTokensScript(env), b.ServiceKey().Address)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDepositLockedTokensScript(env), adminAddress)
 		_ = tx.AddArgument(cadence.NewAddress(joshSharedAddress))
 		_ = tx.AddArgument(CadenceUFix64("1000.0"))
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
+			[]flow.Address{b.ServiceKey().Address, adminAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
 			false,
 		)
 
@@ -1068,7 +1093,7 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 	// Deploy the IDTableStaking contract
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateTransferMinterAndDeployScript(env), b.ServiceKey().Address).
 		AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys)).
-		AddRawArgument(jsoncdc.MustEncode(cadence.NewString("FlowIDTableStaking"))).
+		AddRawArgument(jsoncdc.MustEncode(CadenceString("FlowIDTableStaking"))).
 		AddRawArgument(jsoncdc.MustEncode(cadenceCode))
 
 	_ = tx.AddArgument(CadenceUFix64("1250000.0"))
@@ -1116,16 +1141,28 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 	_, err = b.CommitBlock()
 	assert.NoError(t, err)
 
-	adminAccountKey := accountKeys.New()
+	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
+	adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
 
 	lockedTokensAccountKey, _ := accountKeys.NewWithSigner()
-	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress, lockedTokensAccountKey)
+	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress, lockedTokensAccountKey, adminAddress, adminSigner)
 
 	env.LockedTokensAddress = lockedTokensAddress.Hex()
 
 	// Create new custody provider account
 	custodyAccountKey, custodySigner := accountKeys.NewWithSigner()
 	custodyAddress, _ := b.CreateAccount([]*flow.AccountKey{custodyAccountKey}, nil)
+
+	tx = createTxWithTemplateAndAuthorizer(b, ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), b.ServiceKey().Address)
+	_ = tx.AddArgument(cadence.NewAddress(adminAddress))
+	_ = tx.AddArgument(CadenceUFix64("1000000000.0"))
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address},
+		[]crypto.Signer{b.ServiceKey().Signer()},
+		false,
+	)
 
 	t.Run("Should be able to set up the custody provider account", func(t *testing.T) {
 
@@ -1152,13 +1189,13 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 
 	t.Run("Should be able to deposit an account creator resource into the custody account", func(t *testing.T) {
 
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDepositAccountCreatorScript(env), b.ServiceKey().Address)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDepositAccountCreatorScript(env), adminAddress)
 		_ = tx.AddArgument(cadence.NewAddress(custodyAddress))
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
+			[]flow.Address{b.ServiceKey().Address, adminAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
 			false,
 		)
 	})
@@ -1323,14 +1360,14 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 
 	t.Run("Should be able to increase the unlock limit for the new accounts", func(t *testing.T) {
 
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateIncreaseUnlockLimitScript(env), b.ServiceKey().Address)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateIncreaseUnlockLimitScript(env), adminAddress)
 		_ = tx.AddArgument(cadence.NewAddress(joshSharedAddress))
 		_ = tx.AddArgument(CadenceUFix64("10000.0"))
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
+			[]flow.Address{b.ServiceKey().Address, adminAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
 			false,
 		)
 
@@ -1338,14 +1375,14 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 		result := executeScriptAndCheck(t, b, templates.GenerateGetUnlockLimitScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
 		assertEqual(t, CadenceUFix64("10000.0"), result)
 
-		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateIncreaseUnlockLimitScript(env), b.ServiceKey().Address)
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateIncreaseUnlockLimitScript(env), adminAddress)
 		_ = tx.AddArgument(cadence.NewAddress(maxSharedAddress))
 		_ = tx.AddArgument(CadenceUFix64("10000.0"))
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
+			[]flow.Address{b.ServiceKey().Address, adminAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
 			false,
 		)
 
@@ -1353,14 +1390,14 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 		result = executeScriptAndCheck(t, b, templates.GenerateGetUnlockLimitScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(maxAddress))})
 		assertEqual(t, CadenceUFix64("10000.0"), result)
 
-		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateIncreaseUnlockLimitScript(env), b.ServiceKey().Address)
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateIncreaseUnlockLimitScript(env), adminAddress)
 		_ = tx.AddArgument(cadence.NewAddress(leaseSharedAddress))
 		_ = tx.AddArgument(CadenceUFix64("10000.0"))
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
+			[]flow.Address{b.ServiceKey().Address, adminAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
 			false,
 		)
 
@@ -1404,9 +1441,11 @@ func TestLockedTokensRealStaking(t *testing.T) {
 	_, err = b.CommitBlock()
 	assert.NoError(t, err)
 
-	adminAccountKey := accountKeys.New()
+	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
+	adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
+
 	lockedTokensAccountKey, _ := accountKeys.NewWithSigner()
-	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress, lockedTokensAccountKey)
+	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress, lockedTokensAccountKey, adminAddress, adminSigner)
 	env.StakingProxyAddress = stakingProxyAddress.Hex()
 	env.LockedTokensAddress = lockedTokensAddress.Hex()
 
@@ -1419,17 +1458,28 @@ func TestLockedTokensRealStaking(t *testing.T) {
 	var joshSharedAddress flow.Address
 	var joshAddress flow.Address
 
+	tx := createTxWithTemplateAndAuthorizer(b, ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), b.ServiceKey().Address)
+	_ = tx.AddArgument(cadence.NewAddress(adminAddress))
+	_ = tx.AddArgument(CadenceUFix64("1000000000.0"))
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address},
+		[]crypto.Signer{b.ServiceKey().Signer()},
+		false,
+	)
+
 	t.Run("Should be able to create new shared accounts", func(t *testing.T) {
 
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateSharedAccountScript(env), b.ServiceKey().Address).
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateSharedAccountScript(env), adminAddress).
 			AddRawArgument(jsoncdc.MustEncode(adminPublicKey)).
 			AddRawArgument(jsoncdc.MustEncode(joshPublicKey)).
 			AddRawArgument(jsoncdc.MustEncode(joshPublicKey))
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
+			[]flow.Address{b.ServiceKey().Address, adminAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
 			false,
 		)
 
@@ -1458,14 +1508,14 @@ func TestLockedTokensRealStaking(t *testing.T) {
 
 	t.Run("Should be able to deposit locked tokens to the shared account", func(t *testing.T) {
 
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDepositLockedTokensScript(env), b.ServiceKey().Address)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDepositLockedTokensScript(env), adminAddress)
 		_ = tx.AddArgument(cadence.NewAddress(joshSharedAddress))
 		_ = tx.AddArgument(CadenceUFix64("1000000.0"))
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
+			[]flow.Address{b.ServiceKey().Address, adminAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
 			false,
 		)
 
@@ -1492,11 +1542,11 @@ func TestLockedTokensRealStaking(t *testing.T) {
 	t.Run("Should be able to register josh as a node operator", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID))
+		_ = tx.AddArgument(CadenceString(joshID))
 		_ = tx.AddArgument(cadence.NewUInt8(1))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", josh)))
-		_ = tx.AddArgument(cadence.NewString(joshNetworkingKey))
-		_ = tx.AddArgument(cadence.NewString(joshStakingKey))
+		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
+		_ = tx.AddArgument(CadenceString(joshNetworkingKey))
+		_ = tx.AddArgument(CadenceString(joshStakingKey))
 		_ = tx.AddArgument(CadenceUFix64("250000.0"))
 
 		signAndSubmit(
@@ -1508,14 +1558,14 @@ func TestLockedTokensRealStaking(t *testing.T) {
 
 		// Check the node ID
 		result := executeScriptAndCheck(t, b, templates.GenerateGetNodeIDScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
-		assertEqual(t, cadence.NewString(joshID), result)
+		assertEqual(t, CadenceString(joshID), result)
 	})
 
 	t.Run("Should be able to change the networking address", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateLockedNodeUpdateNetworkingAddressScript(env), joshAddress)
 
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", execution)))
+		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", execution)))
 
 		signAndSubmit(
 			t, b, tx,
@@ -1525,7 +1575,7 @@ func TestLockedTokensRealStaking(t *testing.T) {
 		)
 
 		result := executeScriptAndCheck(t, b, templates.GenerateGetNetworkingAddressScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(joshID))})
-		assertEqual(t, cadence.NewString(fmt.Sprintf("%0128d", execution)), result)
+		assertEqual(t, CadenceString(fmt.Sprintf("%0128d", execution)), result)
 	})
 
 	t.Run("Should be able to get the node info from the locked account by just using the address", func(t *testing.T) {
@@ -1535,7 +1585,7 @@ func TestLockedTokensRealStaking(t *testing.T) {
 	t.Run("Should be able to register as a delegator after registering as a node operator", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateLockedDelegatorScript(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID))
+		_ = tx.AddArgument(CadenceString(joshID))
 		_ = tx.AddArgument(CadenceUFix64("20000.0"))
 
 		signAndSubmit(
@@ -1578,11 +1628,11 @@ func TestLockedTokensRealStaking(t *testing.T) {
 	t.Run("Should not be able to register a second node while the first has tokens committed", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(maxID))
+		_ = tx.AddArgument(CadenceString(maxID))
 		_ = tx.AddArgument(cadence.NewUInt8(2))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", josh)))
-		_ = tx.AddArgument(cadence.NewString(joshNetworkingKey))
-		_ = tx.AddArgument(cadence.NewString(joshStakingKey))
+		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
+		_ = tx.AddArgument(CadenceString(joshNetworkingKey))
+		_ = tx.AddArgument(CadenceString(joshStakingKey))
 		_ = tx.AddArgument(CadenceUFix64("250000.0"))
 
 		signAndSubmit(
@@ -1622,11 +1672,11 @@ func TestLockedTokensRealStaking(t *testing.T) {
 	t.Run("Should not be able to register a second node while the first has tokens unstaked", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(maxID))
+		_ = tx.AddArgument(CadenceString(maxID))
 		_ = tx.AddArgument(cadence.NewUInt8(2))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", josh)))
-		_ = tx.AddArgument(cadence.NewString(joshNetworkingKey))
-		_ = tx.AddArgument(cadence.NewString(joshStakingKey))
+		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
+		_ = tx.AddArgument(CadenceString(joshNetworkingKey))
+		_ = tx.AddArgument(CadenceString(joshStakingKey))
 		_ = tx.AddArgument(CadenceUFix64("250000.0"))
 
 		signAndSubmit(
@@ -1672,11 +1722,11 @@ func TestLockedTokensRealStaking(t *testing.T) {
 		_, maxStakingKey, _, maxNetworkingKey := generateKeysForNodeRegistration(t)
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(maxID))
+		_ = tx.AddArgument(CadenceString(maxID))
 		_ = tx.AddArgument(cadence.NewUInt8(2))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", max)))
-		_ = tx.AddArgument(cadence.NewString(maxNetworkingKey))
-		_ = tx.AddArgument(cadence.NewString(maxStakingKey))
+		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", max)))
+		_ = tx.AddArgument(CadenceString(maxNetworkingKey))
+		_ = tx.AddArgument(CadenceString(maxStakingKey))
 		_ = tx.AddArgument(CadenceUFix64("250000.0"))
 
 		signAndSubmit(
@@ -1723,9 +1773,10 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 	assert.NoError(t, err)
 
 	env.StakingProxyAddress = stakingProxyAddress.Hex()
-	adminAccountKey := accountKeys.New()
+	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
+	adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
 	lockedTokensAccountKey, _ := accountKeys.NewWithSigner()
-	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress, lockedTokensAccountKey)
+	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress, lockedTokensAccountKey, adminAddress, adminSigner)
 	env.LockedTokensAddress = lockedTokensAddress.Hex()
 
 	// Create new keys for the user account
@@ -1737,17 +1788,28 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 	var joshSharedAddress flow.Address
 	var joshAddress flow.Address
 
+	tx := createTxWithTemplateAndAuthorizer(b, ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), b.ServiceKey().Address)
+	_ = tx.AddArgument(cadence.NewAddress(adminAddress))
+	_ = tx.AddArgument(CadenceUFix64("1000000000.0"))
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address},
+		[]crypto.Signer{b.ServiceKey().Signer()},
+		false,
+	)
+
 	t.Run("Should be able to create new shared accounts", func(t *testing.T) {
 
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateSharedAccountScript(env), b.ServiceKey().Address).
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateSharedAccountScript(env), adminAddress).
 			AddRawArgument(jsoncdc.MustEncode(adminPublicKey)).
 			AddRawArgument(jsoncdc.MustEncode(joshPublicKey)).
 			AddRawArgument(jsoncdc.MustEncode(joshPublicKey))
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
+			[]flow.Address{b.ServiceKey().Address, adminAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
 			false,
 		)
 
@@ -1776,14 +1838,14 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 
 	t.Run("Should be able to deposit locked tokens to the shared account", func(t *testing.T) {
 
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDepositLockedTokensScript(env), b.ServiceKey().Address)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDepositLockedTokensScript(env), adminAddress)
 		_ = tx.AddArgument(cadence.NewAddress(joshSharedAddress))
 		_ = tx.AddArgument(CadenceUFix64("1000000.0"))
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
+			[]flow.Address{b.ServiceKey().Address, adminAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
 			false,
 		)
 	})
@@ -1805,11 +1867,11 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 		_, joshStakingKey, _, joshNetworkingKey := generateKeysForNodeRegistration(t)
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID))
+		_ = tx.AddArgument(CadenceString(joshID))
 		_ = tx.AddArgument(cadence.NewUInt8(1))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", josh)))
-		_ = tx.AddArgument(cadence.NewString(joshNetworkingKey))
-		_ = tx.AddArgument(cadence.NewString(joshStakingKey))
+		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
+		_ = tx.AddArgument(CadenceString(joshNetworkingKey))
+		_ = tx.AddArgument(CadenceString(joshStakingKey))
 		_ = tx.AddArgument(CadenceUFix64("320000.0"))
 
 		signAndSubmit(
@@ -1823,7 +1885,7 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 	t.Run("Should be able to register josh as a delegator", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateLockedDelegatorScript(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID))
+		_ = tx.AddArgument(CadenceString(joshID))
 		_ = tx.AddArgument(CadenceUFix64("50000.0"))
 
 		signAndSubmit(
@@ -1837,7 +1899,7 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 	t.Run("Should not be able to register josh as a new delegator since there are still tokens in committed", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateLockedDelegatorScript(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID))
+		_ = tx.AddArgument(CadenceString(joshID))
 		_ = tx.AddArgument(CadenceUFix64("50000.0"))
 
 		signAndSubmit(
@@ -1886,7 +1948,7 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 	t.Run("Should not be able to register josh as a delegator while there are still tokens committed or unstaked", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateLockedDelegatorScript(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID))
+		_ = tx.AddArgument(CadenceString(joshID))
 		_ = tx.AddArgument(CadenceUFix64("50000.0"))
 
 		signAndSubmit(
@@ -1924,7 +1986,7 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 	t.Run("Should not be able to register josh as a new delegator since there are still tokens in staking", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateLockedDelegatorScript(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID))
+		_ = tx.AddArgument(CadenceString(joshID))
 		_ = tx.AddArgument(CadenceUFix64("50000.0"))
 
 		signAndSubmit(
@@ -1958,7 +2020,7 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 		)
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateLockedDelegatorScript(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID))
+		_ = tx.AddArgument(CadenceString(joshID))
 		_ = tx.AddArgument(CadenceUFix64("50000.0"))
 
 		signAndSubmit(

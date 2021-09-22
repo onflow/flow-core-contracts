@@ -119,19 +119,19 @@ func TestManyNodesIDTable(t *testing.T) {
 
 			id := fmt.Sprintf("%064d", i)
 
-			approvedNodes[i] = cadence.NewString(id)
+			approvedNodes[i] = CadenceString(id)
 
 			nodeRoles[i] = cadence.NewUInt8(uint8((i % 4) + 1))
 
 			networkingAddress := fmt.Sprintf("%0128d", i)
 
-			nodeNetworkingAddresses[i] = cadence.NewString(networkingAddress)
+			nodeNetworkingAddresses[i] = CadenceString(networkingAddress)
 
 			_, stakingKey, _, networkingKey := generateKeysForNodeRegistration(t)
 
-			nodeNetworkingKeys[i] = cadence.NewString(networkingKey)
+			nodeNetworkingKeys[i] = CadenceString(networkingKey)
 
-			nodeStakingKeys[i] = cadence.NewString(stakingKey)
+			nodeStakingKeys[i] = CadenceString(stakingKey)
 
 			tokenAmount, err := cadence.NewUFix64("1500000.0")
 			require.NoError(t, err)
@@ -429,21 +429,21 @@ func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
 
 			id := fmt.Sprintf("%064d", i)
 
-			approvedNodes[i] = cadence.NewString(id)
+			approvedNodes[i] = CadenceString(id)
 
 			role := uint8((i % 4) + 1)
 
 			_, stakingKey, _, networkingKey := generateKeysForNodeRegistration(t)
 
-			err := tx.AddArgument(cadence.NewString(id))
+			err := tx.AddArgument(CadenceString(id))
 			require.NoError(t, err)
 			err = tx.AddArgument(cadence.NewUInt8(role))
 			require.NoError(t, err)
-			err = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", i)))
+			err = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", i)))
 			require.NoError(t, err)
-			err = tx.AddArgument(cadence.NewString(networkingKey))
+			err = tx.AddArgument(CadenceString(networkingKey))
 			require.NoError(t, err)
-			err = tx.AddArgument(cadence.NewString(stakingKey))
+			err = tx.AddArgument(CadenceString(stakingKey))
 			require.NoError(t, err)
 			tokenAmount, err := cadence.NewUFix64("1500000.0")
 			require.NoError(t, err)

@@ -42,7 +42,7 @@ func initClusters(clusterNodeIDStrings [][]string, numberOfClusters, numberOfNod
 		for j := 0; j < numberOfNodesPerCluster; j++ {
 			nodeID := fmt.Sprintf("%064d", i*numberOfNodesPerCluster+j)
 
-			nodeIDs[j] = cadence.NewString(nodeID)
+			nodeIDs[j] = CadenceString(nodeID)
 
 			// default weight per node
 			nodeWeights[j] = cadence.NewUInt64(uint64(100))
@@ -114,8 +114,8 @@ func TestQuorumCertificate(t *testing.T) {
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateVoterScript(env), maxAddress)
 
 		_ = tx.AddArgument(cadence.NewAddress(QCAddress))
-		_ = tx.AddArgument(cadence.NewString(maxID))
-		_ = tx.AddArgument(cadence.NewString(maxPublicStakingKey))
+		_ = tx.AddArgument(CadenceString(maxID))
+		_ = tx.AddArgument(CadenceString(maxPublicStakingKey))
 
 		signAndSubmit(
 			t, b, tx,
@@ -184,8 +184,8 @@ func TestQuorumCertificate(t *testing.T) {
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateVoterScript(env), QCAddress)
 
 		_ = tx.AddArgument(cadence.NewAddress(QCAddress))
-		_ = tx.AddArgument(cadence.NewString(clusterNodeIDStrings[0][0]))
-		_ = tx.AddArgument(cadence.NewString(maxPublicStakingKey))
+		_ = tx.AddArgument(CadenceString(clusterNodeIDStrings[0][0]))
+		_ = tx.AddArgument(CadenceString(maxPublicStakingKey))
 
 		signAndSubmit(
 			t, b, tx,
@@ -216,8 +216,8 @@ func TestQuorumCertificate(t *testing.T) {
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateVoterScript(env), joshAddress)
 
 		_ = tx.AddArgument(cadence.NewAddress(QCAddress))
-		_ = tx.AddArgument(cadence.NewString(clusterNodeIDStrings[0][0]))
-		_ = tx.AddArgument(cadence.NewString(joshPublicStakingKey))
+		_ = tx.AddArgument(CadenceString(clusterNodeIDStrings[0][0]))
+		_ = tx.AddArgument(CadenceString(joshPublicStakingKey))
 
 		signAndSubmit(
 			t, b, tx,
@@ -231,8 +231,8 @@ func TestQuorumCertificate(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), QCAddress)
 
-		_ = tx.AddArgument(cadence.NewString(""))
-		_ = tx.AddArgument(cadence.NewString("not empty"))
+		_ = tx.AddArgument(CadenceString(""))
+		_ = tx.AddArgument(CadenceString("not empty"))
 
 		signAndSubmit(
 			t, b, tx,
@@ -250,8 +250,8 @@ func TestQuorumCertificate(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), QCAddress)
 
-		_ = tx.AddArgument(cadence.NewString("not empty"))
-		_ = tx.AddArgument(cadence.NewString(""))
+		_ = tx.AddArgument(CadenceString("not empty"))
+		_ = tx.AddArgument(CadenceString(""))
 
 		signAndSubmit(
 			t, b, tx,
@@ -275,8 +275,8 @@ func TestQuorumCertificate(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), QCAddress)
 
-		_ = tx.AddArgument(cadence.NewString(invalidSignatureString))
-		_ = tx.AddArgument(cadence.NewString("deadbeef"))
+		_ = tx.AddArgument(CadenceString(invalidSignatureString))
+		_ = tx.AddArgument(CadenceString("deadbeef"))
 
 		signAndSubmit(
 			t, b, tx,
@@ -299,8 +299,8 @@ func TestQuorumCertificate(t *testing.T) {
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), QCAddress)
 
-		_ = tx.AddArgument(cadence.NewString(invalidSignatureString))
-		_ = tx.AddArgument(cadence.NewString("deadbeef"))
+		_ = tx.AddArgument(CadenceString(invalidSignatureString))
+		_ = tx.AddArgument(CadenceString("deadbeef"))
 
 		signAndSubmit(
 			t, b, tx,
@@ -321,8 +321,8 @@ func TestQuorumCertificate(t *testing.T) {
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), QCAddress)
 
-		_ = tx.AddArgument(cadence.NewString(invalidSignatureString))
-		_ = tx.AddArgument(cadence.NewString("deadbeef"))
+		_ = tx.AddArgument(CadenceString(invalidSignatureString))
+		_ = tx.AddArgument(CadenceString("deadbeef"))
 
 		signAndSubmit(
 			t, b, tx,
@@ -346,8 +346,8 @@ func TestQuorumCertificate(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), QCAddress)
 
-		_ = tx.AddArgument(cadence.NewString(validSignatureString))
-		_ = tx.AddArgument(cadence.NewString("deadbeef"))
+		_ = tx.AddArgument(CadenceString(validSignatureString))
+		_ = tx.AddArgument(CadenceString("deadbeef"))
 
 		signAndSubmit(
 			t, b, tx,
@@ -380,8 +380,8 @@ func TestQuorumCertificate(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), QCAddress)
 
-		_ = tx.AddArgument(cadence.NewString(validSignatureString))
-		_ = tx.AddArgument(cadence.NewString("deadbeef"))
+		_ = tx.AddArgument(CadenceString(validSignatureString))
+		_ = tx.AddArgument(CadenceString("deadbeef"))
 
 		signAndSubmit(
 			t, b, tx,
@@ -443,8 +443,8 @@ func TestQuorumCertificate(t *testing.T) {
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateVoterScript(env), joshAddress)
 
 		_ = tx.AddArgument(cadence.NewAddress(QCAddress))
-		_ = tx.AddArgument(cadence.NewString(clusterNodeIDStrings[0][0]))
-		_ = tx.AddArgument(cadence.NewString(joshPublicStakingKey))
+		_ = tx.AddArgument(CadenceString(clusterNodeIDStrings[0][0]))
+		_ = tx.AddArgument(CadenceString(joshPublicStakingKey))
 
 		signAndSubmit(
 			t, b, tx,
@@ -539,8 +539,8 @@ func TestQuorumCertificateMoreNodes(t *testing.T) {
 			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateVoterScript(env), addresses[i])
 
 			_ = tx.AddArgument(cadence.NewAddress(QCAddress))
-			_ = tx.AddArgument(cadence.NewString(clusterNodeIDStrings[i/numberOfNodesPerCluster][i%numberOfNodesPerCluster]))
-			_ = tx.AddArgument(cadence.NewString(stakingPublicKeys[i]))
+			_ = tx.AddArgument(CadenceString(clusterNodeIDStrings[i/numberOfNodesPerCluster][i%numberOfNodesPerCluster]))
+			_ = tx.AddArgument(CadenceString(stakingPublicKeys[i]))
 
 			signAndSubmit(
 				t, b, tx,
@@ -564,8 +564,8 @@ func TestQuorumCertificateMoreNodes(t *testing.T) {
 
 			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), addresses[i])
 
-			_ = tx.AddArgument(cadence.NewString(validSignatureString))
-			_ = tx.AddArgument(cadence.NewString("deadbeef"))
+			_ = tx.AddArgument(CadenceString(validSignatureString))
+			_ = tx.AddArgument(CadenceString("deadbeef"))
 
 			signAndSubmit(
 				t, b, tx,
@@ -599,8 +599,8 @@ func TestQuorumCertificateMoreNodes(t *testing.T) {
 
 			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), addresses[i])
 
-			_ = tx.AddArgument(cadence.NewString(validSignatureString))
-			_ = tx.AddArgument(cadence.NewString("beefdead"))
+			_ = tx.AddArgument(CadenceString(validSignatureString))
+			_ = tx.AddArgument(CadenceString("beefdead"))
 
 			signAndSubmit(
 				t, b, tx,
@@ -626,8 +626,8 @@ func TestQuorumCertificateMoreNodes(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), addresses[numberOfNodesPerCluster*2-2])
 
-		_ = tx.AddArgument(cadence.NewString(validSignatureString))
-		_ = tx.AddArgument(cadence.NewString("deebaf"))
+		_ = tx.AddArgument(CadenceString(validSignatureString))
+		_ = tx.AddArgument(CadenceString("deebaf"))
 
 		signAndSubmit(
 			t, b, tx,
@@ -648,8 +648,8 @@ func TestQuorumCertificateMoreNodes(t *testing.T) {
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), addresses[numberOfNodesPerCluster*2-1])
 
-		_ = tx.AddArgument(cadence.NewString(validSignatureString))
-		_ = tx.AddArgument(cadence.NewString("deebaf"))
+		_ = tx.AddArgument(CadenceString(validSignatureString))
+		_ = tx.AddArgument(CadenceString("deebaf"))
 
 		signAndSubmit(
 			t, b, tx,
@@ -680,8 +680,8 @@ func TestQuorumCertificateMoreNodes(t *testing.T) {
 
 			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), addresses[i])
 
-			_ = tx.AddArgument(cadence.NewString(validSignatureString))
-			_ = tx.AddArgument(cadence.NewString("beefdead"))
+			_ = tx.AddArgument(CadenceString(validSignatureString))
+			_ = tx.AddArgument(CadenceString("beefdead"))
 
 			signAndSubmit(
 				t, b, tx,
@@ -707,8 +707,8 @@ func TestQuorumCertificateMoreNodes(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), addresses[numberOfNodesPerCluster*3-1])
 
-		_ = tx.AddArgument(cadence.NewString(validSignatureString))
-		_ = tx.AddArgument(cadence.NewString("deebaf"))
+		_ = tx.AddArgument(CadenceString(validSignatureString))
+		_ = tx.AddArgument(CadenceString("deebaf"))
 
 		signAndSubmit(
 			t, b, tx,
@@ -799,8 +799,8 @@ func TestQuorumCertificateNotSubmittedVote(t *testing.T) {
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateVoterScript(env), addresses[i])
 
 		_ = tx.AddArgument(cadence.NewAddress(QCAddress))
-		_ = tx.AddArgument(cadence.NewString(clusterNodeIDStrings[i/numberOfNodesPerCluster][i%numberOfNodesPerCluster]))
-		_ = tx.AddArgument(cadence.NewString(stakingPublicKeys[i]))
+		_ = tx.AddArgument(CadenceString(clusterNodeIDStrings[i/numberOfNodesPerCluster][i%numberOfNodesPerCluster]))
+		_ = tx.AddArgument(CadenceString(stakingPublicKeys[i]))
 
 		signAndSubmit(
 			t, b, tx,
@@ -822,8 +822,8 @@ func TestQuorumCertificateNotSubmittedVote(t *testing.T) {
 
 			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), addresses[i])
 
-			_ = tx.AddArgument(cadence.NewString(validSignatureString))
-			_ = tx.AddArgument(cadence.NewString("deadbeef"))
+			_ = tx.AddArgument(CadenceString(validSignatureString))
+			_ = tx.AddArgument(CadenceString("deadbeef"))
 
 			signAndSubmit(
 				t, b, tx,

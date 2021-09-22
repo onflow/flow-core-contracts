@@ -236,6 +236,10 @@ func TestStakingTransferAdmin(t *testing.T) {
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
 	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true)
 
+	//
+	joshAccountKey, joshSigner := accountKeys.NewWithSigner()
+	joshAddress, _ := b.CreateAccount([]*flow.AccountKey{joshAccountKey}, nil)
+
 	env.IDTableAddress = idTableAddress.Hex()
 
 	t.Run("Should be able to transfer the admin capability to another account", func(t *testing.T) {
@@ -246,12 +250,12 @@ func TestStakingTransferAdmin(t *testing.T) {
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(idTableAddress).
-			AddAuthorizer(b.ServiceKey().Address)
+			AddAuthorizer(joshAddress)
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, idTableAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			[]flow.Address{b.ServiceKey().Address, idTableAddress, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner, joshSigner},
 			false,
 		)
 	})
@@ -263,16 +267,16 @@ func TestStakingTransferAdmin(t *testing.T) {
 			SetGasLimit(9999).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
-			AddAuthorizer(b.ServiceKey().Address)
+			AddAuthorizer(joshAddress)
 
-		err := tx.AddArgument(cadence.NewArray([]cadence.Value{cadence.NewString(adminID), cadence.NewString(joshID), cadence.NewString(maxID), cadence.NewString(accessID)}))
+		err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID), CadenceString(maxID), CadenceString(accessID)}))
 		require.NoError(t, err)
 		tx.AddArgument(CadenceUFix64("1300000.0"))
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, idTableAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
 			false,
 		)
 	})
@@ -481,13 +485,13 @@ func TestIDTableStaking(t *testing.T) {
 		assertEqual(t, cadence.NewUInt8(1), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetNetworkingAddressScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
-		assertEqual(t, cadence.NewString(fmt.Sprintf("%0128d", admin)), result)
+		assertEqual(t, CadenceString(fmt.Sprintf("%0128d", admin)), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetNetworkingKeyScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
-		assertEqual(t, cadence.NewString(adminNetworkingKey), result)
+		assertEqual(t, CadenceString(adminNetworkingKey), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetStakingKeyScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
-		assertEqual(t, cadence.NewString(adminStakingKey), result)
+		assertEqual(t, CadenceString(adminStakingKey), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetInitialWeightScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		assertEqual(t, cadence.NewUInt64(0), result)
@@ -563,7 +567,7 @@ func TestIDTableStaking(t *testing.T) {
 		// Should fail because the networking address is the wrong length
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateNetworkingAddressScript(env), idTableAddress)
 
-		tx.AddArgument(cadence.NewString(fmt.Sprintf("%0511d", josh)))
+		tx.AddArgument(CadenceString(fmt.Sprintf("%0511d", josh)))
 
 		signAndSubmit(
 			t, b, tx,
@@ -575,7 +579,7 @@ func TestIDTableStaking(t *testing.T) {
 		// Should fail because the networking address is already claimed
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateNetworkingAddressScript(env), idTableAddress)
 
-		tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", admin)))
+		tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", admin)))
 
 		signAndSubmit(
 			t, b, tx,
@@ -587,7 +591,7 @@ func TestIDTableStaking(t *testing.T) {
 		// Should succeed because it is a new networking address and it is the correct length
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateNetworkingAddressScript(env), idTableAddress)
 
-		tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", newAddress)))
+		tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", newAddress)))
 
 		signAndSubmit(
 			t, b, tx,
@@ -597,12 +601,12 @@ func TestIDTableStaking(t *testing.T) {
 		)
 
 		result := executeScriptAndCheck(t, b, templates.GenerateGetNetworkingAddressScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
-		assertEqual(t, cadence.NewString(fmt.Sprintf("%0128d", newAddress)), result)
+		assertEqual(t, CadenceString(fmt.Sprintf("%0128d", newAddress)), result)
 
 		// Should fail because it is the same networking address as the one that was just updated
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateNetworkingAddressScript(env), idTableAddress)
 
-		tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", newAddress)))
+		tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", newAddress)))
 
 		signAndSubmit(
 			t, b, tx,
@@ -614,7 +618,7 @@ func TestIDTableStaking(t *testing.T) {
 		// Should succeed because the old networking address is claimable after updating
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateNetworkingAddressScript(env), idTableAddress)
 
-		tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", admin)))
+		tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", admin)))
 
 		signAndSubmit(
 			t, b, tx,
@@ -629,7 +633,7 @@ func TestIDTableStaking(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
 
-		err := tx.AddArgument(cadence.NewArray([]cadence.Value{cadence.NewString(adminID), cadence.NewString(joshID), cadence.NewString(maxID), cadence.NewString(accessID)}))
+		err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID), CadenceString(maxID), CadenceString(accessID)}))
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -649,7 +653,7 @@ func TestIDTableStaking(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRemoveNodeScript(env), idTableAddress)
 
-		_ = tx.AddArgument(cadence.NewString(nonexistantID))
+		_ = tx.AddArgument(CadenceString(nonexistantID))
 
 		signAndSubmit(
 			t, b, tx,
@@ -721,7 +725,7 @@ func TestIDTableStaking(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRemoveNodeScript(env), idTableAddress)
 
-		_ = tx.AddArgument(cadence.NewString(joshID))
+		_ = tx.AddArgument(CadenceString(joshID))
 
 		signAndSubmit(
 			t, b, tx,
@@ -860,7 +864,7 @@ func TestIDTableStaking(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndStakingScript(env), idTableAddress)
 
-		err := tx.AddArgument(cadence.NewArray([]cadence.Value{cadence.NewString(adminID), cadence.NewString(joshID), cadence.NewString(maxID), cadence.NewString(accessID)}))
+		err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID), CadenceString(maxID), CadenceString(accessID)}))
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -1311,7 +1315,7 @@ func TestIDTableStaking(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndStakingScript(env), idTableAddress)
 
-		err := tx.AddArgument(cadence.NewArray([]cadence.Value{cadence.NewString(adminID), cadence.NewString(joshID), cadence.NewString(maxID), cadence.NewString(accessID)}))
+		err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID), CadenceString(maxID), CadenceString(accessID)}))
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -1623,11 +1627,11 @@ func TestIDTableStaking(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterNodeScript(env), bastianAddress)
 
-		_ = tx.AddArgument(cadence.NewString(bastianID))
+		_ = tx.AddArgument(CadenceString(bastianID))
 		_ = tx.AddArgument(cadence.NewUInt8(3))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", bastian)))
-		_ = tx.AddArgument(cadence.NewString(bastianNetworkingKey))
-		_ = tx.AddArgument(cadence.NewString(bastianStakingKey))
+		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", bastian)))
+		_ = tx.AddArgument(CadenceString(bastianNetworkingKey))
+		_ = tx.AddArgument(CadenceString(bastianStakingKey))
 		_ = tx.AddArgument(CadenceUFix64("1400000.0"))
 
 		signAndSubmit(
@@ -1804,7 +1808,7 @@ func TestIDTableStaking(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndStakingScript(env), idTableAddress)
 
-		err := tx.AddArgument(cadence.NewArray([]cadence.Value{cadence.NewString(adminID), cadence.NewString(joshID), cadence.NewString(maxID), cadence.NewString(bastianID)}))
+		err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID), CadenceString(maxID), CadenceString(bastianID)}))
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -1903,7 +1907,7 @@ func TestIDTableStaking(t *testing.T) {
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEndStakingScript(env), idTableAddress)
 
-		err = tx.AddArgument(cadence.NewArray([]cadence.Value{cadence.NewString(adminID), cadence.NewString(joshID), cadence.NewString(maxID), cadence.NewString(bastianID)}))
+		err = tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID), CadenceString(maxID), CadenceString(bastianID)}))
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -1975,7 +1979,7 @@ func TestIDTableStaking(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), idTableAddress)
 
-		err := tx.AddArgument(cadence.NewArray([]cadence.Value{cadence.NewString(adminID), cadence.NewString(joshID), cadence.NewString(maxID)}))
+		err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID), CadenceString(maxID)}))
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -2081,7 +2085,7 @@ func TestIDTableStaking(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), idTableAddress)
 
-		err := tx.AddArgument(cadence.NewArray([]cadence.Value{cadence.NewString(adminID), cadence.NewString(joshID)}))
+		err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID)}))
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -2185,7 +2189,7 @@ func TestIDTableStaking(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), idTableAddress)
 
-		err := tx.AddArgument(cadence.NewArray([]cadence.Value{cadence.NewString(adminID), cadence.NewString(joshID)}))
+		err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID)}))
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -2203,7 +2207,7 @@ func TestIDTableStaking(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochChangePayoutScript(env), idTableAddress)
 
-		err := tx.AddArgument(cadence.NewArray([]cadence.Value{cadence.NewString(adminID), cadence.NewString(joshID)}))
+		err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID)}))
 		require.NoError(t, err)
 
 		err = tx.AddArgument(CadenceUFix64("4000000.0"))
@@ -2287,7 +2291,7 @@ func TestIDTableStaking(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRemoveUnapprovedNodesScript(env), idTableAddress)
 
-		err := tx.AddArgument(cadence.NewArray([]cadence.Value{cadence.NewString(adminID), cadence.NewString(joshID), cadence.NewString(bastianID)}))
+		err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID), CadenceString(bastianID)}))
 		require.NoError(t, err)
 
 		signAndSubmit(
