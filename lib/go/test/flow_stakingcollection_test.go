@@ -10,6 +10,7 @@ import (
 	"github.com/onflow/cadence/runtime/interpreter"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
@@ -30,7 +31,10 @@ func TestStakingCollectionDeploy(t *testing.T) {
 		randomSource,      // random source
 		rewardAPY)
 
-	deployAllCollectionContracts(t, b, accountKeys, &env)
+	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
+	adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
+
+	deployAllCollectionContracts(t, b, accountKeys, &env, adminAddress, adminSigner)
 }
 
 func TestStakingCollectionGetTokens(t *testing.T) {
@@ -47,7 +51,10 @@ func TestStakingCollectionGetTokens(t *testing.T) {
 		randomSource,      // random source
 		rewardAPY)
 
-	deployAllCollectionContracts(t, b, accountKeys, &env)
+	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
+	adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
+
+	deployAllCollectionContracts(t, b, accountKeys, &env, adminAddress, adminSigner)
 
 	// create regular account
 
@@ -121,7 +128,8 @@ func TestStakingCollectionGetTokens(t *testing.T) {
 		t, b,
 		accountKeys,
 		env,
-		"1000.0", "0.0")
+		"1000.0", "0.0",
+		adminAccountKey, adminAddress, adminSigner)
 
 	// add a staking collection to the main account
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionSetup(env), joshAddress)
@@ -173,7 +181,8 @@ func TestStakingCollectionGetTokens(t *testing.T) {
 		t, b,
 		accountKeys,
 		env,
-		"0.0", "1000.0")
+		"0.0", "1000.0",
+		adminAccountKey, adminAddress, adminSigner)
 
 	// add a staking collection to the main account
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionSetup(env), maxAddress)
@@ -226,7 +235,8 @@ func TestStakingCollectionGetTokens(t *testing.T) {
 		t, b,
 		accountKeys,
 		env,
-		"1000.0", "1000.0")
+		"1000.0", "1000.0",
+		adminAccountKey, adminAddress, adminSigner)
 
 	// add a staking collection to the main account
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionSetup(env), jeffAddress)
@@ -288,7 +298,10 @@ func TestStakingCollectionDepositTokens(t *testing.T) {
 		randomSource,      // random source
 		rewardAPY)
 
-	deployAllCollectionContracts(t, b, accountKeys, &env)
+	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
+	adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
+
+	deployAllCollectionContracts(t, b, accountKeys, &env, adminAddress, adminSigner)
 
 	// create regular account
 	regAccountAddress, _, regAccountSigner := newAccountWithAddress(b, accountKeys)
@@ -331,7 +344,8 @@ func TestStakingCollectionDepositTokens(t *testing.T) {
 		t, b,
 		accountKeys,
 		env,
-		"1000.0", "0.0")
+		"1000.0", "0.0",
+		adminAccountKey, adminAddress, adminSigner)
 
 	// add a staking collection to the main account
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionSetup(env), joshAddress)
@@ -371,7 +385,9 @@ func TestStakingCollectionDepositTokens(t *testing.T) {
 		t, b,
 		accountKeys,
 		env,
-		"1000.0", "1000.0")
+		"1000.0", "1000.0",
+		adminAccountKey, adminAddress, adminSigner)
+
 	// add a staking collection to the main account
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionSetup(env), jeffAddress)
 	signAndSubmit(
@@ -421,7 +437,10 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		randomSource,      // random source
 		rewardAPY)
 
-	deployAllCollectionContracts(t, b, accountKeys, &env)
+	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
+	adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
+
+	deployAllCollectionContracts(t, b, accountKeys, &env, adminAddress, adminSigner)
 
 	// Create regular accounts
 	userAddresses, _, userSigners := registerAndMintManyAccounts(t, b, accountKeys, 4)
@@ -451,7 +470,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 	// end staking auction and epoch, then pay rewards
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), flow.HexToAddress(env.IDTableAddress))
-	err := tx.AddArgument(cadence.NewArray([]cadence.Value{cadence.NewString(adminID), cadence.NewString(joshID)}))
+	err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID)}))
 	require.NoError(t, err)
 	signAndSubmit(
 		t, b, tx,
@@ -507,16 +526,17 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		t, b,
 		accountKeys,
 		env,
-		"1000000.0", "1000000.0")
+		"1000000.0", "1000000.0",
+		adminAccountKey, adminAddress, adminSigner)
 	_, joshStakingKey, _, joshNetworkingKey := generateKeysForNodeRegistration(t)
 
 	// Register a node and a delegator in the locked account
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), joshAddress)
-	_ = tx.AddArgument(cadence.NewString(joshID))
+	_ = tx.AddArgument(CadenceString(joshID))
 	_ = tx.AddArgument(cadence.NewUInt8(4))
-	_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", josh)))
-	_ = tx.AddArgument(cadence.NewString(joshNetworkingKey))
-	_ = tx.AddArgument(cadence.NewString(joshStakingKey))
+	_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
+	_ = tx.AddArgument(CadenceString(joshNetworkingKey))
+	_ = tx.AddArgument(CadenceString(joshStakingKey))
 	_ = tx.AddArgument(CadenceUFix64("320000.0"))
 
 	signAndSubmit(
@@ -527,7 +547,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 	)
 
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateLockedDelegatorScript(env), joshAddress)
-	_ = tx.AddArgument(cadence.NewString(joshID))
+	_ = tx.AddArgument(CadenceString(joshID))
 	_ = tx.AddArgument(CadenceUFix64("50000.0"))
 
 	signAndSubmit(
@@ -577,11 +597,11 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		_, maxStakingKey, _, maxNetworkingKey := generateKeysForNodeRegistration(t)
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterNode(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(maxID))
+		_ = tx.AddArgument(CadenceString(maxID))
 		_ = tx.AddArgument(cadence.NewUInt8(2))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", max)))
-		_ = tx.AddArgument(cadence.NewString(maxNetworkingKey))
-		_ = tx.AddArgument(cadence.NewString(maxStakingKey))
+		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", max)))
+		_ = tx.AddArgument(CadenceString(maxNetworkingKey))
+		_ = tx.AddArgument(CadenceString(maxStakingKey))
 		_ = tx.AddArgument(CadenceUFix64("500000.0"))
 		_ = tx.AddArgument(cadence.NewOptional(nil))
 
@@ -596,7 +616,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 	publicKeys := make([]cadence.Value, 1)
 	machineAccountKey, _ := accountKeys.NewWithSigner()
 	machineAccountKeyString := hex.EncodeToString(machineAccountKey.Encode())
-	publicKeys[0] = cadence.NewString(machineAccountKeyString)
+	publicKeys[0] = CadenceString(machineAccountKeyString)
 	cadencePublicKeys := cadence.NewArray(publicKeys)
 
 	t.Run("Should be able to register a second node and delegator in the staking collection", func(t *testing.T) {
@@ -604,11 +624,11 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		_, maxStakingKey, _, maxNetworkingKey := generateKeysForNodeRegistration(t)
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterNode(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(maxID))
+		_ = tx.AddArgument(CadenceString(maxID))
 		_ = tx.AddArgument(cadence.NewUInt8(2))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", max)))
-		_ = tx.AddArgument(cadence.NewString(maxNetworkingKey))
-		_ = tx.AddArgument(cadence.NewString(maxStakingKey))
+		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", max)))
+		_ = tx.AddArgument(CadenceString(maxNetworkingKey))
+		_ = tx.AddArgument(CadenceString(maxStakingKey))
 		_ = tx.AddArgument(CadenceUFix64("500000.0"))
 		_ = tx.AddArgument(cadence.NewOptional(cadencePublicKeys))
 
@@ -619,10 +639,10 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 			false,
 		)
 
-		machineAccounts[cadence.NewString(maxID)] = getMachineAccountFromEvent(t, b, env, result)
+		machineAccounts[CadenceString(maxID).(cadence.String)] = getMachineAccountFromEvent(t, b, env, result)
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterDelegator(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(maxID))
+		_ = tx.AddArgument(CadenceString(maxID))
 		_ = tx.AddArgument(CadenceUFix64("500000.0"))
 
 		signAndSubmit(
@@ -650,11 +670,11 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		_, bastianStakingKey, _, bastianNetworkingKey := generateKeysForNodeRegistration(t)
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterNode(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(bastianID))
+		_ = tx.AddArgument(CadenceString(bastianID))
 		_ = tx.AddArgument(cadence.NewUInt8(1))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", bastian)))
-		_ = tx.AddArgument(cadence.NewString(bastianNetworkingKey))
-		_ = tx.AddArgument(cadence.NewString(bastianStakingKey))
+		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", bastian)))
+		_ = tx.AddArgument(CadenceString(bastianNetworkingKey))
+		_ = tx.AddArgument(CadenceString(bastianStakingKey))
 		_ = tx.AddArgument(CadenceUFix64("10000.0"))
 		_ = tx.AddArgument(cadence.NewOptional(cadencePublicKeys))
 
@@ -665,7 +685,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 			false,
 		)
 
-		machineAccounts[cadence.NewString(bastianID)] = getMachineAccountFromEvent(t, b, env, result)
+		machineAccounts[CadenceString(bastianID).(cadence.String)] = getMachineAccountFromEvent(t, b, env, result)
 
 		verifyStakingCollectionInfo(t, b, env, StakingCollectionInfo{
 			accountAddress:     joshAddress.String(),
@@ -683,11 +703,11 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 	t.Run("Should be able to deposit and withdraw tokens from the machine account", func(t *testing.T) {
 
 		// Add 100 tokens to the machine account
-		mintTokensForAccount(t, b, machineAccounts[cadence.NewString(bastianID)], "100.0")
+		mintTokensForAccount(t, b, machineAccounts[CadenceString(bastianID).(cadence.String)], "100.0")
 
 		// Should fail because this node does not exist in the collection
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionWithdrawFromMachineAccountScript(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(executionID))
+		_ = tx.AddArgument(CadenceString(executionID))
 		_ = tx.AddArgument(CadenceUFix64("50.0"))
 
 		signAndSubmit(
@@ -698,7 +718,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		)
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionWithdrawFromMachineAccountScript(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(bastianID))
+		_ = tx.AddArgument(CadenceString(bastianID))
 		_ = tx.AddArgument(CadenceUFix64("50.0"))
 
 		signAndSubmit(
@@ -726,11 +746,11 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		_, executionStakingKey, _, executionNetworkingKey := generateKeysForNodeRegistration(t)
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterNode(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(executionID))
+		_ = tx.AddArgument(CadenceString(executionID))
 		_ = tx.AddArgument(cadence.NewUInt8(3))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", execution)))
-		_ = tx.AddArgument(cadence.NewString(executionNetworkingKey))
-		_ = tx.AddArgument(cadence.NewString(executionStakingKey))
+		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", execution)))
+		_ = tx.AddArgument(CadenceString(executionNetworkingKey))
+		_ = tx.AddArgument(CadenceString(executionStakingKey))
 		_ = tx.AddArgument(CadenceUFix64("10000.0"))
 		_ = tx.AddArgument(cadence.NewOptional(nil))
 
@@ -743,7 +763,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 		// Should fail because the execution node does not have a machine account
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionWithdrawFromMachineAccountScript(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(executionID))
+		_ = tx.AddArgument(CadenceString(executionID))
 		_ = tx.AddArgument(CadenceUFix64("50.0"))
 
 		signAndSubmit(
@@ -756,11 +776,11 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		_, verificationStakingKey, _, verificationNetworkingKey := generateKeysForNodeRegistration(t)
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterNode(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(verificationID))
+		_ = tx.AddArgument(CadenceString(verificationID))
 		_ = tx.AddArgument(cadence.NewUInt8(3))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", verification)))
-		_ = tx.AddArgument(cadence.NewString(verificationNetworkingKey))
-		_ = tx.AddArgument(cadence.NewString(verificationStakingKey))
+		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", verification)))
+		_ = tx.AddArgument(CadenceString(verificationNetworkingKey))
+		_ = tx.AddArgument(CadenceString(verificationStakingKey))
 		_ = tx.AddArgument(CadenceUFix64("10000.0"))
 		_ = tx.AddArgument(cadence.NewOptional(nil))
 
@@ -787,8 +807,8 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 	t.Run("Should be able to update the networking address for the execution node", func(t *testing.T) {
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionUpdateNetworkingAddressScript(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(executionID))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", newAddress)))
+		_ = tx.AddArgument(CadenceString(executionID))
+		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", newAddress)))
 
 		signAndSubmit(
 			t, b, tx,
@@ -798,7 +818,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		)
 
 		result := executeScriptAndCheck(t, b, templates.GenerateGetNetworkingAddressScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(executionID))})
-		assertEqual(t, cadence.NewString(fmt.Sprintf("%0128d", newAddress)), result)
+		assertEqual(t, CadenceString(fmt.Sprintf("%0128d", newAddress)), result)
 	})
 }
 
@@ -816,7 +836,10 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 		randomSource,      // random source
 		rewardAPY)
 
-	deployAllCollectionContracts(t, b, accountKeys, &env)
+	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
+	adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
+
+	deployAllCollectionContracts(t, b, accountKeys, &env, adminAddress, adminSigner)
 
 	// Create regular accounts
 	userAddresses, _, userSigners := registerAndMintManyAccounts(t, b, accountKeys, 4)
@@ -839,7 +862,7 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 
 	// end staking auction and epoch, then pay rewards
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), flow.HexToAddress(env.IDTableAddress))
-	err := tx.AddArgument(cadence.NewArray([]cadence.Value{cadence.NewString(adminID), cadence.NewString(joshID)}))
+	err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID)}))
 	require.NoError(t, err)
 	signAndSubmit(
 		t, b, tx,
@@ -858,7 +881,7 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 	publicKeys := make([]cadence.Value, 1)
 	machineAccountKey, _ := accountKeys.NewWithSigner()
 	machineAccountKeyString := hex.EncodeToString(machineAccountKey.Encode())
-	publicKeys[0] = cadence.NewString(machineAccountKeyString)
+	publicKeys[0] = CadenceString(machineAccountKeyString)
 	cadencePublicKeys := cadence.NewArray(publicKeys)
 
 	t.Run("Should be able to set up staking collection, which moves the node and delegator to the collection", func(t *testing.T) {
@@ -885,7 +908,7 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 		})
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionCreateMachineAccountForNodeScript(env), userAddresses[0])
-		_ = tx.AddArgument(cadence.NewString(adminID))
+		_ = tx.AddArgument(CadenceString(adminID))
 		_ = tx.AddArgument(cadencePublicKeys)
 
 		result := signAndSubmit(
@@ -896,7 +919,7 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 		)
 
 		machineAccounts := make(map[cadence.String]flow.Address)
-		machineAccounts[cadence.NewString(adminID)] = getMachineAccountFromEvent(t, b, env, result)
+		machineAccounts[CadenceString(adminID).(cadence.String)] = getMachineAccountFromEvent(t, b, env, result)
 
 		verifyStakingCollectionInfo(t, b, env, StakingCollectionInfo{
 			accountAddress:     userAddresses[0].String(),
@@ -917,17 +940,18 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 		t, b,
 		accountKeys,
 		env,
-		"1000000.0", "1000000.0")
+		"1000000.0", "1000000.0",
+		adminAccountKey, adminAddress, adminSigner)
 
 	_, joshStakingKey, _, joshNetworkingKey := generateKeysForNodeRegistration(t)
 
 	// Register a node and a delegator in the locked account
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), joshAddress)
-	_ = tx.AddArgument(cadence.NewString(joshID))
+	_ = tx.AddArgument(CadenceString(joshID))
 	_ = tx.AddArgument(cadence.NewUInt8(2))
-	_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", josh)))
-	_ = tx.AddArgument(cadence.NewString(joshNetworkingKey))
-	_ = tx.AddArgument(cadence.NewString(joshStakingKey))
+	_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
+	_ = tx.AddArgument(CadenceString(joshNetworkingKey))
+	_ = tx.AddArgument(CadenceString(joshStakingKey))
 	_ = tx.AddArgument(CadenceUFix64("320000.0"))
 
 	signAndSubmit(
@@ -962,7 +986,7 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 		})
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionCreateMachineAccountForNodeScript(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID))
+		_ = tx.AddArgument(CadenceString(joshID))
 		_ = tx.AddArgument(cadencePublicKeys)
 
 		result := signAndSubmit(
@@ -973,7 +997,7 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 		)
 
 		machineAccounts := make(map[cadence.String]flow.Address)
-		machineAccounts[cadence.NewString(joshID)] = getMachineAccountFromEvent(t, b, env, result)
+		machineAccounts[CadenceString(joshID).(cadence.String)] = getMachineAccountFromEvent(t, b, env, result)
 
 		verifyStakingCollectionInfo(t, b, env, StakingCollectionInfo{
 			accountAddress:     joshAddress.String(),
@@ -1005,19 +1029,23 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 		randomSource,      // random source
 		rewardAPY)
 
-	deployAllCollectionContracts(t, b, accountKeys, &env)
+	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
+	adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
+
+	deployAllCollectionContracts(t, b, accountKeys, &env, adminAddress, adminSigner)
 
 	joshAddress, _, joshSigner, joshID1, joshID2 := registerStakingCollectionNodesAndDelegators(
 		t, b,
 		accountKeys,
 		env,
-		"1000000.0", "1000000.0")
+		"1000000.0", "1000000.0",
+		adminAccountKey, adminAddress, adminSigner)
 
 	t.Run("Should be able to commit new tokens to the node or delegator in both accounts", func(t *testing.T) {
 
 		// Should fail because stake doesn't exist
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionStakeNewTokens(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(accessID))
+		_ = tx.AddArgument(CadenceString(accessID))
 		_ = tx.AddArgument(cadence.NewOptional(nil))
 		_ = tx.AddArgument(CadenceUFix64("10000.0"))
 
@@ -1030,7 +1058,7 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 
 		// Stake new tokens to the locked account node
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionStakeNewTokens(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID1))
+		_ = tx.AddArgument(CadenceString(joshID1))
 		_ = tx.AddArgument(cadence.NewOptional(nil))
 		_ = tx.AddArgument(CadenceUFix64("10000.0"))
 
@@ -1043,7 +1071,7 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 
 		// Stake new tokens to the unlocked account node
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionStakeNewTokens(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID2))
+		_ = tx.AddArgument(CadenceString(joshID2))
 		_ = tx.AddArgument(cadence.NewOptional(nil))
 		_ = tx.AddArgument(CadenceUFix64("10000.0"))
 
@@ -1056,7 +1084,7 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 
 		// Stake new tokens to the locked account delegator
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionStakeNewTokens(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID1))
+		_ = tx.AddArgument(CadenceString(joshID1))
 		_ = tx.AddArgument(cadence.NewUInt32(1))
 		_ = tx.AddArgument(CadenceUFix64("10000.0"))
 
@@ -1069,7 +1097,7 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 
 		// Stake new tokens to the unlocked account delegator
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionStakeNewTokens(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID2))
+		_ = tx.AddArgument(CadenceString(joshID2))
 		_ = tx.AddArgument(cadence.NewUInt32(1))
 		_ = tx.AddArgument(CadenceUFix64("10000.0"))
 
@@ -1140,7 +1168,7 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 
 		// Should fail because stake doesn't exist
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRequestUnstaking(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(accessID))
+		_ = tx.AddArgument(CadenceString(accessID))
 		_ = tx.AddArgument(cadence.NewOptional(nil))
 		_ = tx.AddArgument(CadenceUFix64("10000.0"))
 
@@ -1153,7 +1181,7 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 
 		// unstake tokens from the locked account node
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRequestUnstaking(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID1))
+		_ = tx.AddArgument(CadenceString(joshID1))
 		_ = tx.AddArgument(cadence.NewOptional(nil))
 		_ = tx.AddArgument(CadenceUFix64("10000.0"))
 
@@ -1166,7 +1194,7 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 
 		// unstake tokens from the unlocked account node
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRequestUnstaking(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID2))
+		_ = tx.AddArgument(CadenceString(joshID2))
 		_ = tx.AddArgument(cadence.NewOptional(nil))
 		_ = tx.AddArgument(CadenceUFix64("10000.0"))
 
@@ -1179,7 +1207,7 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 
 		// unstake tokens from the locked account delegator
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRequestUnstaking(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID1))
+		_ = tx.AddArgument(CadenceString(joshID1))
 		_ = tx.AddArgument(cadence.NewUInt32(1))
 		_ = tx.AddArgument(CadenceUFix64("10000.0"))
 
@@ -1192,7 +1220,7 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 
 		// unstake tokens from the unlocked account delegator
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRequestUnstaking(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID2))
+		_ = tx.AddArgument(CadenceString(joshID2))
 		_ = tx.AddArgument(cadence.NewUInt32(1))
 		_ = tx.AddArgument(CadenceUFix64("10000.0"))
 
@@ -1263,7 +1291,7 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 
 		// Should fail because stake doesn't exist
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionStakeUnstakedTokens(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(accessID))
+		_ = tx.AddArgument(CadenceString(accessID))
 		_ = tx.AddArgument(cadence.NewOptional(nil))
 		_ = tx.AddArgument(CadenceUFix64("5000.0"))
 
@@ -1276,7 +1304,7 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 
 		// Stake unstaked tokens to the locked account node
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionStakeUnstakedTokens(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID1))
+		_ = tx.AddArgument(CadenceString(joshID1))
 		_ = tx.AddArgument(cadence.NewOptional(nil))
 		_ = tx.AddArgument(CadenceUFix64("5000.0"))
 
@@ -1289,7 +1317,7 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 
 		// Stake unstaked tokens to the unlocked account node
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionStakeUnstakedTokens(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID2))
+		_ = tx.AddArgument(CadenceString(joshID2))
 		_ = tx.AddArgument(cadence.NewOptional(nil))
 		_ = tx.AddArgument(CadenceUFix64("5000.0"))
 
@@ -1302,7 +1330,7 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 
 		// Stake unstaked tokens to the locked account delegator
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionStakeUnstakedTokens(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID1))
+		_ = tx.AddArgument(CadenceString(joshID1))
 		_ = tx.AddArgument(cadence.NewUInt32(1))
 		_ = tx.AddArgument(CadenceUFix64("5000.0"))
 
@@ -1315,7 +1343,7 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 
 		// Stake unstaked tokens to the unlocked account delegator
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionStakeUnstakedTokens(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID2))
+		_ = tx.AddArgument(CadenceString(joshID2))
 		_ = tx.AddArgument(cadence.NewUInt32(1))
 		_ = tx.AddArgument(CadenceUFix64("5000.0"))
 
@@ -1386,7 +1414,7 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 
 		// Should fail because stake doesn't exist
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionWithdrawUnstakedTokens(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(accessID))
+		_ = tx.AddArgument(CadenceString(accessID))
 		_ = tx.AddArgument(cadence.NewOptional(nil))
 		_ = tx.AddArgument(CadenceUFix64("5000.0"))
 
@@ -1399,7 +1427,7 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 
 		// withdraw unstaked tokens from locked account node
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionWithdrawUnstakedTokens(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID1))
+		_ = tx.AddArgument(CadenceString(joshID1))
 		_ = tx.AddArgument(cadence.NewOptional(nil))
 		_ = tx.AddArgument(CadenceUFix64("5000.0"))
 
@@ -1412,7 +1440,7 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 
 		// withdraw unstaked tokens from the unlocked account node
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionWithdrawUnstakedTokens(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID2))
+		_ = tx.AddArgument(CadenceString(joshID2))
 		_ = tx.AddArgument(cadence.NewOptional(nil))
 		_ = tx.AddArgument(CadenceUFix64("5000.0"))
 
@@ -1425,7 +1453,7 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 
 		// withdraw unstaked tokens from the locked account delegator
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionWithdrawUnstakedTokens(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID1))
+		_ = tx.AddArgument(CadenceString(joshID1))
 		_ = tx.AddArgument(cadence.NewUInt32(1))
 		_ = tx.AddArgument(CadenceUFix64("5000.0"))
 
@@ -1438,7 +1466,7 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 
 		// withdraw unstaked tokens from the unlocked account delegator
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionWithdrawUnstakedTokens(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID2))
+		_ = tx.AddArgument(CadenceString(joshID2))
 		_ = tx.AddArgument(cadence.NewUInt32(1))
 		_ = tx.AddArgument(CadenceUFix64("5000.0"))
 
@@ -1520,17 +1548,21 @@ func TestStakingCollectionRewards(t *testing.T) {
 		randomSource,      // random source
 		rewardAPY)
 
-	deployAllCollectionContracts(t, b, accountKeys, &env)
+	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
+	adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
+
+	deployAllCollectionContracts(t, b, accountKeys, &env, adminAddress, adminSigner)
 
 	joshAddress, _, joshSigner, joshID1, joshID2 := registerStakingCollectionNodesAndDelegators(
 		t, b,
 		accountKeys,
 		env,
-		"1000000.0", "1000000.0")
+		"1000000.0", "1000000.0",
+		adminAccountKey, adminAddress, adminSigner)
 
 	// end staking auction and epoch, then pay rewards
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), flow.HexToAddress(env.IDTableAddress))
-	err := tx.AddArgument(cadence.NewArray([]cadence.Value{cadence.NewString(adminID), cadence.NewString(joshID)}))
+	err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID)}))
 	require.NoError(t, err)
 	signAndSubmit(
 		t, b, tx,
@@ -1550,7 +1582,7 @@ func TestStakingCollectionRewards(t *testing.T) {
 
 		// Should fail because stake doesn't exist
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionWithdrawRewardedTokens(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(accessID))
+		_ = tx.AddArgument(CadenceString(accessID))
 		_ = tx.AddArgument(cadence.NewOptional(nil))
 		_ = tx.AddArgument(CadenceUFix64("5000.0"))
 
@@ -1563,7 +1595,7 @@ func TestStakingCollectionRewards(t *testing.T) {
 
 		// withdraw rewarded tokens to the locked account node
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionWithdrawRewardedTokens(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID1))
+		_ = tx.AddArgument(CadenceString(joshID1))
 		_ = tx.AddArgument(cadence.NewOptional(nil))
 		_ = tx.AddArgument(CadenceUFix64("5000.0"))
 
@@ -1576,7 +1608,7 @@ func TestStakingCollectionRewards(t *testing.T) {
 
 		// withdraw rewarded tokens to the unlocked account node
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionWithdrawRewardedTokens(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID2))
+		_ = tx.AddArgument(CadenceString(joshID2))
 		_ = tx.AddArgument(cadence.NewOptional(nil))
 		_ = tx.AddArgument(CadenceUFix64("5000.0"))
 
@@ -1589,7 +1621,7 @@ func TestStakingCollectionRewards(t *testing.T) {
 
 		// withdraw rewarded tokens to the locked account delegator
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionWithdrawRewardedTokens(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID1))
+		_ = tx.AddArgument(CadenceString(joshID1))
 		_ = tx.AddArgument(cadence.NewUInt32(1))
 		_ = tx.AddArgument(CadenceUFix64("5000.0"))
 
@@ -1602,7 +1634,7 @@ func TestStakingCollectionRewards(t *testing.T) {
 
 		// withdraw rewarded tokens to the unlocked account delegator
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionWithdrawRewardedTokens(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID2))
+		_ = tx.AddArgument(CadenceString(joshID2))
 		_ = tx.AddArgument(cadence.NewUInt32(1))
 		_ = tx.AddArgument(CadenceUFix64("5000.0"))
 
@@ -1673,7 +1705,7 @@ func TestStakingCollectionRewards(t *testing.T) {
 
 		// Should fail because stake doesn't exist
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionStakeRewardedTokens(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(accessID))
+		_ = tx.AddArgument(CadenceString(accessID))
 		_ = tx.AddArgument(cadence.NewOptional(nil))
 		_ = tx.AddArgument(CadenceUFix64("5000.0"))
 
@@ -1686,7 +1718,7 @@ func TestStakingCollectionRewards(t *testing.T) {
 
 		// withdraw rewarded tokens to the locked account node
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionStakeRewardedTokens(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID1))
+		_ = tx.AddArgument(CadenceString(joshID1))
 		_ = tx.AddArgument(cadence.NewOptional(nil))
 		_ = tx.AddArgument(CadenceUFix64("5000.0"))
 
@@ -1699,7 +1731,7 @@ func TestStakingCollectionRewards(t *testing.T) {
 
 		// withdraw rewarded tokens to the unlocked account node
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionStakeRewardedTokens(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID2))
+		_ = tx.AddArgument(CadenceString(joshID2))
 		_ = tx.AddArgument(cadence.NewOptional(nil))
 		_ = tx.AddArgument(CadenceUFix64("5000.0"))
 
@@ -1712,7 +1744,7 @@ func TestStakingCollectionRewards(t *testing.T) {
 
 		// withdraw rewarded tokens to the locked account delegator
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionStakeRewardedTokens(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID1))
+		_ = tx.AddArgument(CadenceString(joshID1))
 		_ = tx.AddArgument(cadence.NewUInt32(1))
 		_ = tx.AddArgument(CadenceUFix64("5000.0"))
 
@@ -1725,7 +1757,7 @@ func TestStakingCollectionRewards(t *testing.T) {
 
 		// withdraw rewarded tokens to the unlocked account delegator
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionStakeRewardedTokens(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID2))
+		_ = tx.AddArgument(CadenceString(joshID2))
 		_ = tx.AddArgument(cadence.NewUInt32(1))
 		_ = tx.AddArgument(CadenceUFix64("5000.0"))
 
@@ -1796,7 +1828,7 @@ func TestStakingCollectionRewards(t *testing.T) {
 
 		// Should fail because stake doesn't exist
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionUnstakeAll(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(accessID))
+		_ = tx.AddArgument(CadenceString(accessID))
 
 		signAndSubmit(
 			t, b, tx,
@@ -1807,7 +1839,7 @@ func TestStakingCollectionRewards(t *testing.T) {
 
 		// unstake all tokens to the locked account node
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionUnstakeAll(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID1))
+		_ = tx.AddArgument(CadenceString(joshID1))
 
 		signAndSubmit(
 			t, b, tx,
@@ -1818,7 +1850,7 @@ func TestStakingCollectionRewards(t *testing.T) {
 
 		// unstake all tokens to the unlocked account node
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionUnstakeAll(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID2))
+		_ = tx.AddArgument(CadenceString(joshID2))
 
 		signAndSubmit(
 			t, b, tx,
@@ -1899,19 +1931,23 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 		randomSource,      // random source
 		rewardAPY)
 
-	deployAllCollectionContracts(t, b, accountKeys, &env)
+	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
+	adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
+
+	deployAllCollectionContracts(t, b, accountKeys, &env, adminAddress, adminSigner)
 
 	joshAddress, _, joshSigner, joshID1, joshID2 := registerStakingCollectionNodesAndDelegators(
 		t, b,
 		accountKeys,
 		env,
-		"1000000.0", "1000000.0")
+		"1000000.0", "1000000.0",
+		adminAccountKey, adminAddress, adminSigner)
 
 	t.Run("Should fail to close a stake and delegation stored in the locked account if there are tokens in a 'staked' state", func(t *testing.T) {
 
 		// Should fail because node isn't ready to be closed. tokens in committed bucket
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionCloseStake(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID1))
+		_ = tx.AddArgument(CadenceString(joshID1))
 		_ = tx.AddArgument(cadence.NewOptional(nil))
 
 		signAndSubmit(
@@ -1922,7 +1958,7 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 		)
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionCloseStake(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID1))
+		_ = tx.AddArgument(CadenceString(joshID1))
 		_ = tx.AddArgument(cadence.NewOptional(cadence.NewUInt32(1)))
 
 		signAndSubmit(
@@ -1934,7 +1970,7 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 
 		// Should fail because node isn't ready to be closed.
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionCloseStake(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID2))
+		_ = tx.AddArgument(CadenceString(joshID2))
 		_ = tx.AddArgument(cadence.NewOptional(nil))
 
 		signAndSubmit(
@@ -1945,7 +1981,7 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 		)
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionCloseStake(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID2))
+		_ = tx.AddArgument(CadenceString(joshID2))
 		_ = tx.AddArgument(cadence.NewOptional(cadence.NewUInt32(1)))
 
 		signAndSubmit(
@@ -1957,12 +1993,12 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 
 		// End staking auction and epoch
 		endStakingMoveTokens(t, b, env, flow.HexToAddress(env.IDTableAddress), IDTableSigner,
-			[]cadence.Value{cadence.NewString(adminID), cadence.NewString(joshID)},
+			[]cadence.Value{CadenceString(adminID), CadenceString(joshID)},
 		)
 
 		// Should fail because node isn't ready to be closed. tokens in staked bucket
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionCloseStake(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID1))
+		_ = tx.AddArgument(CadenceString(joshID1))
 		_ = tx.AddArgument(cadence.NewOptional(nil))
 
 		signAndSubmit(
@@ -1973,7 +2009,7 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 		)
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionCloseStake(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID1))
+		_ = tx.AddArgument(CadenceString(joshID1))
 		_ = tx.AddArgument(cadence.NewOptional(cadence.NewUInt32(1)))
 
 		signAndSubmit(
@@ -1985,7 +2021,7 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 
 		// Should fail because node isn't ready to be closed. tokens in staked
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionCloseStake(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID2))
+		_ = tx.AddArgument(CadenceString(joshID2))
 		_ = tx.AddArgument(cadence.NewOptional(nil))
 
 		signAndSubmit(
@@ -1996,7 +2032,7 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 		)
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionCloseStake(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID2))
+		_ = tx.AddArgument(CadenceString(joshID2))
 		_ = tx.AddArgument(cadence.NewOptional(cadence.NewUInt32(1)))
 
 		signAndSubmit(
@@ -2019,7 +2055,7 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 
 		// Request Unstaking all staked tokens from joshID1
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionUnstakeAll(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID1))
+		_ = tx.AddArgument(CadenceString(joshID1))
 
 		signAndSubmit(
 			t, b, tx,
@@ -2030,7 +2066,7 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 
 		// Request Unstaking all delegated tokens to joshID1
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRequestUnstaking(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID1))
+		_ = tx.AddArgument(CadenceString(joshID1))
 		_ = tx.AddArgument(cadence.NewOptional(cadence.NewUInt32(1)))
 		_ = tx.AddArgument(CadenceUFix64("50000.0"))
 
@@ -2043,7 +2079,7 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 
 		// Request Unstaking all delegated tokens to joshID2
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRequestUnstaking(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID2))
+		_ = tx.AddArgument(CadenceString(joshID2))
 		_ = tx.AddArgument(cadence.NewOptional(cadence.NewUInt32(1)))
 		_ = tx.AddArgument(CadenceUFix64("500000.0"))
 
@@ -2056,7 +2092,7 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 
 		// Request Unstaking all staked tokens from joshID2
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionUnstakeAll(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID2))
+		_ = tx.AddArgument(CadenceString(joshID2))
 
 		signAndSubmit(
 			t, b, tx,
@@ -2067,12 +2103,12 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 
 		// End staking auction and epoch
 		endStakingMoveTokens(t, b, env, flow.HexToAddress(env.IDTableAddress), IDTableSigner,
-			[]cadence.Value{cadence.NewString(adminID), cadence.NewString(joshID)},
+			[]cadence.Value{CadenceString(adminID), CadenceString(joshID)},
 		)
 
 		// Should fail because node isn't ready to be closed. tokens in unstaking bucket
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionCloseStake(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID1))
+		_ = tx.AddArgument(CadenceString(joshID1))
 		_ = tx.AddArgument(cadence.NewOptional(nil))
 
 		signAndSubmit(
@@ -2083,7 +2119,7 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 		)
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionCloseStake(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID1))
+		_ = tx.AddArgument(CadenceString(joshID1))
 		_ = tx.AddArgument(cadence.NewOptional(cadence.NewUInt32(1)))
 
 		signAndSubmit(
@@ -2095,7 +2131,7 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 
 		// Should fail because node isn't ready to be closed. tokens in unstaking
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionCloseStake(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID2))
+		_ = tx.AddArgument(CadenceString(joshID2))
 		_ = tx.AddArgument(cadence.NewOptional(nil))
 
 		signAndSubmit(
@@ -2106,7 +2142,7 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 		)
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionCloseStake(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID2))
+		_ = tx.AddArgument(CadenceString(joshID2))
 		_ = tx.AddArgument(cadence.NewOptional(cadence.NewUInt32(1)))
 
 		signAndSubmit(
@@ -2117,7 +2153,7 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 		)
 
 		endStakingMoveTokens(t, b, env, flow.HexToAddress(env.IDTableAddress), IDTableSigner,
-			[]cadence.Value{cadence.NewString(adminID), cadence.NewString(joshID)},
+			[]cadence.Value{CadenceString(adminID), CadenceString(joshID)},
 		)
 
 		verifyStakingInfo(t, b, env, StakingInfo{
@@ -2144,7 +2180,7 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 
 		// Should close stake for the node becuase all tokens are able to be withdrawn
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionCloseStake(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID1))
+		_ = tx.AddArgument(CadenceString(joshID1))
 		_ = tx.AddArgument(cadence.NewOptional(nil))
 
 		signAndSubmit(
@@ -2167,7 +2203,7 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 
 		// should close stake for the delegator because all tokens are able to be withdrawn
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionCloseStake(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID1))
+		_ = tx.AddArgument(CadenceString(joshID1))
 		_ = tx.AddArgument(cadence.NewOptional(cadence.NewUInt32(1)))
 
 		signAndSubmit(
@@ -2190,7 +2226,7 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 
 		// Should close stake because tokens are able to be withdrawn
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionCloseStake(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID2))
+		_ = tx.AddArgument(CadenceString(joshID2))
 		_ = tx.AddArgument(cadence.NewOptional(nil))
 
 		signAndSubmit(
@@ -2201,7 +2237,7 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 		)
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionCloseStake(env), joshAddress)
-		_ = tx.AddArgument(cadence.NewString(joshID2))
+		_ = tx.AddArgument(CadenceString(joshID2))
 		_ = tx.AddArgument(cadence.NewOptional(cadence.NewUInt32(1)))
 
 		signAndSubmit(
@@ -2240,14 +2276,18 @@ func TestDoesAccountHaveStakingCollection(t *testing.T) {
 		randomSource,      // random source
 		rewardAPY)
 
-	deployAllCollectionContracts(t, b, accountKeys, &env)
+	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
+	adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
+
+	deployAllCollectionContracts(t, b, accountKeys, &env, adminAddress, adminSigner)
 
 	t.Run("Should fail because account was not created with staking collection", func(t *testing.T) {
 		joshAddress, _, _ := createLockedAccountPairWithBalances(
 			t, b,
 			accountKeys,
 			env,
-			"1000000.0", "1000000.0")
+			"1000000.0", "1000000.0",
+			adminAccountKey, adminAddress, adminSigner)
 
 		result := executeScriptAndCheck(t, b, templates.GenerateCollectionDoesAccountHaveStakingCollection(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
 		assertEqual(t, cadence.NewBool(false), result)
@@ -2258,7 +2298,8 @@ func TestDoesAccountHaveStakingCollection(t *testing.T) {
 			t, b,
 			accountKeys,
 			env,
-			"1000000.0", "1000000.0")
+			"1000000.0", "1000000.0",
+			adminAccountKey, adminAddress, adminSigner)
 
 		result := executeScriptAndCheck(t, b, templates.GenerateCollectionDoesAccountHaveStakingCollection(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
 		assertEqual(t, cadence.NewBool(true), result)
@@ -2281,20 +2322,25 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 			randomSource,      // random source
 			rewardAPY)
 
-		deployAllCollectionContracts(t, b, accountKeys, &env)
+		adminAccountKey, adminSigner := accountKeys.NewWithSigner()
+		adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
+
+		deployAllCollectionContracts(t, b, accountKeys, &env, adminAddress, adminSigner)
 
 		jeffAddress1, _, jeffSigner1, jeffID1_1, _ := registerStakingCollectionNodesAndDelegators(
 			t, b,
 			accountKeys,
 			env,
-			"1000000.0", "1000000.0")
+			"1000000.0", "1000000.0",
+			adminAccountKey, adminAddress, adminSigner)
 
 		// Create a locked account pair with tokens in both accounts
 		jeffAddress2, _, jeff2Signer := createLockedAccountPairWithBalances(
 			t, b,
 			accountKeys,
 			env,
-			"1000000.0", "1000000.0")
+			"1000000.0", "1000000.0",
+			adminAccountKey, adminAddress, adminSigner)
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionSetup(env), jeffAddress2)
 
@@ -2306,7 +2352,7 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 		)
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionTransferNode(env), jeffAddress1)
-		_ = tx.AddArgument(cadence.NewString(jeffID1_1))
+		_ = tx.AddArgument(CadenceString(jeffID1_1))
 		_ = tx.AddArgument(cadence.NewAddress(jeffAddress2))
 
 		signAndSubmit(
@@ -2331,20 +2377,25 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 			randomSource,      // random source
 			rewardAPY)
 
-		deployAllCollectionContracts(t, b, accountKeys, &env)
+		adminAccountKey, adminSigner := accountKeys.NewWithSigner()
+		adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
+
+		deployAllCollectionContracts(t, b, accountKeys, &env, adminAddress, adminSigner)
 
 		jeffAddress1, _, jeffSigner1, jeffID1_1, _ := registerStakingCollectionNodesAndDelegators(
 			t, b,
 			accountKeys,
 			env,
-			"1000000.0", "1000000.0")
+			"1000000.0", "1000000.0",
+			adminAccountKey, adminAddress, adminSigner)
 
 		// Create a locked account pair with tokens in both accounts
 		jeffAddress2, _, jeff2Signer := createLockedAccountPairWithBalances(
 			t, b,
 			accountKeys,
 			env,
-			"1000000.0", "1000000.0")
+			"1000000.0", "1000000.0",
+			adminAccountKey, adminAddress, adminSigner)
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionSetup(env), jeffAddress2)
 
@@ -2356,7 +2407,7 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 		)
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionTransferDelegator(env), jeffAddress1)
-		_ = tx.AddArgument(cadence.NewString(jeffID1_1))
+		_ = tx.AddArgument(CadenceString(jeffID1_1))
 		_ = tx.AddArgument(cadence.NewUInt32(1))
 		_ = tx.AddArgument(cadence.NewAddress(jeffAddress2))
 
@@ -2382,20 +2433,25 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 			randomSource,      // random source
 			rewardAPY)
 
-		deployAllCollectionContracts(t, b, accountKeys, &env)
+		adminAccountKey, adminSigner := accountKeys.NewWithSigner()
+		adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
+
+		deployAllCollectionContracts(t, b, accountKeys, &env, adminAddress, adminSigner)
 
 		jeffAddress1, _, jeffSigner1, jeffID1_1, jeffID1_2 := registerStakingCollectionNodesAndDelegators(
 			t, b,
 			accountKeys,
 			env,
-			"0.0", "2000000.0")
+			"0.0", "2000000.0",
+			adminAccountKey, adminAddress, adminSigner)
 
 		// Create a locked account pair with tokens in both accounts
 		jeffAddress2, _, jeff2Signer := createLockedAccountPairWithBalances(
 			t, b,
 			accountKeys,
 			env,
-			"0.0", "2000000.0")
+			"0.0", "2000000.0",
+			adminAccountKey, adminAddress, adminSigner)
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionSetup(env), jeffAddress2)
 
@@ -2429,7 +2485,7 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 		})
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionTransferNode(env), jeffAddress1)
-		_ = tx.AddArgument(cadence.NewString(jeffID1_2))
+		_ = tx.AddArgument(CadenceString(jeffID1_2))
 		_ = tx.AddArgument(cadence.NewAddress(jeffAddress2))
 
 		signAndSubmit(
@@ -2465,20 +2521,25 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 			randomSource,      // random source
 			rewardAPY)
 
-		deployAllCollectionContracts(t, b, accountKeys, &env)
+		adminAccountKey, adminSigner := accountKeys.NewWithSigner()
+		adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
+
+		deployAllCollectionContracts(t, b, accountKeys, &env, adminAddress, adminSigner)
 
 		jeffAddress1, _, jeffSigner1, jeffID1_1, jeffID1_2 := registerStakingCollectionNodesAndDelegators(
 			t, b,
 			accountKeys,
 			env,
-			"0.0", "2000000.0")
+			"0.0", "2000000.0",
+			adminAccountKey, adminAddress, adminSigner)
 
 		// Create a locked account pair with tokens in both accounts
 		jeffAddress2, _, jeff2Signer := createLockedAccountPairWithBalances(
 			t, b,
 			accountKeys,
 			env,
-			"0.0", "2000000.0")
+			"0.0", "2000000.0",
+			adminAccountKey, adminAddress, adminSigner)
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionSetup(env), jeffAddress2)
 
@@ -2512,7 +2573,7 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 		})
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionTransferDelegator(env), jeffAddress1)
-		_ = tx.AddArgument(cadence.NewString(jeffID1_2))
+		_ = tx.AddArgument(CadenceString(jeffID1_2))
 		_ = tx.AddArgument(cadence.NewUInt32(1))
 		_ = tx.AddArgument(cadence.NewAddress(jeffAddress2))
 
@@ -2549,20 +2610,25 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 			randomSource,      // random source
 			rewardAPY)
 
-		deployAllCollectionContracts(t, b, accountKeys, &env)
+		adminAccountKey, adminSigner := accountKeys.NewWithSigner()
+		adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
+
+		deployAllCollectionContracts(t, b, accountKeys, &env, adminAddress, adminSigner)
 
 		jeffAddress1, _, jeffSigner1, jeffID1_1, jeffID1_2 := registerStakingCollectionNodesAndDelegators(
 			t, b,
 			accountKeys,
 			env,
-			"0.0", "2000000.0")
+			"0.0", "2000000.0",
+			adminAccountKey, adminAddress, adminSigner)
 
 		// Create a locked account pair with tokens in both accounts
 		jeffAddress2, _, jeff2Signer := createLockedAccountPairWithBalances(
 			t, b,
 			accountKeys,
 			env,
-			"0.0", "2000000.0")
+			"0.0", "2000000.0",
+			adminAccountKey, adminAddress, adminSigner)
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionSetup(env), jeffAddress2)
 
@@ -2585,7 +2651,7 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 		})
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionTransferNode(env), jeffAddress1)
-		_ = tx.AddArgument(cadence.NewString(jeffID1_1))
+		_ = tx.AddArgument(CadenceString(jeffID1_1))
 		_ = tx.AddArgument(cadence.NewAddress(jeffAddress2))
 
 		signAndSubmit(
@@ -2610,20 +2676,25 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 			randomSource,      // random source
 			rewardAPY)
 
-		deployAllCollectionContracts(t, b, accountKeys, &env)
+		adminAccountKey, adminSigner := accountKeys.NewWithSigner()
+		adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
+
+		deployAllCollectionContracts(t, b, accountKeys, &env, adminAddress, adminSigner)
 
 		jeffAddress1, _, jeffSigner1, jeffID1_1, jeffID1_2 := registerStakingCollectionNodesAndDelegators(
 			t, b,
 			accountKeys,
 			env,
-			"0.0", "2000000.0")
+			"0.0", "2000000.0",
+			adminAccountKey, adminAddress, adminSigner)
 
 		// Create a locked account pair with tokens in both accounts
 		jeffAddress2, _, jeff2Signer := createLockedAccountPairWithBalances(
 			t, b,
 			accountKeys,
 			env,
-			"0.0", "2000000.0")
+			"0.0", "2000000.0",
+			adminAccountKey, adminAddress, adminSigner)
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionSetup(env), jeffAddress2)
 
@@ -2646,7 +2717,7 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 		})
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionTransferDelegator(env), jeffAddress1)
-		_ = tx.AddArgument(cadence.NewString(jeffID1_1))
+		_ = tx.AddArgument(CadenceString(jeffID1_1))
 		_ = tx.AddArgument(cadence.NewUInt32(1))
 		_ = tx.AddArgument(cadence.NewAddress(jeffAddress2))
 
@@ -2655,6 +2726,116 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 			[]flow.Address{b.ServiceKey().Address, jeffAddress1},
 			[]crypto.Signer{b.ServiceKey().Signer(), jeffSigner1},
 			true,
+		)
+	})
+
+}
+
+func TestStakingCollectionCreateNewTokenHolder(t *testing.T) {
+
+	t.Run("Should be able to create a new token holder object with a new account and staking collection", func(t *testing.T) {
+		b, accountKeys, env := newTestSetup(t)
+		// Create new keys for the epoch account
+		idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
+
+		_, _ = initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
+			startEpochCounter, // start epoch counter
+			numEpochViews,     // num views per epoch
+			numStakingViews,   // num views for staking auction
+			numDKGViews,       // num views for DKG phase
+			numClusters,       // num collector clusters
+			randomSource,      // random source
+			rewardAPY)
+
+		adminAccountKey, adminSigner := accountKeys.NewWithSigner()
+		adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
+
+		deployAllCollectionContracts(t, b, accountKeys, &env, adminAddress, adminSigner)
+
+		jeffAddress2, lockedAddress, jeff2Signer := createLockedAccountPairWithBalances(
+			t, b,
+			accountKeys,
+			env,
+			"400000.0", "1.0",
+			adminAccountKey, adminAddress, adminSigner)
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), jeffAddress2)
+
+		userNodeID1 := "0000000000000000000000000000000000000000000000000000000000000001"
+		_, nodeOneStakingKey, _, nodeOneNetworkingKey := generateKeysForNodeRegistration(t)
+
+		_ = tx.AddArgument(CadenceString(userNodeID1))
+		_ = tx.AddArgument(cadence.NewUInt8(4))
+		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", 1)))
+		_ = tx.AddArgument(CadenceString(nodeOneNetworkingKey))
+		_ = tx.AddArgument(CadenceString(nodeOneStakingKey))
+		_ = tx.AddArgument(CadenceUFix64("320000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, jeffAddress2},
+			[]crypto.Signer{b.ServiceKey().Signer(), jeff2Signer},
+			false,
+		)
+
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionCreateNewTokenHolderAccountScript(env), lockedAddress)
+
+		publicKeys := make([]cadence.Value, 1)
+		newAccountKey, newAccountSigner := accountKeys.NewWithSigner()
+		newAccountKeyString := hex.EncodeToString(newAccountKey.Encode())
+		publicKeys[0] = CadenceString(newAccountKeyString)
+		cadencePublicKeys := cadence.NewArray(publicKeys)
+		_ = tx.AddArgument(cadencePublicKeys)
+
+		// Sign and submit the transaction
+		err := tx.SignPayload(lockedAddress, 0, adminSigner)
+		assert.NoError(t, err)
+		err = tx.SignEnvelope(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().Signer())
+		require.NoError(t, err)
+		err = b.AddTransaction(*tx)
+		require.NoError(t, err)
+		result, err := b.ExecuteNextTransaction()
+		require.NoError(t, err)
+		require.NoError(t, result.Error)
+
+		// Search emitted events from the transaction result
+		// to find the address of the locked tokens contract
+		var newAccountAddr flow.Address
+
+		for _, event := range result.Events {
+			if event.Type == flow.EventAccountCreated {
+				accountCreatedEvent := flow.AccountCreatedEvent(event)
+				newAccountAddr = accountCreatedEvent.Address()
+				break
+			}
+		}
+
+		// Commit the result as a block
+		_, err = b.CommitBlock()
+		require.NoError(t, err)
+
+		verifyStakingCollectionInfo(t, b, env, StakingCollectionInfo{
+			accountAddress:     newAccountAddr.String(),
+			unlockedBalance:    "0.000000",
+			lockedBalance:      "80000.00000000",
+			unlockedTokensUsed: "0.00000000",
+			lockedTokensUsed:   "0.00000000",
+			unlockLimit:        "0.00000000",
+			nodes:              []string{userNodeID1},
+			delegators:         []DelegatorIDs{},
+		})
+
+		// unstake tokens from the locked account node
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRequestUnstaking(env), newAccountAddr)
+		_ = tx.AddArgument(CadenceString(userNodeID1))
+		_ = tx.AddArgument(cadence.NewOptional(nil))
+		_ = tx.AddArgument(CadenceUFix64("10000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, newAccountAddr},
+			[]crypto.Signer{b.ServiceKey().Signer(), newAccountSigner},
+			false,
 		)
 	})
 }

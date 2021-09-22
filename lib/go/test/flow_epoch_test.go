@@ -94,7 +94,11 @@ func TestEpochClusters(t *testing.T) {
 
 	t.Run("Should be able to randomize an array of strings", func(t *testing.T) {
 
-		idArray := cadence.NewArray([]cadence.Value{cadence.NewString(adminID), cadence.NewString(joshID), cadence.NewString(maxID), cadence.NewString(accessID)})
+		adminString, _ := cadence.NewString(adminID)
+		joshString, _ := cadence.NewString(joshID)
+		maxString, _ := cadence.NewString(maxID)
+		accessString, _ := cadence.NewString(accessID)
+		idArray := cadence.NewArray([]cadence.Value{adminString, joshString, maxString, accessString})
 		result := executeScriptAndCheck(t, b, templates.GenerateGetRandomizeScript(env), [][]byte{jsoncdc.MustEncode(idArray)})
 		assertEqual(t, 4, len(result.(cadence.Array).Values))
 
@@ -113,7 +117,11 @@ func TestEpochClusters(t *testing.T) {
 		ids)
 
 	t.Run("Should be able to create collector clusters from an array of ids signed up for staking", func(t *testing.T) {
-		idArray := cadence.NewArray([]cadence.Value{cadence.NewString(ids[0]), cadence.NewString(ids[1]), cadence.NewString(ids[2]), cadence.NewString(ids[3])})
+		string0, _ := cadence.NewString(ids[0])
+		string1, _ := cadence.NewString(ids[1])
+		string2, _ := cadence.NewString(ids[2])
+		string3, _ := cadence.NewString(ids[3])
+		idArray := cadence.NewArray([]cadence.Value{string0, string1, string2, string3})
 		result := executeScriptAndCheck(t, b, templates.GenerateGetCreateClustersScript(env), [][]byte{jsoncdc.MustEncode(idArray)})
 		assertEqual(t, 2, len(result.(cadence.Array).Values))
 
@@ -260,7 +268,8 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 
 	approvedNodeIDs := make([]cadence.Value, numEpochAccounts)
 	for i := 0; i < numEpochAccounts; i++ {
-		approvedNodeIDs[i] = cadence.NewString(ids[i])
+		id, _ := cadence.NewString(ids[i])
+		approvedNodeIDs[i] = id
 	}
 	err := tx.AddArgument(cadence.NewArray(approvedNodeIDs))
 	require.NoError(t, err)
@@ -385,7 +394,8 @@ func TestEpochAdvance(t *testing.T) {
 
 	approvedNodeIDs := make([]cadence.Value, numEpochAccounts)
 	for i := 0; i < numEpochAccounts; i++ {
-		approvedNodeIDs[i] = cadence.NewString(ids[i])
+		id, _ := cadence.NewString(ids[i])
+		approvedNodeIDs[i] = id
 	}
 	err := tx.AddArgument(cadence.NewArray(approvedNodeIDs))
 	require.NoError(t, err)
@@ -528,7 +538,8 @@ func TestEpochQCDKGNodeRegistration(t *testing.T) {
 
 	approvedNodeIDs := make([]cadence.Value, numEpochAccounts)
 	for i := 0; i < numEpochAccounts; i++ {
-		approvedNodeIDs[i] = cadence.NewString(ids[i])
+		id, _ := cadence.NewString(ids[i])
+		approvedNodeIDs[i] = id
 	}
 	err := tx.AddArgument(cadence.NewArray(approvedNodeIDs))
 	require.NoError(t, err)
@@ -655,7 +666,8 @@ func TestEpochQCDKG(t *testing.T) {
 
 	approvedNodeIDs := make([]cadence.Value, numEpochAccounts)
 	for i := 0; i < numEpochAccounts; i++ {
-		approvedNodeIDs[i] = cadence.NewString(ids[i])
+		id, _ := cadence.NewString(ids[i])
+		approvedNodeIDs[i] = id
 	}
 	err := tx.AddArgument(cadence.NewArray(approvedNodeIDs))
 	require.NoError(t, err)
@@ -701,14 +713,14 @@ func TestEpochQCDKG(t *testing.T) {
 	finalKeyStrings[0] = dkgKey1
 	finalKeyStrings[1] = dkgKey1
 	finalSubmissionKeys := make([]cadence.Value, 2)
-	finalSubmissionKeys[0] = cadence.NewString(dkgKey1)
-	finalSubmissionKeys[1] = cadence.NewString(dkgKey1)
+	finalSubmissionKeys[0], _ = cadence.NewString(dkgKey1)
+	finalSubmissionKeys[1], _ = cadence.NewString(dkgKey1)
 
 	t.Run("Can perform DKG actions during Epoch Setup but cannot advance until QC is complete", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGWhiteboardMessageScript(env), addresses[1])
 
-		_ = tx.AddArgument(cadence.NewString("hello world!"))
+		_ = tx.AddArgument(CadenceString("hello world!"))
 
 		signAndSubmit(
 			t, b, tx,
@@ -717,8 +729,8 @@ func TestEpochQCDKG(t *testing.T) {
 			false,
 		)
 
-		finalSubmissionKeys[0] = cadence.NewOptional(cadence.NewString(dkgKey1))
-		finalSubmissionKeys[1] = cadence.NewOptional(cadence.NewString(dkgKey1))
+		finalSubmissionKeys[0] = cadence.NewOptional(CadenceString(dkgKey1))
+		finalSubmissionKeys[1] = cadence.NewOptional(CadenceString(dkgKey1))
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGFinalSubmissionScript(env), addresses[1])
 
@@ -769,8 +781,8 @@ func TestEpochQCDKG(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), addresses[0])
 
-		_ = tx.AddArgument(cadence.NewString(validSignatureString))
-		_ = tx.AddArgument(cadence.NewString("deadbeef"))
+		_ = tx.AddArgument(CadenceString(validSignatureString))
+		_ = tx.AddArgument(CadenceString("deadbeef"))
 
 		signAndSubmit(
 			t, b, tx,
@@ -788,8 +800,8 @@ func TestEpochQCDKG(t *testing.T) {
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), addresses[5])
 
-		_ = tx.AddArgument(cadence.NewString(validSignatureString))
-		_ = tx.AddArgument(cadence.NewString("beefdead"))
+		_ = tx.AddArgument(CadenceString(validSignatureString))
+		_ = tx.AddArgument(CadenceString("beefdead"))
 
 		signAndSubmit(
 			t, b, tx,
@@ -927,7 +939,7 @@ func TestEpochReset(t *testing.T) {
 
 	approvedNodeIDs := make([]cadence.Value, numEpochAccounts)
 	for i := 0; i < numEpochAccounts; i++ {
-		approvedNodeIDs[i] = cadence.NewString(ids[i])
+		approvedNodeIDs[i] = CadenceString(ids[i])
 	}
 	err := tx.AddArgument(cadence.NewArray(approvedNodeIDs))
 	require.NoError(t, err)
@@ -984,8 +996,8 @@ func TestEpochReset(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), addresses[0])
 
-		_ = tx.AddArgument(cadence.NewString(validSignatureString))
-		_ = tx.AddArgument(cadence.NewString("deadbeef"))
+		_ = tx.AddArgument(CadenceString(validSignatureString))
+		_ = tx.AddArgument(CadenceString("deadbeef"))
 
 		signAndSubmit(
 			t, b, tx,
@@ -1002,8 +1014,8 @@ func TestEpochReset(t *testing.T) {
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateSubmitVoteScript(env), addresses[5])
 
-		_ = tx.AddArgument(cadence.NewString(validSignatureString))
-		_ = tx.AddArgument(cadence.NewString("beefdead"))
+		_ = tx.AddArgument(CadenceString(validSignatureString))
+		_ = tx.AddArgument(CadenceString("beefdead"))
 
 		signAndSubmit(
 			t, b, tx,
@@ -1041,7 +1053,7 @@ func TestEpochReset(t *testing.T) {
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateResetEpochScript(env), idTableAddress)
 		_ = tx.AddArgument(cadence.NewUInt64(startEpochCounter + 1))
-		_ = tx.AddArgument(cadence.NewString("stillSoRandom"))
+		_ = tx.AddArgument(CadenceString("stillSoRandom"))
 		_ = tx.AddArgument(CadenceUFix64("1300000.0"))
 		_ = tx.AddArgument(cadence.NewUInt64(startView))
 		_ = tx.AddArgument(cadence.NewUInt64(endView))
@@ -1061,7 +1073,7 @@ func TestEpochReset(t *testing.T) {
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateResetEpochScript(env), idTableAddress)
 		_ = tx.AddArgument(cadence.NewUInt64(startEpochCounter))
-		_ = tx.AddArgument(cadence.NewString("stillSoRandom"))
+		_ = tx.AddArgument(CadenceString("stillSoRandom"))
 		_ = tx.AddArgument(CadenceUFix64("1300000.0"))
 		_ = tx.AddArgument(cadence.NewUInt64(startView))
 		_ = tx.AddArgument(cadence.NewUInt64(endView))
@@ -1081,7 +1093,7 @@ func TestEpochReset(t *testing.T) {
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateResetEpochScript(env), idTableAddress)
 		_ = tx.AddArgument(cadence.NewUInt64(startEpochCounter))
-		_ = tx.AddArgument(cadence.NewString("stillSoRandom"))
+		_ = tx.AddArgument(CadenceString("stillSoRandom"))
 		_ = tx.AddArgument(CadenceUFix64("1300000.0"))
 		_ = tx.AddArgument(cadence.NewUInt64(startView))
 		_ = tx.AddArgument(cadence.NewUInt64(endView))

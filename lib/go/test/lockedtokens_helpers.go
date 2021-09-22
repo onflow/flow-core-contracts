@@ -63,6 +63,8 @@ func deployLockedTokensContract(
 	b *emulator.Blockchain,
 	IDTableAddr, proxyAddr flow.Address,
 	lockedTokensAccountKey *flow.AccountKey,
+	adminAddress flow.Address,
+	adminSigner crypto.Signer,
 ) flow.Address {
 
 	// Get the code of the locked tokens contract
@@ -75,7 +77,7 @@ func deployLockedTokensContract(
 		b.ServiceKey().Address.String(),
 	)
 	// Encode the contract as a Cadence string
-	cadenceCode := cadence.NewString(hex.EncodeToString(lockedTokensCode))
+	cadenceCode := CadenceString(hex.EncodeToString(lockedTokensCode))
 
 	// Create the locked tokens account key array and a key
 	publicKeys := make([]cadence.Value, 1)
@@ -83,14 +85,16 @@ func deployLockedTokensContract(
 	cadencePublicKeys := cadence.NewArray(publicKeys)
 
 	// Create the transaction template to deploy the locked tokens contract
-	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDeployLockedTokens(), b.ServiceKey().Address)
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDeployLockedTokens(), adminAddress)
 	// Add the arguments for contract name, contract code, and public keys for the account
-	tx.AddRawArgument(jsoncdc.MustEncode(cadence.NewString("LockedTokens")))
+	tx.AddRawArgument(jsoncdc.MustEncode(CadenceString("LockedTokens")))
 	tx.AddRawArgument(jsoncdc.MustEncode(cadenceCode))
 	tx.AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys))
 
 	// Sign and submit the transaction
-	err := tx.SignEnvelope(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().Signer())
+	err := tx.SignPayload(adminAddress, 0, adminSigner)
+	assert.NoError(t, err)
+	err = tx.SignEnvelope(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().Signer())
 	require.NoError(t, err)
 	err = b.AddTransaction(*tx)
 	require.NoError(t, err)
@@ -142,11 +146,12 @@ func createLockedAccountPairWithBalances(
 	accountKeys *test.AccountKeys,
 	env templates.Environment,
 	lockedBalance, unlockedBalance string,
+	adminAccountKey *flow.AccountKey,
+	adminAddress flow.Address,
+	adminSigner crypto.Signer,
 ) (flow.Address, flow.Address, crypto.Signer) {
 
 	newUserKey, newUserSigner := accountKeys.NewWithSigner()
-
-	adminAccountKey := accountKeys.New()
 
 	adminPublicKey := bytesToCadenceArray(adminAccountKey.Encode())
 	newUserPublicKey := bytesToCadenceArray(newUserKey.Encode())
@@ -154,15 +159,17 @@ func createLockedAccountPairWithBalances(
 	var newUserSharedAddress flow.Address
 	var newUserAddress flow.Address
 
-	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateSharedAccountScript(env), b.ServiceKey().Address).
+	mintTokensForAccount(t, b, adminAddress, "1000000000.0")
+
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateSharedAccountScript(env), adminAddress).
 		AddRawArgument(jsoncdc.MustEncode(adminPublicKey)).
 		AddRawArgument(jsoncdc.MustEncode(newUserPublicKey)).
 		AddRawArgument(jsoncdc.MustEncode(newUserPublicKey))
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address},
-		[]crypto.Signer{b.ServiceKey().Signer()},
+		[]flow.Address{b.ServiceKey().Address, adminAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
 		false,
 	)
 
@@ -190,14 +197,14 @@ func createLockedAccountPairWithBalances(
 
 	if lockedBalance != "0.0" {
 
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDepositLockedTokensScript(env), b.ServiceKey().Address)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDepositLockedTokensScript(env), adminAddress)
 		_ = tx.AddArgument(cadence.NewAddress(newUserSharedAddress))
 		_ = tx.AddArgument(CadenceUFix64(lockedBalance))
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
+			[]flow.Address{b.ServiceKey().Address, adminAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
 			false,
 		)
 
@@ -281,11 +288,11 @@ func deployCollectionContract(t *testing.T, b *emulator.Blockchain,
 		env.DkgAddress,
 		env.EpochAddress)
 
-	FlowStakingCollectionByteCode := cadence.NewString(hex.EncodeToString(FlowStakingCollectionCode))
+	FlowStakingCollectionByteCode := CadenceString(hex.EncodeToString(FlowStakingCollectionCode))
 
 	// Deploy the staking collection contract
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDeployStakingCollectionScript(), lockedTokensAddress).
-		AddRawArgument(jsoncdc.MustEncode(cadence.NewString("FlowStakingCollection"))).
+		AddRawArgument(jsoncdc.MustEncode(CadenceString("FlowStakingCollection"))).
 		AddRawArgument(jsoncdc.MustEncode(FlowStakingCollectionByteCode))
 
 	signAndSubmit(
@@ -301,7 +308,9 @@ func deployCollectionContract(t *testing.T, b *emulator.Blockchain,
 func deployAllCollectionContracts(t *testing.T,
 	b *emulator.Blockchain,
 	accountKeys *test.AccountKeys,
-	env *templates.Environment) {
+	env *templates.Environment,
+	adminAddress flow.Address,
+	adminSigner crypto.Signer) {
 
 	// DEPLOY StakingProxy
 
@@ -320,7 +329,7 @@ func deployAllCollectionContracts(t *testing.T,
 	assert.NoError(t, err)
 
 	lockedTokensAccountKey, lockedTokensSigner := accountKeys.NewWithSigner()
-	lockedTokensAddress := deployLockedTokensContract(t, b, flow.HexToAddress(env.IDTableAddress), stakingProxyAddress, lockedTokensAccountKey)
+	lockedTokensAddress := deployLockedTokensContract(t, b, flow.HexToAddress(env.IDTableAddress), stakingProxyAddress, lockedTokensAccountKey, adminAddress, adminSigner)
 	env.StakingProxyAddress = stakingProxyAddress.Hex()
 	env.LockedTokensAddress = lockedTokensAddress.Hex()
 
@@ -340,6 +349,9 @@ func registerStakingCollectionNodesAndDelegators(
 	accountKeys *test.AccountKeys,
 	env templates.Environment,
 	lockedBalance, unlockedBalance string,
+	adminAccountKey *flow.AccountKey,
+	adminAddress flow.Address,
+	adminSigner crypto.Signer,
 ) (flow.Address, flow.Address, crypto.Signer, string, string) {
 
 	// Create a locked account pair with tokens in both accounts
@@ -347,7 +359,8 @@ func registerStakingCollectionNodesAndDelegators(
 		t, b,
 		accountKeys,
 		env,
-		lockedBalance, unlockedBalance)
+		lockedBalance, unlockedBalance,
+		adminAccountKey, adminAddress, adminSigner)
 
 	// Initialize the two node IDs
 	userNodeID1 := "0000000000000000000000000000000000000000000000000000000000000001"
@@ -358,16 +371,16 @@ func registerStakingCollectionNodesAndDelegators(
 	publicKeys := make([]cadence.Value, 1)
 	machineAccountKey, _ := accountKeys.NewWithSigner()
 	machineAccountKeyString := hex.EncodeToString(machineAccountKey.Encode())
-	publicKeys[0] = cadence.NewString(machineAccountKeyString)
+	publicKeys[0] = CadenceString(machineAccountKeyString)
 	cadencePublicKeys := cadence.NewArray(publicKeys)
 
 	// Register a node in the locked account
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), newUserAddress)
-	_ = tx.AddArgument(cadence.NewString(userNodeID1))
+	_ = tx.AddArgument(CadenceString(userNodeID1))
 	_ = tx.AddArgument(cadence.NewUInt8(4))
-	_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", 1)))
-	_ = tx.AddArgument(cadence.NewString(nodeOneNetworkingKey))
-	_ = tx.AddArgument(cadence.NewString(nodeOneStakingKey))
+	_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", 1)))
+	_ = tx.AddArgument(CadenceString(nodeOneNetworkingKey))
+	_ = tx.AddArgument(CadenceString(nodeOneStakingKey))
 	_ = tx.AddArgument(CadenceUFix64("320000.0"))
 
 	signAndSubmit(
@@ -379,7 +392,7 @@ func registerStakingCollectionNodesAndDelegators(
 
 	// Register a delegator in the locked account
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateLockedDelegatorScript(env), newUserAddress)
-	_ = tx.AddArgument(cadence.NewString(userNodeID1))
+	_ = tx.AddArgument(CadenceString(userNodeID1))
 	_ = tx.AddArgument(CadenceUFix64("50000.0"))
 
 	signAndSubmit(
@@ -403,11 +416,11 @@ func registerStakingCollectionNodesAndDelegators(
 
 	// Register a node with the staking collection
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterNode(env), newUserAddress)
-	_ = tx.AddArgument(cadence.NewString(userNodeID2))
+	_ = tx.AddArgument(CadenceString(userNodeID2))
 	_ = tx.AddArgument(cadence.NewUInt8(2))
-	_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", 2)))
-	_ = tx.AddArgument(cadence.NewString(nodeTwoNetworkingKey))
-	_ = tx.AddArgument(cadence.NewString(nodeTwoStakingKey))
+	_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", 2)))
+	_ = tx.AddArgument(CadenceString(nodeTwoNetworkingKey))
+	_ = tx.AddArgument(CadenceString(nodeTwoStakingKey))
 	_ = tx.AddArgument(CadenceUFix64("500000.0"))
 	_ = tx.AddArgument(cadence.NewOptional(cadencePublicKeys))
 
@@ -420,7 +433,7 @@ func registerStakingCollectionNodesAndDelegators(
 
 	// Register a delegator with the staking collection
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterDelegator(env), newUserAddress)
-	_ = tx.AddArgument(cadence.NewString(userNodeID2))
+	_ = tx.AddArgument(CadenceString(userNodeID2))
 	_ = tx.AddArgument(CadenceUFix64("500000.0"))
 
 	signAndSubmit(
@@ -476,7 +489,7 @@ func verifyStakingCollectionInfo(
 	nodeArray := result.(cadence.Array).Values
 	i := 0
 	for _, nodeID := range expectedInfo.nodes {
-		assertEqual(t, cadence.NewString(nodeID), nodeArray[i])
+		assertEqual(t, CadenceString(nodeID), nodeArray[i])
 		i = i + 1
 	}
 
@@ -487,7 +500,7 @@ func verifyStakingCollectionInfo(
 	for _, delegator := range expectedInfo.delegators {
 		nodeID := delegatorArray[i].(cadence.Struct).Fields[0]
 		delegatorID := delegatorArray[i].(cadence.Struct).Fields[1]
-		assertEqual(t, cadence.NewString(delegator.nodeID), nodeID)
+		assertEqual(t, CadenceString(delegator.nodeID), nodeID)
 		assertEqual(t, cadence.NewUInt32(delegator.id), delegatorID)
 		i = i + 1
 	}

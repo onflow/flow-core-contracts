@@ -30,6 +30,7 @@ const (
 	collectionTransferDelegatorFilename           = "stakingCollection/transfer_delegator.cdc"
 	collectionWithdrawFromMachineAccountFilename  = "stakingCollection/withdraw_from_machine_account.cdc"
 	collectionUpdateNetworkingAddressFilename     = "stakingCollection/update_networking_address.cdc"
+	collectionCreateNewTokenHolderAccountFilename = "stakingCollection/create_new_tokenholder_acct.cdc"
 
 	// scripts
 	collectionGetDoesStakeExistFilename                = "stakingCollection/scripts/get_does_stake_exist.cdc"
@@ -158,6 +159,12 @@ func GenerateCollectionWithdrawFromMachineAccountScript(env Environment) []byte 
 
 func GenerateCollectionUpdateNetworkingAddressScript(env Environment) []byte {
 	code := assets.MustAssetString(collectionUpdateNetworkingAddressFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateCollectionCreateNewTokenHolderAccountScript(env Environment) []byte {
+	code := assets.MustAssetString(collectionCreateNewTokenHolderAccountFilename)
 
 	return []byte(replaceAddresses(code, env))
 }

@@ -111,7 +111,7 @@ func TestContracts(t *testing.T) {
 	})
 
 	result = executeScriptAndCheck(t, b, templates.GenerateGetAccountAvailableBalanceFilenameScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(b.ServiceKey().Address))})
-	assertEqual(t, CadenceUFix64("9999999999.80000000"), result)
+	assertEqual(t, CadenceUFix64("999999999.80000000"), result)
 
 	result = executeScriptAndCheck(t, b, templates.GenerateGetStorageCapacityScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(b.ServiceKey().Address))})
 	assertEqual(t, CadenceUFix64("184467440737.09551615"), result)

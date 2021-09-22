@@ -285,8 +285,12 @@ pub contract LockedTokens {
 
             self.address = lockedAddress
             self.tokenManager = tokenManager
-            self.nodeStakerProxy = nil
-            self.nodeDelegatorProxy = nil
+
+            // Create a new staker proxy that can be accessed in transactions
+            self.nodeStakerProxy = LockedNodeStakerProxy(tokenManager: self.tokenManager)
+
+            // create a new delegator proxy that can be accessed in transactions
+            self.nodeDelegatorProxy = LockedNodeDelegatorProxy(tokenManager: self.tokenManager)
         }
 
         /// Utility function to borrow a reference to the LockedTokenManager object

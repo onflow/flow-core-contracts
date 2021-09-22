@@ -136,11 +136,14 @@ func deployQCDKGContract(t *testing.T, b *emulator.Blockchain, idTableAddress fl
 	DKGCode := contracts.FlowDKG()
 	DKGByteCode := bytesToCadenceArray(DKGCode)
 
+	qcName, _ := cadence.NewString("FlowClusterQC")
+	dkgName, _ := cadence.NewString("FlowDKG")
+
 	// Deploy the QC and DKG contracts
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDeployQCDKGScript(env), idTableAddress).
-		AddRawArgument(jsoncdc.MustEncode(cadence.NewString("FlowClusterQC"))).
+		AddRawArgument(jsoncdc.MustEncode(qcName)).
 		AddRawArgument(jsoncdc.MustEncode(QCByteCode)).
-		AddRawArgument(jsoncdc.MustEncode(cadence.NewString("FlowDKG"))).
+		AddRawArgument(jsoncdc.MustEncode(dkgName)).
 		AddRawArgument(jsoncdc.MustEncode(DKGByteCode))
 
 	signAndSubmit(
@@ -165,9 +168,12 @@ func deployEpochContract(
 	EpochCode := contracts.FlowEpoch(emulatorFTAddress, emulatorFlowTokenAddress, idTableAddress.String(), idTableAddress.String(), idTableAddress.String())
 	EpochByteCode := bytesToCadenceArray(EpochCode)
 
+	epochName, _ := cadence.NewString("FlowEpoch")
+	cadRandomSource, _ := cadence.NewString(randomSource)
+
 	// Deploy the Epoch contract
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDeployEpochScript(env), idTableAddress).
-		AddRawArgument(jsoncdc.MustEncode(cadence.NewString("FlowEpoch"))).
+		AddRawArgument(jsoncdc.MustEncode(epochName)).
 		AddRawArgument(jsoncdc.MustEncode(EpochByteCode))
 
 	_ = tx.AddArgument(cadence.NewUInt64(epochCounter))
@@ -176,7 +182,7 @@ func deployEpochContract(
 	_ = tx.AddArgument(cadence.NewUInt64(dkgViews))
 	_ = tx.AddArgument(cadence.NewUInt16(uint16(numClusters)))
 	_ = tx.AddArgument(CadenceUFix64(rewardAPY))
-	_ = tx.AddArgument(cadence.NewString(randomSource))
+	_ = tx.AddArgument(cadRandomSource)
 	_ = tx.AddArgument(cadence.NewArray([]cadence.Value{}))
 	_ = tx.AddArgument(cadence.NewArray([]cadence.Value{}))
 	_ = tx.AddArgument(cadence.NewArray([]cadence.Value{}))
@@ -229,9 +235,11 @@ func advanceView(
 	phase string,
 	shouldFail bool) {
 
+	cadencePhase, _ := cadence.NewString(phase)
+
 	for i := 0; i < numBlocks; i++ {
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateAdvanceViewScript(env), authorizer)
-		_ = tx.AddArgument(cadence.NewString(phase))
+		_ = tx.AddArgument(cadencePhase)
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{b.ServiceKey().Address, authorizer},
@@ -260,15 +268,20 @@ func registerNodeWithSetupAccount(t *testing.T,
 
 	cadencePublicKeys := cadence.NewArray(publicKeys)
 
+	cadenceID, _ := cadence.NewString(nodeID)
+	cadenceNetAddr, _ := cadence.NewString(networkingAddress)
+	cadenceNetKey, _ := cadence.NewString(networkingKey)
+	cadenceStakeKey, _ := cadence.NewString(stakingKey)
+
 	tx := createTxWithTemplateAndAuthorizer(b,
 		templates.GenerateEpochRegisterNodeScript(env),
 		authorizer)
 
-	_ = tx.AddArgument(cadence.NewString(nodeID))
+	_ = tx.AddArgument(cadenceID)
 	_ = tx.AddArgument(cadence.NewUInt8(role))
-	_ = tx.AddArgument(cadence.NewString(networkingAddress))
-	_ = tx.AddArgument(cadence.NewString(networkingKey))
-	_ = tx.AddArgument(cadence.NewString(stakingKey))
+	_ = tx.AddArgument(cadenceNetAddr)
+	_ = tx.AddArgument(cadenceNetKey)
+	_ = tx.AddArgument(cadenceStakeKey)
 	tokenAmount, err := cadence.NewUFix64(amount.String())
 	require.NoError(t, err)
 	_ = tx.AddArgument(tokenAmount)
@@ -387,10 +400,12 @@ func verifyClusterQCs(
 			// Verify that each element is correct across the cluster
 			for _, signature := range qcStructSignatures {
 				for _, qc := range expectedQCs {
-					if cadence.NewString(qc[0]) == signature {
+					cadenceSig, _ := cadence.NewString(qc[0])
+					if cadenceSig == signature {
 						found = true
-						assertEqual(t, cadence.NewString(qc[0]), signature)
-						assertEqual(t, cadence.NewString(qc[1]), qcStructMessage)
+						assertEqual(t, cadenceSig, signature)
+						cadenceSig, _ = cadence.NewString(qc[1])
+						assertEqual(t, cadenceSig, qcStructMessage)
 					}
 				}
 				j = j + 1
@@ -418,7 +433,8 @@ func verifyEpochMetadata(
 
 	if len(expectedMetadata.seed) != 0 {
 		seed := metadataFields[1]
-		assertEqual(t, cadence.NewString(expectedMetadata.seed), seed)
+		cadenceSeed, _ := cadence.NewString(expectedMetadata.seed)
+		assertEqual(t, cadenceSeed, seed)
 	}
 
 	startView := metadataFields[2]
@@ -456,8 +472,9 @@ func verifyEpochMetadata(
 	} else {
 		i := 0
 		for _, key := range dkgKeys {
+			cadenceKey, _ := cadence.NewString(expectedMetadata.dkgKeys[i])
 			// Verify that each key is correct
-			assertEqual(t, cadence.NewString(expectedMetadata.dkgKeys[i]), key)
+			assertEqual(t, cadenceKey, key)
 			i = i + 1
 		}
 	}

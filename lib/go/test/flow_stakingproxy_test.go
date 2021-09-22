@@ -45,7 +45,7 @@ func TestStakingProxy(t *testing.T) {
 	// Deploy the IDTableStaking contract
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateTransferMinterAndDeployScript(env), b.ServiceKey().Address).
 		AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys)).
-		AddRawArgument(jsoncdc.MustEncode(cadence.NewString("FlowIDTableStaking"))).
+		AddRawArgument(jsoncdc.MustEncode(CadenceString("FlowIDTableStaking"))).
 		AddRawArgument(jsoncdc.MustEncode(cadenceCode))
 
 	_ = tx.AddArgument(CadenceUFix64("1250000.0"))
@@ -93,10 +93,11 @@ func TestStakingProxy(t *testing.T) {
 
 	env.StakingProxyAddress = stakingProxyAddress.Hex()
 
-	adminAccountKey := accountKeys.New()
+	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
+	adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
 
 	lockedTokensAccountKey, _ := accountKeys.NewWithSigner()
-	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress, lockedTokensAccountKey)
+	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress, lockedTokensAccountKey, adminAddress, adminSigner)
 
 	env.LockedTokensAddress = lockedTokensAddress.Hex()
 
@@ -136,11 +137,11 @@ func TestStakingProxy(t *testing.T) {
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateAddNodeInfoScript(env), nodeAddress)
 
-		_ = tx.AddArgument(cadence.NewString(joshID))
+		_ = tx.AddArgument(CadenceString(joshID))
 		_ = tx.AddArgument(cadence.NewUInt8(1))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", josh)))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0128d", josh)))
-		_ = tx.AddArgument(cadence.NewString(fmt.Sprintf("%0192d", josh)))
+		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
+		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
+		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0192d", josh)))
 
 		signAndSubmit(
 			t, b, tx,
@@ -159,17 +160,28 @@ func TestStakingProxy(t *testing.T) {
 	var joshSharedAddress flow.Address
 	var joshAddress flow.Address
 
+	tx = createTxWithTemplateAndAuthorizer(b, ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), b.ServiceKey().Address)
+	_ = tx.AddArgument(cadence.NewAddress(adminAddress))
+	_ = tx.AddArgument(CadenceUFix64("1000000000.0"))
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address},
+		[]crypto.Signer{b.ServiceKey().Signer()},
+		false,
+	)
+
 	t.Run("Should be able to create new shared accounts", func(t *testing.T) {
 
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateSharedAccountScript(env), b.ServiceKey().Address).
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateSharedAccountScript(env), adminAddress).
 			AddRawArgument(jsoncdc.MustEncode(adminPublicKey)).
 			AddRawArgument(jsoncdc.MustEncode(joshPublicKey)).
 			AddRawArgument(jsoncdc.MustEncode(joshPublicKey))
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
+			[]flow.Address{b.ServiceKey().Address, adminAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
 			false,
 		)
 
@@ -198,15 +210,15 @@ func TestStakingProxy(t *testing.T) {
 
 	t.Run("Should be able to deposit locked tokens to the shared account", func(t *testing.T) {
 
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDepositLockedTokensScript(env), b.ServiceKey().Address)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDepositLockedTokensScript(env), adminAddress)
 
 		_ = tx.AddArgument(cadence.NewAddress(joshSharedAddress))
 		_ = tx.AddArgument(CadenceUFix64("1000000.0"))
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
+			[]flow.Address{b.ServiceKey().Address, adminAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
 			false,
 		)
 	})
@@ -216,7 +228,7 @@ func TestStakingProxy(t *testing.T) {
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterStakingProxyNodeScript(env), joshAddress)
 
 		_ = tx.AddArgument(cadence.NewAddress(nodeAddress))
-		_ = tx.AddArgument(cadence.NewString(joshID))
+		_ = tx.AddArgument(CadenceString(joshID))
 		tokenAmount, err := cadence.NewUFix64("250000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
@@ -233,7 +245,7 @@ func TestStakingProxy(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateProxyStakeNewTokensScript(env), nodeAddress)
 
-		_ = tx.AddArgument(cadence.NewString(joshID))
+		_ = tx.AddArgument(CadenceString(joshID))
 		tokenAmount, err := cadence.NewUFix64("2000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
@@ -250,7 +262,7 @@ func TestStakingProxy(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateProxyStakeUnstakedTokensScript(env), nodeAddress)
 
-		_ = tx.AddArgument(cadence.NewString(joshID))
+		_ = tx.AddArgument(CadenceString(joshID))
 		tokenAmount, err := cadence.NewUFix64("1000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
@@ -268,7 +280,7 @@ func TestStakingProxy(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateProxyRequestUnstakingScript(env), nodeAddress)
 
-		_ = tx.AddArgument(cadence.NewString(joshID))
+		_ = tx.AddArgument(CadenceString(joshID))
 		tokenAmount, err := cadence.NewUFix64("500.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
@@ -286,7 +298,7 @@ func TestStakingProxy(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateProxyUnstakeAllScript(env), nodeAddress)
 
-		_ = tx.AddArgument(cadence.NewString(joshID))
+		_ = tx.AddArgument(CadenceString(joshID))
 
 		signAndSubmit(
 			t, b, tx,
@@ -300,7 +312,7 @@ func TestStakingProxy(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateProxyWithdrawUnstakedScript(env), nodeAddress)
 
-		_ = tx.AddArgument(cadence.NewString(joshID))
+		_ = tx.AddArgument(CadenceString(joshID))
 		tokenAmount, err := cadence.NewUFix64("500.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
@@ -318,7 +330,7 @@ func TestStakingProxy(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateProxyWithdrawRewardsScript(env), nodeAddress)
 
-		_ = tx.AddArgument(cadence.NewString(joshID))
+		_ = tx.AddArgument(CadenceString(joshID))
 		tokenAmount, err := cadence.NewUFix64("500.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
