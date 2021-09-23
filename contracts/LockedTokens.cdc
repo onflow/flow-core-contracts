@@ -336,9 +336,6 @@ pub contract LockedTokens {
         pub fun createNodeStaker(nodeInfo: StakingProxy.NodeInfo, amount: UFix64) {
 
             self.borrowTokenManager().registerNode(nodeInfo: nodeInfo, amount: amount)
-
-            // Create a new staker proxy that can be accessed in transactions
-            self.nodeStakerProxy = LockedNodeStakerProxy(tokenManager: self.tokenManager)
         }
 
         /// The user calls this function if they want to register as a node operator
@@ -346,9 +343,6 @@ pub contract LockedTokens {
         pub fun createNodeDelegator(nodeID: String) {
 
             self.borrowTokenManager().registerDelegator(nodeID: nodeID)
-
-            // create a new delegator proxy that can be accessed in transactions
-            self.nodeDelegatorProxy = LockedNodeDelegatorProxy(tokenManager: self.tokenManager)
         }
 
         /// Borrow a "reference" to the staking object which allows the caller
