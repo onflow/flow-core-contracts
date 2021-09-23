@@ -357,8 +357,9 @@ pub contract FlowEpoch {
                     }
                 case EpochPhase.EPOCHCOMMIT:
                     if currentBlock.view >= currentEpochMetadata.endView {
-                        self.calculateAndSetRewards(nil)
+                        self.calculateAndSetRewards()
                         self.endEpoch()
+                        self.payRewards()
                     }
                 default:
                     return
@@ -399,8 +400,8 @@ pub contract FlowEpoch {
 
         /// Needs to be called before the epoch is over
         /// Calculates rewards for the current epoch and stores them in epoch metadata
-        pub fun calculateAndSetRewards(_ newPayout: UFix64?) {
-            FlowEpoch.calculateAndSetRewards(newPayout)
+        pub fun calculateAndSetRewards() {
+            FlowEpoch.calculateAndSetRewards()
         }
 
         pub fun payRewards() {
@@ -437,7 +438,7 @@ pub contract FlowEpoch {
                 FlowEpoch.borrowDKGAdmin().forceEndDKG()
             }
 
-            FlowEpoch.calculateAndSetRewards(newPayout)
+            FlowEpoch.calculateAndSetRewards()
 
             // Start a new Epoch, which increments the current epoch counter
             FlowEpoch.startNewEpoch()
@@ -460,7 +461,7 @@ pub contract FlowEpoch {
 
     /// Calculates a new token payout for the current epoch
     /// and sets the new payout for the next epoch
-    access(account) fun calculateAndSetRewards(_ newPayout: UFix64?) {
+    access(account) fun calculateAndSetRewards() {
 
         let rewardsBreakdown = self.borrowStakingAdmin().calculateRewards()
         let currentMetadata = self.getEpochMetadata(self.currentEpochCounter)!
@@ -469,14 +470,12 @@ pub contract FlowEpoch {
 
         // Calculate the new epoch's payout
         // disabled until we enable automated rewards calculations
-        // let newPayout = FlowToken.totalSupply * (FlowEpoch.configurableMetadata.FLOWsupplyIncreasePercentage / 52.0)
+        let newPayout = FlowToken.totalSupply * (FlowEpoch.configurableMetadata.FLOWsupplyIncreasePercentage / 52.0)
 
-        if let payout = newPayout {
-            self.borrowStakingAdmin().setEpochTokenPayout(payout)
-            let proposedMetadata = self.getEpochMetadata(self.proposedEpochCounter())!
-            proposedMetadata.setTotalRewards(payout)
-            self.saveEpochMetadata(proposedMetadata)
-        }
+        self.borrowStakingAdmin().setEpochTokenPayout(newPayout)
+        let proposedMetadata = self.getEpochMetadata(self.proposedEpochCounter())!
+        proposedMetadata.setTotalRewards(newPayout)
+        self.saveEpochMetadata(proposedMetadata)
     }
 
     /// Pays rewards to the nodes and delegators of the previous epoch

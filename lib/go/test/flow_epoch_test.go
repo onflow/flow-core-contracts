@@ -849,8 +849,6 @@ func TestEpochQCDKG(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochCalculateSetRewardsScript(env), idTableAddress)
 
-		_ = tx.AddArgument(CadenceUFix64("1300000.0"))
-
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{b.ServiceKey().Address, idTableAddress},
@@ -882,7 +880,7 @@ func TestEpochQCDKG(t *testing.T) {
 				startView:             startView + numEpochViews,
 				endView:               startView + 2*numEpochViews - 1,
 				stakingEndView:        startView + numEpochViews + numStakingViews - 1,
-				totalRewards:          "1300000.0",
+				totalRewards:          "6730710.0",
 				rewardsBreakdownArray: 0,
 				rewardsPaid:           false,
 				collectorClusters:     clusters,
@@ -1112,7 +1110,7 @@ func TestEpochReset(t *testing.T) {
 				startView:             startView,
 				endView:               endView,
 				stakingEndView:        startView + numStakingViews - 1,
-				totalRewards:          "1300000.0",
+				totalRewards:          "6730710.0",
 				rewardsBreakdownArray: 0,
 				rewardsPaid:           false,
 				collectorClusters:     nil,
