@@ -2303,3 +2303,246 @@ func TestIDTableStaking(t *testing.T) {
 
 	})
 }
+
+func TestIDTableRewardsWitholding(t *testing.T) {
+
+	t.Parallel()
+
+	b := newBlockchain()
+
+	env := templates.Environment{
+		FungibleTokenAddress: emulatorFTAddress,
+		FlowTokenAddress:     emulatorFlowTokenAddress,
+	}
+
+	accountKeys := test.AccountKeyGenerator()
+
+	var totalPayout interpreter.UFix64Value = 125000000000000 // 1.25M
+	var cutPercentage interpreter.UFix64Value = 8000000       // 08.0 %
+
+	// Create new keys for the ID table account
+	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
+	idTableAddress, feesAddr := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true)
+
+	env.IDTableAddress = idTableAddress.Hex()
+	env.FlowFeesAddress = feesAddr.Hex()
+
+	var totalStaked interpreter.UFix64Value = 510000000000000
+
+	// Create records for the various staking buckets
+	committed := make(map[string]interpreter.UFix64Value)
+	//rewards := make(map[string]interpreter.UFix64Value)
+
+	numNodes := 10
+	numDelegators := 10
+
+	// Create arrays for the node account information
+	nodeKeys := make([]*flow.AccountKey, numNodes)
+	nodeSigners := make([]crypto.Signer, numNodes)
+	nodeAddresses := make([]flow.Address, numNodes)
+	nodeStakingKeys := make([]string, numNodes)
+	nodeNetworkingKeys := make([]string, numNodes)
+	ids, _, _ := generateNodeIDs(numNodes)
+
+	// Create all the node accounts
+	for i := 0; i < numNodes; i++ {
+		nodeKeys[i], nodeSigners[i] = accountKeys.NewWithSigner()
+		nodeAddresses[i], _ = b.CreateAccount([]*flow.AccountKey{nodeKeys[i]}, nil)
+		_, nodeStakingKeys[i], _, nodeNetworkingKeys[i] = generateKeysForNodeRegistration(t)
+	}
+
+	// Create arrays for the delegator account information
+	delegatorKeys := make([]*flow.AccountKey, numDelegators)
+	delegatorSigners := make([]crypto.Signer, numDelegators)
+	delegatorAddresses := make([]flow.Address, numDelegators)
+
+	// Create all the delegator accounts
+	for i := 0; i < numDelegators; i++ {
+		delegatorKeys[i], delegatorSigners[i] = accountKeys.NewWithSigner()
+		delegatorAddresses[i], _ = b.CreateAccount([]*flow.AccountKey{delegatorKeys[i]}, nil)
+	}
+
+	// Each node will commit 500k FLOW
+	var amountToCommit interpreter.UFix64Value = 50000000000000
+
+	// Fund each node and register each node for staking
+	for i := 0; i < numNodes; i++ {
+
+		// Fund the node account
+		mintTokensForAccount(t, b, nodeAddresses[i], "1000000.0")
+
+		// Register the node
+		committed[adminID] = registerNode(t, b, env,
+			nodeAddresses[i],
+			nodeSigners[i],
+			ids[i],
+			fmt.Sprintf("%0128s", ids[i]),
+			nodeNetworkingKeys[i],
+			nodeStakingKeys[i],
+			amountToCommit,
+			committed[ids[i]],
+			1,
+			false)
+
+	}
+
+	// Fund each delegator and register each one
+	// node 0 and 1 each get 5 delegators, but the other nodes get none
+	for i := 0; i < numDelegators; i++ {
+
+		// Fund the delegator account
+		mintTokensForAccount(t, b, delegatorAddresses[i], "1000000.0")
+
+		// Register the delegator
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterDelegatorScript(env), delegatorAddresses[i])
+		err := tx.AddArgument(cadence.String(ids[i/5]))
+		require.NoError(t, err)
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, delegatorAddresses[i]},
+			[]crypto.Signer{b.ServiceKey().Signer(), delegatorSigners[i]},
+			false,
+		)
+
+		// Stake new tokens for the delegator
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateDelegatorStakeNewScript(env), delegatorAddresses[i])
+		_ = tx.AddArgument(CadenceUFix64("10000.0"))
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, delegatorAddresses[i]},
+			[]crypto.Signer{b.ServiceKey().Signer(), delegatorSigners[i]},
+			false,
+		)
+	}
+
+	// Create an array of all the node IDs so they can be approved for staking
+	cadenceIDs := make([]cadence.Value, numNodes)
+	for i := 0; i < numNodes; i++ {
+		cadenceIDs[i] = CadenceString(ids[i])
+	}
+
+	// End the epoch, which marks everyone as staking
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), idTableAddress)
+	err := tx.AddArgument(cadence.NewArray(cadenceIDs))
+	require.NoError(t, err)
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, idTableAddress},
+		[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+		false,
+	)
+
+	t.Run("Should be able to set multiple nodes as inactive so their rewards will be withheld", func(t *testing.T) {
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetNonOperationalScript(env), idTableAddress)
+		err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(ids[0]), CadenceString(ids[2])}))
+		require.NoError(t, err)
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetNonOperationalListScript(env), nil)
+
+		idArray := result.(cadence.Array).Values
+		assert.Equal(t, len(idArray), 2)
+		assert.Equal(t, idArray[0], CadenceString(ids[0]))
+		assert.Equal(t, idArray[1], CadenceString(ids[2]))
+	})
+
+	t.Run("Should pay rewards, but rewards from bad nodes and delegators are re-distributed", func(t *testing.T) {
+		// Pay Rewards
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GeneratePayRewardsScript(env), idTableAddress)
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetNonOperationalListScript(env), nil)
+
+		idArray := result.(cadence.Array).Values
+		assert.Equal(t, len(idArray), 0)
+
+		// Check Rewards balances of nodes and delegators who were withheld
+		// to make sure they got zero
+
+		// Node 0
+		result = executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(ids[0]))})
+		assertEqual(t, CadenceUFix64("0.0"), result)
+
+		// Node 2
+		result = executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(ids[2]))})
+		assertEqual(t, CadenceUFix64("0.0"), result)
+
+		// Delegators from Node 0
+		for i := 1; i < 6; i++ {
+			result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorRewardsScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(ids[0])), jsoncdc.MustEncode(cadence.UInt32(i))})
+			assertEqual(t, CadenceUFix64("0.0"), result)
+		}
+
+		// Check rewards balances of the other nodes and delegators to make sure
+		// the extra rewards were distributed to them
+
+		// Calculate Rewards
+		// All the nodes staked 500k FLOW and all the delegators staked 10k FLOW
+		// so the calculations are slightly easier
+		// Node 0 has 5 delegators, node 1 has 5 delegators,
+		// and the other nodes have no delegators
+		// Tested witholding rewards from one of the nodes with delegators
+		// and one of the non-delegated-to nodes
+
+		var delegatorCommitment interpreter.UFix64Value = 1000000000000
+
+		// First calculate the node and delegator rewards assuming no withholding
+		nodeRewardWithoutWithold := totalPayout.Div(totalStaked).Mul(amountToCommit).(interpreter.UFix64Value)
+		delegatorReward := totalPayout.Div(totalStaked).Mul(delegatorCommitment).(interpreter.UFix64Value)
+		delegatorRewardNodeCut := delegatorReward.Mul(cutPercentage).(interpreter.UFix64Value)
+		delegatorRewardMinusNode := delegatorReward.Minus(delegatorRewardNodeCut).(interpreter.UFix64Value)
+
+		// For multiplying the reward amounts
+		var numDelegators interpreter.UFix64Value = 500000000
+
+		// The rewards for a node and its 5 delegators
+		// without including withheld rewards from other nodes
+		nodeRewardPlusDelegators := nodeRewardWithoutWithold.Plus(delegatorRewardNodeCut.Mul(numDelegators)).(interpreter.UFix64Value)
+
+		// For multiplying the reward amounts
+		var numWithheldNodes interpreter.UFix64Value = 200000000
+
+		// Figure out the sum of tokens withheld from all punished nodes
+		amountWithheld := nodeRewardWithoutWithold.Mul(numWithheldNodes).Plus(delegatorReward.Mul(numDelegators)).(interpreter.UFix64Value)
+
+		// Calculate the additional tokens to give to nodes and delegators
+		// only from the withheld tokens
+		nodeRewardFromWithheld := amountWithheld.Div(totalStaked).Mul(amountToCommit).(interpreter.UFix64Value)
+		delegatorRewardFromWithheld := amountWithheld.Div(totalStaked).Mul(delegatorCommitment).(interpreter.UFix64Value)
+		delegatorRewardNodeCutFromWithheld := delegatorRewardFromWithheld.Mul(cutPercentage).(interpreter.UFix64Value)
+		delegatorRewardMinusNodeFromWithheld := delegatorRewardFromWithheld.Minus(delegatorRewardNodeCutFromWithheld).(interpreter.UFix64Value)
+
+		// Add the normal rewards to the rewards from withholding
+		totalNodeReward := nodeRewardWithoutWithold.Plus(nodeRewardFromWithheld).(interpreter.UFix64Value)
+		totalNodeRewardPlusDelegators := nodeRewardPlusDelegators.Plus(nodeRewardFromWithheld.Plus(delegatorRewardNodeCutFromWithheld.Mul(numDelegators))).(interpreter.UFix64Value)
+		totalDelegatorReward := delegatorRewardMinusNode.Plus(delegatorRewardMinusNodeFromWithheld).(interpreter.UFix64Value)
+
+		// Nodes 1, 3-9
+		for i := 1; i < numNodes; i++ {
+			if i == 1 {
+				result = executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(ids[i]))})
+				assertEqual(t, CadenceUFix64(totalNodeRewardPlusDelegators.String()), result)
+			} else if i != 2 {
+				result = executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(ids[i]))})
+				assertEqual(t, CadenceUFix64(totalNodeReward.String()), result)
+			}
+		}
+
+		// Delegators from Node 1
+		for i := 1; i < 6; i++ {
+			result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorRewardsScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(ids[1])), jsoncdc.MustEncode(cadence.UInt32(i))})
+			assertEqual(t, CadenceUFix64(totalDelegatorReward.String()), result)
+		}
+	})
+}

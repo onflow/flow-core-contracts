@@ -761,6 +761,22 @@ pub contract FlowIDTableStaking {
             FlowIDTableStaking.account.save<[String]>(nodeIDs, to: /storage/idTableApproveList)
         }
 
+        /// Sets a list of node IDs who will not receive rewards for the current epoch
+        /// This is used during epochs to punish nodes who have poor uptime 
+        /// or who do not update to latest node software quickly enough
+        pub fun setNonOperationalNodesList(_ nodeIDs: {String: UFix64}) {
+            for percentage in nodeIDs.values {
+                assert(
+                    percentage >= 0.0 && percentage < 1.0,
+                    message: "Percentage value to decrease rewards payout should be between 0 and 1"
+                )
+            }
+
+            let list = FlowIDTableStaking.account.load<{String: UFix64}>(from: /storage/idTableNonOperationalNodesList)
+
+            FlowIDTableStaking.account.save<{String: UFix64}>(nodeIDs, to: /storage/idTableNonOperationalNodesList)
+        }
+
         /// Starts the staking auction, the period when nodes and delegators
         /// are allowed to perform staking related operations
         pub fun startStakingAuction() {
@@ -886,26 +902,90 @@ pub contract FlowIDTableStaking {
             }
             emit EpochTotalRewardsPaid(total: totalRewards, fromFees: fromFees, minted: mintedRewards, feesBurned: rewardsVault.balance)
 
+            // Clear the non-operational node list so it doesn't persist to the next rewards payment
+            let emptyNodeList: {String: UFix64} = {}
+            self.setNonOperationalNodesList(emptyNodeList)
+
             // Destroy the remaining fees, even if there are some left
             destroy rewardsVault
         }
 
+        /// Calculates rewards for all the staked node operators and delegators
         pub fun calculateRewards(): [RewardsBreakdown] {
             let allNodeIDs = FlowIDTableStaking.getNodeIDs()
 
+            // Get the sum of all tokens staked
             var totalStaked = FlowIDTableStaking.getTotalStaked()
             if totalStaked == 0.0 {
                 return []
             }
+            // Calculate the scale to be multiplied by number of tokens staked per node
             var totalRewardScale = FlowIDTableStaking.epochTokenPayout / totalStaked
 
             var rewardsBreakdownArray: [FlowIDTableStaking.RewardsBreakdown] = []
 
-            /// iterate through all the nodes to pay
-            for nodeID in allNodeIDs {
+            // The total rewards that are withheld from the non-operational nodes
+            var sumRewardsWithheld = 0.0
+
+            // Iterate through all the non-operational nodes and calculate
+            // their rewards that will be withheld
+            let nonOperationalNodes = FlowIDTableStaking.getNonOperationalNodesList()
+            for nodeID in nonOperationalNodes.keys {
                 let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
 
+                // Each node's rewards can be decreased by a different percentage
+                // Its delegator's rewards are also decreased by the same percentage
+                let rewardDecreasePercentage = nonOperationalNodes[nodeID]!
+
+                // Calculate the normal reward amount, then the rewards left after the decrease
                 var nodeRewardAmount = nodeRecord.tokensStaked.balance * totalRewardScale
+                var nodeRewardsLeft = nodeRewardAmount * rewardDecreasePercentage
+
+                // Add the remaining to the total number of rewards withheld
+                sumRewardsWithheld = sumRewardsWithheld + (nodeRewardAmount - nodeRewardsLeft)
+
+                let rewardsBreakdown = FlowIDTableStaking.RewardsBreakdown(nodeID: nodeID)
+
+                // Iterate through all the withheld node's delegators
+                // and calculate their decreased rewards as well
+                for delegator in nodeRecord.delegators.keys {
+                    let delRecord = nodeRecord.borrowDelegatorRecord(delegator)
+
+                    // Calculate the amount of tokens that this delegator receives
+                    // minus the decrease from the non-operational node
+                    var delegatorRewardAmount = delRecord.tokensStaked.balance * totalRewardScale
+                    var delegatorRewardsLeft = delegatorRewardAmount * rewardDecreasePercentage
+
+                    // Add the withheld rewards to the total sum
+                    sumRewardsWithheld = sumRewardsWithheld + (delegatorRewardAmount - delegatorRewardsLeft)
+
+                    if delegatorRewardsLeft == 0.0 { continue }
+
+                    // take the node operator's cut
+                    if (delegatorRewardsLeft * FlowIDTableStaking.nodeDelegatingRewardCut) > 0.0 {
+
+                        let nodeCutAmount = delegatorRewardsLeft * FlowIDTableStaking.nodeDelegatingRewardCut
+
+                        nodeRewardsLeft = nodeRewardsLeft + nodeCutAmount
+
+                        delegatorRewardsLeft = delegatorRewardsLeft - nodeCutAmount
+                    }
+                    rewardsBreakdown.delegatorRewards[delegator] = delegatorRewardsLeft
+                }
+
+                rewardsBreakdown.nodeRewards = nodeRewardsLeft
+                rewardsBreakdownArray.append(rewardsBreakdown)
+            }
+
+            var withheldRewardsScale = sumRewardsWithheld / totalStaked
+
+            /// iterate through all the nodes to pay
+            for nodeID in allNodeIDs {
+                if nonOperationalNodes[nodeID] != nil { continue }
+
+                let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
+
+                var nodeRewardAmount = nodeRecord.tokensStaked.balance * (totalRewardScale + withheldRewardsScale)
 
                 if nodeRewardAmount == 0.0 || nodeRecord.role == UInt8(5)  { continue }
 
@@ -917,7 +997,7 @@ pub contract FlowIDTableStaking {
                     let delRecord = nodeRecord.borrowDelegatorRecord(delegator)
 
                     /// Calculate the amount of tokens that this delegator receives
-                    var delegatorRewardAmount = delRecord.tokensStaked.balance * totalRewardScale
+                    var delegatorRewardAmount = delRecord.tokensStaked.balance * (totalRewardScale + withheldRewardsScale)
 
                     if delegatorRewardAmount == 0.0 { continue }
 
@@ -1262,6 +1342,12 @@ pub contract FlowIDTableStaking {
             ?? panic("could not get approved list")
     }
 
+    /// Returns the list of node IDs whose rewards will be reduced in the next payment
+    pub fun getNonOperationalNodesList(): {String: UFix64} {
+        return self.account.copy<{String: UFix64}>(from: /storage/idTableNonOperationalNodesList)
+            ?? panic("could not get approved list")
+    }
+
     /// Gets the minimum stake requirements for all the node types
     pub fun getMinimumStakeRequirements(): {UInt8: UFix64} {
         return self.minimumStakeRequired
@@ -1326,6 +1412,9 @@ pub contract FlowIDTableStaking {
         let list: [String] = []
         self.setCurrentNodeList(list)
         self.account.save<[String]>(list, to: /storage/idTableApproveList)
+
+        let nonOperationalList: {String: UFix64} = {}
+        self.account.save<{String: UFix64}>(nonOperationalList, to: /storage/idTableNonOperationalNodesList)
 
         self.account.save(<-create Admin(), to: self.StakingAdminStoragePath)
     }
