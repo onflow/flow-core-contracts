@@ -978,6 +978,7 @@ pub contract FlowIDTableStaking {
             }
 
             var withheldRewardsScale = sumRewardsWithheld / totalStaked
+            let totalRewardsPlusWithheld = totalRewardScale + withheldRewardsScale
 
             /// iterate through all the nodes to pay
             for nodeID in allNodeIDs {
@@ -985,7 +986,7 @@ pub contract FlowIDTableStaking {
 
                 let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
 
-                var nodeRewardAmount = nodeRecord.tokensStaked.balance * (totalRewardScale + withheldRewardsScale)
+                var nodeRewardAmount = nodeRecord.tokensStaked.balance * totalRewardsPlusWithheld
 
                 if nodeRewardAmount == 0.0 || nodeRecord.role == UInt8(5)  { continue }
 
@@ -997,7 +998,7 @@ pub contract FlowIDTableStaking {
                     let delRecord = nodeRecord.borrowDelegatorRecord(delegator)
 
                     /// Calculate the amount of tokens that this delegator receives
-                    var delegatorRewardAmount = delRecord.tokensStaked.balance * (totalRewardScale + withheldRewardsScale)
+                    var delegatorRewardAmount = delRecord.tokensStaked.balance * totalRewardsPlusWithheld
 
                     if delegatorRewardAmount == 0.0 { continue }
 
