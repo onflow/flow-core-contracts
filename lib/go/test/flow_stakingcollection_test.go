@@ -2839,3 +2839,59 @@ func TestStakingCollectionCreateNewTokenHolder(t *testing.T) {
 		)
 	})
 }
+
+func TestStakingCollectionRegisterMultipleNodes(t *testing.T) {
+
+	b, accountKeys, env := newTestSetup(t)
+	// Create new keys for the epoch account
+	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
+
+	_, _ = initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
+		startEpochCounter, // start epoch counter
+		numEpochViews,     // num views per epoch
+		numStakingViews,   // num views for staking auction
+		numDKGViews,       // num views for DKG phase
+		numClusters,       // num collector clusters
+		randomSource,      // random source
+		rewardAPY)
+
+	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
+	adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
+
+	deployAllCollectionContracts(t, b, accountKeys, &env, adminAddress, adminSigner)
+
+	jeffAddress2, lockedAddress, jeff2Signer := createLockedAccountPairWithBalances(
+		t, b,
+		accountKeys,
+		env,
+		"0.0", "10000000.0",
+		adminAccountKey, adminAddress, adminSigner)
+
+	numNodes := 10
+
+	// Create arrays for the node account information
+	nodeStakingKeys := make([]string, numNodes)
+	nodeNetworkingKeys := make([]string, numNodes)
+	ids, _, _ := generateNodeIDs(numNodes)
+	roles := make([]int, numNodes)
+	machineAccountKeys := make([][]*flow.AccountKey, numNodes)
+
+	// Create all the node accounts
+	for i := 0; i < numNodes; i++ {
+		_, nodeStakingKeys[i], _, nodeNetworkingKeys[i] = generateKeysForNodeRegistration(t)
+
+		roles[i] = i%4 + 1
+		if i%4+1 == 1 || i%4+1 == 2 {
+			machineAccountKeys[i], _ = accountKeys.NewWithSigner()
+		}
+
+	}
+
+	// Each node will commit 500k FLOW
+	var amountToCommit interpreter.UFix64Value = 50000000000000
+
+	t.Run("Should be able to register multiple nodes with the staking collection", func(t *testing.T) {
+
+	})
+
+}
