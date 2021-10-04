@@ -239,7 +239,7 @@ pub contract FlowEpoch {
     /// Epoch Metadata is stored in account storage so the growing dictionary
     /// does not have to be loaded every time the contract is loaded
     pub fun getEpochMetadata(_ epochCounter: UInt64): EpochMetadata? {
-        if let metadataDictionary = self.account.copy<{UInt64: EpochMetadata}>(from: self.metadataStoragePath) {
+        if let metadataDictionary = self.account.borrow<&{UInt64: EpochMetadata}>(from: self.metadataStoragePath) {
             return metadataDictionary[epochCounter]
         }
         return nil
@@ -254,7 +254,7 @@ pub contract FlowEpoch {
             newMetadata.counter <= self.proposedEpochCounter()):
                 "Cannot modify epoch metadata from epochs after the proposed epoch or before the previous epoch"
         }
-        if let metadataDictionary = self.account.load<{UInt64: EpochMetadata}>(from: self.metadataStoragePath) {
+        if let metadataDictionary = self.account.borrow<&{UInt64: EpochMetadata}>(from: self.metadataStoragePath) {
             if let metadata = metadataDictionary[newMetadata.counter] {
                 assert (
                     metadata.counter == newMetadata.counter,
@@ -262,7 +262,6 @@ pub contract FlowEpoch {
                 )
             }
             metadataDictionary[newMetadata.counter] = newMetadata
-            self.account.save<{UInt64: EpochMetadata}>(metadataDictionary, to: self.metadataStoragePath)
         }
     }
 
@@ -343,11 +342,10 @@ pub contract FlowEpoch {
         /// and change phase if the required conditions have been met
         pub fun advanceBlock() {
 
-            let currentBlock = getCurrentBlock()
-            let currentEpochMetadata = FlowEpoch.getEpochMetadata(FlowEpoch.currentEpochCounter)!
-
             switch FlowEpoch.currentEpochPhase {
                 case EpochPhase.STAKINGAUCTION:
+                    let currentBlock = getCurrentBlock()
+                    let currentEpochMetadata = FlowEpoch.getEpochMetadata(FlowEpoch.currentEpochCounter)!
                     if currentBlock.view >= currentEpochMetadata.stakingEndView {
                         self.endStakingAuction()
                     }
@@ -356,6 +354,8 @@ pub contract FlowEpoch {
                         self.startEpochCommit()
                     }
                 case EpochPhase.EPOCHCOMMIT:
+                    let currentBlock = getCurrentBlock()
+                    let currentEpochMetadata = FlowEpoch.getEpochMetadata(FlowEpoch.currentEpochCounter)!
                     if currentBlock.view >= currentEpochMetadata.endView {
                         self.calculateAndSetRewards(nil)
                         self.endEpoch()
