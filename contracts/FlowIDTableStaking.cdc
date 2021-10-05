@@ -764,6 +764,9 @@ pub contract FlowIDTableStaking {
         /// Sets a list of node IDs who will not receive rewards for the current epoch
         /// This is used during epochs to punish nodes who have poor uptime 
         /// or who do not update to latest node software quickly enough
+        /// The parameter is a dictionary mapping node IDs
+        /// to a percentage, which is the percentage of their expected rewards that
+        /// they will receive instead of the full amount
         pub fun setNonOperationalNodesList(_ nodeIDs: {String: UFix64}) {
             for percentage in nodeIDs.values {
                 assert(
@@ -876,8 +879,6 @@ pub contract FlowIDTableStaking {
                 rewardsVault.deposit(from: <-flowTokenMinter.mintTokens(amount: mintedRewards))
             }
 
-            let allNodeIDs = FlowIDTableStaking.getNodeIDs()
-
             for rewardBreakdown in rewardsBreakdownArray {
                 let nodeRecord = FlowIDTableStaking.borrowNodeRecord(rewardBreakdown.nodeID)
                 let nodeReward = rewardBreakdown.nodeRewards
@@ -927,22 +928,27 @@ pub contract FlowIDTableStaking {
             // The total rewards that are withheld from the non-operational nodes
             var sumRewardsWithheld = 0.0
 
+            // The total amount of stake from non-operational nodes and delegators
+            var sumStakeFromNonOperationalStakers = 0.0
+
             // Iterate through all the non-operational nodes and calculate
             // their rewards that will be withheld
             let nonOperationalNodes = FlowIDTableStaking.getNonOperationalNodesList()
             for nodeID in nonOperationalNodes.keys {
                 let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
 
-                // Each node's rewards can be decreased by a different percentage
-                // Its delegator's rewards are also decreased by the same percentage
-                let rewardDecreasePercentage = nonOperationalNodes[nodeID]!
+                // Each node's rewards can be decreased to a different percentage
+                // Its delegator's rewards are also decreased to the same percentage
+                let rewardDecreaseToPercentage = nonOperationalNodes[nodeID]!
+
+                sumStakeFromNonOperationalStakers = sumStakeFromNonOperationalStakers + nodeRecord.tokensStaked.balance
 
                 // Calculate the normal reward amount, then the rewards left after the decrease
                 var nodeRewardAmount = nodeRecord.tokensStaked.balance * totalRewardScale
-                var nodeRewardsLeft = nodeRewardAmount * rewardDecreasePercentage
+                var nodeRewardsAfterWithholding = nodeRewardAmount * rewardDecreaseToPercentage
 
                 // Add the remaining to the total number of rewards withheld
-                sumRewardsWithheld = sumRewardsWithheld + (nodeRewardAmount - nodeRewardsLeft)
+                sumRewardsWithheld = sumRewardsWithheld + (nodeRewardAmount - nodeRewardsAfterWithholding)
 
                 let rewardsBreakdown = FlowIDTableStaking.RewardsBreakdown(nodeID: nodeID)
 
@@ -951,33 +957,35 @@ pub contract FlowIDTableStaking {
                 for delegator in nodeRecord.delegators.keys {
                     let delRecord = nodeRecord.borrowDelegatorRecord(delegator)
 
+                    sumStakeFromNonOperationalStakers = sumStakeFromNonOperationalStakers + delRecord.tokensStaked.balance
+
                     // Calculate the amount of tokens that this delegator receives
-                    // minus the decrease from the non-operational node
+                    // decreased to the percentage from the non-operational node
                     var delegatorRewardAmount = delRecord.tokensStaked.balance * totalRewardScale
-                    var delegatorRewardsLeft = delegatorRewardAmount * rewardDecreasePercentage
+                    var delegatorRewardsAfterWithholding = delegatorRewardAmount * rewardDecreaseToPercentage
 
                     // Add the withheld rewards to the total sum
-                    sumRewardsWithheld = sumRewardsWithheld + (delegatorRewardAmount - delegatorRewardsLeft)
+                    sumRewardsWithheld = sumRewardsWithheld + (delegatorRewardAmount - delegatorRewardsAfterWithholding)
 
-                    if delegatorRewardsLeft == 0.0 { continue }
+                    if delegatorRewardsAfterWithholding == 0.0 { continue }
 
                     // take the node operator's cut
-                    if (delegatorRewardsLeft * FlowIDTableStaking.nodeDelegatingRewardCut) > 0.0 {
+                    if (delegatorRewardsAfterWithholding * FlowIDTableStaking.nodeDelegatingRewardCut) > 0.0 {
 
-                        let nodeCutAmount = delegatorRewardsLeft * FlowIDTableStaking.nodeDelegatingRewardCut
+                        let nodeCutAmount = delegatorRewardsAfterWithholding * FlowIDTableStaking.nodeDelegatingRewardCut
 
-                        nodeRewardsLeft = nodeRewardsLeft + nodeCutAmount
+                        nodeRewardsAfterWithholding = nodeRewardsAfterWithholding + nodeCutAmount
 
-                        delegatorRewardsLeft = delegatorRewardsLeft - nodeCutAmount
+                        delegatorRewardsAfterWithholding = delegatorRewardsAfterWithholding - nodeCutAmount
                     }
-                    rewardsBreakdown.delegatorRewards[delegator] = delegatorRewardsLeft
+                    rewardsBreakdown.delegatorRewards[delegator] = delegatorRewardsAfterWithholding
                 }
 
-                rewardsBreakdown.nodeRewards = nodeRewardsLeft
+                rewardsBreakdown.nodeRewards = nodeRewardsAfterWithholding
                 rewardsBreakdownArray.append(rewardsBreakdown)
             }
 
-            var withheldRewardsScale = sumRewardsWithheld / totalStaked
+            var withheldRewardsScale = sumRewardsWithheld / (totalStaked - sumStakeFromNonOperationalStakers)
             let totalRewardsPlusWithheld = totalRewardScale + withheldRewardsScale
 
             /// iterate through all the nodes to pay

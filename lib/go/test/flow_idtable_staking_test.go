@@ -2327,8 +2327,6 @@ func TestIDTableRewardsWitholding(t *testing.T) {
 	env.IDTableAddress = idTableAddress.Hex()
 	env.FlowFeesAddress = feesAddr.Hex()
 
-	var totalStaked interpreter.UFix64Value = 510000000000000
-
 	// Create records for the various staking buckets
 	committed := make(map[string]interpreter.UFix64Value)
 	//rewards := make(map[string]interpreter.UFix64Value)
@@ -2445,14 +2443,13 @@ func TestIDTableRewardsWitholding(t *testing.T) {
 		)
 
 		result := executeScriptAndCheck(t, b, templates.GenerateGetNonOperationalListScript(env), nil)
-
 		idArray := result.(cadence.Array).Values
 		assert.Equal(t, len(idArray), 2)
-		assert.Equal(t, idArray[0], CadenceString(ids[0]))
-		assert.Equal(t, idArray[1], CadenceString(ids[2]))
+		assert.ElementsMatch(t, idArray, cadence.NewArray([]cadence.Value{CadenceString(ids[0]), CadenceString(ids[2])}).Values)
 	})
 
 	t.Run("Should pay rewards, but rewards from bad nodes and delegators are re-distributed", func(t *testing.T) {
+
 		// Pay Rewards
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GeneratePayRewardsScript(env), idTableAddress)
 		signAndSubmit(
@@ -2461,6 +2458,13 @@ func TestIDTableRewardsWitholding(t *testing.T) {
 			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
 			false,
 		)
+
+		verifyEpochTotalRewardsPaid(t, b, idTableAddress,
+			EpochTotalRewardsPaid{
+				total:      "1250000.0000",
+				fromFees:   "0.0",
+				minted:     "1250000.0000",
+				feesBurned: "0.06200000"})
 
 		result := executeScriptAndCheck(t, b, templates.GenerateGetNonOperationalListScript(env), nil)
 
@@ -2495,7 +2499,21 @@ func TestIDTableRewardsWitholding(t *testing.T) {
 		// Tested witholding rewards from one of the nodes with delegators
 		// and one of the non-delegated-to nodes
 
+		// The amount of tokens each delegator committed (10k FLOW)
 		var delegatorCommitment interpreter.UFix64Value = 1000000000000
+		// The total number of delegators = 10
+		var numDelegators interpreter.UFix64Value = 1000000000
+		// For multiplying the token amounts (5 nodes for node 0)
+		var numDelegatorsForNode0 interpreter.UFix64Value = 500000000
+		// 10 Nodes total
+		var numNodesTotal interpreter.UFix64Value = 1000000000
+
+		// Number of Nodes whose rewards have been withheld (For multiplying the token amounts)
+		var numWithheldNodes interpreter.UFix64Value = 200000000
+
+		var totalStaked interpreter.UFix64Value = delegatorCommitment.Mul(numDelegators).Plus(amountToCommit.Mul(numNodesTotal)).(interpreter.UFix64Value)
+
+		var totalStakedFromNonOperationalStakers interpreter.UFix64Value = delegatorCommitment.Mul(numDelegatorsForNode0).Plus(amountToCommit.Mul(numWithheldNodes)).(interpreter.UFix64Value)
 
 		// First calculate the node and delegator rewards assuming no withholding
 		nodeRewardWithoutWithold := totalPayout.Div(totalStaked).Mul(amountToCommit).(interpreter.UFix64Value)
@@ -2503,29 +2521,24 @@ func TestIDTableRewardsWitholding(t *testing.T) {
 		delegatorRewardNodeCut := delegatorReward.Mul(cutPercentage).(interpreter.UFix64Value)
 		delegatorRewardMinusNode := delegatorReward.Minus(delegatorRewardNodeCut).(interpreter.UFix64Value)
 
-		// For multiplying the reward amounts
-		var numDelegators interpreter.UFix64Value = 500000000
-
 		// The rewards for a node and its 5 delegators
 		// without including withheld rewards from other nodes
-		nodeRewardPlusDelegators := nodeRewardWithoutWithold.Plus(delegatorRewardNodeCut.Mul(numDelegators)).(interpreter.UFix64Value)
-
-		// For multiplying the reward amounts
-		var numWithheldNodes interpreter.UFix64Value = 200000000
+		nodeRewardPlusDelegators := nodeRewardWithoutWithold.Plus(delegatorRewardNodeCut.Mul(numDelegatorsForNode0)).(interpreter.UFix64Value)
 
 		// Figure out the sum of tokens withheld from all punished nodes
-		amountWithheld := nodeRewardWithoutWithold.Mul(numWithheldNodes).Plus(delegatorReward.Mul(numDelegators)).(interpreter.UFix64Value)
+		amountWithheld := nodeRewardWithoutWithold.Mul(numWithheldNodes).Plus(delegatorReward.Mul(numDelegatorsForNode0)).(interpreter.UFix64Value)
+		fmt.Println(amountWithheld)
 
 		// Calculate the additional tokens to give to nodes and delegators
 		// only from the withheld tokens
-		nodeRewardFromWithheld := amountWithheld.Div(totalStaked).Mul(amountToCommit).(interpreter.UFix64Value)
-		delegatorRewardFromWithheld := amountWithheld.Div(totalStaked).Mul(delegatorCommitment).(interpreter.UFix64Value)
+		nodeRewardFromWithheld := amountWithheld.Div(totalStaked.Minus(totalStakedFromNonOperationalStakers)).Mul(amountToCommit).(interpreter.UFix64Value)
+		delegatorRewardFromWithheld := amountWithheld.Div(totalStaked.Minus(totalStakedFromNonOperationalStakers)).Mul(delegatorCommitment).(interpreter.UFix64Value)
 		delegatorRewardNodeCutFromWithheld := delegatorRewardFromWithheld.Mul(cutPercentage).(interpreter.UFix64Value)
 		delegatorRewardMinusNodeFromWithheld := delegatorRewardFromWithheld.Minus(delegatorRewardNodeCutFromWithheld).(interpreter.UFix64Value)
 
 		// Add the normal rewards to the rewards from withholding
 		totalNodeReward := nodeRewardWithoutWithold.Plus(nodeRewardFromWithheld).(interpreter.UFix64Value)
-		totalNodeRewardPlusDelegators := nodeRewardPlusDelegators.Plus(nodeRewardFromWithheld.Plus(delegatorRewardNodeCutFromWithheld.Mul(numDelegators))).(interpreter.UFix64Value)
+		totalNodeRewardPlusDelegators := nodeRewardPlusDelegators.Plus(nodeRewardFromWithheld.Plus(delegatorRewardNodeCutFromWithheld.Mul(numDelegatorsForNode0))).(interpreter.UFix64Value)
 		totalDelegatorReward := delegatorRewardMinusNode.Plus(delegatorRewardMinusNodeFromWithheld).(interpreter.UFix64Value)
 
 		// Nodes 1, 3-9
