@@ -2864,7 +2864,7 @@ func TestStakingCollectionRegisterMultipleNodes(t *testing.T) {
 		t, b,
 		accountKeys,
 		env,
-		"0.0", "10000000.0",
+		"0.0", "100000000.0",
 		adminAccountKey, adminAddress, adminSigner)
 
 	// Setup the staking collection
@@ -2902,7 +2902,7 @@ func TestStakingCollectionRegisterMultipleNodes(t *testing.T) {
 
 		cadenceIDs[i] = CadenceString(ids[i])
 
-		cadenceAmounts[i] = CadenceUFix64("500000.0")
+		cadenceAmounts[i] = CadenceUFix64("2000000.0")
 
 		roles[i] = i%4 + 1
 		cadenceRoles[i] = cadence.NewUInt8(uint8(roles[i]))
@@ -2939,9 +2939,35 @@ func TestStakingCollectionRegisterMultipleNodes(t *testing.T) {
 
 		verifyStakingCollectionInfo(t, b, env, StakingCollectionInfo{
 			accountAddress:     jeffAddress2.String(),
-			unlockedBalance:    "5000000.000000",
+			unlockedBalance:    "80000000.000000",
 			lockedBalance:      "0.00000000",
-			unlockedTokensUsed: "5000000.00000000",
+			unlockedTokensUsed: "20000000.00000000",
+			lockedTokensUsed:   "0.00000000",
+			unlockLimit:        "0.00000000",
+			nodes:              ids,
+			delegators:         []DelegatorIDs{},
+		})
+
+	})
+
+	t.Run("Should be able to register multiple delegators with the staking collection", func(t *testing.T) {
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterMultipleDelegatorsScript(env), jeffAddress2)
+		_ = tx.AddArgument(cadence.NewArray(cadenceIDs))
+		_ = tx.AddArgument(cadence.NewArray(cadenceAmounts))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, jeffAddress2},
+			[]crypto.Signer{b.ServiceKey().Signer(), jeff2Signer},
+			false,
+		)
+
+		verifyStakingCollectionInfo(t, b, env, StakingCollectionInfo{
+			accountAddress:     jeffAddress2.String(),
+			unlockedBalance:    "60000000.000000",
+			lockedBalance:      "0.00000000",
+			unlockedTokensUsed: "40000000.00000000",
 			lockedTokensUsed:   "0.00000000",
 			unlockLimit:        "0.00000000",
 			nodes:              ids,

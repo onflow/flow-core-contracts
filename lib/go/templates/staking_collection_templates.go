@@ -32,6 +32,7 @@ const (
 	collectionUpdateNetworkingAddressFilename     = "stakingCollection/update_networking_address.cdc"
 	collectionCreateNewTokenHolderAccountFilename = "stakingCollection/create_new_tokenholder_acct.cdc"
 	collectionRegisterMultipleNodesFilename       = "stakingCollection/register_multiple_nodes.cdc"
+	collectionRegisterMultipleDelegatorsFilename  = "stakingCollection/register_multiple_delegators.cdc"
 
 	// scripts
 	collectionGetDoesStakeExistFilename                = "stakingCollection/scripts/get_does_stake_exist.cdc"
@@ -172,6 +173,12 @@ func GenerateCollectionCreateNewTokenHolderAccountScript(env Environment) []byte
 
 func GenerateCollectionRegisterMultipleNodesScript(env Environment) []byte {
 	code := assets.MustAssetString(collectionRegisterMultipleNodesFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateCollectionRegisterMultipleDelegatorsScript(env Environment) []byte {
+	code := assets.MustAssetString(collectionRegisterMultipleDelegatorsFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
