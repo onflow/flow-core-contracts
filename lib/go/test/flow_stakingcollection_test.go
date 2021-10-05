@@ -2860,37 +2860,93 @@ func TestStakingCollectionRegisterMultipleNodes(t *testing.T) {
 
 	deployAllCollectionContracts(t, b, accountKeys, &env, adminAddress, adminSigner)
 
-	jeffAddress2, lockedAddress, jeff2Signer := createLockedAccountPairWithBalances(
+	jeffAddress2, _, jeff2Signer := createLockedAccountPairWithBalances(
 		t, b,
 		accountKeys,
 		env,
 		"0.0", "10000000.0",
 		adminAccountKey, adminAddress, adminSigner)
 
+	// Setup the staking collection
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionSetup(env), jeffAddress2)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{b.ServiceKey().Address, jeffAddress2},
+		[]crypto.Signer{b.ServiceKey().Signer(), jeff2Signer},
+		false,
+	)
+
 	numNodes := 10
 
 	// Create arrays for the node account information
-	nodeStakingKeys := make([]string, numNodes)
-	nodeNetworkingKeys := make([]string, numNodes)
+	nodeStakingKeys := make([]cadence.Value, numNodes)
+	nodeNetworkingKeys := make([]cadence.Value, numNodes)
+	nodeNetworkingAddresses := make([]cadence.Value, numNodes)
 	ids, _, _ := generateNodeIDs(numNodes)
 	roles := make([]int, numNodes)
-	machineAccountKeys := make([][]*flow.AccountKey, numNodes)
+	machineAccountKeys := make([]cadence.Value, numNodes)
+
+	cadenceIDs := make([]cadence.Value, numNodes)
+	cadenceRoles := make([]cadence.Value, numNodes)
+	cadenceAmounts := make([]cadence.Value, numNodes)
 
 	// Create all the node accounts
 	for i := 0; i < numNodes; i++ {
-		_, nodeStakingKeys[i], _, nodeNetworkingKeys[i] = generateKeysForNodeRegistration(t)
+		_, stakingKey, _, networkingKey := generateKeysForNodeRegistration(t)
+
+		nodeStakingKeys[i] = CadenceString(stakingKey)
+		nodeNetworkingKeys[i] = CadenceString(networkingKey)
+
+		nodeNetworkingAddresses[i] = CadenceString(fmt.Sprintf("%0128s", ids[i]))
+
+		cadenceIDs[i] = CadenceString(ids[i])
+
+		cadenceAmounts[i] = CadenceUFix64("500000.0")
 
 		roles[i] = i%4 + 1
+		cadenceRoles[i] = cadence.NewUInt8(uint8(roles[i]))
+
 		if i%4+1 == 1 || i%4+1 == 2 {
-			machineAccountKeys[i], _ = accountKeys.NewWithSigner()
+			publicKeys := make([]cadence.Value, 1)
+			machineAccountKey, _ := accountKeys.NewWithSigner()
+			machineAccountKeyString := hex.EncodeToString(machineAccountKey.Encode())
+			publicKeys[0] = CadenceString(machineAccountKeyString)
+			machineAccountKeys[i] = cadence.NewOptional(cadence.NewArray(publicKeys))
+		} else {
+			machineAccountKeys[i] = cadence.NewOptional(nil)
 		}
 
 	}
 
-	// Each node will commit 500k FLOW
-	var amountToCommit interpreter.UFix64Value = 50000000000000
-
 	t.Run("Should be able to register multiple nodes with the staking collection", func(t *testing.T) {
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterMultipleNodesScript(env), jeffAddress2)
+		_ = tx.AddArgument(cadence.NewArray(cadenceIDs))
+		_ = tx.AddArgument(cadence.NewArray(cadenceRoles))
+		_ = tx.AddArgument(cadence.NewArray(nodeNetworkingAddresses))
+		_ = tx.AddArgument(cadence.NewArray(nodeNetworkingKeys))
+		_ = tx.AddArgument(cadence.NewArray(nodeStakingKeys))
+		_ = tx.AddArgument(cadence.NewArray(cadenceAmounts))
+		_ = tx.AddArgument(cadence.NewArray(machineAccountKeys))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, jeffAddress2},
+			[]crypto.Signer{b.ServiceKey().Signer(), jeff2Signer},
+			false,
+		)
+
+		verifyStakingCollectionInfo(t, b, env, StakingCollectionInfo{
+			accountAddress:     jeffAddress2.String(),
+			unlockedBalance:    "5000000.000000",
+			lockedBalance:      "0.00000000",
+			unlockedTokensUsed: "5000000.00000000",
+			lockedTokensUsed:   "0.00000000",
+			unlockLimit:        "0.00000000",
+			nodes:              ids,
+			delegators:         []DelegatorIDs{},
+		})
 
 	})
 

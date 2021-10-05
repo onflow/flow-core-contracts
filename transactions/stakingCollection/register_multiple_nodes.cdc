@@ -1,7 +1,7 @@
 import FlowStakingCollection from 0xSTAKINGCOLLECTIONADDRESS
 
-/// Registers a delegator in the staking collection resource
-/// for the specified node information and the amount of tokens to commit
+/// Registers multiple nodes in the staking collection resource
+/// for the specified node information
 
 transaction(ids: [String],
             roles: [UInt8],
@@ -36,6 +36,7 @@ transaction(ids: [String],
                     machineAccount.addPublicKey(key.decodeHex())
                 }
             }
+            i = i + 1
         }
     }
 }
