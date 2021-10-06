@@ -2527,7 +2527,6 @@ func TestIDTableRewardsWitholding(t *testing.T) {
 
 		// Figure out the sum of tokens withheld from all punished nodes
 		amountWithheld := nodeRewardWithoutWithold.Mul(numWithheldNodes).Plus(delegatorReward.Mul(numDelegatorsForNode0)).(interpreter.UFix64Value)
-		fmt.Println(amountWithheld)
 
 		// Calculate the additional tokens to give to nodes and delegators
 		// only from the withheld tokens
