@@ -24,6 +24,7 @@ const (
 	transferAdminCapabilityFilename = "idTableStaking/admin/transfer_admin.cdc"
 	capabilityEndEpochFilename      = "idTableStaking/admin/capability_end_epoch.cdc"
 	transferFeesAdminFilename       = "idTableStaking/admin/transfer_fees_admin.cdc"
+	setNonOperationalFilename       = "idTableStaking/admin/set_non_operational.cdc"
 
 	// for testing only
 	scaleRewardsTestFilename = "idTableStaking/admin/scale_rewards_test.cdc"
@@ -60,6 +61,7 @@ const (
 	getTotalCommitmentWithoutDelegatorsFilename = "idTableStaking/scripts/get_node_total_commitment_without_delegators.cdc"
 	getUnstakingRequestFilename                 = "idTableStaking/scripts/get_node_unstaking_request.cdc"
 	getCutPercentageFilename                    = "idTableStaking/scripts/get_cut_percentage.cdc"
+	getNonOperationalListFilename               = "idTableStaking/scripts/get_non_operational.cdc"
 
 	stakeRequirementsFilename = "idTableStaking/scripts/get_stake_requirements.cdc"
 	totalStakedByTypeFilename = "idTableStaking/scripts/get_total_staked_by_type.cdc"
@@ -189,6 +191,12 @@ func GenerateCapabilityEndEpochScript(env Environment) []byte {
 
 func GenerateTransferFeesAdminScript(env Environment) []byte {
 	code := assets.MustAssetString(transferFeesAdminFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateSetNonOperationalScript(env Environment) []byte {
+	code := assets.MustAssetString(setNonOperationalFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -459,6 +467,12 @@ func GenerateGetTotalCommitmentBalanceScript(env Environment) []byte {
 // that returns the balance of the total committed tokens of a node without delegators
 func GenerateGetTotalCommitmentBalanceWithoutDelegatorsScript(env Environment) []byte {
 	code := assets.MustAssetString(getTotalCommitmentWithoutDelegatorsFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateGetNonOperationalListScript(env Environment) []byte {
+	code := assets.MustAssetString(getNonOperationalListFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
