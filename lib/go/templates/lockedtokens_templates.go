@@ -6,14 +6,15 @@ import (
 
 const (
 	// admin templates
-	deployLockedTokensFilename              = "lockedTokens/admin/admin_deploy_contract.cdc"
-	createLockedAccountsFilename            = "lockedTokens/admin/admin_create_shared_accounts.cdc"
-	checkSharedRegistrationFilename         = "lockedTokens/admin/check_shared_registration.cdc"
-	checkMainRegistrationFilename           = "lockedTokens/admin/check_main_registration.cdc"
-	depositLockedTokensFilename             = "lockedTokens/admin/deposit_locked_tokens.cdc"
-	increaseUnlockLimitFilename             = "lockedTokens/admin/unlock_tokens.cdc"
-	depositAccountCreatorCapabilityFilename = "lockedTokens/admin/admin_deposit_account_creator.cdc"
-	removeDelegatorFilename                 = "lockedTokens/admin/admin_remove_delegator.cdc"
+	deployLockedTokensFilename                     = "lockedTokens/admin/admin_deploy_contract.cdc"
+	createLockedAccountsFilename                   = "lockedTokens/admin/admin_create_shared_accounts.cdc"
+	checkSharedRegistrationFilename                = "lockedTokens/admin/check_shared_registration.cdc"
+	checkMainRegistrationFilename                  = "lockedTokens/admin/check_main_registration.cdc"
+	depositLockedTokensFilename                    = "lockedTokens/admin/deposit_locked_tokens.cdc"
+	increaseUnlockLimitFilename                    = "lockedTokens/admin/unlock_tokens.cdc"
+	increaseUnlockForMultipleAccountsLimitFilename = "lockedTokens/admin/unlock_tokens_for_multiple_accounts.cdc"
+	depositAccountCreatorCapabilityFilename        = "lockedTokens/admin/admin_deposit_account_creator.cdc"
+	removeDelegatorFilename                        = "lockedTokens/admin/admin_remove_delegator.cdc"
 
 	// Custody Provider / Wallet provider Account creation templates
 	setupCustodyAccountFilename                  = "lockedTokens/admin/custody_setup_account_creator.cdc"
@@ -90,6 +91,12 @@ func GenerateDepositLockedTokensScript(env Environment) []byte {
 
 func GenerateIncreaseUnlockLimitScript(env Environment) []byte {
 	code := assets.MustAssetString(increaseUnlockLimitFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateIncreaseUnlockLimitForMultipleAccountsLimitScript(env Environment) []byte {
+	code := assets.MustAssetString(increaseUnlockForMultipleAccountsLimitFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
