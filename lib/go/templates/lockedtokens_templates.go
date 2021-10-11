@@ -12,7 +12,7 @@ const (
 	checkMainRegistrationFilename                  = "lockedTokens/admin/check_main_registration.cdc"
 	depositLockedTokensFilename                    = "lockedTokens/admin/deposit_locked_tokens.cdc"
 	increaseUnlockLimitFilename                    = "lockedTokens/admin/unlock_tokens.cdc"
-	increaseUnlockForMultipleAccountsLimitFilename = "lockedTokens/admin/unlock_tokens_for_multiple_accounts.cdc"
+	increaseUnlockLimitForMultipleAccountsFilename = "lockedTokens/admin/unlock_tokens_for_multiple_accounts.cdc"
 	depositAccountCreatorCapabilityFilename        = "lockedTokens/admin/admin_deposit_account_creator.cdc"
 	removeDelegatorFilename                        = "lockedTokens/admin/admin_remove_delegator.cdc"
 
@@ -95,8 +95,8 @@ func GenerateIncreaseUnlockLimitScript(env Environment) []byte {
 	return []byte(replaceAddresses(code, env))
 }
 
-func GenerateIncreaseUnlockLimitForMultipleAccountsLimitScript(env Environment) []byte {
-	code := assets.MustAssetString(increaseUnlockForMultipleAccountsLimitFilename)
+func GenerateIncreaseUnlockLimitForMultipleAccountsScript(env Environment) []byte {
+	code := assets.MustAssetString(increaseUnlockLimitForMultipleAccountsFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
