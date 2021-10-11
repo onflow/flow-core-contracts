@@ -1,6 +1,11 @@
 import LockedTokens from 0xLOCKEDTOKENADDRESS
 
-transaction(targetAccounts: [Address], deltas: [UFix64]) {
+// This transaction uses the locked tokens admin
+// to set the unlock limit for multiple accounts
+// in a single transaction
+// The addresses used as keys are the unlocked
+// addresses for the accounts
+transaction(unlockInfo: {Address: UFix64}) {
 
     prepare(admin: AuthAccount) {
 
@@ -9,12 +14,24 @@ transaction(targetAccounts: [Address], deltas: [UFix64]) {
 
         var i = 0
 
-        for targetAccount in targetAccounts {
+        for targetUnlockedAddress in unlockInfo.keys {
 
-            let tokenManagerRef = adminRef.getAccount(address: targetAccount)!.borrow()
-                ?? panic("Could not borrow a reference to the user's token manager")
+            let lockedAccountInfoRef = getAccount(unlockedAddress)
+                .getCapability<&LockedTokens.TokenHolder{LockedTokens.LockedAccountInfo}>(LockedTokens.LockedAccountInfoPublicPath)!
+                .borrow() ?? panic("Could not borrow a reference to public LockedAccountInfo")
 
-            tokenManagerRef.increaseUnlockLimit(delta: deltas[i])
+            let lockedAccountAddress = lockedAccountInfoRef.getLockedAccountAddress()
+
+            if let tokenManagerRef = adminRef.getAccount(address: lockedAccountAddress)!.borrow() {
+
+                // Some accounts may already have some unlocked tokens
+                // from tokens delivered after storage minimums were enabled
+                // So those should be subtracted from the unlock amount
+                var unlockAmount = unlockInfo[targetUnlockedAddress]!
+                unlockAmount = unlockAmount - lockedAccountInfoRef.getUnlockLimit()
+
+                tokenManagerRef.increaseUnlockLimit(delta: unlockAmount)
+            }
 
             i = i + 1
         }
