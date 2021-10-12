@@ -10,6 +10,10 @@ transaction(unlockInfo: {Address: UFix64}) {
 
     prepare(admin: AuthAccount) {
 
+        // Unlocked Account addresses that had some sort of error
+        let badAccounts: {Address: UFix64} = admin.load<{Address: UFix64}>(from: /storage/unlockingBadAccounts)
+            ?? {}
+
         let adminRef = admin.borrow<&LockedTokens.TokenAdminCollection>(from: LockedTokens.LockedTokenAdminCollectionStoragePath)
             ?? panic("Could not borrow a reference to the admin collection")
 
@@ -34,12 +38,14 @@ transaction(unlockInfo: {Address: UFix64}) {
                         // from tokens delivered after storage minimums were enabled
                         // So those should be subtracted from the unlock amount
                         var unlockAmount = unlockInfo[unlockedAddress]!
-                        unlockAmount = unlockAmount - unlockLimit
 
                         tokenManagerRef.increaseUnlockLimit(delta: unlockAmount)
-                    }
-                }
-            }
+
+                    } else { badAccounts[unlockedAddress] != unlockInfo[unlockedAddress]! }
+                } else { badAccounts[unlockedAddress] != unlockInfo[unlockedAddress]! }
+            } else { badAccounts[unlockedAddress] != unlockInfo[unlockedAddress]! }
         }
+
+        admin.save<{Address: UFix64}>(badAccounts, to: /storage/unlockingBadAccounts)
     }
 }
