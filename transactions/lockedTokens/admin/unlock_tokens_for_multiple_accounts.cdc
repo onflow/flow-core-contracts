@@ -11,8 +11,11 @@ transaction(unlockInfo: {Address: UFix64}) {
     prepare(admin: AuthAccount) {
 
         // Unlocked Account addresses that had some sort of error
-        let badAccounts: {Address: UFix64} = admin.load<{Address: UFix64}>(from: /storage/unlockingBadAccounts)
-            ?? {}
+        // are stored in this dictionary so they can be inspected later
+        // If the transaction needs to run multiple times,
+        // then the dictionary is not overwritten
+        var badAccounts: {Address: UFix64} = admin.load<{Address: UFix64}>(from: /storage/unlockingBadAccounts)
+            ?? {} as {Address: UFix64}
 
         let adminRef = admin.borrow<&LockedTokens.TokenAdminCollection>(from: LockedTokens.LockedTokenAdminCollectionStoragePath)
             ?? panic("Could not borrow a reference to the admin collection")
@@ -41,11 +44,21 @@ transaction(unlockInfo: {Address: UFix64}) {
 
                         tokenManagerRef.increaseUnlockLimit(delta: unlockAmount)
 
-                    } else { badAccounts[unlockedAddress] != unlockInfo[unlockedAddress]! }
-                } else { badAccounts[unlockedAddress] != unlockInfo[unlockedAddress]! }
-            } else { badAccounts[unlockedAddress] != unlockInfo[unlockedAddress]! }
+                        // Continue to the next iteration of the loop
+                        // because the account succeeded and does not need
+                        // to be marked as bad
+                        continue
+                    }
+                } 
+            }
+
+            // If the execution makes it here (does not reach the continue above)
+            // it means something went wrong with the unlocking for the account
+            // and it needs to be saved
+            badAccounts[unlockedAddress] = unlockInfo[unlockedAddress]
         }
 
         admin.save<{Address: UFix64}>(badAccounts, to: /storage/unlockingBadAccounts)
+        admin.link<&{Address: UFix64}>(/public/unlockingBadAccounts, target: /storage/unlockingBadAccounts)
     }
 }
