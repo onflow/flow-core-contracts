@@ -649,6 +649,24 @@ func TestIDTableStaking(t *testing.T) {
 		assert.Len(t, idArray, 1)
 	})
 
+	t.Run("Should be able to get approved nodes list", func(t *testing.T) {
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
+
+		err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID)}))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetApprovedNodesScript(env), nil)
+		idArray := result.(cadence.Array).Values
+		assert.Len(t, idArray, 2)
+	})
+
 	t.Run("Shouldn't be able to remove a Node that doesn't exist", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRemoveNodeScript(env), idTableAddress)
