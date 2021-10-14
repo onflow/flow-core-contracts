@@ -3,37 +3,60 @@ import LockedTokens from 0xLOCKEDTOKENADDRESS
 // This transaction uses the locked tokens admin
 // to set the unlock limit for multiple accounts
 // in a single transaction
-// The addresses used as keys are the unlocked
-// addresses for the accounts
+// The account addresses used as keys
+// should be the unlocked account addresses
+
 transaction(unlockInfo: {Address: UFix64}) {
 
     prepare(admin: AuthAccount) {
 
+        // Unlocked Account addresses that had some sort of error
+        // are stored in this dictionary so they can be inspected later
+        // If the transaction needs to run multiple times,
+        // then the dictionary is not overwritten
+        var badAccounts: {Address: UFix64} = admin.load<{Address: UFix64}>(from: /storage/unlockingBadAccounts)
+            ?? {} as {Address: UFix64}
+
         let adminRef = admin.borrow<&LockedTokens.TokenAdminCollection>(from: LockedTokens.LockedTokenAdminCollectionStoragePath)
             ?? panic("Could not borrow a reference to the admin collection")
 
-        var i = 0
+        for unlockedAddress in unlockInfo.keys {
 
-        for targetUnlockedAddress in unlockInfo.keys {
+            // All of the if lets are because we don't  want to
+            // revert the entire transaction if it fails
+            // to get the information for a single address
+            if let lockedAccountInfoRef = getAccount(unlockedAddress)
+                .getCapability<&LockedTokens.TokenHolder{LockedTokens.LockedAccountInfo}>(LockedTokens.LockedAccountInfoPublicPath)
+                .borrow() {
 
-            let lockedAccountInfoRef = getAccount(unlockedAddress)
-                .getCapability<&LockedTokens.TokenHolder{LockedTokens.LockedAccountInfo}>(LockedTokens.LockedAccountInfoPublicPath)!
-                .borrow() ?? panic("Could not borrow a reference to public LockedAccountInfo")
+                let lockedAccountAddress = lockedAccountInfoRef.getLockedAccountAddress()
 
-            let lockedAccountAddress = lockedAccountInfoRef.getLockedAccountAddress()
+                if let lockedTokenAccountRecord = adminRef.getAccount(address: lockedAccountAddress) {
+                    
+                    if let tokenManagerRef = lockedTokenAccountRecord.borrow() {
 
-            if let tokenManagerRef = adminRef.getAccount(address: lockedAccountAddress)!.borrow() {
+                        // Some accounts may already have some unlocked tokens
+                        // from tokens delivered after storage minimums were enabled
+                        // So those should be subtracted from the unlock amount
+                        var unlockAmount = unlockInfo[unlockedAddress]!
 
-                // Some accounts may already have some unlocked tokens
-                // from tokens delivered after storage minimums were enabled
-                // So those should be subtracted from the unlock amount
-                var unlockAmount = unlockInfo[targetUnlockedAddress]!
-                unlockAmount = unlockAmount - lockedAccountInfoRef.getUnlockLimit()
+                        tokenManagerRef.increaseUnlockLimit(delta: unlockAmount)
 
-                tokenManagerRef.increaseUnlockLimit(delta: unlockAmount)
+                        // Continue to the next iteration of the loop
+                        // because the account succeeded and does not need
+                        // to be marked as bad
+                        continue
+                    }
+                } 
             }
 
-            i = i + 1
+            // If the execution makes it here (does not reach the continue above)
+            // it means something went wrong with the unlocking for the account
+            // and it needs to be saved
+            badAccounts[unlockedAddress] = unlockInfo[unlockedAddress]
         }
+
+        admin.save<{Address: UFix64}>(badAccounts, to: /storage/unlockingBadAccounts)
+        admin.link<&{Address: UFix64}>(/public/unlockingBadAccounts, target: /storage/unlockingBadAccounts)
     }
 }

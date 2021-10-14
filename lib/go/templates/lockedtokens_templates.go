@@ -12,9 +12,10 @@ const (
 	checkMainRegistrationFilename                  = "lockedTokens/admin/check_main_registration.cdc"
 	depositLockedTokensFilename                    = "lockedTokens/admin/deposit_locked_tokens.cdc"
 	increaseUnlockLimitFilename                    = "lockedTokens/admin/unlock_tokens.cdc"
-	increaseUnlockForMultipleAccountsLimitFilename = "lockedTokens/admin/unlock_tokens_for_multiple_accounts.cdc"
+	increaseUnlockLimitForMultipleAccountsFilename = "lockedTokens/admin/unlock_tokens_for_multiple_accounts.cdc"
 	depositAccountCreatorCapabilityFilename        = "lockedTokens/admin/admin_deposit_account_creator.cdc"
 	removeDelegatorFilename                        = "lockedTokens/admin/admin_remove_delegator.cdc"
+	getBadAccountsFilename                         = "lockedTokens/admin/get_unlocking_bad_accounts.cdc"
 
 	// Custody Provider / Wallet provider Account creation templates
 	setupCustodyAccountFilename                  = "lockedTokens/admin/custody_setup_account_creator.cdc"
@@ -95,8 +96,8 @@ func GenerateIncreaseUnlockLimitScript(env Environment) []byte {
 	return []byte(replaceAddresses(code, env))
 }
 
-func GenerateIncreaseUnlockLimitForMultipleAccountsLimitScript(env Environment) []byte {
-	code := assets.MustAssetString(increaseUnlockForMultipleAccountsLimitFilename)
+func GenerateIncreaseUnlockLimitForMultipleAccountsScript(env Environment) []byte {
+	code := assets.MustAssetString(increaseUnlockLimitForMultipleAccountsFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -109,6 +110,12 @@ func GenerateDepositAccountCreatorScript(env Environment) []byte {
 
 func GenerateRemoveDelegatorScript(env Environment) []byte {
 	code := assets.MustAssetString(removeDelegatorFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateGetBadAccountsScript(env Environment) []byte {
+	code := assets.MustAssetString(getBadAccountsFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
