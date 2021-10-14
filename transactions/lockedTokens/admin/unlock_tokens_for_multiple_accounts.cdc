@@ -35,8 +35,6 @@ transaction(unlockInfo: {Address: UFix64}) {
                     
                     if let tokenManagerRef = lockedTokenAccountRecord.borrow() {
 
-                        let unlockLimit = lockedAccountInfoRef.getUnlockLimit()
-
                         // Some accounts may already have some unlocked tokens
                         // from tokens delivered after storage minimums were enabled
                         // So those should be subtracted from the unlock amount
