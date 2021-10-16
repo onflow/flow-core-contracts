@@ -35,11 +35,10 @@ transaction(unlockInfo: {Address: UFix64}) {
                     
                     if let tokenManagerRef = lockedTokenAccountRecord.borrow() {
 
-                        // Some accounts may already have some unlocked tokens
-                        // from tokens delivered after storage minimums were enabled
-                        // So those should be subtracted from the unlock amount
+                        // Get the unlock amount from the transaction argument dictionary
                         var unlockAmount = unlockInfo[unlockedAddress]!
 
+                        // Increase the unlock limit by the amount
                         tokenManagerRef.increaseUnlockLimit(delta: unlockAmount)
 
                         // Continue to the next iteration of the loop
