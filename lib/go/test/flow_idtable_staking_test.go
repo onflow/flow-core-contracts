@@ -629,7 +629,7 @@ func TestIDTableStaking(t *testing.T) {
 
 	})
 
-	t.Run("Should be able to set the approved node list", func(t *testing.T) {
+	t.Run("Should be able to set and get the approved node list", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
 
@@ -643,9 +643,14 @@ func TestIDTableStaking(t *testing.T) {
 			false,
 		)
 
-		result := executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
-
+		// read the approved nodes list and check that our node ids exists
+		result := executeScriptAndCheck(t, b, templates.GenerateGetApprovedNodesScript(env), nil)
 		idArray := result.(cadence.Array).Values
+		assert.Len(t, idArray, 4)
+
+		// read the proposed nodes table and check that our node ids exists
+		result = executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
+		idArray = result.(cadence.Array).Values
 		assert.Len(t, idArray, 1)
 	})
 
