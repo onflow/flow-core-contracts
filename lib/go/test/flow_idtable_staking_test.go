@@ -629,7 +629,7 @@ func TestIDTableStaking(t *testing.T) {
 
 	})
 
-	t.Run("Should be able to set the approved node list", func(t *testing.T) {
+	t.Run("Should be able to set and get the approved node list", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
 
@@ -643,28 +643,15 @@ func TestIDTableStaking(t *testing.T) {
 			false,
 		)
 
-		result := executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
-
-		idArray := result.(cadence.Array).Values
-		assert.Len(t, idArray, 1)
-	})
-
-	t.Run("Should be able to get approved nodes list", func(t *testing.T) {
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
-
-		err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID)}))
-		require.NoError(t, err)
-
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, idTableAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
-			false,
-		)
-
+		// read the approved nodes list and check that our node ids exists
 		result := executeScriptAndCheck(t, b, templates.GenerateGetApprovedNodesScript(env), nil)
 		idArray := result.(cadence.Array).Values
-		assert.Len(t, idArray, 2)
+		assert.Len(t, idArray, 4)
+
+		// read the proposed nodes table and check that our node ids exists
+		result = executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
+		idArray = result.(cadence.Array).Values
+		assert.Len(t, idArray, 1)
 	})
 
 	t.Run("Shouldn't be able to remove a Node that doesn't exist", func(t *testing.T) {
