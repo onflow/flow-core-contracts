@@ -128,6 +128,7 @@ func TestStakingCollectionGetTokens(t *testing.T) {
 		t, b,
 		accountKeys,
 		env,
+		"1000000000.0",
 		"1000.0", "0.0",
 		adminAccountKey, adminAddress, adminSigner)
 
@@ -181,6 +182,7 @@ func TestStakingCollectionGetTokens(t *testing.T) {
 		t, b,
 		accountKeys,
 		env,
+		"1000000000.0",
 		"0.0", "1000.0",
 		adminAccountKey, adminAddress, adminSigner)
 
@@ -235,6 +237,7 @@ func TestStakingCollectionGetTokens(t *testing.T) {
 		t, b,
 		accountKeys,
 		env,
+		"1000000000.0",
 		"1000.0", "1000.0",
 		adminAccountKey, adminAddress, adminSigner)
 
@@ -344,6 +347,7 @@ func TestStakingCollectionDepositTokens(t *testing.T) {
 		t, b,
 		accountKeys,
 		env,
+		"1000000000.0",
 		"1000.0", "0.0",
 		adminAccountKey, adminAddress, adminSigner)
 
@@ -385,6 +389,7 @@ func TestStakingCollectionDepositTokens(t *testing.T) {
 		t, b,
 		accountKeys,
 		env,
+		"1000000000.0",
 		"1000.0", "1000.0",
 		adminAccountKey, adminAddress, adminSigner)
 
@@ -526,6 +531,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		t, b,
 		accountKeys,
 		env,
+		"1000000000.0",
 		"1000000.0", "1000000.0",
 		adminAccountKey, adminAddress, adminSigner)
 	_, joshStakingKey, _, joshNetworkingKey := generateKeysForNodeRegistration(t)
@@ -940,6 +946,7 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 		t, b,
 		accountKeys,
 		env,
+		"1000000000.0",
 		"1000000.0", "1000000.0",
 		adminAccountKey, adminAddress, adminSigner)
 
@@ -2286,6 +2293,7 @@ func TestDoesAccountHaveStakingCollection(t *testing.T) {
 			t, b,
 			accountKeys,
 			env,
+			"1000000000.0",
 			"1000000.0", "1000000.0",
 			adminAccountKey, adminAddress, adminSigner)
 
@@ -2339,6 +2347,7 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 			t, b,
 			accountKeys,
 			env,
+			"1000000000.0",
 			"1000000.0", "1000000.0",
 			adminAccountKey, adminAddress, adminSigner)
 
@@ -2394,6 +2403,7 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 			t, b,
 			accountKeys,
 			env,
+			"1000000000.0",
 			"1000000.0", "1000000.0",
 			adminAccountKey, adminAddress, adminSigner)
 
@@ -2450,6 +2460,7 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 			t, b,
 			accountKeys,
 			env,
+			"1000000000.0",
 			"0.0", "2000000.0",
 			adminAccountKey, adminAddress, adminSigner)
 
@@ -2538,6 +2549,7 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 			t, b,
 			accountKeys,
 			env,
+			"1000000000.0",
 			"0.0", "2000000.0",
 			adminAccountKey, adminAddress, adminSigner)
 
@@ -2627,6 +2639,7 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 			t, b,
 			accountKeys,
 			env,
+			"1000000000.0",
 			"0.0", "2000000.0",
 			adminAccountKey, adminAddress, adminSigner)
 
@@ -2693,6 +2706,7 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 			t, b,
 			accountKeys,
 			env,
+			"1000000000.0",
 			"0.0", "2000000.0",
 			adminAccountKey, adminAddress, adminSigner)
 
@@ -2756,6 +2770,7 @@ func TestStakingCollectionCreateNewTokenHolder(t *testing.T) {
 			t, b,
 			accountKeys,
 			env,
+			"1000000000.0",
 			"400000.0", "1.0",
 			adminAccountKey, adminAddress, adminSigner)
 
@@ -2864,6 +2879,7 @@ func TestStakingCollectionRegisterMultipleNodes(t *testing.T) {
 		t, b,
 		accountKeys,
 		env,
+		"1000000000.0",
 		"0.0", "100000000.0",
 		adminAccountKey, adminAddress, adminSigner)
 

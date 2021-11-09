@@ -145,6 +145,7 @@ func createLockedAccountPairWithBalances(
 	b *emulator.Blockchain,
 	accountKeys *test.AccountKeys,
 	env templates.Environment,
+	adminAmount string,
 	lockedBalance, unlockedBalance string,
 	adminAccountKey *flow.AccountKey,
 	adminAddress flow.Address,
@@ -159,7 +160,9 @@ func createLockedAccountPairWithBalances(
 	var newUserSharedAddress flow.Address
 	var newUserAddress flow.Address
 
-	mintTokensForAccount(t, b, adminAddress, "1000000000.0")
+	if adminAmount != "0.0" {
+		mintTokensForAccount(t, b, adminAddress, adminAmount)
+	}
 
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateSharedAccountScript(env), adminAddress).
 		AddRawArgument(jsoncdc.MustEncode(adminPublicKey)).
@@ -359,6 +362,7 @@ func registerStakingCollectionNodesAndDelegators(
 		t, b,
 		accountKeys,
 		env,
+		"1000000000.0",
 		lockedBalance, unlockedBalance,
 		adminAccountKey, adminAddress, adminSigner)
 
