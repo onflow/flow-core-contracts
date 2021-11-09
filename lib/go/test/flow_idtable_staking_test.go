@@ -643,9 +643,15 @@ func TestIDTableStaking(t *testing.T) {
 			false,
 		)
 
-		result := executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
 
+		// read the approved nodes list and check that our node ids exists
+		result := executeScriptAndCheck(t, b, templates.GenerateGetApprovedNodesScript(env), nil)
 		idArray := result.(cadence.Array).Values
+		assert.Len(t, idArray, 4)
+
+		// check proposed nodes list
+		result = executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
+		idArray = result.(cadence.Array).Values
 		assert.Len(t, idArray, 1)
 	})
 

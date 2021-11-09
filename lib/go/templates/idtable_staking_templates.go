@@ -62,7 +62,7 @@ const (
 	getUnstakingRequestFilename                 = "idTableStaking/scripts/get_node_unstaking_request.cdc"
 	getCutPercentageFilename                    = "idTableStaking/scripts/get_cut_percentage.cdc"
 	getNonOperationalListFilename               = "idTableStaking/scripts/get_non_operational.cdc"
-
+	getApprovedNodesFileName                    = "idTableStaking/scripts/get_approved_nodes.cdc"
 	stakeRequirementsFilename = "idTableStaking/scripts/get_stake_requirements.cdc"
 	totalStakedByTypeFilename = "idTableStaking/scripts/get_total_staked_by_type.cdc"
 	totalStakedFilename       = "idTableStaking/scripts/get_total_staked.cdc"
@@ -481,6 +481,12 @@ func GenerateGetNonOperationalListScript(env Environment) []byte {
 
 func GenerateRegisterManyNodesScript(env Environment) []byte {
 	code := assets.MustAssetString(registerManyNodesFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateGetApprovedNodesScript(env Environment) []byte {
+	code := assets.MustAssetString(getApprovedNodesFileName)
 
 	return []byte(replaceAddresses(code, env))
 }
