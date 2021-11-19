@@ -10,7 +10,9 @@
 // ../../../transactions/FlowServiceAccount/scripts/get_is_account_creator.cdc (149B)
 // ../../../transactions/FlowServiceAccount/scripts/get_tx_fee.cdc (124B)
 // ../../../transactions/FlowServiceAccount/set_is_account_creation_restricted.cdc (586B)
+// ../../../transactions/dkg/admin/force_stop_dkg.cdc (334B)
 // ../../../transactions/dkg/admin/publish_participant.cdc (224B)
+// ../../../transactions/dkg/admin/set_safe_threshold.cdc (424B)
 // ../../../transactions/dkg/admin/start_dkg.cdc (366B)
 // ../../../transactions/dkg/admin/stop_dkg.cdc (329B)
 // ../../../transactions/dkg/create_participant.cdc (427B)
@@ -24,6 +26,7 @@
 // ../../../transactions/dkg/scripts/get_node_has_submitted.cdc (116B)
 // ../../../transactions/dkg/scripts/get_node_is_claimed.cdc (218B)
 // ../../../transactions/dkg/scripts/get_node_is_registered.cdc (123B)
+// ../../../transactions/dkg/scripts/get_thresholds.cdc (408B)
 // ../../../transactions/dkg/scripts/get_whiteboard_messages.cdc (115B)
 // ../../../transactions/dkg/send_final_submission.cdc (412B)
 // ../../../transactions/dkg/send_whiteboard_message.cdc (395B)
@@ -514,6 +517,26 @@ func flowserviceaccountSet_is_account_creation_restrictedCdc() (*asset, error) {
 	return a, nil
 }
 
+var _dkgAdminForce_stop_dkgCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x74\x8f\x41\x4f\x83\x40\x10\x85\xef\xfc\x8a\x97\x1e\x0c\x5c\x88\x67\xa2\x36\x44\x2a\x07\x2e\x46\x7e\xc1\xba\x0c\x74\x23\xcc\x90\x61\x48\x9b\x98\xfe\x77\x83\x6b\x35\x3d\xf8\x2e\x9b\x9d\xbc\xf7\xcd\x9b\x30\xcd\xa2\x86\x97\x51\x4e\x55\x53\xa3\x57\x99\x70\x7f\xae\x9a\xba\xac\xaa\xb7\x43\xdb\x26\x89\xa9\xe3\xc5\x79\x0b\xc2\xf8\x4c\x12\x00\x18\xc9\xd0\x7d\x0c\x65\x37\x05\x2e\x70\xf7\x13\xce\xbf\xff\xd1\x31\x2b\xcd\x4e\x29\x5d\xc2\xc0\xa4\x05\xca\xd5\x8e\xa5\xf7\xb2\xb2\x65\x57\xca\xa6\x85\xc6\x3e\xbf\xa2\xf0\x88\xe8\xcf\xdf\x45\x55\x4e\x0f\xb7\xe4\xa7\x74\x6b\x57\xe0\x66\xd8\x9a\xa8\x1b\xe8\xd5\xd9\x31\xfb\xa5\x6e\xda\xef\x31\x3b\x0e\x3e\xdd\x3d\xcb\x3a\x76\x60\x31\x44\x2c\xb6\x43\xe3\x42\xa5\x9e\x94\xd8\xd3\x2e\x8b\x9d\x2e\xf1\xa1\x33\xf9\xd5\xe8\xdf\xa6\x79\x2f\xea\xe9\xc0\x5d\xd5\xd4\xe9\x5f\xf4\xf2\x15\x00\x00\xff\xff\x6b\xe4\xb6\xb3\x4e\x01\x00\x00"
+
+func dkgAdminForce_stop_dkgCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_dkgAdminForce_stop_dkgCdc,
+		"dkg/admin/force_stop_dkg.cdc",
+	)
+}
+
+func dkgAdminForce_stop_dkgCdc() (*asset, error) {
+	bytes, err := dkgAdminForce_stop_dkgCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "dkg/admin/force_stop_dkg.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xb0, 0x53, 0xf9, 0x8d, 0x95, 0x45, 0x15, 0x8e, 0x63, 0x8, 0xf2, 0x6b, 0x8e, 0xd9, 0x78, 0xd1, 0xb5, 0x25, 0x89, 0x30, 0xf7, 0x90, 0x6d, 0xe2, 0x60, 0xed, 0x4d, 0xb9, 0x5d, 0xdc, 0xd, 0x6c}}
+	return a, nil
+}
+
 var _dkgAdminPublish_participantCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x54\xce\x41\x4b\xc3\x40\x10\x05\xe0\xfb\xfc\x8a\xe7\x45\x5a\x90\xc6\x73\x11\x21\x10\xed\xa1\x17\x31\xfe\x81\x35\xdd\x6e\x86\x6e\x66\x96\xd9\x09\x2a\xd2\xff\x2e\x1a\x05\x3b\xc7\x79\x1f\x8f\xc7\x53\x51\x73\x3c\x66\x7d\xeb\xf6\x3b\x1c\x4d\x27\xdc\xbe\x77\xfb\x5d\xdb\x75\xcf\x0f\x7d\x4f\xd4\x34\x78\x19\xb9\xc2\x2d\x48\x0d\x83\xb3\x0a\xb8\x42\x25\x7f\xe0\xa8\x06\x8f\xd5\x59\xd2\x15\xd1\x7f\xf1\x49\x04\x00\xc5\x62\x09\x16\x57\x95\x93\x44\xdb\xa2\x9d\x7d\x6c\x87\x41\x67\xf1\xf5\x9f\xf9\xbe\x25\xdf\x64\x96\xd3\xdd\xf5\xef\x98\x4d\x7b\x98\x58\xee\x57\x4d\x99\x5f\x33\x0f\xcd\xe1\x94\x7e\x3e\x37\xf0\x60\x29\xfa\x16\x17\xb0\x77\xb5\x90\xe2\x53\xf0\x71\xbd\x14\x9f\x89\xce\x5f\x01\x00\x00\xff\xff\xd0\x9c\x76\xb8\xe0\x00\x00\x00"
 
 func dkgAdminPublish_participantCdcBytes() ([]byte, error) {
@@ -531,6 +554,26 @@ func dkgAdminPublish_participantCdc() (*asset, error) {
 
 	info := bindataFileInfo{name: "dkg/admin/publish_participant.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xec, 0x55, 0xff, 0x37, 0xec, 0x8, 0x49, 0xe7, 0xe0, 0xd, 0xea, 0xad, 0x75, 0x78, 0xe, 0x7e, 0x3e, 0xc5, 0xc4, 0x78, 0x6f, 0xda, 0x66, 0x26, 0x76, 0x96, 0xa0, 0x81, 0xc, 0xc3, 0xe3, 0x1c}}
+	return a, nil
+}
+
+var _dkgAdminSet_safe_thresholdCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x74\x90\x41\x4b\xc3\x40\x14\x84\xef\xf9\x15\x8f\x1e\x24\xb9\x04\x0f\xe2\x21\xa8\x25\x18\xdb\x43\x2f\xc5\xe8\x0f\x58\x37\x93\x64\x31\xd9\x0d\x6f\x5f\x48\x40\xfa\xdf\x25\xae\x46\x0a\xed\xbb\x2c\x3b\x0c\xdf\x0c\x63\xfa\xc1\xb1\xd0\xae\x73\x53\x71\xd8\x53\xcd\xae\xa7\xdb\xb9\x38\xec\xf3\xa2\x78\x7d\x29\xcb\x28\x12\x56\xd6\x2b\x2d\xc6\xd9\xd8\x62\x7a\x6b\x19\xbe\x75\x5d\x75\x04\x6b\x58\x51\x0d\x32\x7a\xdf\x99\xf9\xfe\x2e\xa1\xaf\x28\x22\x22\xea\x20\x54\x7d\x36\x79\xd5\x1b\x9b\xd1\xcd\x2f\x3c\xfd\xf9\x07\xc7\xc0\x18\x14\x23\xf6\xa6\xb1\xe0\x8c\xf2\x51\xda\x5c\x6b\x37\x5a\x59\x29\xcb\x79\x74\x75\xfa\x87\xa2\x47\x0a\xfe\xf4\xc3\x31\xbb\xe9\xe1\x9c\xfc\x14\x2f\xed\x33\x3a\x13\x4b\x71\xac\x1a\x1c\x95\xb4\xc9\x4a\x5d\x6e\xbb\xa5\x41\x59\xa3\xe3\xcd\xb3\x1b\xbb\x8a\xac\x13\x0a\x58\x5a\x86\x08\x81\x8c\x1a\x0c\xab\xb1\x49\x42\xa7\x53\x78\x30\x43\x8f\x82\xab\x4d\x53\x0f\x29\x55\x8d\x72\xd4\x1a\xde\xaf\x9b\x5d\x1d\xf0\xb2\xfe\x1f\x7a\xfa\x0e\x00\x00\xff\xff\x7e\x0f\x32\xb2\xa8\x01\x00\x00"
+
+func dkgAdminSet_safe_thresholdCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_dkgAdminSet_safe_thresholdCdc,
+		"dkg/admin/set_safe_threshold.cdc",
+	)
+}
+
+func dkgAdminSet_safe_thresholdCdc() (*asset, error) {
+	bytes, err := dkgAdminSet_safe_thresholdCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "dkg/admin/set_safe_threshold.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x14, 0x9, 0x2d, 0x37, 0x76, 0x28, 0xa2, 0x83, 0x84, 0xd4, 0x30, 0xa4, 0x81, 0x8, 0x5b, 0x4b, 0xf3, 0x5e, 0x36, 0x83, 0x6a, 0xc1, 0x28, 0x45, 0x1a, 0x17, 0x2a, 0x21, 0x93, 0x25, 0x20, 0xb9}}
 	return a, nil
 }
 
@@ -791,6 +834,26 @@ func dkgScriptsGet_node_is_registeredCdc() (*asset, error) {
 
 	info := bindataFileInfo{name: "dkg/scripts/get_node_is_registered.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xad, 0xbc, 0xa5, 0x94, 0xca, 0x89, 0x42, 0xfc, 0xbd, 0x28, 0x1d, 0x72, 0xd4, 0x0, 0x1d, 0xf2, 0xeb, 0xd3, 0x6a, 0x1, 0x26, 0xf1, 0xb5, 0x35, 0x15, 0x12, 0x7a, 0xfa, 0xdf, 0x6, 0x62, 0x4a}}
+	return a, nil
+}
+
+var _dkgScriptsGet_thresholdsCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x8c\x90\xc1\x4a\x03\x31\x18\x84\xef\x79\x8a\x39\x26\x97\x65\x0f\xa5\x87\x82\x14\x61\x6d\x91\x82\x88\xab\x0f\x10\xd7\x3f\x6d\x20\x9b\x94\xe4\x8f\x16\x64\xdf\x5d\xb2\xd5\xd6\x65\x11\xcc\xf1\x9f\xf9\x32\xc3\xd8\xfe\x18\x22\x63\xe3\xc2\x47\xb3\xdb\xc2\xc4\xd0\xa3\x3e\x35\xbb\xed\x6d\xd3\x3c\xdd\xb5\xad\x10\xc7\xfc\x8a\xc4\x31\x77\x8c\xe7\x43\xa4\x74\x08\xee\x2d\xe1\x53\x00\x40\xd1\x1c\x31\xbc\x66\xfb\x4e\x2b\xbc\xdc\x7b\x5e\x2e\x26\x52\xd2\xe6\x6f\xe1\x91\x62\x47\x9e\xf5\xbe\x58\x36\xf6\xb4\x5c\x88\xd1\x63\xbd\x65\xa9\xbe\x43\xca\x4b\xe4\x4c\x75\x4e\xc1\xcd\x4f\xdb\x6a\x4f\xfc\x30\xde\xda\xdc\x75\x94\xd2\xa5\x9f\x54\x53\xb2\x64\x4d\xb9\x56\x9b\x7f\x51\xd7\x86\x73\xfe\x02\x5e\x4d\x52\x61\xbd\x46\x5d\xd5\xe3\x4f\x83\x18\xce\xfb\x99\xec\xd1\x6b\xeb\xa5\x5a\xcd\x47\x8c\xc4\x39\xfa\x5f\x77\xa9\xc4\xf0\x15\x00\x00\xff\xff\x03\x93\xd8\xc7\x98\x01\x00\x00"
+
+func dkgScriptsGet_thresholdsCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_dkgScriptsGet_thresholdsCdc,
+		"dkg/scripts/get_thresholds.cdc",
+	)
+}
+
+func dkgScriptsGet_thresholdsCdc() (*asset, error) {
+	bytes, err := dkgScriptsGet_thresholdsCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "dkg/scripts/get_thresholds.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x9f, 0x6, 0xd, 0xd4, 0x37, 0x50, 0xa5, 0x7, 0x78, 0xd8, 0x8d, 0x8f, 0x5d, 0x24, 0x7e, 0xb7, 0xab, 0x79, 0x29, 0x97, 0x3f, 0xf5, 0x8b, 0x75, 0x32, 0xf7, 0xa4, 0xaf, 0x24, 0x18, 0xd4, 0x8f}}
 	return a, nil
 }
 
@@ -5315,7 +5378,9 @@ var _bindata = map[string]func() (*asset, error){
 	"FlowServiceAccount/scripts/get_is_account_creator.cdc":                   flowserviceaccountScriptsGet_is_account_creatorCdc,
 	"FlowServiceAccount/scripts/get_tx_fee.cdc":                               flowserviceaccountScriptsGet_tx_feeCdc,
 	"FlowServiceAccount/set_is_account_creation_restricted.cdc":               flowserviceaccountSet_is_account_creation_restrictedCdc,
+	"dkg/admin/force_stop_dkg.cdc":                                            dkgAdminForce_stop_dkgCdc,
 	"dkg/admin/publish_participant.cdc":                                       dkgAdminPublish_participantCdc,
+	"dkg/admin/set_safe_threshold.cdc":                                        dkgAdminSet_safe_thresholdCdc,
 	"dkg/admin/start_dkg.cdc":                                                 dkgAdminStart_dkgCdc,
 	"dkg/admin/stop_dkg.cdc":                                                  dkgAdminStop_dkgCdc,
 	"dkg/create_participant.cdc":                                              dkgCreate_participantCdc,
@@ -5329,6 +5394,7 @@ var _bindata = map[string]func() (*asset, error){
 	"dkg/scripts/get_node_has_submitted.cdc":                                  dkgScriptsGet_node_has_submittedCdc,
 	"dkg/scripts/get_node_is_claimed.cdc":                                     dkgScriptsGet_node_is_claimedCdc,
 	"dkg/scripts/get_node_is_registered.cdc":                                  dkgScriptsGet_node_is_registeredCdc,
+	"dkg/scripts/get_thresholds.cdc":                                          dkgScriptsGet_thresholdsCdc,
 	"dkg/scripts/get_whiteboard_messages.cdc":                                 dkgScriptsGet_whiteboard_messagesCdc,
 	"dkg/send_final_submission.cdc":                                           dkgSend_final_submissionCdc,
 	"dkg/send_whiteboard_message.cdc":                                         dkgSend_whiteboard_messageCdc,
@@ -5612,7 +5678,9 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	}},
 	"dkg": {nil, map[string]*bintree{
 		"admin": {nil, map[string]*bintree{
+			"force_stop_dkg.cdc": {dkgAdminForce_stop_dkgCdc, map[string]*bintree{}},
 			"publish_participant.cdc": {dkgAdminPublish_participantCdc, map[string]*bintree{}},
+			"set_safe_threshold.cdc": {dkgAdminSet_safe_thresholdCdc, map[string]*bintree{}},
 			"start_dkg.cdc": {dkgAdminStart_dkgCdc, map[string]*bintree{}},
 			"stop_dkg.cdc": {dkgAdminStop_dkgCdc, map[string]*bintree{}},
 		}},
@@ -5628,6 +5696,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 			"get_node_has_submitted.cdc": {dkgScriptsGet_node_has_submittedCdc, map[string]*bintree{}},
 			"get_node_is_claimed.cdc": {dkgScriptsGet_node_is_claimedCdc, map[string]*bintree{}},
 			"get_node_is_registered.cdc": {dkgScriptsGet_node_is_registeredCdc, map[string]*bintree{}},
+			"get_thresholds.cdc": {dkgScriptsGet_thresholdsCdc, map[string]*bintree{}},
 			"get_whiteboard_messages.cdc": {dkgScriptsGet_whiteboard_messagesCdc, map[string]*bintree{}},
 		}},
 		"send_final_submission.cdc": {dkgSend_final_submissionCdc, map[string]*bintree{}},

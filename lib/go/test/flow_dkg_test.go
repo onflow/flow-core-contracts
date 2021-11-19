@@ -566,8 +566,76 @@ func TestDKG(t *testing.T) {
 		)
 	})
 
+	t.Run("Should not be able to set the safe threshold while the DKG is enabled", func(t *testing.T) {
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetSafeThresholdScript(env), DKGAddress)
+
+		err := tx.AddArgument(CadenceUFix64("0.90"))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, DKGAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), DKGSigner},
+			true,
+		)
+
+	})
+
+	t.Run("Admin Should be able to force stop the DKG", func(t *testing.T) {
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateForceStopDKGScript(env), DKGAddress)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, DKGAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), DKGSigner},
+			false,
+		)
+	})
+
+	t.Run("Should be able to set the safe threshold while the DKG is disabled", func(t *testing.T) {
+
+		// There are two consensus nodes, so the thresholds should both be zero
+		// since the native percentage is 50% and the safe percentage has not been set yet
+		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGThresholdsScript(env), nil).(cadence.Struct)
+		nativeThreshold := result.Fields[0]
+		safeThreshold := result.Fields[1]
+		safePercentage := result.Fields[2]
+
+		assert.Equal(t, cadence.NewUInt64(0), nativeThreshold)
+		assert.Equal(t, cadence.NewUInt64(0), safeThreshold)
+		assert.Equal(t, CadenceUFix64("0.0"), safePercentage)
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetSafeThresholdScript(env), DKGAddress)
+
+		err := tx.AddArgument(CadenceUFix64("0.90"))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, DKGAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), DKGSigner},
+			false,
+		)
+
+		// The safe percentage was set to 90%, so the safe threshold should be 1
+		// since there are two nodes, meaning that now, both nodes have to have
+		// submitted succesfully for the DKG to be considered complete.
+		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGThresholdsScript(env), nil).(cadence.Struct)
+		nativeThreshold = result.Fields[0]
+		safeThreshold = result.Fields[1]
+		safePercentage = result.Fields[2]
+
+		assert.Equal(t, cadence.NewUInt64(0), nativeThreshold)
+		assert.Equal(t, cadence.NewUInt64(1), safeThreshold)
+		assert.Equal(t, CadenceUFix64("0.9"), safePercentage)
+
+	})
+
 }
 
+// Tests the DKG with submissions consisting of nil keys
 func TestDKGNil(t *testing.T) {
 	b := newBlockchain()
 

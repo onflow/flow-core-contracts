@@ -202,6 +202,19 @@ pub contract FlowDKG {
     /// The Admin resource provides the ability to begin and end voting for an epoch
     pub resource Admin {
 
+        /// Sets the optional safe DKG success threshold
+        pub fun setSafeSuccessThreshold(newThresholdPercentage: UFix64?) {
+            pre {
+                !FlowDKG.dkgEnabled: "Cannot set the dkg success threshold while the DKG is enabled"
+            }
+
+            FlowDKG.account.load<UFix64>(from: /storage/flowDKGSafeThreshold)
+
+            if let percentage = newThresholdPercentage {
+                FlowDKG.account.save<UFix64>(percentage, to: /storage/flowDKGSafeThreshold)
+            }
+        }
+
         /// Creates a new Participant resource for a consensus node
         pub fun createParticipant(nodeID: String): @Participant {
             let participant <-create Participant(nodeID: nodeID)
@@ -331,6 +344,34 @@ pub contract FlowDKG {
         return self.uniqueFinalSubmissions
     }
 
+    /// Gets the native threshold that the submission count needs to exceed to be considered complete
+    pub fun getNativeSuccessThreshold(): UInt64 {
+        return UInt64((self.getConsensusNodeIDs().length-1)/2)
+    }
+
+    /// Gets the safe threshold that the submission count needs to exceed to be considered complete
+    /// (always greater than or equal to the native success threshold + 1)
+    pub fun getSafeSuccessThreshold(): UInt64 {
+        var threshold = self.getNativeSuccessThreshold()
+
+        // Get the safety rate percentage
+        if let safetyRate = self.account.copy<UFix64>(from: /storage/flowDKGSafeThreshold) {
+
+            let safeThreshold = UInt64(safetyRate * UFix64(self.getConsensusNodeIDs().length))
+
+            if safeThreshold > threshold {
+                threshold = safeThreshold
+            }
+        }
+
+        return threshold
+    }
+
+    pub fun getSafeThresholdPercentage(): UFix64? {
+        let safetyRate = self.account.copy<UFix64>(from: /storage/flowDKGSafeThreshold)
+        return safetyRate
+    }
+
     /// Returns the final set of keys if any one set of keys has strictly more than (nodes-1)/2 submissions
     /// Returns nil if not found (incomplete)
     pub fun dkgCompleted(): [String?]? {
@@ -339,7 +380,7 @@ pub contract FlowDKG {
         var index = 0
 
         for submission in self.uniqueFinalSubmissions {
-            if self.uniqueFinalSubmissionCount[index]! > UInt64((self.getConsensusNodeIDs().length-1)/2) {
+            if self.uniqueFinalSubmissionCount[index]! > self.getSafeSuccessThreshold() {
                 for key in submission {
                     if key == nil {
                         return nil

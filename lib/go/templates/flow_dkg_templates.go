@@ -11,6 +11,8 @@ const (
 	startDKGFilename           = "dkg/admin/start_dkg.cdc"
 	nextPhaseFilename          = "dkg/admin/next_phase.cdc"
 	stopDKGFilename            = "dkg/admin/stop_dkg.cdc"
+	forceStopDKGFilename       = "dkg/admin/force_stop_dkg.cdc"
+	setSafeThresholdFilename   = "dkg/admin/set_safe_threshold.cdc"
 	publishParticipantFilename = "dkg/admin/publish_participant.cdc"
 
 	// Node Transactions
@@ -28,6 +30,7 @@ const (
 	getLatestMessagesFilename           = "dkg/scripts/get_latest_whiteboard_messages.cdc"
 	getFinalSubmissionsFilename         = "dkg/scripts/get_final_submissions.cdc"
 	getCanonicalFinalSubmissionFilename = "dkg/scripts/get_dkg_canonical_final_submission.cdc"
+	getThresholdsFilename               = "dkg/scripts/get_thresholds.cdc"
 
 	getNodeIsRegisteredFilename    = "dkg/scripts/get_node_is_registered.cdc"
 	getNodeIsClaimedFilename       = "dkg/scripts/get_node_is_claimed.cdc"
@@ -47,6 +50,20 @@ func GenerateStartDKGScript(env Environment) []byte {
 // GenerateStopDKGScript generates a script for the admin that stops DKG
 func GenerateStopDKGScript(env Environment) []byte {
 	code := assets.MustAssetString(stopDKGFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateForceStopDKGScript(env Environment) []byte {
+	code := assets.MustAssetString(forceStopDKGFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+// GenerateSetSafeThresholdScript generates a script for the admin
+// to set a new threshold percentage for DKG completion
+func GenerateSetSafeThresholdScript(env Environment) []byte {
+	code := assets.MustAssetString(setSafeThresholdFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
@@ -144,6 +161,12 @@ func GenerateGetDKGNodeFinalSubmissionScript(env Environment) []byte {
 
 func GenerateGetDKGCanonicalFinalSubmissionScript(env Environment) []byte {
 	code := assets.MustAssetString(getCanonicalFinalSubmissionFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateGetDKGThresholdsScript(env Environment) []byte {
+	code := assets.MustAssetString(getThresholdsFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
