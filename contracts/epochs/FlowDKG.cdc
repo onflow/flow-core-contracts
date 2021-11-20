@@ -203,9 +203,11 @@ pub contract FlowDKG {
     pub resource Admin {
 
         /// Sets the optional safe DKG success threshold
+        /// Set the threshold to an optional if it isn't needed
         pub fun setSafeSuccessThreshold(newThresholdPercentage: UFix64?) {
             pre {
                 !FlowDKG.dkgEnabled: "Cannot set the dkg success threshold while the DKG is enabled"
+                newThresholdPercentage == nil || (newThresholdPercentage! > 0.5 && newThresholdPercentage! < 1.0): "The threshold percentage must be between 0.5 and 1.0"
             }
 
             FlowDKG.account.load<UFix64>(from: /storage/flowDKGSafeThreshold)
@@ -350,12 +352,12 @@ pub contract FlowDKG {
     }
 
     /// Gets the safe threshold that the submission count needs to exceed to be considered complete
-    /// (always greater than or equal to the native success threshold + 1)
+    /// (always greater than or equal to the native success threshold)
     pub fun getSafeSuccessThreshold(): UInt64 {
         var threshold = self.getNativeSuccessThreshold()
 
         // Get the safety rate percentage
-        if let safetyRate = self.account.copy<UFix64>(from: /storage/flowDKGSafeThreshold) {
+        if let safetyRate = self.getSafeThresholdPercentage() {
 
             let safeThreshold = UInt64(safetyRate * UFix64(self.getConsensusNodeIDs().length))
 
@@ -367,6 +369,7 @@ pub contract FlowDKG {
         return threshold
     }
 
+    /// Gets the safe threshold percentage 
     pub fun getSafeThresholdPercentage(): UFix64? {
         let safetyRate = self.account.copy<UFix64>(from: /storage/flowDKGSafeThreshold)
         return safetyRate

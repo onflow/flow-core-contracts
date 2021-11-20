@@ -8,7 +8,7 @@ pub struct Thresholds {
     init() {
         self.native = FlowDKG.getNativeSuccessThreshold()
         self.safe = FlowDKG.getSafeSuccessThreshold()
-        self.safePercentage = FlowDKG.getSafeThresholdPercentage() ?? 0.0
+        self.safePercentage = FlowDKG.getSafeThresholdPercentage() ?? 0.5
     }
 }
 
