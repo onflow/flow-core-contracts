@@ -594,11 +594,11 @@ func TestDKG(t *testing.T) {
 		)
 	})
 
-	t.Run("Should not be able to set the safe threshold less than 0.5 or greater than 1", func(t *testing.T) {
+	t.Run("Should not be able to set the safe threshold greater than 1.0", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetSafeThresholdScript(env), DKGAddress)
 
-		err := tx.AddArgument(CadenceUFix64("0.30"))
+		err = tx.AddArgument(CadenceUFix64("1.001"))
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -607,19 +607,6 @@ func TestDKG(t *testing.T) {
 			[]crypto.Signer{b.ServiceKey().Signer(), DKGSigner},
 			true,
 		)
-
-		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateSetSafeThresholdScript(env), DKGAddress)
-
-		err = tx.AddArgument(CadenceUFix64("1.90"))
-		require.NoError(t, err)
-
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, DKGAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), DKGSigner},
-			true,
-		)
-
 	})
 
 	t.Run("Should be able to set the safe threshold while the DKG is disabled", func(t *testing.T) {
