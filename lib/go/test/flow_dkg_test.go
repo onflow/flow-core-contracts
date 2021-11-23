@@ -9,6 +9,7 @@ import (
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 	sdktemplates "github.com/onflow/flow-go-sdk/templates"
+	emulator "github.com/onflow/flow-emulator"
 	"github.com/onflow/flow-go-sdk/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -594,11 +595,13 @@ func TestDKG(t *testing.T) {
 		)
 	})
 
-	t.Run("Should not be able to set the safe threshold greater than 1.0", func(t *testing.T) {
+	// we allow the threshold percent value to be in the range [0,1.0)
+	// values <0 are implicitly disallowed by the unsigned type
+	t.Run("Should not be able to set the safe threshold >= than 1.0", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetSafeThresholdScript(env), DKGAddress)
 
-		err = tx.AddArgument(CadenceUFix64("1.001"))
+		err = tx.AddArgument(CadenceUFix64("1.0"))
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -607,6 +610,52 @@ func TestDKG(t *testing.T) {
 			[]crypto.Signer{b.ServiceKey().Signer(), DKGSigner},
 			true,
 		)
+	})
+
+	t.Run("Should be able to set the safe threshold in the range [0,1)", func(t *testing.T) {
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetSafeThresholdScript(env), DKGAddress)
+
+		err = tx.AddArgument(CadenceUFix64("0.0"))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, DKGAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), DKGSigner},
+			false,
+		)
+		checkDKGSafeThresholdPercent(t, b, env, CadenceUFix64("0.0"))
+
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateSetSafeThresholdScript(env), DKGAddress)
+
+		err = tx.AddArgument(CadenceUFix64("0.999"))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, DKGAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), DKGSigner},
+			false,
+		)
+		checkDKGSafeThresholdPercent(t, b, env, CadenceUFix64("0.999"))
+	})
+
+	t.Run("should be able to set the safe threshold to nil", func(t *testing.T) {
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetSafeThresholdScript(env), DKGAddress)
+
+		err = tx.AddArgument(cadence.NewOptional(nil))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, DKGAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), DKGSigner},
+			false,
+		)
+
+		// assert the threshold value is set
+		// NOTE: nil is considered as 0 by the checker script
+		checkDKGSafeThresholdPercent(t, b, env, CadenceUFix64("0.0"))
 	})
 
 	t.Run("Should be able to set the safe threshold while the DKG is disabled", func(t *testing.T) {
@@ -620,7 +669,7 @@ func TestDKG(t *testing.T) {
 
 		assert.Equal(t, cadence.NewUInt64(0), nativeThreshold)
 		assert.Equal(t, cadence.NewUInt64(0), safeThreshold)
-		assertEqual(t, CadenceUFix64("0.5"), safePercentage)
+		assertEqual(t, CadenceUFix64("0.0"), safePercentage)
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetSafeThresholdScript(env), DKGAddress)
 
@@ -647,6 +696,19 @@ func TestDKG(t *testing.T) {
 		assertEqual(t, CadenceUFix64("0.9"), safePercentage)
 
 	})
+}
+
+// checkDKGSafeThresholdPercent asserts that the DKG safe threshold percentage
+// is set to a given value.
+func checkDKGSafeThresholdPercent(
+	t *testing.T,
+	b *emulator.Blockchain,
+	env templates.Environment,
+	expected cadence.Value,
+) {
+	result := executeScriptAndCheck(t, b, templates.GenerateGetDKGThresholdsScript(env), nil).(cadence.Struct)
+	safePercentage := result.Fields[2]
+	assertEqual(t, expected, safePercentage)
 }
 
 // Tests the DKG with submissions consisting of nil keys
