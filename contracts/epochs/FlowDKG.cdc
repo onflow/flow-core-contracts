@@ -203,11 +203,11 @@ pub contract FlowDKG {
     pub resource Admin {
 
         /// Sets the optional safe DKG success threshold
-        /// Set the threshold to an optional if it isn't needed
+        /// Set the threshold to nil if it isn't needed
         pub fun setSafeSuccessThreshold(newThresholdPercentage: UFix64?) {
             pre {
                 !FlowDKG.dkgEnabled: "Cannot set the dkg success threshold while the DKG is enabled"
-                newThresholdPercentage == nil || (newThresholdPercentage! > 0.5 && newThresholdPercentage! < 1.0): "The threshold percentage must be between 0.5 and 1.0"
+                newThresholdPercentage == nil ||  newThresholdPercentage! < 1.0: "The threshold percentage must be in [0,1)"
             }
 
             FlowDKG.account.load<UFix64>(from: /storage/flowDKGSafeThreshold)
@@ -346,13 +346,23 @@ pub contract FlowDKG {
         return self.uniqueFinalSubmissions
     }
 
-    /// Gets the native threshold that the submission count needs to exceed to be considered complete
+    /// Gets the native threshold that the submission count needs to exceed to be considered complete [t=floor((n-1)/2)]
+    /// This function returns the NON-INCLUSIVE lower bound of honest participants.
+    /// For the DKG to succeed, the number of honest participants must EXCEED this threshold value.
+    /// 
+    /// Example:
+    /// We have 10 DKG nodes (n=10)
+    /// The threshold value is t=floor(10-1)/2) (t=4)
+    /// There must be AT LEAST 5 honest nodes for the DKG to succeed
     pub fun getNativeSuccessThreshold(): UInt64 {
         return UInt64((self.getConsensusNodeIDs().length-1)/2)
     }
 
-    /// Gets the safe threshold that the submission count needs to exceed to be considered complete
+    /// Gets the safe threshold that the submission count needs to exceed to be considered complete.
     /// (always greater than or equal to the native success threshold)
+    /// 
+    /// This function returns the NON-INCLUSIVE lower bound of honest participants. If this function 
+    /// returns threshold t, there must be AT LEAST t+1 honest nodes for the DKG to succeed.
     pub fun getSafeSuccessThreshold(): UInt64 {
         var threshold = self.getNativeSuccessThreshold()
 
@@ -369,7 +379,10 @@ pub contract FlowDKG {
         return threshold
     }
 
-    /// Gets the safe threshold percentage 
+    /// Gets the safe threshold percentage. This value must be either nil (semantically: 0) or in [0, 1.0)
+    /// This safe threshold is used to artificially increase the DKG participation requirements to 
+    /// ensure a lower-bound number of Random Beacon Committee members (beyond the bare minimum required
+    /// by the DKG protocol).
     pub fun getSafeThresholdPercentage(): UFix64? {
         let safetyRate = self.account.copy<UFix64>(from: /storage/flowDKGSafeThreshold)
         return safetyRate
