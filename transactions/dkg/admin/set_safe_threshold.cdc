@@ -1,6 +1,6 @@
 import FlowDKG from 0xDKGADDRESS
 
-transaction(newThresholdPercentage: UFix64) {
+transaction(newThresholdPercentage: UFix64?) {
 
     let dkgAdmin: &FlowDKG.Admin
 
