@@ -661,7 +661,7 @@ func TestDKG(t *testing.T) {
 	t.Run("Should be able to set the safe threshold while the DKG is disabled", func(t *testing.T) {
 
 		// There are two consensus nodes, so the thresholds should both be zero
-		// since the native percentage is 50% and the safe percentage has not been set yet
+		// since the native percentage is floor((n-1)/2) and the safe percentage has not been set yet
 		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGThresholdsScript(env), nil).(cadence.Struct)
 		nativeThreshold := result.Fields[0]
 		safeThreshold := result.Fields[1]
@@ -686,15 +686,8 @@ func TestDKG(t *testing.T) {
 		// The safe percentage was set to 90%, so the safe threshold should be 1
 		// since there are two nodes, meaning that now, both nodes have to have
 		// submitted succesfully for the DKG to be considered complete.
-		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGThresholdsScript(env), nil).(cadence.Struct)
-		nativeThreshold = result.Fields[0]
-		safeThreshold = result.Fields[1]
-		safePercentage = result.Fields[2]
-
-		assert.Equal(t, cadence.NewUInt64(0), nativeThreshold)
-		assert.Equal(t, cadence.NewUInt64(1), safeThreshold)
-		assertEqual(t, CadenceUFix64("0.9"), safePercentage)
-
+		checkDKGSafeThresholdPercent(t, b, env, CadenceUFix64("0.9"))
+		checkDKGSafeThreshold(t, b, env, cadence.NewUInt64(1))
 	})
 }
 
@@ -704,11 +697,24 @@ func checkDKGSafeThresholdPercent(
 	t *testing.T,
 	b *emulator.Blockchain,
 	env templates.Environment,
-	expected cadence.Value,
+	expected cadence.Value, // UFix64
 ) {
 	result := executeScriptAndCheck(t, b, templates.GenerateGetDKGThresholdsScript(env), nil).(cadence.Struct)
 	safePercentage := result.Fields[2]
 	assertEqual(t, expected, safePercentage)
+}
+
+// checkDKGSafeThreshold asserts that the DKG safe threshold is set to a given
+// value. This is the max of safetyPercent*n and floor((n-1)/2) (native threshold)
+func checkDKGSafeThreshold(
+	t *testing.T,
+	b *emulator.Blockchain,
+	env templates.Environment,
+	expected cadence.Value, // UInt64
+) {
+	result := executeScriptAndCheck(t, b, templates.GenerateGetDKGThresholdsScript(env), nil).(cadence.Struct)
+	safeThreshold := result.Fields[1]
+	assertEqual(t, expected, safeThreshold)
 }
 
 // Tests the DKG with submissions consisting of nil keys

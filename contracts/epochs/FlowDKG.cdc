@@ -212,6 +212,8 @@ pub contract FlowDKG {
 
             FlowDKG.account.load<UFix64>(from: /storage/flowDKGSafeThreshold)
 
+            // If newThresholdPercentage is nil, we exit here. Since we loaded from
+            // storage previously, this results in /storage/flowDKGSafeThreshold being empty
             if let percentage = newThresholdPercentage {
                 FlowDKG.account.save<UFix64>(percentage, to: /storage/flowDKGSafeThreshold)
             }
