@@ -28,16 +28,16 @@ transaction(ids: [String]) {
 	// remove each node 
 	for nodeIDToRemove in ids {
 		if nodeIDsMap[nodeIDToRemove] != nil {
-			nodeIDsMap[nodeID] = false
+			nodeIDsMap[nodeIDToRemove] = false
 		} else {
-			panic("attempted to remove non-existent node ID from allow-list: " + nodeIDToRemove)
+			panic("attempted to remove non-existent node ID from allow-list: ".concat(nodeIDToRemove))
 		}
 	}
 
 	// create a new node ID list, omitted those marked for deletion
 	let newNodeIDs: [String] = []
 	for nodeID in nodeIDs {
-		if nodeIDs[nodeID]! == true {
+		if nodeIDsMap[nodeID]! == true {
 			newNodeIDs.append(nodeID)
 		}
 	}
