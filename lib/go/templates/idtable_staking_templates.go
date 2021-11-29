@@ -11,6 +11,8 @@ const (
 	endStakingFilename              = "idTableStaking/admin/end_staking.cdc"
 	removeUnapprovedNodesFilename   = "idTableStaking/admin/remove_unapproved_nodes.cdc"
 	setApprovedNodesFilename        = "idTableStaking/admin/set_approved_nodes.cdc"
+	addApprovedNodesFilename        = "idTableStaking/admin/add_approved_nodes.cdc"
+	removeApprovedNodesFilename        = "idTableStaking/admin/remove_approved_nodes.cdc"
 	payRewardsFilename              = "idTableStaking/admin/pay_rewards.cdc"
 	moveTokensFilename              = "idTableStaking/admin/move_tokens.cdc"
 	endEpochFilename                = "idTableStaking/admin/end_epoch.cdc"
@@ -110,6 +112,18 @@ func GenerateRemoveUnapprovedNodesScript(env Environment) []byte {
 
 func GenerateSetApprovedNodesScript(env Environment) []byte {
 	code := assets.MustAssetString(setApprovedNodesFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateAddApprovedNodesScript(env Environment) []byte {
+	code := assets.MustAssetString(addApprovedNodesFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateRemoveApprovedNodesScript(env Environment) []byte {
+	code := assets.MustAssetString(removeApprovedNodesFilename)
 
 	return []byte(replaceAddresses(code, env))
 }

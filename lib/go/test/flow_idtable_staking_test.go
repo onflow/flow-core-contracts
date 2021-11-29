@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/onflow/cadence"
+	emulator "github.com/onflow/flow-emulator"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/cadence/runtime/interpreter"
 	"github.com/onflow/flow-go-sdk"
@@ -627,6 +628,111 @@ func TestIDTableStaking(t *testing.T) {
 			false,
 		)
 
+	})
+
+	t.Run("Should be able to add nodes to approved node list", func(t *testing.T) {
+
+		// [josh, max]
+		initialNodeIDs := cadence.NewArray([]cadence.Value{CadenceString(joshID), CadenceString(maxID)})
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
+
+		err := tx.AddArgument(initialNodeIDs)
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+
+		// adding an existing node to the approved node list should be a no-op
+		t.Run("existing node", func(t *testing.T) {
+			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateAddApprovedNodesScript(env), idTableAddress)
+
+			addingNodeIDs := cadence.NewArray([]cadence.Value{CadenceString(joshID)})
+			err := tx.AddArgument(addingNodeIDs)
+			require.NoError(t, err)
+
+			signAndSubmit(
+				t, b, tx,
+				[]flow.Address{b.ServiceKey().Address, idTableAddress},
+				[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+				false,
+			)
+
+			assertApprovedListEquals(t, b, env, initialNodeIDs)
+		})
+		// adding a new node should result in that node being added to the existing list
+		t.Run("new node", func(t *testing.T) {
+			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateAddApprovedNodesScript(env), idTableAddress)
+
+			// should now be [josh, max, admin]
+			addingNodeIDs := cadence.NewArray([]cadence.Value{CadenceString(adminID)})
+			err := tx.AddArgument(addingNodeIDs)
+			require.NoError(t, err)
+
+			signAndSubmit(
+				t, b, tx,
+				[]flow.Address{b.ServiceKey().Address, idTableAddress},
+				[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+				false,
+			)
+
+			expected := cadence.NewArray([]cadence.Value{CadenceString(joshID), CadenceString(maxID), CadenceString(adminID)})
+			assertApprovedListEquals(t, b, env, expected)
+		})
+	})
+
+	t.Run("Should be able to remove nodes from approved node list", func(t *testing.T) {
+
+		// [josh, max]
+		initialNodeIDs := cadence.NewArray([]cadence.Value{CadenceString(joshID), CadenceString(maxID)})
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
+
+		err := tx.AddArgument(initialNodeIDs)
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+
+		// removing an existing node from the approved node list should remove that node
+		t.Run("existing node", func(t *testing.T) {
+			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRemoveApprovedNodesScript(env), idTableAddress)
+
+			removingNodeIDs := cadence.NewArray([]cadence.Value{CadenceString(joshID)})
+			err := tx.AddArgument(removingNodeIDs)
+			require.NoError(t, err)
+
+			signAndSubmit(
+				t, b, tx,
+				[]flow.Address{b.ServiceKey().Address, idTableAddress},
+				[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+				false,
+			)
+
+			expected := cadence.NewArray([]cadence.Value{CadenceString(maxID)})
+			assertApprovedListEquals(t, b, env, expected)
+		})
+		// removing an unknown node should cause a revert
+		t.Run("unknown node", func(t *testing.T) {
+			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRemoveApprovedNodesScript(env), idTableAddress)
+
+			removingNodeIDs := cadence.NewArray([]cadence.Value{CadenceString(nonexistantID)})
+			err := tx.AddArgument(removingNodeIDs)
+			require.NoError(t, err)
+
+			signAndSubmit(
+				t, b, tx,
+				[]flow.Address{b.ServiceKey().Address, idTableAddress},
+				[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+				true,
+			)
+		})
 	})
 
 	t.Run("Should be able to set and get the approved node list", func(t *testing.T) {
@@ -2562,4 +2668,17 @@ func TestIDTableRewardsWitholding(t *testing.T) {
 			assertEqual(t, CadenceUFix64(totalDelegatorReward.String()), result)
 		}
 	})
+}
+
+// assertApprovedListEquals asserts the FlowIDTableStaking approved list matches
+// the given node ID list
+func assertApprovedListEquals(
+	t *testing.T,
+	b *emulator.Blockchain,
+	env templates.Environment,
+	expected cadence.Value, // [String]
+	) {
+
+	result := executeScriptAndCheck(t, b, templates.GenerateGetApprovedNodesScript(env), nil)
+	assert.Equal(t, expected, result)
 }
