@@ -1921,6 +1921,20 @@ func TestStakingCollectionRewards(t *testing.T) {
 			tokensRewarded:           "409708.025",
 		})
 	})
+
+	t.Run("Should be able to stake rewards from all the nodes and delegators an account owns", func(t *testing.T) {
+
+		// withdraw rewarded tokens to the locked account node
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRestakeAllStakersTokens(env), joshAddress)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, joshAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			false,
+		)
+	})
+
 }
 
 func TestStakingCollectionCloseStake(t *testing.T) {
