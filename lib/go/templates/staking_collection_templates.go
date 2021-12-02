@@ -22,6 +22,7 @@ const (
 	collectionStakeNewTokensFilename              = "stakingCollection/stake_new_tokens.cdc"
 	collectionStakeRewardedTokensFilename         = "stakingCollection/stake_rewarded_tokens.cdc"
 	collectionStakeUnstakedTokensFilename         = "stakingCollection/stake_unstaked_tokens.cdc"
+	collectionRestakeAllStakersFilename           = "stakingCollection/restake_all_stakers.cdc"
 	collectionUnstakeAllFilename                  = "stakingCollection/unstake_all.cdc"
 	collectionWithdrawRewardedTokensFilename      = "stakingCollection/withdraw_rewarded_tokens.cdc"
 	collectionWithdrawUnstakedTokensFilename      = "stakingCollection/withdraw_unstaked_tokens.cdc"
@@ -113,6 +114,12 @@ func GenerateCollectionStakeRewardedTokens(env Environment) []byte {
 
 func GenerateCollectionStakeUnstakedTokens(env Environment) []byte {
 	code := assets.MustAssetString(collectionStakeUnstakedTokensFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateCollectionRestakeAllStakersTokens(env Environment) []byte {
+	code := assets.MustAssetString(collectionRestakeAllStakersFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
