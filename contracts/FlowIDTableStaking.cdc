@@ -1354,7 +1354,7 @@ pub contract FlowIDTableStaking {
     /// Returns the list of node IDs whose rewards will be reduced in the next payment
     pub fun getNonOperationalNodesList(): {String: UFix64} {
         return self.account.copy<{String: UFix64}>(from: /storage/idTableNonOperationalNodesList)
-            ?? panic("could not get approved list")
+            ?? panic("could not get non-operational node list")
     }
 
     /// Gets the minimum stake requirements for all the node types
