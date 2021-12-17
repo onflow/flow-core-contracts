@@ -6,7 +6,7 @@ go get github.com/onflow/flow-go/crypto
 
 # the version of flow-go/crypto used for now is v0.21.3.
 # till the script is automatized, the version is hardcoded.
-VERSION="v0.21.3"
+VERSION="v0.23.3"
 PKG_DIR="${GOPATH}/pkg/mod/github.com/onflow/flow-go/crypto@${VERSION}"
 
 # grant permissions if not existant
