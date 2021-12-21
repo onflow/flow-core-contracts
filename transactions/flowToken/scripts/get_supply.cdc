@@ -1,7 +1,7 @@
 // This script reads the total supply field
 // of the FlowToken smart contract
 
-import FlowToken from 0xTOKENADDRESS
+import FlowToken from 0xFLOWTOKENADDRESS
 
 pub fun main(): UFix64 {
 

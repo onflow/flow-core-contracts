@@ -2050,7 +2050,7 @@ func TestLockedTokensUnlockMultipleAccounts(t *testing.T) {
 		numDKGViews,       // num views for DKG phase
 		numClusters,       // num collector clusters
 		randomSource,      // random source
-		rewardAPY)
+		rewardIncreaseFactor)
 
 	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
 	adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
@@ -2235,7 +2235,7 @@ func TestLockedTokensUnlockGasUsage(t *testing.T) {
 		numDKGViews,       // num views for DKG phase
 		numClusters,       // num collector clusters
 		randomSource,      // random source
-		rewardAPY)
+		rewardIncreaseFactor)
 
 	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
 	adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)

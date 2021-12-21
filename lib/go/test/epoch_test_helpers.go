@@ -161,11 +161,12 @@ func deployEpochContract(
 	b *emulator.Blockchain,
 	idTableAddress flow.Address,
 	IDTableSigner crypto.Signer,
+	feesAddr flow.Address,
 	env templates.Environment,
 	epochCounter, epochViews, stakingViews, dkgViews, numClusters uint64,
 	randomSource, rewardAPY string) {
 
-	EpochCode := contracts.FlowEpoch(emulatorFTAddress, emulatorFlowTokenAddress, idTableAddress.String(), idTableAddress.String(), idTableAddress.String())
+	EpochCode := contracts.FlowEpoch(emulatorFTAddress, emulatorFlowTokenAddress, idTableAddress.String(), idTableAddress.String(), idTableAddress.String()) //, feesAddr.String())
 	EpochByteCode := bytesToCadenceArray(EpochCode)
 
 	epochName, _ := cadence.NewString("FlowEpoch")
@@ -205,11 +206,11 @@ func initializeAllEpochContracts(
 	epochCounter, epochViews, stakingViews, dkgViews, numClusters uint64,
 	randomSource, rewardsAPY string) (flow.Address, uint64) {
 
-	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, *env, true)
+	idTableAddress, feesAddress := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, *env, true)
 	env.IDTableAddress = idTableAddress.Hex()
 
 	deployQCDKGContract(t, b, idTableAddress, IDTableSigner, *env)
-	deployEpochContract(t, b, idTableAddress, IDTableSigner, *env, epochCounter, epochViews, stakingViews, dkgViews, numClusters, randomSource, rewardsAPY)
+	deployEpochContract(t, b, idTableAddress, IDTableSigner, feesAddress, *env, epochCounter, epochViews, stakingViews, dkgViews, numClusters, randomSource, rewardsAPY)
 
 	result := executeScriptAndCheck(t, b, templates.GenerateGetCurrentViewScript(*env), nil)
 	startView := uint64(result.(cadence.UInt64))

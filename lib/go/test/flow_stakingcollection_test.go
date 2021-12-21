@@ -29,7 +29,7 @@ func TestStakingCollectionDeploy(t *testing.T) {
 		numDKGViews,       // num views for DKG phase
 		numClusters,       // num collector clusters
 		randomSource,      // random source
-		rewardAPY)
+		rewardIncreaseFactor)
 
 	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
 	adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
@@ -49,7 +49,7 @@ func TestStakingCollectionGetTokens(t *testing.T) {
 		numDKGViews,       // num views for DKG phase
 		numClusters,       // num collector clusters
 		randomSource,      // random source
-		rewardAPY)
+		rewardIncreaseFactor)
 
 	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
 	adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
@@ -299,7 +299,7 @@ func TestStakingCollectionDepositTokens(t *testing.T) {
 		numDKGViews,       // num views for DKG phase
 		numClusters,       // num collector clusters
 		randomSource,      // random source
-		rewardAPY)
+		rewardIncreaseFactor)
 
 	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
 	adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
@@ -440,7 +440,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		numDKGViews,       // num views for DKG phase
 		numClusters,       // num collector clusters
 		randomSource,      // random source
-		rewardAPY)
+		rewardIncreaseFactor)
 
 	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
 	adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
@@ -840,7 +840,7 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 		numDKGViews,       // num views for DKG phase
 		numClusters,       // num collector clusters
 		randomSource,      // random source
-		rewardAPY)
+		rewardIncreaseFactor)
 
 	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
 	adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
@@ -1034,7 +1034,7 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 		numDKGViews,       // num views for DKG phase
 		numClusters,       // num collector clusters
 		randomSource,      // random source
-		rewardAPY)
+		rewardIncreaseFactor)
 
 	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
 	adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
@@ -1553,7 +1553,7 @@ func TestStakingCollectionRewards(t *testing.T) {
 		numDKGViews,       // num views for DKG phase
 		numClusters,       // num collector clusters
 		randomSource,      // random source
-		rewardAPY)
+		rewardIncreaseFactor)
 
 	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
 	adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
@@ -1950,7 +1950,7 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 		numDKGViews,       // num views for DKG phase
 		numClusters,       // num collector clusters
 		randomSource,      // random source
-		rewardAPY)
+		rewardIncreaseFactor)
 
 	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
 	adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
@@ -2295,7 +2295,7 @@ func TestDoesAccountHaveStakingCollection(t *testing.T) {
 		numDKGViews,       // num views for DKG phase
 		numClusters,       // num collector clusters
 		randomSource,      // random source
-		rewardAPY)
+		rewardIncreaseFactor)
 
 	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
 	adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
@@ -2342,7 +2342,7 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 			numDKGViews,       // num views for DKG phase
 			numClusters,       // num collector clusters
 			randomSource,      // random source
-			rewardAPY)
+			rewardIncreaseFactor)
 
 		adminAccountKey, adminSigner := accountKeys.NewWithSigner()
 		adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
@@ -2398,7 +2398,7 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 			numDKGViews,       // num views for DKG phase
 			numClusters,       // num collector clusters
 			randomSource,      // random source
-			rewardAPY)
+			rewardIncreaseFactor)
 
 		adminAccountKey, adminSigner := accountKeys.NewWithSigner()
 		adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
@@ -2455,7 +2455,7 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 			numDKGViews,       // num views for DKG phase
 			numClusters,       // num collector clusters
 			randomSource,      // random source
-			rewardAPY)
+			rewardIncreaseFactor)
 
 		adminAccountKey, adminSigner := accountKeys.NewWithSigner()
 		adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
@@ -2544,7 +2544,7 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 			numDKGViews,       // num views for DKG phase
 			numClusters,       // num collector clusters
 			randomSource,      // random source
-			rewardAPY)
+			rewardIncreaseFactor)
 
 		adminAccountKey, adminSigner := accountKeys.NewWithSigner()
 		adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
@@ -2634,7 +2634,7 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 			numDKGViews,       // num views for DKG phase
 			numClusters,       // num collector clusters
 			randomSource,      // random source
-			rewardAPY)
+			rewardIncreaseFactor)
 
 		adminAccountKey, adminSigner := accountKeys.NewWithSigner()
 		adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
@@ -2701,7 +2701,7 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 			numDKGViews,       // num views for DKG phase
 			numClusters,       // num collector clusters
 			randomSource,      // random source
-			rewardAPY)
+			rewardIncreaseFactor)
 
 		adminAccountKey, adminSigner := accountKeys.NewWithSigner()
 		adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
@@ -2773,7 +2773,7 @@ func TestStakingCollectionCreateNewTokenHolder(t *testing.T) {
 			numDKGViews,       // num views for DKG phase
 			numClusters,       // num collector clusters
 			randomSource,      // random source
-			rewardAPY)
+			rewardIncreaseFactor)
 
 		adminAccountKey, adminSigner := accountKeys.NewWithSigner()
 		adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
@@ -2882,7 +2882,7 @@ func TestStakingCollectionRegisterMultipleNodes(t *testing.T) {
 		numDKGViews,       // num views for DKG phase
 		numClusters,       // num collector clusters
 		randomSource,      // random source
-		rewardAPY)
+		rewardIncreaseFactor)
 
 	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
 	adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)

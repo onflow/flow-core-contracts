@@ -3,6 +3,7 @@ import FlowToken from 0xFLOWTOKENADDRESS
 import FlowIDTableStaking from 0xFLOWIDTABLESTAKINGADDRESS
 import FlowClusterQC from 0xQCADDRESS
 import FlowDKG from 0xDKGADDRESS
+//import FlowFees from 0xFLOWFEESADDRESS
 
 // The top-level smart contract managing the lifecycle of epochs. In Flow,
 // epochs are the smallest unit of time where the identity table (the set of 
@@ -331,6 +332,12 @@ pub contract FlowEpoch {
 
             FlowEpoch.configurableMetadata.FLOWsupplyIncreasePercentage = newPercentage
         }
+
+        // Enable or disable automatic rewards calculations and payments
+        pub fun updateAutomaticRewardsEnabled(_ enabled: Bool) {
+            FlowEpoch.account.load<Bool>(from: /storage/flowAutomaticRewardsEnabled)
+            FlowEpoch.account.save(enabled, to: /storage/flowAutomaticRewardsEnabled)
+        }
     }
 
     /// Resource that is controlled by the protocol and is used
@@ -357,8 +364,11 @@ pub contract FlowEpoch {
                     let currentBlock = getCurrentBlock()
                     let currentEpochMetadata = FlowEpoch.getEpochMetadata(FlowEpoch.currentEpochCounter)!
                     if currentBlock.view >= currentEpochMetadata.endView {
-                        self.calculateAndSetRewards(nil)
+                        self.calculateAndSetRewards()
                         self.endEpoch()
+                        if FlowEpoch.automaticRewardsEnabled() {
+                            self.payRewards()
+                        }
                     }
                 default:
                     return
@@ -399,8 +409,8 @@ pub contract FlowEpoch {
 
         /// Needs to be called before the epoch is over
         /// Calculates rewards for the current epoch and stores them in epoch metadata
-        pub fun calculateAndSetRewards(_ newPayout: UFix64?) {
-            FlowEpoch.calculateAndSetRewards(newPayout)
+        pub fun calculateAndSetRewards() {
+            FlowEpoch.calculateAndSetRewards()
         }
 
         pub fun payRewards() {
@@ -437,8 +447,6 @@ pub contract FlowEpoch {
                 FlowEpoch.borrowDKGAdmin().forceEndDKG()
             }
 
-            FlowEpoch.calculateAndSetRewards(newPayout)
-
             // Start a new Epoch, which increments the current epoch counter
             FlowEpoch.startNewEpoch()
 
@@ -460,21 +468,31 @@ pub contract FlowEpoch {
 
     /// Calculates a new token payout for the current epoch
     /// and sets the new payout for the next epoch
-    access(account) fun calculateAndSetRewards(_ newPayout: UFix64?) {
+    access(account) fun calculateAndSetRewards() {
 
-        let rewardsBreakdown = self.borrowStakingAdmin().calculateRewards()
+        let stakingAdmin = self.borrowStakingAdmin()
+
+        // Calculate rewards for the current epoch that is about to end
+        // and save that reward breakdown in the epoch metadata for the current epoch
+        let rewardsBreakdown = stakingAdmin.calculateRewards()
         let currentMetadata = self.getEpochMetadata(self.currentEpochCounter)!
         currentMetadata.setRewardAmounts(rewardsBreakdown)
         self.saveEpochMetadata(currentMetadata)
 
-        // Calculate the new epoch's payout
-        // disabled until we enable automated rewards calculations
-        // let newPayout = FlowToken.totalSupply * (FlowEpoch.configurableMetadata.FLOWsupplyIncreasePercentage / 52.0)
+        if FlowEpoch.automaticRewardsEnabled() {
+            // Calculate the total supply of FLOW after the current epoch's payout
+            // the calculation includes the tokens that haven't been minted for the current epoch yet
+            let currentPayout = FlowIDTableStaking.getEpochTokenPayout()
+            let feeAmount = FlowIDTableStaking.getFeesBalance()
+            let flowTotalSupplyAfterPayout = FlowToken.totalSupply + (currentPayout - feeAmount)
 
-        if let payout = newPayout {
-            self.borrowStakingAdmin().setEpochTokenPayout(payout)
+            // Calculate the payout for the next epoch
+            let proposedPayout = flowTotalSupplyAfterPayout * FlowEpoch.configurableMetadata.FLOWsupplyIncreasePercentage
+
+            // Set the new payout in the staking contract and proposed Epoch Metadata
+            self.borrowStakingAdmin().setEpochTokenPayout(proposedPayout)
             let proposedMetadata = self.getEpochMetadata(self.proposedEpochCounter())!
-            proposedMetadata.setTotalRewards(payout)
+            proposedMetadata.setTotalRewards(proposedPayout)
             self.saveEpochMetadata(proposedMetadata)
         }
     }
@@ -763,6 +781,10 @@ pub contract FlowEpoch {
     /// The proposed Epoch counter is always the current counter plus 1
     pub fun proposedEpochCounter(): UInt64 {
         return self.currentEpochCounter + 1 as UInt64
+    }
+
+    pub fun automaticRewardsEnabled(): Bool {
+        return self.account.copy<Bool>(from: /storage/flowAutomaticRewardsEnabled) ?? false
     }
 
     init (currentEpochCounter: UInt64,
