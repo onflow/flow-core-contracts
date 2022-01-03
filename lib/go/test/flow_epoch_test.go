@@ -1049,6 +1049,7 @@ func TestEpochReset(t *testing.T) {
 	t.Run("Cannot reset the epoch if the current epoch counter does not match", func(t *testing.T) {
 
 		var startView uint64 = 100
+		var stakingEndView uint64 = 120
 		var endView uint64 = 200
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateResetEpochScript(env), idTableAddress)
@@ -1056,6 +1057,7 @@ func TestEpochReset(t *testing.T) {
 		_ = tx.AddArgument(CadenceString("stillSoRandom"))
 		_ = tx.AddArgument(CadenceUFix64("1300000.0"))
 		_ = tx.AddArgument(cadence.NewUInt64(startView))
+		_ = tx.AddArgument(cadence.NewUInt64(stakingEndView))
 		_ = tx.AddArgument(cadence.NewUInt64(endView))
 
 		signAndSubmit(
@@ -1066,16 +1068,40 @@ func TestEpochReset(t *testing.T) {
 		)
 	})
 
-	t.Run("Cannot reset the epoch if the phase endView isn't high enough", func(t *testing.T) {
+	t.Run("Cannot reset the epoch if staking ends before start view", func(t *testing.T) {
 
 		var startView uint64 = 100
-		var endView uint64 = 130
+		var stakingEndView uint64 = 99
+		var endView uint64 = 200
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateResetEpochScript(env), idTableAddress)
 		_ = tx.AddArgument(cadence.NewUInt64(startEpochCounter))
 		_ = tx.AddArgument(CadenceString("stillSoRandom"))
 		_ = tx.AddArgument(CadenceUFix64("1300000.0"))
 		_ = tx.AddArgument(cadence.NewUInt64(startView))
+		_ = tx.AddArgument(cadence.NewUInt64(stakingEndView))
+		_ = tx.AddArgument(cadence.NewUInt64(endView))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			true,
+		)
+	})
+
+	t.Run("Cannot reset the epoch if staking ends after end view", func(t *testing.T) {
+
+		var startView uint64 = 100
+		var stakingEndView uint64 = 201
+		var endView uint64 = 200
+
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateResetEpochScript(env), idTableAddress)
+		_ = tx.AddArgument(cadence.NewUInt64(startEpochCounter))
+		_ = tx.AddArgument(CadenceString("stillSoRandom"))
+		_ = tx.AddArgument(CadenceUFix64("1300000.0"))
+		_ = tx.AddArgument(cadence.NewUInt64(startView))
+		_ = tx.AddArgument(cadence.NewUInt64(stakingEndView))
 		_ = tx.AddArgument(cadence.NewUInt64(endView))
 
 		signAndSubmit(
@@ -1089,6 +1115,7 @@ func TestEpochReset(t *testing.T) {
 	t.Run("Can reset the epoch and have everything return to normal", func(t *testing.T) {
 
 		var startView uint64 = 100
+		var stakingEndView uint64 = 120
 		var endView uint64 = 160
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateResetEpochScript(env), idTableAddress)
@@ -1096,6 +1123,7 @@ func TestEpochReset(t *testing.T) {
 		_ = tx.AddArgument(CadenceString("stillSoRandom"))
 		_ = tx.AddArgument(CadenceUFix64("1300000.0"))
 		_ = tx.AddArgument(cadence.NewUInt64(startView))
+		_ = tx.AddArgument(cadence.NewUInt64(stakingEndView))
 		_ = tx.AddArgument(cadence.NewUInt64(endView))
 
 		signAndSubmit(
@@ -1111,7 +1139,7 @@ func TestEpochReset(t *testing.T) {
 				seed:                  "stillSoRandom",
 				startView:             startView,
 				endView:               endView,
-				stakingEndView:        startView + numStakingViews - 1,
+				stakingEndView:        stakingEndView,
 				totalRewards:          "1300000.0",
 				rewardsBreakdownArray: 0,
 				rewardsPaid:           false,
