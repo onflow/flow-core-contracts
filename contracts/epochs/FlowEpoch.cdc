@@ -415,7 +415,7 @@ pub contract FlowEpoch {
             randomSource: String,
             newPayout: UFix64?,
             startView: UInt64,
-            stakingEndView UInt64,
+            stakingEndView: UInt64,
             endView: UInt64,
             collectorClusters: [FlowClusterQC.Cluster],
             clusterQCs: [FlowClusterQC.ClusterQC],
@@ -424,8 +424,8 @@ pub contract FlowEpoch {
             pre {
                 currentEpochCounter == FlowEpoch.currentEpochCounter:
                     "Cannot submit a current Epoch counter that does not match the current counter stored in the smart contract"
-                FlowEpoch.isValidPhaseConfiguration(FlowEpoch.configurableMetadata.numViewsInStakingAuction, FlowEpoch.configurableMetadata.numViewsInDKGPhase, endView-startView + (1 as UInt64)):
-                    "Invalid startView and endView configuration"
+                FlowEpoch.isValidPhaseConfiguration(stakingEndView-startView+1, FlowEpoch.configurableMetadata.numViewsInDKGPhase, endView-startView+1):
+                    "Invalid startView, stakingEndView, and endView configuration"
             }
 
             if FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION {
