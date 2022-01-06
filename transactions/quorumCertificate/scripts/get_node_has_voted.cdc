@@ -4,6 +4,9 @@ import FlowClusterQC from 0xQCADDRESS
 
 pub fun main(nodeID: String): Bool {
 
-    return FlowClusterQC.nodeHasVoted(nodeID)
+    // If we are in the staking auction phase (voting not in progress), the votes
+    // from last epoch are still stored and nodeHasVoted reports True. Since we
+    // only want to know whether we have voted for the CURRENT epoch, omit this case.
+    return FlowClusterQC.inProgress && FlowClusterQC.nodeHasVoted(nodeID)
 
 }
