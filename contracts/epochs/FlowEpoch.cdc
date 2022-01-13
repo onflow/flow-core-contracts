@@ -213,8 +213,8 @@ pub contract FlowEpoch {
         /// The number of collector clusters in each epoch
         pub(set) var numCollectorClusters: UInt16
 
-        /// Tracks the annualized percentage of FLOW total supply that is minted as rewards at the end of an epoch
-        /// Calculation for a single epoch would be (totalSupply * FLOWsupplyIncreasePercentage) / 52
+        /// Tracks the rate at which the rewards payout increases every epoch
+        /// This value is multiplied by the FLOW total supply to get the next payout
         pub(set) var FLOWsupplyIncreasePercentage: UFix64
 
         init(numViewsInEpoch: UInt64, numViewsInStakingAuction: UInt64, numViewsInDKGPhase: UInt64, numCollectorClusters: UInt16, FLOWsupplyIncreasePercentage: UFix64) {
@@ -484,7 +484,12 @@ pub contract FlowEpoch {
             // the calculation includes the tokens that haven't been minted for the current epoch yet
             let currentPayout = FlowIDTableStaking.getEpochTokenPayout()
             let feeAmount = FlowIDTableStaking.getFeesBalance()
-            let flowTotalSupplyAfterPayout = FlowToken.totalSupply + (currentPayout - feeAmount)
+            var flowTotalSupplyAfterPayout = 0.0
+            if feeAmount >= currentPayout {
+                flowTotalSupplyAfterPayout = FlowToken.totalSupply
+            } else {
+                flowTotalSupplyAfterPayout = FlowToken.totalSupply + (currentPayout - feeAmount)
+            }
 
             // Calculate the payout for the next epoch
             let proposedPayout = flowTotalSupplyAfterPayout * FlowEpoch.configurableMetadata.FLOWsupplyIncreasePercentage
