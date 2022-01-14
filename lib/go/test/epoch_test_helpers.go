@@ -208,6 +208,7 @@ func initializeAllEpochContracts(
 
 	idTableAddress, feesAddress := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, *env, true)
 	env.IDTableAddress = idTableAddress.Hex()
+	env.FlowFeesAddress = feesAddress.Hex()
 
 	deployQCDKGContract(t, b, idTableAddress, IDTableSigner, *env)
 	deployEpochContract(t, b, idTableAddress, IDTableSigner, feesAddress, *env, epochCounter, epochViews, stakingViews, dkgViews, numClusters, randomSource, rewardsAPY)

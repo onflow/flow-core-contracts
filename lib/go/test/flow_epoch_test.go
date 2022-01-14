@@ -873,6 +873,15 @@ func TestEpochQCDKG(t *testing.T) {
 		// Advance to new epoch
 		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "ENDEPOCH", false)
 
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochPayRewardsScript(env), idTableAddress)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+
 		verifyConfigMetadata(t, b, env,
 			ConfigMetadata{
 				currentEpochCounter:      startEpochCounter + 1,
@@ -901,12 +910,9 @@ func TestEpochQCDKG(t *testing.T) {
 				clusterQCs:            clusterQCs,
 				dkgKeys:               finalKeyStrings})
 
-		// DKG and QC are disabled at the end of the epoch
-		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGEnabledScript(env), nil)
-		assert.Equal(t, cadence.NewBool(false), result)
-
-		result = executeScriptAndCheck(t, b, templates.GenerateGetQCEnabledScript(env), nil)
-		assert.Equal(t, cadence.NewBool(false), result)
+		// Make sure the payout is the same as the total rewards in the epoch metadata
+		result = executeScriptAndCheck(t, b, templates.GenerateGetWeeklyPayoutScript(env), nil)
+		assertEqual(t, CadenceUFix64("6572143.3875"), result)
 
 		// DKG and QC are disabled at the end of the epoch
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGEnabledScript(env), nil)
@@ -914,6 +920,69 @@ func TestEpochQCDKG(t *testing.T) {
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetQCEnabledScript(env), nil)
 		assert.Equal(t, cadence.NewBool(false), result)
+
+		// DKG and QC are disabled at the end of the epoch
+		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGEnabledScript(env), nil)
+		assert.Equal(t, cadence.NewBool(false), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetQCEnabledScript(env), nil)
+		assert.Equal(t, cadence.NewBool(false), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetFlowTotalSupplyScript(env), nil)
+		assertEqual(t, CadenceUFix64("7000000000.0"), result)
+
+	})
+
+	t.Run("Can set the rewards with high fee amount, which should not increase the supply at all", func(t *testing.T) {
+
+		mintTokensForAccount(t, b, idTableAddress, "6572144.3875")
+
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateDepositFeesScript(env), idTableAddress)
+
+		_ = tx.AddArgument(CadenceUFix64("6572144.3875"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetFlowTotalSupplyScript(env), nil)
+		assertEqual(t, CadenceUFix64("7006572144.3875"), result)
+
+		// Advance to epoch Setup
+		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHSETUP", false)
+
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochCalculateSetRewardsScript(env), idTableAddress)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+
+		clusters := []Cluster{Cluster{index: 0, totalWeight: 100, size: 1},
+			Cluster{index: 1, totalWeight: 100, size: 1}}
+
+		verifyEpochMetadata(t, b, env,
+			EpochMetadata{
+				counter:               startEpochCounter + 2,
+				seed:                  "",
+				startView:             startView + 2*numEpochViews,
+				endView:               startView + 3*numEpochViews - 1,
+				stakingEndView:        startView + 2*numEpochViews + numStakingViews - 1,
+				totalRewards:          "6577139.33765799",
+				rewardsBreakdownArray: 0,
+				rewardsPaid:           false,
+				collectorClusters:     clusters,
+				clusterQCs:            clusterQCs,
+				dkgKeys:               finalKeyStrings})
+
+		// Make sure the payout is the same as the total rewards in the epoch metadata
+		result = executeScriptAndCheck(t, b, templates.GenerateGetWeeklyPayoutScript(env), nil)
+		assertEqual(t, CadenceUFix64("6577139.33765799"), result)
 
 	})
 }

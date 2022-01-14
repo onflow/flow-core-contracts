@@ -498,7 +498,8 @@ pub contract FlowEpoch {
 
             // Set the new payout in the staking contract and proposed Epoch Metadata
             self.borrowStakingAdmin().setEpochTokenPayout(proposedPayout)
-            let proposedMetadata = self.getEpochMetadata(self.proposedEpochCounter())!
+            let proposedMetadata = self.getEpochMetadata(self.proposedEpochCounter())
+                ?? panic("Cannot set rewards for the next epoch becuase it hasn't been proposed yet")
             proposedMetadata.setTotalRewards(proposedPayout)
             self.saveEpochMetadata(proposedMetadata)
         }
