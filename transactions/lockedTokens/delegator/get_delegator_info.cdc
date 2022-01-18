@@ -1,43 +1,26 @@
 import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
 import LockedTokens from 0xLOCKEDTOKENADDRESS
+import FlowStakingCollection from 0xSTAKINGCOLLECTIONADDRESS
 
 // Returns an array of DelegatorInfo objects that the account controls
 // in its normal account and shared account
-
 pub fun main(account: Address): [FlowIDTableStaking.DelegatorInfo] {
 
     let delegatorInfoArray: [FlowIDTableStaking.DelegatorInfo] = []
 
-    let pubAccount = getAccount(account)
-
-    let delegatorCap = pubAccount
-        .getCapability<&{FlowIDTableStaking.NodeDelegatorPublic}>(
-            /public/flowStakingDelegator
-        )
-
-    if let delegatorRef = delegatorCap.borrow() {
-        let info = FlowIDTableStaking.DelegatorInfo(
-            nodeID: delegatorRef.nodeID,
-            delegatorID: delegatorRef.id
-        )
-        delegatorInfoArray.append(info)
+    // DelegatorInfo objects in its normal account
+    if FlowStakingCollection.doesAccountHaveStakingCollection(address: account) {
+        delegatorInfoArray.appendAll(FlowStakingCollection.getAllDelegatorInfo(address: account))
     }
 
-    let lockedAccountInfoCap = pubAccount
+    let lockedAccountInfoCap = getAccount(account)
         .getCapability<&LockedTokens.TokenHolder{LockedTokens.LockedAccountInfo}>(
             LockedTokens.LockedAccountInfoPublicPath
         )
-
     if let lockedAccountInfoRef = lockedAccountInfoCap.borrow() {
-        let nodeID = lockedAccountInfoRef.getDelegatorNodeID()
-        let delegatorID = lockedAccountInfoRef.getDelegatorID()
-
-        if nodeID != nil && delegatorID != nil {
-            let info = FlowIDTableStaking.DelegatorInfo(
-                nodeID: nodeID!,
-                delegatorID: delegatorID!
-            )
-            delegatorInfoArray.append(info)
+        // DelegatorInfo objects in its shared account
+        if FlowStakingCollection.doesAccountHaveStakingCollection(address: lockedAccountInfoRef.getLockedAccountAddress()) {
+            delegatorInfoArray.appendAll(FlowStakingCollection.getAllDelegatorInfo(address: lockedAccountInfoRef.getLockedAccountAddress()))
         }
     }
 

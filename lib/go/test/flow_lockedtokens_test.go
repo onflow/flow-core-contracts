@@ -1422,33 +1422,22 @@ func TestLockedTokensRealStaking(t *testing.T) {
 
 	accountKeys := test.AccountKeyGenerator()
 
-	// Create new keys for the ID table account
-	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true)
-
-	env.IDTableAddress = idTableAddress.Hex()
-
-	// Deploy the StakingProxy contract
-	stakingProxyCode := contracts.FlowStakingProxy()
-	stakingProxyAddress, err := b.CreateAccount(nil, []sdktemplates.Contract{
-		{
-			Name:   "StakingProxy",
-			Source: string(stakingProxyCode),
-		},
-	})
-	if !assert.NoError(t, err) {
-		t.Log(err.Error())
-	}
-	_, err = b.CommitBlock()
-	assert.NoError(t, err)
-
 	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
 	adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
 
-	lockedTokensAccountKey, _ := accountKeys.NewWithSigner()
-	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress, lockedTokensAccountKey, adminAddress, adminSigner)
-	env.StakingProxyAddress = stakingProxyAddress.Hex()
-	env.LockedTokensAddress = lockedTokensAddress.Hex()
+	// Create new keys for the epoch account
+	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
+
+	idTableAddress, _ := initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
+		startEpochCounter, // start epoch counter
+		numEpochViews,     // num views per epoch
+		numStakingViews,   // num views for staking auction
+		numDKGViews,       // num views for DKG phase
+		numClusters,       // num collector clusters
+		randomSource,      // random source
+		rewardAPY)
+
+	deployAllCollectionContracts(t, b, accountKeys, &env, adminAddress, adminSigner)
 
 	// Create new keys for the user account
 	joshKey, joshSigner := accountKeys.NewWithSigner()
@@ -1489,7 +1478,7 @@ func TestLockedTokensRealStaking(t *testing.T) {
 		assertEqual(t, flow.TransactionStatusSealed, createAccountsTxResult.Status)
 
 		for _, event := range createAccountsTxResult.Events {
-			if event.Type == fmt.Sprintf("A.%s.LockedTokens.SharedAccountRegistered", lockedTokensAddress.Hex()) {
+			if event.Type == fmt.Sprintf("A.%s.LockedTokens.SharedAccountRegistered", env.LockedTokensAddress) {
 				// needs work
 				sharedAccountCreatedEvent := sharedAccountRegisteredEvent(event)
 				joshSharedAddress = sharedAccountCreatedEvent.Address()
@@ -1498,7 +1487,7 @@ func TestLockedTokensRealStaking(t *testing.T) {
 		}
 
 		for _, event := range createAccountsTxResult.Events {
-			if event.Type == fmt.Sprintf("A.%s.LockedTokens.UnlockedAccountRegistered", lockedTokensAddress.Hex()) {
+			if event.Type == fmt.Sprintf("A.%s.LockedTokens.UnlockedAccountRegistered", env.LockedTokensAddress) {
 				// needs work
 				unlockedAccountCreatedEvent := unlockedAccountRegisteredEvent(event)
 				joshAddress = unlockedAccountCreatedEvent.Address()
