@@ -24,6 +24,4 @@ transaction(amount: UFix64) {
         // Deposit the withdrawn tokens in the FlowFees vault
         FlowFees.deposit(from: <-self.sentVault)
     }
-
 }
- 

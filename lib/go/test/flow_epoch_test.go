@@ -18,15 +18,15 @@ import (
 )
 
 const (
-	numEpochAccounts  = 6
-	numClusters       = 2
-	startEpochCounter = 0
-	numEpochViews     = 70
-	numStakingViews   = 50
-	numDKGViews       = 2
-	randomSource      = "lolsoRandom"
-	totalRewards      = "1250000.0"
-	rewardAPY         = "0.05"
+	numEpochAccounts     = 6
+	numClusters          = 2
+	startEpochCounter    = 0
+	numEpochViews        = 70
+	numStakingViews      = 50
+	numDKGViews          = 2
+	randomSource         = "lolsoRandom"
+	totalRewards         = "1250000.0"
+	rewardIncreaseFactor = "0.00093871"
 )
 
 func TestEpochDeployment(t *testing.T) {
@@ -44,7 +44,7 @@ func TestEpochDeployment(t *testing.T) {
 		numDKGViews,       // num views for DKG phase
 		numClusters,       // num collector clusters
 		randomSource,      // random source
-		rewardAPY)
+		rewardIncreaseFactor)
 
 	// Verify that the global config data for epochs was initialized correctly
 	verifyConfigMetadata(t, b, env,
@@ -56,7 +56,7 @@ func TestEpochDeployment(t *testing.T) {
 			numViewsInStakingAuction: numStakingViews,
 			numViewsInDKGPhase:       numDKGViews,
 			numCollectorClusters:     numClusters,
-			rewardPercentage:         rewardAPY})
+			rewardPercentage:         rewardIncreaseFactor})
 
 	// Verify that the current epoch was initialized correctly
 	verifyEpochMetadata(t, b, env,
@@ -90,7 +90,7 @@ func TestEpochClusters(t *testing.T) {
 		numDKGViews,       // num views for DKG phase
 		numClusters,       // num collector clusters
 		randomSource,      // random source
-		rewardAPY)
+		rewardIncreaseFactor)
 
 	t.Run("Should be able to randomize an array of strings", func(t *testing.T) {
 
@@ -145,7 +145,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 		1,             // num views for DKG phase
 		1,             // num collector clusters
 		"lolsoRandom", // random source
-		rewardAPY)
+		rewardIncreaseFactor)
 
 	t.Run("Should be able to change the configurable metadata during the staking auction", func(t *testing.T) {
 
@@ -366,7 +366,7 @@ func TestEpochAdvance(t *testing.T) {
 		numDKGViews,       // num views for DKG phase
 		numClusters,       // num collector clusters
 		randomSource,      // random source
-		rewardAPY)
+		rewardIncreaseFactor)
 
 	t.Run("Should not be able to advance to epoch commit or end epoch during staking", func(t *testing.T) {
 		// try to advance to the epoch commit phase
@@ -421,7 +421,7 @@ func TestEpochAdvance(t *testing.T) {
 				numViewsInStakingAuction: numStakingViews,
 				numViewsInDKGPhase:       numDKGViews,
 				numCollectorClusters:     numClusters,
-				rewardPercentage:         rewardAPY})
+				rewardPercentage:         rewardIncreaseFactor})
 
 		// Verify that the proposed epoch metadata was initialized correctly
 		clusters := []Cluster{Cluster{index: 0, totalWeight: 100, size: 1},
@@ -496,7 +496,7 @@ func TestEpochAdvance(t *testing.T) {
 				numViewsInStakingAuction: numStakingViews,
 				numViewsInDKGPhase:       numDKGViews,
 				numCollectorClusters:     numClusters,
-				rewardPercentage:         rewardAPY})
+				rewardPercentage:         rewardIncreaseFactor})
 
 		// try to advance to the end epoch phase
 		// will fail
@@ -520,7 +520,7 @@ func TestEpochQCDKGNodeRegistration(t *testing.T) {
 		2,             // num views for DKG phase
 		2,             // num collector clusters
 		"lolsoRandom", // random source
-		rewardAPY)
+		rewardIncreaseFactor)
 
 	// create new user accounts, mint tokens for them, and register them for staking
 	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
@@ -616,7 +616,7 @@ func TestEpochFullNodeRegistration(t *testing.T) {
 		2,             // num views for DKG phase
 		4,             // num collector clusters
 		"lolsoRandom", // random source
-		rewardAPY)
+		rewardIncreaseFactor)
 
 	// create new user accounts, mint tokens for them, and register them for staking
 	addresses, publicKeys, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
@@ -648,7 +648,7 @@ func TestEpochQCDKG(t *testing.T) {
 		numDKGViews,       // num views for DKG phase
 		2,                 // num collector clusters
 		randomSource,      // random source
-		rewardAPY)
+		rewardIncreaseFactor)
 
 	// create new user accounts, mint tokens for them, and register them for staking
 	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
@@ -760,7 +760,7 @@ func TestEpochQCDKG(t *testing.T) {
 				numViewsInStakingAuction: numStakingViews,
 				numViewsInDKGPhase:       numDKGViews,
 				numCollectorClusters:     2,
-				rewardPercentage:         rewardAPY})
+				rewardPercentage:         rewardIncreaseFactor})
 
 	})
 
@@ -828,7 +828,7 @@ func TestEpochQCDKG(t *testing.T) {
 				numViewsInStakingAuction: numStakingViews,
 				numViewsInDKGPhase:       numDKGViews,
 				numCollectorClusters:     2,
-				rewardPercentage:         rewardAPY})
+				rewardPercentage:         rewardIncreaseFactor})
 
 		verifyEpochCommit(t, b, idTableAddress,
 			EpochCommit{
@@ -847,9 +847,21 @@ func TestEpochQCDKG(t *testing.T) {
 
 	t.Run("Can end the Epoch and start a new Epoch", func(t *testing.T) {
 
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochCalculateSetRewardsScript(env), idTableAddress)
+		result := executeScriptAndCheck(t, b, templates.GenerateGetFlowTotalSupplyScript(env), nil)
+		assertEqual(t, CadenceUFix64("7000000000.0"), result)
 
-		_ = tx.AddArgument(CadenceUFix64("1300000.0"))
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochSetAutomaticRewardsScript(env), idTableAddress)
+
+		_ = tx.AddArgument(cadence.NewBool(true))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochCalculateSetRewardsScript(env), idTableAddress)
 
 		signAndSubmit(
 			t, b, tx,
@@ -861,6 +873,15 @@ func TestEpochQCDKG(t *testing.T) {
 		// Advance to new epoch
 		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "ENDEPOCH", false)
 
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochPayRewardsScript(env), idTableAddress)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+
 		verifyConfigMetadata(t, b, env,
 			ConfigMetadata{
 				currentEpochCounter:      startEpochCounter + 1,
@@ -870,7 +891,7 @@ func TestEpochQCDKG(t *testing.T) {
 				numViewsInStakingAuction: numStakingViews,
 				numViewsInDKGPhase:       numDKGViews,
 				numCollectorClusters:     2,
-				rewardPercentage:         rewardAPY})
+				rewardPercentage:         rewardIncreaseFactor})
 
 		clusters := []Cluster{Cluster{index: 0, totalWeight: 100, size: 1},
 			Cluster{index: 1, totalWeight: 100, size: 1}}
@@ -882,15 +903,19 @@ func TestEpochQCDKG(t *testing.T) {
 				startView:             startView + numEpochViews,
 				endView:               startView + 2*numEpochViews - 1,
 				stakingEndView:        startView + numEpochViews + numStakingViews - 1,
-				totalRewards:          "1300000.0",
+				totalRewards:          "6572143.3875",
 				rewardsBreakdownArray: 0,
 				rewardsPaid:           false,
 				collectorClusters:     clusters,
 				clusterQCs:            clusterQCs,
 				dkgKeys:               finalKeyStrings})
 
+		// Make sure the payout is the same as the total rewards in the epoch metadata
+		result = executeScriptAndCheck(t, b, templates.GenerateGetWeeklyPayoutScript(env), nil)
+		assertEqual(t, CadenceUFix64("6572143.3875"), result)
+
 		// DKG and QC are disabled at the end of the epoch
-		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGEnabledScript(env), nil)
+		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGEnabledScript(env), nil)
 		assert.Equal(t, cadence.NewBool(false), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetQCEnabledScript(env), nil)
@@ -902,6 +927,62 @@ func TestEpochQCDKG(t *testing.T) {
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetQCEnabledScript(env), nil)
 		assert.Equal(t, cadence.NewBool(false), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetFlowTotalSupplyScript(env), nil)
+		assertEqual(t, CadenceUFix64("7000000000.0"), result)
+
+	})
+
+	t.Run("Can set the rewards with high fee amount, which should not increase the supply at all", func(t *testing.T) {
+
+		mintTokensForAccount(t, b, idTableAddress, "6572144.3875")
+
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateDepositFeesScript(env), idTableAddress)
+
+		_ = tx.AddArgument(CadenceUFix64("6572144.3875"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetFlowTotalSupplyScript(env), nil)
+		assertEqual(t, CadenceUFix64("7006572144.3875"), result)
+
+		// Advance to epoch Setup
+		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHSETUP", false)
+
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochCalculateSetRewardsScript(env), idTableAddress)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+
+		clusters := []Cluster{Cluster{index: 0, totalWeight: 100, size: 1},
+			Cluster{index: 1, totalWeight: 100, size: 1}}
+
+		verifyEpochMetadata(t, b, env,
+			EpochMetadata{
+				counter:               startEpochCounter + 2,
+				seed:                  "",
+				startView:             startView + 2*numEpochViews,
+				endView:               startView + 3*numEpochViews - 1,
+				stakingEndView:        startView + 2*numEpochViews + numStakingViews - 1,
+				totalRewards:          "6577139.33765799",
+				rewardsBreakdownArray: 0,
+				rewardsPaid:           false,
+				collectorClusters:     clusters,
+				clusterQCs:            clusterQCs,
+				dkgKeys:               finalKeyStrings})
+
+		// Make sure the payout is the same as the total rewards in the epoch metadata
+		result = executeScriptAndCheck(t, b, templates.GenerateGetWeeklyPayoutScript(env), nil)
+		assertEqual(t, CadenceUFix64("6577139.33765799"), result)
 
 	})
 }
@@ -921,7 +1002,7 @@ func TestEpochReset(t *testing.T) {
 		numDKGViews,       // num views for DKG phase
 		numClusters,       // num collector clusters
 		randomSource,      // random source
-		rewardAPY)
+		rewardIncreaseFactor)
 
 	// create new user accounts, mint tokens for them, and register them for staking
 	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
@@ -1042,7 +1123,7 @@ func TestEpochReset(t *testing.T) {
 				numViewsInStakingAuction: numStakingViews,
 				numViewsInDKGPhase:       numDKGViews,
 				numCollectorClusters:     numClusters,
-				rewardPercentage:         rewardAPY})
+				rewardPercentage:         rewardIncreaseFactor})
 
 	})
 
@@ -1140,7 +1221,7 @@ func TestEpochReset(t *testing.T) {
 				startView:             startView,
 				endView:               endView,
 				stakingEndView:        stakingEndView,
-				totalRewards:          "1300000.0",
+				totalRewards:          "1250000.0",
 				rewardsBreakdownArray: 0,
 				rewardsPaid:           false,
 				collectorClusters:     nil,

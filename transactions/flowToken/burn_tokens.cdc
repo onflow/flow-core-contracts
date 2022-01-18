@@ -5,7 +5,7 @@
 // The burning amount would be a parameter to the transaction
 
 import FungibleToken from 0xFUNGIBLETOKENADDRESS
-import FlowToken from 0xTOKENADDRESS
+import FlowToken from 0xFLOWTOKENADDRESS
 
 transaction(amount: UFix64) {
 
