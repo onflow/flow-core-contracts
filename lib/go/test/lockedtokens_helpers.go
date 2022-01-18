@@ -492,8 +492,14 @@ func verifyStakingCollectionInfo(
 	result = executeScriptAndCheck(t, b, templates.GenerateCollectionGetNodeIDsScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(flow.HexToAddress(expectedInfo.accountAddress)))})
 	nodeArray := result.(cadence.Array).Values
 	i := 0
-	for _, nodeID := range expectedInfo.nodes {
-		assertEqual(t, CadenceString(nodeID), nodeArray[i])
+	for _, resultID := range nodeArray {
+		found := false
+		for _, expectedID := range expectedInfo.nodes {
+			if resultID == CadenceString(expectedID) {
+				found = true
+			}
+		}
+		assertEqual(t, found, true)
 		i = i + 1
 	}
 
