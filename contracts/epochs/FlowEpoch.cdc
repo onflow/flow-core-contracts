@@ -3,7 +3,7 @@ import FlowToken from 0xFLOWTOKENADDRESS
 import FlowIDTableStaking from 0xFLOWIDTABLESTAKINGADDRESS
 import FlowClusterQC from 0xQCADDRESS
 import FlowDKG from 0xDKGADDRESS
-//import FlowFees from 0xFLOWFEESADDRESS
+import FlowFees from 0xFLOWFEESADDRESS
 
 // The top-level smart contract managing the lifecycle of epochs. In Flow,
 // epochs are the smallest unit of time where the identity table (the set of 
@@ -485,7 +485,7 @@ pub contract FlowEpoch {
             // Calculate the total supply of FLOW after the current epoch's payout
             // the calculation includes the tokens that haven't been minted for the current epoch yet
             let currentPayout = FlowIDTableStaking.getEpochTokenPayout()
-            let feeAmount = FlowIDTableStaking.getFeesBalance()
+            let feeAmount = FlowFees.getFeeBalance()
             var flowTotalSupplyAfterPayout = 0.0
             if feeAmount >= currentPayout {
                 flowTotalSupplyAfterPayout = FlowToken.totalSupply

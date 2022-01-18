@@ -1397,10 +1397,6 @@ pub contract FlowIDTableStaking {
         return self.rewardRatios
     }
 
-    pub fun getFeesBalance(): UFix64 {
-        return FlowFees.getFeeBalance()
-    }
-
     init(_ epochTokenPayout: UFix64, _ rewardCut: UFix64) {
         self.account.save(true, to: /storage/stakingEnabled)
 
