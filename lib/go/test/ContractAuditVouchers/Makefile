@@ -3,7 +3,7 @@ test:
 	go test ./...
 
 .PHONY: check-tidy
-check-tidy: generate
+check-tidy:
 	go mod tidy
 	git diff --exit-code
 
