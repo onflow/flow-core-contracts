@@ -1,5 +1,6 @@
 .PHONY: test
 test:
+	$(MAKE) test -C test/ContractAuditVouchers
 	$(MAKE) test -C contracts
 	$(MAKE) test -C test
 
