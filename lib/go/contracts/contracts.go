@@ -264,6 +264,7 @@ func FlowEpoch(fungibleTokenAddress,
 	idTableAddress,
 	qcAddress,
 	dkgAddress string,
+	flowFeesAddress string,
 ) []byte {
 	code := assets.MustAssetString(flowEpochFilename)
 
@@ -272,6 +273,7 @@ func FlowEpoch(fungibleTokenAddress,
 	code = strings.ReplaceAll(code, placeholderIDTableAddress, withHexPrefix(idTableAddress))
 	code = strings.ReplaceAll(code, placeholderQCAddr, withHexPrefix(qcAddress))
 	code = strings.ReplaceAll(code, placeholderDKGAddr, withHexPrefix(dkgAddress))
+	code = strings.ReplaceAll(code, placeholderFlowFeesAddress, withHexPrefix(flowFeesAddress))
 
 	return []byte(code)
 }
