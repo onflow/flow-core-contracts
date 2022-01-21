@@ -124,6 +124,14 @@ These contracts manage the epoch functionality of Flow, the mechanism by which F
 `FlowClusterQC.cdc` and `FlowDKG.cdc` manage processes specific to collector and consensus nodes, respectively.
 `FlowEpoch.cdc` ties all of the epoch and staking contracts together into a coherent state machine that will run on its own.
 
+## Flow Contract Audits
+
+`contracts/FlowContractAudits.cdc`
+
+This contract contains a list of contract audit vouchers used for contract deployment. If enabled, on contract deployment the FVM will check the code hash
+and target account against the list of vouchers on this contract.
+The service account can authorize auditors to add/remove items to/from the list on this contract.
+
 # Testing
 
 To run the tests in the repo, use `make test`.

@@ -37,6 +37,7 @@ const (
 	ErrorNoVoucher = "invalid voucher"
 )
 
+// authorizeAuditor initializes the auditor account and deposits the needed capability by admin.
 func authorizeAuditor(g *overflow.Overflow, t *testing.T) {
 	// auditor init proxy
 	g.TransactionFromFile(AuditorInitTx).
@@ -55,6 +56,7 @@ func authorizeAuditor(g *overflow.Overflow, t *testing.T) {
 		AssertEmitEventName(AuditorCreatedEventName)
 }
 
+// deployAndFail deploys the test contract to the provided account and assert failure.
 func deployAndFail(g *overflow.Overflow, t *testing.T, account string) {
 	g.TransactionFromFile(DeveloperDeployContractTx).
 		TransactionPath(TransactionBasePath).
@@ -66,6 +68,9 @@ func deployAndFail(g *overflow.Overflow, t *testing.T, account string) {
 		AssertFailure(ErrorNoVoucher)
 }
 
+// auditContract creates new audit voucher.
+// If `anyAccount` is false, the voucher will be created for DeveloperAccount.
+// If `expiryOffset` is <= 0, expiryOffset? will be nil.
 func auditContract(g *overflow.Overflow, t *testing.T, anyAccount bool, recurrent bool, expiryOffset int, expiryBlockHeight int) {
 	builder := g.TransactionFromFile(AuditorNewAuditTx).
 		TransactionPath(TransactionBasePath)
@@ -104,6 +109,8 @@ func auditContract(g *overflow.Overflow, t *testing.T, anyAccount bool, recurren
 		}))
 }
 
+// deploys the test contract to the provided account.
+// The initial voucher creation arguments are passed to check against the resulting events.
 func deploy(g *overflow.Overflow, t *testing.T, account string, recurrent bool, expiryBlockHeight int, anyAccountVoucher bool) {
 	key := fmt.Sprintf("0x%s-%s", g.Account(account).Address().String(), TestContractCodeSHA3)
 	if anyAccountVoucher {
@@ -141,6 +148,7 @@ func deploy(g *overflow.Overflow, t *testing.T, account string, recurrent bool, 
 	}
 }
 
+// getVouchersCount returns the count of current vouchers.
 func getVouchersCount(g *overflow.Overflow, t *testing.T) int {
 	countVouchers, err := g.ScriptFromFile(GetVouchersScript).ScriptPath(ScriptBasePath).RunReturns()
 	if err != nil {

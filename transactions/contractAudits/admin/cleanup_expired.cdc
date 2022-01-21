@@ -1,3 +1,5 @@
+// Clean up expired vouchers by current block height.
+
 import FlowContractAudits from "../../../contracts/FlowContractAudits.cdc"
 
 transaction() {

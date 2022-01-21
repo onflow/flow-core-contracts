@@ -205,9 +205,9 @@ pub contract FlowContractAudits {
     init() {
         self.vouchers = {}
 
-        self.AdminStoragePath = /storage/contractAuditAdmin
-        self.AuditorProxyStoragePath = /storage/contractAuditorProxy
-        self.AuditorProxyPublicPath = /public/contractAuditorProxy
+        self.AdminStoragePath = /storage/flowContractAuditVouchersAdmin
+        self.AuditorProxyStoragePath = /storage/flowContractAuditVouchersAuditorProxy
+        self.AuditorProxyPublicPath = /public/flowContractAuditVouchersAuditorProxy
 
         let admin <- create Administrator()
         self.account.save(<-admin, to: self.AdminStoragePath)

@@ -1,3 +1,16 @@
+/**
+  
+  Create a new Auditor resource in the admin storage and deposit
+  a linked capability to the provided Auditor's account. 
+  
+  This mechanism enables the administrator to revoke audit access 
+  by deleting the resource or capability.
+
+  Before running this transaction, the auditor should have initialized their 
+  account with auditor/init.cdc
+
+*/
+
 import FlowContractAudits from "../../../contracts/FlowContractAudits.cdc"
 
 transaction(auditorAddress: Address) {    
