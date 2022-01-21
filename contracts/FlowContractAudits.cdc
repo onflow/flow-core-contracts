@@ -80,22 +80,19 @@ pub contract FlowContractAudits {
             let codeHash = FlowContractAudits.hashContractCode(code)
             let key = FlowContractAudits.generateVoucherKey(address: address, codeHash: codeHash)
 
+            // if a voucher with the same key exists, remove it first
+            FlowContractAudits.deleteVoucher(key)
+
             let voucher = AuditVoucher(address: address, recurrent: recurrent, expiryBlockHeight: expiryBlockHeight, codeHash: codeHash)            
 
-            let prevAudit = FlowContractAudits.vouchers.insert(key: key, voucher)
-            if prevAudit != nil {
-                emit VoucherRemoved(key: key, recurrent: prevAudit!.recurrent, expiryBlockHeight: prevAudit!.expiryBlockHeight)
-            }
+            FlowContractAudits.vouchers.insert(key: key, voucher)            
 
             emit VoucherCreated(address: address, recurrent: recurrent, expiryBlockHeight: expiryBlockHeight, codeHash: codeHash)
         }
 
         // Remove a voucher with given key
         pub fun deleteVoucher(key: String) {
-            let v = FlowContractAudits.vouchers.remove(key: key)
-            if v != nil {
-                emit VoucherRemoved(key: key, recurrent: v!.recurrent, expiryBlockHeight: v!.expiryBlockHeight)
-            }
+            FlowContractAudits.deleteVoucher(key)            
         }
     }
 
@@ -147,8 +144,7 @@ pub contract FlowContractAudits {
                 let v = FlowContractAudits.vouchers[key]!
                 if v.expiryBlockHeight != nil {
                     if getCurrentBlock().height > v.expiryBlockHeight! {
-                        FlowContractAudits.vouchers.remove(key: key)
-                        emit VoucherRemoved(key: key, recurrent: v.recurrent, expiryBlockHeight: v.expiryBlockHeight)                
+                        FlowContractAudits.deleteVoucher(key)                        
                     }
                 }
             }
@@ -177,29 +173,34 @@ pub contract FlowContractAudits {
         let v = FlowContractAudits.vouchers[key]!
 
         // ensure contract code matches the voucher
-        if v.codeHash == codeHash  {
-
-            // if expiryBlockHeight is set, check the current block height
-            // and remove/expire the voucher if not within the acceptable range
-            if v.expiryBlockHeight != nil {
-                if getCurrentBlock().height > v.expiryBlockHeight! {
-                    FlowContractAudits.vouchers.remove(key: key)
-                    emit VoucherRemoved(key: key, recurrent: v.recurrent, expiryBlockHeight: v.expiryBlockHeight)
-                    return false
-                }
-            }
-
-            // remove the voucher if not recurrent
-            if !v.recurrent {
-                FlowContractAudits.vouchers.remove(key: key)
-                emit VoucherRemoved(key: key, recurrent: v.recurrent, expiryBlockHeight: v.expiryBlockHeight)                    
-            }
-                
-            emit VoucherUsed(address: address, key: key, recurrent: v.recurrent, expiryBlockHeight: v.expiryBlockHeight)                
-            return true
+        if v.codeHash != codeHash  {
+            return false
         }
 
-        return false
+        // if expiryBlockHeight is set, check the current block height
+        // and remove/expire the voucher if not within the acceptable range
+        if v.expiryBlockHeight != nil {
+            if getCurrentBlock().height > v.expiryBlockHeight! {
+                FlowContractAudits.deleteVoucher(key)                
+                return false
+            }
+        }
+
+        // remove the voucher if not recurrent
+        if !v.recurrent {
+            FlowContractAudits.deleteVoucher(key)
+        }
+                
+        emit VoucherUsed(address: address, key: key, recurrent: v.recurrent, expiryBlockHeight: v.expiryBlockHeight)                
+        return true
+    }
+
+    // Helper function to remove a voucher with given key
+    access(contract) fun deleteVoucher(_ key: String) {
+        let v = FlowContractAudits.vouchers.remove(key: key)
+        if v != nil {
+            emit VoucherRemoved(key: key, recurrent: v!.recurrent, expiryBlockHeight: v!.expiryBlockHeight)
+        }
     }
 
     init() {
