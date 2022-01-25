@@ -18,7 +18,7 @@ transaction(key: String) {
     prepare(auditorAccount: AuthAccount) {
         self.auditorCapability = auditorAccount
             .borrow<&FlowContractAudits.AuditorProxy>(from: FlowContractAudits.AuditorProxyStoragePath)
-            ?? panic("Could not borrow a reference to the admin resource")
+            ?? panic("Could not borrow a reference to the auditor resource")
     }
 
     execute {

@@ -17,7 +17,7 @@ const (
 
 	AuditorInitTx                 = "auditor/init"
 	AuditorNewAuditTx             = "auditor/new_audit"
-	AuditorDeleteAuditTx          = "auditor/delete_audit"
+	AuditorDeleteAuditTx          = "auditor/remove_audit"
 	AdminAuthorizeAuditorTx       = "admin/authorize_auditor"
 	AdminCleanupExpiredVouchersTx = "admin/cleanup_expired"
 	DeveloperDeployContractTx     = "fvm/deploy_contract"
