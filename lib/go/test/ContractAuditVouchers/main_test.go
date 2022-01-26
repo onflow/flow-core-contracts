@@ -19,7 +19,7 @@ func TestDeployContract(t *testing.T) {
 	authorizeAuditor(g, t)
 
 	// auditor creates new voucher for developer account
-	auditContract(g, t, false, false, 0, 0)
+	auditContract(g, t, false, false, 0, 0, false)
 
 	// developer cannot deploy to another account
 	deployAndFail(g, t, DeveloperAccount2)
@@ -39,7 +39,7 @@ func TestDeployRecurrentContract(t *testing.T) {
 	authorizeAuditor(g, t)
 
 	// auditor adds recurrent voucher for any account
-	auditContract(g, t, true, true, 0, 0)
+	auditContract(g, t, true, true, 0, 0, false)
 
 	// developer can deploy audited contract
 	deploy(g, t, DeveloperAccount, true, 0, true)
@@ -85,7 +85,7 @@ func TestDeleteVoucher(t *testing.T) {
 	authorizeAuditor(g, t)
 
 	// auditor adds recurrent voucher
-	auditContract(g, t, false, true, 0, 0)
+	auditContract(g, t, false, true, 0, 0, false)
 
 	// developer can deploy audited contract
 	deploy(g, t, DeveloperAccount, true, 0, false)
@@ -115,7 +115,7 @@ func TestExpiredVouchers(t *testing.T) {
 	authorizeAuditor(g, t)
 
 	// auditor adds recurrent voucher for any account
-	auditContract(g, t, true, true, 2, 10)
+	auditContract(g, t, true, true, 2, 10, false)
 
 	// developer can deploy audited contract for 2 blocks
 	deploy(g, t, DeveloperAccount, true, 10, true)
@@ -132,7 +132,7 @@ func TestCleanupExpired(t *testing.T) {
 	authorizeAuditor(g, t)
 
 	// auditor adds recurrent voucher for any account
-	auditContract(g, t, true, true, 1, 9)
+	auditContract(g, t, true, true, 1, 9, false)
 
 	// check count
 	if getVouchersCount(g, t) != 1 {
@@ -162,4 +162,28 @@ func TestCleanupExpired(t *testing.T) {
 	if getVouchersCount(g, t) != 0 {
 		t.Fail()
 	}
+}
+
+func TestHashedDeployContract(t *testing.T) {
+
+	g := overflow.NewTestingEmulator().Start()
+
+	// no voucher on start
+	deployAndFail(g, t, DeveloperAccount)
+
+	// init auditor
+	authorizeAuditor(g, t)
+
+	// auditor creates new voucher for developer account
+	auditContract(g, t, false, false, 0, 0, true)
+
+	// developer cannot deploy to another account
+	deployAndFail(g, t, DeveloperAccount2)
+	deployAndFail(g, t, DeveloperAccount3)
+
+	// developer can deploy audited contract
+	deploy(g, t, DeveloperAccount, false, 0, false)
+
+	// developer cannot deploy audited contract twice
+	deployAndFail(g, t, DeveloperAccount)
 }

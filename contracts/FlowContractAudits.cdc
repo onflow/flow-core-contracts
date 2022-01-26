@@ -68,16 +68,21 @@ pub contract FlowContractAudits {
     // Auditors can create new vouchers and remove them
     pub resource Auditor {
 
-        // Create new voucher
+        // Create new voucher with contract code
         pub fun addVoucher(address: Address?, recurrent: Bool, expiryOffset: UInt64?, code: String) {
+            let codeHash = FlowContractAudits.hashContractCode(code)
+            self.addVoucherHashed(address: address, recurrent: recurrent, expiryOffset: expiryOffset, codeHash: codeHash)
+        }
+
+        // Create new voucher with hashed contract code
+        pub fun addVoucherHashed(address: Address?, recurrent: Bool, expiryOffset: UInt64?, codeHash: String) {
 
             // calculate expiry block height based on expiryOffset
             var expiryBlockHeight: UInt64? = nil
             if expiryOffset != nil {
                 expiryBlockHeight = getCurrentBlock().height + expiryOffset!
             }
-
-            let codeHash = FlowContractAudits.hashContractCode(code)
+            
             let key = FlowContractAudits.generateVoucherKey(address: address, codeHash: codeHash)
 
             // if a voucher with the same key exists, remove it first
@@ -113,6 +118,10 @@ pub contract FlowContractAudits {
 
         pub fun addVoucher(address: Address?, recurrent: Bool, expiryOffset: UInt64?, code: String) {
             self.auditorCapability!.borrow()!.addVoucher(address: address, recurrent: recurrent, expiryOffset: expiryOffset, code: code)
+        }
+
+        pub fun addVoucherHashed(address: Address?, recurrent: Bool, expiryOffset: UInt64?, codeHash: String) {
+            self.auditorCapability!.borrow()!.addVoucherHashed(address: address, recurrent: recurrent, expiryOffset: expiryOffset, codeHash: codeHash)
         }
 
         pub fun deleteVoucher(key: String) {

@@ -17,6 +17,7 @@ const (
 
 	AuditorInitTx                 = "auditor/init"
 	AuditorNewAuditTx             = "auditor/new_audit"
+	AuditorNewAuditHashedTx       = "auditor/new_audit_hashed"
 	AuditorDeleteAuditTx          = "auditor/remove_audit"
 	AdminAuthorizeAuditorTx       = "admin/authorize_auditor"
 	AdminCleanupExpiredVouchersTx = "admin/cleanup_expired"
@@ -71,9 +72,7 @@ func deployAndFail(g *overflow.Overflow, t *testing.T, account string) {
 // auditContract creates new audit voucher.
 // If `anyAccount` is false, the voucher will be created for DeveloperAccount.
 // If `expiryOffset` is <= 0, expiryOffset? will be nil.
-func auditContract(g *overflow.Overflow, t *testing.T, anyAccount bool, recurrent bool, expiryOffset int, expiryBlockHeight int) {
-	builder := g.TransactionFromFile(AuditorNewAuditTx).
-		TransactionPath(TransactionBasePath)
+func auditContract(g *overflow.Overflow, t *testing.T, anyAccount bool, recurrent bool, expiryOffset int, expiryBlockHeight int, hashed bool) {
 
 	var argBuilder *overflow.FlowArgumentsBuilder
 	var address string
@@ -85,8 +84,18 @@ func auditContract(g *overflow.Overflow, t *testing.T, anyAccount bool, recurren
 		argBuilder = g.Arguments().Argument(cadence.NewOptional(cadence.NewAddress(acc.Address())))
 	}
 
+	var builder overflow.FlowTransactionBuilder
+	if hashed {
+		builder = g.TransactionFromFile(AuditorNewAuditHashedTx).
+			TransactionPath(TransactionBasePath)
+		argBuilder = argBuilder.String(TestContractCodeSHA3)
+	} else {
+		builder = g.TransactionFromFile(AuditorNewAuditTx).
+			TransactionPath(TransactionBasePath)
+		argBuilder = argBuilder.String(TestContractCode)
+	}
+
 	argBuilder = argBuilder.
-		String(TestContractCode).
 		Booolean(recurrent)
 
 	var expiryHeight string
