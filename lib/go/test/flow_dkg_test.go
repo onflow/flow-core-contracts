@@ -6,10 +6,10 @@ import (
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
+	emulator "github.com/onflow/flow-emulator"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 	sdktemplates "github.com/onflow/flow-go-sdk/templates"
-	emulator "github.com/onflow/flow-emulator"
 	"github.com/onflow/flow-go-sdk/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -742,10 +742,6 @@ func TestDKGNil(t *testing.T) {
 
 	env.DkgAddress = DKGAddress.Hex()
 
-	// Create new user accounts
-	// joshAccountKey, joshSigner := accountKeys.NewWithSigner()
-	// joshAddress, _ := b.CreateAccount([]*flow.AccountKey{joshAccountKey}, nil)
-
 	jordanAccountKey, jordanSigner := accountKeys.NewWithSigner()
 	jordanAddress, _ := b.CreateAccount([]*flow.AccountKey{jordanAccountKey}, nil)
 
@@ -771,10 +767,12 @@ func TestDKGNil(t *testing.T) {
 		false,
 	)
 
-	dkgNodeIDStrings := make([]cadence.Value, 1)
+	dkgNodeIDStrings := make([]cadence.Value, 2)
 
 	stringArg, _ = cadence.NewString(adminID)
 	dkgNodeIDStrings[0] = stringArg
+	stringArg, _ = cadence.NewString(accessID)
+	dkgNodeIDStrings[1] = stringArg
 
 	// Start the DKG
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateStartDKGScript(env), DKGAddress)
@@ -803,12 +801,13 @@ func TestDKGNil(t *testing.T) {
 		false,
 	)
 
-	finalSubmissionKeys := make([]cadence.Value, 2)
+	finalSubmissionKeys := make([]cadence.Value, 3)
 
 	t.Run("Should be able to make a final submission with nil keys, but not count as completed", func(t *testing.T) {
 
 		finalSubmissionKeys[0] = cadence.NewOptional(nil)
 		finalSubmissionKeys[1] = cadence.NewOptional(nil)
+		finalSubmissionKeys[2] = cadence.NewOptional(nil)
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGFinalSubmissionScript(env), DKGAddress)
 		err := tx.AddArgument(cadence.NewArray(finalSubmissionKeys))
@@ -828,6 +827,36 @@ func TestDKGNil(t *testing.T) {
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGCompletedScript(env), nil)
 
 		assert.Equal(t, cadence.NewBool(false), result)
+
+	})
+
+	dkgKey1 := fmt.Sprintf("%0192d", access)
+
+	t.Run("Should count as completed even if 50 of participants sent nil keys", func(t *testing.T) {
+
+		stringArg, _ = cadence.NewString(dkgKey1)
+		finalSubmissionKeys[0] = cadence.NewOptional(stringArg)
+		finalSubmissionKeys[1] = cadence.NewOptional(stringArg)
+		finalSubmissionKeys[2] = cadence.NewOptional(stringArg)
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGFinalSubmissionScript(env), jordanAddress)
+		err := tx.AddArgument(cadence.NewArray(finalSubmissionKeys))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, jordanAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), jordanSigner},
+			false,
+		)
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGNodeHasFinalSubmittedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(accessID))})
+
+		assert.Equal(t, cadence.NewBool(true), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGCompletedScript(env), nil)
+
+		assert.Equal(t, cadence.NewBool(true), result)
 
 	})
 }
