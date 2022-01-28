@@ -399,11 +399,14 @@ pub contract FlowDKG {
 
         for submission in self.uniqueFinalSubmissions {
             if self.uniqueFinalSubmissionCount[index]! > self.getSafeSuccessThreshold() {
+                var foundNil: Bool = false
                 for key in submission {
                     if key == nil {
-                        return nil
+                        foundNil = true
+                        break
                     }
                 }
+                if foundNil { continue }
                 return submission
             }
             index = index + 1
