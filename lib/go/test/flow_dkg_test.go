@@ -834,6 +834,8 @@ func TestDKGNil(t *testing.T) {
 
 	t.Run("Should count as completed even if 50 of participants sent nil keys", func(t *testing.T) {
 
+		// NOTE: one participant submitted a nil key vector in the previous test case
+
 		stringArg, _ = cadence.NewString(dkgKey1)
 		finalSubmissionKeys[0] = cadence.NewOptional(stringArg)
 		finalSubmissionKeys[1] = cadence.NewOptional(stringArg)
