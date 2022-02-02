@@ -1,12 +1,13 @@
 
 #!/bin/bash
 
-# go get the package
-go get github.com/onflow/flow-go/crypto
-
-# the version of flow-go/crypto used for now is v0.21.3.
+# the version of flow-go/crypto used for now is v0.23.3.
 # till the script is automatized, the version is hardcoded.
 VERSION="v0.23.3"
+
+# go get the package
+go get github.com/onflow/flow-go/crypto@${VERSION}
+
 PKG_DIR="${GOPATH}/pkg/mod/github.com/onflow/flow-go/crypto@${VERSION}"
 
 # grant permissions if not existant
