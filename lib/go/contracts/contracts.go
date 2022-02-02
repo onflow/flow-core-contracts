@@ -36,6 +36,7 @@ const (
 	flowLockedTokensFilename      = "LockedTokens.cdc"
 	flowStakingProxyFilename      = "StakingProxy.cdc"
 	flowStakingCollectionFilename = "FlowStakingCollection.cdc"
+	flowContractAuditsFilename    = "FlowContractAudits.cdc"
 
 	// Test contracts
 	// only used for testing
@@ -274,6 +275,13 @@ func FlowEpoch(fungibleTokenAddress,
 	code = strings.ReplaceAll(code, placeholderQCAddr, withHexPrefix(qcAddress))
 	code = strings.ReplaceAll(code, placeholderDKGAddr, withHexPrefix(dkgAddress))
 	code = strings.ReplaceAll(code, placeholderFlowFeesAddress, withHexPrefix(flowFeesAddress))
+
+	return []byte(code)
+}
+
+// FlowContractAudits returns the FlowContractAudits contract.
+func FlowContractAudits() []byte {
+	code := assets.MustAssetString(flowContractAuditsFilename)
 
 	return []byte(code)
 }
