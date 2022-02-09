@@ -153,8 +153,8 @@ pub contract FlowClusterQC {
                     // Only count votes that were submitted
                     if let submittedMessage = vote.message {
                         if submittedMessage == quorumMessage {
-                            certificate.voteSignatures.append(vote.signature!)
-                            certificate.voterIDs.append(vote.nodeID)
+                            certificate.addSignature(vote.signature!)
+                            certificate.addVoterID(vote.nodeID)
                         }
                     }
                 }
@@ -219,6 +219,14 @@ pub contract FlowClusterQC {
             self.voteSignatures = signatures
             self.voteMessage = message
             self.voterIDs = voterIDs
+        }
+
+        pub fun addSignature(_ signature: String) {
+            self.voteSignatures.append(signature)
+        }
+
+        pub fun addVoterID(_ voterID: String) {
+            self.voterIDs.append(voterID)
         }
     }
 
