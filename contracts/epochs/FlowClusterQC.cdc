@@ -164,6 +164,22 @@ pub contract FlowClusterQC {
                 return nil
             }
         }
+
+        access(contract) fun getGeneratedVote(nodeId: String): Vote? {
+            return self.generatedVotes[nodeId]
+        }
+
+        access(contract) fun setGeneratedVote(nodeId: String, vote: Vote) {
+            self.generatedVotes[nodeId] = vote
+        }
+
+        access(contract) fun getUniqueVoteMessageTotalWeight(vote: String): UInt64? {
+            return self.uniqueVoteMessageTotalWeights[vote]
+        }
+
+        access(contract) fun setUniqueVoteMessageTotalWeight(vote: String, weight: UInt64) {
+            self.uniqueVoteMessageTotalWeights[vote] = weight
+        }
     }
 
     /// `Vote` represents a vote from one collection node. 
@@ -295,19 +311,19 @@ pub contract FlowClusterQC {
             let cluster = FlowClusterQC.clusters[clusterIndex]!
 
             // Get this node's allocated vote
-            let vote = cluster.generatedVotes[self.nodeID]!
+            let vote = cluster.getGeneratedVote(nodeId: self.nodeID)!
 
             // Set the signature and message fields
             vote.signature = voteSignature
             vote.message = voteMessage
 
             // Set the new total weight for the vote
-            let totalWeight = cluster.uniqueVoteMessageTotalWeights[voteMessage] ?? (0 as UInt64)
+            let totalWeight = cluster.getUniqueVoteMessageTotalWeight(vote: voteMessage) ?? 0
             var newWeight = totalWeight + vote.weight
-            cluster.uniqueVoteMessageTotalWeights[voteMessage] = newWeight
+            cluster.setUniqueVoteMessageTotalWeight(vote: voteMessage, weight: newWeight)
 
             // Save the modified vote and cluster back
-            cluster.generatedVotes[self.nodeID] = vote
+            cluster.setGeneratedVote(nodeId: self.nodeID, vote: vote)
             FlowClusterQC.clusters[clusterIndex] = cluster
         }
 
