@@ -355,7 +355,7 @@ pub contract FlowClusterQC {
 
                 // Create a new Vote struct for each participating node
                 for nodeID in cluster.nodeWeights.keys {
-                    cluster.generatedVotes[nodeID] = Vote(nodeID: nodeID, clusterIndex: clusterIndex, voteWeight: cluster.nodeWeights[nodeID]!)
+                    cluster.setGeneratedVote(nodeId: nodeID,vote: Vote(nodeID: nodeID, clusterIndex: clusterIndex, voteWeight: cluster.nodeWeights[nodeID]!))
                     FlowClusterQC.nodeCluster[nodeID] = clusterIndex                   
                 }
                 
