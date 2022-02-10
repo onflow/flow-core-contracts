@@ -256,7 +256,7 @@ pub contract FlowIDTableStaking {
                 self.delegators[delegatorID] != nil:
                     "Specified delegator ID does not exist in the record"
             }
-            return (&self.delegators[delegatorID] as! &DelegatorRecord)
+            return (&self.delegators[delegatorID]! as &DelegatorRecord)
         }
 
         access(account) fun setDelegator(nodeID: UInt32, delegator: @DelegatorRecord) {
@@ -1214,7 +1214,7 @@ pub contract FlowIDTableStaking {
             FlowIDTableStaking.nodes[nodeID] != nil:
                 "Specified node ID does not exist in the record"
         }
-        return (&FlowIDTableStaking.nodes[nodeID] as! &NodeRecord)
+        return (&FlowIDTableStaking.nodes[nodeID]! as &NodeRecord)
     }
 
     /// borrow a reference to the `FlowFees` admin resource for paying rewards
