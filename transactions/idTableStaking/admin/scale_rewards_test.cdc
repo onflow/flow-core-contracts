@@ -6,7 +6,7 @@ transaction {
         let rewardsBreakdown = FlowIDTableStaking.RewardsBreakdown(nodeID: "000000001")
 
         rewardsBreakdown.nodeRewards = 1000.0
-        rewardsBreakdown.delegatorRewards[1 as UInt32] = 100.0
+        rewardsBreakdown.setDelegatorReward(delegatorID: 1 as UInt32, rewards: 100.0)
 
         rewardsBreakdown.scaleAllRewards(scalingFactor: 0.5)
         assert(
