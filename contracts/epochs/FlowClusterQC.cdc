@@ -165,18 +165,22 @@ pub contract FlowClusterQC {
             }
         }
 
+        /// Gets a vote that was generated for a node ID
         access(contract) fun getGeneratedVote(nodeId: String): Vote? {
             return self.generatedVotes[nodeId]
         }
 
+        /// Sets the vote for the specified node ID
         access(contract) fun setGeneratedVote(nodeId: String, vote: Vote) {
             self.generatedVotes[nodeId] = vote
         }
 
+        /// Gets the total weight commited for a unique vote
         access(contract) fun getUniqueVoteMessageTotalWeight(vote: String): UInt64? {
             return self.uniqueVoteMessageTotalWeights[vote]
         }
 
+        /// Sets the total weight for a unique vote
         access(contract) fun setUniqueVoteMessageTotalWeight(vote: String, weight: UInt64) {
             self.uniqueVoteMessageTotalWeights[vote] = weight
         }

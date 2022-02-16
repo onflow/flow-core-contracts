@@ -259,8 +259,9 @@ pub contract FlowIDTableStaking {
             return (&self.delegators[delegatorID] as &DelegatorRecord?)!
         }
 
-        access(account) fun setDelegator(nodeID: UInt32, delegator: @DelegatorRecord) {
-            self.delegators[nodeID] <-! delegator
+        /// Add a delegator to the node record
+        access(account) fun setDelegator(delegatorID: UInt32, delegator: @DelegatorRecord) {
+            self.delegators[delegatorID] <-! delegator
         }
     }
 
@@ -741,6 +742,7 @@ pub contract FlowIDTableStaking {
             }
         }
 
+        /// Sets the reward amount for a specific delegator of this node
         pub fun setDelegatorReward(delegatorID: UInt32, rewards: UFix64) {
             self.delegatorRewards[delegatorID] = rewards
         }
@@ -1200,7 +1202,7 @@ pub contract FlowIDTableStaking {
         nodeRecord.delegatorIDCounter = nodeRecord.delegatorIDCounter + UInt32(1)
 
         // Create a new delegator record and store it in the contract
-        nodeRecord.setDelegator(nodeID: nodeRecord.delegatorIDCounter, delegator: <- create DelegatorRecord())
+        nodeRecord.setDelegator(delegatorID: nodeRecord.delegatorIDCounter, delegator: <- create DelegatorRecord())
 
         emit NewDelegatorCreated(nodeID: nodeRecord.id, delegatorID: nodeRecord.delegatorIDCounter)
 
