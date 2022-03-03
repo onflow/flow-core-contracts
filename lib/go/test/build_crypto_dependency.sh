@@ -6,9 +6,9 @@
 VERSION="v0.23.3"
 
 # go get the package
-go get github.com/onflow/flow-go/crypto@${VERSION}
+go get github.com/onflow/flow-go/crypto@8a4f9d6ce02b1d7fdd87da78ef6a1870188b58df
 
-PKG_DIR="${GOPATH}/pkg/mod/github.com/onflow/flow-go/crypto@${VERSION}"
+PKG_DIR="${GOPATH}/pkg/mod/github.com/onflow/flow-go/crypto@v0.24.3-0.20220203151650-a18137528dd0"
 
 # grant permissions if not existant
 if [[ ! -r ${PKG_DIR}  || ! -w ${PKG_DIR} || ! -x ${PKG_DIR} ]]; then
