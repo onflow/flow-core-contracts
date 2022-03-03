@@ -2208,10 +2208,10 @@ func TestLockedTokensUnlockMultipleAccounts(t *testing.T) {
 			[][]byte{jsoncdc.MustEncode(cadence.Address(adminAddress))},
 		).(cadence.Dictionary).Pairs
 		assertEqual(t, 2, len(result))
-		assertEqual(t, nonLocked2Address.String(), result[0].Key.String()[2:])
-		assertEqual(t, CadenceUFix64("30000.0"), result[0].Value)
-		assertEqual(t, nonLockedAddress.String(), result[1].Key.String()[2:])
-		assertEqual(t, CadenceUFix64("20000.0"), result[1].Value)
+		assertEqual(t, nonLockedAddress.String(), result[0].Key.String()[2:])
+		assertEqual(t, CadenceUFix64("20000.0"), result[0].Value)
+		assertEqual(t, nonLocked2Address.String(), result[1].Key.String()[2:])
+		assertEqual(t, CadenceUFix64("30000.0"), result[1].Value)
 	})
 
 }
