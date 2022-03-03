@@ -9,6 +9,8 @@
 // ../../../transactions/FlowServiceAccount/scripts/get_is_account_creation_restricted.cdc (137B)
 // ../../../transactions/FlowServiceAccount/scripts/get_is_account_creator.cdc (149B)
 // ../../../transactions/FlowServiceAccount/scripts/get_tx_fee.cdc (124B)
+// ../../../transactions/FlowServiceAccount/set_fee_parameters.cdc (598B)
+// ../../../transactions/FlowServiceAccount/set_fee_surge_factor.cdc (458B)
 // ../../../transactions/FlowServiceAccount/set_is_account_creation_restricted.cdc (586B)
 // ../../../transactions/contractAudits/admin/authorize_auditor.cdc (1.989kB)
 // ../../../transactions/contractAudits/admin/cleanup_expired.cdc (558B)
@@ -506,6 +508,46 @@ func flowserviceaccountScriptsGet_tx_feeCdc() (*asset, error) {
 
 	info := bindataFileInfo{name: "FlowServiceAccount/scripts/get_tx_fee.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x5b, 0x4f, 0x3a, 0xae, 0xc6, 0x5e, 0x33, 0x2a, 0x8d, 0xfd, 0x72, 0xa9, 0xba, 0xaf, 0xc2, 0x87, 0x94, 0x3e, 0xa, 0x69, 0xe2, 0x20, 0xc0, 0x1e, 0x63, 0xe5, 0x6b, 0xba, 0xb4, 0x70, 0xde, 0xc7}}
+	return a, nil
+}
+
+var _flowserviceaccountSet_fee_parametersCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x7c\x91\x41\x4b\xfb\x40\x10\xc5\xcf\xbb\x9f\x62\xe8\xe1\x4f\x0a\x7f\x12\x0f\xe2\x21\xa8\xa5\x48\xf7\x24\x28\x68\xf1\xbc\x5d\x27\xed\x42\xb2\x13\x66\x26\xb4\x20\xfd\xee\xd2\xb4\xb6\x15\x12\x8f\xfb\x76\xde\x6f\x1e\xf3\x62\xd3\x12\x2b\xb8\x9a\xb6\x0e\x51\xa0\x62\x6a\xe0\x66\xe7\x9e\x5f\x3e\xdc\x62\xf1\x66\x6d\x51\xc0\xfb\x26\x0a\x28\xfb\x24\x3e\x68\xa4\x04\x82\x2a\xa0\x1b\xbc\xd8\x5a\xcf\xbe\x41\x45\x16\x7b\x35\x98\x49\xc7\x6b\x74\x3e\x28\x71\x09\x4b\x17\x77\x77\xb7\xff\x21\xa6\x50\x77\x12\x29\x2d\xaa\x8a\x58\x9f\x48\xf4\xf2\x89\x3b\x0c\x9d\x0e\x7d\x4e\xe1\xcb\x9a\x1a\x15\xaa\xd3\xd2\x79\x08\xd4\x25\x9d\x7f\x36\x31\x95\xf0\xef\x27\x4b\xde\x0b\x51\x94\xbd\x12\x5b\x6b\x5a\xc6\xd6\x33\x66\x12\xd7\x09\xb9\x84\x79\xa7\x9b\x93\xb7\x67\x1a\xc1\xba\xca\x87\xa8\xf0\x00\x47\x53\xbe\x22\x66\xda\xde\x8f\x2c\x79\xcc\x0e\x67\x2b\xa1\x10\x25\xf6\x6b\x2c\xce\xb0\xc3\xd4\xd4\x1a\x63\x66\x33\x68\x7d\x8a\x21\x9b\x2c\x93\x5f\xd5\x08\x4a\x70\x84\x02\x63\x85\x8c\x29\xf4\x9a\xbf\xe6\x02\xa3\x50\xc7\x01\x27\x53\x6b\xf6\xd6\x1c\x8f\x83\x7f\x87\xce\x05\xd5\x21\xbe\x9e\x1b\xf9\xdd\xc2\xd5\x63\xa4\x8a\x01\x71\xa4\x97\x01\xb1\x0f\xba\xff\x0e\x00\x00\xff\xff\x97\x06\x07\x9a\x56\x02\x00\x00"
+
+func flowserviceaccountSet_fee_parametersCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_flowserviceaccountSet_fee_parametersCdc,
+		"FlowServiceAccount/set_fee_parameters.cdc",
+	)
+}
+
+func flowserviceaccountSet_fee_parametersCdc() (*asset, error) {
+	bytes, err := flowserviceaccountSet_fee_parametersCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "FlowServiceAccount/set_fee_parameters.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x62, 0x6f, 0x1c, 0x68, 0x55, 0x11, 0xeb, 0x58, 0xe8, 0xa, 0x90, 0x5, 0x6c, 0xa0, 0x60, 0xa8, 0x83, 0xa0, 0xb8, 0xae, 0xae, 0x5f, 0x34, 0xc1, 0xc4, 0x7d, 0x8e, 0x31, 0xcd, 0xb5, 0x4, 0xe6}}
+	return a, nil
+}
+
+var _flowserviceaccountSet_fee_surge_factorCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x7c\x90\x31\x4f\xc3\x30\x10\x85\x67\xfb\x57\x9c\x3a\xa0\x74\x49\x18\x10\x43\x04\x54\x1d\xea\x09\x89\xa1\x54\xcc\xae\x79\x69\x2d\x25\x76\x74\x77\x51\x2b\xa1\xfe\x77\xd4\xb4\xd0\x22\x01\xa3\x9f\xde\xf7\xd9\x7e\xb1\xeb\x33\x2b\xb9\x36\xef\x1c\x20\xd4\x70\xee\xe8\x76\xef\x9e\x5f\xde\xdc\x62\xb1\xb4\xb6\xaa\xe8\x75\x1b\x85\x94\x7d\x12\x1f\x34\xe6\x44\x02\x15\xd2\x2d\x2e\x58\xef\xd9\x77\x50\xb0\xd8\xab\x62\x21\x03\x6f\xe0\x7c\xd0\xcc\x35\xad\x5c\xdc\xdf\xdf\x4d\xe9\xc3\x9a\x16\x4a\xcd\x99\x9d\x87\x90\x87\xa4\xf3\xf7\x2e\xa6\x9a\x6e\xbe\x94\xe5\x18\x44\x51\xf6\x9a\xd9\x5a\xd3\x33\x7a\xcf\x28\x24\x6e\x12\xb8\xa6\xf9\xa0\xdb\x33\x3b\x3a\x8d\xa0\x6d\xca\xdf\xac\xf4\x48\x27\xa8\x5c\x67\xe6\xbc\x7b\xf8\xe3\x92\xa7\xe2\xf8\xfb\x9a\x2a\xd1\xcc\x7e\x83\xea\x5b\x76\x6c\x4d\xad\x31\x66\x36\xa3\xde\xa7\x18\x8a\xc9\x2a\xf9\x75\x0b\xd2\x4c\x27\x29\x31\x1a\x30\x52\x18\x33\x7f\xed\x25\x86\xe4\x81\x03\x26\x53\x6b\x0e\xd6\x60\x8f\x30\x28\xfe\x7f\x74\x29\x50\x07\x2c\x2f\x0b\xfe\x5c\xf3\xea\x30\x5a\x0f\x9f\x01\x00\x00\xff\xff\x2a\x53\x86\xdf\xca\x01\x00\x00"
+
+func flowserviceaccountSet_fee_surge_factorCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_flowserviceaccountSet_fee_surge_factorCdc,
+		"FlowServiceAccount/set_fee_surge_factor.cdc",
+	)
+}
+
+func flowserviceaccountSet_fee_surge_factorCdc() (*asset, error) {
+	bytes, err := flowserviceaccountSet_fee_surge_factorCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "FlowServiceAccount/set_fee_surge_factor.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xca, 0x41, 0x80, 0x19, 0x2f, 0xe7, 0x3, 0x69, 0x77, 0x4c, 0x77, 0x3e, 0x46, 0xb0, 0xa8, 0xa, 0xd8, 0x74, 0x6d, 0xf6, 0x26, 0xbb, 0x72, 0x42, 0xce, 0xd7, 0xb9, 0x2, 0x2c, 0x25, 0x8, 0x9a}}
 	return a, nil
 }
 
@@ -5629,6 +5671,8 @@ var _bindata = map[string]func() (*asset, error){
 	"FlowServiceAccount/scripts/get_is_account_creation_restricted.cdc":       flowserviceaccountScriptsGet_is_account_creation_restrictedCdc,
 	"FlowServiceAccount/scripts/get_is_account_creator.cdc":                   flowserviceaccountScriptsGet_is_account_creatorCdc,
 	"FlowServiceAccount/scripts/get_tx_fee.cdc":                               flowserviceaccountScriptsGet_tx_feeCdc,
+	"FlowServiceAccount/set_fee_parameters.cdc":                               flowserviceaccountSet_fee_parametersCdc,
+	"FlowServiceAccount/set_fee_surge_factor.cdc":                             flowserviceaccountSet_fee_surge_factorCdc,
 	"FlowServiceAccount/set_is_account_creation_restricted.cdc":               flowserviceaccountSet_is_account_creation_restrictedCdc,
 	"contractAudits/admin/authorize_auditor.cdc":                              contractauditsAdminAuthorize_auditorCdc,
 	"contractAudits/admin/cleanup_expired.cdc":                                contractauditsAdminCleanup_expiredCdc,
@@ -5938,6 +5982,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 			"get_is_account_creator.cdc": {flowserviceaccountScriptsGet_is_account_creatorCdc, map[string]*bintree{}},
 			"get_tx_fee.cdc": {flowserviceaccountScriptsGet_tx_feeCdc, map[string]*bintree{}},
 		}},
+		"set_fee_parameters.cdc": {flowserviceaccountSet_fee_parametersCdc, map[string]*bintree{}},
+		"set_fee_surge_factor.cdc": {flowserviceaccountSet_fee_surge_factorCdc, map[string]*bintree{}},
 		"set_is_account_creation_restricted.cdc": {flowserviceaccountSet_is_account_creation_restrictedCdc, map[string]*bintree{}},
 	}},
 	"contractAudits": {nil, map[string]*bintree{
