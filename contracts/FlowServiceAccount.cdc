@@ -59,6 +59,8 @@ pub contract FlowServiceAccount {
             ?? panic("Unable to borrow reference to the default token vault")
     }
 
+    /// Will be deprecated and can be deleted after the switchover to FlowFees.deductTransactionFee
+    ///
     /// Called when a transaction is submitted to deduct the fee
     /// from the AuthAccount that submitted it
     pub fun deductTransactionFee(_ acct: AuthAccount) {
