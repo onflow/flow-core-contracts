@@ -10,7 +10,7 @@ require (
 	github.com/onflow/flow-ft/lib/go/templates v0.2.0
 	github.com/onflow/flow-go v0.23.2-0.20220303214230-b534557ab3f5
 	github.com/onflow/flow-go-sdk v0.24.0
-	github.com/onflow/flow-go/crypto v0.24.3-0.20220203151650-a18137528dd0
+	github.com/onflow/flow-go/crypto v0.24.3
 	github.com/stretchr/testify v1.7.1-0.20210824115523-ab6dc3262822
 )
 
