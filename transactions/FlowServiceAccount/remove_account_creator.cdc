@@ -1,6 +1,6 @@
 import FlowServiceAccount from 0xFLOWSERVICEADDRESS
 
-// This transaction removes an account crerator
+// This transaction removes an account creator
 transaction(accountCreator: Address) {
 
 	let serviceAccountAdmin: &FlowServiceAccount.Administrator

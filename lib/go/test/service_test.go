@@ -28,6 +28,7 @@ func TestContracts(t *testing.T) {
 	env := templates.Environment{
 		FungibleTokenAddress:  emulatorFTAddress,
 		FlowTokenAddress:      emulatorFlowTokenAddress,
+		FlowFeesAddress:       emulatorFlowFeesAddress,
 		ServiceAccountAddress: b.ServiceKey().Address.Hex(),
 	}
 
@@ -227,6 +228,32 @@ func TestContracts(t *testing.T) {
 			[]crypto.Signer{b.ServiceKey().Signer()},
 			false,
 		)
+	})
+
+	t.Run("Should set and get FlowFees fee parameters", func(t *testing.T) {
+		tx := createTxWithTemplateAndAuthorizer(b,
+			templates.GenerateSetFeeParametersScript(env),
+			b.ServiceKey().Address)
+
+		err := tx.AddArgument(CadenceUFix64("1.0"))
+		require.NoError(t, err)
+		err = tx.AddArgument(CadenceUFix64("2.0"))
+		require.NoError(t, err)
+		err = tx.AddArgument(CadenceUFix64("3.0"))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, storageFeesAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), storageFeesSigner},
+			false,
+		)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetFeeParametersScript(env), [][]byte{})
+		fields := result.(cadence.CompositeType).CompositeFields()
+		assertEqual(t, CadenceUFix64("1.0"), fields[0])
+		assertEqual(t, CadenceUFix64("2.0"), fields[1])
+		assertEqual(t, CadenceUFix64("3.0"), fields[2])
 	})
 
 	// deploy the ServiceAccount contract
