@@ -1,6 +1,7 @@
 
 #!/bin/bash
 
+
 # crypto package 
 PKG_NAME="github.com/onflow/flow-go/crypto"
 
@@ -19,6 +20,7 @@ then
 else 
    { echo "couldn't find go.mod file - make sure the script is in the project root directory"; exit 1; }
 fi
+
 
 # grant permissions if not existant
 if [[ ! -r ${PKG_DIR}  || ! -w ${PKG_DIR} || ! -x ${PKG_DIR} ]]; then
