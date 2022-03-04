@@ -1,9 +1,9 @@
 
 #!/bin/bash
 
-# the version of flow-go/crypto used for now is v0.23.3.
+# the version of flow-go/crypto used for now is v0.24.3.
 # till the script is automatized, the version is hardcoded.
-VERSION="v0.23.3"
+VERSION="v0.24.3"
 
 # go get the package
 go get github.com/onflow/flow-go/crypto@${VERSION}
