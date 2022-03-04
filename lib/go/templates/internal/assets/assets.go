@@ -8,7 +8,7 @@
 // ../../../transactions/FlowServiceAccount/scripts/get_fees_balance.cdc (102B)
 // ../../../transactions/FlowServiceAccount/scripts/get_is_account_creation_restricted.cdc (137B)
 // ../../../transactions/FlowServiceAccount/scripts/get_is_account_creator.cdc (149B)
-// ../../../transactions/FlowServiceAccount/scripts/get_tx_fee_parameters.cdc (112B)
+// ../../../transactions/FlowServiceAccount/scripts/get_tx_fee_parameters.cdc (121B)
 // ../../../transactions/FlowServiceAccount/set_fee_parameters.cdc (606B)
 // ../../../transactions/FlowServiceAccount/set_fee_surge_factor.cdc (465B)
 // ../../../transactions/FlowServiceAccount/set_is_account_creation_restricted.cdc (586B)
@@ -491,7 +491,7 @@ func flowserviceaccountScriptsGet_is_account_creatorCdc() (*asset, error) {
 	return a, nil
 }
 
-var _flowserviceaccountScriptsGet_tx_fee_parametersCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xca\xcc\x2d\xc8\x2f\x2a\x51\x70\xcb\xc9\x2f\x77\x4b\x4d\x2d\x56\x48\x2b\xca\xcf\x55\x30\xa8\x70\xf3\xf1\x0f\x77\x73\x75\x0d\x76\x74\x71\x09\x72\x0d\x0e\xe6\xe2\x2a\x28\x4d\x52\x48\x2b\xcd\x53\xc8\x4d\xcc\xcc\xd3\xd0\xb4\x52\x70\x4b\x4d\x0d\x48\x2c\x4a\xcc\x4d\x2d\x49\x2d\x2a\x56\xa8\xe6\x52\x50\x50\x50\x28\x4a\x2d\x29\x2d\xca\x83\x9b\xa5\x97\x9e\x5a\x82\xa2\x4c\x43\x93\xab\x16\x10\x00\x00\xff\xff\x0e\x6d\x80\xb9\x70\x00\x00\x00"
+var _flowserviceaccountScriptsGet_tx_fee_parametersCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xca\xcc\x2d\xc8\x2f\x2a\x51\x70\xcb\xc9\x2f\x77\x4b\x4d\x2d\x56\x48\x2b\xca\xcf\x55\x30\xa8\x70\xf3\xf1\x0f\x77\x73\x75\x0d\x76\x74\x71\x09\x72\x0d\x0e\xe6\xe2\x2a\x28\x4d\x52\x48\x2b\xcd\x53\xc8\x4d\xcc\xcc\xd3\xd0\xb4\x82\x6b\xd0\x73\x4b\x4d\x0d\x48\x2c\x4a\xcc\x4d\x2d\x49\x2d\x2a\x56\xa8\xe6\x52\x50\x50\x50\x28\x4a\x2d\x29\x2d\xca\x43\xa8\x49\x4f\x2d\x41\x51\xa6\xa1\xc9\x55\x0b\x08\x00\x00\xff\xff\x72\x08\x76\xd1\x79\x00\x00\x00"
 
 func flowserviceaccountScriptsGet_tx_fee_parametersCdcBytes() ([]byte, error) {
 	return bindataRead(
@@ -507,7 +507,7 @@ func flowserviceaccountScriptsGet_tx_fee_parametersCdc() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "FlowServiceAccount/scripts/get_tx_fee_parameters.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x13, 0xc1, 0x6, 0xee, 0x70, 0xee, 0x2, 0x61, 0x64, 0x41, 0xdc, 0x12, 0xd3, 0x9c, 0xa5, 0xec, 0x25, 0x9d, 0xa4, 0xfc, 0xa2, 0x76, 0x9, 0x41, 0x10, 0xce, 0x27, 0x51, 0x6a, 0x74, 0xeb, 0x32}}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xea, 0xaf, 0xc1, 0xff, 0x1a, 0x34, 0x69, 0x68, 0xb, 0xd, 0xc9, 0xba, 0xb4, 0xdb, 0x81, 0x8a, 0x41, 0x8, 0x38, 0xf6, 0x85, 0x75, 0xef, 0x4e, 0x8a, 0x6e, 0xb0, 0x6a, 0x22, 0xc1, 0x97, 0x1a}}
 	return a, nil
 }
 
