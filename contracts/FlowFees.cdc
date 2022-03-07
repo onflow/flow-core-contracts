@@ -40,24 +40,27 @@ pub contract FlowFees {
             return <-vault
         }
 
-        // Allows the administrator to change all the fee parameters at once
+        /// Allows the administrator to change all the fee parameters at once
         pub fun setFeeParameters(surgeFactor: UFix64, inclusionEffortCost: UFix64, executionEffortCost: UFix64) {
             let newParameters = FeeParameters(surgeFactor: surgeFactor, inclusionEffortCost: inclusionEffortCost, executionEffortCost: executionEffortCost)
             FlowFees.setFeeParameters(newParameters)
         }
 
-        // Allows the administrator to change the fee surge factor
-        pub fun setFeeSurgeFactor(surgeFactor: UFix64) {
+        /// Allows the administrator to change the fee surge factor
+        pub fun setFeeSurgeFactor(_ surgeFactor: UFix64) {
             let oldParameters = FlowFees.getFeeParameters()
             let newParameters = FeeParameters(surgeFactor: surgeFactor, inclusionEffortCost: oldParameters.inclusionEffortCost, executionEffortCost: oldParameters.executionEffortCost)
             FlowFees.setFeeParameters(newParameters)
         }
     }
 
-    // A struct holding the fee parameters needed to calculate the fees
+    /// A struct holding the fee parameters needed to calculate the fees
     pub struct FeeParameters {
+        /// The surge factor is used to make transaction fees respond to high loads on the network
         pub var surgeFactor: UFix64
+        /// The FLOW cost of one unit of inclusion effort. The FVM is responsible for metering inclusion effort.
         pub var inclusionEffortCost: UFix64
+        /// The FLOW cost of one unit of execution effort. The FVM is responsible for metering execution effort.
         pub var executionEffortCost: UFix64
 
         init(surgeFactor: UFix64, inclusionEffortCost: UFix64, executionEffortCost: UFix64){
@@ -96,13 +99,13 @@ pub contract FlowFees {
     }
 
     pub fun getFeeParameters(): FeeParameters {
-        return self.account.copy<FeeParameters>(from: /storage/FeeParameters)!
+        return self.account.copy<FeeParameters>(from: /storage/FlowTxFeeParameters) ?? panic("Error getting tx fee parameters. They need to be initialized first!")
     }
 
     access(self) fun setFeeParameters(_ feeParameters: FeeParameters) {
         // empty storage before writing new FeeParameters to it
-        self.account.load<FeeParameters>(from: /storage/FeeParameters)
-        self.account.save(feeParameters,to: /storage/FeeParameters)
+        self.account.load<FeeParameters>(from: /storage/FlowTxFeeParameters)
+        self.account.save(feeParameters,to: /storage/FlowTxFeeParameters)
         emit FeeParametersChanged(surgeFactor: feeParameters.surgeFactor, inclusionEffortCost: feeParameters.inclusionEffortCost, executionEffortCost: feeParameters.executionEffortCost)
     }
 
