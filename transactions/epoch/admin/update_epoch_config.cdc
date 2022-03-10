@@ -16,7 +16,7 @@ transaction(dkgPhaseLen: UInt64, stakingLen: UInt64, epochLen: UInt64) {
         /// - increasing numViewsInEpoch: update numViewsInEpoch before numViewsInStakingAuction, and numViewsInDKGPhase
         /// - decreasing numViewsInEpoch: update numViewsInStakingAuction and  numViewsInDKGPhase before numViewsInStakingAuction
         /// NOTE: We assume here that the DKG phase length is much smaller than the staking length for all potential configurations.
-        if newEpochViews > FlowEpoch.getConfigMetadata().numViewsInEpoch  {
+        if epochLen > FlowEpoch.getConfigMetadata().numViewsInEpoch  {
             epochAdmin.updateEpochViews(epochLen)
             epochAdmin.updateAuctionViews(stakingLen)
             epochAdmin.updateDKGPhaseViews(dkgPhaseLen)
