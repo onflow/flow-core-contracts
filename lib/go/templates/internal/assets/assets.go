@@ -47,6 +47,7 @@
 // ../../../transactions/epoch/admin/set_automatic_rewards.cdc (356B)
 // ../../../transactions/epoch/admin/update_clusters.cdc (338B)
 // ../../../transactions/epoch/admin/update_dkg_phase_views.cdc (328B)
+// ../../../transactions/epoch/admin/update_epoch_config.cdc (974B)
 // ../../../transactions/epoch/admin/update_epoch_views.cdc (329B)
 // ../../../transactions/epoch/admin/update_reward.cdc (342B)
 // ../../../transactions/epoch/admin/update_staking_views.cdc (331B)
@@ -1266,6 +1267,26 @@ func epochAdminUpdate_dkg_phase_viewsCdc() (*asset, error) {
 
 	info := bindataFileInfo{name: "epoch/admin/update_dkg_phase_views.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xff, 0x12, 0x5a, 0x44, 0xb8, 0xd5, 0xb8, 0x5, 0x2a, 0xd0, 0x45, 0x97, 0xa7, 0x29, 0x2a, 0x1a, 0x76, 0xdd, 0x50, 0x3e, 0x12, 0x2a, 0xfc, 0xbe, 0x96, 0x57, 0xce, 0x5, 0x83, 0xbd, 0xfa, 0x43}}
+	return a, nil
+}
+
+var _epochAdminUpdate_epoch_configCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xb4\x92\x4f\xab\xd3\x40\x14\xc5\xf7\xf9\x14\xc7\x2e\x24\x05\x09\x2e\xc4\x45\xd1\xf7\x08\x6d\x7d\x3e\x1e\x6a\xb1\xf8\xf6\xf7\x25\xb7\xc9\x60\x32\x13\x66\xee\x18\x41\xfa\xdd\x25\x33\x98\x3f\x55\x2c\x08\xce\x22\x8b\xe1\x9e\x73\xcf\xf9\x4d\x54\xdb\x19\x2b\x78\xd7\x98\x7e\xdf\x99\xa2\xc6\xc9\x9a\x16\x2f\xbf\xef\x0f\x9f\xb6\xef\xf3\xdd\xee\xf3\xfe\x78\x4c\x12\xb1\xa4\x1d\x15\xa2\x8c\x4e\x35\xf7\x47\xa1\xaf\x4a\x57\x8f\x8a\x7b\xb7\xc1\x97\x7b\x2d\xaf\x5f\xbd\x80\xe6\xfe\x50\x93\xe3\xdf\xaf\x83\xf3\xe2\x7a\x8d\x1f\x09\x00\x74\x96\x3b\xb2\x9c\x3a\x55\x69\xb6\x1b\xe4\x5e\xea\xbc\x28\x8c\xd7\xf2\x6b\x64\x38\x0d\x0b\x78\x30\xc9\xcb\x56\x69\xbc\x45\x9c\xcf\x9e\x8c\xb5\xa6\x7f\xf3\x7c\x8c\x9f\x85\x81\x9b\x74\x68\xb1\x99\x5a\x65\x34\x5c\x1f\xc5\x58\xaa\xf8\x40\x52\xaf\x47\xeb\xe1\xdc\xde\xa2\x23\xad\x8a\x74\xb5\x35\xbe\x29\xa1\x8d\x20\x5a\x23\x08\x23\x14\x17\xe5\xe8\x48\xea\xd5\x3a\x19\x1d\xd4\x09\xcf\xa6\x4d\xca\x3d\x52\xa3\xca\x40\x62\x6b\xf4\x49\x55\xde\xd2\x9f\xc0\x5d\x00\xbb\x00\x35\x6f\x1f\x40\xc5\x7c\x1f\xb9\x47\x7c\xa7\x30\x85\xd6\x3b\xc1\x13\xa3\xb2\x4c\xc2\x16\x52\x93\x86\xd4\x0c\xe7\x5b\x98\x13\x5c\x5c\x08\xd2\x25\x76\x0f\x77\x08\xfb\xf0\x6d\xd0\xae\x26\x06\xe7\x45\x99\x45\x0e\xdc\xcc\x28\x56\x2c\xb1\xd2\x07\x16\x2a\x49\x28\x5d\x67\xda\xb7\x61\xf0\x5e\xc7\x5c\x17\xb9\xa7\x57\xcb\x7c\x57\x92\xf0\x64\x9d\x2e\x0b\xff\x5d\x96\xfb\xf0\xf7\x8d\xc2\x39\xc9\x2b\xd2\xdd\xc3\xdd\x84\x39\x5d\x40\x9f\x21\x00\x37\x8e\xaf\x85\xff\xdf\x29\xfe\x91\xd8\x39\x89\xdf\xf3\xcf\x00\x00\x00\xff\xff\x77\x02\xed\xce\xce\x03\x00\x00"
+
+func epochAdminUpdate_epoch_configCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_epochAdminUpdate_epoch_configCdc,
+		"epoch/admin/update_epoch_config.cdc",
+	)
+}
+
+func epochAdminUpdate_epoch_configCdc() (*asset, error) {
+	bytes, err := epochAdminUpdate_epoch_configCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "epoch/admin/update_epoch_config.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x3e, 0xc7, 0x8c, 0xb7, 0xc8, 0x62, 0x44, 0x6c, 0x8d, 0x9e, 0x48, 0x73, 0x70, 0x0, 0x69, 0x51, 0xd5, 0x11, 0x14, 0x75, 0xd5, 0xc6, 0xbd, 0x21, 0xa2, 0x2d, 0x2e, 0x5f, 0x47, 0x7f, 0x4a, 0xf6}}
 	return a, nil
 }
 
@@ -5667,6 +5688,7 @@ var _bindata = map[string]func() (*asset, error){
 	"epoch/admin/set_automatic_rewards.cdc":                                   epochAdminSet_automatic_rewardsCdc,
 	"epoch/admin/update_clusters.cdc":                                         epochAdminUpdate_clustersCdc,
 	"epoch/admin/update_dkg_phase_views.cdc":                                  epochAdminUpdate_dkg_phase_viewsCdc,
+	"epoch/admin/update_epoch_config.cdc":                                     epochAdminUpdate_epoch_configCdc,
 	"epoch/admin/update_epoch_views.cdc":                                      epochAdminUpdate_epoch_viewsCdc,
 	"epoch/admin/update_reward.cdc":                                           epochAdminUpdate_rewardCdc,
 	"epoch/admin/update_staking_views.cdc":                                    epochAdminUpdate_staking_viewsCdc,
@@ -5995,6 +6017,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 			"set_automatic_rewards.cdc": {epochAdminSet_automatic_rewardsCdc, map[string]*bintree{}},
 			"update_clusters.cdc": {epochAdminUpdate_clustersCdc, map[string]*bintree{}},
 			"update_dkg_phase_views.cdc": {epochAdminUpdate_dkg_phase_viewsCdc, map[string]*bintree{}},
+			"update_epoch_config.cdc": {epochAdminUpdate_epoch_configCdc, map[string]*bintree{}},
 			"update_epoch_views.cdc": {epochAdminUpdate_epoch_viewsCdc, map[string]*bintree{}},
 			"update_reward.cdc": {epochAdminUpdate_rewardCdc, map[string]*bintree{}},
 			"update_staking_views.cdc": {epochAdminUpdate_staking_viewsCdc, map[string]*bintree{}},
