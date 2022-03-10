@@ -150,9 +150,9 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 	t.Run("Should be able to change the configurable metadata during the staking auction", func(t *testing.T) {
 		// Should fail to set epoch config with invalid config sum of the staking phase and dkg phases is greater than epoch
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateEpochConfigScript(env), idTableAddress)
-		_ = tx.AddArgument(cadence.NewUInt64(5))
-		_ = tx.AddArgument(cadence.NewUInt64(5))
-		_ = tx.AddArgument(cadence.NewUInt64(5))
+		_ = tx.AddArgument(cadence.NewUInt64(5)) // dkg
+		_ = tx.AddArgument(cadence.NewUInt64(5)) // staking
+		_ = tx.AddArgument(cadence.NewUInt64(5)) // epoch
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{b.ServiceKey().Address, idTableAddress},
@@ -162,9 +162,9 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 
 		// Should set epoch config successfully when increasing the epochs views
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateEpochConfigScript(env), idTableAddress)
-		_ = tx.AddArgument(cadence.NewUInt64(4))
-		_ = tx.AddArgument(cadence.NewUInt64(2))
-		_ = tx.AddArgument(cadence.NewUInt64(12))
+		_ = tx.AddArgument(cadence.NewUInt64(4)) // dkg
+		_ = tx.AddArgument(cadence.NewUInt64(2)) // staking
+		_ = tx.AddArgument(cadence.NewUInt64(12)) // epoch
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{b.ServiceKey().Address, idTableAddress},
@@ -174,9 +174,9 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 
 		// Should set epoch config successfully when decreasing epochs views
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateEpochConfigScript(env), idTableAddress)
-		_ = tx.AddArgument(cadence.NewUInt64(2))
-		_ = tx.AddArgument(cadence.NewUInt64(1))
-		_ = tx.AddArgument(cadence.NewUInt64(6))
+		_ = tx.AddArgument(cadence.NewUInt64(2)) // dkg
+		_ = tx.AddArgument(cadence.NewUInt64(1)) // staking
+		_ = tx.AddArgument(cadence.NewUInt64(6)) // epoch
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{b.ServiceKey().Address, idTableAddress},
