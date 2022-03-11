@@ -370,7 +370,7 @@ func GenerateReturnProposedTableScript(env Environment) []byte {
 }
 
 func GenerateGetNodeInfoScript(env Environment) []byte {
-	code := assets.MustAssetString(getNodeInfoFilename)
+	code := assets.MustAssetString(getNodeInfoScript)
 
 	return []byte(replaceAddresses(code, env))
 }
