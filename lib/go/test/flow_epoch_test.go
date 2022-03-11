@@ -162,8 +162,8 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 
 		// Should set epoch config successfully when increasing the epochs views
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateEpochConfigScript(env), idTableAddress)
-		_ = tx.AddArgument(cadence.NewUInt64(4)) // dkg
-		_ = tx.AddArgument(cadence.NewUInt64(2)) // staking
+		_ = tx.AddArgument(cadence.NewUInt64(2)) // dkg
+		_ = tx.AddArgument(cadence.NewUInt64(4)) // staking
 		_ = tx.AddArgument(cadence.NewUInt64(12)) // epoch
 		signAndSubmit(
 			t, b, tx,
@@ -174,8 +174,8 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 
 		// Should set epoch config successfully when decreasing epochs views
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateEpochConfigScript(env), idTableAddress)
-		_ = tx.AddArgument(cadence.NewUInt64(2)) // dkg
-		_ = tx.AddArgument(cadence.NewUInt64(1)) // staking
+		_ = tx.AddArgument(cadence.NewUInt64(1)) // dkg
+		_ = tx.AddArgument(cadence.NewUInt64(2)) // staking
 		_ = tx.AddArgument(cadence.NewUInt64(6)) // epoch
 		signAndSubmit(
 			t, b, tx,
