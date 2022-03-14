@@ -11,6 +11,7 @@ const (
 	updateEpochViewsFilename         = "epoch/admin/update_epoch_views.cdc"
 	updateStakingViewsFilename       = "epoch/admin/update_staking_views.cdc"
 	updateDKGViewsFilename           = "epoch/admin/update_dkg_phase_views.cdc"
+	updateEpochConfigFilename        = "epoch/admin/update_epoch_config.cdc"
 	updateNumClustersFilename        = "epoch/admin/update_clusters.cdc"
 	updateRewardPercentageFilename   = "epoch/admin/update_reward.cdc"
 	advanceViewFilename              = "epoch/admin/advance_view.cdc"
@@ -68,6 +69,12 @@ func GenerateUpdateStakingViewsScript(env Environment) []byte {
 
 func GenerateUpdateDKGViewsScript(env Environment) []byte {
 	code := assets.MustAssetString(updateDKGViewsFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateUpdateEpochConfigScript(env Environment) []byte {
+	code := assets.MustAssetString(updateEpochConfigFilename)
 
 	return []byte(replaceAddresses(code, env))
 }

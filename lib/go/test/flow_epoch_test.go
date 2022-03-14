@@ -148,9 +148,44 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 		rewardIncreaseFactor)
 
 	t.Run("Should be able to change the configurable metadata during the staking auction", func(t *testing.T) {
+		// Should fail to set epoch config with invalid config sum of the staking phase and dkg phases is greater than epoch
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateEpochConfigScript(env), idTableAddress)
+		_ = tx.AddArgument(cadence.NewUInt64(5)) // dkg
+		_ = tx.AddArgument(cadence.NewUInt64(5)) // staking
+		_ = tx.AddArgument(cadence.NewUInt64(5)) // epoch
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			true,
+		)
+
+		// Should set epoch config successfully when increasing the epochs views
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateEpochConfigScript(env), idTableAddress)
+		_ = tx.AddArgument(cadence.NewUInt64(2)) // dkg
+		_ = tx.AddArgument(cadence.NewUInt64(4)) // staking
+		_ = tx.AddArgument(cadence.NewUInt64(12)) // epoch
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
+
+		// Should set epoch config successfully when decreasing epochs views
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateEpochConfigScript(env), idTableAddress)
+		_ = tx.AddArgument(cadence.NewUInt64(1)) // dkg
+		_ = tx.AddArgument(cadence.NewUInt64(2)) // staking
+		_ = tx.AddArgument(cadence.NewUInt64(6)) // epoch
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address, idTableAddress},
+			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			false,
+		)
 
 		// Should fail because the sum of the staking phase and dkg phases is greater than epoch
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateEpochViewsScript(env), idTableAddress)
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateEpochViewsScript(env), idTableAddress)
 		_ = tx.AddArgument(cadence.NewUInt64(5))
 		signAndSubmit(
 			t, b, tx,
@@ -424,8 +459,8 @@ func TestEpochAdvance(t *testing.T) {
 				rewardPercentage:         rewardIncreaseFactor})
 
 		// Verify that the proposed epoch metadata was initialized correctly
-		clusters := []Cluster{Cluster{index: 0, totalWeight: 100, size: 1},
-			Cluster{index: 1, totalWeight: 100, size: 1}}
+		clusters := []Cluster{{index: 0, totalWeight: 100, size: 1},
+			{index: 1, totalWeight: 100, size: 1}}
 
 		verifyEpochMetadata(t, b, env,
 			EpochMetadata{
@@ -893,8 +928,8 @@ func TestEpochQCDKG(t *testing.T) {
 				numCollectorClusters:     2,
 				rewardPercentage:         rewardIncreaseFactor})
 
-		clusters := []Cluster{Cluster{index: 0, totalWeight: 100, size: 1},
-			Cluster{index: 1, totalWeight: 100, size: 1}}
+		clusters := []Cluster{{index: 0, totalWeight: 100, size: 1},
+			{index: 1, totalWeight: 100, size: 1}}
 
 		verifyEpochMetadata(t, b, env,
 			EpochMetadata{
@@ -963,8 +998,8 @@ func TestEpochQCDKG(t *testing.T) {
 			false,
 		)
 
-		clusters := []Cluster{Cluster{index: 0, totalWeight: 100, size: 1},
-			Cluster{index: 1, totalWeight: 100, size: 1}}
+		clusters := []Cluster{{index: 0, totalWeight: 100, size: 1},
+			{index: 1, totalWeight: 100, size: 1}}
 
 		verifyEpochMetadata(t, b, env,
 			EpochMetadata{
