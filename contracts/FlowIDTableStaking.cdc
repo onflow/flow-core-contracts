@@ -179,19 +179,9 @@ pub contract FlowIDTableStaking {
                 signatureAlgorithm: SignatureAlgorithm.BLS_BLS12_381
             )
 
-            assert(
-                stakeKey.isValid,
-                message: "Staking Key is invalid"
-            )
-
             let netKey = PublicKey(
                 publicKey: networkingKey.decodeHex(),
                 signatureAlgorithm: SignatureAlgorithm.ECDSA_P256
-            )
-
-            assert(
-                netKey.isValid,
-                message: "Networking Key is invalid"
             )
 
             // TODO: Verify the provided Proof of Possession of the staking private key
