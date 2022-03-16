@@ -595,8 +595,8 @@ pub contract FlowEpoch {
                                                 stakingEndView: currentEpochMetadata.endView + self.configurableMetadata.numViewsInStakingAuction,
                                                 totalRewards: 0.0 as UFix64,
                                                 collectorClusters: collectorClusters,
-                                                clusterQCs: [] as [FlowClusterQC.ClusterQC],
-                                                dkgKeys: [] as [String])
+                                                clusterQCs: [],
+                                                dkgKeys: [])
 
         self.saveEpochMetadata(proposedEpochMetadata)
 
