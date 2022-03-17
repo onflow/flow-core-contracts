@@ -88,6 +88,9 @@ pub contract FlowFees {
         if feeAmount > tokenVault.balance {
             // In the future this code path will never be reached, 
             // as payers that are under account minimum balance will not have their transactions included in a collection
+            //
+            // Currently this is not used to fail the transaction (as that is the responsibility of the minimum account balance logic),
+            // But is used to reduce the balance of the vault to 0.0, if the vault has less available balance than the transaction fees. 
             feeAmount = tokenVault.balance
         }
         

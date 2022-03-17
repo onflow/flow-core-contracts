@@ -26,8 +26,8 @@ const (
 	depositFeesFilename       = "FlowServiceAccount/deposit_fees.cdc"
 	getFeesBalanceFilename    = "FlowServiceAccount/scripts/get_fees_balance.cdc"
 	getFeeParametersFilename  = "FlowServiceAccount/scripts/get_tx_fee_parameters.cdc"
-	setFeeParametersFilename  = "FlowServiceAccount/set_fee_parameters.cdc"
-	setFeeSurgeFactorFilename = "FlowServiceAccount/set_fee_surge_factor.cdc"
+	setFeeParametersFilename  = "FlowServiceAccount/set_tx_fee_parameters.cdc"
+	setFeeSurgeFactorFilename = "FlowServiceAccount/set_tx_fee_surge_factor.cdc"
 )
 
 // StorageFees Templates
