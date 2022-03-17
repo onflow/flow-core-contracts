@@ -23,8 +23,11 @@ const (
 	addAccountCreator              = "FlowServiceAccount/add_account_creator.cdc"
 	removeAccountCreator           = "FlowServiceAccount/remove_account_creator.cdc"
 
-	depositFeesFilename    = "FlowServiceAccount/deposit_fees.cdc"
-	getFeesBalanceFilename = "FlowServiceAccount/scripts/get_fees_balance.cdc"
+	depositFeesFilename       = "FlowServiceAccount/deposit_fees.cdc"
+	getFeesBalanceFilename    = "FlowServiceAccount/scripts/get_fees_balance.cdc"
+	getFeeParametersFilename  = "FlowServiceAccount/scripts/get_tx_fee_parameters.cdc"
+	setFeeParametersFilename  = "FlowServiceAccount/set_tx_fee_parameters.cdc"
+	setFeeSurgeFactorFilename = "FlowServiceAccount/set_tx_fee_surge_factor.cdc"
 )
 
 // StorageFees Templates
@@ -103,6 +106,24 @@ func GenerateGetFeesBalanceScript(env Environment) []byte {
 
 func GenerateDepositFeesScript(env Environment) []byte {
 	code := assets.MustAssetString(depositFeesFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateGetFeeParametersScript(env Environment) []byte {
+	code := assets.MustAssetString(getFeeParametersFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateSetFeeParametersScript(env Environment) []byte {
+	code := assets.MustAssetString(setFeeParametersFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateSetFeeSurgeFactorScript(env Environment) []byte {
+	code := assets.MustAssetString(setFeeSurgeFactorFilename)
 
 	return []byte(replaceAddresses(code, env))
 }
