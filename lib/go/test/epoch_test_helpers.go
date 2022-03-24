@@ -297,7 +297,7 @@ func registerNodeWithSetupAccount(t *testing.T,
 	)
 
 	if !shouldFail {
-		newTokensCommitted = tokensCommitted.Plus(amount).(interpreter.UFix64Value)
+		newTokensCommitted = tokensCommitted.Plus(nil, amount).(interpreter.UFix64Value)
 	}
 
 	return
