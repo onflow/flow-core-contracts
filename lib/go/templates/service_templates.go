@@ -28,6 +28,8 @@ const (
 	getFeeParametersFilename  = "FlowServiceAccount/scripts/get_tx_fee_parameters.cdc"
 	setFeeParametersFilename  = "FlowServiceAccount/set_tx_fee_parameters.cdc"
 	setFeeSurgeFactorFilename = "FlowServiceAccount/set_tx_fee_surge_factor.cdc"
+	getExecutionEffortWeighs  = "FlowServiceAccount/scripts/get_execution_effort_weights.cdc"
+	setExecutionEffortWeighs  = "FlowServiceAccount/set_execution_effort_weights.cdc"
 )
 
 // StorageFees Templates
@@ -124,6 +126,18 @@ func GenerateSetFeeParametersScript(env Environment) []byte {
 
 func GenerateSetFeeSurgeFactorScript(env Environment) []byte {
 	code := assets.MustAssetString(setFeeSurgeFactorFilename)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateSetExecutionEffortWeights(env Environment) []byte {
+	code := assets.MustAssetString(setExecutionEffortWeighs)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateGetExecutionEffortWeights(env Environment) []byte {
+	code := assets.MustAssetString(getExecutionEffortWeighs)
 
 	return []byte(replaceAddresses(code, env))
 }

@@ -256,6 +256,50 @@ func TestContracts(t *testing.T) {
 		assertEqual(t, CadenceUFix64("3.0"), fields[2])
 	})
 
+	t.Run("Should set and get execution effort weights", func(t *testing.T) {
+		tx := createTxWithTemplateAndAuthorizer(b,
+			templates.GenerateSetExecutionEffortWeights(env),
+			b.ServiceKey().Address)
+
+		keyValuePairs := make([]cadence.KeyValuePair, 3)
+
+		keyValuePairs[0] = cadence.KeyValuePair{
+			Key:   cadence.UInt64(1001),
+			Value: cadence.UInt64(65536),
+		}
+		keyValuePairs[1] = cadence.KeyValuePair{
+			Key:   cadence.UInt64(1002),
+			Value: cadence.UInt64(65536),
+		}
+		keyValuePairs[2] = cadence.KeyValuePair{
+			Key:   cadence.UInt64(1003),
+			Value: cadence.UInt64(65536),
+		}
+
+		dict := cadence.Dictionary{Pairs: keyValuePairs}
+
+		err := tx.AddArgument(dict)
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address},
+			[]crypto.Signer{b.ServiceKey().Signer()},
+			false,
+		)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetExecutionEffortWeights(env), [][]byte{})
+		pairs := result.(cadence.Dictionary).Pairs
+		require.Len(t, pairs, 3)
+		for _, pair := range pairs {
+			for _, expected := range keyValuePairs {
+				if pair.Key.(cadence.UInt64) == expected.Key.(cadence.UInt64) {
+					require.Equal(t, expected.Value, pair.Value)
+				}
+			}
+		}
+	})
+
 	// deploy the ServiceAccount contract
 	serviceAccountCode := contracts.FlowServiceAccount(
 		emulatorFTAddress,
