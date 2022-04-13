@@ -246,7 +246,12 @@ pub contract FlowIDTableStaking {
                 self.delegators[delegatorID] != nil:
                     "Specified delegator ID does not exist in the record"
             }
-            return &self.delegators[delegatorID] as! &DelegatorRecord
+            return (&self.delegators[delegatorID] as &DelegatorRecord?)!
+        }
+
+        /// Add a delegator to the node record
+        access(account) fun setDelegator(delegatorID: UInt32, delegator: @DelegatorRecord) {
+            self.delegators[delegatorID] <-! delegator
         }
     }
 
@@ -726,6 +731,11 @@ pub contract FlowIDTableStaking {
                 self.scaleDelegatorRewards(delegatorID: id, scalingFactor: scalingFactor)
             }
         }
+
+        /// Sets the reward amount for a specific delegator of this node
+        pub fun setDelegatorReward(delegatorID: UInt32, rewards: UFix64) {
+            self.delegatorRewards[delegatorID] = rewards
+        }
     }
     
     /// Admin resource that has the ability to create new staker objects, remove insufficiently staked nodes
@@ -968,7 +978,7 @@ pub contract FlowIDTableStaking {
 
                         delegatorRewardsAfterWithholding = delegatorRewardsAfterWithholding - nodeCutAmount
                     }
-                    rewardsBreakdown.delegatorRewards[delegator] = delegatorRewardsAfterWithholding
+                    rewardsBreakdown.setDelegatorReward(delegatorID: delegator, rewards: delegatorRewardsAfterWithholding)
                 }
 
                 rewardsBreakdown.nodeRewards = nodeRewardsAfterWithholding
@@ -1009,7 +1019,7 @@ pub contract FlowIDTableStaking {
 
                         delegatorRewardAmount = delegatorRewardAmount - nodeCutAmount
                     }
-                    rewardsBreakdown.delegatorRewards[delegator] = delegatorRewardAmount
+                    rewardsBreakdown.setDelegatorReward(delegatorID: delegator, rewards: delegatorRewardAmount)
                 }
                 
                 rewardsBreakdown.nodeRewards = nodeRewardAmount
@@ -1182,7 +1192,7 @@ pub contract FlowIDTableStaking {
         nodeRecord.delegatorIDCounter = nodeRecord.delegatorIDCounter + UInt32(1)
 
         // Create a new delegator record and store it in the contract
-        nodeRecord.delegators[nodeRecord.delegatorIDCounter] <-! create DelegatorRecord()
+        nodeRecord.setDelegator(delegatorID: nodeRecord.delegatorIDCounter, delegator: <- create DelegatorRecord())
 
         emit NewDelegatorCreated(nodeID: nodeRecord.id, delegatorID: nodeRecord.delegatorIDCounter)
 
@@ -1196,7 +1206,7 @@ pub contract FlowIDTableStaking {
             FlowIDTableStaking.nodes[nodeID] != nil:
                 "Specified node ID does not exist in the record"
         }
-        return &FlowIDTableStaking.nodes[nodeID] as! &NodeRecord
+        return (&FlowIDTableStaking.nodes[nodeID] as &NodeRecord?)!
     }
 
     /// borrow a reference to the `FlowFees` admin resource for paying rewards
