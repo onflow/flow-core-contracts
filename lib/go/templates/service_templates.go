@@ -30,6 +30,8 @@ const (
 	setFeeSurgeFactorFilename = "FlowServiceAccount/set_tx_fee_surge_factor.cdc"
 	getExecutionEffortWeighs  = "FlowServiceAccount/scripts/get_execution_effort_weights.cdc"
 	setExecutionEffortWeighs  = "FlowServiceAccount/set_execution_effort_weights.cdc"
+	getExecutionMemoryWeighs  = "FlowServiceAccount/scripts/get_execution_memory_weights.cdc"
+	setExecutionMemoryWeighs  = "FlowServiceAccount/set_execution_memory_weights.cdc"
 )
 
 // StorageFees Templates
@@ -138,6 +140,18 @@ func GenerateSetExecutionEffortWeights(env Environment) []byte {
 
 func GenerateGetExecutionEffortWeights(env Environment) []byte {
 	code := assets.MustAssetString(getExecutionEffortWeighs)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateSetExecutionMemoryWeights(env Environment) []byte {
+	code := assets.MustAssetString(setExecutionMemoryWeighs)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateGetExecutionMemoryWeights(env Environment) []byte {
+	code := assets.MustAssetString(getExecutionMemoryWeighs)
 
 	return []byte(replaceAddresses(code, env))
 }
