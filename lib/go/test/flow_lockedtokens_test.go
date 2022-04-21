@@ -33,7 +33,7 @@ func TestLockedTokensStaker(t *testing.T) {
 
 	publicKeys := make([]cadence.Value, 1)
 
-	publicKeys[0] = bytesToCadenceArray(IDTableAccountKey.Encode())
+	publicKeys[0] = sdktemplates.AccountKeyToCadenceCryptoKey(IDTableAccountKey)
 
 	cadencePublicKeys := cadence.NewArray(publicKeys)
 	cadenceCode := bytesToCadenceArray(IDTableCode)
@@ -95,8 +95,8 @@ func TestLockedTokensStaker(t *testing.T) {
 	// Create new keys for the user account
 	joshKey, joshSigner := accountKeys.NewWithSigner()
 
-	adminPublicKey := bytesToCadenceArray(adminAccountKey.Encode())
-	joshPublicKey := bytesToCadenceArray(joshKey.Encode())
+	adminPublicKey := sdktemplates.AccountKeyToCadenceCryptoKey(adminAccountKey)
+	joshPublicKey := sdktemplates.AccountKeyToCadenceCryptoKey(joshKey)
 
 	var joshSharedAddress flow.Address
 	var joshAddress flow.Address
@@ -633,7 +633,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 
 	publicKeys := make([]cadence.Value, 1)
 
-	publicKeys[0] = bytesToCadenceArray(IDTableAccountKey.Encode())
+	publicKeys[0] = sdktemplates.AccountKeyToCadenceCryptoKey(IDTableAccountKey)
 
 	cadencePublicKeys := cadence.NewArray(publicKeys)
 	cadenceCode := bytesToCadenceArray(IDTableCode)
@@ -700,8 +700,8 @@ func TestLockedTokensDelegator(t *testing.T) {
 	// Create new keys for the user account
 	joshKey, joshSigner := accountKeys.NewWithSigner()
 
-	adminPublicKey := bytesToCadenceArray(adminAccountKey.Encode())
-	joshPublicKey := bytesToCadenceArray(joshKey.Encode())
+	adminPublicKey := sdktemplates.AccountKeyToCadenceCryptoKey(adminAccountKey)
+	joshPublicKey := sdktemplates.AccountKeyToCadenceCryptoKey(joshKey)
 
 	var joshSharedAddress flow.Address
 	var joshAddress flow.Address
@@ -1085,7 +1085,7 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 
 	publicKeys := make([]cadence.Value, 1)
 
-	publicKeys[0] = bytesToCadenceArray(IDTableAccountKey.Encode())
+	publicKeys[0] = sdktemplates.AccountKeyToCadenceCryptoKey(IDTableAccountKey)
 
 	cadencePublicKeys := cadence.NewArray(publicKeys)
 	cadenceCode := bytesToCadenceArray(IDTableCode)
@@ -1203,8 +1203,8 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 	// Create new keys for the user account
 	joshKey, _ := accountKeys.NewWithSigner()
 
-	adminPublicKey := bytesToCadenceArray(adminAccountKey.Encode())
-	joshPublicKey := bytesToCadenceArray(joshKey.Encode())
+	adminPublicKey := sdktemplates.AccountKeyToCadenceCryptoKey(adminAccountKey)
+	joshPublicKey := sdktemplates.AccountKeyToCadenceCryptoKey(joshKey)
 
 	var joshSharedAddress flow.Address
 	var joshAddress flow.Address
@@ -1258,7 +1258,7 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 	maxKey, maxSigner := accountKeys.NewWithSigner()
 	maxAddress, _ := b.CreateAccount([]*flow.AccountKey{maxKey}, nil)
 
-	maxPublicKey := bytesToCadenceArray(maxKey.Encode())
+	maxPublicKey := sdktemplates.AccountKeyToCadenceCryptoKey(maxKey)
 
 	var maxSharedAddress flow.Address
 
@@ -1452,8 +1452,8 @@ func TestLockedTokensRealStaking(t *testing.T) {
 	// Create new keys for the user account
 	joshKey, joshSigner := accountKeys.NewWithSigner()
 
-	adminPublicKey := bytesToCadenceArray(adminAccountKey.Encode())
-	joshPublicKey := bytesToCadenceArray(joshKey.Encode())
+	adminPublicKey := sdktemplates.AccountKeyToCadenceCryptoKey(adminAccountKey)
+	joshPublicKey := sdktemplates.AccountKeyToCadenceCryptoKey(joshKey)
 
 	var joshSharedAddress flow.Address
 	var joshAddress flow.Address
@@ -1782,8 +1782,8 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 	// Create new keys for the user account
 	joshKey, joshSigner := accountKeys.NewWithSigner()
 
-	adminPublicKey := bytesToCadenceArray(adminAccountKey.Encode())
-	joshPublicKey := bytesToCadenceArray(joshKey.Encode())
+	adminPublicKey := sdktemplates.AccountKeyToCadenceCryptoKey(adminAccountKey)
+	joshPublicKey := sdktemplates.AccountKeyToCadenceCryptoKey(joshKey)
 
 	var joshSharedAddress flow.Address
 	var joshAddress flow.Address

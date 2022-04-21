@@ -63,7 +63,7 @@ func deployStakingContract(t *testing.T, b *emulator.Blockchain, IDTableAccountK
 
 	// create the public key array for the staking and fees account
 	publicKeys := make([]cadence.Value, 1)
-	publicKeys[0] = bytesToCadenceArray(IDTableAccountKey.Encode())
+	publicKeys[0] = sdktemplates.AccountKeyToCadenceCryptoKey(IDTableAccountKey)
 	cadencePublicKeys := cadence.NewArray(publicKeys)
 
 	// Get the code byte-array for the fees contract

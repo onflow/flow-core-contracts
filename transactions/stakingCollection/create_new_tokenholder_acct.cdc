@@ -1,3 +1,4 @@
+import Crypto
 import FlowToken from 0xFLOWTOKENADDRESS
 import LockedTokens from 0xLOCKEDTOKENADDRESS
 import FlowStakingCollection from 0xSTAKINGCOLLECTIONADDRESS
@@ -10,13 +11,13 @@ import FlowStakingCollection from 0xSTAKINGCOLLECTIONADDRESS
 // To invalidate that account, you need to either delete the TokenHolder resource
 // or revoke all keys from that account
 
-transaction(publicKeys: [String]) {
+transaction(publicKeys: [Crypto.KeyListEntry]) {
     prepare(signer: AuthAccount) {
 
         // Create the new account and add public keys
         let newAccount = AuthAccount(payer: signer)
         for key in publicKeys {
-            newAccount.addPublicKey(key.decodeHex())
+            newAccount.keys.add(publicKey: key.publicKey, hashAlgorithm: key.hashAlgorithm, weight: key.weight)
         }
 
         // Get the TokenManager Capability from the locked account

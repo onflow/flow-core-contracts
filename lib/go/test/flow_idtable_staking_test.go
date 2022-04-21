@@ -1826,8 +1826,8 @@ func TestIDTableStaking(t *testing.T) {
 			false,
 		)
 
-		rewards[adminID] = rewards[adminID].Minus(nil, interpreter.NewUFix64ValueWithInteger(newCommitAmount)).(interpreter.UFix64Value)
-		committed[adminID] = committed[adminID].Plus(nil, interpreter.NewUFix64ValueWithInteger(newCommitAmount)).(interpreter.UFix64Value)
+		rewards[adminID] = rewards[adminID].Minus(nil, interpreter.NewUFix64ValueWithInteger(nil, func() uint64 { return newCommitAmount })).(interpreter.UFix64Value)
+		committed[adminID] = committed[adminID].Plus(nil, interpreter.NewUFix64ValueWithInteger(nil, func() uint64 { return newCommitAmount })).(interpreter.UFix64Value)
 
 		result := executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		assertEqual(t, CadenceUFix64(rewards[adminID].String()), result)

@@ -1,8 +1,8 @@
 package test
 
 import (
-	"encoding/hex"
 	"fmt"
+	sdktemplates "github.com/onflow/flow-go-sdk/templates"
 	"testing"
 
 	"github.com/onflow/cadence"
@@ -621,8 +621,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 	publicKeys := make([]cadence.Value, 1)
 	machineAccountKey, _ := accountKeys.NewWithSigner()
-	machineAccountKeyString := hex.EncodeToString(machineAccountKey.Encode())
-	publicKeys[0] = CadenceString(machineAccountKeyString)
+	publicKeys[0] = sdktemplates.AccountKeyToCadenceCryptoKey(machineAccountKey)
 	cadencePublicKeys := cadence.NewArray(publicKeys)
 
 	t.Run("Should be able to register a second node and delegator in the staking collection", func(t *testing.T) {
@@ -886,8 +885,7 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 
 	publicKeys := make([]cadence.Value, 1)
 	machineAccountKey, _ := accountKeys.NewWithSigner()
-	machineAccountKeyString := hex.EncodeToString(machineAccountKey.Encode())
-	publicKeys[0] = CadenceString(machineAccountKeyString)
+	publicKeys[0] = sdktemplates.AccountKeyToCadenceCryptoKey(machineAccountKey)
 	cadencePublicKeys := cadence.NewArray(publicKeys)
 
 	t.Run("Should be able to set up staking collection, which moves the node and delegator to the collection", func(t *testing.T) {
@@ -2811,8 +2809,7 @@ func TestStakingCollectionCreateNewTokenHolder(t *testing.T) {
 
 		publicKeys := make([]cadence.Value, 1)
 		newAccountKey, newAccountSigner := accountKeys.NewWithSigner()
-		newAccountKeyString := hex.EncodeToString(newAccountKey.Encode())
-		publicKeys[0] = CadenceString(newAccountKeyString)
+		publicKeys[0] = sdktemplates.AccountKeyToCadenceCryptoKey(newAccountKey)
 		cadencePublicKeys := cadence.NewArray(publicKeys)
 		_ = tx.AddArgument(cadencePublicKeys)
 
@@ -2940,8 +2937,7 @@ func TestStakingCollectionRegisterMultipleNodes(t *testing.T) {
 		if i%4+1 == 1 || i%4+1 == 2 {
 			publicKeys := make([]cadence.Value, 1)
 			machineAccountKey, _ := accountKeys.NewWithSigner()
-			machineAccountKeyString := hex.EncodeToString(machineAccountKey.Encode())
-			publicKeys[0] = CadenceString(machineAccountKeyString)
+			publicKeys[0] = sdktemplates.AccountKeyToCadenceCryptoKey(machineAccountKey)
 			machineAccountKeys[i] = cadence.NewOptional(cadence.NewArray(publicKeys))
 		} else {
 			machineAccountKeys[i] = cadence.NewOptional(nil)
