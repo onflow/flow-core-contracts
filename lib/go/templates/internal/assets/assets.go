@@ -5,10 +5,14 @@
 // ../../../transactions/FlowServiceAccount/remove_account_creator.cdc (567B)
 // ../../../transactions/FlowServiceAccount/scripts/get_account_creators.cdc (133B)
 // ../../../transactions/FlowServiceAccount/scripts/get_account_fee.cdc (128B)
+// ../../../transactions/FlowServiceAccount/scripts/get_execution_effort_weights.cdc (147B)
+// ../../../transactions/FlowServiceAccount/scripts/get_execution_memory_weights.cdc (147B)
 // ../../../transactions/FlowServiceAccount/scripts/get_fees_balance.cdc (102B)
 // ../../../transactions/FlowServiceAccount/scripts/get_is_account_creation_restricted.cdc (137B)
 // ../../../transactions/FlowServiceAccount/scripts/get_is_account_creator.cdc (149B)
 // ../../../transactions/FlowServiceAccount/scripts/get_tx_fee_parameters.cdc (121B)
+// ../../../transactions/FlowServiceAccount/set_execution_effort_weights.cdc (1.636kB)
+// ../../../transactions/FlowServiceAccount/set_execution_memory_weights.cdc (288B)
 // ../../../transactions/FlowServiceAccount/set_is_account_creation_restricted.cdc (586B)
 // ../../../transactions/FlowServiceAccount/set_tx_fee_parameters.cdc (606B)
 // ../../../transactions/FlowServiceAccount/set_tx_fee_surge_factor.cdc (465B)
@@ -432,6 +436,46 @@ func flowserviceaccountScriptsGet_account_feeCdc() (*asset, error) {
 	return a, nil
 }
 
+var _flowserviceaccountScriptsGet_execution_effort_weightsCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\xcc\x31\xcb\xc2\x30\x10\x06\xe0\x3d\xbf\xe2\x1d\xdb\xe5\xe3\x1b\xc4\xa1\x5b\xb1\x29\x14\x04\xa1\x41\x3b\x6b\x48\x6a\xc0\xde\x95\xf3\xa2\x85\xd2\xff\xee\xe0\xea\xf4\x6c\x4f\x9a\x66\x16\x45\xfb\xe0\xb7\x0b\xf2\x4a\x3e\xd4\xde\x73\x26\x45\x14\x9e\xf0\xbf\xb4\xc7\xd3\xe0\x6c\x7f\xe9\x0e\xb6\x6e\x9a\xde\x3a\x67\xcc\x9c\x6f\x88\x99\x30\x5d\x13\x15\x65\x85\xf5\xdc\x91\xee\x77\x15\xbe\x6e\x58\x0d\x00\x48\xd0\x2c\xf4\xe3\xfe\x1b\x83\xda\x25\xf8\xac\x89\xc9\xc6\xc8\xa2\x43\x48\xe3\x5d\x9f\x45\x69\xb6\x4f\x00\x00\x00\xff\xff\xbe\x4c\xb9\xc0\x93\x00\x00\x00"
+
+func flowserviceaccountScriptsGet_execution_effort_weightsCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_flowserviceaccountScriptsGet_execution_effort_weightsCdc,
+		"FlowServiceAccount/scripts/get_execution_effort_weights.cdc",
+	)
+}
+
+func flowserviceaccountScriptsGet_execution_effort_weightsCdc() (*asset, error) {
+	bytes, err := flowserviceaccountScriptsGet_execution_effort_weightsCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "FlowServiceAccount/scripts/get_execution_effort_weights.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x66, 0x94, 0x3f, 0xa3, 0x3a, 0xae, 0xef, 0x8c, 0xc9, 0x65, 0x5a, 0x5a, 0x9, 0xae, 0xc, 0x7c, 0x54, 0x7d, 0xcb, 0x61, 0x3e, 0xd1, 0x8a, 0xc, 0x5c, 0x1d, 0x4a, 0x9b, 0x79, 0x42, 0x97, 0x99}}
+	return a, nil
+}
+
+var _flowserviceaccountScriptsGet_execution_memory_weightsCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\xcc\xb1\x0a\xc2\x30\x10\x06\xe0\x3d\x4f\xf1\x8f\xed\x22\x0e\xe2\xd0\xad\xd8\x14\x0a\x8a\xd0\xa0\x9d\x35\x5c\x6b\xc0\x24\xe5\xbc\x68\xa5\xf4\xdd\x1d\x5c\x3b\x7d\xdb\xe7\xfc\x18\x59\x50\x3f\xe3\xc7\x10\xbf\x9d\xa5\xd2\xda\x98\x82\xa0\xe7\xe8\xb1\x9d\xea\xe3\xb9\x33\xba\xbd\x36\x07\x5d\x56\x55\xab\x8d\x51\x6a\x4c\x77\xf4\x29\xc0\xdf\x5c\xc8\xf2\x02\xf3\xa5\x09\xb2\xdf\x15\xf8\xbb\x60\x56\x00\xc0\x24\x89\xc3\xca\xbd\x19\x48\xf4\x44\x36\x89\x8b\xe1\x44\x3e\xf2\xb7\x23\x37\x3c\xe4\x95\xe5\x6a\xf9\x05\x00\x00\xff\xff\xc2\x10\x3a\x4f\x93\x00\x00\x00"
+
+func flowserviceaccountScriptsGet_execution_memory_weightsCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_flowserviceaccountScriptsGet_execution_memory_weightsCdc,
+		"FlowServiceAccount/scripts/get_execution_memory_weights.cdc",
+	)
+}
+
+func flowserviceaccountScriptsGet_execution_memory_weightsCdc() (*asset, error) {
+	bytes, err := flowserviceaccountScriptsGet_execution_memory_weightsCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "FlowServiceAccount/scripts/get_execution_memory_weights.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x84, 0x23, 0x2, 0x24, 0x2f, 0x68, 0xd8, 0xad, 0x75, 0xd2, 0x79, 0xd7, 0xac, 0xef, 0xdd, 0xa, 0x12, 0x4c, 0x65, 0x7c, 0x94, 0x9, 0x72, 0x3b, 0x82, 0x5d, 0x61, 0xe8, 0xc3, 0x2a, 0x80, 0xc9}}
+	return a, nil
+}
+
 var _flowserviceaccountScriptsGet_fees_balanceCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xca\xcc\x2d\xc8\x2f\x2a\x51\x70\xcb\xc9\x2f\x77\x4b\x4d\x2d\x56\x48\x2b\xca\xcf\x55\x30\xa8\x70\xf3\xf1\x0f\x77\x73\x75\x0d\x76\x74\x71\x09\x72\x0d\x0e\xe6\xe2\x2a\x28\x4d\x52\x48\x2b\xcd\x53\xc8\x4d\xcc\xcc\xd3\xd0\xb4\x52\x08\x75\xcb\xac\x30\x33\x51\xa8\xe6\x52\x50\x50\x50\x28\x4a\x2d\x29\x2d\xca\x83\x1b\xa2\x97\x9e\x5a\xe2\x96\x9a\xea\x94\x98\x93\x98\x97\x9c\xaa\xa1\xc9\x55\x0b\x08\x00\x00\xff\xff\xec\x72\xf2\xed\x66\x00\x00\x00"
 
 func flowserviceaccountScriptsGet_fees_balanceCdcBytes() ([]byte, error) {
@@ -509,6 +553,46 @@ func flowserviceaccountScriptsGet_tx_fee_parametersCdc() (*asset, error) {
 
 	info := bindataFileInfo{name: "FlowServiceAccount/scripts/get_tx_fee_parameters.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xea, 0xaf, 0xc1, 0xff, 0x1a, 0x34, 0x69, 0x68, 0xb, 0xd, 0xc9, 0xba, 0xb4, 0xdb, 0x81, 0x8a, 0x41, 0x8, 0x38, 0xf6, 0x85, 0x75, 0xef, 0x4e, 0x8a, 0x6e, 0xb0, 0x6a, 0x22, 0xc1, 0x97, 0x1a}}
+	return a, nil
+}
+
+var _flowserviceaccountSet_execution_effort_weightsCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xcc\x93\x5d\x6b\xe3\x3a\x10\x86\xef\xf3\x2b\x06\x9f\x9b\x14\xd2\x38\x4e\x62\x27\x36\x87\x03\xa5\xe7\x14\xca\xe9\xc2\xc2\x7e\x5d\x94\x2e\x1d\xcb\xe3\x58\x5b\x4b\xf2\x4a\x72\xd2\x10\xf2\xdf\x17\x59\x71\x9b\x7e\xb0\xec\x2e\x7b\xb1\x86\x48\x62\xde\x99\x47\x6f\x34\x52\x18\xc2\xfb\x8a\x1b\xb0\x1a\xa5\x41\x66\xb9\x92\x06\x0c\x59\x03\x92\x36\x40\xf7\xc4\x5a\x17\x03\x2a\x4b\xa5\x2d\x6c\x88\xaf\x2a\x6b\x06\x5d\x19\x81\xc0\x7b\x2e\x5a\xf1\x32\xaf\xe6\x82\x5b\x28\x95\x7e\x0a\xe6\x06\xb0\xde\xe0\xd6\x40\xea\xbe\x71\xcf\xf1\x58\x90\x28\xc8\x84\xbc\x30\xc0\x50\x42\x4e\x60\x88\x24\x54\xa4\x29\x73\x99\xee\x77\x0a\xd7\xe7\x58\x90\x64\x04\xe7\x4a\x34\xad\x45\x47\xfe\x9f\xcb\xe2\x66\x58\x59\xdb\x98\x2c\x0c\x57\xdc\x56\x6d\x3e\x66\x4a\x84\x4a\x96\xb5\xda\x84\xcc\x97\x84\x79\xad\xf2\x30\x99\x2c\x62\x2a\xe7\x4b\xb6\x60\x53\x9c\x24\x51\x31\x5d\xd0\x2c\xc9\x27\x69\x8c\xb4\x20\x16\xd3\x74\x32\x8f\x19\x2e\x42\xdd\x4a\xcb\x05\x85\x4c\x09\xa1\xa4\x9b\xfa\xfd\xee\xb8\x2c\xc6\x2b\xf5\xd7\xd5\x6c\x72\x72\x70\x75\xf1\xf1\xcd\xcf\x38\x72\xc3\xe9\x4a\x79\x47\x51\x51\xce\x67\x05\x2d\x63\x16\xe7\x8b\x38\x89\x96\x71\x14\xe1\xb2\xa4\x34\xa5\x34\x4d\x97\x98\x4f\x69\xce\x8a\x38\x0d\xcb\xb5\x08\x05\x59\xd2\x7e\xec\x2c\xa4\xce\x81\x37\x61\x2b\x02\x2e\x2d\x69\x89\x35\x34\x9a\x18\x37\xae\x27\xaa\xec\x94\x17\x4d\xea\x18\xae\x27\xd3\xcf\x51\x32\x82\x4d\xc5\x59\x05\x82\x50\xfa\x88\x53\xe8\x6b\x8b\x35\x58\x05\x11\xa8\xd6\xf6\x24\xab\x2c\xd6\xbe\x85\x2f\xa9\xb8\x46\x5e\x63\x5e\xbb\x34\xc0\xe3\xfe\x8f\x0f\x46\x5d\xc7\x0b\x2a\xb1\xad\x1f\x2e\x14\xa0\xef\xb1\xff\x1f\xcf\xce\xf1\x4a\xa9\x26\x83\xe8\x55\xed\x9d\x45\x4b\x82\xa4\xcd\x20\x82\x57\x33\x2e\x5a\xd9\xed\x7e\x29\xd7\x8a\x75\x51\xcf\x72\xc9\x4a\x03\x97\xd0\xa0\x46\x7f\x16\xa5\xd2\xa2\xb7\x71\x7b\x7b\xfb\xc5\x28\xe9\x96\xd7\x6e\x00\xd8\xf9\x09\x20\xb0\xdb\x86\x82\x0c\x82\x7f\x79\x87\x46\xbd\x0d\x46\x0f\xe2\x1a\xeb\xd6\xa9\xd7\x7d\xe4\xa8\xb2\x4b\xb8\xa3\x6d\x90\xc1\xee\x11\xf3\xe1\x52\xda\x64\x1e\x8c\x1e\x6b\x83\x68\x32\x89\x02\xd8\x8f\x9e\x14\xf6\xea\xf7\x4b\x93\x38\x9e\x25\x01\xec\x1f\x4b\x8f\x31\xbf\x64\x65\xfa\xe7\x58\x99\xfd\x3e\x2b\xfd\xf2\xc6\x2f\x7a\xec\x11\xe7\x2d\xda\xea\x98\xb2\x83\xa0\x50\x02\xb9\x74\xa2\xb1\x4a\xe3\x8a\x9c\xce\x0b\x92\x96\x97\x9c\xb4\x13\x1e\x9e\xc4\x7f\xdd\x8b\xf8\xe4\xaf\x78\x00\x7b\xbf\xe5\xcd\xe1\x76\x0d\x8e\x9e\xc6\x50\xd2\xe6\x90\x97\xc1\xce\xdb\xcf\xc0\xcf\xfb\x13\xd8\x0d\x9c\xcf\x46\x53\x83\x9a\x86\x86\xaf\x24\xe9\x0c\xce\x5a\x5b\x9d\x31\xa6\x5a\x69\xfb\x14\xf7\x79\x79\x5c\x2b\x2c\xfe\x7e\x8e\xfa\x67\x58\x6a\x25\x32\x08\x0f\xe6\xc3\xd7\xbd\x9e\x3c\x87\x19\x5c\xd3\x91\xc7\x11\x58\xf5\x83\x90\xfd\x60\xff\x2d\x00\x00\xff\xff\xad\xdd\x1d\x36\x64\x06\x00\x00"
+
+func flowserviceaccountSet_execution_effort_weightsCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_flowserviceaccountSet_execution_effort_weightsCdc,
+		"FlowServiceAccount/set_execution_effort_weights.cdc",
+	)
+}
+
+func flowserviceaccountSet_execution_effort_weightsCdc() (*asset, error) {
+	bytes, err := flowserviceaccountSet_execution_effort_weightsCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "FlowServiceAccount/set_execution_effort_weights.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x37, 0x75, 0xac, 0x6, 0xec, 0xf7, 0x3e, 0xda, 0xc2, 0x1c, 0xbc, 0xdb, 0xd2, 0xf9, 0x50, 0x92, 0x2c, 0xd2, 0x95, 0x48, 0xef, 0xad, 0xf0, 0x6a, 0xbc, 0x92, 0x53, 0xa0, 0xa, 0xcf, 0x9d, 0x6a}}
+	return a, nil
+}
+
+var _flowserviceaccountSet_execution_memory_weightsCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x8c\x8e\x31\x0b\xc2\x30\x10\x85\xf7\xfe\x8a\x37\xb6\x20\xcd\x22\x0e\x41\x84\x8e\x0e\x6e\x8a\x73\x88\x67\x1b\xb0\x49\xc9\x5d\xad\x52\xfa\xdf\xa5\x56\xa5\x74\xf2\x96\x83\xf7\x1e\x1f\x9f\x52\x38\x56\x8e\x21\xd1\x78\x36\x56\x5c\xf0\x0c\x26\x61\x78\xea\x40\x0f\xb2\xed\x98\xa1\xa6\x3a\xc4\x27\x3a\x72\x65\x25\x9c\x27\xb3\x7d\xea\xa9\x3b\x4f\xb9\x46\x7f\xda\x7b\xd9\xac\x35\xa6\x3f\x64\xe8\x13\x00\x68\x22\x35\x26\x52\xca\xae\xf4\x14\x35\x8a\x56\xaa\xc2\xda\xd0\x7a\xf9\x4e\xc6\x9b\xea\xfc\x16\xcc\x65\xbb\x44\xed\xd2\x6b\x0c\xb5\x86\x62\x09\xd1\x94\xa4\x7e\x76\x87\xb7\xdc\xc7\x21\x5b\xc2\xd8\xdc\x69\xe6\xb8\x82\x84\x3f\x21\x43\x32\xbc\x02\x00\x00\xff\xff\x96\xe9\x2c\xf0\x20\x01\x00\x00"
+
+func flowserviceaccountSet_execution_memory_weightsCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_flowserviceaccountSet_execution_memory_weightsCdc,
+		"FlowServiceAccount/set_execution_memory_weights.cdc",
+	)
+}
+
+func flowserviceaccountSet_execution_memory_weightsCdc() (*asset, error) {
+	bytes, err := flowserviceaccountSet_execution_memory_weightsCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "FlowServiceAccount/set_execution_memory_weights.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x47, 0x9e, 0xe1, 0x98, 0x6a, 0x53, 0x46, 0x75, 0xcd, 0x3e, 0x85, 0x4f, 0xc5, 0x75, 0x19, 0xd2, 0xa, 0x71, 0x20, 0xb2, 0xc3, 0xa8, 0x1c, 0x2a, 0xc6, 0x45, 0xd5, 0x39, 0x69, 0xee, 0xc9, 0x8c}}
 	return a, nil
 }
 
@@ -5688,10 +5772,14 @@ var _bindata = map[string]func() (*asset, error){
 	"FlowServiceAccount/remove_account_creator.cdc":                           flowserviceaccountRemove_account_creatorCdc,
 	"FlowServiceAccount/scripts/get_account_creators.cdc":                     flowserviceaccountScriptsGet_account_creatorsCdc,
 	"FlowServiceAccount/scripts/get_account_fee.cdc":                          flowserviceaccountScriptsGet_account_feeCdc,
+	"FlowServiceAccount/scripts/get_execution_effort_weights.cdc":             flowserviceaccountScriptsGet_execution_effort_weightsCdc,
+	"FlowServiceAccount/scripts/get_execution_memory_weights.cdc":             flowserviceaccountScriptsGet_execution_memory_weightsCdc,
 	"FlowServiceAccount/scripts/get_fees_balance.cdc":                         flowserviceaccountScriptsGet_fees_balanceCdc,
 	"FlowServiceAccount/scripts/get_is_account_creation_restricted.cdc":       flowserviceaccountScriptsGet_is_account_creation_restrictedCdc,
 	"FlowServiceAccount/scripts/get_is_account_creator.cdc":                   flowserviceaccountScriptsGet_is_account_creatorCdc,
 	"FlowServiceAccount/scripts/get_tx_fee_parameters.cdc":                    flowserviceaccountScriptsGet_tx_fee_parametersCdc,
+	"FlowServiceAccount/set_execution_effort_weights.cdc":                     flowserviceaccountSet_execution_effort_weightsCdc,
+	"FlowServiceAccount/set_execution_memory_weights.cdc":                     flowserviceaccountSet_execution_memory_weightsCdc,
 	"FlowServiceAccount/set_is_account_creation_restricted.cdc":               flowserviceaccountSet_is_account_creation_restrictedCdc,
 	"FlowServiceAccount/set_tx_fee_parameters.cdc":                            flowserviceaccountSet_tx_fee_parametersCdc,
 	"FlowServiceAccount/set_tx_fee_surge_factor.cdc":                          flowserviceaccountSet_tx_fee_surge_factorCdc,
@@ -5999,11 +6087,15 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"scripts": {nil, map[string]*bintree{
 			"get_account_creators.cdc": {flowserviceaccountScriptsGet_account_creatorsCdc, map[string]*bintree{}},
 			"get_account_fee.cdc": {flowserviceaccountScriptsGet_account_feeCdc, map[string]*bintree{}},
+			"get_execution_effort_weights.cdc": {flowserviceaccountScriptsGet_execution_effort_weightsCdc, map[string]*bintree{}},
+			"get_execution_memory_weights.cdc": {flowserviceaccountScriptsGet_execution_memory_weightsCdc, map[string]*bintree{}},
 			"get_fees_balance.cdc": {flowserviceaccountScriptsGet_fees_balanceCdc, map[string]*bintree{}},
 			"get_is_account_creation_restricted.cdc": {flowserviceaccountScriptsGet_is_account_creation_restrictedCdc, map[string]*bintree{}},
 			"get_is_account_creator.cdc": {flowserviceaccountScriptsGet_is_account_creatorCdc, map[string]*bintree{}},
 			"get_tx_fee_parameters.cdc": {flowserviceaccountScriptsGet_tx_fee_parametersCdc, map[string]*bintree{}},
 		}},
+		"set_execution_effort_weights.cdc": {flowserviceaccountSet_execution_effort_weightsCdc, map[string]*bintree{}},
+		"set_execution_memory_weights.cdc": {flowserviceaccountSet_execution_memory_weightsCdc, map[string]*bintree{}},
 		"set_is_account_creation_restricted.cdc": {flowserviceaccountSet_is_account_creation_restrictedCdc, map[string]*bintree{}},
 		"set_tx_fee_parameters.cdc": {flowserviceaccountSet_tx_fee_parametersCdc, map[string]*bintree{}},
 		"set_tx_fee_surge_factor.cdc": {flowserviceaccountSet_tx_fee_surge_factorCdc, map[string]*bintree{}},
