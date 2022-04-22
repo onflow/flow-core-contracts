@@ -37,7 +37,7 @@ func TestStakingProxy(t *testing.T) {
 
 	publicKeys := make([]cadence.Value, 1)
 
-	publicKeys[0] = bytesToCadenceArray(IDTableAccountKey.Encode())
+	publicKeys[0] = sdktemplates.AccountKeyToCadenceCryptoKey(IDTableAccountKey)
 
 	cadencePublicKeys := cadence.NewArray(publicKeys)
 	cadenceCode := bytesToCadenceArray(IDTableCode)
@@ -154,8 +154,8 @@ func TestStakingProxy(t *testing.T) {
 	// Create new keys for the user account
 	joshKey, joshSigner := accountKeys.NewWithSigner()
 
-	adminPublicKey := bytesToCadenceArray(adminAccountKey.Encode())
-	joshPublicKey := bytesToCadenceArray(joshKey.Encode())
+	adminPublicKey := sdktemplates.AccountKeyToCadenceCryptoKey(adminAccountKey)
+	joshPublicKey := sdktemplates.AccountKeyToCadenceCryptoKey(joshKey)
 
 	var joshSharedAddress flow.Address
 	var joshAddress flow.Address

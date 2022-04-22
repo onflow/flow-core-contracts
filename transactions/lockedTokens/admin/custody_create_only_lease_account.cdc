@@ -1,3 +1,4 @@
+import Crypto
 import FlowToken from 0xFLOWTOKENADDRESS
 import FungibleToken from 0xFUNGIBLETOKENADDRESS
 import LockedTokens from 0xLOCKEDTOKENADDRESS
@@ -9,14 +10,14 @@ import LockedTokens from 0xLOCKEDTOKENADDRESS
 /// The unlocked account has to sign the transaction also
 
 transaction(
-    fullAdminPublicKey: [UInt8], // Weight: 1000
+    fullAdminPublicKey: Crypto.KeyListEntry, // Weight: 1000
 )  {
 
     prepare(custodyProvider: AuthAccount, userAccount: AuthAccount) {
 
         let sharedAccount = AuthAccount(payer: custodyProvider)
 
-        sharedAccount.addPublicKey(fullAdminPublicKey)
+        sharedAccount.keys.add(publicKey: fullAdminPublicKey.publicKey, hashAlgorithm: fullAdminPublicKey.hashAlgorithm, weight: fullAdminPublicKey.weight)
 
         let vaultCapability = sharedAccount
             .link<&FlowToken.Vault>(/private/flowTokenVault, target: /storage/flowTokenVault)

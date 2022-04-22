@@ -81,7 +81,7 @@ func deployLockedTokensContract(
 
 	// Create the locked tokens account key array and a key
 	publicKeys := make([]cadence.Value, 1)
-	publicKeys[0] = bytesToCadenceArray(lockedTokensAccountKey.Encode())
+	publicKeys[0] = sdktemplates.AccountKeyToCadenceCryptoKey(lockedTokensAccountKey)
 	cadencePublicKeys := cadence.NewArray(publicKeys)
 
 	// Create the transaction template to deploy the locked tokens contract
@@ -154,8 +154,8 @@ func createLockedAccountPairWithBalances(
 
 	newUserKey, newUserSigner := accountKeys.NewWithSigner()
 
-	adminPublicKey := bytesToCadenceArray(adminAccountKey.Encode())
-	newUserPublicKey := bytesToCadenceArray(newUserKey.Encode())
+	adminPublicKey := sdktemplates.AccountKeyToCadenceCryptoKey(adminAccountKey)
+	newUserPublicKey := sdktemplates.AccountKeyToCadenceCryptoKey(newUserKey)
 
 	var newUserSharedAddress flow.Address
 	var newUserAddress flow.Address
@@ -374,8 +374,7 @@ func registerStakingCollectionNodesAndDelegators(
 
 	publicKeys := make([]cadence.Value, 1)
 	machineAccountKey, _ := accountKeys.NewWithSigner()
-	machineAccountKeyString := hex.EncodeToString(machineAccountKey.Encode())
-	publicKeys[0] = CadenceString(machineAccountKeyString)
+	publicKeys[0] = sdktemplates.AccountKeyToCadenceCryptoKey(machineAccountKey)
 	cadencePublicKeys := cadence.NewArray(publicKeys)
 
 	// Register a node in the locked account

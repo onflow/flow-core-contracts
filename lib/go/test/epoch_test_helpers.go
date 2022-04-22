@@ -2,6 +2,7 @@ package test
 
 import (
 	"fmt"
+	sdktemplates "github.com/onflow/flow-go-sdk/templates"
 	"testing"
 
 	"github.com/onflow/cadence"
@@ -265,7 +266,7 @@ func registerNodeWithSetupAccount(t *testing.T,
 ) {
 
 	publicKeys := make([]cadence.Value, 1)
-	publicKeys[0] = bytesToCadenceArray(publicKey.Encode())
+	publicKeys[0] = sdktemplates.AccountKeyToCadenceCryptoKey(publicKey)
 
 	cadencePublicKeys := cadence.NewArray(publicKeys)
 
