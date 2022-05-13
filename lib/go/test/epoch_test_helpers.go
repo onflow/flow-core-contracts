@@ -266,7 +266,9 @@ func registerNodeWithSetupAccount(t *testing.T,
 ) {
 
 	publicKeys := make([]cadence.Value, 1)
-	publicKeys[0] = sdktemplates.AccountKeyToCadenceCryptoKey(publicKey)
+	cdcPublicKey, err := sdktemplates.AccountKeyToCadenceCryptoKey(publicKey)
+	publicKeys[0] = cdcPublicKey
+	require.NoError(t, err)
 
 	cadencePublicKeys := cadence.NewArray(publicKeys)
 
