@@ -1,3 +1,4 @@
+import Crypto
 import FlowToken from 0xFLOWTOKENADDRESS
 import FungibleToken from 0xFUNGIBLETOKENADDRESS
 import LockedTokens from 0xLOCKEDTOKENADDRESS
@@ -7,9 +8,9 @@ import LockedTokens from 0xLOCKEDTOKENADDRESS
 /// acount for a user
 
 transaction(
-    partialAdminPublicKey: [UInt8], // Weight: 100
-    partialUserPublicKey: [UInt8], // Weight: 900
-    fullUserPublicKey: [UInt8], // Weight: 1000
+    partialAdminPublicKey: Crypto.KeyListEntry, // Weight: 100
+    partialUserPublicKey: Crypto.KeyListEntry, // Weight: 900
+    fullUserPublicKey: Crypto.KeyListEntry, // Weight: 1000
 )  {
 
     prepare(admin: AuthAccount) {
@@ -18,10 +19,10 @@ transaction(
         let sharedAccount = AuthAccount(payer: admin)
         let userAccount = AuthAccount(payer: admin)
 
-        sharedAccount.addPublicKey(partialAdminPublicKey)
-        sharedAccount.addPublicKey(partialUserPublicKey)
+        sharedAccount.keys.add(publicKey: partialAdminPublicKey.publicKey, hashAlgorithm: partialAdminPublicKey.hashAlgorithm, weight: partialAdminPublicKey.weight)
+        sharedAccount.keys.add(publicKey: partialUserPublicKey.publicKey, hashAlgorithm: partialUserPublicKey.hashAlgorithm, weight: partialUserPublicKey.weight)
 
-        userAccount.addPublicKey(fullUserPublicKey)
+        userAccount.keys.add(publicKey: fullUserPublicKey.publicKey, hashAlgorithm: fullUserPublicKey.hashAlgorithm, weight: fullUserPublicKey.weight)
 
         // Create a private link to the stored vault
         let vaultCapability = sharedAccount

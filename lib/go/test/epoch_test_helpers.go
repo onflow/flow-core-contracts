@@ -2,6 +2,7 @@ package test
 
 import (
 	"fmt"
+	sdktemplates "github.com/onflow/flow-go-sdk/templates"
 	"testing"
 
 	"github.com/onflow/cadence"
@@ -209,17 +210,16 @@ func initializeAllEpochContracts(
 	idTableAddress, feesAddress := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, *env, true)
 	env.IDTableAddress = idTableAddress.Hex()
 	env.FlowFeesAddress = feesAddress.Hex()
+	env.QuorumCertificateAddress = idTableAddress.String()
+	env.DkgAddress = idTableAddress.String()
+	env.EpochAddress = idTableAddress.String()
+	env.IDTableAddress = idTableAddress.String()
 
 	deployQCDKGContract(t, b, idTableAddress, IDTableSigner, *env)
 	deployEpochContract(t, b, idTableAddress, IDTableSigner, feesAddress, *env, epochCounter, epochViews, stakingViews, dkgViews, numClusters, randomSource, rewardsAPY)
 
 	result := executeScriptAndCheck(t, b, templates.GenerateGetCurrentViewScript(*env), nil)
 	startView := uint64(result.(cadence.UInt64))
-
-	env.QuorumCertificateAddress = idTableAddress.String()
-	env.DkgAddress = idTableAddress.String()
-	env.EpochAddress = idTableAddress.String()
-	env.IDTableAddress = idTableAddress.String()
 
 	return idTableAddress, startView
 }
@@ -266,7 +266,9 @@ func registerNodeWithSetupAccount(t *testing.T,
 ) {
 
 	publicKeys := make([]cadence.Value, 1)
-	publicKeys[0] = bytesToCadenceArray(publicKey.Encode())
+	cdcPublicKey, err := sdktemplates.AccountKeyToCadenceCryptoKey(publicKey)
+	publicKeys[0] = cdcPublicKey
+	require.NoError(t, err)
 
 	cadencePublicKeys := cadence.NewArray(publicKeys)
 
@@ -298,7 +300,7 @@ func registerNodeWithSetupAccount(t *testing.T,
 	)
 
 	if !shouldFail {
-		newTokensCommitted = tokensCommitted.Plus(amount).(interpreter.UFix64Value)
+		newTokensCommitted = tokensCommitted.Plus(nil, amount).(interpreter.UFix64Value)
 	}
 
 	return

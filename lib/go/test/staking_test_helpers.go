@@ -63,7 +63,8 @@ func deployStakingContract(t *testing.T, b *emulator.Blockchain, IDTableAccountK
 
 	// create the public key array for the staking and fees account
 	publicKeys := make([]cadence.Value, 1)
-	publicKeys[0] = bytesToCadenceArray(IDTableAccountKey.Encode())
+	publicKey, err := sdktemplates.AccountKeyToCadenceCryptoKey(IDTableAccountKey)
+	publicKeys[0] = publicKey
 	cadencePublicKeys := cadence.NewArray(publicKeys)
 
 	// Get the code byte-array for the fees contract
@@ -356,7 +357,7 @@ func registerNode(t *testing.T,
 	)
 
 	if !shouldFail {
-		newTokensCommitted = tokensCommitted.Plus(amount).(interpreter.UFix64Value)
+		newTokensCommitted = tokensCommitted.Plus(nil, amount).(interpreter.UFix64Value)
 	}
 
 	return
@@ -488,7 +489,7 @@ func commitNewTokens(t *testing.T,
 	)
 
 	if !shouldFail {
-		newTokensCommitted = tokensCommitted.Plus(amount).(interpreter.UFix64Value)
+		newTokensCommitted = tokensCommitted.Plus(nil, amount).(interpreter.UFix64Value)
 	} else {
 		newTokensCommitted = tokensCommitted
 	}
@@ -526,8 +527,8 @@ func commitUnstaked(t *testing.T,
 	)
 
 	if !shouldFail {
-		newTokensCommitted = tokensCommitted.Plus(amount).(interpreter.UFix64Value)
-		newTokensUnstaked = tokensUnstaked.Minus(amount).(interpreter.UFix64Value)
+		newTokensCommitted = tokensCommitted.Plus(nil, amount).(interpreter.UFix64Value)
+		newTokensUnstaked = tokensUnstaked.Minus(nil, amount).(interpreter.UFix64Value)
 	} else {
 		newTokensCommitted = tokensCommitted
 		newTokensUnstaked = tokensUnstaked
@@ -565,8 +566,8 @@ func commitRewarded(t *testing.T,
 	)
 
 	if !shouldFail {
-		newTokensRewarded = tokensRewarded.Minus(amount).(interpreter.UFix64Value)
-		newTokensCommitted = tokensCommitted.Plus(amount).(interpreter.UFix64Value)
+		newTokensRewarded = tokensRewarded.Minus(nil, amount).(interpreter.UFix64Value)
+		newTokensCommitted = tokensCommitted.Plus(nil, amount).(interpreter.UFix64Value)
 	} else {
 		newTokensRewarded = tokensRewarded
 		newTokensCommitted = tokensCommitted
@@ -605,12 +606,12 @@ func requestUnstaking(t *testing.T,
 
 	if !shouldFail {
 		if tokensCommitted > amount {
-			newTokensCommitted = tokensCommitted.Minus(amount).(interpreter.UFix64Value)
-			newTokensUnstaked = tokensUnstaked.Plus(amount).(interpreter.UFix64Value)
+			newTokensCommitted = tokensCommitted.Minus(nil, amount).(interpreter.UFix64Value)
+			newTokensUnstaked = tokensUnstaked.Plus(nil, amount).(interpreter.UFix64Value)
 			newRequest = request
 		} else {
-			newRequest = request.Plus(amount.Minus(tokensCommitted)).(interpreter.UFix64Value)
-			newTokensUnstaked = tokensUnstaked.Plus(tokensCommitted).(interpreter.UFix64Value)
+			newRequest = request.Plus(nil, amount.Minus(nil, tokensCommitted)).(interpreter.UFix64Value)
+			newTokensUnstaked = tokensUnstaked.Plus(nil, tokensCommitted).(interpreter.UFix64Value)
 			newTokensCommitted = 0
 		}
 	} else {
@@ -629,11 +630,11 @@ func payRewards(
 ) (
 	rewards, delegateeRewards interpreter.UFix64Value,
 ) {
-	calculatedRewards := totalPayout.Div(totalStaked).Mul(staked).(interpreter.UFix64Value)
+	calculatedRewards := totalPayout.Div(nil, totalStaked).Mul(nil, staked).(interpreter.UFix64Value)
 
 	if isDelegator {
-		delegateeRewards = calculatedRewards.Mul(cut).(interpreter.UFix64Value)
-		rewards = calculatedRewards.Minus(delegateeRewards).(interpreter.UFix64Value)
+		delegateeRewards = calculatedRewards.Mul(nil, cut).(interpreter.UFix64Value)
+		rewards = calculatedRewards.Minus(nil, delegateeRewards).(interpreter.UFix64Value)
 
 	} else {
 		delegateeRewards = 0
@@ -649,17 +650,17 @@ func moveTokens(committed, staked, requested, unstaking, unstaked, totalStaked i
 ) (
 	newCommitted, newStaked, newRequested, newUnstaking, newUnstaked, newTotalStaked interpreter.UFix64Value,
 ) {
-	newTotalStaked = totalStaked.Plus(committed).Minus(requested).(interpreter.UFix64Value)
+	newTotalStaked = totalStaked.Plus(nil, committed).Minus(nil, requested).(interpreter.UFix64Value)
 
 	newCommitted = 0
 
-	newStaked = staked.Plus(committed).(interpreter.UFix64Value)
+	newStaked = staked.Plus(nil, committed).(interpreter.UFix64Value)
 
-	newUnstaked = unstaked.Plus(unstaking).(interpreter.UFix64Value)
+	newUnstaked = unstaked.Plus(nil, unstaking).(interpreter.UFix64Value)
 
 	newUnstaking = requested
 
-	newStaked = newStaked.Minus(requested).(interpreter.UFix64Value)
+	newStaked = newStaked.Minus(nil, requested).(interpreter.UFix64Value)
 
 	newRequested = 0
 

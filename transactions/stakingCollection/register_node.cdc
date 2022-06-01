@@ -1,3 +1,4 @@
+import Crypto
 import FlowStakingCollection from 0xSTAKINGCOLLECTIONADDRESS
 
 /// Registers a delegator in the staking collection resource
@@ -9,7 +10,7 @@ transaction(id: String,
             networkingKey: String,
             stakingKey: String,
             amount: UFix64,
-            publicKeys: [String]?) {
+            publicKeys: [Crypto.KeyListEntry]?) {
     
     let stakingCollectionRef: &FlowStakingCollection.StakingCollection
 
@@ -30,7 +31,7 @@ transaction(id: String,
                 panic("Cannot provide zero keys for the machine account")
             }
             for key in publicKeys! {
-                machineAccount.addPublicKey(key.decodeHex())
+                machineAccount.keys.add(publicKey: key.publicKey, hashAlgorithm: key.hashAlgorithm, weight: key.weight)
             }
         }
     }

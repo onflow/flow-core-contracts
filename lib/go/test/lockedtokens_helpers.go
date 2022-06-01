@@ -81,7 +81,9 @@ func deployLockedTokensContract(
 
 	// Create the locked tokens account key array and a key
 	publicKeys := make([]cadence.Value, 1)
-	publicKeys[0] = bytesToCadenceArray(lockedTokensAccountKey.Encode())
+	publicKey, err := sdktemplates.AccountKeyToCadenceCryptoKey(lockedTokensAccountKey)
+	publicKeys[0] = publicKey
+	require.NoError(t, err)
 	cadencePublicKeys := cadence.NewArray(publicKeys)
 
 	// Create the transaction template to deploy the locked tokens contract
@@ -92,7 +94,7 @@ func deployLockedTokensContract(
 	tx.AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys))
 
 	// Sign and submit the transaction
-	err := tx.SignPayload(adminAddress, 0, adminSigner)
+	err = tx.SignPayload(adminAddress, 0, adminSigner)
 	assert.NoError(t, err)
 	err = tx.SignEnvelope(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().Signer())
 	require.NoError(t, err)
@@ -154,8 +156,10 @@ func createLockedAccountPairWithBalances(
 
 	newUserKey, newUserSigner := accountKeys.NewWithSigner()
 
-	adminPublicKey := bytesToCadenceArray(adminAccountKey.Encode())
-	newUserPublicKey := bytesToCadenceArray(newUserKey.Encode())
+	adminPublicKey, err := sdktemplates.AccountKeyToCadenceCryptoKey(adminAccountKey)
+	assert.NoError(t, err)
+	newUserPublicKey, err := sdktemplates.AccountKeyToCadenceCryptoKey(newUserKey)
+	assert.NoError(t, err)
 
 	var newUserSharedAddress flow.Address
 	var newUserAddress flow.Address
@@ -374,8 +378,9 @@ func registerStakingCollectionNodesAndDelegators(
 
 	publicKeys := make([]cadence.Value, 1)
 	machineAccountKey, _ := accountKeys.NewWithSigner()
-	machineAccountKeyString := hex.EncodeToString(machineAccountKey.Encode())
-	publicKeys[0] = CadenceString(machineAccountKeyString)
+	publicKey, err := sdktemplates.AccountKeyToCadenceCryptoKey(machineAccountKey)
+	require.NoError(t, err)
+	publicKeys[0] = publicKey
 	cadencePublicKeys := cadence.NewArray(publicKeys)
 
 	// Register a node in the locked account

@@ -129,6 +129,12 @@ pub contract FlowServiceAccount {
             ?? panic("execution effort weights not set yet")
     }
 
+    // Gets Execution Memory Weights from the service account's storage 
+    pub fun getExecutionMemoryWeights(): {UInt64: UInt64} {
+        return self.account.copy<{UInt64: UInt64}>(from: /storage/executionMemoryWeights) 
+            ?? panic("execution memory weights not set yet")
+    }
+
     /// Authorization resource to change the fields of the contract
     pub resource Administrator {
 

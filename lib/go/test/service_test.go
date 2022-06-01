@@ -300,6 +300,50 @@ func TestContracts(t *testing.T) {
 		}
 	})
 
+	t.Run("Should set and get execution memory weights", func(t *testing.T) {
+		tx := createTxWithTemplateAndAuthorizer(b,
+			templates.GenerateSetExecutionMemoryWeights(env),
+			b.ServiceKey().Address)
+
+		keyValuePairs := make([]cadence.KeyValuePair, 3)
+
+		keyValuePairs[0] = cadence.KeyValuePair{
+			Key:   cadence.UInt64(0),
+			Value: cadence.UInt64(100),
+		}
+		keyValuePairs[1] = cadence.KeyValuePair{
+			Key:   cadence.UInt64(1),
+			Value: cadence.UInt64(101),
+		}
+		keyValuePairs[2] = cadence.KeyValuePair{
+			Key:   cadence.UInt64(2),
+			Value: cadence.UInt64(102),
+		}
+
+		dict := cadence.Dictionary{Pairs: keyValuePairs}
+
+		err := tx.AddArgument(dict)
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address},
+			[]crypto.Signer{b.ServiceKey().Signer()},
+			false,
+		)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetExecutionMemoryWeights(env), [][]byte{})
+		pairs := result.(cadence.Dictionary).Pairs
+		require.Len(t, pairs, 3)
+		for _, pair := range pairs {
+			for _, expected := range keyValuePairs {
+				if pair.Key.(cadence.UInt64) == expected.Key.(cadence.UInt64) {
+					require.Equal(t, expected.Value, pair.Value)
+				}
+			}
+		}
+	})
+
 	// deploy the ServiceAccount contract
 	serviceAccountCode := contracts.FlowServiceAccount(
 		emulatorFTAddress,

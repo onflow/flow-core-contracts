@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/flow-core-contracts/lib/go/contracts"
@@ -33,7 +35,9 @@ func TestLockedTokensStaker(t *testing.T) {
 
 	publicKeys := make([]cadence.Value, 1)
 
-	publicKeys[0] = bytesToCadenceArray(IDTableAccountKey.Encode())
+	publicKey, err := sdktemplates.AccountKeyToCadenceCryptoKey(IDTableAccountKey)
+	require.NoError(t, err)
+	publicKeys[0] = publicKey
 
 	cadencePublicKeys := cadence.NewArray(publicKeys)
 	cadenceCode := bytesToCadenceArray(IDTableCode)
@@ -95,8 +99,10 @@ func TestLockedTokensStaker(t *testing.T) {
 	// Create new keys for the user account
 	joshKey, joshSigner := accountKeys.NewWithSigner()
 
-	adminPublicKey := bytesToCadenceArray(adminAccountKey.Encode())
-	joshPublicKey := bytesToCadenceArray(joshKey.Encode())
+	adminPublicKey, err := sdktemplates.AccountKeyToCadenceCryptoKey(adminAccountKey)
+	require.NoError(t, err)
+	joshPublicKey, err := sdktemplates.AccountKeyToCadenceCryptoKey(joshKey)
+	require.NoError(t, err)
 
 	var joshSharedAddress flow.Address
 	var joshAddress flow.Address
@@ -633,7 +639,9 @@ func TestLockedTokensDelegator(t *testing.T) {
 
 	publicKeys := make([]cadence.Value, 1)
 
-	publicKeys[0] = bytesToCadenceArray(IDTableAccountKey.Encode())
+	publicKey, err := sdktemplates.AccountKeyToCadenceCryptoKey(IDTableAccountKey)
+	require.NoError(t, err)
+	publicKeys[0] = publicKey
 
 	cadencePublicKeys := cadence.NewArray(publicKeys)
 	cadenceCode := bytesToCadenceArray(IDTableCode)
@@ -700,8 +708,10 @@ func TestLockedTokensDelegator(t *testing.T) {
 	// Create new keys for the user account
 	joshKey, joshSigner := accountKeys.NewWithSigner()
 
-	adminPublicKey := bytesToCadenceArray(adminAccountKey.Encode())
-	joshPublicKey := bytesToCadenceArray(joshKey.Encode())
+	adminPublicKey, err := sdktemplates.AccountKeyToCadenceCryptoKey(adminAccountKey)
+	require.NoError(t, err)
+	joshPublicKey, err := sdktemplates.AccountKeyToCadenceCryptoKey(joshKey)
+	require.NoError(t, err)
 
 	var joshSharedAddress flow.Address
 	var joshAddress flow.Address
@@ -1085,7 +1095,9 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 
 	publicKeys := make([]cadence.Value, 1)
 
-	publicKeys[0] = bytesToCadenceArray(IDTableAccountKey.Encode())
+	publicKey, err := sdktemplates.AccountKeyToCadenceCryptoKey(IDTableAccountKey)
+	require.NoError(t, err)
+	publicKeys[0] = publicKey
 
 	cadencePublicKeys := cadence.NewArray(publicKeys)
 	cadenceCode := bytesToCadenceArray(IDTableCode)
@@ -1203,8 +1215,10 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 	// Create new keys for the user account
 	joshKey, _ := accountKeys.NewWithSigner()
 
-	adminPublicKey := bytesToCadenceArray(adminAccountKey.Encode())
-	joshPublicKey := bytesToCadenceArray(joshKey.Encode())
+	adminPublicKey, err := sdktemplates.AccountKeyToCadenceCryptoKey(adminAccountKey)
+	require.NoError(t, err)
+	joshPublicKey, err := sdktemplates.AccountKeyToCadenceCryptoKey(joshKey)
+	require.NoError(t, err)
 
 	var joshSharedAddress flow.Address
 	var joshAddress flow.Address
@@ -1258,7 +1272,8 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 	maxKey, maxSigner := accountKeys.NewWithSigner()
 	maxAddress, _ := b.CreateAccount([]*flow.AccountKey{maxKey}, nil)
 
-	maxPublicKey := bytesToCadenceArray(maxKey.Encode())
+	maxPublicKey, err := sdktemplates.AccountKeyToCadenceCryptoKey(maxKey)
+	require.NoError(t, err)
 
 	var maxSharedAddress flow.Address
 
@@ -1452,8 +1467,10 @@ func TestLockedTokensRealStaking(t *testing.T) {
 	// Create new keys for the user account
 	joshKey, joshSigner := accountKeys.NewWithSigner()
 
-	adminPublicKey := bytesToCadenceArray(adminAccountKey.Encode())
-	joshPublicKey := bytesToCadenceArray(joshKey.Encode())
+	adminPublicKey, err := sdktemplates.AccountKeyToCadenceCryptoKey(adminAccountKey)
+	require.NoError(t, err)
+	joshPublicKey, err := sdktemplates.AccountKeyToCadenceCryptoKey(joshKey)
+	require.NoError(t, err)
 
 	var joshSharedAddress flow.Address
 	var joshAddress flow.Address
@@ -1782,8 +1799,10 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 	// Create new keys for the user account
 	joshKey, joshSigner := accountKeys.NewWithSigner()
 
-	adminPublicKey := bytesToCadenceArray(adminAccountKey.Encode())
-	joshPublicKey := bytesToCadenceArray(joshKey.Encode())
+	adminPublicKey, err := sdktemplates.AccountKeyToCadenceCryptoKey(adminAccountKey)
+	require.NoError(t, err)
+	joshPublicKey, err := sdktemplates.AccountKeyToCadenceCryptoKey(joshKey)
+	require.NoError(t, err)
 
 	var joshSharedAddress flow.Address
 	var joshAddress flow.Address

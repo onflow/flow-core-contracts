@@ -1,13 +1,14 @@
+import Crypto
 import FlowToken from 0xFLOWTOKENADDRESS
 
-transaction(publicKeys: [[UInt8]], contractName: String, code: [UInt8], rewardAmount: UFix64, rewardCut: UFix64) {
+transaction(publicKeys: [Crypto.KeyListEntry], contractName: String, code: [UInt8], rewardAmount: UFix64, rewardCut: UFix64) {
 
   prepare(signer: AuthAccount) {
 
     let acct = AuthAccount(payer: signer)
     
     for key in publicKeys {
-        acct.addPublicKey(key)
+        acct.keys.add(publicKey: key.publicKey, hashAlgorithm: key.hashAlgorithm, weight: key.weight)
     }
 
     /// Borrow a reference to the Flow Token Admin in the account storage

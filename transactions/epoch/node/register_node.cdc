@@ -1,3 +1,4 @@
+import Crypto
 import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
 import FlowToken from 0xFLOWTOKENADDRESS
 import FlowClusterQC from 0xQCADDRESS
@@ -15,7 +16,7 @@ transaction(
     networkingKey: String,
     stakingKey: String,
     amount: UFix64,
-    publicKeys: [[UInt8]]
+    publicKeys: [Crypto.KeyListEntry]
 ) {
 
     let flowTokenRef: &FlowToken.Vault
@@ -55,7 +56,7 @@ transaction(
 
             let machineAcct = AuthAccount(payer: acct)
             for key in publicKeys {
-                machineAcct.addPublicKey(key)
+                machineAcct.keys.add(publicKey: key.publicKey, hashAlgorithm: key.hashAlgorithm, weight: key.weight)
             }
 
             let qcVoter <- FlowEpoch.getClusterQCVoter(nodeStaker: nodeRef)
@@ -66,7 +67,7 @@ transaction(
 
             let machineAcct = AuthAccount(payer: acct)
             for key in publicKeys {
-                machineAcct.addPublicKey(key)
+                machineAcct.keys.add(publicKey: key.publicKey, hashAlgorithm: key.hashAlgorithm, weight: key.weight)
             }
 
             let dkgParticipant <- FlowEpoch.getDKGParticipant(nodeStaker: nodeRef)
