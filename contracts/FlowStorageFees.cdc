@@ -59,19 +59,25 @@ pub contract FlowStorageFees {
         access(contract) init(){}
     }
 
-    // Returns megabytes
+    /// calculateAccountCapacity returns the storage capacity of an account
+    ///
+    /// Returns megabytes
+    /// If the account has no default balance it is counted as a balance of 0.0 FLOW
     pub fun calculateAccountCapacity(_ accountAddress: Address): UFix64 {
-        let balanceRef = getAccount(accountAddress)
+        var balance = 0.0
+        if let balanceRef = getAccount(accountAddress)
             .getCapability<&FlowToken.Vault{FungibleToken.Balance}>(/public/flowTokenBalance)!
-            .borrow() ?? panic("Could not borrow FLOW balance capability")
+            .borrow() {
+                balance = balanceRef.balance
+        }
 
         // get address token balance
-        if balanceRef.balance < self.minimumStorageReservation {
+        if balance < self.minimumStorageReservation {
             // if < then minimum return 0
             return 0.0
         } else {
             // return balance multiplied with megabytes per flow 
-            return balanceRef.balance.saturatingMultiply(self.storageMegaBytesPerReservedFLOW)
+            return balance.saturatingMultiply(self.storageMegaBytesPerReservedFLOW)
         }
     }
 
@@ -101,15 +107,19 @@ pub contract FlowStorageFees {
         return storageMb
     }
 
-    // Gets "available" balance of an account
-    // The available balance is its default token balance minus what is reserved for storage.
+    /// Gets "available" balance of an account
+    ///
+    /// The available balance is its default token balance minus what is reserved for storage.
+    /// If the account has no default balance it is counted as a balance of 0.0 FLOW
     pub fun defaultTokenAvailableBalance(_ accountAddress: Address): UFix64 {
         //get balance of account
         let acct = getAccount(accountAddress)
-        let balanceRef = acct
+        var balance = 0.0
+        if let balanceRef = acct
             .getCapability(/public/flowTokenBalance)
-            .borrow<&FlowToken.Vault{FungibleToken.Balance}>()!
-        let balance = balanceRef.balance
+            .borrow<&FlowToken.Vault{FungibleToken.Balance}>() {
+            balance = balanceRef.balance
+        }
 
         // get how much should be reserved for storage
         var reserved = self.storageCapacityToFlow(self.convertUInt64StorageBytesToUFix64Megabytes(acct.storageUsed))

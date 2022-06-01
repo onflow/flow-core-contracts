@@ -45,12 +45,17 @@ pub contract FlowServiceAccount {
     }
 
     /// Get the default token balance on an account
+    ///
+    /// Returns 0 if the account has no default balance
     pub fun defaultTokenBalance(_ acct: PublicAccount): UFix64 {
-        let balanceRef = acct
+        var balance = 0.0
+        if let balanceRef = acct
             .getCapability(/public/flowTokenBalance)
-            .borrow<&FlowToken.Vault{FungibleToken.Balance}>()!
+            .borrow<&FlowToken.Vault{FungibleToken.Balance}>(){
+                balance = balanceRef.balance
+            }
 
-        return balanceRef.balance
+        return balance
     }
 
     /// Return a reference to the default token vault on an account
