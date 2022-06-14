@@ -289,7 +289,7 @@ func TestQuorumCertificate(t *testing.T) {
 		assert.Equal(t, cadence.NewBool(false), result)
 
 		// construct with the wrong tag
-		wrongHasher := flow_crypto.NewBLSKMAC(encoding.ConsensusVoteTag)
+		wrongHasher := flow_crypto.NewBLSKMAC("wrong_tag")
 
 		msg, _ = hex.DecodeString("deadbeef")
 		invalidSignature, err = maxPrivateStakingKey.Sign(msg, wrongHasher)
