@@ -344,6 +344,29 @@ func TestContracts(t *testing.T) {
 		}
 	})
 
+	t.Run("Should set and get execution memory limit", func(t *testing.T) {
+		tx := createTxWithTemplateAndAuthorizer(b,
+			templates.GenerateSetExecutionMemoryLimit(env),
+			b.ServiceKey().Address)
+
+		newLimit := cadence.UInt64(1234567890)
+
+		err := tx.AddArgument(cadence.UInt64(newLimit))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{b.ServiceKey().Address},
+			[]crypto.Signer{b.ServiceKey().Signer()},
+			false,
+		)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetExecutionMemoryLimit(env), [][]byte{})
+		limit := result.(cadence.UInt64)
+		require.Equal(t, newLimit, limit)
+
+	})
+
 	// deploy the ServiceAccount contract
 	serviceAccountCode := contracts.FlowServiceAccount(
 		emulatorFTAddress,
