@@ -477,7 +477,7 @@ pub contract FlowStakingCollection {
                 self.doesStakeExist(nodeID: nodeID, delegatorID: nil): "Cannot add a machine account record for a node that you do not own"
             }
 
-            let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID)
+            let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeID)
 
             // Make sure that the QC or DKG object in the machine account is correct for this node ID
 
