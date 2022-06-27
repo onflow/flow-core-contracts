@@ -27,6 +27,7 @@ const (
 	totalRewards         = "1250000.0"
 	rewardIncreaseFactor = "0.00093871"
 	// TODO: import the constant from the flow-go/module/signature package
+	// once flow-go is updated.
 	collectorVoteTag = "FLOW-Collector_Vote-V00-CS00-with-"
 )
 
