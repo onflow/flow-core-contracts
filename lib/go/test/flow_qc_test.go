@@ -15,7 +15,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	flow_crypto "github.com/onflow/flow-go/crypto"
-	"github.com/onflow/flow-go/model/encoding"
 
 	"github.com/onflow/flow-core-contracts/lib/go/contracts"
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
@@ -95,7 +94,7 @@ func TestQuorumCertificate(t *testing.T) {
 	maxAddress, _ := b.CreateAccount([]*flow.AccountKey{maxAccountKey}, nil)
 	maxPrivateStakingKey, maxPublicStakingKey, _, _ := generateKeysForNodeRegistration(t)
 
-	collectorVoteHasher := flow_crypto.NewBLSKMAC(encoding.CollectorVoteTag)
+	collectorVoteHasher := flow_crypto.NewBLSKMAC(collectorVoteTag)
 
 	t.Run("Should be able to set up the admin account", func(t *testing.T) {
 
@@ -290,7 +289,7 @@ func TestQuorumCertificate(t *testing.T) {
 		assert.Equal(t, cadence.NewBool(false), result)
 
 		// construct with the wrong tag
-		wrongHasher := flow_crypto.NewBLSKMAC(encoding.ConsensusVoteTag)
+		wrongHasher := flow_crypto.NewBLSKMAC("wrong_tag")
 
 		msg, _ = hex.DecodeString("deadbeef")
 		invalidSignature, err = maxPrivateStakingKey.Sign(msg, wrongHasher)
@@ -482,7 +481,7 @@ func TestQuorumCertificateMoreNodes(t *testing.T) {
 
 	env.QuorumCertificateAddress = QCAddress.Hex()
 
-	collectorVoteHasher := flow_crypto.NewBLSKMAC(encoding.CollectorVoteTag)
+	collectorVoteHasher := flow_crypto.NewBLSKMAC(collectorVoteTag)
 
 	t.Run("Should be able to set up the admin account", func(t *testing.T) {
 
@@ -750,7 +749,7 @@ func TestQuorumCertificateNotSubmittedVote(t *testing.T) {
 
 	env.QuorumCertificateAddress = QCAddress.Hex()
 
-	collectorVoteHasher := flow_crypto.NewBLSKMAC(encoding.CollectorVoteTag)
+	collectorVoteHasher := flow_crypto.NewBLSKMAC(collectorVoteTag)
 
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GeneratePublishVoterScript(env), QCAddress)
 
