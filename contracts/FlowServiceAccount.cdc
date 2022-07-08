@@ -140,6 +140,12 @@ pub contract FlowServiceAccount {
             ?? panic("execution memory weights not set yet")
     }
 
+        // Gets Execution Memory Limit from the service account's storage 
+    pub fun getExecutionMemoryLimit(): UInt64 {
+        return self.account.copy<UInt64>(from: /storage/executionMemoryLimit) 
+            ?? panic("execution memory limit not set yet")
+    }
+
     /// Authorization resource to change the fields of the contract
     pub resource Administrator {
 

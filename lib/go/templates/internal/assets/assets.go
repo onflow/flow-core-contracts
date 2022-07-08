@@ -6,12 +6,14 @@
 // ../../../transactions/FlowServiceAccount/scripts/get_account_creators.cdc (133B)
 // ../../../transactions/FlowServiceAccount/scripts/get_account_fee.cdc (128B)
 // ../../../transactions/FlowServiceAccount/scripts/get_execution_effort_weights.cdc (147B)
+// ../../../transactions/FlowServiceAccount/scripts/get_execution_memory_limit.cdc (135B)
 // ../../../transactions/FlowServiceAccount/scripts/get_execution_memory_weights.cdc (147B)
 // ../../../transactions/FlowServiceAccount/scripts/get_fees_balance.cdc (102B)
 // ../../../transactions/FlowServiceAccount/scripts/get_is_account_creation_restricted.cdc (137B)
 // ../../../transactions/FlowServiceAccount/scripts/get_is_account_creator.cdc (149B)
 // ../../../transactions/FlowServiceAccount/scripts/get_tx_fee_parameters.cdc (121B)
 // ../../../transactions/FlowServiceAccount/set_execution_effort_weights.cdc (1.636kB)
+// ../../../transactions/FlowServiceAccount/set_execution_memory_limit.cdc (260B)
 // ../../../transactions/FlowServiceAccount/set_execution_memory_weights.cdc (288B)
 // ../../../transactions/FlowServiceAccount/set_is_account_creation_restricted.cdc (586B)
 // ../../../transactions/FlowServiceAccount/set_tx_fee_parameters.cdc (606B)
@@ -456,6 +458,26 @@ func flowserviceaccountScriptsGet_execution_effort_weightsCdc() (*asset, error) 
 	return a, nil
 }
 
+var _flowserviceaccountScriptsGet_execution_memory_limitCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\xcc\xb1\x0a\xc2\x30\x10\x06\xe0\x3d\x4f\xf1\x8f\xed\x22\x0e\xe2\xe0\x56\x6c\x0a\x85\x8a\xd0\xa0\xce\x1a\x52\x39\x30\x77\xe5\xb8\x68\x45\x7c\x77\x5f\xc0\x17\xf8\x28\xcf\xa2\x86\xee\x21\xaf\x90\xf4\x49\x31\x35\x31\x4a\x61\xc3\xa4\x92\xb1\x5e\xba\xe1\x78\x09\x7e\x3c\xf7\x7b\xdf\xb4\xed\xe8\x43\x70\x6e\x2e\x37\x4c\x85\x91\xaf\xc4\x55\xbd\xc3\xa9\x67\xdb\x6e\xf0\x71\x00\xa0\xc9\x8a\xf2\x1f\x71\x75\x4f\xe6\x97\x14\x8b\x91\xf0\x21\x65\xd1\xf7\x40\x99\xac\xaa\xdd\xf7\x17\x00\x00\xff\xff\x99\xae\x26\xc9\x87\x00\x00\x00"
+
+func flowserviceaccountScriptsGet_execution_memory_limitCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_flowserviceaccountScriptsGet_execution_memory_limitCdc,
+		"FlowServiceAccount/scripts/get_execution_memory_limit.cdc",
+	)
+}
+
+func flowserviceaccountScriptsGet_execution_memory_limitCdc() (*asset, error) {
+	bytes, err := flowserviceaccountScriptsGet_execution_memory_limitCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "FlowServiceAccount/scripts/get_execution_memory_limit.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xe3, 0x99, 0x2f, 0x9d, 0x84, 0xf5, 0xb, 0xdd, 0xdc, 0x9d, 0xe7, 0x38, 0xef, 0x7b, 0xd7, 0xb8, 0x51, 0xa0, 0xac, 0xbb, 0xd5, 0x8b, 0xbe, 0xda, 0x4b, 0x87, 0x55, 0xd7, 0x3b, 0xfb, 0x70, 0xba}}
+	return a, nil
+}
+
 var _flowserviceaccountScriptsGet_execution_memory_weightsCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\xcc\xb1\x0a\xc2\x30\x10\x06\xe0\x3d\x4f\xf1\x8f\xed\x22\x0e\xe2\xd0\xad\xd8\x14\x0a\x8a\xd0\xa0\x9d\x35\x5c\x6b\xc0\x24\xe5\xbc\x68\xa5\xf4\xdd\x1d\x5c\x3b\x7d\xdb\xe7\xfc\x18\x59\x50\x3f\xe3\xc7\x10\xbf\x9d\xa5\xd2\xda\x98\x82\xa0\xe7\xe8\xb1\x9d\xea\xe3\xb9\x33\xba\xbd\x36\x07\x5d\x56\x55\xab\x8d\x51\x6a\x4c\x77\xf4\x29\xc0\xdf\x5c\xc8\xf2\x02\xf3\xa5\x09\xb2\xdf\x15\xf8\xbb\x60\x56\x00\xc0\x24\x89\xc3\xca\xbd\x19\x48\xf4\x44\x36\x89\x8b\xe1\x44\x3e\xf2\xb7\x23\x37\x3c\xe4\x95\xe5\x6a\xf9\x05\x00\x00\xff\xff\xc2\x10\x3a\x4f\x93\x00\x00\x00"
 
 func flowserviceaccountScriptsGet_execution_memory_weightsCdcBytes() ([]byte, error) {
@@ -573,6 +595,26 @@ func flowserviceaccountSet_execution_effort_weightsCdc() (*asset, error) {
 
 	info := bindataFileInfo{name: "FlowServiceAccount/set_execution_effort_weights.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x37, 0x75, 0xac, 0x6, 0xec, 0xf7, 0x3e, 0xda, 0xc2, 0x1c, 0xbc, 0xdb, 0xd2, 0xf9, 0x50, 0x92, 0x2c, 0xd2, 0x95, 0x48, 0xef, 0xad, 0xf0, 0x6a, 0xbc, 0x92, 0x53, 0xa0, 0xa, 0xcf, 0x9d, 0x6a}}
+	return a, nil
+}
+
+var _flowserviceaccountSet_execution_memory_limitCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x8c\x8e\xc1\x8a\x83\x40\x10\x44\xef\x7e\x45\x1d\x15\x16\xe7\xb2\xec\x41\x96\x05\x8f\x0b\xc9\x2d\xf9\x80\x61\xd2\xd1\x01\x67\x46\xba\xdb\x98\x10\xfc\xf7\xa0\x12\x09\x39\xa5\x8f\xd5\xc5\xab\x67\x0c\x0e\xad\x17\x28\xdb\x28\xd6\xa9\x4f\x51\x20\xa4\x02\x8b\x48\x23\xe8\x4a\x6e\x98\x53\x04\x0a\x89\x6f\xe8\x7c\xf0\x5a\x66\x2f\xfd\x3c\xd2\xb8\x9b\xd3\x0a\xc7\xff\xa8\x3f\xdf\x05\xee\x19\x00\xf4\x4c\xbd\x65\xca\xc5\x37\x91\xb8\x42\x3d\x68\x5b\x3b\x97\x86\xa8\xcf\xca\x7c\xeb\xbb\xec\x92\x3d\xfd\xae\x80\xbf\xfc\xcc\x29\x54\x30\xa2\x89\x6d\x43\x66\xb3\xd8\x2f\x12\xcb\x5a\xf1\x0e\x10\x7b\xa1\xcd\xe5\x0b\x9a\x3e\x02\x4c\xd9\xf4\x08\x00\x00\xff\xff\x3e\xdc\x40\xf4\x04\x01\x00\x00"
+
+func flowserviceaccountSet_execution_memory_limitCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_flowserviceaccountSet_execution_memory_limitCdc,
+		"FlowServiceAccount/set_execution_memory_limit.cdc",
+	)
+}
+
+func flowserviceaccountSet_execution_memory_limitCdc() (*asset, error) {
+	bytes, err := flowserviceaccountSet_execution_memory_limitCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "FlowServiceAccount/set_execution_memory_limit.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x21, 0x26, 0x87, 0x5b, 0xdc, 0xb4, 0xba, 0xbb, 0x30, 0xf6, 0x69, 0x15, 0xcf, 0xe4, 0x23, 0xea, 0x24, 0x40, 0x9e, 0x5c, 0xe7, 0x38, 0xfe, 0x13, 0x11, 0x19, 0xb1, 0xde, 0xab, 0x20, 0xe4, 0xf1}}
 	return a, nil
 }
 
@@ -5773,12 +5815,14 @@ var _bindata = map[string]func() (*asset, error){
 	"FlowServiceAccount/scripts/get_account_creators.cdc":                     flowserviceaccountScriptsGet_account_creatorsCdc,
 	"FlowServiceAccount/scripts/get_account_fee.cdc":                          flowserviceaccountScriptsGet_account_feeCdc,
 	"FlowServiceAccount/scripts/get_execution_effort_weights.cdc":             flowserviceaccountScriptsGet_execution_effort_weightsCdc,
+	"FlowServiceAccount/scripts/get_execution_memory_limit.cdc":               flowserviceaccountScriptsGet_execution_memory_limitCdc,
 	"FlowServiceAccount/scripts/get_execution_memory_weights.cdc":             flowserviceaccountScriptsGet_execution_memory_weightsCdc,
 	"FlowServiceAccount/scripts/get_fees_balance.cdc":                         flowserviceaccountScriptsGet_fees_balanceCdc,
 	"FlowServiceAccount/scripts/get_is_account_creation_restricted.cdc":       flowserviceaccountScriptsGet_is_account_creation_restrictedCdc,
 	"FlowServiceAccount/scripts/get_is_account_creator.cdc":                   flowserviceaccountScriptsGet_is_account_creatorCdc,
 	"FlowServiceAccount/scripts/get_tx_fee_parameters.cdc":                    flowserviceaccountScriptsGet_tx_fee_parametersCdc,
 	"FlowServiceAccount/set_execution_effort_weights.cdc":                     flowserviceaccountSet_execution_effort_weightsCdc,
+	"FlowServiceAccount/set_execution_memory_limit.cdc":                       flowserviceaccountSet_execution_memory_limitCdc,
 	"FlowServiceAccount/set_execution_memory_weights.cdc":                     flowserviceaccountSet_execution_memory_weightsCdc,
 	"FlowServiceAccount/set_is_account_creation_restricted.cdc":               flowserviceaccountSet_is_account_creation_restrictedCdc,
 	"FlowServiceAccount/set_tx_fee_parameters.cdc":                            flowserviceaccountSet_tx_fee_parametersCdc,
@@ -6088,6 +6132,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 			"get_account_creators.cdc": {flowserviceaccountScriptsGet_account_creatorsCdc, map[string]*bintree{}},
 			"get_account_fee.cdc": {flowserviceaccountScriptsGet_account_feeCdc, map[string]*bintree{}},
 			"get_execution_effort_weights.cdc": {flowserviceaccountScriptsGet_execution_effort_weightsCdc, map[string]*bintree{}},
+			"get_execution_memory_limit.cdc": {flowserviceaccountScriptsGet_execution_memory_limitCdc, map[string]*bintree{}},
 			"get_execution_memory_weights.cdc": {flowserviceaccountScriptsGet_execution_memory_weightsCdc, map[string]*bintree{}},
 			"get_fees_balance.cdc": {flowserviceaccountScriptsGet_fees_balanceCdc, map[string]*bintree{}},
 			"get_is_account_creation_restricted.cdc": {flowserviceaccountScriptsGet_is_account_creation_restrictedCdc, map[string]*bintree{}},
@@ -6095,6 +6140,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 			"get_tx_fee_parameters.cdc": {flowserviceaccountScriptsGet_tx_fee_parametersCdc, map[string]*bintree{}},
 		}},
 		"set_execution_effort_weights.cdc": {flowserviceaccountSet_execution_effort_weightsCdc, map[string]*bintree{}},
+		"set_execution_memory_limit.cdc": {flowserviceaccountSet_execution_memory_limitCdc, map[string]*bintree{}},
 		"set_execution_memory_weights.cdc": {flowserviceaccountSet_execution_memory_weightsCdc, map[string]*bintree{}},
 		"set_is_account_creation_restricted.cdc": {flowserviceaccountSet_is_account_creation_restrictedCdc, map[string]*bintree{}},
 		"set_tx_fee_parameters.cdc": {flowserviceaccountSet_tx_fee_parametersCdc, map[string]*bintree{}},

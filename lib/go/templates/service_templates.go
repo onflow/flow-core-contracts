@@ -32,6 +32,8 @@ const (
 	setExecutionEffortWeighs  = "FlowServiceAccount/set_execution_effort_weights.cdc"
 	getExecutionMemoryWeighs  = "FlowServiceAccount/scripts/get_execution_memory_weights.cdc"
 	setExecutionMemoryWeighs  = "FlowServiceAccount/set_execution_memory_weights.cdc"
+	getExecutionMemoryLimit  = "FlowServiceAccount/scripts/get_execution_memory_limit.cdc"
+	setExecutionMemoryLimit  = "FlowServiceAccount/set_execution_memory_limit.cdc"
 )
 
 // StorageFees Templates
@@ -152,6 +154,18 @@ func GenerateSetExecutionMemoryWeights(env Environment) []byte {
 
 func GenerateGetExecutionMemoryWeights(env Environment) []byte {
 	code := assets.MustAssetString(getExecutionMemoryWeighs)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateSetExecutionMemoryLimit(env Environment) []byte {
+	code := assets.MustAssetString(setExecutionMemoryLimit)
+
+	return []byte(replaceAddresses(code, env))
+}
+
+func GenerateGetExecutionMemoryLimit(env Environment) []byte {
+	code := assets.MustAssetString(getExecutionMemoryLimit)
 
 	return []byte(replaceAddresses(code, env))
 }
