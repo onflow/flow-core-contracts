@@ -8,7 +8,6 @@ import (
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	flow_crypto "github.com/onflow/flow-go/crypto"
-	"github.com/onflow/flow-go/model/encoding"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -27,6 +26,9 @@ const (
 	randomSource         = "lolsoRandom"
 	totalRewards         = "1250000.0"
 	rewardIncreaseFactor = "0.00093871"
+	// TODO: import the constant from the flow-go/module/signature package
+	// once flow-go is updated.
+	collectorVoteTag = "FLOW-Collector_Vote-V00-CS00-with-"
 )
 
 func TestEpochDeployment(t *testing.T) {
@@ -162,8 +164,8 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 
 		// Should set epoch config successfully when increasing the epochs views
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateEpochConfigScript(env), idTableAddress)
-		_ = tx.AddArgument(cadence.NewUInt64(2)) // dkg
-		_ = tx.AddArgument(cadence.NewUInt64(4)) // staking
+		_ = tx.AddArgument(cadence.NewUInt64(2))  // dkg
+		_ = tx.AddArgument(cadence.NewUInt64(4))  // staking
 		_ = tx.AddArgument(cadence.NewUInt64(12)) // epoch
 		signAndSubmit(
 			t, b, tx,
@@ -803,7 +805,7 @@ func TestEpochQCDKG(t *testing.T) {
 	clusterQCs[0] = make([]string, 2)
 	clusterQCs[1] = make([]string, 2)
 
-	collectorVoteHasher := flow_crypto.NewBLSKMAC(encoding.CollectorVoteTag)
+	collectorVoteHasher := flow_crypto.NewBLSKMAC(collectorVoteTag)
 
 	t.Run("Can perform QC actions during Epoch Setup and advance to EpochCommit", func(t *testing.T) {
 
@@ -1100,7 +1102,7 @@ func TestEpochReset(t *testing.T) {
 	clusterQCs[0] = make([]string, 1)
 	clusterQCs[1] = make([]string, 1)
 
-	collectorVoteHasher := flow_crypto.NewBLSKMAC(encoding.CollectorVoteTag)
+	collectorVoteHasher := flow_crypto.NewBLSKMAC(collectorVoteTag)
 
 	t.Run("Can perform QC actions during Epoch Setup but cannot advance to EpochCommit if DKG isn't complete", func(t *testing.T) {
 

@@ -299,7 +299,7 @@ pub contract FlowClusterQC {
             let isValid = publicKey.verify(
                 signature: voteSignature.decodeHex(),
                 signedData: voteMessage.decodeHex(),
-                domainSeparationTag: "FLOW-V0.0_Collector-Vote",
+                domainSeparationTag: "FLOW-Collector_Vote-V00-CS00-with-",
                 hashAlgorithm: HashAlgorithm.KMAC128_BLS_BLS12_381
             )
 
