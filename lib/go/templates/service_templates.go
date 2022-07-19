@@ -32,8 +32,8 @@ const (
 	setExecutionEffortWeighs  = "FlowServiceAccount/set_execution_effort_weights.cdc"
 	getExecutionMemoryWeighs  = "FlowServiceAccount/scripts/get_execution_memory_weights.cdc"
 	setExecutionMemoryWeighs  = "FlowServiceAccount/set_execution_memory_weights.cdc"
-	getExecutionMemoryLimit  = "FlowServiceAccount/scripts/get_execution_memory_limit.cdc"
-	setExecutionMemoryLimit  = "FlowServiceAccount/set_execution_memory_limit.cdc"
+	getExecutionMemoryLimit   = "FlowServiceAccount/scripts/get_execution_memory_limit.cdc"
+	setExecutionMemoryLimit   = "FlowServiceAccount/set_execution_memory_limit.cdc"
 )
 
 // StorageFees Templates
@@ -41,131 +41,131 @@ const (
 func GenerateChangeStorageFeeParametersScript(env Environment) []byte {
 	code := assets.MustAssetString(changeStorageFeeParametersFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateGetStorageFeeConversionScript(env Environment) []byte {
 	code := assets.MustAssetString(getStorageFeeConversionFilenane)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateGetAccountAvailableBalanceFilenameScript(env Environment) []byte {
 	code := assets.MustAssetString(getAccountAvailableBalanceFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateGetStorageFeeMinimumScript(env Environment) []byte {
 	code := assets.MustAssetString(getStorageFeeMinimumFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateGetStorageCapacityScript(env Environment) []byte {
 	code := assets.MustAssetString(getStorageCapacityFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateGetIsAccountCreationRestricted(env Environment) []byte {
 	code := assets.MustAssetString(getIsAccountCreationRestricted)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateGetAccountCreators(env Environment) []byte {
 	code := assets.MustAssetString(getAccountCreators)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateSetIsAccountCreationRestricted(env Environment) []byte {
 	code := assets.MustAssetString(setIsAccountCreationRestricted)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateGetIsAccountCreator(env Environment) []byte {
 	code := assets.MustAssetString(getIsAccountCreator)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateAddAccountCreator(env Environment) []byte {
 	code := assets.MustAssetString(addAccountCreator)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateRemoveAccountCreator(env Environment) []byte {
 	code := assets.MustAssetString(removeAccountCreator)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateGetFeesBalanceScript(env Environment) []byte {
 	code := assets.MustAssetString(getFeesBalanceFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateDepositFeesScript(env Environment) []byte {
 	code := assets.MustAssetString(depositFeesFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateGetFeeParametersScript(env Environment) []byte {
 	code := assets.MustAssetString(getFeeParametersFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateSetFeeParametersScript(env Environment) []byte {
 	code := assets.MustAssetString(setFeeParametersFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateSetFeeSurgeFactorScript(env Environment) []byte {
 	code := assets.MustAssetString(setFeeSurgeFactorFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateSetExecutionEffortWeights(env Environment) []byte {
 	code := assets.MustAssetString(setExecutionEffortWeighs)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateGetExecutionEffortWeights(env Environment) []byte {
 	code := assets.MustAssetString(getExecutionEffortWeighs)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateSetExecutionMemoryWeights(env Environment) []byte {
 	code := assets.MustAssetString(setExecutionMemoryWeighs)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateGetExecutionMemoryWeights(env Environment) []byte {
 	code := assets.MustAssetString(getExecutionMemoryWeighs)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateSetExecutionMemoryLimit(env Environment) []byte {
 	code := assets.MustAssetString(setExecutionMemoryLimit)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateGetExecutionMemoryLimit(env Environment) []byte {
 	code := assets.MustAssetString(getExecutionMemoryLimit)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }

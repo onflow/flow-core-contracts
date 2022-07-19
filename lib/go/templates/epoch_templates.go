@@ -45,80 +45,80 @@ const (
 func GenerateDeployQCDKGScript(env Environment) []byte {
 	code := assets.MustAssetString(deployQCandDKGFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 // GenerateDeployEpochScript
 func GenerateDeployEpochScript(env Environment) []byte {
 	code := assets.MustAssetString(deployEpochFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateUpdateEpochViewsScript(env Environment) []byte {
 	code := assets.MustAssetString(updateEpochViewsFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateUpdateStakingViewsScript(env Environment) []byte {
 	code := assets.MustAssetString(updateStakingViewsFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateUpdateDKGViewsScript(env Environment) []byte {
 	code := assets.MustAssetString(updateDKGViewsFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateUpdateEpochConfigScript(env Environment) []byte {
 	code := assets.MustAssetString(updateEpochConfigFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateUpdateNumClustersScript(env Environment) []byte {
 	code := assets.MustAssetString(updateNumClustersFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateUpdateRewardPercentageScript(env Environment) []byte {
 	code := assets.MustAssetString(updateRewardPercentageFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateAdvanceViewScript(env Environment) []byte {
 	code := assets.MustAssetString(advanceViewFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateResetEpochScript(env Environment) []byte {
 	code := assets.MustAssetString(resetEpochFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateEpochCalculateSetRewardsScript(env Environment) []byte {
 	code := assets.MustAssetString(epochCalculateSetRewardsFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateEpochPayRewardsScript(env Environment) []byte {
 	code := assets.MustAssetString(epochPayRewardsFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateEpochSetAutomaticRewardsScript(env Environment) []byte {
 	code := assets.MustAssetString(epochSetAutoRewardsFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 // Node Templates -----------------------------------------------
@@ -126,19 +126,19 @@ func GenerateEpochSetAutomaticRewardsScript(env Environment) []byte {
 func GenerateEpochRegisterNodeScript(env Environment) []byte {
 	code := assets.MustAssetString(epochRegisterNodeFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateEpochRegisterQCVoterScript(env Environment) []byte {
 	code := assets.MustAssetString(epochRegisterQCVoterFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateEpochRegisterDKGParticipantScript(env Environment) []byte {
 	code := assets.MustAssetString(epochRegisterDKGParticipantFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 // Script Templates ------------------------------------------------------
@@ -146,53 +146,53 @@ func GenerateEpochRegisterDKGParticipantScript(env Environment) []byte {
 func GenerateGetCurrentEpochCounterScript(env Environment) []byte {
 	code := assets.MustAssetString(getCurrentEpochCounterFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateGetProposedEpochCounterScript(env Environment) []byte {
 	code := assets.MustAssetString(getProposedEpochCounterFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateGetEpochMetadataScript(env Environment) []byte {
 	code := assets.MustAssetString(getEpochMetadataFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateGetEpochConfigMetadataScript(env Environment) []byte {
 	code := assets.MustAssetString(getConfigMetadataFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateGetEpochPhaseScript(env Environment) []byte {
 	code := assets.MustAssetString(getEpochPhaseFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateGetRandomizeScript(env Environment) []byte {
 	code := assets.MustAssetString(getRandomizeFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateGetCreateClustersScript(env Environment) []byte {
 	code := assets.MustAssetString(getCreateClustersFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateGetCurrentViewScript(env Environment) []byte {
 	code := assets.MustAssetString(getCurrentViewFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateGetFlowTotalSupplyScript(env Environment) []byte {
 	code := assets.MustAssetString(getFlowTotalSupplyFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
