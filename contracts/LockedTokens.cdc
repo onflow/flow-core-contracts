@@ -228,7 +228,7 @@ pub contract LockedTokens {
         pub fun borrowNode(): &FlowIDTableStaking.NodeStaker? {
             let nodeOpt <- self.nodeStaker <- nil
             if let node <- nodeOpt {
-                let nodeRef = &node as? &FlowIDTableStaking.NodeStaker
+                let nodeRef = &node as &FlowIDTableStaking.NodeStaker
                 self.nodeStaker <-! node
                 return nodeRef
             } else {
