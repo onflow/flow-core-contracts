@@ -81,6 +81,16 @@ pub contract FlowStorageFees {
         }
     }
 
+    /// calculateAccountsCapacity returns the storage capacity of a batch of accounts
+    pub fun calculateAccountsCapacity(_ accountAddresses: [Address]): [UFix64] {
+        let capacities: [UFix64] = []
+        for accountAddress in accountAddresses {
+            let capacity = self.calculateAccountCapacity(accountAddress)
+            capacities.append(capacity)
+        }
+        return capacities
+    }
+
     // Amount in Flow tokens
     // Returns megabytes
     pub fun flowToStorageCapacity(_ amount: UFix64): UFix64 {
