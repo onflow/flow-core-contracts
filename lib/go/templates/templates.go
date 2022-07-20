@@ -55,7 +55,7 @@ func withHexPrefix(address string) string {
 	return fmt.Sprintf("0x%s", address)
 }
 
-func replaceAddresses(code string, env Environment) string {
+func ReplaceAddresses(code string, env Environment) string {
 
 	code = strings.ReplaceAll(
 		code,

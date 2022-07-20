@@ -44,20 +44,20 @@ const (
 func GenerateStartDKGScript(env Environment) []byte {
 	code := assets.MustAssetString(startDKGFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 // GenerateStopDKGScript generates a script for the admin that stops DKG
 func GenerateStopDKGScript(env Environment) []byte {
 	code := assets.MustAssetString(stopDKGFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateForceStopDKGScript(env Environment) []byte {
 	code := assets.MustAssetString(forceStopDKGFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 // GenerateSetSafeThresholdScript generates a script for the admin
@@ -65,13 +65,13 @@ func GenerateForceStopDKGScript(env Environment) []byte {
 func GenerateSetSafeThresholdScript(env Environment) []byte {
 	code := assets.MustAssetString(setSafeThresholdFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GeneratePublishDKGParticipantScript(env Environment) []byte {
 	code := assets.MustAssetString(publishParticipantFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 // Node Transactions
@@ -80,21 +80,21 @@ func GeneratePublishDKGParticipantScript(env Environment) []byte {
 func GenerateCreateDKGParticipantScript(env Environment) []byte {
 	code := assets.MustAssetString(createParticipantFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 // GenerateSendDKGWhiteboardMessageScript generates a script that sends a dkg final submission for a node
 func GenerateSendDKGWhiteboardMessageScript(env Environment) []byte {
 	code := assets.MustAssetString(sendWhiteBoardMessageFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 // GenerateSendDKGFinalSubmissionScript generates a script that sends a dkg final submission for a node
 func GenerateSendDKGFinalSubmissionScript(env Environment) []byte {
 	code := assets.MustAssetString(sendFinalSubmissionFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 // Scripts
@@ -102,71 +102,71 @@ func GenerateSendDKGFinalSubmissionScript(env Environment) []byte {
 func GenerateGetDKGEnabledScript(env Environment) []byte {
 	code := assets.MustAssetString(getDKGEnabledFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateGetConsensusNodesScript(env Environment) []byte {
 	code := assets.MustAssetString(getConsensusNodesFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateGetDKGCompletedScript(env Environment) []byte {
 	code := assets.MustAssetString(getdkgCompletedFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateGetDKGWhiteBoardMessagesScript(env Environment) []byte {
 	code := assets.MustAssetString(getWhiteBoardMessagesFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateGetDKGLatestWhiteBoardMessagesScript(env Environment) []byte {
 	code := assets.MustAssetString(getLatestMessagesFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateGetDKGFinalSubmissionsScript(env Environment) []byte {
 	code := assets.MustAssetString(getFinalSubmissionsFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateGetDKGNodeIsRegisteredScript(env Environment) []byte {
 	code := assets.MustAssetString(getNodeIsRegisteredFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateGetDKGNodeIsClaimedScript(env Environment) []byte {
 	code := assets.MustAssetString(getNodeIsClaimedFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateGetDKGNodeHasFinalSubmittedScript(env Environment) []byte {
 	code := assets.MustAssetString(getNodeHasSubmittedFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateGetDKGNodeFinalSubmissionScript(env Environment) []byte {
 	code := assets.MustAssetString(getNodeFinalSubmissionFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateGetDKGCanonicalFinalSubmissionScript(env Environment) []byte {
 	code := assets.MustAssetString(getCanonicalFinalSubmissionFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateGetDKGThresholdsScript(env Environment) []byte {
 	code := assets.MustAssetString(getThresholdsFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }

@@ -61,133 +61,133 @@ func GenerateDeployStakingCollectionScript() []byte {
 func GenerateCollectionSetup(env Environment) []byte {
 	code := assets.MustAssetString(collectionSetupFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateCollectionAddDelegator(env Environment) []byte {
 	code := assets.MustAssetString(collectionAddDelegatorFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateCollectionAddNode(env Environment) []byte {
 	code := assets.MustAssetString(collectionAddNodeFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateCollectionRegisterDelegator(env Environment) []byte {
 	code := assets.MustAssetString(collectionRegisterDelegatorFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateCollectionRegisterNode(env Environment) []byte {
 	code := assets.MustAssetString(collectionRegisterNodeFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateCollectionCreateMachineAccountForNodeScript(env Environment) []byte {
 	code := assets.MustAssetString(collectionCreateMachineAccountForNodeFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateCollectionRequestUnstaking(env Environment) []byte {
 	code := assets.MustAssetString(collectionRequestUnstakingFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateCollectionStakeNewTokens(env Environment) []byte {
 	code := assets.MustAssetString(collectionStakeNewTokensFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateCollectionStakeRewardedTokens(env Environment) []byte {
 	code := assets.MustAssetString(collectionStakeRewardedTokensFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateCollectionStakeUnstakedTokens(env Environment) []byte {
 	code := assets.MustAssetString(collectionStakeUnstakedTokensFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateCollectionRestakeAllStakersTokens(env Environment) []byte {
 	code := assets.MustAssetString(collectionRestakeAllStakersFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateCollectionUnstakeAll(env Environment) []byte {
 	code := assets.MustAssetString(collectionUnstakeAllFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateCollectionWithdrawRewardedTokens(env Environment) []byte {
 	code := assets.MustAssetString(collectionWithdrawRewardedTokensFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateCollectionWithdrawUnstakedTokens(env Environment) []byte {
 	code := assets.MustAssetString(collectionWithdrawUnstakedTokensFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateCollectionCloseStake(env Environment) []byte {
 	code := assets.MustAssetString(collectionCloseStakeFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateCollectionTransferNode(env Environment) []byte {
 	code := assets.MustAssetString(collectionTransferNodeFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateCollectionTransferDelegator(env Environment) []byte {
 	code := assets.MustAssetString(collectionTransferDelegatorFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateCollectionWithdrawFromMachineAccountScript(env Environment) []byte {
 	code := assets.MustAssetString(collectionWithdrawFromMachineAccountFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateCollectionUpdateNetworkingAddressScript(env Environment) []byte {
 	code := assets.MustAssetString(collectionUpdateNetworkingAddressFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateCollectionCreateNewTokenHolderAccountScript(env Environment) []byte {
 	code := assets.MustAssetString(collectionCreateNewTokenHolderAccountFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateCollectionRegisterMultipleNodesScript(env Environment) []byte {
 	code := assets.MustAssetString(collectionRegisterMultipleNodesFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateCollectionRegisterMultipleDelegatorsScript(env Environment) []byte {
 	code := assets.MustAssetString(collectionRegisterMultipleDelegatorsFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 // Script templates
@@ -195,61 +195,61 @@ func GenerateCollectionRegisterMultipleDelegatorsScript(env Environment) []byte 
 func GenerateCollectionGetDoesStakeExistScript(env Environment) []byte {
 	code := assets.MustAssetString(collectionGetDoesStakeExistFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateCollectionGetNodeIDsScript(env Environment) []byte {
 	code := assets.MustAssetString(collectionGetNodeIDs)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateCollectionGetDelegatorIDsScript(env Environment) []byte {
 	code := assets.MustAssetString(collectionGetDelegatorIDs)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateCollectionGetAllNodeInfoScript(env Environment) []byte {
 	code := assets.MustAssetString(collectionGetAllNodeInfo)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateCollectionGetAllDelegatorInfoScript(env Environment) []byte {
 	code := assets.MustAssetString(collectionGetAllDelegatorInfo)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateCollectionGetUnlockedTokensUsedScript(env Environment) []byte {
 	code := assets.MustAssetString(collectionGetUnlockedTokensUsedFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateCollectionGetLockedTokensUsedScript(env Environment) []byte {
 	code := assets.MustAssetString(collectionGetLockedTokensUsedFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateCollectionDoesAccountHaveStakingCollection(env Environment) []byte {
 	code := assets.MustAssetString(collectionDoesAccountHaveStakingCollectionFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateCollectionGetMachineAccountsScript(env Environment) []byte {
 	code := assets.MustAssetString(collectionGetMachineAccountsFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateCollectionGetMachineAccountAddressScript(env Environment) []byte {
 	code := assets.MustAssetString(collectionGetMachineAccountAddressFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 // Test Templates
@@ -257,11 +257,11 @@ func GenerateCollectionGetMachineAccountAddressScript(env Environment) []byte {
 func GenerateCollectionGetTokensScript(env Environment) []byte {
 	code := assets.MustAssetString(getCollectionTokensFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
 
 func GenerateCollectionDepositTokensScript(env Environment) []byte {
 	code := assets.MustAssetString(depositCollectionTokensFilename)
 
-	return []byte(replaceAddresses(code, env))
+	return []byte(ReplaceAddresses(code, env))
 }
