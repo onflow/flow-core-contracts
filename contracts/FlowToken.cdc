@@ -79,7 +79,9 @@ pub contract FlowToken: FungibleToken {
         }
 
         destroy() {
-            FlowToken.totalSupply = FlowToken.totalSupply - self.balance
+            if self.balance > 0.0 {
+                FlowToken.totalSupply = FlowToken.totalSupply - self.balance
+            }
         }
     }
 
