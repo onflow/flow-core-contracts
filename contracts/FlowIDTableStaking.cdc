@@ -159,6 +159,7 @@ pub contract FlowIDTableStaking {
             networkingAddress: String,
             networkingKey: String,
             stakingKey: String,
+            stakingKeyPoP: String,
             tokensCommitted: @FungibleToken.Vault
         ) {
             pre {
@@ -179,12 +180,13 @@ pub contract FlowIDTableStaking {
                 signatureAlgorithm: SignatureAlgorithm.BLS_BLS12_381
             )
 
+            // Verify the proof of possesion of the staking key
+            stakeKey.verifyPop(stakingKeyPoP.decodeHex)
+
             let netKey = PublicKey(
                 publicKey: networkingKey.decodeHex(),
                 signatureAlgorithm: SignatureAlgorithm.ECDSA_P256
             )
-
-            // TODO: Verify the provided Proof of Possession of the staking private key
 
             self.id = id
             self.role = role
@@ -1158,11 +1160,11 @@ pub contract FlowIDTableStaking {
 
     /// Any user can call this function to register a new Node
     /// It returns the resource for nodes that they can store in their account storage
-    pub fun addNodeRecord(id: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String, tokensCommitted: @FungibleToken.Vault): @NodeStaker {
+    pub fun addNodeRecord(id: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String, stakingKeyPoP: String, tokensCommitted: @FungibleToken.Vault): @NodeStaker {
         pre {
             FlowIDTableStaking.stakingEnabled(): "Cannot register a node operator if the staking auction isn't in progress"
         }
-        let newNode <- create NodeRecord(id: id, role: role, networkingAddress: networkingAddress, networkingKey: networkingKey, stakingKey: stakingKey, tokensCommitted: <-tokensCommitted)
+        let newNode <- create NodeRecord(id: id, role: role, networkingAddress: networkingAddress, networkingKey: networkingKey, stakingKey: stakingKey, tokensCommitted: <-tokensCommitted, stakingKeyPoP: stakingKeyPoP)
         FlowIDTableStaking.nodes[id] <-! newNode
 
         // return a new NodeStaker object that the node operator stores in their account

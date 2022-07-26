@@ -394,11 +394,11 @@ pub contract FlowStakingCollection {
         /// Operations to register new staking objects
 
         /// Function to register a new Staking Record to the Staking Collection
-        pub fun registerNode(id: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String, amount: UFix64, payer: AuthAccount): AuthAccount? {
+        pub fun registerNode(id: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String, stakingKeyPoP: String, amount: UFix64, payer: AuthAccount): AuthAccount? {
 
             let tokens <- self.getTokens(amount: amount)
 
-            let nodeStaker <- FlowIDTableStaking.addNodeRecord(id: id, role: role, networkingAddress: networkingAddress, networkingKey: networkingKey, stakingKey: stakingKey, tokensCommitted: <-tokens)
+            let nodeStaker <- FlowIDTableStaking.addNodeRecord(id: id, role: role, networkingAddress: networkingAddress, networkingKey: networkingKey, stakingKey: stakingKey, stakingKeyPoP: stakingKeyPoP, tokensCommitted: <-tokens)
 
             emit NodeAddedToStakingCollection(nodeID: nodeStaker.id, role: role, amountCommitted: amount, address: self.owner?.address)
 

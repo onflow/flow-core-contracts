@@ -44,7 +44,7 @@
     {
       "id": "TH.06",
       "name": "Register Node",
-      "source": "import FlowToken from 0x1654653399040a61\nimport LockedTokens from 0x8d0e87b65159ae63\nimport StakingProxy from 0x62430cf28c26d095\n\ntransaction(id: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String, amount: UFix64) {\n\n    let holderRef: \u0026LockedTokens.TokenHolder\n\n    let vaultRef: \u0026FlowToken.Vault\n\n    prepare(account: AuthAccount) {\n        self.holderRef = account.borrow\u003c\u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath)\n            ?? panic(\"Could not borrow ref to TokenHolder\")\n\n        self.vaultRef = account.borrow\u003c\u0026FlowToken.Vault\u003e(from: /storage/flowTokenVault)\n            ?? panic(\"Could not borrow flow token vault reference\")\n    }\n\n    execute {\n        let nodeInfo = StakingProxy.NodeInfo(id: id, role: role, networkingAddress: networkingAddress, networkingKey: networkingKey, stakingKey: stakingKey)\n\n        let lockedBalance = self.holderRef.getLockedAccountBalance()\n\n        if amount \u003c= lockedBalance {\n\n            self.holderRef.createNodeStaker(nodeInfo: nodeInfo, amount: amount)\n\n        } else if ((amount - lockedBalance) \u003c= self.vaultRef.balance) {\n\n            self.holderRef.deposit(from: \u003c-self.vaultRef.withdraw(amount: amount - lockedBalance))\n\n            self.holderRef.createNodeStaker(nodeInfo: nodeInfo, amount: amount)\n\n        } else {\n            panic(\"Not enough tokens to stake!\")\n        }\n        \n    }\n}\n",
+      "source": "import FlowToken from 0x1654653399040a61\nimport LockedTokens from 0x8d0e87b65159ae63\nimport StakingProxy from 0x62430cf28c26d095\n\ntransaction(id: String,\n            role: UInt8,\n            networkingAddress: String,\n            networkingKey: String,\n            stakingKey: String,\n            stakingKeyPoP: String,\n            amount: UFix64) {\n\n    let holderRef: \u0026LockedTokens.TokenHolder\n\n    let vaultRef: \u0026FlowToken.Vault\n\n    prepare(account: AuthAccount) {\n        self.holderRef = account.borrow\u003c\u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath)\n            ?? panic(\"Could not borrow ref to TokenHolder\")\n\n        self.vaultRef = account.borrow\u003c\u0026FlowToken.Vault\u003e(from: /storage/flowTokenVault)\n            ?? panic(\"Could not borrow flow token vault reference\")\n    }\n\n    execute {\n        let nodeInfo = StakingProxy.NodeInfo(id: id, role: role, networkingAddress: networkingAddress, networkingKey: networkingKey, stakingKey: stakingKey)\n\n        let lockedBalance = self.holderRef.getLockedAccountBalance()\n\n        if amount \u003c= lockedBalance {\n\n            self.holderRef.createNodeStaker(nodeInfo: nodeInfo, stakingKeyPoP: stakingKeyPoP, amount: amount)\n\n        } else if ((amount - lockedBalance) \u003c= self.vaultRef.balance) {\n\n            self.holderRef.deposit(from: \u003c-self.vaultRef.withdraw(amount: amount - lockedBalance))\n\n            self.holderRef.createNodeStaker(nodeInfo: nodeInfo, stakingKeyPoP: stakingKeyPoP, amount: amount)\n\n        } else {\n            panic(\"Not enough tokens to stake!\")\n        }\n        \n    }\n}\n",
       "arguments": [
         {
           "type": "String",
@@ -114,7 +114,7 @@
         }
       ],
       "network": "mainnet",
-      "hash": "b64e0e3ed9eb28789198f2b0437f55f750bfa76da99450f63be6543bde66122a"
+      "hash": "029fd8b9002b880612bf60d08d007970907d0051848e29e0615c710e9d111cd2"
     },
     {
       "id": "TH.08",
@@ -499,7 +499,7 @@
     {
       "id": "SCO.03",
       "name": "Register Node",
-      "source": "import Crypto\nimport FlowStakingCollection from 0x8d0e87b65159ae63\n\n/// Registers a delegator in the staking collection resource\n/// for the specified node information and the amount of tokens to commit\n\ntransaction(id: String,\n            role: UInt8,\n            networkingAddress: String,\n            networkingKey: String,\n            stakingKey: String,\n            amount: UFix64,\n            publicKeys: [Crypto.KeyListEntry]?) {\n    \n    let stakingCollectionRef: \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: AuthAccount) {\n        self.stakingCollectionRef = account.borrow\u003c\u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow ref to StakingCollection\")\n\n        if let machineAccount = self.stakingCollectionRef.registerNode(\n            id: id,\n            role: role,\n            networkingAddress: networkingAddress,\n            networkingKey: networkingKey,\n            stakingKey: stakingKey,\n            amount: amount,\n            payer: account) \n        {\n            if publicKeys == nil || publicKeys!.length == 0 {\n                panic(\"Cannot provide zero keys for the machine account\")\n            }\n            for key in publicKeys! {\n                machineAccount.keys.add(publicKey: key.publicKey, hashAlgorithm: key.hashAlgorithm, weight: key.weight)\n            }\n        }\n    }\n}\n",
+      "source": "import Crypto\nimport FlowStakingCollection from 0x8d0e87b65159ae63\n\n/// Registers a delegator in the staking collection resource\n/// for the specified node information and the amount of tokens to commit\n\ntransaction(id: String,\n            role: UInt8,\n            networkingAddress: String,\n            networkingKey: String,\n            stakingKey: String,\n            stakingKeyPoP: String,\n            amount: UFix64,\n            publicKeys: [Crypto.KeyListEntry]?) {\n    \n    let stakingCollectionRef: \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: AuthAccount) {\n        self.stakingCollectionRef = account.borrow\u003c\u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow ref to StakingCollection\")\n\n        if let machineAccount = self.stakingCollectionRef.registerNode(\n            id: id,\n            role: role,\n            networkingAddress: networkingAddress,\n            networkingKey: networkingKey,\n            stakingKey: stakingKey,\n            stakingKeyPoP: stakingKeyPoP,\n            amount: amount,\n            payer: account) \n        {\n            if publicKeys == nil || publicKeys!.length == 0 {\n                panic(\"Cannot provide zero keys for the machine account\")\n            }\n            for key in publicKeys! {\n                machineAccount.keys.add(publicKey: key.publicKey, hashAlgorithm: key.hashAlgorithm, weight: key.weight)\n            }\n        }\n    }\n}\n",
       "arguments": [
         {
           "type": "String",
@@ -619,7 +619,7 @@
         }
       ],
       "network": "mainnet",
-      "hash": "79de7119aea61bdafb39cc3d1f4fa17ca802c2732726a86d2c636dbc19808b68"
+      "hash": "809d4a5d80ba7240a743be6579b0c03fe38ce1cb6e461aaef20b84e29c3c0c73"
     },
     {
       "id": "SCO.04",
