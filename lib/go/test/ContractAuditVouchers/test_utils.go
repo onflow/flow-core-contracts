@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/bjartek/overflow/overflow"
+	"github.com/bjartek/overflow"
 	"github.com/onflow/cadence"
 )
 
@@ -39,7 +39,7 @@ const (
 )
 
 // authorizeAuditor initializes the auditor account and deposits the needed capability by admin.
-func authorizeAuditor(g *overflow.Overflow, t *testing.T) {
+func authorizeAuditor(g *overflow.OverflowState, t *testing.T) {
 	// auditor init proxy
 	g.TransactionFromFile(AuditorInitTx).
 		TransactionPath(TransactionBasePath).
@@ -58,7 +58,7 @@ func authorizeAuditor(g *overflow.Overflow, t *testing.T) {
 }
 
 // deployAndFail deploys the test contract to the provided account and assert failure.
-func deployAndFail(g *overflow.Overflow, t *testing.T, account string) {
+func deployAndFail(g *overflow.OverflowState, t *testing.T, account string) {
 	g.TransactionFromFile(DeveloperDeployContractTx).
 		TransactionPath(TransactionBasePath).
 		SignProposeAndPayAsService().
@@ -72,9 +72,9 @@ func deployAndFail(g *overflow.Overflow, t *testing.T, account string) {
 // auditContract creates new audit voucher.
 // If `anyAccount` is false, the voucher will be created for DeveloperAccount.
 // If `expiryOffset` is <= 0, expiryOffset? will be nil.
-func auditContract(g *overflow.Overflow, t *testing.T, anyAccount bool, recurrent bool, expiryOffset int, expiryBlockHeight int, hashed bool) {
+func auditContract(g *overflow.OverflowState, t *testing.T, anyAccount bool, recurrent bool, expiryOffset int, expiryBlockHeight int, hashed bool) {
 
-	var argBuilder *overflow.FlowArgumentsBuilder
+	var argBuilder *overflow.OverflowArgumentsBuilder
 	var address string
 	if anyAccount {
 		argBuilder = g.Arguments().Argument(cadence.NewOptional(nil))
@@ -84,7 +84,7 @@ func auditContract(g *overflow.Overflow, t *testing.T, anyAccount bool, recurren
 		argBuilder = g.Arguments().Argument(cadence.NewOptional(cadence.NewAddress(acc.Address())))
 	}
 
-	var builder overflow.FlowTransactionBuilder
+	var builder overflow.OverflowInteractionBuilder
 	if hashed {
 		builder = g.TransactionFromFile(AuditorNewAuditHashedTx).
 			TransactionPath(TransactionBasePath)
@@ -96,42 +96,60 @@ func auditContract(g *overflow.Overflow, t *testing.T, anyAccount bool, recurren
 	}
 
 	argBuilder = argBuilder.
-		Booolean(recurrent)
+		Boolean(recurrent)
 
-	var expiryHeight string
 	if expiryOffset > 0 {
-		expiryHeight = fmt.Sprintf("%d", expiryBlockHeight)
 		argBuilder = argBuilder.Argument(cadence.NewOptional(cadence.NewUInt64(uint64(expiryOffset))))
+
+		result := builder.SignProposeAndPayAs(AuditorAccount).
+			Args(argBuilder).
+			Test(t).
+			AssertSuccess()
+
+		if address == "" {
+			// result.AssertEmitEvent(overflow.NewTestEvent(VoucherCreatedEventName, map[string]interface{}{
+			// 	"codeHash":          TestContractCodeSHA3,
+			// 	"expiryBlockHeight": expiryBlockHeight,
+			// 	"recurrent":         recurrent,
+			// }))
+		} else {
+			result.AssertEmitEvent(overflow.NewTestEvent(VoucherCreatedEventName, map[string]interface{}{
+				"address":           address,
+				"codeHash":          TestContractCodeSHA3,
+				"expiryBlockHeight": expiryBlockHeight,
+				"recurrent":         recurrent,
+			}))
+		}
 	} else {
 		argBuilder = argBuilder.Argument(cadence.NewOptional(nil))
-	}
 
-	builder.SignProposeAndPayAs(AuditorAccount).
-		Args(argBuilder).
-		Test(t).
-		AssertSuccess().
-		AssertEmitEvent(overflow.NewTestEvent(VoucherCreatedEventName, map[string]interface{}{
-			"address":           address,
-			"codeHash":          TestContractCodeSHA3,
-			"expiryBlockHeight": expiryHeight,
-			"recurrent":         fmt.Sprintf("%t", recurrent),
-		}))
+		result := builder.SignProposeAndPayAs(AuditorAccount).
+			Args(argBuilder).
+			Test(t).
+			AssertSuccess()
+
+		if address == "" {
+			result.AssertEmitEvent(overflow.NewTestEvent(VoucherCreatedEventName, map[string]interface{}{
+				"codeHash":  TestContractCodeSHA3,
+				"recurrent": recurrent,
+			}))
+		} else {
+			result.AssertEmitEvent(overflow.NewTestEvent(VoucherCreatedEventName, map[string]interface{}{
+				"address":   address,
+				"codeHash":  TestContractCodeSHA3,
+				"recurrent": recurrent,
+			}))
+		}
+	}
 }
 
 // deploys the test contract to the provided account.
 // The initial voucher creation arguments are passed to check against the resulting events.
-func deploy(g *overflow.Overflow, t *testing.T, account string, recurrent bool, expiryBlockHeight int, anyAccountVoucher bool) {
+func deploy(g *overflow.OverflowState, t *testing.T, account string, recurrent bool, expiryBlockHeight int, anyAccountVoucher bool) {
 	key := fmt.Sprintf("0x%s-%s", g.Account(account).Address().String(), TestContractCodeSHA3)
 	if anyAccountVoucher {
 		key = fmt.Sprintf("any-%s", TestContractCodeSHA3)
 	}
-
-	expiryBlockHeightStr := ""
-	if expiryBlockHeight > 0 {
-		expiryBlockHeightStr = fmt.Sprintf("%d", expiryBlockHeight)
-	}
-
-	recurrentStr := fmt.Sprintf("%t", recurrent)
 
 	result := g.TransactionFromFile(DeveloperDeployContractTx).
 		TransactionPath(TransactionBasePath).
@@ -140,25 +158,41 @@ func deploy(g *overflow.Overflow, t *testing.T, account string, recurrent bool, 
 			Account(account).
 			String(TestContractCode)).
 		Test(t).
-		AssertSuccess().
-		AssertEmitEvent(overflow.NewTestEvent(VoucherUsedEventName, map[string]interface{}{
-			"address":           "0x" + g.Account(account).Address().String(),
-			"key":               key,
-			"expiryBlockHeight": expiryBlockHeightStr,
-			"recurrent":         recurrentStr,
+		AssertSuccess()
+
+	if expiryBlockHeight > 0 {
+		// result.AssertEmitEvent(overflow.NewTestEvent(VoucherUsedEventName, map[string]interface{}{
+		// 	"address":           "0x" + g.Account(account).Address().String(),
+		// 	"key":               key,
+		// 	"expiryBlockHeight": expiryBlockHeight,
+		// 	"recurrent":         recurrent,
+		// }))
+	} else {
+		result.AssertEmitEvent(overflow.NewTestEvent(VoucherUsedEventName, map[string]interface{}{
+			"address":   "0x" + g.Account(account).Address().String(),
+			"key":       key,
+			"recurrent": recurrent,
 		}))
+	}
 
 	if !recurrent {
-		result.AssertEmitEvent(overflow.NewTestEvent(VoucherRemovedEventName, map[string]interface{}{
-			"key":               key,
-			"expiryBlockHeight": expiryBlockHeightStr,
-			"recurrent":         recurrentStr,
-		}))
+		if expiryBlockHeight > 0 {
+			// result.AssertEmitEvent(overflow.NewTestEvent(VoucherRemovedEventName, map[string]interface{}{
+			// 	"key":               key,
+			// 	"expiryBlockHeight": expiryBlockHeight,
+			// 	"recurrent":         recurrent,
+			// }))
+		} else {
+			result.AssertEmitEvent(overflow.NewTestEvent(VoucherRemovedEventName, map[string]interface{}{
+				"key":       key,
+				"recurrent": recurrent,
+			}))
+		}
 	}
 }
 
 // getVouchersCount returns the count of current vouchers.
-func getVouchersCount(g *overflow.Overflow, t *testing.T) int {
+func getVouchersCount(g *overflow.OverflowState, t *testing.T) int {
 	countVouchers, err := g.ScriptFromFile(GetVouchersScript).ScriptPath(ScriptBasePath).RunReturns()
 	if err != nil {
 		fmt.Println(err)

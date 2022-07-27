@@ -17,7 +17,7 @@ transaction(id: String, role: UInt8, networkingAddress: String, networkingKey: S
     }
 
     execute {
-        let nodeInfo = StakingProxy.NodeInfo(id: id, role: role, networkingAddress: networkingAddress, networkingKey: networkingKey, stakingKey: stakingKey)
+        let nodeInfo = StakingProxy.NodeInfo(nodeID: id, role: role, networkingAddress: networkingAddress, networkingKey: networkingKey, stakingKey: stakingKey)
 
         let lockedBalance = self.holderRef.getLockedAccountBalance()
 

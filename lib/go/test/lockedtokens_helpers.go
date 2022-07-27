@@ -93,10 +93,12 @@ func deployLockedTokensContract(
 	tx.AddRawArgument(jsoncdc.MustEncode(cadenceCode))
 	tx.AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys))
 
+	serviceSigner, _ := b.ServiceKey().Signer()
+
 	// Sign and submit the transaction
 	err = tx.SignPayload(adminAddress, 0, adminSigner)
 	assert.NoError(t, err)
-	err = tx.SignEnvelope(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().Signer())
+	err = tx.SignEnvelope(b.ServiceKey().Address, b.ServiceKey().Index, serviceSigner)
 	require.NoError(t, err)
 	err = b.AddTransaction(*tx)
 	require.NoError(t, err)
@@ -132,8 +134,8 @@ func deployLockedTokensContract(
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address},
-		[]crypto.Signer{b.ServiceKey().Signer()},
+		[]flow.Address{},
+		[]crypto.Signer{},
 		false,
 	)
 
@@ -175,8 +177,8 @@ func createLockedAccountPairWithBalances(
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, adminAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
+		[]flow.Address{adminAddress},
+		[]crypto.Signer{adminSigner},
 		false,
 	)
 
@@ -210,8 +212,8 @@ func createLockedAccountPairWithBalances(
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, adminAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
+			[]flow.Address{adminAddress},
+			[]crypto.Signer{adminSigner},
 			false,
 		)
 
@@ -304,8 +306,8 @@ func deployCollectionContract(t *testing.T, b *emulator.Blockchain,
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, lockedTokensAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), lockedTokensSigner},
+		[]flow.Address{lockedTokensAddress},
+		[]crypto.Signer{lockedTokensSigner},
 		false,
 	)
 }
@@ -394,8 +396,8 @@ func registerStakingCollectionNodesAndDelegators(
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, newUserAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), newUserSigner},
+		[]flow.Address{newUserAddress},
+		[]crypto.Signer{newUserSigner},
 		false,
 	)
 
@@ -406,8 +408,8 @@ func registerStakingCollectionNodesAndDelegators(
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, newUserAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), newUserSigner},
+		[]flow.Address{newUserAddress},
+		[]crypto.Signer{newUserSigner},
 		false,
 	)
 
@@ -416,8 +418,8 @@ func registerStakingCollectionNodesAndDelegators(
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, newUserAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), newUserSigner},
+		[]flow.Address{newUserAddress},
+		[]crypto.Signer{newUserSigner},
 		false,
 	)
 
@@ -435,8 +437,8 @@ func registerStakingCollectionNodesAndDelegators(
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, newUserAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), newUserSigner},
+		[]flow.Address{newUserAddress},
+		[]crypto.Signer{newUserSigner},
 		false,
 	)
 
@@ -447,8 +449,8 @@ func registerStakingCollectionNodesAndDelegators(
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, newUserAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), newUserSigner},
+		[]flow.Address{newUserAddress},
+		[]crypto.Signer{newUserSigner},
 		false,
 	)
 

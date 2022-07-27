@@ -107,8 +107,8 @@ func deployStakingContract(t *testing.T, b *emulator.Blockchain, IDTableAccountK
 	// Submit the deployment transaction
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address},
-		[]crypto.Signer{b.ServiceKey().Signer()},
+		[]flow.Address{},
+		[]crypto.Signer{},
 		false,
 	)
 
@@ -138,8 +138,8 @@ func deployStakingContract(t *testing.T, b *emulator.Blockchain, IDTableAccountK
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, feesAddr, idTableAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner, IDTableSigner},
+		[]flow.Address{feesAddr, idTableAddress},
+		[]crypto.Signer{IDTableSigner, IDTableSigner},
 		false,
 	)
 
@@ -351,8 +351,8 @@ func registerNode(t *testing.T,
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, authorizer},
-		[]crypto.Signer{b.ServiceKey().Signer(), signer},
+		[]flow.Address{authorizer},
+		[]crypto.Signer{signer},
 		shouldFail,
 	)
 
@@ -384,8 +384,8 @@ func registerDelegator(t *testing.T,
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, authorizer},
-		[]crypto.Signer{b.ServiceKey().Signer(), signer},
+		[]flow.Address{authorizer},
+		[]crypto.Signer{signer},
 		shouldFail,
 	)
 }
@@ -405,8 +405,8 @@ func endStakingMoveTokens(t *testing.T,
 	require.NoError(t, err)
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, authorizer},
-		[]crypto.Signer{b.ServiceKey().Signer(), signer},
+		[]flow.Address{authorizer},
+		[]crypto.Signer{signer},
 		false,
 	)
 }
@@ -483,8 +483,8 @@ func commitNewTokens(t *testing.T,
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, authorizer},
-		[]crypto.Signer{b.ServiceKey().Signer(), signer},
+		[]flow.Address{authorizer},
+		[]crypto.Signer{signer},
 		shouldFail,
 	)
 
@@ -521,8 +521,8 @@ func commitUnstaked(t *testing.T,
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, authorizer},
-		[]crypto.Signer{b.ServiceKey().Signer(), signer},
+		[]flow.Address{authorizer},
+		[]crypto.Signer{signer},
 		shouldFail,
 	)
 
@@ -560,8 +560,8 @@ func commitRewarded(t *testing.T,
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, authorizer},
-		[]crypto.Signer{b.ServiceKey().Signer(), signer},
+		[]flow.Address{authorizer},
+		[]crypto.Signer{signer},
 		shouldFail,
 	)
 
@@ -599,8 +599,8 @@ func requestUnstaking(t *testing.T,
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, authorizer},
-		[]crypto.Signer{b.ServiceKey().Signer(), signer},
+		[]flow.Address{authorizer},
+		[]crypto.Signer{signer},
 		shouldFail,
 	)
 

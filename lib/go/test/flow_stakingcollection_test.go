@@ -70,8 +70,8 @@ func TestStakingCollectionGetTokens(t *testing.T) {
 
 		signAndSubmit(
 			t, b, addStakingCollectionToRegAcctWithNoLockedAcctTx,
-			[]flow.Address{b.ServiceKey().Address, regAccountAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), regAccountSigner},
+			[]flow.Address{regAccountAddress},
+			[]crypto.Signer{regAccountSigner},
 			false,
 		)
 
@@ -95,8 +95,8 @@ func TestStakingCollectionGetTokens(t *testing.T) {
 
 		signAndSubmit(
 			t, b, getTokensWithInsufficientBalanceTx,
-			[]flow.Address{b.ServiceKey().Address, regAccountAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), regAccountSigner},
+			[]flow.Address{regAccountAddress},
+			[]crypto.Signer{regAccountSigner},
 			true,
 		)
 
@@ -106,8 +106,8 @@ func TestStakingCollectionGetTokens(t *testing.T) {
 
 		signAndSubmit(
 			t, b, getTokensWithSufficientBalanceTx,
-			[]flow.Address{b.ServiceKey().Address, regAccountAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), regAccountSigner},
+			[]flow.Address{regAccountAddress},
+			[]crypto.Signer{regAccountSigner},
 			false,
 		)
 
@@ -136,8 +136,8 @@ func TestStakingCollectionGetTokens(t *testing.T) {
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionSetup(env), joshAddress)
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, joshAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+		[]flow.Address{joshAddress},
+		[]crypto.Signer{joshSigner},
 		false,
 	)
 
@@ -149,8 +149,8 @@ func TestStakingCollectionGetTokens(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			true,
 		)
 
@@ -160,8 +160,8 @@ func TestStakingCollectionGetTokens(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -191,8 +191,8 @@ func TestStakingCollectionGetTokens(t *testing.T) {
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, maxAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), maxSigner},
+		[]flow.Address{maxAddress},
+		[]crypto.Signer{maxSigner},
 		false,
 	)
 
@@ -204,8 +204,8 @@ func TestStakingCollectionGetTokens(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, maxAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), maxSigner},
+			[]flow.Address{maxAddress},
+			[]crypto.Signer{maxSigner},
 			true,
 		)
 
@@ -215,8 +215,8 @@ func TestStakingCollectionGetTokens(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, maxAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), maxSigner},
+			[]flow.Address{maxAddress},
+			[]crypto.Signer{maxSigner},
 			false,
 		)
 
@@ -246,8 +246,8 @@ func TestStakingCollectionGetTokens(t *testing.T) {
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, jeffAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), jeffSigner},
+		[]flow.Address{jeffAddress},
+		[]crypto.Signer{jeffSigner},
 		false,
 	)
 
@@ -258,8 +258,8 @@ func TestStakingCollectionGetTokens(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, jeffAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), jeffSigner},
+			[]flow.Address{jeffAddress},
+			[]crypto.Signer{jeffSigner},
 			true,
 		)
 
@@ -269,8 +269,8 @@ func TestStakingCollectionGetTokens(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, jeffAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), jeffSigner},
+			[]flow.Address{jeffAddress},
+			[]crypto.Signer{jeffSigner},
 			false,
 		)
 
@@ -313,8 +313,8 @@ func TestStakingCollectionDepositTokens(t *testing.T) {
 	addStakingCollectionToRegAcctWithNoLockedAcctTx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionSetup(env), regAccountAddress)
 	signAndSubmit(
 		t, b, addStakingCollectionToRegAcctWithNoLockedAcctTx,
-		[]flow.Address{b.ServiceKey().Address, regAccountAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), regAccountSigner},
+		[]flow.Address{regAccountAddress},
+		[]crypto.Signer{regAccountSigner},
 		false,
 	)
 
@@ -325,8 +325,8 @@ func TestStakingCollectionDepositTokens(t *testing.T) {
 
 		signAndSubmit(
 			t, b, getTokensWithSufficientBalanceTx,
-			[]flow.Address{b.ServiceKey().Address, regAccountAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), regAccountSigner},
+			[]flow.Address{regAccountAddress},
+			[]crypto.Signer{regAccountSigner},
 			false,
 		)
 
@@ -355,8 +355,8 @@ func TestStakingCollectionDepositTokens(t *testing.T) {
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionSetup(env), joshAddress)
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, joshAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+		[]flow.Address{joshAddress},
+		[]crypto.Signer{joshSigner},
 		false,
 	)
 
@@ -367,8 +367,8 @@ func TestStakingCollectionDepositTokens(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -397,8 +397,8 @@ func TestStakingCollectionDepositTokens(t *testing.T) {
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionSetup(env), jeffAddress)
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, jeffAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), jeffSigner},
+		[]flow.Address{jeffAddress},
+		[]crypto.Signer{jeffSigner},
 		false,
 	)
 
@@ -410,8 +410,8 @@ func TestStakingCollectionDepositTokens(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, jeffAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), jeffSigner},
+			[]flow.Address{jeffAddress},
+			[]crypto.Signer{jeffSigner},
 			false,
 		)
 
@@ -479,15 +479,15 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 	require.NoError(t, err)
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, flow.HexToAddress(env.IDTableAddress)},
-		[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+		[]flow.Address{flow.HexToAddress(env.IDTableAddress)},
+		[]crypto.Signer{IDTableSigner},
 		false,
 	)
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GeneratePayRewardsScript(env), flow.HexToAddress(env.IDTableAddress))
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, flow.HexToAddress(env.IDTableAddress)},
-		[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+		[]flow.Address{flow.HexToAddress(env.IDTableAddress)},
+		[]crypto.Signer{IDTableSigner},
 		false,
 	)
 
@@ -498,8 +498,8 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, userAddresses[0]},
-			[]crypto.Signer{b.ServiceKey().Signer(), userSigners[0]},
+			[]flow.Address{userAddresses[0]},
+			[]crypto.Signer{userSigners[0]},
 			false,
 		)
 
@@ -547,8 +547,8 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, joshAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+		[]flow.Address{joshAddress},
+		[]crypto.Signer{joshSigner},
 		false,
 	)
 
@@ -558,8 +558,8 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, joshAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+		[]flow.Address{joshAddress},
+		[]crypto.Signer{joshSigner},
 		false,
 	)
 
@@ -571,8 +571,8 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -613,8 +613,8 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			true,
 		)
 	})
@@ -641,8 +641,8 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 		result := signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -654,8 +654,8 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -687,8 +687,8 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 		result := signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -719,8 +719,8 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			true,
 		)
 
@@ -730,8 +730,8 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -763,8 +763,8 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -775,8 +775,8 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			true,
 		)
 
@@ -793,8 +793,8 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -819,8 +819,8 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -873,15 +873,15 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 	require.NoError(t, err)
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, flow.HexToAddress(env.IDTableAddress)},
-		[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+		[]flow.Address{flow.HexToAddress(env.IDTableAddress)},
+		[]crypto.Signer{IDTableSigner},
 		false,
 	)
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GeneratePayRewardsScript(env), flow.HexToAddress(env.IDTableAddress))
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, flow.HexToAddress(env.IDTableAddress)},
-		[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+		[]flow.Address{flow.HexToAddress(env.IDTableAddress)},
+		[]crypto.Signer{IDTableSigner},
 		false,
 	)
 
@@ -899,8 +899,8 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, userAddresses[0]},
-			[]crypto.Signer{b.ServiceKey().Signer(), userSigners[0]},
+			[]flow.Address{userAddresses[0]},
+			[]crypto.Signer{userSigners[0]},
 			false,
 		)
 
@@ -921,8 +921,8 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 
 		result := signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, userAddresses[0]},
-			[]crypto.Signer{b.ServiceKey().Signer(), userSigners[0]},
+			[]flow.Address{userAddresses[0]},
+			[]crypto.Signer{userSigners[0]},
 			false,
 		)
 
@@ -965,8 +965,8 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, joshAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+		[]flow.Address{joshAddress},
+		[]crypto.Signer{joshSigner},
 		false,
 	)
 
@@ -978,8 +978,8 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -1000,8 +1000,8 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 
 		result := signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -1060,8 +1060,8 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			true,
 		)
 
@@ -1073,8 +1073,8 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -1086,8 +1086,8 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -1099,8 +1099,8 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -1112,8 +1112,8 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -1183,8 +1183,8 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			true,
 		)
 
@@ -1196,8 +1196,8 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -1209,8 +1209,8 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -1222,8 +1222,8 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -1235,8 +1235,8 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -1306,8 +1306,8 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			true,
 		)
 
@@ -1319,8 +1319,8 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -1332,8 +1332,8 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -1345,8 +1345,8 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -1358,8 +1358,8 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -1429,8 +1429,8 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			true,
 		)
 
@@ -1442,8 +1442,8 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -1455,8 +1455,8 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -1468,8 +1468,8 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -1481,8 +1481,8 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -1575,15 +1575,15 @@ func TestStakingCollectionRewards(t *testing.T) {
 	require.NoError(t, err)
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, flow.HexToAddress(env.IDTableAddress)},
-		[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+		[]flow.Address{flow.HexToAddress(env.IDTableAddress)},
+		[]crypto.Signer{IDTableSigner},
 		false,
 	)
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GeneratePayRewardsScript(env), flow.HexToAddress(env.IDTableAddress))
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, flow.HexToAddress(env.IDTableAddress)},
-		[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+		[]flow.Address{flow.HexToAddress(env.IDTableAddress)},
+		[]crypto.Signer{IDTableSigner},
 		false,
 	)
 
@@ -1597,8 +1597,8 @@ func TestStakingCollectionRewards(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			true,
 		)
 
@@ -1610,8 +1610,8 @@ func TestStakingCollectionRewards(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -1623,8 +1623,8 @@ func TestStakingCollectionRewards(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -1636,8 +1636,8 @@ func TestStakingCollectionRewards(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -1649,8 +1649,8 @@ func TestStakingCollectionRewards(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -1720,8 +1720,8 @@ func TestStakingCollectionRewards(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			true,
 		)
 
@@ -1733,8 +1733,8 @@ func TestStakingCollectionRewards(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -1746,8 +1746,8 @@ func TestStakingCollectionRewards(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -1759,8 +1759,8 @@ func TestStakingCollectionRewards(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -1772,8 +1772,8 @@ func TestStakingCollectionRewards(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -1841,8 +1841,8 @@ func TestStakingCollectionRewards(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			true,
 		)
 
@@ -1852,8 +1852,8 @@ func TestStakingCollectionRewards(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -1863,8 +1863,8 @@ func TestStakingCollectionRewards(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -1931,8 +1931,8 @@ func TestStakingCollectionRewards(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 	})
@@ -1975,8 +1975,8 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			true,
 		)
 
@@ -1986,8 +1986,8 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			true,
 		)
 
@@ -1998,8 +1998,8 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			true,
 		)
 
@@ -2009,8 +2009,8 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			true,
 		)
 
@@ -2026,8 +2026,8 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			true,
 		)
 
@@ -2037,8 +2037,8 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			true,
 		)
 
@@ -2049,8 +2049,8 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			true,
 		)
 
@@ -2060,8 +2060,8 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			true,
 		)
 
@@ -2082,8 +2082,8 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -2095,8 +2095,8 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -2108,8 +2108,8 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -2119,8 +2119,8 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -2136,8 +2136,8 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			true,
 		)
 
@@ -2147,8 +2147,8 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			true,
 		)
 
@@ -2159,8 +2159,8 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			true,
 		)
 
@@ -2170,8 +2170,8 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			true,
 		)
 
@@ -2208,8 +2208,8 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -2231,8 +2231,8 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -2254,8 +2254,8 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -2265,8 +2265,8 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -2371,8 +2371,8 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, jeffAddress2},
-			[]crypto.Signer{b.ServiceKey().Signer(), jeff2Signer},
+			[]flow.Address{jeffAddress2},
+			[]crypto.Signer{jeff2Signer},
 			false,
 		)
 
@@ -2382,8 +2382,8 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, jeffAddress1},
-			[]crypto.Signer{b.ServiceKey().Signer(), jeffSigner1},
+			[]flow.Address{jeffAddress1},
+			[]crypto.Signer{jeffSigner1},
 			true,
 		)
 	})
@@ -2427,8 +2427,8 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, jeffAddress2},
-			[]crypto.Signer{b.ServiceKey().Signer(), jeff2Signer},
+			[]flow.Address{jeffAddress2},
+			[]crypto.Signer{jeff2Signer},
 			false,
 		)
 
@@ -2439,8 +2439,8 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, jeffAddress1},
-			[]crypto.Signer{b.ServiceKey().Signer(), jeffSigner1},
+			[]flow.Address{jeffAddress1},
+			[]crypto.Signer{jeffSigner1},
 			true,
 		)
 	})
@@ -2484,8 +2484,8 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, jeffAddress2},
-			[]crypto.Signer{b.ServiceKey().Signer(), jeff2Signer},
+			[]flow.Address{jeffAddress2},
+			[]crypto.Signer{jeff2Signer},
 			false,
 		)
 
@@ -2517,8 +2517,8 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, jeffAddress1},
-			[]crypto.Signer{b.ServiceKey().Signer(), jeffSigner1},
+			[]flow.Address{jeffAddress1},
+			[]crypto.Signer{jeffSigner1},
 			false,
 		)
 
@@ -2573,8 +2573,8 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, jeffAddress2},
-			[]crypto.Signer{b.ServiceKey().Signer(), jeff2Signer},
+			[]flow.Address{jeffAddress2},
+			[]crypto.Signer{jeff2Signer},
 			false,
 		)
 
@@ -2607,8 +2607,8 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, jeffAddress1},
-			[]crypto.Signer{b.ServiceKey().Signer(), jeffSigner1},
+			[]flow.Address{jeffAddress1},
+			[]crypto.Signer{jeffSigner1},
 			false,
 		)
 
@@ -2663,8 +2663,8 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, jeffAddress2},
-			[]crypto.Signer{b.ServiceKey().Signer(), jeff2Signer},
+			[]flow.Address{jeffAddress2},
+			[]crypto.Signer{jeff2Signer},
 			false,
 		)
 
@@ -2685,8 +2685,8 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, jeffAddress1},
-			[]crypto.Signer{b.ServiceKey().Signer(), jeffSigner1},
+			[]flow.Address{jeffAddress1},
+			[]crypto.Signer{jeffSigner1},
 			true,
 		)
 	})
@@ -2730,8 +2730,8 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, jeffAddress2},
-			[]crypto.Signer{b.ServiceKey().Signer(), jeff2Signer},
+			[]flow.Address{jeffAddress2},
+			[]crypto.Signer{jeff2Signer},
 			false,
 		)
 
@@ -2753,8 +2753,8 @@ func TestStakingCollectionRemoveNodeStaker(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, jeffAddress1},
-			[]crypto.Signer{b.ServiceKey().Signer(), jeffSigner1},
+			[]flow.Address{jeffAddress1},
+			[]crypto.Signer{jeffSigner1},
 			true,
 		)
 	})
@@ -2804,8 +2804,8 @@ func TestStakingCollectionCreateNewTokenHolder(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, jeffAddress2},
-			[]crypto.Signer{b.ServiceKey().Signer(), jeff2Signer},
+			[]flow.Address{jeffAddress2},
+			[]crypto.Signer{jeff2Signer},
 			false,
 		)
 
@@ -2819,10 +2819,12 @@ func TestStakingCollectionCreateNewTokenHolder(t *testing.T) {
 		cadencePublicKeys := cadence.NewArray(publicKeys)
 		_ = tx.AddArgument(cadencePublicKeys)
 
+		serviceSigner, _ := b.ServiceKey().Signer()
+
 		// Sign and submit the transaction
 		err = tx.SignPayload(lockedAddress, 0, adminSigner)
 		assert.NoError(t, err)
-		err = tx.SignEnvelope(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().Signer())
+		err = tx.SignEnvelope(b.ServiceKey().Address, b.ServiceKey().Index, serviceSigner)
 		require.NoError(t, err)
 		err = b.AddTransaction(*tx)
 		require.NoError(t, err)
@@ -2865,8 +2867,8 @@ func TestStakingCollectionCreateNewTokenHolder(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, newAccountAddr},
-			[]crypto.Signer{b.ServiceKey().Signer(), newAccountSigner},
+			[]flow.Address{newAccountAddr},
+			[]crypto.Signer{newAccountSigner},
 			false,
 		)
 	})
@@ -2905,8 +2907,8 @@ func TestStakingCollectionRegisterMultipleNodes(t *testing.T) {
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, jeffAddress2},
-		[]crypto.Signer{b.ServiceKey().Signer(), jeff2Signer},
+		[]flow.Address{jeffAddress2},
+		[]crypto.Signer{jeff2Signer},
 		false,
 	)
 
@@ -2966,8 +2968,8 @@ func TestStakingCollectionRegisterMultipleNodes(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, jeffAddress2},
-			[]crypto.Signer{b.ServiceKey().Signer(), jeff2Signer},
+			[]flow.Address{jeffAddress2},
+			[]crypto.Signer{jeff2Signer},
 			false,
 		)
 
@@ -2992,8 +2994,8 @@ func TestStakingCollectionRegisterMultipleNodes(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, jeffAddress2},
-			[]crypto.Signer{b.ServiceKey().Signer(), jeff2Signer},
+			[]flow.Address{jeffAddress2},
+			[]crypto.Signer{jeff2Signer},
 			false,
 		)
 

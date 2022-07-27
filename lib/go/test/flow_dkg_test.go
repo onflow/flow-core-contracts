@@ -59,8 +59,8 @@ func TestDKG(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, DKGAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), DKGSigner},
+			[]flow.Address{DKGAddress},
+			[]crypto.Signer{DKGSigner},
 			false,
 		)
 	})
@@ -75,8 +75,8 @@ func TestDKG(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, jordanAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), jordanSigner},
+			[]flow.Address{jordanAddress},
+			[]crypto.Signer{jordanSigner},
 			false,
 		)
 
@@ -95,8 +95,8 @@ func TestDKG(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, DKGAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), DKGSigner},
+			[]flow.Address{DKGAddress},
+			[]crypto.Signer{DKGSigner},
 			true,
 		)
 
@@ -110,14 +110,15 @@ func TestDKG(t *testing.T) {
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGWhiteBoardMessagesScript(env), nil)
 
-		assert.Equal(t, cadence.NewArray(make([]cadence.Value, 0)), result)
+		assert.Equal(t, 0, len(result.(cadence.Array).Values))
 	})
 
 	////////////////////////// FIRST EPOCH ///////////////////////////////////
 
 	dkgNodeIDStrings := make([]cadence.Value, 1)
-
 	dkgNodeIDStrings[0], _ = cadence.NewString(adminID)
+
+	dkgNodeIDsCadenceArray := cadence.Array{Values: []cadence.Value{cadence.String(adminID)}}.WithType(cadence.NewVariableSizedArrayType(cadence.NewStringType()))
 
 	t.Run("Should start dkg with the admin", func(t *testing.T) {
 
@@ -128,8 +129,8 @@ func TestDKG(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, DKGAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), DKGSigner},
+			[]flow.Address{DKGAddress},
+			[]crypto.Signer{DKGSigner},
 			false,
 		)
 
@@ -144,11 +145,11 @@ func TestDKG(t *testing.T) {
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetConsensusNodesScript(env), nil)
 
-		assert.Equal(t, cadence.NewArray(dkgNodeIDStrings), result)
+		assert.Equal(t, dkgNodeIDsCadenceArray, result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGFinalSubmissionsScript(env), nil)
 
-		assert.Equal(t, cadence.NewArray(make([]cadence.Value, 0)), result)
+		assert.Equal(t, 0, len(result.(cadence.Array).Values))
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGCompletedScript(env), nil)
 
@@ -165,18 +166,18 @@ func TestDKG(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, DKGAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), DKGSigner},
+			[]flow.Address{DKGAddress},
+			[]crypto.Signer{DKGSigner},
 			true,
 		)
 
 		result := executeScriptAndCheck(t, b, templates.GenerateGetConsensusNodesScript(env), nil)
 
-		assert.Equal(t, cadence.NewArray(dkgNodeIDStrings), result)
+		assert.Equal(t, dkgNodeIDsCadenceArray, result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGFinalSubmissionsScript(env), nil)
 
-		assert.Equal(t, cadence.NewArray(make([]cadence.Value, 0)), result)
+		assert.Equal(t, 0, len(result.(cadence.Array).Values))
 
 	})
 
@@ -190,8 +191,8 @@ func TestDKG(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, DKGAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), DKGSigner},
+			[]flow.Address{DKGAddress},
+			[]crypto.Signer{DKGSigner},
 			false,
 		)
 
@@ -210,8 +211,8 @@ func TestDKG(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, DKGAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), DKGSigner},
+			[]flow.Address{DKGAddress},
+			[]crypto.Signer{DKGSigner},
 			true,
 		)
 	})
@@ -226,8 +227,8 @@ func TestDKG(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			true,
 		)
 	})
@@ -241,8 +242,8 @@ func TestDKG(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, DKGAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), DKGSigner},
+			[]flow.Address{DKGAddress},
+			[]crypto.Signer{DKGSigner},
 			true,
 		)
 
@@ -260,8 +261,8 @@ func TestDKG(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, DKGAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), DKGSigner},
+			[]flow.Address{DKGAddress},
+			[]crypto.Signer{DKGSigner},
 			false,
 		)
 	})
@@ -272,8 +273,8 @@ func TestDKG(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, DKGAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), DKGSigner},
+			[]flow.Address{DKGAddress},
+			[]crypto.Signer{DKGSigner},
 			true,
 		)
 	})
@@ -293,8 +294,8 @@ func TestDKG(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, DKGAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), DKGSigner},
+			[]flow.Address{DKGAddress},
+			[]crypto.Signer{DKGSigner},
 			true,
 		)
 	})
@@ -314,8 +315,8 @@ func TestDKG(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, DKGAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), DKGSigner},
+			[]flow.Address{DKGAddress},
+			[]crypto.Signer{DKGSigner},
 			true,
 		)
 	})
@@ -333,8 +334,8 @@ func TestDKG(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, DKGAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), DKGSigner},
+			[]flow.Address{DKGAddress},
+			[]crypto.Signer{DKGSigner},
 			false,
 		)
 
@@ -361,35 +362,36 @@ func TestDKG(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, DKGAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), DKGSigner},
+			[]flow.Address{DKGAddress},
+			[]crypto.Signer{DKGSigner},
 			true,
 		)
 
 	})
 
+	finalSubmissionKeysArray := cadence.Array{Values: []cadence.Value{finalSubmissionKeys[0], finalSubmissionKeys[1]}}.WithType(cadence.NewVariableSizedArrayType(cadence.NewOptionalType(cadence.NewStringType())))
+
+	finalSubmissionsArray := cadence.Array{Values: []cadence.Value{finalSubmissionKeysArray}}.WithType(cadence.NewVariableSizedArrayType(cadence.NewVariableSizedArrayType(cadence.NewOptionalType(cadence.NewStringType()))))
+
 	t.Run("Admin should be able to stop the dkg", func(t *testing.T) {
 
 		result := executeScriptAndCheck(t, b, templates.GenerateGetConsensusNodesScript(env), nil)
 
-		assert.Equal(t, cadence.NewArray(dkgNodeIDStrings), result)
-
-		finalSubmissionsArray := make([]cadence.Value, 1)
-		finalSubmissionsArray[0] = cadence.NewArray(finalSubmissionKeys)
+		assert.Equal(t, dkgNodeIDsCadenceArray, result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGFinalSubmissionsScript(env), nil)
-		assert.Equal(t, cadence.NewArray(finalSubmissionsArray), result)
+		assert.Equal(t, finalSubmissionsArray, result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGCanonicalFinalSubmissionScript(env), nil)
 		resultValue := result.(cadence.Optional).Value
-		assert.Equal(t, cadence.NewArray(finalSubmissionKeys), resultValue)
+		assert.Equal(t, finalSubmissionKeysArray, resultValue)
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateStopDKGScript(env), DKGAddress)
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, DKGAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), DKGSigner},
+			[]flow.Address{DKGAddress},
+			[]crypto.Signer{DKGSigner},
 			false,
 		)
 
@@ -428,8 +430,8 @@ func TestDKG(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, DKGAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), DKGSigner},
+			[]flow.Address{DKGAddress},
+			[]crypto.Signer{DKGSigner},
 			false,
 		)
 
@@ -440,11 +442,11 @@ func TestDKG(t *testing.T) {
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetConsensusNodesScript(env), nil)
 
-		assert.Equal(t, cadence.NewArray(epoch2dkgNodeIDStrings), result)
+		assert.Equal(t, cadence.NewArray(epoch2dkgNodeIDStrings).WithType(cadence.NewVariableSizedArrayType(cadence.NewStringType())), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGFinalSubmissionsScript(env), nil)
 
-		assert.Equal(t, cadence.NewArray(make([]cadence.Value, 0)), result)
+		assert.Equal(t, 0, len(result.(cadence.Array).Values))
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGEnabledScript(env), nil)
 
@@ -452,7 +454,7 @@ func TestDKG(t *testing.T) {
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGWhiteBoardMessagesScript(env), nil)
 
-		assert.Equal(t, cadence.NewArray(make([]cadence.Value, 0)), result)
+		assert.Equal(t, 0, len(result.(cadence.Array).Values))
 	})
 
 	t.Run("Should not be able to post a message from a node that wasn't included", func(t *testing.T) {
@@ -464,8 +466,8 @@ func TestDKG(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, DKGAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), DKGSigner},
+			[]flow.Address{DKGAddress},
+			[]crypto.Signer{DKGSigner},
 			true,
 		)
 	})
@@ -480,8 +482,8 @@ func TestDKG(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, maxAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), maxSigner},
+			[]flow.Address{maxAddress},
+			[]crypto.Signer{maxSigner},
 			false,
 		)
 
@@ -493,8 +495,8 @@ func TestDKG(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, bastianAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), bastianSigner},
+			[]flow.Address{bastianAddress},
+			[]crypto.Signer{bastianSigner},
 			false,
 		)
 
@@ -505,8 +507,8 @@ func TestDKG(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, maxAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), maxSigner},
+			[]flow.Address{maxAddress},
+			[]crypto.Signer{maxSigner},
 			false,
 		)
 
@@ -517,8 +519,8 @@ func TestDKG(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, bastianAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), bastianSigner},
+			[]flow.Address{bastianAddress},
+			[]crypto.Signer{bastianSigner},
 			false,
 		)
 
@@ -561,8 +563,8 @@ func TestDKG(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, DKGAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), DKGSigner},
+			[]flow.Address{DKGAddress},
+			[]crypto.Signer{DKGSigner},
 			true,
 		)
 	})
@@ -576,8 +578,8 @@ func TestDKG(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, DKGAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), DKGSigner},
+			[]flow.Address{DKGAddress},
+			[]crypto.Signer{DKGSigner},
 			true,
 		)
 
@@ -589,8 +591,8 @@ func TestDKG(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, DKGAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), DKGSigner},
+			[]flow.Address{DKGAddress},
+			[]crypto.Signer{DKGSigner},
 			false,
 		)
 	})
@@ -606,8 +608,8 @@ func TestDKG(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, DKGAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), DKGSigner},
+			[]flow.Address{DKGAddress},
+			[]crypto.Signer{DKGSigner},
 			true,
 		)
 	})
@@ -620,8 +622,8 @@ func TestDKG(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, DKGAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), DKGSigner},
+			[]flow.Address{DKGAddress},
+			[]crypto.Signer{DKGSigner},
 			false,
 		)
 		checkDKGSafeThresholdPercent(t, b, env, CadenceUFix64("0.0"))
@@ -633,8 +635,8 @@ func TestDKG(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, DKGAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), DKGSigner},
+			[]flow.Address{DKGAddress},
+			[]crypto.Signer{DKGSigner},
 			false,
 		)
 		checkDKGSafeThresholdPercent(t, b, env, CadenceUFix64("0.999"))
@@ -648,8 +650,8 @@ func TestDKG(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, DKGAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), DKGSigner},
+			[]flow.Address{DKGAddress},
+			[]crypto.Signer{DKGSigner},
 			false,
 		)
 
@@ -678,8 +680,8 @@ func TestDKG(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, DKGAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), DKGSigner},
+			[]flow.Address{DKGAddress},
+			[]crypto.Signer{DKGSigner},
 			false,
 		)
 
@@ -749,8 +751,8 @@ func TestDKGNil(t *testing.T) {
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GeneratePublishDKGParticipantScript(env), DKGAddress)
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, DKGAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), DKGSigner},
+		[]flow.Address{DKGAddress},
+		[]crypto.Signer{DKGSigner},
 		false,
 	)
 
@@ -762,8 +764,8 @@ func TestDKGNil(t *testing.T) {
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, jordanAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), jordanSigner},
+		[]flow.Address{jordanAddress},
+		[]crypto.Signer{jordanSigner},
 		false,
 	)
 
@@ -782,8 +784,8 @@ func TestDKGNil(t *testing.T) {
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, DKGAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), DKGSigner},
+		[]flow.Address{DKGAddress},
+		[]crypto.Signer{DKGSigner},
 		false,
 	)
 
@@ -796,8 +798,8 @@ func TestDKGNil(t *testing.T) {
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, DKGAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), DKGSigner},
+		[]flow.Address{DKGAddress},
+		[]crypto.Signer{DKGSigner},
 		false,
 	)
 
@@ -815,8 +817,8 @@ func TestDKGNil(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, DKGAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), DKGSigner},
+			[]flow.Address{DKGAddress},
+			[]crypto.Signer{DKGSigner},
 			false,
 		)
 
@@ -847,8 +849,8 @@ func TestDKGNil(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, jordanAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), jordanSigner},
+			[]flow.Address{jordanAddress},
+			[]crypto.Signer{jordanSigner},
 			false,
 		)
 

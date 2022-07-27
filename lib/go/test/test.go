@@ -134,14 +134,14 @@ func signAndSubmit(
 		signerAddress := signerAddresses[i]
 		signer := signers[i]
 
-		if i == 0 {
-			err := tx.SignEnvelope(signerAddress, 0, signer)
-			assert.NoError(t, err)
-		} else {
-			err := tx.SignPayload(signerAddress, 0, signer)
-			assert.NoError(t, err)
-		}
+		err := tx.SignPayload(signerAddress, 0, signer)
+		assert.NoError(t, err)
 	}
+
+	serviceSigner, _ := b.ServiceKey().Signer()
+
+	err := tx.SignEnvelope(b.ServiceKey().Address, 0, serviceSigner)
+	assert.NoError(t, err)
 
 	return Submit(t, b, tx, shouldRevert)
 }
@@ -268,8 +268,8 @@ func mintTokensForAccount(t *testing.T, b *emulator.Blockchain, recipient flow.A
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address},
-		[]crypto.Signer{b.ServiceKey().Signer()},
+		[]flow.Address{},
+		[]crypto.Signer{},
 		false,
 	)
 }
