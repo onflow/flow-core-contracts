@@ -2,8 +2,9 @@ package test
 
 import (
 	"fmt"
-	sdktemplates "github.com/onflow/flow-go-sdk/templates"
 	"testing"
+
+	sdktemplates "github.com/onflow/flow-go-sdk/templates"
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
@@ -149,8 +150,8 @@ func deployQCDKGContract(t *testing.T, b *emulator.Blockchain, idTableAddress fl
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, idTableAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+		[]flow.Address{idTableAddress},
+		[]crypto.Signer{IDTableSigner},
 		false,
 	)
 }
@@ -191,8 +192,8 @@ func deployEpochContract(
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, idTableAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+		[]flow.Address{idTableAddress},
+		[]crypto.Signer{IDTableSigner},
 		false,
 	)
 }
@@ -244,8 +245,8 @@ func advanceView(
 		_ = tx.AddArgument(cadencePhase)
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, authorizer},
-			[]crypto.Signer{b.ServiceKey().Signer(), signer},
+			[]flow.Address{authorizer},
+			[]crypto.Signer{signer},
 			shouldFail,
 		)
 	}
@@ -294,8 +295,8 @@ func registerNodeWithSetupAccount(t *testing.T,
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, authorizer},
-		[]crypto.Signer{b.ServiceKey().Signer(), signer},
+		[]flow.Address{authorizer},
+		[]crypto.Signer{signer},
 		shouldFail,
 	)
 

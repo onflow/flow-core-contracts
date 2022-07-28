@@ -102,8 +102,8 @@ func TestQuorumCertificate(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, QCAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), QCSigner},
+			[]flow.Address{QCAddress},
+			[]crypto.Signer{QCSigner},
 			false,
 		)
 	})
@@ -118,8 +118,8 @@ func TestQuorumCertificate(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, maxAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), maxSigner},
+			[]flow.Address{maxAddress},
+			[]crypto.Signer{maxSigner},
 			false,
 		)
 	})
@@ -148,8 +148,8 @@ func TestQuorumCertificate(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, QCAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), QCSigner},
+			[]flow.Address{QCAddress},
+			[]crypto.Signer{QCSigner},
 			false,
 		)
 
@@ -188,8 +188,8 @@ func TestQuorumCertificate(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, QCAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), QCSigner},
+			[]flow.Address{QCAddress},
+			[]crypto.Signer{QCSigner},
 			false,
 		)
 
@@ -204,8 +204,8 @@ func TestQuorumCertificate(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, QCAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), QCSigner},
+			[]flow.Address{QCAddress},
+			[]crypto.Signer{QCSigner},
 			true,
 		)
 	})
@@ -220,8 +220,8 @@ func TestQuorumCertificate(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			true,
 		)
 	})
@@ -235,8 +235,8 @@ func TestQuorumCertificate(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, QCAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), QCSigner},
+			[]flow.Address{QCAddress},
+			[]crypto.Signer{QCSigner},
 			true,
 		)
 
@@ -254,8 +254,8 @@ func TestQuorumCertificate(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, QCAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), QCSigner},
+			[]flow.Address{QCAddress},
+			[]crypto.Signer{QCSigner},
 			true,
 		)
 
@@ -279,8 +279,8 @@ func TestQuorumCertificate(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, QCAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), QCSigner},
+			[]flow.Address{QCAddress},
+			[]crypto.Signer{QCSigner},
 			true,
 		)
 
@@ -303,8 +303,8 @@ func TestQuorumCertificate(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, QCAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), QCSigner},
+			[]flow.Address{QCAddress},
+			[]crypto.Signer{QCSigner},
 			true,
 		)
 
@@ -325,8 +325,8 @@ func TestQuorumCertificate(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, QCAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), QCSigner},
+			[]flow.Address{QCAddress},
+			[]crypto.Signer{QCSigner},
 			true,
 		)
 
@@ -350,8 +350,8 @@ func TestQuorumCertificate(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, QCAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), QCSigner},
+			[]flow.Address{QCAddress},
+			[]crypto.Signer{QCSigner},
 			false,
 		)
 
@@ -384,8 +384,8 @@ func TestQuorumCertificate(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, QCAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), QCSigner},
+			[]flow.Address{QCAddress},
+			[]crypto.Signer{QCSigner},
 			true,
 		)
 
@@ -400,8 +400,8 @@ func TestQuorumCertificate(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, QCAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), QCSigner},
+			[]flow.Address{QCAddress},
+			[]crypto.Signer{QCSigner},
 			false,
 		)
 	})
@@ -430,8 +430,8 @@ func TestQuorumCertificate(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, QCAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), QCSigner},
+			[]flow.Address{QCAddress},
+			[]crypto.Signer{QCSigner},
 			false,
 		)
 
@@ -447,8 +447,8 @@ func TestQuorumCertificate(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			true,
 		)
 
@@ -489,8 +489,8 @@ func TestQuorumCertificateMoreNodes(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, QCAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), QCSigner},
+			[]flow.Address{QCAddress},
+			[]crypto.Signer{QCSigner},
 			false,
 		)
 	})
@@ -524,8 +524,8 @@ func TestQuorumCertificateMoreNodes(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, QCAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), QCSigner},
+			[]flow.Address{QCAddress},
+			[]crypto.Signer{QCSigner},
 			false,
 		)
 
@@ -543,8 +543,8 @@ func TestQuorumCertificateMoreNodes(t *testing.T) {
 
 			signAndSubmit(
 				t, b, tx,
-				[]flow.Address{b.ServiceKey().Address, addresses[i]},
-				[]crypto.Signer{b.ServiceKey().Signer(), signers[i]},
+				[]flow.Address{addresses[i]},
+				[]crypto.Signer{signers[i]},
 				false,
 			)
 		}
@@ -568,8 +568,8 @@ func TestQuorumCertificateMoreNodes(t *testing.T) {
 
 			signAndSubmit(
 				t, b, tx,
-				[]flow.Address{b.ServiceKey().Address, addresses[i]},
-				[]crypto.Signer{b.ServiceKey().Signer(), signers[i]},
+				[]flow.Address{addresses[i]},
+				[]crypto.Signer{signers[i]},
 				false,
 			)
 		}
@@ -603,8 +603,8 @@ func TestQuorumCertificateMoreNodes(t *testing.T) {
 
 			signAndSubmit(
 				t, b, tx,
-				[]flow.Address{b.ServiceKey().Address, addresses[i]},
-				[]crypto.Signer{b.ServiceKey().Signer(), signers[i]},
+				[]flow.Address{addresses[i]},
+				[]crypto.Signer{signers[i]},
 				false,
 			)
 
@@ -630,8 +630,8 @@ func TestQuorumCertificateMoreNodes(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, addresses[numberOfNodesPerCluster*2-2]},
-			[]crypto.Signer{b.ServiceKey().Signer(), signers[numberOfNodesPerCluster*2-2]},
+			[]flow.Address{addresses[numberOfNodesPerCluster*2-2]},
+			[]crypto.Signer{signers[numberOfNodesPerCluster*2-2]},
 			false,
 		)
 
@@ -652,8 +652,8 @@ func TestQuorumCertificateMoreNodes(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, addresses[numberOfNodesPerCluster*2-1]},
-			[]crypto.Signer{b.ServiceKey().Signer(), signers[numberOfNodesPerCluster*2-1]},
+			[]flow.Address{addresses[numberOfNodesPerCluster*2-1]},
+			[]crypto.Signer{signers[numberOfNodesPerCluster*2-1]},
 			false,
 		)
 
@@ -684,8 +684,8 @@ func TestQuorumCertificateMoreNodes(t *testing.T) {
 
 			signAndSubmit(
 				t, b, tx,
-				[]flow.Address{b.ServiceKey().Address, addresses[i]},
-				[]crypto.Signer{b.ServiceKey().Signer(), signers[i]},
+				[]flow.Address{addresses[i]},
+				[]crypto.Signer{signers[i]},
 				false,
 			)
 		}
@@ -711,8 +711,8 @@ func TestQuorumCertificateMoreNodes(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, addresses[numberOfNodesPerCluster*3-1]},
-			[]crypto.Signer{b.ServiceKey().Signer(), signers[numberOfNodesPerCluster*3-1]},
+			[]flow.Address{addresses[numberOfNodesPerCluster*3-1]},
+			[]crypto.Signer{signers[numberOfNodesPerCluster*3-1]},
 			false,
 		)
 
@@ -755,8 +755,8 @@ func TestQuorumCertificateNotSubmittedVote(t *testing.T) {
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, QCAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), QCSigner},
+		[]flow.Address{QCAddress},
+		[]crypto.Signer{QCSigner},
 		false,
 	)
 
@@ -787,8 +787,8 @@ func TestQuorumCertificateNotSubmittedVote(t *testing.T) {
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address, QCAddress},
-		[]crypto.Signer{b.ServiceKey().Signer(), QCSigner},
+		[]flow.Address{QCAddress},
+		[]crypto.Signer{QCSigner},
 		false,
 	)
 
@@ -803,8 +803,8 @@ func TestQuorumCertificateNotSubmittedVote(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, addresses[i]},
-			[]crypto.Signer{b.ServiceKey().Signer(), signers[i]},
+			[]flow.Address{addresses[i]},
+			[]crypto.Signer{signers[i]},
 			false,
 		)
 	}
@@ -826,8 +826,8 @@ func TestQuorumCertificateNotSubmittedVote(t *testing.T) {
 
 			signAndSubmit(
 				t, b, tx,
-				[]flow.Address{b.ServiceKey().Address, addresses[i]},
-				[]crypto.Signer{b.ServiceKey().Signer(), signers[i]},
+				[]flow.Address{addresses[i]},
+				[]crypto.Signer{signers[i]},
 				false,
 			)
 		}

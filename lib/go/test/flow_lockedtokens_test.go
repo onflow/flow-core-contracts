@@ -52,8 +52,8 @@ func TestLockedTokensStaker(t *testing.T) {
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address},
-		[]crypto.Signer{b.ServiceKey().Signer()},
+		[]flow.Address{},
+		[]crypto.Signer{},
 		false,
 	)
 
@@ -113,8 +113,8 @@ func TestLockedTokensStaker(t *testing.T) {
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address},
-		[]crypto.Signer{b.ServiceKey().Signer()},
+		[]flow.Address{},
+		[]crypto.Signer{},
 		false,
 	)
 
@@ -127,8 +127,8 @@ func TestLockedTokensStaker(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, adminAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
+			[]flow.Address{adminAddress},
+			[]crypto.Signer{adminSigner},
 			false,
 		)
 
@@ -162,8 +162,8 @@ func TestLockedTokensStaker(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, adminAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
+			[]flow.Address{adminAddress},
+			[]crypto.Signer{adminSigner},
 			false,
 		)
 
@@ -172,8 +172,8 @@ func TestLockedTokensStaker(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, adminAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
+			[]flow.Address{adminAddress},
+			[]crypto.Signer{adminSigner},
 			false,
 		)
 	})
@@ -189,8 +189,8 @@ func TestLockedTokensStaker(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, adminAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
+			[]flow.Address{adminAddress},
+			[]crypto.Signer{adminSigner},
 			true,
 		)
 
@@ -199,8 +199,8 @@ func TestLockedTokensStaker(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, adminAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
+			[]flow.Address{adminAddress},
+			[]crypto.Signer{adminSigner},
 			true,
 		)
 
@@ -209,8 +209,8 @@ func TestLockedTokensStaker(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, adminAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
+			[]flow.Address{adminAddress},
+			[]crypto.Signer{adminSigner},
 			true,
 		)
 	})
@@ -223,8 +223,8 @@ func TestLockedTokensStaker(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, adminAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
+			[]flow.Address{adminAddress},
+			[]crypto.Signer{adminSigner},
 			false,
 		)
 
@@ -243,8 +243,8 @@ func TestLockedTokensStaker(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, adminAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
+			[]flow.Address{adminAddress},
+			[]crypto.Signer{adminSigner},
 			true,
 		)
 	})
@@ -256,8 +256,8 @@ func TestLockedTokensStaker(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			true,
 		)
 
@@ -280,8 +280,8 @@ func TestLockedTokensStaker(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, adminAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
+			[]flow.Address{adminAddress},
+			[]crypto.Signer{adminSigner},
 			false,
 		)
 
@@ -302,8 +302,8 @@ func TestLockedTokensStaker(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -329,8 +329,8 @@ func TestLockedTokensStaker(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -361,8 +361,8 @@ func TestLockedTokensStaker(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -384,8 +384,8 @@ func TestLockedTokensStaker(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -408,8 +408,8 @@ func TestLockedTokensStaker(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -426,8 +426,8 @@ func TestLockedTokensStaker(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -444,8 +444,8 @@ func TestLockedTokensStaker(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -457,8 +457,8 @@ func TestLockedTokensStaker(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 	})
@@ -470,8 +470,8 @@ func TestLockedTokensStaker(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -494,8 +494,8 @@ func TestLockedTokensStaker(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -515,8 +515,8 @@ func TestLockedTokensStaker(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -553,8 +553,8 @@ func TestLockedTokensStaker(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -579,8 +579,8 @@ func TestLockedTokensStaker(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, adminAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
+			[]flow.Address{adminAddress},
+			[]crypto.Signer{adminSigner},
 			false,
 		)
 
@@ -601,8 +601,8 @@ func TestLockedTokensStaker(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -657,8 +657,8 @@ func TestLockedTokensDelegator(t *testing.T) {
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address},
-		[]crypto.Signer{b.ServiceKey().Signer()},
+		[]flow.Address{},
+		[]crypto.Signer{},
 		false,
 	)
 
@@ -722,8 +722,8 @@ func TestLockedTokensDelegator(t *testing.T) {
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address},
-		[]crypto.Signer{b.ServiceKey().Signer()},
+		[]flow.Address{},
+		[]crypto.Signer{},
 		false,
 	)
 
@@ -736,8 +736,8 @@ func TestLockedTokensDelegator(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, adminAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
+			[]flow.Address{adminAddress},
+			[]crypto.Signer{adminSigner},
 			false,
 		)
 
@@ -772,8 +772,8 @@ func TestLockedTokensDelegator(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, adminAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
+			[]flow.Address{adminAddress},
+			[]crypto.Signer{adminSigner},
 			false,
 		)
 
@@ -788,8 +788,8 @@ func TestLockedTokensDelegator(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -812,8 +812,8 @@ func TestLockedTokensDelegator(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -835,8 +835,8 @@ func TestLockedTokensDelegator(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -860,8 +860,8 @@ func TestLockedTokensDelegator(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -884,8 +884,8 @@ func TestLockedTokensDelegator(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -898,8 +898,8 @@ func TestLockedTokensDelegator(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -927,8 +927,8 @@ func TestLockedTokensDelegator(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -953,8 +953,8 @@ func TestLockedTokensDelegator(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -981,8 +981,8 @@ func TestLockedTokensDelegator(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -1007,8 +1007,8 @@ func TestLockedTokensDelegator(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, adminAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
+			[]flow.Address{adminAddress},
+			[]crypto.Signer{adminSigner},
 			false,
 		)
 
@@ -1028,8 +1028,8 @@ func TestLockedTokensDelegator(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -1054,8 +1054,8 @@ func TestLockedTokensDelegator(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress, joshSharedAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner, adminSigner},
+			[]flow.Address{joshAddress, joshSharedAddress},
+			[]crypto.Signer{joshSigner, adminSigner},
 			false,
 		)
 
@@ -1067,8 +1067,8 @@ func TestLockedTokensDelegator(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			true,
 		)
 
@@ -1113,8 +1113,8 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address},
-		[]crypto.Signer{b.ServiceKey().Signer()},
+		[]flow.Address{},
+		[]crypto.Signer{},
 		false,
 	)
 
@@ -1171,8 +1171,8 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address},
-		[]crypto.Signer{b.ServiceKey().Signer()},
+		[]flow.Address{},
+		[]crypto.Signer{},
 		false,
 	)
 
@@ -1182,8 +1182,8 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, custodyAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), custodySigner},
+			[]flow.Address{custodyAddress},
+			[]crypto.Signer{custodySigner},
 			false,
 		)
 
@@ -1193,8 +1193,8 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
+			[]flow.Address{},
+			[]crypto.Signer{},
 			false,
 		)
 	})
@@ -1206,8 +1206,8 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, adminAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
+			[]flow.Address{adminAddress},
+			[]crypto.Signer{adminSigner},
 			false,
 		)
 	})
@@ -1232,8 +1232,8 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, custodyAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), custodySigner},
+			[]flow.Address{custodyAddress},
+			[]crypto.Signer{custodySigner},
 			false,
 		)
 
@@ -1286,8 +1286,8 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, custodyAddress, maxAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), custodySigner, maxSigner},
+			[]flow.Address{custodyAddress, maxAddress},
+			[]crypto.Signer{custodySigner, maxSigner},
 			false,
 		)
 
@@ -1318,8 +1318,8 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, custodyAddress, leaseAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), custodySigner, leaseSigner},
+			[]flow.Address{custodyAddress, leaseAddress},
+			[]crypto.Signer{custodySigner, leaseSigner},
 			false,
 		)
 
@@ -1345,8 +1345,8 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, custodyAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), custodySigner},
+			[]flow.Address{custodyAddress},
+			[]crypto.Signer{custodySigner},
 			false,
 		)
 
@@ -1381,8 +1381,8 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, adminAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
+			[]flow.Address{adminAddress},
+			[]crypto.Signer{adminSigner},
 			false,
 		)
 
@@ -1396,8 +1396,8 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, adminAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
+			[]flow.Address{adminAddress},
+			[]crypto.Signer{adminSigner},
 			false,
 		)
 
@@ -1411,8 +1411,8 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, adminAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
+			[]flow.Address{adminAddress},
+			[]crypto.Signer{adminSigner},
 			false,
 		)
 
@@ -1481,8 +1481,8 @@ func TestLockedTokensRealStaking(t *testing.T) {
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address},
-		[]crypto.Signer{b.ServiceKey().Signer()},
+		[]flow.Address{},
+		[]crypto.Signer{},
 		false,
 	)
 
@@ -1495,8 +1495,8 @@ func TestLockedTokensRealStaking(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, adminAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
+			[]flow.Address{adminAddress},
+			[]crypto.Signer{adminSigner},
 			false,
 		)
 
@@ -1531,8 +1531,8 @@ func TestLockedTokensRealStaking(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, adminAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
+			[]flow.Address{adminAddress},
+			[]crypto.Signer{adminSigner},
 			false,
 		)
 
@@ -1548,8 +1548,8 @@ func TestLockedTokensRealStaking(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, idTableAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
 			false,
 		)
 	})
@@ -1568,8 +1568,8 @@ func TestLockedTokensRealStaking(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -1586,8 +1586,8 @@ func TestLockedTokensRealStaking(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -1607,8 +1607,8 @@ func TestLockedTokensRealStaking(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 	})
@@ -1621,8 +1621,8 @@ func TestLockedTokensRealStaking(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -1654,8 +1654,8 @@ func TestLockedTokensRealStaking(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			true,
 		)
 	})
@@ -1667,8 +1667,8 @@ func TestLockedTokensRealStaking(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -1680,8 +1680,8 @@ func TestLockedTokensRealStaking(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 	})
@@ -1698,8 +1698,8 @@ func TestLockedTokensRealStaking(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			true,
 		)
 	})
@@ -1711,8 +1711,8 @@ func TestLockedTokensRealStaking(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -1731,8 +1731,8 @@ func TestLockedTokensRealStaking(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -1748,8 +1748,8 @@ func TestLockedTokensRealStaking(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 	})
@@ -1813,8 +1813,8 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address},
-		[]crypto.Signer{b.ServiceKey().Signer()},
+		[]flow.Address{},
+		[]crypto.Signer{},
 		false,
 	)
 
@@ -1827,8 +1827,8 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, adminAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
+			[]flow.Address{adminAddress},
+			[]crypto.Signer{adminSigner},
 			false,
 		)
 
@@ -1863,8 +1863,8 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, adminAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
+			[]flow.Address{adminAddress},
+			[]crypto.Signer{adminSigner},
 			false,
 		)
 	})
@@ -1875,8 +1875,8 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, idTableAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
 			false,
 		)
 	})
@@ -1895,8 +1895,8 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 	})
@@ -1909,8 +1909,8 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 	})
@@ -1923,8 +1923,8 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			true,
 		)
 	})
@@ -1937,8 +1937,8 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -1958,8 +1958,8 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 	})
@@ -1972,8 +1972,8 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			true,
 		)
 	})
@@ -1985,8 +1985,8 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -2010,8 +2010,8 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			true,
 		)
 	})
@@ -2023,8 +2023,8 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -2033,8 +2033,8 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -2044,8 +2044,8 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 
@@ -2158,8 +2158,8 @@ func TestLockedTokensUnlockMultipleAccounts(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, adminAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
+			[]flow.Address{adminAddress},
+			[]crypto.Signer{adminSigner},
 			false,
 		)
 
@@ -2200,8 +2200,8 @@ func TestLockedTokensUnlockMultipleAccounts(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, adminAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
+			[]flow.Address{adminAddress},
+			[]crypto.Signer{adminSigner},
 			false,
 		)
 

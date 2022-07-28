@@ -90,8 +90,8 @@ func TestManyNodesIDTable(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
+			[]flow.Address{},
+			[]crypto.Signer{},
 			false,
 		)
 	})
@@ -107,8 +107,8 @@ func TestManyNodesIDTable(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, idTableAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
 			false,
 		)
 	})
@@ -172,8 +172,8 @@ func TestManyNodesIDTable(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, nodeAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), nodeSigner},
+			[]flow.Address{nodeAddress},
+			[]crypto.Signer{nodeSigner},
 			false,
 		)
 
@@ -203,8 +203,8 @@ func TestManyNodesIDTable(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, idTableAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
 			false,
 		)
 
@@ -217,8 +217,8 @@ func TestManyNodesIDTable(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, idTableAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
 			false,
 		)
 
@@ -231,8 +231,8 @@ func TestManyNodesIDTable(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, idTableAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
 			false,
 		)
 
@@ -261,8 +261,8 @@ func TestManyNodesIDTable(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, delegatorAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), delegatorSigner},
+			[]flow.Address{delegatorAddress},
+			[]crypto.Signer{delegatorSigner},
 			false,
 		)
 
@@ -283,8 +283,8 @@ func TestManyNodesIDTable(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, idTableAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
 			false,
 		)
 	})
@@ -299,8 +299,8 @@ func TestManyNodesIDTable(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, idTableAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
 			false,
 		)
 	})
@@ -316,8 +316,8 @@ func TestManyNodesIDTable(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, idTableAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
 			false,
 		)
 
@@ -337,8 +337,8 @@ func TestManyNodesIDTable(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, idTableAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
 			false,
 		)
 	})
@@ -402,8 +402,8 @@ func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
 
 			signAndSubmit(
 				t, b, tx,
-				[]flow.Address{b.ServiceKey().Address},
-				[]crypto.Signer{b.ServiceKey().Signer()},
+				[]flow.Address{},
+				[]crypto.Signer{},
 				false,
 			)
 		}
@@ -415,8 +415,8 @@ func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, idTableAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), IDTableSigner},
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
 			false,
 		)
 	})
@@ -452,8 +452,8 @@ func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
 
 			signAndSubmit(
 				t, b, tx,
-				[]flow.Address{b.ServiceKey().Address, nodeAddresses[i]},
-				[]crypto.Signer{b.ServiceKey().Signer(), nodeSigners[i]},
+				[]flow.Address{nodeAddresses[i]},
+				[]crypto.Signer{nodeSigners[i]},
 				false,
 			)
 
@@ -484,8 +484,8 @@ func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, delegatorAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), delegatorSigner},
+			[]flow.Address{delegatorAddress},
+			[]crypto.Signer{delegatorSigner},
 			false,
 		)
 	})
@@ -496,8 +496,8 @@ func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, nodeAddresses[0]},
-			[]crypto.Signer{b.ServiceKey().Signer(), nodeSigners[0]},
+			[]flow.Address{nodeAddresses[0]},
+			[]crypto.Signer{nodeSigners[0]},
 			false,
 		)
 
