@@ -25,7 +25,7 @@ transaction(ids: [String], newPayout: UFix64) {
     execute {
 
         let rewardsArray = self.adminRef.calculateRewards()
-        self.adminRef.payRewards(rewardsArray)
+        self.adminRef.payRewards(rewardsArray, totalRewards: FlowIDTableStaking.getEpochTokenPayout())
 
         self.adminRef.setEpochTokenPayout(newPayout)
 

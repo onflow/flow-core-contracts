@@ -859,9 +859,19 @@ pub contract FlowIDTableStaking {
 
         /// Called at the end of the epoch to pay rewards to node operators
         /// based on the tokens that they have staked
-        pub fun payRewards(_ rewardsBreakdownArray: [RewardsBreakdown]) {
+        pub fun payRewards(_ rewardsBreakdownArray: [RewardsBreakdown], totalRewards: UFix64) {
+            
+            // If there are no node operators to pay rewards to, do not mint new tokens
+            if rewardsBreakdownArray.length == 0 {
+                emit EpochTotalRewardsPaid(total: totalRewards, fromFees: 0.0, minted: 0.0, feesBurned: 0.0)
 
-            let totalRewards = FlowIDTableStaking.epochTokenPayout
+                // Clear the non-operational node list so it doesn't persist to the next rewards payment
+                let emptyNodeList: {String: UFix64} = {}
+                self.setNonOperationalNodesList(emptyNodeList)
+
+                return
+            } 
+
             let feeBalance = FlowFees.getFeeBalance()
             var mintedRewards: UFix64 = 0.0
             if feeBalance < totalRewards {

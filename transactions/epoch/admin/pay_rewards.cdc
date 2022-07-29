@@ -6,6 +6,8 @@ transaction {
         let heartbeat = signer.borrow<&FlowEpoch.Heartbeat>(from: FlowEpoch.heartbeatStoragePath)
             ?? panic("Could not borrow heartbeat from storage path")
 
-        heartbeat.payRewards()
+        let previousEpochMetadata = FlowEpoch.getEpochMetadata(FlowEpoch.currentEpochCounter - (1 as UInt64))!
+
+        heartbeat.payRewards(previousEpochMetadata.totalRewards)
     }
 }

@@ -57,6 +57,9 @@ pub contract FlowEpoch {
         pub case Access
     }
 
+    /// Event that indicates that a new epoch has started
+    pub event EpochTransition(previousEpoch: EpochMetadata, newEpoch: EpochMetadata)
+
     /// The Epoch Setup service event is emitted when we transition to the Epoch Setup
     /// phase. It contains the finalized identity table for the upcoming epoch.
     pub event EpochSetup(
@@ -364,11 +367,14 @@ pub contract FlowEpoch {
                     let currentBlock = getCurrentBlock()
                     let currentEpochMetadata = FlowEpoch.getEpochMetadata(FlowEpoch.currentEpochCounter)!
                     if currentBlock.view >= currentEpochMetadata.endView {
+                        let totalRewards = FlowIDTableStaking.epochTokenPayout
                         self.calculateAndSetRewards()
                         self.endEpoch()
                         if FlowEpoch.automaticRewardsEnabled() {
-                            self.payRewards()
+                            self.payRewards(totalRewards)
                         }
+                        let newEpochMetadata = FlowEpoch.getEpochMetadata(FlowEpoch.currentEpochCounter)!
+                        emit EpochTransition(previousEpoch: currentEpochMetadata, newEpoch: newEpochMetadata)
                     }
                 default:
                     return
@@ -413,8 +419,8 @@ pub contract FlowEpoch {
             FlowEpoch.calculateAndSetRewards()
         }
 
-        pub fun payRewards() {
-            FlowEpoch.payRewards()
+        pub fun payRewards(_ totalRewards: UFix64) {
+            FlowEpoch.payRewards(totalRewards)
         }
 
         /// Protocol can use this to reboot the epoch with a new genesis
@@ -506,11 +512,11 @@ pub contract FlowEpoch {
     }
 
     /// Pays rewards to the nodes and delegators of the previous epoch
-    access(account) fun payRewards() {
+    access(account) fun payRewards(_ totalRewards: UFix64) {
         if let previousEpochMetadata = self.getEpochMetadata(self.currentEpochCounter - (1 as UInt64)) {
             if !previousEpochMetadata.rewardsPaid {
                 let rewardsBreakdownArray = previousEpochMetadata.rewardAmounts
-                self.borrowStakingAdmin().payRewards(rewardsBreakdownArray)
+                self.borrowStakingAdmin().payRewards(rewardsBreakdownArray, totalRewards: totalRewards)
                 previousEpochMetadata.setRewardsPaid(true)
                 self.saveEpochMetadata(previousEpochMetadata)
             }
