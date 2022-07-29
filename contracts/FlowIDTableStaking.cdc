@@ -181,7 +181,7 @@ pub contract FlowIDTableStaking {
             )
 
             // Verify the proof of possesion of the staking key
-            stakeKey.verifyPop(stakingKeyPoP.decodeHex)
+            stakeKey.verifyPoP(stakingKeyPoP.decodeHex())
 
             let netKey = PublicKey(
                 publicKey: networkingKey.decodeHex(),

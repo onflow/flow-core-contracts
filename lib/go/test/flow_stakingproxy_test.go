@@ -55,8 +55,8 @@ func TestStakingProxy(t *testing.T) {
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address},
-		[]crypto.Signer{b.ServiceKey().Signer()},
+		[]flow.Address{},
+		[]crypto.Signer{},
 		false,
 	)
 
@@ -116,8 +116,8 @@ func TestStakingProxy(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
+			[]flow.Address{},
+			[]crypto.Signer{},
 			false,
 		)
 	})
@@ -132,8 +132,8 @@ func TestStakingProxy(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, nodeAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), nodeSigner},
+			[]flow.Address{nodeAddress},
+			[]crypto.Signer{nodeSigner},
 			false,
 		)
 
@@ -147,8 +147,8 @@ func TestStakingProxy(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, nodeAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), nodeSigner},
+			[]flow.Address{nodeAddress},
+			[]crypto.Signer{nodeSigner},
 			false,
 		)
 	})
@@ -170,8 +170,8 @@ func TestStakingProxy(t *testing.T) {
 
 	signAndSubmit(
 		t, b, tx,
-		[]flow.Address{b.ServiceKey().Address},
-		[]crypto.Signer{b.ServiceKey().Signer()},
+		[]flow.Address{},
+		[]crypto.Signer{},
 		false,
 	)
 
@@ -184,8 +184,8 @@ func TestStakingProxy(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, adminAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
+			[]flow.Address{adminAddress},
+			[]crypto.Signer{adminSigner},
 			false,
 		)
 
@@ -221,8 +221,8 @@ func TestStakingProxy(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, adminAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), adminSigner},
+			[]flow.Address{adminAddress},
+			[]crypto.Signer{adminSigner},
 			false,
 		)
 	})
@@ -239,8 +239,8 @@ func TestStakingProxy(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, joshAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), joshSigner},
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
 			false,
 		)
 	})
@@ -256,8 +256,8 @@ func TestStakingProxy(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, nodeAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), nodeSigner},
+			[]flow.Address{nodeAddress},
+			[]crypto.Signer{nodeSigner},
 			false,
 		)
 	})
@@ -273,8 +273,8 @@ func TestStakingProxy(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, nodeAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), nodeSigner},
+			[]flow.Address{nodeAddress},
+			[]crypto.Signer{nodeSigner},
 			false,
 		)
 
@@ -291,8 +291,8 @@ func TestStakingProxy(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, nodeAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), nodeSigner},
+			[]flow.Address{nodeAddress},
+			[]crypto.Signer{nodeSigner},
 			false,
 		)
 
@@ -306,8 +306,8 @@ func TestStakingProxy(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, nodeAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), nodeSigner},
+			[]flow.Address{nodeAddress},
+			[]crypto.Signer{nodeSigner},
 			false,
 		)
 	})
@@ -323,8 +323,8 @@ func TestStakingProxy(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, nodeAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), nodeSigner},
+			[]flow.Address{nodeAddress},
+			[]crypto.Signer{nodeSigner},
 			false,
 		)
 
@@ -341,8 +341,8 @@ func TestStakingProxy(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, nodeAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), nodeSigner},
+			[]flow.Address{nodeAddress},
+			[]crypto.Signer{nodeSigner},
 			false,
 		)
 	})

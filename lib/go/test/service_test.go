@@ -76,8 +76,8 @@ func TestContracts(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, storageFeesAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), storageFeesSigner},
+			[]flow.Address{storageFeesAddress},
+			[]crypto.Signer{storageFeesSigner},
 			false,
 		)
 	})
@@ -105,8 +105,8 @@ func TestContracts(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, storageFeesAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), storageFeesSigner},
+			[]flow.Address{storageFeesAddress},
+			[]crypto.Signer{storageFeesSigner},
 			false,
 		)
 	})
@@ -130,8 +130,8 @@ func TestContracts(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, storageFeesAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), storageFeesSigner},
+			[]flow.Address{storageFeesAddress},
+			[]crypto.Signer{storageFeesSigner},
 			false,
 		)
 	})
@@ -163,8 +163,8 @@ func TestContracts(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
+			[]flow.Address{},
+			[]crypto.Signer{},
 			false,
 		)
 
@@ -186,8 +186,8 @@ func TestContracts(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
+			[]flow.Address{},
+			[]crypto.Signer{},
 			false,
 		)
 
@@ -205,8 +205,8 @@ func TestContracts(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
+			[]flow.Address{},
+			[]crypto.Signer{},
 			false,
 		)
 
@@ -224,8 +224,8 @@ func TestContracts(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
+			[]flow.Address{},
+			[]crypto.Signer{},
 			false,
 		)
 	})
@@ -244,8 +244,8 @@ func TestContracts(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address, storageFeesAddress},
-			[]crypto.Signer{b.ServiceKey().Signer(), storageFeesSigner},
+			[]flow.Address{storageFeesAddress},
+			[]crypto.Signer{storageFeesSigner},
 			false,
 		)
 
@@ -283,8 +283,8 @@ func TestContracts(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
+			[]flow.Address{},
+			[]crypto.Signer{},
 			false,
 		)
 
@@ -327,8 +327,8 @@ func TestContracts(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
+			[]flow.Address{},
+			[]crypto.Signer{},
 			false,
 		)
 
@@ -356,8 +356,8 @@ func TestContracts(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{b.ServiceKey().Address},
-			[]crypto.Signer{b.ServiceKey().Signer()},
+			[]flow.Address{},
+			[]crypto.Signer{},
 			false,
 		)
 
