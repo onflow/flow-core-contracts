@@ -4,13 +4,22 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/bjartek/overflow"
+	. "github.com/bjartek/overflow"
 	"github.com/onflow/cadence"
 )
 
+var testingOptions = []OverflowOption{
+	WithoutTransactionFees(),
+	WithNetwork("testing"),
+	WithFlowForNewUsers(0.0),
+	WithBasePath(BasePath),
+	WithTransactionFolderName(TransactionFolderName),
+	WithScriptFolderName(ScriptFolderName),
+}
+
 func TestDeployContract(t *testing.T) {
 
-	g, _ := overflow.OverflowTesting()
+	g := Overflow(testingOptions...)
 
 	// no voucher on start
 	deployAndFail(g, t, DeveloperAccount)
@@ -33,7 +42,8 @@ func TestDeployContract(t *testing.T) {
 }
 
 func TestDeployRecurrentContract(t *testing.T) {
-	g := overflow.NewTestingEmulator().Start()
+
+	g := Overflow(testingOptions...)
 
 	// init auditor
 	authorizeAuditor(g, t)
@@ -49,25 +59,22 @@ func TestDeployRecurrentContract(t *testing.T) {
 	deploy(g, t, DeveloperAccount3, true, 0, true)
 
 	// auditor updates voucher to non-recurrent for any account
-	g.TransactionFromFile(AuditorNewAuditTx).
-		TransactionPath(TransactionBasePath).
-		SignProposeAndPayAs(AuditorAccount).
-		Args(g.Arguments().
-			Argument(cadence.NewOptional(nil)).
-			String(TestContractCode).
-			Boolean(false).
-			Argument(cadence.NewOptional(cadence.NewUInt64(1)))).
-		Test(t).
-		AssertSuccess().
-		// AssertEmitEvent(overflow.NewTestEvent(VoucherCreatedEventName, map[string]interface{}{
-		// 	"codeHash":          TestContractCodeSHA3,
-		// 	"expiryBlockHeight": 12,
-		// 	"recurrent":         false,
-		// })).
-		AssertEmitEvent(overflow.NewTestEvent(VoucherRemovedEventName, map[string]interface{}{
+	g.Tx(AuditorNewAuditTx,
+		WithSigner(AuditorAccount),
+		WithArg("address", cadence.NewOptional(nil)),
+		WithArg("code", TestContractCode),
+		WithArg("recurrent", false),
+		WithArg("expiryOffset", 1),
+	).AssertSuccess(t).
+		AssertEvent(t, VoucherCreatedEventName, map[string]interface{}{
+			"recurrent":         false,
+			"expiryBlockHeight": 12,
+			"codeHash":          TestContractCodeSHA3,
+		}).
+		AssertEvent(t, VoucherRemovedEventName, map[string]interface{}{
 			"key":       fmt.Sprintf("any-%s", TestContractCodeSHA3),
 			"recurrent": true,
-		}))
+		})
 
 	// developer deploys and uses voucher
 	deploy(g, t, DeveloperAccount, false, 12, true)
@@ -77,7 +84,8 @@ func TestDeployRecurrentContract(t *testing.T) {
 }
 
 func TestDeleteVoucher(t *testing.T) {
-	g := overflow.NewTestingEmulator().Start()
+
+	g := Overflow(testingOptions...)
 
 	// init auditor
 	authorizeAuditor(g, t)
@@ -89,25 +97,22 @@ func TestDeleteVoucher(t *testing.T) {
 	deploy(g, t, DeveloperAccount, true, 0, false)
 
 	// delete voucher
-	g.TransactionFromFile(AuditorDeleteAuditTx).
-		TransactionPath(TransactionBasePath).
-		SignProposeAndPayAs(AuditorAccount).
-		Args(g.Arguments().
-			String(fmt.Sprintf("0x%s-%s", g.Account(DeveloperAccount).Address().String(), TestContractCodeSHA3))).
-		Test(t).
-		AssertSuccess().
-		AssertEmitEvent(overflow.NewTestEvent(VoucherRemovedEventName, map[string]interface{}{
-			"key":       "0x" + g.Account(DeveloperAccount).Address().String() + "-" + TestContractCodeSHA3,
+	g.Tx(AuditorDeleteAuditTx,
+		WithSigner(AuditorAccount),
+		WithArg("key", fmt.Sprintf("%s-%s", g.Address(DeveloperAccount), TestContractCodeSHA3)),
+	).AssertSuccess(t).
+		AssertEvent(t, VoucherRemovedEventName, map[string]interface{}{
+			"key":       g.Address(DeveloperAccount) + "-" + TestContractCodeSHA3,
 			"recurrent": true,
-		}))
+		})
 
 	// developer cannot deploy any more
 	deployAndFail(g, t, DeveloperAccount)
 }
 
 func TestExpiredVouchers(t *testing.T) {
-	g := overflow.NewTestingEmulator().Start()
 
+	g := Overflow(testingOptions...)
 	// init auditor
 	authorizeAuditor(g, t)
 
@@ -123,7 +128,7 @@ func TestExpiredVouchers(t *testing.T) {
 }
 
 func TestCleanupExpired(t *testing.T) {
-	g := overflow.NewTestingEmulator().Start()
+	g := Overflow(testingOptions...)
 
 	// init auditor
 	authorizeAuditor(g, t)
@@ -137,11 +142,7 @@ func TestCleanupExpired(t *testing.T) {
 	}
 
 	// cleanup
-	g.TransactionFromFile(AdminCleanupExpiredVouchersTx).
-		TransactionPath(TransactionBasePath).
-		SignProposeAndPayAsService().
-		Test(t).
-		AssertSuccess()
+	g.Tx(AdminCleanupExpiredVouchersTx, WithSignerServiceAccount()).AssertSuccess(t)
 
 	// check count, block offset still valid
 	if getVouchersCount(g, t) != 1 {
@@ -149,11 +150,7 @@ func TestCleanupExpired(t *testing.T) {
 	}
 
 	// cleanup
-	g.TransactionFromFile(AdminCleanupExpiredVouchersTx).
-		TransactionPath(TransactionBasePath).
-		SignProposeAndPayAsService().
-		Test(t).
-		AssertSuccess()
+	g.Tx(AdminCleanupExpiredVouchersTx, WithSignerServiceAccount()).AssertSuccess(t)
 
 	// verify cleanup
 	if getVouchersCount(g, t) != 0 {
@@ -163,7 +160,7 @@ func TestCleanupExpired(t *testing.T) {
 
 func TestHashedDeployContract(t *testing.T) {
 
-	g := overflow.NewTestingEmulator().Start()
+	g := Overflow(testingOptions...)
 
 	// no voucher on start
 	deployAndFail(g, t, DeveloperAccount)
