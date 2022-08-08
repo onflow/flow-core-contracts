@@ -319,27 +319,32 @@ func TestIDTableStaking(t *testing.T) {
 	// Create new user accounts
 	joshAccountKey, joshSigner := accountKeys.NewWithSigner()
 	joshAddress, _ := b.CreateAccount([]*flow.AccountKey{joshAccountKey}, nil)
-	_, joshStakingKey, _, joshNetworkingKey := generateKeysForNodeRegistration(t)
+	joshSK, joshStakingKey, _, joshNetworkingKey := generateKeysForNodeRegistration(t)
+	joshStakingPOP := generateKeyPOP(t, joshSK)
 
 	// Create a new user account
 	maxAccountKey, maxSigner := accountKeys.NewWithSigner()
 	maxAddress, _ := b.CreateAccount([]*flow.AccountKey{maxAccountKey}, nil)
-	_, maxStakingKey, _, maxNetworkingKey := generateKeysForNodeRegistration(t)
+	maxSK, maxStakingKey, _, maxNetworkingKey := generateKeysForNodeRegistration(t)
+	maxStakingPOP := generateKeyPOP(t, maxSK)
 
 	// Create a new user account
 	bastianAccountKey, bastianSigner := accountKeys.NewWithSigner()
 	bastianAddress, _ := b.CreateAccount([]*flow.AccountKey{bastianAccountKey}, nil)
-	_, bastianStakingKey, _, bastianNetworkingKey := generateKeysForNodeRegistration(t)
+	bastianSK, bastianStakingKey, _, bastianNetworkingKey := generateKeysForNodeRegistration(t)
+	bastianStakingPOP := generateKeyPOP(t, bastianSK)
 
 	// Create a new user account for access node
 	accessAccountKey, accessSigner := accountKeys.NewWithSigner()
 	accessAddress, _ := b.CreateAccount([]*flow.AccountKey{accessAccountKey}, nil)
-	_, accessStakingKey, _, accessNetworkingKey := generateKeysForNodeRegistration(t)
+	acessSK, accessStakingKey, _, accessNetworkingKey := generateKeysForNodeRegistration(t)
+	accessStakingPOP := generateKeyPOP(t, acessSK)
 
 	// Create new delegator user accounts
 	adminDelegatorAccountKey, adminDelegatorSigner := accountKeys.NewWithSigner()
 	adminDelegatorAddress, _ := b.CreateAccount([]*flow.AccountKey{adminDelegatorAccountKey}, nil)
-	_, adminStakingKey, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
+	adminSK, adminStakingKey, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
+	adminStakingPOP := generateKeyPOP(t, adminSK)
 
 	joshDelegatorOneAccountKey, joshDelegatorOneSigner := accountKeys.NewWithSigner()
 	joshDelegatorOneAddress, _ := b.CreateAccount([]*flow.AccountKey{joshDelegatorOneAccountKey}, nil)
@@ -384,6 +389,7 @@ func TestIDTableStaking(t *testing.T) {
 			fmt.Sprintf("%0128d", admin),
 			adminNetworkingKey,
 			adminStakingKey,
+			adminStakingPOP,
 			amountToCommit,
 			committed[adminID],
 			1,
@@ -396,6 +402,7 @@ func TestIDTableStaking(t *testing.T) {
 			fmt.Sprintf("%0128d", admin),
 			adminNetworkingKey,
 			adminStakingKey,
+			adminStakingPOP,
 			amountToCommit,
 			committed[adminID],
 			// Invalid Role: Greater than 5
@@ -409,6 +416,7 @@ func TestIDTableStaking(t *testing.T) {
 			fmt.Sprintf("%0128d", admin),
 			adminNetworkingKey,
 			adminStakingKey,
+			adminStakingPOP,
 			amountToCommit,
 			committed[adminID],
 			// Invalid Role: Less than 1
@@ -423,6 +431,7 @@ func TestIDTableStaking(t *testing.T) {
 			"",
 			adminNetworkingKey,
 			adminStakingKey,
+			adminStakingPOP,
 			amountToCommit,
 			committed[adminID],
 			1,
@@ -436,6 +445,7 @@ func TestIDTableStaking(t *testing.T) {
 			// Invalid Networking Key: Length is correct, but not a valid ECDSA Key
 			fmt.Sprintf("%0128d", admin),
 			adminStakingKey,
+			adminStakingPOP,
 			amountToCommit,
 			committed[adminID],
 			1,
@@ -449,6 +459,21 @@ func TestIDTableStaking(t *testing.T) {
 			adminNetworkingKey,
 			// Invalid Staking Key: Length is correct, but not a valid BLS Key
 			fmt.Sprintf("%0192d", admin),
+			adminStakingPOP,
+			amountToCommit,
+			committed[adminID],
+			1,
+			true)
+
+		registerNode(t, b, env,
+			idTableAddress,
+			IDTableSigner,
+			adminID,
+			fmt.Sprintf("%0128d", admin),
+			adminNetworkingKey,
+			adminStakingKey,
+			// Invalid Staking Key POP: Length is correct, but not a valid POP
+			fmt.Sprintf("%096d", admin),
 			amountToCommit,
 			committed[adminID],
 			1,
@@ -467,6 +492,7 @@ func TestIDTableStaking(t *testing.T) {
 			fmt.Sprintf("%0128d", admin),
 			adminNetworkingKey,
 			adminStakingKey,
+			adminStakingPOP,
 			amountToCommit,
 			committed[adminID],
 			1,
@@ -517,6 +543,7 @@ func TestIDTableStaking(t *testing.T) {
 			fmt.Sprintf("%0128d", josh),
 			joshNetworkingKey,
 			joshStakingKey,
+			joshStakingPOP,
 			amountToCommit,
 			committed[adminID],
 			1,
@@ -530,6 +557,7 @@ func TestIDTableStaking(t *testing.T) {
 			fmt.Sprintf("%0128d", admin),
 			joshNetworkingKey,
 			joshStakingKey,
+			joshStakingPOP,
 			amountToCommit,
 			committed[adminID],
 			1,
@@ -543,6 +571,7 @@ func TestIDTableStaking(t *testing.T) {
 			// Invalid: first admin networking key is already in use
 			adminNetworkingKey,
 			joshStakingKey,
+			joshStakingPOP,
 			amountToCommit,
 			committed[adminID],
 			1,
@@ -556,6 +585,7 @@ func TestIDTableStaking(t *testing.T) {
 			joshNetworkingKey,
 			// Invalid: first admin stake key is already in use
 			adminStakingKey,
+			joshStakingPOP,
 			amountToCommit,
 			committed[adminID],
 			1,
@@ -785,6 +815,7 @@ func TestIDTableStaking(t *testing.T) {
 			fmt.Sprintf("%0128d", josh),
 			joshNetworkingKey,
 			joshStakingKey,
+			joshStakingPOP,
 			amountToCommit,
 			committed[joshID],
 			2,
@@ -802,6 +833,7 @@ func TestIDTableStaking(t *testing.T) {
 			fmt.Sprintf("%0128d", max),
 			maxNetworkingKey,
 			maxStakingKey,
+			maxStakingPOP,
 			amountToCommit,
 			committed[maxID],
 			3,
@@ -816,6 +848,7 @@ func TestIDTableStaking(t *testing.T) {
 			fmt.Sprintf("%0128d", access),
 			accessNetworkingKey,
 			accessStakingKey,
+			accessStakingPOP,
 			amountToCommit,
 			committed[accessID],
 			5,
@@ -864,6 +897,7 @@ func TestIDTableStaking(t *testing.T) {
 			fmt.Sprintf("%0128d", josh),
 			joshNetworkingKey,
 			joshStakingKey,
+			joshStakingPOP,
 			amountToCommit,
 			committed[joshID],
 			2,
@@ -1743,6 +1777,7 @@ func TestIDTableStaking(t *testing.T) {
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", bastian)))
 		_ = tx.AddArgument(CadenceString(bastianNetworkingKey))
 		_ = tx.AddArgument(CadenceString(bastianStakingKey))
+		_ = tx.AddArgument(CadenceString(bastianStakingPOP))
 		_ = tx.AddArgument(CadenceUFix64("1400000.0"))
 
 		signAndSubmit(
@@ -2450,14 +2485,17 @@ func TestIDTableRewardsWitholding(t *testing.T) {
 	nodeSigners := make([]crypto.Signer, numNodes)
 	nodeAddresses := make([]flow.Address, numNodes)
 	nodeStakingKeys := make([]string, numNodes)
+	nodeStakingKeyPOPs := make([]string, numNodes)
 	nodeNetworkingKeys := make([]string, numNodes)
 	ids, _, _ := generateNodeIDs(numNodes)
 
+	var sk crypto.PrivateKey
 	// Create all the node accounts
 	for i := 0; i < numNodes; i++ {
 		nodeKeys[i], nodeSigners[i] = accountKeys.NewWithSigner()
 		nodeAddresses[i], _ = b.CreateAccount([]*flow.AccountKey{nodeKeys[i]}, nil)
-		_, nodeStakingKeys[i], _, nodeNetworkingKeys[i] = generateKeysForNodeRegistration(t)
+		sk, nodeStakingKeys[i], _, nodeNetworkingKeys[i] = generateKeysForNodeRegistration(t)
+		nodeStakingKeyPOPs[i] = generateKeyPOP(t, sk)
 	}
 
 	// Create arrays for the delegator account information
@@ -2488,6 +2526,7 @@ func TestIDTableRewardsWitholding(t *testing.T) {
 			fmt.Sprintf("%0128s", ids[i]),
 			nodeNetworkingKeys[i],
 			nodeStakingKeys[i],
+			nodeStakingKeyPOPs[i],
 			amountToCommit,
 			committed[ids[i]],
 			1,

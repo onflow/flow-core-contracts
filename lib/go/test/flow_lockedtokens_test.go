@@ -357,6 +357,7 @@ func TestLockedTokensStaker(t *testing.T) {
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0192d", josh)))
+		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%096d", josh)))
 		_ = tx.AddArgument(CadenceUFix64("250000.0"))
 
 		signAndSubmit(
@@ -549,6 +550,7 @@ func TestLockedTokensStaker(t *testing.T) {
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0192d", josh)))
+		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%096d", josh)))
 		_ = tx.AddArgument(CadenceUFix64("745000.0"))
 
 		signAndSubmit(

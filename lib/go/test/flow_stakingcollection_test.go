@@ -449,7 +449,8 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 	// Create regular accounts
 	userAddresses, _, userSigners := registerAndMintManyAccounts(t, b, accountKeys, 4)
-	_, adminStakingKey, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
+	sk, adminStakingKey, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
+	adminStakingKeyPOP := generateKeyPOP(t, sk)
 
 	var amountToCommit interpreter.UFix64Value = 48000000000000
 
@@ -461,6 +462,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		fmt.Sprintf("%0128d", admin),
 		adminNetworkingKey,
 		adminStakingKey,
+		adminStakingKeyPOP,
 		amountToCommit,
 		amountToCommit,
 		1,
@@ -850,7 +852,8 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 
 	// Create regular accounts
 	userAddresses, _, userSigners := registerAndMintManyAccounts(t, b, accountKeys, 4)
-	_, adminStakingKey, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
+	sk, adminStakingKey, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
+	adminStakingKeyPOP := generateKeyPOP(t, sk)
 
 	var amountToCommit interpreter.UFix64Value = 48000000000000
 
@@ -862,6 +865,7 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 		fmt.Sprintf("%0128d", admin),
 		adminNetworkingKey,
 		adminStakingKey,
+		adminStakingKeyPOP,
 		amountToCommit,
 		amountToCommit,
 		1,
@@ -2793,13 +2797,15 @@ func TestStakingCollectionCreateNewTokenHolder(t *testing.T) {
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), jeffAddress2)
 
 		userNodeID1 := "0000000000000000000000000000000000000000000000000000000000000001"
-		_, nodeOneStakingKey, _, nodeOneNetworkingKey := generateKeysForNodeRegistration(t)
+		stakingKey, nodeOneStakingKey, _, nodeOneNetworkingKey := generateKeysForNodeRegistration(t)
+		nodeOneStakingKeyPOP := generateKeyPOP(t, stakingKey)
 
 		_ = tx.AddArgument(CadenceString(userNodeID1))
 		_ = tx.AddArgument(cadence.NewUInt8(4))
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", 1)))
 		_ = tx.AddArgument(CadenceString(nodeOneNetworkingKey))
 		_ = tx.AddArgument(CadenceString(nodeOneStakingKey))
+		_ = tx.AddArgument(CadenceString(nodeOneStakingKeyPOP))
 		_ = tx.AddArgument(CadenceUFix64("320000.0"))
 
 		signAndSubmit(
@@ -2916,6 +2922,7 @@ func TestStakingCollectionRegisterMultipleNodes(t *testing.T) {
 
 	// Create arrays for the node account information
 	nodeStakingKeys := make([]cadence.Value, numNodes)
+	nodeStakingKeyPOPs := make([]cadence.Value, numNodes)
 	nodeNetworkingKeys := make([]cadence.Value, numNodes)
 	nodeNetworkingAddresses := make([]cadence.Value, numNodes)
 	ids, _, _ := generateNodeIDs(numNodes)
@@ -2928,9 +2935,10 @@ func TestStakingCollectionRegisterMultipleNodes(t *testing.T) {
 
 	// Create all the node accounts
 	for i := 0; i < numNodes; i++ {
-		_, stakingKey, _, networkingKey := generateKeysForNodeRegistration(t)
+		sk, stakingKey, _, networkingKey := generateKeysForNodeRegistration(t)
 
 		nodeStakingKeys[i] = CadenceString(stakingKey)
+		nodeStakingKeyPOPs[i] = CadenceString(generateKeyPOP(t, sk))
 		nodeNetworkingKeys[i] = CadenceString(networkingKey)
 
 		nodeNetworkingAddresses[i] = CadenceString(fmt.Sprintf("%0128s", ids[i]))
@@ -2963,6 +2971,7 @@ func TestStakingCollectionRegisterMultipleNodes(t *testing.T) {
 		_ = tx.AddArgument(cadence.NewArray(nodeNetworkingAddresses))
 		_ = tx.AddArgument(cadence.NewArray(nodeNetworkingKeys))
 		_ = tx.AddArgument(cadence.NewArray(nodeStakingKeys))
+		_ = tx.AddArgument(cadence.NewArray(nodeStakingKeyPOPs))
 		_ = tx.AddArgument(cadence.NewArray(cadenceAmounts))
 		_ = tx.AddArgument(cadence.NewArray(machineAccountKeys))
 
