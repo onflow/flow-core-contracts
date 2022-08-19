@@ -179,7 +179,10 @@ pub contract FlowIDTableStaking {
             )
 
             // Verify the proof of possesion of the private staking key
-            stakeKey.verifyPoP(stakingKeyPoP.decodeHex())
+            assert(
+                stakeKey.verifyPoP(stakingKeyPoP.decodeHex()),
+                message: "Invalid Proof of Possesion for staking key"
+            )
 
             let netKey = PublicKey(
                 publicKey: networkingKey.decodeHex(),

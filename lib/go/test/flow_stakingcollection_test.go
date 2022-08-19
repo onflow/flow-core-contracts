@@ -536,7 +536,8 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		"1000000000.0",
 		"1000000.0", "1000000.0",
 		adminAccountKey, adminAddress, adminSigner)
-	_, joshStakingKey, _, joshNetworkingKey := generateKeysForNodeRegistration(t)
+	sk, joshStakingKey, _, joshNetworkingKey := generateKeysForNodeRegistration(t)
+	joshStakingPOP := generateKeyPOP(t, sk)
 
 	// Register a node and a delegator in the locked account
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), joshAddress)
@@ -545,7 +546,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 	_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
 	_ = tx.AddArgument(CadenceString(joshNetworkingKey))
 	_ = tx.AddArgument(CadenceString(joshStakingKey))
-	_ = tx.AddArgument(CadenceString("beef"))
+	_ = tx.AddArgument(CadenceString(joshStakingPOP))
 	_ = tx.AddArgument(CadenceUFix64("320000.0"))
 
 	signAndSubmit(
@@ -603,7 +604,8 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 	t.Run("Should not be able to register a consensus node without a machine account public key", func(t *testing.T) {
 
-		_, maxStakingKey, _, maxNetworkingKey := generateKeysForNodeRegistration(t)
+		sk, maxStakingKey, _, maxNetworkingKey := generateKeysForNodeRegistration(t)
+		maxStakingPOP := generateKeyPOP(t, sk)
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterNode(env), joshAddress)
 		_ = tx.AddArgument(CadenceString(maxID))
@@ -611,7 +613,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", max)))
 		_ = tx.AddArgument(CadenceString(maxNetworkingKey))
 		_ = tx.AddArgument(CadenceString(maxStakingKey))
-		_ = tx.AddArgument(CadenceString("beef"))
+		_ = tx.AddArgument(CadenceString(maxStakingPOP))
 		_ = tx.AddArgument(CadenceUFix64("500000.0"))
 		_ = tx.AddArgument(cadence.NewOptional(nil))
 
@@ -632,7 +634,8 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 	t.Run("Should be able to register a second node and delegator in the staking collection", func(t *testing.T) {
 
-		_, maxStakingKey, _, maxNetworkingKey := generateKeysForNodeRegistration(t)
+		sk, maxStakingKey, _, maxNetworkingKey := generateKeysForNodeRegistration(t)
+		maxStakingPOP := generateKeyPOP(t, sk)
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterNode(env), joshAddress)
 		_ = tx.AddArgument(CadenceString(maxID))
@@ -640,7 +643,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", max)))
 		_ = tx.AddArgument(CadenceString(maxNetworkingKey))
 		_ = tx.AddArgument(CadenceString(maxStakingKey))
-		_ = tx.AddArgument(CadenceString("beef"))
+		_ = tx.AddArgument(CadenceString(maxStakingPOP))
 		_ = tx.AddArgument(CadenceUFix64("500000.0"))
 		_ = tx.AddArgument(cadence.NewOptional(cadencePublicKeys))
 
@@ -679,7 +682,8 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 	t.Run("Should be able to register a collection node in the staking collection and create a machine account", func(t *testing.T) {
 
-		_, bastianStakingKey, _, bastianNetworkingKey := generateKeysForNodeRegistration(t)
+		sk, bastianStakingKey, _, bastianNetworkingKey := generateKeysForNodeRegistration(t)
+		bastianStakingPOP := generateKeyPOP(t, sk)
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterNode(env), joshAddress)
 		_ = tx.AddArgument(CadenceString(bastianID))
@@ -687,7 +691,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", bastian)))
 		_ = tx.AddArgument(CadenceString(bastianNetworkingKey))
 		_ = tx.AddArgument(CadenceString(bastianStakingKey))
-		_ = tx.AddArgument(CadenceString("beef"))
+		_ = tx.AddArgument(CadenceString(bastianStakingPOP))
 		_ = tx.AddArgument(CadenceUFix64("10000.0"))
 		_ = tx.AddArgument(cadence.NewOptional(cadencePublicKeys))
 
@@ -756,7 +760,8 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 	t.Run("Should be able to register a execution and verification node in the staking collection and not create machine accounts", func(t *testing.T) {
 
-		_, executionStakingKey, _, executionNetworkingKey := generateKeysForNodeRegistration(t)
+		sk, executionStakingKey, _, executionNetworkingKey := generateKeysForNodeRegistration(t)
+		executionStakingPOP := generateKeyPOP(t, sk)
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterNode(env), joshAddress)
 		_ = tx.AddArgument(CadenceString(executionID))
@@ -764,7 +769,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", execution)))
 		_ = tx.AddArgument(CadenceString(executionNetworkingKey))
 		_ = tx.AddArgument(CadenceString(executionStakingKey))
-		_ = tx.AddArgument(CadenceString("beef"))
+		_ = tx.AddArgument(CadenceString(executionStakingPOP))
 		_ = tx.AddArgument(CadenceUFix64("10000.0"))
 		_ = tx.AddArgument(cadence.NewOptional(nil))
 
@@ -787,7 +792,8 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 			true,
 		)
 
-		_, verificationStakingKey, _, verificationNetworkingKey := generateKeysForNodeRegistration(t)
+		sk, verificationStakingKey, _, verificationNetworkingKey := generateKeysForNodeRegistration(t)
+		verificationStakingPOP := generateKeyPOP(t, sk)
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterNode(env), joshAddress)
 		_ = tx.AddArgument(CadenceString(verificationID))
@@ -795,7 +801,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", verification)))
 		_ = tx.AddArgument(CadenceString(verificationNetworkingKey))
 		_ = tx.AddArgument(CadenceString(verificationStakingKey))
-		_ = tx.AddArgument(CadenceString("beef"))
+		_ = tx.AddArgument(CadenceString(verificationStakingPOP))
 		_ = tx.AddArgument(CadenceUFix64("10000.0"))
 		_ = tx.AddArgument(cadence.NewOptional(nil))
 
@@ -962,7 +968,8 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 		"1000000.0", "1000000.0",
 		adminAccountKey, adminAddress, adminSigner)
 
-	_, joshStakingKey, _, joshNetworkingKey := generateKeysForNodeRegistration(t)
+	sk, joshStakingKey, _, joshNetworkingKey := generateKeysForNodeRegistration(t)
+	joshStakingPOP := generateKeyPOP(t, sk)
 
 	// Register a node and a delegator in the locked account
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), joshAddress)
@@ -971,7 +978,7 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 	_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
 	_ = tx.AddArgument(CadenceString(joshNetworkingKey))
 	_ = tx.AddArgument(CadenceString(joshStakingKey))
-	_ = tx.AddArgument(CadenceString("beef"))
+	_ = tx.AddArgument(CadenceString(joshStakingPOP))
 	_ = tx.AddArgument(CadenceUFix64("320000.0"))
 
 	signAndSubmit(
