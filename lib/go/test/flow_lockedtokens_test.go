@@ -1566,6 +1566,7 @@ func TestLockedTokensRealStaking(t *testing.T) {
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
 		_ = tx.AddArgument(CadenceString(joshNetworkingKey))
 		_ = tx.AddArgument(CadenceString(joshStakingKey))
+		_ = tx.AddArgument(CadenceString("beef"))
 		_ = tx.AddArgument(CadenceUFix64("250000.0"))
 
 		signAndSubmit(
@@ -1652,6 +1653,7 @@ func TestLockedTokensRealStaking(t *testing.T) {
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
 		_ = tx.AddArgument(CadenceString(joshNetworkingKey))
 		_ = tx.AddArgument(CadenceString(joshStakingKey))
+		_ = tx.AddArgument(CadenceString("beef"))
 		_ = tx.AddArgument(CadenceUFix64("250000.0"))
 
 		signAndSubmit(
@@ -1696,6 +1698,7 @@ func TestLockedTokensRealStaking(t *testing.T) {
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
 		_ = tx.AddArgument(CadenceString(joshNetworkingKey))
 		_ = tx.AddArgument(CadenceString(joshStakingKey))
+		_ = tx.AddArgument(CadenceString("beef"))
 		_ = tx.AddArgument(CadenceUFix64("250000.0"))
 
 		signAndSubmit(
@@ -1746,6 +1749,7 @@ func TestLockedTokensRealStaking(t *testing.T) {
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", max)))
 		_ = tx.AddArgument(CadenceString(maxNetworkingKey))
 		_ = tx.AddArgument(CadenceString(maxStakingKey))
+		_ = tx.AddArgument(CadenceString("beef"))
 		_ = tx.AddArgument(CadenceUFix64("250000.0"))
 
 		signAndSubmit(
@@ -1893,6 +1897,7 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
 		_ = tx.AddArgument(CadenceString(joshNetworkingKey))
 		_ = tx.AddArgument(CadenceString(joshStakingKey))
+		_ = tx.AddArgument(CadenceString("beef"))
 		_ = tx.AddArgument(CadenceUFix64("320000.0"))
 
 		signAndSubmit(

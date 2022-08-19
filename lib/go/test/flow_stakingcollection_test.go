@@ -545,6 +545,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 	_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
 	_ = tx.AddArgument(CadenceString(joshNetworkingKey))
 	_ = tx.AddArgument(CadenceString(joshStakingKey))
+	_ = tx.AddArgument(CadenceString("beef"))
 	_ = tx.AddArgument(CadenceUFix64("320000.0"))
 
 	signAndSubmit(
@@ -610,6 +611,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", max)))
 		_ = tx.AddArgument(CadenceString(maxNetworkingKey))
 		_ = tx.AddArgument(CadenceString(maxStakingKey))
+		_ = tx.AddArgument(CadenceString("beef"))
 		_ = tx.AddArgument(CadenceUFix64("500000.0"))
 		_ = tx.AddArgument(cadence.NewOptional(nil))
 
@@ -638,6 +640,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", max)))
 		_ = tx.AddArgument(CadenceString(maxNetworkingKey))
 		_ = tx.AddArgument(CadenceString(maxStakingKey))
+		_ = tx.AddArgument(CadenceString("beef"))
 		_ = tx.AddArgument(CadenceUFix64("500000.0"))
 		_ = tx.AddArgument(cadence.NewOptional(cadencePublicKeys))
 
@@ -684,6 +687,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", bastian)))
 		_ = tx.AddArgument(CadenceString(bastianNetworkingKey))
 		_ = tx.AddArgument(CadenceString(bastianStakingKey))
+		_ = tx.AddArgument(CadenceString("beef"))
 		_ = tx.AddArgument(CadenceUFix64("10000.0"))
 		_ = tx.AddArgument(cadence.NewOptional(cadencePublicKeys))
 
@@ -760,6 +764,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", execution)))
 		_ = tx.AddArgument(CadenceString(executionNetworkingKey))
 		_ = tx.AddArgument(CadenceString(executionStakingKey))
+		_ = tx.AddArgument(CadenceString("beef"))
 		_ = tx.AddArgument(CadenceUFix64("10000.0"))
 		_ = tx.AddArgument(cadence.NewOptional(nil))
 
@@ -790,6 +795,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", verification)))
 		_ = tx.AddArgument(CadenceString(verificationNetworkingKey))
 		_ = tx.AddArgument(CadenceString(verificationStakingKey))
+		_ = tx.AddArgument(CadenceString("beef"))
 		_ = tx.AddArgument(CadenceUFix64("10000.0"))
 		_ = tx.AddArgument(cadence.NewOptional(nil))
 
@@ -965,6 +971,7 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 	_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
 	_ = tx.AddArgument(CadenceString(joshNetworkingKey))
 	_ = tx.AddArgument(CadenceString(joshStakingKey))
+	_ = tx.AddArgument(CadenceString("beef"))
 	_ = tx.AddArgument(CadenceUFix64("320000.0"))
 
 	signAndSubmit(

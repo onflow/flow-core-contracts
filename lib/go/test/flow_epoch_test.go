@@ -822,7 +822,7 @@ func TestEpochQCDKG(t *testing.T) {
 	clusterQCs[0] = make([]string, 2)
 	clusterQCs[1] = make([]string, 2)
 
-	collectorVoteHasher := flow_crypto.NewBLSKMAC(collectorVoteTag)
+	collectorVoteHasher := flow_crypto.NewExpandMsgXOFKMAC128(collectorVoteTag)
 
 	t.Run("Can perform QC actions during Epoch Setup and advance to EpochCommit", func(t *testing.T) {
 
@@ -1121,7 +1121,7 @@ func TestEpochReset(t *testing.T) {
 	clusterQCs[0] = make([]string, 1)
 	clusterQCs[1] = make([]string, 1)
 
-	collectorVoteHasher := flow_crypto.NewBLSKMAC(collectorVoteTag)
+	collectorVoteHasher := flow_crypto.NewExpandMsgXOFKMAC128(collectorVoteTag)
 
 	t.Run("Can perform QC actions during Epoch Setup but cannot advance to EpochCommit if DKG isn't complete", func(t *testing.T) {
 

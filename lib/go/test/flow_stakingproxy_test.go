@@ -233,6 +233,7 @@ func TestStakingProxy(t *testing.T) {
 
 		_ = tx.AddArgument(cadence.NewAddress(nodeAddress))
 		_ = tx.AddArgument(CadenceString(joshID))
+		_ = tx.AddArgument(CadenceString("beef"))
 		tokenAmount, err := cadence.NewUFix64("250000.0")
 		require.NoError(t, err)
 		_ = tx.AddArgument(tokenAmount)
