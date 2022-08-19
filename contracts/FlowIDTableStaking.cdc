@@ -702,6 +702,19 @@ pub contract FlowIDTableStaking {
         }
     }
 
+    /// Includes all the rewards breakdowns for all the nodes and delegators for a specific epoch
+    /// as well as the total amount of tokens to be minted for rewards
+    pub struct EpochRewardsSummary {
+        pub let totalRewards: UFix64
+        pub let breakdown: [RewardsBreakdown]
+
+        init(totalRewards: UFix64, breakdown: [RewardsBreakdown]) {
+            self.totalRewards = totalRewards
+            self.breakdown = breakdown
+        }
+    }
+
+    /// Details the rewards breakdown for an individual node and its delegators
     pub struct RewardsBreakdown {
         pub let nodeID: String
         pub(set) var nodeRewards: UFix64
@@ -859,7 +872,10 @@ pub contract FlowIDTableStaking {
 
         /// Called at the end of the epoch to pay rewards to node operators
         /// based on the tokens that they have staked
-        pub fun payRewards(_ rewardsBreakdownArray: [RewardsBreakdown], totalRewards: UFix64) {
+        pub fun payRewards(_ rewardsSummary: EpochRewardsSummary) {
+
+            let rewardsBreakdownArray = rewardsSummary.breakdown
+            let totalRewards = rewardsSummary.totalRewards
             
             // If there are no node operators to pay rewards to, do not mint new tokens
             if rewardsBreakdownArray.length == 0 {
@@ -922,13 +938,13 @@ pub contract FlowIDTableStaking {
         }
 
         /// Calculates rewards for all the staked node operators and delegators
-        pub fun calculateRewards(): [RewardsBreakdown] {
+        pub fun calculateRewards(): EpochRewardsSummary {
             let allNodeIDs = FlowIDTableStaking.getNodeIDs()
 
             // Get the sum of all tokens staked
             var totalStaked = FlowIDTableStaking.getTotalStaked()
             if totalStaked == 0.0 {
-                return []
+                return EpochRewardsSummary(totalRewards: 0.0, breakdown: [])
             }
             // Calculate the scale to be multiplied by number of tokens staked per node
             var totalRewardScale = FlowIDTableStaking.epochTokenPayout / totalStaked
@@ -1035,7 +1051,10 @@ pub contract FlowIDTableStaking {
                 rewardsBreakdown.nodeRewards = nodeRewardAmount
                 rewardsBreakdownArray.append(rewardsBreakdown)
             }
-            return rewardsBreakdownArray
+
+            let summary = EpochRewardsSummary(totalRewards: FlowIDTableStaking.epochTokenPayout, breakdown: rewardsBreakdownArray)
+
+            return summary
         }
 
         /// Called at the end of the epoch to move tokens between buckets

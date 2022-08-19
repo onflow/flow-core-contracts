@@ -8,6 +8,8 @@ transaction {
 
         let previousEpochMetadata = FlowEpoch.getEpochMetadata(FlowEpoch.currentEpochCounter - (1 as UInt64))!
 
-        heartbeat.payRewards(previousEpochMetadata.totalRewards)
+        let summary = FlowIDTableStaking.EpochRewardsSummary(totalRewards: previousEpochMetadata.totalRewards, breakdown: previousEpochMetadata.rewardAmounts)
+
+        heartbeat.payRewards(summary)
     }
 }

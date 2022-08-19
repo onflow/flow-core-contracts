@@ -57,9 +57,6 @@ pub contract FlowEpoch {
         pub case Access
     }
 
-    /// Event that indicates that a new epoch has started
-    pub event EpochTransition(previousEpoch: EpochMetadata, newEpoch: EpochMetadata)
-
     /// The Epoch Setup service event is emitted when we transition to the Epoch Setup
     /// phase. It contains the finalized identity table for the upcoming epoch.
     pub event EpochSetup(
@@ -367,14 +364,12 @@ pub contract FlowEpoch {
                     let currentBlock = getCurrentBlock()
                     let currentEpochMetadata = FlowEpoch.getEpochMetadata(FlowEpoch.currentEpochCounter)!
                     if currentBlock.view >= currentEpochMetadata.endView {
-                        let totalRewards = FlowIDTableStaking.epochTokenPayout
-                        self.calculateAndSetRewards()
+                        let rewardsSummary = self.calculateAndSetRewards()!
                         self.endEpoch()
                         if FlowEpoch.automaticRewardsEnabled() {
-                            self.payRewards(totalRewards)
+                            self.payRewards(rewardsSummary)
                         }
                         let newEpochMetadata = FlowEpoch.getEpochMetadata(FlowEpoch.currentEpochCounter)!
-                        emit EpochTransition(previousEpoch: currentEpochMetadata, newEpoch: newEpochMetadata)
                     }
                 default:
                     return
@@ -415,12 +410,12 @@ pub contract FlowEpoch {
 
         /// Needs to be called before the epoch is over
         /// Calculates rewards for the current epoch and stores them in epoch metadata
-        pub fun calculateAndSetRewards() {
-            FlowEpoch.calculateAndSetRewards()
+        pub fun calculateAndSetRewards(): FlowIDTableStaking.EpochRewardsSummary {
+            return FlowEpoch.calculateAndSetRewards()
         }
 
-        pub fun payRewards(_ totalRewards: UFix64) {
-            FlowEpoch.payRewards(totalRewards)
+        pub fun payRewards(_ rewardsSummary: FlowIDTableStaking.EpochRewardsSummary) {
+            FlowEpoch.payRewards(rewardsSummary)
         }
 
         /// Protocol can use this to reboot the epoch with a new genesis
@@ -476,15 +471,15 @@ pub contract FlowEpoch {
 
     /// Calculates a new token payout for the current epoch
     /// and sets the new payout for the next epoch
-    access(account) fun calculateAndSetRewards() {
+    access(account) fun calculateAndSetRewards(): FlowIDTableStaking.EpochRewardsSummary {
 
         let stakingAdmin = self.borrowStakingAdmin()
 
         // Calculate rewards for the current epoch that is about to end
         // and save that reward breakdown in the epoch metadata for the current epoch
-        let rewardsBreakdown = stakingAdmin.calculateRewards()
+        let rewardsSummary = stakingAdmin.calculateRewards()
         let currentMetadata = self.getEpochMetadata(self.currentEpochCounter)!
-        currentMetadata.setRewardAmounts(rewardsBreakdown)
+        currentMetadata.setRewardAmounts(rewardsSummary.breakdown)
         self.saveEpochMetadata(currentMetadata)
 
         if FlowEpoch.automaticRewardsEnabled() {
@@ -509,14 +504,14 @@ pub contract FlowEpoch {
             proposedMetadata.setTotalRewards(proposedPayout)
             self.saveEpochMetadata(proposedMetadata)
         }
+        return rewardsSummary
     }
 
     /// Pays rewards to the nodes and delegators of the previous epoch
-    access(account) fun payRewards(_ totalRewards: UFix64) {
+    access(account) fun payRewards(_ rewardsSummary: FlowIDTableStaking.EpochRewardsSummary) {
         if let previousEpochMetadata = self.getEpochMetadata(self.currentEpochCounter - (1 as UInt64)) {
             if !previousEpochMetadata.rewardsPaid {
-                let rewardsBreakdownArray = previousEpochMetadata.rewardAmounts
-                self.borrowStakingAdmin().payRewards(rewardsBreakdownArray, totalRewards: totalRewards)
+                self.borrowStakingAdmin().payRewards(rewardsSummary)
                 previousEpochMetadata.setRewardsPaid(true)
                 self.saveEpochMetadata(previousEpochMetadata)
             }

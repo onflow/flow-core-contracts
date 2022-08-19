@@ -14,7 +14,7 @@ transaction {
     }
 
     execute {
-        let rewardsArray = self.adminRef.calculateRewards()
-        self.adminRef.payRewards(rewardsArray, totalRewards: FlowIDTableStaking.getEpochTokenPayout())
+        let summary = self.adminRef.calculateRewards()
+        self.adminRef.payRewards(summary)
     }
 }
