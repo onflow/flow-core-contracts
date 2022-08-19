@@ -110,11 +110,14 @@ func TestEpochClusters(t *testing.T) {
 	// create new user accounts, mint tokens for them, and register them for staking
 	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
-	_, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
+	stakingSKs, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
+	stakingKeyPOPs := generateManyKeyPOPs(t, stakingSKs)
+
 	registerNodesForStaking(t, b, env,
 		addresses,
 		signers,
 		stakingPublicKeys,
+		stakingKeyPOPs,
 		networkingPublicKeys,
 		ids)
 
@@ -292,11 +295,14 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 	// create new user accounts, mint tokens for them, and register them for staking
 	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
-	_, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
+	stakingSKs, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
+	stakingKeyPOPs := generateManyKeyPOPs(t, stakingSKs)
+
 	registerNodesForStaking(t, b, env,
 		addresses,
 		signers,
 		stakingPublicKeys,
+		stakingKeyPOPs,
 		networkingPublicKeys,
 		ids)
 
@@ -418,11 +424,14 @@ func TestEpochAdvance(t *testing.T) {
 	// create new user accounts, mint tokens for them, and register them for staking
 	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
 	ids, _, dkgIDs := generateNodeIDs(numEpochAccounts)
-	_, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
+	stakingSKs, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
+	stakingKeyPOPs := generateManyKeyPOPs(t, stakingSKs)
+
 	registerNodesForStaking(t, b, env,
 		addresses,
 		signers,
 		stakingPublicKeys,
+		stakingKeyPOPs,
 		networkingPublicKeys,
 		ids)
 
@@ -562,11 +571,14 @@ func TestEpochQCDKGNodeRegistration(t *testing.T) {
 	// create new user accounts, mint tokens for them, and register them for staking
 	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
-	_, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
+	stakingSKs, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
+	stakingKeyPOPs := generateManyKeyPOPs(t, stakingSKs)
+
 	registerNodesForStaking(t, b, env,
 		addresses,
 		signers,
 		stakingPublicKeys,
+		stakingKeyPOPs,
 		networkingPublicKeys,
 		ids)
 
@@ -658,13 +670,15 @@ func TestEpochFullNodeRegistration(t *testing.T) {
 	// create new user accounts, mint tokens for them, and register them for staking
 	addresses, publicKeys, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
-	_, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
+	stakingSKs, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
+	stakingKeyPOPs := generateManyKeyPOPs(t, stakingSKs)
 	registerNodesForEpochs(t, b, env,
 		addresses,
 		signers,
 		publicKeys,
 		ids,
 		stakingPublicKeys,
+		stakingKeyPOPs,
 		networkingPublicKeys,
 	)
 
@@ -691,10 +705,13 @@ func TestEpochQCDKG(t *testing.T) {
 	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
 	stakingPrivateKeys, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
+	stakingKeyPOPs := generateManyKeyPOPs(t, stakingPrivateKeys)
+
 	registerNodesForStaking(t, b, env,
 		addresses,
 		signers,
 		stakingPublicKeys,
+		stakingKeyPOPs,
 		networkingPublicKeys,
 		ids)
 
@@ -805,7 +822,7 @@ func TestEpochQCDKG(t *testing.T) {
 	clusterQCs[0] = make([]string, 2)
 	clusterQCs[1] = make([]string, 2)
 
-	collectorVoteHasher := flow_crypto.NewBLSKMAC(collectorVoteTag)
+	collectorVoteHasher := flow_crypto.NewExpandMsgXOFKMAC128(collectorVoteTag)
 
 	t.Run("Can perform QC actions during Epoch Setup and advance to EpochCommit", func(t *testing.T) {
 
@@ -1045,10 +1062,12 @@ func TestEpochReset(t *testing.T) {
 	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
 	stakingPrivateKeys, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
+	stakingKeyPOPs := generateManyKeyPOPs(t, stakingPrivateKeys)
 	registerNodesForStaking(t, b, env,
 		addresses,
 		signers,
 		stakingPublicKeys,
+		stakingKeyPOPs,
 		networkingPublicKeys,
 		ids)
 
@@ -1102,7 +1121,7 @@ func TestEpochReset(t *testing.T) {
 	clusterQCs[0] = make([]string, 1)
 	clusterQCs[1] = make([]string, 1)
 
-	collectorVoteHasher := flow_crypto.NewBLSKMAC(collectorVoteTag)
+	collectorVoteHasher := flow_crypto.NewExpandMsgXOFKMAC128(collectorVoteTag)
 
 	t.Run("Can perform QC actions during Epoch Setup but cannot advance to EpochCommit if DKG isn't complete", func(t *testing.T) {
 

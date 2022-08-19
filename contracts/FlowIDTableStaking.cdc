@@ -121,8 +121,6 @@ pub contract FlowIDTableStaking {
         pub(set) var networkingKey: String
         pub(set) var stakingKey: String
 
-        /// TODO: Proof of Possession (PoP) of the staking private key
-
         /// The total tokens that only this node currently has staked, not including delegators
         /// This value must always be above the minimum requirement to stay staked or accept delegators
         pub var tokensStaked: @FlowToken.Vault
@@ -180,8 +178,11 @@ pub contract FlowIDTableStaking {
                 signatureAlgorithm: SignatureAlgorithm.BLS_BLS12_381
             )
 
-            // Verify the proof of possesion of the staking key
-            stakeKey.verifyPoP(stakingKeyPoP.decodeHex())
+            // Verify the proof of possesion of the private staking key
+            assert(
+                stakeKey.verifyPoP(stakingKeyPoP.decodeHex()),
+                message: "Invalid Proof of Possesion for staking key"
+            )
 
             let netKey = PublicKey(
                 publicKey: networkingKey.decodeHex(),

@@ -110,7 +110,11 @@ func generateManifest(env templates.Environment) *manifest {
 	}
 
 	sampleStakingKey := cadenceValue{
-		cadence.NewString("9e9ae0d645fd5fd9050792e0b0daa82cc1686d9133afa0f81a784b375c42ae48567d1545e7a9e1965f2c1a32f73cf8575ebb7a967f6e4d104d2df78eb8be409135d12da0499b8a00771f642c1b9c49397f22b440439f036c3bdee82f5309dab3"),
+		cadence.NewString("8dec36ed8a91e3e5d737b06434d94a8a561c7889495d6c7081cd5e123a42124415b9391c9b9aa165c2f71994bf9607cb0ea262ad162fec74146d1ebc482a33b9dad203d16a83bbfda89b3f6e1cd1d8fb2e704a162d259a0ac9f26bc8635d74f6"),
+	}
+
+	sampleStakingKeyPoP := cadenceValue{
+		cadence.NewString("828a68a2be392804044d85888100462702a422901da3269fb6512defabad07250aad24f232671e4ac8ae531f54e062fc"),
 	}
 
 	sampleNullOptional := cadenceValue{
@@ -193,6 +197,12 @@ func generateManifest(env templates.Environment) *manifest {
 				Name:         "stakingKey",
 				Label:        "Staking Key",
 				SampleValues: []cadenceValue{sampleStakingKey},
+			},
+			{
+				Type:         "String",
+				Name:         "stakingKeyPoP",
+				Label:        "Staking Key PoP",
+				SampleValues: []cadenceValue{sampleStakingKeyPoP},
 			},
 			{
 				Type:         "UFix64",
@@ -501,6 +511,12 @@ func generateManifest(env templates.Environment) *manifest {
 				Name:         "stakingKey",
 				Label:        "Staking Key",
 				SampleValues: []cadenceValue{sampleStakingKey},
+			},
+			{
+				Type:         "String",
+				Name:         "stakingKeyPoP",
+				Label:        "Staking Key PoP",
+				SampleValues: []cadenceValue{sampleStakingKeyPoP},
 			},
 			{
 				Type:         "UFix64",
