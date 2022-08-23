@@ -364,10 +364,10 @@ pub contract FlowEpoch {
                     let currentBlock = getCurrentBlock()
                     let currentEpochMetadata = FlowEpoch.getEpochMetadata(FlowEpoch.currentEpochCounter)!
                     if currentBlock.view >= currentEpochMetadata.endView {
-                        let rewardsSummary = self.calculateAndSetRewards()!
+                        self.calculateAndSetRewards()
                         self.endEpoch()
                         if FlowEpoch.automaticRewardsEnabled() {
-                            self.payRewards(rewardsSummary)
+                            self.payRewardsForPreviousEpoch()
                         }
                         let newEpochMetadata = FlowEpoch.getEpochMetadata(FlowEpoch.currentEpochCounter)!
                     }
@@ -410,12 +410,12 @@ pub contract FlowEpoch {
 
         /// Needs to be called before the epoch is over
         /// Calculates rewards for the current epoch and stores them in epoch metadata
-        pub fun calculateAndSetRewards(): FlowIDTableStaking.EpochRewardsSummary {
-            return FlowEpoch.calculateAndSetRewards()
+        pub fun calculateAndSetRewards() {
+            FlowEpoch.calculateAndSetRewards()
         }
 
-        pub fun payRewards(_ rewardsSummary: FlowIDTableStaking.EpochRewardsSummary) {
-            FlowEpoch.payRewards(rewardsSummary)
+        pub fun payRewardsForPreviousEpoch() {
+            FlowEpoch.payRewardsForPreviousEpoch()
         }
 
         /// Protocol can use this to reboot the epoch with a new genesis
@@ -471,7 +471,7 @@ pub contract FlowEpoch {
 
     /// Calculates a new token payout for the current epoch
     /// and sets the new payout for the next epoch
-    access(account) fun calculateAndSetRewards(): FlowIDTableStaking.EpochRewardsSummary {
+    access(account) fun calculateAndSetRewards() {
 
         let stakingAdmin = self.borrowStakingAdmin()
 
@@ -504,14 +504,14 @@ pub contract FlowEpoch {
             proposedMetadata.setTotalRewards(proposedPayout)
             self.saveEpochMetadata(proposedMetadata)
         }
-        return rewardsSummary
     }
 
     /// Pays rewards to the nodes and delegators of the previous epoch
-    access(account) fun payRewards(_ rewardsSummary: FlowIDTableStaking.EpochRewardsSummary) {
+    access(account) fun payRewardsForPreviousEpoch() {
         if let previousEpochMetadata = self.getEpochMetadata(self.currentEpochCounter - (1 as UInt64)) {
             if !previousEpochMetadata.rewardsPaid {
-                self.borrowStakingAdmin().payRewards(rewardsSummary)
+                let summary = FlowIDTableStaking.EpochRewardsSummary(totalRewards: previousEpochMetadata.totalRewards, breakdown: previousEpochMetadata.rewardAmounts)
+                self.borrowStakingAdmin().payRewards(summary)
                 previousEpochMetadata.setRewardsPaid(true)
                 self.saveEpochMetadata(previousEpochMetadata)
             }
