@@ -324,6 +324,12 @@ func generateManifest(env templates.Environment) *manifest {
 				SampleValues: []cadenceValue{sampleNodeID},
 			},
 			{
+				Type:         "String",
+				Name:         "stakingKeyPoP",
+				Label:        "Staking Key PoP",
+				SampleValues: []cadenceValue{sampleStakingKeyPoP},
+			},
+			{
 				Type:         "UFix64",
 				Name:         "amount",
 				Label:        "Amount",
