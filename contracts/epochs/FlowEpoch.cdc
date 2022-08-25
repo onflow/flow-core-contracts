@@ -369,7 +369,6 @@ pub contract FlowEpoch {
                         if FlowEpoch.automaticRewardsEnabled() {
                             self.payRewardsForPreviousEpoch()
                         }
-                        let newEpochMetadata = FlowEpoch.getEpochMetadata(FlowEpoch.currentEpochCounter)!
                     }
                 default:
                     return
@@ -845,3 +844,4 @@ pub contract FlowEpoch {
         self.saveEpochMetadata(firstEpochMetadata)
     }
 }
+ 
