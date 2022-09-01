@@ -41,6 +41,9 @@ const (
 	firstDelegatorStringID  = "0001"
 	secondDelegatorID       = 2
 	secondDelegatorStringID = "0002"
+
+	jessID         = "0000000000000000000000000000000000000000000000000000000000000042"
+	jess           = 42
 )
 
 func TestIDTableDeployment(t *testing.T) {
@@ -350,6 +353,10 @@ func TestIDTableStaking(t *testing.T) {
 	maxDelegatorTwoAccountKey, maxDelegatorTwoSigner := accountKeys.NewWithSigner()
 	maxDelegatorTwoAddress, _ := b.CreateAccount([]*flow.AccountKey{maxDelegatorTwoAccountKey}, nil)
 
+	// Create a new user account
+	jessAccountKey, jessSigner := accountKeys.NewWithSigner()
+	jessAddress, _ := b.CreateAccount([]*flow.AccountKey{jessAccountKey}, nil)
+
 	t.Run("Should be able to mint tokens for new accounts", func(t *testing.T) {
 
 		mintTokensForAccount(t, b, idTableAddress, "1000000000.0")
@@ -369,6 +376,8 @@ func TestIDTableStaking(t *testing.T) {
 		mintTokensForAccount(t, b, joshDelegatorOneAddress, "1000000000.0")
 
 		mintTokensForAccount(t, b, adminDelegatorAddress, "1000000000.0")
+
+		mintTokensForAccount(t, b, jessAddress, "1000000000.0")
 
 	})
 
@@ -739,7 +748,7 @@ func TestIDTableStaking(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
 
-		err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID), CadenceString(maxID), CadenceString(accessID)}))
+		err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID), CadenceString(maxID), CadenceString(accessID), CadenceString(jessID)}))
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -752,7 +761,7 @@ func TestIDTableStaking(t *testing.T) {
 		// read the approved nodes list and check that our node ids exists
 		result := executeScriptAndCheck(t, b, templates.GenerateGetApprovedNodesScript(env), nil)
 		idArray := result.(cadence.Array).Values
-		assert.Len(t, idArray, 4)
+		assert.Len(t, idArray, 5)
 
 		// read the proposed nodes table and check that our node ids exists
 		result = executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
@@ -830,6 +839,7 @@ func TestIDTableStaking(t *testing.T) {
 
 		idArray = result.(cadence.Array).Values
 		assert.Len(t, idArray, 3)
+
 	})
 
 	t.Run("Should be able to remove a Node from the proposed record and add it back", func(t *testing.T) {
@@ -2412,6 +2422,101 @@ func TestIDTableStaking(t *testing.T) {
 			false,
 		)
 
+	})
+
+	t.Run("Should be able to enforce slot limits without ending staking", func(t *testing.T) {
+		//remove nodes from previous tests
+		currentNodes := [5]string{adminID, joshID, maxID, bastianID, accessID}
+
+		for i := 0; i < len(currentNodes); i++ {
+			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRemoveNodeScript(env), idTableAddress)
+
+			_ = tx.AddArgument(CadenceString(currentNodes[i]))
+
+			signAndSubmit(
+				t, b, tx,
+				[]flow.Address{idTableAddress},
+				[]crypto.Signer{IDTableSigner},
+				false,
+			)
+		}
+
+		//update the allow list
+		nodeCount := 15
+		allowList := make([]cadence.Value, nodeCount)
+		for i := 0; i < nodeCount; i++ {
+			allowList[i] = CadenceString(fmt.Sprintf("%064d", i))
+		}
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
+
+		err := tx.AddArgument(cadence.NewArray(allowList))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
+			false,
+		)
+
+		//prepare the arrays for bulk node registration
+		authorizers := make([]flow.Address, nodeCount)
+		signers := make([]crypto.Signer, nodeCount)
+		stakingKeys := make([]string, nodeCount)
+		networkingKeys := make([]string, nodeCount)
+		ids := make([]string, nodeCount)
+
+		//register nodeCount nodes for the first test
+		for i := 0; i < nodeCount; i++ {
+			authorizers[i] = jessAddress		//array of authorizers - flow.address
+			signers[i] = jessSigner		//array of signers - crypto.signer
+			_, stakingKeys[i], _, networkingKeys[i] = generateKeysForNodeRegistration(t)
+			ids[i] = fmt.Sprintf("%064d", i)	//array of ids - string
+		}
+
+		registerNodesForStaking(t, b, env,
+			authorizers,
+			signers,
+			stakingKeys,
+			networkingKeys,
+			ids)
+
+		//check resulting array length
+		result := executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
+		idArray := result.(cadence.Array).Values
+		assert.Len(t, idArray, nodeCount)
+
+		//remove unapproved nodes to match final state
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateRemoveUnapprovedNodesScript(env), idTableAddress)
+
+		err = tx.AddArgument(cadence.NewArray(allowList))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
+			false,
+		)
+
+		//invoke slot selection
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateSlotSelectScript(env), idTableAddress)
+
+		slotResult := signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
+			false,
+		)
+
+		//debug
+		for _, event := range slotResult.Events {
+			if event.Type == "A.179b6b1cb6755e31.FlowIDTableStaking.NodeRemovedAndRefunded" {
+				t.Log("Caught event")
+				t.Log(event.Value)
+			}
+		}
 	})
 }
 
