@@ -14,6 +14,8 @@ pub contract ENVersionBeacon {
             return self.equalTo(ENVersionBeacon.getCurrentMinimumENVersion())
         }
 
+        /// Returns true if ENVersion is greater than
+        /// passed ENVersion and false otherwise
         pub fun greaterThan(_ other: ENVersion): Bool {
             if (self.major > other.major) {
                 return true
@@ -26,10 +28,14 @@ pub contract ENVersionBeacon {
             }
         }
 
+        /// Returns true if ENVersion is greater than or
+        /// equal to passed ENVersion and false otherwise
         pub fun greaterThanOrEqualTo(_ other: ENVersion): Bool {
             return self.greaterThan(other) || self.equalTo(other)
         }
 
+        /// Returns true if ENVersion is less than
+        /// passed ENVersion and false otherwise
         pub fun lessThan(_ other: ENVersion): Bool {
             if self.major < other.major {
                 return true
@@ -42,15 +48,20 @@ pub contract ENVersionBeacon {
             }
         }
 
+        /// Returns true if ENVersion is less than or
+        /// equal to passed ENVersion and false otherwise
         pub fun lessThanOrEqualTo(_ other: ENVersion): Bool {
             return self.lessThan(other) || self.equalTo(other)
         }
 
+        /// Returns true if ENVersion is equal to passed
+        /// ENVersion and false otherwise
         pub fun equalTo(_ other: ENVersion): Bool {
             return self.major == other.major && self.minor == other.minor && self.patch == other.patch
         }
 
-        // Returns version in Semver format (e.g. v<major>.<minor>.<patch>)
+        /// Returns version in Semver format (e.g. v<major>.<minor>.<patch>)
+        /// as a String
         pub fun toString(): String {
             return "v".concat(
                 self.major.toString()
@@ -72,21 +83,46 @@ pub contract ENVersionBeacon {
         }
     }
 
+    /// Event emitted any time a new version is added to the version table
+    pub event ENVersionTableUpdated(height: UInt64, version: ENVersion)
+    pub event ENVersionCooldownPeriodUpdated(newVersionCooldownPeriod: UInt64)
+
+    /// Canonical storage path for ENVersionKeeper
+    pub let ENVersionKeeperStoragePath: StoragePath
+
+    /// Table dictating minimum version
+    pub let versionTable: {UFix64: [ENVersion]}
+
     /*
     * TODO:
     *   - Establish admin resource that can update version table
     *   - Code conditions around updating that table (within 1000 blocks from current height & version increments)
     */
+    /// Admin interface that manages the Execution Node versioning
+    /// maintained in this contract
+    pub interface ENVersionAdmin {
+        access(self) versionCooldownPeriod: UInt64
+        pub fun updateMinimumVersion() {
+            // pre-conditions around blockheight threshold
+        }
 
-    pub resource ENVersionKeeper {
-
+        pub fun getVersionCooldownPeriod(): UInt64 {
+        }
     }
 
-    /// Event emitted any time a new version is added to the version table
-    pub event ENVersionTableUpdated(height: UInt64, version: ENVersion)
+    /// Admin resource that manages the Execution Node versioning
+    /// maintained in this contract
+    pub resource ENVersionKeeper: ENVersionAdmin {
+        access(self) versionCooldownPeriod: UInt64
+        pub fun updateMinimumVersion() {
+        }
+        pub fun getVersionCooldownPeriod(): UInt64 {
+            return self.versionCooldownPeriod
+        }
+        access(self) fun setVersionCooldownPeriod() {
+        }
 
-    /// Table dictating minimum version
-    pub let versionTable: {UFix64: [ENVersion]}
+    }
 
     /// Function that returns that minimum current version based on the current
     /// block height and version table mapping
@@ -106,5 +142,8 @@ pub contract ENVersionBeacon {
 
     init() {
         self.versionTable = {}
+        self.ENVersionKeeperStoragePath = /storage/ENVersionKeeper
+
+        self.account.save(<-create ENVersionAdmin(), to: self.ENVersionKeeperStoragePath)
     }
 }
