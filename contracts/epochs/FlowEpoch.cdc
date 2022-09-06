@@ -367,7 +367,7 @@ pub contract FlowEpoch {
                         self.calculateAndSetRewards()
                         self.endEpoch()
                         if FlowEpoch.automaticRewardsEnabled() {
-                            self.payRewards()
+                            self.payRewardsForPreviousEpoch()
                         }
                     }
                 default:
@@ -413,8 +413,8 @@ pub contract FlowEpoch {
             FlowEpoch.calculateAndSetRewards()
         }
 
-        pub fun payRewards() {
-            FlowEpoch.payRewards()
+        pub fun payRewardsForPreviousEpoch() {
+            FlowEpoch.payRewardsForPreviousEpoch()
         }
 
         /// Protocol can use this to reboot the epoch with a new genesis
@@ -476,9 +476,9 @@ pub contract FlowEpoch {
 
         // Calculate rewards for the current epoch that is about to end
         // and save that reward breakdown in the epoch metadata for the current epoch
-        let rewardsBreakdown = stakingAdmin.calculateRewards()
+        let rewardsSummary = stakingAdmin.calculateRewards()
         let currentMetadata = self.getEpochMetadata(self.currentEpochCounter)!
-        currentMetadata.setRewardAmounts(rewardsBreakdown)
+        currentMetadata.setRewardAmounts(rewardsSummary.breakdown)
         self.saveEpochMetadata(currentMetadata)
 
         if FlowEpoch.automaticRewardsEnabled() {
@@ -506,11 +506,11 @@ pub contract FlowEpoch {
     }
 
     /// Pays rewards to the nodes and delegators of the previous epoch
-    access(account) fun payRewards() {
+    access(account) fun payRewardsForPreviousEpoch() {
         if let previousEpochMetadata = self.getEpochMetadata(self.currentEpochCounter - (1 as UInt64)) {
             if !previousEpochMetadata.rewardsPaid {
-                let rewardsBreakdownArray = previousEpochMetadata.rewardAmounts
-                self.borrowStakingAdmin().payRewards(rewardsBreakdownArray)
+                let summary = FlowIDTableStaking.EpochRewardsSummary(totalRewards: previousEpochMetadata.totalRewards, breakdown: previousEpochMetadata.rewardAmounts)
+                self.borrowStakingAdmin().payRewards(summary)
                 previousEpochMetadata.setRewardsPaid(true)
                 self.saveEpochMetadata(previousEpochMetadata)
             }
@@ -844,3 +844,4 @@ pub contract FlowEpoch {
         self.saveEpochMetadata(firstEpochMetadata)
     }
 }
+ 
