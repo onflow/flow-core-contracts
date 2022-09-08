@@ -870,6 +870,12 @@ pub contract FlowIDTableStaking {
             }
         }
 
+        /// Set slot (count) limits for each node type (role).
+        pub fun setSlotLimits(slotLimits: {UInt8: UInt8}) {
+            FlowIDTableStaking.account.load<{UInt8: UInt8}>(from: /storage/slotLimits)
+            FlowIDTableStaking.account.save(slotLimits, to: /storage/slotLimits)
+        }
+
         /// Enforces slot (count) limits for each node type (role). If more nodes
         /// of a given type are registered than the limit, they are removed
         /// randomly until the limits are met. When a node is removed, it's
@@ -877,22 +883,24 @@ pub contract FlowIDTableStaking {
         pub fun slotSelect() {
             let allNodeIDs = FlowIDTableStaking.getNodeIDs()
 
-            let limits = [2, 2, 2, 2, 2]
-            var counts = [0, 0, 0, 0, 0]
+            let slotLimits = FlowIDTableStaking.account.load<{UInt8: UInt8}>(from: /storage/slotLimits)
+
+            // count the nodes of each type
+            var nodeCounts: {UInt8: UInt8} = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
             for nodeID in allNodeIDs {
                 let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
                 if nodeRecord.initialWeight == 100 {
-                    counts[nodeRecord.role - 1] = counts[nodeRecord.role - 1] + 1
+                    nodeCounts[nodeRecord.role] = nodeCounts[nodeRecord.role]! + 1
                 }
             }
 
-            for index, element in counts {
-                while counts[index] > limits[index] {
-                    let selection = unsafeRandom() % UInt64(counts[index])
+            for key in nodeCounts.keys {
+                while nodeCounts[UInt8(key)]! > slotLimits![UInt8(key)]! {
+                    let selection = unsafeRandom() % UInt64(nodeCounts[UInt8(key)]!)
                     var searchIndex: UInt64 = 0
                     for nodeID in allNodeIDs {
                         let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
-                        if nodeRecord.role == UInt8(index) + 1 && nodeRecord.initialWeight == 100 {
+                        if nodeRecord.role == UInt8(key) && nodeRecord.initialWeight == 100 {
                             if selection == searchIndex {
                                 emit NodeRemovedAndRefunded(nodeID: nodeRecord.id, amount: nodeRecord.tokensCommitted.balance + nodeRecord.tokensStaked.balance)
 
@@ -923,7 +931,7 @@ pub contract FlowIDTableStaking {
                                 nodeRecord.initialWeight = 0
 
                                 //Decrement the count for this role
-                                counts[index] = counts[index] - 1
+                                nodeCounts[UInt8(key)] = nodeCounts[UInt8(key)]! - 1
 
                                 break
                             }
@@ -1492,6 +1500,9 @@ pub contract FlowIDTableStaking {
 
     init(_ epochTokenPayout: UFix64, _ rewardCut: UFix64) {
         self.account.save(true, to: /storage/stakingEnabled)
+
+        let slotLimits: {UInt8: UInt8} = {1: 3, 2: 3, 3: 3, 4: 3, 5: 3}
+        self.account.save(slotLimits, to: /storage/slotLimits)
 
         self.nodes <- {}
 

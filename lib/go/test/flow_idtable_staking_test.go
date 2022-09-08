@@ -839,7 +839,6 @@ func TestIDTableStaking(t *testing.T) {
 
 		idArray = result.(cadence.Array).Values
 		assert.Len(t, idArray, 3)
-
 	})
 
 	t.Run("Should be able to remove a Node from the proposed record and add it back", func(t *testing.T) {
@@ -2491,6 +2490,24 @@ func TestIDTableStaking(t *testing.T) {
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateRemoveUnapprovedNodesScript(env), idTableAddress)
 
 		err = tx.AddArgument(cadence.NewArray(allowList))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
+			false,
+		)
+
+		//set the slot limits
+		slotLimits := make([]cadence.Value, 5)
+		for i := 0; i < 5; i++ {
+			slotLimits[i] = cadence.NewUInt8(2)
+		}
+
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateSetSlotLimitsScript(env), idTableAddress)
+
+		err = tx.AddArgument(cadence.NewArray(slotLimits))
 		require.NoError(t, err)
 
 		signAndSubmit(
