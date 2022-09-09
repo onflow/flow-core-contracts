@@ -12,19 +12,15 @@ pub contract ExecutionNodeVersionBeacon {
         pub let patch: UInt8
         pub let preRelease: String?
 
-        /// Oldest compatitible version with this version
-        ///
-        /// Defining this can help with logic around updating before a target block is reached
-        /// Such behavior may be desireable in the event breaking changes are released
-        /// between versions
-        pub let oldestCompatibleVersion: Semver?
+        /// Value denoting compatibility with previous versions
+        pub let isBackwardsCompatible: Bool
 
-        init(major: UInt8, minor: UInt8, patch: UInt8, preRelease: String?, oldestCompatibleVersion: Semver?) {
+        init(major: UInt8, minor: UInt8, patch: UInt8, preRelease: String?, isBackwardsCompatible: Bool) {
             self.major = major
             self.minor = minor
             self.patch = patch
             self.preRelease = preRelease
-            self.oldestCompatibleVersion = oldestCompatibleVersion
+            self.isBackwardsCompatible = isBackwardsCompatible
         }
 
         /// Returns version in Semver format (e.g. v<major>.<minor>.<patch>-<preRelease>)
@@ -106,7 +102,7 @@ pub contract ExecutionNodeVersionBeacon {
     pub event ExecutionNodeVersionTableAddition(height: UInt64, version: Semver)
     pub event ExecutionNodeVersionTableDeletion(height: UInt64, version: Semver)
     /// Event emitted any time the version update buffer period is updated
-    pub event ExecutionNodeVersionUpdateBufferUpdated(newVersionUpdateBuffer: UInt64)
+    pub event ExecutionNodeVersionUpdateBufferChanged(newVersionUpdateBuffer: UInt64)
 
     /// Canonical storage path for ExecutionNodeVersionKeeper
     pub let ExecutionNodeVersionKeeperStoragePath: StoragePath
@@ -116,7 +112,9 @@ pub contract ExecutionNodeVersionBeacon {
     /// enforced by insertion/deletion
     access(contract) let versionTable: {UInt64: Semver}
 
-    /// Number of blocks between height at updating and target height for version rollover
+    /// Number of blocks between block height when version boundary is defined and
+    /// the version boundary being defined. Nodes can expect that changes to the versionTable
+    /// they will have at least this long to respond to a version boundary
     access(contract) var versionUpdateBuffer: UInt64
     /// Set expectations regarding how much the versionUpdateBuffer can vary between version boundaries
     access(contract) let versionUpdateBufferVariance: UFix64
@@ -130,7 +128,7 @@ pub contract ExecutionNodeVersionBeacon {
     pub resource interface ExecutionNodeVersionAdmin {
 
         /// Update the minimum version to take effect at the given block height
-        pub fun addMinimumVersion(targetBlockHeight: UInt64, newVersion: Semver) {
+        pub fun addVersionBoundaryToTable(targetBlockHeight: UInt64, newVersion: Semver) {
             pre {
                 targetBlockHeight > ExecutionNodeVersionBeacon.lastBlockBoundary
                     : "Attempting to insert mapping out of order. Block Boundary insertions must be inserted in ascending order. Check versionTable & try again."
@@ -141,7 +139,7 @@ pub contract ExecutionNodeVersionBeacon {
 
         /// Deletes the last entry in versionTable which defines an upcoming version boundary
         /// Could be helpful in case rollback is needed
-        pub fun deleteLastVersionMapping(): Semver {
+        pub fun deleteLatestVersionBoundary(): Semver {
             pre {
                 ExecutionNodeVersionBeacon.versionTable.length > 0: "No version boundary mappings exist."
             }
@@ -149,7 +147,7 @@ pub contract ExecutionNodeVersionBeacon {
 
         /// Updates the number of blocks that must buffer updates to the versionTable
         /// and the block number the version is targetting
-        pub fun updateVersionUpdateBuffer(newUpdateBufferInBlocks: UInt64) {
+        pub fun changeVersionUpdateBuffer(newUpdateBufferInBlocks: UInt64) {
             post {
                 ExecutionNodeVersionBeacon.versionUpdateBuffer == newUpdateBufferInBlocks: "Update buffer was not properly changed! Reverted."
             }
@@ -163,7 +161,7 @@ pub contract ExecutionNodeVersionBeacon {
     /// Admin resource that manages the Execution Node versioning
     /// maintained in this contract
     pub resource ExecutionNodeVersionKeeper: ExecutionNodeVersionAdmin {
-        pub fun addMinimumVersion(targetBlockHeight: UInt64, newVersion: Semver) {
+        pub fun addVersionBoundaryToTable(targetBlockHeight: UInt64, newVersion: Semver) {
             // Insert mapping into versiontable
             ExecutionNodeVersionBeacon.versionTable.insert(
                 key: targetBlockHeight,
@@ -176,7 +174,7 @@ pub contract ExecutionNodeVersionBeacon {
             emit ExecutionNodeVersionTableAddition(height: targetBlockHeight, version: newVersion)
         }
 
-        pub fun deleteLastVersionMapping(): Semver {
+        pub fun deleteLatestVersionBoundary(): Semver {
             // Ensure deletion occurs with enough time for nodes to respond
             assert(
                 ExecutionNodeVersionBeacon.lastBlockBoundary > getCurrentBlock().height + ExecutionNodeVersionBeacon.versionUpdateBuffer,
@@ -197,11 +195,11 @@ pub contract ExecutionNodeVersionBeacon {
             return removed
         }
 
-        pub fun updateVersionUpdateBuffer(newUpdateBufferInBlocks: UInt64) {
+        pub fun changeVersionUpdateBuffer(newUpdateBufferInBlocks: UInt64) {
             // New buffer should be within range of expected buffer varianca
             assert(
-                newUpdateBufferInBlocks >= UInt64(UFix64(ExecutionNodeVersionBeacon.versionUpdateBuffer) * (1.0 - ExecutionNodeVersionBeacon.versionUpdateBufferVariance)) &&
-                newUpdateBufferInBlocks <= UInt64(UFix64(ExecutionNodeVersionBeacon.versionUpdateBuffer) * (1.0 + ExecutionNodeVersionBeacon.versionUpdateBufferVariance)),
+                UFix64(newUpdateBufferInBlocks) >= UFix64(ExecutionNodeVersionBeacon.versionUpdateBuffer) * (1.0 - ExecutionNodeVersionBeacon.versionUpdateBufferVariance) &&
+                UFix64(newUpdateBufferInBlocks) <= UFix64(ExecutionNodeVersionBeacon.versionUpdateBuffer) * (1.0 + ExecutionNodeVersionBeacon.versionUpdateBufferVariance),
                 message: "Can only change versionUpdateBuffer by allowed variance from existing buffer."
             )
 
@@ -224,7 +222,7 @@ pub contract ExecutionNodeVersionBeacon {
                 }
             }
 
-            emit ExecutionNodeVersionUpdateBufferUpdated(newVersionUpdateBuffer: newUpdateBufferInBlocks)
+            emit ExecutionNodeVersionUpdateBufferChanged(newVersionUpdateBuffer: newUpdateBufferInBlocks)
         }
 
         pub fun assignLastBlockBoundary() {
@@ -275,16 +273,17 @@ pub contract ExecutionNodeVersionBeacon {
             let minimumVersion = self.versionTable[versionBoundary]!
 
             // Returns Bool representing compatibility between versions
-            if minimumVersion.oldestCompatibleVersion != nil && version.oldestCompatibleVersion != nil {
-                return minimumVersion.coreGreaterThanOrEqualTo(version.oldestCompatibleVersion!) &&
-                    version.coreGreaterThanOrEqualTo(minimumVersion.oldestCompatibleVersion!)
-            } else {
-                return version.coreGreaterThanOrEqualTo(minimumVersion)
+            // Determine lesser version
+            if version.coreLessThan(minimumVersion) {
+                return false
+            } else if version.coreEqualTo(minimumVersion) {
+                return true
+            } else if minimumVersion.coreLessThan(version) {
+                return version.isBackwardsCompatible
             }
-        } else {
-            // Assuming no previous boundary exists, return false
-            return false
         }
+        // Assuming no previous boundary exists, return false
+        return false
     }
 
     /// Returns an array containing the block number at which to update and
@@ -331,9 +330,9 @@ pub contract ExecutionNodeVersionBeacon {
             return self.versionTable.keys[
                 (self.versionTable.keys.firstIndex(of: prevBoundary)! + 1)
             ]
-        } else {
-            return nil
         }
+
+        return nil
     }
 
     /// Binary search algorithm to find closest value key in versionTable that is <= target value

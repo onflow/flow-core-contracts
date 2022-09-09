@@ -70,6 +70,14 @@
 // ../../../transactions/epoch/scripts/get_epoch_phase.cdc (111B)
 // ../../../transactions/epoch/scripts/get_proposed_counter.cdc (108B)
 // ../../../transactions/epoch/scripts/get_randomize.cdc (121B)
+// ../../../transactions/executionNodeVersionBeacon/admin/add_version_to_table.cdc (1.564kB)
+// ../../../transactions/executionNodeVersionBeacon/admin/change_version_update_buffer.cdc (1.038kB)
+// ../../../transactions/executionNodeVersionBeacon/admin/delete_latest_version.cdc (996B)
+// ../../../transactions/executionNodeVersionBeacon/scripts/get_current_minimum_execution_node_version.cdc (176B)
+// ../../../transactions/executionNodeVersionBeacon/scripts/get_next_version_boundary_pair.cdc (174B)
+// ../../../transactions/executionNodeVersionBeacon/scripts/get_version_table.cdc (195B)
+// ../../../transactions/executionNodeVersionBeacon/scripts/get_version_update_buffer.cdc (165B)
+// ../../../transactions/executionNodeVersionBeacon/scripts/is_compatible_version.cdc (273B)
 // ../../../transactions/flowToken/burn_tokens.cdc (1.085kB)
 // ../../../transactions/flowToken/create_forwarder.cdc (1.815kB)
 // ../../../transactions/flowToken/mint_tokens.cdc (893B)
@@ -1735,6 +1743,166 @@ func epochScriptsGet_randomizeCdc() (*asset, error) {
 
 	info := bindataFileInfo{name: "epoch/scripts/get_randomize.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x15, 0x1a, 0x8d, 0x4d, 0xe8, 0x67, 0x7a, 0x7b, 0xc6, 0xeb, 0x95, 0xae, 0xc7, 0x7a, 0x1a, 0x50, 0xb8, 0x2b, 0xa3, 0xb1, 0x4c, 0xa0, 0x83, 0xea, 0xa9, 0x8e, 0xc1, 0x5b, 0x3d, 0x41, 0x8a, 0x79}}
+	return a, nil
+}
+
+var _executionnodeversionbeaconAdminAdd_version_to_tableCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xa4\x54\x4d\x6b\x1b\x31\x10\xbd\xef\xaf\x98\xfa\xd0\xae\xc1\xd8\x3d\x94\x52\x96\xa6\x61\xed\x2c\x34\x94\xda\xc1\x76\x42\xa1\xf4\x30\x96\xc6\xb6\x1a\xad\xb4\x95\x66\xe3\x84\x90\xff\x5e\xb4\x1f\x76\xe2\x38\x0e\xa5\xd7\x37\xcc\xbc\x99\xf7\x9e\xa4\xf2\xc2\x3a\x86\xec\x96\x44\xc9\xca\x9a\xb1\x95\x74\x45\xce\x2b\x6b\x86\x84\xc2\x1a\x58\x3a\x9b\xc3\xfb\xdb\xec\x47\x36\xba\x9c\x9f\x4f\xc6\xe3\xc9\x59\x76\x95\x4d\x67\xe7\x93\xf1\x30\x4b\x47\x93\x71\x7a\x76\x36\xcd\x66\xb3\x28\x1a\x0c\x06\x30\x77\x68\x3c\x8a\x30\x0a\x78\x8d\x0c\xa8\xb5\xdd\xf8\x83\x04\xa9\xcc\x95\x01\xb6\x80\x52\x02\x82\xa1\x0d\xdc\xd4\x95\x00\xf2\x9a\xaa\x89\x5b\x08\x17\x9a\x40\xd2\x52\x19\x65\x56\x80\xdb\xc2\xc2\x96\x46\xa2\xbb\x03\xe4\xd0\x04\x8c\x6e\x45\x3c\xd4\x56\x5c\x7f\x25\xb5\x5a\x73\x14\xf1\x6e\xab\x38\x82\xc0\xf4\x1d\x7f\x5b\x97\xc0\xe5\xb9\xe1\x4f\xbd\x06\x52\x66\x1f\xba\x40\x16\xeb\x3d\xc8\xd1\x94\x34\xa1\xa7\x04\x66\xec\x94\x59\x9d\x86\x8a\xf2\x43\x14\xd7\x1b\x74\xd2\x8f\x6c\x5e\x20\xab\x85\xa6\x04\x86\xd6\xea\x50\x7e\xb6\x53\x3d\xf4\xe3\x87\xa8\x0b\xf7\x51\x04\xa0\xe9\x98\x09\x95\x52\x53\x5a\x26\xf0\x36\x35\x77\x53\xf2\xb6\x74\x82\xee\x5f\x6e\xe8\xbf\xa8\xf7\x43\x43\x66\x68\xd3\xc0\xc9\x11\xe2\xfe\x8c\xf2\x1b\x72\x61\xc3\xc2\x51\x81\x8e\x62\x14\x82\x13\x48\x4b\x5e\xa7\x42\xd8\xd2\x70\xb8\x00\x00\x60\x30\x80\x91\x23\x64\xaa\x5c\x68\xdc\x54\x6d\x82\x02\x56\xa0\xf7\x24\xa1\x40\x87\x39\x31\x39\x5f\xf5\x79\xd2\xcb\xfe\x6e\x1d\x38\x79\x7d\x9f\xb8\x6a\x04\xc8\x6b\x17\x5b\x3f\x7b\x90\xd7\x1e\xb6\x6e\xf6\xa0\xa8\x1d\x6c\xbd\xec\x85\x33\xb6\xfe\x3d\xb1\xb3\xf7\x92\x87\x07\xe1\x6a\x81\x6e\xd4\x1e\x3e\xb4\xce\xd9\x0d\x20\x38\x5a\x92\x23\x23\xa8\x89\xf0\x91\xe0\xab\xbc\xd0\x94\x93\xe1\x10\x67\xd7\x78\xba\x53\xe4\xf5\x34\xc0\x09\x04\x33\xfa\x8b\x8a\xfc\xf3\xff\x47\xe3\x4b\x23\x6b\x1c\x1c\x3b\x1a\x8b\x43\xa5\x6f\x44\x05\xb9\x19\x5b\x87\x2b\xba\x40\x5e\x77\x9b\x71\xa7\xa7\x50\xa0\x51\x22\xee\x8c\x6c\xa9\xa5\x79\xc7\x50\xaf\xfc\x5a\xe2\xa1\x3d\xa7\x13\x46\x3d\x04\xb5\xa9\xea\xa0\x5d\xe4\x52\x29\x1f\xe7\xed\xd1\xef\xf1\xf4\xe7\xf8\x17\x61\xfb\x28\x65\x5b\x68\x3e\x97\xb9\x9d\x87\x29\xf1\x81\x87\xfc\x0c\xea\x3d\x79\x5c\x7b\xf1\xde\x5e\x52\x58\xcf\xf5\x15\x47\x74\x5e\x11\x37\x40\x4d\xdf\xfd\xf9\x8c\xed\xd7\x9b\xbe\x67\xa7\x04\x67\x7f\x4a\xd4\x73\x1b\xef\x13\x42\x02\x9d\xf1\x23\x75\x36\xe8\xc1\x58\x0e\xbf\x2e\xc9\x3d\xad\x2a\x96\x4e\xb5\xe2\x43\xf4\x37\x00\x00\xff\xff\xd0\x5e\x04\x75\x1c\x06\x00\x00"
+
+func executionnodeversionbeaconAdminAdd_version_to_tableCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_executionnodeversionbeaconAdminAdd_version_to_tableCdc,
+		"executionNodeVersionBeacon/admin/add_version_to_table.cdc",
+	)
+}
+
+func executionnodeversionbeaconAdminAdd_version_to_tableCdc() (*asset, error) {
+	bytes, err := executionnodeversionbeaconAdminAdd_version_to_tableCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "executionNodeVersionBeacon/admin/add_version_to_table.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xfe, 0x93, 0x5f, 0xcc, 0xbe, 0x77, 0x2, 0xb6, 0x61, 0xc2, 0xfa, 0x80, 0x46, 0x4b, 0x2f, 0xc1, 0xe3, 0x7e, 0xbe, 0xe5, 0x25, 0xc4, 0x62, 0x90, 0x5c, 0x38, 0x9b, 0xdb, 0x81, 0x74, 0x92, 0x9e}}
+	return a, nil
+}
+
+var _executionnodeversionbeaconAdminChange_version_update_bufferCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xa4\x52\xcf\x8f\x93\x40\x14\xbe\xf3\x57\x7c\xe9\x41\xdb\x4b\xf1\x60\x3c\x10\xeb\x06\x5a\x0e\x8d\x09\x35\xed\xb6\xf1\x3a\x3b\x3c\x0a\x11\xde\x90\xe1\x21\x6b\x36\xfb\xbf\x9b\x99\xb6\xbb\x1a\x69\x8d\xf1\xc6\x84\xf7\xbe\x5f\xef\xab\x9a\xd6\x58\x41\xfa\x48\xba\x97\xca\x70\x66\x72\x3a\x90\xed\x2a\xc3\x09\x29\x6d\x18\x85\x35\x0d\xde\x3d\xa6\x5f\xd3\xe5\xfe\x7e\xbd\xc9\xb2\xcd\x2a\x3d\xa4\xdb\xdd\x7a\x93\x25\x69\xbc\xdc\x64\xf1\x6a\xb5\x4d\x77\xbb\x20\x08\xc3\x10\xf7\x56\x71\xa7\xb4\x83\x82\x94\x4a\xa0\xea\xda\x0c\xdd\x28\x41\x9c\x37\x15\x43\x0c\x74\xa9\xf8\x48\x7e\x5f\x4a\x42\x4e\x45\xc5\x94\xe3\xfb\x69\x6c\xdf\xe6\x4a\x28\xe9\x8b\x82\x6c\x10\xc8\x2b\xc1\x94\x69\x38\xfc\x39\x13\x61\xbf\x66\xf9\xf0\x7e\x86\xa7\x20\x00\x6a\xba\x65\xcf\x6b\xd8\x52\x11\xe1\x4d\xcc\x3f\xb6\xd4\x99\xde\x6a\x7a\xba\xbe\x30\xbf\xea\xe4\xd9\xb1\xb5\x96\x5a\x65\x69\xaa\xb4\x96\x08\x71\x2f\x65\xac\xb5\xe9\x59\x9c\x1a\x00\x08\x43\x24\xc6\x5a\x33\x40\xc1\x52\x41\x96\x58\x93\x0b\xc1\x39\xbf\x9e\x52\xd5\xb4\x35\x35\xc4\x52\xf1\x11\xf6\x2c\xd3\x03\x76\x54\x17\xa3\xa2\x7e\x37\x88\x05\x9c\xa6\xf9\x83\x27\xff\xf8\xff\x6e\x3f\x79\x76\x60\xea\x0a\x12\xdd\x88\x78\x14\xe3\x33\x51\x4b\x76\x27\xc6\xaa\x23\x7d\x51\x52\xce\xce\x70\x77\x77\x68\x15\x57\x7a\x3a\x59\x9a\xbe\xce\xf9\xad\xe0\x24\xf9\x6f\x47\xc4\xc5\xce\xc4\x41\xf9\x63\x90\xdf\xa0\xd7\xe4\xe3\x3c\xf7\x39\x33\x0d\x97\x76\x5d\xa2\x7f\x79\xaa\x87\xfa\x9f\x82\x9d\x9f\xda\x3b\x52\x44\xd7\xcf\x5f\xdf\x6b\x4e\x6a\xa3\xbf\x75\x11\xc6\x8b\xfb\xa2\xbb\x35\x9d\x9c\x34\xdf\x48\xf5\x48\x32\xc6\x39\xc3\x62\x71\x05\x1f\x11\x26\xe7\xaf\x41\x75\x60\x23\xe8\xfd\xef\x7c\xe2\x99\x9f\x83\x9f\x01\x00\x00\xff\xff\x39\xe4\x2b\xb4\x0e\x04\x00\x00"
+
+func executionnodeversionbeaconAdminChange_version_update_bufferCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_executionnodeversionbeaconAdminChange_version_update_bufferCdc,
+		"executionNodeVersionBeacon/admin/change_version_update_buffer.cdc",
+	)
+}
+
+func executionnodeversionbeaconAdminChange_version_update_bufferCdc() (*asset, error) {
+	bytes, err := executionnodeversionbeaconAdminChange_version_update_bufferCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "executionNodeVersionBeacon/admin/change_version_update_buffer.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x25, 0x27, 0x2b, 0x59, 0x62, 0xfe, 0xb0, 0xb6, 0x99, 0x75, 0x33, 0x7f, 0x11, 0xb0, 0x17, 0x1c, 0x6b, 0xa7, 0xd2, 0xd, 0x72, 0x5b, 0x94, 0x39, 0x71, 0x0, 0x7, 0xe9, 0xc3, 0xc7, 0x7, 0xad}}
+	return a, nil
+}
+
+var _executionnodeversionbeaconAdminDelete_latest_versionCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xa4\x93\x41\x8f\xda\x3e\x10\xc5\xef\xf9\x14\x23\x0e\xff\x7f\xb8\x24\x7b\x46\xed\xae\x02\xe4\xb0\x6a\x15\x2a\xa0\xab\x5e\x8d\xfd\x42\x2c\x39\x76\xe4\x4c\x0a\xab\x15\xdf\xbd\xb2\xc9\x16\x55\x05\xaa\xaa\x39\x44\x51\x32\x9e\xf7\xe6\x37\x2f\xba\xed\x9c\x67\x2a\x8f\x90\x03\x6b\x67\x2b\xa7\xf0\x02\xdf\x6b\x67\xe7\x10\xd2\x59\xaa\xbd\x6b\xe9\xe1\x58\x7e\x2b\x17\x5f\xb7\xcf\xab\xaa\x5a\x2d\xcb\x97\x72\xbd\x79\x5e\x55\xf3\xb2\x58\xac\xaa\x62\xb9\x5c\x97\x9b\x4d\x92\xe4\x79\x4e\x5b\x2f\x6c\x2f\x64\x68\x45\xdc\x08\x26\x61\x8c\x3b\xf4\x57\x05\x0a\xd5\x6a\x4b\xec\x48\xc1\x80\x41\xdc\x80\x8c\x60\xf4\x1c\x5b\x7d\x3f\x57\xd1\xce\x0d\x56\x09\xff\x4a\xad\xe8\x3a\x6d\xf7\xa4\x50\x6b\x0b\x45\xe1\x70\x83\x9f\x75\x2c\x76\x06\x49\xc2\x17\x07\xe9\x94\xde\x92\x84\xc8\xe0\xde\x84\xd1\xc6\x1a\xf5\x8c\xfe\x2b\xec\xeb\x1a\xbd\x1b\xbc\xc4\xdb\xed\x03\xd9\xcd\x61\x4e\x41\xad\xf3\xe8\x84\x47\x2a\xa4\xe4\x19\x15\x03\x37\x85\x94\x6e\xb0\x1c\xdc\x10\xc5\x82\xf3\x43\xb8\xee\xc8\xec\xc1\xe3\x8b\x6d\x18\x2d\x9d\x66\x06\x76\xcf\x0d\x3d\xd2\x03\xcd\x68\x52\xb9\xdf\xd9\xe0\xa8\x7b\xee\x2f\x50\xb3\x49\x54\x3a\xc5\x7b\x9e\xd3\xdc\x79\xef\x0e\x24\xc8\xa3\x86\x87\x95\x08\xb5\x01\xe3\xed\x0d\xe9\xb6\x33\x68\x61\x39\x08\xf8\x91\x4f\x6c\xd8\xc3\xd4\x57\x69\xfc\x4a\x96\x3e\x52\x80\x91\xed\xa2\xf8\x87\x7f\xc7\xfc\x38\xe2\x4b\x43\x38\x67\xf7\x18\x5e\xfb\xf4\x09\xe8\xe0\x37\xec\xbc\xd8\xe3\x8b\xe0\x66\x3a\xb6\x7b\x7a\xa2\x4e\x58\x2d\xd3\xc9\xc2\x0d\x46\xd9\xff\x99\xce\x96\xff\x94\x1e\x7a\x1f\x67\x12\x5a\xc5\x14\x20\x9e\xc0\xb8\xf2\x3c\xa7\x42\xa9\xc8\xd9\xe2\x70\x89\xac\xbb\x92\xe0\xbf\x00\x9b\x9d\x97\xfc\x39\xfe\x34\xef\x15\x63\x24\xd2\xd1\xca\x29\xf9\x11\x00\x00\xff\xff\x25\x6f\x17\xe1\xe4\x03\x00\x00"
+
+func executionnodeversionbeaconAdminDelete_latest_versionCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_executionnodeversionbeaconAdminDelete_latest_versionCdc,
+		"executionNodeVersionBeacon/admin/delete_latest_version.cdc",
+	)
+}
+
+func executionnodeversionbeaconAdminDelete_latest_versionCdc() (*asset, error) {
+	bytes, err := executionnodeversionbeaconAdminDelete_latest_versionCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "executionNodeVersionBeacon/admin/delete_latest_version.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x13, 0x46, 0xb9, 0x6, 0xa, 0x75, 0xde, 0xb9, 0x6f, 0x90, 0x3, 0x73, 0xba, 0x4e, 0xdb, 0x51, 0x7d, 0xd0, 0xce, 0xf1, 0x61, 0xf0, 0x11, 0xc, 0xe4, 0x20, 0xab, 0x2e, 0xd5, 0x77, 0xde, 0xe2}}
+	return a, nil
+}
+
+var _executionnodeversionbeaconScriptsGet_current_minimum_execution_node_versionCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x7c\xcb\xb1\xaa\xc2\x60\x0c\x05\xe0\xfd\x7f\x8a\x33\xb6\xcb\xa5\xdc\xd1\x51\x71\xd4\x45\x70\xaf\xf5\x54\x32\x24\x29\x31\x91\x82\xf8\xee\xbe\x80\x74\xff\x3e\xd1\xc5\x23\x71\x5c\x39\x55\x8a\xdb\xd9\xef\xbc\x32\x9e\xe2\xb6\xe7\x38\xb9\x61\x0e\x57\x0c\xeb\xf0\xdf\xda\x52\x37\xcc\x65\xd0\x51\xac\xeb\x77\x1b\xeb\xef\x42\x7d\x31\xf0\x6e\x00\x10\xcc\x0a\xdb\xe2\x0f\xe6\xa1\x22\x68\x79\x12\x13\x2d\xfd\x65\xbb\xbe\x7d\xbe\x01\x00\x00\xff\xff\xe1\x48\xc1\xe2\xb0\x00\x00\x00"
+
+func executionnodeversionbeaconScriptsGet_current_minimum_execution_node_versionCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_executionnodeversionbeaconScriptsGet_current_minimum_execution_node_versionCdc,
+		"executionNodeVersionBeacon/scripts/get_current_minimum_execution_node_version.cdc",
+	)
+}
+
+func executionnodeversionbeaconScriptsGet_current_minimum_execution_node_versionCdc() (*asset, error) {
+	bytes, err := executionnodeversionbeaconScriptsGet_current_minimum_execution_node_versionCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "executionNodeVersionBeacon/scripts/get_current_minimum_execution_node_version.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x28, 0x82, 0xf4, 0x61, 0x49, 0x40, 0x34, 0x31, 0x4a, 0xc8, 0x84, 0xb9, 0xc8, 0x7d, 0x6c, 0xa6, 0x12, 0xc9, 0xc3, 0x41, 0x77, 0x8f, 0x38, 0x68, 0x68, 0x74, 0x78, 0x93, 0x69, 0xd6, 0x44, 0xd8}}
+	return a, nil
+}
+
+var _executionnodeversionbeaconScriptsGet_next_version_boundary_pairCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x7c\xcd\x2d\xcf\xc2\x30\x10\x00\x60\xdf\x5f\x71\x72\x33\x6f\x5e\x8d\xdb\x47\xc5\x4c\x4b\x56\x58\x48\x08\xa2\x6c\x37\x52\xb1\xbb\xe5\xb8\x26\x5b\x08\xff\x1d\x85\xc5\x3e\xe6\x49\xcb\xca\xa2\x60\x37\x1c\xb3\x26\x26\xc7\x13\x0e\x28\xcf\xc4\x54\x63\x1c\x99\x60\x16\x5e\xe0\x7f\xb3\x17\xdb\x9c\x4f\x9d\x77\xce\xb7\x76\xb0\x7d\xe8\xbc\xab\x6d\xd5\x78\x57\xb5\x6d\x6f\x43\x30\x66\xcd\x77\x98\x33\xc1\x12\x13\x15\xe5\x01\xae\x15\xed\x41\x25\x8f\x7a\x83\x97\x01\x00\x10\xd4\x2c\xf4\x63\xfb\x7b\xa0\x3a\xdc\xf4\x8b\x9c\x69\x8a\xb2\x1f\x63\x92\xa2\x34\xef\x4f\x00\x00\x00\xff\xff\x68\x36\xcc\x14\xae\x00\x00\x00"
+
+func executionnodeversionbeaconScriptsGet_next_version_boundary_pairCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_executionnodeversionbeaconScriptsGet_next_version_boundary_pairCdc,
+		"executionNodeVersionBeacon/scripts/get_next_version_boundary_pair.cdc",
+	)
+}
+
+func executionnodeversionbeaconScriptsGet_next_version_boundary_pairCdc() (*asset, error) {
+	bytes, err := executionnodeversionbeaconScriptsGet_next_version_boundary_pairCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "executionNodeVersionBeacon/scripts/get_next_version_boundary_pair.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x71, 0xc6, 0xf1, 0x36, 0x79, 0xc3, 0xcd, 0xe3, 0x40, 0xb1, 0x77, 0x4, 0xc4, 0x2f, 0x71, 0x50, 0x7e, 0x16, 0x6f, 0x83, 0x9d, 0xd0, 0x9e, 0x38, 0x6f, 0x1c, 0x78, 0x73, 0x3e, 0x82, 0xf4, 0xd7}}
+	return a, nil
+}
+
+var _executionnodeversionbeaconScriptsGet_version_tableCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x7c\xcc\xbf\x0a\x83\x30\x10\x80\xf1\x3d\x4f\x71\xa3\x2e\xa5\x43\xe9\xe0\xe6\x9f\x1b\x5c\x12\x30\x2a\x5d\xa3\x3d\x4b\xa0\xb9\x48\x9a\x14\x41\x7c\xf7\x2e\x9d\x5d\x3f\x3e\x7e\xd6\xad\x3e\x44\xc0\x8d\xe6\x14\xad\x67\xe9\x9f\x34\x52\xf8\x58\xcf\x15\x99\xd9\x33\x2c\xc1\x3b\xb8\x6e\xf8\xc0\x7a\xe8\x5b\x25\xa5\x6a\x70\xc4\x4e\xb7\x4a\x56\x58\xd6\x4a\x96\x4d\xd3\xa1\xd6\x42\xac\x69\x82\x25\x31\x38\x63\x39\xcb\x0b\xd8\x87\x96\xe3\xfd\x56\x9c\xe8\x17\x4d\xee\x4b\xe1\x80\x5d\x00\x00\x04\x8a\x29\xf0\xd9\xff\xa2\xf8\x0f\xbd\x99\xde\x94\xe5\xe2\xf8\x05\x00\x00\xff\xff\xea\xcd\x5e\xdc\xc3\x00\x00\x00"
+
+func executionnodeversionbeaconScriptsGet_version_tableCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_executionnodeversionbeaconScriptsGet_version_tableCdc,
+		"executionNodeVersionBeacon/scripts/get_version_table.cdc",
+	)
+}
+
+func executionnodeversionbeaconScriptsGet_version_tableCdc() (*asset, error) {
+	bytes, err := executionnodeversionbeaconScriptsGet_version_tableCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "executionNodeVersionBeacon/scripts/get_version_table.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x6c, 0xa7, 0xab, 0x8f, 0x7d, 0x26, 0xeb, 0x35, 0xab, 0xc3, 0xb0, 0x8a, 0x61, 0xb3, 0xcd, 0x34, 0x10, 0xd9, 0x39, 0x43, 0xec, 0x44, 0xee, 0xe, 0x39, 0x1d, 0xaa, 0x15, 0xf0, 0x6e, 0xe6, 0x78}}
+	return a, nil
+}
+
+var _executionnodeversionbeaconScriptsGet_version_update_bufferCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x7c\xcd\x2d\xcf\x83\x40\x0c\x00\x60\x7f\xbf\xa2\x12\xcc\x9b\x57\x2c\x13\x73\x7c\x54\x60\xee\x12\x18\x64\x96\x41\x6f\x39\x41\x4b\xba\x5e\x42\xb2\xec\xbf\xcf\x4c\xcf\x3e\xe6\x49\xdb\x2e\x6a\x80\x07\x2d\xd9\x92\xb0\x97\x95\x26\xd2\x67\x12\xae\x69\x5e\x84\x21\xaa\x6c\xf0\x7f\xe0\x0d\x9b\xf1\xda\x05\xef\x43\x8b\x13\xf6\x43\x17\x7c\x8d\x55\x13\x7c\xd5\xb6\x3d\x0e\x83\x73\x7b\xbe\x43\xcc\x0c\xdb\x9c\xb8\x28\x2f\x30\x76\x6c\xe7\x13\xbc\x1c\x00\x80\x92\x65\xe5\x1f\xd1\xdf\x83\xec\x0b\xe3\xbe\xce\x46\x75\x8e\x91\xb4\x28\xdd\xfb\x13\x00\x00\xff\xff\x5f\x4a\x4e\x97\xa5\x00\x00\x00"
+
+func executionnodeversionbeaconScriptsGet_version_update_bufferCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_executionnodeversionbeaconScriptsGet_version_update_bufferCdc,
+		"executionNodeVersionBeacon/scripts/get_version_update_buffer.cdc",
+	)
+}
+
+func executionnodeversionbeaconScriptsGet_version_update_bufferCdc() (*asset, error) {
+	bytes, err := executionnodeversionbeaconScriptsGet_version_update_bufferCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "executionNodeVersionBeacon/scripts/get_version_update_buffer.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xee, 0xdd, 0xfe, 0x98, 0xfa, 0x8, 0x14, 0x88, 0x2, 0x36, 0x15, 0xc0, 0xce, 0x38, 0x54, 0x66, 0x88, 0xca, 0x15, 0xee, 0x74, 0x7e, 0xbd, 0x98, 0xcd, 0x21, 0xc1, 0xb2, 0x8e, 0x42, 0xb2, 0x9b}}
+	return a, nil
+}
+
+var _executionnodeversionbeaconScriptsIs_compatible_versionCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x7c\xce\xb1\x6a\x86\x30\x14\x05\xe0\x3d\x4f\x71\x47\x05\x29\x1d\x4a\x07\x37\xa3\x81\xba\x24\x60\xaa\x74\x55\x7b\x6d\x43\x4d\xae\xc4\x44\x94\xd2\x77\xef\x52\xcb\xff\x2f\xce\x87\x73\xce\x67\xec\x42\x3e\x80\xd8\x71\x8c\xc1\x90\x93\xf4\x8e\x1d\xfa\xd5\x90\xe3\xd8\x8f\xe4\x60\xf2\x64\xe1\x71\x17\x6f\xa2\x6c\x5f\x6b\x25\xa5\xaa\x44\x27\x1a\x5d\x2b\xc9\x45\x51\x2a\x59\x54\x55\x23\xb4\x66\x6c\x89\x03\x4c\xd1\x81\xed\x8d\x4b\xec\xc1\x67\x1a\xbf\x5e\xd0\x7c\x7c\x86\x1c\xda\xda\x85\xe7\xa7\x0c\xec\xf1\xb7\x9e\x5f\x7c\x3e\x68\xb4\x1b\xfa\x34\x07\x4e\x34\xc3\x37\x03\x00\xf0\x18\xa2\x77\x57\x2d\xb3\x96\x64\x97\x3e\x98\x61\x3e\x93\x64\xb8\x45\xdc\x99\x32\xd8\x4e\xc9\x3f\x2a\x65\x3f\xbf\x01\x00\x00\xff\xff\x68\xff\xc8\x01\x11\x01\x00\x00"
+
+func executionnodeversionbeaconScriptsIs_compatible_versionCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_executionnodeversionbeaconScriptsIs_compatible_versionCdc,
+		"executionNodeVersionBeacon/scripts/is_compatible_version.cdc",
+	)
+}
+
+func executionnodeversionbeaconScriptsIs_compatible_versionCdc() (*asset, error) {
+	bytes, err := executionnodeversionbeaconScriptsIs_compatible_versionCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "executionNodeVersionBeacon/scripts/is_compatible_version.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xc2, 0xb5, 0xc4, 0xc9, 0xe8, 0xc8, 0x8c, 0x27, 0x5e, 0xb9, 0x3e, 0x38, 0xc3, 0x57, 0x9d, 0x67, 0xe4, 0xaf, 0x8a, 0x7c, 0x56, 0x83, 0x69, 0xdd, 0xef, 0x8a, 0x55, 0xf, 0x38, 0xa3, 0xac, 0x59}}
 	return a, nil
 }
 
@@ -5809,275 +5977,283 @@ func AssetNames() []string {
 
 // _bindata is a table, holding each asset generator, mapped to its name.
 var _bindata = map[string]func() (*asset, error){
-	"FlowServiceAccount/add_account_creator.cdc":                              flowserviceaccountAdd_account_creatorCdc,
-	"FlowServiceAccount/deposit_fees.cdc":                                     flowserviceaccountDeposit_feesCdc,
-	"FlowServiceAccount/remove_account_creator.cdc":                           flowserviceaccountRemove_account_creatorCdc,
-	"FlowServiceAccount/scripts/get_account_creators.cdc":                     flowserviceaccountScriptsGet_account_creatorsCdc,
-	"FlowServiceAccount/scripts/get_account_fee.cdc":                          flowserviceaccountScriptsGet_account_feeCdc,
-	"FlowServiceAccount/scripts/get_execution_effort_weights.cdc":             flowserviceaccountScriptsGet_execution_effort_weightsCdc,
-	"FlowServiceAccount/scripts/get_execution_memory_limit.cdc":               flowserviceaccountScriptsGet_execution_memory_limitCdc,
-	"FlowServiceAccount/scripts/get_execution_memory_weights.cdc":             flowserviceaccountScriptsGet_execution_memory_weightsCdc,
-	"FlowServiceAccount/scripts/get_fees_balance.cdc":                         flowserviceaccountScriptsGet_fees_balanceCdc,
-	"FlowServiceAccount/scripts/get_is_account_creation_restricted.cdc":       flowserviceaccountScriptsGet_is_account_creation_restrictedCdc,
-	"FlowServiceAccount/scripts/get_is_account_creator.cdc":                   flowserviceaccountScriptsGet_is_account_creatorCdc,
-	"FlowServiceAccount/scripts/get_tx_fee_parameters.cdc":                    flowserviceaccountScriptsGet_tx_fee_parametersCdc,
-	"FlowServiceAccount/set_execution_effort_weights.cdc":                     flowserviceaccountSet_execution_effort_weightsCdc,
-	"FlowServiceAccount/set_execution_memory_limit.cdc":                       flowserviceaccountSet_execution_memory_limitCdc,
-	"FlowServiceAccount/set_execution_memory_weights.cdc":                     flowserviceaccountSet_execution_memory_weightsCdc,
-	"FlowServiceAccount/set_is_account_creation_restricted.cdc":               flowserviceaccountSet_is_account_creation_restrictedCdc,
-	"FlowServiceAccount/set_tx_fee_parameters.cdc":                            flowserviceaccountSet_tx_fee_parametersCdc,
-	"FlowServiceAccount/set_tx_fee_surge_factor.cdc":                          flowserviceaccountSet_tx_fee_surge_factorCdc,
-	"contractAudits/admin/authorize_auditor.cdc":                              contractauditsAdminAuthorize_auditorCdc,
-	"contractAudits/admin/cleanup_expired.cdc":                                contractauditsAdminCleanup_expiredCdc,
-	"contractAudits/auditor/init.cdc":                                         contractauditsAuditorInitCdc,
-	"contractAudits/auditor/new_audit.cdc":                                    contractauditsAuditorNew_auditCdc,
-	"contractAudits/auditor/new_audit_hashed.cdc":                             contractauditsAuditorNew_audit_hashedCdc,
-	"contractAudits/auditor/remove_audit.cdc":                                 contractauditsAuditorRemove_auditCdc,
-	"contractAudits/fvm/deploy_contract.cdc":                                  contractauditsFvmDeploy_contractCdc,
-	"contractAudits/scripts/get_vouchers.cdc":                                 contractauditsScriptsGet_vouchersCdc,
-	"dkg/admin/force_stop_dkg.cdc":                                            dkgAdminForce_stop_dkgCdc,
-	"dkg/admin/publish_participant.cdc":                                       dkgAdminPublish_participantCdc,
-	"dkg/admin/set_safe_threshold.cdc":                                        dkgAdminSet_safe_thresholdCdc,
-	"dkg/admin/start_dkg.cdc":                                                 dkgAdminStart_dkgCdc,
-	"dkg/admin/stop_dkg.cdc":                                                  dkgAdminStop_dkgCdc,
-	"dkg/create_participant.cdc":                                              dkgCreate_participantCdc,
-	"dkg/scripts/get_consensus_nodes.cdc":                                     dkgScriptsGet_consensus_nodesCdc,
-	"dkg/scripts/get_dkg_canonical_final_submission.cdc":                      dkgScriptsGet_dkg_canonical_final_submissionCdc,
-	"dkg/scripts/get_dkg_completed.cdc":                                       dkgScriptsGet_dkg_completedCdc,
-	"dkg/scripts/get_dkg_enabled.cdc":                                         dkgScriptsGet_dkg_enabledCdc,
-	"dkg/scripts/get_final_submissions.cdc":                                   dkgScriptsGet_final_submissionsCdc,
-	"dkg/scripts/get_latest_whiteboard_messages.cdc":                          dkgScriptsGet_latest_whiteboard_messagesCdc,
-	"dkg/scripts/get_node_final_submission.cdc":                               dkgScriptsGet_node_final_submissionCdc,
-	"dkg/scripts/get_node_has_submitted.cdc":                                  dkgScriptsGet_node_has_submittedCdc,
-	"dkg/scripts/get_node_is_claimed.cdc":                                     dkgScriptsGet_node_is_claimedCdc,
-	"dkg/scripts/get_node_is_registered.cdc":                                  dkgScriptsGet_node_is_registeredCdc,
-	"dkg/scripts/get_thresholds.cdc":                                          dkgScriptsGet_thresholdsCdc,
-	"dkg/scripts/get_whiteboard_messages.cdc":                                 dkgScriptsGet_whiteboard_messagesCdc,
-	"dkg/send_final_submission.cdc":                                           dkgSend_final_submissionCdc,
-	"dkg/send_whiteboard_message.cdc":                                         dkgSend_whiteboard_messageCdc,
-	"epoch/admin/advance_view.cdc":                                            epochAdminAdvance_viewCdc,
-	"epoch/admin/calculate_rewards.cdc":                                       epochAdminCalculate_rewardsCdc,
-	"epoch/admin/deploy_epoch.cdc":                                            epochAdminDeploy_epochCdc,
-	"epoch/admin/deploy_qc_dkg.cdc":                                           epochAdminDeploy_qc_dkgCdc,
-	"epoch/admin/pay_rewards.cdc":                                             epochAdminPay_rewardsCdc,
-	"epoch/admin/reset_epoch.cdc":                                             epochAdminReset_epochCdc,
-	"epoch/admin/set_automatic_rewards.cdc":                                   epochAdminSet_automatic_rewardsCdc,
-	"epoch/admin/update_clusters.cdc":                                         epochAdminUpdate_clustersCdc,
-	"epoch/admin/update_dkg_phase_views.cdc":                                  epochAdminUpdate_dkg_phase_viewsCdc,
-	"epoch/admin/update_epoch_config.cdc":                                     epochAdminUpdate_epoch_configCdc,
-	"epoch/admin/update_epoch_views.cdc":                                      epochAdminUpdate_epoch_viewsCdc,
-	"epoch/admin/update_reward.cdc":                                           epochAdminUpdate_rewardCdc,
-	"epoch/admin/update_staking_views.cdc":                                    epochAdminUpdate_staking_viewsCdc,
-	"epoch/node/register_dkg_participant.cdc":                                 epochNodeRegister_dkg_participantCdc,
-	"epoch/node/register_node.cdc":                                            epochNodeRegister_nodeCdc,
-	"epoch/node/register_qc_voter.cdc":                                        epochNodeRegister_qc_voterCdc,
-	"epoch/scripts/get_config_metadata.cdc":                                   epochScriptsGet_config_metadataCdc,
-	"epoch/scripts/get_create_clusters.cdc":                                   epochScriptsGet_create_clustersCdc,
-	"epoch/scripts/get_current_view.cdc":                                      epochScriptsGet_current_viewCdc,
-	"epoch/scripts/get_epoch_counter.cdc":                                     epochScriptsGet_epoch_counterCdc,
-	"epoch/scripts/get_epoch_metadata.cdc":                                    epochScriptsGet_epoch_metadataCdc,
-	"epoch/scripts/get_epoch_phase.cdc":                                       epochScriptsGet_epoch_phaseCdc,
-	"epoch/scripts/get_proposed_counter.cdc":                                  epochScriptsGet_proposed_counterCdc,
-	"epoch/scripts/get_randomize.cdc":                                         epochScriptsGet_randomizeCdc,
-	"flowToken/burn_tokens.cdc":                                               flowtokenBurn_tokensCdc,
-	"flowToken/create_forwarder.cdc":                                          flowtokenCreate_forwarderCdc,
-	"flowToken/mint_tokens.cdc":                                               flowtokenMint_tokensCdc,
-	"flowToken/scripts/get_balance.cdc":                                       flowtokenScriptsGet_balanceCdc,
-	"flowToken/scripts/get_supply.cdc":                                        flowtokenScriptsGet_supplyCdc,
-	"flowToken/setup_account.cdc":                                             flowtokenSetup_accountCdc,
-	"flowToken/transfer_tokens.cdc":                                           flowtokenTransfer_tokensCdc,
-	"idTableStaking/admin/add_approved_nodes.cdc":                             idtablestakingAdminAdd_approved_nodesCdc,
-	"idTableStaking/admin/capability_end_epoch.cdc":                           idtablestakingAdminCapability_end_epochCdc,
-	"idTableStaking/admin/change_cut.cdc":                                     idtablestakingAdminChange_cutCdc,
-	"idTableStaking/admin/change_minimums.cdc":                                idtablestakingAdminChange_minimumsCdc,
-	"idTableStaking/admin/change_payout.cdc":                                  idtablestakingAdminChange_payoutCdc,
-	"idTableStaking/admin/end_epoch.cdc":                                      idtablestakingAdminEnd_epochCdc,
-	"idTableStaking/admin/end_epoch_change_payout.cdc":                        idtablestakingAdminEnd_epoch_change_payoutCdc,
-	"idTableStaking/admin/end_staking.cdc":                                    idtablestakingAdminEnd_stakingCdc,
-	"idTableStaking/admin/move_tokens.cdc":                                    idtablestakingAdminMove_tokensCdc,
-	"idTableStaking/admin/pay_rewards.cdc":                                    idtablestakingAdminPay_rewardsCdc,
-	"idTableStaking/admin/remove_approved_nodes.cdc":                          idtablestakingAdminRemove_approved_nodesCdc,
-	"idTableStaking/admin/remove_node.cdc":                                    idtablestakingAdminRemove_nodeCdc,
-	"idTableStaking/admin/remove_unapproved_nodes.cdc":                        idtablestakingAdminRemove_unapproved_nodesCdc,
-	"idTableStaking/admin/scale_rewards_test.cdc":                             idtablestakingAdminScale_rewards_testCdc,
-	"idTableStaking/admin/set_approved_nodes.cdc":                             idtablestakingAdminSet_approved_nodesCdc,
-	"idTableStaking/admin/set_claimed.cdc":                                    idtablestakingAdminSet_claimedCdc,
-	"idTableStaking/admin/set_non_operational.cdc":                            idtablestakingAdminSet_non_operationalCdc,
-	"idTableStaking/admin/start_staking.cdc":                                  idtablestakingAdminStart_stakingCdc,
-	"idTableStaking/admin/transfer_admin.cdc":                                 idtablestakingAdminTransfer_adminCdc,
-	"idTableStaking/admin/transfer_fees_admin.cdc":                            idtablestakingAdminTransfer_fees_adminCdc,
-	"idTableStaking/admin/transfer_minter_deploy.cdc":                         idtablestakingAdminTransfer_minter_deployCdc,
-	"idTableStaking/admin/upgrade_set_claimed.cdc":                            idtablestakingAdminUpgrade_set_claimedCdc,
-	"idTableStaking/admin/upgrade_staking.cdc":                                idtablestakingAdminUpgrade_stakingCdc,
-	"idTableStaking/delegation/del_request_unstaking.cdc":                     idtablestakingDelegationDel_request_unstakingCdc,
-	"idTableStaking/delegation/del_stake_new_tokens.cdc":                      idtablestakingDelegationDel_stake_new_tokensCdc,
-	"idTableStaking/delegation/del_stake_rewarded.cdc":                        idtablestakingDelegationDel_stake_rewardedCdc,
-	"idTableStaking/delegation/del_stake_unstaked.cdc":                        idtablestakingDelegationDel_stake_unstakedCdc,
-	"idTableStaking/delegation/del_withdraw_reward_tokens.cdc":                idtablestakingDelegationDel_withdraw_reward_tokensCdc,
-	"idTableStaking/delegation/del_withdraw_unstaked_tokens.cdc":              idtablestakingDelegationDel_withdraw_unstaked_tokensCdc,
-	"idTableStaking/delegation/delegator_add_capability.cdc":                  idtablestakingDelegationDelegator_add_capabilityCdc,
-	"idTableStaking/delegation/get_delegator_committed.cdc":                   idtablestakingDelegationGet_delegator_committedCdc,
-	"idTableStaking/delegation/get_delegator_info.cdc":                        idtablestakingDelegationGet_delegator_infoCdc,
-	"idTableStaking/delegation/get_delegator_info_from_address.cdc":           idtablestakingDelegationGet_delegator_info_from_addressCdc,
-	"idTableStaking/delegation/get_delegator_request.cdc":                     idtablestakingDelegationGet_delegator_requestCdc,
-	"idTableStaking/delegation/get_delegator_rewarded.cdc":                    idtablestakingDelegationGet_delegator_rewardedCdc,
-	"idTableStaking/delegation/get_delegator_staked.cdc":                      idtablestakingDelegationGet_delegator_stakedCdc,
-	"idTableStaking/delegation/get_delegator_unstaked.cdc":                    idtablestakingDelegationGet_delegator_unstakedCdc,
-	"idTableStaking/delegation/get_delegator_unstaking.cdc":                   idtablestakingDelegationGet_delegator_unstakingCdc,
-	"idTableStaking/delegation/get_delegator_unstaking_request.cdc":           idtablestakingDelegationGet_delegator_unstaking_requestCdc,
-	"idTableStaking/delegation/register_delegator.cdc":                        idtablestakingDelegationRegister_delegatorCdc,
-	"idTableStaking/delegation/register_many_delegators.cdc":                  idtablestakingDelegationRegister_many_delegatorsCdc,
-	"idTableStaking/node/node_add_capability.cdc":                             idtablestakingNodeNode_add_capabilityCdc,
-	"idTableStaking/node/register_many_nodes.cdc":                             idtablestakingNodeRegister_many_nodesCdc,
-	"idTableStaking/node/register_node.cdc":                                   idtablestakingNodeRegister_nodeCdc,
-	"idTableStaking/node/request_unstake.cdc":                                 idtablestakingNodeRequest_unstakeCdc,
-	"idTableStaking/node/stake_new_tokens.cdc":                                idtablestakingNodeStake_new_tokensCdc,
-	"idTableStaking/node/stake_rewarded_tokens.cdc":                           idtablestakingNodeStake_rewarded_tokensCdc,
-	"idTableStaking/node/stake_unstaked_tokens.cdc":                           idtablestakingNodeStake_unstaked_tokensCdc,
-	"idTableStaking/node/unstake_all.cdc":                                     idtablestakingNodeUnstake_allCdc,
-	"idTableStaking/node/update_networking_address.cdc":                       idtablestakingNodeUpdate_networking_addressCdc,
-	"idTableStaking/node/withdraw_reward_tokens.cdc":                          idtablestakingNodeWithdraw_reward_tokensCdc,
-	"idTableStaking/node/withdraw_unstaked_tokens.cdc":                        idtablestakingNodeWithdraw_unstaked_tokensCdc,
-	"idTableStaking/scripts/get_approved_nodes.cdc":                           idtablestakingScriptsGet_approved_nodesCdc,
-	"idTableStaking/scripts/get_current_table.cdc":                            idtablestakingScriptsGet_current_tableCdc,
-	"idTableStaking/scripts/get_cut_percentage.cdc":                           idtablestakingScriptsGet_cut_percentageCdc,
-	"idTableStaking/scripts/get_node_committed_tokens.cdc":                    idtablestakingScriptsGet_node_committed_tokensCdc,
-	"idTableStaking/scripts/get_node_info.cdc":                                idtablestakingScriptsGet_node_infoCdc,
-	"idTableStaking/scripts/get_node_info_from_address.cdc":                   idtablestakingScriptsGet_node_info_from_addressCdc,
-	"idTableStaking/scripts/get_node_initial_weight.cdc":                      idtablestakingScriptsGet_node_initial_weightCdc,
-	"idTableStaking/scripts/get_node_networking_addr.cdc":                     idtablestakingScriptsGet_node_networking_addrCdc,
-	"idTableStaking/scripts/get_node_networking_key.cdc":                      idtablestakingScriptsGet_node_networking_keyCdc,
-	"idTableStaking/scripts/get_node_rewarded_tokens.cdc":                     idtablestakingScriptsGet_node_rewarded_tokensCdc,
-	"idTableStaking/scripts/get_node_role.cdc":                                idtablestakingScriptsGet_node_roleCdc,
-	"idTableStaking/scripts/get_node_staked_tokens.cdc":                       idtablestakingScriptsGet_node_staked_tokensCdc,
-	"idTableStaking/scripts/get_node_staking_key.cdc":                         idtablestakingScriptsGet_node_staking_keyCdc,
-	"idTableStaking/scripts/get_node_total_commitment.cdc":                    idtablestakingScriptsGet_node_total_commitmentCdc,
-	"idTableStaking/scripts/get_node_total_commitment_without_delegators.cdc": idtablestakingScriptsGet_node_total_commitment_without_delegatorsCdc,
-	"idTableStaking/scripts/get_node_type_ratio.cdc":                          idtablestakingScriptsGet_node_type_ratioCdc,
-	"idTableStaking/scripts/get_node_unstaked_tokens.cdc":                     idtablestakingScriptsGet_node_unstaked_tokensCdc,
-	"idTableStaking/scripts/get_node_unstaking_request.cdc":                   idtablestakingScriptsGet_node_unstaking_requestCdc,
-	"idTableStaking/scripts/get_node_unstaking_tokens.cdc":                    idtablestakingScriptsGet_node_unstaking_tokensCdc,
-	"idTableStaking/scripts/get_non_operational.cdc":                          idtablestakingScriptsGet_non_operationalCdc,
-	"idTableStaking/scripts/get_proposed_table.cdc":                           idtablestakingScriptsGet_proposed_tableCdc,
-	"idTableStaking/scripts/get_stake_requirements.cdc":                       idtablestakingScriptsGet_stake_requirementsCdc,
-	"idTableStaking/scripts/get_table.cdc":                                    idtablestakingScriptsGet_tableCdc,
-	"idTableStaking/scripts/get_total_staked.cdc":                             idtablestakingScriptsGet_total_stakedCdc,
-	"idTableStaking/scripts/get_total_staked_by_type.cdc":                     idtablestakingScriptsGet_total_staked_by_typeCdc,
-	"idTableStaking/scripts/get_weekly_payout.cdc":                            idtablestakingScriptsGet_weekly_payoutCdc,
-	"inspect_field.cdc":                                                       inspect_fieldCdc,
-	"lockedTokens/admin/admin_create_shared_accounts.cdc":                     lockedtokensAdminAdmin_create_shared_accountsCdc,
-	"lockedTokens/admin/admin_deploy_contract.cdc":                            lockedtokensAdminAdmin_deploy_contractCdc,
-	"lockedTokens/admin/admin_deposit_account_creator.cdc":                    lockedtokensAdminAdmin_deposit_account_creatorCdc,
-	"lockedTokens/admin/admin_remove_delegator.cdc":                           lockedtokensAdminAdmin_remove_delegatorCdc,
-	"lockedTokens/admin/check_main_registration.cdc":                          lockedtokensAdminCheck_main_registrationCdc,
-	"lockedTokens/admin/check_shared_registration.cdc":                        lockedtokensAdminCheck_shared_registrationCdc,
-	"lockedTokens/admin/custody_create_account_with_lease_account.cdc":        lockedtokensAdminCustody_create_account_with_lease_accountCdc,
-	"lockedTokens/admin/custody_create_only_lease_account.cdc":                lockedtokensAdminCustody_create_only_lease_accountCdc,
-	"lockedTokens/admin/custody_create_only_shared_account.cdc":               lockedtokensAdminCustody_create_only_shared_accountCdc,
-	"lockedTokens/admin/custody_create_shared_accounts.cdc":                   lockedtokensAdminCustody_create_shared_accountsCdc,
-	"lockedTokens/admin/custody_setup_account_creator.cdc":                    lockedtokensAdminCustody_setup_account_creatorCdc,
-	"lockedTokens/admin/deposit_locked_tokens.cdc":                            lockedtokensAdminDeposit_locked_tokensCdc,
-	"lockedTokens/admin/get_unlocking_bad_accounts.cdc":                       lockedtokensAdminGet_unlocking_bad_accountsCdc,
-	"lockedTokens/admin/unlock_tokens.cdc":                                    lockedtokensAdminUnlock_tokensCdc,
-	"lockedTokens/admin/unlock_tokens_for_multiple_accounts.cdc":              lockedtokensAdminUnlock_tokens_for_multiple_accountsCdc,
-	"lockedTokens/delegator/delegate_new_tokens.cdc":                          lockedtokensDelegatorDelegate_new_tokensCdc,
-	"lockedTokens/delegator/delegate_rewarded_tokens.cdc":                     lockedtokensDelegatorDelegate_rewarded_tokensCdc,
-	"lockedTokens/delegator/delegate_unstaked_tokens.cdc":                     lockedtokensDelegatorDelegate_unstaked_tokensCdc,
-	"lockedTokens/delegator/get_delegator_id.cdc":                             lockedtokensDelegatorGet_delegator_idCdc,
-	"lockedTokens/delegator/get_delegator_info.cdc":                           lockedtokensDelegatorGet_delegator_infoCdc,
-	"lockedTokens/delegator/get_delegator_node_id.cdc":                        lockedtokensDelegatorGet_delegator_node_idCdc,
-	"lockedTokens/delegator/register_delegator.cdc":                           lockedtokensDelegatorRegister_delegatorCdc,
-	"lockedTokens/delegator/request_unstaking.cdc":                            lockedtokensDelegatorRequest_unstakingCdc,
-	"lockedTokens/delegator/withdraw_rewarded_tokens.cdc":                     lockedtokensDelegatorWithdraw_rewarded_tokensCdc,
-	"lockedTokens/delegator/withdraw_rewarded_tokens_locked.cdc":              lockedtokensDelegatorWithdraw_rewarded_tokens_lockedCdc,
-	"lockedTokens/delegator/withdraw_unstaked_tokens.cdc":                     lockedtokensDelegatorWithdraw_unstaked_tokensCdc,
-	"lockedTokens/staker/get_node_id.cdc":                                     lockedtokensStakerGet_node_idCdc,
-	"lockedTokens/staker/get_staker_info.cdc":                                 lockedtokensStakerGet_staker_infoCdc,
-	"lockedTokens/staker/register_node.cdc":                                   lockedtokensStakerRegister_nodeCdc,
-	"lockedTokens/staker/request_unstaking.cdc":                               lockedtokensStakerRequest_unstakingCdc,
-	"lockedTokens/staker/stake_new_tokens.cdc":                                lockedtokensStakerStake_new_tokensCdc,
-	"lockedTokens/staker/stake_rewarded_tokens.cdc":                           lockedtokensStakerStake_rewarded_tokensCdc,
-	"lockedTokens/staker/stake_unstaked_tokens.cdc":                           lockedtokensStakerStake_unstaked_tokensCdc,
-	"lockedTokens/staker/unstake_all.cdc":                                     lockedtokensStakerUnstake_allCdc,
-	"lockedTokens/staker/update_networking_address.cdc":                       lockedtokensStakerUpdate_networking_addressCdc,
-	"lockedTokens/staker/withdraw_rewarded_tokens.cdc":                        lockedtokensStakerWithdraw_rewarded_tokensCdc,
-	"lockedTokens/staker/withdraw_rewarded_tokens_locked.cdc":                 lockedtokensStakerWithdraw_rewarded_tokens_lockedCdc,
-	"lockedTokens/staker/withdraw_unstaked_tokens.cdc":                        lockedtokensStakerWithdraw_unstaked_tokensCdc,
-	"lockedTokens/user/deposit_tokens.cdc":                                    lockedtokensUserDeposit_tokensCdc,
-	"lockedTokens/user/get_locked_account_address.cdc":                        lockedtokensUserGet_locked_account_addressCdc,
-	"lockedTokens/user/get_locked_account_balance.cdc":                        lockedtokensUserGet_locked_account_balanceCdc,
-	"lockedTokens/user/get_multiple_unlock_limits.cdc":                        lockedtokensUserGet_multiple_unlock_limitsCdc,
-	"lockedTokens/user/get_total_balance.cdc":                                 lockedtokensUserGet_total_balanceCdc,
-	"lockedTokens/user/get_unlock_limit.cdc":                                  lockedtokensUserGet_unlock_limitCdc,
-	"lockedTokens/user/withdraw_tokens.cdc":                                   lockedtokensUserWithdraw_tokensCdc,
-	"quorumCertificate/admin/publish_voter.cdc":                               quorumcertificateAdminPublish_voterCdc,
-	"quorumCertificate/admin/start_voting.cdc":                                quorumcertificateAdminStart_votingCdc,
-	"quorumCertificate/admin/stop_voting.cdc":                                 quorumcertificateAdminStop_votingCdc,
-	"quorumCertificate/create_voter.cdc":                                      quorumcertificateCreate_voterCdc,
-	"quorumCertificate/scripts/generate_quorum_certificate.cdc":               quorumcertificateScriptsGenerate_quorum_certificateCdc,
-	"quorumCertificate/scripts/get_cluster.cdc":                               quorumcertificateScriptsGet_clusterCdc,
-	"quorumCertificate/scripts/get_cluster_complete.cdc":                      quorumcertificateScriptsGet_cluster_completeCdc,
-	"quorumCertificate/scripts/get_cluster_node_weights.cdc":                  quorumcertificateScriptsGet_cluster_node_weightsCdc,
-	"quorumCertificate/scripts/get_cluster_vote_threshold.cdc":                quorumcertificateScriptsGet_cluster_vote_thresholdCdc,
-	"quorumCertificate/scripts/get_cluster_votes.cdc":                         quorumcertificateScriptsGet_cluster_votesCdc,
-	"quorumCertificate/scripts/get_cluster_weight.cdc":                        quorumcertificateScriptsGet_cluster_weightCdc,
-	"quorumCertificate/scripts/get_clusters.cdc":                              quorumcertificateScriptsGet_clustersCdc,
-	"quorumCertificate/scripts/get_node_has_voted.cdc":                        quorumcertificateScriptsGet_node_has_votedCdc,
-	"quorumCertificate/scripts/get_node_weight.cdc":                           quorumcertificateScriptsGet_node_weightCdc,
-	"quorumCertificate/scripts/get_qc_enabled.cdc":                            quorumcertificateScriptsGet_qc_enabledCdc,
-	"quorumCertificate/scripts/get_voter_is_registered.cdc":                   quorumcertificateScriptsGet_voter_is_registeredCdc,
-	"quorumCertificate/scripts/get_voting_completed.cdc":                      quorumcertificateScriptsGet_voting_completedCdc,
-	"quorumCertificate/submit_vote.cdc":                                       quorumcertificateSubmit_voteCdc,
-	"stakingCollection/close_stake.cdc":                                       stakingcollectionClose_stakeCdc,
-	"stakingCollection/create_machine_account.cdc":                            stakingcollectionCreate_machine_accountCdc,
-	"stakingCollection/create_new_tokenholder_acct.cdc":                       stakingcollectionCreate_new_tokenholder_acctCdc,
-	"stakingCollection/deploy_collection_contract.cdc":                        stakingcollectionDeploy_collection_contractCdc,
-	"stakingCollection/register_delegator.cdc":                                stakingcollectionRegister_delegatorCdc,
-	"stakingCollection/register_multiple_delegators.cdc":                      stakingcollectionRegister_multiple_delegatorsCdc,
-	"stakingCollection/register_multiple_nodes.cdc":                           stakingcollectionRegister_multiple_nodesCdc,
-	"stakingCollection/register_node.cdc":                                     stakingcollectionRegister_nodeCdc,
-	"stakingCollection/request_unstaking.cdc":                                 stakingcollectionRequest_unstakingCdc,
-	"stakingCollection/restake_all_stakers.cdc":                               stakingcollectionRestake_all_stakersCdc,
-	"stakingCollection/scripts/does_account_have_staking_collection.cdc":      stakingcollectionScriptsDoes_account_have_staking_collectionCdc,
-	"stakingCollection/scripts/get_all_delegator_info.cdc":                    stakingcollectionScriptsGet_all_delegator_infoCdc,
-	"stakingCollection/scripts/get_all_node_info.cdc":                         stakingcollectionScriptsGet_all_node_infoCdc,
-	"stakingCollection/scripts/get_delegator_ids.cdc":                         stakingcollectionScriptsGet_delegator_idsCdc,
-	"stakingCollection/scripts/get_does_stake_exist.cdc":                      stakingcollectionScriptsGet_does_stake_existCdc,
-	"stakingCollection/scripts/get_locked_tokens_used.cdc":                    stakingcollectionScriptsGet_locked_tokens_usedCdc,
-	"stakingCollection/scripts/get_machine_account_address.cdc":               stakingcollectionScriptsGet_machine_account_addressCdc,
-	"stakingCollection/scripts/get_machine_accounts.cdc":                      stakingcollectionScriptsGet_machine_accountsCdc,
-	"stakingCollection/scripts/get_node_ids.cdc":                              stakingcollectionScriptsGet_node_idsCdc,
-	"stakingCollection/scripts/get_unlocked_tokens_used.cdc":                  stakingcollectionScriptsGet_unlocked_tokens_usedCdc,
-	"stakingCollection/setup_staking_collection.cdc":                          stakingcollectionSetup_staking_collectionCdc,
-	"stakingCollection/stake_new_tokens.cdc":                                  stakingcollectionStake_new_tokensCdc,
-	"stakingCollection/stake_rewarded_tokens.cdc":                             stakingcollectionStake_rewarded_tokensCdc,
-	"stakingCollection/stake_unstaked_tokens.cdc":                             stakingcollectionStake_unstaked_tokensCdc,
-	"stakingCollection/test/deposit_tokens.cdc":                               stakingcollectionTestDeposit_tokensCdc,
-	"stakingCollection/test/get_tokens.cdc":                                   stakingcollectionTestGet_tokensCdc,
-	"stakingCollection/transfer_delegator.cdc":                                stakingcollectionTransfer_delegatorCdc,
-	"stakingCollection/transfer_node.cdc":                                     stakingcollectionTransfer_nodeCdc,
-	"stakingCollection/unstake_all.cdc":                                       stakingcollectionUnstake_allCdc,
-	"stakingCollection/update_networking_address.cdc":                         stakingcollectionUpdate_networking_addressCdc,
-	"stakingCollection/withdraw_from_machine_account.cdc":                     stakingcollectionWithdraw_from_machine_accountCdc,
-	"stakingCollection/withdraw_rewarded_tokens.cdc":                          stakingcollectionWithdraw_rewarded_tokensCdc,
-	"stakingCollection/withdraw_unstaked_tokens.cdc":                          stakingcollectionWithdraw_unstaked_tokensCdc,
-	"stakingProxy/add_node_info.cdc":                                          stakingproxyAdd_node_infoCdc,
-	"stakingProxy/get_node_info.cdc":                                          stakingproxyGet_node_infoCdc,
-	"stakingProxy/register_node.cdc":                                          stakingproxyRegister_nodeCdc,
-	"stakingProxy/remove_node_info.cdc":                                       stakingproxyRemove_node_infoCdc,
-	"stakingProxy/remove_staking_proxy.cdc":                                   stakingproxyRemove_staking_proxyCdc,
-	"stakingProxy/request_unstaking.cdc":                                      stakingproxyRequest_unstakingCdc,
-	"stakingProxy/setup_node_account.cdc":                                     stakingproxySetup_node_accountCdc,
-	"stakingProxy/stake_new_tokens.cdc":                                       stakingproxyStake_new_tokensCdc,
-	"stakingProxy/stake_unstaked_tokens.cdc":                                  stakingproxyStake_unstaked_tokensCdc,
-	"stakingProxy/unstake_all.cdc":                                            stakingproxyUnstake_allCdc,
-	"stakingProxy/withdraw_rewards.cdc":                                       stakingproxyWithdraw_rewardsCdc,
-	"stakingProxy/withdraw_unstaked.cdc":                                      stakingproxyWithdraw_unstakedCdc,
-	"storageFees/admin/set_parameters.cdc":                                    storagefeesAdminSet_parametersCdc,
-	"storageFees/scripts/get_account_available_balance.cdc":                   storagefeesScriptsGet_account_available_balanceCdc,
-	"storageFees/scripts/get_storage_capacity.cdc":                            storagefeesScriptsGet_storage_capacityCdc,
-	"storageFees/scripts/get_storage_fee_conversion.cdc":                      storagefeesScriptsGet_storage_fee_conversionCdc,
-	"storageFees/scripts/get_storage_fee_min.cdc":                             storagefeesScriptsGet_storage_fee_minCdc,
+	"FlowServiceAccount/add_account_creator.cdc":                                        flowserviceaccountAdd_account_creatorCdc,
+	"FlowServiceAccount/deposit_fees.cdc":                                               flowserviceaccountDeposit_feesCdc,
+	"FlowServiceAccount/remove_account_creator.cdc":                                     flowserviceaccountRemove_account_creatorCdc,
+	"FlowServiceAccount/scripts/get_account_creators.cdc":                               flowserviceaccountScriptsGet_account_creatorsCdc,
+	"FlowServiceAccount/scripts/get_account_fee.cdc":                                    flowserviceaccountScriptsGet_account_feeCdc,
+	"FlowServiceAccount/scripts/get_execution_effort_weights.cdc":                       flowserviceaccountScriptsGet_execution_effort_weightsCdc,
+	"FlowServiceAccount/scripts/get_execution_memory_limit.cdc":                         flowserviceaccountScriptsGet_execution_memory_limitCdc,
+	"FlowServiceAccount/scripts/get_execution_memory_weights.cdc":                       flowserviceaccountScriptsGet_execution_memory_weightsCdc,
+	"FlowServiceAccount/scripts/get_fees_balance.cdc":                                   flowserviceaccountScriptsGet_fees_balanceCdc,
+	"FlowServiceAccount/scripts/get_is_account_creation_restricted.cdc":                 flowserviceaccountScriptsGet_is_account_creation_restrictedCdc,
+	"FlowServiceAccount/scripts/get_is_account_creator.cdc":                             flowserviceaccountScriptsGet_is_account_creatorCdc,
+	"FlowServiceAccount/scripts/get_tx_fee_parameters.cdc":                              flowserviceaccountScriptsGet_tx_fee_parametersCdc,
+	"FlowServiceAccount/set_execution_effort_weights.cdc":                               flowserviceaccountSet_execution_effort_weightsCdc,
+	"FlowServiceAccount/set_execution_memory_limit.cdc":                                 flowserviceaccountSet_execution_memory_limitCdc,
+	"FlowServiceAccount/set_execution_memory_weights.cdc":                               flowserviceaccountSet_execution_memory_weightsCdc,
+	"FlowServiceAccount/set_is_account_creation_restricted.cdc":                         flowserviceaccountSet_is_account_creation_restrictedCdc,
+	"FlowServiceAccount/set_tx_fee_parameters.cdc":                                      flowserviceaccountSet_tx_fee_parametersCdc,
+	"FlowServiceAccount/set_tx_fee_surge_factor.cdc":                                    flowserviceaccountSet_tx_fee_surge_factorCdc,
+	"contractAudits/admin/authorize_auditor.cdc":                                        contractauditsAdminAuthorize_auditorCdc,
+	"contractAudits/admin/cleanup_expired.cdc":                                          contractauditsAdminCleanup_expiredCdc,
+	"contractAudits/auditor/init.cdc":                                                   contractauditsAuditorInitCdc,
+	"contractAudits/auditor/new_audit.cdc":                                              contractauditsAuditorNew_auditCdc,
+	"contractAudits/auditor/new_audit_hashed.cdc":                                       contractauditsAuditorNew_audit_hashedCdc,
+	"contractAudits/auditor/remove_audit.cdc":                                           contractauditsAuditorRemove_auditCdc,
+	"contractAudits/fvm/deploy_contract.cdc":                                            contractauditsFvmDeploy_contractCdc,
+	"contractAudits/scripts/get_vouchers.cdc":                                           contractauditsScriptsGet_vouchersCdc,
+	"dkg/admin/force_stop_dkg.cdc":                                                      dkgAdminForce_stop_dkgCdc,
+	"dkg/admin/publish_participant.cdc":                                                 dkgAdminPublish_participantCdc,
+	"dkg/admin/set_safe_threshold.cdc":                                                  dkgAdminSet_safe_thresholdCdc,
+	"dkg/admin/start_dkg.cdc":                                                           dkgAdminStart_dkgCdc,
+	"dkg/admin/stop_dkg.cdc":                                                            dkgAdminStop_dkgCdc,
+	"dkg/create_participant.cdc":                                                        dkgCreate_participantCdc,
+	"dkg/scripts/get_consensus_nodes.cdc":                                               dkgScriptsGet_consensus_nodesCdc,
+	"dkg/scripts/get_dkg_canonical_final_submission.cdc":                                dkgScriptsGet_dkg_canonical_final_submissionCdc,
+	"dkg/scripts/get_dkg_completed.cdc":                                                 dkgScriptsGet_dkg_completedCdc,
+	"dkg/scripts/get_dkg_enabled.cdc":                                                   dkgScriptsGet_dkg_enabledCdc,
+	"dkg/scripts/get_final_submissions.cdc":                                             dkgScriptsGet_final_submissionsCdc,
+	"dkg/scripts/get_latest_whiteboard_messages.cdc":                                    dkgScriptsGet_latest_whiteboard_messagesCdc,
+	"dkg/scripts/get_node_final_submission.cdc":                                         dkgScriptsGet_node_final_submissionCdc,
+	"dkg/scripts/get_node_has_submitted.cdc":                                            dkgScriptsGet_node_has_submittedCdc,
+	"dkg/scripts/get_node_is_claimed.cdc":                                               dkgScriptsGet_node_is_claimedCdc,
+	"dkg/scripts/get_node_is_registered.cdc":                                            dkgScriptsGet_node_is_registeredCdc,
+	"dkg/scripts/get_thresholds.cdc":                                                    dkgScriptsGet_thresholdsCdc,
+	"dkg/scripts/get_whiteboard_messages.cdc":                                           dkgScriptsGet_whiteboard_messagesCdc,
+	"dkg/send_final_submission.cdc":                                                     dkgSend_final_submissionCdc,
+	"dkg/send_whiteboard_message.cdc":                                                   dkgSend_whiteboard_messageCdc,
+	"epoch/admin/advance_view.cdc":                                                      epochAdminAdvance_viewCdc,
+	"epoch/admin/calculate_rewards.cdc":                                                 epochAdminCalculate_rewardsCdc,
+	"epoch/admin/deploy_epoch.cdc":                                                      epochAdminDeploy_epochCdc,
+	"epoch/admin/deploy_qc_dkg.cdc":                                                     epochAdminDeploy_qc_dkgCdc,
+	"epoch/admin/pay_rewards.cdc":                                                       epochAdminPay_rewardsCdc,
+	"epoch/admin/reset_epoch.cdc":                                                       epochAdminReset_epochCdc,
+	"epoch/admin/set_automatic_rewards.cdc":                                             epochAdminSet_automatic_rewardsCdc,
+	"epoch/admin/update_clusters.cdc":                                                   epochAdminUpdate_clustersCdc,
+	"epoch/admin/update_dkg_phase_views.cdc":                                            epochAdminUpdate_dkg_phase_viewsCdc,
+	"epoch/admin/update_epoch_config.cdc":                                               epochAdminUpdate_epoch_configCdc,
+	"epoch/admin/update_epoch_views.cdc":                                                epochAdminUpdate_epoch_viewsCdc,
+	"epoch/admin/update_reward.cdc":                                                     epochAdminUpdate_rewardCdc,
+	"epoch/admin/update_staking_views.cdc":                                              epochAdminUpdate_staking_viewsCdc,
+	"epoch/node/register_dkg_participant.cdc":                                           epochNodeRegister_dkg_participantCdc,
+	"epoch/node/register_node.cdc":                                                      epochNodeRegister_nodeCdc,
+	"epoch/node/register_qc_voter.cdc":                                                  epochNodeRegister_qc_voterCdc,
+	"epoch/scripts/get_config_metadata.cdc":                                             epochScriptsGet_config_metadataCdc,
+	"epoch/scripts/get_create_clusters.cdc":                                             epochScriptsGet_create_clustersCdc,
+	"epoch/scripts/get_current_view.cdc":                                                epochScriptsGet_current_viewCdc,
+	"epoch/scripts/get_epoch_counter.cdc":                                               epochScriptsGet_epoch_counterCdc,
+	"epoch/scripts/get_epoch_metadata.cdc":                                              epochScriptsGet_epoch_metadataCdc,
+	"epoch/scripts/get_epoch_phase.cdc":                                                 epochScriptsGet_epoch_phaseCdc,
+	"epoch/scripts/get_proposed_counter.cdc":                                            epochScriptsGet_proposed_counterCdc,
+	"epoch/scripts/get_randomize.cdc":                                                   epochScriptsGet_randomizeCdc,
+	"executionNodeVersionBeacon/admin/add_version_to_table.cdc":                         executionnodeversionbeaconAdminAdd_version_to_tableCdc,
+	"executionNodeVersionBeacon/admin/change_version_update_buffer.cdc":                 executionnodeversionbeaconAdminChange_version_update_bufferCdc,
+	"executionNodeVersionBeacon/admin/delete_latest_version.cdc":                        executionnodeversionbeaconAdminDelete_latest_versionCdc,
+	"executionNodeVersionBeacon/scripts/get_current_minimum_execution_node_version.cdc": executionnodeversionbeaconScriptsGet_current_minimum_execution_node_versionCdc,
+	"executionNodeVersionBeacon/scripts/get_next_version_boundary_pair.cdc":             executionnodeversionbeaconScriptsGet_next_version_boundary_pairCdc,
+	"executionNodeVersionBeacon/scripts/get_version_table.cdc":                          executionnodeversionbeaconScriptsGet_version_tableCdc,
+	"executionNodeVersionBeacon/scripts/get_version_update_buffer.cdc":                  executionnodeversionbeaconScriptsGet_version_update_bufferCdc,
+	"executionNodeVersionBeacon/scripts/is_compatible_version.cdc":                      executionnodeversionbeaconScriptsIs_compatible_versionCdc,
+	"flowToken/burn_tokens.cdc":                                                         flowtokenBurn_tokensCdc,
+	"flowToken/create_forwarder.cdc":                                                    flowtokenCreate_forwarderCdc,
+	"flowToken/mint_tokens.cdc":                                                         flowtokenMint_tokensCdc,
+	"flowToken/scripts/get_balance.cdc":                                                 flowtokenScriptsGet_balanceCdc,
+	"flowToken/scripts/get_supply.cdc":                                                  flowtokenScriptsGet_supplyCdc,
+	"flowToken/setup_account.cdc":                                                       flowtokenSetup_accountCdc,
+	"flowToken/transfer_tokens.cdc":                                                     flowtokenTransfer_tokensCdc,
+	"idTableStaking/admin/add_approved_nodes.cdc":                                       idtablestakingAdminAdd_approved_nodesCdc,
+	"idTableStaking/admin/capability_end_epoch.cdc":                                     idtablestakingAdminCapability_end_epochCdc,
+	"idTableStaking/admin/change_cut.cdc":                                               idtablestakingAdminChange_cutCdc,
+	"idTableStaking/admin/change_minimums.cdc":                                          idtablestakingAdminChange_minimumsCdc,
+	"idTableStaking/admin/change_payout.cdc":                                            idtablestakingAdminChange_payoutCdc,
+	"idTableStaking/admin/end_epoch.cdc":                                                idtablestakingAdminEnd_epochCdc,
+	"idTableStaking/admin/end_epoch_change_payout.cdc":                                  idtablestakingAdminEnd_epoch_change_payoutCdc,
+	"idTableStaking/admin/end_staking.cdc":                                              idtablestakingAdminEnd_stakingCdc,
+	"idTableStaking/admin/move_tokens.cdc":                                              idtablestakingAdminMove_tokensCdc,
+	"idTableStaking/admin/pay_rewards.cdc":                                              idtablestakingAdminPay_rewardsCdc,
+	"idTableStaking/admin/remove_approved_nodes.cdc":                                    idtablestakingAdminRemove_approved_nodesCdc,
+	"idTableStaking/admin/remove_node.cdc":                                              idtablestakingAdminRemove_nodeCdc,
+	"idTableStaking/admin/remove_unapproved_nodes.cdc":                                  idtablestakingAdminRemove_unapproved_nodesCdc,
+	"idTableStaking/admin/scale_rewards_test.cdc":                                       idtablestakingAdminScale_rewards_testCdc,
+	"idTableStaking/admin/set_approved_nodes.cdc":                                       idtablestakingAdminSet_approved_nodesCdc,
+	"idTableStaking/admin/set_claimed.cdc":                                              idtablestakingAdminSet_claimedCdc,
+	"idTableStaking/admin/set_non_operational.cdc":                                      idtablestakingAdminSet_non_operationalCdc,
+	"idTableStaking/admin/start_staking.cdc":                                            idtablestakingAdminStart_stakingCdc,
+	"idTableStaking/admin/transfer_admin.cdc":                                           idtablestakingAdminTransfer_adminCdc,
+	"idTableStaking/admin/transfer_fees_admin.cdc":                                      idtablestakingAdminTransfer_fees_adminCdc,
+	"idTableStaking/admin/transfer_minter_deploy.cdc":                                   idtablestakingAdminTransfer_minter_deployCdc,
+	"idTableStaking/admin/upgrade_set_claimed.cdc":                                      idtablestakingAdminUpgrade_set_claimedCdc,
+	"idTableStaking/admin/upgrade_staking.cdc":                                          idtablestakingAdminUpgrade_stakingCdc,
+	"idTableStaking/delegation/del_request_unstaking.cdc":                               idtablestakingDelegationDel_request_unstakingCdc,
+	"idTableStaking/delegation/del_stake_new_tokens.cdc":                                idtablestakingDelegationDel_stake_new_tokensCdc,
+	"idTableStaking/delegation/del_stake_rewarded.cdc":                                  idtablestakingDelegationDel_stake_rewardedCdc,
+	"idTableStaking/delegation/del_stake_unstaked.cdc":                                  idtablestakingDelegationDel_stake_unstakedCdc,
+	"idTableStaking/delegation/del_withdraw_reward_tokens.cdc":                          idtablestakingDelegationDel_withdraw_reward_tokensCdc,
+	"idTableStaking/delegation/del_withdraw_unstaked_tokens.cdc":                        idtablestakingDelegationDel_withdraw_unstaked_tokensCdc,
+	"idTableStaking/delegation/delegator_add_capability.cdc":                            idtablestakingDelegationDelegator_add_capabilityCdc,
+	"idTableStaking/delegation/get_delegator_committed.cdc":                             idtablestakingDelegationGet_delegator_committedCdc,
+	"idTableStaking/delegation/get_delegator_info.cdc":                                  idtablestakingDelegationGet_delegator_infoCdc,
+	"idTableStaking/delegation/get_delegator_info_from_address.cdc":                     idtablestakingDelegationGet_delegator_info_from_addressCdc,
+	"idTableStaking/delegation/get_delegator_request.cdc":                               idtablestakingDelegationGet_delegator_requestCdc,
+	"idTableStaking/delegation/get_delegator_rewarded.cdc":                              idtablestakingDelegationGet_delegator_rewardedCdc,
+	"idTableStaking/delegation/get_delegator_staked.cdc":                                idtablestakingDelegationGet_delegator_stakedCdc,
+	"idTableStaking/delegation/get_delegator_unstaked.cdc":                              idtablestakingDelegationGet_delegator_unstakedCdc,
+	"idTableStaking/delegation/get_delegator_unstaking.cdc":                             idtablestakingDelegationGet_delegator_unstakingCdc,
+	"idTableStaking/delegation/get_delegator_unstaking_request.cdc":                     idtablestakingDelegationGet_delegator_unstaking_requestCdc,
+	"idTableStaking/delegation/register_delegator.cdc":                                  idtablestakingDelegationRegister_delegatorCdc,
+	"idTableStaking/delegation/register_many_delegators.cdc":                            idtablestakingDelegationRegister_many_delegatorsCdc,
+	"idTableStaking/node/node_add_capability.cdc":                                       idtablestakingNodeNode_add_capabilityCdc,
+	"idTableStaking/node/register_many_nodes.cdc":                                       idtablestakingNodeRegister_many_nodesCdc,
+	"idTableStaking/node/register_node.cdc":                                             idtablestakingNodeRegister_nodeCdc,
+	"idTableStaking/node/request_unstake.cdc":                                           idtablestakingNodeRequest_unstakeCdc,
+	"idTableStaking/node/stake_new_tokens.cdc":                                          idtablestakingNodeStake_new_tokensCdc,
+	"idTableStaking/node/stake_rewarded_tokens.cdc":                                     idtablestakingNodeStake_rewarded_tokensCdc,
+	"idTableStaking/node/stake_unstaked_tokens.cdc":                                     idtablestakingNodeStake_unstaked_tokensCdc,
+	"idTableStaking/node/unstake_all.cdc":                                               idtablestakingNodeUnstake_allCdc,
+	"idTableStaking/node/update_networking_address.cdc":                                 idtablestakingNodeUpdate_networking_addressCdc,
+	"idTableStaking/node/withdraw_reward_tokens.cdc":                                    idtablestakingNodeWithdraw_reward_tokensCdc,
+	"idTableStaking/node/withdraw_unstaked_tokens.cdc":                                  idtablestakingNodeWithdraw_unstaked_tokensCdc,
+	"idTableStaking/scripts/get_approved_nodes.cdc":                                     idtablestakingScriptsGet_approved_nodesCdc,
+	"idTableStaking/scripts/get_current_table.cdc":                                      idtablestakingScriptsGet_current_tableCdc,
+	"idTableStaking/scripts/get_cut_percentage.cdc":                                     idtablestakingScriptsGet_cut_percentageCdc,
+	"idTableStaking/scripts/get_node_committed_tokens.cdc":                              idtablestakingScriptsGet_node_committed_tokensCdc,
+	"idTableStaking/scripts/get_node_info.cdc":                                          idtablestakingScriptsGet_node_infoCdc,
+	"idTableStaking/scripts/get_node_info_from_address.cdc":                             idtablestakingScriptsGet_node_info_from_addressCdc,
+	"idTableStaking/scripts/get_node_initial_weight.cdc":                                idtablestakingScriptsGet_node_initial_weightCdc,
+	"idTableStaking/scripts/get_node_networking_addr.cdc":                               idtablestakingScriptsGet_node_networking_addrCdc,
+	"idTableStaking/scripts/get_node_networking_key.cdc":                                idtablestakingScriptsGet_node_networking_keyCdc,
+	"idTableStaking/scripts/get_node_rewarded_tokens.cdc":                               idtablestakingScriptsGet_node_rewarded_tokensCdc,
+	"idTableStaking/scripts/get_node_role.cdc":                                          idtablestakingScriptsGet_node_roleCdc,
+	"idTableStaking/scripts/get_node_staked_tokens.cdc":                                 idtablestakingScriptsGet_node_staked_tokensCdc,
+	"idTableStaking/scripts/get_node_staking_key.cdc":                                   idtablestakingScriptsGet_node_staking_keyCdc,
+	"idTableStaking/scripts/get_node_total_commitment.cdc":                              idtablestakingScriptsGet_node_total_commitmentCdc,
+	"idTableStaking/scripts/get_node_total_commitment_without_delegators.cdc":           idtablestakingScriptsGet_node_total_commitment_without_delegatorsCdc,
+	"idTableStaking/scripts/get_node_type_ratio.cdc":                                    idtablestakingScriptsGet_node_type_ratioCdc,
+	"idTableStaking/scripts/get_node_unstaked_tokens.cdc":                               idtablestakingScriptsGet_node_unstaked_tokensCdc,
+	"idTableStaking/scripts/get_node_unstaking_request.cdc":                             idtablestakingScriptsGet_node_unstaking_requestCdc,
+	"idTableStaking/scripts/get_node_unstaking_tokens.cdc":                              idtablestakingScriptsGet_node_unstaking_tokensCdc,
+	"idTableStaking/scripts/get_non_operational.cdc":                                    idtablestakingScriptsGet_non_operationalCdc,
+	"idTableStaking/scripts/get_proposed_table.cdc":                                     idtablestakingScriptsGet_proposed_tableCdc,
+	"idTableStaking/scripts/get_stake_requirements.cdc":                                 idtablestakingScriptsGet_stake_requirementsCdc,
+	"idTableStaking/scripts/get_table.cdc":                                              idtablestakingScriptsGet_tableCdc,
+	"idTableStaking/scripts/get_total_staked.cdc":                                       idtablestakingScriptsGet_total_stakedCdc,
+	"idTableStaking/scripts/get_total_staked_by_type.cdc":                               idtablestakingScriptsGet_total_staked_by_typeCdc,
+	"idTableStaking/scripts/get_weekly_payout.cdc":                                      idtablestakingScriptsGet_weekly_payoutCdc,
+	"inspect_field.cdc":                                                                 inspect_fieldCdc,
+	"lockedTokens/admin/admin_create_shared_accounts.cdc":                               lockedtokensAdminAdmin_create_shared_accountsCdc,
+	"lockedTokens/admin/admin_deploy_contract.cdc":                                      lockedtokensAdminAdmin_deploy_contractCdc,
+	"lockedTokens/admin/admin_deposit_account_creator.cdc":                              lockedtokensAdminAdmin_deposit_account_creatorCdc,
+	"lockedTokens/admin/admin_remove_delegator.cdc":                                     lockedtokensAdminAdmin_remove_delegatorCdc,
+	"lockedTokens/admin/check_main_registration.cdc":                                    lockedtokensAdminCheck_main_registrationCdc,
+	"lockedTokens/admin/check_shared_registration.cdc":                                  lockedtokensAdminCheck_shared_registrationCdc,
+	"lockedTokens/admin/custody_create_account_with_lease_account.cdc":                  lockedtokensAdminCustody_create_account_with_lease_accountCdc,
+	"lockedTokens/admin/custody_create_only_lease_account.cdc":                          lockedtokensAdminCustody_create_only_lease_accountCdc,
+	"lockedTokens/admin/custody_create_only_shared_account.cdc":                         lockedtokensAdminCustody_create_only_shared_accountCdc,
+	"lockedTokens/admin/custody_create_shared_accounts.cdc":                             lockedtokensAdminCustody_create_shared_accountsCdc,
+	"lockedTokens/admin/custody_setup_account_creator.cdc":                              lockedtokensAdminCustody_setup_account_creatorCdc,
+	"lockedTokens/admin/deposit_locked_tokens.cdc":                                      lockedtokensAdminDeposit_locked_tokensCdc,
+	"lockedTokens/admin/get_unlocking_bad_accounts.cdc":                                 lockedtokensAdminGet_unlocking_bad_accountsCdc,
+	"lockedTokens/admin/unlock_tokens.cdc":                                              lockedtokensAdminUnlock_tokensCdc,
+	"lockedTokens/admin/unlock_tokens_for_multiple_accounts.cdc":                        lockedtokensAdminUnlock_tokens_for_multiple_accountsCdc,
+	"lockedTokens/delegator/delegate_new_tokens.cdc":                                    lockedtokensDelegatorDelegate_new_tokensCdc,
+	"lockedTokens/delegator/delegate_rewarded_tokens.cdc":                               lockedtokensDelegatorDelegate_rewarded_tokensCdc,
+	"lockedTokens/delegator/delegate_unstaked_tokens.cdc":                               lockedtokensDelegatorDelegate_unstaked_tokensCdc,
+	"lockedTokens/delegator/get_delegator_id.cdc":                                       lockedtokensDelegatorGet_delegator_idCdc,
+	"lockedTokens/delegator/get_delegator_info.cdc":                                     lockedtokensDelegatorGet_delegator_infoCdc,
+	"lockedTokens/delegator/get_delegator_node_id.cdc":                                  lockedtokensDelegatorGet_delegator_node_idCdc,
+	"lockedTokens/delegator/register_delegator.cdc":                                     lockedtokensDelegatorRegister_delegatorCdc,
+	"lockedTokens/delegator/request_unstaking.cdc":                                      lockedtokensDelegatorRequest_unstakingCdc,
+	"lockedTokens/delegator/withdraw_rewarded_tokens.cdc":                               lockedtokensDelegatorWithdraw_rewarded_tokensCdc,
+	"lockedTokens/delegator/withdraw_rewarded_tokens_locked.cdc":                        lockedtokensDelegatorWithdraw_rewarded_tokens_lockedCdc,
+	"lockedTokens/delegator/withdraw_unstaked_tokens.cdc":                               lockedtokensDelegatorWithdraw_unstaked_tokensCdc,
+	"lockedTokens/staker/get_node_id.cdc":                                               lockedtokensStakerGet_node_idCdc,
+	"lockedTokens/staker/get_staker_info.cdc":                                           lockedtokensStakerGet_staker_infoCdc,
+	"lockedTokens/staker/register_node.cdc":                                             lockedtokensStakerRegister_nodeCdc,
+	"lockedTokens/staker/request_unstaking.cdc":                                         lockedtokensStakerRequest_unstakingCdc,
+	"lockedTokens/staker/stake_new_tokens.cdc":                                          lockedtokensStakerStake_new_tokensCdc,
+	"lockedTokens/staker/stake_rewarded_tokens.cdc":                                     lockedtokensStakerStake_rewarded_tokensCdc,
+	"lockedTokens/staker/stake_unstaked_tokens.cdc":                                     lockedtokensStakerStake_unstaked_tokensCdc,
+	"lockedTokens/staker/unstake_all.cdc":                                               lockedtokensStakerUnstake_allCdc,
+	"lockedTokens/staker/update_networking_address.cdc":                                 lockedtokensStakerUpdate_networking_addressCdc,
+	"lockedTokens/staker/withdraw_rewarded_tokens.cdc":                                  lockedtokensStakerWithdraw_rewarded_tokensCdc,
+	"lockedTokens/staker/withdraw_rewarded_tokens_locked.cdc":                           lockedtokensStakerWithdraw_rewarded_tokens_lockedCdc,
+	"lockedTokens/staker/withdraw_unstaked_tokens.cdc":                                  lockedtokensStakerWithdraw_unstaked_tokensCdc,
+	"lockedTokens/user/deposit_tokens.cdc":                                              lockedtokensUserDeposit_tokensCdc,
+	"lockedTokens/user/get_locked_account_address.cdc":                                  lockedtokensUserGet_locked_account_addressCdc,
+	"lockedTokens/user/get_locked_account_balance.cdc":                                  lockedtokensUserGet_locked_account_balanceCdc,
+	"lockedTokens/user/get_multiple_unlock_limits.cdc":                                  lockedtokensUserGet_multiple_unlock_limitsCdc,
+	"lockedTokens/user/get_total_balance.cdc":                                           lockedtokensUserGet_total_balanceCdc,
+	"lockedTokens/user/get_unlock_limit.cdc":                                            lockedtokensUserGet_unlock_limitCdc,
+	"lockedTokens/user/withdraw_tokens.cdc":                                             lockedtokensUserWithdraw_tokensCdc,
+	"quorumCertificate/admin/publish_voter.cdc":                                         quorumcertificateAdminPublish_voterCdc,
+	"quorumCertificate/admin/start_voting.cdc":                                          quorumcertificateAdminStart_votingCdc,
+	"quorumCertificate/admin/stop_voting.cdc":                                           quorumcertificateAdminStop_votingCdc,
+	"quorumCertificate/create_voter.cdc":                                                quorumcertificateCreate_voterCdc,
+	"quorumCertificate/scripts/generate_quorum_certificate.cdc":                         quorumcertificateScriptsGenerate_quorum_certificateCdc,
+	"quorumCertificate/scripts/get_cluster.cdc":                                         quorumcertificateScriptsGet_clusterCdc,
+	"quorumCertificate/scripts/get_cluster_complete.cdc":                                quorumcertificateScriptsGet_cluster_completeCdc,
+	"quorumCertificate/scripts/get_cluster_node_weights.cdc":                            quorumcertificateScriptsGet_cluster_node_weightsCdc,
+	"quorumCertificate/scripts/get_cluster_vote_threshold.cdc":                          quorumcertificateScriptsGet_cluster_vote_thresholdCdc,
+	"quorumCertificate/scripts/get_cluster_votes.cdc":                                   quorumcertificateScriptsGet_cluster_votesCdc,
+	"quorumCertificate/scripts/get_cluster_weight.cdc":                                  quorumcertificateScriptsGet_cluster_weightCdc,
+	"quorumCertificate/scripts/get_clusters.cdc":                                        quorumcertificateScriptsGet_clustersCdc,
+	"quorumCertificate/scripts/get_node_has_voted.cdc":                                  quorumcertificateScriptsGet_node_has_votedCdc,
+	"quorumCertificate/scripts/get_node_weight.cdc":                                     quorumcertificateScriptsGet_node_weightCdc,
+	"quorumCertificate/scripts/get_qc_enabled.cdc":                                      quorumcertificateScriptsGet_qc_enabledCdc,
+	"quorumCertificate/scripts/get_voter_is_registered.cdc":                             quorumcertificateScriptsGet_voter_is_registeredCdc,
+	"quorumCertificate/scripts/get_voting_completed.cdc":                                quorumcertificateScriptsGet_voting_completedCdc,
+	"quorumCertificate/submit_vote.cdc":                                                 quorumcertificateSubmit_voteCdc,
+	"stakingCollection/close_stake.cdc":                                                 stakingcollectionClose_stakeCdc,
+	"stakingCollection/create_machine_account.cdc":                                      stakingcollectionCreate_machine_accountCdc,
+	"stakingCollection/create_new_tokenholder_acct.cdc":                                 stakingcollectionCreate_new_tokenholder_acctCdc,
+	"stakingCollection/deploy_collection_contract.cdc":                                  stakingcollectionDeploy_collection_contractCdc,
+	"stakingCollection/register_delegator.cdc":                                          stakingcollectionRegister_delegatorCdc,
+	"stakingCollection/register_multiple_delegators.cdc":                                stakingcollectionRegister_multiple_delegatorsCdc,
+	"stakingCollection/register_multiple_nodes.cdc":                                     stakingcollectionRegister_multiple_nodesCdc,
+	"stakingCollection/register_node.cdc":                                               stakingcollectionRegister_nodeCdc,
+	"stakingCollection/request_unstaking.cdc":                                           stakingcollectionRequest_unstakingCdc,
+	"stakingCollection/restake_all_stakers.cdc":                                         stakingcollectionRestake_all_stakersCdc,
+	"stakingCollection/scripts/does_account_have_staking_collection.cdc":                stakingcollectionScriptsDoes_account_have_staking_collectionCdc,
+	"stakingCollection/scripts/get_all_delegator_info.cdc":                              stakingcollectionScriptsGet_all_delegator_infoCdc,
+	"stakingCollection/scripts/get_all_node_info.cdc":                                   stakingcollectionScriptsGet_all_node_infoCdc,
+	"stakingCollection/scripts/get_delegator_ids.cdc":                                   stakingcollectionScriptsGet_delegator_idsCdc,
+	"stakingCollection/scripts/get_does_stake_exist.cdc":                                stakingcollectionScriptsGet_does_stake_existCdc,
+	"stakingCollection/scripts/get_locked_tokens_used.cdc":                              stakingcollectionScriptsGet_locked_tokens_usedCdc,
+	"stakingCollection/scripts/get_machine_account_address.cdc":                         stakingcollectionScriptsGet_machine_account_addressCdc,
+	"stakingCollection/scripts/get_machine_accounts.cdc":                                stakingcollectionScriptsGet_machine_accountsCdc,
+	"stakingCollection/scripts/get_node_ids.cdc":                                        stakingcollectionScriptsGet_node_idsCdc,
+	"stakingCollection/scripts/get_unlocked_tokens_used.cdc":                            stakingcollectionScriptsGet_unlocked_tokens_usedCdc,
+	"stakingCollection/setup_staking_collection.cdc":                                    stakingcollectionSetup_staking_collectionCdc,
+	"stakingCollection/stake_new_tokens.cdc":                                            stakingcollectionStake_new_tokensCdc,
+	"stakingCollection/stake_rewarded_tokens.cdc":                                       stakingcollectionStake_rewarded_tokensCdc,
+	"stakingCollection/stake_unstaked_tokens.cdc":                                       stakingcollectionStake_unstaked_tokensCdc,
+	"stakingCollection/test/deposit_tokens.cdc":                                         stakingcollectionTestDeposit_tokensCdc,
+	"stakingCollection/test/get_tokens.cdc":                                             stakingcollectionTestGet_tokensCdc,
+	"stakingCollection/transfer_delegator.cdc":                                          stakingcollectionTransfer_delegatorCdc,
+	"stakingCollection/transfer_node.cdc":                                               stakingcollectionTransfer_nodeCdc,
+	"stakingCollection/unstake_all.cdc":                                                 stakingcollectionUnstake_allCdc,
+	"stakingCollection/update_networking_address.cdc":                                   stakingcollectionUpdate_networking_addressCdc,
+	"stakingCollection/withdraw_from_machine_account.cdc":                               stakingcollectionWithdraw_from_machine_accountCdc,
+	"stakingCollection/withdraw_rewarded_tokens.cdc":                                    stakingcollectionWithdraw_rewarded_tokensCdc,
+	"stakingCollection/withdraw_unstaked_tokens.cdc":                                    stakingcollectionWithdraw_unstaked_tokensCdc,
+	"stakingProxy/add_node_info.cdc":                                                    stakingproxyAdd_node_infoCdc,
+	"stakingProxy/get_node_info.cdc":                                                    stakingproxyGet_node_infoCdc,
+	"stakingProxy/register_node.cdc":                                                    stakingproxyRegister_nodeCdc,
+	"stakingProxy/remove_node_info.cdc":                                                 stakingproxyRemove_node_infoCdc,
+	"stakingProxy/remove_staking_proxy.cdc":                                             stakingproxyRemove_staking_proxyCdc,
+	"stakingProxy/request_unstaking.cdc":                                                stakingproxyRequest_unstakingCdc,
+	"stakingProxy/setup_node_account.cdc":                                               stakingproxySetup_node_accountCdc,
+	"stakingProxy/stake_new_tokens.cdc":                                                 stakingproxyStake_new_tokensCdc,
+	"stakingProxy/stake_unstaked_tokens.cdc":                                            stakingproxyStake_unstaked_tokensCdc,
+	"stakingProxy/unstake_all.cdc":                                                      stakingproxyUnstake_allCdc,
+	"stakingProxy/withdraw_rewards.cdc":                                                 stakingproxyWithdraw_rewardsCdc,
+	"stakingProxy/withdraw_unstaked.cdc":                                                stakingproxyWithdraw_unstakedCdc,
+	"storageFees/admin/set_parameters.cdc":                                              storagefeesAdminSet_parametersCdc,
+	"storageFees/scripts/get_account_available_balance.cdc":                             storagefeesScriptsGet_account_available_balanceCdc,
+	"storageFees/scripts/get_storage_capacity.cdc":                                      storagefeesScriptsGet_storage_capacityCdc,
+	"storageFees/scripts/get_storage_fee_conversion.cdc":                                storagefeesScriptsGet_storage_fee_conversionCdc,
+	"storageFees/scripts/get_storage_fee_min.cdc":                                       storagefeesScriptsGet_storage_fee_minCdc,
 }
 
 // AssetDebug is true if the assets were built with the debug flag enabled.
@@ -6220,6 +6396,20 @@ var _bintree = &bintree{nil, map[string]*bintree{
 			"get_epoch_phase.cdc": {epochScriptsGet_epoch_phaseCdc, map[string]*bintree{}},
 			"get_proposed_counter.cdc": {epochScriptsGet_proposed_counterCdc, map[string]*bintree{}},
 			"get_randomize.cdc": {epochScriptsGet_randomizeCdc, map[string]*bintree{}},
+		}},
+	}},
+	"executionNodeVersionBeacon": {nil, map[string]*bintree{
+		"admin": {nil, map[string]*bintree{
+			"add_version_to_table.cdc": {executionnodeversionbeaconAdminAdd_version_to_tableCdc, map[string]*bintree{}},
+			"change_version_update_buffer.cdc": {executionnodeversionbeaconAdminChange_version_update_bufferCdc, map[string]*bintree{}},
+			"delete_latest_version.cdc": {executionnodeversionbeaconAdminDelete_latest_versionCdc, map[string]*bintree{}},
+		}},
+		"scripts": {nil, map[string]*bintree{
+			"get_current_minimum_execution_node_version.cdc": {executionnodeversionbeaconScriptsGet_current_minimum_execution_node_versionCdc, map[string]*bintree{}},
+			"get_next_version_boundary_pair.cdc": {executionnodeversionbeaconScriptsGet_next_version_boundary_pairCdc, map[string]*bintree{}},
+			"get_version_table.cdc": {executionnodeversionbeaconScriptsGet_version_tableCdc, map[string]*bintree{}},
+			"get_version_update_buffer.cdc": {executionnodeversionbeaconScriptsGet_version_update_bufferCdc, map[string]*bintree{}},
+			"is_compatible_version.cdc": {executionnodeversionbeaconScriptsIs_compatible_versionCdc, map[string]*bintree{}},
 		}},
 	}},
 	"flowToken": {nil, map[string]*bintree{
