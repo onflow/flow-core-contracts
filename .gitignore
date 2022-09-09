@@ -8,6 +8,8 @@
 
 flow.json
 
+node_modules
+
 # IDE related files
 .idea
 .vscode
