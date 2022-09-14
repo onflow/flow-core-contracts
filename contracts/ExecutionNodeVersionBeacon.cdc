@@ -376,15 +376,15 @@ pub contract ExecutionNodeVersionBeacon {
         return nil
     }
 
-    init() {
+    init(versionUpdateBuffer: UInt64, versionUpdateBufferVariance: UFix64) {
         /// Initialize variables
         self.ExecutionNodeVersionKeeperStoragePath = /storage/ExecutionNodeVersionKeeper
         self.versionTable = {}
-        self.versionUpdateBuffer = 1000
-        self.versionUpdateBufferVariance = 0.5
+        self.versionUpdateBuffer = versionUpdateBuffer
+        self.versionUpdateBufferVariance = versionUpdateBufferVariance
         self.lastBlockBoundary = 0
 
-        /// Save
+        /// Save ExecutionNodeVersionKeeper to storage
         self.account.save(<-create ExecutionNodeVersionKeeper(), to: self.ExecutionNodeVersionKeeperStoragePath)
     }
 }
