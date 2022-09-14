@@ -72,11 +72,13 @@
 // ../../../transactions/epoch/scripts/get_randomize.cdc (121B)
 // ../../../transactions/executionNodeVersionBeacon/admin/add_version_to_table.cdc (1.564kB)
 // ../../../transactions/executionNodeVersionBeacon/admin/change_version_update_buffer.cdc (1.038kB)
+// ../../../transactions/executionNodeVersionBeacon/admin/change_version_update_buffer_variance.cdc (1.074kB)
 // ../../../transactions/executionNodeVersionBeacon/admin/delete_latest_version.cdc (996B)
 // ../../../transactions/executionNodeVersionBeacon/scripts/get_current_minimum_execution_node_version.cdc (176B)
 // ../../../transactions/executionNodeVersionBeacon/scripts/get_next_version_boundary_pair.cdc (174B)
 // ../../../transactions/executionNodeVersionBeacon/scripts/get_version_table.cdc (195B)
 // ../../../transactions/executionNodeVersionBeacon/scripts/get_version_update_buffer.cdc (165B)
+// ../../../transactions/executionNodeVersionBeacon/scripts/get_version_update_buffer_variance.cdc (173B)
 // ../../../transactions/executionNodeVersionBeacon/scripts/is_compatible_version.cdc (273B)
 // ../../../transactions/flowToken/burn_tokens.cdc (1.085kB)
 // ../../../transactions/flowToken/create_forwarder.cdc (1.815kB)
@@ -1786,6 +1788,26 @@ func executionnodeversionbeaconAdminChange_version_update_bufferCdc() (*asset, e
 	return a, nil
 }
 
+var _executionnodeversionbeaconAdminChange_version_update_buffer_varianceCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xa4\x52\xcf\x8b\xda\x40\x14\xbe\xe7\xaf\xf8\xf0\xd0\xea\xc5\xf4\x50\x7a\x08\xb5\x4b\xd4\x14\x96\x42\x2c\xba\x4a\xaf\xb3\x93\x17\x33\x90\xbc\x09\x93\x97\xc6\xb2\xec\xff\x5e\x32\x59\x95\x82\xb1\x94\x1e\x33\x79\xef\xfb\xf5\x3e\x53\xd5\xd6\x09\x92\x13\xe9\x56\x8c\xe5\xd4\x66\x74\x20\xd7\x18\xcb\x4b\x52\xda\x32\x72\x67\x2b\x7c\x38\x25\x3f\x92\xd5\xfe\xe9\x71\x93\xa6\x9b\x75\x72\x48\xb6\xbb\xc7\x4d\xba\x4c\xe2\xd5\x26\x8d\xd7\xeb\x6d\xb2\xdb\x05\x41\x18\x86\x78\x72\x8a\x1b\xa5\x7b\x28\x48\xa1\x04\xaa\x2c\x6d\xd7\xdc\x24\x88\xb3\xca\x30\xc4\x42\x17\x8a\x8f\xe4\xf7\xa5\x20\x64\x94\x1b\xa6\x0c\x3f\x87\xb1\x7d\x9d\x29\xa1\x65\x9b\xe7\xe4\x0e\xca\x19\xc5\x9a\x82\x40\xae\x44\x53\xa6\xee\xd6\x50\x84\xfd\x57\x73\xfa\xf4\x71\x86\x97\x20\x00\x4a\xba\xe7\xd3\x8b\xd9\x52\x1e\xe1\x5d\xcc\xbf\xb6\xd4\xd8\xd6\x69\x7a\x19\x5f\x98\x8f\x5a\x7a\xed\xd9\x6a\x47\xb5\x72\x34\x55\x5a\x4b\x84\xb8\x95\x22\xd6\xda\xb6\x2c\xbd\x1a\x00\x08\x43\x2c\xad\x73\xb6\x83\x82\xa3\x9c\x1c\xb1\xa6\x3e\x8d\x3e\x82\xf1\xb8\x4c\x55\x97\x54\x11\x8b\xe1\x23\xdc\x9b\x4c\x0f\xd8\x50\x99\xdf\x14\xf5\xa7\x41\x2c\xd0\x6b\x9a\x3f\x7b\xf2\xcf\xff\xef\xf6\x8b\x67\x07\xa6\x7d\x53\xa2\x3b\x11\xdf\xc4\xf8\x46\x54\x93\xdb\x89\x75\xea\x48\xdf\x95\x14\xb3\x37\xb8\x87\x07\xd4\x8a\x8d\x9e\x4e\x56\xb6\x2d\x33\x7e\x2f\x18\x24\xff\xed\x88\x38\xdb\x99\xf4\x50\xfe\x18\xe4\x37\xe8\x9a\x7c\x9c\x65\x3e\x67\xa6\xee\x5c\xb3\x73\xf4\x97\x4f\xf5\x5c\xfe\x53\xb0\xf3\xa1\xc6\x87\xf1\xd6\x8e\x17\x75\xe4\xc7\xc5\x40\x6d\x1b\x19\xc4\xdf\x89\xf7\x48\x72\x8f\x7c\x86\xc5\x62\x8c\x08\x11\x26\xc3\x0b\x2e\x4f\x9d\x6a\xc0\x56\xd0\xfa\xf9\x6c\xe2\xb5\xbc\x06\xbf\x03\x00\x00\xff\xff\x69\x1e\x8d\xce\x32\x04\x00\x00"
+
+func executionnodeversionbeaconAdminChange_version_update_buffer_varianceCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_executionnodeversionbeaconAdminChange_version_update_buffer_varianceCdc,
+		"executionNodeVersionBeacon/admin/change_version_update_buffer_variance.cdc",
+	)
+}
+
+func executionnodeversionbeaconAdminChange_version_update_buffer_varianceCdc() (*asset, error) {
+	bytes, err := executionnodeversionbeaconAdminChange_version_update_buffer_varianceCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "executionNodeVersionBeacon/admin/change_version_update_buffer_variance.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xe0, 0x96, 0xff, 0xa6, 0xfc, 0x7a, 0x7f, 0x3a, 0xda, 0x49, 0x33, 0x3f, 0x14, 0x66, 0xbe, 0x6d, 0xe1, 0xb, 0x9e, 0xb6, 0x3b, 0xfe, 0xa6, 0xb, 0xf3, 0x1f, 0x1, 0x11, 0x66, 0xc7, 0x6f, 0x36}}
+	return a, nil
+}
+
 var _executionnodeversionbeaconAdminDelete_latest_versionCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xa4\x93\x41\x8f\xda\x3e\x10\xc5\xef\xf9\x14\x23\x0e\xff\x7f\xb8\x24\x7b\x46\xed\xae\x02\xe4\xb0\x6a\x15\x2a\xa0\xab\x5e\x8d\xfd\x42\x2c\x39\x76\xe4\x4c\x0a\xab\x15\xdf\xbd\xb2\xc9\x16\x55\x05\xaa\xaa\x39\x44\x51\x32\x9e\xf7\xe6\x37\x2f\xba\xed\x9c\x67\x2a\x8f\x90\x03\x6b\x67\x2b\xa7\xf0\x02\xdf\x6b\x67\xe7\x10\xd2\x59\xaa\xbd\x6b\xe9\xe1\x58\x7e\x2b\x17\x5f\xb7\xcf\xab\xaa\x5a\x2d\xcb\x97\x72\xbd\x79\x5e\x55\xf3\xb2\x58\xac\xaa\x62\xb9\x5c\x97\x9b\x4d\x92\xe4\x79\x4e\x5b\x2f\x6c\x2f\x64\x68\x45\xdc\x08\x26\x61\x8c\x3b\xf4\x57\x05\x0a\xd5\x6a\x4b\xec\x48\xc1\x80\x41\xdc\x80\x8c\x60\xf4\x1c\x5b\x7d\x3f\x57\xd1\xce\x0d\x56\x09\xff\x4a\xad\xe8\x3a\x6d\xf7\xa4\x50\x6b\x0b\x45\xe1\x70\x83\x9f\x75\x2c\x76\x06\x49\xc2\x17\x07\xe9\x94\xde\x92\x84\xc8\xe0\xde\x84\xd1\xc6\x1a\xf5\x8c\xfe\x2b\xec\xeb\x1a\xbd\x1b\xbc\xc4\xdb\xed\x03\xd9\xcd\x61\x4e\x41\xad\xf3\xe8\x84\x47\x2a\xa4\xe4\x19\x15\x03\x37\x85\x94\x6e\xb0\x1c\xdc\x10\xc5\x82\xf3\x43\xb8\xee\xc8\xec\xc1\xe3\x8b\x6d\x18\x2d\x9d\x66\x06\x76\xcf\x0d\x3d\xd2\x03\xcd\x68\x52\xb9\xdf\xd9\xe0\xa8\x7b\xee\x2f\x50\xb3\x49\x54\x3a\xc5\x7b\x9e\xd3\xdc\x79\xef\x0e\x24\xc8\xa3\x86\x87\x95\x08\xb5\x01\xe3\xed\x0d\xe9\xb6\x33\x68\x61\x39\x08\xf8\x91\x4f\x6c\xd8\xc3\xd4\x57\x69\xfc\x4a\x96\x3e\x52\x80\x91\xed\xa2\xf8\x87\x7f\xc7\xfc\x38\xe2\x4b\x43\x38\x67\xf7\x18\x5e\xfb\xf4\x09\xe8\xe0\x37\xec\xbc\xd8\xe3\x8b\xe0\x66\x3a\xb6\x7b\x7a\xa2\x4e\x58\x2d\xd3\xc9\xc2\x0d\x46\xd9\xff\x99\xce\x96\xff\x94\x1e\x7a\x1f\x67\x12\x5a\xc5\x14\x20\x9e\xc0\xb8\xf2\x3c\xa7\x42\xa9\xc8\xd9\xe2\x70\x89\xac\xbb\x92\xe0\xbf\x00\x9b\x9d\x97\xfc\x39\xfe\x34\xef\x15\x63\x24\xd2\xd1\xca\x29\xf9\x11\x00\x00\xff\xff\x25\x6f\x17\xe1\xe4\x03\x00\x00"
 
 func executionnodeversionbeaconAdminDelete_latest_versionCdcBytes() ([]byte, error) {
@@ -1883,6 +1905,26 @@ func executionnodeversionbeaconScriptsGet_version_update_bufferCdc() (*asset, er
 
 	info := bindataFileInfo{name: "executionNodeVersionBeacon/scripts/get_version_update_buffer.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xee, 0xdd, 0xfe, 0x98, 0xfa, 0x8, 0x14, 0x88, 0x2, 0x36, 0x15, 0xc0, 0xce, 0x38, 0x54, 0x66, 0x88, 0xca, 0x15, 0xee, 0x74, 0x7e, 0xbd, 0x98, 0xcd, 0x21, 0xc1, 0xb2, 0x8e, 0x42, 0xb2, 0x9b}}
+	return a, nil
+}
+
+var _executionnodeversionbeaconScriptsGet_version_update_buffer_varianceCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x7c\xcd\xbd\x0a\xc2\x30\x10\x00\xe0\x3d\x4f\x71\x63\xbb\x88\x83\x38\xb8\xf5\xe7\x84\x2e\x09\xb4\xb6\xb8\xc6\xf6\x22\x19\x7a\x57\xce\x04\x0a\xe2\xbb\xbb\x38\xbb\x7e\xcb\x17\xd7\x4d\x34\x01\xee\x34\xe7\x14\x85\xad\x2c\x34\x91\xbe\xa2\x70\x4d\x7e\x16\x86\xa0\xb2\xc2\x71\xc7\x3b\x36\xe3\xad\x73\xd6\xba\x16\x27\xec\x87\xce\xd9\x1a\xab\xc6\xd9\xaa\x6d\x7b\x1c\x06\x63\xb6\xfc\x80\x90\x19\x56\x1f\xb9\x28\x2f\x30\x5e\xe3\x7e\x3e\xc1\xdb\x00\x00\x28\xa5\xac\xfc\x27\x3a\x3c\x29\xfd\x60\xdc\x16\x9f\xa8\xce\x21\x90\x4e\x5e\xa3\xe7\x99\x8a\xd2\x7c\xbe\x01\x00\x00\xff\xff\x97\x43\xb5\x29\xad\x00\x00\x00"
+
+func executionnodeversionbeaconScriptsGet_version_update_buffer_varianceCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_executionnodeversionbeaconScriptsGet_version_update_buffer_varianceCdc,
+		"executionNodeVersionBeacon/scripts/get_version_update_buffer_variance.cdc",
+	)
+}
+
+func executionnodeversionbeaconScriptsGet_version_update_buffer_varianceCdc() (*asset, error) {
+	bytes, err := executionnodeversionbeaconScriptsGet_version_update_buffer_varianceCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "executionNodeVersionBeacon/scripts/get_version_update_buffer_variance.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xa2, 0x28, 0xf, 0xb9, 0x40, 0x34, 0x17, 0xb9, 0x72, 0x37, 0xaa, 0xf0, 0x2, 0xf6, 0x80, 0xb7, 0x2d, 0x7e, 0xae, 0x62, 0x41, 0x66, 0x79, 0x1e, 0x5, 0xd3, 0x5a, 0x98, 0x79, 0xcc, 0x86, 0x48}}
 	return a, nil
 }
 
@@ -6049,11 +6091,13 @@ var _bindata = map[string]func() (*asset, error){
 	"epoch/scripts/get_randomize.cdc":                                                   epochScriptsGet_randomizeCdc,
 	"executionNodeVersionBeacon/admin/add_version_to_table.cdc":                         executionnodeversionbeaconAdminAdd_version_to_tableCdc,
 	"executionNodeVersionBeacon/admin/change_version_update_buffer.cdc":                 executionnodeversionbeaconAdminChange_version_update_bufferCdc,
+	"executionNodeVersionBeacon/admin/change_version_update_buffer_variance.cdc":        executionnodeversionbeaconAdminChange_version_update_buffer_varianceCdc,
 	"executionNodeVersionBeacon/admin/delete_latest_version.cdc":                        executionnodeversionbeaconAdminDelete_latest_versionCdc,
 	"executionNodeVersionBeacon/scripts/get_current_minimum_execution_node_version.cdc": executionnodeversionbeaconScriptsGet_current_minimum_execution_node_versionCdc,
 	"executionNodeVersionBeacon/scripts/get_next_version_boundary_pair.cdc":             executionnodeversionbeaconScriptsGet_next_version_boundary_pairCdc,
 	"executionNodeVersionBeacon/scripts/get_version_table.cdc":                          executionnodeversionbeaconScriptsGet_version_tableCdc,
 	"executionNodeVersionBeacon/scripts/get_version_update_buffer.cdc":                  executionnodeversionbeaconScriptsGet_version_update_bufferCdc,
+	"executionNodeVersionBeacon/scripts/get_version_update_buffer_variance.cdc":         executionnodeversionbeaconScriptsGet_version_update_buffer_varianceCdc,
 	"executionNodeVersionBeacon/scripts/is_compatible_version.cdc":                      executionnodeversionbeaconScriptsIs_compatible_versionCdc,
 	"flowToken/burn_tokens.cdc":                                                         flowtokenBurn_tokensCdc,
 	"flowToken/create_forwarder.cdc":                                                    flowtokenCreate_forwarderCdc,
@@ -6402,6 +6446,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"admin": {nil, map[string]*bintree{
 			"add_version_to_table.cdc": {executionnodeversionbeaconAdminAdd_version_to_tableCdc, map[string]*bintree{}},
 			"change_version_update_buffer.cdc": {executionnodeversionbeaconAdminChange_version_update_bufferCdc, map[string]*bintree{}},
+			"change_version_update_buffer_variance.cdc": {executionnodeversionbeaconAdminChange_version_update_buffer_varianceCdc, map[string]*bintree{}},
 			"delete_latest_version.cdc": {executionnodeversionbeaconAdminDelete_latest_versionCdc, map[string]*bintree{}},
 		}},
 		"scripts": {nil, map[string]*bintree{
@@ -6409,6 +6454,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 			"get_next_version_boundary_pair.cdc": {executionnodeversionbeaconScriptsGet_next_version_boundary_pairCdc, map[string]*bintree{}},
 			"get_version_table.cdc": {executionnodeversionbeaconScriptsGet_version_tableCdc, map[string]*bintree{}},
 			"get_version_update_buffer.cdc": {executionnodeversionbeaconScriptsGet_version_update_bufferCdc, map[string]*bintree{}},
+			"get_version_update_buffer_variance.cdc": {executionnodeversionbeaconScriptsGet_version_update_buffer_varianceCdc, map[string]*bintree{}},
 			"is_compatible_version.cdc": {executionnodeversionbeaconScriptsIs_compatible_versionCdc, map[string]*bintree{}},
 		}},
 	}},
