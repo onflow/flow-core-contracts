@@ -247,6 +247,12 @@ pub contract ExecutionNodeVersionBeacon {
         return self.versionUpdateBuffer
     }
 
+    /// Returns the current updateBuffer period within which Execution Nodes
+    /// can be assured the version will not change
+    pub fun getVersionUpdateBufferVariance(): UFix64 {
+        return self.versionUpdateBufferVariance
+    }
+
     /// Returns a copy of the full historical versionTable
     pub fun getVersionTable(): {UInt64: Semver} {
         return self.versionTable
