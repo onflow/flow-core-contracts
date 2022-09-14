@@ -101,8 +101,9 @@ pub contract ExecutionNodeVersionBeacon {
     /// Event emitted any time a change is made to versionTable
     pub event ExecutionNodeVersionTableAddition(height: UInt64, version: Semver)
     pub event ExecutionNodeVersionTableDeletion(height: UInt64, version: Semver)
-    /// Event emitted any time the version update buffer period is updated
+    /// Event emitted any time the version update buffer period or variance is updated
     pub event ExecutionNodeVersionUpdateBufferChanged(newVersionUpdateBuffer: UInt64)
+    pub event ExecutionNodeVersionUpdateBufferVarianceChanged(newVersionUpdateBufferVariance: UFix64)
 
     /// Canonical storage path for ExecutionNodeVersionKeeper
     pub let ExecutionNodeVersionKeeperStoragePath: StoragePath
@@ -117,7 +118,7 @@ pub contract ExecutionNodeVersionBeacon {
     /// they will have at least this long to respond to a version boundary
     access(contract) var versionUpdateBuffer: UInt64
     /// Set expectations regarding how much the versionUpdateBuffer can vary between version boundaries
-    access(contract) let versionUpdateBufferVariance: UFix64
+    access(contract) var versionUpdateBufferVariance: UFix64
 
     /// Cache of the last block boundary in the versionTable mapping
     /// Updated any time a change to the version table is made
@@ -150,6 +151,17 @@ pub contract ExecutionNodeVersionBeacon {
         pub fun changeVersionUpdateBuffer(newUpdateBufferInBlocks: UInt64) {
             post {
                 ExecutionNodeVersionBeacon.versionUpdateBuffer == newUpdateBufferInBlocks: "Update buffer was not properly changed! Reverted."
+            }
+        }
+
+        /// Updates the variance percentage by which the versionUpdateBuffer can be changed
+        /// Value must be between 0.0 and 1.0
+        pub fun changeVersionUpdateBufferVariance(_ newUpdateBufferVariance: UFix64) {
+            pre {
+                newUpdateBufferVariance >= 0.0 && newUpdateBufferVariance <= 1.0 : "Buffer variance must be value between 0 and 1."
+            }
+            post {
+                ExecutionNodeVersionBeacon.versionUpdateBufferVariance == newUpdateBufferVariance: "Update buffer variance was not properly changed! Reverted."
             }
         }
 
@@ -223,6 +235,12 @@ pub contract ExecutionNodeVersionBeacon {
             }
 
             emit ExecutionNodeVersionUpdateBufferChanged(newVersionUpdateBuffer: newUpdateBufferInBlocks)
+        }
+
+        pub fun changeVersionUpdateBufferVariance(_ newUpdateBufferVariance: UFix64) {
+            ExecutionNodeVersionBeacon.versionUpdateBufferVariance = newUpdateBufferVariance
+            emit ExecutionNodeVersionUpdateBufferVarianceChanged(newVersionUpdateBufferVariance: newUpdateBufferVariance)
+
         }
 
         pub fun assignLastBlockBoundary() {
