@@ -309,6 +309,9 @@ pub contract ExecutionNodeVersionBeacon {
 
     /// Checks whether given version was compatible at the given block height
     pub fun isCompatibleVersion(blockHeight: UInt64, version: Semver): Bool {
+        pre {
+            blockHeight >= getCurrentBlock().height: "Given block height is in the future."
+        }
 
         // Find previous version boundary & check minimum version in versionTable
         // at that boundary
