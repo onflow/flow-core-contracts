@@ -1,9 +1,10 @@
-import ExecutionNodeVersionBeacon from 0xEXECUTIONNODEVERSIONBEACONADDRESS
+import ExecutionNodeVersionBeacon from 0x02
 
-/// Transaction that allows ExecutionNodeVersionAdmin to delete the latest
-/// version boundary mapping defined in the version table
+/// Transaction that allows ExecutionNodeVersionAdmin to delete the
+/// version boundary mapping in the versionTable at the specified
+/// block height parameter
 
-transaction() {
+transaction(blockHeightBoundaryToDelete: UInt64) {
 
   let ExecutionNodeVersionBeaconAdminRef: &AnyResource{ExecutionNodeVersionBeacon.ExecutionNodeVersionAdmin}
 
@@ -19,7 +20,7 @@ transaction() {
 
   execute {
     // Add the new version to the version table
-    self.ExecutionNodeVersionBeaconAdminRef.deleteLatestVersionBoundary()
+    self.ExecutionNodeVersionBeaconAdminRef.deleteUpcomingVersionBoundary(blockHeight: blockHeightBoundaryToDelete)
   }
 
 }
