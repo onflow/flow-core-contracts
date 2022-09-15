@@ -6,8 +6,6 @@
 
 .DS_Store
 
-flow.json
-
 node_modules
 
 # IDE related files
