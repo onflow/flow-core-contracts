@@ -5,18 +5,17 @@ import ExecutionNodeVersionBeacon from 0xEXECUTIONNODEVERSIONBEACONADDRESS
 
 transaction(newUpdateBufferVariance: UFix64) {
 
-  let ExecutionNodeVersionBeaconAdminRef: &AnyResource{ExecutionNodeVersionBeacon.ExecutionNodeVersionAdmin}
+  let ExecutionNodeVersionBeaconAdminRef: &ExecutionNodeVersionBeacon.ExecutionNodeVersionAdmin
 
   prepare(acct: AuthAccount) {
     // Borrow a reference to the ExecutionNodeVersionAdmin implementing resource
-    self.ExecutionNodeVersionBeaconAdminRef = acct.borrow<&AnyResource{ExecutionNodeVersionBeacon.ExecutionNodeVersionAdmin}>
-      (from: ExecutionNodeVersionBeacon.ExecutionNodeVersionKeeperStoragePath)
+    self.ExecutionNodeVersionBeaconAdminRef = acct.borrow<&ExecutionNodeVersionBeacon.ExecutionNodeVersionAdmin>
+      (from: ExecutionNodeVersionBeacon.ExecutionNodeVersionAdminStoragePath)
       ?? panic("Couldn't borrow ExecutionNodeVersionBeaconAdmin Resource")
   }
 
   execute {
-    // Add the new version to the version table
-    self.ExecutionNodeVersionBeaconAdminRef.changeVersionUpdateBufferVariance(newUpdateBufferVariance: newUpdateBufferVariance)
+    self.ExecutionNodeVersionBeaconAdminRef.changeVersionUpdateBufferVariance(newUpdateBufferVariance)
   }
 
   post{
