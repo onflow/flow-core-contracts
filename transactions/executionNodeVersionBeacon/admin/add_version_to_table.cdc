@@ -12,7 +12,7 @@ transaction(
   targetBlockHeight: UInt64
 ) {
 
-  let ExecutionNodeVersionBeaconAdminRef: &AnyResource{ExecutionNodeVersionBeacon.ExecutionNodeVersionAdmin}
+  let ExecutionNodeVersionBeaconAdminRef: &ExecutionNodeVersionBeacon.ExecutionNodeVersionAdmin
   let newVersion: ExecutionNodeVersionBeacon.Semver
 
   prepare(acct: AuthAccount) {
@@ -21,9 +21,9 @@ transaction(
       major: newMajor, minor: newMinor, patch: newPatch, preRelease: newPreRelease, isBackwardsCompatible: isBackwardsCompatible
     )
 
-    // Borrow a reference to the ExecutionNodeVersionAdmin implementing resource
-    self.ExecutionNodeVersionBeaconAdminRef = acct.borrow<&AnyResource{ExecutionNodeVersionBeacon.ExecutionNodeVersionAdmin}>
-      (from: ExecutionNodeVersionBeacon.ExecutionNodeVersionKeeperStoragePath)
+    // Borrow a reference to the ExecutionNodeVersionAdmin resource
+    self.ExecutionNodeVersionBeaconAdminRef = acct.borrow<&ExecutionNodeVersionBeacon.ExecutionNodeVersionAdmin>
+      (from: ExecutionNodeVersionBeacon.ExecutionNodeVersionAdminStoragePath)
       ?? panic("Couldn't borrow ExecutionNodeVersionBeaconAdmin Resource")
   }
 

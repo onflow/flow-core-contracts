@@ -6,20 +6,20 @@ import ExecutionNodeVersionBeacon from 0x02
 
 transaction(blockHeightBoundaryToDelete: UInt64) {
 
-  let ExecutionNodeVersionBeaconAdminRef: &AnyResource{ExecutionNodeVersionBeacon.ExecutionNodeVersionAdmin}
+  let ExecutionNodeVersionBeaconAdminRef: &ExecutionNodeVersionBeacon.ExecutionNodeVersionAdmin
 
   prepare(acct: AuthAccount) {
     pre{
         ExecutionNodeVersionBeacon.getVersionTable().length > 0 : "No boundary mapping exists to delete."
     }
-    // Borrow a reference to the ExecutionNodeVersionAdmin implementing resource
-    self.ExecutionNodeVersionBeaconAdminRef = acct.borrow<&AnyResource{ExecutionNodeVersionBeacon.ExecutionNodeVersionAdmin}>
-      (from: ExecutionNodeVersionBeacon.ExecutionNodeVersionKeeperStoragePath)
+    // Borrow a reference to the ExecutionNodeVersionAdmin resource
+    self.ExecutionNodeVersionBeaconAdminRef = acct.borrow<&ExecutionNodeVersionBeacon.ExecutionNodeVersionAdmin>
+      (from: ExecutionNodeVersionBeacon.ExecutionNodeVersionAdminStoragePath)
       ?? panic("Couldn't borrow ExecutionNodeVersionBeaconAdmin Resource")
   }
 
   execute {
-    // Add the new version to the version table
+    // Delete the version from the version table at the specified block height boundary
     self.ExecutionNodeVersionBeaconAdminRef.deleteUpcomingVersionBoundary(blockHeight: blockHeightBoundaryToDelete)
   }
 
