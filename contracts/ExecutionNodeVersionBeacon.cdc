@@ -67,15 +67,7 @@ pub contract ExecutionNodeVersionBeacon {
         /// Returns true if Semver core is less than
         /// passed Semver core and false otherwise
         pub fun coreLessThan(_ other: Semver): Bool {
-            if self.major < other.major {
-                return true
-            } else if self.major == other.major && self.minor < other.minor {
-                return true
-            } else if self.major == other.major && self.minor == other.minor && self.patch < other.patch {
-                return true
-            } else {
-                return false
-            }
+            return !self.coreGreaterThanOrEqualTo(other)
         }
 
         /// Returns true if Semver core is less than or
@@ -154,7 +146,6 @@ pub contract ExecutionNodeVersionBeacon {
         /// Could be helpful in case rollback is needed
         pub fun deleteUpcomingVersionBoundary(blockHeight: UInt64): Semver {
             pre {
-                ExecutionNodeVersionBeacon.versionTable.length > 0: "No version boundary mappings exist."
                 ExecutionNodeVersionBeacon.versionTable.keys.contains(blockHeight): "No boundary defined at that blockHeight."
                 ExecutionNodeVersionBeacon.upcomingBlockBoundaries.contains(blockHeight): "Boundary not defined in upcomingBlockBoundaries."
             }
@@ -188,7 +179,7 @@ pub contract ExecutionNodeVersionBeacon {
                 ExecutionNodeVersionBeacon.versionUpdateBuffer == newUpdateBufferInBlocks: "Update buffer was not properly changed! Reverted."
             }
 
-            // New buffer should be within range of expected buffer varianca
+            // New buffer should be within range of expected buffer variance
             assert(
                 UFix64(newUpdateBufferInBlocks) >= UFix64(ExecutionNodeVersionBeacon.versionUpdateBuffer) * (1.0 - ExecutionNodeVersionBeacon.versionUpdateBufferVariance) &&
                 UFix64(newUpdateBufferInBlocks) <= UFix64(ExecutionNodeVersionBeacon.versionUpdateBuffer) * (1.0 + ExecutionNodeVersionBeacon.versionUpdateBufferVariance),
@@ -254,7 +245,7 @@ pub contract ExecutionNodeVersionBeacon {
         return self.versionTable
     }
 
-    /// Function that returns the vesion that was defined at the most
+    /// Function that returns the version that was defined at the most
     /// recent block height boundary or null if no upcoming boundary is defined
     pub fun getCurrentExecutionNodeVersion(): Semver? {
         // Update both upcomingBlockBoundaries & archivedBlockBoundaries arrays
@@ -338,7 +329,7 @@ pub contract ExecutionNodeVersionBeacon {
     }
 
     /// Removes historic block heights from array maintaining upcoming block version boundaries
-    access(contract) fun archiveOldBlockBoundaries() {
+    pub fun archiveOldBlockBoundaries() {
         // Check block height when function is called
         let currentBlockHeight = getCurrentBlock().height
 

@@ -1,8 +1,9 @@
 {
-	"networks": {
-		"emulator": "127.0.0.1:3569",
-		"mainnet": "access.mainnet.nodes.onflow.org:9000",
-		"testnet": "access.devnet.nodes.onflow.org:9000"
+	"emulators": {
+		"default": {
+			"port": 3569,
+			"serviceAccount": "emulator-account"
+		}
 	},
 	"contracts": {
 		"FlowClusterQC": "./contracts/epochs/FlowClusterQC.cdc",
@@ -20,10 +21,16 @@
 		"LockedTokens": "./contracts/LockedTokens.cdc",
 		"StakingProxy": "./contracts/StakingProxy.cdc"
 	},
+	"networks": {
+		"emulator": "127.0.0.1:3569",
+		"mainnet": "access.mainnet.nodes.onflow.org:9000",
+		"testnet": "access.devnet.nodes.onflow.org:9000"
+	},
 	"accounts": {
 		"emulator-account": {
 			"address": "f8d6e0586b0a20c7",
-			"key": "c33f601b3d88ca23bcdd77637eca81f905e3354d4229dce3cb1fd4920e7cbe66"
+			"key": "7677f7c9410f8773b482737c778b5d7c6acfdbbae718d61e4727a07667f66004"
 		}
-	}
+	},
+	"deployments": {}
 }
