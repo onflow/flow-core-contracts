@@ -1,4 +1,4 @@
-import ExecutionNodeVersionBeacon from 0x02
+import ExecutionNodeVersionBeacon from 0xEXECUTIONNODEVERSIONBEACONADDRESS
 
 /// Transaction that allows ExecutionNodeVersionAdmin to delete the
 /// version boundary mapping in the versionTable at the specified
@@ -9,7 +9,7 @@ transaction(blockHeightBoundaryToDelete: UInt64) {
   let ExecutionNodeVersionBeaconAdminRef: &ExecutionNodeVersionBeacon.ExecutionNodeVersionAdmin
 
   prepare(acct: AuthAccount) {
-    pre{
+    pre {
         ExecutionNodeVersionBeacon.getVersionTable().length > 0 : "No boundary mapping exists to delete."
     }
     // Borrow a reference to the ExecutionNodeVersionAdmin resource
