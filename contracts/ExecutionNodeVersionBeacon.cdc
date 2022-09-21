@@ -95,7 +95,6 @@ pub contract ExecutionNodeVersionBeacon {
 
     /// Event emitted any time the version update buffer period or variance is updated
     pub event ExecutionNodeVersionUpdateBufferChanged(newVersionUpdateBuffer: UInt64)
-    pub event ExecutionNodeVersionUpdateBufferVarianceChanged(newVersionUpdateBufferVariance: UFix64)
 
     /// Canonical storage path for ExecutionNodeVersionAdmin
     pub let ExecutionNodeVersionAdminStoragePath: StoragePath
@@ -109,9 +108,6 @@ pub contract ExecutionNodeVersionBeacon {
     /// the version boundary being defined. Nodes can expect that changes to the versionTable
     /// they will have at least this long to respond to a version boundary
     access(contract) var versionUpdateBuffer: UInt64
-
-    /// Set expectations regarding how much the versionUpdateBuffer can vary between version boundaries
-    access(contract) var versionUpdateBufferVariance: UFix64
 
     /// Sorted Array containing future block heights where a version boundary is defined
     /// We'll maintain this as easy mechanism for determining proximal version block boundaries
@@ -179,16 +175,10 @@ pub contract ExecutionNodeVersionBeacon {
                 ExecutionNodeVersionBeacon.versionUpdateBuffer == newUpdateBufferInBlocks: "Update buffer was not properly changed! Reverted."
             }
 
-            // New buffer should be within range of expected buffer variance
-            assert(
-                UFix64(newUpdateBufferInBlocks) >= UFix64(ExecutionNodeVersionBeacon.versionUpdateBuffer) * (1.0 - ExecutionNodeVersionBeacon.versionUpdateBufferVariance) &&
-                UFix64(newUpdateBufferInBlocks) <= UFix64(ExecutionNodeVersionBeacon.versionUpdateBuffer) * (1.0 + ExecutionNodeVersionBeacon.versionUpdateBufferVariance),
-                message: "Can only change versionUpdateBuffer by allowed variance from existing buffer."
-            )
-
-            // Get current block height & clean up upcoming block boundaries
+            // Get current block height.
             let currentBlockHeight = getCurrentBlock().height
-            ExecutionNodeVersionBeacon.archiveOldBlockBoundaries()
+            // Cleanup the upcoming block numbers
+            ExecutionNodeVersionBeacon.archiveOldBlockBoundaries();
 
             // No boundaries defined beyond current block, safe to make changes
             if ExecutionNodeVersionBeacon.upcomingBlockBoundaries.length == 0 {
@@ -211,33 +201,12 @@ pub contract ExecutionNodeVersionBeacon {
 
             emit ExecutionNodeVersionUpdateBufferChanged(newVersionUpdateBuffer: newUpdateBufferInBlocks)
         }
-
-        /// Updates the variance percentage by which the versionUpdateBuffer can be changed
-        /// Value must be between 0.0 and 1.0
-        pub fun changeVersionUpdateBufferVariance(_ newUpdateBufferVariance: UFix64) {
-            pre {
-                newUpdateBufferVariance >= 0.0 && newUpdateBufferVariance <= 1.0 : "Buffer variance must be value between 0 and 1."
-            }
-            post {
-                ExecutionNodeVersionBeacon.versionUpdateBufferVariance == newUpdateBufferVariance: "Update buffer variance was not properly changed! Reverted."
-            }
-
-            ExecutionNodeVersionBeacon.versionUpdateBufferVariance = newUpdateBufferVariance
-            emit ExecutionNodeVersionUpdateBufferVarianceChanged(newVersionUpdateBufferVariance: newUpdateBufferVariance)
-
-        }
     }
 
     /// Returns the current updateBuffer period within which Execution Nodes
     /// can be assured the version will not change
     pub fun getVersionUpdateBuffer(): UInt64 {
         return self.versionUpdateBuffer
-    }
-
-    /// Returns the current updateBuffer period within which Execution Nodes
-    /// can be assured the version will not change
-    pub fun getVersionUpdateBufferVariance(): UFix64 {
-        return self.versionUpdateBufferVariance
     }
 
     /// Returns a copy of the full historical versionTable
@@ -283,9 +252,9 @@ pub contract ExecutionNodeVersionBeacon {
     }
 
     /// Checks whether given version was compatible at the given historical block height
-    pub fun isCompatibleVersion(blockHeight: UInt64, version: Semver): Bool? {
+    pub fun isCompatibleVersion(blockHeight: UInt64, version: Semver): Bool {
         if blockHeight > getCurrentBlock().height {
-            return nil
+            return false
         }
 
         // Find previous version boundary & check minimum version in versionTable
@@ -383,12 +352,11 @@ pub contract ExecutionNodeVersionBeacon {
         return nil
     }
 
-    init(versionUpdateBuffer: UInt64, versionUpdateBufferVariance: UFix64) {
+    init(versionUpdateBuffer: UInt64) {
         /// Initialize contract variables
         self.ExecutionNodeVersionAdminStoragePath = /storage/ExecutionNodeVersionAdmin
         self.versionTable = {}
         self.versionUpdateBuffer = versionUpdateBuffer
-        self.versionUpdateBufferVariance = versionUpdateBufferVariance
         self.archivedBlockBoundaries = []
         self.upcomingBlockBoundaries = []
 
