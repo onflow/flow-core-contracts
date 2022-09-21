@@ -79,8 +79,7 @@
 // ../../../transactions/executionNodeVersionBeacon/scripts/get_next_version_boundary_pair.cdc (413B)
 // ../../../transactions/executionNodeVersionBeacon/scripts/get_version_table.cdc (342B)
 // ../../../transactions/executionNodeVersionBeacon/scripts/get_version_update_buffer.cdc (332B)
-// ../../../transactions/executionNodeVersionBeacon/scripts/get_version_update_buffer_variance.cdc (289B)
-// ../../../transactions/executionNodeVersionBeacon/scripts/is_compatible_version.cdc (432B)
+// ../../../transactions/executionNodeVersionBeacon/scripts/is_compatible_version.cdc (431B)
 // ../../../transactions/flowToken/burn_tokens.cdc (1.085kB)
 // ../../../transactions/flowToken/create_forwarder.cdc (1.815kB)
 // ../../../transactions/flowToken/mint_tokens.cdc (893B)
@@ -1929,27 +1928,7 @@ func executionnodeversionbeaconScriptsGet_version_update_bufferCdc() (*asset, er
 	return a, nil
 }
 
-var _executionnodeversionbeaconScriptsGet_version_update_buffer_varianceCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x7c\xcf\xb1\x6a\xf3\x40\x10\x04\xe0\xfe\x9e\x62\x4a\xbb\xf9\xe5\x1f\x42\x8a\x74\x96\x75\x01\x37\x12\x48\x91\x48\xbb\x3a\xad\xac\x83\x68\x4f\x9c\xf7\x6c\x99\x90\x77\x0f\xd8\xe9\x02\xa9\x07\x66\xbe\xf1\xf3\x12\xa2\xc2\xae\xec\x92\xfa\x20\x65\x18\xb8\xe3\x78\xf6\x41\x72\x26\x17\x04\x63\x0c\x33\x76\xab\x7d\xb7\x87\xf6\xed\x58\x95\x65\x55\xd8\xce\xd6\xcd\xb1\x2a\x73\xbb\x3f\x54\xe5\xbe\x28\x6a\xdb\x34\xc6\x64\x59\x86\x9a\x35\x45\x39\x43\x27\xc6\x85\xa2\x27\x71\x8c\x91\x9c\x86\x88\xfe\x86\xeb\xe4\xdd\xf4\x08\x1f\x23\xed\x32\x90\x72\x9e\xc6\x91\x23\x66\xba\xc1\x4d\x24\x27\xbe\x77\xd9\x75\x61\xa7\xb8\xd0\x47\x62\x68\x40\xcf\xe8\x59\xaf\xcc\x82\x1d\x48\x06\xfc\x37\x4b\xea\x31\x26\xc1\x4c\x5e\x36\xdb\x17\xb4\xaf\x7e\x7d\x7e\xc2\xa7\x01\x80\x78\xb7\xfc\xf1\xed\xdf\x89\xb5\xfb\xed\xe8\x7e\xdc\x9b\xad\xf9\x32\xdf\x01\x00\x00\xff\xff\x39\x1d\xd4\x6e\x21\x01\x00\x00"
-
-func executionnodeversionbeaconScriptsGet_version_update_buffer_varianceCdcBytes() ([]byte, error) {
-	return bindataRead(
-		_executionnodeversionbeaconScriptsGet_version_update_buffer_varianceCdc,
-		"executionNodeVersionBeacon/scripts/get_version_update_buffer_variance.cdc",
-	)
-}
-
-func executionnodeversionbeaconScriptsGet_version_update_buffer_varianceCdc() (*asset, error) {
-	bytes, err := executionnodeversionbeaconScriptsGet_version_update_buffer_varianceCdcBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "executionNodeVersionBeacon/scripts/get_version_update_buffer_variance.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x49, 0x75, 0xf1, 0xfe, 0xb, 0xc8, 0xc2, 0x94, 0xfb, 0x72, 0x76, 0xb6, 0xe9, 0x3b, 0x9e, 0x81, 0x5, 0x75, 0xfb, 0xdf, 0x84, 0xa7, 0xdb, 0x79, 0xdf, 0x50, 0x97, 0xcb, 0xdc, 0x1e, 0x79, 0x2b}}
-	return a, nil
-}
-
-var _executionnodeversionbeaconScriptsIs_compatible_versionCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x7c\x90\xb1\x6e\xf2\x40\x10\x84\x7b\x3f\xc5\x94\x20\xa1\x9f\xbf\x88\x52\xb8\x89\x30\x9c\x14\x1a\x5b\xc2\x01\xa5\x3d\x9b\xb5\x59\xc5\xb7\x8b\xce\x67\x0b\x2b\xca\xbb\x47\x38\x41\xc1\x0d\xf5\xb7\xf7\xdd\xcc\xb0\x3b\xab\x0f\x30\x17\x2a\xbb\xc0\x2a\xa9\x1e\xe9\x40\xbe\x65\x95\x84\x6c\xa9\x82\xca\xab\xc3\xff\x8b\x79\x37\xeb\xfd\xdb\x36\x4b\xd3\x6c\x63\x0e\x66\x97\x6f\xb3\x34\x31\xab\x75\x96\xae\x36\x9b\x9d\xc9\xf3\x28\x5a\x2e\x97\xd8\x51\xe8\xbc\xb4\xb0\x48\x54\x1b\xb4\x5c\x0b\x57\x03\x4b\x0d\xae\x10\x4e\x84\x9a\x7b\x12\xf4\x3f\x5f\x80\x5b\xf4\xb6\xe1\x23\x6c\xb8\xa3\x45\xa3\xe5\x07\x4e\xc4\xf5\x29\x8c\x56\xf5\x10\x6e\xa6\x8a\xfb\xa3\xab\xa7\xa0\x41\xe5\x38\x1e\x94\x9d\xf7\x24\x61\xea\x39\x77\x05\xaa\x4e\xe0\x2c\xcb\xcc\x0d\xc9\x95\xbd\x8e\x28\xc6\x7e\x2b\xe1\xf9\x69\x01\x37\xfc\x76\x8f\x1f\x2c\xf2\x2f\x27\xd7\x93\x9f\xc7\x63\xc5\x17\x7c\x46\x00\xe0\xc7\xe2\x8f\x9e\x71\xbb\x56\x77\xb6\x81\x8b\xe6\x46\x66\xc5\x7d\x8a\x49\xa8\xc5\x6d\xa3\xf8\x2f\xd5\x3c\xfa\xfa\x0e\x00\x00\xff\xff\xeb\xfc\xf5\xfc\xb0\x01\x00\x00"
+var _executionnodeversionbeaconScriptsIs_compatible_versionCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x7c\x90\xb1\x6e\xf2\x40\x10\x84\x7b\x3f\xc5\x94\x20\xa1\x9f\xbf\x88\x52\xb8\xc3\x70\x52\x68\x6c\x09\x07\x94\xf6\x6c\xd6\x66\x15\xdf\x2e\x3a\x9f\x2d\xac\x28\xef\x1e\x61\x82\x82\x1b\xea\x6f\xef\xbb\x99\x61\x77\x56\x1f\x60\x2e\x54\x76\x81\x55\x52\x3d\xd2\x81\x7c\xcb\x2a\x09\xd9\x52\x05\x95\x57\x87\xff\x17\xf3\x61\xd6\xfb\xf7\x6d\x96\xa6\xd9\xc6\x1c\xcc\x2e\xdf\x66\x69\x62\x56\xeb\x2c\x5d\x6d\x36\x3b\x93\xe7\x51\xb4\x5c\x2e\xb1\xa3\xd0\x79\x69\x61\x91\xa8\x36\x68\xb9\x16\xae\x06\x96\x1a\x5c\x21\x9c\x08\x35\xf7\x24\xe8\x6f\x5f\x80\x5b\xf4\xb6\xe1\x23\x6c\x78\xa0\x45\xa3\xe5\x27\x4e\xc4\xf5\x29\x8c\x56\xf5\x10\x6e\xa6\x8a\xc7\xa3\xab\xa7\xa0\x41\xe5\x38\x1e\x94\x9d\xf7\x24\x61\xea\x39\x77\x05\xaa\x4e\xe0\x2c\xcb\xcc\x0d\xc9\x95\xbd\x8d\x28\xc6\x7e\x2b\xe1\xf5\x65\x01\x37\xfc\x76\x8f\x9f\x2c\xf2\x2f\x27\xd7\x93\x9f\xc7\xb7\x8a\x5f\x11\x00\xf8\xb1\xf7\xb3\x57\xdc\xae\xd5\x9d\x6d\xe0\xa2\xb9\x93\x59\xf1\x18\x62\x92\x69\x71\x9f\x28\xfe\x0b\x35\x8f\xbe\x7f\x02\x00\x00\xff\xff\xdc\x2d\x82\x8e\xaf\x01\x00\x00"
 
 func executionnodeversionbeaconScriptsIs_compatible_versionCdcBytes() ([]byte, error) {
 	return bindataRead(
@@ -1965,7 +1944,7 @@ func executionnodeversionbeaconScriptsIs_compatible_versionCdc() (*asset, error)
 	}
 
 	info := bindataFileInfo{name: "executionNodeVersionBeacon/scripts/is_compatible_version.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x88, 0x43, 0xe2, 0xf5, 0x5c, 0x29, 0x1b, 0x28, 0x90, 0xdb, 0x74, 0xd4, 0x8b, 0x12, 0xf3, 0x4c, 0x8e, 0x71, 0xbb, 0x20, 0x55, 0x28, 0x92, 0xb7, 0x76, 0x78, 0x1, 0xa7, 0x0, 0x29, 0xc6, 0x73}}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x64, 0xf8, 0xea, 0xe9, 0xa, 0xa6, 0x91, 0xb5, 0x73, 0x8d, 0xcf, 0xc3, 0xaf, 0xf2, 0xcd, 0xa9, 0x9b, 0x23, 0x73, 0xd6, 0x71, 0x60, 0x77, 0x4b, 0x6b, 0xc7, 0xff, 0xf9, 0xc3, 0x6d, 0x54, 0x97}}
 	return a, nil
 }
 
@@ -6119,7 +6098,6 @@ var _bindata = map[string]func() (*asset, error){
 	"executionNodeVersionBeacon/scripts/get_next_version_boundary_pair.cdc":               executionnodeversionbeaconScriptsGet_next_version_boundary_pairCdc,
 	"executionNodeVersionBeacon/scripts/get_version_table.cdc":                            executionnodeversionbeaconScriptsGet_version_tableCdc,
 	"executionNodeVersionBeacon/scripts/get_version_update_buffer.cdc":                    executionnodeversionbeaconScriptsGet_version_update_bufferCdc,
-	"executionNodeVersionBeacon/scripts/get_version_update_buffer_variance.cdc":           executionnodeversionbeaconScriptsGet_version_update_buffer_varianceCdc,
 	"executionNodeVersionBeacon/scripts/is_compatible_version.cdc":                        executionnodeversionbeaconScriptsIs_compatible_versionCdc,
 	"flowToken/burn_tokens.cdc":                                                           flowtokenBurn_tokensCdc,
 	"flowToken/create_forwarder.cdc":                                                      flowtokenCreate_forwarderCdc,
@@ -6477,7 +6455,6 @@ var _bintree = &bintree{nil, map[string]*bintree{
 			"get_next_version_boundary_pair.cdc": {executionnodeversionbeaconScriptsGet_next_version_boundary_pairCdc, map[string]*bintree{}},
 			"get_version_table.cdc": {executionnodeversionbeaconScriptsGet_version_tableCdc, map[string]*bintree{}},
 			"get_version_update_buffer.cdc": {executionnodeversionbeaconScriptsGet_version_update_bufferCdc, map[string]*bintree{}},
-			"get_version_update_buffer_variance.cdc": {executionnodeversionbeaconScriptsGet_version_update_buffer_varianceCdc, map[string]*bintree{}},
 			"is_compatible_version.cdc": {executionnodeversionbeaconScriptsIs_compatible_versionCdc, map[string]*bintree{}},
 		}},
 	}},
