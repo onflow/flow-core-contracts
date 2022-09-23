@@ -126,7 +126,7 @@ pub contract ExecutionNodeVersionBeacon {
                     : "Target block height occurs too soon to update EN version."
             }
 
-            // Insert mapping into versiontable
+            // Insert mapping into version table
             ExecutionNodeVersionBeacon.versionTable.insert(
                 key: targetBlockHeight,
                 newVersion
@@ -169,7 +169,7 @@ pub contract ExecutionNodeVersionBeacon {
         }
 
         /// Updates the number of blocks that must buffer updates to the versionTable
-        /// and the block number the version is targetting
+        /// and the block number the version is targeting
         pub fun changeVersionUpdateBuffer(newUpdateBufferInBlocks: UInt64) {
             post {
                 ExecutionNodeVersionBeacon.versionUpdateBuffer == newUpdateBufferInBlocks: "Update buffer was not properly changed! Reverted."
