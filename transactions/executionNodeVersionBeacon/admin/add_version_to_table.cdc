@@ -16,7 +16,7 @@ transaction(
   let newVersion: ExecutionNodeVersionBeacon.Semver
 
   prepare(acct: AuthAccount) {
-    // Create the new verion from the passed parameters
+    // Create the new version from the passed parameters
     self.newVersion = ExecutionNodeVersionBeacon.Semver(
       major: newMajor, minor: newMinor, patch: newPatch, preRelease: newPreRelease, isBackwardsCompatible: isBackwardsCompatible
     )
