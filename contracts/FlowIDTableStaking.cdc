@@ -871,23 +871,23 @@ pub contract FlowIDTableStaking {
         }
 
         /// Set slot (count) limits for each node type (role).
-        pub fun setSlotLimits(slotLimits: {UInt8: UInt8}) {
-            FlowIDTableStaking.account.load<{UInt8: UInt8}>(from: /storage/flowStakingSlotLimits)
+        pub fun setSlotLimits(slotLimits: {UInt8: UInt16}) {
+            FlowIDTableStaking.account.load<{UInt8: UInt16}>(from: /storage/flowStakingSlotLimits)
             FlowIDTableStaking.account.save(slotLimits, to: /storage/flowStakingSlotLimits)
         }
 
         /// Enforces slot (count) limits for each node type (role). If more nodes
         /// of a given type are registered than the limit, they are removed
-        /// randomly until the limits are met. When a node is removed, it's
-        /// committed tokens are transfered to it's unstaked bucket.
+        /// randomly until the limits are met. When a node is removed, its
+        /// committed tokens are transfered to its unstaked bucket.
         pub fun slotSelect() {
             let allNodeIDs = FlowIDTableStaking.getNodeIDs()
 
-            let slotLimits = FlowIDTableStaking.account.load<{UInt8: UInt8}>(from: /storage/flowStakingSlotLimits)
+            let slotLimits = FlowIDTableStaking.account.load<{UInt8: UInt16}>(from: /storage/flowStakingSlotLimits)
                 ?? panic("Could not load the slot limits object from storage!")
 
             // count the nodes of each type
-            var nodeCounts: {UInt8: UInt8} = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
+            var nodeCounts: {UInt8: UInt16} = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
             for nodeID in allNodeIDs {
                 let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
                 if nodeRecord.initialWeight == 100 {
@@ -895,13 +895,13 @@ pub contract FlowIDTableStaking {
                 }
             }
 
-            for key in nodeCounts.keys {
-                while nodeCounts[key]! > slotLimits[key]! {
-                    let selection = unsafeRandom() % UInt64(nodeCounts[key]!)
+            for nodeRole in nodeCounts.keys {
+                while nodeCounts[nodeRole]! > slotLimits[nodeRole]! {
+                    let selection = unsafeRandom() % UInt64(nodeCounts[nodeRole]!)
                     var searchIndex: UInt64 = 0
                     for nodeID in allNodeIDs {
                         let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
-                        if nodeRecord.role == key && nodeRecord.initialWeight == 100 {
+                        if nodeRecord.role == nodeRole && nodeRecord.initialWeight == 100 {
                             if selection == searchIndex {
                                 emit NodeRemovedAndRefunded(nodeID: nodeRecord.id, amount: nodeRecord.tokensCommitted.balance + nodeRecord.tokensStaked.balance)
 
@@ -932,7 +932,7 @@ pub contract FlowIDTableStaking {
                                 nodeRecord.initialWeight = 0
 
                                 //Decrement the count for this role
-                                nodeCounts[key] = nodeCounts[key]! - 1
+                                nodeCounts[nodeRole] = nodeCounts[nodeRole]! - 1
 
                                 break
                             }
@@ -1502,7 +1502,7 @@ pub contract FlowIDTableStaking {
     init(_ epochTokenPayout: UFix64, _ rewardCut: UFix64) {
         self.account.save(true, to: /storage/stakingEnabled)
 
-        let slotLimits: {UInt8: UInt8} = {1: 3, 2: 3, 3: 3, 4: 3, 5: 3}
+        let slotLimits: {UInt8: UInt16} = {1: 3, 2: 3, 3: 3, 4: 3, 5: 3}
         self.account.save(slotLimits, to: /storage/flowStakingSlotLimits)
 
         self.nodes <- {}

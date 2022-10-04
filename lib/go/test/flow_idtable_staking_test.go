@@ -2502,7 +2502,7 @@ func TestIDTableStaking(t *testing.T) {
 		//set the slot limits
 		slotLimits := make([]cadence.Value, 5)
 		for i := 0; i < 5; i++ {
-			slotLimits[i] = cadence.NewUInt8(2)
+			slotLimits[i] = cadence.NewUInt16(2)
 		}
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateSetSlotLimitsScript(env), idTableAddress)
