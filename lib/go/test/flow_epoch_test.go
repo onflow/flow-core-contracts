@@ -936,6 +936,14 @@ func TestEpochQCDKG(t *testing.T) {
 			false,
 		)
 
+		// Verifies that the rewards from the previous epoch does not include the new epoch's amount
+		verifyEpochTotalRewardsPaid(t, b, idTableAddress,
+			EpochTotalRewardsPaid{
+				total:      "1250000.0000",
+				fromFees:   "0.0",
+				minted:     "0.0000",
+				feesBurned: "0.0000"})
+
 		verifyConfigMetadata(t, b, env,
 			ConfigMetadata{
 				currentEpochCounter:      startEpochCounter + 1,
