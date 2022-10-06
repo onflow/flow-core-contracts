@@ -1,0 +1,27 @@
+{
+	"emulators": {
+		"default": {
+			"port": 3569,
+			"serviceAccount": "emulator-account"
+		}
+	},
+	"contracts": {
+		"ExecutionNodeVersionBeacon": "../../../contracts/ExecutionNodeVersionBeacon.cdc"
+	},
+	"networks": {
+		"emulator": "127.0.0.1:3569",
+		"mainnet": "access.mainnet.nodes.onflow.org:9000",
+		"testnet": "access.devnet.nodes.onflow.org:9000"
+	},
+	"accounts": {
+		"emulator-account": {
+			"address": "f8d6e0586b0a20c7",
+			"key": "f2864ecaa8297dcf8e8e53896a19817e51159d18294e932aaf8ab53c2bb7ed3c"
+		}
+	},
+	"deployments": {
+		"emulator": {
+			"emulator-account": [ "ExecutionNodeVersionBeacon" ]
+		}
+	}
+}
