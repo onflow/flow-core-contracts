@@ -1,0 +1,56 @@
+name: Cadence change monitor
+on:
+  push:
+    branches:
+      - '**'        # match all
+  pull_request:
+    types: [opened, reopened, review_requested]
+
+jobs:
+  cdc-check:
+    name: Scan
+    runs-on: ubuntu-latest
+  
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # OR "2" -> To retrieve the preceding commit.
+          
+      - name: Detect changes to Cadence (.cdc) files
+        id: changed-cdc-files
+        uses: tj-actions/changed-files@v32
+        with:
+          files: |
+            *.cdc
+            **/*.cdc
+
+      - name: Formulate push message 
+        if: (steps.changed-cdc-files.outputs.only_changed == 'true' && github.event_name == 'push')
+        run: |
+          echo "json={\"type\": \"push\", \"repository\": \"${{github.repository}}\", \"sha\": \"${{github.sha}}\", \"message\": \"${{toJSON(github.event.head_commit.message)}}\", \"user\": \"${{github.event.head_commit.author.username}}\", \"url\": \"${{github.event.head_commit.url}}\", \"changed-date\": \"${{github.event.head_commit.timestamp}}\", \"cdc-changes\": \"${{steps.changed-cdc-files.outputs.all_changed_and_modified_files}}\" }" >> $GITHUB_ENV
+
+
+      - name: Formulate pull message 
+        if: (steps.changed-cdc-files.outputs.only_changed == 'true' && github.event_name == 'pull_request')
+        run: |
+          echo "json={\"type\": \"pull request\", \"repository\": \"${{github.repository}}\",  \"sha\": \"${{github.sha}}\", \"message\": \"${{toJSON(github.event.pull_request.title)}}: ${{toJSON(github.event.pull_request.body)}}\", \"user\": \"${{github.event.pull_request.user.login}}\", \"url\": \"${{github.event.pull_request.html_url}}\", \"changed-date\": \"${{github.event.pull_request.updated_at}}\", \"cdc-changes\": \"${{steps.changed-cdc-files.outputs.all_changed_and_modified_files}}\" }" >> $GITHUB_ENV
+
+      - name: Get Token
+        if: (steps.changed-cdc-files.outputs.only_changed == 'true' && env.json != '')
+        id: get_workflow_token
+        uses: peter-murray/workflow-application-token-action@v1
+        with:
+          application_id: ${{ secrets.APP_ID }}
+          application_private_key: ${{ secrets.PRIVATE_KEY }}
+
+      - uses: convictional/trigger-workflow-and-wait@v1.6.1
+        if: (steps.changed-cdc-files.outputs.only_changed == 'true' && env.json != '')
+        with:
+          owner: dapperlabs
+          repo: jerome-test-root-repo
+          github_token: '${{ steps.get_workflow_token.outputs.token }}'
+          workflow_file_name: slack-bot.yml
+          wait_workflow: false
+          ref: main
+          client_payload: "${{env.json}}"
+          wait_interval: 1
