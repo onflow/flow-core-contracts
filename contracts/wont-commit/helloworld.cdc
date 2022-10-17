@@ -1,5 +1,4 @@
 // HelloWorld.cdc
-
 //
 
 pub contract HelloWorld {
