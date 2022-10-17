@@ -1,6 +1,8 @@
 name: Cadence change scanner
 on:
   pull_request:
+    branches:
+      - '**'        # match all
     types: [opened, reopened, review_requested]
 
 jobs:
