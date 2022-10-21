@@ -449,7 +449,8 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 	// Create regular accounts
 	userAddresses, _, userSigners := registerAndMintManyAccounts(t, b, accountKeys, 4)
-	_, adminStakingKey, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
+	sk, adminStakingKey, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
+	adminStakingKeyPOP := generateKeyPOP(t, sk)
 
 	var amountToCommit interpreter.UFix64Value = 48000000000000
 
@@ -461,6 +462,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		fmt.Sprintf("%0128d", admin),
 		adminNetworkingKey,
 		adminStakingKey,
+		adminStakingKeyPOP,
 		amountToCommit,
 		amountToCommit,
 		1,
@@ -534,7 +536,8 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		"1000000000.0",
 		"1000000.0", "1000000.0",
 		adminAccountKey, adminAddress, adminSigner)
-	_, joshStakingKey, _, joshNetworkingKey := generateKeysForNodeRegistration(t)
+	sk, joshStakingKey, _, joshNetworkingKey := generateKeysForNodeRegistration(t)
+	joshStakingPOP := generateKeyPOP(t, sk)
 
 	// Register a node and a delegator in the locked account
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), joshAddress)
@@ -543,6 +546,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 	_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
 	_ = tx.AddArgument(CadenceString(joshNetworkingKey))
 	_ = tx.AddArgument(CadenceString(joshStakingKey))
+	_ = tx.AddArgument(CadenceString(joshStakingPOP))
 	_ = tx.AddArgument(CadenceUFix64("320000.0"))
 
 	signAndSubmit(
@@ -600,7 +604,8 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 	t.Run("Should not be able to register a consensus node without a machine account public key", func(t *testing.T) {
 
-		_, maxStakingKey, _, maxNetworkingKey := generateKeysForNodeRegistration(t)
+		sk, maxStakingKey, _, maxNetworkingKey := generateKeysForNodeRegistration(t)
+		maxStakingPOP := generateKeyPOP(t, sk)
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterNode(env), joshAddress)
 		_ = tx.AddArgument(CadenceString(maxID))
@@ -608,6 +613,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", max)))
 		_ = tx.AddArgument(CadenceString(maxNetworkingKey))
 		_ = tx.AddArgument(CadenceString(maxStakingKey))
+		_ = tx.AddArgument(CadenceString(maxStakingPOP))
 		_ = tx.AddArgument(CadenceUFix64("500000.0"))
 		_ = tx.AddArgument(cadence.NewOptional(nil))
 
@@ -628,7 +634,8 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 	t.Run("Should be able to register a second node and delegator in the staking collection", func(t *testing.T) {
 
-		_, maxStakingKey, _, maxNetworkingKey := generateKeysForNodeRegistration(t)
+		sk, maxStakingKey, _, maxNetworkingKey := generateKeysForNodeRegistration(t)
+		maxStakingPOP := generateKeyPOP(t, sk)
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterNode(env), joshAddress)
 		_ = tx.AddArgument(CadenceString(maxID))
@@ -636,6 +643,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", max)))
 		_ = tx.AddArgument(CadenceString(maxNetworkingKey))
 		_ = tx.AddArgument(CadenceString(maxStakingKey))
+		_ = tx.AddArgument(CadenceString(maxStakingPOP))
 		_ = tx.AddArgument(CadenceUFix64("500000.0"))
 		_ = tx.AddArgument(cadence.NewOptional(cadencePublicKeys))
 
@@ -674,7 +682,8 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 	t.Run("Should be able to register a collection node in the staking collection and create a machine account", func(t *testing.T) {
 
-		_, bastianStakingKey, _, bastianNetworkingKey := generateKeysForNodeRegistration(t)
+		sk, bastianStakingKey, _, bastianNetworkingKey := generateKeysForNodeRegistration(t)
+		bastianStakingPOP := generateKeyPOP(t, sk)
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterNode(env), joshAddress)
 		_ = tx.AddArgument(CadenceString(bastianID))
@@ -682,6 +691,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", bastian)))
 		_ = tx.AddArgument(CadenceString(bastianNetworkingKey))
 		_ = tx.AddArgument(CadenceString(bastianStakingKey))
+		_ = tx.AddArgument(CadenceString(bastianStakingPOP))
 		_ = tx.AddArgument(CadenceUFix64("10000.0"))
 		_ = tx.AddArgument(cadence.NewOptional(cadencePublicKeys))
 
@@ -750,7 +760,8 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 	t.Run("Should be able to register a execution and verification node in the staking collection and not create machine accounts", func(t *testing.T) {
 
-		_, executionStakingKey, _, executionNetworkingKey := generateKeysForNodeRegistration(t)
+		sk, executionStakingKey, _, executionNetworkingKey := generateKeysForNodeRegistration(t)
+		executionStakingPOP := generateKeyPOP(t, sk)
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterNode(env), joshAddress)
 		_ = tx.AddArgument(CadenceString(executionID))
@@ -758,6 +769,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", execution)))
 		_ = tx.AddArgument(CadenceString(executionNetworkingKey))
 		_ = tx.AddArgument(CadenceString(executionStakingKey))
+		_ = tx.AddArgument(CadenceString(executionStakingPOP))
 		_ = tx.AddArgument(CadenceUFix64("10000.0"))
 		_ = tx.AddArgument(cadence.NewOptional(nil))
 
@@ -780,7 +792,8 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 			true,
 		)
 
-		_, verificationStakingKey, _, verificationNetworkingKey := generateKeysForNodeRegistration(t)
+		sk, verificationStakingKey, _, verificationNetworkingKey := generateKeysForNodeRegistration(t)
+		verificationStakingPOP := generateKeyPOP(t, sk)
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterNode(env), joshAddress)
 		_ = tx.AddArgument(CadenceString(verificationID))
@@ -788,6 +801,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", verification)))
 		_ = tx.AddArgument(CadenceString(verificationNetworkingKey))
 		_ = tx.AddArgument(CadenceString(verificationStakingKey))
+		_ = tx.AddArgument(CadenceString(verificationStakingPOP))
 		_ = tx.AddArgument(CadenceUFix64("10000.0"))
 		_ = tx.AddArgument(cadence.NewOptional(nil))
 
@@ -850,7 +864,8 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 
 	// Create regular accounts
 	userAddresses, _, userSigners := registerAndMintManyAccounts(t, b, accountKeys, 4)
-	_, adminStakingKey, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
+	sk, adminStakingKey, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
+	adminStakingKeyPOP := generateKeyPOP(t, sk)
 
 	var amountToCommit interpreter.UFix64Value = 48000000000000
 
@@ -862,6 +877,7 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 		fmt.Sprintf("%0128d", admin),
 		adminNetworkingKey,
 		adminStakingKey,
+		adminStakingKeyPOP,
 		amountToCommit,
 		amountToCommit,
 		1,
@@ -952,7 +968,8 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 		"1000000.0", "1000000.0",
 		adminAccountKey, adminAddress, adminSigner)
 
-	_, joshStakingKey, _, joshNetworkingKey := generateKeysForNodeRegistration(t)
+	sk, joshStakingKey, _, joshNetworkingKey := generateKeysForNodeRegistration(t)
+	joshStakingPOP := generateKeyPOP(t, sk)
 
 	// Register a node and a delegator in the locked account
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), joshAddress)
@@ -961,6 +978,7 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 	_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
 	_ = tx.AddArgument(CadenceString(joshNetworkingKey))
 	_ = tx.AddArgument(CadenceString(joshStakingKey))
+	_ = tx.AddArgument(CadenceString(joshStakingPOP))
 	_ = tx.AddArgument(CadenceUFix64("320000.0"))
 
 	signAndSubmit(
@@ -2793,13 +2811,15 @@ func TestStakingCollectionCreateNewTokenHolder(t *testing.T) {
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), jeffAddress2)
 
 		userNodeID1 := "0000000000000000000000000000000000000000000000000000000000000001"
-		_, nodeOneStakingKey, _, nodeOneNetworkingKey := generateKeysForNodeRegistration(t)
+		stakingKey, nodeOneStakingKey, _, nodeOneNetworkingKey := generateKeysForNodeRegistration(t)
+		nodeOneStakingKeyPOP := generateKeyPOP(t, stakingKey)
 
 		_ = tx.AddArgument(CadenceString(userNodeID1))
 		_ = tx.AddArgument(cadence.NewUInt8(4))
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", 1)))
 		_ = tx.AddArgument(CadenceString(nodeOneNetworkingKey))
 		_ = tx.AddArgument(CadenceString(nodeOneStakingKey))
+		_ = tx.AddArgument(CadenceString(nodeOneStakingKeyPOP))
 		_ = tx.AddArgument(CadenceUFix64("320000.0"))
 
 		signAndSubmit(
@@ -2916,6 +2936,7 @@ func TestStakingCollectionRegisterMultipleNodes(t *testing.T) {
 
 	// Create arrays for the node account information
 	nodeStakingKeys := make([]cadence.Value, numNodes)
+	nodeStakingKeyPOPs := make([]cadence.Value, numNodes)
 	nodeNetworkingKeys := make([]cadence.Value, numNodes)
 	nodeNetworkingAddresses := make([]cadence.Value, numNodes)
 	ids, _, _ := generateNodeIDs(numNodes)
@@ -2928,9 +2949,10 @@ func TestStakingCollectionRegisterMultipleNodes(t *testing.T) {
 
 	// Create all the node accounts
 	for i := 0; i < numNodes; i++ {
-		_, stakingKey, _, networkingKey := generateKeysForNodeRegistration(t)
+		sk, stakingKey, _, networkingKey := generateKeysForNodeRegistration(t)
 
 		nodeStakingKeys[i] = CadenceString(stakingKey)
+		nodeStakingKeyPOPs[i] = CadenceString(generateKeyPOP(t, sk))
 		nodeNetworkingKeys[i] = CadenceString(networkingKey)
 
 		nodeNetworkingAddresses[i] = CadenceString(fmt.Sprintf("%0128s", ids[i]))
@@ -2963,6 +2985,7 @@ func TestStakingCollectionRegisterMultipleNodes(t *testing.T) {
 		_ = tx.AddArgument(cadence.NewArray(nodeNetworkingAddresses))
 		_ = tx.AddArgument(cadence.NewArray(nodeNetworkingKeys))
 		_ = tx.AddArgument(cadence.NewArray(nodeStakingKeys))
+		_ = tx.AddArgument(cadence.NewArray(nodeStakingKeyPOPs))
 		_ = tx.AddArgument(cadence.NewArray(cadenceAmounts))
 		_ = tx.AddArgument(cadence.NewArray(machineAccountKeys))
 

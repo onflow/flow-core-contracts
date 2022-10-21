@@ -376,7 +376,7 @@ func registerStakingCollectionNodesAndDelegators(
 	userNodeID1 := "0000000000000000000000000000000000000000000000000000000000000001"
 	userNodeID2 := "0000000000000000000000000000000000000000000000000000000000000002"
 
-	_, nodeOneStakingKey, _, nodeOneNetworkingKey := generateKeysForNodeRegistration(t)
+	stakingKey, nodeOneStakingKey, _, nodeOneNetworkingKey := generateKeysForNodeRegistration(t)
 
 	publicKeys := make([]cadence.Value, 1)
 	machineAccountKey, _ := accountKeys.NewWithSigner()
@@ -385,6 +385,8 @@ func registerStakingCollectionNodesAndDelegators(
 	publicKeys[0] = publicKey
 	cadencePublicKeys := cadence.NewArray(publicKeys)
 
+	nodeOneStakingKeyPOP := generateKeyPOP(t, stakingKey)
+
 	// Register a node in the locked account
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), newUserAddress)
 	_ = tx.AddArgument(CadenceString(userNodeID1))
@@ -392,6 +394,7 @@ func registerStakingCollectionNodesAndDelegators(
 	_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", 1)))
 	_ = tx.AddArgument(CadenceString(nodeOneNetworkingKey))
 	_ = tx.AddArgument(CadenceString(nodeOneStakingKey))
+	_ = tx.AddArgument(CadenceString(nodeOneStakingKeyPOP))
 	_ = tx.AddArgument(CadenceUFix64("320000.0"))
 
 	signAndSubmit(
@@ -423,7 +426,8 @@ func registerStakingCollectionNodesAndDelegators(
 		false,
 	)
 
-	_, nodeTwoStakingKey, _, nodeTwoNetworkingKey := generateKeysForNodeRegistration(t)
+	stakingKey, nodeTwoStakingKey, _, nodeTwoNetworkingKey := generateKeysForNodeRegistration(t)
+	nodeTwoStakingKeyPOP := generateKeyPOP(t, stakingKey)
 
 	// Register a node with the staking collection
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterNode(env), newUserAddress)
@@ -432,6 +436,7 @@ func registerStakingCollectionNodesAndDelegators(
 	_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", 2)))
 	_ = tx.AddArgument(CadenceString(nodeTwoNetworkingKey))
 	_ = tx.AddArgument(CadenceString(nodeTwoStakingKey))
+	_ = tx.AddArgument(CadenceString(nodeTwoStakingKeyPOP))
 	_ = tx.AddArgument(CadenceUFix64("500000.0"))
 	_ = tx.AddArgument(cadence.NewOptional(cadencePublicKeys))
 

@@ -257,7 +257,7 @@ func registerNodeWithSetupAccount(t *testing.T,
 	env templates.Environment,
 	authorizer flow.Address,
 	signer crypto.Signer,
-	nodeID, networkingAddress, networkingKey, stakingKey string,
+	nodeID, networkingAddress, networkingKey, stakingKey, stakingKeyPOP string,
 	amount, tokensCommitted interpreter.UFix64Value,
 	role uint8,
 	publicKey *flow.AccountKey,
@@ -277,6 +277,7 @@ func registerNodeWithSetupAccount(t *testing.T,
 	cadenceNetAddr, _ := cadence.NewString(networkingAddress)
 	cadenceNetKey, _ := cadence.NewString(networkingKey)
 	cadenceStakeKey, _ := cadence.NewString(stakingKey)
+	cadenceStakeKeyPOP, _ := cadence.NewString(stakingKeyPOP)
 
 	tx := createTxWithTemplateAndAuthorizer(b,
 		templates.GenerateEpochRegisterNodeScript(env),
@@ -287,6 +288,7 @@ func registerNodeWithSetupAccount(t *testing.T,
 	_ = tx.AddArgument(cadenceNetAddr)
 	_ = tx.AddArgument(cadenceNetKey)
 	_ = tx.AddArgument(cadenceStakeKey)
+	_ = tx.AddArgument(cadenceStakeKeyPOP)
 	tokenAmount, err := cadence.NewUFix64(amount.String())
 	require.NoError(t, err)
 	_ = tx.AddArgument(tokenAmount)
@@ -319,6 +321,7 @@ func registerNodesForEpochs(
 	publicKeys []*flow.AccountKey,
 	ids []string,
 	stakingKeys []string,
+	stakingKeysPOPs []string,
 	networkingkeys []string) {
 
 	if len(authorizers) != len(signers) ||
@@ -339,6 +342,7 @@ func registerNodesForEpochs(
 			fmt.Sprintf("%0128d", i),
 			networkingkeys[i],
 			stakingKeys[i],
+			stakingKeysPOPs[i],
 			amountToCommit,
 			committed,
 			uint8((i%5)+1),

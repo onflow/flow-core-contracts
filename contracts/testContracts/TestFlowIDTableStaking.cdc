@@ -248,6 +248,7 @@ pub contract FlowIDTableStaking {
         networkingAddress: String,
         networkingKey: String,
         stakingKey: String,
+        stakingKeyPoP: String,
         tokensCommitted: @FungibleToken.Vault
     ): @NodeStaker {
         destroy tokensCommitted

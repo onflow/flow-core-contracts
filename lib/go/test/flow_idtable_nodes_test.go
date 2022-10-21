@@ -59,6 +59,7 @@ func TestManyNodesIDTable(t *testing.T) {
 	nodeNetworkingAddresses := make([]cadence.Value, numberOfNodes)
 	nodeNetworkingKeys := make([]cadence.Value, numberOfNodes)
 	nodeStakingKeys := make([]cadence.Value, numberOfNodes)
+	nodeStakingKeyPOPs := make([]cadence.Value, numberOfNodes)
 	nodeStakingAmounts := make([]cadence.Value, numberOfNodes)
 	nodePaths := make([]cadence.Value, numberOfNodes)
 
@@ -127,11 +128,13 @@ func TestManyNodesIDTable(t *testing.T) {
 
 			nodeNetworkingAddresses[i] = CadenceString(networkingAddress)
 
-			_, stakingKey, _, networkingKey := generateKeysForNodeRegistration(t)
+			sk, stakingKey, _, networkingKey := generateKeysForNodeRegistration(t)
 
 			nodeNetworkingKeys[i] = CadenceString(networkingKey)
 
 			nodeStakingKeys[i] = CadenceString(stakingKey)
+
+			nodeStakingKeyPOPs[i] = CadenceString(generateKeyPOP(t, sk))
 
 			tokenAmount, err := cadence.NewUFix64("1500000.0")
 			require.NoError(t, err)
@@ -162,6 +165,9 @@ func TestManyNodesIDTable(t *testing.T) {
 		require.NoError(t, err)
 
 		err = tx.AddArgument(cadence.NewArray(nodeStakingKeys))
+		require.NoError(t, err)
+
+		err = tx.AddArgument(cadence.NewArray(nodeStakingKeyPOPs))
 		require.NoError(t, err)
 
 		err = tx.AddArgument(cadence.NewArray(nodeStakingAmounts))
@@ -433,7 +439,8 @@ func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
 
 			role := uint8((i % 4) + 1)
 
-			_, stakingKey, _, networkingKey := generateKeysForNodeRegistration(t)
+			stakingKeySK, stakingKey, _, networkingKey := generateKeysForNodeRegistration(t)
+			stakingKeyPOP := generateKeyPOP(t, stakingKeySK)
 
 			err := tx.AddArgument(CadenceString(id))
 			require.NoError(t, err)
@@ -444,6 +451,8 @@ func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
 			err = tx.AddArgument(CadenceString(networkingKey))
 			require.NoError(t, err)
 			err = tx.AddArgument(CadenceString(stakingKey))
+			require.NoError(t, err)
+			err = tx.AddArgument(CadenceString(stakingKeyPOP))
 			require.NoError(t, err)
 			tokenAmount, err := cadence.NewUFix64("1500000.0")
 			require.NoError(t, err)

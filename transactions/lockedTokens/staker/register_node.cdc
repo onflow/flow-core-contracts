@@ -2,7 +2,13 @@ import FlowToken from 0xFLOWTOKENADDRESS
 import LockedTokens from 0xLOCKEDTOKENADDRESS
 import StakingProxy from 0xSTAKINGPROXYADDRESS
 
-transaction(id: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String, amount: UFix64) {
+transaction(id: String,
+            role: UInt8,
+            networkingAddress: String,
+            networkingKey: String,
+            stakingKey: String,
+            stakingKeyPoP: String,
+            amount: UFix64) {
 
     let holderRef: &LockedTokens.TokenHolder
 
@@ -23,13 +29,13 @@ transaction(id: String, role: UInt8, networkingAddress: String, networkingKey: S
 
         if amount <= lockedBalance {
 
-            self.holderRef.createNodeStaker(nodeInfo: nodeInfo, amount: amount)
+            self.holderRef.createNodeStaker(nodeInfo: nodeInfo, stakingKeyPoP: stakingKeyPoP, amount: amount)
 
         } else if ((amount - lockedBalance) <= self.vaultRef.balance) {
 
             self.holderRef.deposit(from: <-self.vaultRef.withdraw(amount: amount - lockedBalance))
 
-            self.holderRef.createNodeStaker(nodeInfo: nodeInfo, amount: amount)
+            self.holderRef.createNodeStaker(nodeInfo: nodeInfo, stakingKeyPoP: stakingKeyPoP, amount: amount)
 
         } else {
             panic("Not enough tokens to stake!")

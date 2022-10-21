@@ -7,6 +7,7 @@ transaction(
     networkingAddresses: [String],
     networkingKeys: [String],
     stakingKeys: [String],
+    stakingKeyPoPs: [String],
     amounts: [UFix64],
     paths: [StoragePath]
 ) {
@@ -28,6 +29,7 @@ transaction(
                 networkingAddress: networkingAddresses[i],
                 networkingKey: networkingKeys[i],
                 stakingKey: stakingKeys[i],
+                stakingKeyPoP: stakingKeyPoPs[i],
                 tokensCommitted: <-tokensCommitted
             )
 
