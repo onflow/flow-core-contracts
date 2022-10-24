@@ -6,9 +6,13 @@
 
 .DS_Store
 
-flow.json
+node_modules
 
 # IDE related files
 .idea
 .vscode
 git
+
+# Assets Files
+./lib/go/contracts/internal/assets/assets.go
+./lib/go/templates/internal/assets/assets.go

@@ -320,6 +320,24 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 
 	t.Run("Should not be able change metadata outside of Staking Auction", func(t *testing.T) {
 
+		//set the slot limits
+		slotLimits := make([]cadence.Value, 5)
+		for i := 0; i < 5; i++ {
+			slotLimits[i] = cadence.NewUInt16(1000)
+		}
+
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateSetSlotLimitsScript(env), idTableAddress)
+
+		err = tx.AddArgument(cadence.NewArray(slotLimits))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
+			false,
+		)
+
 		// advance to the epoch setup phase
 		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHSETUP", false)
 
@@ -445,6 +463,24 @@ func TestEpochAdvance(t *testing.T) {
 	)
 
 	t.Run("Proposed metadata, QC, and DKG should have been created properly for epoch setup", func(t *testing.T) {
+
+		//set the slot limits
+		slotLimits := make([]cadence.Value, 5)
+		for i := 0; i < 5; i++ {
+			slotLimits[i] = cadence.NewUInt16(1000)
+		}
+
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateSetSlotLimitsScript(env), idTableAddress)
+
+		err = tx.AddArgument(cadence.NewArray(slotLimits))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
+			false,
+		)
 
 		// Advance to epoch Setup and make sure that the epoch cannot be ended
 		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHSETUP", false)
@@ -588,6 +624,24 @@ func TestEpochQCDKGNodeRegistration(t *testing.T) {
 		false,
 	)
 
+	//set the slot limits
+	slotLimits := make([]cadence.Value, 5)
+	for i := 0; i < 5; i++ {
+		slotLimits[i] = cadence.NewUInt16(1000)
+	}
+
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateSetSlotLimitsScript(env), idTableAddress)
+
+	err = tx.AddArgument(cadence.NewArray(slotLimits))
+	require.NoError(t, err)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]crypto.Signer{IDTableSigner},
+		false,
+	)
+
 	// Advance to epoch Setup and make sure that the epoch cannot be ended
 	advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHSETUP", false)
 
@@ -707,6 +761,24 @@ func TestEpochQCDKG(t *testing.T) {
 		approvedNodeIDs[i] = id
 	}
 	err := tx.AddArgument(cadence.NewArray(approvedNodeIDs))
+	require.NoError(t, err)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]crypto.Signer{IDTableSigner},
+		false,
+	)
+
+	//set the slot limits
+	slotLimits := make([]cadence.Value, 5)
+	for i := 0; i < 5; i++ {
+		slotLimits[i] = cadence.NewUInt16(1000)
+	}
+
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateSetSlotLimitsScript(env), idTableAddress)
+
+	err = tx.AddArgument(cadence.NewArray(slotLimits))
 	require.NoError(t, err)
 
 	signAndSubmit(
@@ -1068,6 +1140,24 @@ func TestEpochReset(t *testing.T) {
 		approvedNodeIDs[i] = CadenceString(ids[i])
 	}
 	err := tx.AddArgument(cadence.NewArray(approvedNodeIDs))
+	require.NoError(t, err)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]crypto.Signer{IDTableSigner},
+		false,
+	)
+
+	//set the slot limits
+	slotLimits := make([]cadence.Value, 5)
+	for i := 0; i < 5; i++ {
+		slotLimits[i] = cadence.NewUInt16(1000)
+	}
+
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateSetSlotLimitsScript(env), idTableAddress)
+
+	err = tx.AddArgument(cadence.NewArray(slotLimits))
 	require.NoError(t, err)
 
 	signAndSubmit(

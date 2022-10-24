@@ -191,14 +191,32 @@ func TestManyNodesIDTable(t *testing.T) {
 	// End staking auction
 	t.Run("Should end staking auction, pay rewards, and move tokens", func(t *testing.T) {
 
-		tx := flow.NewTransaction().
+		//set the slot limits
+		slotLimits := make([]cadence.Value, 5)
+		for i := 0; i < 5; i++ {
+			slotLimits[i] = cadence.NewUInt16(1000)
+		}
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetSlotLimitsScript(env), flow.HexToAddress(env.IDTableAddress))
+
+		err := tx.AddArgument(cadence.NewArray(slotLimits))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{flow.HexToAddress(env.IDTableAddress)},
+			[]crypto.Signer{IDTableSigner},
+			false,
+		)
+
+		tx = flow.NewTransaction().
 			SetScript(templates.GenerateEndStakingScript(env)).
-			SetGasLimit(35000).
+			SetGasLimit(105000).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(idTableAddress)
 
-		err := tx.AddArgument(cadence.NewArray(approvedNodes))
+		err = tx.AddArgument(cadence.NewArray(approvedNodes))
 		require.NoError(t, err)
 
 		signAndSubmit(

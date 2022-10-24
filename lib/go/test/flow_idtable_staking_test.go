@@ -266,14 +266,32 @@ func TestStakingTransferAdmin(t *testing.T) {
 
 	t.Run("Should be able to end epoch with the admin capability", func(t *testing.T) {
 
-		tx := flow.NewTransaction().
+		//set the slot limits
+		slotLimits := make([]cadence.Value, 5)
+		for i := 0; i < 5; i++ {
+			slotLimits[i] = cadence.NewUInt16(1000)
+		}
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetSlotLimitsScript(env), idTableAddress)
+
+		err := tx.AddArgument(cadence.NewArray(slotLimits))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
+			false,
+		)
+
+		tx = flow.NewTransaction().
 			SetScript(templates.GenerateCapabilityEndEpochScript(env)).
 			SetGasLimit(9999).
 			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshAddress)
 
-		err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID), CadenceString(maxID), CadenceString(accessID)}))
+		err = tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID), CadenceString(maxID), CadenceString(accessID)}))
 		require.NoError(t, err)
 		tx.AddArgument(CadenceUFix64("1300000.0"))
 
@@ -979,12 +997,30 @@ func TestIDTableStaking(t *testing.T) {
 
 	t.Run("Should be able to end the staking auction, which removes insufficiently staked nodes", func(t *testing.T) {
 
+		//set the slot limits
+		slotLimits := make([]cadence.Value, 5)
+		for i := 0; i < 5; i++ {
+			slotLimits[i] = cadence.NewUInt16(1000)
+		}
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetSlotLimitsScript(env), idTableAddress)
+
+		err := tx.AddArgument(cadence.NewArray(slotLimits))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
+			false,
+		)
+
 		unstaked[joshID] = committed[joshID]
 		committed[joshID] = 0
 
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndStakingScript(env), idTableAddress)
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEndStakingScript(env), idTableAddress)
 
-		err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID), CadenceString(maxID), CadenceString(accessID)}))
+		err = tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID), CadenceString(maxID), CadenceString(accessID)}))
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -2486,19 +2522,6 @@ func TestIDTableStaking(t *testing.T) {
 		idArray := result.(cadence.Array).Values
 		assert.Len(t, idArray, nodeCount)
 
-		//remove unapproved nodes to match final state
-		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateRemoveUnapprovedNodesScript(env), idTableAddress)
-
-		err = tx.AddArgument(cadence.NewArray(allowList))
-		require.NoError(t, err)
-
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
-			false,
-		)
-
 		//set the slot limits
 		slotLimits := make([]cadence.Value, 5)
 		for i := 0; i < 5; i++ {
@@ -2517,8 +2540,11 @@ func TestIDTableStaking(t *testing.T) {
 			false,
 		)
 
-		//invoke slot selection
-		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateSlotSelectScript(env), idTableAddress)
+		//remove unapproved nodes with changed slot limits
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateRemoveUnapprovedNodesScript(env), idTableAddress)
+
+		err = tx.AddArgument(cadence.NewArray(allowList))
+		require.NoError(t, err)
 
 		slotResult := signAndSubmit(
 			t, b, tx,
@@ -2646,6 +2672,24 @@ func TestIDTableRewardsWitholding(t *testing.T) {
 		)
 	}
 
+	//set the slot limits
+	slotLimits := make([]cadence.Value, 5)
+	for i := 0; i < 5; i++ {
+		slotLimits[i] = cadence.NewUInt16(1000)
+	}
+
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetSlotLimitsScript(env), idTableAddress)
+
+	err := tx.AddArgument(cadence.NewArray(slotLimits))
+	require.NoError(t, err)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]crypto.Signer{IDTableSigner},
+		false,
+	)
+
 	// Create an array of all the node IDs so they can be approved for staking
 	cadenceIDs := make([]cadence.Value, numNodes)
 	for i := 0; i < numNodes; i++ {
@@ -2653,8 +2697,8 @@ func TestIDTableRewardsWitholding(t *testing.T) {
 	}
 
 	// End the epoch, which marks everyone as staking
-	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), idTableAddress)
-	err := tx.AddArgument(cadence.NewArray(cadenceIDs))
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), idTableAddress)
+	err = tx.AddArgument(cadence.NewArray(cadenceIDs))
 	require.NoError(t, err)
 	signAndSubmit(
 		t, b, tx,

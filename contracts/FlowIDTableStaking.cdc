@@ -754,6 +754,7 @@ pub contract FlowIDTableStaking {
     /// Admin resource that has the ability to create new staker objects, remove insufficiently staked nodes
     /// at the end of the staking auction, and pay rewards to nodes at the end of an epoch
     pub resource Admin {
+
         pub fun removeNode(_ nodeID: String): @NodeRecord {
             let node <- FlowIDTableStaking.nodes.remove(key: nodeID)
                 ?? panic("Could not find a node with the specified ID")
@@ -763,6 +764,14 @@ pub contract FlowIDTableStaking {
             FlowIDTableStaking.updateClaimed(path: /storage/stakingKeysClaimed, node.stakingKey, claimed: false)
 
             return <-node
+        }
+
+        pub fun setNodeWeight(nodeRecord: &NodeRecord, weight: UInt64) {
+            if weight > 100 {
+                panic("Specified node weight out of range.")
+            }
+
+            nodeRecord.initialWeight = weight
         }
 
         /// Sets a list of approved node IDs for the next epoch
@@ -815,6 +824,36 @@ pub contract FlowIDTableStaking {
             FlowIDTableStaking.account.save(false, to: /storage/stakingEnabled)
         }
 
+        access(account) fun removeAndRefundNodeRecord(nodeRecord: &NodeRecord) {
+            emit NodeRemovedAndRefunded(nodeID: nodeRecord.id, amount: nodeRecord.tokensCommitted.balance + nodeRecord.tokensStaked.balance)
+
+            // move their committed tokens back to their unstaked tokens
+            nodeRecord.tokensUnstaked.deposit(from: <-nodeRecord.tokensCommitted.withdraw(amount: nodeRecord.tokensCommitted.balance))
+
+            // Set their request to unstake equal to all their staked tokens
+            // since they are forced to unstake
+            nodeRecord.tokensRequestedToUnstake = nodeRecord.tokensStaked.balance
+
+            // Iterate through all delegators and unstake their tokens
+            // since their node has unstaked
+            for delegator in nodeRecord.delegators.keys {
+                let delRecord = nodeRecord.borrowDelegatorRecord(delegator)
+
+                if delRecord.tokensCommitted.balance > 0.0 {
+                    emit DelegatorTokensUnstaked(nodeID: nodeRecord.id, delegatorID: delegator, amount: delRecord.tokensCommitted.balance)
+
+                    // move their committed tokens back to their unstaked tokens
+                    delRecord.tokensUnstaked.deposit(from: <-delRecord.tokensCommitted.withdraw(amount: delRecord.tokensCommitted.balance))
+                }
+
+                // Request to unstake all tokens
+                delRecord.tokensRequestedToUnstake = delRecord.tokensStaked.balance
+            }
+
+            // Clear initial weight because the node is not staked any more
+            nodeRecord.initialWeight = 0
+        }
+
         /// Iterates through all the registered nodes and if it finds
         /// a node that has insufficient tokens committed for the next epoch or isn't in the approved list
         /// it moves their committed tokens to their unstaked bucket
@@ -825,6 +864,9 @@ pub contract FlowIDTableStaking {
         /// and that its node info is correct
         pub fun removeUnapprovedNodes(approvedNodeIDs: {String: Bool}) {
             let allNodeIDs = FlowIDTableStaking.getNodeIDs()
+            var currentNodeCount: {UInt8: UInt16} = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
+            var pendingNodes: {UInt8: [&NodeRecord]} = {1: [], 2: [], 3: [], 4: [], 5: []}
+            let candidateNodes = FlowIDTableStaking.account.load<[String]>(from: /storage/flowStakingCandidateNodes) ?? []
 
             for nodeID in allNodeIDs {
                 let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
@@ -833,114 +875,55 @@ pub contract FlowIDTableStaking {
 
                 // Remove nodes if they do not meet the minimum staking requirements
                 if !FlowIDTableStaking.isGreaterThanMinimumForRole(numTokens: totalTokensCommitted, role: nodeRecord.role) ||
-                   (approvedNodeIDs[nodeID] == nil) {
-
-                    emit NodeRemovedAndRefunded(nodeID: nodeRecord.id, amount: nodeRecord.tokensCommitted.balance + nodeRecord.tokensStaked.balance)
-
-                    // move their committed tokens back to their unstaked tokens
-                    nodeRecord.tokensUnstaked.deposit(from: <-nodeRecord.tokensCommitted.withdraw(amount: nodeRecord.tokensCommitted.balance))
-
-                    // Set their request to unstake equal to all their staked tokens
-                    // since they are forced to unstake
-                    nodeRecord.tokensRequestedToUnstake = nodeRecord.tokensStaked.balance
-
-                    // Iterate through all delegators and unstake their tokens
-                    // since their node has unstaked
-                    for delegator in nodeRecord.delegators.keys {
-                        let delRecord = nodeRecord.borrowDelegatorRecord(delegator)
-
-                        if delRecord.tokensCommitted.balance > 0.0 {
-                            emit DelegatorTokensUnstaked(nodeID: nodeRecord.id, delegatorID: delegator, amount: delRecord.tokensCommitted.balance)
-
-                            // move their committed tokens back to their unstaked tokens
-                            delRecord.tokensUnstaked.deposit(from: <-delRecord.tokensCommitted.withdraw(amount: delRecord.tokensCommitted.balance))
-                        }
-
-                        // Request to unstake all tokens
-                        delRecord.tokensRequestedToUnstake = delRecord.tokensStaked.balance
+                   (nodeRecord.role != UInt8(5) && approvedNodeIDs[nodeID] == nil) {
+                    self.removeAndRefundNodeRecord(nodeRecord: nodeRecord)
+                } else {
+                    //capture whether this is a current node or a pending node
+                    if nodeRecord.initialWeight > 0 {
+                        currentNodeCount[nodeRecord.role] = currentNodeCount[nodeRecord.role]! + 1
+                    } else if candidateNodes!.contains(nodeID) {
+                        pendingNodes[nodeRecord.role]!.append(nodeRecord)
                     }
 
-                    // Clear initial weight because the node is not staked any more
-                    nodeRecord.initialWeight = 0
-                } else {
                     // Set weight to 100
                     // Calculations for node weight will come with a future version of epochs
                     nodeRecord.initialWeight = 100
                 }
             }
+
+            let slotLimits = FlowIDTableStaking.account.borrow<&{UInt8: UInt16}>(from: /storage/flowStakingSlotLimits)
+                ?? panic("Could not load the slot limits object from storage!")
+
+            for nodeRole in currentNodeCount.keys {
+                if currentNodeCount[nodeRole]! >= slotLimits[nodeRole]! {
+                    //if all slots are full, remove and refund all pending nodes
+                    for nodeRecord in pendingNodes[nodeRole]! {
+                        self.removeAndRefundNodeRecord(nodeRecord: nodeRecord)
+                    }
+                } else if currentNodeCount[nodeRole]! + UInt16(pendingNodes[nodeRole]!.length) > slotLimits[nodeRole]! {
+                    //randomly remove pending nodes until the limit is met
+                    let deletionCount: UInt16 = currentNodeCount[nodeRole]! + UInt16(pendingNodes[nodeRole]!.length) - slotLimits[nodeRole]!
+                    var deletionArray: [UInt16] = []
+                    while UInt16(deletionArray.length) < deletionCount {
+                        let selection = UInt16(unsafeRandom() % UInt64(pendingNodes[nodeRole]!.length))
+                        if !deletionArray.contains(selection) {
+                            deletionArray.append(selection)
+                        }
+                    }
+                    for nodeIndex in deletionArray {
+                        self.removeAndRefundNodeRecord(nodeRecord: pendingNodes[nodeRole]![nodeIndex]!)
+                    }
+                }
+            }
+
+            //clear the candidate list
+            FlowIDTableStaking.account.save([] as [String], to: /storage/flowStakingCandidateNodes)
         }
 
         /// Set slot (count) limits for each node type (role).
         pub fun setSlotLimits(slotLimits: {UInt8: UInt16}) {
             FlowIDTableStaking.account.load<{UInt8: UInt16}>(from: /storage/flowStakingSlotLimits)
             FlowIDTableStaking.account.save(slotLimits, to: /storage/flowStakingSlotLimits)
-        }
-
-        /// Enforces slot (count) limits for each node type (role). If more nodes
-        /// of a given type are registered than the limit, they are removed
-        /// randomly until the limits are met. When a node is removed, its
-        /// committed tokens are transfered to its unstaked bucket.
-        pub fun slotSelect() {
-            let allNodeIDs = FlowIDTableStaking.getNodeIDs()
-
-            let slotLimits = FlowIDTableStaking.account.load<{UInt8: UInt16}>(from: /storage/flowStakingSlotLimits)
-                ?? panic("Could not load the slot limits object from storage!")
-
-            // count the nodes of each type
-            var nodeCounts: {UInt8: UInt16} = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
-            for nodeID in allNodeIDs {
-                let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
-                if nodeRecord.initialWeight == 100 {
-                    nodeCounts[nodeRecord.role] = nodeCounts[nodeRecord.role]! + 1
-                }
-            }
-
-            for nodeRole in nodeCounts.keys {
-                while nodeCounts[nodeRole]! > slotLimits[nodeRole]! {
-                    let selection = unsafeRandom() % UInt64(nodeCounts[nodeRole]!)
-                    var searchIndex: UInt64 = 0
-                    for nodeID in allNodeIDs {
-                        let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
-                        if nodeRecord.role == nodeRole && nodeRecord.initialWeight == 100 {
-                            if selection == searchIndex {
-                                emit NodeRemovedAndRefunded(nodeID: nodeRecord.id, amount: nodeRecord.tokensCommitted.balance + nodeRecord.tokensStaked.balance)
-
-                                // move their committed tokens back to their unstaked tokens
-                                nodeRecord.tokensUnstaked.deposit(from: <-nodeRecord.tokensCommitted.withdraw(amount: nodeRecord.tokensCommitted.balance))
-
-                                // Set their request to unstake equal to all their staked tokens
-                                // since they are forced to unstake
-                                nodeRecord.tokensRequestedToUnstake = nodeRecord.tokensStaked.balance
-
-                                // Iterate through all delegators and unstake their tokens
-                                // since their node has unstaked
-                                for delegator in nodeRecord.delegators.keys {
-                                    let delRecord = nodeRecord.borrowDelegatorRecord(delegator)
-
-                                    if delRecord.tokensCommitted.balance > 0.0 {
-                                        emit DelegatorTokensUnstaked(nodeID: nodeRecord.id, delegatorID: delegator, amount: delRecord.tokensCommitted.balance)
-
-                                        // move their committed tokens back to their unstaked tokens
-                                        delRecord.tokensUnstaked.deposit(from: <-delRecord.tokensCommitted.withdraw(amount: delRecord.tokensCommitted.balance))
-                                    }
-
-                                    // Request to unstake all tokens
-                                    delRecord.tokensRequestedToUnstake = delRecord.tokensStaked.balance
-                                }
-
-                                // Clear initial weight because the node is not staked any more
-                                nodeRecord.initialWeight = 0
-
-                                //Decrement the count for this role
-                                nodeCounts[nodeRole] = nodeCounts[nodeRole]! - 1
-
-                                break
-                            }
-                            searchIndex = searchIndex + 1
-                        }
-                    }
-                }
-            }
         }
 
         /// Called at the end of the epoch to pay rewards to node operators
@@ -1267,6 +1250,10 @@ pub contract FlowIDTableStaking {
         let newNode <- create NodeRecord(id: id, role: role, networkingAddress: networkingAddress, networkingKey: networkingKey, stakingKey: stakingKey, tokensCommitted: <-tokensCommitted)
         FlowIDTableStaking.nodes[id] <-! newNode
 
+        let candidateNodes = FlowIDTableStaking.account.load<[String]>(from: /storage/flowStakingCandidateNodes) ?? []
+        candidateNodes!.append(id)
+        FlowIDTableStaking.account.save(candidateNodes, to: /storage/flowStakingCandidateNodes)
+
         // return a new NodeStaker object that the node operator stores in their account
         return <-create NodeStaker(id: id)
     }
@@ -1501,9 +1488,6 @@ pub contract FlowIDTableStaking {
 
     init(_ epochTokenPayout: UFix64, _ rewardCut: UFix64) {
         self.account.save(true, to: /storage/stakingEnabled)
-
-        let slotLimits: {UInt8: UInt16} = {1: 3, 2: 3, 3: 3, 4: 3, 5: 3}
-        self.account.save(slotLimits, to: /storage/flowStakingSlotLimits)
 
         self.nodes <- {}
 

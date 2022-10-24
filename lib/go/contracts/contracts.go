@@ -25,18 +25,19 @@ import (
 ///
 
 const (
-	flowFeesFilename              = "FlowFees.cdc"
-	storageFeesFilename           = "FlowStorageFees.cdc"
-	flowServiceAccountFilename    = "FlowServiceAccount.cdc"
-	flowTokenFilename             = "FlowToken.cdc"
-	flowIdentityTableFilename     = "FlowIDTableStaking.cdc"
-	flowQCFilename                = "epochs/FlowClusterQC.cdc"
-	flowDKGFilename               = "epochs/FlowDKG.cdc"
-	flowEpochFilename             = "epochs/FlowEpoch.cdc"
-	flowLockedTokensFilename      = "LockedTokens.cdc"
-	flowStakingProxyFilename      = "StakingProxy.cdc"
-	flowStakingCollectionFilename = "FlowStakingCollection.cdc"
-	flowContractAuditsFilename    = "FlowContractAudits.cdc"
+	flowFeesFilename                   = "FlowFees.cdc"
+	storageFeesFilename                = "FlowStorageFees.cdc"
+	flowServiceAccountFilename         = "FlowServiceAccount.cdc"
+	flowTokenFilename                  = "FlowToken.cdc"
+	flowIdentityTableFilename          = "FlowIDTableStaking.cdc"
+	flowQCFilename                     = "epochs/FlowClusterQC.cdc"
+	flowDKGFilename                    = "epochs/FlowDKG.cdc"
+	flowEpochFilename                  = "epochs/FlowEpoch.cdc"
+	flowLockedTokensFilename           = "LockedTokens.cdc"
+	flowStakingProxyFilename           = "StakingProxy.cdc"
+	flowStakingCollectionFilename      = "FlowStakingCollection.cdc"
+	flowContractAuditsFilename         = "FlowContractAudits.cdc"
+	executionNodeVersionBeaconFilename = "ExecutionNodeVersionBeacon.cdc"
 
 	// Test contracts
 	// only used for testing
@@ -44,17 +45,18 @@ const (
 
 	// Each contract has placeholder addresses that need to be replaced
 	// depending on which network they are being used with
-	placeholderFungibleTokenAddress     = "0xFUNGIBLETOKENADDRESS"
-	placeholderFlowTokenAddress         = "0xFLOWTOKENADDRESS"
-	placeholderIDTableAddress           = "0xFLOWIDTABLESTAKINGADDRESS"
-	placeholderStakingProxyAddress      = "0xSTAKINGPROXYADDRESS"
-	placeholderQCAddr                   = "0xQCADDRESS"
-	placeholderDKGAddr                  = "0xDKGADDRESS"
-	placeholderEpochAddr                = "0xEPOCHADDRESS"
-	placeholderFlowFeesAddress          = "0xFLOWFEESADDRESS"
-	placeholderStorageFeesAddress       = "0xFLOWSTORAGEFEESADDRESS"
-	placeholderLockedTokensAddress      = "0xLOCKEDTOKENSADDRESS"
-	placeholderStakingCollectionAddress = "0xFLOWSTAKINGCOLLECTIONADDRESS"
+	placeholderFungibleTokenAddress              = "0xFUNGIBLETOKENADDRESS"
+	placeholderFlowTokenAddress                  = "0xFLOWTOKENADDRESS"
+	placeholderIDTableAddress                    = "0xFLOWIDTABLESTAKINGADDRESS"
+	placeholderStakingProxyAddress               = "0xSTAKINGPROXYADDRESS"
+	placeholderQCAddr                            = "0xQCADDRESS"
+	placeholderDKGAddr                           = "0xDKGADDRESS"
+	placeholderEpochAddr                         = "0xEPOCHADDRESS"
+	placeholderFlowFeesAddress                   = "0xFLOWFEESADDRESS"
+	placeholderStorageFeesAddress                = "0xFLOWSTORAGEFEESADDRESS"
+	placeholderLockedTokensAddress               = "0xLOCKEDTOKENSADDRESS"
+	placeholderStakingCollectionAddress          = "0xFLOWSTAKINGCOLLECTIONADDRESS"
+	placeholderExecutionNodeVersionBeaconAddress = "0xEXECUTIONNODEVERSIONBEACONADDRESS"
 )
 
 // Adds a `0x` prefix to the provided address string
@@ -116,7 +118,6 @@ func FlowFees(fungibleTokenAddress, flowTokenAddress string) []byte {
 
 // FlowStorageFees returns the FlowStorageFees contract
 // which imports the fungible token and flow token contracts
-//
 func FlowStorageFees(fungibleTokenAddress, flowTokenAddress string) []byte {
 	code := assets.MustAssetString(storageFeesFilename)
 
@@ -171,7 +172,7 @@ func FlowServiceAccount(fungibleTokenAddress, flowTokenAddress, flowFeesAddress,
 
 // FlowIDTableStaking returns the FlowIDTableStaking contract
 //
-// The staking contract imports the FungibleToken and FlowToken contracts
+// # The staking contract imports the FungibleToken and FlowToken contracts
 //
 // Parameter: latest: indicates if the contract is the latest version, or an old version. Used to test upgrades
 func FlowIDTableStaking(fungibleTokenAddress, flowTokenAddress, flowFeesAddress string, latest bool) []byte {
@@ -226,7 +227,6 @@ func FlowStakingCollection(
 // FlowLockedTokens return the LockedTokens contract
 //
 // Locked Tokens imports FungibleToken, FlowToken, FlowIDTableStaking, StakingProxy, and FlowStorageFees
-//
 func FlowLockedTokens(
 	fungibleTokenAddress,
 	flowTokenAddress,

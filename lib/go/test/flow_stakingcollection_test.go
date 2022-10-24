@@ -473,9 +473,27 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		adminID,
 		false)
 
+	//set the slot limits
+	slotLimits := make([]cadence.Value, 5)
+	for i := 0; i < 5; i++ {
+		slotLimits[i] = cadence.NewUInt16(1000)
+	}
+
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetSlotLimitsScript(env), flow.HexToAddress(env.IDTableAddress))
+
+	err := tx.AddArgument(cadence.NewArray(slotLimits))
+	require.NoError(t, err)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{flow.HexToAddress(env.IDTableAddress)},
+		[]crypto.Signer{IDTableSigner},
+		false,
+	)
+
 	// end staking auction and epoch, then pay rewards
-	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), flow.HexToAddress(env.IDTableAddress))
-	err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID)}))
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), flow.HexToAddress(env.IDTableAddress))
+	err = tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID)}))
 	require.NoError(t, err)
 	signAndSubmit(
 		t, b, tx,
@@ -867,9 +885,27 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 		1,
 		false)
 
+	//set the slot limits
+	slotLimits := make([]cadence.Value, 5)
+	for i := 0; i < 5; i++ {
+		slotLimits[i] = cadence.NewUInt16(1000)
+	}
+
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetSlotLimitsScript(env), flow.HexToAddress(env.IDTableAddress))
+
+	err := tx.AddArgument(cadence.NewArray(slotLimits))
+	require.NoError(t, err)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{flow.HexToAddress(env.IDTableAddress)},
+		[]crypto.Signer{IDTableSigner},
+		false,
+	)
+
 	// end staking auction and epoch, then pay rewards
-	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), flow.HexToAddress(env.IDTableAddress))
-	err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID)}))
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), flow.HexToAddress(env.IDTableAddress))
+	err = tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID)}))
 	require.NoError(t, err)
 	signAndSubmit(
 		t, b, tx,
@@ -1569,9 +1605,27 @@ func TestStakingCollectionRewards(t *testing.T) {
 		"1000000.0", "1000000.0",
 		adminAccountKey, adminAddress, adminSigner)
 
+	//set the slot limits
+	slotLimits := make([]cadence.Value, 5)
+	for i := 0; i < 5; i++ {
+		slotLimits[i] = cadence.NewUInt16(1000)
+	}
+
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetSlotLimitsScript(env), flow.HexToAddress(env.IDTableAddress))
+
+	err := tx.AddArgument(cadence.NewArray(slotLimits))
+	require.NoError(t, err)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{flow.HexToAddress(env.IDTableAddress)},
+		[]crypto.Signer{IDTableSigner},
+		false,
+	)
+
 	// end staking auction and epoch, then pay rewards
-	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), flow.HexToAddress(env.IDTableAddress))
-	err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID)}))
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), flow.HexToAddress(env.IDTableAddress))
+	err = tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID)}))
 	require.NoError(t, err)
 	signAndSubmit(
 		t, b, tx,
@@ -1968,8 +2022,26 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 
 	t.Run("Should fail to close a stake and delegation stored in the locked account if there are tokens in a 'staked' state", func(t *testing.T) {
 
+		//set the slot limits
+		slotLimits := make([]cadence.Value, 5)
+		for i := 0; i < 5; i++ {
+			slotLimits[i] = cadence.NewUInt16(1000)
+		}
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetSlotLimitsScript(env), flow.HexToAddress(env.IDTableAddress))
+
+		err := tx.AddArgument(cadence.NewArray(slotLimits))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{flow.HexToAddress(env.IDTableAddress)},
+			[]crypto.Signer{IDTableSigner},
+			false,
+		)
+
 		// Should fail because node isn't ready to be closed. tokens in committed bucket
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionCloseStake(env), joshAddress)
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionCloseStake(env), joshAddress)
 		_ = tx.AddArgument(CadenceString(joshID1))
 		_ = tx.AddArgument(cadence.NewOptional(nil))
 
