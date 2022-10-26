@@ -766,11 +766,12 @@ pub contract FlowIDTableStaking {
             return <-node
         }
 
-        pub fun setNodeWeight(nodeRecord: &NodeRecord, weight: UInt64) {
+        pub fun setNodeWeight(nodeID: String, weight: UInt64) {
             if weight > 100 {
                 panic("Specified node weight out of range.")
             }
 
+            let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
             nodeRecord.initialWeight = weight
         }
 
@@ -824,6 +825,8 @@ pub contract FlowIDTableStaking {
             FlowIDTableStaking.account.save(false, to: /storage/stakingEnabled)
         }
 
+        /// Removes nodes by setting their weight to zero and refunding
+        /// staked and delegated tokens.
         access(account) fun removeAndRefundNodeRecord(nodeRecord: &NodeRecord) {
             emit NodeRemovedAndRefunded(nodeID: nodeRecord.id, amount: nodeRecord.tokensCommitted.balance + nodeRecord.tokensStaked.balance)
 
