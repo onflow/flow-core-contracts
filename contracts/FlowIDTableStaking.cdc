@@ -906,15 +906,16 @@ pub contract FlowIDTableStaking {
                 } else if currentNodeCount[nodeRole]! + UInt16(pendingNodes[nodeRole]!.length) > slotLimits[nodeRole]! {
                     //randomly remove pending nodes until the limit is met
                     let deletionCount: UInt16 = currentNodeCount[nodeRole]! + UInt16(pendingNodes[nodeRole]!.length) - slotLimits[nodeRole]!
-                    var deletionArray: [UInt16] = []
-                    while UInt16(deletionArray.length) < deletionCount {
+                    var deletionList: {UInt16: Bool} = {}
+                    while UInt16(deletionList.keys.length) < deletionCount {
                         let selection = UInt16(unsafeRandom() % UInt64(pendingNodes[nodeRole]!.length))
-                        if !deletionArray.contains(selection) {
-                            deletionArray.append(selection)
-                        }
+                        deletionList[selection] = true
                     }
-                    for nodeIndex in deletionArray {
-                        self.removeAndRefundNodeRecord(nodeRecord: pendingNodes[nodeRole]![nodeIndex]!)
+
+                    for nodeIndex, nodeRecord in pendingNodes[nodeRole]! {
+                        if deletionList[UInt16(nodeIndex)] != nil {
+                            self.removeAndRefundNodeRecord(nodeRecord: pendingNodes[nodeRole]![nodeIndex]!)
+                        }
                     }
                 }
             }
