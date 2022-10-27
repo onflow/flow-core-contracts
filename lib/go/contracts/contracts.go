@@ -9,20 +9,18 @@ import (
 	_ "github.com/kevinburke/go-bindata"
 	ftcontracts "github.com/onflow/flow-ft/lib/go/contracts"
 
-	_ "github.com/kevinburke/go-bindata"
-
 	"github.com/onflow/flow-core-contracts/lib/go/contracts/internal/assets"
 )
 
-/// This package contains utility functions to get contract code for the contracts in this repo
-/// To use this package, import the `flow-core-contracts/lib/go/contracts` package,
-/// then use the contracts package to call one of these functions.
-/// They will return the byte array version of the contract.
-///
-/// Example
-///
-/// flowTokenCode := contracts.FlowToken(fungibleTokenAddr)
-///
+// / This package contains utility functions to get contract code for the contracts in this repo
+// / To use this package, import the `flow-core-contracts/lib/go/contracts` package,
+// / then use the contracts package to call one of these functions.
+// / They will return the byte array version of the contract.
+// /
+// / Example
+// /
+// / flowTokenCode := contracts.FlowToken(fungibleTokenAddr)
+// /
 
 const (
 	flowFeesFilename                   = "FlowFees.cdc"
@@ -98,7 +96,7 @@ func FlowToken(fungibleTokenAddress string) []byte {
 //
 // The returned contract will import the FungibleToken and FlowToken
 // contracts from the specified addresses.
-func FlowFees(fungibleTokenAddress, flowTokenAddress string) []byte {
+func FlowFees(fungibleTokenAddress, flowTokenAddress, storageFeesAddress string) []byte {
 	code := assets.MustAssetString(flowFeesFilename)
 
 	code = strings.ReplaceAll(
@@ -111,6 +109,12 @@ func FlowFees(fungibleTokenAddress, flowTokenAddress string) []byte {
 		code,
 		placeholderFlowTokenAddress,
 		withHexPrefix(flowTokenAddress),
+	)
+
+	code = strings.ReplaceAll(
+		code,
+		placeholderStorageFeesAddress,
+		withHexPrefix(storageFeesAddress),
 	)
 
 	return []byte(code)

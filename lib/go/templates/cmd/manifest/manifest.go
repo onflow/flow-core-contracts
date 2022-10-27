@@ -45,7 +45,7 @@ func (v cadenceValue) MarshalJSON() ([]byte, error) {
 }
 
 func (v cadenceValue) UnmarshalJSON(bytes []byte) (err error) {
-	v.Value, err = jsoncdc.Decode(bytes)
+	v.Value, err = jsoncdc.Decode(nil, bytes)
 	if err != nil {
 		return err
 	}
@@ -94,7 +94,7 @@ func generateManifest(env templates.Environment) *manifest {
 	sampleAmount := cadenceValue{sampleAmountRaw}
 
 	sampleNodeID := cadenceValue{
-		cadence.NewString("88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"),
+		cadence.String("88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"),
 	}
 
 	sampleNodeRole := cadenceValue{
@@ -102,15 +102,15 @@ func generateManifest(env templates.Environment) *manifest {
 	}
 
 	sampleNetworkingAddress := cadenceValue{
-		cadence.NewString("flow-node.test:3569"),
+		cadence.String("flow-node.test:3569"),
 	}
 
 	sampleNetworkingKey := cadenceValue{
-		cadence.NewString("1348307bc77c688e80049de9d081aa09755da33e6997605fa059db2144fc85e560cbe6f7da8d74b453f5916618cb8fd392c2db856f3e78221dc68db1b1d914e4"),
+		cadence.String("1348307bc77c688e80049de9d081aa09755da33e6997605fa059db2144fc85e560cbe6f7da8d74b453f5916618cb8fd392c2db856f3e78221dc68db1b1d914e4"),
 	}
 
 	sampleStakingKey := cadenceValue{
-		cadence.NewString("9e9ae0d645fd5fd9050792e0b0daa82cc1686d9133afa0f81a784b375c42ae48567d1545e7a9e1965f2c1a32f73cf8575ebb7a967f6e4d104d2df78eb8be409135d12da0499b8a00771f642c1b9c49397f22b440439f036c3bdee82f5309dab3"),
+		cadence.String("9e9ae0d645fd5fd9050792e0b0daa82cc1686d9133afa0f81a784b375c42ae48567d1545e7a9e1965f2c1a32f73cf8575ebb7a967f6e4d104d2df78eb8be409135d12da0499b8a00771f642c1b9c49397f22b440439f036c3bdee82f5309dab3"),
 	}
 
 	sampleNullOptional := cadenceValue{
@@ -126,13 +126,13 @@ func generateManifest(env templates.Environment) *manifest {
 	sampleEmptyPublicKeys := cadence.NewArray([]cadence.Value{})
 
 	sampleOnePublicKey := cadence.NewArray([]cadence.Value{
-		cadence.NewString("f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"),
+		cadence.String("f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"),
 	})
 
 	sampleThreePublicKeys := cadence.NewArray([]cadence.Value{
-		cadence.NewString("f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"),
-		cadence.NewString("f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"),
-		cadence.NewString("f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"),
+		cadence.String("f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"),
+		cadence.String("f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"),
+		cadence.String("f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"),
 	})
 
 	m.addTemplate(generateTemplate(
