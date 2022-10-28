@@ -26,14 +26,14 @@ import (
 *
  */
 
-/// Used to verify the values of the clusters in the smart contract
+// / Used to verify the values of the clusters in the smart contract
 type Cluster struct {
 	index       uint16
 	totalWeight uint64
 	size        uint16
 }
 
-/// Used to verify epoch metadata in tests
+// / Used to verify epoch metadata in tests
 type EpochMetadata struct {
 	counter               uint64
 	seed                  string
@@ -48,7 +48,7 @@ type EpochMetadata struct {
 	dkgKeys               []string
 }
 
-/// Used to verify the configurable Epoch metadata in tests
+// / Used to verify the configurable Epoch metadata in tests
 type ConfigMetadata struct {
 	currentEpochCounter      uint64
 	proposedEpochCounter     uint64
@@ -60,7 +60,7 @@ type ConfigMetadata struct {
 	numCollectorClusters     uint16
 }
 
-/// Used to verify the EpochSetup event fields in tests
+// / Used to verify the EpochSetup event fields in tests
 type EpochSetup struct {
 	counter            uint64
 	nodeInfoLength     int
@@ -73,7 +73,7 @@ type EpochSetup struct {
 	dkgPhase3FinalView uint64
 }
 
-/// Used to verify the EpochCommit event fields in tests
+// / Used to verify the EpochCommit event fields in tests
 type EpochCommit struct {
 	counter    uint64
 	clusterQCs [][]string
@@ -128,8 +128,8 @@ func (evt EpochCommitEvent) dkgPubKeys() cadence.Array {
 	return evt.Value.Fields[2].(cadence.Array)
 }
 
-/// Deploys the Quroum Certificate and Distributed Key Generation contracts to the provided account
-///
+// / Deploys the Quroum Certificate and Distributed Key Generation contracts to the provided account
+// /
 func deployQCDKGContract(t *testing.T, b *emulator.Blockchain, idTableAddress flow.Address, IDTableSigner crypto.Signer, env templates.Environment) {
 
 	QCCode := contracts.FlowQC()
@@ -156,8 +156,8 @@ func deployQCDKGContract(t *testing.T, b *emulator.Blockchain, idTableAddress fl
 	)
 }
 
-/// Deploys the epoch lifecycle contract to the provided account with all the specified init values
-/// uses empty clusters, qcs, and dkg keys for now
+// / Deploys the epoch lifecycle contract to the provided account with all the specified init values
+// / uses empty clusters, qcs, and dkg keys for now
 func deployEpochContract(
 	t *testing.T,
 	b *emulator.Blockchain,
@@ -198,7 +198,7 @@ func deployEpochContract(
 	)
 }
 
-/// Deploys the staking contract, qc, dkg, and epoch contracts
+// / Deploys the staking contract, qc, dkg, and epoch contracts
 func initializeAllEpochContracts(
 	t *testing.T,
 	b *emulator.Blockchain,
@@ -225,9 +225,9 @@ func initializeAllEpochContracts(
 	return idTableAddress, startView
 }
 
-/// Attempts to advance the epoch to the specified phase
-/// "EPOCHSETUP", "EPOCHCOMMIT", or "ENDEPOCH",
-/// "BLOCK" allows the contract to just advance a block
+// / Attempts to advance the epoch to the specified phase
+// / "EPOCHSETUP", "EPOCHCOMMIT", or "ENDEPOCH",
+// / "BLOCK" allows the contract to just advance a block
 func advanceView(
 	t *testing.T,
 	b *emulator.Blockchain,
@@ -301,15 +301,15 @@ func registerNodeWithSetupAccount(t *testing.T,
 	)
 
 	if !shouldFail {
-		newTokensCommitted = tokensCommitted.Plus(nil, amount).(interpreter.UFix64Value)
+		newTokensCommitted = tokensCommitted.Plus(stubInterpreter(), amount).(interpreter.UFix64Value)
 	}
 
 	return
 }
 
-/// Registers the specified number of nodes for staking and qc/dkg in the same transaction
-/// creates a secondary account for the nodes who have the qc or dkg resources
-/// with the same keys as the first account
+// / Registers the specified number of nodes for staking and qc/dkg in the same transaction
+// / creates a secondary account for the nodes who have the qc or dkg resources
+// / with the same keys as the first account
 func registerNodesForEpochs(
 	t *testing.T,
 	b *emulator.Blockchain,
@@ -349,8 +349,8 @@ func registerNodesForEpochs(
 	}
 }
 
-/// Verifies that the clusters provided are the same as the expected clusters
-///
+// / Verifies that the clusters provided are the same as the expected clusters
+// /
 func verifyClusters(
 	t *testing.T,
 	expectedClusters []Cluster,
@@ -382,8 +382,8 @@ func verifyClusters(
 
 }
 
-/// Verifies that the cluster quorum certificates are equal to the provided expected values
-///
+// / Verifies that the cluster quorum certificates are equal to the provided expected values
+// /
 func verifyClusterQCs(
 	t *testing.T,
 	expectedQCs [][]string,
@@ -423,7 +423,7 @@ func verifyClusterQCs(
 	}
 }
 
-/// Verifies that the epoch metadata is equal to the provided expected values
+// / Verifies that the epoch metadata is equal to the provided expected values
 func verifyEpochMetadata(
 	t *testing.T,
 	b *emulator.Blockchain,
@@ -485,7 +485,7 @@ func verifyEpochMetadata(
 	}
 }
 
-/// Verifies that the configurable epoch metadata is equal to the provided values
+// / Verifies that the configurable epoch metadata is equal to the provided values
 func verifyConfigMetadata(
 	t *testing.T,
 	b *emulator.Blockchain,
@@ -521,7 +521,7 @@ func verifyConfigMetadata(
 
 }
 
-/// Verifies that the epoch setup event values are equal to the provided expected values
+// / Verifies that the epoch setup event values are equal to the provided expected values
 func verifyEpochSetup(
 	t *testing.T,
 	b *emulator.Blockchain,
@@ -561,8 +561,8 @@ func verifyEpochSetup(
 	assertEqual(t, cadence.NewUInt64(expectedSetup.dkgPhase3FinalView), phase3View)
 }
 
-/// Verifies that the EpochCommit event values are equal to the provided expected values
-///
+// / Verifies that the EpochCommit event values are equal to the provided expected values
+// /
 func verifyEpochCommit(
 	t *testing.T,
 	b *emulator.Blockchain,
