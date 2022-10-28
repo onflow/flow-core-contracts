@@ -41,10 +41,10 @@ const (
 	emulatorFTAddress        = "ee82856bf20e2aa6"
 	emulatorFlowTokenAddress = "0ae53cb6e3f42a79"
 	emulatorFlowFeesAddress  = "e5a8b7f23e8b548f"
+	emulatorStorageFees      = "f8d6e0586b0a20c7"
 )
 
 // Sets up testing and emulator objects and initialize the emulator default addresses
-//
 func newTestSetup(t *testing.T) (*emulator.Blockchain, *test.AccountKeys, templates.Environment) {
 	// Set for parallel processing
 	t.Parallel()
@@ -231,12 +231,11 @@ func bytesToCadenceArray(b []byte) cadence.Array {
 
 // assertEqual asserts that two objects are equal.
 //
-//    assertEqual(t, 123, 123)
+//	assertEqual(t, 123, 123)
 //
 // Pointer variable equality is determined based on the equality of the
 // referenced values (as opposed to the memory addresses). Function equality
 // cannot be determined and will always fail.
-//
 func assertEqual(t *testing.T, expected, actual interface{}) bool {
 
 	if assert.ObjectsAreEqual(expected, actual) {
