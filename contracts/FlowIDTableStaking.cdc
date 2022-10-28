@@ -827,7 +827,7 @@ pub contract FlowIDTableStaking {
 
         /// Removes nodes by setting their weight to zero and refunding
         /// staked and delegated tokens.
-        access(account) fun removeAndRefundNodeRecord(nodeRecord: &NodeRecord) {
+        access(self) fun removeAndRefundNodeRecord(nodeRecord: &NodeRecord) {
             emit NodeRemovedAndRefunded(nodeID: nodeRecord.id, amount: nodeRecord.tokensCommitted.balance + nodeRecord.tokensStaked.balance)
 
             // move their committed tokens back to their unstaked tokens
@@ -1251,10 +1251,17 @@ pub contract FlowIDTableStaking {
         pre {
             FlowIDTableStaking.stakingEnabled(): "Cannot register a node operator if the staking auction isn't in progress"
         }
+        let candidateNodes = FlowIDTableStaking.account.load<[String]>(from: /storage/flowStakingCandidateNodes) ?? []
+
+        //todo: This limit should be a contract constant
+        if candidateNodes.length > 1000 {
+            FlowIDTableStaking.account.save(candidateNodes, to: /storage/flowStakingCandidateNodes)
+            panic("Candidate node limit exceeded.")
+        }
+
         let newNode <- create NodeRecord(id: id, role: role, networkingAddress: networkingAddress, networkingKey: networkingKey, stakingKey: stakingKey, tokensCommitted: <-tokensCommitted)
         FlowIDTableStaking.nodes[id] <-! newNode
 
-        let candidateNodes = FlowIDTableStaking.account.load<[String]>(from: /storage/flowStakingCandidateNodes) ?? []
         candidateNodes!.append(id)
         FlowIDTableStaking.account.save(candidateNodes, to: /storage/flowStakingCandidateNodes)
 
@@ -1366,9 +1373,9 @@ pub contract FlowIDTableStaking {
             let approved = approvedNodeIDs[nodeID] ?? false
 
             // To be considered proposed, a node has to have tokens staked + committed equal or above the minimum
-            // Access nodes have a minimum of 0, so they need to be strictly greater than zero to be considered proposed
+            // Access nodes have a minimum of 0, so they need to be greater than or equal to zero to be considered proposed
             if self.isGreaterThanMinimumForRole(numTokens: self.NodeInfo(nodeID: nodeRecord.id).totalCommittedWithoutDelegators(), role: nodeRecord.role)
-               && approved
+               && (approved || nodeRecord.role == UInt8(5))
             {
                 proposedNodes.append(nodeID)
             }

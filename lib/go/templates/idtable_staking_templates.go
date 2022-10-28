@@ -10,6 +10,7 @@ const (
 	removeNodeFilename              = "idTableStaking/admin/remove_node.cdc"
 	endStakingFilename              = "idTableStaking/admin/end_staking.cdc"
 	removeUnapprovedNodesFilename   = "idTableStaking/admin/remove_unapproved_nodes.cdc"
+	setNodeWeightFilename           = "idTableStaking/admin/set_node_weight.cdc"
 	setSlotLimitsFilename           = "idTableStaking/admin/set_slot_limit.cdc"
 	setApprovedNodesFilename        = "idTableStaking/admin/set_approved_nodes.cdc"
 	addApprovedNodesFilename        = "idTableStaking/admin/add_approved_nodes.cdc"
@@ -107,6 +108,12 @@ func GenerateEndStakingScript(env Environment) []byte {
 
 func GenerateRemoveUnapprovedNodesScript(env Environment) []byte {
 	code := assets.MustAssetString(removeUnapprovedNodesFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateSetNodeWeightScript(env Environment) []byte {
+	code := assets.MustAssetString(setNodeWeightFilename)
 
 	return []byte(ReplaceAddresses(code, env))
 }

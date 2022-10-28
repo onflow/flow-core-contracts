@@ -2459,6 +2459,28 @@ func TestIDTableStaking(t *testing.T) {
 
 	})
 
+	t.Run("Should be able to set node weight", func(t *testing.T) {
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetNodeWeightScript(env), idTableAddress)
+
+		err := tx.AddArgument(CadenceString(joshID))
+		require.NoError(t, err)
+
+		err = tx.AddArgument(cadence.NewUInt64(50))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
+			false,
+		)
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetInitialWeightScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(joshID))})
+		assertEqual(t, cadence.NewUInt64(50), result)
+
+	})
+
 	t.Run("Should be able to enforce slot limits without ending staking", func(t *testing.T) {
 		//remove nodes from previous tests
 		currentNodes := [5]string{adminID, joshID, maxID, bastianID, accessID}

@@ -103,6 +103,7 @@
 // ../../../transactions/idTableStaking/admin/scale_rewards_test.cdc (716B)
 // ../../../transactions/idTableStaking/admin/set_approved_nodes.cdc (601B)
 // ../../../transactions/idTableStaking/admin/set_claimed.cdc (612B)
+// ../../../transactions/idTableStaking/admin/set_node_weight.cdc (631B)
 // ../../../transactions/idTableStaking/admin/set_non_operational.cdc (764B)
 // ../../../transactions/idTableStaking/admin/set_slot_limit.cdc (1.316kB)
 // ../../../transactions/idTableStaking/admin/start_staking.cdc (576B)
@@ -2407,6 +2408,26 @@ func idtablestakingAdminSet_claimedCdc() (*asset, error) {
 
 	info := bindataFileInfo{name: "idTableStaking/admin/set_claimed.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x9c, 0xb4, 0xad, 0x42, 0x53, 0x64, 0xc1, 0x6f, 0x27, 0xf0, 0xd8, 0xf6, 0xf8, 0x47, 0x9f, 0x1e, 0x61, 0x7c, 0x35, 0xb0, 0xd3, 0x57, 0xe1, 0x19, 0x43, 0x5, 0x52, 0x66, 0x26, 0x65, 0xb6, 0x6}}
+	return a, nil
+}
+
+var _idtablestakingAdminSet_node_weightCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x74\x91\x41\x8b\xd4\x40\x10\x85\xef\xf9\x15\x8f\x3d\x48\x16\x24\xf1\x20\x1e\x82\xba\x44\x33\x42\x60\x59\x64\x13\x11\x8f\x35\x9d\xca\xa4\x35\xd3\x15\xba\x2b\xce\x80\xec\x7f\x97\x4e\x66\x74\x57\x67\xeb\x52\x10\x52\xef\x7d\xaf\x9f\xdd\x4f\xe2\x15\x9f\x46\x39\xd4\x55\x4b\xdb\x91\x1b\xa5\x1f\xd6\xed\xd0\x7b\xd9\xe3\xd5\xb1\xae\x36\x77\x6d\xdd\x7e\x6b\xcb\x0f\xb7\x9b\xb2\xaa\xee\x37\x4d\x93\x24\x79\x8e\x76\xb0\x01\xea\xc9\x05\x32\x6a\xc5\x21\xb0\x06\xe8\xc0\xb0\xce\xaa\xa5\xf1\x2b\xdb\xdd\xa0\x90\x1e\xe4\xc0\x47\x1b\x34\xca\x3a\xe9\x38\x49\x1e\xdd\xa5\xb6\x2b\xd0\xa8\xb7\x6e\xf7\x12\x87\xe5\xa6\xc0\x97\xda\xe9\x9b\xd7\xd7\xf8\x95\x24\x00\x90\xe7\xb8\x15\x43\x23\x7e\x92\xb7\x11\x12\xbd\x78\x10\x3c\xf7\xec\xd9\x19\x86\xca\x62\x5d\x57\x58\x42\xa0\xec\xf6\xd6\x41\xb6\xdf\xd9\xe8\x22\x31\xb2\x82\xe2\xc7\x7b\xee\x0b\xbc\xf8\x3f\x70\xb6\x9c\xac\x7e\x93\xe7\x89\x3c\xa7\x64\x8c\x16\x28\x67\x1d\x4a\x63\x64\x76\x1a\x89\x70\x9a\x3c\xc7\x56\xbc\x97\xc3\x25\x10\xfa\xd7\x3f\x4e\xe0\xb1\xcf\xce\x10\x78\x87\x28\x9f\xad\x1a\x6f\x9f\x25\x7a\x9f\xc6\x26\x8a\x0b\x15\x65\xa7\xbd\xfc\xd6\xa8\x78\xda\xf1\x67\xd2\xe1\xfa\x8f\x61\x9c\x9b\x1b\x4c\xe4\xac\x49\xaf\x3e\xca\x3c\x76\x70\xa2\x67\xee\x27\xd4\xe1\xd4\xfb\xc2\x77\xb5\x6a\x3c\xac\xcf\xc1\x47\x36\xb3\xf2\xa3\xec\x4f\x92\x64\x81\xf5\x4e\x3a\x5e\x0b\x4f\x63\xc3\x75\x55\xc0\x76\x7f\xfb\x5c\xf7\x59\xf4\x21\xf9\x1d\x00\x00\xff\xff\xfd\xe0\x69\x97\x77\x02\x00\x00"
+
+func idtablestakingAdminSet_node_weightCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_idtablestakingAdminSet_node_weightCdc,
+		"idTableStaking/admin/set_node_weight.cdc",
+	)
+}
+
+func idtablestakingAdminSet_node_weightCdc() (*asset, error) {
+	bytes, err := idtablestakingAdminSet_node_weightCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "idTableStaking/admin/set_node_weight.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x69, 0xf5, 0x9, 0x2f, 0xd, 0xbe, 0xac, 0x96, 0x87, 0x35, 0xcb, 0xa, 0x3a, 0x4c, 0x7d, 0x7f, 0xa6, 0x54, 0xaa, 0x7d, 0xdc, 0x34, 0x67, 0x15, 0xe8, 0x4a, 0x4b, 0xf7, 0x80, 0xc3, 0x3e, 0xee}}
 	return a, nil
 }
 
@@ -6164,6 +6185,7 @@ var _bindata = map[string]func() (*asset, error){
 	"idTableStaking/admin/scale_rewards_test.cdc":                                         idtablestakingAdminScale_rewards_testCdc,
 	"idTableStaking/admin/set_approved_nodes.cdc":                                         idtablestakingAdminSet_approved_nodesCdc,
 	"idTableStaking/admin/set_claimed.cdc":                                                idtablestakingAdminSet_claimedCdc,
+	"idTableStaking/admin/set_node_weight.cdc":                                            idtablestakingAdminSet_node_weightCdc,
 	"idTableStaking/admin/set_non_operational.cdc":                                        idtablestakingAdminSet_non_operationalCdc,
 	"idTableStaking/admin/set_slot_limit.cdc":                                             idtablestakingAdminSet_slot_limitCdc,
 	"idTableStaking/admin/start_staking.cdc":                                              idtablestakingAdminStart_stakingCdc,
@@ -6531,6 +6553,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 			"scale_rewards_test.cdc": {idtablestakingAdminScale_rewards_testCdc, map[string]*bintree{}},
 			"set_approved_nodes.cdc": {idtablestakingAdminSet_approved_nodesCdc, map[string]*bintree{}},
 			"set_claimed.cdc": {idtablestakingAdminSet_claimedCdc, map[string]*bintree{}},
+			"set_node_weight.cdc": {idtablestakingAdminSet_node_weightCdc, map[string]*bintree{}},
 			"set_non_operational.cdc": {idtablestakingAdminSet_non_operationalCdc, map[string]*bintree{}},
 			"set_slot_limit.cdc": {idtablestakingAdminSet_slot_limitCdc, map[string]*bintree{}},
 			"start_staking.cdc": {idtablestakingAdminStart_stakingCdc, map[string]*bintree{}},
