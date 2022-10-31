@@ -21,7 +21,7 @@ import (
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
 )
 
-/// Used to verify the EpochSetup event fields in tests
+// / Used to verify the EpochSetup event fields in tests
 type EpochTotalRewardsPaid struct {
 	total      string
 	fromFees   string
@@ -50,6 +50,12 @@ func (evt EpochTotalRewardsPaidEvent) FeesBurned() cadence.UFix64 {
 	return evt.Value.Fields[3].(cadence.UFix64)
 }
 
+func stubInterpreter() *interpreter.Interpreter {
+	return &interpreter.Interpreter{
+		Config: &interpreter.Config{},
+	}
+}
+
 // Defines utility functions that are used for testing the staking contract
 // such as deploying the contract, performing staking operations,
 // and verifying staking information for nodes and delegators
@@ -57,8 +63,8 @@ func (evt EpochTotalRewardsPaidEvent) FeesBurned() cadence.UFix64 {
 // Deploys the FlowIDTableStaking contract to a new account with the provided key
 //
 // parameter: latest: Indicates if the contract should be the latest version.
-//                    This is only set to false when testing staking contract upgrades
 //
+//	This is only set to false when testing staking contract upgrades
 func deployStakingContract(t *testing.T, b *emulator.Blockchain, IDTableAccountKey *flow.AccountKey, IDTableSigner crypto.Signer, env templates.Environment, latest bool) (flow.Address, flow.Address) {
 
 	// create the public key array for the staking and fees account
@@ -146,7 +152,7 @@ func deployStakingContract(t *testing.T, b *emulator.Blockchain, IDTableAccountK
 	return idTableAddress, feesAddr
 }
 
-/// Used to verify staking info in tests
+// / Used to verify staking info in tests
 type StakingInfo struct {
 	nodeID      string
 	delegatorID uint32
@@ -174,7 +180,6 @@ type StakingInfo struct {
 // If checking for a node, set delegatorID to 0
 // if checking for a delegator, you must specify the nodeID that is being delegated to
 // as well as the ID of the delegator for that node
-//
 func verifyStakingInfo(t *testing.T,
 	b *emulator.Blockchain,
 	env templates.Environment,
@@ -230,9 +235,10 @@ func verifyStakingInfo(t *testing.T,
 // parameter: numNodes: The number of nodes to generate IDs for
 //
 // returns: []string array of nodeIDs
-//          []cadence.Value array of only the collector node IDs, which are the first of every five IDs created
-//          []cadence.Vaule array of only the consensus node IDs, which are the second of every five IDs created
-//          execution, verification, and access would be the next three, in that order, but their IDs aren't especially needed
+//
+//	[]cadence.Value array of only the collector node IDs, which are the first of every five IDs created
+//	[]cadence.Vaule array of only the consensus node IDs, which are the second of every five IDs created
+//	execution, verification, and access would be the next three, in that order, but their IDs aren't especially needed
 func generateNodeIDs(numNodes int) ([]string, []cadence.Value, []cadence.Value) {
 	// initialize the slices for all the IDs
 	ids := make([]string, numNodes)
@@ -254,8 +260,8 @@ func generateNodeIDs(numNodes int) ([]string, []cadence.Value, []cadence.Value) 
 	return ids, collectorIDs, consensusIDs
 }
 
-/// Generates a key pair for staking, which uses the BLSBLS12381 signing algorithm
-/// Also generates a key pair for networking, which uses the ECDSA_P256 signing algorithm
+// / Generates a key pair for staking, which uses the BLSBLS12381 signing algorithm
+// / Also generates a key pair for networking, which uses the ECDSA_P256 signing algorithm
 func generateKeysForNodeRegistration(t *testing.T) (crypto.PrivateKey, string, crypto.PrivateKey, string) {
 	stakingPrivateKey, publicKey := generateKeys(t, flow_crypto.BLSBLS12381)
 	stakingPublicKey := publicKey.String()
@@ -268,7 +274,7 @@ func generateKeysForNodeRegistration(t *testing.T) (crypto.PrivateKey, string, c
 
 }
 
-/// Generates staking and networking key pairs for the specified number of nodes
+// / Generates staking and networking key pairs for the specified number of nodes
 func generateManyNodeKeys(t *testing.T, numNodes int) ([]crypto.PrivateKey, []string, []crypto.PrivateKey, []string) {
 	stakingPrivateKeys := make([]crypto.PrivateKey, numNodes)
 	stakingPublicKeys := make([]string, numNodes)
@@ -287,7 +293,7 @@ func generateManyNodeKeys(t *testing.T, numNodes int) ([]crypto.PrivateKey, []st
 
 }
 
-/// Verifies that the EpochTotalRewardsPaid event was emmitted correctly with correct values
+// / Verifies that the EpochTotalRewardsPaid event was emmitted correctly with correct values
 func verifyEpochTotalRewardsPaid(
 	t *testing.T,
 	b *emulator.Blockchain,
@@ -357,7 +363,7 @@ func registerNode(t *testing.T,
 	)
 
 	if !shouldFail {
-		newTokensCommitted = tokensCommitted.Plus(nil, amount).(interpreter.UFix64Value)
+		newTokensCommitted = tokensCommitted.Plus(stubInterpreter(), amount).(interpreter.UFix64Value)
 	}
 
 	return
@@ -411,10 +417,9 @@ func endStakingMoveTokens(t *testing.T,
 	)
 }
 
-/// Registers the specified number of nodes for staking with the specified IDs
-/// Does an even distrubution of node roles across the array of IDs in this order, repeating:
-/// collection, consensus, execution, verification, access
-//
+// / Registers the specified number of nodes for staking with the specified IDs
+// / Does an even distrubution of node roles across the array of IDs in this order, repeating:
+// / collection, consensus, execution, verification, access
 func registerNodesForStaking(
 	t *testing.T,
 	b *emulator.Blockchain,
@@ -489,7 +494,7 @@ func commitNewTokens(t *testing.T,
 	)
 
 	if !shouldFail {
-		newTokensCommitted = tokensCommitted.Plus(nil, amount).(interpreter.UFix64Value)
+		newTokensCommitted = tokensCommitted.Plus(stubInterpreter(), amount).(interpreter.UFix64Value)
 	} else {
 		newTokensCommitted = tokensCommitted
 	}
@@ -527,8 +532,8 @@ func commitUnstaked(t *testing.T,
 	)
 
 	if !shouldFail {
-		newTokensCommitted = tokensCommitted.Plus(nil, amount).(interpreter.UFix64Value)
-		newTokensUnstaked = tokensUnstaked.Minus(nil, amount).(interpreter.UFix64Value)
+		newTokensCommitted = tokensCommitted.Plus(stubInterpreter(), amount).(interpreter.UFix64Value)
+		newTokensUnstaked = tokensUnstaked.Minus(stubInterpreter(), amount).(interpreter.UFix64Value)
 	} else {
 		newTokensCommitted = tokensCommitted
 		newTokensUnstaked = tokensUnstaked
@@ -566,8 +571,8 @@ func commitRewarded(t *testing.T,
 	)
 
 	if !shouldFail {
-		newTokensRewarded = tokensRewarded.Minus(nil, amount).(interpreter.UFix64Value)
-		newTokensCommitted = tokensCommitted.Plus(nil, amount).(interpreter.UFix64Value)
+		newTokensRewarded = tokensRewarded.Minus(stubInterpreter(), amount).(interpreter.UFix64Value)
+		newTokensCommitted = tokensCommitted.Plus(stubInterpreter(), amount).(interpreter.UFix64Value)
 	} else {
 		newTokensRewarded = tokensRewarded
 		newTokensCommitted = tokensCommitted
@@ -606,12 +611,12 @@ func requestUnstaking(t *testing.T,
 
 	if !shouldFail {
 		if tokensCommitted > amount {
-			newTokensCommitted = tokensCommitted.Minus(nil, amount).(interpreter.UFix64Value)
-			newTokensUnstaked = tokensUnstaked.Plus(nil, amount).(interpreter.UFix64Value)
+			newTokensCommitted = tokensCommitted.Minus(stubInterpreter(), amount).(interpreter.UFix64Value)
+			newTokensUnstaked = tokensUnstaked.Plus(stubInterpreter(), amount).(interpreter.UFix64Value)
 			newRequest = request
 		} else {
-			newRequest = request.Plus(nil, amount.Minus(nil, tokensCommitted)).(interpreter.UFix64Value)
-			newTokensUnstaked = tokensUnstaked.Plus(nil, tokensCommitted).(interpreter.UFix64Value)
+			newRequest = request.Plus(stubInterpreter(), amount.Minus(stubInterpreter(), tokensCommitted)).(interpreter.UFix64Value)
+			newTokensUnstaked = tokensUnstaked.Plus(stubInterpreter(), tokensCommitted).(interpreter.UFix64Value)
 			newTokensCommitted = 0
 		}
 	} else {
@@ -630,11 +635,11 @@ func payRewards(
 ) (
 	rewards, delegateeRewards interpreter.UFix64Value,
 ) {
-	calculatedRewards := totalPayout.Div(nil, totalStaked).Mul(nil, staked).(interpreter.UFix64Value)
+	calculatedRewards := totalPayout.Div(stubInterpreter(), totalStaked).Mul(stubInterpreter(), staked).(interpreter.UFix64Value)
 
 	if isDelegator {
-		delegateeRewards = calculatedRewards.Mul(nil, cut).(interpreter.UFix64Value)
-		rewards = calculatedRewards.Minus(nil, delegateeRewards).(interpreter.UFix64Value)
+		delegateeRewards = calculatedRewards.Mul(stubInterpreter(), cut).(interpreter.UFix64Value)
+		rewards = calculatedRewards.Minus(stubInterpreter(), delegateeRewards).(interpreter.UFix64Value)
 
 	} else {
 		delegateeRewards = 0
@@ -645,22 +650,21 @@ func payRewards(
 }
 
 // Uses the staking admin to call the moveTokens transaction
-//
 func moveTokens(committed, staked, requested, unstaking, unstaked, totalStaked interpreter.UFix64Value,
 ) (
 	newCommitted, newStaked, newRequested, newUnstaking, newUnstaked, newTotalStaked interpreter.UFix64Value,
 ) {
-	newTotalStaked = totalStaked.Plus(nil, committed).Minus(nil, requested).(interpreter.UFix64Value)
+	newTotalStaked = totalStaked.Plus(stubInterpreter(), committed).Minus(stubInterpreter(), requested).(interpreter.UFix64Value)
 
 	newCommitted = 0
 
-	newStaked = staked.Plus(nil, committed).(interpreter.UFix64Value)
+	newStaked = staked.Plus(stubInterpreter(), committed).(interpreter.UFix64Value)
 
-	newUnstaked = unstaked.Plus(nil, unstaking).(interpreter.UFix64Value)
+	newUnstaked = unstaked.Plus(stubInterpreter(), unstaking).(interpreter.UFix64Value)
 
 	newUnstaking = requested
 
-	newStaked = newStaked.Minus(nil, requested).(interpreter.UFix64Value)
+	newStaked = newStaked.Minus(stubInterpreter(), requested).(interpreter.UFix64Value)
 
 	newRequested = 0
 

@@ -19,12 +19,12 @@ import (
 )
 
 const (
-	numberOfNodes      = 1000
-	numberOfDelegators = 20000
+	numberOfNodes      = 100
+	numberOfDelegators = 2000
 	nodeMintAmount     = 2000000
 
 	unstakeAllNumNodes      = 1
-	unstakeAllNumDelegators = 20000
+	unstakeAllNumDelegators = 2000
 )
 
 func TestManyNodesIDTable(t *testing.T) {
