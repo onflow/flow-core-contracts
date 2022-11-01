@@ -75,9 +75,11 @@ pub contract FlowFees {
     pub struct VerifyPayerBalanceResult {
         // True if the payer has sufficient balance for the transaction execution to continue
         pub let canExecuteTransaction: Bool
-        // The minimum payer balance required for the transaction execution to continue
+        // The minimum payer balance required for the transaction execution to continue. 
+        // This value is defined by verifyPayersBalanceForTransactionExecution.
         pub let requiredBalance: UFix64
-        // The maximum fees the transaction can incur (if all available execution effort is used)
+        // The maximum transaction fees (inclusion fees + execution fees) the transaction can incur 
+        // (if all available execution effort is used)
         pub let maximumTransactionFees: UFix64
 
         init(canExecuteTransaction: Bool, requiredBalance: UFix64,  maximumTransactionFees: UFix64){
@@ -92,6 +94,9 @@ pub contract FlowFees {
     // It verifies that the transaction payer's balance is high enough to continue transaction execution,
     // and returns the maximum possible transaction fees.
     // (according to the inclusion effort and maximum execution effort of the transaction).
+    //
+    // The requiredBalance balance is defined as the minimum account balance + 
+    //  maximum transaction fees (inclusion fees + execution fees at max execution effort).
     pub fun verifyPayersBalanceForTransactionExecution(
         _ payerAcct: AuthAccount, 
         inclusionEffort: UFix64, 
