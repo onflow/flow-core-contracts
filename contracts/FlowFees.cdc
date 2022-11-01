@@ -89,7 +89,7 @@ pub contract FlowFees {
     }
 
     // verifyPayersBalanceForTransactionExecution is called by the FVM before executing a transaction.
-    // If verifies that the transaction payer's balance is high enough to continue transaction execution,
+    // It verifies that the transaction payer's balance is high enough to continue transaction execution,
     // and returns the maximum possible transaction fees.
     // (according to the inclusion effort and maximum execution effort of the transaction).
     pub fun verifyPayersBalanceForTransactionExecution(
