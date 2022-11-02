@@ -1584,7 +1584,7 @@ pub contract FlowIDTableStaking {
     }
 
     /// borrow a reference to to one of the nodes in the record
-    access(account) fun borrowNodeRecord(_ nodeID: String): &NodeRecord {
+    access(account) view fun borrowNodeRecord(_ nodeID: String): &NodeRecord {
         pre {
             FlowIDTableStaking.nodes[nodeID] != nil:
                 "Specified node ID does not exist in the record"
@@ -1623,13 +1623,13 @@ pub contract FlowIDTableStaking {
     }
 
     /// Gets the current list of participant (staked in the current epoch) nodes as a dictionary.
-    pub fun getParticipantNodeList(): {String: Bool}? {
+    pub view fun getParticipantNodeList(): {String: Bool}? {
         return self.account.copy<{String: Bool}>(from: /storage/idTableCurrentList)
     }
 
     /// Gets the current list of participant nodes (like getCurrentNodeList) but as a list
     /// Kept for backwards compatibility
-    pub fun getStakedNodeIDs(): [String] {
+    pub view fun getStakedNodeIDs(): [String] {
         let nodeIDs = self.getParticipantNodeList()!
         return nodeIDs.keys
     }
@@ -1666,7 +1666,7 @@ pub contract FlowIDTableStaking {
 
     /// Gets a list of node IDs who have pending token movements
     /// or who's delegators have pending movements
-    pub fun getMovesPendingList(): {String: {UInt32: Bool}}? {
+    pub view fun getMovesPendingList(): {String: {UInt32: Bool}}? {
         return self.account.copy<{String: {UInt32: Bool}}>(from: /storage/idTableMovesPendingList)
     }
 
@@ -1677,7 +1677,7 @@ pub contract FlowIDTableStaking {
     /// The candidate node list is a dictionary that maps node roles
     /// to a list of node IDs of that role
     /// Gets the candidate node list size limits for each role
-    pub fun getCandidateNodeLimits(): {UInt8: UInt64}? {
+    pub view fun getCandidateNodeLimits(): {UInt8: UInt64}? {
         return self.account.copy<{UInt8: UInt64}>(from: /storage/idTableCandidateNodeLimits)
     }
 
@@ -1716,19 +1716,19 @@ pub contract FlowIDTableStaking {
     }
 
     /// Returns the current candidate node list
-    pub fun getCandidateNodeList(): {UInt8: {String: Bool}} {
+    pub view fun getCandidateNodeList(): {UInt8: {String: Bool}} {
         return FlowIDTableStaking.account.copy<{UInt8: {String: Bool}}>(from: /storage/idTableCandidateNodes)
             ?? {1: {}, 2: {}, 3: {}, 4: {}, 5: {}}
     }
 
     /// Get slot (count) limits for each node role
-    pub fun getRoleSlotLimits(): {UInt8: UInt16} {
+    pub view fun getRoleSlotLimits(): {UInt8: UInt16} {
         return FlowIDTableStaking.account.copy<{UInt8: UInt16}>(from: /storage/flowStakingSlotLimits)
             ?? {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
     }
 
     /// Returns a dictionary that indicates how many participant nodes there are for each role
-    pub fun getCurrentRoleNodeCounts(): {UInt8: UInt16} {
+    pub view fun getCurrentRoleNodeCounts(): {UInt8: UInt16} {
         if let currentCounts = FlowIDTableStaking.account.copy<{UInt8: UInt16}>(from: /storage/flowStakingRoleNodeCounts) {
             return currentCounts
         } else {
@@ -1747,7 +1747,7 @@ pub contract FlowIDTableStaking {
 
     /// Checks if the given string has all numbers or lowercase hex characters
     /// Used to ensure that there are no duplicate node IDs
-    pub fun isValidNodeID(_ input: String): Bool {
+    pub view fun isValidNodeID(_ input: String): Bool {
         let byteVersion = input.utf8
 
         for character in byteVersion {
@@ -1760,7 +1760,7 @@ pub contract FlowIDTableStaking {
     }
 
     /// Indicates if the staking auction is currently enabled
-    pub fun stakingEnabled(): Bool {
+    pub view fun stakingEnabled(): Bool {
         return self.account.copy<Bool>(from: /storage/stakingEnabled) ?? false
     }
 
@@ -1813,72 +1813,70 @@ pub contract FlowIDTableStaking {
     }
 
     /// Gets an array of all the node IDs that have ever registered
-    pub fun getNodeIDs(): [String] {
+    pub view fun getNodeIDs(): [String] {
         return FlowIDTableStaking.nodes.keys
     }
 
-    /// Checks if the amount of tokens is greater than the minimum staking requirement
-    /// for the specified node role
-    pub fun isGreaterThanMinimumForRole(numTokens: UFix64, role: UInt8): Bool {
-        let minimumStake = self.minimumStakeRequired[role]
-            ?? panic("Incorrect role provided for minimum stake. Must be 1, 2, 3, 4, or 5")
-
-        return numTokens >= minimumStake
+    /// Checks if the amount of tokens is greater
+    /// than the minimum staking requirement for the specified role
+    pub view fun isGreaterThanMinimumForRole(numTokens: UFix64, role: UInt8): Bool {
+        return numTokens >= self.minimumStakeRequired[role]!
     }
 
     /// Indicates if the specified networking address is claimed by a node
-    pub fun getNetworkingAddressClaimed(address: String): Bool {
+    pub view fun getNetworkingAddressClaimed(address: String): Bool {
         return self.getClaimed(path: /storage/networkingAddressesClaimed, key: address)
     }
 
     /// Indicates if the specified networking key is claimed by a node
-    pub fun getNetworkingKeyClaimed(key: String): Bool {
+    pub view fun getNetworkingKeyClaimed(key: String): Bool {
         return self.getClaimed(path: /storage/networkingKeysClaimed, key: key)
     }
 
     /// Indicates if the specified staking key is claimed by a node
-    pub fun getStakingKeyClaimed(key: String): Bool {
+    pub view fun getStakingKeyClaimed(key: String): Bool {
         return self.getClaimed(path: /storage/stakingKeysClaimed, key: key)
     }
 
     /// Gets the claimed status of a particular piece of node metadata
-    access(account) fun getClaimed(path: StoragePath, key: String): Bool {
+    access(account) view fun getClaimed(path: StoragePath, key: String): Bool {
 		let claimedDictionary = self.account.borrow<&{String: Bool}>(from: path)
             ?? panic("Invalid path for dictionary")
         return claimedDictionary[key] ?? false
     }
 
     /// Returns the list of approved node IDs that the admin has set
-    pub fun getApprovedList(): {String: Bool}? {
-        return self.account.copy<{String: Bool}>(from: /storage/idTableApproveList)
+    pub view fun getApprovedList(): [String] {
+        return self.account.copy<[String]>(from: /storage/idTableApproveList)
+            ?? panic("could not get approved list")
     }
 
     /// Returns the list of node IDs whose rewards will be reduced in the next payment
-    pub fun getNonOperationalNodesList(): {String: UFix64} {
+    pub view fun getNonOperationalNodesList(): {String: UFix64} {
         return self.account.copy<{String: UFix64}>(from: /storage/idTableNonOperationalNodesList)
             ?? panic("could not get non-operational node list")
     }
 
     /// Gets the minimum stake requirements for all the node types
-    pub fun getMinimumStakeRequirements(): {UInt8: UFix64} {
+    pub view fun getMinimumStakeRequirements(): {UInt8: UFix64} {
         return self.minimumStakeRequired
     }
 
     /// Gets the minimum stake requirement for delegators
-    pub fun getDelegatorMinimumStakeRequirement(): UFix64 {
+    pub view fun getDelegatorMinimumStakeRequirement(): UFix64 {
         return self.account.copy<UFix64>(from: /storage/delegatorStakingMinimum)
             ?? 0.0
     }
 
     /// Gets a dictionary that indicates the current number of tokens staked
     /// by all the nodes of each type
-    pub fun getTotalTokensStakedByNodeType(): {UInt8: UFix64} {
+    pub view fun getTotalTokensStakedByNodeType(): {UInt8: UFix64} {
         return self.totalTokensStakedByNodeType
     }
 
     /// Gets the total number of FLOW that is currently staked
     /// by all of the staked nodes in the current epoch
-    pub fun getTotalStaked(): UFix64 {
+    pub view fun getTotalStaked(): UFix64 {
         var totalStaked: UFix64 = 0.0
         for nodeType in FlowIDTableStaking.totalTokensStakedByNodeType.keys {
             // Do not count access nodes
@@ -1890,18 +1888,18 @@ pub contract FlowIDTableStaking {
     }
 
     /// Gets the token payout value for the current epoch
-    pub fun getEpochTokenPayout(): UFix64 {
+    pub view fun getEpochTokenPayout(): UFix64 {
         return self.epochTokenPayout
     }
 
     /// Gets the cut percentage for delegator rewards paid to node operators
-    pub fun getRewardCutPercentage(): UFix64 {
+    pub view fun getRewardCutPercentage(): UFix64 {
         return self.nodeDelegatingRewardCut
     }
 
     /// Gets the ratios of rewards that different node roles recieve
     /// NOTE: Currently is not used
-    pub fun getRewardRatios(): {UInt8: UFix64} {
+    pub view fun getRewardRatios(): {UInt8: UFix64} {
         return self.rewardRatios
     }
 

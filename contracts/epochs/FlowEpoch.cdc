@@ -712,7 +712,7 @@ pub contract FlowEpoch {
 
     /// Makes sure the set of phase lengths (in views) are valid.
     /// Sub-phases cannot be greater than the full epoch length.
-    pub fun isValidPhaseConfiguration(_ auctionLen: UInt64, _ dkgPhaseLen: UInt64, _ epochLen: UInt64): Bool {
+    pub view fun isValidPhaseConfiguration(_ auctionLen: UInt64, _ dkgPhaseLen: UInt64, _ epochLen: UInt64): Bool {
         return (auctionLen + ((3 as UInt64)*dkgPhaseLen)) < epochLen
     }
 
@@ -812,16 +812,16 @@ pub contract FlowEpoch {
     }
 
     /// Returns the metadata that is able to be configured by the admin
-    pub fun getConfigMetadata(): Config {
+    pub view fun getConfigMetadata(): Config {
         return self.configurableMetadata
     }
 
     /// The proposed Epoch counter is always the current counter plus 1
-    pub fun proposedEpochCounter(): UInt64 {
+    pub view fun proposedEpochCounter(): UInt64 {
         return self.currentEpochCounter + 1 as UInt64
     }
 
-    pub fun automaticRewardsEnabled(): Bool {
+    pub view fun automaticRewardsEnabled(): Bool {
         return self.account.copy<Bool>(from: /storage/flowAutomaticRewardsEnabled) ?? false
     }
 

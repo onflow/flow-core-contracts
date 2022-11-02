@@ -4,12 +4,12 @@ go 1.18
 
 require (
 	github.com/coreos/go-semver v0.3.0
-	github.com/onflow/cadence v0.39.12
+	github.com/onflow/cadence v0.39.13-stable-cadence
 	github.com/onflow/flow-core-contracts/lib/go/contracts v1.2.4-0.20230703193002-53362441b57d
 	github.com/onflow/flow-core-contracts/lib/go/templates v1.2.3
 	github.com/onflow/flow-emulator v0.51.2-0.20230704183611-ecad54e231b7
 	github.com/onflow/flow-go v0.31.1-0.20230704154018-87a84e9d36c2
-	github.com/onflow/flow-go-sdk v0.41.6
+	github.com/onflow/flow-go-sdk v0.41.7-stable-cadence
 	github.com/onflow/flow-go/crypto v0.24.7
 	github.com/rs/zerolog v1.29.0
 	github.com/stretchr/testify v1.8.4
@@ -135,7 +135,7 @@ require (
 	go.uber.org/multierr v1.9.0 // indirect
 	go.uber.org/zap v1.24.0 // indirect
 	golang.org/x/crypto v0.7.0 // indirect
-	golang.org/x/exp v0.0.0-20221217163422-3c43f8badb15 // indirect
+	golang.org/x/exp v0.0.0-20230321023759-10a507213a29 // indirect
 	golang.org/x/net v0.9.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/sys v0.7.0 // indirect
