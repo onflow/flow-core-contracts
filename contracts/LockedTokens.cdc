@@ -226,15 +226,8 @@ pub contract LockedTokens {
         }
 
         pub fun borrowNode(): &FlowIDTableStaking.NodeStaker? {
-            let nodeOpt <- self.nodeStaker <- nil
-            if let node <- nodeOpt {
-                let nodeRef = &node as &FlowIDTableStaking.NodeStaker
-                self.nodeStaker <-! node
-                return nodeRef
-            } else {
-                self.nodeStaker <-! nodeOpt 
-                return nil
-            }
+            let nodeRef: &FlowIDTableStaking.NodeStaker? = &self.nodeStaker as &FlowIDTableStaking.NodeStaker?
+            return nodeRef
         }
 
         pub fun removeNode(): @FlowIDTableStaking.NodeStaker? {
@@ -255,9 +248,9 @@ pub contract LockedTokens {
         pub fun getLockedAccountAddress(): Address
         pub fun getLockedAccountBalance(): UFix64
         pub fun getUnlockLimit(): UFix64
-        pub fun getNodeID(): String?
-        pub fun getDelegatorID(): UInt32?
-        pub fun getDelegatorNodeID(): String?
+        pub view fun getNodeID(): String?
+        pub view fun getDelegatorID(): UInt32?
+        pub view fun getDelegatorNodeID(): String?
     }
 
     /// Stored in Holder unlocked account
@@ -361,7 +354,7 @@ pub contract LockedTokens {
             return self.nodeStakerProxy!
         }
 
-        pub fun getNodeID(): String? {
+        pub view fun getNodeID(): String? {
             let tokenManager = self.tokenManager.borrow()!
 
             return tokenManager.nodeStaker?.id
@@ -377,13 +370,13 @@ pub contract LockedTokens {
             return self.nodeDelegatorProxy!
         }
 
-        pub fun getDelegatorID(): UInt32? {
+        pub view fun getDelegatorID(): UInt32? {
             let tokenManager = self.tokenManager.borrow()!
 
             return tokenManager.nodeDelegator?.id
         }
 
-        pub fun getDelegatorNodeID(): String? {
+        pub view fun getDelegatorNodeID(): String? {
             let tokenManager = self.tokenManager.borrow()!
 
             return tokenManager.nodeDelegator?.nodeID

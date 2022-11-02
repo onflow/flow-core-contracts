@@ -80,7 +80,7 @@ pub contract FlowStakingCollection {
         pub fun addNodeObject(_ node: @FlowIDTableStaking.NodeStaker, machineAccountInfo: MachineAccountInfo?)
         pub fun addDelegatorObject(_ delegator: @FlowIDTableStaking.NodeDelegator)
         //pub fun depositToMachineAccount(nodeID: String, from: @FlowToken.Vault)
-        pub fun doesStakeExist(nodeID: String, delegatorID: UInt32?): Bool
+        pub view fun doesStakeExist(nodeID: String, delegatorID: UInt32?): Bool
         pub fun getNodeIDs(): [String]
         pub fun getDelegatorIDs(): [DelegatorIDs]
         pub fun getAllNodeInfo(): [FlowIDTableStaking.NodeInfo]
@@ -266,7 +266,7 @@ pub contract FlowStakingCollection {
         }
 
         /// Returns true if a Stake or Delegation record exists in the StakingCollection for a given nodeID and optional delegatorID, otherwise false.
-        pub fun doesStakeExist(nodeID: String, delegatorID: UInt32?): Bool {
+        pub view fun doesStakeExist(nodeID: String, delegatorID: UInt32?): Bool {
             var tokenHolderNodeID: String? = nil
             var tokenHolderDelegatorNodeID: String? = nil
             var tokenHolderDelegatorID: UInt32?  = nil
@@ -578,7 +578,7 @@ pub contract FlowStakingCollection {
         }
 
         /// Borrows a reference to a node in the collection
-        access(self) fun borrowNode(_ nodeID: String): &FlowIDTableStaking.NodeStaker? {
+        access(self) view fun borrowNode(_ nodeID: String): &FlowIDTableStaking.NodeStaker? {
             if self.nodeStakers[nodeID] != nil {
                 return &self.nodeStakers[nodeID] as &FlowIDTableStaking.NodeStaker?
             } else {
@@ -587,7 +587,7 @@ pub contract FlowStakingCollection {
         }
 
         /// Borrows a reference to a delegator in the collection
-        access(self) fun borrowDelegator(nodeID: String, delegatorID: UInt32): &FlowIDTableStaking.NodeDelegator? {
+        access(self) view fun borrowDelegator(nodeID: String, delegatorID: UInt32): &FlowIDTableStaking.NodeDelegator? {
             if self.nodeDelegators[nodeID] != nil {
                 let delegatorRef = (&self.nodeDelegators[nodeID] as &FlowIDTableStaking.NodeDelegator?)!
                 if delegatorRef.id == delegatorID { return delegatorRef } else { return nil }

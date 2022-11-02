@@ -299,24 +299,24 @@ pub contract FlowDKG {
     }
 
     /// Returns true if a node is registered as a consensus node for the proposed epoch
-    pub fun participantIsRegistered(_ nodeID: String): Bool {
+    pub view fun participantIsRegistered(_ nodeID: String): Bool {
         return FlowDKG.finalSubmissionByNodeID[nodeID] != nil
     }
 
     /// Returns true if a consensus node has claimed their Participant resource
     /// which is valid for all future epochs where the node is registered
-    pub fun participantIsClaimed(_ nodeID: String): Bool? {
+    pub view fun participantIsClaimed(_ nodeID: String): Bool? {
         return FlowDKG.nodeClaimed[nodeID]
     }
 
     /// Gets an array of all the whiteboard messages
     /// that have been submitted by all nodes in the DKG
-    pub fun getWhiteBoardMessages(): [Message] {
+    pub view fun getWhiteBoardMessages(): [Message] {
         return self.whiteboardMessages
     }
 
     /// Returns whether this node has successfully submitted a final submission for this epoch.
-    pub fun nodeHasSubmitted(_ nodeID: String): Bool {
+    pub view fun nodeHasSubmitted(_ nodeID: String): Bool {
         if let submission = self.finalSubmissionByNodeID[nodeID] {
             return submission.length > 0
         } else {
@@ -326,7 +326,7 @@ pub contract FlowDKG {
 
     /// Gets the specific final submission for a node ID
     /// If the node hasn't submitted or registered, this returns `nil`
-    pub fun getNodeFinalSubmission(_ nodeID: String): [String?]? {
+    pub view fun getNodeFinalSubmission(_ nodeID: String): [String?]? {
         if let submission = self.finalSubmissionByNodeID[nodeID] {
             if submission.length > 0 {
                 return submission
@@ -339,12 +339,12 @@ pub contract FlowDKG {
     }
 
     /// Get the list of all the consensus node IDs participating
-    pub fun getConsensusNodeIDs(): [String] {
+    pub view fun getConsensusNodeIDs(): [String] {
         return self.finalSubmissionByNodeID.keys
     }
 
     /// Get the array of all the unique final submissions
-    pub fun getFinalSubmissions(): [[String?]] {
+    pub view fun getFinalSubmissions(): [[String?]] {
         return self.uniqueFinalSubmissions
     }
 
@@ -356,7 +356,7 @@ pub contract FlowDKG {
     /// We have 10 DKG nodes (n=10)
     /// The threshold value is t=floor(10-1)/2) (t=4)
     /// There must be AT LEAST 5 honest nodes for the DKG to succeed
-    pub fun getNativeSuccessThreshold(): UInt64 {
+    pub view fun getNativeSuccessThreshold(): UInt64 {
         return UInt64((self.getConsensusNodeIDs().length-1)/2)
     }
 
@@ -365,7 +365,7 @@ pub contract FlowDKG {
     /// 
     /// This function returns the NON-INCLUSIVE lower bound of honest participants. If this function 
     /// returns threshold t, there must be AT LEAST t+1 honest nodes for the DKG to succeed.
-    pub fun getSafeSuccessThreshold(): UInt64 {
+    pub view fun getSafeSuccessThreshold(): UInt64 {
         var threshold = self.getNativeSuccessThreshold()
 
         // Get the safety rate percentage
@@ -385,14 +385,14 @@ pub contract FlowDKG {
     /// This safe threshold is used to artificially increase the DKG participation requirements to 
     /// ensure a lower-bound number of Random Beacon Committee members (beyond the bare minimum required
     /// by the DKG protocol).
-    pub fun getSafeThresholdPercentage(): UFix64? {
+    pub view fun getSafeThresholdPercentage(): UFix64? {
         let safetyRate = self.account.copy<UFix64>(from: /storage/flowDKGSafeThreshold)
         return safetyRate
     }
 
     /// Returns the final set of keys if any one set of keys has strictly more than (nodes-1)/2 submissions
     /// Returns nil if not found (incomplete)
-    pub fun dkgCompleted(): [String?]? {
+    pub view fun dkgCompleted(): [String?]? {
         if !self.dkgEnabled { return nil }
 
         var index = 0
