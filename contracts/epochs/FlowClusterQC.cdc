@@ -102,7 +102,7 @@ pub contract FlowClusterQC {
 
         /// Returns the minimum sum of vote weight required in order to be able to generate a
         /// valid quorum certificate for this cluster.
-        pub fun voteThreshold(): UInt64 {
+        pub view fun voteThreshold(): UInt64 {
             if self.totalWeight == 0 as UInt64 {
                 return 0 as UInt64
             }
@@ -127,7 +127,7 @@ pub contract FlowClusterQC {
         /// Then this cluster's QC generation is considered complete and this method returns 
         /// the vote message that reached quorum
         /// If no vote is found to reach quorum, then `nil` is returned
-        pub fun isComplete(): String? {
+        pub view fun isComplete(): String? {
             for message in self.uniqueVoteMessageTotalWeights.keys {
                 if self.uniqueVoteMessageTotalWeights[message]! >= self.voteThreshold() {
                     return message
@@ -166,7 +166,7 @@ pub contract FlowClusterQC {
         }
 
         /// Gets a vote that was generated for a node ID
-        access(contract) fun getGeneratedVote(nodeId: String): Vote? {
+        access(contract) view fun getGeneratedVote(nodeId: String): Vote? {
             return self.generatedVotes[nodeId]
         }
 
@@ -176,7 +176,7 @@ pub contract FlowClusterQC {
         }
 
         /// Gets the total weight commited for a unique vote
-        access(contract) fun getUniqueVoteMessageTotalWeight(vote: String): UInt64? {
+        access(contract) view fun getUniqueVoteMessageTotalWeight(vote: String): UInt64? {
             return self.uniqueVoteMessageTotalWeights[vote]
         }
 
@@ -395,19 +395,19 @@ pub contract FlowClusterQC {
     }
 
     /// Returns a boolean telling if the voter is registered for the current voting phase
-    pub fun voterIsRegistered(_ nodeID: String): Bool {
+    pub view fun voterIsRegistered(_ nodeID: String): Bool {
         return FlowClusterQC.nodeCluster[nodeID] != nil
     }
 
     /// Returns a boolean telling if the node has claimed their `Voter` resource object
     /// The object can only be claimed once, but if the node destroys their `Voter` object,
     /// It could be claimed again
-    pub fun voterIsClaimed(_ nodeID: String): Bool {
+    pub view fun voterIsClaimed(_ nodeID: String): Bool {
         return FlowClusterQC.voterClaimed[nodeID] != nil
     }
 
     /// Returns whether this voter has successfully submitted a vote for this epoch.
-    pub fun nodeHasVoted(_ nodeID: String): Bool {
+    pub view fun nodeHasVoted(_ nodeID: String): Bool {
 
         // Get the cluster that this node belongs to
         if let clusterIndex = FlowClusterQC.nodeCluster[nodeID] {
@@ -424,12 +424,12 @@ pub contract FlowClusterQC {
     }
 
     /// Gets all of the collector clusters for the current epoch
-    pub fun getClusters(): [Cluster] {
+    pub view fun getClusters(): [Cluster] {
         return self.clusters
     }
 
     /// Returns true if we have collected enough votes for all clusters.
-    pub fun votingCompleted(): Bool {
+    pub view fun votingCompleted(): Bool {
         for cluster in FlowClusterQC.clusters {
             if cluster.isComplete() == nil {
                 return false
