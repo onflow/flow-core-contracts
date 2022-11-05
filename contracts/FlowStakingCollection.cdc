@@ -353,8 +353,6 @@ pub contract FlowStakingCollection {
                 // The function does not allow for removing a NodeStaker stored in the locked account, if one exists.
                 panic("Cannot remove node stored in locked account.")
             }
-
-            return nil
         }
 
         /// Function to remove an existing NodeDelegator object.
@@ -387,8 +385,6 @@ pub contract FlowStakingCollection {
                 // The function does not allow for removing a NodeDelegator stored in the locked account, if one exists.
                 panic("Cannot remove delegator stored in locked account.")
             }
-
-            return nil
         }
 
         /// Operations to register new staking objects
@@ -1104,3 +1100,4 @@ pub contract FlowStakingCollection {
         self.StakingCollectionPublicPath = /public/stakingCollection
     }
 }
+ 
