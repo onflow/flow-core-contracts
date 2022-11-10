@@ -3,13 +3,13 @@ module github.com/onflow/flow-core-contracts/lib/go/test
 go 1.19
 
 require (
-	github.com/onflow/cadence v0.29.0-stable-cadence
-	github.com/onflow/flow-core-contracts/lib/go/contracts v0.11.2-0.20220720151516-797b149ceaaa
-	github.com/onflow/flow-core-contracts/lib/go/templates v0.11.2-0.20220720151516-797b149ceaaa
-	github.com/onflow/flow-emulator v0.38.2-0.20221027205358-7107a3d7f301
+	github.com/onflow/cadence v0.29.0-stable-cadence-4
+	github.com/onflow/flow-core-contracts/lib/go/contracts v0.11.2-0.20221110195343-f8d357b82aa9
+	github.com/onflow/flow-core-contracts/lib/go/templates v0.11.2-0.20221110195343-f8d357b82aa9
+	github.com/onflow/flow-emulator v0.39.0-stable-cadence-4
 	github.com/onflow/flow-ft/lib/go/templates v0.2.0
-	github.com/onflow/flow-go v0.28.1-0.20221027204513-ff6332839b80
-	github.com/onflow/flow-go-sdk v0.29.0
+	github.com/onflow/flow-go v0.29.0-stable-cadence-4
+	github.com/onflow/flow-go-sdk v0.29.0-stable-cadence-4
 	github.com/onflow/flow-go/crypto v0.24.4
 	github.com/stretchr/testify v1.8.0
 )
