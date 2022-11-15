@@ -30,6 +30,7 @@ const (
 	flowServiceAccountFilename         = "FlowServiceAccount.cdc"
 	flowTokenFilename                  = "FlowToken.cdc"
 	flowIdentityTableFilename          = "FlowIDTableStaking.cdc"
+	NEWflowIdentityTableFilename       = "FlowIDTableStaking_new.cdc"
 	flowQCFilename                     = "epochs/FlowClusterQC.cdc"
 	flowDKGFilename                    = "epochs/FlowDKG.cdc"
 	flowEpochFilename                  = "epochs/FlowEpoch.cdc"
@@ -353,6 +354,22 @@ func TestFlowFees(fungibleTokenAddress, flowTokenAddress string) []byte {
 		"adminAccount.save(<-admin, to: /storage/flowFeesAdmin)",
 		"self.account.save(<-admin, to: /storage/flowFeesAdmin)",
 	)
+
+	return []byte(code)
+}
+
+func NEWFlowIDTableStaking(fungibleTokenAddress, flowTokenAddress, flowFeesAddress string, latest bool) []byte {
+	var code string
+
+	if latest {
+		code = assets.MustAssetString(NEWflowIdentityTableFilename)
+	} else {
+		code = assets.MustAssetString("FlowIDTableStaking_old.cdc")
+	}
+
+	code = strings.ReplaceAll(code, placeholderFungibleTokenAddress, withHexPrefix(fungibleTokenAddress))
+	code = strings.ReplaceAll(code, placeholderFlowTokenAddress, withHexPrefix(flowTokenAddress))
+	code = strings.ReplaceAll(code, placeholderFlowFeesAddress, withHexPrefix(flowFeesAddress))
 
 	return []byte(code)
 }

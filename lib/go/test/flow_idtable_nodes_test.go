@@ -55,6 +55,7 @@ func TestManyNodesIDTable(t *testing.T) {
 	nodeAddress, _ = b.CreateAccount([]*flow.AccountKey{nodeAccountKey}, nil)
 
 	approvedNodes := make([]cadence.Value, numberOfNodes)
+	approvedNodesStringArray := make([]string, numberOfNodes)
 	nodeRoles := make([]cadence.Value, numberOfNodes)
 	nodeNetworkingAddresses := make([]cadence.Value, numberOfNodes)
 	nodeNetworkingKeys := make([]cadence.Value, numberOfNodes)
@@ -120,6 +121,7 @@ func TestManyNodesIDTable(t *testing.T) {
 			id := fmt.Sprintf("%064d", i)
 
 			approvedNodes[i] = CadenceString(id)
+			approvedNodesStringArray[i] = id
 
 			nodeRoles[i] = cadence.NewUInt8(uint8((i % 4) + 1))
 
@@ -188,6 +190,8 @@ func TestManyNodesIDTable(t *testing.T) {
 
 	})
 
+	approvedNodesDict := generateCadenceNodeDictionary(approvedNodesStringArray)
+
 	// End staking auction
 	t.Run("Should end staking auction, pay rewards, and move tokens", func(t *testing.T) {
 
@@ -198,7 +202,7 @@ func TestManyNodesIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(idTableAddress)
 
-		err := tx.AddArgument(cadence.NewArray(approvedNodes))
+		err := tx.AddArgument(approvedNodesDict)
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -278,7 +282,7 @@ func TestManyNodesIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(idTableAddress)
 
-		err := tx.AddArgument(cadence.NewArray(approvedNodes))
+		err := tx.AddArgument(approvedNodesDict)
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -332,7 +336,7 @@ func TestManyNodesIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(idTableAddress)
 
-		err := tx.AddArgument(cadence.NewArray(approvedNodes))
+		err := tx.AddArgument(approvedNodesDict)
 		require.NoError(t, err)
 
 		signAndSubmit(

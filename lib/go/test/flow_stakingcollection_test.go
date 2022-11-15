@@ -475,7 +475,12 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 	// end staking auction and epoch, then pay rewards
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), flow.HexToAddress(env.IDTableAddress))
-	err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID)}))
+	ids := make([]string, 2)
+	ids[0] = adminID
+	ids[1] = joshID
+	approvedNodeIDs := generateCadenceNodeDictionary(ids)
+
+	err := tx.AddArgument(approvedNodeIDs)
 	require.NoError(t, err)
 	signAndSubmit(
 		t, b, tx,
@@ -869,7 +874,13 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 
 	// end staking auction and epoch, then pay rewards
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), flow.HexToAddress(env.IDTableAddress))
-	err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID)}))
+
+	ids := make([]string, 2)
+	ids[0] = adminID
+	ids[1] = joshID
+	approvedNodeIDs := generateCadenceNodeDictionary(ids)
+
+	err := tx.AddArgument(approvedNodeIDs)
 	require.NoError(t, err)
 	signAndSubmit(
 		t, b, tx,
@@ -1571,7 +1582,7 @@ func TestStakingCollectionRewards(t *testing.T) {
 
 	// end staking auction and epoch, then pay rewards
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), flow.HexToAddress(env.IDTableAddress))
-	err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID)}))
+	err := tx.AddArgument(generateCadenceNodeDictionary([]string{adminID, joshID}))
 	require.NoError(t, err)
 	signAndSubmit(
 		t, b, tx,
@@ -2016,7 +2027,7 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 
 		// End staking auction and epoch
 		endStakingMoveTokens(t, b, env, flow.HexToAddress(env.IDTableAddress), IDTableSigner,
-			[]cadence.Value{CadenceString(adminID), CadenceString(joshID)},
+			[]string{adminID, joshID},
 		)
 
 		// Should fail because node isn't ready to be closed. tokens in staked bucket
@@ -2126,7 +2137,7 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 
 		// End staking auction and epoch
 		endStakingMoveTokens(t, b, env, flow.HexToAddress(env.IDTableAddress), IDTableSigner,
-			[]cadence.Value{CadenceString(adminID), CadenceString(joshID)},
+			[]string{adminID, joshID},
 		)
 
 		// Should fail because node isn't ready to be closed. tokens in unstaking bucket
@@ -2176,7 +2187,7 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 		)
 
 		endStakingMoveTokens(t, b, env, flow.HexToAddress(env.IDTableAddress), IDTableSigner,
-			[]cadence.Value{CadenceString(adminID), CadenceString(joshID)},
+			[]string{adminID, joshID},
 		)
 
 		verifyStakingInfo(t, b, env, StakingInfo{

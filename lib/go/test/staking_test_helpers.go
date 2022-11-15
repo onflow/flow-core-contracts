@@ -92,7 +92,7 @@ func deployStakingContract(t *testing.T, b *emulator.Blockchain, IDTableAccountK
 	env.FlowFeesAddress = feesAddr.Hex()
 
 	// Get the code byte-array for the staking contract
-	IDTableCode := contracts.FlowIDTableStaking(emulatorFTAddress, emulatorFlowTokenAddress, feesAddr.String(), latest)
+	IDTableCode := contracts.NEWFlowIDTableStaking(emulatorFTAddress, emulatorFlowTokenAddress, feesAddr.String(), latest)
 	cadenceCode := bytesToCadenceArray(IDTableCode)
 
 	// Create the deployment transaction that transfers a FlowToken minter
@@ -402,12 +402,14 @@ func endStakingMoveTokens(t *testing.T,
 	env templates.Environment,
 	authorizer flow.Address,
 	signer crypto.Signer,
-	nodeIDs []cadence.Value,
+	nodeIDs []string,
 ) {
 	// End staking auction and epoch
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), authorizer)
 
-	err := tx.AddArgument(cadence.NewArray(nodeIDs))
+	nodeIDsDict := generateCadenceNodeDictionary(nodeIDs)
+
+	err := tx.AddArgument(nodeIDsDict)
 	require.NoError(t, err)
 	signAndSubmit(
 		t, b, tx,
@@ -669,4 +671,35 @@ func moveTokens(committed, staked, requested, unstaking, unstaked, totalStaked i
 	newRequested = 0
 
 	return
+}
+
+// Generates a Cadence {String: Bool} dictionary from an array of node IDs
+func generateCadenceNodeDictionary(nodeIDs []string) cadence.Value {
+
+	trueBool := cadence.NewBool(true)
+
+	keyValuePairArray := make([]cadence.KeyValuePair, len(nodeIDs))
+
+	for i, nodeID := range nodeIDs {
+		cadenceNodeID, _ := cadence.NewString(nodeID)
+
+		pair := cadence.KeyValuePair{Key: cadenceNodeID, Value: trueBool}
+
+		keyValuePairArray[i] = pair
+	}
+
+	return cadence.NewDictionary(keyValuePairArray)
+}
+
+// assertApprovedListEquals asserts the FlowIDTableStaking approved list matches
+// the given node ID list
+func assertApprovedListEquals(
+	t *testing.T,
+	b *emulator.Blockchain,
+	env templates.Environment,
+	expected cadence.Value, // [String]
+) {
+
+	result := executeScriptAndCheck(t, b, templates.GenerateGetApprovedNodesScript(env), nil)
+	assert.Equal(t, expected, result)
 }

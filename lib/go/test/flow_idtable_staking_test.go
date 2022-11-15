@@ -10,7 +10,7 @@ import (
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/cadence/runtime/interpreter"
-	emulator "github.com/onflow/flow-emulator"
+	//emulator "github.com/onflow/flow-emulator"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/test"
@@ -270,7 +270,13 @@ func TestStakingTransferAdmin(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshAddress)
 
-		err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID), CadenceString(maxID), CadenceString(accessID)}))
+		nodeIDs := make([]string, 3)
+		nodeIDs[0] = adminID
+		nodeIDs[1] = joshID
+		nodeIDs[2] = maxID
+		nodeIDDict := generateCadenceNodeDictionary(nodeIDs)
+
+		err := tx.AddArgument(nodeIDDict)
 		require.NoError(t, err)
 		tx.AddArgument(CadenceUFix64("1300000.0"))
 
@@ -630,13 +636,18 @@ func TestIDTableStaking(t *testing.T) {
 
 	})
 
+	// [josh, max]
+	nodeIDs := make([]string, 2)
+	nodeIDs[0] = joshID
+	nodeIDs[1] = maxID
+	nodeIDDict := generateCadenceNodeDictionary(nodeIDs)
+	initialNodeIDs := cadence.NewArray([]cadence.Value{CadenceString(maxID), CadenceString(joshID)}).WithType(cadence.NewVariableSizedArrayType(cadence.NewStringType()))
+
 	t.Run("Should be able to add nodes to approved node list", func(t *testing.T) {
 
-		// [josh, max]
-		initialNodeIDs := cadence.NewArray([]cadence.Value{CadenceString(joshID), CadenceString(maxID)}).WithType(cadence.NewVariableSizedArrayType(cadence.NewStringType()))
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.NEWGenerateSetApprovedNodesScript(env), idTableAddress)
 
-		err := tx.AddArgument(initialNodeIDs)
+		err := tx.AddArgument(nodeIDDict)
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -663,6 +674,7 @@ func TestIDTableStaking(t *testing.T) {
 
 			assertApprovedListEquals(t, b, env, initialNodeIDs)
 		})
+
 		// adding a new node should result in that node being added to the existing list
 		t.Run("new node", func(t *testing.T) {
 			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateAddApprovedNodesScript(env), idTableAddress)
@@ -679,7 +691,7 @@ func TestIDTableStaking(t *testing.T) {
 				false,
 			)
 
-			expected := cadence.NewArray([]cadence.Value{CadenceString(joshID), CadenceString(maxID), CadenceString(adminID)}).WithType(cadence.NewVariableSizedArrayType(cadence.NewStringType()))
+			expected := cadence.NewArray([]cadence.Value{CadenceString(maxID), CadenceString(adminID), CadenceString(joshID)}).WithType(cadence.NewVariableSizedArrayType(cadence.NewStringType()))
 			assertApprovedListEquals(t, b, env, expected)
 		})
 	})
@@ -687,10 +699,9 @@ func TestIDTableStaking(t *testing.T) {
 	t.Run("Should be able to remove nodes from approved node list", func(t *testing.T) {
 
 		// [josh, max]
-		initialNodeIDs := cadence.NewArray([]cadence.Value{CadenceString(joshID), CadenceString(maxID)})
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.NEWGenerateSetApprovedNodesScript(env), idTableAddress)
 
-		err := tx.AddArgument(initialNodeIDs)
+		err := tx.AddArgument(nodeIDDict)
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -718,7 +729,7 @@ func TestIDTableStaking(t *testing.T) {
 			expected := cadence.NewArray([]cadence.Value{CadenceString(maxID)}).WithType(cadence.NewVariableSizedArrayType(cadence.NewStringType()))
 			assertApprovedListEquals(t, b, env, expected)
 		})
-		// removing an unknown node should cause a revert
+		// removing an unknown node should be a no-op
 		t.Run("unknown node", func(t *testing.T) {
 			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRemoveApprovedNodesScript(env), idTableAddress)
 
@@ -730,16 +741,26 @@ func TestIDTableStaking(t *testing.T) {
 				t, b, tx,
 				[]flow.Address{idTableAddress},
 				[]crypto.Signer{IDTableSigner},
-				true,
+				false,
 			)
+
+			expected := cadence.NewArray([]cadence.Value{CadenceString(maxID)}).WithType(cadence.NewVariableSizedArrayType(cadence.NewStringType()))
+			assertApprovedListEquals(t, b, env, expected)
 		})
 	})
 
+	fourNodeIDs := make([]string, 4)
+	fourNodeIDs[0] = adminID
+	fourNodeIDs[1] = joshID
+	fourNodeIDs[2] = maxID
+	fourNodeIDs[3] = accessID
+	fourNodeIDDict := generateCadenceNodeDictionary(fourNodeIDs)
+
 	t.Run("Should be able to set and get the approved node list", func(t *testing.T) {
 
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.NEWGenerateSetApprovedNodesScript(env), idTableAddress)
 
-		err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID), CadenceString(maxID), CadenceString(accessID)}))
+		err := tx.AddArgument(fourNodeIDDict)
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -975,7 +996,7 @@ func TestIDTableStaking(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndStakingScript(env), idTableAddress)
 
-		err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID), CadenceString(maxID), CadenceString(accessID)}))
+		err := tx.AddArgument(fourNodeIDDict)
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -1426,7 +1447,7 @@ func TestIDTableStaking(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndStakingScript(env), idTableAddress)
 
-		err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID), CadenceString(maxID), CadenceString(accessID)}))
+		err := tx.AddArgument(fourNodeIDDict)
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -1914,12 +1935,15 @@ func TestIDTableStaking(t *testing.T) {
 		assertEqual(t, CadenceUFix64(request[joshID+firstDelegatorStringID].String()), result)
 	})
 
+	fourNodeIDs[3] = bastianID
+	fourNodeIDDict = generateCadenceNodeDictionary(fourNodeIDs)
+
 	// End the staking auction
 	t.Run("Should be able to end the staking auction", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndStakingScript(env), idTableAddress)
 
-		err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID), CadenceString(maxID), CadenceString(bastianID)}))
+		err := tx.AddArgument(fourNodeIDDict)
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -1997,6 +2021,9 @@ func TestIDTableStaking(t *testing.T) {
 
 	})
 
+	threeNodeIDs := fourNodeIDs[:len(fourNodeIDs)-1]
+	threeNodeIDDict := generateCadenceNodeDictionary(threeNodeIDs)
+
 	// Pay rewards and make sure josh and josh delegator got paid the right amounts based on the cut
 	t.Run("Should pay correct rewards, rewards are split up properly between stakers and delegators", func(t *testing.T) {
 
@@ -2018,7 +2045,7 @@ func TestIDTableStaking(t *testing.T) {
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEndStakingScript(env), idTableAddress)
 
-		err = tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID), CadenceString(maxID), CadenceString(bastianID)}))
+		err = tx.AddArgument(threeNodeIDDict)
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -2090,7 +2117,7 @@ func TestIDTableStaking(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), idTableAddress)
 
-		err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID), CadenceString(maxID)}))
+		err := tx.AddArgument(threeNodeIDDict)
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -2191,12 +2218,15 @@ func TestIDTableStaking(t *testing.T) {
 		)
 	})
 
+	twoNodeIDs := threeNodeIDs[:len(threeNodeIDs)-1]
+	twoNodeIDDict := generateCadenceNodeDictionary(twoNodeIDs)
+
 	// End the staking auction, saying that Max is not on the approved node list
 	t.Run("Should refund delegators when their node is not included in the auction", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), idTableAddress)
 
-		err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID)}))
+		err := tx.AddArgument(twoNodeIDDict)
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -2300,7 +2330,7 @@ func TestIDTableStaking(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), idTableAddress)
 
-		err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID)}))
+		err := tx.AddArgument(twoNodeIDDict)
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -2318,7 +2348,7 @@ func TestIDTableStaking(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochChangePayoutScript(env), idTableAddress)
 
-		err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID)}))
+		err := tx.AddArgument(twoNodeIDDict)
 		require.NoError(t, err)
 
 		err = tx.AddArgument(CadenceUFix64("4000000.0"))
@@ -2402,7 +2432,7 @@ func TestIDTableStaking(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRemoveUnapprovedNodesScript(env), idTableAddress)
 
-		err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID), CadenceString(bastianID)}))
+		err := tx.AddArgument(threeNodeIDDict)
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -2530,9 +2560,11 @@ func TestIDTableRewardsWitholding(t *testing.T) {
 		cadenceIDs[i] = CadenceString(ids[i])
 	}
 
+	nodeIDsDict := generateCadenceNodeDictionary(ids)
+
 	// End the epoch, which marks everyone as staking
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), idTableAddress)
-	err := tx.AddArgument(cadence.NewArray(cadenceIDs))
+	err := tx.AddArgument(nodeIDsDict)
 	require.NoError(t, err)
 	signAndSubmit(
 		t, b, tx,
@@ -2668,17 +2700,4 @@ func TestIDTableRewardsWitholding(t *testing.T) {
 			assertEqual(t, CadenceUFix64(totalDelegatorReward.String()), result)
 		}
 	})
-}
-
-// assertApprovedListEquals asserts the FlowIDTableStaking approved list matches
-// the given node ID list
-func assertApprovedListEquals(
-	t *testing.T,
-	b *emulator.Blockchain,
-	env templates.Environment,
-	expected cadence.Value, // [String]
-) {
-
-	result := executeScriptAndCheck(t, b, templates.GenerateGetApprovedNodesScript(env), nil)
-	assert.Equal(t, expected, result)
 }

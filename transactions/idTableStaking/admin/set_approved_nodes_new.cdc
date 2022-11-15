@@ -1,7 +1,6 @@
 import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
 
-// This transaction ends the staking auction, which refunds nodes 
-// with insufficient stake
+// This transaction sets the list of approved nodes in the ID table
 
 transaction(ids: {String: Bool}) {
 
@@ -15,7 +14,6 @@ transaction(ids: {String: Bool}) {
     }
 
     execute {
-
-        self.adminRef.removeUnapprovedNodes(approvedNodeIDs: ids)
+        self.adminRef.setApprovedList(ids)
     }
 }
