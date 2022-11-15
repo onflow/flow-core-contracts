@@ -1306,23 +1306,25 @@ pub contract FlowIDTableStaking {
 
     /// Gets an array of the node IDs that are proposed and approved for the next epoch
     pub fun getProposedNodeIDs(): [String] {
-        var proposedNodes: [String] = []
 
         let approvedNodeIDs = FlowIDTableStaking.getApprovedList()
 
-        for nodeID in FlowIDTableStaking.getNodeIDs() {
+        for nodeID in approvedNodeIDs.keys {
+            if FlowIDTableStaking.nodes[nodeID] == nil {
+                approvedNodeIDs[nodeID] = nil
+                continue
+            }
+
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
-            let approved = approvedNodeIDs[nodeID] ?? false
 
             // To be considered proposed, a node has to have tokens staked + committed equal or above the minimum
             // Access nodes have a minimum of 0, so they need to be strictly greater than zero to be considered proposed
-            if self.isGreaterThanMinimumForRole(numTokens: self.NodeInfo(nodeID: nodeRecord.id).totalCommittedWithoutDelegators(), role: nodeRecord.role)
-               && approved
+            if !self.isGreaterThanMinimumForRole(numTokens: self.NodeInfo(nodeID: nodeRecord.id).totalCommittedWithoutDelegators(), role: nodeRecord.role)
             {
-                proposedNodes.append(nodeID)
+                approvedNodeIDs[nodeID] = nil
             }
         }
-        return proposedNodes
+        return approvedNodeIDs.keys
     }
 
     /// Gets an array of all the node IDs that have ever registered
