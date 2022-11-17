@@ -449,6 +449,12 @@ pub contract FlowIDTableStaking {
             // Add the new tokens to tokens committed
             nodeRecord.tokensCommitted.deposit(from: <-tokens)
 
+            // Only add them as a candidate node if they don't already
+            // have tokens staked and are above the minimum
+            if nodeRecord.tokensStaked.balance == 0.0 && FlowIDTableStaking.isGreaterThanMinimumForRole(numTokens: nodeRecord.tokensCommitted.balance, role: nodeRecord.role) {
+                FlowIDTableStaking.addToCandidateNodeList(nodeID: nodeRecord.id, roleToAdd: nodeRecord.role)
+            }
+
             FlowIDTableStaking.setNewMovesPending(nodeID: self.id, delegatorID: nil)
         }
 
@@ -477,6 +483,12 @@ pub contract FlowIDTableStaking {
 
             emit TokensCommitted(nodeID: nodeRecord.id, amount: remainingAmount)
 
+            // Only add them as a candidate node if they don't already
+            // have tokens staked and are above the minimum
+            if nodeRecord.tokensStaked.balance == 0.0 && FlowIDTableStaking.isGreaterThanMinimumForRole(numTokens: nodeRecord.tokensCommitted.balance, role: nodeRecord.role) {
+                FlowIDTableStaking.addToCandidateNodeList(nodeID: nodeRecord.id, roleToAdd: nodeRecord.role)
+            }
+
             FlowIDTableStaking.setNewMovesPending(nodeID: self.id, delegatorID: nil)
         }
 
@@ -491,6 +503,12 @@ pub contract FlowIDTableStaking {
             nodeRecord.tokensCommitted.deposit(from: <-nodeRecord.tokensRewarded.withdraw(amount: amount))
 
             emit TokensCommitted(nodeID: nodeRecord.id, amount: amount)
+
+            // Only add them as a candidate node if they don't already
+            // have tokens staked and are above the minimum
+            if nodeRecord.tokensStaked.balance == 0.0 && FlowIDTableStaking.isGreaterThanMinimumForRole(numTokens: nodeRecord.tokensCommitted.balance, role: nodeRecord.role) {
+                FlowIDTableStaking.addToCandidateNodeList(nodeID: nodeRecord.id, roleToAdd: nodeRecord.role)
+            }
 
             FlowIDTableStaking.setNewMovesPending(nodeID: self.id, delegatorID: nil)
         }
@@ -839,6 +857,12 @@ pub contract FlowIDTableStaking {
         /// and that its node info is correct
         pub fun removeUnapprovedNodes(approvedNodeIDs: {String: Bool}) {
             let allNodeIDs = FlowIDTableStaking.getNodeIDs()
+
+            // Reset the candidate node list
+            // TODO: Will be used for random slot selection in a later update
+            let candidateNodes = FlowIDTableStaking.account.load<{UInt8: [String]}>(from: /storage/idTableCandidateNodes) ?? {}
+            let emptyCandidateNodes: {UInt8: [String]} = {1: [], 2: [], 3: [], 4: [], 5: []}
+            FlowIDTableStaking.account.save(emptyCandidateNodes, to: /storage/idTableCandidateNodes)
 
             for nodeID in allNodeIDs {
                 let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
@@ -1204,6 +1228,12 @@ pub contract FlowIDTableStaking {
             FlowIDTableStaking.nodeDelegatingRewardCut = newCutPercentage
         }
 
+        /// Sets a new limit to the number of candidate nodes for an epoch
+        pub fun setCandidateNodeLimit(_ newLimit: Int) {
+            FlowIDTableStaking.account.load<Int>(from: /storage/idTableCandidateNodeLimit)
+            FlowIDTableStaking.account.save<Int>(newLimit, to: /storage/idTableCandidateNodeLimit)
+        }
+
         /// Called only once when the contract is upgraded to use the claimed storage fields
         /// to initialize all their values
         pub fun setClaimed() {
@@ -1350,6 +1380,45 @@ pub contract FlowIDTableStaking {
         return self.account.copy<{String: {UInt32: Bool}}>(from: /storage/idTableMovesPendingList)
     }
 
+    /// Candidate Nodes Methods
+    /// Candidate Nodes are newly committed nodes who aren't already staked
+    /// There is a limit to the number of candidate nodes per epoch
+    /// The candidate node list is a dictionary that maps node roles
+    /// to a list of node IDs of that role
+
+    /// Gets the candidate node list size limit
+    pub fun getCandidateNodeLimit(): Int? {
+        return self.account.copy<Int>(from: /storage/idTableCandidateNodeLimit)
+    }
+
+    /// Adds the provided node ID to the candidate node list
+    access(contract) fun addToCandidateNodeList(nodeID: String, roleToAdd: UInt8) {
+        var candidateNodes = FlowIDTableStaking.account.load<{UInt8: [String]}>(from: /storage/idTableCandidateNodes) ?? {}
+
+        var sumCandidateNodes: Int = 0
+
+        for nodeRole in candidateNodes.keys {
+            // if the node isn't already in the list, add it
+            var nodesForRole = candidateNodes[nodeRole]!
+            if nodeRole == roleToAdd && !nodesForRole.contains(nodeID) {
+                nodesForRole.append(nodeID)
+                candidateNodes[roleToAdd] = nodesForRole
+            }
+            sumCandidateNodes = sumCandidateNodes + nodesForRole.length
+        }
+
+        if sumCandidateNodes > self.getCandidateNodeLimit()! {
+            panic("Candidate node limit exceeded")
+        }
+
+        FlowIDTableStaking.account.save(candidateNodes, to: /storage/idTableCandidateNodes)
+    }
+
+    /// Returns the current candidate node list
+    pub fun getCandidateNodeList(): {UInt8: [String]} {
+        return FlowIDTableStaking.account.copy<{UInt8: [String]}>(from: /storage/idTableCandidateNodes) ?? {}
+    }
+
     /// Checks if the given string has all numbers or lowercase hex characters
     /// Used to ensure that there are no duplicate node IDs
     pub fun isValidNodeID(_ input: String): Bool {
@@ -1477,7 +1546,7 @@ pub contract FlowIDTableStaking {
         return self.rewardRatios
     }
 
-    init(_ epochTokenPayout: UFix64, _ rewardCut: UFix64) {
+    init(_ epochTokenPayout: UFix64, _ rewardCut: UFix64, _ candidateNodeLimit: Int) {
         self.account.save(true, to: /storage/stakingEnabled)
 
         self.nodes <- {}
@@ -1507,6 +1576,12 @@ pub contract FlowIDTableStaking {
 
         let movesPendingList: {String: {UInt32: Bool}} = {}
         self.account.save<{String: {UInt32: Bool}}>(movesPendingList, to: /storage/idTableMovesPendingList)
+
+        let emptyCandidateNodes: {UInt8: [String]} = {1: [], 2: [], 3: [], 4: [], 5: []}
+        FlowIDTableStaking.account.save(emptyCandidateNodes, to: /storage/idTableCandidateNodes)
+
+        // Save the candidate nodes limit
+        FlowIDTableStaking.account.save<Int>(candidateNodeLimit, to: /storage/idTableCandidateNodeLimit)
 
         self.account.save(<-create Admin(), to: self.StakingAdminStoragePath)
     }

@@ -65,7 +65,15 @@ func stubInterpreter() *interpreter.Interpreter {
 // parameter: latest: Indicates if the contract should be the latest version.
 //
 //	This is only set to false when testing staking contract upgrades
-func deployStakingContract(t *testing.T, b *emulator.Blockchain, IDTableAccountKey *flow.AccountKey, IDTableSigner crypto.Signer, env templates.Environment, latest bool) (flow.Address, flow.Address) {
+func deployStakingContract(
+	t *testing.T,
+	b *emulator.Blockchain,
+	IDTableAccountKey *flow.AccountKey,
+	IDTableSigner crypto.Signer,
+	env templates.Environment,
+	latest bool,
+	candidateNodeLimit int,
+) (flow.Address, flow.Address) {
 
 	// create the public key array for the staking and fees account
 	publicKeys := make([]cadence.Value, 1)
@@ -109,6 +117,7 @@ func deployStakingContract(t *testing.T, b *emulator.Blockchain, IDTableAccountK
 	// Set the weekly payount amount and delegator cut percentage
 	_ = tx.AddArgument(CadenceUFix64("1250000.0"))
 	_ = tx.AddArgument(CadenceUFix64("0.08"))
+	_ = tx.AddArgument(cadence.NewInt(candidateNodeLimit))
 
 	// Submit the deployment transaction
 	signAndSubmit(

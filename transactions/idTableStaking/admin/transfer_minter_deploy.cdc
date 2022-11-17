@@ -1,7 +1,7 @@
 import Crypto
 import FlowToken from 0xFLOWTOKENADDRESS
 
-transaction(publicKeys: [Crypto.KeyListEntry], contractName: String, code: [UInt8], rewardAmount: UFix64, rewardCut: UFix64) {
+transaction(publicKeys: [Crypto.KeyListEntry], contractName: String, code: [UInt8], rewardAmount: UFix64, rewardCut: UFix64, candidateNodeLimit: Int) {
 
   prepare(signer: AuthAccount) {
 
@@ -20,7 +20,7 @@ transaction(publicKeys: [Crypto.KeyListEntry], contractName: String, code: [UInt
 
     acct.save(<-flowTokenMinter, to: /storage/flowTokenMinter)
 
-    acct.contracts.add(name: contractName, code: code, rewardAmount, rewardCut)
+    acct.contracts.add(name: contractName, code: code, rewardAmount, rewardCut, candidateNodeLimit)
   }
 
 }
