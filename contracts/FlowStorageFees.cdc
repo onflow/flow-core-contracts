@@ -71,24 +71,44 @@ pub contract FlowStorageFees {
                 balance = balanceRef.balance
         }
 
-        // get address token balance
+        return self.accountBalanceToAccountStorageCapacity(balance)
+    }
+
+    // getAccountsCapacityForTransactionStorageCheck returns the storage capacity of a batch of accounts
+    // This is used to check if a transaction will fail because of any account being over the storage capacity
+    // The payer is an exception as its storage capacity is derived from its balance minus the maximum possible transaction fees 
+    // (transaction fees if the execution effort is at the execution efort limit, a.k.a.: computation limit, a.k.a.: gas limit)
+    pub fun getAccountsCapacityForTransactionStorageCheck(_ accountAddresses: [Address], payer: Address, maxTxFees: UFix64): [UFix64] {
+        let capacities: [UFix64] = []
+        for accountAddress in accountAddresses {
+            var balance = 0.0
+            if let balanceRef = getAccount(accountAddress)
+                .getCapability<&FlowToken.Vault{FungibleToken.Balance}>(/public/flowTokenBalance)!
+                .borrow() {
+                    if accountAddress == payer {
+                        // if the account is the payer, deduct the maximum possible transaction fees from the balance
+                        balance = balanceRef.balance - maxTxFees
+                    } else {
+                        balance = balanceRef.balance
+                    }
+            }
+
+            capacities.append(self.accountBalanceToAccountStorageCapacity(balance)) 
+        }
+        return capacities
+    }
+
+    // accountBalanceToAccountStorageCapacity returns the storage capacity of an account
+    // given the flow balance of the account.
+    pub fun accountBalanceToAccountStorageCapacity(_ balance: UFix64): UFix64 {
+                // get address token balance
         if balance < self.minimumStorageReservation {
             // if < then minimum return 0
             return 0.0
         } else {
             // return balance multiplied with megabytes per flow 
-            return balance.saturatingMultiply(self.storageMegaBytesPerReservedFLOW)
+            return self.flowToStorageCapacity(balance)
         }
-    }
-
-    /// calculateAccountsCapacity returns the storage capacity of a batch of accounts
-    pub fun calculateAccountsCapacity(_ accountAddresses: [Address]): [UFix64] {
-        let capacities: [UFix64] = []
-        for accountAddress in accountAddresses {
-            let capacity = self.calculateAccountCapacity(accountAddress)
-            capacities.append(capacity)
-        }
-        return capacities
     }
 
     // Amount in Flow tokens
