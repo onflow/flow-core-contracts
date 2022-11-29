@@ -475,9 +475,8 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 	// end staking auction and epoch, then pay rewards
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), flow.HexToAddress(env.IDTableAddress))
-	ids := make([]string, 2)
+	ids := make([]string, 1)
 	ids[0] = adminID
-	ids[1] = joshID
 	approvedNodeIDs := generateCadenceNodeDictionary(ids)
 
 	err := tx.AddArgument(approvedNodeIDs)
@@ -875,9 +874,8 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 	// end staking auction and epoch, then pay rewards
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), flow.HexToAddress(env.IDTableAddress))
 
-	ids := make([]string, 2)
+	ids := make([]string, 1)
 	ids[0] = adminID
-	ids[1] = joshID
 	approvedNodeIDs := generateCadenceNodeDictionary(ids)
 
 	err := tx.AddArgument(approvedNodeIDs)

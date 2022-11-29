@@ -769,6 +769,12 @@ pub contract FlowIDTableStaking {
         /// Nodes not on this list will be unstaked at the end of the staking auction
         /// and not considered to be a proposed/staked node
         pub fun setApprovedList(_ nodeIDs: {String: Bool}) {
+            for id in nodeIDs.keys {
+                if FlowIDTableStaking.nodes[id] == nil {
+                    panic("Approved node ".concat(id).concat(" does not already exist in the identity table"))
+                }
+            }
+
             let list = FlowIDTableStaking.account.load<{String: Bool}>(from: /storage/idTableApproveList)
 
             FlowIDTableStaking.account.save<{String: Bool}>(nodeIDs, to: /storage/idTableApproveList)
@@ -935,7 +941,7 @@ pub contract FlowIDTableStaking {
 
         /// Calculates rewards for all the staked node operators and delegators
         pub fun calculateRewards(): EpochRewardsSummary {
-            let stakedNodeIDs: {String: Bool} = FlowIDTableStaking.getCurrentNodeList()!
+            let stakedNodeIDs: {String: Bool} = FlowIDTableStaking.getParticipantNodeList()!
 
             // Get the sum of all tokens staked
             var totalStaked = FlowIDTableStaking.getTotalStaked()
@@ -1065,7 +1071,7 @@ pub contract FlowIDTableStaking {
             
             let allNodeIDs = FlowIDTableStaking.getNodeIDs()
 
-            let stakedNodeIDs: {String: Bool} = FlowIDTableStaking.getCurrentNodeList()!
+            let stakedNodeIDs: {String: Bool} = FlowIDTableStaking.getParticipantNodeList()!
 
             for nodeID in allNodeIDs {
                 let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
@@ -1134,8 +1140,8 @@ pub contract FlowIDTableStaking {
             // Start the new epoch's staking auction
             self.startStakingAuction()
 
-            // Set the current Epoch node list
-            FlowIDTableStaking.setCurrentNodeList(stakedNodeIDs)
+            // Set the current Epoch participant node list
+            FlowIDTableStaking.setParticipantNodeList(stakedNodeIDs)
 
             // Indicates that the tokens have moved and the epoch has ended
             // Tells what the new reward payout will be. The new payout is calculated and changed
@@ -1268,20 +1274,21 @@ pub contract FlowIDTableStaking {
     }
 
     /// Sets a list of approved node IDs for the current epoch
-    access(contract) fun setCurrentNodeList(_ nodeIDs: {String: Bool}) {
+    access(contract) fun setParticipantNodeList(_ nodeIDs: {String: Bool}) {
         let list = self.account.load<{String: Bool}>(from: /storage/idTableCurrentList)
 
         self.account.save<{String: Bool}>(nodeIDs, to: /storage/idTableCurrentList)
     }
 
-    /// Gets the node list as a dictionary
-    pub fun getCurrentNodeList(): {String: Bool}? {
+    /// Gets the current list of participant (staked in the current epoch) nodes as a dictionary.
+    pub fun getParticipantNodeList(): {String: Bool}? {
         return self.account.copy<{String: Bool}>(from: /storage/idTableCurrentList)
     }
 
+    /// Gets the current list of participant nodes (like getCurrentNodeList) but as a list
     /// Kept for backwards compatibility
     pub fun getStakedNodeIDs(): [String] {
-        let nodeIDs = self.getCurrentNodeList()!
+        let nodeIDs = self.getParticipantNodeList()!
         return nodeIDs.keys
     }
 
@@ -1304,16 +1311,13 @@ pub contract FlowIDTableStaking {
         return self.account.copy<Bool>(from: /storage/stakingEnabled) ?? false
     }
 
-    /// Gets an array of the node IDs that are proposed and approved for the next epoch
+    /// Gets an array of the node IDs that have committed sufficient stake
+    /// and are approved for the next epoch
     pub fun getProposedNodeIDs(): [String] {
 
-        let approvedNodeIDs = FlowIDTableStaking.getApprovedList()
+        let proposedNodeIDs = FlowIDTableStaking.getApprovedList()
 
-        for nodeID in approvedNodeIDs.keys {
-            if FlowIDTableStaking.nodes[nodeID] == nil {
-                approvedNodeIDs[nodeID] = nil
-                continue
-            }
+        for nodeID in proposedNodeIDs.keys {
 
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
 
@@ -1321,10 +1325,10 @@ pub contract FlowIDTableStaking {
             // Access nodes have a minimum of 0, so they need to be strictly greater than zero to be considered proposed
             if !self.isGreaterThanMinimumForRole(numTokens: self.NodeInfo(nodeID: nodeRecord.id).totalCommittedWithoutDelegators(), role: nodeRecord.role)
             {
-                approvedNodeIDs[nodeID] = nil
+                proposedNodeIDs[nodeID] = nil
             }
         }
-        return approvedNodeIDs.keys
+        return proposedNodeIDs.keys
     }
 
     /// Gets an array of all the node IDs that have ever registered
@@ -1434,7 +1438,7 @@ pub contract FlowIDTableStaking {
         self.rewardRatios = {UInt8(1): 0.168, UInt8(2): 0.518, UInt8(3): 0.078, UInt8(4): 0.236, UInt8(5): 0.0}
 
         let approveList: {String: Bool} = {}
-        self.setCurrentNodeList(approveList)
+        self.setParticipantNodeList(approveList)
         self.account.save<{String: Bool}>(approveList, to: /storage/idTableApproveList)
 
         let nonOperationalList: {String: UFix64} = {}

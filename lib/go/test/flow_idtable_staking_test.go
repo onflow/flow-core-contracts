@@ -270,10 +270,7 @@ func TestStakingTransferAdmin(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshAddress)
 
-		nodeIDs := make([]string, 3)
-		nodeIDs[0] = adminID
-		nodeIDs[1] = joshID
-		nodeIDs[2] = maxID
+		nodeIDs := make([]string, 0)
 		nodeIDDict := generateCadenceNodeDictionary(nodeIDs)
 
 		err := tx.AddArgument(nodeIDDict)
@@ -636,6 +633,199 @@ func TestIDTableStaking(t *testing.T) {
 
 	})
 
+	t.Run("Shouldn't be able to remove a Node that doesn't exist", func(t *testing.T) {
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRemoveNodeScript(env), idTableAddress)
+
+		_ = tx.AddArgument(CadenceString(nonexistantID))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
+			true,
+		)
+	})
+
+	t.Run("Should be able to create more valid Node structs", func(t *testing.T) {
+
+		var amountToCommit interpreter.UFix64Value = 48000000000000
+
+		committed[joshID] = registerNode(t, b, env,
+			joshAddress,
+			joshSigner,
+			joshID,
+			fmt.Sprintf("%0128d", josh),
+			joshNetworkingKey,
+			joshStakingKey,
+			amountToCommit,
+			committed[joshID],
+			2,
+			false)
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetCommittedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(joshID))})
+		assertEqual(t, CadenceUFix64(committed[joshID].String()), result)
+
+		amountToCommit = 135000000000000
+
+		committed[maxID] = registerNode(t, b, env,
+			maxAddress,
+			maxSigner,
+			maxID,
+			fmt.Sprintf("%0128d", max),
+			maxNetworkingKey,
+			maxStakingKey,
+			amountToCommit,
+			committed[maxID],
+			3,
+			false)
+
+		amountToCommit = 5000000000000
+
+		committed[accessID] = registerNode(t, b, env,
+			accessAddress,
+			accessSigner,
+			accessID,
+			fmt.Sprintf("%0128d", access),
+			accessNetworkingKey,
+			accessStakingKey,
+			amountToCommit,
+			committed[accessID],
+			5,
+			false)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateReturnCurrentTableScript(env), nil)
+
+		idArray := result.(cadence.Array).Values
+		assert.Len(t, idArray, 0)
+	})
+
+	t.Run("Should be able to remove a Node from the proposed record and add it back", func(t *testing.T) {
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRemoveNodeScript(env), idTableAddress)
+
+		_ = tx.AddArgument(CadenceString(joshID))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
+			false,
+		)
+
+		result := executeScriptAndCheck(t, b, templates.GenerateReturnCurrentTableScript(env), nil)
+
+		idArray := result.(cadence.Array).Values
+		assert.Len(t, idArray, 0)
+
+		var amountToCommit interpreter.UFix64Value = 48000000000000
+
+		registerNode(t, b, env,
+			idTableAddress,
+			IDTableSigner,
+			joshID,
+			fmt.Sprintf("%0128d", josh),
+			joshNetworkingKey,
+			joshStakingKey,
+			amountToCommit,
+			committed[joshID],
+			2,
+			false)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetCommittedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(joshID))})
+		assertEqual(t, CadenceUFix64(committed[joshID].String()), result)
+	})
+
+	t.Run("Should be able to commit additional tokens for max's node", func(t *testing.T) {
+
+		var amountToCommit interpreter.UFix64Value = 10000000000000
+
+		committed[maxID] = commitNewTokens(t, b, env,
+			maxAddress,
+			maxSigner,
+			amountToCommit,
+			committed[maxID],
+			false)
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetCommittedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(maxID))})
+		assertEqual(t, CadenceUFix64(committed[maxID].String()), result)
+	})
+
+	t.Run("Should not be able request unstaking for more than is available", func(t *testing.T) {
+
+		var amountToRequest interpreter.UFix64Value = 500000000000000
+
+		requestUnstaking(t, b, env,
+			maxAddress,
+			maxSigner,
+			amountToRequest,
+			committed[maxID],
+			unstaked[maxID],
+			request[maxID],
+			true,
+		)
+	})
+
+	t.Run("Should be able to request unstaking which moves from comitted to unstaked", func(t *testing.T) {
+
+		var amountToRequest interpreter.UFix64Value = 10000000000000
+
+		committed[maxID], unstaked[maxID], request[maxID] = requestUnstaking(t, b, env,
+			maxAddress,
+			maxSigner,
+			amountToRequest,
+			committed[maxID],
+			unstaked[maxID],
+			request[maxID],
+			false,
+		)
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetCommittedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(maxID))})
+		assertEqual(t, CadenceUFix64(committed[maxID].String()), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetUnstakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(maxID))})
+		assertEqual(t, CadenceUFix64(unstaked[maxID].String()), result)
+	})
+
+	t.Run("Should be able to withdraw tokens from unstaked", func(t *testing.T) {
+
+		unstaked[maxID] = unstaked[maxID] - 5000000000000
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateWithdrawUnstakedTokensScript(env), maxAddress)
+
+		err := tx.AddArgument(CadenceUFix64("50000.0"))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{maxAddress},
+			[]crypto.Signer{maxSigner},
+			false,
+		)
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetUnstakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(maxID))})
+		assertEqual(t, CadenceUFix64(unstaked[maxID].String()), result)
+	})
+
+	t.Run("Should be able to commit unstaked tokens", func(t *testing.T) {
+
+		var amountToCommit interpreter.UFix64Value = 5000000000000
+
+		committed[maxID], unstaked[maxID] = commitUnstaked(t, b, env,
+			maxAddress,
+			maxSigner,
+			amountToCommit,
+			committed[maxID],
+			unstaked[maxID],
+			false)
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetUnstakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(maxID))})
+		assertEqual(t, CadenceUFix64(unstaked[maxID].String()), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetCommittedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(maxID))})
+		assertEqual(t, CadenceUFix64(committed[maxID].String()), result)
+	})
+
 	// [josh, max]
 	nodeIDs := make([]string, 2)
 	nodeIDs[0] = joshID
@@ -778,215 +968,7 @@ func TestIDTableStaking(t *testing.T) {
 		// read the proposed nodes table and check that our node ids exists
 		result = executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
 		idArray = result.(cadence.Array).Values
-		assert.Len(t, idArray, 1)
-	})
-
-	t.Run("Shouldn't be able to remove a Node that doesn't exist", func(t *testing.T) {
-
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRemoveNodeScript(env), idTableAddress)
-
-		_ = tx.AddArgument(CadenceString(nonexistantID))
-
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
-			true,
-		)
-	})
-
-	t.Run("Should be able to create more valid Node structs", func(t *testing.T) {
-
-		var amountToCommit interpreter.UFix64Value = 48000000000000
-
-		committed[joshID] = registerNode(t, b, env,
-			joshAddress,
-			joshSigner,
-			joshID,
-			fmt.Sprintf("%0128d", josh),
-			joshNetworkingKey,
-			joshStakingKey,
-			amountToCommit,
-			committed[joshID],
-			2,
-			false)
-
-		result := executeScriptAndCheck(t, b, templates.GenerateGetCommittedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(joshID))})
-		assertEqual(t, CadenceUFix64(committed[joshID].String()), result)
-
-		amountToCommit = 135000000000000
-
-		committed[maxID] = registerNode(t, b, env,
-			maxAddress,
-			maxSigner,
-			maxID,
-			fmt.Sprintf("%0128d", max),
-			maxNetworkingKey,
-			maxStakingKey,
-			amountToCommit,
-			committed[maxID],
-			3,
-			false)
-
-		amountToCommit = 5000000000000
-
-		committed[accessID] = registerNode(t, b, env,
-			accessAddress,
-			accessSigner,
-			accessID,
-			fmt.Sprintf("%0128d", access),
-			accessNetworkingKey,
-			accessStakingKey,
-			amountToCommit,
-			committed[accessID],
-			5,
-			false)
-
-		result = executeScriptAndCheck(t, b, templates.GenerateReturnCurrentTableScript(env), nil)
-
-		idArray := result.(cadence.Array).Values
-		assert.Len(t, idArray, 0)
-
-		result = executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
-
-		idArray = result.(cadence.Array).Values
 		assert.Len(t, idArray, 3)
-	})
-
-	t.Run("Should be able to remove a Node from the proposed record and add it back", func(t *testing.T) {
-
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRemoveNodeScript(env), idTableAddress)
-
-		_ = tx.AddArgument(CadenceString(joshID))
-
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
-			false,
-		)
-
-		result := executeScriptAndCheck(t, b, templates.GenerateReturnCurrentTableScript(env), nil)
-
-		idArray := result.(cadence.Array).Values
-		assert.Len(t, idArray, 0)
-
-		result = executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
-
-		idArray = result.(cadence.Array).Values
-		assert.Len(t, idArray, 3)
-
-		var amountToCommit interpreter.UFix64Value = 48000000000000
-
-		registerNode(t, b, env,
-			idTableAddress,
-			IDTableSigner,
-			joshID,
-			fmt.Sprintf("%0128d", josh),
-			joshNetworkingKey,
-			joshStakingKey,
-			amountToCommit,
-			committed[joshID],
-			2,
-			false)
-
-		result = executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
-
-		idArray = result.(cadence.Array).Values
-		assert.Len(t, idArray, 3)
-
-		result = executeScriptAndCheck(t, b, templates.GenerateGetCommittedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(joshID))})
-		assertEqual(t, CadenceUFix64(committed[joshID].String()), result)
-	})
-
-	t.Run("Should be able to commit additional tokens for max's node", func(t *testing.T) {
-
-		var amountToCommit interpreter.UFix64Value = 10000000000000
-
-		committed[maxID] = commitNewTokens(t, b, env,
-			maxAddress,
-			maxSigner,
-			amountToCommit,
-			committed[maxID],
-			false)
-
-		result := executeScriptAndCheck(t, b, templates.GenerateGetCommittedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(maxID))})
-		assertEqual(t, CadenceUFix64(committed[maxID].String()), result)
-	})
-
-	t.Run("Should not be able request unstaking for more than is available", func(t *testing.T) {
-
-		var amountToRequest interpreter.UFix64Value = 500000000000000
-
-		requestUnstaking(t, b, env,
-			maxAddress,
-			maxSigner,
-			amountToRequest,
-			committed[maxID],
-			unstaked[maxID],
-			request[maxID],
-			true,
-		)
-	})
-
-	t.Run("Should be able to request unstaking which moves from comitted to unstaked", func(t *testing.T) {
-
-		var amountToRequest interpreter.UFix64Value = 10000000000000
-
-		committed[maxID], unstaked[maxID], request[maxID] = requestUnstaking(t, b, env,
-			maxAddress,
-			maxSigner,
-			amountToRequest,
-			committed[maxID],
-			unstaked[maxID],
-			request[maxID],
-			false,
-		)
-
-		result := executeScriptAndCheck(t, b, templates.GenerateGetCommittedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(maxID))})
-		assertEqual(t, CadenceUFix64(committed[maxID].String()), result)
-
-		result = executeScriptAndCheck(t, b, templates.GenerateGetUnstakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(maxID))})
-		assertEqual(t, CadenceUFix64(unstaked[maxID].String()), result)
-	})
-
-	t.Run("Should be able to withdraw tokens from unstaked", func(t *testing.T) {
-
-		unstaked[maxID] = unstaked[maxID] - 5000000000000
-
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateWithdrawUnstakedTokensScript(env), maxAddress)
-
-		err := tx.AddArgument(CadenceUFix64("50000.0"))
-		require.NoError(t, err)
-
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{maxAddress},
-			[]crypto.Signer{maxSigner},
-			false,
-		)
-
-		result := executeScriptAndCheck(t, b, templates.GenerateGetUnstakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(maxID))})
-		assertEqual(t, CadenceUFix64(unstaked[maxID].String()), result)
-	})
-
-	t.Run("Should be able to commit unstaked tokens", func(t *testing.T) {
-
-		var amountToCommit interpreter.UFix64Value = 5000000000000
-
-		committed[maxID], unstaked[maxID] = commitUnstaked(t, b, env,
-			maxAddress,
-			maxSigner,
-			amountToCommit,
-			committed[maxID],
-			unstaked[maxID],
-			false)
-
-		result := executeScriptAndCheck(t, b, templates.GenerateGetUnstakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(maxID))})
-		assertEqual(t, CadenceUFix64(unstaked[maxID].String()), result)
-
-		result = executeScriptAndCheck(t, b, templates.GenerateGetCommittedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(maxID))})
-		assertEqual(t, CadenceUFix64(committed[maxID].String()), result)
 	})
 
 	t.Run("Should be able to end the staking auction, which removes insufficiently staked nodes", func(t *testing.T) {
