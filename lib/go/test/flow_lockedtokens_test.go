@@ -49,6 +49,7 @@ func TestLockedTokensStaker(t *testing.T) {
 		AddRawArgument(jsoncdc.MustEncode(cadenceCode))
 	_ = tx.AddArgument(CadenceUFix64("1250000.0"))
 	_ = tx.AddArgument(CadenceUFix64("0.03"))
+	_ = tx.AddArgument(cadence.NewInt(10))
 
 	signAndSubmit(
 		t, b, tx,
@@ -654,6 +655,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 
 	_ = tx.AddArgument(CadenceUFix64("1250000.0"))
 	_ = tx.AddArgument(CadenceUFix64("0.03"))
+	_ = tx.AddArgument(cadence.NewInt(10))
 
 	signAndSubmit(
 		t, b, tx,
@@ -1110,6 +1112,7 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 
 	_ = tx.AddArgument(CadenceUFix64("1250000.0"))
 	_ = tx.AddArgument(CadenceUFix64("0.03"))
+	_ = tx.AddArgument(cadence.NewInt(10))
 
 	signAndSubmit(
 		t, b, tx,
@@ -1438,7 +1441,7 @@ func TestLockedTokensRealStaking(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true)
+	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true, 10)
 
 	env.IDTableAddress = idTableAddress.Hex()
 
@@ -1770,7 +1773,7 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true)
+	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true, 10)
 
 	env.IDTableAddress = idTableAddress.Hex()
 

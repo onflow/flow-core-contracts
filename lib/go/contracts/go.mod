@@ -1,6 +1,6 @@
 module github.com/onflow/flow-core-contracts/lib/go/contracts
 
-go 1.19
+go 1.18
 
 require (
 	github.com/kevinburke/go-bindata v3.23.0+incompatible

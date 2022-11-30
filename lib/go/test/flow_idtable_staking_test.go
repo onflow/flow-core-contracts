@@ -58,7 +58,7 @@ func TestIDTableDeployment(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true)
+	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true, 10)
 
 	env.IDTableAddress = idTableAddress.Hex()
 
@@ -235,7 +235,7 @@ func TestStakingTransferAdmin(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true)
+	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true, 10)
 
 	//
 	joshAccountKey, joshSigner := accountKeys.NewWithSigner()
@@ -305,7 +305,7 @@ func TestIDTableStaking(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	idTableAddress, feesAddr := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true)
+	idTableAddress, feesAddr := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true, 3)
 
 	env.IDTableAddress = idTableAddress.Hex()
 	env.FlowFeesAddress = feesAddr.Hex()
@@ -698,6 +698,42 @@ func TestIDTableStaking(t *testing.T) {
 
 		idArray := result.(cadence.Array).Values
 		assert.Len(t, idArray, 0)
+	})
+
+	t.Run("Shouldn't be able to register a node if it would be more than the candidate limit", func(t *testing.T) {
+
+		var amountToCommit interpreter.UFix64Value = 48000000000000
+
+		committed[bastianID] = registerNode(t, b, env,
+			bastianAddress,
+			bastianSigner,
+			bastianID,
+			fmt.Sprintf("%0128d", bastian),
+			bastianNetworkingKey,
+			bastianStakingKey,
+			amountToCommit,
+			committed[bastianID],
+			4,
+			true)
+	})
+
+	t.Run("Should be able to set a new candidate limit", func(t *testing.T) {
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetCandidateLimitScript(env), idTableAddress)
+
+		err := tx.AddArgument(cadence.NewInt(4))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
+			false,
+		)
+
+		// read the approved nodes list and check that our node ids exists
+		result := executeScriptAndCheck(t, b, templates.GenerateGetCandidateLimitScript(env), nil)
+		assertEqual(t, cadence.NewInt(4), result)
 	})
 
 	t.Run("Should be able to remove a Node from the proposed record and add it back", func(t *testing.T) {
@@ -2445,7 +2481,7 @@ func TestIDTableRewardsWitholding(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	idTableAddress, feesAddr := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true)
+	idTableAddress, feesAddr := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true, 10)
 
 	env.IDTableAddress = idTableAddress.Hex()
 	env.FlowFeesAddress = feesAddr.Hex()

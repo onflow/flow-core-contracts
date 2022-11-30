@@ -52,6 +52,7 @@ func TestStakingProxy(t *testing.T) {
 
 	_ = tx.AddArgument(CadenceUFix64("1250000.0"))
 	_ = tx.AddArgument(CadenceUFix64("0.03"))
+	_ = tx.AddArgument(cadence.NewInt(10))
 
 	signAndSubmit(
 		t, b, tx,
