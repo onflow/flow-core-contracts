@@ -9,8 +9,6 @@ import (
 	_ "github.com/kevinburke/go-bindata"
 	ftcontracts "github.com/onflow/flow-ft/lib/go/contracts"
 
-	_ "github.com/kevinburke/go-bindata"
-
 	"github.com/onflow/flow-core-contracts/lib/go/contracts/internal/assets"
 )
 
@@ -25,19 +23,19 @@ import (
 ///
 
 const (
-	flowFeesFilename                   = "FlowFees.cdc"
-	storageFeesFilename                = "FlowStorageFees.cdc"
-	flowServiceAccountFilename         = "FlowServiceAccount.cdc"
-	flowTokenFilename                  = "FlowToken.cdc"
-	flowIdentityTableFilename          = "FlowIDTableStaking.cdc"
-	flowQCFilename                     = "epochs/FlowClusterQC.cdc"
-	flowDKGFilename                    = "epochs/FlowDKG.cdc"
-	flowEpochFilename                  = "epochs/FlowEpoch.cdc"
-	flowLockedTokensFilename           = "LockedTokens.cdc"
-	flowStakingProxyFilename           = "StakingProxy.cdc"
-	flowStakingCollectionFilename      = "FlowStakingCollection.cdc"
-	flowContractAuditsFilename         = "FlowContractAudits.cdc"
-	executionNodeVersionBeaconFilename = "ExecutionNodeVersionBeacon.cdc"
+	flowFeesFilename              = "FlowFees.cdc"
+	storageFeesFilename           = "FlowStorageFees.cdc"
+	flowServiceAccountFilename    = "FlowServiceAccount.cdc"
+	flowTokenFilename             = "FlowToken.cdc"
+	flowIdentityTableFilename     = "FlowIDTableStaking.cdc"
+	flowQCFilename                = "epochs/FlowClusterQC.cdc"
+	flowDKGFilename               = "epochs/FlowDKG.cdc"
+	flowEpochFilename             = "epochs/FlowEpoch.cdc"
+	flowLockedTokensFilename      = "LockedTokens.cdc"
+	flowStakingProxyFilename      = "StakingProxy.cdc"
+	flowStakingCollectionFilename = "FlowStakingCollection.cdc"
+	flowContractAuditsFilename    = "FlowContractAudits.cdc"
+	flowNodeVersionBeaconFilename = "NodeVersionBeacon.cdc"
 
 	// Test contracts
 	// only used for testing
@@ -45,18 +43,18 @@ const (
 
 	// Each contract has placeholder addresses that need to be replaced
 	// depending on which network they are being used with
-	placeholderFungibleTokenAddress              = "0xFUNGIBLETOKENADDRESS"
-	placeholderFlowTokenAddress                  = "0xFLOWTOKENADDRESS"
-	placeholderIDTableAddress                    = "0xFLOWIDTABLESTAKINGADDRESS"
-	placeholderStakingProxyAddress               = "0xSTAKINGPROXYADDRESS"
-	placeholderQCAddr                            = "0xQCADDRESS"
-	placeholderDKGAddr                           = "0xDKGADDRESS"
-	placeholderEpochAddr                         = "0xEPOCHADDRESS"
-	placeholderFlowFeesAddress                   = "0xFLOWFEESADDRESS"
-	placeholderStorageFeesAddress                = "0xFLOWSTORAGEFEESADDRESS"
-	placeholderLockedTokensAddress               = "0xLOCKEDTOKENSADDRESS"
-	placeholderStakingCollectionAddress          = "0xFLOWSTAKINGCOLLECTIONADDRESS"
-	placeholderExecutionNodeVersionBeaconAddress = "0xEXECUTIONNODEVERSIONBEACONADDRESS"
+	placeholderFungibleTokenAddress     = "0xFUNGIBLETOKENADDRESS"
+	placeholderFlowTokenAddress         = "0xFLOWTOKENADDRESS"
+	placeholderIDTableAddress           = "0xFLOWIDTABLESTAKINGADDRESS"
+	placeholderStakingProxyAddress      = "0xSTAKINGPROXYADDRESS"
+	placeholderQCAddr                   = "0xQCADDRESS"
+	placeholderDKGAddr                  = "0xDKGADDRESS"
+	placeholderEpochAddr                = "0xEPOCHADDRESS"
+	placeholderFlowFeesAddress          = "0xFLOWFEESADDRESS"
+	placeholderStorageFeesAddress       = "0xFLOWSTORAGEFEESADDRESS"
+	placeholderLockedTokensAddress      = "0xLOCKEDTOKENSADDRESS"
+	placeholderStakingCollectionAddress = "0xFLOWSTAKINGCOLLECTIONADDRESS"
+	placeholderNodeVersionBeaconAddress = "0xNODEVERSIONBEACONADDRESS"
 )
 
 // Adds a `0x` prefix to the provided address string
@@ -275,6 +273,13 @@ func FlowEpoch(fungibleTokenAddress,
 	code = strings.ReplaceAll(code, placeholderQCAddr, withHexPrefix(qcAddress))
 	code = strings.ReplaceAll(code, placeholderDKGAddr, withHexPrefix(dkgAddress))
 	code = strings.ReplaceAll(code, placeholderFlowFeesAddress, withHexPrefix(flowFeesAddress))
+
+	return []byte(code)
+}
+
+// NodeVersionBeacon returns the NodeVersionBeacon contract content.
+func NodeVersionBeacon() []byte {
+	code := assets.MustAssetString(flowNodeVersionBeaconFilename)
 
 	return []byte(code)
 }
