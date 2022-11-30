@@ -271,7 +271,7 @@ func TestStakingTransferAdmin(t *testing.T) {
 			AddAuthorizer(joshAddress)
 
 		nodeIDs := make([]string, 0)
-		nodeIDDict := generateCadenceNodeDictionary(nodeIDs)
+		nodeIDDict, _ := generateCadenceNodeDictionaryAndArray(nodeIDs)
 
 		err := tx.AddArgument(nodeIDDict)
 		require.NoError(t, err)
@@ -734,6 +734,17 @@ func TestIDTableStaking(t *testing.T) {
 		// read the approved nodes list and check that our node ids exists
 		result := executeScriptAndCheck(t, b, templates.GenerateGetCandidateLimitScript(env), nil)
 		assertEqual(t, cadence.NewInt(4), result)
+
+		// create expected candidate node list [josh, max]
+		candidates := CandidateNodes{
+			collector:    []string{adminID},
+			consensus:    []string{},
+			execution:    []string{maxID},
+			verification: []string{},
+			access:       []string{accessID},
+		}
+
+		assertCandidateNodeListEquals(t, b, env, candidates)
 	})
 
 	t.Run("Should be able to remove a Node from the proposed record and add it back", func(t *testing.T) {
@@ -866,7 +877,7 @@ func TestIDTableStaking(t *testing.T) {
 	nodeIDs := make([]string, 2)
 	nodeIDs[0] = joshID
 	nodeIDs[1] = maxID
-	nodeIDDict := generateCadenceNodeDictionary(nodeIDs)
+	nodeIDDict, _ := generateCadenceNodeDictionaryAndArray(nodeIDs)
 	initialNodeIDs := cadence.NewArray([]cadence.Value{CadenceString(maxID), CadenceString(joshID)}).WithType(cadence.NewVariableSizedArrayType(cadence.NewStringType()))
 
 	t.Run("Should be able to add nodes to approved node list", func(t *testing.T) {
@@ -980,7 +991,7 @@ func TestIDTableStaking(t *testing.T) {
 	fourNodeIDs[1] = joshID
 	fourNodeIDs[2] = maxID
 	fourNodeIDs[3] = accessID
-	fourNodeIDDict := generateCadenceNodeDictionary(fourNodeIDs)
+	fourNodeIDDict, _ := generateCadenceNodeDictionaryAndArray(fourNodeIDs)
 
 	t.Run("Should be able to set and get the approved node list", func(t *testing.T) {
 
@@ -1023,6 +1034,17 @@ func TestIDTableStaking(t *testing.T) {
 			[]crypto.Signer{IDTableSigner},
 			false,
 		)
+
+		// expected candidate node list should be empty
+		candidates := CandidateNodes{
+			collector:    []string{},
+			consensus:    []string{},
+			execution:    []string{},
+			verification: []string{},
+			access:       []string{},
+		}
+
+		assertCandidateNodeListEquals(t, b, env, candidates)
 
 		result := executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
 
@@ -1954,7 +1976,7 @@ func TestIDTableStaking(t *testing.T) {
 	})
 
 	fourNodeIDs[3] = bastianID
-	fourNodeIDDict = generateCadenceNodeDictionary(fourNodeIDs)
+	fourNodeIDDict, _ = generateCadenceNodeDictionaryAndArray(fourNodeIDs)
 
 	// End the staking auction
 	t.Run("Should be able to end the staking auction", func(t *testing.T) {
@@ -2040,7 +2062,7 @@ func TestIDTableStaking(t *testing.T) {
 	})
 
 	threeNodeIDs := fourNodeIDs[:len(fourNodeIDs)-1]
-	threeNodeIDDict := generateCadenceNodeDictionary(threeNodeIDs)
+	threeNodeIDDict, _ := generateCadenceNodeDictionaryAndArray(threeNodeIDs)
 
 	// Pay rewards and make sure josh and josh delegator got paid the right amounts based on the cut
 	t.Run("Should pay correct rewards, rewards are split up properly between stakers and delegators", func(t *testing.T) {
@@ -2237,7 +2259,7 @@ func TestIDTableStaking(t *testing.T) {
 	})
 
 	twoNodeIDs := threeNodeIDs[:len(threeNodeIDs)-1]
-	twoNodeIDDict := generateCadenceNodeDictionary(twoNodeIDs)
+	twoNodeIDDict, _ := generateCadenceNodeDictionaryAndArray(twoNodeIDs)
 
 	// End the staking auction, saying that Max is not on the approved node list
 	t.Run("Should refund delegators when their node is not included in the auction", func(t *testing.T) {
@@ -2578,7 +2600,7 @@ func TestIDTableRewardsWitholding(t *testing.T) {
 		cadenceIDs[i] = CadenceString(ids[i])
 	}
 
-	nodeIDsDict := generateCadenceNodeDictionary(ids)
+	nodeIDsDict, _ := generateCadenceNodeDictionaryAndArray(ids)
 
 	// End the epoch, which marks everyone as staking
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), idTableAddress)
