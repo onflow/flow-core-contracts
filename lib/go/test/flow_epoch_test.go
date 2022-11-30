@@ -303,7 +303,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 	// Set the approved node list
 	tx := createTxWithTemplateAndAuthorizer(b, templates.NEWGenerateSetApprovedNodesScript(env), idTableAddress)
 
-	approvedNodeIDs := generateCadenceNodeDictionary(ids)
+	approvedNodeIDs, _ := generateCadenceNodeDictionaryAndArray(ids)
 	err := tx.AddArgument(approvedNodeIDs)
 	require.NoError(t, err)
 
@@ -425,7 +425,7 @@ func TestEpochAdvance(t *testing.T) {
 	// Set the approved node list
 	tx := createTxWithTemplateAndAuthorizer(b, templates.NEWGenerateSetApprovedNodesScript(env), idTableAddress)
 
-	approvedNodeIDs := generateCadenceNodeDictionary(ids)
+	approvedNodeIDs, _ := generateCadenceNodeDictionaryAndArray(ids)
 	err := tx.AddArgument(approvedNodeIDs)
 	require.NoError(t, err)
 
@@ -565,7 +565,7 @@ func TestEpochQCDKGNodeRegistration(t *testing.T) {
 	// Set the approved node list
 	tx := createTxWithTemplateAndAuthorizer(b, templates.NEWGenerateSetApprovedNodesScript(env), idTableAddress)
 
-	approvedNodeIDs := generateCadenceNodeDictionary(ids)
+	approvedNodeIDs, _ := generateCadenceNodeDictionaryAndArray(ids)
 	err := tx.AddArgument(approvedNodeIDs)
 	require.NoError(t, err)
 
@@ -689,7 +689,7 @@ func TestEpochQCDKG(t *testing.T) {
 	// Set the approved node list
 	tx := createTxWithTemplateAndAuthorizer(b, templates.NEWGenerateSetApprovedNodesScript(env), idTableAddress)
 
-	approvedNodeIDs := generateCadenceNodeDictionary(ids)
+	approvedNodeIDs, _ := generateCadenceNodeDictionaryAndArray(ids)
 	err := tx.AddArgument(approvedNodeIDs)
 	require.NoError(t, err)
 
@@ -1047,7 +1047,7 @@ func TestEpochReset(t *testing.T) {
 	// Set the approved node list
 	tx := createTxWithTemplateAndAuthorizer(b, templates.NEWGenerateSetApprovedNodesScript(env), idTableAddress)
 
-	approvedNodeIDs := generateCadenceNodeDictionary(ids)
+	approvedNodeIDs, _ := generateCadenceNodeDictionaryAndArray(ids)
 	err := tx.AddArgument(approvedNodeIDs)
 	require.NoError(t, err)
 

@@ -193,7 +193,7 @@ func TestManyNodesIDTable(t *testing.T) {
 
 	})
 
-	approvedNodesDict := generateCadenceNodeDictionary(approvedNodesStringArray)
+	approvedNodesDict, _ := generateCadenceNodeDictionaryAndArray(approvedNodesStringArray)
 
 	// End staking auction
 	t.Run("Should end staking auction, pay rewards, and move tokens", func(t *testing.T) {

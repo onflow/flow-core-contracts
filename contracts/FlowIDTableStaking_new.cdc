@@ -573,10 +573,13 @@ pub contract FlowIDTableStaking {
             /// withdraw the requested tokens from committed since they have not been staked yet
             nodeRecord.tokensUnstaked.deposit(from: <-nodeRecord.tokensCommitted.withdraw(amount: nodeRecord.tokensCommitted.balance))
 
-            /// update request to show that leftover amount is requested to be unstaked
-            nodeRecord.tokensRequestedToUnstake = nodeRecord.tokensStaked.balance
+            if nodeRecord.tokensStaked.balance > 0.0 {
 
-            FlowIDTableStaking.setNewMovesPending(nodeID: self.id, delegatorID: nil)
+                /// update request to show that leftover amount is requested to be unstaked
+                nodeRecord.tokensRequestedToUnstake = nodeRecord.tokensStaked.balance
+
+                FlowIDTableStaking.setNewMovesPending(nodeID: self.id, delegatorID: nil)
+            }
         }
 
         /// Withdraw tokens from the unstaked bucket
@@ -1152,6 +1155,8 @@ pub contract FlowIDTableStaking {
                     if !FlowIDTableStaking.isGreaterThanMinimumForRole(numTokens: nodeRecord.tokensStaked.balance, role: nodeRecord.role) {
                         stakedNodeIDs[nodeRecord.id] = nil
                     }
+                    // unstaked tokens automatically mark the node as pending
+                    // because they will move in the next epoch
                     FlowIDTableStaking.setNewMovesPending(nodeID: nodeID, delegatorID: nil)
                 }
 
@@ -1179,6 +1184,8 @@ pub contract FlowIDTableStaking {
                     if delRecord.tokensRequestedToUnstake > 0.0 {
                         emit DelegatorTokensUnstaking(nodeID: nodeRecord.id, delegatorID: delegator, amount: delRecord.tokensRequestedToUnstake)
                         delRecord.tokensUnstaking.deposit(from: <-delRecord.tokensStaked.withdraw(amount: delRecord.tokensRequestedToUnstake))
+                        // unstaked tokens automatically mark the delegator as pending
+                        // because they will move in the next epoch
                         FlowIDTableStaking.setNewMovesPending(nodeID: nodeID, delegatorID: delegator)
                     }
 
