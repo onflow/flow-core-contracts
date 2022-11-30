@@ -28,6 +28,7 @@ const (
 	capabilityEndEpochFilename      = "idTableStaking/admin/capability_end_epoch.cdc"
 	transferFeesAdminFilename       = "idTableStaking/admin/transfer_fees_admin.cdc"
 	setNonOperationalFilename       = "idTableStaking/admin/set_non_operational.cdc"
+	setCandidateLimitFilename       = "idTableStaking/admin/change_candidate_limit.cdc"
 
 	// for testing only
 	scaleRewardsTestFilename = "idTableStaking/admin/scale_rewards_test.cdc"
@@ -71,6 +72,8 @@ const (
 	totalStakedFilename                         = "idTableStaking/scripts/get_total_staked.cdc"
 	rewardRatioFilename                         = "idTableStaking/scripts/get_node_type_ratio.cdc"
 	weeklyPayoutFilename                        = "idTableStaking/scripts/get_weekly_payout.cdc"
+	getCandidateLimitFilename                   = "idTableStaking/scripts/get_candidate_limit.cdc"
+	getCandidateNodesFilename                   = "idTableStaking/scripts/get_candidate_nodes.cdc"
 )
 
 // Admin Templates -----------------------------------------------------------
@@ -218,6 +221,12 @@ func GenerateTransferFeesAdminScript(env Environment) []byte {
 
 func GenerateSetNonOperationalScript(env Environment) []byte {
 	code := assets.MustAssetString(setNonOperationalFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateSetCandidateLimitScript(env Environment) []byte {
+	code := assets.MustAssetString(setCandidateLimitFilename)
 
 	return []byte(ReplaceAddresses(code, env))
 }
@@ -494,6 +503,18 @@ func GenerateGetTotalCommitmentBalanceWithoutDelegatorsScript(env Environment) [
 
 func GenerateGetNonOperationalListScript(env Environment) []byte {
 	code := assets.MustAssetString(getNonOperationalListFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateGetCandidateLimitScript(env Environment) []byte {
+	code := assets.MustAssetString(getCandidateLimitFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateGetCandidateNodesScript(env Environment) []byte {
+	code := assets.MustAssetString(getCandidateNodesFilename)
 
 	return []byte(ReplaceAddresses(code, env))
 }

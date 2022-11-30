@@ -1,6 +1,6 @@
 module github.com/onflow/flow-core-contracts/lib/go/test
 
-go 1.19
+go 1.18
 
 require (
 	github.com/onflow/cadence v0.28.0

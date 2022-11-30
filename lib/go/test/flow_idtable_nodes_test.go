@@ -42,7 +42,7 @@ func TestManyNodesIDTable(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true)
+	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true, 10000)
 
 	env.IDTableAddress = idTableAddress.Hex()
 
@@ -144,6 +144,9 @@ func TestManyNodesIDTable(t *testing.T) {
 
 		}
 
+		result := executeScriptAndCheck(t, b, templates.GenerateGetCandidateLimitScript(env), nil)
+		assertEqual(t, cadence.NewInt(10000), result)
+
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateRegisterManyNodesScript(env)).
 			SetGasLimit(5000000).
@@ -179,12 +182,12 @@ func TestManyNodesIDTable(t *testing.T) {
 			false,
 		)
 
-		result, err := b.ExecuteScript(templates.GenerateReturnTableScript(env), nil)
+		scriptResult, err := b.ExecuteScript(templates.GenerateReturnTableScript(env), nil)
 		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
+		if !assert.True(t, scriptResult.Succeeded()) {
+			t.Log(scriptResult.Error.Error())
 		}
-		proposedIDs := result.Value
+		proposedIDs := scriptResult.Value
 		idArray := proposedIDs.(cadence.Array).Values
 		assert.Len(t, idArray, numberOfNodes)
 
@@ -364,7 +367,7 @@ func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true)
+	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true, 10000)
 
 	env.IDTableAddress = idTableAddress.Hex()
 
