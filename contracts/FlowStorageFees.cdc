@@ -78,7 +78,7 @@ pub contract FlowStorageFees {
     // This is used to check if a transaction will fail because of any account being over the storage capacity
     // The payer is an exception as its storage capacity is derived from its balance minus the maximum possible transaction fees 
     // (transaction fees if the execution effort is at the execution efort limit, a.k.a.: computation limit, a.k.a.: gas limit)
-    pub fun getAccountsCapacityForTransactionStorageCheck(_ accountAddresses: [Address], payer: Address, maxTxFees: UFix64): [UFix64] {
+    pub fun getAccountsCapacityForTransactionStorageCheck(accountAddresses: [Address], payer: Address, maxTxFees: UFix64): [UFix64] {
         let capacities: [UFix64] = []
         for accountAddress in accountAddresses {
             var balance = 0.0
@@ -98,17 +98,17 @@ pub contract FlowStorageFees {
         return capacities
     }
 
-    // accountBalanceToAccountStorageCapacity returns the storage capacity of an account
-    // given the flow balance of the account.
+    // accountBalanceToAccountStorageCapacity returns the storage capacity
+    // an account would have with given the flow balance of the account.
     pub fun accountBalanceToAccountStorageCapacity(_ balance: UFix64): UFix64 {
-                // get address token balance
+        // get address token balance
         if balance < self.minimumStorageReservation {
             // if < then minimum return 0
             return 0.0
-        } else {
-            // return balance multiplied with megabytes per flow 
-            return self.flowToStorageCapacity(balance)
         }
+
+        // return balance multiplied with megabytes per flow 
+        return self.flowToStorageCapacity(balance)
     }
 
     // Amount in Flow tokens
@@ -169,3 +169,4 @@ pub contract FlowStorageFees {
         self.account.save(<-admin, to: /storage/storageFeesAdmin)
     }
 }
+ 

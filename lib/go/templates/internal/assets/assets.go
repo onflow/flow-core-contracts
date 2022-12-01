@@ -276,6 +276,7 @@
 // stakingProxy/withdraw_unstaked.cdc (483B)
 // storageFees/admin/set_parameters.cdc (831B)
 // storageFees/scripts/get_account_available_balance.cdc (177B)
+// storageFees/scripts/get_accounts_capacity_for_transaction_storage_check.cdc (316B)
 // storageFees/scripts/get_storage_capacity.cdc (173B)
 // storageFees/scripts/get_storage_fee_conversion.cdc (141B)
 // storageFees/scripts/get_storage_fee_min.cdc (135B)
@@ -5868,6 +5869,26 @@ func storagefeesScriptsGet_account_available_balanceCdc() (*asset, error) {
 	return a, nil
 }
 
+var _storagefeesScriptsGet_accounts_capacity_for_transaction_storage_checkCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x64\x8e\x41\x6b\x02\x31\x10\x85\xef\xfb\x2b\xde\x51\x61\x29\x3d\x94\x1e\xf6\xb6\xe8\xa6\x97\x82\x60\xb6\xf4\x20\x1e\xa6\x71\xb4\xa1\xdd\x64\x99\x24\x34\x52\xfa\xdf\x8b\x1a\x44\xd6\x5c\xf2\xf8\x78\xcc\xfb\xec\x30\x7a\x89\x50\xdf\xfe\x47\x47\x2f\x74\x60\xc5\x1c\xb0\x17\x3f\xe0\x31\xab\xd7\xd5\xbb\xee\x57\xeb\xf6\xa5\x53\x5d\xa7\xdb\xe5\x72\xdd\x69\x5d\x55\x63\xfa\xc0\x3e\x39\x0c\x64\xdd\x8c\x8c\xf1\xc9\xc5\x76\xb7\x13\x0e\x81\x43\x83\x4d\xc9\xdb\x1a\x23\x1d\x59\x1a\x14\x50\x63\xa0\xdc\xe7\xd3\x44\x83\x37\x65\xf3\xf3\xd3\xbc\xc1\xe6\x92\xb6\xf8\xad\x00\x40\x38\x26\x71\x53\xa5\x87\x03\xc7\xf6\xb2\x14\x16\x34\x92\xb1\xf1\xa8\xbc\xf4\x42\x2e\x90\x89\xd6\xbb\x52\x5e\x7c\xb2\xf9\x9a\x9d\x2f\x9d\xde\xbd\xdd\x94\xd4\xb8\x96\x8b\xed\xf9\xbb\xc1\x37\xd2\xd7\x38\xaf\xfe\xfe\x03\x00\x00\xff\xff\xbd\x5a\xcf\x11\x3c\x01\x00\x00"
+
+func storagefeesScriptsGet_accounts_capacity_for_transaction_storage_checkCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_storagefeesScriptsGet_accounts_capacity_for_transaction_storage_checkCdc,
+		"storageFees/scripts/get_accounts_capacity_for_transaction_storage_check.cdc",
+	)
+}
+
+func storagefeesScriptsGet_accounts_capacity_for_transaction_storage_checkCdc() (*asset, error) {
+	bytes, err := storagefeesScriptsGet_accounts_capacity_for_transaction_storage_checkCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "storageFees/scripts/get_accounts_capacity_for_transaction_storage_check.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x2e, 0x34, 0x74, 0x75, 0xae, 0x8f, 0x8, 0xcb, 0xda, 0x26, 0x6c, 0x8f, 0x86, 0x16, 0xb6, 0x27, 0x87, 0xd8, 0x97, 0xb6, 0x67, 0x1d, 0x1d, 0x3, 0xc4, 0xdb, 0xf1, 0x9a, 0x5f, 0xa8, 0x96, 0x9f}}
+	return a, nil
+}
+
 var _storagefeesScriptsGet_storage_capacityCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x5c\xcd\xb1\x0a\xc2\x30\x14\x46\xe1\x3d\x4f\xf1\x8f\x76\x11\x07\x71\xe8\x16\x6c\xe2\x22\x14\x1a\xc5\xf9\x9a\xa6\x12\x68\x93\x92\xdc\x60\x45\x7c\x77\x07\x9d\xba\x9d\xe9\x3b\x7e\x9a\x63\x62\xe8\x31\x3e\x0d\xc7\x44\x0f\xa7\x9d\xcb\x18\x52\x9c\xb0\x5b\xf4\xb9\xbd\x99\x4b\xdb\xc9\x93\xd2\x4a\x19\xd9\x34\x9d\x32\x46\x88\xb9\xdc\x31\x94\x80\x89\x7c\xd8\x90\xb5\xb1\x04\x96\x7d\x9f\x5c\xce\x35\xfe\x51\xd5\xb8\x6a\xbf\x1c\xf6\x78\x0b\x00\x48\x8e\x4b\x0a\xeb\xd3\xd6\xd2\x68\xcb\x48\xec\xe4\x8f\x39\xd2\x4c\xd6\xf3\x6b\xc5\x56\xe2\x23\xc4\x37\x00\x00\xff\xff\x28\x3f\x05\x18\xad\x00\x00\x00"
 
 func storagefeesScriptsGet_storage_capacityCdcBytes() ([]byte, error) {
@@ -6295,6 +6316,7 @@ var _bindata = map[string]func() (*asset, error){
 	"stakingProxy/withdraw_unstaked.cdc":                                                  stakingproxyWithdraw_unstakedCdc,
 	"storageFees/admin/set_parameters.cdc":                                                storagefeesAdminSet_parametersCdc,
 	"storageFees/scripts/get_account_available_balance.cdc":                               storagefeesScriptsGet_account_available_balanceCdc,
+	"storageFees/scripts/get_accounts_capacity_for_transaction_storage_check.cdc":         storagefeesScriptsGet_accounts_capacity_for_transaction_storage_checkCdc,
 	"storageFees/scripts/get_storage_capacity.cdc":                                        storagefeesScriptsGet_storage_capacityCdc,
 	"storageFees/scripts/get_storage_fee_conversion.cdc":                                  storagefeesScriptsGet_storage_fee_conversionCdc,
 	"storageFees/scripts/get_storage_fee_min.cdc":                                         storagefeesScriptsGet_storage_fee_minCdc,
@@ -6696,6 +6718,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		}},
 		"scripts": {nil, map[string]*bintree{
 			"get_account_available_balance.cdc": {storagefeesScriptsGet_account_available_balanceCdc, map[string]*bintree{}},
+			"get_accounts_capacity_for_transaction_storage_check.cdc": {storagefeesScriptsGet_accounts_capacity_for_transaction_storage_checkCdc, map[string]*bintree{}},
 			"get_storage_capacity.cdc": {storagefeesScriptsGet_storage_capacityCdc, map[string]*bintree{}},
 			"get_storage_fee_conversion.cdc": {storagefeesScriptsGet_storage_fee_conversionCdc, map[string]*bintree{}},
 			"get_storage_fee_min.cdc": {storagefeesScriptsGet_storage_fee_minCdc, map[string]*bintree{}},
