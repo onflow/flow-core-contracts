@@ -89,9 +89,24 @@ pub contract NodeVersionBeacon {
         }
     }
 
+    pub struct Requirement {
+        pub let height: UInt64
+        pub let version: String
+
+        pub init(height: UInt64, version: String) {
+            self.height = height
+            self.version = version
+        }
+    }
+
     /// Event emitted any time a change is made to versionTable
     pub event NodeVersionTableAddition(height: UInt64, version: Semver)
     pub event NodeVersionTableDeletion(height: UInt64, version: Semver)
+
+    pub event VersionTable(
+    RequiredVersions: [Requirement],
+    Sequence: UInt64,
+    )
 
     /// Event emitted any time the version update buffer period or variance is updated
     pub event NodeVersionUpdateBufferChanged(newVersionUpdateBuffer: UInt64)
@@ -119,6 +134,21 @@ pub contract NodeVersionBeacon {
     /// Admin resource that manages node versioning
     /// maintained in this contract
     pub resource NodeVersionAdmin {
+
+
+        // TODO - this of course must be removed for proper contract,
+        // but it useful for testing integration with FVM until we have a proper mechanism
+
+        pub fun testEmitEvent(height: UInt64, version: Semver) {
+
+            log("emitting testEmitEvent")
+
+            emit VersionTable(
+                     RequiredVersions: [Requirement(height: height, version: version.toString())],
+                     Sequence: 5,
+            )
+        }
+
         /// Update the minimum version to take effect at the given block height
         pub fun addVersionBoundaryToTable(targetBlockHeight: UInt64, newVersion: Semver) {
             pre {
@@ -160,7 +190,7 @@ pub contract NodeVersionBeacon {
                 at: NodeVersionBeacon.upcomingBlockBoundaries.firstIndex(of: blockHeight)!
             )
 
-            emit odeVersionTableDeletion(height: blockHeight, version: removed)
+            emit NodeVersionTableDeletion(height: blockHeight, version: removed)
 
             // Clean up upcoming & archived block boundaries before
             // returning removed version for verification
@@ -352,11 +382,11 @@ pub contract NodeVersionBeacon {
         return nil
     }
 
-    init(versionUpdateBuffer: UInt64) {
+    init() {
         /// Initialize contract variables
         self.NodeVersionAdminStoragePath = /storage/NodeVersionAdmin
         self.versionTable = {}
-        self.versionUpdateBuffer = versionUpdateBuffer
+        self.versionUpdateBuffer = 200
         self.archivedBlockBoundaries = []
         self.upcomingBlockBoundaries = []
 

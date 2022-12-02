@@ -44,7 +44,6 @@ const (
 )
 
 // Sets up testing and emulator objects and initialize the emulator default addresses
-//
 func newTestSetup(t *testing.T) (*emulator.Blockchain, *test.AccountKeys, templates.Environment) {
 	// Set for parallel processing
 	t.Parallel()
@@ -207,6 +206,16 @@ func CadenceUFix64(value string) cadence.Value {
 	return newValue
 }
 
+// CadenceUInt64 returns a UInt64 value from a uint64
+func CadenceUInt64(value uint64) cadence.Value {
+	return cadence.NewUInt64(value)
+}
+
+// CadenceUInt8 returns a UInt8 value from a uint8
+func CadenceUInt8(value uint8) cadence.Value {
+	return cadence.NewUInt8(value)
+}
+
 // CadenceString returns a string value from a string representation
 func CadenceString(value string) cadence.Value {
 	newValue, err := cadence.NewString(value)
@@ -231,12 +240,11 @@ func bytesToCadenceArray(b []byte) cadence.Array {
 
 // assertEqual asserts that two objects are equal.
 //
-//    assertEqual(t, 123, 123)
+//	assertEqual(t, 123, 123)
 //
 // Pointer variable equality is determined based on the equality of the
 // referenced values (as opposed to the memory addresses). Function equality
 // cannot be determined and will always fail.
-//
 func assertEqual(t *testing.T, expected, actual interface{}) bool {
 
 	if assert.ObjectsAreEqual(expected, actual) {

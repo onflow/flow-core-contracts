@@ -132,6 +132,8 @@ github.com/coreos/bbolt v1.3.2/go.mod h1:iRUV2dpdMOn7Bo10OQBFzIJO9kkE559Wcmn+qkE
 github.com/coreos/etcd v3.3.10+incompatible/go.mod h1:uF7uidLiAD3TWHmW31ZFd/JWoc32PjwdhPthX9715RE=
 github.com/coreos/go-etcd v2.0.0+incompatible/go.mod h1:Jez6KQU2B/sWsbdaef3ED8NzMklzPG4d5KIOhIy30Tk=
 github.com/coreos/go-semver v0.2.0/go.mod h1:nnelYz7RCh+5ahJtPPxZlU+153eP4D4r3EedlOD2RNk=
+github.com/coreos/go-semver v0.3.0 h1:wkHLiw0WNATZnSG7epLsujiMCgPAc9xhjJ4tgnAxmfM=
+github.com/coreos/go-semver v0.3.0/go.mod h1:nnelYz7RCh+5ahJtPPxZlU+153eP4D4r3EedlOD2RNk=
 github.com/coreos/go-systemd v0.0.0-20190321100706-95778dfbb74e/go.mod h1:F5haX7vjVVG0kc13fIWeqUViNPyEJxv/OmvnBo0Yme4=
 github.com/coreos/go-systemd/v22 v22.3.2/go.mod h1:Y58oyj3AT4RCenI/lSvhwexgC+NSVTIJ3seZv2GcEnc=
 github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f/go.mod h1:E3G3o1h8I7cfcXa63jLwjI0eiQQMgzzUDFVpN/nH/eA=
@@ -463,8 +465,8 @@ github.com/onflow/flow-ft/lib/go/contracts v0.5.0 h1:Cg4gHGVblxcejfNNG5Mfj98Wf4z
 github.com/onflow/flow-ft/lib/go/contracts v0.5.0/go.mod h1:1zoTjp1KzNnOPkyqKmWKerUyf0gciw+e6tAEt0Ks3JE=
 github.com/onflow/flow-ft/lib/go/templates v0.2.0 h1:oQQk5UthLS9KfKLkZVJg/XAVq8CXW7HAxSTu4HwBJkU=
 github.com/onflow/flow-ft/lib/go/templates v0.2.0/go.mod h1:qwkTElMcI+PnSBGIWGu1K9OYBLatNimWTC8un9qUji0=
-github.com/onflow/flow-go v0.26.14-test-synchronization.0.20221012204608-ed91c80fee2b h1:QIEm7fAG1RjtJFof4p966IS34CpdDRqOyboFnc0hkIE=
-github.com/onflow/flow-go v0.26.14-test-synchronization.0.20221012204608-ed91c80fee2b/go.mod h1:WmDshMvR2IEQa4NOaz+edoSIR25b9zC22NuB64efvcM=
+github.com/onflow/flow-go v0.28.15 h1:nWXNeLJG9azOY0oouSOHfaCdW+ttyT5udS2PD6SUdQE=
+github.com/onflow/flow-go v0.28.15/go.mod h1:c+zs1Svbl2/0hMu6E+R7pku3/uO9F4+OoJqUX5EKiIU=
 github.com/onflow/flow-go-sdk v0.13.0/go.mod h1:yqnSajzJVFfrTg68F4WXRR1Yzs1akqAjyscEDyFudPE=
 github.com/onflow/flow-go-sdk v0.29.0 h1:dTQvTZkHsHMU3eEnHaE8JE2SOPeAIYx5CgTul5MgDYE=
 github.com/onflow/flow-go-sdk v0.29.0/go.mod h1:58y6+IddssbrUnrCdYXJuAh64cMHvxy+InUfBA3e8v0=
