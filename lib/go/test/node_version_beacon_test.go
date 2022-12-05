@@ -94,8 +94,8 @@ func TestNodeVersionBeacon(t *testing.T) {
 
 type VersionBeaconEvent flow.Event
 
-func (v VersionBeaconEvent) Sequence() int64 {
-	return v.Value.Fields[1].(cadence.UInt64).ToGoValue().(int64)
+func (v VersionBeaconEvent) Sequence() uint64 {
+	return v.Value.Fields[1].(cadence.UInt64).ToGoValue().(uint64)
 }
 
 func (v VersionBeaconEvent) VersionTable() (ret []struct {
