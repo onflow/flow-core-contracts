@@ -51,32 +51,45 @@ func TestNodeVersionBeacon(t *testing.T) {
 
 	t.Run("Should be able to send new version", func(t *testing.T) {
 
-		tx := createTxWithTemplateAndAuthorizer(b,
+		changeTx := createTxWithTemplateAndAuthorizer(b,
 			templates.GenerateChangeVersionTableScript(env),
 			versionBeaconAddress)
 
 		versionHeight := uint64(44)
-		err := tx.AddArgument(CadenceUInt64(versionHeight))
+		err := changeTx.AddArgument(CadenceUInt64(versionHeight))
 		require.NoError(t, err)
 		versionMajor := uint8(2)
-		err = tx.AddArgument(CadenceUInt8(versionMajor))
+		err = changeTx.AddArgument(CadenceUInt8(versionMajor))
 		require.NoError(t, err)
 		versionMinor := uint8(13)
-		err = tx.AddArgument(CadenceUInt8(versionMinor))
+		err = changeTx.AddArgument(CadenceUInt8(versionMinor))
 		require.NoError(t, err)
 		versionPatch := uint8(7)
-		err = tx.AddArgument(CadenceUInt8(versionPatch))
+		err = changeTx.AddArgument(CadenceUInt8(versionPatch))
 		require.NoError(t, err)
 
-		txResults := signAndSubmit(
-			t, b, tx,
+		txChangeResults := signAndSubmit(
+			t, b, changeTx,
 			[]flow.Address{versionBeaconAddress},
 			[]crypto.Signer{versionBeaconSigner},
 			false,
 		)
-		assert.Len(t, txResults.Events, 1)
+		// no events just yet
+		assert.Len(t, txChangeResults.Events, 0)
 
-		versionEvent := VersionBeaconEvent(txResults.Events[0])
+		checkTx := createTxWithTemplateAndAuthorizer(b,
+			templates.GenerateCheckVersionTableScript(env),
+			versionBeaconAddress)
+
+		txCheckResults := signAndSubmit(t, b, checkTx,
+			[]flow.Address{versionBeaconAddress},
+			[]crypto.Signer{versionBeaconSigner},
+			false,
+		)
+
+		assert.Len(t, txCheckResults.Events, 1)
+
+		versionEvent := VersionBeaconEvent(txCheckResults.Events[0])
 
 		versionTable := versionEvent.VersionTable()
 

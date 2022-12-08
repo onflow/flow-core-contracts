@@ -135,6 +135,8 @@ pub contract NodeVersionBeacon {
     /// maintained in this contract
     pub resource NodeVersionAdmin {
 
+        access(self) var testHeight: UInt64?
+        access(self) var testVersion: String?
 
         // TODO - this of course must be removed for proper contract,
         // but it useful for testing integration with FVM until we have a proper mechanism
@@ -143,10 +145,21 @@ pub contract NodeVersionBeacon {
 
             log("emitting testEmitEvent")
 
-            emit VersionTable(
-                     RequiredVersions: [Requirement(height: height, version: version.toString())],
+            self.testHeight = height
+            self.testVersion = version.toString()
+        }
+
+        pub fun checkVersionTableChanges() {
+
+            if self.testHeight != nil {
+                emit VersionTable(
+                     RequiredVersions: [Requirement(height: self.testHeight!, version: self.testVersion!)],
                      Sequence: 5,
-            )
+                )
+
+                self.testHeight = nil
+                self.testVersion = nil
+            }
         }
 
         /// Update the minimum version to take effect at the given block height
@@ -231,6 +244,12 @@ pub contract NodeVersionBeacon {
 
             emit NodeVersionUpdateBufferChanged(newVersionUpdateBuffer: newUpdateBufferInBlocks)
         }
+
+        init() {
+            self.testHeight = nil
+            self.testVersion = nil
+        }
+
     }
 
     /// Returns the current updateBuffer period within which nodes
@@ -390,8 +409,8 @@ pub contract NodeVersionBeacon {
         self.archivedBlockBoundaries = []
         self.upcomingBlockBoundaries = []
 
+
         /// Save NodeVersionAdmin to storage
         self.account.save(<-create NodeVersionAdmin(), to: self.NodeVersionAdminStoragePath)
     }
 }
- 
