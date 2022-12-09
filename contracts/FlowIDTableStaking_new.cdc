@@ -1373,6 +1373,15 @@ pub contract FlowIDTableStaking {
         /// It only prevents candidate nodes from joining. It does not cause existing participant nodes to unstake,
         /// even if the number of participant nodes exceeds the slot limit.
         pub fun setSlotLimits(slotLimits: {UInt8: UInt16}) {
+            pre {
+                slotLimits.keys.length == 5: "Slot Limits Dictionary can only have 5 entries"
+                slotLimits[UInt8(1)] != nil: "Need to have a limit set for collector nodes"
+                slotLimits[UInt8(2)] != nil: "Need to have a limit set for consensus nodes"
+                slotLimits[UInt8(3)] != nil: "Need to have a limit set for execution nodes"
+                slotLimits[UInt8(4)] != nil: "Need to have a limit set for verification nodes"
+                slotLimits[UInt8(5)] != nil: "Need to have a limit set for access nodes"
+            }
+
             FlowIDTableStaking.account.load<{UInt8: UInt16}>(from: /storage/flowStakingSlotLimits)
             FlowIDTableStaking.account.save(slotLimits, to: /storage/flowStakingSlotLimits)
         }
