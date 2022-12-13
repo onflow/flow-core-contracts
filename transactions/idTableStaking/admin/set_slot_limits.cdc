@@ -5,7 +5,8 @@ import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
 // slotLimits is a UInt16 array that contains the limit for
 // each node type in order from 0-4. It is used to populate
 // a dictionary that has keys shifted +1 so that they align
-// with the enumerated node types from 1-5.
+// with the enumerated node types from 1-5
+
 transaction(slotLimits: [UInt16]) {
 
     // Local variable for a reference to the ID Table Admin object

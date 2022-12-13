@@ -70,7 +70,7 @@ func deployStakingContract(
 	b *emulator.Blockchain,
 	IDTableAccountKey *flow.AccountKey,
 	IDTableSigner crypto.Signer,
-	env templates.Environment,
+	env *templates.Environment,
 	latest bool,
 	candidateNodeLimits []uint64,
 ) (flow.Address, flow.Address) {
@@ -106,7 +106,7 @@ func deployStakingContract(
 	// Create the deployment transaction that transfers a FlowToken minter
 	// to the new account and deploys the IDTableStaking contract
 	tx := createTxWithTemplateAndAuthorizer(b,
-		templates.GenerateTransferMinterAndDeployScript(env),
+		templates.GenerateTransferMinterAndDeployScript(*env),
 		b.ServiceKey().Address)
 
 	// Add the keys argument, contract name, and code
@@ -150,9 +150,11 @@ func deployStakingContract(
 		i = i + 1
 	}
 
+	env.IDTableAddress = idTableAddress.Hex()
+
 	// Transfer the fees admin to the staking contract account
 	tx = flow.NewTransaction().
-		SetScript(templates.GenerateTransferFeesAdminScript(env)).
+		SetScript(templates.GenerateTransferFeesAdminScript(*env)).
 		SetGasLimit(9999).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
@@ -165,6 +167,8 @@ func deployStakingContract(
 		[]crypto.Signer{IDTableSigner, IDTableSigner},
 		false,
 	)
+
+	setNodeRoleSlotLimits(t, b, *env, idTableAddress, IDTableSigner, [5]uint16{1000, 1000, 1000, 1000, 1000})
 
 	return idTableAddress, feesAddr
 }
@@ -818,4 +822,32 @@ func assertCandidateLimitsEquals(
 
 		}
 	}
+}
+
+/// Sets the role slot limits to the specified values
+func setNodeRoleSlotLimits(
+	t *testing.T,
+	b *emulator.Blockchain,
+	env templates.Environment,
+	idTableAddress flow.Address,
+	idTableSigner crypto.Signer,
+	slotLimits [5]uint16,
+) {
+	// set the slot limits
+	cadenceSlotLimits := make([]cadence.Value, 5)
+	for i := 0; i < 5; i++ {
+		cadenceSlotLimits[i] = cadence.NewUInt16(slotLimits[i])
+	}
+
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetSlotLimitsScript(env), idTableAddress)
+
+	err := tx.AddArgument(cadence.NewArray(cadenceSlotLimits))
+	require.NoError(t, err)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]crypto.Signer{idTableSigner},
+		false,
+	)
 }

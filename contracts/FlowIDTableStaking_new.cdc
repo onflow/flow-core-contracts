@@ -977,7 +977,9 @@ pub contract FlowIDTableStaking {
         /// 
         pub fun fillNodeRoleSlots() {
 
-            var currentNodeCount: {UInt8: UInt16} = FlowIDTableStaking.getCurrentRoleNodeCounts()
+            var approvedList: {String: Bool} = FlowIDTableStaking.getApprovedList()
+
+            var currentNodeCount: {UInt8: UInt16} = FlowIDTableStaking.account.load<{UInt8: UInt16}>(from: /storage/flowStakingRoleNodeCounts) ?? {}
             let slotLimits: {UInt8: UInt16} = FlowIDTableStaking.getRoleSlotLimits()
 
             // Load and reset the candidate node list
@@ -1239,8 +1241,6 @@ pub contract FlowIDTableStaking {
             // Reset the movesPendingList
             let movesPendingList: {String: {UInt32: Bool}} = {}
             FlowIDTableStaking.account.save<{String: {UInt32: Bool}}>(movesPendingList, to: /storage/idTableMovesPendingList)
-            
-            let allNodeIDs = FlowIDTableStaking.getNodeIDs()
 
             let stakedNodeIDs: {String: Bool} = FlowIDTableStaking.getParticipantNodeList()!
 
