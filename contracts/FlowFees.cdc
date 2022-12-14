@@ -106,11 +106,10 @@ pub contract FlowFees {
         var maxTransactionFee = self.computeFees(inclusionEffort: inclusionEffort, executionEffort: maxExecutionEffort)
 
         // Get the minimum required payer's balance for the transaction.
-        let minimumRequiredBalance = maxTransactionFee + FlowStorageFees.minimumStorageReservation
+        let minimumRequiredBalance = FlowStorageFees.defaultTokenReservedBalance(payerAcct.address)
 
         if minimumRequiredBalance == UFix64(0) {
-            // If there are no fees to deduct, then the payer can pay for the transaction.
-            // This is a shortcut for the case where the fees and minimum account balance are set to 0.
+            // If the required balance is zero exit early.
             return VerifyPayerBalanceResult(
                 canExecuteTransaction: true, 
                 requiredBalance: minimumRequiredBalance,
@@ -118,13 +117,16 @@ pub contract FlowFees {
             )
         }
         
-        // get the balance of the payers default vault
-        let tokenVault = payerAcct.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)
-            ?? panic("Unable to borrow reference to the default token vault")
+        // Get the balance of the payers default vault.
+        // In the edge case where the payer doesnt have a vault, treat the balance as 0.
+        var balance = 0.0
+        if let tokenVault = payerAcct.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault) {
+            balance = tokenVault.balance
+        }
 
         return VerifyPayerBalanceResult(
             // The transaction can be executed it the payers balance is greater than the minimum required balance. 
-            canExecuteTransaction: tokenVault.balance >= minimumRequiredBalance,
+            canExecuteTransaction: balance >= minimumRequiredBalance,
             requiredBalance: minimumRequiredBalance,
             maximumTransactionFees: maxTransactionFee)
     }

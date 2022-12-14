@@ -149,7 +149,7 @@ pub contract FlowStorageFees {
 
     /// Gets "available" balance of an account
     ///
-    /// The available balance is its default token balance minus what is reserved for storage.
+    /// The available balance of an account is its default token balance minus what is reserved for storage.
     /// If the account has no default balance it is counted as a balance of 0.0 FLOW
     pub fun defaultTokenAvailableBalance(_ accountAddress: Address): UFix64 {
         //get balance of account
@@ -162,13 +162,24 @@ pub contract FlowStorageFees {
         }
 
         // get how much should be reserved for storage
+        var reserved = self.defaultTokenReservedBalance(accountAddress)
+
+        return balance.saturatingSubtract(reserved)
+    }
+
+    /// Gets "reserved" balance of an account
+    ///
+    /// The reserved balance of an account is its storage used multiplied by the storage cost per flow token.
+    /// The reserved balance is at least the minimum storage reservation.
+    pub fun defaultTokenReservedBalance(_ accountAddress: Address): UFix64 {
+        let acct = getAccount(accountAddress)
         var reserved = self.storageCapacityToFlow(self.convertUInt64StorageBytesToUFix64Megabytes(acct.storageUsed))
         // at least self.minimumStorageReservation should be reserved
         if reserved < self.minimumStorageReservation {
             reserved = self.minimumStorageReservation
         }
 
-        return balance.saturatingSubtract(reserved)
+        return reserved
     }
 
     init() {
