@@ -18,7 +18,7 @@ func TestFlowTokenContract(t *testing.T) {
 }
 
 func TestFlowFeesContract(t *testing.T) {
-	contract := contracts.FlowFees(fakeAddr, fakeAddr)
+	contract := contracts.FlowFees(fakeAddr, fakeAddr, fakeAddr)
 	assert.NotNil(t, contract)
 }
 
