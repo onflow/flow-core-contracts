@@ -74,6 +74,16 @@ pub contract FlowStorageFees {
         return self.accountBalanceToAccountStorageCapacity(balance)
     }
 
+    /// calculateAccountsCapacity returns the storage capacity of a batch of accounts
+    pub fun calculateAccountsCapacity(_ accountAddresses: [Address]): [UFix64] {
+        let capacities: [UFix64] = []
+        for accountAddress in accountAddresses {
+            let capacity = self.calculateAccountCapacity(accountAddress)
+            capacities.append(capacity)
+        }
+        return capacities
+    }
+
     // getAccountsCapacityForTransactionStorageCheck returns the storage capacity of a batch of accounts
     // This is used to check if a transaction will fail because of any account being over the storage capacity
     // The payer is an exception as its storage capacity is derived from its balance minus the maximum possible transaction fees 
