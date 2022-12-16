@@ -3,6 +3,7 @@ module github.com/onflow/flow-core-contracts/lib/go/test
 go 1.19
 
 require (
+	github.com/coreos/go-semver v0.3.0
 	github.com/onflow/cadence v0.28.0
 	github.com/onflow/flow-core-contracts/lib/go/contracts v0.11.2-0.20221027154801-171a59810a30
 	github.com/onflow/flow-core-contracts/lib/go/templates v0.11.2-0.20221027154801-171a59810a30
@@ -22,7 +23,6 @@ require (
 	github.com/btcsuite/btcd v0.22.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.1.3 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
-	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.1.0 // indirect
 	github.com/dgraph-io/badger/v2 v2.2007.4 // indirect
