@@ -8,9 +8,9 @@ const (
 
 	// FlowStorageFees templates
 
-	changeStorageFeeParametersFilename = "storageFees/admin/set_parameters.cdc"
-
-	getStorageFeeConversionFilenane = "storageFees/scripts/get_storage_fee_conversion.cdc"
+	changeStorageFeeParametersFilename                    = "storageFees/admin/set_parameters.cdc"
+	getStorageFeeConversionFilenane                       = "storageFees/scripts/get_storage_fee_conversion.cdc"
+	getAccountsCapacityForTransactionStorageCheckFilename = "storageFees/scripts/get_accounts_capacity_for_transaction_storage_check.cdc"
 
 	getAccountAvailableBalanceFilename = "storageFees/scripts/get_account_available_balance.cdc"
 	getStorageFeeMinimumFilename       = "storageFees/scripts/get_storage_fee_min.cdc"
@@ -64,6 +64,12 @@ func GenerateGetStorageFeeMinimumScript(env Environment) []byte {
 
 func GenerateGetStorageCapacityScript(env Environment) []byte {
 	code := assets.MustAssetString(getStorageCapacityFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateGetAccountsCapacityForTransactionStorageCheckScript(env Environment) []byte {
+	code := assets.MustAssetString(getAccountsCapacityForTransactionStorageCheckFilename)
 
 	return []byte(ReplaceAddresses(code, env))
 }

@@ -4,9 +4,9 @@ go 1.19
 
 require (
 	github.com/onflow/cadence v0.28.0
-	github.com/onflow/flow-core-contracts/lib/go/contracts v0.11.2-0.20220720151516-797b149ceaaa
-	github.com/onflow/flow-core-contracts/lib/go/templates v0.11.2-0.20220720151516-797b149ceaaa
-	github.com/onflow/flow-emulator v0.38.1
+	github.com/onflow/flow-core-contracts/lib/go/contracts v0.11.2-0.20221027154801-171a59810a30
+	github.com/onflow/flow-core-contracts/lib/go/templates v0.11.2-0.20221027154801-171a59810a30
+	github.com/onflow/flow-emulator v0.38.2-0.20221028160927-68e0247d0594
 	github.com/onflow/flow-ft/lib/go/templates v0.2.0
 	github.com/onflow/flow-go v0.28.15
 	github.com/onflow/flow-go-sdk v0.29.0
