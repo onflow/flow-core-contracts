@@ -201,18 +201,19 @@
 // lockedTokens/user/get_total_balance.cdc (2.858kB)
 // lockedTokens/user/get_unlock_limit.cdc (433B)
 // lockedTokens/user/withdraw_tokens.cdc (713B)
-// nodeVersionBeacon/admin/add_version_to_table.cdc (1.525kB)
-// nodeVersionBeacon/admin/change_version_table.cdc (1.067kB)
-// nodeVersionBeacon/admin/change_version_update_buffer.cdc (963B)
-// nodeVersionBeacon/admin/change_version_update_buffer_variance.cdc (974B)
+// nodeVersionBeacon/admin/add_version_to_table.cdc (1.372kB)
+// nodeVersionBeacon/admin/change_version_table.cdc (2.037kB)
+// nodeVersionBeacon/admin/change_version_update_buffer.cdc (828B)
+// nodeVersionBeacon/admin/change_version_update_buffer_variance.cdc (839B)
 // nodeVersionBeacon/admin/check_changes.cdc (619B)
-// nodeVersionBeacon/admin/delete_upcoming_version_boundary.cdc (1.101kB)
-// nodeVersionBeacon/scripts/get_current_execution_node_version.cdc (300B)
-// nodeVersionBeacon/scripts/get_current_execution_node_version_as_string.cdc (358B)
-// nodeVersionBeacon/scripts/get_next_version_boundary_pair.cdc (413B)
-// nodeVersionBeacon/scripts/get_version_table.cdc (342B)
+// nodeVersionBeacon/admin/delete_upcoming_version_boundary.cdc (966B)
+// nodeVersionBeacon/scripts/get_current_execution_node_version.cdc (254B)
+// nodeVersionBeacon/scripts/get_current_execution_node_version_as_string.cdc (322B)
+// nodeVersionBeacon/scripts/get_next_table_updated_sequence.cdc (206B)
+// nodeVersionBeacon/scripts/get_next_version_boundary_pair.cdc (377B)
+// nodeVersionBeacon/scripts/get_version_table.cdc (297B)
 // nodeVersionBeacon/scripts/get_version_update_buffer.cdc (305B)
-// nodeVersionBeacon/scripts/is_compatible_version.cdc (431B)
+// nodeVersionBeacon/scripts/is_compatible_version.cdc (395B)
 // quorumCertificate/admin/publish_voter.cdc (311B)
 // quorumCertificate/admin/start_voting.cdc (1.495kB)
 // quorumCertificate/admin/stop_voting.cdc (354B)
@@ -4371,7 +4372,7 @@ func lockedtokensUserWithdraw_tokensCdc() (*asset, error) {
 	return a, nil
 }
 
-var _nodeversionbeaconAdminAdd_version_to_tableCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x9c\x54\x41\x6f\xda\x4c\x10\xbd\xfb\x57\xcc\xc7\xe1\xab\x91\x10\xf4\x50\x55\x95\xd5\x34\x02\x62\xa9\x39\x14\x22\x20\x51\xa5\xaa\x87\x61\x77\x80\x6d\xec\x5d\x77\x76\x1c\x52\x55\xf9\xef\xd5\xda\x06\x12\x08\xa0\xf6\xfa\xc6\x3b\xef\xed\x7b\xcf\x6b\xf2\xc2\xb1\x40\xfa\x48\xaa\x14\xe3\xec\xc8\x69\xba\x23\xf6\xc6\xd9\x01\xa1\x72\x16\x16\xec\x72\x78\xfb\x98\x7e\x4d\x87\xb7\xb3\xeb\xf1\x68\x34\xbe\x4a\xef\xd2\xc9\xf4\x7a\x3c\x1a\xa4\xfd\xe1\x78\xd4\xbf\xba\x9a\xa4\xd3\x69\x14\xf5\x7a\x3d\x98\x31\x5a\x8f\x2a\xac\x02\x59\xa1\x00\x66\x99\x5b\xfb\x57\x09\xfa\x3a\x37\x16\xc4\x01\x6a\x0d\x08\x96\xd6\xf0\x50\x4f\x02\x28\x2b\xaa\x36\x6e\x21\x9c\x67\x04\x9a\x16\xc6\x1a\xbb\x04\xdc\x0e\xe6\xae\xb4\x1a\xf9\x17\xa0\x84\x43\x20\xc8\x4b\x92\x41\xe6\xd4\xfd\x67\x32\xcb\x95\x44\x91\xec\x54\xc5\x11\x04\xa6\x2f\xf8\xc3\x71\x02\xb7\xd7\x56\x3e\x74\x1a\xc8\xd8\x7d\xe8\x06\x45\xad\xf6\x20\xa6\x09\x65\x84\x9e\x12\x98\x0a\x1b\xbb\xbc\x0c\x13\xe3\x07\xa8\xee\xd7\xc8\xda\x0f\x5d\x5e\xa0\x98\x79\x46\x09\x0c\x9c\xcb\xc2\xf8\x40\x53\xbd\xf4\xfd\xbb\xa8\x0d\xbf\xa3\x08\x20\xa3\x53\x21\x54\x4e\x4d\x68\x91\xc0\xff\xc7\x3f\xea\x1e\xf5\xb8\xd9\x6f\x69\xdd\xa0\xc9\x09\xae\xee\x94\xf2\x07\xe2\x20\xaa\x60\x2a\x90\x29\x46\xa5\x24\x81\x7e\x29\xab\xbe\x52\xae\xb4\x12\x44\x03\x00\xf4\x7a\x30\x64\x42\xa1\xca\xf8\xe7\x01\x56\xad\x09\x60\x81\xde\x93\x86\x02\x19\x73\x12\x62\x5f\x1d\xf4\x94\x2d\xba\x3b\x3d\x70\x71\x5e\x50\x5c\x1d\x04\xc8\xeb\xe4\x36\x19\x76\x20\xaf\x73\xdb\x24\xd8\x81\xa2\x4e\x6d\x93\x5f\x27\xdc\x63\x9b\xd9\x8b\x08\x3b\xc7\x72\x7b\x15\xae\x04\xb4\xa3\xcd\xcd\x07\x8e\xd9\xad\x01\x81\x69\x41\x4c\x56\x51\x53\xdb\x13\x65\x67\xf2\xae\x64\x45\x3b\x13\xce\x87\x0e\x17\x10\x02\xe8\xce\x2b\xbe\x8f\xff\xd4\x80\x4f\x8d\x79\x71\xc8\xe5\x64\xfa\x47\x57\x4c\xc5\x31\x2e\xe9\x06\x65\xd5\x6e\xb6\x5d\x5e\x42\x81\xd6\xa8\xb8\x35\x74\x65\xa6\xed\x1b\x81\x5a\xe4\xb9\x2a\xc3\xa4\xf1\xa1\x15\x56\x3d\x05\x4b\xa9\x3a\x41\xbb\x62\xf5\xb5\x3e\x68\x55\xe3\xef\x8b\x27\xe1\x6f\xac\xec\xa2\xd6\x9b\x41\xf3\x6a\xcc\xdc\x2c\x6c\x89\x5f\xf9\x43\x0f\xa0\xce\x8b\x5f\x68\xaf\xc3\xdb\x9b\x14\xce\x4b\x7d\x8b\x13\x36\x2f\x49\x1a\xa0\xa6\x6f\x7f\x3b\x60\xfb\xfe\x5f\xd7\x0b\x1b\x25\xe9\xcf\x12\xb3\x99\x8b\xf7\x09\x21\x81\xd6\xe8\x99\x3b\x6b\xf4\x60\x9d\x84\xe7\x94\xf4\x9e\x57\x15\x4b\xab\x92\xf8\x14\xfd\x09\x00\x00\xff\xff\xaf\x0f\x8c\x34\xf5\x05\x00\x00"
+var _nodeversionbeaconAdminAdd_version_to_tableCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x8c\x54\x41\x6f\xda\x4c\x10\xbd\xfb\x57\xcc\xc7\xe1\xab\x91\x10\xf4\x50\x55\x95\xd5\x34\x02\x82\xd4\x1c\x4a\x22\xa0\xb9\x54\x3d\x0c\xbb\x03\x6c\x63\xef\xba\xb3\xe3\x38\x55\x95\xff\x5e\xad\x6d\x20\xd8\x20\xe5\xfa\xc6\x33\xf3\xe6\xbd\xb7\x36\x59\xee\x58\x60\xee\x34\x3d\x10\x7b\xe3\xec\x84\x50\x39\x0b\x1b\x76\x19\xbc\x7f\x9e\xdf\xdd\xcc\x1e\x66\x8b\xe5\xed\xdd\x7c\x32\x1b\x4f\xef\xe6\xe3\x9b\x9b\xc5\x6c\xb9\x8c\xa2\xd1\x68\x04\x2b\x46\xeb\x51\x89\x71\x16\x64\x87\x02\x98\xa6\xae\xf4\xaf\xc7\x8d\x75\x66\x2c\x88\x03\xd4\x1a\x10\x2c\x95\xf0\x54\x57\x02\x28\x3b\xaa\x06\x1d\x20\x5c\xa7\x04\x9a\x36\xc6\x1a\xbb\x05\x3c\x14\xd6\xae\xb0\x1a\xf9\x0f\xa0\x84\x26\x10\xe4\x2d\xc9\x24\x75\xea\xf1\x2b\x99\xed\x4e\xa2\x48\x8e\x64\xe2\x08\xc2\xa6\x6f\xf8\xcb\x71\x02\xdf\x6f\xad\x7c\x1a\x34\x90\xb1\x6d\xe8\x1e\x45\xed\x5a\x10\xd3\x82\x52\x42\x4f\x09\x2c\x85\x8d\xdd\x5e\x87\x8a\xf1\x13\x54\x8f\x25\xb2\xf6\x53\x97\xe5\x28\x66\x9d\x52\x02\x13\xe7\xd2\x50\xee\x70\xaa\x87\x7e\xfc\x10\xf5\xe1\x6f\x14\x01\xa4\x74\x46\xe9\x4a\xa0\x05\x6d\x12\xf8\xbf\x53\x1b\xb6\x85\x6c\x86\x58\x2a\x1b\x34\xe9\x0e\x1c\x2e\x29\x7b\x22\x0e\x0b\x73\xa6\x1c\x99\x62\x54\x4a\x12\x18\x17\xb2\x1b\x2b\xe5\x0a\x2b\x81\x10\x00\xc0\x68\x04\x53\x26\x14\xaa\x44\x7d\x6d\x4e\xe5\x7f\x00\x73\xf4\x9e\x34\xe4\xc8\x98\x91\x10\xfb\xaa\xd1\x53\xba\x19\x1e\x69\xc0\xd5\x45\x1e\x71\xf5\x3d\x40\x56\x9b\xb1\xb7\x65\x00\x59\x6d\xc5\xde\x94\x01\xe4\xb5\x11\x7b\x4b\x06\x81\xfe\xc1\x86\x13\x57\x06\x97\xac\x38\x0b\x57\x04\xfa\xd1\xfe\xe0\x89\x63\x76\x25\x20\x30\x6d\x88\xc9\x2a\x6a\x92\xd8\x8d\x2d\x93\x77\x05\x2b\x3a\x9e\x7c\xd1\x3e\xb8\x82\xa0\xf2\x70\x5d\x4d\xff\xfc\x06\x2f\xbf\x34\xc2\xc4\x41\xea\x73\x3e\xb6\x1b\x96\xe2\x18\xb7\x74\x8f\xb2\xeb\x37\xbd\xd7\xd7\x90\xa3\x35\x2a\xee\x4d\x5d\x91\x6a\xfb\x4e\xa0\x26\x70\x21\x67\xb0\x68\x2e\xea\x85\x09\x2f\x41\x13\x7a\x26\x55\x08\x1d\x03\x31\xd6\xba\x93\x86\x46\xa0\x93\x67\xfa\x06\x51\x86\xa8\xf5\xbe\xd0\x3c\xe0\x95\x5b\x85\xe6\xf8\xcc\x63\xe9\x40\x83\x93\xa0\xb7\x22\x77\x38\x20\x77\x5e\x6a\xf2\x5d\x09\xb7\x24\x0d\x50\x6f\xed\xff\xe8\x2c\xf9\xf9\xdf\xd0\x0b\x1b\x25\xb3\xdf\x05\xa6\x2b\x17\xb7\xf7\x40\x02\xbd\xf9\x2b\x2d\x4a\xf4\x60\x9d\x84\x1f\x1a\xe9\x96\x32\xd5\x96\x5e\xc5\xec\x25\xfa\x17\x00\x00\xff\xff\x93\x88\x0c\x4e\x5c\x05\x00\x00"
 
 func nodeversionbeaconAdminAdd_version_to_tableCdcBytes() ([]byte, error) {
 	return bindataRead(
@@ -4387,11 +4388,11 @@ func nodeversionbeaconAdminAdd_version_to_tableCdc() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "nodeVersionBeacon/admin/add_version_to_table.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x20, 0xdb, 0x6f, 0x8e, 0xfd, 0x3, 0xaa, 0xf, 0x53, 0x76, 0x16, 0x45, 0xaf, 0x15, 0x78, 0x30, 0x96, 0x42, 0x92, 0xfb, 0xf9, 0xe4, 0x33, 0x31, 0x92, 0x5e, 0x8c, 0xfb, 0xf1, 0x49, 0xa8, 0x45}}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xd, 0xe6, 0x6, 0x86, 0xd2, 0xfb, 0xc9, 0x8f, 0x8e, 0x8c, 0x79, 0x2c, 0xc6, 0x3b, 0xd0, 0xd6, 0xd3, 0x1a, 0xa, 0x4, 0xba, 0x27, 0xc9, 0x16, 0xb8, 0x16, 0x43, 0xac, 0x27, 0xf3, 0x6f, 0x93}}
 	return a, nil
 }
 
-var _nodeversionbeaconAdminChange_version_tableCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x8c\x93\x4f\x6b\xdb\x40\x10\xc5\xef\xfa\x14\x8f\x1c\x5a\x05\x84\xdd\x43\x29\x45\x34\x0d\xb2\xad\x43\x0e\xb5\x83\x9d\xe6\xbe\x5e\x8d\xa2\x6d\xb5\xbb\x62\x77\x64\x25\x94\x7c\xf7\xb2\xfa\x93\xb4\x76\x0c\x39\x19\x9e\x67\x46\x6f\x7e\x6f\x47\xe9\xc6\x3a\xc6\xda\x16\x74\x4f\xce\x2b\x6b\x16\x24\xa4\x35\x28\x9d\xd5\xf8\xf4\xb8\xde\xac\xf2\xfb\x7c\xbb\xbb\xd9\xac\x17\x79\xb6\xdc\xac\xb3\xd5\x6a\x9b\xef\x76\x51\x14\xcd\xe7\x73\xdc\x6d\x56\x9b\x14\x77\x95\xf2\xf0\x95\x6d\xeb\x02\xda\x16\xaa\x7c\x02\x57\x84\xc3\x30\x10\x2c\xf6\x35\x25\xd8\xb7\x8c\xd2\x3a\x30\x79\x56\xe6\x01\x8a\x3d\xac\xa9\x9f\x20\x45\x5d\xc3\x37\x24\x95\xa8\x51\xb6\x46\x72\xe8\xea\x2a\x25\x2b\x90\x0e\x65\x9e\xdc\x41\x49\x02\x1d\xc8\xb0\x8f\x22\x76\xc2\x78\xd1\xd7\xc5\x11\x50\x91\x7a\xa8\x38\xc5\xcf\x1b\xc3\x5f\x3e\x27\x11\x60\xa8\xfb\x21\x7e\x59\x37\x68\x5f\x27\x49\x99\x63\xe9\x56\xb0\xac\x5e\xa4\x4b\xfc\x89\x22\xa0\xa6\x37\x88\x64\x85\x56\x66\x4b\x65\x8a\x0f\x27\xff\xcd\xfe\x51\xfa\xba\x71\x88\xa1\x6e\x54\xd3\xd3\x81\xb3\x1d\xe9\x03\xb9\xf0\xc1\xc6\x51\x23\x1c\xc5\x42\x4a\x4e\x91\xb5\x5c\x65\x52\xda\xd6\x70\x30\x04\x00\xf3\x39\x96\x8e\x04\x53\x0f\xd6\x50\xf7\x02\xb7\xcf\x29\x88\x8d\xf0\x9e\x0a\x34\xc2\x09\x4d\x4c\xce\xf7\x8d\x9e\xea\x72\xf6\x6a\x03\x57\x67\x7d\xc4\x7d\x3d\xa0\x07\x6e\x13\xc1\x04\x7a\xa0\x36\xf1\x4b\xd0\x0c\xcc\x26\x7a\x49\xb0\xbf\xa5\x9a\x84\xa7\x14\x46\xd5\x09\x94\x5f\x08\xf9\xbb\x13\xae\xf0\x4b\xab\x1b\xc1\x6a\x5f\x53\x0a\x76\x2d\xf5\x5f\xb9\x8c\xa6\xad\x16\xd6\x39\xdb\x41\xc0\x51\x49\x8e\x8c\x24\xb0\xed\xf7\x39\x46\x0a\x47\xde\xb6\x4e\xd2\xeb\x5e\x67\x33\xc2\x15\x02\xca\xd9\xbe\x9f\xfe\xed\x1d\x81\x7d\x1f\xb7\x8f\x03\xcf\xb7\xc2\x3a\x6e\xd8\xb1\x75\xe2\x81\x6e\x05\x57\x97\x63\xef\xf5\x35\x1a\x61\x94\x8c\x2f\x96\xe1\x14\xcc\x47\xc6\x60\xe0\xcc\x63\xc2\x76\xdc\xe8\x22\x4c\x78\x0e\x4c\xe8\x91\x64\xcb\xf4\x9a\x7a\x56\x14\x27\x91\x8f\x80\xfe\x3b\xaf\x77\x40\x99\x85\xc3\xcb\xb5\xe2\x3c\x5c\x51\x3c\x1d\xcd\xf0\x9b\x4c\xe3\xd2\xe3\x27\x33\x7a\x7b\x8e\xfe\x06\x00\x00\xff\xff\x43\x72\x6e\x24\x2b\x04\x00\x00"
+var _nodeversionbeaconAdminChange_version_tableCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x8c\x55\x4d\x6f\xdb\x38\x10\xbd\xeb\x57\x4c\x7c\xd8\x95\x01\xc3\xde\x5d\x04\xc1\x42\xa8\x6b\xc4\xe9\xa1\xbd\x14\x85\x93\xf4\x12\xf8\x30\xa2\x46\x16\x6b\x89\x54\xc9\x51\xd4\x20\xf0\x7f\x2f\x48\xcb\xb1\xa2\x8f\x26\x84\x61\x10\xe4\xf0\xcd\x70\xf8\xde\x93\x2c\x4a\x6d\x18\xbe\xea\x84\xbe\x93\xb1\x52\xab\x35\xa1\xd0\x0a\x52\xa3\x0b\x98\xcc\x17\xf3\xd3\x4f\x68\xc5\x06\x05\xdb\x45\x2f\x78\x2e\x12\x31\x09\x82\xc5\x02\x6e\x30\xcf\xa5\xda\x01\x67\xd2\x02\x1b\x54\x16\x05\x4b\xad\xa0\x96\x9c\xe9\x8a\xa1\x44\x6b\x5d\x00\xaa\x27\x28\xd1\x60\x41\x4c\xc6\x42\x2d\xf3\x1c\x0a\xdc\x13\x70\x46\xe0\x90\x5a\x49\xee\xcb\x04\x99\x12\xa0\x47\x52\x0c\xac\x21\x26\xa0\x42\x32\x53\x32\x03\xa9\x84\xa1\x82\x14\x3b\x54\xc9\x16\x2c\xfd\xac\x48\x09\x02\x55\x15\x31\x19\x87\xe5\x0e\x82\x4c\x41\x69\xa8\x3c\x16\xd4\x68\xa1\xc0\x84\x1c\x9a\xcb\xc8\x18\xe7\x14\x04\xad\x8a\x43\x45\x75\x93\xdf\x46\xf0\x7c\xff\x45\xf1\xd5\x65\x04\x0f\x6e\xf2\xff\xf6\xb0\x9a\x41\x42\xa5\x21\xe1\x2a\x3b\xc5\xad\x73\x2d\xf6\xb6\x09\xba\xba\xdc\xae\xa6\xf0\x1c\x04\x00\x00\x39\x0d\xf4\xf8\x3a\x29\xa4\xda\x50\x1a\xc1\x5f\xfd\x96\xb6\x56\x7c\xdc\x0b\xcc\x70\x5d\x7d\x80\x5b\x2a\x1e\xc9\x1c\xfc\x39\xff\x57\x1a\x2a\xd1\x50\x88\x42\x70\x04\xd7\x15\x67\xd7\x42\xe8\x4a\xb1\xab\x12\x9a\x61\x29\x4f\xe7\xad\x14\xb0\x84\xe7\xc3\xcb\xae\x4c\xbb\x25\x6c\xb0\x86\x65\x7b\xa1\x85\xe5\x46\xaa\x4d\x6b\xd7\x37\x08\xa4\xea\x20\xcc\xf7\xf4\x64\x5f\x9f\x73\xc3\xf1\xc9\x90\x7b\x2e\xf7\x44\x8a\x6a\x78\x3c\x9e\x39\x92\xd3\x2d\x3a\x3a\x51\xd2\x62\x52\x0f\xa4\x7b\xa1\x87\x4e\x35\x5b\x58\x8e\x36\x2f\xec\xa1\xb9\x51\xe0\x0f\x6d\xa2\xce\x15\x7a\xb0\x17\x0f\xff\x6c\x67\x30\x0c\x20\xd5\xbb\x00\xfe\x1d\x03\x28\x91\x45\xf6\x0e\x80\xff\x46\x01\x0c\x6d\x28\x27\xb4\x14\x81\x92\xf9\x48\x94\xb4\x6b\x14\xfb\x1a\x4d\x62\x6f\x74\x51\x22\xcb\x38\xa7\x08\xd8\x54\xd4\x8b\x9f\x9e\x26\xaf\x76\xce\xcc\x39\xcf\x16\x0b\x58\x6b\x63\x74\x0d\x08\x86\x52\x32\x5e\xac\x8d\x0e\xbb\xac\x07\x43\x56\x57\x46\xd0\x6b\x82\x8e\x4a\x09\x96\xe0\xe8\x3d\x8f\x7d\x86\x0f\xef\xd0\xd5\xc7\x56\xc1\xa1\xe3\xd5\x90\x96\xba\x87\x6e\x59\x1b\xdc\xd1\x37\xe4\x6c\xda\x3a\xbf\x5a\x41\x89\x4a\x8a\x70\x72\xa3\xab\x3c\x51\x7f\x33\x1c\x0b\x19\xd1\x3e\x6c\x9a\xdb\x4d\x8e\x28\x87\x53\xff\xe8\x17\x89\x8a\xa9\xa5\x25\xa7\xa3\x8c\xe4\x2e\x63\x27\x9f\x2e\xa9\xbd\x80\x3a\xca\xfb\x73\xa3\xe6\x98\x9c\x6c\x6b\xad\x2b\x95\xa0\x79\xba\xd3\x77\xce\x05\x43\x46\xb3\x23\xf6\x1c\xfa\xec\x33\x46\x4d\xe6\x59\x8b\x71\x51\x5f\x58\xc7\xa0\xed\xc5\x74\xe0\xd1\x1b\xe3\x38\x5b\xe6\xd1\x2a\x61\x39\xea\xa2\x03\x3e\x72\xbe\x7f\x0f\x67\xd0\x3c\x3e\x51\x4e\x8d\x79\xf4\x8c\xe3\xb4\xe0\x8d\x1f\x90\xfd\xa2\x2d\x49\xc8\x54\x52\x02\xb1\x37\xaa\x26\x61\xdc\x34\x68\xd8\x5b\xc6\x5b\x9c\xf8\xfc\xf7\xa5\xd0\x85\x54\xbb\x4e\xb7\xc3\xb8\xdf\xe0\xe9\x9b\xe2\x79\x23\xa3\xfb\x2a\xb6\x76\xfd\x7b\x36\x5f\xcf\xb0\xa1\x58\x10\x1c\x82\xdf\x01\x00\x00\xff\xff\x3d\x20\xb8\x4c\xf5\x07\x00\x00"
 
 func nodeversionbeaconAdminChange_version_tableCdcBytes() ([]byte, error) {
 	return bindataRead(
@@ -4407,11 +4408,11 @@ func nodeversionbeaconAdminChange_version_tableCdc() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "nodeVersionBeacon/admin/change_version_table.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xdd, 0xcb, 0x54, 0xc, 0xef, 0xe4, 0x8, 0xd, 0x37, 0x60, 0x4a, 0xed, 0x64, 0x77, 0x27, 0x8, 0xfd, 0x78, 0x4, 0x16, 0xe6, 0xba, 0x75, 0xbb, 0x30, 0x3, 0x78, 0x3b, 0xae, 0x46, 0x28, 0x98}}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xeb, 0x64, 0xf3, 0xa5, 0x3c, 0x85, 0x18, 0x59, 0xf5, 0xf5, 0x5, 0x44, 0x93, 0x2a, 0xb9, 0x16, 0xe4, 0x76, 0x2, 0x8, 0x3f, 0x96, 0xc1, 0xf8, 0x9, 0x1f, 0xb7, 0xa2, 0xd5, 0x42, 0x2c, 0xd5}}
 	return a, nil
 }
 
-var _nodeversionbeaconAdminChange_version_update_bufferCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x9c\x52\x4d\xcf\xd2\x40\x10\xbe\xf7\x57\x3c\xe1\xa0\x70\xa1\x1e\x8c\x87\x46\x7c\xd3\x42\x0f\x5c\x8a\x81\x17\xe2\x75\xdd\x4e\x69\x63\x3b\xd3\x6c\xa7\xf2\x26\x86\xff\x6e\xb6\x10\x3f\x62\x8b\xc6\xdb\x6e\x76\xe6\xf9\xda\xa7\x6a\x5a\x71\x8a\xf4\x85\x6c\xaf\x95\x70\x26\x39\x9d\xc8\x75\x95\x70\x42\xc6\x0a\xa3\x70\xd2\xe0\xcd\x4b\xfa\x29\x5d\x1f\x9f\xb7\xbb\x2c\xdb\x6d\xd2\x53\xba\x3f\x6c\x77\x59\x92\xc6\xeb\x5d\x16\x6f\x36\xfb\xf4\x70\x08\x82\x30\x0c\xf1\xec\x0c\x77\xc6\x7a\x28\x68\x69\x14\xa6\xae\xe5\xd2\x8d\x12\xc4\x79\x53\x31\x54\x60\x4b\xc3\x67\x1a\xf6\xb5\x24\xe4\x54\x54\x4c\x39\xbe\xde\xc6\x8e\x6d\x6e\x94\x92\xbe\x28\xc8\x05\x81\xfe\x24\x98\x33\x5d\x4e\x7f\xce\x44\x38\x6e\x59\xdf\xbd\x5d\xe0\x5b\x10\x00\x35\x3d\xb2\x37\x68\xd8\x53\x11\xe1\xd5\xf4\xd0\x72\x52\xbd\x27\x68\x1d\xb5\xc6\xd1\xdc\x58\xab\x11\xe2\x5e\xcb\xd8\x5a\xe9\x59\xbd\x00\x00\x08\x43\x24\xe2\x9c\x5c\x60\xe0\xa8\x20\x47\x6c\xc9\xfb\xf6\x66\xa7\x83\xa9\x9a\xb6\xa6\x86\x58\x2b\x3e\xc3\x51\x27\xbd\xb3\x34\x00\x76\x54\x17\xa3\x9a\x7e\xf7\x84\x15\xbc\xa6\xe5\xe7\x81\xfc\xfd\x7f\x19\xfc\x30\x10\x02\x73\x5f\x83\xe8\x41\x90\xd3\x10\x07\x15\x67\xce\xf4\xd1\x68\xb9\xb8\xa3\x3d\x3d\xa1\x35\x5c\xd9\xf9\x6c\x2d\x7d\x9d\xf3\x6b\xc5\x4d\xe4\xdf\x7e\x0a\xfb\x7b\x0e\x33\x0f\x75\xf5\xf1\xd3\xb0\x41\xf7\xac\xff\x31\x9a\xe5\xad\x72\x23\xed\xf1\xa5\xfa\xf5\xbe\xe5\xa4\x16\xfb\xa5\x8b\x30\xde\xb6\x1f\x3a\x5a\xe9\xf4\xa6\xe1\x41\x48\x67\xd2\x31\xce\x05\x56\xab\x09\x7c\x44\x98\xdd\x4f\x17\xd3\x81\x45\xd1\x0f\xcf\xf9\x6c\x60\xbe\x06\xdf\x03\x00\x00\xff\xff\x71\x22\xbf\x5f\xc3\x03\x00\x00"
+var _nodeversionbeaconAdminChange_version_update_bufferCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x8c\x52\xbd\x8e\xd3\x40\x10\xee\xfd\x14\x9f\x52\x40\xd2\xc4\x14\x88\xc2\x22\x9c\xec\x4b\x8a\x34\x09\x4a\xb8\xf4\xcb\x7a\x1c\xaf\xb0\x67\xac\xdd\x31\x39\x09\xdd\xbb\xa3\x75\x22\x38\x61\x07\x5d\xb7\xab\x99\xf9\xfe\x66\x5c\xdb\x89\x57\xec\xa4\xa4\x13\xf9\xe0\x84\x0b\x32\x56\x18\x95\x97\x16\x1f\x9e\x77\xfb\xf5\xe6\xb4\x39\x1c\xb7\xfb\x5d\xb1\xc9\x1f\xf7\xbb\x7c\xbd\x3e\x6c\x8e\xc7\x24\x49\xd3\x14\xdf\xbc\xe1\x60\xac\x3a\x61\x68\x6d\x14\xa6\x69\xe4\x12\x5e\xc3\xe5\x65\xeb\x18\x2a\xb0\xb5\xe1\x33\x0d\x63\x5a\x13\x4a\xaa\x1c\x53\x89\x9f\xd7\xb6\xa7\xae\x34\x4a\x45\x5f\x55\xe4\x93\x44\xff\xe2\xce\x99\x2e\xa7\x71\x4f\x86\xa7\x2d\xeb\xa7\x8f\x0b\xfc\x4a\x12\xa0\xa1\x09\x0f\x03\xf5\x81\xaa\x0c\xef\x46\xb5\xe5\xbf\x12\x23\x4a\xe7\xa9\x33\x9e\xe6\xc6\x5a\xcd\x90\xf7\x5a\xe7\xd6\x4a\xcf\x1a\x59\x00\x20\x4d\x51\x88\xf7\x72\x81\x81\xa7\x8a\x3c\xb1\xa5\x68\x2e\x3a\x1a\x99\x76\x6d\xd7\x50\x4b\xac\x8e\xcf\xf0\x14\xa4\xf7\x96\x06\x9c\x40\x4d\xb5\xbc\xab\x17\x2b\x44\x05\xcb\xef\x03\xd5\xe7\x37\x88\xff\x32\xa0\x02\xf3\xb8\xb5\x6c\x9c\xc4\x68\xe0\xa8\xe2\xcd\x99\xbe\x1a\xad\x17\xb7\xd9\x87\x07\x74\x86\x9d\x9d\xcf\x1e\xa5\x6f\x4a\x7e\xaf\xb8\x0a\xb8\x13\x2c\x0e\x37\x47\xb3\x88\xf0\x12\xf3\xa3\x67\xb2\xbd\xd2\x2d\xac\xff\x9b\x5c\x5e\xef\x61\x62\xb5\x71\xe3\xaf\xff\x5b\x2e\x1a\xb1\x3f\x42\x86\xe9\x53\xf8\x43\xdf\x49\xd0\x2b\xf5\x38\x80\x33\xe9\x14\xd5\x02\xab\xd5\x1d\x58\x64\x98\xdd\x5e\x17\x13\xc0\xa2\xe8\x87\x72\x39\x1b\x08\x5f\x92\xdf\x01\x00\x00\xff\xff\x6c\x36\x7c\xad\x3c\x03\x00\x00"
 
 func nodeversionbeaconAdminChange_version_update_bufferCdcBytes() ([]byte, error) {
 	return bindataRead(
@@ -4427,11 +4428,11 @@ func nodeversionbeaconAdminChange_version_update_bufferCdc() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "nodeVersionBeacon/admin/change_version_update_buffer.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xf2, 0x51, 0x57, 0x79, 0xba, 0x84, 0x33, 0xd6, 0x0, 0x90, 0x67, 0xd9, 0xac, 0x16, 0xd, 0xa0, 0x25, 0x2b, 0x18, 0x8d, 0xe4, 0xef, 0xd6, 0xf, 0xa8, 0x3b, 0x7b, 0xb1, 0xc9, 0x9f, 0xeb, 0x3}}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xf6, 0xac, 0xb5, 0xb3, 0xab, 0x3e, 0x9b, 0x91, 0x7e, 0xfd, 0x21, 0x7, 0x38, 0xac, 0x1, 0x12, 0x5d, 0xb2, 0x16, 0x99, 0x62, 0x84, 0xcb, 0xdc, 0xbf, 0x13, 0x23, 0x34, 0x32, 0x27, 0x47, 0x4c}}
 	return a, nil
 }
 
-var _nodeversionbeaconAdminChange_version_update_buffer_varianceCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x9c\x92\x41\x8b\xdb\x30\x10\x85\xef\xfe\x15\x8f\x1c\xda\xe4\x12\xf7\x50\x7a\x30\x4d\x17\x27\x71\x61\x2f\x4e\x49\x36\xa1\x57\x55\x1e\xc7\x02\x5b\x63\xe4\x71\x13\x28\xfb\xdf\x8b\xe4\x90\x52\x88\xdd\xb2\x57\x31\xf3\xbe\xf7\x9e\xc6\x34\x2d\x3b\x41\x76\x25\xdd\x8b\x61\x9b\x73\x41\x27\x72\x9d\x61\xbb\x26\xa5\xd9\xa2\x74\xdc\xe0\xc3\x35\xfb\x9e\x6d\x8e\x2f\xcf\xbb\x3c\xdf\x6d\xb3\x53\xb6\x3f\x3c\xef\xf2\x75\x96\x6e\x76\x79\xba\xdd\xee\xb3\xc3\x21\x8a\xe2\x38\xc6\x8b\x53\xb6\x53\xda\x4b\x41\x2a\x25\x50\x75\xcd\x97\xee\x21\x20\x2d\x1a\x63\x21\x0c\x5d\x29\x7b\xa6\xb0\x2f\x15\xa1\xa0\xd2\x58\x2a\xf0\x73\x18\x3b\xb6\x85\x12\x5a\xf7\x65\x49\xee\xa4\x9c\x51\x56\x53\x14\xc9\x1f\xd0\xdc\xd2\xe5\xd1\x50\x82\xe3\x57\x73\xfd\xf4\x71\x81\x5f\x51\x04\xd4\x34\x95\x33\x98\xd9\x53\x99\xe0\xdd\xf8\xd0\x72\x34\x86\x07\xb4\x8e\x5a\xe5\x68\xae\xb4\x96\x04\x69\x2f\x55\xaa\x35\xf7\x56\xbc\x01\x00\x88\x63\xac\xd9\x39\xbe\x40\xc1\x51\x49\x8e\xac\x26\x5f\x80\x4f\x3d\xde\x90\x69\xda\x9a\x1a\xb2\x62\xec\x19\x8e\x3a\xee\x9d\xa6\x20\xd8\x51\x5d\x3e\xf4\xf4\x77\x26\xac\xe0\x3d\x2d\x7f\x04\xf8\xe7\x37\x05\xfc\x12\x80\xc0\xdc\xdf\x43\x32\x51\xe4\xb8\xc4\x41\xd8\xa9\x33\x7d\x53\x52\x2d\x6e\x6a\x4f\x4f\x68\x95\x35\x7a\x3e\xdb\x70\x5f\x17\xf6\xbd\x60\x30\xf9\xaf\x9f\xc2\xfe\xd6\xc3\xcc\x4b\xbd\xfa\xfa\x29\x6c\xd0\xad\xeb\xff\xac\x66\x39\xdc\xde\x69\xfc\xd4\xc6\xae\xeb\xce\x6d\xb9\x93\x81\x39\x51\xca\x99\x64\x8a\xb1\xc0\x6a\x85\x11\x10\x12\xcc\x86\x17\xdc\x9f\x2e\xaa\x83\x65\x41\x1f\xe6\x8b\x59\xf0\xf2\x1a\xfd\x0e\x00\x00\xff\xff\x3b\x28\xeb\xa2\xce\x03\x00\x00"
+var _nodeversionbeaconAdminChange_version_update_buffer_varianceCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x8c\x92\xbf\x8e\xd3\x40\x10\xc6\x7b\x3f\xc5\xa7\x14\x90\x34\x31\x05\xa2\xb0\x08\x27\xe7\x12\x24\x9a\x04\x25\x5c\xfa\x61\x3d\x8e\x57\xb2\x67\xac\xf5\x98\x44\x42\xf7\xee\xc8\x76\x74\x20\x7c\x8e\xae\xdd\x9d\xf9\x7d\x7f\x76\x7d\x55\x6b\x30\xec\x34\xe3\x13\x87\xc6\xab\xac\x99\x9c\x0a\xf2\xa0\x15\x3e\x5c\x77\xfb\xcd\xf6\xb4\x3d\x1c\xbf\xed\x77\xeb\x6d\xfa\xb8\xdf\xa5\x9b\xcd\x61\x7b\x3c\x46\x51\x1c\xc7\xf8\x11\x48\x1a\x72\xe6\x55\x60\x05\x19\xa8\x2c\xf5\xd2\xfc\x8b\x4b\xb3\xca\x0b\x4c\xe1\x0a\x92\x33\xf7\x6b\x56\x30\x32\xce\xbd\x70\x86\x5f\xc3\xd8\x53\x9d\x91\xf1\xba\xcd\x73\x0e\x27\x0a\x9e\xc4\x71\x14\xd9\x5f\xfe\x5c\xf8\xf2\xda\x50\x82\xa7\xaf\xfe\xfa\xe9\xe3\x02\xbf\xa3\x08\x28\xf9\x95\x30\xbd\x87\x03\xe7\x09\xde\x8d\xee\x96\xff\x7b\xed\x28\x75\xe0\x9a\x02\xcf\xc9\x39\x4b\x90\xb6\x56\xa4\xce\x69\x2b\xd6\xa9\x00\x40\x1c\x63\xad\x21\xe8\x05\x84\xc0\x39\x07\x16\xc7\x5d\xca\x2e\xda\x28\xbd\xaf\xea\x92\x2b\x16\xf3\x72\x46\xe0\x46\xdb\xe0\xb8\xe7\x34\x5c\xe6\xcb\x49\xbf\x58\xa1\x73\xb0\xfc\xd9\x4b\x7d\x7e\x83\xf9\x2f\x3d\x15\x98\x77\xcf\x97\x8c\x9b\x18\x2d\x1c\x4d\x03\x9d\xf9\x3b\x59\xb1\xb8\xed\x3e\x3c\xa0\x26\xf1\x6e\x3e\x7b\xd4\xb6\xcc\xe4\xbd\x61\x30\x30\x51\x2c\x0e\xb7\x44\xb3\x8e\xf0\xdc\xf5\xc7\x57\x76\xad\xf1\xad\xac\xfb\x21\x97\xc3\xc7\x38\x4d\xff\x83\xa9\xa7\x7f\x91\xab\xb5\xb1\x41\x6a\x1c\xf8\xcc\x76\x0f\xbd\xc0\x6a\x85\x09\x3e\x12\xcc\x86\x13\xbc\x1c\x5d\xa8\x81\xa8\xa1\xed\xe7\xb3\x59\x6f\xe1\x39\xfa\x13\x00\x00\xff\xff\x21\x56\x21\x52\x47\x03\x00\x00"
 
 func nodeversionbeaconAdminChange_version_update_buffer_varianceCdcBytes() ([]byte, error) {
 	return bindataRead(
@@ -4447,7 +4448,7 @@ func nodeversionbeaconAdminChange_version_update_buffer_varianceCdc() (*asset, e
 	}
 
 	info := bindataFileInfo{name: "nodeVersionBeacon/admin/change_version_update_buffer_variance.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xb, 0xe7, 0x61, 0xb0, 0xc2, 0x71, 0xb0, 0x5d, 0xf8, 0xb0, 0xfe, 0x18, 0xae, 0x3a, 0xee, 0xeb, 0xe5, 0x18, 0x93, 0x80, 0xaa, 0x34, 0x8d, 0x29, 0x13, 0x83, 0xf7, 0xa5, 0xd8, 0x64, 0xd2, 0x7}}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xd7, 0x8, 0x9e, 0xa2, 0x43, 0xeb, 0x3c, 0x14, 0x29, 0xcf, 0xdc, 0xc1, 0xa5, 0x27, 0x54, 0x15, 0xd6, 0x3d, 0x34, 0x30, 0x0, 0x5a, 0x84, 0xb2, 0x8f, 0x55, 0xf, 0x70, 0x97, 0xba, 0xb4, 0xd3}}
 	return a, nil
 }
 
@@ -4471,7 +4472,7 @@ func nodeversionbeaconAdminCheck_changesCdc() (*asset, error) {
 	return a, nil
 }
 
-var _nodeversionbeaconAdminDelete_upcoming_version_boundaryCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x9c\x93\x4f\x8f\x9b\x30\x10\xc5\xef\x7c\x8a\x51\x0e\x2d\xb9\xc0\x1e\xaa\x1e\x50\xbb\x2b\x12\x90\x9a\x0b\xa9\xf2\x4f\xbd\x3a\x66\x00\xab\xe0\xb1\xcc\xd0\x4d\x55\xe5\xbb\x57\x76\xc8\x6e\x56\x4d\x52\xb5\x1c\x10\xb2\x1f\x6f\xc6\xbf\x79\x56\x9d\x21\xcb\x90\x1f\x50\x0e\xac\x48\x17\x54\xe2\x0e\x6d\xaf\x48\xcf\x50\x48\xd2\x50\x59\xea\xe0\xe1\x90\x7f\xcb\xe7\xdb\xcd\x62\x59\x14\xcb\x2c\xdf\xe5\xab\xf5\x62\x59\xcc\xf2\x74\xbe\x2c\xd2\x2c\x5b\xe5\xeb\x75\x10\xc4\x71\x0c\x1b\x2b\x74\x2f\xa4\xb3\x02\x6e\x04\x83\x68\x5b\x7a\xee\xaf\x16\x48\xcb\x4e\x69\x60\x82\x12\x5b\x64\x04\x6e\xd0\x7b\xfc\x38\x6d\xc3\x9e\x06\x5d\x0a\xfb\x13\x3a\x61\x8c\xd2\x35\x38\x75\x83\xe7\xfd\x8d\xd8\xb7\x08\x82\xfd\x5a\x6f\x50\xaa\x4a\x61\xe9\x1d\xf6\x2d\xc9\xef\xd0\xa0\xaa\x1b\x06\x23\xac\xe8\x90\xd1\x06\x01\xbf\x76\x17\x7a\xcd\x17\x2f\x99\x8d\x85\x36\x94\xf9\x4e\x12\xd8\x2e\x34\x7f\xfc\x30\x85\x5f\x41\x00\xd0\xe2\x3d\x40\xfe\x14\x2b\xac\x12\x78\x77\x5b\x14\xdd\x3c\xbf\x2b\x60\x2c\x1a\x61\x31\x14\x52\x72\x02\xe9\xc0\x4d\x2a\x25\x0d\x9a\x5d\x03\x00\x5e\x30\x7e\xb9\xe7\x4e\x99\x1a\x79\x77\x41\x27\x9c\x46\x2d\xea\x9a\x1b\x78\x84\x07\x48\x60\x52\xd0\x9f\x54\xf1\xa0\x7a\xee\x5f\xe7\x10\x4d\x7c\xa5\xa3\x7f\xc7\x31\xcc\xc8\x5a\x7a\x06\x01\x16\x2b\xb4\xa8\x25\x3a\xad\x83\x7e\x7b\xa8\x16\x7b\x1a\xac\x44\xef\xd1\x63\x5b\x5d\x05\xf0\x16\x20\x7c\x06\x07\x20\xda\xfb\x7a\x9f\xfe\x8b\xe6\xe3\x08\x29\x74\xa9\x4d\xee\x91\xba\x69\xb1\x66\xb2\xa2\xc6\xaf\x82\x9b\xe9\xe8\xf6\xf4\x04\x46\x68\x25\xc3\xc9\x9c\x86\xb6\xd4\xef\x19\x4e\x4d\xfe\x2d\x16\xb0\x1a\x39\x4c\x9c\xd5\xd1\xcd\x1a\xfd\x1f\xe7\x71\xc6\x31\x64\x2f\xe1\x7f\x09\xbe\xbf\x72\x97\x0b\x7c\x35\xea\x6f\x63\x7e\x9e\xeb\xbf\x20\x8f\x4e\x13\xdf\x1a\x49\x9d\xd2\xf5\x59\x33\x3a\x5d\x5e\x91\x04\xee\xdc\x97\xf1\x70\xc7\xdf\x01\x00\x00\xff\xff\xa9\x31\xa9\xcc\x4d\x04\x00\x00"
+var _nodeversionbeaconAdminDelete_upcoming_version_boundaryCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x8c\x52\x4d\x6f\xda\x40\x10\xbd\xfb\x57\x3c\x71\x68\xe1\x62\xe7\x50\xf5\x60\xb5\x89\x20\x20\x35\x17\x53\x01\xe1\xbe\xac\xc7\xf6\xaa\xf6\x8e\xb5\x1e\x37\x54\x15\xff\xbd\xda\xc5\x24\x34\x90\x28\x1c\x90\xb5\xfb\xe6\xed\xbc\x0f\xd3\xb4\xec\x04\x19\xe7\xb4\x25\xd7\x19\xb6\x33\x52\x9a\x2d\x0a\xc7\x0d\x6e\xf6\xd9\x72\xbe\xd8\x2e\x56\xeb\x87\x65\x36\x5b\x4c\xef\x97\xd9\x74\x3e\x5f\x2d\xd6\xeb\x28\x4a\x92\x04\x1b\xa7\x6c\xa7\xb4\x18\xb6\x90\x4a\x09\x54\x5d\xf3\x53\x77\x4e\x37\xcd\x1b\x63\x21\x8c\x9c\x6a\x12\x82\x54\x14\x46\x7f\x1f\xaf\xb1\xe3\xde\xe6\xca\xfd\x41\xa3\xda\xd6\xd8\x12\x1e\x5d\xd1\xe9\x7e\xa3\x76\x35\x41\x49\x38\xeb\x5a\xd2\xa6\x30\x94\x07\x86\x5d\xcd\xfa\x17\x2a\x32\x65\x25\x68\x95\x53\x0d\x09\xb9\x28\x92\x97\xa5\xc6\x01\xf3\x23\x40\x66\xc3\x43\x1b\x9e\x87\x4d\x52\x3c\x3e\x58\xf9\xfa\x65\x82\xbf\x51\x04\xd4\x74\xc5\x85\xb0\xfc\x8a\x8a\x14\x9f\x2e\xee\xe2\xd7\x22\x3d\x4b\xeb\xa8\x55\x8e\xc6\x4a\x6b\x49\x31\xed\xa5\x9a\x6a\xcd\xbd\x15\xff\x0a\x10\x00\xc3\x97\xff\x5d\x92\x96\x24\xdb\x33\xe5\xe3\x49\x5c\x93\x2d\xa5\xc2\x2d\x6e\x90\x62\x94\xf1\xa5\x63\xb4\x37\x9d\x74\x2f\x1e\xc7\xa3\xf0\xc0\x21\xfc\x27\x09\x66\xec\x1c\x3f\x41\xc1\x51\x41\x8e\xac\x26\x8f\xf5\x86\x5e\xe4\xe4\xa8\xe3\xde\x69\x0a\xa3\x1d\xd5\x45\xfc\xa6\x27\xf8\x0e\xaf\x32\xde\x05\xf6\x6f\x1f\x30\xe8\x76\xd0\x3d\xf6\xdd\x4a\xaf\x88\x7f\x3d\xb0\x16\x76\xaa\xa4\x9f\x4a\xaa\xc9\x30\x7b\x77\x87\x56\x59\xa3\xc7\xa3\x7b\xee\xeb\xdc\x7e\x16\x1c\x17\x78\x23\x3c\xac\x06\x45\x23\xcf\x70\xf0\x19\xd1\x9e\x74\x2f\xa7\x18\x92\x04\xf3\xe7\x66\x3e\xb7\x32\xb4\xff\xfc\x40\xae\xf6\xf0\xff\x0e\x9e\x82\xf9\x80\x79\xf1\x31\xa9\xc7\x56\x73\x63\x6c\x79\xc2\x0c\x04\xe7\xb5\x4d\xf1\x4e\x87\x07\x4d\x87\x7f\x01\x00\x00\xff\xff\x11\x6b\x57\xc5\xc6\x03\x00\x00"
 
 func nodeversionbeaconAdminDelete_upcoming_version_boundaryCdcBytes() ([]byte, error) {
 	return bindataRead(
@@ -4487,11 +4488,11 @@ func nodeversionbeaconAdminDelete_upcoming_version_boundaryCdc() (*asset, error)
 	}
 
 	info := bindataFileInfo{name: "nodeVersionBeacon/admin/delete_upcoming_version_boundary.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x67, 0x6f, 0x69, 0x54, 0xce, 0x90, 0xda, 0xa5, 0x72, 0x7, 0x57, 0xd, 0x3a, 0xfe, 0x8d, 0xfd, 0x35, 0x5, 0xfc, 0x94, 0x21, 0x6b, 0xac, 0x4f, 0xad, 0xdf, 0x94, 0x98, 0xb7, 0x33, 0xd7, 0x7c}}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x38, 0x29, 0x8b, 0x70, 0x20, 0x69, 0xd2, 0xc6, 0xc, 0x29, 0x17, 0xf, 0x73, 0xc2, 0x58, 0xa0, 0x5b, 0xc2, 0xf6, 0x86, 0x31, 0x71, 0xc1, 0x82, 0x50, 0x8f, 0xba, 0x8d, 0xdf, 0xfd, 0x1, 0x51}}
 	return a, nil
 }
 
-var _nodeversionbeaconScriptsGet_current_execution_node_versionCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x7c\x8e\xb1\x6a\xc3\x40\x10\x44\xfb\xfb\x8a\xe9\x62\x37\x51\xea\x34\xc1\x96\x8e\xe0\xe6\x04\x96\x63\xd2\xca\xd2\x2a\x59\xb0\x76\xcd\x6a\xcf\x18\x42\xfe\x3d\x10\xe1\xce\xa8\x9e\x37\x8f\xc7\xe3\x45\xcd\x11\x6f\xd4\x65\x67\x95\xa4\x3d\x1d\xc9\x26\x56\xd9\x52\xdb\xa9\x60\x30\x1d\xf1\x72\x8b\x9f\xb1\xfc\x38\xec\xea\x94\xea\x2a\x1e\xe3\xbe\xd9\xd5\x69\x1b\x37\x65\x9d\x36\x55\xb5\x8f\x4d\x13\x42\x51\x14\x78\x27\x9f\xe0\xdf\x84\x2e\x9b\x91\x38\xae\xb3\x0c\x3d\x0d\x2c\xd4\x83\x65\x9e\x55\xdc\xda\xce\x9f\xa6\x3b\x71\x68\x4f\x67\xfa\x77\xa8\x41\xf8\x0c\x1e\x20\x2a\x04\x9e\xee\xe7\x70\xc9\x27\x0c\x59\x30\xb6\x2c\xab\xf5\xeb\x42\xf6\x73\x43\xe3\x95\xec\x0d\x3f\x01\x00\x8c\x3c\x9b\x2c\xf1\x5f\xe4\xe5\x9c\xfc\x08\x5a\xad\xc3\x6f\xf8\x0b\x00\x00\xff\xff\x62\xb6\x46\xce\x2c\x01\x00\x00"
+var _nodeversionbeaconScriptsGet_current_execution_node_versionCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x8e\x41\x4b\xc3\x40\x10\x85\xef\xfb\x2b\xde\xcd\xf6\x62\x3c\x7b\x91\xb6\x09\xe2\x25\x81\x46\x7a\xdf\x26\xb3\x3a\xd0\x9d\x29\xb3\xb3\x45\x10\xff\xbb\x60\x08\x08\x7a\x7e\xdf\xfb\xf8\x38\x5f\xd5\x1c\xbd\xce\x74\x22\x2b\xac\xb2\xa7\x38\xa9\x20\x99\x66\x3c\x7c\xf4\x43\xdb\x9d\xba\xe3\xf8\x32\xf4\xfb\x6e\x77\x18\xfa\x5d\xdb\x1e\xbb\x71\x0c\xa1\x69\x1a\x3c\x93\x17\xf8\x3b\x61\xaa\x66\x24\x8e\xdb\xe2\xc0\x4c\x89\x85\x66\xb0\x2c\xb3\x8a\x5b\x9c\xfc\xae\xac\xc4\x6b\x3c\x5f\xe8\xc7\xa1\x06\xe1\x0b\x38\x41\x54\x08\x5c\xd6\x73\xb8\xd6\x33\x52\x15\xe4\xc8\xb2\xd9\x3e\xfe\x8d\xbc\x1f\x29\xdf\xc8\x9e\xf0\x19\x00\xc0\xc8\xab\xc9\x3f\xd8\x1b\xf9\x61\x09\xfc\xb5\x6d\xb6\xe1\xeb\x3b\x00\x00\xff\xff\xc2\x2d\x3f\x5b\xfe\x00\x00\x00"
 
 func nodeversionbeaconScriptsGet_current_execution_node_versionCdcBytes() ([]byte, error) {
 	return bindataRead(
@@ -4507,11 +4508,11 @@ func nodeversionbeaconScriptsGet_current_execution_node_versionCdc() (*asset, er
 	}
 
 	info := bindataFileInfo{name: "nodeVersionBeacon/scripts/get_current_execution_node_version.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xa6, 0xb2, 0xbe, 0xf5, 0xc9, 0xd3, 0x15, 0x26, 0x88, 0x29, 0xf2, 0xb2, 0xd5, 0xd8, 0x54, 0xba, 0x9, 0x4f, 0xbb, 0x14, 0x57, 0x59, 0x8, 0x50, 0x9d, 0xdf, 0xf6, 0xf6, 0x1, 0x4b, 0xba, 0x98}}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x15, 0xa1, 0x57, 0x87, 0xa4, 0x4, 0x9e, 0xb1, 0x15, 0x9d, 0xa0, 0xac, 0xb3, 0xf5, 0x43, 0x7f, 0x6d, 0xdb, 0xf7, 0x85, 0x23, 0xa1, 0xbc, 0xf8, 0x54, 0x43, 0x61, 0x66, 0xb6, 0xb4, 0x15, 0x77}}
 	return a, nil
 }
 
-var _nodeversionbeaconScriptsGet_current_execution_node_version_as_stringCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x7c\x8f\xbd\x6a\xc3\x40\x10\x84\xfb\x7b\x8a\x29\xa5\xc6\x4a\x1d\x08\xc1\x96\x8e\xe0\x46\x02\xcb\x31\x69\xcf\xd2\xca\x59\x38\xed\x99\xfb\x09\x86\xe0\x77\x0f\x96\x64\x52\x24\x78\xcb\x9d\xf9\x66\x76\x79\x3c\x3b\x1f\xa1\x2f\xd4\xa5\xc8\x4e\x6a\xd7\xd3\x81\x7c\x60\x27\x1b\x32\x9d\x13\x0c\xde\x8d\x78\xba\xe8\x0f\x5d\xbe\xef\xb7\x4d\x5d\x37\x95\x3e\xe8\x5d\xbb\x6d\xea\x8d\x5e\x97\x4d\xbd\xae\xaa\x9d\x6e\x5b\xa5\x8a\xa2\xc0\x1b\xc5\x80\xf8\x49\xe8\x92\xf7\x24\x11\x5f\x73\x18\x7a\x1a\x58\xa8\x07\xcb\x24\x2f\xeb\xbd\x39\x5a\x9a\x40\x13\x60\xd0\x46\xcf\x72\x82\xf3\x10\xb6\xe0\x01\xe2\x84\xc0\xe1\x4e\xab\x73\x3a\x62\x48\x82\xd1\xb0\x64\xf9\xf3\x02\xbc\xe2\x5b\x01\xb8\x01\x96\x7e\x2b\x5f\x1e\xbc\xb5\x3a\x51\x2c\xe7\x13\xff\x33\x65\xf9\x12\x79\x1b\x4f\x31\x79\xb9\xc7\xae\xa2\x9b\x5b\xb3\x7c\x72\x5c\x41\x36\xd0\x5f\xbb\xb0\x9d\x75\x75\x55\x3f\x01\x00\x00\xff\xff\x72\x4e\xde\xfb\x66\x01\x00\x00"
+var _nodeversionbeaconScriptsGet_current_execution_node_version_as_stringCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x64\x8f\xc1\x6a\xc3\x40\x0c\x44\xef\xfb\x15\x73\xb4\x2f\x71\xcf\x85\x52\x92\xd8\x94\x5e\x6c\x88\x4b\xee\x9b\x58\x4e\x05\x6b\x6d\xd0\xca\xa5\x50\xf2\xef\x25\xb6\x43\x0b\xd6\x51\x33\x6f\x46\xe2\xe1\x1a\xd5\x50\xc7\x8e\x8e\xa4\x89\xa3\xec\xc8\x9f\xa3\xa0\xd7\x38\xe0\xe9\xbb\x6e\xca\xea\x58\x1d\xda\xf7\xa6\xde\x55\xdb\x7d\x53\x6f\xcb\xf2\x50\xb5\xad\x73\x45\x51\xe0\x8d\x2c\xc1\x3e\x09\xe7\x51\x95\xc4\xf0\x35\x67\xa0\xa3\x9e\x85\x3a\xb0\x4c\xf2\xb2\xfe\xf0\xa7\x40\x13\xe8\x13\x3c\x5a\x53\x96\x0b\xa2\x42\x38\x80\x7b\x48\x14\x02\xa7\x07\xed\xae\xe3\x09\xfd\x28\x18\x3c\x4b\x96\x3f\x2f\xc0\x2b\x7e\x1c\x80\x3b\x10\xe8\xaf\xf2\x65\xfd\xc4\xe6\x42\xb6\x9f\x2f\xfb\xa7\x65\xf9\x12\x70\x1f\x25\x1b\x55\x1e\x21\x1b\x8b\x73\x47\x96\x4f\x8e\x1b\x28\x24\x5a\xdb\x85\xc3\xac\xbb\x9b\xfb\x0d\x00\x00\xff\xff\x80\x3f\x0a\x61\x42\x01\x00\x00"
 
 func nodeversionbeaconScriptsGet_current_execution_node_version_as_stringCdcBytes() ([]byte, error) {
 	return bindataRead(
@@ -4527,11 +4528,31 @@ func nodeversionbeaconScriptsGet_current_execution_node_version_as_stringCdc() (
 	}
 
 	info := bindataFileInfo{name: "nodeVersionBeacon/scripts/get_current_execution_node_version_as_string.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x2, 0x64, 0xec, 0x27, 0x5b, 0x3c, 0x80, 0xbe, 0x21, 0xf9, 0x48, 0xa, 0x42, 0x8e, 0xb6, 0xf, 0xfb, 0x9b, 0xa0, 0xfb, 0x9b, 0xa0, 0xf9, 0x57, 0xe1, 0xe, 0x67, 0x73, 0x33, 0x5, 0x71, 0xf1}}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x35, 0x7a, 0xa0, 0xdb, 0xbb, 0x68, 0xb, 0xe2, 0x8c, 0x8d, 0xd6, 0xf, 0xed, 0x73, 0x41, 0xbe, 0xbe, 0xb2, 0x9e, 0x42, 0x48, 0x6e, 0xa0, 0x13, 0xa5, 0xeb, 0xa7, 0x1a, 0x1e, 0x3a, 0x24, 0xda}}
 	return a, nil
 }
 
-var _nodeversionbeaconScriptsGet_next_version_boundary_pairCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x7c\xcf\x41\x6b\xfa\x40\x10\x05\xf0\x7b\x3e\xc5\x3b\xea\xe1\xff\xd7\x96\xd2\x83\xe0\x21\xea\x1e\xbc\x24\xc5\x54\x29\x88\x87\x35\x99\x24\x4b\xcd\x6c\x98\xcc\x4a\x42\xe9\x77\x2f\xb6\x7a\x12\xbc\xce\x0c\x6f\x7e\xcf\x35\xad\x17\x85\xe9\x29\x0f\xea\x3c\x27\xbe\xa0\x1d\x49\xe7\x3c\x2f\xc8\xe6\x9e\x51\x8a\x6f\x30\xed\xcd\x87\x59\x6e\xdf\xd7\x69\x92\xa4\x2b\xb3\x33\x9b\x6c\x9d\x26\x0b\x13\x2f\xd3\x24\x5e\xad\x36\x26\xcb\xa2\x68\x32\x99\x60\x43\x2a\x8e\xce\xd4\x41\x6b\x02\x53\xaf\x38\xff\xc5\xe1\xe8\x03\x17\x56\x06\xb4\xd6\x09\x1c\xc3\x8a\xd8\x01\xbe\xc4\x89\xb8\xd2\x1a\xf3\x39\x9e\x7f\x43\x84\x34\x08\xc7\x97\xf5\x7e\x7a\x98\x61\xbb\x66\x7d\x7d\xc1\x3f\x1c\x4f\x3e\xff\x44\x4d\xae\xaa\xf5\xee\xf2\xe9\x30\x7b\xd0\xe3\x7f\x46\xcd\x99\xe4\x86\x0c\xc2\x1d\xa8\x69\x75\xb8\x32\x5c\x79\x11\x0b\xc1\x75\x60\x8f\xd0\xe6\xbe\x71\x5c\xdd\xeb\x0b\x2a\x1d\x53\x11\xb5\xe1\x88\x32\x30\x1a\xeb\x78\x34\x9e\x61\x1f\xf3\x90\xa9\x84\x5c\x0f\xf8\x8a\x00\x5c\x71\x8f\x4c\x15\x69\x42\xbd\xde\x86\xd7\x17\x6f\xd6\xc9\x68\x1c\x7d\x47\x3f\x01\x00\x00\xff\xff\x97\x4b\x95\x23\x9d\x01\x00\x00"
+var _nodeversionbeaconScriptsGet_next_table_updated_sequenceCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x64\xce\xbb\x4e\xc4\x30\x14\x84\xe1\xde\x4f\x31\xe5\x6e\x43\x28\x10\x05\xdd\x2e\xb1\xd0\x36\x8e\x14\x93\xf4\x4e\x32\x81\x48\xf8\x38\x38\xc7\x28\x12\xe2\xdd\x11\x97\x6e\xeb\x91\xbe\xf9\x97\xb8\xa6\xac\x70\x69\x62\xcf\xbc\x2d\x49\xce\x0c\x63\x12\xcc\x39\x45\xdc\xee\xae\xa9\x6d\x6f\x5b\x7f\x69\xdc\xd9\x9e\x1e\x1b\x77\xaa\xeb\xd6\x7a\x6f\x4c\x55\x55\x78\xa2\x6e\xd0\x57\x42\xb8\x2b\x36\xbe\x17\xca\x48\x48\x89\x03\x33\xe6\x94\x7f\x47\x0d\xc3\x1b\x51\xd6\x29\x28\x27\xf0\x83\xa2\x66\x2d\x03\xe6\x22\x88\x61\x91\xc3\xf1\x01\xdd\x45\xf4\xfe\x0e\x9f\x06\x00\x32\xb5\x64\xb9\x8e\xba\x79\xa1\x3a\xee\xfa\xfc\x03\x76\x7f\x9e\xff\x3f\x3d\x1c\xcd\x97\xf9\x0e\x00\x00\xff\xff\x6c\xee\xf5\x80\xce\x00\x00\x00"
+
+func nodeversionbeaconScriptsGet_next_table_updated_sequenceCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_nodeversionbeaconScriptsGet_next_table_updated_sequenceCdc,
+		"nodeVersionBeacon/scripts/get_next_table_updated_sequence.cdc",
+	)
+}
+
+func nodeversionbeaconScriptsGet_next_table_updated_sequenceCdc() (*asset, error) {
+	bytes, err := nodeversionbeaconScriptsGet_next_table_updated_sequenceCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "nodeVersionBeacon/scripts/get_next_table_updated_sequence.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x31, 0xb6, 0x71, 0xd3, 0x53, 0xe4, 0xb2, 0xbb, 0x3f, 0x3d, 0x40, 0x89, 0xde, 0x52, 0xdc, 0xe4, 0x93, 0xcb, 0xc6, 0xca, 0x9, 0x14, 0x3c, 0x63, 0x4, 0x66, 0x5a, 0x61, 0x74, 0x2, 0x1f, 0x34}}
+	return a, nil
+}
+
+var _nodeversionbeaconScriptsGet_next_version_boundary_pairCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\xce\xb1\x6e\xc2\x40\x0c\xc6\xf1\x3d\x4f\xf1\x8d\x30\xb4\xd0\xaa\xea\x80\xc4\x10\x4a\x06\x96\x50\x11\x95\x05\x31\x1c\x89\x93\x58\xe5\x7c\x91\xe3\x43\x44\x55\xdf\xbd\xa2\x85\x89\xae\xb6\xf5\xf7\x8f\x7d\x17\xd4\x90\x87\x8a\xb6\xa4\x3d\x07\x59\x90\x2b\x83\xa0\xd6\xe0\x31\x3d\xe7\xeb\x65\xb6\xcd\x36\xc5\x6a\x9d\x2f\xb2\xf4\x6d\x9d\xa7\xcb\xe5\x26\x2b\x8a\x24\x99\x4c\x26\xd8\x90\x29\xd3\x89\x7a\x58\x4b\x10\x3a\x1b\x4e\x7f\x15\x1c\x42\x94\xca\xe9\x80\xce\xb1\x82\x05\x4e\xd5\x0d\x08\x35\x8e\x24\x8d\xb5\x98\xcf\xf1\xfc\x1b\x51\xb2\xa8\x92\x5e\xd6\xbb\xe9\x7e\x86\x8f\x95\xd8\xeb\x0b\x1e\x70\x38\x86\xf2\x13\x2d\x71\xd3\xda\xdd\xe5\xd3\x7e\x76\xaf\x7e\x2c\xc8\x9f\x48\x6f\xb6\xa8\xd2\x83\x7c\x67\xc3\xf5\x3b\xd7\x17\xa8\x12\xb8\x87\x04\xc4\xae\x0c\x9e\xa5\xb9\x47\x57\x54\xb3\x50\x95\x74\xf1\x80\x3a\x0a\xbc\x63\x19\x8d\x67\xd8\xa5\x32\x14\xa6\xb1\xb4\x3d\xbe\x12\x00\x57\xd3\x3f\x94\x86\x2c\xa7\xb3\xdd\x86\xd7\xf2\xbb\x63\x1d\x8d\x93\xef\xe4\x27\x00\x00\xff\xff\x4a\x12\xef\xac\x79\x01\x00\x00"
 
 func nodeversionbeaconScriptsGet_next_version_boundary_pairCdcBytes() ([]byte, error) {
 	return bindataRead(
@@ -4547,11 +4568,11 @@ func nodeversionbeaconScriptsGet_next_version_boundary_pairCdc() (*asset, error)
 	}
 
 	info := bindataFileInfo{name: "nodeVersionBeacon/scripts/get_next_version_boundary_pair.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x4, 0xd9, 0xf9, 0x91, 0x2, 0xd1, 0x3b, 0xb, 0xc, 0x46, 0x8a, 0xcf, 0xb9, 0x89, 0xe, 0x24, 0x72, 0x21, 0xd5, 0x83, 0x9, 0xa6, 0x5f, 0x99, 0x67, 0x46, 0xb4, 0x20, 0xb6, 0x85, 0x9a, 0x13}}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x7d, 0x87, 0xea, 0xc8, 0xfe, 0x8b, 0x3a, 0xa5, 0x7f, 0x34, 0x94, 0x61, 0x26, 0x17, 0x12, 0x1b, 0x9b, 0xf9, 0xbe, 0x5a, 0x58, 0x8e, 0x71, 0x1d, 0xfe, 0xd4, 0xff, 0xc2, 0x52, 0x54, 0x36, 0x31}}
 	return a, nil
 }
 
-var _nodeversionbeaconScriptsGet_version_tableCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x7c\x8f\xbd\x6e\xab\x30\x14\xc7\x77\x9e\xe2\x3f\x26\x4b\x72\x87\xab\x0e\xd9\x92\xe0\x81\x05\x24\x48\x50\x57\x63\x0e\xf1\x51\xe1\x38\x32\xc7\x34\x52\x94\x77\xaf\xd4\x4a\x55\x27\x5e\xe0\xf7\xc1\xd3\x3d\x44\x85\x79\x90\x4b\xca\x41\xca\xd0\x53\x4b\x71\xe6\x20\x27\xb2\x2e\x08\x86\x18\x26\xfc\x7b\x98\x77\x73\xbe\x5e\x8a\xaa\x2c\xab\xdc\xb4\xa6\x6e\x8a\xaa\x3c\x99\xe3\xb9\x2a\x8f\x79\x5e\x9b\xa6\xc9\xb2\xfd\x7e\x8f\x9a\x34\x32\x2d\x34\x43\x3d\x61\xf9\x21\x5d\x6c\x37\x12\x7a\x1a\x58\xa8\x07\xcb\x9a\xee\xd3\xb3\xf3\xdf\x28\x17\x44\x2d\xcb\x8c\x2e\xa8\x87\xe7\x59\x43\x64\x67\x47\x58\xe9\x31\x24\x4d\xf1\x57\x80\x6e\x0c\xee\x03\x9e\xf8\xe6\x15\x5d\x48\xd2\xdb\xc8\x34\x67\xf7\xd4\x61\x48\x82\xc9\xb2\x6c\xb6\x07\x3c\xaf\x85\xe8\xdb\xff\xc3\x4a\xc1\xae\xa1\x69\xa1\xf8\xc2\x33\x03\x80\x48\x9a\xe2\x5a\xf1\xee\x46\xda\xfe\xf9\xdc\x6c\xb3\xd7\x57\x00\x00\x00\xff\xff\x01\x0c\xba\xe4\x56\x01\x00\x00"
+var _nodeversionbeaconScriptsGet_version_tableCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\xcf\x31\x6e\x83\x40\x10\x85\xe1\x9e\x53\xbc\xd2\x6e\x4c\x8a\x28\x85\x3b\x3b\x50\xb8\x01\x09\x12\xfa\x05\x06\xef\x28\x30\x6b\xcd\xce\x92\x48\x96\xef\x1e\x29\x91\xa2\x48\xf6\x05\xbe\xf7\x7e\x5e\x2e\x41\x0d\x55\x18\xa9\x23\x8d\x1c\xe4\x48\x6e\x08\x82\x49\xc3\x82\xa7\xaf\xaa\x2e\xca\xae\x6c\xda\x53\x5d\x1d\xcb\xc3\x6b\x5d\x1d\x8a\xa2\x29\xdb\x36\xcb\xf2\x3c\x47\x43\xa6\x4c\x2b\x45\x98\x27\xac\xbf\xc0\x9b\xeb\x67\xc2\x48\x13\x0b\x8d\x60\x79\x80\x7f\x7a\x1e\xfc\x8f\x30\x04\x31\xc7\x12\xd1\x07\xf3\xf0\x1c\x2d\x28\x0f\x6e\x86\x93\x11\x53\xb2\xa4\x7f\x2e\xfa\x39\x0c\x1f\xf0\xc4\x67\x6f\xe8\x43\x92\xd1\x29\x53\xcc\x2e\xa9\xc7\x94\x04\x8b\x63\xd9\x6c\xf7\xb8\xbe\x9f\xc4\x5e\x9e\xf7\xf7\xc3\xbb\x96\x96\x95\xf4\x86\x6b\x06\x00\x4a\x96\xf4\xc1\xbf\xdd\x99\xac\xfb\x17\xb3\xd9\x66\xb7\xef\x00\x00\x00\xff\xff\xd4\xa0\xad\xc1\x29\x01\x00\x00"
 
 func nodeversionbeaconScriptsGet_version_tableCdcBytes() ([]byte, error) {
 	return bindataRead(
@@ -4567,7 +4588,7 @@ func nodeversionbeaconScriptsGet_version_tableCdc() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "nodeVersionBeacon/scripts/get_version_table.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xa6, 0xb8, 0x42, 0x95, 0x5d, 0x20, 0x99, 0x64, 0x16, 0x78, 0x17, 0x3c, 0xbb, 0x87, 0xba, 0xf5, 0x6e, 0xe, 0xbf, 0x84, 0xf3, 0x2c, 0xda, 0xe1, 0xdf, 0xcd, 0x7, 0x17, 0x1c, 0x64, 0x2, 0xf}}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x65, 0xd2, 0x1b, 0x1e, 0xcb, 0x7f, 0x42, 0xef, 0x80, 0xda, 0x59, 0x83, 0x35, 0xf9, 0xe9, 0xcd, 0xec, 0xe8, 0x1, 0xf5, 0x8, 0xdc, 0x34, 0xad, 0x2a, 0x88, 0x19, 0xe5, 0x1b, 0x52, 0xb5, 0x9c}}
 	return a, nil
 }
 
@@ -4591,7 +4612,7 @@ func nodeversionbeaconScriptsGet_version_update_bufferCdc() (*asset, error) {
 	return a, nil
 }
 
-var _nodeversionbeaconScriptsIs_compatible_versionCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x7c\x90\xb1\x6e\xf2\x40\x10\x84\x7b\x3f\xc5\x94\x20\xa1\x9f\xbf\x88\x52\xb8\xc3\x70\x52\x68\x6c\x09\x07\x94\xf6\x6c\xd6\x66\x15\xdf\x2e\x3a\x9f\x2d\xac\x28\xef\x1e\x61\x82\x82\x1b\xea\x6f\xef\xbb\x99\x61\x77\x56\x1f\x60\x2e\x54\x76\x81\x55\x52\x3d\xd2\x81\x7c\xcb\x2a\x09\xd9\x52\x05\x95\x57\x87\xff\x17\xf3\x61\xd6\xfb\xf7\x6d\x96\xa6\xd9\xc6\x1c\xcc\x2e\xdf\x66\x69\x62\x56\xeb\x2c\x5d\x6d\x36\x3b\x93\xe7\x51\xb4\x5c\x2e\xb1\xa3\xd0\x79\x69\x61\x91\xa8\x36\x68\xb9\x16\xae\x06\x96\x1a\x5c\x21\x9c\x08\x35\xf7\x24\xe8\x6f\x5f\x80\x5b\xf4\xb6\xe1\x23\x6c\x78\xa0\x45\xa3\xe5\x27\x4e\xc4\xf5\x29\x8c\x56\xf5\x10\x6e\xa6\x8a\xc7\xa3\xab\xa7\xa0\x41\xe5\x38\x1e\x94\x9d\xf7\x24\x61\xea\x39\x77\x05\xaa\x4e\xe0\x2c\xcb\xcc\x0d\xc9\x95\xbd\x8d\x28\xc6\x7e\x2b\xe1\xf5\x65\x01\x37\xfc\x76\x8f\x9f\x2c\xf2\x2f\x27\xd7\x93\x9f\xc7\xb7\x8a\x5f\x11\x00\xf8\xb1\xf7\xb3\x57\xdc\xae\xd5\x9d\x6d\xe0\xa2\xb9\x93\x59\xf1\x18\x62\x92\x69\x71\x9f\x28\xfe\x0b\x35\x8f\xbe\x7f\x02\x00\x00\xff\xff\xdc\x2d\x82\x8e\xaf\x01\x00\x00"
+var _nodeversionbeaconScriptsIs_compatible_versionCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x90\x41\x6b\x83\x40\x10\x46\xef\xfe\x8a\xef\x98\x40\xa8\x3d\x94\x1e\xbc\xc5\x28\x34\x17\x05\xa5\xb9\xaf\xba\xea\x50\x77\x46\xd6\x55\x2a\xa5\xff\xbd\xc4\x34\x54\x69\xce\xef\xe3\xed\xbc\x25\xd3\x8b\x75\x48\xa4\xd2\x17\x6d\x07\x12\x0e\xb5\x2a\x85\x51\x5b\x31\x78\xfe\x4c\xd2\x28\xbe\xc4\x59\x7e\x4e\x93\x30\x3e\x9e\xd2\xe4\x18\x45\x59\x9c\xe7\x9e\xe7\xfb\x3e\x32\xed\x46\xcb\x03\x14\x42\x91\x0e\x03\x35\x4c\xf5\x4c\xdc\x80\x6a\xb8\x56\xa3\xa1\x49\x33\xa6\x9b\x19\x34\x60\x52\x1d\x55\x50\x6e\x45\x8b\x4e\xca\x0f\xb4\x9a\x9a\xd6\x2d\x56\xb1\x60\xea\xb6\x8a\xf5\xe8\xea\x29\xf4\x2c\x5c\x2d\x83\x72\xb4\x56\xb3\xdb\x7a\xfa\xb1\x40\x3d\x32\x8c\x22\xde\x99\x39\xbc\xb2\xb7\x05\x05\x78\x3f\xb3\x7b\x7d\x39\xc0\xcc\xbf\xc9\xc1\xff\xfe\xa7\x5c\x9b\x49\xdb\x7d\x70\x2b\xfb\xf2\x00\xc0\x2e\xb9\x0f\xc6\x34\x9c\xc4\xf4\xca\x51\xd1\xdd\xc9\xae\x58\x3f\xb9\xb9\xe0\x70\xff\x90\xe0\xef\x84\xbd\xf7\xfd\x13\x00\x00\xff\xff\x25\x2f\x34\xeb\x8b\x01\x00\x00"
 
 func nodeversionbeaconScriptsIs_compatible_versionCdcBytes() ([]byte, error) {
 	return bindataRead(
@@ -4607,7 +4628,7 @@ func nodeversionbeaconScriptsIs_compatible_versionCdc() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "nodeVersionBeacon/scripts/is_compatible_version.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x64, 0xf8, 0xea, 0xe9, 0xa, 0xa6, 0x91, 0xb5, 0x73, 0x8d, 0xcf, 0xc3, 0xaf, 0xf2, 0xcd, 0xa9, 0x9b, 0x23, 0x73, 0xd6, 0x71, 0x60, 0x77, 0x4b, 0x6b, 0xc7, 0xff, 0xf9, 0xc3, 0x6d, 0x54, 0x97}}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xbe, 0xc2, 0x94, 0x59, 0x21, 0x71, 0x6b, 0x8e, 0x16, 0x1f, 0x28, 0x1, 0xb6, 0x3b, 0xa9, 0x43, 0xd1, 0x6, 0x18, 0x4c, 0x3, 0xb6, 0x5f, 0xbe, 0x5f, 0xee, 0xe2, 0x4a, 0xfd, 0x36, 0x72, 0xc8}}
 	return a, nil
 }
 
@@ -6291,6 +6312,7 @@ var _bindata = map[string]func() (*asset, error){
 	"nodeVersionBeacon/admin/delete_upcoming_version_boundary.cdc":                nodeversionbeaconAdminDelete_upcoming_version_boundaryCdc,
 	"nodeVersionBeacon/scripts/get_current_execution_node_version.cdc":            nodeversionbeaconScriptsGet_current_execution_node_versionCdc,
 	"nodeVersionBeacon/scripts/get_current_execution_node_version_as_string.cdc":  nodeversionbeaconScriptsGet_current_execution_node_version_as_stringCdc,
+	"nodeVersionBeacon/scripts/get_next_table_updated_sequence.cdc":               nodeversionbeaconScriptsGet_next_table_updated_sequenceCdc,
 	"nodeVersionBeacon/scripts/get_next_version_boundary_pair.cdc":                nodeversionbeaconScriptsGet_next_version_boundary_pairCdc,
 	"nodeVersionBeacon/scripts/get_version_table.cdc":                             nodeversionbeaconScriptsGet_version_tableCdc,
 	"nodeVersionBeacon/scripts/get_version_update_buffer.cdc":                     nodeversionbeaconScriptsGet_version_update_bufferCdc,
@@ -6373,13 +6395,11 @@ const AssetDebug = false
 // directory embedded in the file by go-bindata.
 // For example if you run go-bindata on data/... and data contains the
 // following hierarchy:
-//
-//	data/
-//	  foo.txt
-//	  img/
-//	    a.png
-//	    b.png
-//
+//     data/
+//       foo.txt
+//       img/
+//         a.png
+//         b.png
 // then AssetDir("data") would return []string{"foo.txt", "img"},
 // AssetDir("data/img") would return []string{"a.png", "b.png"},
 // AssetDir("foo.txt") and AssetDir("notexist") would return an error, and
@@ -6413,37 +6433,37 @@ type bintree struct {
 
 var _bintree = &bintree{nil, map[string]*bintree{
 	"FlowServiceAccount": {nil, map[string]*bintree{
-		"add_account_creator.cdc":    {flowserviceaccountAdd_account_creatorCdc, map[string]*bintree{}},
-		"deposit_fees.cdc":           {flowserviceaccountDeposit_feesCdc, map[string]*bintree{}},
+		"add_account_creator.cdc": {flowserviceaccountAdd_account_creatorCdc, map[string]*bintree{}},
+		"deposit_fees.cdc": {flowserviceaccountDeposit_feesCdc, map[string]*bintree{}},
 		"remove_account_creator.cdc": {flowserviceaccountRemove_account_creatorCdc, map[string]*bintree{}},
 		"scripts": {nil, map[string]*bintree{
-			"get_account_creators.cdc":               {flowserviceaccountScriptsGet_account_creatorsCdc, map[string]*bintree{}},
-			"get_account_fee.cdc":                    {flowserviceaccountScriptsGet_account_feeCdc, map[string]*bintree{}},
-			"get_execution_effort_weights.cdc":       {flowserviceaccountScriptsGet_execution_effort_weightsCdc, map[string]*bintree{}},
-			"get_execution_memory_limit.cdc":         {flowserviceaccountScriptsGet_execution_memory_limitCdc, map[string]*bintree{}},
-			"get_execution_memory_weights.cdc":       {flowserviceaccountScriptsGet_execution_memory_weightsCdc, map[string]*bintree{}},
-			"get_fees_balance.cdc":                   {flowserviceaccountScriptsGet_fees_balanceCdc, map[string]*bintree{}},
+			"get_account_creators.cdc": {flowserviceaccountScriptsGet_account_creatorsCdc, map[string]*bintree{}},
+			"get_account_fee.cdc": {flowserviceaccountScriptsGet_account_feeCdc, map[string]*bintree{}},
+			"get_execution_effort_weights.cdc": {flowserviceaccountScriptsGet_execution_effort_weightsCdc, map[string]*bintree{}},
+			"get_execution_memory_limit.cdc": {flowserviceaccountScriptsGet_execution_memory_limitCdc, map[string]*bintree{}},
+			"get_execution_memory_weights.cdc": {flowserviceaccountScriptsGet_execution_memory_weightsCdc, map[string]*bintree{}},
+			"get_fees_balance.cdc": {flowserviceaccountScriptsGet_fees_balanceCdc, map[string]*bintree{}},
 			"get_is_account_creation_restricted.cdc": {flowserviceaccountScriptsGet_is_account_creation_restrictedCdc, map[string]*bintree{}},
-			"get_is_account_creator.cdc":             {flowserviceaccountScriptsGet_is_account_creatorCdc, map[string]*bintree{}},
-			"get_tx_fee_parameters.cdc":              {flowserviceaccountScriptsGet_tx_fee_parametersCdc, map[string]*bintree{}},
+			"get_is_account_creator.cdc": {flowserviceaccountScriptsGet_is_account_creatorCdc, map[string]*bintree{}},
+			"get_tx_fee_parameters.cdc": {flowserviceaccountScriptsGet_tx_fee_parametersCdc, map[string]*bintree{}},
 		}},
-		"set_execution_effort_weights.cdc":       {flowserviceaccountSet_execution_effort_weightsCdc, map[string]*bintree{}},
-		"set_execution_memory_limit.cdc":         {flowserviceaccountSet_execution_memory_limitCdc, map[string]*bintree{}},
-		"set_execution_memory_weights.cdc":       {flowserviceaccountSet_execution_memory_weightsCdc, map[string]*bintree{}},
+		"set_execution_effort_weights.cdc": {flowserviceaccountSet_execution_effort_weightsCdc, map[string]*bintree{}},
+		"set_execution_memory_limit.cdc": {flowserviceaccountSet_execution_memory_limitCdc, map[string]*bintree{}},
+		"set_execution_memory_weights.cdc": {flowserviceaccountSet_execution_memory_weightsCdc, map[string]*bintree{}},
 		"set_is_account_creation_restricted.cdc": {flowserviceaccountSet_is_account_creation_restrictedCdc, map[string]*bintree{}},
-		"set_tx_fee_parameters.cdc":              {flowserviceaccountSet_tx_fee_parametersCdc, map[string]*bintree{}},
-		"set_tx_fee_surge_factor.cdc":            {flowserviceaccountSet_tx_fee_surge_factorCdc, map[string]*bintree{}},
+		"set_tx_fee_parameters.cdc": {flowserviceaccountSet_tx_fee_parametersCdc, map[string]*bintree{}},
+		"set_tx_fee_surge_factor.cdc": {flowserviceaccountSet_tx_fee_surge_factorCdc, map[string]*bintree{}},
 	}},
 	"contractAudits": {nil, map[string]*bintree{
 		"admin": {nil, map[string]*bintree{
 			"authorize_auditor.cdc": {contractauditsAdminAuthorize_auditorCdc, map[string]*bintree{}},
-			"cleanup_expired.cdc":   {contractauditsAdminCleanup_expiredCdc, map[string]*bintree{}},
+			"cleanup_expired.cdc": {contractauditsAdminCleanup_expiredCdc, map[string]*bintree{}},
 		}},
 		"auditor": {nil, map[string]*bintree{
-			"init.cdc":             {contractauditsAuditorInitCdc, map[string]*bintree{}},
-			"new_audit.cdc":        {contractauditsAuditorNew_auditCdc, map[string]*bintree{}},
+			"init.cdc": {contractauditsAuditorInitCdc, map[string]*bintree{}},
+			"new_audit.cdc": {contractauditsAuditorNew_auditCdc, map[string]*bintree{}},
 			"new_audit_hashed.cdc": {contractauditsAuditorNew_audit_hashedCdc, map[string]*bintree{}},
-			"remove_audit.cdc":     {contractauditsAuditorRemove_auditCdc, map[string]*bintree{}},
+			"remove_audit.cdc": {contractauditsAuditorRemove_auditCdc, map[string]*bintree{}},
 		}},
 		"fvm": {nil, map[string]*bintree{
 			"deploy_contract.cdc": {contractauditsFvmDeploy_contractCdc, map[string]*bintree{}},
@@ -6454,322 +6474,323 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	}},
 	"dkg": {nil, map[string]*bintree{
 		"admin": {nil, map[string]*bintree{
-			"force_stop_dkg.cdc":      {dkgAdminForce_stop_dkgCdc, map[string]*bintree{}},
+			"force_stop_dkg.cdc": {dkgAdminForce_stop_dkgCdc, map[string]*bintree{}},
 			"publish_participant.cdc": {dkgAdminPublish_participantCdc, map[string]*bintree{}},
-			"set_safe_threshold.cdc":  {dkgAdminSet_safe_thresholdCdc, map[string]*bintree{}},
-			"start_dkg.cdc":           {dkgAdminStart_dkgCdc, map[string]*bintree{}},
-			"stop_dkg.cdc":            {dkgAdminStop_dkgCdc, map[string]*bintree{}},
+			"set_safe_threshold.cdc": {dkgAdminSet_safe_thresholdCdc, map[string]*bintree{}},
+			"start_dkg.cdc": {dkgAdminStart_dkgCdc, map[string]*bintree{}},
+			"stop_dkg.cdc": {dkgAdminStop_dkgCdc, map[string]*bintree{}},
 		}},
 		"create_participant.cdc": {dkgCreate_participantCdc, map[string]*bintree{}},
 		"scripts": {nil, map[string]*bintree{
-			"get_consensus_nodes.cdc":                {dkgScriptsGet_consensus_nodesCdc, map[string]*bintree{}},
+			"get_consensus_nodes.cdc": {dkgScriptsGet_consensus_nodesCdc, map[string]*bintree{}},
 			"get_dkg_canonical_final_submission.cdc": {dkgScriptsGet_dkg_canonical_final_submissionCdc, map[string]*bintree{}},
-			"get_dkg_completed.cdc":                  {dkgScriptsGet_dkg_completedCdc, map[string]*bintree{}},
-			"get_dkg_enabled.cdc":                    {dkgScriptsGet_dkg_enabledCdc, map[string]*bintree{}},
-			"get_final_submissions.cdc":              {dkgScriptsGet_final_submissionsCdc, map[string]*bintree{}},
-			"get_latest_whiteboard_messages.cdc":     {dkgScriptsGet_latest_whiteboard_messagesCdc, map[string]*bintree{}},
-			"get_node_final_submission.cdc":          {dkgScriptsGet_node_final_submissionCdc, map[string]*bintree{}},
-			"get_node_has_submitted.cdc":             {dkgScriptsGet_node_has_submittedCdc, map[string]*bintree{}},
-			"get_node_is_claimed.cdc":                {dkgScriptsGet_node_is_claimedCdc, map[string]*bintree{}},
-			"get_node_is_registered.cdc":             {dkgScriptsGet_node_is_registeredCdc, map[string]*bintree{}},
-			"get_thresholds.cdc":                     {dkgScriptsGet_thresholdsCdc, map[string]*bintree{}},
-			"get_whiteboard_messages.cdc":            {dkgScriptsGet_whiteboard_messagesCdc, map[string]*bintree{}},
+			"get_dkg_completed.cdc": {dkgScriptsGet_dkg_completedCdc, map[string]*bintree{}},
+			"get_dkg_enabled.cdc": {dkgScriptsGet_dkg_enabledCdc, map[string]*bintree{}},
+			"get_final_submissions.cdc": {dkgScriptsGet_final_submissionsCdc, map[string]*bintree{}},
+			"get_latest_whiteboard_messages.cdc": {dkgScriptsGet_latest_whiteboard_messagesCdc, map[string]*bintree{}},
+			"get_node_final_submission.cdc": {dkgScriptsGet_node_final_submissionCdc, map[string]*bintree{}},
+			"get_node_has_submitted.cdc": {dkgScriptsGet_node_has_submittedCdc, map[string]*bintree{}},
+			"get_node_is_claimed.cdc": {dkgScriptsGet_node_is_claimedCdc, map[string]*bintree{}},
+			"get_node_is_registered.cdc": {dkgScriptsGet_node_is_registeredCdc, map[string]*bintree{}},
+			"get_thresholds.cdc": {dkgScriptsGet_thresholdsCdc, map[string]*bintree{}},
+			"get_whiteboard_messages.cdc": {dkgScriptsGet_whiteboard_messagesCdc, map[string]*bintree{}},
 		}},
-		"send_final_submission.cdc":   {dkgSend_final_submissionCdc, map[string]*bintree{}},
+		"send_final_submission.cdc": {dkgSend_final_submissionCdc, map[string]*bintree{}},
 		"send_whiteboard_message.cdc": {dkgSend_whiteboard_messageCdc, map[string]*bintree{}},
 	}},
 	"epoch": {nil, map[string]*bintree{
 		"admin": {nil, map[string]*bintree{
-			"advance_view.cdc":           {epochAdminAdvance_viewCdc, map[string]*bintree{}},
-			"calculate_rewards.cdc":      {epochAdminCalculate_rewardsCdc, map[string]*bintree{}},
-			"deploy_epoch.cdc":           {epochAdminDeploy_epochCdc, map[string]*bintree{}},
-			"deploy_qc_dkg.cdc":          {epochAdminDeploy_qc_dkgCdc, map[string]*bintree{}},
-			"pay_rewards.cdc":            {epochAdminPay_rewardsCdc, map[string]*bintree{}},
-			"reset_epoch.cdc":            {epochAdminReset_epochCdc, map[string]*bintree{}},
-			"set_automatic_rewards.cdc":  {epochAdminSet_automatic_rewardsCdc, map[string]*bintree{}},
-			"update_clusters.cdc":        {epochAdminUpdate_clustersCdc, map[string]*bintree{}},
+			"advance_view.cdc": {epochAdminAdvance_viewCdc, map[string]*bintree{}},
+			"calculate_rewards.cdc": {epochAdminCalculate_rewardsCdc, map[string]*bintree{}},
+			"deploy_epoch.cdc": {epochAdminDeploy_epochCdc, map[string]*bintree{}},
+			"deploy_qc_dkg.cdc": {epochAdminDeploy_qc_dkgCdc, map[string]*bintree{}},
+			"pay_rewards.cdc": {epochAdminPay_rewardsCdc, map[string]*bintree{}},
+			"reset_epoch.cdc": {epochAdminReset_epochCdc, map[string]*bintree{}},
+			"set_automatic_rewards.cdc": {epochAdminSet_automatic_rewardsCdc, map[string]*bintree{}},
+			"update_clusters.cdc": {epochAdminUpdate_clustersCdc, map[string]*bintree{}},
 			"update_dkg_phase_views.cdc": {epochAdminUpdate_dkg_phase_viewsCdc, map[string]*bintree{}},
-			"update_epoch_config.cdc":    {epochAdminUpdate_epoch_configCdc, map[string]*bintree{}},
-			"update_epoch_views.cdc":     {epochAdminUpdate_epoch_viewsCdc, map[string]*bintree{}},
-			"update_reward.cdc":          {epochAdminUpdate_rewardCdc, map[string]*bintree{}},
-			"update_staking_views.cdc":   {epochAdminUpdate_staking_viewsCdc, map[string]*bintree{}},
+			"update_epoch_config.cdc": {epochAdminUpdate_epoch_configCdc, map[string]*bintree{}},
+			"update_epoch_views.cdc": {epochAdminUpdate_epoch_viewsCdc, map[string]*bintree{}},
+			"update_reward.cdc": {epochAdminUpdate_rewardCdc, map[string]*bintree{}},
+			"update_staking_views.cdc": {epochAdminUpdate_staking_viewsCdc, map[string]*bintree{}},
 		}},
 		"node": {nil, map[string]*bintree{
 			"register_dkg_participant.cdc": {epochNodeRegister_dkg_participantCdc, map[string]*bintree{}},
-			"register_node.cdc":            {epochNodeRegister_nodeCdc, map[string]*bintree{}},
-			"register_qc_voter.cdc":        {epochNodeRegister_qc_voterCdc, map[string]*bintree{}},
+			"register_node.cdc": {epochNodeRegister_nodeCdc, map[string]*bintree{}},
+			"register_qc_voter.cdc": {epochNodeRegister_qc_voterCdc, map[string]*bintree{}},
 		}},
 		"scripts": {nil, map[string]*bintree{
-			"get_config_metadata.cdc":  {epochScriptsGet_config_metadataCdc, map[string]*bintree{}},
-			"get_create_clusters.cdc":  {epochScriptsGet_create_clustersCdc, map[string]*bintree{}},
-			"get_current_view.cdc":     {epochScriptsGet_current_viewCdc, map[string]*bintree{}},
-			"get_epoch_counter.cdc":    {epochScriptsGet_epoch_counterCdc, map[string]*bintree{}},
-			"get_epoch_metadata.cdc":   {epochScriptsGet_epoch_metadataCdc, map[string]*bintree{}},
-			"get_epoch_phase.cdc":      {epochScriptsGet_epoch_phaseCdc, map[string]*bintree{}},
+			"get_config_metadata.cdc": {epochScriptsGet_config_metadataCdc, map[string]*bintree{}},
+			"get_create_clusters.cdc": {epochScriptsGet_create_clustersCdc, map[string]*bintree{}},
+			"get_current_view.cdc": {epochScriptsGet_current_viewCdc, map[string]*bintree{}},
+			"get_epoch_counter.cdc": {epochScriptsGet_epoch_counterCdc, map[string]*bintree{}},
+			"get_epoch_metadata.cdc": {epochScriptsGet_epoch_metadataCdc, map[string]*bintree{}},
+			"get_epoch_phase.cdc": {epochScriptsGet_epoch_phaseCdc, map[string]*bintree{}},
 			"get_proposed_counter.cdc": {epochScriptsGet_proposed_counterCdc, map[string]*bintree{}},
-			"get_randomize.cdc":        {epochScriptsGet_randomizeCdc, map[string]*bintree{}},
+			"get_randomize.cdc": {epochScriptsGet_randomizeCdc, map[string]*bintree{}},
 		}},
 	}},
 	"flowToken": {nil, map[string]*bintree{
-		"burn_tokens.cdc":      {flowtokenBurn_tokensCdc, map[string]*bintree{}},
+		"burn_tokens.cdc": {flowtokenBurn_tokensCdc, map[string]*bintree{}},
 		"create_forwarder.cdc": {flowtokenCreate_forwarderCdc, map[string]*bintree{}},
-		"mint_tokens.cdc":      {flowtokenMint_tokensCdc, map[string]*bintree{}},
+		"mint_tokens.cdc": {flowtokenMint_tokensCdc, map[string]*bintree{}},
 		"scripts": {nil, map[string]*bintree{
 			"get_balance.cdc": {flowtokenScriptsGet_balanceCdc, map[string]*bintree{}},
-			"get_supply.cdc":  {flowtokenScriptsGet_supplyCdc, map[string]*bintree{}},
+			"get_supply.cdc": {flowtokenScriptsGet_supplyCdc, map[string]*bintree{}},
 		}},
-		"setup_account.cdc":   {flowtokenSetup_accountCdc, map[string]*bintree{}},
+		"setup_account.cdc": {flowtokenSetup_accountCdc, map[string]*bintree{}},
 		"transfer_tokens.cdc": {flowtokenTransfer_tokensCdc, map[string]*bintree{}},
 	}},
 	"idTableStaking": {nil, map[string]*bintree{
 		"admin": {nil, map[string]*bintree{
-			"add_approved_nodes.cdc":      {idtablestakingAdminAdd_approved_nodesCdc, map[string]*bintree{}},
-			"capability_end_epoch.cdc":    {idtablestakingAdminCapability_end_epochCdc, map[string]*bintree{}},
-			"change_cut.cdc":              {idtablestakingAdminChange_cutCdc, map[string]*bintree{}},
-			"change_minimums.cdc":         {idtablestakingAdminChange_minimumsCdc, map[string]*bintree{}},
-			"change_payout.cdc":           {idtablestakingAdminChange_payoutCdc, map[string]*bintree{}},
-			"end_epoch.cdc":               {idtablestakingAdminEnd_epochCdc, map[string]*bintree{}},
+			"add_approved_nodes.cdc": {idtablestakingAdminAdd_approved_nodesCdc, map[string]*bintree{}},
+			"capability_end_epoch.cdc": {idtablestakingAdminCapability_end_epochCdc, map[string]*bintree{}},
+			"change_cut.cdc": {idtablestakingAdminChange_cutCdc, map[string]*bintree{}},
+			"change_minimums.cdc": {idtablestakingAdminChange_minimumsCdc, map[string]*bintree{}},
+			"change_payout.cdc": {idtablestakingAdminChange_payoutCdc, map[string]*bintree{}},
+			"end_epoch.cdc": {idtablestakingAdminEnd_epochCdc, map[string]*bintree{}},
 			"end_epoch_change_payout.cdc": {idtablestakingAdminEnd_epoch_change_payoutCdc, map[string]*bintree{}},
-			"end_staking.cdc":             {idtablestakingAdminEnd_stakingCdc, map[string]*bintree{}},
-			"move_tokens.cdc":             {idtablestakingAdminMove_tokensCdc, map[string]*bintree{}},
-			"pay_rewards.cdc":             {idtablestakingAdminPay_rewardsCdc, map[string]*bintree{}},
-			"remove_approved_nodes.cdc":   {idtablestakingAdminRemove_approved_nodesCdc, map[string]*bintree{}},
-			"remove_node.cdc":             {idtablestakingAdminRemove_nodeCdc, map[string]*bintree{}},
+			"end_staking.cdc": {idtablestakingAdminEnd_stakingCdc, map[string]*bintree{}},
+			"move_tokens.cdc": {idtablestakingAdminMove_tokensCdc, map[string]*bintree{}},
+			"pay_rewards.cdc": {idtablestakingAdminPay_rewardsCdc, map[string]*bintree{}},
+			"remove_approved_nodes.cdc": {idtablestakingAdminRemove_approved_nodesCdc, map[string]*bintree{}},
+			"remove_node.cdc": {idtablestakingAdminRemove_nodeCdc, map[string]*bintree{}},
 			"remove_unapproved_nodes.cdc": {idtablestakingAdminRemove_unapproved_nodesCdc, map[string]*bintree{}},
-			"scale_rewards_test.cdc":      {idtablestakingAdminScale_rewards_testCdc, map[string]*bintree{}},
-			"set_approved_nodes.cdc":      {idtablestakingAdminSet_approved_nodesCdc, map[string]*bintree{}},
-			"set_claimed.cdc":             {idtablestakingAdminSet_claimedCdc, map[string]*bintree{}},
-			"set_non_operational.cdc":     {idtablestakingAdminSet_non_operationalCdc, map[string]*bintree{}},
-			"start_staking.cdc":           {idtablestakingAdminStart_stakingCdc, map[string]*bintree{}},
-			"transfer_admin.cdc":          {idtablestakingAdminTransfer_adminCdc, map[string]*bintree{}},
-			"transfer_fees_admin.cdc":     {idtablestakingAdminTransfer_fees_adminCdc, map[string]*bintree{}},
-			"transfer_minter_deploy.cdc":  {idtablestakingAdminTransfer_minter_deployCdc, map[string]*bintree{}},
-			"upgrade_set_claimed.cdc":     {idtablestakingAdminUpgrade_set_claimedCdc, map[string]*bintree{}},
-			"upgrade_staking.cdc":         {idtablestakingAdminUpgrade_stakingCdc, map[string]*bintree{}},
+			"scale_rewards_test.cdc": {idtablestakingAdminScale_rewards_testCdc, map[string]*bintree{}},
+			"set_approved_nodes.cdc": {idtablestakingAdminSet_approved_nodesCdc, map[string]*bintree{}},
+			"set_claimed.cdc": {idtablestakingAdminSet_claimedCdc, map[string]*bintree{}},
+			"set_non_operational.cdc": {idtablestakingAdminSet_non_operationalCdc, map[string]*bintree{}},
+			"start_staking.cdc": {idtablestakingAdminStart_stakingCdc, map[string]*bintree{}},
+			"transfer_admin.cdc": {idtablestakingAdminTransfer_adminCdc, map[string]*bintree{}},
+			"transfer_fees_admin.cdc": {idtablestakingAdminTransfer_fees_adminCdc, map[string]*bintree{}},
+			"transfer_minter_deploy.cdc": {idtablestakingAdminTransfer_minter_deployCdc, map[string]*bintree{}},
+			"upgrade_set_claimed.cdc": {idtablestakingAdminUpgrade_set_claimedCdc, map[string]*bintree{}},
+			"upgrade_staking.cdc": {idtablestakingAdminUpgrade_stakingCdc, map[string]*bintree{}},
 		}},
 		"delegation": {nil, map[string]*bintree{
-			"del_request_unstaking.cdc":           {idtablestakingDelegationDel_request_unstakingCdc, map[string]*bintree{}},
-			"del_stake_new_tokens.cdc":            {idtablestakingDelegationDel_stake_new_tokensCdc, map[string]*bintree{}},
-			"del_stake_rewarded.cdc":              {idtablestakingDelegationDel_stake_rewardedCdc, map[string]*bintree{}},
-			"del_stake_unstaked.cdc":              {idtablestakingDelegationDel_stake_unstakedCdc, map[string]*bintree{}},
-			"del_withdraw_reward_tokens.cdc":      {idtablestakingDelegationDel_withdraw_reward_tokensCdc, map[string]*bintree{}},
-			"del_withdraw_unstaked_tokens.cdc":    {idtablestakingDelegationDel_withdraw_unstaked_tokensCdc, map[string]*bintree{}},
-			"delegator_add_capability.cdc":        {idtablestakingDelegationDelegator_add_capabilityCdc, map[string]*bintree{}},
-			"get_delegator_committed.cdc":         {idtablestakingDelegationGet_delegator_committedCdc, map[string]*bintree{}},
-			"get_delegator_info.cdc":              {idtablestakingDelegationGet_delegator_infoCdc, map[string]*bintree{}},
+			"del_request_unstaking.cdc": {idtablestakingDelegationDel_request_unstakingCdc, map[string]*bintree{}},
+			"del_stake_new_tokens.cdc": {idtablestakingDelegationDel_stake_new_tokensCdc, map[string]*bintree{}},
+			"del_stake_rewarded.cdc": {idtablestakingDelegationDel_stake_rewardedCdc, map[string]*bintree{}},
+			"del_stake_unstaked.cdc": {idtablestakingDelegationDel_stake_unstakedCdc, map[string]*bintree{}},
+			"del_withdraw_reward_tokens.cdc": {idtablestakingDelegationDel_withdraw_reward_tokensCdc, map[string]*bintree{}},
+			"del_withdraw_unstaked_tokens.cdc": {idtablestakingDelegationDel_withdraw_unstaked_tokensCdc, map[string]*bintree{}},
+			"delegator_add_capability.cdc": {idtablestakingDelegationDelegator_add_capabilityCdc, map[string]*bintree{}},
+			"get_delegator_committed.cdc": {idtablestakingDelegationGet_delegator_committedCdc, map[string]*bintree{}},
+			"get_delegator_info.cdc": {idtablestakingDelegationGet_delegator_infoCdc, map[string]*bintree{}},
 			"get_delegator_info_from_address.cdc": {idtablestakingDelegationGet_delegator_info_from_addressCdc, map[string]*bintree{}},
-			"get_delegator_request.cdc":           {idtablestakingDelegationGet_delegator_requestCdc, map[string]*bintree{}},
-			"get_delegator_rewarded.cdc":          {idtablestakingDelegationGet_delegator_rewardedCdc, map[string]*bintree{}},
-			"get_delegator_staked.cdc":            {idtablestakingDelegationGet_delegator_stakedCdc, map[string]*bintree{}},
-			"get_delegator_unstaked.cdc":          {idtablestakingDelegationGet_delegator_unstakedCdc, map[string]*bintree{}},
-			"get_delegator_unstaking.cdc":         {idtablestakingDelegationGet_delegator_unstakingCdc, map[string]*bintree{}},
+			"get_delegator_request.cdc": {idtablestakingDelegationGet_delegator_requestCdc, map[string]*bintree{}},
+			"get_delegator_rewarded.cdc": {idtablestakingDelegationGet_delegator_rewardedCdc, map[string]*bintree{}},
+			"get_delegator_staked.cdc": {idtablestakingDelegationGet_delegator_stakedCdc, map[string]*bintree{}},
+			"get_delegator_unstaked.cdc": {idtablestakingDelegationGet_delegator_unstakedCdc, map[string]*bintree{}},
+			"get_delegator_unstaking.cdc": {idtablestakingDelegationGet_delegator_unstakingCdc, map[string]*bintree{}},
 			"get_delegator_unstaking_request.cdc": {idtablestakingDelegationGet_delegator_unstaking_requestCdc, map[string]*bintree{}},
-			"register_delegator.cdc":              {idtablestakingDelegationRegister_delegatorCdc, map[string]*bintree{}},
-			"register_many_delegators.cdc":        {idtablestakingDelegationRegister_many_delegatorsCdc, map[string]*bintree{}},
+			"register_delegator.cdc": {idtablestakingDelegationRegister_delegatorCdc, map[string]*bintree{}},
+			"register_many_delegators.cdc": {idtablestakingDelegationRegister_many_delegatorsCdc, map[string]*bintree{}},
 		}},
 		"node": {nil, map[string]*bintree{
-			"node_add_capability.cdc":       {idtablestakingNodeNode_add_capabilityCdc, map[string]*bintree{}},
-			"register_many_nodes.cdc":       {idtablestakingNodeRegister_many_nodesCdc, map[string]*bintree{}},
-			"register_node.cdc":             {idtablestakingNodeRegister_nodeCdc, map[string]*bintree{}},
-			"request_unstake.cdc":           {idtablestakingNodeRequest_unstakeCdc, map[string]*bintree{}},
-			"stake_new_tokens.cdc":          {idtablestakingNodeStake_new_tokensCdc, map[string]*bintree{}},
-			"stake_rewarded_tokens.cdc":     {idtablestakingNodeStake_rewarded_tokensCdc, map[string]*bintree{}},
-			"stake_unstaked_tokens.cdc":     {idtablestakingNodeStake_unstaked_tokensCdc, map[string]*bintree{}},
-			"unstake_all.cdc":               {idtablestakingNodeUnstake_allCdc, map[string]*bintree{}},
+			"node_add_capability.cdc": {idtablestakingNodeNode_add_capabilityCdc, map[string]*bintree{}},
+			"register_many_nodes.cdc": {idtablestakingNodeRegister_many_nodesCdc, map[string]*bintree{}},
+			"register_node.cdc": {idtablestakingNodeRegister_nodeCdc, map[string]*bintree{}},
+			"request_unstake.cdc": {idtablestakingNodeRequest_unstakeCdc, map[string]*bintree{}},
+			"stake_new_tokens.cdc": {idtablestakingNodeStake_new_tokensCdc, map[string]*bintree{}},
+			"stake_rewarded_tokens.cdc": {idtablestakingNodeStake_rewarded_tokensCdc, map[string]*bintree{}},
+			"stake_unstaked_tokens.cdc": {idtablestakingNodeStake_unstaked_tokensCdc, map[string]*bintree{}},
+			"unstake_all.cdc": {idtablestakingNodeUnstake_allCdc, map[string]*bintree{}},
 			"update_networking_address.cdc": {idtablestakingNodeUpdate_networking_addressCdc, map[string]*bintree{}},
-			"withdraw_reward_tokens.cdc":    {idtablestakingNodeWithdraw_reward_tokensCdc, map[string]*bintree{}},
-			"withdraw_unstaked_tokens.cdc":  {idtablestakingNodeWithdraw_unstaked_tokensCdc, map[string]*bintree{}},
+			"withdraw_reward_tokens.cdc": {idtablestakingNodeWithdraw_reward_tokensCdc, map[string]*bintree{}},
+			"withdraw_unstaked_tokens.cdc": {idtablestakingNodeWithdraw_unstaked_tokensCdc, map[string]*bintree{}},
 		}},
 		"scripts": {nil, map[string]*bintree{
-			"get_approved_nodes.cdc":                           {idtablestakingScriptsGet_approved_nodesCdc, map[string]*bintree{}},
-			"get_current_table.cdc":                            {idtablestakingScriptsGet_current_tableCdc, map[string]*bintree{}},
-			"get_cut_percentage.cdc":                           {idtablestakingScriptsGet_cut_percentageCdc, map[string]*bintree{}},
-			"get_node_committed_tokens.cdc":                    {idtablestakingScriptsGet_node_committed_tokensCdc, map[string]*bintree{}},
-			"get_node_info.cdc":                                {idtablestakingScriptsGet_node_infoCdc, map[string]*bintree{}},
-			"get_node_info_from_address.cdc":                   {idtablestakingScriptsGet_node_info_from_addressCdc, map[string]*bintree{}},
-			"get_node_initial_weight.cdc":                      {idtablestakingScriptsGet_node_initial_weightCdc, map[string]*bintree{}},
-			"get_node_networking_addr.cdc":                     {idtablestakingScriptsGet_node_networking_addrCdc, map[string]*bintree{}},
-			"get_node_networking_key.cdc":                      {idtablestakingScriptsGet_node_networking_keyCdc, map[string]*bintree{}},
-			"get_node_rewarded_tokens.cdc":                     {idtablestakingScriptsGet_node_rewarded_tokensCdc, map[string]*bintree{}},
-			"get_node_role.cdc":                                {idtablestakingScriptsGet_node_roleCdc, map[string]*bintree{}},
-			"get_node_staked_tokens.cdc":                       {idtablestakingScriptsGet_node_staked_tokensCdc, map[string]*bintree{}},
-			"get_node_staking_key.cdc":                         {idtablestakingScriptsGet_node_staking_keyCdc, map[string]*bintree{}},
-			"get_node_total_commitment.cdc":                    {idtablestakingScriptsGet_node_total_commitmentCdc, map[string]*bintree{}},
+			"get_approved_nodes.cdc": {idtablestakingScriptsGet_approved_nodesCdc, map[string]*bintree{}},
+			"get_current_table.cdc": {idtablestakingScriptsGet_current_tableCdc, map[string]*bintree{}},
+			"get_cut_percentage.cdc": {idtablestakingScriptsGet_cut_percentageCdc, map[string]*bintree{}},
+			"get_node_committed_tokens.cdc": {idtablestakingScriptsGet_node_committed_tokensCdc, map[string]*bintree{}},
+			"get_node_info.cdc": {idtablestakingScriptsGet_node_infoCdc, map[string]*bintree{}},
+			"get_node_info_from_address.cdc": {idtablestakingScriptsGet_node_info_from_addressCdc, map[string]*bintree{}},
+			"get_node_initial_weight.cdc": {idtablestakingScriptsGet_node_initial_weightCdc, map[string]*bintree{}},
+			"get_node_networking_addr.cdc": {idtablestakingScriptsGet_node_networking_addrCdc, map[string]*bintree{}},
+			"get_node_networking_key.cdc": {idtablestakingScriptsGet_node_networking_keyCdc, map[string]*bintree{}},
+			"get_node_rewarded_tokens.cdc": {idtablestakingScriptsGet_node_rewarded_tokensCdc, map[string]*bintree{}},
+			"get_node_role.cdc": {idtablestakingScriptsGet_node_roleCdc, map[string]*bintree{}},
+			"get_node_staked_tokens.cdc": {idtablestakingScriptsGet_node_staked_tokensCdc, map[string]*bintree{}},
+			"get_node_staking_key.cdc": {idtablestakingScriptsGet_node_staking_keyCdc, map[string]*bintree{}},
+			"get_node_total_commitment.cdc": {idtablestakingScriptsGet_node_total_commitmentCdc, map[string]*bintree{}},
 			"get_node_total_commitment_without_delegators.cdc": {idtablestakingScriptsGet_node_total_commitment_without_delegatorsCdc, map[string]*bintree{}},
-			"get_node_type_ratio.cdc":                          {idtablestakingScriptsGet_node_type_ratioCdc, map[string]*bintree{}},
-			"get_node_unstaked_tokens.cdc":                     {idtablestakingScriptsGet_node_unstaked_tokensCdc, map[string]*bintree{}},
-			"get_node_unstaking_request.cdc":                   {idtablestakingScriptsGet_node_unstaking_requestCdc, map[string]*bintree{}},
-			"get_node_unstaking_tokens.cdc":                    {idtablestakingScriptsGet_node_unstaking_tokensCdc, map[string]*bintree{}},
-			"get_non_operational.cdc":                          {idtablestakingScriptsGet_non_operationalCdc, map[string]*bintree{}},
-			"get_proposed_table.cdc":                           {idtablestakingScriptsGet_proposed_tableCdc, map[string]*bintree{}},
-			"get_stake_requirements.cdc":                       {idtablestakingScriptsGet_stake_requirementsCdc, map[string]*bintree{}},
-			"get_table.cdc":                                    {idtablestakingScriptsGet_tableCdc, map[string]*bintree{}},
-			"get_total_staked.cdc":                             {idtablestakingScriptsGet_total_stakedCdc, map[string]*bintree{}},
-			"get_total_staked_by_type.cdc":                     {idtablestakingScriptsGet_total_staked_by_typeCdc, map[string]*bintree{}},
-			"get_weekly_payout.cdc":                            {idtablestakingScriptsGet_weekly_payoutCdc, map[string]*bintree{}},
+			"get_node_type_ratio.cdc": {idtablestakingScriptsGet_node_type_ratioCdc, map[string]*bintree{}},
+			"get_node_unstaked_tokens.cdc": {idtablestakingScriptsGet_node_unstaked_tokensCdc, map[string]*bintree{}},
+			"get_node_unstaking_request.cdc": {idtablestakingScriptsGet_node_unstaking_requestCdc, map[string]*bintree{}},
+			"get_node_unstaking_tokens.cdc": {idtablestakingScriptsGet_node_unstaking_tokensCdc, map[string]*bintree{}},
+			"get_non_operational.cdc": {idtablestakingScriptsGet_non_operationalCdc, map[string]*bintree{}},
+			"get_proposed_table.cdc": {idtablestakingScriptsGet_proposed_tableCdc, map[string]*bintree{}},
+			"get_stake_requirements.cdc": {idtablestakingScriptsGet_stake_requirementsCdc, map[string]*bintree{}},
+			"get_table.cdc": {idtablestakingScriptsGet_tableCdc, map[string]*bintree{}},
+			"get_total_staked.cdc": {idtablestakingScriptsGet_total_stakedCdc, map[string]*bintree{}},
+			"get_total_staked_by_type.cdc": {idtablestakingScriptsGet_total_staked_by_typeCdc, map[string]*bintree{}},
+			"get_weekly_payout.cdc": {idtablestakingScriptsGet_weekly_payoutCdc, map[string]*bintree{}},
 		}},
 	}},
 	"inspect_field.cdc": {inspect_fieldCdc, map[string]*bintree{}},
 	"lockedTokens": {nil, map[string]*bintree{
 		"admin": {nil, map[string]*bintree{
-			"admin_create_shared_accounts.cdc":              {lockedtokensAdminAdmin_create_shared_accountsCdc, map[string]*bintree{}},
-			"admin_deploy_contract.cdc":                     {lockedtokensAdminAdmin_deploy_contractCdc, map[string]*bintree{}},
-			"admin_deposit_account_creator.cdc":             {lockedtokensAdminAdmin_deposit_account_creatorCdc, map[string]*bintree{}},
-			"admin_remove_delegator.cdc":                    {lockedtokensAdminAdmin_remove_delegatorCdc, map[string]*bintree{}},
-			"check_main_registration.cdc":                   {lockedtokensAdminCheck_main_registrationCdc, map[string]*bintree{}},
-			"check_shared_registration.cdc":                 {lockedtokensAdminCheck_shared_registrationCdc, map[string]*bintree{}},
+			"admin_create_shared_accounts.cdc": {lockedtokensAdminAdmin_create_shared_accountsCdc, map[string]*bintree{}},
+			"admin_deploy_contract.cdc": {lockedtokensAdminAdmin_deploy_contractCdc, map[string]*bintree{}},
+			"admin_deposit_account_creator.cdc": {lockedtokensAdminAdmin_deposit_account_creatorCdc, map[string]*bintree{}},
+			"admin_remove_delegator.cdc": {lockedtokensAdminAdmin_remove_delegatorCdc, map[string]*bintree{}},
+			"check_main_registration.cdc": {lockedtokensAdminCheck_main_registrationCdc, map[string]*bintree{}},
+			"check_shared_registration.cdc": {lockedtokensAdminCheck_shared_registrationCdc, map[string]*bintree{}},
 			"custody_create_account_with_lease_account.cdc": {lockedtokensAdminCustody_create_account_with_lease_accountCdc, map[string]*bintree{}},
-			"custody_create_only_lease_account.cdc":         {lockedtokensAdminCustody_create_only_lease_accountCdc, map[string]*bintree{}},
-			"custody_create_only_shared_account.cdc":        {lockedtokensAdminCustody_create_only_shared_accountCdc, map[string]*bintree{}},
-			"custody_create_shared_accounts.cdc":            {lockedtokensAdminCustody_create_shared_accountsCdc, map[string]*bintree{}},
-			"custody_setup_account_creator.cdc":             {lockedtokensAdminCustody_setup_account_creatorCdc, map[string]*bintree{}},
-			"deposit_locked_tokens.cdc":                     {lockedtokensAdminDeposit_locked_tokensCdc, map[string]*bintree{}},
-			"get_unlocking_bad_accounts.cdc":                {lockedtokensAdminGet_unlocking_bad_accountsCdc, map[string]*bintree{}},
-			"unlock_tokens.cdc":                             {lockedtokensAdminUnlock_tokensCdc, map[string]*bintree{}},
-			"unlock_tokens_for_multiple_accounts.cdc":       {lockedtokensAdminUnlock_tokens_for_multiple_accountsCdc, map[string]*bintree{}},
+			"custody_create_only_lease_account.cdc": {lockedtokensAdminCustody_create_only_lease_accountCdc, map[string]*bintree{}},
+			"custody_create_only_shared_account.cdc": {lockedtokensAdminCustody_create_only_shared_accountCdc, map[string]*bintree{}},
+			"custody_create_shared_accounts.cdc": {lockedtokensAdminCustody_create_shared_accountsCdc, map[string]*bintree{}},
+			"custody_setup_account_creator.cdc": {lockedtokensAdminCustody_setup_account_creatorCdc, map[string]*bintree{}},
+			"deposit_locked_tokens.cdc": {lockedtokensAdminDeposit_locked_tokensCdc, map[string]*bintree{}},
+			"get_unlocking_bad_accounts.cdc": {lockedtokensAdminGet_unlocking_bad_accountsCdc, map[string]*bintree{}},
+			"unlock_tokens.cdc": {lockedtokensAdminUnlock_tokensCdc, map[string]*bintree{}},
+			"unlock_tokens_for_multiple_accounts.cdc": {lockedtokensAdminUnlock_tokens_for_multiple_accountsCdc, map[string]*bintree{}},
 		}},
 		"delegator": {nil, map[string]*bintree{
-			"delegate_new_tokens.cdc":             {lockedtokensDelegatorDelegate_new_tokensCdc, map[string]*bintree{}},
-			"delegate_rewarded_tokens.cdc":        {lockedtokensDelegatorDelegate_rewarded_tokensCdc, map[string]*bintree{}},
-			"delegate_unstaked_tokens.cdc":        {lockedtokensDelegatorDelegate_unstaked_tokensCdc, map[string]*bintree{}},
-			"get_delegator_id.cdc":                {lockedtokensDelegatorGet_delegator_idCdc, map[string]*bintree{}},
-			"get_delegator_info.cdc":              {lockedtokensDelegatorGet_delegator_infoCdc, map[string]*bintree{}},
-			"get_delegator_node_id.cdc":           {lockedtokensDelegatorGet_delegator_node_idCdc, map[string]*bintree{}},
-			"register_delegator.cdc":              {lockedtokensDelegatorRegister_delegatorCdc, map[string]*bintree{}},
-			"request_unstaking.cdc":               {lockedtokensDelegatorRequest_unstakingCdc, map[string]*bintree{}},
-			"withdraw_rewarded_tokens.cdc":        {lockedtokensDelegatorWithdraw_rewarded_tokensCdc, map[string]*bintree{}},
+			"delegate_new_tokens.cdc": {lockedtokensDelegatorDelegate_new_tokensCdc, map[string]*bintree{}},
+			"delegate_rewarded_tokens.cdc": {lockedtokensDelegatorDelegate_rewarded_tokensCdc, map[string]*bintree{}},
+			"delegate_unstaked_tokens.cdc": {lockedtokensDelegatorDelegate_unstaked_tokensCdc, map[string]*bintree{}},
+			"get_delegator_id.cdc": {lockedtokensDelegatorGet_delegator_idCdc, map[string]*bintree{}},
+			"get_delegator_info.cdc": {lockedtokensDelegatorGet_delegator_infoCdc, map[string]*bintree{}},
+			"get_delegator_node_id.cdc": {lockedtokensDelegatorGet_delegator_node_idCdc, map[string]*bintree{}},
+			"register_delegator.cdc": {lockedtokensDelegatorRegister_delegatorCdc, map[string]*bintree{}},
+			"request_unstaking.cdc": {lockedtokensDelegatorRequest_unstakingCdc, map[string]*bintree{}},
+			"withdraw_rewarded_tokens.cdc": {lockedtokensDelegatorWithdraw_rewarded_tokensCdc, map[string]*bintree{}},
 			"withdraw_rewarded_tokens_locked.cdc": {lockedtokensDelegatorWithdraw_rewarded_tokens_lockedCdc, map[string]*bintree{}},
-			"withdraw_unstaked_tokens.cdc":        {lockedtokensDelegatorWithdraw_unstaked_tokensCdc, map[string]*bintree{}},
+			"withdraw_unstaked_tokens.cdc": {lockedtokensDelegatorWithdraw_unstaked_tokensCdc, map[string]*bintree{}},
 		}},
 		"staker": {nil, map[string]*bintree{
-			"get_node_id.cdc":                     {lockedtokensStakerGet_node_idCdc, map[string]*bintree{}},
-			"get_staker_info.cdc":                 {lockedtokensStakerGet_staker_infoCdc, map[string]*bintree{}},
-			"register_node.cdc":                   {lockedtokensStakerRegister_nodeCdc, map[string]*bintree{}},
-			"request_unstaking.cdc":               {lockedtokensStakerRequest_unstakingCdc, map[string]*bintree{}},
-			"stake_new_tokens.cdc":                {lockedtokensStakerStake_new_tokensCdc, map[string]*bintree{}},
-			"stake_rewarded_tokens.cdc":           {lockedtokensStakerStake_rewarded_tokensCdc, map[string]*bintree{}},
-			"stake_unstaked_tokens.cdc":           {lockedtokensStakerStake_unstaked_tokensCdc, map[string]*bintree{}},
-			"unstake_all.cdc":                     {lockedtokensStakerUnstake_allCdc, map[string]*bintree{}},
-			"update_networking_address.cdc":       {lockedtokensStakerUpdate_networking_addressCdc, map[string]*bintree{}},
-			"withdraw_rewarded_tokens.cdc":        {lockedtokensStakerWithdraw_rewarded_tokensCdc, map[string]*bintree{}},
+			"get_node_id.cdc": {lockedtokensStakerGet_node_idCdc, map[string]*bintree{}},
+			"get_staker_info.cdc": {lockedtokensStakerGet_staker_infoCdc, map[string]*bintree{}},
+			"register_node.cdc": {lockedtokensStakerRegister_nodeCdc, map[string]*bintree{}},
+			"request_unstaking.cdc": {lockedtokensStakerRequest_unstakingCdc, map[string]*bintree{}},
+			"stake_new_tokens.cdc": {lockedtokensStakerStake_new_tokensCdc, map[string]*bintree{}},
+			"stake_rewarded_tokens.cdc": {lockedtokensStakerStake_rewarded_tokensCdc, map[string]*bintree{}},
+			"stake_unstaked_tokens.cdc": {lockedtokensStakerStake_unstaked_tokensCdc, map[string]*bintree{}},
+			"unstake_all.cdc": {lockedtokensStakerUnstake_allCdc, map[string]*bintree{}},
+			"update_networking_address.cdc": {lockedtokensStakerUpdate_networking_addressCdc, map[string]*bintree{}},
+			"withdraw_rewarded_tokens.cdc": {lockedtokensStakerWithdraw_rewarded_tokensCdc, map[string]*bintree{}},
 			"withdraw_rewarded_tokens_locked.cdc": {lockedtokensStakerWithdraw_rewarded_tokens_lockedCdc, map[string]*bintree{}},
-			"withdraw_unstaked_tokens.cdc":        {lockedtokensStakerWithdraw_unstaked_tokensCdc, map[string]*bintree{}},
+			"withdraw_unstaked_tokens.cdc": {lockedtokensStakerWithdraw_unstaked_tokensCdc, map[string]*bintree{}},
 		}},
 		"user": {nil, map[string]*bintree{
-			"deposit_tokens.cdc":             {lockedtokensUserDeposit_tokensCdc, map[string]*bintree{}},
+			"deposit_tokens.cdc": {lockedtokensUserDeposit_tokensCdc, map[string]*bintree{}},
 			"get_locked_account_address.cdc": {lockedtokensUserGet_locked_account_addressCdc, map[string]*bintree{}},
 			"get_locked_account_balance.cdc": {lockedtokensUserGet_locked_account_balanceCdc, map[string]*bintree{}},
 			"get_multiple_unlock_limits.cdc": {lockedtokensUserGet_multiple_unlock_limitsCdc, map[string]*bintree{}},
-			"get_total_balance.cdc":          {lockedtokensUserGet_total_balanceCdc, map[string]*bintree{}},
-			"get_unlock_limit.cdc":           {lockedtokensUserGet_unlock_limitCdc, map[string]*bintree{}},
-			"withdraw_tokens.cdc":            {lockedtokensUserWithdraw_tokensCdc, map[string]*bintree{}},
+			"get_total_balance.cdc": {lockedtokensUserGet_total_balanceCdc, map[string]*bintree{}},
+			"get_unlock_limit.cdc": {lockedtokensUserGet_unlock_limitCdc, map[string]*bintree{}},
+			"withdraw_tokens.cdc": {lockedtokensUserWithdraw_tokensCdc, map[string]*bintree{}},
 		}},
 	}},
 	"nodeVersionBeacon": {nil, map[string]*bintree{
 		"admin": {nil, map[string]*bintree{
-			"add_version_to_table.cdc":                  {nodeversionbeaconAdminAdd_version_to_tableCdc, map[string]*bintree{}},
-			"change_version_table.cdc":                  {nodeversionbeaconAdminChange_version_tableCdc, map[string]*bintree{}},
-			"change_version_update_buffer.cdc":          {nodeversionbeaconAdminChange_version_update_bufferCdc, map[string]*bintree{}},
+			"add_version_to_table.cdc": {nodeversionbeaconAdminAdd_version_to_tableCdc, map[string]*bintree{}},
+			"change_version_table.cdc": {nodeversionbeaconAdminChange_version_tableCdc, map[string]*bintree{}},
+			"change_version_update_buffer.cdc": {nodeversionbeaconAdminChange_version_update_bufferCdc, map[string]*bintree{}},
 			"change_version_update_buffer_variance.cdc": {nodeversionbeaconAdminChange_version_update_buffer_varianceCdc, map[string]*bintree{}},
-			"check_changes.cdc":                         {nodeversionbeaconAdminCheck_changesCdc, map[string]*bintree{}},
-			"delete_upcoming_version_boundary.cdc":      {nodeversionbeaconAdminDelete_upcoming_version_boundaryCdc, map[string]*bintree{}},
+			"check_changes.cdc": {nodeversionbeaconAdminCheck_changesCdc, map[string]*bintree{}},
+			"delete_upcoming_version_boundary.cdc": {nodeversionbeaconAdminDelete_upcoming_version_boundaryCdc, map[string]*bintree{}},
 		}},
 		"scripts": {nil, map[string]*bintree{
-			"get_current_execution_node_version.cdc":           {nodeversionbeaconScriptsGet_current_execution_node_versionCdc, map[string]*bintree{}},
+			"get_current_execution_node_version.cdc": {nodeversionbeaconScriptsGet_current_execution_node_versionCdc, map[string]*bintree{}},
 			"get_current_execution_node_version_as_string.cdc": {nodeversionbeaconScriptsGet_current_execution_node_version_as_stringCdc, map[string]*bintree{}},
-			"get_next_version_boundary_pair.cdc":               {nodeversionbeaconScriptsGet_next_version_boundary_pairCdc, map[string]*bintree{}},
-			"get_version_table.cdc":                            {nodeversionbeaconScriptsGet_version_tableCdc, map[string]*bintree{}},
-			"get_version_update_buffer.cdc":                    {nodeversionbeaconScriptsGet_version_update_bufferCdc, map[string]*bintree{}},
-			"is_compatible_version.cdc":                        {nodeversionbeaconScriptsIs_compatible_versionCdc, map[string]*bintree{}},
+			"get_next_table_updated_sequence.cdc": {nodeversionbeaconScriptsGet_next_table_updated_sequenceCdc, map[string]*bintree{}},
+			"get_next_version_boundary_pair.cdc": {nodeversionbeaconScriptsGet_next_version_boundary_pairCdc, map[string]*bintree{}},
+			"get_version_table.cdc": {nodeversionbeaconScriptsGet_version_tableCdc, map[string]*bintree{}},
+			"get_version_update_buffer.cdc": {nodeversionbeaconScriptsGet_version_update_bufferCdc, map[string]*bintree{}},
+			"is_compatible_version.cdc": {nodeversionbeaconScriptsIs_compatible_versionCdc, map[string]*bintree{}},
 		}},
 	}},
 	"quorumCertificate": {nil, map[string]*bintree{
 		"admin": {nil, map[string]*bintree{
 			"publish_voter.cdc": {quorumcertificateAdminPublish_voterCdc, map[string]*bintree{}},
-			"start_voting.cdc":  {quorumcertificateAdminStart_votingCdc, map[string]*bintree{}},
-			"stop_voting.cdc":   {quorumcertificateAdminStop_votingCdc, map[string]*bintree{}},
+			"start_voting.cdc": {quorumcertificateAdminStart_votingCdc, map[string]*bintree{}},
+			"stop_voting.cdc": {quorumcertificateAdminStop_votingCdc, map[string]*bintree{}},
 		}},
 		"create_voter.cdc": {quorumcertificateCreate_voterCdc, map[string]*bintree{}},
 		"scripts": {nil, map[string]*bintree{
 			"generate_quorum_certificate.cdc": {quorumcertificateScriptsGenerate_quorum_certificateCdc, map[string]*bintree{}},
-			"get_cluster.cdc":                 {quorumcertificateScriptsGet_clusterCdc, map[string]*bintree{}},
-			"get_cluster_complete.cdc":        {quorumcertificateScriptsGet_cluster_completeCdc, map[string]*bintree{}},
-			"get_cluster_node_weights.cdc":    {quorumcertificateScriptsGet_cluster_node_weightsCdc, map[string]*bintree{}},
-			"get_cluster_vote_threshold.cdc":  {quorumcertificateScriptsGet_cluster_vote_thresholdCdc, map[string]*bintree{}},
-			"get_cluster_votes.cdc":           {quorumcertificateScriptsGet_cluster_votesCdc, map[string]*bintree{}},
-			"get_cluster_weight.cdc":          {quorumcertificateScriptsGet_cluster_weightCdc, map[string]*bintree{}},
-			"get_clusters.cdc":                {quorumcertificateScriptsGet_clustersCdc, map[string]*bintree{}},
-			"get_node_has_voted.cdc":          {quorumcertificateScriptsGet_node_has_votedCdc, map[string]*bintree{}},
-			"get_node_weight.cdc":             {quorumcertificateScriptsGet_node_weightCdc, map[string]*bintree{}},
-			"get_qc_enabled.cdc":              {quorumcertificateScriptsGet_qc_enabledCdc, map[string]*bintree{}},
-			"get_voter_is_registered.cdc":     {quorumcertificateScriptsGet_voter_is_registeredCdc, map[string]*bintree{}},
-			"get_voting_completed.cdc":        {quorumcertificateScriptsGet_voting_completedCdc, map[string]*bintree{}},
+			"get_cluster.cdc": {quorumcertificateScriptsGet_clusterCdc, map[string]*bintree{}},
+			"get_cluster_complete.cdc": {quorumcertificateScriptsGet_cluster_completeCdc, map[string]*bintree{}},
+			"get_cluster_node_weights.cdc": {quorumcertificateScriptsGet_cluster_node_weightsCdc, map[string]*bintree{}},
+			"get_cluster_vote_threshold.cdc": {quorumcertificateScriptsGet_cluster_vote_thresholdCdc, map[string]*bintree{}},
+			"get_cluster_votes.cdc": {quorumcertificateScriptsGet_cluster_votesCdc, map[string]*bintree{}},
+			"get_cluster_weight.cdc": {quorumcertificateScriptsGet_cluster_weightCdc, map[string]*bintree{}},
+			"get_clusters.cdc": {quorumcertificateScriptsGet_clustersCdc, map[string]*bintree{}},
+			"get_node_has_voted.cdc": {quorumcertificateScriptsGet_node_has_votedCdc, map[string]*bintree{}},
+			"get_node_weight.cdc": {quorumcertificateScriptsGet_node_weightCdc, map[string]*bintree{}},
+			"get_qc_enabled.cdc": {quorumcertificateScriptsGet_qc_enabledCdc, map[string]*bintree{}},
+			"get_voter_is_registered.cdc": {quorumcertificateScriptsGet_voter_is_registeredCdc, map[string]*bintree{}},
+			"get_voting_completed.cdc": {quorumcertificateScriptsGet_voting_completedCdc, map[string]*bintree{}},
 		}},
 		"submit_vote.cdc": {quorumcertificateSubmit_voteCdc, map[string]*bintree{}},
 	}},
 	"stakingCollection": {nil, map[string]*bintree{
-		"close_stake.cdc":                  {stakingcollectionClose_stakeCdc, map[string]*bintree{}},
-		"create_machine_account.cdc":       {stakingcollectionCreate_machine_accountCdc, map[string]*bintree{}},
-		"create_new_tokenholder_acct.cdc":  {stakingcollectionCreate_new_tokenholder_acctCdc, map[string]*bintree{}},
-		"deploy_collection_contract.cdc":   {stakingcollectionDeploy_collection_contractCdc, map[string]*bintree{}},
-		"register_delegator.cdc":           {stakingcollectionRegister_delegatorCdc, map[string]*bintree{}},
+		"close_stake.cdc": {stakingcollectionClose_stakeCdc, map[string]*bintree{}},
+		"create_machine_account.cdc": {stakingcollectionCreate_machine_accountCdc, map[string]*bintree{}},
+		"create_new_tokenholder_acct.cdc": {stakingcollectionCreate_new_tokenholder_acctCdc, map[string]*bintree{}},
+		"deploy_collection_contract.cdc": {stakingcollectionDeploy_collection_contractCdc, map[string]*bintree{}},
+		"register_delegator.cdc": {stakingcollectionRegister_delegatorCdc, map[string]*bintree{}},
 		"register_multiple_delegators.cdc": {stakingcollectionRegister_multiple_delegatorsCdc, map[string]*bintree{}},
-		"register_multiple_nodes.cdc":      {stakingcollectionRegister_multiple_nodesCdc, map[string]*bintree{}},
-		"register_node.cdc":                {stakingcollectionRegister_nodeCdc, map[string]*bintree{}},
-		"request_unstaking.cdc":            {stakingcollectionRequest_unstakingCdc, map[string]*bintree{}},
-		"restake_all_stakers.cdc":          {stakingcollectionRestake_all_stakersCdc, map[string]*bintree{}},
+		"register_multiple_nodes.cdc": {stakingcollectionRegister_multiple_nodesCdc, map[string]*bintree{}},
+		"register_node.cdc": {stakingcollectionRegister_nodeCdc, map[string]*bintree{}},
+		"request_unstaking.cdc": {stakingcollectionRequest_unstakingCdc, map[string]*bintree{}},
+		"restake_all_stakers.cdc": {stakingcollectionRestake_all_stakersCdc, map[string]*bintree{}},
 		"scripts": {nil, map[string]*bintree{
 			"does_account_have_staking_collection.cdc": {stakingcollectionScriptsDoes_account_have_staking_collectionCdc, map[string]*bintree{}},
-			"get_all_delegator_info.cdc":               {stakingcollectionScriptsGet_all_delegator_infoCdc, map[string]*bintree{}},
-			"get_all_node_info.cdc":                    {stakingcollectionScriptsGet_all_node_infoCdc, map[string]*bintree{}},
-			"get_delegator_ids.cdc":                    {stakingcollectionScriptsGet_delegator_idsCdc, map[string]*bintree{}},
-			"get_does_stake_exist.cdc":                 {stakingcollectionScriptsGet_does_stake_existCdc, map[string]*bintree{}},
-			"get_locked_tokens_used.cdc":               {stakingcollectionScriptsGet_locked_tokens_usedCdc, map[string]*bintree{}},
-			"get_machine_account_address.cdc":          {stakingcollectionScriptsGet_machine_account_addressCdc, map[string]*bintree{}},
-			"get_machine_accounts.cdc":                 {stakingcollectionScriptsGet_machine_accountsCdc, map[string]*bintree{}},
-			"get_node_ids.cdc":                         {stakingcollectionScriptsGet_node_idsCdc, map[string]*bintree{}},
-			"get_unlocked_tokens_used.cdc":             {stakingcollectionScriptsGet_unlocked_tokens_usedCdc, map[string]*bintree{}},
+			"get_all_delegator_info.cdc": {stakingcollectionScriptsGet_all_delegator_infoCdc, map[string]*bintree{}},
+			"get_all_node_info.cdc": {stakingcollectionScriptsGet_all_node_infoCdc, map[string]*bintree{}},
+			"get_delegator_ids.cdc": {stakingcollectionScriptsGet_delegator_idsCdc, map[string]*bintree{}},
+			"get_does_stake_exist.cdc": {stakingcollectionScriptsGet_does_stake_existCdc, map[string]*bintree{}},
+			"get_locked_tokens_used.cdc": {stakingcollectionScriptsGet_locked_tokens_usedCdc, map[string]*bintree{}},
+			"get_machine_account_address.cdc": {stakingcollectionScriptsGet_machine_account_addressCdc, map[string]*bintree{}},
+			"get_machine_accounts.cdc": {stakingcollectionScriptsGet_machine_accountsCdc, map[string]*bintree{}},
+			"get_node_ids.cdc": {stakingcollectionScriptsGet_node_idsCdc, map[string]*bintree{}},
+			"get_unlocked_tokens_used.cdc": {stakingcollectionScriptsGet_unlocked_tokens_usedCdc, map[string]*bintree{}},
 		}},
 		"setup_staking_collection.cdc": {stakingcollectionSetup_staking_collectionCdc, map[string]*bintree{}},
-		"stake_new_tokens.cdc":         {stakingcollectionStake_new_tokensCdc, map[string]*bintree{}},
-		"stake_rewarded_tokens.cdc":    {stakingcollectionStake_rewarded_tokensCdc, map[string]*bintree{}},
-		"stake_unstaked_tokens.cdc":    {stakingcollectionStake_unstaked_tokensCdc, map[string]*bintree{}},
+		"stake_new_tokens.cdc": {stakingcollectionStake_new_tokensCdc, map[string]*bintree{}},
+		"stake_rewarded_tokens.cdc": {stakingcollectionStake_rewarded_tokensCdc, map[string]*bintree{}},
+		"stake_unstaked_tokens.cdc": {stakingcollectionStake_unstaked_tokensCdc, map[string]*bintree{}},
 		"test": {nil, map[string]*bintree{
 			"deposit_tokens.cdc": {stakingcollectionTestDeposit_tokensCdc, map[string]*bintree{}},
-			"get_tokens.cdc":     {stakingcollectionTestGet_tokensCdc, map[string]*bintree{}},
+			"get_tokens.cdc": {stakingcollectionTestGet_tokensCdc, map[string]*bintree{}},
 		}},
-		"transfer_delegator.cdc":            {stakingcollectionTransfer_delegatorCdc, map[string]*bintree{}},
-		"transfer_node.cdc":                 {stakingcollectionTransfer_nodeCdc, map[string]*bintree{}},
-		"unstake_all.cdc":                   {stakingcollectionUnstake_allCdc, map[string]*bintree{}},
-		"update_networking_address.cdc":     {stakingcollectionUpdate_networking_addressCdc, map[string]*bintree{}},
+		"transfer_delegator.cdc": {stakingcollectionTransfer_delegatorCdc, map[string]*bintree{}},
+		"transfer_node.cdc": {stakingcollectionTransfer_nodeCdc, map[string]*bintree{}},
+		"unstake_all.cdc": {stakingcollectionUnstake_allCdc, map[string]*bintree{}},
+		"update_networking_address.cdc": {stakingcollectionUpdate_networking_addressCdc, map[string]*bintree{}},
 		"withdraw_from_machine_account.cdc": {stakingcollectionWithdraw_from_machine_accountCdc, map[string]*bintree{}},
-		"withdraw_rewarded_tokens.cdc":      {stakingcollectionWithdraw_rewarded_tokensCdc, map[string]*bintree{}},
-		"withdraw_unstaked_tokens.cdc":      {stakingcollectionWithdraw_unstaked_tokensCdc, map[string]*bintree{}},
+		"withdraw_rewarded_tokens.cdc": {stakingcollectionWithdraw_rewarded_tokensCdc, map[string]*bintree{}},
+		"withdraw_unstaked_tokens.cdc": {stakingcollectionWithdraw_unstaked_tokensCdc, map[string]*bintree{}},
 	}},
 	"stakingProxy": {nil, map[string]*bintree{
-		"add_node_info.cdc":         {stakingproxyAdd_node_infoCdc, map[string]*bintree{}},
-		"get_node_info.cdc":         {stakingproxyGet_node_infoCdc, map[string]*bintree{}},
-		"register_node.cdc":         {stakingproxyRegister_nodeCdc, map[string]*bintree{}},
-		"remove_node_info.cdc":      {stakingproxyRemove_node_infoCdc, map[string]*bintree{}},
-		"remove_staking_proxy.cdc":  {stakingproxyRemove_staking_proxyCdc, map[string]*bintree{}},
-		"request_unstaking.cdc":     {stakingproxyRequest_unstakingCdc, map[string]*bintree{}},
-		"setup_node_account.cdc":    {stakingproxySetup_node_accountCdc, map[string]*bintree{}},
-		"stake_new_tokens.cdc":      {stakingproxyStake_new_tokensCdc, map[string]*bintree{}},
+		"add_node_info.cdc": {stakingproxyAdd_node_infoCdc, map[string]*bintree{}},
+		"get_node_info.cdc": {stakingproxyGet_node_infoCdc, map[string]*bintree{}},
+		"register_node.cdc": {stakingproxyRegister_nodeCdc, map[string]*bintree{}},
+		"remove_node_info.cdc": {stakingproxyRemove_node_infoCdc, map[string]*bintree{}},
+		"remove_staking_proxy.cdc": {stakingproxyRemove_staking_proxyCdc, map[string]*bintree{}},
+		"request_unstaking.cdc": {stakingproxyRequest_unstakingCdc, map[string]*bintree{}},
+		"setup_node_account.cdc": {stakingproxySetup_node_accountCdc, map[string]*bintree{}},
+		"stake_new_tokens.cdc": {stakingproxyStake_new_tokensCdc, map[string]*bintree{}},
 		"stake_unstaked_tokens.cdc": {stakingproxyStake_unstaked_tokensCdc, map[string]*bintree{}},
-		"unstake_all.cdc":           {stakingproxyUnstake_allCdc, map[string]*bintree{}},
-		"withdraw_rewards.cdc":      {stakingproxyWithdraw_rewardsCdc, map[string]*bintree{}},
-		"withdraw_unstaked.cdc":     {stakingproxyWithdraw_unstakedCdc, map[string]*bintree{}},
+		"unstake_all.cdc": {stakingproxyUnstake_allCdc, map[string]*bintree{}},
+		"withdraw_rewards.cdc": {stakingproxyWithdraw_rewardsCdc, map[string]*bintree{}},
+		"withdraw_unstaked.cdc": {stakingproxyWithdraw_unstakedCdc, map[string]*bintree{}},
 	}},
 	"storageFees": {nil, map[string]*bintree{
 		"admin": {nil, map[string]*bintree{
 			"set_parameters.cdc": {storagefeesAdminSet_parametersCdc, map[string]*bintree{}},
 		}},
 		"scripts": {nil, map[string]*bintree{
-			"get_account_available_balance.cdc":                       {storagefeesScriptsGet_account_available_balanceCdc, map[string]*bintree{}},
+			"get_account_available_balance.cdc": {storagefeesScriptsGet_account_available_balanceCdc, map[string]*bintree{}},
 			"get_accounts_capacity_for_transaction_storage_check.cdc": {storagefeesScriptsGet_accounts_capacity_for_transaction_storage_checkCdc, map[string]*bintree{}},
-			"get_storage_capacity.cdc":                                {storagefeesScriptsGet_storage_capacityCdc, map[string]*bintree{}},
-			"get_storage_fee_conversion.cdc":                          {storagefeesScriptsGet_storage_fee_conversionCdc, map[string]*bintree{}},
-			"get_storage_fee_min.cdc":                                 {storagefeesScriptsGet_storage_fee_minCdc, map[string]*bintree{}},
+			"get_storage_capacity.cdc": {storagefeesScriptsGet_storage_capacityCdc, map[string]*bintree{}},
+			"get_storage_fee_conversion.cdc": {storagefeesScriptsGet_storage_fee_conversionCdc, map[string]*bintree{}},
+			"get_storage_fee_min.cdc": {storagefeesScriptsGet_storage_fee_minCdc, map[string]*bintree{}},
 		}},
 	}},
 }}

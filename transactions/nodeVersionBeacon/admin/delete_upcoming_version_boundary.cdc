@@ -1,26 +1,26 @@
-import ExecutionNodeVersionBeacon from 0xEXECUTIONNODEVERSIONBEACONADDRESS
+import NodeVersionBeacon from 0xNODEVERSIONBEACONADDRESS
 
-/// Transaction that allows ExecutionNodeVersionAdmin to delete the
+/// Transaction that allows NodeVersionAdmin to delete the
 /// version boundary mapping in the versionTable at the specified
 /// block height parameter
 
 transaction(blockHeightBoundaryToDelete: UInt64) {
 
-  let ExecutionNodeVersionBeaconAdminRef: &ExecutionNodeVersionBeacon.ExecutionNodeVersionAdmin
+  let NodeVersionBeaconAdminRef: &NodeVersionBeacon.NodeVersionAdmin
 
   prepare(acct: AuthAccount) {
     pre {
-        ExecutionNodeVersionBeacon.getVersionTable().length > 0 : "No boundary mapping exists to delete."
+        NodeVersionBeacon.getVersionTable().length > 0 : "No boundary mapping exists to delete."
     }
-    // Borrow a reference to the ExecutionNodeVersionAdmin resource
-    self.ExecutionNodeVersionBeaconAdminRef = acct.borrow<&ExecutionNodeVersionBeacon.ExecutionNodeVersionAdmin>
-      (from: ExecutionNodeVersionBeacon.ExecutionNodeVersionAdminStoragePath)
-      ?? panic("Couldn't borrow ExecutionNodeVersionBeaconAdmin Resource")
+    // Borrow a reference to the NodeVersionAdmin resource
+    self.NodeVersionBeaconAdminRef = acct.borrow<&NodeVersionBeacon.NodeVersionAdmin>
+      (from: NodeVersionBeacon.NodeVersionAdminStoragePath)
+      ?? panic("Couldn't borrow NodeVersionBeaconAdmin Resource")
   }
 
   execute {
     // Delete the version from the version table at the specified block height boundary
-    self.ExecutionNodeVersionBeaconAdminRef.deleteUpcomingVersionBoundary(blockHeight: blockHeightBoundaryToDelete)
+    self.NodeVersionBeaconAdminRef.deleteUpcomingVersionBoundary(blockHeight: blockHeightBoundaryToDelete)
   }
 
 }

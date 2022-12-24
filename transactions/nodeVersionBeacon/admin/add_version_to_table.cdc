@@ -1,6 +1,6 @@
-import ExecutionNodeVersionBeacon from 0xEXECUTIONNODEVERSIONBEACONADDRESS
+import NodeVersionBeacon from 0xNODEVERSIONBEACONADDRESS
 
-/// Transaction that allows ExecutionNodeVersionAdmin to add a new version to the
+/// Transaction that allows NodeVersionAdmin to add a new version to the
 /// version table defining a version boundary at the targetBlockHeight
 
 transaction(
@@ -12,27 +12,27 @@ transaction(
   targetBlockHeight: UInt64
 ) {
 
-  let ExecutionNodeVersionBeaconAdminRef: &ExecutionNodeVersionBeacon.ExecutionNodeVersionAdmin
-  let newVersion: ExecutionNodeVersionBeacon.Semver
+  let NodeVersionBeaconAdminRef: &NodeVersionBeacon.NodeVersionAdmin
+  let newVersion: NodeVersionBeacon.Semver
 
   prepare(acct: AuthAccount) {
     // Create the new version from the passed parameters
-    self.newVersion = ExecutionNodeVersionBeacon.Semver(
+    self.newVersion = NodeVersionBeacon.Semver(
       major: newMajor, minor: newMinor, patch: newPatch, preRelease: newPreRelease, isBackwardsCompatible: isBackwardsCompatible
     )
 
-    // Borrow a reference to the ExecutionNodeVersionAdmin resource
-    self.ExecutionNodeVersionBeaconAdminRef = acct.borrow<&ExecutionNodeVersionBeacon.ExecutionNodeVersionAdmin>
-      (from: ExecutionNodeVersionBeacon.ExecutionNodeVersionAdminStoragePath)
-      ?? panic("Couldn't borrow ExecutionNodeVersionBeaconAdmin Resource")
+    // Borrow a reference to the NodeVersionAdmin resource
+    self.NodeVersionBeaconAdminRef = acct.borrow<&NodeVersionBeacon.NodeVersionAdmin>
+      (from: NodeVersionBeacon.NodeVersionAdminStoragePath)
+      ?? panic("Couldn't borrow NodeVersionBeaconAdmin Resource")
   }
 
   execute {
     // Add the new version to the version table
-    self.ExecutionNodeVersionBeaconAdminRef.addVersionBoundaryToTable(targetBlockHeight: targetBlockHeight, newVersion: self.newVersion)
+    self.NodeVersionBeaconAdminRef.addVersionBoundaryToTable(targetBlockHeight: targetBlockHeight, newVersion: self.newVersion)
   }
 
   post{
-    ExecutionNodeVersionBeacon.getVersionTable()[targetBlockHeight]!.strictEqualTo(self.newVersion) : "New version was not added to the versionTable"
+    NodeVersionBeacon.getVersionTable()[targetBlockHeight]!.strictEqualTo(self.newVersion) : "New version was not added to the versionTable"
   }
 }

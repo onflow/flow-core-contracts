@@ -1,7 +1,7 @@
-import ExecutionNodeVersionBeacon from 0xEXECUTIONNODEVERSIONBEACONADDRESS
+import NodeVersionBeacon from "./../../../contracts/NodeVersionBeacon.cdc"
 
-/// Retrieves the versionTable defined in ExecutionNodeVersionBeacon which
+/// Retrieves the versionTable defined in NodeVersionBeacon which
 /// contains both historical and future version block height boundaries
-pub fun main(): {UInt64: ExecutionNodeVersionBeacon.Semver} {
-    return ExecutionNodeVersionBeacon.getVersionTable()
+pub fun main(): {UInt64: NodeVersionBeacon.Semver} {
+    return NodeVersionBeacon.getVersionTable()
 }

@@ -1,24 +1,24 @@
-import ExecutionNodeVersionBeacon from 0xEXECUTIONNODEVERSIONBEACONADDRESS
+import NodeVersionBeacon from 0xNODEVERSIONBEACONADDRESS
 
-/// Transaction that allows ExecutionNodeVersionAdmin to change
+/// Transaction that allows NodeVersionAdmin to change
 /// the defined versionUpdateBuffer
 
 transaction(newVersionUpdateBuffer: UInt64) {
 
-  let ExecutionNodeVersionBeaconAdminRef: &ExecutionNodeVersionBeacon.ExecutionNodeVersionAdmin
+  let NodeVersionBeaconAdminRef: &NodeVersionBeacon.NodeVersionAdmin
 
   prepare(acct: AuthAccount) {
-    // Borrow a reference to the ExecutionNodeVersionAdmin implementing resource
-    self.ExecutionNodeVersionBeaconAdminRef = acct.borrow<&ExecutionNodeVersionBeacon.ExecutionNodeVersionAdmin>
-      (from: ExecutionNodeVersionBeacon.ExecutionNodeVersionAdminStoragePath)
-      ?? panic("Couldn't borrow ExecutionNodeVersionBeaconAdmin Resource")
+    // Borrow a reference to the NodeVersionAdmin implementing resource
+    self.NodeVersionBeaconAdminRef = acct.borrow<&NodeVersionBeacon.NodeVersionAdmin>
+      (from: NodeVersionBeacon.NodeVersionAdminStoragePath)
+      ?? panic("Couldn't borrow NodeVersionBeaconAdmin Resource")
   }
 
   execute {
-    self.ExecutionNodeVersionBeaconAdminRef.changeVersionUpdateBuffer(newUpdateBufferInBlocks: newVersionUpdateBuffer)
+    self.NodeVersionBeaconAdminRef.changeVersionUpdateBuffer(newUpdateBufferInBlocks: newVersionUpdateBuffer)
   }
 
   post{
-    ExecutionNodeVersionBeacon.getVersionUpdateBuffer() == newVersionUpdateBuffer : "Buffer was not updated"
+    NodeVersionBeacon.getVersionUpdateBuffer() == newVersionUpdateBuffer : "Buffer was not updated"
   }
 }
