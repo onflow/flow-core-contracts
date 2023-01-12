@@ -1,5 +1,5 @@
 /// This contract is used to defined block height and software version boundaries
-/// for the software run by Execution Nodes.
+/// for all nodes.
 pub contract NodeVersionBeacon {
 
     /// Struct representing software version as Semantic Version
@@ -90,8 +90,12 @@ pub contract NodeVersionBeacon {
     }
 
     /// Event emitted any time a change is made to versionTable
-    pub event NodeVersionTableAddition(height: UInt64, version: Semver)
-    pub event NodeVersionTableDeletion(height: UInt64, version: Semver)
+    // pub event NodeVersionTableAddition(height: UInt64, version: Semver)
+    // pub event NodeVersionTableDeletion(height: UInt64, version: Semver)
+    pub event NodeVersionTableUpdated(
+        versionTable: {UInt64: Semver},
+        sequence: UInt64
+    )
 
     /// Event emitted any time the version update buffer period or variance is updated
     pub event NodeVersionUpdateBufferChanged(newVersionUpdateBuffer: UInt64)
@@ -116,9 +120,13 @@ pub contract NodeVersionBeacon {
     /// Sorted Array containing historical block heights where version boundaries were defined
     access(contract) var archivedBlockBoundaries: [UInt64]
 
-    /// Admin resource that manages the Execution Node versioning
+    /// Sequence number of the NodeVersionTableUpdated event
+    access(contract) var nextTableUpdatedSequence: UInt64
+
+    /// Admin resource that manages node versioning
     /// maintained in this contract
     pub resource NodeVersionAdmin {
+
         /// Update the minimum version to take effect at the given block height
         pub fun addVersionBoundaryToTable(targetBlockHeight: UInt64, newVersion: Semver) {
             pre {
@@ -135,7 +143,7 @@ pub contract NodeVersionBeacon {
             // array maintaining all upcoming block height boundaries
             NodeVersionBeacon.insertUpcomingBlockBoundary(targetBlockHeight)
 
-            emit NodeVersionTableAddition(height: targetBlockHeight, version: newVersion)
+            //emit NodeVersionTableAddition(height: targetBlockHeight, version: newVersion)
         }
 
         /// Deletes the last entry in versionTable which defines an upcoming version boundary
@@ -160,12 +168,39 @@ pub contract NodeVersionBeacon {
                 at: NodeVersionBeacon.upcomingBlockBoundaries.firstIndex(of: blockHeight)!
             )
 
-            emit NodeVersionTableDeletion(height: blockHeight, version: removed)
-
+            //emit NodeVersionTableDeletion(height: blockHeight, version: removed)
             // Clean up upcoming & archived block boundaries before
             // returning removed version for verification
             NodeVersionBeacon.archiveOldBlockBoundaries()
             return removed
+        }
+
+        /// Separate method to emit the NodeVersionTableUpdated event
+        ///
+        /// @param newVersions
+        /// @param deletedVersions
+        ///
+        pub fun emitNodeVersionTableUpdated() {
+            
+            let updatedTable: {UInt64: Semver} = {}
+
+            // Assure that there is at least one working version for the current block
+            let currentVersionBlock = NodeVersionBeacon.searchForClosestHistoricalBlockBoundary(getCurrentBlock().height) 
+                ?? panic("Cannot find any current node version")
+            updatedTable[currentVersionBlock] = NodeVersionBeacon.versionTable[currentVersionBlock]
+
+            // Add to the emitted table versions that are a thousand or more blocks away
+            for versionBlock in NodeVersionBeacon.versionTable.keys {
+                if (versionBlock > currentVersionBlock + 1000) {
+                    updatedTable[versionBlock] = NodeVersionBeacon.versionTable[versionBlock]
+                }
+            }
+
+            emit NodeVersionTableUpdated(versionTable: updatedTable,
+                sequence: NodeVersionBeacon.nextTableUpdatedSequence)
+
+            NodeVersionBeacon.nextTableUpdatedSequence = NodeVersionBeacon.nextTableUpdatedSequence + 1
+
         }
 
         /// Updates the number of blocks that must buffer updates to the versionTable
@@ -201,9 +236,18 @@ pub contract NodeVersionBeacon {
 
             emit NodeVersionUpdateBufferChanged(newVersionUpdateBuffer: newUpdateBufferInBlocks)
         }
+
+        init() {
+        }
+
     }
 
-    /// Returns the current updateBuffer period within which Execution Nodes
+    /// Returns the next number of sequence for the NodeVersionTableUpdated event
+    pub fun getNextTableUpdatedSequence (): UInt64 {
+        return NodeVersionBeacon.nextTableUpdatedSequence
+    }
+
+    /// Returns the current updateBuffer period within which nodes
     /// can be assured the version will not change
     pub fun getVersionUpdateBuffer(): UInt64 {
         return self.versionUpdateBuffer
@@ -359,9 +403,10 @@ pub contract NodeVersionBeacon {
         self.versionUpdateBuffer = versionUpdateBuffer
         self.archivedBlockBoundaries = []
         self.upcomingBlockBoundaries = []
+        self.nextTableUpdatedSequence = 0
+
 
         /// Save NodeVersionAdmin to storage
         self.account.save(<-create NodeVersionAdmin(), to: self.NodeVersionAdminStoragePath)
     }
 }
- 
