@@ -35,7 +35,7 @@ const (
 	flowStakingProxyFilename           = "StakingProxy.cdc"
 	flowStakingCollectionFilename      = "FlowStakingCollection.cdc"
 	flowContractAuditsFilename         = "FlowContractAudits.cdc"
-	executionNodeVersionBeaconFilename = "ExecutionNodeVersionBeacon.cdc"
+	nodeVersionBeaconFilename = "NodeVersionBeacon.cdc"
 
 	// Test contracts
 	// only used for testing
@@ -54,7 +54,7 @@ const (
 	placeholderStorageFeesAddress                = "0xFLOWSTORAGEFEESADDRESS"
 	placeholderLockedTokensAddress               = "0xLOCKEDTOKENSADDRESS"
 	placeholderStakingCollectionAddress          = "0xFLOWSTAKINGCOLLECTIONADDRESS"
-	placeholderExecutionNodeVersionBeaconAddress = "0xEXECUTIONNODEVERSIONBEACONADDRESS"
+	placeholderNodeVersionBeaconAddress = "0xNODEVERSIONBEACONADDRESS"
 )
 
 // Adds a `0x` prefix to the provided address string

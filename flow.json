@@ -9,7 +9,7 @@
 		"FlowClusterQC": "./contracts/epochs/FlowClusterQC.cdc",
 		"FlowEpoch": "./contracts/epochs/FlowEpoch.cdc",
 		"FlowDKG": "./contracts/epochs/FlowEpoch.cdc",
-		"ExecutionNodeVersionBeacon": "./contracts/ExecutionNodeVersionBeacon.cdc",
+		"NodeVersionBeacon": "./contracts/NodeVersionBeacon.cdc",
 		"FlowContractAudits": "./contracts/FlowContractAudits.cdc",
 		"FlowFees": "./contracts/FlowFees.cdc",
 		"FlowIDTableStaking": "./contracts/FlowIDTableStaking.cdc",
