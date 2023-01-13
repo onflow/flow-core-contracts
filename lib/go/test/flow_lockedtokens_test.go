@@ -49,7 +49,14 @@ func TestLockedTokensStaker(t *testing.T) {
 		AddRawArgument(jsoncdc.MustEncode(cadenceCode))
 	_ = tx.AddArgument(CadenceUFix64("1250000.0"))
 	_ = tx.AddArgument(CadenceUFix64("0.03"))
-	_ = tx.AddArgument(cadence.NewInt(10))
+	var candidateNodeLimits []uint64 = []uint64{10, 10, 10, 10, 10}
+	candidateLimitsArrayValues := make([]cadence.Value, 5)
+	for i, limit := range candidateNodeLimits {
+		candidateLimitsArrayValues[i] = cadence.NewUInt64(limit)
+	}
+	cadenceLimitArray := cadence.NewArray(candidateLimitsArrayValues).WithType(cadence.NewVariableSizedArrayType(cadence.NewUInt64Type()))
+
+	_ = tx.AddArgument(cadenceLimitArray)
 
 	signAndSubmit(
 		t, b, tx,
@@ -655,7 +662,14 @@ func TestLockedTokensDelegator(t *testing.T) {
 
 	_ = tx.AddArgument(CadenceUFix64("1250000.0"))
 	_ = tx.AddArgument(CadenceUFix64("0.03"))
-	_ = tx.AddArgument(cadence.NewInt(10))
+	var candidateNodeLimits []uint64 = []uint64{10, 10, 10, 10, 10}
+	candidateLimitsArrayValues := make([]cadence.Value, 5)
+	for i, limit := range candidateNodeLimits {
+		candidateLimitsArrayValues[i] = cadence.NewUInt64(limit)
+	}
+	cadenceLimitArray := cadence.NewArray(candidateLimitsArrayValues).WithType(cadence.NewVariableSizedArrayType(cadence.NewUInt64Type()))
+
+	_ = tx.AddArgument(cadenceLimitArray)
 
 	signAndSubmit(
 		t, b, tx,
@@ -1112,7 +1126,14 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 
 	_ = tx.AddArgument(CadenceUFix64("1250000.0"))
 	_ = tx.AddArgument(CadenceUFix64("0.03"))
-	_ = tx.AddArgument(cadence.NewInt(10))
+	var candidateNodeLimits []uint64 = []uint64{10, 10, 10, 10, 10}
+	candidateLimitsArrayValues := make([]cadence.Value, 5)
+	for i, limit := range candidateNodeLimits {
+		candidateLimitsArrayValues[i] = cadence.NewUInt64(limit)
+	}
+	cadenceLimitArray := cadence.NewArray(candidateLimitsArrayValues).WithType(cadence.NewVariableSizedArrayType(cadence.NewUInt64Type()))
+
+	_ = tx.AddArgument(cadenceLimitArray)
 
 	signAndSubmit(
 		t, b, tx,
@@ -1441,7 +1462,7 @@ func TestLockedTokensRealStaking(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true, 10)
+	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true, []uint64{10, 10, 10, 10, 10})
 
 	env.IDTableAddress = idTableAddress.Hex()
 
@@ -1747,7 +1768,7 @@ func TestLockedTokensRealStaking(t *testing.T) {
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", max)))
 		_ = tx.AddArgument(CadenceString(maxNetworkingKey))
 		_ = tx.AddArgument(CadenceString(maxStakingKey))
-		_ = tx.AddArgument(CadenceUFix64("250000.0"))
+		_ = tx.AddArgument(CadenceUFix64("500000.0"))
 
 		signAndSubmit(
 			t, b, tx,
@@ -1773,7 +1794,7 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true, 10)
+	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true, []uint64{10, 10, 10, 10, 10})
 
 	env.IDTableAddress = idTableAddress.Hex()
 

@@ -72,7 +72,7 @@ func deployStakingContract(
 	IDTableSigner crypto.Signer,
 	env templates.Environment,
 	latest bool,
-	candidateNodeLimit int,
+	candidateNodeLimits []uint64,
 ) (flow.Address, flow.Address) {
 
 	// create the public key array for the staking and fees account
@@ -117,7 +117,15 @@ func deployStakingContract(
 	// Set the weekly payount amount and delegator cut percentage
 	_ = tx.AddArgument(CadenceUFix64("1250000.0"))
 	_ = tx.AddArgument(CadenceUFix64("0.08"))
-	_ = tx.AddArgument(cadence.NewInt(candidateNodeLimit))
+
+	// Construct Array
+	candidateLimitsArrayValues := make([]cadence.Value, 5)
+	for i, limit := range candidateNodeLimits {
+		candidateLimitsArrayValues[i] = cadence.NewUInt64(limit)
+	}
+	cadenceLimitArray := cadence.NewArray(candidateLimitsArrayValues).WithType(cadence.NewVariableSizedArrayType(cadence.NewUInt64Type()))
+
+	_ = tx.AddArgument(cadenceLimitArray)
 
 	// Submit the deployment transaction
 	signAndSubmit(
@@ -416,7 +424,7 @@ func endStakingMoveTokens(t *testing.T,
 	// End staking auction and epoch
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), authorizer)
 
-	nodeIDsDict, _ := generateCadenceNodeDictionaryAndArray(nodeIDs)
+	nodeIDsDict := generateCadenceNodeDictionary(nodeIDs)
 
 	err := tx.AddArgument(nodeIDsDict)
 	require.NoError(t, err)
@@ -682,13 +690,13 @@ func moveTokens(committed, staked, requested, unstaking, unstaked, totalStaked i
 	return
 }
 
-// Generates a Cadence {String: Bool} dictionary and a Cadence [String] array from an array of node IDs
-func generateCadenceNodeDictionaryAndArray(nodeIDs []string) (cadence.Value, cadence.Value) {
+// Generates a Cadence {String: Bool} dictionary from an array of node IDs
+func generateCadenceNodeDictionary(nodeIDs []string) cadence.Value {
 
 	// Construct Array
 	nodeIDsCadenceArrayValues := make([]cadence.Value, len(nodeIDs))
 
-	// Construct Dictionary
+	// Construct Boolean
 	trueBool := cadence.NewBool(true)
 
 	keyValuePairArray := make([]cadence.KeyValuePair, len(nodeIDs))
@@ -703,7 +711,7 @@ func generateCadenceNodeDictionaryAndArray(nodeIDs []string) (cadence.Value, cad
 		keyValuePairArray[i] = pair
 	}
 
-	return cadence.NewDictionary(keyValuePairArray), cadence.NewArray(nodeIDsCadenceArrayValues).WithType(cadence.NewVariableSizedArrayType(cadence.NewStringType()))
+	return cadence.NewDictionary(keyValuePairArray).WithType(cadence.NewDictionaryType(cadence.NewStringType(), cadence.NewBoolType()))
 }
 
 // assertApprovedListEquals asserts the FlowIDTableStaking approved list matches
@@ -741,36 +749,73 @@ func assertCandidateNodeListEquals(
 
 		if rolePair.Key == cadence.NewUInt8(1) {
 			// Create Cadence array from strings
-			_, nodeIDArray := generateCadenceNodeDictionaryAndArray(expectedCandidateNodeList.collector)
+			nodeIDDict := generateCadenceNodeDictionary(expectedCandidateNodeList.collector)
 
-			assert.Equal(t, nodeIDArray, rolePair.Value.(cadence.Array))
+			assert.Equal(t, nodeIDDict, rolePair.Value.(cadence.Dictionary))
 
 		} else if rolePair.Key == cadence.NewUInt8(2) {
 			// Create Cadence array from strings
-			_, nodeIDArray := generateCadenceNodeDictionaryAndArray(expectedCandidateNodeList.consensus)
+			nodeIDDict := generateCadenceNodeDictionary(expectedCandidateNodeList.consensus)
 
-			assert.Equal(t, nodeIDArray, rolePair.Value.(cadence.Array))
+			assert.Equal(t, nodeIDDict, rolePair.Value.(cadence.Dictionary))
 
 		} else if rolePair.Key == cadence.NewUInt8(3) {
 			// Create Cadence array from strings
-			_, nodeIDArray := generateCadenceNodeDictionaryAndArray(expectedCandidateNodeList.execution)
+			nodeIDDict := generateCadenceNodeDictionary(expectedCandidateNodeList.execution)
 
-			assert.Equal(t, nodeIDArray, rolePair.Value.(cadence.Array))
+			assert.Equal(t, nodeIDDict, rolePair.Value.(cadence.Dictionary))
 
 		} else if rolePair.Key == cadence.NewUInt8(4) {
 			// Create Cadence array from strings
-			_, nodeIDArray := generateCadenceNodeDictionaryAndArray(expectedCandidateNodeList.verification)
+			nodeIDDict := generateCadenceNodeDictionary(expectedCandidateNodeList.verification)
 
-			assert.Equal(t, nodeIDArray, rolePair.Value.(cadence.Array))
+			assert.Equal(t, nodeIDDict, rolePair.Value.(cadence.Dictionary))
 
 		} else if rolePair.Key == cadence.NewUInt8(5) {
 			// Create Cadence array from strings
-			_, nodeIDArray := generateCadenceNodeDictionaryAndArray(expectedCandidateNodeList.access)
+			nodeIDDict := generateCadenceNodeDictionary(expectedCandidateNodeList.access)
 
-			assert.Equal(t, nodeIDArray, rolePair.Value.(cadence.Array))
+			assert.Equal(t, nodeIDDict, rolePair.Value.(cadence.Dictionary))
 
 		}
 
 	}
 
+}
+
+// assertCandidateLimitsEquals asserts the FlowIDTableStaking
+// candidate node limits matches the given limit list
+func assertCandidateLimitsEquals(
+	t *testing.T,
+	b *emulator.Blockchain,
+	env templates.Environment,
+	expectedCandidateNodeList []uint64,
+) {
+
+	result := executeScriptAndCheck(t, b, templates.GenerateGetCandidateLimitsScript(env), nil).(cadence.Dictionary)
+
+	for _, rolePair := range result.Pairs {
+
+		if rolePair.Key == cadence.NewUInt8(1) {
+
+			assert.Equal(t, cadence.NewUInt64(expectedCandidateNodeList[0]), rolePair.Value)
+
+		} else if rolePair.Key == cadence.NewUInt8(2) {
+
+			assert.Equal(t, cadence.NewUInt64(expectedCandidateNodeList[1]), rolePair.Value)
+
+		} else if rolePair.Key == cadence.NewUInt8(3) {
+
+			assert.Equal(t, cadence.NewUInt64(expectedCandidateNodeList[2]), rolePair.Value)
+
+		} else if rolePair.Key == cadence.NewUInt8(4) {
+
+			assert.Equal(t, cadence.NewUInt64(expectedCandidateNodeList[3]), rolePair.Value)
+
+		} else if rolePair.Key == cadence.NewUInt8(5) {
+
+			assert.Equal(t, cadence.NewUInt64(expectedCandidateNodeList[4]), rolePair.Value)
+
+		}
+	}
 }
