@@ -28,7 +28,7 @@ const (
 	capabilityEndEpochFilename      = "idTableStaking/admin/capability_end_epoch.cdc"
 	transferFeesAdminFilename       = "idTableStaking/admin/transfer_fees_admin.cdc"
 	setNonOperationalFilename       = "idTableStaking/admin/set_non_operational.cdc"
-	setCandidateLimitFilename       = "idTableStaking/admin/change_candidate_limit.cdc"
+	setCandidateLimitsFilename      = "idTableStaking/admin/change_candidate_limits.cdc"
 
 	// for testing only
 	scaleRewardsTestFilename = "idTableStaking/admin/scale_rewards_test.cdc"
@@ -72,7 +72,7 @@ const (
 	totalStakedFilename                         = "idTableStaking/scripts/get_total_staked.cdc"
 	rewardRatioFilename                         = "idTableStaking/scripts/get_node_type_ratio.cdc"
 	weeklyPayoutFilename                        = "idTableStaking/scripts/get_weekly_payout.cdc"
-	getCandidateLimitFilename                   = "idTableStaking/scripts/get_candidate_limit.cdc"
+	getCandidateLimitsFilename                  = "idTableStaking/scripts/get_candidate_limits.cdc"
 	getCandidateNodesFilename                   = "idTableStaking/scripts/get_candidate_nodes.cdc"
 )
 
@@ -225,8 +225,8 @@ func GenerateSetNonOperationalScript(env Environment) []byte {
 	return []byte(ReplaceAddresses(code, env))
 }
 
-func GenerateSetCandidateLimitScript(env Environment) []byte {
-	code := assets.MustAssetString(setCandidateLimitFilename)
+func GenerateSetCandidateLimitsScript(env Environment) []byte {
+	code := assets.MustAssetString(setCandidateLimitsFilename)
 
 	return []byte(ReplaceAddresses(code, env))
 }
@@ -507,8 +507,8 @@ func GenerateGetNonOperationalListScript(env Environment) []byte {
 	return []byte(ReplaceAddresses(code, env))
 }
 
-func GenerateGetCandidateLimitScript(env Environment) []byte {
-	code := assets.MustAssetString(getCandidateLimitFilename)
+func GenerateGetCandidateLimitsScript(env Environment) []byte {
+	code := assets.MustAssetString(getCandidateLimitsFilename)
 
 	return []byte(ReplaceAddresses(code, env))
 }

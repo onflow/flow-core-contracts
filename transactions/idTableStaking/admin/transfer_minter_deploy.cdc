@@ -1,7 +1,7 @@
 import Crypto
 import FlowToken from 0xFLOWTOKENADDRESS
 
-transaction(publicKeys: [Crypto.KeyListEntry], contractName: String, code: [UInt8], rewardAmount: UFix64, rewardCut: UFix64, candidateNodeLimit: Int) {
+transaction(publicKeys: [Crypto.KeyListEntry], contractName: String, code: [UInt8], rewardAmount: UFix64, rewardCut: UFix64, candidateNodeLimits: [UInt64]) {
 
   prepare(signer: AuthAccount) {
 
@@ -20,7 +20,18 @@ transaction(publicKeys: [Crypto.KeyListEntry], contractName: String, code: [UInt
 
     acct.save(<-flowTokenMinter, to: /storage/flowTokenMinter)
 
-    acct.contracts.add(name: contractName, code: code, rewardAmount, rewardCut, candidateNodeLimit)
+    assert(candidateNodeLimits.length == 5,
+           message: "Candidate Node Limit list but have a length of 5")
+
+    let candidateNodeLimitsDict: {UInt8: UInt64} = {}
+    var role: UInt8 = 1
+
+    for limit in candidateNodeLimits {
+      candidateNodeLimitsDict[role] = limit
+      role = role + 1
+    }
+
+    acct.contracts.add(name: contractName, code: code, rewardAmount, rewardCut, candidateNodeLimitsDict)
   }
 
 }

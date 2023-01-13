@@ -208,7 +208,7 @@ func initializeAllEpochContracts(
 	epochCounter, epochViews, stakingViews, dkgViews, numClusters uint64,
 	randomSource, rewardsAPY string) (flow.Address, uint64) {
 
-	idTableAddress, feesAddress := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, *env, true, 10)
+	idTableAddress, feesAddress := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, *env, true, []uint64{10, 10, 10, 10, 10})
 	env.IDTableAddress = idTableAddress.Hex()
 	env.FlowFeesAddress = feesAddress.Hex()
 	env.QuorumCertificateAddress = idTableAddress.String()
