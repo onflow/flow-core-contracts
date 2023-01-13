@@ -682,6 +682,8 @@ func TestIDTableRegistration(t *testing.T) {
 
 		var amountToCommit interpreter.UFix64Value = 48000000000000
 
+		// Try to register the node again
+		// it should succeed this time
 		registerNode(t, b, env,
 			bastianAddress,
 			bastianSigner,
@@ -701,6 +703,42 @@ func TestIDTableRegistration(t *testing.T) {
 			execution:    []string{maxID},
 			verification: []string{},
 			access:       []string{bastianID, accessID},
+		}
+
+		assertCandidateNodeListEquals(t, b, env, candidates)
+	})
+
+	t.Run("Should remove nodes from the candidate list if they unstake below the minimum", func(t *testing.T) {
+
+		var amountToRequest interpreter.UFix64Value = 47990100000000
+
+		requestUnstaking(t, b, env,
+			bastianAddress,
+			bastianSigner,
+			amountToRequest,
+			committed[bastianID],
+			committed[bastianID],
+			committed[bastianID],
+			false,
+		)
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateUnstakeAllScript(env), accessAddress)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{accessAddress},
+			[]crypto.Signer{accessSigner},
+			false,
+		)
+
+		// New expected list should not include either
+		// of the newly unstaked access nodes
+		candidates := CandidateNodes{
+			collector:    []string{adminID},
+			consensus:    []string{joshID},
+			execution:    []string{maxID},
+			verification: []string{},
+			access:       []string{},
 		}
 
 		assertCandidateNodeListEquals(t, b, env, candidates)
