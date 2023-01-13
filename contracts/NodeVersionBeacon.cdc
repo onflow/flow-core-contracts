@@ -185,13 +185,12 @@ pub contract NodeVersionBeacon {
             let updatedTable: {UInt64: Semver} = {}
 
             // Assure that there is at least one working version for the current block
-            let currentVersionBlock = NodeVersionBeacon.searchForClosestHistoricalBlockBoundary(getCurrentBlock().height) 
+            let currentVersionBlock = NodeVersionBeacon.searchForClosestHistoricalBlockBoundary(getCurrentBlock().height)
                 ?? panic("Cannot find any current node version")
             updatedTable[currentVersionBlock] = NodeVersionBeacon.versionTable[currentVersionBlock]
 
-            // Add to the emitted table versions that are a thousand or more blocks away
             for versionBlock in NodeVersionBeacon.versionTable.keys {
-                if (versionBlock > currentVersionBlock + 1000) {
+                if (versionBlock > currentVersionBlock) {
                     updatedTable[versionBlock] = NodeVersionBeacon.versionTable[versionBlock]
                 }
             }
