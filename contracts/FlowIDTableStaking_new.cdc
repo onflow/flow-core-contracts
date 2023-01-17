@@ -548,12 +548,6 @@ pub contract FlowIDTableStaking {
                 message: "Cannot unstake below the minimum if there are delegators"
             )
 
-            var candidateNode: Bool = false
-            // See if they were a candidate node before
-            if self.isEligibleForCandidateNodeStatus(nodeRecord) {
-                candidateNode = true
-            }
-
             // Get the balance of the tokens that are currently committed
             let amountCommitted = nodeRecord.tokensCommitted.balance
 
@@ -1502,7 +1496,7 @@ pub contract FlowIDTableStaking {
         var candidateNodes = FlowIDTableStaking.account.load<{UInt8: {String: Bool}}>(from: /storage/idTableCandidateNodes) ?? {}
         var candidateNodesForRole = candidateNodes[role]!
         
-        candidateNodesForRole[nodeID] = nil
+        candidateNodesForRole.remove(key: nodeID)
         candidateNodes[role] = candidateNodesForRole
 
         FlowIDTableStaking.account.save(candidateNodes, to: /storage/idTableCandidateNodes)
