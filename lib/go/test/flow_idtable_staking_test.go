@@ -58,7 +58,7 @@ func TestIDTableDeployment(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true, []uint64{10, 10, 10, 10, 10})
+	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, &env, true, []uint64{10, 10, 10, 10, 10})
 
 	env.IDTableAddress = idTableAddress.Hex()
 
@@ -237,7 +237,7 @@ func TestStakingTransferAdmin(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true, []uint64{10, 10, 10, 10, 10})
+	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, &env, true, []uint64{10, 10, 10, 10, 10})
 
 	//
 	joshAccountKey, joshSigner := accountKeys.NewWithSigner()
@@ -293,7 +293,7 @@ func TestIDTableRegistration(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	idTableAddress, feesAddr := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true, []uint64{1, 1, 1, 1, 1})
+	idTableAddress, feesAddr := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, &env, true, []uint64{1, 1, 1, 1, 1})
 	_, adminStakingKey, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
 	mintTokensForAccount(t, b, idTableAddress, "1000000000.0")
 
@@ -691,7 +691,7 @@ func TestIDTableRegistration(t *testing.T) {
 			consensus:    []string{joshID},
 			execution:    []string{maxID},
 			verification: []string{},
-			access:       []string{bastianID, accessID},
+			access:       []string{accessID, bastianID},
 		}
 
 		assertCandidateNodeListEquals(t, b, env, candidates)
@@ -790,7 +790,7 @@ func TestIDTableStaking(t *testing.T) {
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
 	_, adminStakingKey, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
-	idTableAddress, feesAddr := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true, []uint64{3, 3, 3, 3, 3})
+	idTableAddress, feesAddr := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, &env, true, []uint64{3, 3, 3, 3, 3})
 	mintTokensForAccount(t, b, idTableAddress, "1000000000.0")
 
 	env.IDTableAddress = idTableAddress.Hex()
@@ -2622,7 +2622,7 @@ func TestIDTableSlotSelection(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, &env, true, 3)
+	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, &env, true, []uint64{10, 10, 10, 10, 3})
 
 	// Create new user accounts and generate staking info
 	access1Address, _, access1Signer := newAccountWithAddress(b, accountKeys)
@@ -2641,7 +2641,7 @@ func TestIDTableSlotSelection(t *testing.T) {
 	mintTokensForAccount(t, b, access4Address, "1000000.0")
 	_, access4StakingKey, _, access4NetworkingKey := generateKeysForNodeRegistration(t)
 
-	// Set the Slot Limits to 3 for access nodes
+	// Set the Slot Limits to 2 for access nodes
 	setNodeRoleSlotLimits(t, b, env, idTableAddress, IDTableSigner, [5]uint16{1000, 1000, 1000, 1000, 2})
 
 	result := executeScriptAndCheck(t, b, templates.GenerateGetSlotLimitsScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(1))})
@@ -2697,7 +2697,7 @@ func TestIDTableSlotSelection(t *testing.T) {
 		false)
 
 	noApprovalIDs := make([]string, 0)
-	noApprovalIDDict, _ := generateCadenceNodeDictionaryAndArray(noApprovalIDs)
+	noApprovalIDDict := generateCadenceNodeDictionary(noApprovalIDs)
 
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndStakingScript(env), idTableAddress)
 
@@ -2808,7 +2808,7 @@ func TestIDTableRewardsWitholding(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	idTableAddress, feesAddr := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true, []uint64{10, 10, 10, 10, 10})
+	idTableAddress, feesAddr := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, &env, true, []uint64{10, 10, 10, 10, 10})
 
 	env.IDTableAddress = idTableAddress.Hex()
 	env.FlowFeesAddress = feesAddr.Hex()
