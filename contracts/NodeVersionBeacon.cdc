@@ -127,6 +127,8 @@ pub contract NodeVersionBeacon {
     /// maintained in this contract
     pub resource NodeVersionAdmin {
 
+        access(self) var tableUpdated: Bool
+
         /// Update the minimum version to take effect at the given block height
         pub fun addVersionBoundaryToTable(targetBlockHeight: UInt64, newVersion: Semver) {
             pre {
@@ -143,7 +145,7 @@ pub contract NodeVersionBeacon {
             // array maintaining all upcoming block height boundaries
             NodeVersionBeacon.insertUpcomingBlockBoundary(targetBlockHeight)
 
-            //emit NodeVersionTableAddition(height: targetBlockHeight, version: newVersion)
+            self.tableUpdated = true
         }
 
         /// Deletes the last entry in versionTable which defines an upcoming version boundary
@@ -172,6 +174,7 @@ pub contract NodeVersionBeacon {
             // Clean up upcoming & archived block boundaries before
             // returning removed version for verification
             NodeVersionBeacon.archiveOldBlockBoundaries()
+            self.tableUpdated = true
             return removed
         }
 
@@ -181,25 +184,28 @@ pub contract NodeVersionBeacon {
         /// @param deletedVersions
         ///
         pub fun emitNodeVersionTableUpdated() {
-            
-            let updatedTable: {UInt64: Semver} = {}
 
-            // Assure that there is at least one working version for the current block
-            let currentVersionBlock = NodeVersionBeacon.getNextVersionBoundaryPair()[0] as! UInt64
+            if (self.tableUpdated) {
 
-            updatedTable[currentVersionBlock] = NodeVersionBeacon.versionTable[currentVersionBlock]
+                let updatedTable: {UInt64: Semver} = {}
 
-            for versionBlock in NodeVersionBeacon.versionTable.keys {
-                if (versionBlock > currentVersionBlock) {
-                    updatedTable[versionBlock] = NodeVersionBeacon.versionTable[versionBlock]
+                // Assure that there is at least one working version for the current block
+                let currentVersionBlock = NodeVersionBeacon.getNextVersionBoundaryPair()[0] as! UInt64
+
+                updatedTable[currentVersionBlock] = NodeVersionBeacon.versionTable[currentVersionBlock]
+
+                for versionBlock in NodeVersionBeacon.versionTable.keys {
+                    if (versionBlock > currentVersionBlock) {
+                        updatedTable[versionBlock] = NodeVersionBeacon.versionTable[versionBlock]
+                    }
                 }
+
+                emit NodeVersionTableUpdated(versionTable: updatedTable,
+                    sequence: NodeVersionBeacon.nextTableUpdatedSequence)
+
+                NodeVersionBeacon.nextTableUpdatedSequence = NodeVersionBeacon.nextTableUpdatedSequence + 1
+                self.tableUpdated = false
             }
-
-            emit NodeVersionTableUpdated(versionTable: updatedTable,
-                sequence: NodeVersionBeacon.nextTableUpdatedSequence)
-
-            NodeVersionBeacon.nextTableUpdatedSequence = NodeVersionBeacon.nextTableUpdatedSequence + 1
-
         }
 
         /// Updates the number of blocks that must buffer updates to the versionTable
@@ -234,6 +240,10 @@ pub contract NodeVersionBeacon {
             }
 
             emit NodeVersionUpdateBufferChanged(newVersionUpdateBuffer: newUpdateBufferInBlocks)
+        }
+
+        init () {
+            self.tableUpdated = false
         }
 
     }
