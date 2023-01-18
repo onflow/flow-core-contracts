@@ -959,27 +959,43 @@ pub contract FlowIDTableStaking {
                 let totalTokensCommitted = nodeRecord.nodeFullCommittedBalance()
 
                 let greaterThanMin = FlowIDTableStaking.isGreaterThanMinimumForRole(numTokens: totalTokensCommitted, role: nodeRecord.role)
+                let nodeIsApproved: Bool =  approvedNodeIDs[nodeID] != nil
 
-                // Remove nodes if they do not meet the minimum staking requirements
-                if (nodeRecord.role != UInt8(5) && (!greaterThanMin || approvedNodeIDs[nodeID] == nil))
-                   || (nodeRecord.role == UInt8(5) && approvedNodeIDs[nodeID] == nil && !greaterThanMin)
-                {
+                // admin-approved node roles (execution/collection/consensus/verification)
+                // must be approved AND have sufficient stake
+                if nodeRecord.role != UInt8(5) && (!greaterThanMin || !nodeIsApproved) {
                     self.removeAndRefundNodeRecord(nodeRecord: nodeRecord)
-                } else {
-                    nodeRecord.initialWeight = 100
+                    FlowIDTableStaking.removeFromCandidateNodeList(nodeID: nodeRecord.id, role: nodeRecord.role)
+                    continue
                 }
+
+                // permissionless node roles (access)
+                // NOTE: Access nodes which registered prior to the 100-FLOW stake requirement
+                // (which must be approved) are not removed during a temporary grace period during 
+                // which these grandfathered node operators may submit the necessary stake requirement.
+                // Therefore Access nodes must either be approved OR have sufficient stake:
+                //  - Old ANs must be approved, but are allowed to have zero stake
+                //  - New ANs may be unapproved, but must have submitted sufficient stake
+                if nodeRecord.role == UInt8(5) && !greaterThanMin && !nodeIsApproved {
+                    self.removeAndRefundNodeRecord(nodeRecord: nodeRecord)
+                    continue
+                }
+
+                nodeRecord.initialWeight = 100
             }
         }
 
         /// Each node role only has a certain number of slots available per epoch
         /// so if there are more candidate nodes for that role than there are slots
-        /// nodes are randomly selected from the list to be included
+        /// nodes are randomly selected from the list to be included.
+        /// Nodes which are not selected for inclusion are removed and refunded in this function.
+        /// All candidate nodes left staked after this function exits are implicitly selected to fill the 
+        /// available slots, and will become participants at the next epoch transition.
         /// 
         pub fun fillNodeRoleSlots() {
 
-            var approvedList: {String: Bool} = FlowIDTableStaking.getApprovedList()
+            var currentNodeCount: {UInt8: UInt16} = FlowIDTableStaking.getCurrentRoleNodeCounts()
 
-            var currentNodeCount: {UInt8: UInt16} = FlowIDTableStaking.account.load<{UInt8: UInt16}>(from: /storage/flowStakingRoleNodeCounts) ?? {}
             let slotLimits: {UInt8: UInt16} = FlowIDTableStaking.getRoleSlotLimits()
 
             // Load and reset the candidate node list
@@ -1600,7 +1616,8 @@ pub contract FlowIDTableStaking {
 
     /// Returns the current candidate node list
     pub fun getCandidateNodeList(): {UInt8: {String: Bool}} {
-        return FlowIDTableStaking.account.copy<{UInt8: {String: Bool}}>(from: /storage/idTableCandidateNodes) ?? {}
+        return FlowIDTableStaking.account.copy<{UInt8: {String: Bool}}>(from: /storage/idTableCandidateNodes)
+            ?? {1: {}, 2: {}, 3: {}, 4: {}, 5: {}}
     }
 
     /// Get slot (count) limits for each node type (role).
@@ -1609,7 +1626,7 @@ pub contract FlowIDTableStaking {
             ?? {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
     }
 
-    /// Returns a dictionary that indicates how many nodes there are for each role
+    /// Returns a dictionary that indicates how many participant nodes there are for each role
     pub fun getCurrentRoleNodeCounts(): {UInt8: UInt16} {
         if let currentCounts = FlowIDTableStaking.account.copy<{UInt8: UInt16}>(from: /storage/flowStakingRoleNodeCounts) {
             return currentCounts
