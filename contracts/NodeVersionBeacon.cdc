@@ -236,9 +236,6 @@ pub contract NodeVersionBeacon {
             emit NodeVersionUpdateBufferChanged(newVersionUpdateBuffer: newUpdateBufferInBlocks)
         }
 
-        init() {
-        }
-
     }
 
     /// Returns the next number of sequence for the NodeVersionTableUpdated event
@@ -397,7 +394,7 @@ pub contract NodeVersionBeacon {
 
     init(versionUpdateBuffer: UInt64) {
         /// Initialize contract variables
-        self.NodeVersionAdminStoragePath = /storage/NodeVersionAdmin
+        self.NodeVersionAdminStoragePath = /storage/NodeVersionBeaconAdmin
         self.versionTable = {}
         self.versionUpdateBuffer = versionUpdateBuffer
         self.archivedBlockBoundaries = []
@@ -409,3 +406,4 @@ pub contract NodeVersionBeacon {
         self.account.save(<-create NodeVersionAdmin(), to: self.NodeVersionAdminStoragePath)
     }
 }
+ 
