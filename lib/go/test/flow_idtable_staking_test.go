@@ -2617,6 +2617,11 @@ func TestIDTableStaking(t *testing.T) {
 	})
 }
 
+// TestIDTableSlotSelection tests the slot selection process for nodes which do not need to be allow-listed (Access Nodes).
+//  - If the number of candidate nodes exceeds the remaining slot limit, some candidate nodes will be randomly
+//     selected to be refunded and removed.
+//  - If the number of participant nodes is equal to or exceeds the slot limit, no new candidates will be accepted
+//     but no participants will be removed.
 func TestIDTableSlotSelection(t *testing.T) {
 	b, accountKeys, env := newTestSetup(t)
 
@@ -2752,6 +2757,11 @@ func TestIDTableSlotSelection(t *testing.T) {
 	result = executeScriptAndCheck(t, b, templates.GenerateGetUnstakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(removedNodeID)})
 	assertEqual(t, CadenceUFix64("100000.0"), result)
 
+	// Set the Slot Limits to 1 for access nodes
+	// 2 nodes are already staked, which is above the limit
+	// but since they are already there, they won't be removed
+	setNodeRoleSlotLimits(t, b, env, idTableAddress, IDTableSigner, [5]uint16{1000, 1000, 1000, 1000, 1})
+
 	// Register the fourth access node
 	registerNode(t, b, env,
 		access4Address,
@@ -2785,9 +2795,28 @@ func TestIDTableSlotSelection(t *testing.T) {
 		}
 	}
 
+	// Make sure that that removed node was the one who registered
+	assertEqual(t, CadenceString(bastianID), removedNodeID)
+
 	// Make sure that the node that was removed was unstaked
 	result = executeScriptAndCheck(t, b, templates.GenerateGetUnstakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(removedNodeID)})
 	assertEqual(t, CadenceUFix64("100000.0"), result)
+
+	// End the epoch, which should not unstake any access nodes which were already unstaked
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), idTableAddress)
+	err = tx.AddArgument(noApprovalIDDict)
+	require.NoError(t, err)
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]crypto.Signer{IDTableSigner},
+		false,
+	)
+
+	// Current Participant Table should include two of the access nodes
+	result = executeScriptAndCheck(t, b, templates.GenerateReturnCurrentTableScript(env), nil)
+	idArray = result.(cadence.Array).Values
+	assert.Len(t, idArray, 2)
 }
 
 func TestIDTableRewardsWitholding(t *testing.T) {
