@@ -126,7 +126,7 @@ pub contract NodeVersionBeacon {
     /// Admin resource that manages node versioning
     /// maintained in this contract
     pub resource NodeVersionAdmin {
-
+        // Boolean flag for keeping track of changes since the last time NodeVersionTableUpdated was emitted
         access(self) var tableUpdated: Bool
 
         /// Update the minimum version to take effect at the given block height
@@ -145,6 +145,7 @@ pub contract NodeVersionBeacon {
             // array maintaining all upcoming block height boundaries
             NodeVersionBeacon.insertUpcomingBlockBoundary(targetBlockHeight)
 
+            // Set the flag to true so the event will be emitted next time emitChanges is called
             self.tableUpdated = true
         }
 
@@ -170,11 +171,11 @@ pub contract NodeVersionBeacon {
                 at: NodeVersionBeacon.upcomingBlockBoundaries.firstIndex(of: blockHeight)!
             )
 
-            //emit NodeVersionTableDeletion(height: blockHeight, version: removed)
+            // Set the flag to true so the event will be emitted next time emitChanges is called
+            self.tableUpdated = true
             // Clean up upcoming & archived block boundaries before
             // returning removed version for verification
             NodeVersionBeacon.archiveOldBlockBoundaries()
-            self.tableUpdated = true
             return removed
         }
 
@@ -184,16 +185,17 @@ pub contract NodeVersionBeacon {
         /// @param deletedVersions
         ///
         pub fun emitNodeVersionTableUpdated() {
-
+            // If the table has been updated since the last call
             if (self.tableUpdated) {
-
+                // Auxiliary table that will contain the incoming versions
                 let updatedTable: {UInt64: Semver} = {}
 
                 // Assure that there is at least one working version for the current block
                 let currentVersionBlock = NodeVersionBeacon.getNextVersionBoundaryPair()[0] as! UInt64
-
+                // Get the current version into the table
                 updatedTable[currentVersionBlock] = NodeVersionBeacon.versionTable[currentVersionBlock]
-
+                // Look for versions on blocks higher than the current block and put them into the aux table
+                // that will be populated
                 for versionBlock in NodeVersionBeacon.versionTable.keys {
                     if (versionBlock > currentVersionBlock) {
                         updatedTable[versionBlock] = NodeVersionBeacon.versionTable[versionBlock]
@@ -203,6 +205,8 @@ pub contract NodeVersionBeacon {
                 emit NodeVersionTableUpdated(versionTable: updatedTable,
                     sequence: NodeVersionBeacon.nextTableUpdatedSequence)
 
+                // After emitting the event increase the event sequence number and set the flag to false
+                // so the event won't be emitted on the next block if there isn't any changes to the table
                 NodeVersionBeacon.nextTableUpdatedSequence = NodeVersionBeacon.nextTableUpdatedSequence + 1
                 self.tableUpdated = false
             }
