@@ -6,8 +6,10 @@ import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
 // the counter currentEpochCounter+1. The transaction sender must provide the 
 // currentEpochCounter (before the reset takes place) as a safety mechanism.
 //
-// During network sporks, resetEpoch is used to synchronize the FlowEpoch smart contract
-// and the bootstrapped protocol state on a consistent post-spork epoch configuration.
+// During network sporks, the bootstrapped protocol state is in a new Epoch (currentEpochCounter+1),
+// and resetEpoch is used to change the epoch counter in the FlowEpoch smart contract
+// from currentEpochCounter to (currentEpochCounter + 1), so that it's consistent with 
+// the bootstrapped protocol state.
 // This transaction should only be used with the output of the bootstrap utility:
 //   util epoch reset-tx-args
 
