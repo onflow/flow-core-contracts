@@ -58,7 +58,7 @@ func TestIDTableDeployment(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true, []uint64{10, 10, 10, 10, 10})
+	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, &env, true, []uint64{10, 10, 10, 10, 10})
 
 	env.IDTableAddress = idTableAddress.Hex()
 
@@ -237,13 +237,11 @@ func TestStakingTransferAdmin(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true, []uint64{10, 10, 10, 10, 10})
+	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, &env, true, []uint64{10, 10, 10, 10, 10})
 
 	//
 	joshAccountKey, joshSigner := accountKeys.NewWithSigner()
 	joshAddress, _ := b.CreateAccount([]*flow.AccountKey{joshAccountKey}, nil)
-
-	env.IDTableAddress = idTableAddress.Hex()
 
 	t.Run("Should be able to transfer the admin capability to another account", func(t *testing.T) {
 
@@ -291,20 +289,11 @@ func TestStakingTransferAdmin(t *testing.T) {
 
 func TestIDTableRegistration(t *testing.T) {
 
-	t.Parallel()
-
-	b := newBlockchain()
-
-	env := templates.Environment{
-		FungibleTokenAddress: emulatorFTAddress,
-		FlowTokenAddress:     emulatorFlowTokenAddress,
-	}
-
-	accountKeys := test.AccountKeyGenerator()
+	b, accountKeys, env := newTestSetup(t)
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	idTableAddress, feesAddr := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true, []uint64{1, 1, 1, 1, 1})
+	idTableAddress, feesAddr := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, &env, true, []uint64{1, 1, 1, 1, 1})
 	_, adminStakingKey, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
 	mintTokensForAccount(t, b, idTableAddress, "1000000000.0")
 
@@ -702,7 +691,7 @@ func TestIDTableRegistration(t *testing.T) {
 			consensus:    []string{joshID},
 			execution:    []string{maxID},
 			verification: []string{},
-			access:       []string{bastianID, accessID},
+			access:       []string{accessID, bastianID},
 		}
 
 		assertCandidateNodeListEquals(t, b, env, candidates)
@@ -801,7 +790,7 @@ func TestIDTableStaking(t *testing.T) {
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
 	_, adminStakingKey, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
-	idTableAddress, feesAddr := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true, []uint64{3, 3, 3, 3, 3})
+	idTableAddress, feesAddr := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, &env, true, []uint64{3, 3, 3, 3, 3})
 	mintTokensForAccount(t, b, idTableAddress, "1000000000.0")
 
 	env.IDTableAddress = idTableAddress.Hex()
@@ -2628,6 +2617,208 @@ func TestIDTableStaking(t *testing.T) {
 	})
 }
 
+// TestIDTableSlotSelection tests the slot selection process for nodes which do not need to be allow-listed (Access Nodes).
+//  - If the number of candidate nodes exceeds the remaining slot limit, some candidate nodes will be randomly
+//     selected to be refunded and removed.
+//  - If the number of participant nodes is equal to or exceeds the slot limit, no new candidates will be accepted
+//     but no participants will be removed.
+func TestIDTableSlotSelection(t *testing.T) {
+	b, accountKeys, env := newTestSetup(t)
+
+	// Create new keys for the ID table account
+	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
+	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, &env, true, []uint64{10, 10, 10, 10, 3})
+
+	// Create new user accounts and generate staking info
+	access1Address, _, access1Signer := newAccountWithAddress(b, accountKeys)
+	mintTokensForAccount(t, b, access1Address, "1000000.0")
+	_, access1StakingKey, _, access1NetworkingKey := generateKeysForNodeRegistration(t)
+
+	access2Address, _, access2Signer := newAccountWithAddress(b, accountKeys)
+	mintTokensForAccount(t, b, access2Address, "1000000.0")
+	_, access2StakingKey, _, access2NetworkingKey := generateKeysForNodeRegistration(t)
+
+	access3Address, _, access3Signer := newAccountWithAddress(b, accountKeys)
+	mintTokensForAccount(t, b, access3Address, "1000000.0")
+	_, access3StakingKey, _, access3NetworkingKey := generateKeysForNodeRegistration(t)
+
+	access4Address, _, access4Signer := newAccountWithAddress(b, accountKeys)
+	mintTokensForAccount(t, b, access4Address, "1000000.0")
+	_, access4StakingKey, _, access4NetworkingKey := generateKeysForNodeRegistration(t)
+
+	// Set the Slot Limits to 2 for access nodes
+	setNodeRoleSlotLimits(t, b, env, idTableAddress, IDTableSigner, [5]uint16{1000, 1000, 1000, 1000, 2})
+
+	result := executeScriptAndCheck(t, b, templates.GenerateGetSlotLimitsScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(1))})
+	assertEqual(t, cadence.NewUInt16(1000), result)
+	result = executeScriptAndCheck(t, b, templates.GenerateGetSlotLimitsScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(2))})
+	assertEqual(t, cadence.NewUInt16(1000), result)
+	result = executeScriptAndCheck(t, b, templates.GenerateGetSlotLimitsScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(3))})
+	assertEqual(t, cadence.NewUInt16(1000), result)
+	result = executeScriptAndCheck(t, b, templates.GenerateGetSlotLimitsScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(4))})
+	assertEqual(t, cadence.NewUInt16(1000), result)
+	result = executeScriptAndCheck(t, b, templates.GenerateGetSlotLimitsScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(5))})
+	assertEqual(t, cadence.NewUInt16(2), result)
+
+	var amountToCommit interpreter.UFix64Value = 10000000000000
+
+	// Register the first access node
+	registerNode(t, b, env,
+		access1Address,
+		access1Signer,
+		adminID,
+		fmt.Sprintf("%0128d", admin),
+		access1NetworkingKey,
+		access1StakingKey,
+		amountToCommit,
+		amountToCommit,
+		5,
+		false)
+
+	// Register the second access node
+	registerNode(t, b, env,
+		access2Address,
+		access2Signer,
+		joshID,
+		fmt.Sprintf("%0128d", josh),
+		access2NetworkingKey,
+		access2StakingKey,
+		amountToCommit,
+		amountToCommit,
+		5,
+		false)
+
+	// Register the third access node
+	registerNode(t, b, env,
+		access3Address,
+		access3Signer,
+		maxID,
+		fmt.Sprintf("%0128d", max),
+		access3NetworkingKey,
+		access3StakingKey,
+		amountToCommit,
+		amountToCommit,
+		5,
+		false)
+
+	noApprovalIDs := make([]string, 0)
+	noApprovalIDDict := generateCadenceNodeDictionary(noApprovalIDs)
+
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndStakingScript(env), idTableAddress)
+
+	err := tx.AddArgument(noApprovalIDDict)
+	require.NoError(t, err)
+
+	slotResult := signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]crypto.Signer{IDTableSigner},
+		false,
+	)
+
+	var removedNodeID cadence.Value
+
+	// see which node was removed
+	for _, event := range slotResult.Events {
+		if event.Type == "A.179b6b1cb6755e31.FlowIDTableStaking.NodeRemovedAndRefunded" {
+			eventValue := event.Value
+			removedNodeID = eventValue.Fields[0]
+		}
+	}
+
+	// Proposed table does not include access nodes
+	result = executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
+	idArray := result.(cadence.Array).Values
+	assert.Len(t, idArray, 0)
+
+	// End the epoch, which marks the selected access nodes as staking
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), idTableAddress)
+	err = tx.AddArgument(noApprovalIDDict)
+	require.NoError(t, err)
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]crypto.Signer{IDTableSigner},
+		false,
+	)
+
+	// Current Participant Table should include two of the access nodes
+	result = executeScriptAndCheck(t, b, templates.GenerateReturnCurrentTableScript(env), nil)
+	idArray = result.(cadence.Array).Values
+	assert.Len(t, idArray, 2)
+
+	// Make sure that the non-removed nodes are staked
+	result = executeScriptAndCheck(t, b, templates.GenerateGetStakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(idArray[0])})
+	assertEqual(t, CadenceUFix64("100000.0"), result)
+	result = executeScriptAndCheck(t, b, templates.GenerateGetStakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(idArray[1])})
+	assertEqual(t, CadenceUFix64("100000.0"), result)
+
+	// Make sure that the node that was removed was unstaked
+	result = executeScriptAndCheck(t, b, templates.GenerateGetUnstakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(removedNodeID)})
+	assertEqual(t, CadenceUFix64("100000.0"), result)
+
+	// Set the Slot Limits to 1 for access nodes
+	// 2 nodes are already staked, which is above the limit
+	// but since they are already there, they won't be removed
+	setNodeRoleSlotLimits(t, b, env, idTableAddress, IDTableSigner, [5]uint16{1000, 1000, 1000, 1000, 1})
+
+	// Register the fourth access node
+	registerNode(t, b, env,
+		access4Address,
+		access4Signer,
+		bastianID,
+		fmt.Sprintf("%0128d", bastian),
+		access4NetworkingKey,
+		access4StakingKey,
+		amountToCommit,
+		amountToCommit,
+		5,
+		false)
+
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEndStakingScript(env), idTableAddress)
+
+	err = tx.AddArgument(noApprovalIDDict)
+	require.NoError(t, err)
+
+	slotResult = signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]crypto.Signer{IDTableSigner},
+		false,
+	)
+
+	// see which node was removed
+	for _, event := range slotResult.Events {
+		if event.Type == "A.179b6b1cb6755e31.FlowIDTableStaking.NodeRemovedAndRefunded" {
+			eventValue := event.Value
+			removedNodeID = eventValue.Fields[0]
+		}
+	}
+
+	// Make sure that that removed node was the one who registered
+	assertEqual(t, CadenceString(bastianID), removedNodeID)
+
+	// Make sure that the node that was removed was unstaked
+	result = executeScriptAndCheck(t, b, templates.GenerateGetUnstakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(removedNodeID)})
+	assertEqual(t, CadenceUFix64("100000.0"), result)
+
+	// End the epoch, which should not unstake any access nodes which were already unstaked
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), idTableAddress)
+	err = tx.AddArgument(noApprovalIDDict)
+	require.NoError(t, err)
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]crypto.Signer{IDTableSigner},
+		false,
+	)
+
+	// Current Participant Table should include two of the access nodes
+	result = executeScriptAndCheck(t, b, templates.GenerateReturnCurrentTableScript(env), nil)
+	idArray = result.(cadence.Array).Values
+	assert.Len(t, idArray, 2)
+}
+
 func TestIDTableRewardsWitholding(t *testing.T) {
 
 	t.Parallel()
@@ -2646,7 +2837,7 @@ func TestIDTableRewardsWitholding(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	idTableAddress, feesAddr := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true, []uint64{10, 10, 10, 10, 10})
+	idTableAddress, feesAddr := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, &env, true, []uint64{10, 10, 10, 10, 10})
 
 	env.IDTableAddress = idTableAddress.Hex()
 	env.FlowFeesAddress = feesAddr.Hex()
