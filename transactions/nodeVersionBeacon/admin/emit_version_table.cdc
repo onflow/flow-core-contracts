@@ -1,4 +1,4 @@
-import NodeVersionBeacon from "./../../../contracts/NodeVersionBeacon.cdc"
+import NodeVersionBeacon from 0xNODEVERSIONBEACONADDRESS
 
 // Calls the method that emits the table with the incoming versions
 transaction() {
