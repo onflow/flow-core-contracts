@@ -117,6 +117,19 @@ func TestContracts(t *testing.T) {
 	result = executeScriptAndCheck(t, b, templates.GenerateGetStorageCapacityScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(b.ServiceKey().Address))})
 	assertEqual(t, CadenceUFix64("184467440737.09551615"), result)
 
+	result = executeScriptAndCheck(t, b, templates.GenerateGetAccountsCapacityForTransactionStorageCheckScript(env), [][]byte{
+		jsoncdc.MustEncode(
+			cadence.NewArray([]cadence.Value{
+				cadence.Address(b.ServiceKey().Address),
+				cadence.NewAddress(flow.HexToAddress(env.FlowFeesAddress)),
+			})),
+		jsoncdc.MustEncode(cadence.Address(b.ServiceKey().Address)),
+		jsoncdc.MustEncode(CadenceUFix64("999999999.0")),
+	})
+	resultArray := result.(cadence.Array)
+	assertEqual(t, CadenceUFix64("10000000.00000000"), resultArray.Values[0])
+	assertEqual(t, CadenceUFix64("0.00000000"), resultArray.Values[1])
+
 	t.Run("Zero conversion should not result in a divide by zero error", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b,

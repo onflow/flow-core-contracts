@@ -1,5 +1,6 @@
 import FungibleToken from 0xFUNGIBLETOKENADDRESS
 import FlowToken from 0xFLOWTOKENADDRESS
+import FlowStorageFees from 0xFLOWSTORAGEFEESADDRESS
 
 pub contract FlowFees {
 
@@ -68,6 +69,66 @@ pub contract FlowFees {
             self.inclusionEffortCost = inclusionEffortCost
             self.executionEffortCost = executionEffortCost
         }
+    }
+
+    // VerifyPayerBalanceResult is returned by the verifyPayersBalanceForTransactionExecution function
+    pub struct VerifyPayerBalanceResult {
+        // True if the payer has sufficient balance for the transaction execution to continue
+        pub let canExecuteTransaction: Bool
+        // The minimum payer balance required for the transaction execution to continue. 
+        // This value is defined by verifyPayersBalanceForTransactionExecution.
+        pub let requiredBalance: UFix64
+        // The maximum transaction fees (inclusion fees + execution fees) the transaction can incur 
+        // (if all available execution effort is used)
+        pub let maximumTransactionFees: UFix64
+
+        init(canExecuteTransaction: Bool, requiredBalance: UFix64,  maximumTransactionFees: UFix64){
+            self.canExecuteTransaction = canExecuteTransaction
+            self.requiredBalance = requiredBalance
+            self.maximumTransactionFees = maximumTransactionFees
+        }
+
+    }
+
+    // verifyPayersBalanceForTransactionExecution is called by the FVM before executing a transaction.
+    // It verifies that the transaction payer's balance is high enough to continue transaction execution,
+    // and returns the maximum possible transaction fees.
+    // (according to the inclusion effort and maximum execution effort of the transaction).
+    //
+    // The requiredBalance balance is defined as the minimum account balance + 
+    //  maximum transaction fees (inclusion fees + execution fees at max execution effort).
+    pub fun verifyPayersBalanceForTransactionExecution(
+        _ payerAcct: AuthAccount, 
+        inclusionEffort: UFix64, 
+        maxExecutionEffort: UFix64,
+    ): VerifyPayerBalanceResult {
+        // Get the maximum fees required for the transaction.
+        var maxTransactionFee = self.computeFees(inclusionEffort: inclusionEffort, executionEffort: maxExecutionEffort)
+
+        // Get the minimum required payer's balance for the transaction.
+        let minimumRequiredBalance = FlowStorageFees.defaultTokenReservedBalance(payerAcct.address)
+
+        if minimumRequiredBalance == UFix64(0) {
+            // If the required balance is zero exit early.
+            return VerifyPayerBalanceResult(
+                canExecuteTransaction: true, 
+                requiredBalance: minimumRequiredBalance,
+                maximumTransactionFees: maxTransactionFee,
+            )
+        }
+        
+        // Get the balance of the payers default vault.
+        // In the edge case where the payer doesnt have a vault, treat the balance as 0.
+        var balance = 0.0
+        if let tokenVault = payerAcct.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault) {
+            balance = tokenVault.balance
+        }
+
+        return VerifyPayerBalanceResult(
+            // The transaction can be executed it the payers balance is greater than the minimum required balance. 
+            canExecuteTransaction: balance >= minimumRequiredBalance,
+            requiredBalance: minimumRequiredBalance,
+            maximumTransactionFees: maxTransactionFee)
     }
 
     /// Called when a transaction is submitted to deduct the fee

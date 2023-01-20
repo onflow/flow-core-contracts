@@ -9,8 +9,6 @@ import (
 	_ "github.com/kevinburke/go-bindata"
 	ftcontracts "github.com/onflow/flow-ft/lib/go/contracts"
 
-	_ "github.com/kevinburke/go-bindata"
-
 	"github.com/onflow/flow-core-contracts/lib/go/contracts/internal/assets"
 )
 
@@ -99,7 +97,7 @@ func FlowToken(fungibleTokenAddress string) []byte {
 //
 // The returned contract will import the FungibleToken and FlowToken
 // contracts from the specified addresses.
-func FlowFees(fungibleTokenAddress, flowTokenAddress string) []byte {
+func FlowFees(fungibleTokenAddress, flowTokenAddress, storageFees string) []byte {
 	code := assets.MustAssetString(flowFeesFilename)
 
 	code = strings.ReplaceAll(
@@ -112,6 +110,12 @@ func FlowFees(fungibleTokenAddress, flowTokenAddress string) []byte {
 		code,
 		placeholderFlowTokenAddress,
 		withHexPrefix(flowTokenAddress),
+	)
+
+	code = strings.ReplaceAll(
+		code,
+		placeholderStorageFeesAddress,
+		withHexPrefix(storageFees),
 	)
 
 	return []byte(code)
@@ -328,7 +332,7 @@ func TESTFlowStakingCollection(
 	return []byte(code)
 }
 
-func TestFlowFees(fungibleTokenAddress, flowTokenAddress string) []byte {
+func TestFlowFees(fungibleTokenAddress, flowTokenAddress, storageFeesAddress string) []byte {
 	code := assets.MustAssetString(flowFeesFilename)
 
 	code = strings.ReplaceAll(
@@ -341,6 +345,12 @@ func TestFlowFees(fungibleTokenAddress, flowTokenAddress string) []byte {
 		code,
 		placeholderFlowTokenAddress,
 		withHexPrefix(flowTokenAddress),
+	)
+
+	code = strings.ReplaceAll(
+		code,
+		placeholderStorageFeesAddress,
+		withHexPrefix(storageFeesAddress),
 	)
 
 	code = strings.ReplaceAll(
