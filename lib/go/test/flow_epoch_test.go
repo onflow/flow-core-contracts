@@ -301,7 +301,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 		ids)
 
 	// Set the approved node list
-	tx := createTxWithTemplateAndAuthorizer(b, templates.NEWGenerateSetApprovedNodesScript(env), idTableAddress)
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
 
 	approvedNodeIDs := generateCadenceNodeDictionary(ids)
 	err := tx.AddArgument(approvedNodeIDs)
@@ -423,7 +423,7 @@ func TestEpochAdvance(t *testing.T) {
 		ids)
 
 	// Set the approved node list
-	tx := createTxWithTemplateAndAuthorizer(b, templates.NEWGenerateSetApprovedNodesScript(env), idTableAddress)
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
 
 	approvedNodeIDs := generateCadenceNodeDictionary(ids)
 	err := tx.AddArgument(approvedNodeIDs)
@@ -563,7 +563,7 @@ func TestEpochQCDKGNodeRegistration(t *testing.T) {
 		ids)
 
 	// Set the approved node list
-	tx := createTxWithTemplateAndAuthorizer(b, templates.NEWGenerateSetApprovedNodesScript(env), idTableAddress)
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
 
 	approvedNodeIDs := generateCadenceNodeDictionary(ids)
 	err := tx.AddArgument(approvedNodeIDs)
@@ -687,7 +687,7 @@ func TestEpochQCDKG(t *testing.T) {
 		ids)
 
 	// Set the approved node list
-	tx := createTxWithTemplateAndAuthorizer(b, templates.NEWGenerateSetApprovedNodesScript(env), idTableAddress)
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
 
 	approvedNodeIDs := generateCadenceNodeDictionary(ids)
 	err := tx.AddArgument(approvedNodeIDs)
@@ -1045,7 +1045,7 @@ func TestEpochReset(t *testing.T) {
 		ids)
 
 	// Set the approved node list
-	tx := createTxWithTemplateAndAuthorizer(b, templates.NEWGenerateSetApprovedNodesScript(env), idTableAddress)
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
 
 	approvedNodeIDs := generateCadenceNodeDictionary(ids)
 	err := tx.AddArgument(approvedNodeIDs)

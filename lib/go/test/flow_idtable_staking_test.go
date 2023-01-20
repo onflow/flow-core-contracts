@@ -1014,7 +1014,7 @@ func TestIDTableStaking(t *testing.T) {
 
 	t.Run("Should be able to add nodes to approved node list", func(t *testing.T) {
 
-		tx := createTxWithTemplateAndAuthorizer(b, templates.NEWGenerateSetApprovedNodesScript(env), idTableAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
 
 		err := tx.AddArgument(nodeIDDict)
 		require.NoError(t, err)
@@ -1068,7 +1068,7 @@ func TestIDTableStaking(t *testing.T) {
 	t.Run("Should be able to remove nodes from approved node list", func(t *testing.T) {
 
 		// [josh, max]
-		tx := createTxWithTemplateAndAuthorizer(b, templates.NEWGenerateSetApprovedNodesScript(env), idTableAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
 
 		err := tx.AddArgument(nodeIDDict)
 		require.NoError(t, err)
@@ -1127,7 +1127,7 @@ func TestIDTableStaking(t *testing.T) {
 
 	t.Run("Should be able to set and get the approved node list", func(t *testing.T) {
 
-		tx := createTxWithTemplateAndAuthorizer(b, templates.NEWGenerateSetApprovedNodesScript(env), idTableAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
 
 		err := tx.AddArgument(fourNodeIDDict)
 		require.NoError(t, err)

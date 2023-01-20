@@ -2,7 +2,7 @@ import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
 
 // This transaction sets the list of approved nodes in the ID table
 
-transaction(ids: [String]) {
+transaction(ids: {String: Bool}) {
 
     // Local variable for a reference to the ID Table Admin object
     let adminRef: &FlowIDTableStaking.Admin
