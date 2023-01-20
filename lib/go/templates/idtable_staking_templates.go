@@ -29,6 +29,8 @@ const (
 	transferFeesAdminFilename       = "idTableStaking/admin/transfer_fees_admin.cdc"
 	setNonOperationalFilename       = "idTableStaking/admin/set_non_operational.cdc"
 	setCandidateLimitsFilename      = "idTableStaking/admin/change_candidate_limits.cdc"
+	setNodeWeightFilename           = "idTableStaking/admin/set_node_weight.cdc"
+	setSlotLimitsFilename           = "idTableStaking/admin/set_slot_limits.cdc"
 
 	// for testing only
 	scaleRewardsTestFilename = "idTableStaking/admin/scale_rewards_test.cdc"
@@ -46,6 +48,7 @@ const (
 
 	registerManyNodesFilename = "idTableStaking/node/register_many_nodes.cdc"
 
+	// Scripts
 	getTableFilename                            = "idTableStaking/scripts/get_table.cdc"
 	currentTableFilename                        = "idTableStaking/scripts/get_current_table.cdc"
 	proposedTableFilename                       = "idTableStaking/scripts/get_proposed_table.cdc"
@@ -74,6 +77,7 @@ const (
 	weeklyPayoutFilename                        = "idTableStaking/scripts/get_weekly_payout.cdc"
 	getCandidateLimitsFilename                  = "idTableStaking/scripts/get_candidate_limits.cdc"
 	getCandidateNodesFilename                   = "idTableStaking/scripts/get_candidate_nodes.cdc"
+	getSlotLimitsFilename                       = "idTableStaking/scripts/get_slot_limits.cdc"
 )
 
 // Admin Templates -----------------------------------------------------------
@@ -227,6 +231,18 @@ func GenerateSetNonOperationalScript(env Environment) []byte {
 
 func GenerateSetCandidateLimitsScript(env Environment) []byte {
 	code := assets.MustAssetString(setCandidateLimitsFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateSetNodeWeightScript(env Environment) []byte {
+	code := assets.MustAssetString(setNodeWeightFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateSetSlotLimitsScript(env Environment) []byte {
+	code := assets.MustAssetString(setSlotLimitsFilename)
 
 	return []byte(ReplaceAddresses(code, env))
 }
@@ -515,6 +531,12 @@ func GenerateGetCandidateLimitsScript(env Environment) []byte {
 
 func GenerateGetCandidateNodesScript(env Environment) []byte {
 	code := assets.MustAssetString(getCandidateNodesFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateGetSlotLimitsScript(env Environment) []byte {
+	code := assets.MustAssetString(getSlotLimitsFilename)
 
 	return []byte(ReplaceAddresses(code, env))
 }

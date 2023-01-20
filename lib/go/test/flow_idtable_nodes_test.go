@@ -42,7 +42,7 @@ func TestManyNodesIDTable(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true, []uint64{10000, 10000, 10000, 10000, 10000})
+	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, &env, true, []uint64{10000, 10000, 10000, 10000, 10000})
 
 	env.IDTableAddress = idTableAddress.Hex()
 
@@ -366,7 +366,7 @@ func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true, []uint64{10000, 10000, 10000, 10000, 10000})
+	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, &env, true, []uint64{10000, 10000, 10000, 10000, 10000})
 
 	env.IDTableAddress = idTableAddress.Hex()
 
