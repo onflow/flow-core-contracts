@@ -51,6 +51,7 @@ pub contract FlowIDTableStaking {
     pub event UnstakedTokensWithdrawn(nodeID: String, amount: UFix64)
     pub event RewardTokensWithdrawn(nodeID: String, amount: UFix64)
     pub event NetworkingAddressUpdated(nodeID: String, newAddress: String)
+    pub event NodeWeightChanged(nodeID: String, newWeight: UInt64)
 
     /// Delegator Events
     pub event NewDelegatorCreated(nodeID: String, delegatorID: UInt32)
@@ -849,6 +850,8 @@ pub contract FlowIDTableStaking {
 
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
             nodeRecord.initialWeight = weight
+
+            emit NodeWeightChanged(nodeID: nodeID, newWeight: weight)
         }
 
         /// Sets a list of approved node IDs for the next epoch
@@ -1663,20 +1666,20 @@ pub contract FlowIDTableStaking {
         return self.account.copy<Bool>(from: /storage/stakingEnabled) ?? false
     }
 
-    /// Gets an array of the node IDs that have committed sufficient stake
-    /// and are approved for the next epoch
+    /// Gets an array of the node IDs that have committed sufficient stake for the next epoch
     pub fun getProposedNodeIDs(): [String] {
 
-        let proposedNodeIDs = FlowIDTableStaking.getApprovedList()
+        let nodeIDs = FlowIDTableStaking.getNodeIDs()
+        let proposedNodeIDs: {String: Bool} = {}
 
-        for nodeID in proposedNodeIDs.keys {
+        for nodeID in nodeIDs {
 
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
 
             // To be considered proposed, a node has to have tokens staked + committed equal or above the minimum
-            if !self.isGreaterThanMinimumForRole(numTokens: self.NodeInfo(nodeID: nodeRecord.id).totalCommittedWithoutDelegators(), role: nodeRecord.role)
+            if self.isGreaterThanMinimumForRole(numTokens: self.NodeInfo(nodeID: nodeRecord.id).totalCommittedWithoutDelegators(), role: nodeRecord.role)
             {
-                proposedNodeIDs[nodeID] = nil
+                proposedNodeIDs[nodeID] = true
             }
         }
         return proposedNodeIDs.keys
