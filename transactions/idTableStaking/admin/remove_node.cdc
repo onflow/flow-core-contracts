@@ -14,8 +14,6 @@ transaction(id: String) {
     }
 
     execute {
-        let node <- self.adminRef.removeNode(id)
-
-        destroy node
+        self.adminRef.removeAndRefundNodeRecord(id)
     }
 }

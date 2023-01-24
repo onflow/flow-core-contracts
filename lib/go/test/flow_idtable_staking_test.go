@@ -691,7 +691,7 @@ func TestIDTableRegistration(t *testing.T) {
 			consensus:    []string{joshID},
 			execution:    []string{maxID},
 			verification: []string{},
-			access:       []string{bastianID, accessID},
+			access:       []string{accessID, bastianID},
 		}
 
 		assertCandidateNodeListEquals(t, b, env, candidates)
@@ -732,43 +732,6 @@ func TestIDTableRegistration(t *testing.T) {
 
 		assertCandidateNodeListEquals(t, b, env, candidates)
 	})
-
-	t.Run("Should be able to remove a Node from the proposed record and add it back", func(t *testing.T) {
-
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRemoveNodeScript(env), idTableAddress)
-
-		_ = tx.AddArgument(CadenceString(joshID))
-
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
-			false,
-		)
-
-		result := executeScriptAndCheck(t, b, templates.GenerateReturnCurrentTableScript(env), nil)
-
-		idArray := result.(cadence.Array).Values
-		assert.Len(t, idArray, 0)
-
-		var amountToCommit interpreter.UFix64Value = 50000000000000
-
-		registerNode(t, b, env,
-			idTableAddress,
-			IDTableSigner,
-			joshID,
-			fmt.Sprintf("%0128d", josh),
-			joshNetworkingKey,
-			joshStakingKey,
-			amountToCommit,
-			committed[joshID],
-			2,
-			false)
-
-		result = executeScriptAndCheck(t, b, templates.GenerateGetCommittedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(joshID))})
-		assertEqual(t, CadenceUFix64(committed[joshID].String()), result)
-	})
-
 }
 
 // Tests for approvals
