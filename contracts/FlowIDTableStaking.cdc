@@ -901,9 +901,24 @@ pub contract FlowIDTableStaking {
             // move their committed tokens back to their unstaked tokens
             nodeRecord.tokensUnstaked.deposit(from: <-nodeRecord.tokensCommitted.withdraw(amount: nodeRecord.tokensCommitted.balance))
 
-            // Set their request to unstake equal to all their staked tokens
-            // since they are forced to unstake
-            nodeRecord.tokensRequestedToUnstake = nodeRecord.tokensStaked.balance
+            // If the node is currently staked, unstake it and subtract one from the count
+            // if staking is currently disabled, then that means that the node
+            // has already been added to the node counts and needs to be subtracted also
+            if nodeRecord.tokensStaked.balance > 0.0 || !FlowIDTableStaking.stakingEnabled() {
+                // Set their request to unstake equal to all their staked tokens
+                // since they are forced to unstake
+                nodeRecord.tokensRequestedToUnstake = nodeRecord.tokensStaked.balance
+
+                // Subract 1 from the counts for this node's role
+                // Since they will not fill an open slot any more
+                var currentRoleNodeCounts: {UInt8: UInt16} = FlowIDTableStaking.getCurrentRoleNodeCounts()
+                var currentRoleCount = currentRoleNodeCounts[nodeRecord.role]!
+                if currentRoleCount > 0 {
+                    currentRoleNodeCounts[nodeRecord.role] = currentRoleCount - 1
+                }
+                FlowIDTableStaking.account.load<{UInt8: UInt16}>(from: /storage/flowStakingRoleNodeCounts)
+                FlowIDTableStaking.account.save(currentRoleNodeCounts, to: /storage/flowStakingRoleNodeCounts)
+            }
 
             // Iterate through all delegators and unstake their tokens
             // since their node has unstaked
@@ -1031,10 +1046,13 @@ pub contract FlowIDTableStaking {
                         self.removeAndRefundNodeRecord(nodeID)
                     }
                 } else if currentNodeCount[role]! + UInt16(candidateNodesForRole.keys.length) > slotLimits[role]! {
+                    
                     // Not all slots are full, but addition of all the candidate nodes exceeds the slot limit
                     // Calculate how many nodes to remove from the candidate list for this role
                     var numNodesToRemove: UInt16 = currentNodeCount[role]! + UInt16(candidateNodesForRole.keys.length) - slotLimits[role]!
                     
+                    let numNodesToAdd = UInt16(candidateNodesForRole.keys.length) - numNodesToRemove
+
                     // Indicates which indicies in the candidate nodes array will be removed
                     var deletionList: {UInt16: Bool} = {}
                     
@@ -1056,7 +1074,7 @@ pub contract FlowIDTableStaking {
                     }
 
                     // Set the current node count for the role to the limit for the role, since they were all filled
-                    currentNodeCount[role] = slotLimits[role]!
+                    currentNodeCount[role] = currentNodeCount[role]! + numNodesToAdd
 
                 } else {
                     // Not all the slots are full, and the addition of all the candidate nodes

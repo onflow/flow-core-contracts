@@ -77,6 +77,7 @@ const (
 	getCandidateLimitsFilename                  = "idTableStaking/scripts/get_candidate_limits.cdc"
 	getCandidateNodesFilename                   = "idTableStaking/scripts/get_candidate_nodes.cdc"
 	getSlotLimitsFilename                       = "idTableStaking/scripts/get_slot_limits.cdc"
+	getRoleCountsFilename                       = "idTableStaking/scripts/get_role_counts.cdc"
 )
 
 // Admin Templates -----------------------------------------------------------
@@ -530,6 +531,12 @@ func GenerateGetCandidateNodesScript(env Environment) []byte {
 
 func GenerateGetSlotLimitsScript(env Environment) []byte {
 	code := assets.MustAssetString(getSlotLimitsFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateGetRoleCountsScript(env Environment) []byte {
+	code := assets.MustAssetString(getRoleCountsFilename)
 
 	return []byte(ReplaceAddresses(code, env))
 }

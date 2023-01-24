@@ -828,6 +828,43 @@ func assertCandidateLimitsEquals(
 	}
 }
 
+// assertRoleCountsEquals asserts the FlowIDTableStaking
+// role counts matches the given list
+func assertRoleCountsEquals(
+	t *testing.T,
+	b *emulator.Blockchain,
+	env templates.Environment,
+	expectedRoleCountsList []uint16,
+) {
+
+	result := executeScriptAndCheck(t, b, templates.GenerateGetRoleCountsScript(env), nil).(cadence.Dictionary)
+
+	for _, rolePair := range result.Pairs {
+
+		if rolePair.Key == cadence.NewUInt8(1) {
+
+			assert.Equal(t, cadence.NewUInt16(expectedRoleCountsList[0]), rolePair.Value)
+
+		} else if rolePair.Key == cadence.NewUInt8(2) {
+
+			assert.Equal(t, cadence.NewUInt16(expectedRoleCountsList[1]), rolePair.Value)
+
+		} else if rolePair.Key == cadence.NewUInt8(3) {
+
+			assert.Equal(t, cadence.NewUInt16(expectedRoleCountsList[2]), rolePair.Value)
+
+		} else if rolePair.Key == cadence.NewUInt8(4) {
+
+			assert.Equal(t, cadence.NewUInt16(expectedRoleCountsList[3]), rolePair.Value)
+
+		} else if rolePair.Key == cadence.NewUInt8(5) {
+
+			assert.Equal(t, cadence.NewUInt16(expectedRoleCountsList[4]), rolePair.Value)
+
+		}
+	}
+}
+
 /// Sets the role slot limits to the specified values
 func setNodeRoleSlotLimits(
 	t *testing.T,
