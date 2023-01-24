@@ -12,15 +12,11 @@ pub contract NodeVersionBeacon {
         pub let patch: UInt8
         pub let preRelease: String?
 
-        /// Value denoting compatibility with previous versions
-        pub let isBackwardsCompatible: Bool
-
-        init(major: UInt8, minor: UInt8, patch: UInt8, preRelease: String?, isBackwardsCompatible: Bool) {
+        init(major: UInt8, minor: UInt8, patch: UInt8, preRelease: String?) {
             self.major = major
             self.minor = minor
             self.patch = patch
             self.preRelease = preRelease
-            self.isBackwardsCompatible = isBackwardsCompatible
         }
 
         /// Returns version in Semver format (e.g. v<major>.<minor>.<patch>-<preRelease>)
@@ -320,11 +316,7 @@ pub contract NodeVersionBeacon {
             // at that block boundary
             // OR
             // the minimum stated version is backwards compatible
-            return (
-                version.coreGreaterThanOrEqualTo(minimumVersion)
-                && version.isBackwardsCompatible
-                )
-                || minimumVersion.isBackwardsCompatible
+            return version.coreGreaterThanOrEqualTo(minimumVersion)
         }
         // Assuming no previous boundary exists, return false
         return false

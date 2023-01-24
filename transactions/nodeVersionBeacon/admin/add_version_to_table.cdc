@@ -8,7 +8,6 @@ transaction(
   newMinor: UInt8,
   newPatch: UInt8,
   newPreRelease: String?,
-  isBackwardsCompatible: Bool,
   targetBlockHeight: UInt64
 ) {
 
@@ -18,7 +17,7 @@ transaction(
   prepare(acct: AuthAccount) {
     // Create the new version from the passed parameters
     self.newVersion = NodeVersionBeacon.Semver(
-      major: newMajor, minor: newMinor, patch: newPatch, preRelease: newPreRelease, isBackwardsCompatible: isBackwardsCompatible
+      major: newMajor, minor: newMinor, patch: newPatch, preRelease: newPreRelease
     )
 
     // Borrow a reference to the NodeVersionAdmin resource
