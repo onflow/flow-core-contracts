@@ -51,9 +51,13 @@ func (evt EpochTotalRewardsPaidEvent) FeesBurned() cadence.UFix64 {
 }
 
 func stubInterpreter() *interpreter.Interpreter {
-	return &interpreter.Interpreter{
-		Config: &interpreter.Config{},
-	}
+	interp, _ := interpreter.NewInterpreter(
+		nil,
+		nil,
+		&interpreter.Config{},
+	)
+
+	return interp
 }
 
 // Defines utility functions that are used for testing the staking contract
@@ -384,7 +388,7 @@ func registerNode(t *testing.T,
 	)
 
 	if !shouldFail {
-		newTokensCommitted = tokensCommitted.Plus(stubInterpreter(), amount).(interpreter.UFix64Value)
+		newTokensCommitted = tokensCommitted.Plus(stubInterpreter(), amount, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 	}
 
 	return
@@ -517,7 +521,7 @@ func commitNewTokens(t *testing.T,
 	)
 
 	if !shouldFail {
-		newTokensCommitted = tokensCommitted.Plus(stubInterpreter(), amount).(interpreter.UFix64Value)
+		newTokensCommitted = tokensCommitted.Plus(stubInterpreter(), amount, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 	} else {
 		newTokensCommitted = tokensCommitted
 	}
@@ -555,8 +559,8 @@ func commitUnstaked(t *testing.T,
 	)
 
 	if !shouldFail {
-		newTokensCommitted = tokensCommitted.Plus(stubInterpreter(), amount).(interpreter.UFix64Value)
-		newTokensUnstaked = tokensUnstaked.Minus(stubInterpreter(), amount).(interpreter.UFix64Value)
+		newTokensCommitted = tokensCommitted.Plus(stubInterpreter(), amount, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		newTokensUnstaked = tokensUnstaked.Minus(stubInterpreter(), amount, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 	} else {
 		newTokensCommitted = tokensCommitted
 		newTokensUnstaked = tokensUnstaked
@@ -594,8 +598,8 @@ func commitRewarded(t *testing.T,
 	)
 
 	if !shouldFail {
-		newTokensRewarded = tokensRewarded.Minus(stubInterpreter(), amount).(interpreter.UFix64Value)
-		newTokensCommitted = tokensCommitted.Plus(stubInterpreter(), amount).(interpreter.UFix64Value)
+		newTokensRewarded = tokensRewarded.Minus(stubInterpreter(), amount, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		newTokensCommitted = tokensCommitted.Plus(stubInterpreter(), amount, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 	} else {
 		newTokensRewarded = tokensRewarded
 		newTokensCommitted = tokensCommitted
@@ -634,12 +638,12 @@ func requestUnstaking(t *testing.T,
 
 	if !shouldFail {
 		if tokensCommitted > amount {
-			newTokensCommitted = tokensCommitted.Minus(stubInterpreter(), amount).(interpreter.UFix64Value)
-			newTokensUnstaked = tokensUnstaked.Plus(stubInterpreter(), amount).(interpreter.UFix64Value)
+			newTokensCommitted = tokensCommitted.Minus(stubInterpreter(), amount, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+			newTokensUnstaked = tokensUnstaked.Plus(stubInterpreter(), amount, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 			newRequest = request
 		} else {
-			newRequest = request.Plus(stubInterpreter(), amount.Minus(stubInterpreter(), tokensCommitted)).(interpreter.UFix64Value)
-			newTokensUnstaked = tokensUnstaked.Plus(stubInterpreter(), tokensCommitted).(interpreter.UFix64Value)
+			newRequest = request.Plus(stubInterpreter(), amount.Minus(stubInterpreter(), tokensCommitted, interpreter.EmptyLocationRange), interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+			newTokensUnstaked = tokensUnstaked.Plus(stubInterpreter(), tokensCommitted, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 			newTokensCommitted = 0
 		}
 	} else {
@@ -658,11 +662,11 @@ func payRewards(
 ) (
 	rewards, delegateeRewards interpreter.UFix64Value,
 ) {
-	calculatedRewards := totalPayout.Div(stubInterpreter(), totalStaked).Mul(stubInterpreter(), staked).(interpreter.UFix64Value)
+	calculatedRewards := totalPayout.Div(stubInterpreter(), totalStaked, interpreter.EmptyLocationRange).Mul(stubInterpreter(), staked, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 
 	if isDelegator {
-		delegateeRewards = calculatedRewards.Mul(stubInterpreter(), cut).(interpreter.UFix64Value)
-		rewards = calculatedRewards.Minus(stubInterpreter(), delegateeRewards).(interpreter.UFix64Value)
+		delegateeRewards = calculatedRewards.Mul(stubInterpreter(), cut, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		rewards = calculatedRewards.Minus(stubInterpreter(), delegateeRewards, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 
 	} else {
 		delegateeRewards = 0
@@ -677,17 +681,17 @@ func moveTokens(committed, staked, requested, unstaking, unstaked, totalStaked i
 ) (
 	newCommitted, newStaked, newRequested, newUnstaking, newUnstaked, newTotalStaked interpreter.UFix64Value,
 ) {
-	newTotalStaked = totalStaked.Plus(stubInterpreter(), committed).Minus(stubInterpreter(), requested).(interpreter.UFix64Value)
+	newTotalStaked = totalStaked.Plus(stubInterpreter(), committed, interpreter.EmptyLocationRange).Minus(stubInterpreter(), requested, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 
 	newCommitted = 0
 
-	newStaked = staked.Plus(stubInterpreter(), committed).(interpreter.UFix64Value)
+	newStaked = staked.Plus(stubInterpreter(), committed, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 
-	newUnstaked = unstaked.Plus(stubInterpreter(), unstaking).(interpreter.UFix64Value)
+	newUnstaked = unstaked.Plus(stubInterpreter(), unstaking, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 
 	newUnstaking = requested
 
-	newStaked = newStaked.Minus(stubInterpreter(), requested).(interpreter.UFix64Value)
+	newStaked = newStaked.Minus(stubInterpreter(), requested, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 
 	newRequested = 0
 
