@@ -1710,16 +1710,35 @@ pub contract FlowIDTableStaking {
     pub fun getProposedNodeIDs(): [String] {
 
         let nodeIDs = FlowIDTableStaking.getNodeIDs()
+        let approvedNodeIDs: {String: Bool} = FlowIDTableStaking.getApprovedList()
         let proposedNodeIDs: {String: Bool} = {}
 
         for nodeID in nodeIDs {
 
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
 
-            // To be considered proposed, a node has to have tokens staked + committed equal or above the minimum
-            if self.isGreaterThanMinimumForRole(numTokens: self.NodeInfo(nodeID: nodeRecord.id).totalCommittedWithoutDelegators(), role: nodeRecord.role)
-            {
+            let totalTokensCommitted = nodeRecord.nodeFullCommittedBalance()
+
+            let greaterThanMin = FlowIDTableStaking.isGreaterThanMinimumForRole(numTokens: totalTokensCommitted, role: nodeRecord.role)
+            let nodeIsApproved: Bool =  approvedNodeIDs[nodeID] != nil
+
+            // admin-approved node roles (execution/collection/consensus/verification)
+            // must be approved AND have sufficient stake
+            if nodeRecord.role != UInt8(5) && greaterThanMin && nodeIsApproved {
                 proposedNodeIDs[nodeID] = true
+                continue
+            }
+
+            // permissionless node roles (access)
+            // NOTE: Access nodes which registered prior to the 100-FLOW stake requirement
+            // (which must be approved) are not removed during a temporary grace period during 
+            // which these grandfathered node operators may submit the necessary stake requirement.
+            // Therefore Access nodes must either be approved OR have sufficient stake:
+            //  - Old ANs must be approved, but are allowed to have zero stake
+            //  - New ANs may be unapproved, but must have submitted sufficient stake
+            if nodeRecord.role == UInt8(5) && (greaterThanMin || nodeIsApproved) {
+                proposedNodeIDs[nodeID] = true
+                continue
             }
         }
         return proposedNodeIDs.keys

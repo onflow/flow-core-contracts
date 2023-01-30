@@ -12,6 +12,7 @@ const (
 	removeInvalidNodesFilename      = "idTableStaking/admin/remove_invalid_nodes.cdc"
 	setApprovedNodesFilename        = "idTableStaking/admin/set_approved_nodes.cdc"
 	addApprovedNodesFilename        = "idTableStaking/admin/add_approved_nodes.cdc"
+	addApproveAndLimitsFilename     = "idTableStaking/admin/add_approved_and_limits.cdc"
 	removeApprovedNodesFilename     = "idTableStaking/admin/remove_approved_nodes.cdc"
 	payRewardsFilename              = "idTableStaking/admin/pay_rewards.cdc"
 	moveTokensFilename              = "idTableStaking/admin/move_tokens.cdc"
@@ -126,6 +127,12 @@ func GenerateSetApprovedNodesScript(env Environment) []byte {
 
 func GenerateAddApprovedNodesScript(env Environment) []byte {
 	code := assets.MustAssetString(addApprovedNodesFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateAddApprovedAndLimitsScript(env Environment) []byte {
+	code := assets.MustAssetString(addApproveAndLimitsFilename)
 
 	return []byte(ReplaceAddresses(code, env))
 }

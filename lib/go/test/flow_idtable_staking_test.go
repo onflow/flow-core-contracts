@@ -426,10 +426,11 @@ func TestIDTableRegistration(t *testing.T) {
 		idArray := result.(cadence.Array).Values
 		assert.Len(t, idArray, 1)
 
+		// Should not be on the proposed list yet because it isn't approved
 		result = executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
 
 		idArray = result.(cadence.Array).Values
-		assert.Len(t, idArray, 1)
+		assert.Len(t, idArray, 0)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetRoleScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		assertEqual(t, cadence.NewUInt8(1), result)
@@ -693,7 +694,7 @@ func TestIDTableRegistration(t *testing.T) {
 			consensus:    []string{joshID},
 			execution:    []string{maxID},
 			verification: []string{},
-			access:       []string{bastianID, accessID},
+			access:       []string{accessID, bastianID},
 		}
 
 		assertCandidateNodeListEquals(t, b, env, candidates)
@@ -758,6 +759,10 @@ func TestIDTableApprovals(t *testing.T) {
 	idTableAddress, feesAddr := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, &env, true, []uint64{3, 3, 3, 3, 3})
 	mintTokensForAccount(t, b, idTableAddress, "1000000000.0")
 
+	accessAddress, _, accessSigner := newAccountWithAddress(b, accountKeys)
+	_, accessStakingKey, _, accessNetworkingKey := generateKeysForNodeRegistration(t)
+	mintTokensForAccount(t, b, accessAddress, "1000000000.0")
+
 	env.IDTableAddress = idTableAddress.Hex()
 	env.FlowFeesAddress = feesAddr.Hex()
 
@@ -776,16 +781,65 @@ func TestIDTableApprovals(t *testing.T) {
 		1,
 		false)
 
-	nodeIDs := make([]string, 1)
-	nodeIDs[0] = adminID
+	nodeIDs := make([]string, 2)
+	nodeIDs[0] = accessID
+	nodeIDs[1] = adminID
 	nodeIDDict := generateCadenceNodeDictionary(nodeIDs)
-	initialNodeIDs := cadence.NewArray([]cadence.Value{CadenceString(adminID)}).WithType(cadence.NewVariableSizedArrayType(cadence.NewStringType()))
+	initialNodeIDs := cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(accessID)}).WithType(cadence.NewVariableSizedArrayType(cadence.NewStringType()))
 
-	t.Run("Should be able to add a node to approved node list", func(t *testing.T) {
+	// Update the access node minimum to zero
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateChangeMinimumsScript(env), idTableAddress)
+	err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceUFix64("250000.0"), CadenceUFix64("250000.0"), CadenceUFix64("1250000.0"), CadenceUFix64("135000.0"), CadenceUFix64("0.0")}))
+	require.NoError(t, err)
 
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]crypto.Signer{IDTableSigner},
+		false,
+	)
 
-		err := tx.AddArgument(nodeIDDict)
+	// Register an access node
+	amountToCommit = 00000000
+	committed[adminID] = registerNode(t, b, env,
+		accessAddress,
+		accessSigner,
+		accessID,
+		fmt.Sprintf("%0128d", access),
+		accessNetworkingKey,
+		accessStakingKey,
+		amountToCommit,
+		committed[accessID],
+		5,
+		false)
+
+	// Should be on the proposed list because it is above the minimum
+	result := executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
+
+	idArray := result.(cadence.Array).Values
+	assert.Len(t, idArray, 1)
+
+	// Update the access node minimum to 100
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateChangeMinimumsScript(env), idTableAddress)
+	err = tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceUFix64("250000.0"), CadenceUFix64("250000.0"), CadenceUFix64("1250000.0"), CadenceUFix64("135000.0"), CadenceUFix64("0.0")}))
+	require.NoError(t, err)
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]crypto.Signer{IDTableSigner},
+		false,
+	)
+
+	// Should not be on the proposed list because it is below the minimum and not approved
+	result = executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
+	idArray = result.(cadence.Array).Values
+	assert.Len(t, idArray, 1)
+
+	t.Run("Should be able to approve an access node that isn't above the minimum even if access is below the minimum", func(t *testing.T) {
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateAddApprovedAndLimitsScript(env), idTableAddress)
+
+		err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(accessID)}))
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -795,6 +849,21 @@ func TestIDTableApprovals(t *testing.T) {
 			false,
 		)
 		assertApprovedListEquals(t, b, env, initialNodeIDs)
+
+		// Access node should be on the proposed list because it is approved
+		// even though it is below the minimum
+		result = executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
+
+		idArray = result.(cadence.Array).Values
+		assert.Len(t, idArray, 2)
+
+		assertCandidateLimitsEquals(t, b, env, []uint64{4, 3, 3, 3, 4})
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetSlotLimitsScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(1))})
+		assertEqual(t, cadence.NewUInt16(1001), result)
+		result = executeScriptAndCheck(t, b, templates.GenerateGetSlotLimitsScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(5))})
+		assertEqual(t, cadence.NewUInt16(1001), result)
+
 	})
 
 	// removing an existing node from the approved node list should remove that node
@@ -812,14 +881,14 @@ func TestIDTableApprovals(t *testing.T) {
 			false,
 		)
 
-		expected := cadence.NewArray([]cadence.Value{}).WithType(cadence.NewVariableSizedArrayType(cadence.NewStringType()))
+		expected := cadence.NewArray([]cadence.Value{CadenceString(accessID)}).WithType(cadence.NewVariableSizedArrayType(cadence.NewStringType()))
 		assertApprovedListEquals(t, b, env, expected)
 	})
 
 	// End the staking auction, which adds the node back to the approved list
-	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndStakingScript(env), idTableAddress)
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEndStakingScript(env), idTableAddress)
 
-	err := tx.AddArgument(nodeIDDict)
+	err = tx.AddArgument(nodeIDDict)
 	require.NoError(t, err)
 
 	signAndSubmit(
@@ -829,7 +898,7 @@ func TestIDTableApprovals(t *testing.T) {
 		false,
 	)
 
-	assertRoleCountsEquals(t, b, env, []uint16{1, 0, 0, 0, 0})
+	assertRoleCountsEquals(t, b, env, []uint16{1, 0, 0, 0, 1})
 
 	// removing an existing node from the approved node list should remove that node
 	t.Run("Removing a node from the approved list not during staking auction should refund it immediately", func(t *testing.T) {
@@ -852,7 +921,7 @@ func TestIDTableApprovals(t *testing.T) {
 		result = executeScriptAndCheck(t, b, templates.GenerateGetUnstakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		assertEqual(t, CadenceUFix64("250000.0"), result)
 
-		assertRoleCountsEquals(t, b, env, []uint16{0, 0, 0, 0, 0})
+		assertRoleCountsEquals(t, b, env, []uint16{0, 0, 0, 0, 1})
 
 	})
 
@@ -2727,19 +2796,21 @@ func TestIDTableSlotSelection(t *testing.T) {
 	mintTokensForAccount(t, b, access4Address, "1000000.0")
 	_, access4StakingKey, _, access4NetworkingKey := generateKeysForNodeRegistration(t)
 
-	// Set the Slot Limits to 2 for access nodes
-	setNodeRoleSlotLimits(t, b, env, idTableAddress, IDTableSigner, [5]uint16{1000, 1000, 1000, 1000, 2})
+	t.Run("Should be able to set new slot limits", func(t *testing.T) {
+		// Set the Slot Limits to 2 for access nodes
+		setNodeRoleSlotLimits(t, b, env, idTableAddress, IDTableSigner, [5]uint16{100, 100, 100, 100, 2})
 
-	result := executeScriptAndCheck(t, b, templates.GenerateGetSlotLimitsScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(1))})
-	assertEqual(t, cadence.NewUInt16(1000), result)
-	result = executeScriptAndCheck(t, b, templates.GenerateGetSlotLimitsScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(2))})
-	assertEqual(t, cadence.NewUInt16(1000), result)
-	result = executeScriptAndCheck(t, b, templates.GenerateGetSlotLimitsScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(3))})
-	assertEqual(t, cadence.NewUInt16(1000), result)
-	result = executeScriptAndCheck(t, b, templates.GenerateGetSlotLimitsScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(4))})
-	assertEqual(t, cadence.NewUInt16(1000), result)
-	result = executeScriptAndCheck(t, b, templates.GenerateGetSlotLimitsScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(5))})
-	assertEqual(t, cadence.NewUInt16(2), result)
+		result := executeScriptAndCheck(t, b, templates.GenerateGetSlotLimitsScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(1))})
+		assertEqual(t, cadence.NewUInt16(100), result)
+		result = executeScriptAndCheck(t, b, templates.GenerateGetSlotLimitsScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(2))})
+		assertEqual(t, cadence.NewUInt16(100), result)
+		result = executeScriptAndCheck(t, b, templates.GenerateGetSlotLimitsScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(3))})
+		assertEqual(t, cadence.NewUInt16(100), result)
+		result = executeScriptAndCheck(t, b, templates.GenerateGetSlotLimitsScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(4))})
+		assertEqual(t, cadence.NewUInt16(100), result)
+		result = executeScriptAndCheck(t, b, templates.GenerateGetSlotLimitsScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(5))})
+		assertEqual(t, cadence.NewUInt16(2), result)
+	})
 
 	var amountToCommit interpreter.UFix64Value = 10000000000000
 
@@ -2809,7 +2880,7 @@ func TestIDTableSlotSelection(t *testing.T) {
 	}
 
 	// Current Participant Table should include two of the access nodes
-	result = executeScriptAndCheck(t, b, templates.GenerateReturnCurrentTableScript(env), nil)
+	result := executeScriptAndCheck(t, b, templates.GenerateReturnCurrentTableScript(env), nil)
 	idArray := result.(cadence.Array).Values
 	assert.Len(t, idArray, 2)
 

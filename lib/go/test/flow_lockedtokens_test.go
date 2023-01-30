@@ -541,15 +541,11 @@ func TestLockedTokensStaker(t *testing.T) {
 
 		result := executeScriptAndCheck(t, b, ft_templates.GenerateInspectVaultScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
 
-		t.Log("unlocked balance", result)
-
 		// locked tokens balance should increase by 500
 		result = executeScriptAndCheck(t, b,
 			templates.GenerateGetLockedAccountBalanceScript(env),
 			[][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))},
 		)
-
-		t.Log("locked balance", result)
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), joshAddress)
 		_ = tx.AddArgument(CadenceString(joshID))

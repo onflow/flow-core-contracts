@@ -724,14 +724,15 @@ func generateCadenceNodeDictionary(nodeIDs []string) cadence.Value {
 
 // assertApprovedListEquals asserts the FlowIDTableStaking approved list matches
 // the given node ID list
+// The approved list is guaranteed to only have unique values
 func assertApprovedListEquals(
 	t *testing.T,
 	b *emulator.Blockchain,
 	env templates.Environment,
 	expected cadence.Value, // [String]
 ) {
-	result := executeScriptAndCheck(t, b, templates.GenerateGetApprovedNodesScript(env), nil)
-	assert.Equal(t, expected, result)
+	result := executeScriptAndCheck(t, b, templates.GenerateGetApprovedNodesScript(env), nil).(cadence.Array).Values
+	assertCadenceArrayEqual(t, expected.(cadence.Array).Values, result)
 }
 
 type CandidateNodes struct {
@@ -755,35 +756,32 @@ func assertCandidateNodeListEquals(
 
 	for _, rolePair := range result.Pairs {
 
-		if rolePair.Key == cadence.NewUInt8(1) {
-			// Create Cadence array from strings
-			nodeIDDict := generateCadenceNodeDictionary(expectedCandidateNodeList.collector)
+		actualNodeIDDict := rolePair.Value.(cadence.Dictionary).Pairs
 
-			assert.Equal(t, nodeIDDict, rolePair.Value.(cadence.Dictionary))
+		if rolePair.Key == cadence.NewUInt8(1) {
+			expectedNodeIDDict := generateCadenceNodeDictionary(expectedCandidateNodeList.collector).(cadence.Dictionary).Pairs
+
+			assertCadenceNodeDictionaryEqual(t, expectedNodeIDDict, actualNodeIDDict)
 
 		} else if rolePair.Key == cadence.NewUInt8(2) {
-			// Create Cadence array from strings
-			nodeIDDict := generateCadenceNodeDictionary(expectedCandidateNodeList.consensus)
+			expectedNodeIDDict := generateCadenceNodeDictionary(expectedCandidateNodeList.consensus).(cadence.Dictionary).Pairs
 
-			assert.Equal(t, nodeIDDict, rolePair.Value.(cadence.Dictionary))
+			assertCadenceNodeDictionaryEqual(t, expectedNodeIDDict, actualNodeIDDict)
 
 		} else if rolePair.Key == cadence.NewUInt8(3) {
-			// Create Cadence array from strings
-			nodeIDDict := generateCadenceNodeDictionary(expectedCandidateNodeList.execution)
+			expectedNodeIDDict := generateCadenceNodeDictionary(expectedCandidateNodeList.execution).(cadence.Dictionary).Pairs
 
-			assert.Equal(t, nodeIDDict, rolePair.Value.(cadence.Dictionary))
+			assertCadenceNodeDictionaryEqual(t, expectedNodeIDDict, actualNodeIDDict)
 
 		} else if rolePair.Key == cadence.NewUInt8(4) {
-			// Create Cadence array from strings
-			nodeIDDict := generateCadenceNodeDictionary(expectedCandidateNodeList.verification)
+			expectedNodeIDDict := generateCadenceNodeDictionary(expectedCandidateNodeList.verification).(cadence.Dictionary).Pairs
 
-			assert.Equal(t, nodeIDDict, rolePair.Value.(cadence.Dictionary))
+			assertCadenceNodeDictionaryEqual(t, expectedNodeIDDict, actualNodeIDDict)
 
 		} else if rolePair.Key == cadence.NewUInt8(5) {
-			// Create Cadence array from strings
-			nodeIDDict := generateCadenceNodeDictionary(expectedCandidateNodeList.access)
+			expectedNodeIDDict := generateCadenceNodeDictionary(expectedCandidateNodeList.access).(cadence.Dictionary).Pairs
 
-			assert.Equal(t, nodeIDDict, rolePair.Value.(cadence.Dictionary))
+			assertCadenceNodeDictionaryEqual(t, expectedNodeIDDict, actualNodeIDDict)
 
 		}
 
