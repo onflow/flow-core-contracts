@@ -299,6 +299,8 @@ func TestIDTableRegistration(t *testing.T) {
 	_, adminStakingKey, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
 	mintTokensForAccount(t, b, idTableAddress, "1000000000.0")
 
+	setNodeRoleSlotLimits(t, b, env, idTableAddress, IDTableSigner, [5]uint16{1, 1, 1, 1, 1})
+
 	env.IDTableAddress = idTableAddress.Hex()
 	env.FlowFeesAddress = feesAddr.Hex()
 
@@ -860,9 +862,9 @@ func TestIDTableApprovals(t *testing.T) {
 		assertCandidateLimitsEquals(t, b, env, []uint64{4, 3, 3, 3, 4})
 
 		result := executeScriptAndCheck(t, b, templates.GenerateGetSlotLimitsScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(1))})
-		assertEqual(t, cadence.NewUInt16(1001), result)
+		assertEqual(t, cadence.NewUInt16(10001), result)
 		result = executeScriptAndCheck(t, b, templates.GenerateGetSlotLimitsScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(5))})
-		assertEqual(t, cadence.NewUInt16(1001), result)
+		assertEqual(t, cadence.NewUInt16(10001), result)
 
 	})
 

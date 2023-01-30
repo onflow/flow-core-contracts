@@ -172,8 +172,6 @@ func deployStakingContract(
 		false,
 	)
 
-	setNodeRoleSlotLimits(t, b, *env, idTableAddress, IDTableSigner, [5]uint16{1000, 1000, 1000, 1000, 1000})
-
 	return idTableAddress, feesAddr
 }
 
@@ -732,7 +730,7 @@ func assertApprovedListEquals(
 	expected cadence.Value, // [String]
 ) {
 	result := executeScriptAndCheck(t, b, templates.GenerateGetApprovedNodesScript(env), nil).(cadence.Array).Values
-	assertCadenceArrayEqual(t, expected.(cadence.Array).Values, result)
+	assertCadenceNodeArrayElementsEqual(t, expected.(cadence.Array).Values, result)
 }
 
 type CandidateNodes struct {
@@ -761,27 +759,27 @@ func assertCandidateNodeListEquals(
 		if rolePair.Key == cadence.NewUInt8(1) {
 			expectedNodeIDDict := generateCadenceNodeDictionary(expectedCandidateNodeList.collector).(cadence.Dictionary).Pairs
 
-			assertCadenceNodeDictionaryEqual(t, expectedNodeIDDict, actualNodeIDDict)
+			assertCadenceNodeDictionaryKeysAndValuesEqual(t, expectedNodeIDDict, actualNodeIDDict)
 
 		} else if rolePair.Key == cadence.NewUInt8(2) {
 			expectedNodeIDDict := generateCadenceNodeDictionary(expectedCandidateNodeList.consensus).(cadence.Dictionary).Pairs
 
-			assertCadenceNodeDictionaryEqual(t, expectedNodeIDDict, actualNodeIDDict)
+			assertCadenceNodeDictionaryKeysAndValuesEqual(t, expectedNodeIDDict, actualNodeIDDict)
 
 		} else if rolePair.Key == cadence.NewUInt8(3) {
 			expectedNodeIDDict := generateCadenceNodeDictionary(expectedCandidateNodeList.execution).(cadence.Dictionary).Pairs
 
-			assertCadenceNodeDictionaryEqual(t, expectedNodeIDDict, actualNodeIDDict)
+			assertCadenceNodeDictionaryKeysAndValuesEqual(t, expectedNodeIDDict, actualNodeIDDict)
 
 		} else if rolePair.Key == cadence.NewUInt8(4) {
 			expectedNodeIDDict := generateCadenceNodeDictionary(expectedCandidateNodeList.verification).(cadence.Dictionary).Pairs
 
-			assertCadenceNodeDictionaryEqual(t, expectedNodeIDDict, actualNodeIDDict)
+			assertCadenceNodeDictionaryKeysAndValuesEqual(t, expectedNodeIDDict, actualNodeIDDict)
 
 		} else if rolePair.Key == cadence.NewUInt8(5) {
 			expectedNodeIDDict := generateCadenceNodeDictionary(expectedCandidateNodeList.access).(cadence.Dictionary).Pairs
 
-			assertCadenceNodeDictionaryEqual(t, expectedNodeIDDict, actualNodeIDDict)
+			assertCadenceNodeDictionaryKeysAndValuesEqual(t, expectedNodeIDDict, actualNodeIDDict)
 
 		}
 
@@ -889,4 +887,60 @@ func setNodeRoleSlotLimits(
 		[]crypto.Signer{idTableSigner},
 		false,
 	)
+}
+
+// Asserts that {String: Bool} dictionaries of node IDs from the staking contract
+// have the same keys and values and have the same length
+// We have no guarantees about the order of elements, so we can't check that
+func assertCadenceNodeDictionaryKeysAndValuesEqual(t *testing.T, expected, actual []cadence.KeyValuePair) bool {
+	assert.Len(t, actual, len(expected))
+
+	for _, resultPair := range actual {
+		found := false
+		for _, expectedPair := range expected {
+			if resultPair.Key == expectedPair.Key && resultPair.Value == expectedPair.Value {
+				found = true
+			}
+		}
+
+		// One of the result values was not found in the expected list
+		if !assert.True(t, found) {
+			message := fmt.Sprintf(
+				"Dictionaries are not equal: \nexpected: %s\nactual  : %s",
+				expected,
+				actual,
+			)
+
+			return assert.Fail(t, message)
+		}
+	}
+	return true
+}
+
+// Asserts that arrays of node IDs from the staking contract
+// have the same elements and have the same length
+// We have no guarantees about the order of elements, so we can't check that
+func assertCadenceNodeArrayElementsEqual(t *testing.T, expected, actual []cadence.Value) bool {
+	assert.Len(t, actual, len(expected))
+
+	for _, resultVal := range actual {
+		found := false
+		for _, expectedVal := range expected {
+			if resultVal == expectedVal {
+				found = true
+			}
+		}
+
+		// One of the result values was not found in the expected list
+		if !assert.True(t, found) {
+			message := fmt.Sprintf(
+				"Arrays are not equal: \nexpected: %s\nactual  : %s",
+				expected,
+				actual,
+			)
+
+			return assert.Fail(t, message)
+		}
+	}
+	return true
 }

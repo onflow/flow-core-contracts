@@ -251,56 +251,6 @@ func assertEqual(t *testing.T, expected, actual interface{}) bool {
 	return assert.Fail(t, message)
 }
 
-func assertCadenceArrayEqual(t *testing.T, expected, actual []cadence.Value) bool {
-	assert.Len(t, actual, len(expected))
-
-	for _, resultVal := range actual {
-		found := false
-		for _, expectedVal := range expected {
-			if resultVal == expectedVal {
-				found = true
-			}
-		}
-
-		// One of the result values was not found in the expected list
-		if !assert.True(t, found) {
-			message := fmt.Sprintf(
-				"Arrays are not equal: \nexpected: %s\nactual  : %s",
-				expected,
-				actual,
-			)
-
-			return assert.Fail(t, message)
-		}
-	}
-	return true
-}
-
-func assertCadenceNodeDictionaryEqual(t *testing.T, expected, actual []cadence.KeyValuePair) bool {
-	assert.Len(t, actual, len(expected))
-
-	for _, resultPair := range actual {
-		found := false
-		for _, expectedPair := range expected {
-			if resultPair.Key == expectedPair.Key {
-				found = true
-			}
-		}
-
-		// One of the result values was not found in the expected list
-		if !assert.True(t, found) {
-			message := fmt.Sprintf(
-				"Dictionaries are not equal: \nexpected: %s\nactual  : %s",
-				expected,
-				actual,
-			)
-
-			return assert.Fail(t, message)
-		}
-	}
-	return true
-}
-
 // Mints the specified amount of FLOW tokens for the specified account address
 // Using the mint tokens template from the onflow/flow-ft repo
 // signed by the service account

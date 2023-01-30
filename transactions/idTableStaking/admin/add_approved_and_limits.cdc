@@ -31,6 +31,10 @@ transaction(ids: [String]) {
 		// and increase the candidate node limits and slot limits by 1
 		// for each corresponding node added
 		for newNodeID in ids {
+			if nodeIDs[newNodeID] != nil {
+    			continue
+			}
+
 			let nodeInfo = FlowIDTableStaking.NodeInfo(newNodeID)
 
 			candidateNodeLimits[nodeInfo.role] = candidateNodeLimits[nodeInfo.role]! + 1

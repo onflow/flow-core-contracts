@@ -992,7 +992,7 @@ pub contract FlowIDTableStaking {
                 let totalTokensCommitted = nodeRecord.nodeFullCommittedBalance()
 
                 let greaterThanMin = FlowIDTableStaking.isGreaterThanMinimumForRole(numTokens: totalTokensCommitted, role: nodeRecord.role)
-                let nodeIsApproved: Bool =  approvedNodeIDs[nodeID] != nil
+                let nodeIsApproved: Bool =  approvedNodeIDs[nodeID] ?? false
 
                 // admin-approved node roles (execution/collection/consensus/verification)
                 // must be approved AND have sufficient stake
@@ -1702,8 +1702,8 @@ pub contract FlowIDTableStaking {
 
     /// Gets an array of the node IDs that have committed sufficient stake for the next epoch
     /// During the staking auction, this will likely include some nodes who
-    /// will not actually be nodes in the next epoch because they aren't approved
-    /// or they won't be randomly selected by the slot selection algorithm
+    /// will not actually be nodes in the next epoch because
+    /// they won't be randomly selected by the slot selection algorithm
     /// After the staking auction ends, specifically after unapproved nodes have been
     /// removed and slots have been filled and for the rest of the epoch,
     /// This list will accurately represent the nodes that will be in the next epoch
@@ -1720,7 +1720,7 @@ pub contract FlowIDTableStaking {
             let totalTokensCommitted = nodeRecord.nodeFullCommittedBalance()
 
             let greaterThanMin = FlowIDTableStaking.isGreaterThanMinimumForRole(numTokens: totalTokensCommitted, role: nodeRecord.role)
-            let nodeIsApproved: Bool =  approvedNodeIDs[nodeID] != nil
+            let nodeIsApproved: Bool =  approvedNodeIDs[nodeID] ?? false
 
             // admin-approved node roles (execution/collection/consensus/verification)
             // must be approved AND have sufficient stake
