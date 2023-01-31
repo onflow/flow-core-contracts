@@ -6,11 +6,11 @@ pub fun main(): [String] {
     let stakedIDs = FlowIDTableStaking.getStakedNodeIDs()
 
     let stakedIDsMap: {String: Bool} = {}
-	for stakedID in stakedIDs {
+    for stakedID in stakedIDs {
 		stakedIDsMap[stakedID] = true
 	}
 
-	let extraNodeIDs: [String] = []
+    let extraNodeIDs: [String] = []
     for approvedID in approvedIDs {
            if stakedIDsMap[approvedID] != true {
 			    extraNodeIDs.append(approvedID)
