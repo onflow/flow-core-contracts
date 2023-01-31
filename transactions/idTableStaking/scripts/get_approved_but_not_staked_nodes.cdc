@@ -1,4 +1,4 @@
-import FlowIDTableStaking from 0x8624b52f9ddcd04a
+import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
 
 // This script returns the list of nodes that are on the approved list but are not staked.
 pub fun main(): [String] {
