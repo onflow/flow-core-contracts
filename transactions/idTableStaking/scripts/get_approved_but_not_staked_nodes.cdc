@@ -1,6 +1,6 @@
 import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
 
-// This script returns the list of nodes that are on the approved list but are not staked.
+// This script returns the list of nodes that are on the approved list but are not currently staked.
 pub fun main(): [String] {
     let approvedIDs = FlowIDTableStaking.getApprovedList()
     let stakedIDs = FlowIDTableStaking.getStakedNodeIDs()
