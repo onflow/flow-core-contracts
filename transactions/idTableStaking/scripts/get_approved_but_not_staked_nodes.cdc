@@ -7,14 +7,14 @@ pub fun main(): [String] {
 
     let stakedIDsMap: {String: Bool} = {}
     for stakedID in stakedIDs {
-		stakedIDsMap[stakedID] = true
-	}
+      stakedIDsMap[stakedID] = true
+    }
 
     let extraNodeIDs: [String] = []
     for approvedID in approvedIDs {
-           if stakedIDsMap[approvedID] != true {
-			    extraNodeIDs.append(approvedID)
-            }
+      if stakedIDsMap[approvedID] != true {
+        extraNodeIDs.append(approvedID)
+      }
     }
     return extraNodeIDs
 }
