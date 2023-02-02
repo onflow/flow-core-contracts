@@ -97,7 +97,7 @@ pub contract FlowStorageFees {
                 .borrow() {
                     if accountAddress == payer {
                         // if the account is the payer, deduct the maximum possible transaction fees from the balance
-                        balance = balanceRef.balance - maxTxFees
+                        balance = balanceRef.balance.saturatingSubtract(maxTxFees)
                     } else {
                         balance = balanceRef.balance
                     }
