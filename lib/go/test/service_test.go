@@ -117,18 +117,36 @@ func TestContracts(t *testing.T) {
 	result = executeScriptAndCheck(t, b, templates.GenerateGetStorageCapacityScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(b.ServiceKey().Address))})
 	assertEqual(t, CadenceUFix64("184467440737.09551615"), result)
 
-	result = executeScriptAndCheck(t, b, templates.GenerateGetAccountsCapacityForTransactionStorageCheckScript(env), [][]byte{
-		jsoncdc.MustEncode(
-			cadence.NewArray([]cadence.Value{
-				cadence.Address(b.ServiceKey().Address),
-				cadence.NewAddress(flow.HexToAddress(env.FlowFeesAddress)),
-			})),
-		jsoncdc.MustEncode(cadence.Address(b.ServiceKey().Address)),
-		jsoncdc.MustEncode(CadenceUFix64("999999999.0")),
+	t.Run("GenerateGetAccountsCapacityForTransactionStorageCheckScript should work", func(t *testing.T) {
+		result = executeScriptAndCheck(t, b, templates.GenerateGetAccountsCapacityForTransactionStorageCheckScript(env), [][]byte{
+			jsoncdc.MustEncode(
+				cadence.NewArray([]cadence.Value{
+					cadence.Address(b.ServiceKey().Address),
+					cadence.NewAddress(flow.HexToAddress(env.FlowFeesAddress)),
+				})),
+			jsoncdc.MustEncode(cadence.Address(b.ServiceKey().Address)),
+			jsoncdc.MustEncode(CadenceUFix64("999999999.0")),
+		})
+		resultArray := result.(cadence.Array)
+		assertEqual(t, CadenceUFix64("10000000.00000000"), resultArray.Values[0])
+		assertEqual(t, CadenceUFix64("0.00000000"), resultArray.Values[1])
 	})
-	resultArray := result.(cadence.Array)
-	assertEqual(t, CadenceUFix64("10000000.00000000"), resultArray.Values[0])
-	assertEqual(t, CadenceUFix64("0.00000000"), resultArray.Values[1])
+
+	t.Run("GenerateGetAccountsCapacityForTransactionStorageCheckScript should not underflow", func(t *testing.T) {
+		result = executeScriptAndCheck(t, b, templates.GenerateGetAccountsCapacityForTransactionStorageCheckScript(env), [][]byte{
+			jsoncdc.MustEncode(
+				cadence.NewArray([]cadence.Value{
+					cadence.NewAddress(flow.HexToAddress(env.FlowFeesAddress)),
+				})),
+			jsoncdc.MustEncode(cadence.Address(cadence.NewAddress(flow.HexToAddress(env.FlowFeesAddress)))),
+			jsoncdc.MustEncode(CadenceUFix64("999999999.0")),
+		})
+		resultArray := result.(cadence.Array)
+		// The balance of the FlowFeesAddress is 0.0, as evident from the previous test
+		// Subtracting max fees of 999999999.0 from 0.0 should result in 0.0,
+		// and not underflow.
+		assertEqual(t, CadenceUFix64("0.0"), resultArray.Values[0])
+	})
 
 	t.Run("Zero conversion should not result in a divide by zero error", func(t *testing.T) {
 
