@@ -1,11 +1,10 @@
 import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
 
-// This transaction ends the staking auction, which refunds nodes 
-// with insufficient stake
+/// This transaction changes the limit of new nodes that can be candidates
+/// for the next epoch
+transaction(role: UInt8, newCandidateNodeLimit: UInt64) {
 
-transaction(ids: [String]) {
-
-    // Local variable for a reference to the ID Table Admin object
+    /// Local variable for a reference to the ID Table Admin object
     let adminRef: &FlowIDTableStaking.Admin
 
     prepare(acct: AuthAccount) {
@@ -15,11 +14,6 @@ transaction(ids: [String]) {
     }
 
     execute {
-        let approvedIDs: {String: Bool} = {}
-        for id in ids {
-            approvedIDs[id] = true
-        }
-
-        self.adminRef.removeUnapprovedNodes(approvedNodeIDs: approvedIDs)
+        self.adminRef.setCandidateNodeLimit(role: role, newLimit: newCandidateNodeLimit)
     }
 }

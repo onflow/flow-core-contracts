@@ -303,12 +303,8 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 	// Set the approved node list
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
 
-	approvedNodeIDs := make([]cadence.Value, numEpochAccounts)
-	for i := 0; i < numEpochAccounts; i++ {
-		id, _ := cadence.NewString(ids[i])
-		approvedNodeIDs[i] = id
-	}
-	err := tx.AddArgument(cadence.NewArray(approvedNodeIDs))
+	approvedNodeIDs := generateCadenceNodeDictionary(ids)
+	err := tx.AddArgument(approvedNodeIDs)
 	require.NoError(t, err)
 
 	signAndSubmit(
@@ -429,12 +425,8 @@ func TestEpochAdvance(t *testing.T) {
 	// Set the approved node list
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
 
-	approvedNodeIDs := make([]cadence.Value, numEpochAccounts)
-	for i := 0; i < numEpochAccounts; i++ {
-		id, _ := cadence.NewString(ids[i])
-		approvedNodeIDs[i] = id
-	}
-	err := tx.AddArgument(cadence.NewArray(approvedNodeIDs))
+	approvedNodeIDs := generateCadenceNodeDictionary(ids)
+	err := tx.AddArgument(approvedNodeIDs)
 	require.NoError(t, err)
 
 	signAndSubmit(
@@ -573,12 +565,8 @@ func TestEpochQCDKGNodeRegistration(t *testing.T) {
 	// Set the approved node list
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
 
-	approvedNodeIDs := make([]cadence.Value, numEpochAccounts)
-	for i := 0; i < numEpochAccounts; i++ {
-		id, _ := cadence.NewString(ids[i])
-		approvedNodeIDs[i] = id
-	}
-	err := tx.AddArgument(cadence.NewArray(approvedNodeIDs))
+	approvedNodeIDs := generateCadenceNodeDictionary(ids)
+	err := tx.AddArgument(approvedNodeIDs)
 	require.NoError(t, err)
 
 	signAndSubmit(
@@ -701,12 +689,8 @@ func TestEpochQCDKG(t *testing.T) {
 	// Set the approved node list
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
 
-	approvedNodeIDs := make([]cadence.Value, numEpochAccounts)
-	for i := 0; i < numEpochAccounts; i++ {
-		id, _ := cadence.NewString(ids[i])
-		approvedNodeIDs[i] = id
-	}
-	err := tx.AddArgument(cadence.NewArray(approvedNodeIDs))
+	approvedNodeIDs := generateCadenceNodeDictionary(ids)
+	err := tx.AddArgument(approvedNodeIDs)
 	require.NoError(t, err)
 
 	signAndSubmit(
@@ -1063,11 +1047,8 @@ func TestEpochReset(t *testing.T) {
 	// Set the approved node list
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
 
-	approvedNodeIDs := make([]cadence.Value, numEpochAccounts)
-	for i := 0; i < numEpochAccounts; i++ {
-		approvedNodeIDs[i] = CadenceString(ids[i])
-	}
-	err := tx.AddArgument(cadence.NewArray(approvedNodeIDs))
+	approvedNodeIDs := generateCadenceNodeDictionary(ids)
+	err := tx.AddArgument(approvedNodeIDs)
 	require.NoError(t, err)
 
 	signAndSubmit(

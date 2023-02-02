@@ -16,8 +16,6 @@ transaction(ids: {String: Bool}) {
 
     execute {
 
-        self.adminRef.setApprovedList(ids)
-
-        self.adminRef.endStakingAuction()
+        self.adminRef.removeInvalidNodes(approvedNodeIDs: ids)
     }
 }
