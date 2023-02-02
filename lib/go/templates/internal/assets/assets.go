@@ -143,6 +143,7 @@
 // idTableStaking/node/update_networking_address.cdc (554B)
 // idTableStaking/node/withdraw_reward_tokens.cdc (826B)
 // idTableStaking/node/withdraw_unstaked_tokens.cdc (826B)
+// idTableStaking/scripts/get_approved_but_not_staked_nodes.cdc (664B)
 // idTableStaking/scripts/get_approved_nodes.cdc (186B)
 // idTableStaking/scripts/get_candidate_limits.cdc (265B)
 // idTableStaking/scripts/get_candidate_nodes.cdc (228B)
@@ -3214,6 +3215,26 @@ func idtablestakingNodeWithdraw_unstaked_tokensCdc() (*asset, error) {
 
 	info := bindataFileInfo{name: "idTableStaking/node/withdraw_unstaked_tokens.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x20, 0x63, 0xca, 0x5b, 0x97, 0x52, 0x42, 0xdd, 0xe8, 0x52, 0xed, 0xde, 0x1a, 0x73, 0xfe, 0xa2, 0xd4, 0x74, 0xe2, 0xcb, 0xb6, 0xdc, 0x19, 0xea, 0xeb, 0x15, 0x91, 0xd, 0x1a, 0xba, 0x57, 0x29}}
+	return a, nil
+}
+
+var _idtablestakingScriptsGet_approved_but_not_staked_nodesCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x7c\x92\xc1\xca\x9b\x40\x14\x85\xf7\x3e\xc5\xe9\x4e\x37\xf9\xbb\x0e\xb8\x48\x30\x05\x21\xcd\xa2\xba\x29\xc1\xc5\x18\xaf\x71\x88\xce\x4c\x67\xee\xa4\x29\xc1\x77\x2f\x6a\xaa\x86\x96\xce\x42\xf0\xfa\x1d\xbf\xe3\x45\xd9\x19\x6d\x19\x5f\x5a\xfd\x33\x4d\x72\x51\xb6\x94\xb1\xb8\x49\x75\x45\x6d\x75\x87\xcf\x8f\x34\x39\x9c\xf2\x34\xff\x9e\xef\xf6\xc7\xc3\x2e\x49\xbe\x1d\xb2\x2c\x08\x3e\x3e\x90\x37\xd2\xc1\x5d\xac\x34\x0c\x4b\xec\xad\x72\xe0\x86\xd0\x4a\xc7\xd0\x35\x94\xae\x68\x98\x08\x86\xb0\x04\xad\xc6\xa7\xc2\x18\xab\xef\x54\x4d\x58\xe9\x19\x95\x86\xd2\x8c\x8b\xb7\x96\x14\xb7\xbf\xd0\x88\x3b\x81\xf5\x8d\x94\x83\x63\x71\xa3\x0a\xa2\xd4\xc3\xac\x21\x74\x52\xc9\xce\x77\xb0\xf4\xc3\x4b\x4b\x1d\x29\xde\x04\xc6\x97\xa8\xbd\x42\x27\xa4\x0a\xa3\x2d\xce\x19\x5b\xa9\xae\x05\x9e\x01\x00\xb4\xc4\xb3\x37\x4d\x1c\xe2\x7f\x7c\xee\xe6\x4a\xbc\x7b\x31\x47\xe9\x38\x8c\xe6\xe8\xd4\xe1\x7f\xc1\x6c\x24\x4e\xba\xa2\x34\x71\x61\x14\xfc\x1d\xfd\x2a\xcc\x16\xcf\xa9\xd6\x16\x7b\xad\xdb\x1e\x31\x9e\xfd\x48\xd6\xda\xce\x24\xa4\x5a\x09\xa7\xfe\xc3\x59\xbf\xe9\xfc\xe7\xa6\x40\x0c\xb6\x9e\x46\xaa\x5f\xb4\xf4\x60\x2b\x5e\x75\x56\xdb\x88\x71\x2e\x66\xe1\xb2\x90\x41\xb9\x5e\xcf\x22\x95\xf5\xbb\x77\xa1\x0a\x7c\x9a\xd4\x2b\x7a\x38\x6b\xf3\x46\x18\x43\xaa\x0a\x97\x54\x34\xb3\x7d\xb0\x5c\xa7\x9f\xe7\x2d\x1a\xf4\xbf\x03\x00\x00\xff\xff\xa2\xd8\x97\xd5\x98\x02\x00\x00"
+
+func idtablestakingScriptsGet_approved_but_not_staked_nodesCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_idtablestakingScriptsGet_approved_but_not_staked_nodesCdc,
+		"idTableStaking/scripts/get_approved_but_not_staked_nodes.cdc",
+	)
+}
+
+func idtablestakingScriptsGet_approved_but_not_staked_nodesCdc() (*asset, error) {
+	bytes, err := idtablestakingScriptsGet_approved_but_not_staked_nodesCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "idTableStaking/scripts/get_approved_but_not_staked_nodes.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xc7, 0xd1, 0x94, 0x0, 0xe, 0x54, 0x44, 0x5c, 0x91, 0xdc, 0xe, 0x56, 0xa7, 0x76, 0x7d, 0x4, 0x90, 0x93, 0xa2, 0x39, 0xc3, 0x18, 0x9f, 0x62, 0x8e, 0x5f, 0xa4, 0xb, 0x33, 0x42, 0xc4, 0xc4}}
 	return a, nil
 }
 
@@ -6351,6 +6372,7 @@ var _bindata = map[string]func() (*asset, error){
 	"idTableStaking/node/update_networking_address.cdc":                                   idtablestakingNodeUpdate_networking_addressCdc,
 	"idTableStaking/node/withdraw_reward_tokens.cdc":                                      idtablestakingNodeWithdraw_reward_tokensCdc,
 	"idTableStaking/node/withdraw_unstaked_tokens.cdc":                                    idtablestakingNodeWithdraw_unstaked_tokensCdc,
+	"idTableStaking/scripts/get_approved_but_not_staked_nodes.cdc":                        idtablestakingScriptsGet_approved_but_not_staked_nodesCdc,
 	"idTableStaking/scripts/get_approved_nodes.cdc":                                       idtablestakingScriptsGet_approved_nodesCdc,
 	"idTableStaking/scripts/get_candidate_limits.cdc":                                     idtablestakingScriptsGet_candidate_limitsCdc,
 	"idTableStaking/scripts/get_candidate_nodes.cdc":                                      idtablestakingScriptsGet_candidate_nodesCdc,
@@ -6731,6 +6753,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 			"withdraw_unstaked_tokens.cdc": {idtablestakingNodeWithdraw_unstaked_tokensCdc, map[string]*bintree{}},
 		}},
 		"scripts": {nil, map[string]*bintree{
+			"get_approved_but_not_staked_nodes.cdc": {idtablestakingScriptsGet_approved_but_not_staked_nodesCdc, map[string]*bintree{}},
 			"get_approved_nodes.cdc": {idtablestakingScriptsGet_approved_nodesCdc, map[string]*bintree{}},
 			"get_candidate_limits.cdc": {idtablestakingScriptsGet_candidate_limitsCdc, map[string]*bintree{}},
 			"get_candidate_nodes.cdc": {idtablestakingScriptsGet_candidate_nodesCdc, map[string]*bintree{}},
