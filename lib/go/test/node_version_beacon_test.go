@@ -127,9 +127,6 @@ func TestNodeVersionBeacon(t *testing.T) {
 		preRelease := ""
 		err = changeTx.AddArgument(CadenceString(preRelease))
 		require.NoError(t, err)
-		isBackwardCompatible := true
-		err = changeTx.AddArgument(CadenceBool(isBackwardCompatible))
-		require.NoError(t, err)
 		versionHeight := versionThreshold + 44
 		err := changeTx.AddArgument(CadenceUInt64(versionHeight))
 		require.NoError(t, err)
