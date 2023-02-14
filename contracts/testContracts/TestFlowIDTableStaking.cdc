@@ -262,6 +262,6 @@ pub contract FlowIDTableStaking {
         return <-create NodeDelegator(id: 1, nodeID: nodeID)
     }
 
-    init(_ epochTokenPayout: UFix64, _ rewardCut: UFix64) {
+    init(_ epochTokenPayout: UFix64, _ rewardCut: UFix64, _ candidateLimits: {UInt8: UInt64}) {
     }
 }

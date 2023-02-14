@@ -1,9 +1,7 @@
 import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
 
-// This transaction ends the staking auction, which refunds nodes 
-// with insufficient stake
-
-transaction(ids: {String: Bool}) {
+// This transaction sets the initialWeight of an existing node
+transaction(id: String, weight: UInt64) {
 
     // Local variable for a reference to the ID Table Admin object
     let adminRef: &FlowIDTableStaking.Admin
@@ -15,9 +13,6 @@ transaction(ids: {String: Bool}) {
     }
 
     execute {
-
-        self.adminRef.setApprovedList(ids)
-
-        self.adminRef.endStakingAuction()
+        self.adminRef.setNodeWeight(nodeID: id, weight: weight)
     }
 }

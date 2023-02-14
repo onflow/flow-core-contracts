@@ -182,11 +182,7 @@ func FlowServiceAccount(fungibleTokenAddress, flowTokenAddress, flowFeesAddress,
 func FlowIDTableStaking(fungibleTokenAddress, flowTokenAddress, flowFeesAddress string, latest bool) []byte {
 	var code string
 
-	if latest {
-		code = assets.MustAssetString(flowIdentityTableFilename)
-	} else {
-		code = assets.MustAssetString("FlowIDTableStaking_old.cdc")
-	}
+	code = assets.MustAssetString(flowIdentityTableFilename)
 
 	code = strings.ReplaceAll(code, placeholderFungibleTokenAddress, withHexPrefix(fungibleTokenAddress))
 	code = strings.ReplaceAll(code, placeholderFlowTokenAddress, withHexPrefix(flowTokenAddress))

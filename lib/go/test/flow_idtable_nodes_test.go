@@ -42,7 +42,7 @@ func TestManyNodesIDTable(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true)
+	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, &env, true, []uint64{10000, 10000, 10000, 10000, 10000})
 
 	env.IDTableAddress = idTableAddress.Hex()
 
@@ -55,6 +55,7 @@ func TestManyNodesIDTable(t *testing.T) {
 	nodeAddress, _ = b.CreateAccount([]*flow.AccountKey{nodeAccountKey}, nil)
 
 	approvedNodes := make([]cadence.Value, numberOfNodes)
+	approvedNodesStringArray := make([]string, numberOfNodes)
 	nodeRoles := make([]cadence.Value, numberOfNodes)
 	nodeNetworkingAddresses := make([]cadence.Value, numberOfNodes)
 	nodeNetworkingKeys := make([]cadence.Value, numberOfNodes)
@@ -120,6 +121,7 @@ func TestManyNodesIDTable(t *testing.T) {
 			id := fmt.Sprintf("%064d", i)
 
 			approvedNodes[i] = CadenceString(id)
+			approvedNodesStringArray[i] = id
 
 			nodeRoles[i] = cadence.NewUInt8(uint8((i % 4) + 1))
 
@@ -141,6 +143,8 @@ func TestManyNodesIDTable(t *testing.T) {
 			nodePaths[i] = cadence.Path{Domain: "storage", Identifier: fmt.Sprintf("node%06d", i)}
 
 		}
+
+		assertCandidateLimitsEquals(t, b, env, []uint64{10000, 10000, 10000, 10000, 10000})
 
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateRegisterManyNodesScript(env)).
@@ -177,16 +181,18 @@ func TestManyNodesIDTable(t *testing.T) {
 			false,
 		)
 
-		result, err := b.ExecuteScript(templates.GenerateReturnTableScript(env), nil)
+		scriptResult, err := b.ExecuteScript(templates.GenerateReturnTableScript(env), nil)
 		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
+		if !assert.True(t, scriptResult.Succeeded()) {
+			t.Log(scriptResult.Error.Error())
 		}
-		proposedIDs := result.Value
+		proposedIDs := scriptResult.Value
 		idArray := proposedIDs.(cadence.Array).Values
 		assert.Len(t, idArray, numberOfNodes)
 
 	})
+
+	approvedNodesDict := generateCadenceNodeDictionary(approvedNodesStringArray)
 
 	// End staking auction
 	t.Run("Should end staking auction, pay rewards, and move tokens", func(t *testing.T) {
@@ -198,7 +204,7 @@ func TestManyNodesIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(idTableAddress)
 
-		err := tx.AddArgument(cadence.NewArray(approvedNodes))
+		err := tx.AddArgument(approvedNodesDict)
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -278,7 +284,7 @@ func TestManyNodesIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(idTableAddress)
 
-		err := tx.AddArgument(cadence.NewArray(approvedNodes))
+		err := tx.AddArgument(approvedNodesDict)
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -332,7 +338,7 @@ func TestManyNodesIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(idTableAddress)
 
-		err := tx.AddArgument(cadence.NewArray(approvedNodes))
+		err := tx.AddArgument(approvedNodesDict)
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -360,7 +366,7 @@ func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true)
+	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, &env, true, []uint64{10000, 10000, 10000, 10000, 10000})
 
 	env.IDTableAddress = idTableAddress.Hex()
 
