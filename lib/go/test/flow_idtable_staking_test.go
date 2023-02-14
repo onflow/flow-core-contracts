@@ -876,7 +876,7 @@ func TestIDTableApprovals(t *testing.T) {
 		idArray = result.(cadence.Array).Values
 		assert.Len(t, idArray, 1)
 
-		assertCandidateLimitsEquals(t, b, env, []uint64{4, 3, 3, 3, 4})
+		assertCandidateLimitsEquals(t, b, env, []uint64{3, 3, 3, 3, 3})
 
 		result := executeScriptAndCheck(t, b, templates.GenerateGetSlotLimitsScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(1))})
 		assertEqual(t, cadence.NewUInt16(10001), result)
