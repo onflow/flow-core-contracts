@@ -4,7 +4,6 @@ go 1.18
 
 require (
 	github.com/coreos/go-semver v0.3.0
-	github.com/davecgh/go-spew v1.1.1
 	github.com/onflow/cadence v0.31.3
 	github.com/onflow/flow-core-contracts/lib/go/contracts v0.11.2-0.20230124223822-093a67baaf47
 	github.com/onflow/flow-core-contracts/lib/go/templates v0.11.2-0.20230124223822-093a67baaf47
@@ -25,6 +24,7 @@ require (
 	github.com/cenkalti/backoff/v4 v4.1.3 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cloudflare/circl v1.1.0 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.1.0 // indirect
 	github.com/dgraph-io/badger/v2 v2.2007.4 // indirect
 	github.com/dgraph-io/ristretto v0.0.3-0.20200630154024-f66de99634de // indirect
