@@ -898,9 +898,18 @@ pub contract FlowIDTableStaking {
         /// Removes nodes by setting their weight to zero and refunding
         /// staked and delegated tokens.
         pub fun removeAndRefundNodeRecord(_ nodeID: String) {
+
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
 
             emit NodeRemovedAndRefunded(nodeID: nodeRecord.id, amount: nodeRecord.tokensCommitted.balance + nodeRecord.tokensStaked.balance)
+
+            // remove the refunded node from the approve list
+            // We only do this if the approve list returns a non-nil value
+            // to avoid the infinite loop with `setApprovedList`
+            if let approveList = FlowIDTableStaking.getApprovedList() {
+                approveList[nodeID] = nil
+                self.setApprovedList(approveList)
+            }
 
             // move their committed tokens back to their unstaked tokens
             nodeRecord.tokensUnstaked.deposit(from: <-nodeRecord.tokensCommitted.withdraw(amount: nodeRecord.tokensCommitted.balance))
@@ -962,6 +971,7 @@ pub contract FlowIDTableStaking {
         /// and setting stakingEnabled to false
         pub fun endStakingAuction() {
             let approvedNodeIDs = FlowIDTableStaking.getApprovedList()
+                ?? panic("Could not read the approve list from storage")
 
             self.removeInvalidNodes(approvedNodeIDs: approvedNodeIDs)
 
@@ -1289,6 +1299,9 @@ pub contract FlowIDTableStaking {
                 !FlowIDTableStaking.stakingEnabled(): "Cannot move tokens if the staking auction is still in progress"
             }
 
+            let approvedNodeIDs = FlowIDTableStaking.getApprovedList()
+                ?? panic("Could not read the approve list from storage")
+
             let movesPendingNodeIDs = FlowIDTableStaking.account.load<{String: {UInt32: Bool}}>(from: /storage/idTableMovesPendingList)
                 ?? panic("No moves pending list in account storage")
 
@@ -1301,8 +1314,10 @@ pub contract FlowIDTableStaking {
             for nodeID in movesPendingNodeIDs.keys {
                 let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
 
+                let approved = approvedNodeIDs[nodeID] ?? false
+
                 // mark the committed tokens as staked
-                if nodeRecord.tokensCommitted.balance > 0.0 {
+                if nodeRecord.tokensCommitted.balance > 0.0 || approved {
                     FlowIDTableStaking.totalTokensStakedByNodeType[nodeRecord.role] = FlowIDTableStaking.totalTokensStakedByNodeType[nodeRecord.role]! + nodeRecord.tokensCommitted.balance
                     emit TokensStaked(nodeID: nodeRecord.id, amount: nodeRecord.tokensCommitted.balance)
                     nodeRecord.tokensStaked.deposit(from: <-nodeRecord.tokensCommitted.withdraw(amount: nodeRecord.tokensCommitted.balance))
@@ -1715,6 +1730,7 @@ pub contract FlowIDTableStaking {
 
         let nodeIDs = FlowIDTableStaking.getNodeIDs()
         let approvedNodeIDs: {String: Bool} = FlowIDTableStaking.getApprovedList()
+            ?? panic("Could not read the approve list from storage")
         let proposedNodeIDs: {String: Bool} = {}
 
         for nodeID in nodeIDs {
@@ -1782,9 +1798,8 @@ pub contract FlowIDTableStaking {
     }
 
     /// Returns the list of approved node IDs that the admin has set
-    pub fun getApprovedList(): {String: Bool} {
+    pub fun getApprovedList(): {String: Bool}? {
         return self.account.copy<{String: Bool}>(from: /storage/idTableApproveList)
-            ?? panic("could not get approved list")
     }
 
     /// Returns the list of node IDs whose rewards will be reduced in the next payment

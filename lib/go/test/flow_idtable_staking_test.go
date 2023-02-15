@@ -927,6 +927,53 @@ func TestIDTableApprovals(t *testing.T) {
 
 	})
 
+	// Move tokens and start a new staking auction
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateMoveTokensScript(env), idTableAddress)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]crypto.Signer{IDTableSigner},
+		false,
+	)
+
+	// The current participant access node is participating with zero stake even though the minimum is 100,
+	// because it was approved by the admin
+	assertRoleCountsEquals(t, b, env, []uint16{0, 0, 0, 0, 1})
+	result = executeScriptAndCheck(t, b, templates.GenerateGetCommittedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(accessID))})
+	assertEqual(t, CadenceUFix64("0.0"), result)
+	result = executeScriptAndCheck(t, b, templates.GenerateGetStakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(accessID))})
+	assertEqual(t, CadenceUFix64("0.0"), result)
+	result = executeScriptAndCheck(t, b, templates.GenerateReturnCurrentTableScript(env), nil)
+	idArray = result.(cadence.Array).Values
+	assert.Len(t, idArray, 1)
+	assertEqual(t, CadenceString(accessID), idArray[0])
+
+	t.Run("Adding new stake to a zero-stake access node who is already a participant should not add them to the candidate list", func(t *testing.T) {
+		amountToCommit = 10000000000
+		commitNewTokens(t, b, env,
+			accessAddress,
+			accessSigner,
+			amountToCommit,
+			committed[accessID],
+			false)
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetCommittedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(accessID))})
+		assertEqual(t, CadenceUFix64("100.0"), result)
+
+		// Check that they were not added to the candidate node list
+		// expected candidate node list should be empty
+		candidates := CandidateNodes{
+			collector:    []string{},
+			consensus:    []string{},
+			execution:    []string{},
+			verification: []string{},
+			access:       []string{},
+		}
+
+		assertCandidateNodeListEquals(t, b, env, candidates)
+
+	})
 }
 
 func TestIDTableStaking(t *testing.T) {
@@ -1510,6 +1557,19 @@ func TestIDTableStaking(t *testing.T) {
 			amountToCommit,
 			committed[joshID],
 			false)
+
+		// Re-add the node to the approve list since it was removed during the last end staking
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
+
+		err := tx.AddArgument(fourNodeIDDict)
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
+			false,
+		)
 
 		result := executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
 
