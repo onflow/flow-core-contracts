@@ -2,7 +2,6 @@ package test
 
 import (
 	"fmt"
-	"github.com/davecgh/go-spew/spew"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	emulator "github.com/onflow/flow-emulator"
 	flowgo "github.com/onflow/flow-go/model/flow"
@@ -164,7 +163,6 @@ func TestNodeVersionBeacon(t *testing.T) {
 		assert.Equal(t, versionMajor, uint8(semver.Major))
 		assert.Equal(t, versionMinor, uint8(semver.Minor))
 		assert.Equal(t, versionPatch, uint8(semver.Patch))
-
 	})
 }
 
@@ -179,11 +177,11 @@ func (v VersionBeaconEvent) VersionTable() (ret []struct {
 	version string
 }) {
 
-	spew.Dump(v)
-
 	for _, cadenceVal := range v.Value.Fields[0].(cadence.Array).Values {
 		height := cadenceVal.(cadence.Struct).Fields[0].(cadence.UInt64).ToGoValue().(uint64)
-		version := cadenceVal.(cadence.Struct).Fields[1].(cadence.String).ToGoValue().(string)
+		versionFields := cadenceVal.(cadence.Struct).Fields[1].(cadence.Struct).Fields
+
+		version := fmt.Sprintf("%s.%s.%s", versionFields[0].String(), versionFields[1].String(), versionFields[2].String())
 
 		ret = append(ret, struct {
 			height  uint64
