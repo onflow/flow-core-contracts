@@ -12,7 +12,7 @@ transaction() {
           ?? panic("Couldn't borrow NodeVersionBeaconAdmin Resource")
     }   
     execute {
-        self.NodeVersionBeaconAdminRef.emitNodeVersionTableUpdated()
+        self.NodeVersionBeaconAdminRef.emitVersionBeacon()
     }
 
 }

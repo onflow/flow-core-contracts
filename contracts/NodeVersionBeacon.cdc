@@ -97,7 +97,7 @@ pub contract NodeVersionBeacon {
     }
 
     /// Event emitted every block if there has been any changes to the table
-    pub event NodeVersionBeacon(
+    pub event VersionBeacon(
         tableUpdates: [VersionBoundary],
         sequence: UInt64
     )
@@ -125,10 +125,10 @@ pub contract NodeVersionBeacon {
     /// Sorted Array containing historical block heights where version boundaries were defined
     access(contract) var archivedBlockBoundaries: [UInt64]
 
-    /// Sequence number of the NodeVersionBeacon event
+    /// Sequence number of the VersionBeacon event
     access(contract) var nextVersionBeaconSequence: UInt64
 
-    /// Boolean flag for keeping track of changes since the last time NodeVersionBeacon was emitted
+    /// Boolean flag for keeping track of changes since the last time VersionBeacon was emitted
     access(contract) var tableUpdated: Bool
 
     /// Admin resource that manages node versioning
@@ -184,19 +184,19 @@ pub contract NodeVersionBeacon {
             return removed
         }
 
-        /// Separate method to emit the NodeVersionBeacon event
+        /// Separate method to emit the VersionBeacon event
         ///
         /// @param newVersions
         /// @param deletedVersions
         ///
-        pub fun emitNodeVersionBeacon() {
-            
+        pub fun emitVersionBeacon() {
+
             // If the table has been updated since the last call
             if (NodeVersionBeacon.tableUpdated) {
 
                 // Create an ordered by block [{block, version}] from the versionTable.
                 // Since upcomingBlockBoundaries and versionTable are updated at the same
-                // time we can be sure that if there's an upcomingBlockBoundary, there's 
+                // time we can be sure that if there's an upcomingBlockBoundary, there's
                 // a version on the table for it
                 let tableUpdates: [VersionBoundary] = []
                 for upcomingBlockBoundary in NodeVersionBeacon.upcomingBlockBoundaries {
@@ -205,7 +205,7 @@ pub contract NodeVersionBeacon {
                                             NodeVersionBeacon.versionTable[upcomingBlockBoundary]!
                                         ))
                 }
-                emit NodeVersionBeacon(tableUpdates: tableUpdates,
+                emit VersionBeacon(tableUpdates: tableUpdates,
                     sequence: NodeVersionBeacon.nextVersionBeaconSequence)
                 // After emitting the event increase the event sequence number and set the flag to false
                 // so the event won't be emitted on the next block if there isn't any changes to the table
@@ -250,7 +250,7 @@ pub contract NodeVersionBeacon {
         }
     }
 
-    /// Returns the next number of sequence for the NodeVersionBeacon event
+    /// Returns the next number of sequence for the VersionBeacon event
     pub fun getNextVersionBeaconSequence (): UInt64 {
         return NodeVersionBeacon.nextVersionBeaconSequence
     }
