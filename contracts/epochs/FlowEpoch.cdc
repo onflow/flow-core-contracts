@@ -493,6 +493,15 @@ pub contract FlowEpoch {
                 flowTotalSupplyAfterPayout = FlowToken.totalSupply + (currentPayout - feeAmount)
             }
 
+            // Load the amount of bonus tokens from storage
+            let bonusTokens = FlowEpoch.account.copy<UFix64>(from: /storage/FlowBonusTokenAmount)
+                ?? 0.0
+
+            // Subtract bonus tokens from the total supply to get the real supply
+            if bonusTokens < flowTotalSupplyAfterPayout {
+                flowTotalSupplyAfterPayout = flowTotalSupplyAfterPayout - bonusTokens
+            }
+
             // Calculate the payout for the next epoch
             let proposedPayout = flowTotalSupplyAfterPayout * FlowEpoch.configurableMetadata.FLOWsupplyIncreasePercentage
 

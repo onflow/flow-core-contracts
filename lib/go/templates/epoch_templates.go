@@ -19,6 +19,7 @@ const (
 	epochCalculateSetRewardsFilename = "epoch/admin/calculate_rewards.cdc"
 	epochPayRewardsFilename          = "epoch/admin/pay_rewards.cdc"
 	epochSetAutoRewardsFilename      = "epoch/admin/set_automatic_rewards.cdc"
+	setBonusTokensFilename           = "epoch/admin/set_bonus_tokens.cdc"
 
 	// Node Transactions
 	epochRegisterNodeFilename           = "epoch/node/register_node.cdc"
@@ -117,6 +118,12 @@ func GenerateEpochPayRewardsScript(env Environment) []byte {
 
 func GenerateEpochSetAutomaticRewardsScript(env Environment) []byte {
 	code := assets.MustAssetString(epochSetAutoRewardsFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateEpochSetBonusTokensScript(env Environment) []byte {
+	code := assets.MustAssetString(setBonusTokensFilename)
 
 	return []byte(ReplaceAddresses(code, env))
 }
