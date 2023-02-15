@@ -422,8 +422,12 @@ pub contract FlowIDTableStaking {
         /// which means that it is a new node who currently is not participating with tokens staked
         /// and has enough committed for the next epoch for its role
         access(self) fun isEligibleForCandidateNodeStatus(_ nodeRecord: &FlowIDTableStaking.NodeRecord): Bool {
+            let participantList = FlowIDTableStaking.getParticipantNodeList()!
+            if participantList[nodeRecord.id] == true {
+                return false
+            }
             return nodeRecord.tokensStaked.balance == 0.0 &&
-                   FlowIDTableStaking.isGreaterThanMinimumForRole(numTokens: nodeRecord.tokensCommitted.balance, role: nodeRecord.role)
+                FlowIDTableStaking.isGreaterThanMinimumForRole(numTokens: nodeRecord.tokensCommitted.balance, role: nodeRecord.role)
         }
 
         /// Change the node's networking address to a new one
