@@ -477,13 +477,11 @@ const AssetDebug = false
 // directory embedded in the file by go-bindata.
 // For example if you run go-bindata on data/... and data contains the
 // following hierarchy:
-//
-//	data/
-//	  foo.txt
-//	  img/
-//	    a.png
-//	    b.png
-//
+//     data/
+//       foo.txt
+//       img/
+//         a.png
+//         b.png
 // then AssetDir("data") would return []string{"foo.txt", "img"},
 // AssetDir("data/img") would return []string{"a.png", "b.png"},
 // AssetDir("foo.txt") and AssetDir("notexist") would return an error, and
@@ -516,20 +514,20 @@ type bintree struct {
 }
 
 var _bintree = &bintree{nil, map[string]*bintree{
-	"FlowContractAudits.cdc":    {flowcontractauditsCdc, map[string]*bintree{}},
-	"FlowFees.cdc":              {flowfeesCdc, map[string]*bintree{}},
-	"FlowIDTableStaking.cdc":    {flowidtablestakingCdc, map[string]*bintree{}},
-	"FlowServiceAccount.cdc":    {flowserviceaccountCdc, map[string]*bintree{}},
+	"FlowContractAudits.cdc": {flowcontractauditsCdc, map[string]*bintree{}},
+	"FlowFees.cdc": {flowfeesCdc, map[string]*bintree{}},
+	"FlowIDTableStaking.cdc": {flowidtablestakingCdc, map[string]*bintree{}},
+	"FlowServiceAccount.cdc": {flowserviceaccountCdc, map[string]*bintree{}},
 	"FlowStakingCollection.cdc": {flowstakingcollectionCdc, map[string]*bintree{}},
-	"FlowStorageFees.cdc":       {flowstoragefeesCdc, map[string]*bintree{}},
-	"FlowToken.cdc":             {flowtokenCdc, map[string]*bintree{}},
-	"LockedTokens.cdc":          {lockedtokensCdc, map[string]*bintree{}},
-	"NodeVersionBeacon.cdc":     {nodeversionbeaconCdc, map[string]*bintree{}},
-	"StakingProxy.cdc":          {stakingproxyCdc, map[string]*bintree{}},
+	"FlowStorageFees.cdc": {flowstoragefeesCdc, map[string]*bintree{}},
+	"FlowToken.cdc": {flowtokenCdc, map[string]*bintree{}},
+	"LockedTokens.cdc": {lockedtokensCdc, map[string]*bintree{}},
+	"NodeVersionBeacon.cdc": {nodeversionbeaconCdc, map[string]*bintree{}},
+	"StakingProxy.cdc": {stakingproxyCdc, map[string]*bintree{}},
 	"epochs": {nil, map[string]*bintree{
 		"FlowClusterQC.cdc": {epochsFlowclusterqcCdc, map[string]*bintree{}},
-		"FlowDKG.cdc":       {epochsFlowdkgCdc, map[string]*bintree{}},
-		"FlowEpoch.cdc":     {epochsFlowepochCdc, map[string]*bintree{}},
+		"FlowDKG.cdc": {epochsFlowdkgCdc, map[string]*bintree{}},
+		"FlowEpoch.cdc": {epochsFlowepochCdc, map[string]*bintree{}},
 	}},
 	"testContracts": {nil, map[string]*bintree{
 		"TestFlowIDTableStaking.cdc": {testcontractsTestflowidtablestakingCdc, map[string]*bintree{}},
