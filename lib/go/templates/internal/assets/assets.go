@@ -45,6 +45,7 @@
 // epoch/admin/pay_rewards.cdc (479B)
 // epoch/admin/reset_epoch.cdc (1.737kB)
 // epoch/admin/set_automatic_rewards.cdc (356B)
+// epoch/admin/set_bonus_tokens.cdc (538B)
 // epoch/admin/update_clusters.cdc (338B)
 // epoch/admin/update_dkg_phase_views.cdc (328B)
 // epoch/admin/update_epoch_config.cdc (1.755kB)
@@ -1249,6 +1250,26 @@ func epochAdminSet_automatic_rewardsCdc() (*asset, error) {
 
 	info := bindataFileInfo{name: "epoch/admin/set_automatic_rewards.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x93, 0x79, 0x9, 0x8e, 0xe5, 0x32, 0xcb, 0x3e, 0x61, 0xd5, 0x8a, 0x3c, 0xd2, 0xdb, 0x86, 0x84, 0x19, 0x2c, 0xb6, 0x67, 0x7b, 0xac, 0x61, 0x5f, 0x6, 0x64, 0xc2, 0xd, 0x5a, 0x24, 0x94, 0x6b}}
+	return a, nil
+}
+
+var _epochAdminSet_bonus_tokensCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x64\x91\xb1\x6e\xeb\x30\x0c\x45\x77\x7f\xc5\x1d\x13\x20\x88\x97\x87\x37\x64\x4b\x81\x66\x2a\xd0\xa1\x29\x3a\xd3\x32\x13\x1b\x55\x24\x81\xa2\xec\xba\x45\xfe\xbd\x90\x12\x17\x69\xaa\x41\x03\x79\x78\x48\x4a\x55\x5d\xd7\x78\xa1\x81\x23\xc8\x81\x4e\x3e\x39\x85\x7a\x44\xf5\x42\x47\x86\x76\xa4\x10\x0e\xc2\x91\x73\xa6\xe3\x2b\x54\x0a\xfd\x01\x8d\x77\x29\x42\xfd\x3b\xbb\x78\xa1\x3b\x1a\x18\x13\x17\x4d\xc3\x68\x92\x38\x6e\x0b\xbe\xef\xfa\x38\xf7\xe8\x23\x62\x6a\x54\xc8\x28\xb7\x38\x88\x3f\x15\xb9\x7a\x25\x8b\x98\x42\xb0\x53\xd6\xef\x9e\x9e\xdf\x4a\xed\xd8\xb1\xe3\x81\x05\x04\xc7\xe3\x95\x13\x1e\x49\xda\x5b\xa7\x21\x6b\x92\xa5\xec\xcc\xf4\x04\x0e\xde\x74\xc5\xd0\xb0\xa1\x14\xf3\x4a\x3c\x81\x84\xe1\xbc\xe2\xc4\xe4\xe6\x49\x09\x81\x44\x73\xd7\xfb\x49\x4a\x7d\xb9\x1e\x07\x76\x9a\xc8\xda\x69\x05\xb2\xf6\xf7\xfa\x63\x9f\x23\xf3\xca\x20\xd7\xde\x3c\xd8\x4f\xf6\x93\xc5\x57\x95\x0a\xb9\x48\x46\x7b\xef\x16\x45\xb2\xcf\x8e\x6d\x41\x37\x78\xdd\xf5\x1f\xff\xff\x2d\xf1\x55\x01\x40\x10\x0e\x24\xbc\x88\xfd\xd1\xb1\x6c\xb0\x4d\xda\x6d\x8d\xc9\xe8\x8c\xe4\x13\xd9\x1e\xd6\x74\x89\xaf\x23\x0d\xfc\x47\xbc\x82\xfa\x0d\xea\xeb\xe7\xd6\x3b\xeb\xc7\x87\x3b\x64\x59\x74\xe7\xea\xfc\x1d\x00\x00\xff\xff\x12\xa5\x80\x7c\x1a\x02\x00\x00"
+
+func epochAdminSet_bonus_tokensCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_epochAdminSet_bonus_tokensCdc,
+		"epoch/admin/set_bonus_tokens.cdc",
+	)
+}
+
+func epochAdminSet_bonus_tokensCdc() (*asset, error) {
+	bytes, err := epochAdminSet_bonus_tokensCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "epoch/admin/set_bonus_tokens.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x5d, 0x4d, 0xb, 0xf6, 0xa3, 0x28, 0xfd, 0x1e, 0xf8, 0x64, 0xff, 0x57, 0x70, 0x31, 0x8f, 0x7b, 0x97, 0x24, 0xb1, 0xb, 0xe2, 0xd9, 0x28, 0xb1, 0x98, 0x81, 0x99, 0xc6, 0x42, 0x0, 0xe, 0x9b}}
 	return a, nil
 }
 
@@ -6148,6 +6169,7 @@ var _bindata = map[string]func() (*asset, error){
 	"epoch/admin/pay_rewards.cdc":                                                 epochAdminPay_rewardsCdc,
 	"epoch/admin/reset_epoch.cdc":                                                 epochAdminReset_epochCdc,
 	"epoch/admin/set_automatic_rewards.cdc":                                       epochAdminSet_automatic_rewardsCdc,
+	"epoch/admin/set_bonus_tokens.cdc":                                            epochAdminSet_bonus_tokensCdc,
 	"epoch/admin/update_clusters.cdc":                                             epochAdminUpdate_clustersCdc,
 	"epoch/admin/update_dkg_phase_views.cdc":                                      epochAdminUpdate_dkg_phase_viewsCdc,
 	"epoch/admin/update_epoch_config.cdc":                                         epochAdminUpdate_epoch_configCdc,
@@ -6489,6 +6511,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 			"pay_rewards.cdc": {epochAdminPay_rewardsCdc, map[string]*bintree{}},
 			"reset_epoch.cdc": {epochAdminReset_epochCdc, map[string]*bintree{}},
 			"set_automatic_rewards.cdc": {epochAdminSet_automatic_rewardsCdc, map[string]*bintree{}},
+			"set_bonus_tokens.cdc": {epochAdminSet_bonus_tokensCdc, map[string]*bintree{}},
 			"update_clusters.cdc": {epochAdminUpdate_clustersCdc, map[string]*bintree{}},
 			"update_dkg_phase_views.cdc": {epochAdminUpdate_dkg_phase_viewsCdc, map[string]*bintree{}},
 			"update_epoch_config.cdc": {epochAdminUpdate_epoch_configCdc, map[string]*bintree{}},

@@ -866,6 +866,21 @@ func TestEpochQCDKG(t *testing.T) {
 
 	})
 
+	t.Run("Can set bonus token amount to modify rewards calculation", func(t *testing.T) {
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochSetBonusTokensScript(env), idTableAddress)
+
+		_ = tx.AddArgument(CadenceUFix64("1000000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
+			false,
+		)
+
+	})
+
 	t.Run("Can end the Epoch and start a new Epoch", func(t *testing.T) {
 
 		result := executeScriptAndCheck(t, b, templates.GenerateGetFlowTotalSupplyScript(env), nil)
