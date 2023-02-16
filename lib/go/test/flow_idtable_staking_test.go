@@ -765,6 +765,10 @@ func TestIDTableApprovals(t *testing.T) {
 	_, accessStakingKey, _, accessNetworkingKey := generateKeysForNodeRegistration(t)
 	mintTokensForAccount(t, b, accessAddress, "1000000000.0")
 
+	joshAddress, _, joshSigner := newAccountWithAddress(b, accountKeys)
+	_, joshStakingKey, _, joshNetworkingKey := generateKeysForNodeRegistration(t)
+	mintTokensForAccount(t, b, joshAddress, "1000000000.0")
+
 	env.IDTableAddress = idTableAddress.Hex()
 	env.FlowFeesAddress = feesAddr.Hex()
 
@@ -815,15 +819,28 @@ func TestIDTableApprovals(t *testing.T) {
 		5,
 		false)
 
-	// Should be on the proposed list because it is above the minimum
-	result := executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
+	// Register another
+	committed[adminID] = registerNode(t, b, env,
+		joshAddress,
+		joshSigner,
+		joshID,
+		fmt.Sprintf("%0128d", josh),
+		joshNetworkingKey,
+		joshStakingKey,
+		amountToCommit,
+		committed[joshID],
+		5,
+		false)
 
+	// Should be on the proposed list because it is above the minimum
+	// but the collector node is not approved, so it is not included
+	result := executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
 	idArray := result.(cadence.Array).Values
-	assert.Len(t, idArray, 1)
+	assert.Len(t, idArray, 2)
 
 	// Update the access node minimum to 100
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateChangeMinimumsScript(env), idTableAddress)
-	err = tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceUFix64("250000.0"), CadenceUFix64("250000.0"), CadenceUFix64("1250000.0"), CadenceUFix64("135000.0"), CadenceUFix64("0.0")}))
+	err = tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceUFix64("250000.0"), CadenceUFix64("250000.0"), CadenceUFix64("1250000.0"), CadenceUFix64("135000.0"), CadenceUFix64("100.0")}))
 	require.NoError(t, err)
 	signAndSubmit(
 		t, b, tx,
@@ -832,10 +849,10 @@ func TestIDTableApprovals(t *testing.T) {
 		false,
 	)
 
-	// Should not be on the proposed list because it is below the minimum and not approved
+	// None of the access nodes are on the proposed list because they are below the minimum and not approved
 	result = executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
 	idArray = result.(cadence.Array).Values
-	assert.Len(t, idArray, 1)
+	assert.Len(t, idArray, 0)
 
 	t.Run("Should be able to approve an access node that isn't above the minimum even if access is below the minimum", func(t *testing.T) {
 
@@ -969,6 +986,44 @@ func TestIDTableApprovals(t *testing.T) {
 			execution:    []string{},
 			verification: []string{},
 			access:       []string{},
+		}
+
+		assertCandidateNodeListEquals(t, b, env, candidates)
+
+	})
+
+	// Approve josh access node
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateAddApprovedAndLimitsScript(env), idTableAddress)
+
+	err = tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(accessID), CadenceString(joshID)}))
+	require.NoError(t, err)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]crypto.Signer{IDTableSigner},
+		false,
+	)
+
+	t.Run("Adding new stake to a non-participant, approved, zero-stake access node should add them to the candidate list", func(t *testing.T) {
+		amountToCommit = 10000000000
+		commitNewTokens(t, b, env,
+			joshAddress,
+			joshSigner,
+			amountToCommit,
+			committed[joshID],
+			false)
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetCommittedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(joshID))})
+		assertEqual(t, CadenceUFix64("100.0"), result)
+
+		// Check that they were added to the candidate node list
+		candidates := CandidateNodes{
+			collector:    []string{},
+			consensus:    []string{},
+			execution:    []string{},
+			verification: []string{},
+			access:       []string{joshID},
 		}
 
 		assertCandidateNodeListEquals(t, b, env, candidates)
