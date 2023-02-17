@@ -832,11 +832,11 @@ func TestIDTableApprovals(t *testing.T) {
 		5,
 		false)
 
-	// Should be on the proposed list because it is above the minimum
-	// but the collector node is not approved, so it is not included
+	// Access nodes should not be on the proposed list because they haven't been selected yet
+	// The collector node is not approved, so it is also not included
 	result := executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
 	idArray := result.(cadence.Array).Values
-	assert.Len(t, idArray, 2)
+	assert.Len(t, idArray, 0)
 
 	// Update the access node minimum to 100
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateChangeMinimumsScript(env), idTableAddress)
@@ -869,12 +869,12 @@ func TestIDTableApprovals(t *testing.T) {
 		)
 		assertApprovedListEquals(t, b, env, initialNodeIDs)
 
-		// Access node should be on the proposed list because it is approved
-		// even though it is below the minimum
+		// Access node should still not be on the proposed list because it
+		// has not been selected by slot selection
 		result = executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
 
 		idArray = result.(cadence.Array).Values
-		assert.Len(t, idArray, 2)
+		assert.Len(t, idArray, 1)
 
 		assertCandidateLimitsEquals(t, b, env, []uint64{4, 3, 3, 3, 4})
 
@@ -1387,9 +1387,11 @@ func TestIDTableStaking(t *testing.T) {
 		assert.Len(t, idArray, 4)
 
 		// read the proposed nodes table and check that our node ids exists
+		// The access node is not on the proposed list yet because it hasn't been selected
+		// by slot selection
 		result = executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
 		idArray = result.(cadence.Array).Values
-		assert.Len(t, idArray, 3)
+		assert.Len(t, idArray, 2)
 	})
 
 	t.Run("Should be able to end the staking auction, which removes insufficiently staked nodes", func(t *testing.T) {

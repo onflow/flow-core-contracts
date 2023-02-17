@@ -1716,10 +1716,9 @@ pub contract FlowIDTableStaking {
         return self.account.copy<Bool>(from: /storage/stakingEnabled) ?? false
     }
 
-    /// Gets an array of the node IDs that have committed sufficient stake for the next epoch
-    /// During the staking auction, this will likely include some nodes who
-    /// will not actually be nodes in the next epoch because
-    /// they won't be randomly selected by the slot selection algorithm
+    /// Gets an array of the node IDs that are proposed for the next epoch
+    /// During the staking auction, this will not include access nodes who
+    /// haven't been selected by the slot selection algorithm yet
     /// After the staking auction ends, specifically after unapproved nodes have been
     /// removed and slots have been filled and for the rest of the epoch,
     /// This list will accurately represent the nodes that will be in the next epoch
@@ -1738,6 +1737,8 @@ pub contract FlowIDTableStaking {
 
             let greaterThanMin = FlowIDTableStaking.isGreaterThanMinimumForRole(numTokens: totalTokensCommitted, role: nodeRecord.role)
             let nodeIsApproved: Bool =  approvedNodeIDs[nodeID] ?? false
+            let nodeWeight = nodeRecord.initialWeight
+            let stakingEnabled = FlowIDTableStaking.stakingEnabled()
 
             // admin-approved node roles (execution/collection/consensus/verification)
             // must be approved AND have sufficient stake
@@ -1753,7 +1754,10 @@ pub contract FlowIDTableStaking {
             // Therefore Access nodes must either be approved OR have sufficient stake:
             //  - Old ANs must be approved, but are allowed to have zero stake
             //  - New ANs may be unapproved, but must have submitted sufficient stake
-            if nodeRecord.role == UInt8(5) && (greaterThanMin || nodeIsApproved) {
+            if nodeRecord.role == UInt8(5) &&
+               (greaterThanMin || nodeIsApproved) &&
+               nodeWeight > 0
+            {
                 proposedNodeIDs[nodeID] = true
                 continue
             }
