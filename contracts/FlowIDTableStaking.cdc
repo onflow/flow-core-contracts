@@ -1738,7 +1738,6 @@ pub contract FlowIDTableStaking {
             let greaterThanMin = FlowIDTableStaking.isGreaterThanMinimumForRole(numTokens: totalTokensCommitted, role: nodeRecord.role)
             let nodeIsApproved: Bool =  approvedNodeIDs[nodeID] ?? false
             let nodeWeight = nodeRecord.initialWeight
-            let stakingEnabled = FlowIDTableStaking.stakingEnabled()
 
             // admin-approved node roles (execution/collection/consensus/verification)
             // must be approved AND have sufficient stake
