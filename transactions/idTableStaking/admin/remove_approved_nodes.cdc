@@ -18,6 +18,7 @@ transaction(ids: [String]) {
 
     execute {
 	let nodeIDs = FlowIDTableStaking.getApprovedList()
+        ?? panic("Could not read approve list from storage")
 
 	// remove each node 
 	for nodeIDToRemove in ids {

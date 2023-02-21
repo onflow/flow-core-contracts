@@ -18,6 +18,7 @@ transaction(ids: [String]) {
 
     execute {
 		let nodeIDs = FlowIDTableStaking.getApprovedList()
+            ?? panic("Could not read approve list from storage")
 
 		// add any new node ID which doesn't already exist
 		for newNodeID in ids {

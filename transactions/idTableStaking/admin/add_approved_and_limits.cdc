@@ -21,6 +21,7 @@ transaction(ids: [String]) {
 
     execute {
 		let nodeIDs = FlowIDTableStaking.getApprovedList()
+			?? panic("Could not read approve list from storage")
 
 		let candidateNodeLimits = FlowIDTableStaking.getCandidateNodeLimits()
 			?? panic("Could not load candidate node limits")
