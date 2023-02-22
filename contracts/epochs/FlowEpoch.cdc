@@ -494,8 +494,7 @@ pub contract FlowEpoch {
             }
 
             // Load the amount of bonus tokens from storage
-            let bonusTokens = FlowEpoch.account.copy<UFix64>(from: /storage/FlowBonusTokenAmount)
-                ?? 0.0
+            let bonusTokens = FlowEpoch.getBonusTokens()
 
             // Subtract bonus tokens from the total supply to get the real supply
             if bonusTokens < flowTotalSupplyAfterPayout {
@@ -802,6 +801,12 @@ pub contract FlowEpoch {
 
     pub fun automaticRewardsEnabled(): Bool {
         return self.account.copy<Bool>(from: /storage/flowAutomaticRewardsEnabled) ?? false
+    }
+
+    /// Gets the current amount of bonus tokens left to be destroyed
+    pub fun getBonusTokens(): UFix64 {
+        return self.account.copy<UFix64>(from: /storage/FlowBonusTokenAmount)
+                ?? 0.0
     }
 
     init (currentEpochCounter: UInt64,

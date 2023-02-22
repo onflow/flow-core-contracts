@@ -879,6 +879,9 @@ func TestEpochQCDKG(t *testing.T) {
 			false,
 		)
 
+		result := executeScriptAndCheck(t, b, templates.GenerateGetBonusTokensScript(env), nil)
+		assertEqual(t, CadenceUFix64("1000000.0"), result)
+
 	})
 
 	t.Run("Can end the Epoch and start a new Epoch", func(t *testing.T) {
@@ -942,12 +945,15 @@ func TestEpochQCDKG(t *testing.T) {
 
 		verifyEpochMetadata(t, b, env,
 			EpochMetadata{
-				counter:               startEpochCounter + 1,
-				seed:                  "",
-				startView:             startView + numEpochViews,
-				endView:               startView + 2*numEpochViews - 1,
-				stakingEndView:        startView + numEpochViews + numStakingViews - 1,
-				totalRewards:          "6572143.3875",
+				counter:        startEpochCounter + 1,
+				seed:           "",
+				startView:      startView + numEpochViews,
+				endView:        startView + 2*numEpochViews - 1,
+				stakingEndView: startView + numEpochViews + numStakingViews - 1,
+				// The calculation of the total rewards should have been reduced because of the bonus tokens
+				// (total supply + current payount amount - bonus tokens) * reward increase factor
+				// (7000000000 + 1250000 - 1000000) * 0.00093871 = 6,571,204.6775
+				totalRewards:          "6571204.6775",
 				rewardsBreakdownArray: 0,
 				rewardsPaid:           false,
 				collectorClusters:     clusters,
@@ -956,7 +962,7 @@ func TestEpochQCDKG(t *testing.T) {
 
 		// Make sure the payout is the same as the total rewards in the epoch metadata
 		result = executeScriptAndCheck(t, b, templates.GenerateGetWeeklyPayoutScript(env), nil)
-		assertEqual(t, CadenceUFix64("6572143.3875"), result)
+		assertEqual(t, CadenceUFix64("6571204.6775"), result)
 
 		// DKG and QC are disabled at the end of the epoch
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGEnabledScript(env), nil)
@@ -965,13 +971,7 @@ func TestEpochQCDKG(t *testing.T) {
 		result = executeScriptAndCheck(t, b, templates.GenerateGetQCEnabledScript(env), nil)
 		assert.Equal(t, cadence.NewBool(false), result)
 
-		// DKG and QC are disabled at the end of the epoch
-		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGEnabledScript(env), nil)
-		assert.Equal(t, cadence.NewBool(false), result)
-
-		result = executeScriptAndCheck(t, b, templates.GenerateGetQCEnabledScript(env), nil)
-		assert.Equal(t, cadence.NewBool(false), result)
-
+		// The total supply did not increase because nobody was staked
 		result = executeScriptAndCheck(t, b, templates.GenerateGetFlowTotalSupplyScript(env), nil)
 		assertEqual(t, CadenceUFix64("7000000000.0"), result)
 
@@ -1012,12 +1012,15 @@ func TestEpochQCDKG(t *testing.T) {
 
 		verifyEpochMetadata(t, b, env,
 			EpochMetadata{
-				counter:               startEpochCounter + 2,
-				seed:                  "",
-				startView:             startView + 2*numEpochViews,
-				endView:               startView + 3*numEpochViews - 1,
-				stakingEndView:        startView + 2*numEpochViews + numStakingViews - 1,
-				totalRewards:          "6577139.33765799",
+				counter:        startEpochCounter + 2,
+				seed:           "",
+				startView:      startView + 2*numEpochViews,
+				endView:        startView + 3*numEpochViews - 1,
+				stakingEndView: startView + 2*numEpochViews + numStakingViews - 1,
+				// This calculation does not add the rewards for the epoch because
+				// they are not minted since they all come from fees
+				// (7006572144.3875 - 1000000) * 0.00093871 = 6,576,200.62765799
+				totalRewards:          "6576200.62765799",
 				rewardsBreakdownArray: 0,
 				rewardsPaid:           false,
 				collectorClusters:     clusters,
@@ -1026,7 +1029,7 @@ func TestEpochQCDKG(t *testing.T) {
 
 		// Make sure the payout is the same as the total rewards in the epoch metadata
 		result = executeScriptAndCheck(t, b, templates.GenerateGetWeeklyPayoutScript(env), nil)
-		assertEqual(t, CadenceUFix64("6577139.33765799"), result)
+		assertEqual(t, CadenceUFix64("6576200.62765799"), result)
 
 	})
 }
