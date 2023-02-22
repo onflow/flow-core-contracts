@@ -9,6 +9,7 @@
 
 transaction(bonusTokenAmount: UFix64) {
     prepare(signer: AuthAccount) {
-        self.account.save(bonusTokenAmount, to: /storage/FlowBonusTokenAmount)
+        signer.load<UFix64>(from: /storage/FlowBonusTokenAmount)
+        signer.save(bonusTokenAmount, to: /storage/FlowBonusTokenAmount)
     }
 }
