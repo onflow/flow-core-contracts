@@ -765,6 +765,10 @@ func TestIDTableApprovals(t *testing.T) {
 	_, accessStakingKey, _, accessNetworkingKey := generateKeysForNodeRegistration(t)
 	mintTokensForAccount(t, b, accessAddress, "1000000000.0")
 
+	joshAddress, _, joshSigner := newAccountWithAddress(b, accountKeys)
+	_, joshStakingKey, _, joshNetworkingKey := generateKeysForNodeRegistration(t)
+	mintTokensForAccount(t, b, joshAddress, "1000000000.0")
+
 	env.IDTableAddress = idTableAddress.Hex()
 	env.FlowFeesAddress = feesAddr.Hex()
 
@@ -815,15 +819,28 @@ func TestIDTableApprovals(t *testing.T) {
 		5,
 		false)
 
-	// Should be on the proposed list because it is above the minimum
-	result := executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
+	// Register another
+	committed[adminID] = registerNode(t, b, env,
+		joshAddress,
+		joshSigner,
+		joshID,
+		fmt.Sprintf("%0128d", josh),
+		joshNetworkingKey,
+		joshStakingKey,
+		amountToCommit,
+		committed[joshID],
+		5,
+		false)
 
+	// Access nodes should not be on the proposed list because they haven't been selected yet
+	// The collector node is not approved, so it is also not included
+	result := executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
 	idArray := result.(cadence.Array).Values
-	assert.Len(t, idArray, 1)
+	assert.Len(t, idArray, 0)
 
 	// Update the access node minimum to 100
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateChangeMinimumsScript(env), idTableAddress)
-	err = tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceUFix64("250000.0"), CadenceUFix64("250000.0"), CadenceUFix64("1250000.0"), CadenceUFix64("135000.0"), CadenceUFix64("0.0")}))
+	err = tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceUFix64("250000.0"), CadenceUFix64("250000.0"), CadenceUFix64("1250000.0"), CadenceUFix64("135000.0"), CadenceUFix64("100.0")}))
 	require.NoError(t, err)
 	signAndSubmit(
 		t, b, tx,
@@ -832,10 +849,10 @@ func TestIDTableApprovals(t *testing.T) {
 		false,
 	)
 
-	// Should not be on the proposed list because it is below the minimum and not approved
+	// None of the access nodes are on the proposed list because they are below the minimum and not approved
 	result = executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
 	idArray = result.(cadence.Array).Values
-	assert.Len(t, idArray, 1)
+	assert.Len(t, idArray, 0)
 
 	t.Run("Should be able to approve an access node that isn't above the minimum even if access is below the minimum", func(t *testing.T) {
 
@@ -852,12 +869,12 @@ func TestIDTableApprovals(t *testing.T) {
 		)
 		assertApprovedListEquals(t, b, env, initialNodeIDs)
 
-		// Access node should be on the proposed list because it is approved
-		// even though it is below the minimum
+		// Access node should still not be on the proposed list because it
+		// has not been selected by slot selection
 		result = executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
 
 		idArray = result.(cadence.Array).Values
-		assert.Len(t, idArray, 2)
+		assert.Len(t, idArray, 1)
 
 		assertCandidateLimitsEquals(t, b, env, []uint64{4, 3, 3, 3, 4})
 
@@ -927,6 +944,91 @@ func TestIDTableApprovals(t *testing.T) {
 
 	})
 
+	// Move tokens and start a new staking auction
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateMoveTokensScript(env), idTableAddress)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]crypto.Signer{IDTableSigner},
+		false,
+	)
+
+	// The current participant access node is participating with zero stake even though the minimum is 100,
+	// because it was approved by the admin
+	assertRoleCountsEquals(t, b, env, []uint16{0, 0, 0, 0, 1})
+	result = executeScriptAndCheck(t, b, templates.GenerateGetCommittedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(accessID))})
+	assertEqual(t, CadenceUFix64("0.0"), result)
+	result = executeScriptAndCheck(t, b, templates.GenerateGetStakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(accessID))})
+	assertEqual(t, CadenceUFix64("0.0"), result)
+	result = executeScriptAndCheck(t, b, templates.GenerateReturnCurrentTableScript(env), nil)
+	idArray = result.(cadence.Array).Values
+	assert.Len(t, idArray, 1)
+	assertEqual(t, CadenceString(accessID), idArray[0])
+
+	t.Run("Adding new stake to a zero-stake access node who is already a participant should not add them to the candidate list", func(t *testing.T) {
+		amountToCommit = 10000000000
+		commitNewTokens(t, b, env,
+			accessAddress,
+			accessSigner,
+			amountToCommit,
+			committed[accessID],
+			false)
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetCommittedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(accessID))})
+		assertEqual(t, CadenceUFix64("100.0"), result)
+
+		// Check that they were not added to the candidate node list
+		// expected candidate node list should be empty
+		candidates := CandidateNodes{
+			collector:    []string{},
+			consensus:    []string{},
+			execution:    []string{},
+			verification: []string{},
+			access:       []string{},
+		}
+
+		assertCandidateNodeListEquals(t, b, env, candidates)
+
+	})
+
+	// Approve josh access node
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateAddApprovedAndLimitsScript(env), idTableAddress)
+
+	err = tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(accessID), CadenceString(joshID)}))
+	require.NoError(t, err)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]crypto.Signer{IDTableSigner},
+		false,
+	)
+
+	t.Run("Adding new stake to a non-participant, approved, zero-stake access node should add them to the candidate list", func(t *testing.T) {
+		amountToCommit = 10000000000
+		commitNewTokens(t, b, env,
+			joshAddress,
+			joshSigner,
+			amountToCommit,
+			committed[joshID],
+			false)
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetCommittedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(joshID))})
+		assertEqual(t, CadenceUFix64("100.0"), result)
+
+		// Check that they were added to the candidate node list
+		candidates := CandidateNodes{
+			collector:    []string{},
+			consensus:    []string{},
+			execution:    []string{},
+			verification: []string{},
+			access:       []string{joshID},
+		}
+
+		assertCandidateNodeListEquals(t, b, env, candidates)
+
+	})
 }
 
 func TestIDTableStaking(t *testing.T) {
@@ -1285,9 +1387,11 @@ func TestIDTableStaking(t *testing.T) {
 		assert.Len(t, idArray, 4)
 
 		// read the proposed nodes table and check that our node ids exists
+		// The access node is not on the proposed list yet because it hasn't been selected
+		// by slot selection
 		result = executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
 		idArray = result.(cadence.Array).Values
-		assert.Len(t, idArray, 3)
+		assert.Len(t, idArray, 2)
 	})
 
 	t.Run("Should be able to end the staking auction, which removes insufficiently staked nodes", func(t *testing.T) {
@@ -1510,6 +1614,19 @@ func TestIDTableStaking(t *testing.T) {
 			amountToCommit,
 			committed[joshID],
 			false)
+
+		// Re-add the node to the approve list since it was removed during the last end staking
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
+
+		err := tx.AddArgument(fourNodeIDDict)
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
+			false,
+		)
 
 		result := executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
 
