@@ -47,11 +47,6 @@ func TestStakingCollection(t *testing.T) {
 	assert.NotNil(t, contract)
 }
 
-func TestFlowContractAudits(t *testing.T) {
-	contract := contracts.FlowContractAudits()
-	assert.NotNil(t, contract)
-}
-
 func TestNodeVersionBeacon(t *testing.T) {
 	contract := contracts.NodeVersionBeacon()
 	assert.NotNil(t, contract)
