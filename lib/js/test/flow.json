@@ -6,7 +6,7 @@
 		}
 	},
 	"contracts": {
-		"ExecutionNodeVersionBeacon": "../../../contracts/ExecutionNodeVersionBeacon.cdc"
+		"NodeVersionBeacon": "../../../contracts/NodeVersionBeacon.cdc"
 	},
 	"networks": {
 		"emulator": "127.0.0.1:3569",
@@ -21,7 +21,7 @@
 	},
 	"deployments": {
 		"emulator": {
-			"emulator-account": [ "ExecutionNodeVersionBeacon" ]
+			"emulator-account": [ "NodeVersionBeacon" ]
 		}
 	}
 }

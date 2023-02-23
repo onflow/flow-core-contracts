@@ -1,6 +1,6 @@
 /// This contract is used to defined block height and software version boundaries
-/// for the software run by Execution Nodes.
-pub contract ExecutionNodeVersionBeacon {
+/// for all nodes.
+pub contract NodeVersionBeacon {
 
     /// Struct representing software version as Semantic Version
     /// along with helper functions
@@ -12,15 +12,11 @@ pub contract ExecutionNodeVersionBeacon {
         pub let patch: UInt8
         pub let preRelease: String?
 
-        /// Value denoting compatibility with previous versions
-        pub let isBackwardsCompatible: Bool
-
-        init(major: UInt8, minor: UInt8, patch: UInt8, preRelease: String?, isBackwardsCompatible: Bool) {
+        init(major: UInt8, minor: UInt8, patch: UInt8, preRelease: String?) {
             self.major = major
             self.minor = minor
             self.patch = patch
             self.preRelease = preRelease
-            self.isBackwardsCompatible = isBackwardsCompatible
         }
 
         /// Returns version in Semver format (e.g. v<major>.<minor>.<patch>-<preRelease>)
@@ -89,15 +85,28 @@ pub contract ExecutionNodeVersionBeacon {
         }
     }
 
-    /// Event emitted any time a change is made to versionTable
-    pub event ExecutionNodeVersionTableAddition(height: UInt64, version: Semver)
-    pub event ExecutionNodeVersionTableDeletion(height: UInt64, version: Semver)
+    /// Struct for emitting the current and incoming versions along with their block
+    pub struct VersionBoundary {
+        pub let blockHeight: UInt64
+        pub let version: Semver
+
+        init(_ blockHeight: UInt64, _ version: Semver){
+            self.blockHeight = blockHeight
+            self.version = version
+        }
+    }
+
+    /// Event emitted every block if there has been any changes to the table
+    pub event VersionBeacon(
+        versionBoundaries: [VersionBoundary],
+        sequence: UInt64
+    )
 
     /// Event emitted any time the version update buffer period or variance is updated
-    pub event ExecutionNodeVersionUpdateBufferChanged(newVersionUpdateBuffer: UInt64)
+    pub event NodeVersionUpdateBufferChanged(newVersionUpdateBuffer: UInt64)
 
-    /// Canonical storage path for ExecutionNodeVersionAdmin
-    pub let ExecutionNodeVersionAdminStoragePath: StoragePath
+    /// Canonical storage path for NodeVersionAdmin
+    pub let NodeVersionAdminStoragePath: StoragePath
 
     /// Table dictating minimum version - {blockHeight: Semver}
     /// Should be ordered by block height (index) which is
@@ -116,94 +125,137 @@ pub contract ExecutionNodeVersionBeacon {
     /// Sorted Array containing historical block heights where version boundaries were defined
     access(contract) var archivedBlockBoundaries: [UInt64]
 
-    /// Admin resource that manages the Execution Node versioning
+    /// Sequence number of the VersionBeacon event
+    access(contract) var nextVersionBeaconSequence: UInt64
+
+    /// Boolean flag for keeping track of changes since the last time VersionBeacon was emitted
+    access(contract) var tableUpdated: Bool
+
+    /// Admin resource that manages node versioning
     /// maintained in this contract
-    pub resource ExecutionNodeVersionAdmin {
+    pub resource NodeVersionAdmin {
         /// Update the minimum version to take effect at the given block height
         pub fun addVersionBoundaryToTable(targetBlockHeight: UInt64, newVersion: Semver) {
             pre {
-                targetBlockHeight > getCurrentBlock().height + ExecutionNodeVersionBeacon.versionUpdateBuffer
+                targetBlockHeight > getCurrentBlock().height + NodeVersionBeacon.versionUpdateBuffer
                     : "Target block height occurs too soon to update EN version."
             }
 
             // Insert mapping into version table
-            ExecutionNodeVersionBeacon.versionTable.insert(
+            NodeVersionBeacon.versionTable.insert(
                 key: targetBlockHeight,
                 newVersion
             )
             // Insert the version boundary's target block height into the
             // array maintaining all upcoming block height boundaries
-            ExecutionNodeVersionBeacon.insertUpcomingBlockBoundary(targetBlockHeight)
+            NodeVersionBeacon.insertUpcomingBlockBoundary(targetBlockHeight)
 
-            emit ExecutionNodeVersionTableAddition(height: targetBlockHeight, version: newVersion)
+            // Set the flag to true so the event will be emitted next time emitChanges is called
+            NodeVersionBeacon.tableUpdated = true
         }
 
         /// Deletes the last entry in versionTable which defines an upcoming version boundary
         /// Could be helpful in case rollback is needed
         pub fun deleteUpcomingVersionBoundary(blockHeight: UInt64): Semver {
             pre {
-                ExecutionNodeVersionBeacon.versionTable.keys.contains(blockHeight): "No boundary defined at that blockHeight."
-                ExecutionNodeVersionBeacon.upcomingBlockBoundaries.contains(blockHeight): "Boundary not defined in upcomingBlockBoundaries."
+                NodeVersionBeacon.versionTable.keys.contains(blockHeight): "No boundary defined at that blockHeight."
+                NodeVersionBeacon.upcomingBlockBoundaries.contains(blockHeight): "Boundary not defined in upcomingBlockBoundaries."
             }
 
             // Ensure deletion occurs with enough time for nodes to respond
             assert(
-                blockHeight > getCurrentBlock().height + ExecutionNodeVersionBeacon.versionUpdateBuffer,
+                blockHeight > getCurrentBlock().height + NodeVersionBeacon.versionUpdateBuffer,
                 message: "Cannot delete version boundary within update buffer period or historical mappings."
             )
 
-            // Remove the version mapping and upcomingBlockBoundaries then emit event
-            let removed: Semver = ExecutionNodeVersionBeacon.versionTable.remove(
+            // Remove the version mapping and upcomingBlockBoundaries
+            let removed: Semver = NodeVersionBeacon.versionTable.remove(
                 key: blockHeight
             )!
-            ExecutionNodeVersionBeacon.upcomingBlockBoundaries.remove(
-                at: ExecutionNodeVersionBeacon.upcomingBlockBoundaries.firstIndex(of: blockHeight)!
+            NodeVersionBeacon.upcomingBlockBoundaries.remove(
+                at: NodeVersionBeacon.upcomingBlockBoundaries.firstIndex(of: blockHeight)!
             )
 
-            emit ExecutionNodeVersionTableDeletion(height: blockHeight, version: removed)
-
+            // Set the flag to true so the event will be emitted next time emitChanges is called
+            NodeVersionBeacon.tableUpdated = true
             // Clean up upcoming & archived block boundaries before
             // returning removed version for verification
-            ExecutionNodeVersionBeacon.archiveOldBlockBoundaries()
+            NodeVersionBeacon.archiveOldBlockBoundaries()
             return removed
+        }
+
+        /// Separate method to emit the VersionBeacon event
+        ///
+        /// @param newVersions
+        /// @param deletedVersions
+        ///
+        pub fun emitVersionBeacon() {
+
+            // If the table has been updated since the last call
+            if (NodeVersionBeacon.tableUpdated) {
+
+                // Create an ordered by block [{block, version}] from the versionTable.
+                // Since upcomingBlockBoundaries and versionTable are updated at the same
+                // time we can be sure that if there's an upcomingBlockBoundary, there's
+                // a version on the table for it
+                let tableUpdates: [VersionBoundary] = []
+                for upcomingBlockBoundary in NodeVersionBeacon.upcomingBlockBoundaries {
+                    tableUpdates.append(VersionBoundary(
+                                            upcomingBlockBoundary,
+                                            NodeVersionBeacon.versionTable[upcomingBlockBoundary]!
+                                        ))
+                }
+                emit VersionBeacon(versionBoundaries: tableUpdates,
+                    sequence: NodeVersionBeacon.nextVersionBeaconSequence)
+                // After emitting the event increase the event sequence number and set the flag to false
+                // so the event won't be emitted on the next block if there isn't any changes to the table
+                NodeVersionBeacon.nextVersionBeaconSequence = NodeVersionBeacon.nextVersionBeaconSequence + 1
+                NodeVersionBeacon.tableUpdated = false
+                
+            }
         }
 
         /// Updates the number of blocks that must buffer updates to the versionTable
         /// and the block number the version is targeting
         pub fun changeVersionUpdateBuffer(newUpdateBufferInBlocks: UInt64) {
             post {
-                ExecutionNodeVersionBeacon.versionUpdateBuffer == newUpdateBufferInBlocks: "Update buffer was not properly changed! Reverted."
+                NodeVersionBeacon.versionUpdateBuffer == newUpdateBufferInBlocks: "Update buffer was not properly changed! Reverted."
             }
 
             // Get current block height.
             let currentBlockHeight = getCurrentBlock().height
             // Cleanup the upcoming block numbers
-            ExecutionNodeVersionBeacon.archiveOldBlockBoundaries();
+            NodeVersionBeacon.archiveOldBlockBoundaries();
 
             // No boundaries defined beyond current block, safe to make changes
-            if ExecutionNodeVersionBeacon.upcomingBlockBoundaries.length == 0 {
-                ExecutionNodeVersionBeacon.versionUpdateBuffer = newUpdateBufferInBlocks
+            if NodeVersionBeacon.upcomingBlockBoundaries.length == 0 {
+                NodeVersionBeacon.versionUpdateBuffer = newUpdateBufferInBlocks
             } else {
                 // Get the proximal upcoming boundary
-                let nextBlockBoundary = ExecutionNodeVersionBeacon.upcomingBlockBoundaries[0]
+                let nextBlockBoundary = NodeVersionBeacon.upcomingBlockBoundaries[0]
 
                 // Ensure that the we're not currently within the old or new buffer period
                 // of the next block height boundary
                 assert(
-                    currentBlockHeight + ExecutionNodeVersionBeacon.versionUpdateBuffer < nextBlockBoundary &&
+                    currentBlockHeight + NodeVersionBeacon.versionUpdateBuffer < nextBlockBoundary &&
                     currentBlockHeight + newUpdateBufferInBlocks < nextBlockBoundary,
                     message: "Updating buffer now breaks version boundary update expectations. Try updating buffer after next version boundary."
                 )
 
                 // We can now safely change the versionUpdateBuffer
-                ExecutionNodeVersionBeacon.versionUpdateBuffer = newUpdateBufferInBlocks
+                NodeVersionBeacon.versionUpdateBuffer = newUpdateBufferInBlocks
             }
 
-            emit ExecutionNodeVersionUpdateBufferChanged(newVersionUpdateBuffer: newUpdateBufferInBlocks)
+            emit NodeVersionUpdateBufferChanged(newVersionUpdateBuffer: newUpdateBufferInBlocks)
         }
     }
 
-    /// Returns the current updateBuffer period within which Execution Nodes
+    /// Returns the next number of sequence for the VersionBeacon event
+    pub fun getNextVersionBeaconSequence (): UInt64 {
+        return NodeVersionBeacon.nextVersionBeaconSequence
+    }
+
+    /// Returns the current updateBuffer period within which nodes
     /// can be assured the version will not change
     pub fun getVersionUpdateBuffer(): UInt64 {
         return self.versionUpdateBuffer
@@ -216,7 +268,7 @@ pub contract ExecutionNodeVersionBeacon {
 
     /// Function that returns the version that was defined at the most
     /// recent block height boundary or null if no upcoming boundary is defined
-    pub fun getCurrentExecutionNodeVersion(): Semver? {
+    pub fun getCurrentNodeVersion(): Semver? {
         // Update both upcomingBlockBoundaries & archivedBlockBoundaries arrays
         self.archiveOldBlockBoundaries()
 
@@ -233,16 +285,13 @@ pub contract ExecutionNodeVersionBeacon {
     /// associated version boundary - [blockBoundary: UInt64, version: Semver]
     /// If there is no upcoming version boundary defined, returns empty array - []
     pub fun getNextVersionBoundaryPair(): [AnyStruct] {
-
         // Update upcomingBlockBoundaries so we know we're only dealing with future boundaries
         self.archiveOldBlockBoundaries()
-
         // No Future boundaries defined OR table contains no versions will
         // return empty array as there are no boundaries to be concerned with
         if self.upcomingBlockBoundaries.length == 0 || self.versionTable.length == 0 {
             return []
         }
-
         // By now we know the next boundary we're concerned with is defined as
         // the first element in the upcomingBlockBoundaries array
         return [
@@ -266,17 +315,16 @@ pub contract ExecutionNodeVersionBeacon {
             // at that block boundary
             // OR
             // the minimum stated version is backwards compatible
-            return (
-                version.coreGreaterThanOrEqualTo(minimumVersion)
-                && version.isBackwardsCompatible
-                )
-                || minimumVersion.isBackwardsCompatible
+            return version.coreGreaterThanOrEqualTo(minimumVersion)
         }
         // Assuming no previous boundary exists, return false
         return false
     }
 
-    /// Find the ascending sort insertion index for the passed block height
+    /// Creates a new position on the upcomingBlockBoundaries array in the proper order
+    /// 
+    /// @param targetBlockHeight: Height of the block to be included on the list
+    ///
     access(contract) fun insertUpcomingBlockBoundary(_ targetBlockHeight: UInt64) {
         // Update upcoming & archived block boundaries based on current block height
         self.archiveOldBlockBoundaries()
@@ -285,16 +333,19 @@ pub contract ExecutionNodeVersionBeacon {
         // upcoming block boundaries, simply append
         if self.upcomingBlockBoundaries.length == 0
             || targetBlockHeight > self.upcomingBlockBoundaries[self.upcomingBlockBoundaries.length - 1] {
+            
             self.upcomingBlockBoundaries.append(targetBlockHeight)
-        }
+        
+        } else {
 
-        // Find the index of the closest block height less than the target
-        var i = 0
-        while self.upcomingBlockBoundaries[i] < targetBlockHeight {
-            i = i + 1
+            // If there any upcomingBlockBoundaries, then find the index of the closest block height less than the target
+            var i = 0
+            while self.upcomingBlockBoundaries[i] < targetBlockHeight {
+                i = i + 1
+            }
+            // Insert at the discovered appropriate index
+            self.upcomingBlockBoundaries.insert(at: i, targetBlockHeight)
         }
-        // Insert at the discovered appropriate index
-        self.upcomingBlockBoundaries.insert(at: i, targetBlockHeight)
     }
 
     /// Removes historic block heights from array maintaining upcoming block version boundaries
@@ -354,14 +405,17 @@ pub contract ExecutionNodeVersionBeacon {
 
     init(versionUpdateBuffer: UInt64) {
         /// Initialize contract variables
-        self.ExecutionNodeVersionAdminStoragePath = /storage/ExecutionNodeVersionAdmin
+        self.NodeVersionAdminStoragePath = /storage/NodeVersionBeaconAdmin
         self.versionTable = {}
         self.versionUpdateBuffer = versionUpdateBuffer
         self.archivedBlockBoundaries = []
         self.upcomingBlockBoundaries = []
+        self.nextVersionBeaconSequence = 0
+        self.tableUpdated = false
 
-        /// Save ExecutionNodeVersionAdmin to storage
-        self.account.save(<-create ExecutionNodeVersionAdmin(), to: self.ExecutionNodeVersionAdminStoragePath)
+
+        /// Save NodeVersionAdmin to storage
+        self.account.save(<-create NodeVersionAdmin(), to: self.NodeVersionAdminStoragePath)
     }
 }
  

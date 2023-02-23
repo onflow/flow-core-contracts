@@ -70,16 +70,6 @@
 // epoch/scripts/get_epoch_phase.cdc (111B)
 // epoch/scripts/get_proposed_counter.cdc (108B)
 // epoch/scripts/get_randomize.cdc (121B)
-// executionNodeVersionBeacon/admin/add_version_to_table.cdc (1.525kB)
-// executionNodeVersionBeacon/admin/change_version_update_buffer.cdc (963B)
-// executionNodeVersionBeacon/admin/change_version_update_buffer_variance.cdc (974B)
-// executionNodeVersionBeacon/admin/delete_upcoming_version_boundary.cdc (1.101kB)
-// executionNodeVersionBeacon/scripts/get_current_execution_node_version.cdc (300B)
-// executionNodeVersionBeacon/scripts/get_current_execution_node_version_as_string.cdc (358B)
-// executionNodeVersionBeacon/scripts/get_next_version_boundary_pair.cdc (413B)
-// executionNodeVersionBeacon/scripts/get_version_table.cdc (342B)
-// executionNodeVersionBeacon/scripts/get_version_update_buffer.cdc (332B)
-// executionNodeVersionBeacon/scripts/is_compatible_version.cdc (431B)
 // flowToken/burn_tokens.cdc (1.085kB)
 // flowToken/create_forwarder.cdc (1.815kB)
 // flowToken/mint_tokens.cdc (893B)
@@ -220,6 +210,18 @@
 // lockedTokens/user/get_total_balance.cdc (2.858kB)
 // lockedTokens/user/get_unlock_limit.cdc (433B)
 // lockedTokens/user/withdraw_tokens.cdc (713B)
+// nodeVersionBeacon/admin/add_version_to_table.cdc (1.295kB)
+// nodeVersionBeacon/admin/change_version_update_buffer.cdc (828B)
+// nodeVersionBeacon/admin/change_version_update_buffer_variance.cdc (839B)
+// nodeVersionBeacon/admin/delete_upcoming_version_boundary.cdc (966B)
+// nodeVersionBeacon/admin/emit_version_table.cdc (625B)
+// nodeVersionBeacon/scripts/get_current_node_version.cdc (255B)
+// nodeVersionBeacon/scripts/get_current_node_version_as_string.cdc (322B)
+// nodeVersionBeacon/scripts/get_next_table_updated_sequence.cdc (224B)
+// nodeVersionBeacon/scripts/get_next_version_boundary_pair.cdc (377B)
+// nodeVersionBeacon/scripts/get_version_table.cdc (297B)
+// nodeVersionBeacon/scripts/get_version_update_buffer.cdc (305B)
+// nodeVersionBeacon/scripts/is_compatible_version.cdc (395B)
 // quorumCertificate/admin/publish_voter.cdc (311B)
 // quorumCertificate/admin/start_voting.cdc (1.495kB)
 // quorumCertificate/admin/stop_voting.cdc (354B)
@@ -1755,206 +1757,6 @@ func epochScriptsGet_randomizeCdc() (*asset, error) {
 
 	info := bindataFileInfo{name: "epoch/scripts/get_randomize.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x15, 0x1a, 0x8d, 0x4d, 0xe8, 0x67, 0x7a, 0x7b, 0xc6, 0xeb, 0x95, 0xae, 0xc7, 0x7a, 0x1a, 0x50, 0xb8, 0x2b, 0xa3, 0xb1, 0x4c, 0xa0, 0x83, 0xea, 0xa9, 0x8e, 0xc1, 0x5b, 0x3d, 0x41, 0x8a, 0x79}}
-	return a, nil
-}
-
-var _executionnodeversionbeaconAdminAdd_version_to_tableCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x9c\x54\x41\x6f\xda\x4c\x10\xbd\xfb\x57\xcc\xc7\xe1\xab\x91\x10\xf4\x50\x55\x95\xd5\x34\x02\x62\xa9\x39\x14\x22\x20\x51\xa5\xaa\x87\x61\x77\x80\x6d\xec\x5d\x77\x76\x1c\x52\x55\xf9\xef\xd5\xda\x06\x12\x08\xa0\xf6\xfa\xc6\x3b\xef\xed\x7b\xcf\x6b\xf2\xc2\xb1\x40\xfa\x48\xaa\x14\xe3\xec\xc8\x69\xba\x23\xf6\xc6\xd9\x01\xa1\x72\x16\x16\xec\x72\x78\xfb\x98\x7e\x4d\x87\xb7\xb3\xeb\xf1\x68\x34\xbe\x4a\xef\xd2\xc9\xf4\x7a\x3c\x1a\xa4\xfd\xe1\x78\xd4\xbf\xba\x9a\xa4\xd3\x69\x14\xf5\x7a\x3d\x98\x31\x5a\x8f\x2a\xac\x02\x59\xa1\x00\x66\x99\x5b\xfb\x57\x09\xfa\x3a\x37\x16\xc4\x01\x6a\x0d\x08\x96\xd6\xf0\x50\x4f\x02\x28\x2b\xaa\x36\x6e\x21\x9c\x67\x04\x9a\x16\xc6\x1a\xbb\x04\xdc\x0e\xe6\xae\xb4\x1a\xf9\x17\xa0\x84\x43\x20\xc8\x4b\x92\x41\xe6\xd4\xfd\x67\x32\xcb\x95\x44\x91\xec\x54\xc5\x11\x04\xa6\x2f\xf8\xc3\x71\x02\xb7\xd7\x56\x3e\x74\x1a\xc8\xd8\x7d\xe8\x06\x45\xad\xf6\x20\xa6\x09\x65\x84\x9e\x12\x98\x0a\x1b\xbb\xbc\x0c\x13\xe3\x07\xa8\xee\xd7\xc8\xda\x0f\x5d\x5e\xa0\x98\x79\x46\x09\x0c\x9c\xcb\xc2\xf8\x40\x53\xbd\xf4\xfd\xbb\xa8\x0d\xbf\xa3\x08\x20\xa3\x53\x21\x54\x4e\x4d\x68\x91\xc0\xff\xc7\x3f\xea\x1e\xf5\xb8\xd9\x6f\x69\xdd\xa0\xc9\x09\xae\xee\x94\xf2\x07\xe2\x20\xaa\x60\x2a\x90\x29\x46\xa5\x24\x81\x7e\x29\xab\xbe\x52\xae\xb4\x12\x44\x03\x00\xf4\x7a\x30\x64\x42\xa1\xca\xf8\xe7\x01\x56\xad\x09\x60\x81\xde\x93\x86\x02\x19\x73\x12\x62\x5f\x1d\xf4\x94\x2d\xba\x3b\x3d\x70\x71\x5e\x50\x5c\x1d\x04\xc8\xeb\xe4\x36\x19\x76\x20\xaf\x73\xdb\x24\xd8\x81\xa2\x4e\x6d\x93\x5f\x27\xdc\x63\x9b\xd9\x8b\x08\x3b\xc7\x72\x7b\x15\xae\x04\xb4\xa3\xcd\xcd\x07\x8e\xd9\xad\x01\x81\x69\x41\x4c\x56\x51\x53\xdb\x13\x65\x67\xf2\xae\x64\x45\x3b\x13\xce\x87\x0e\x17\x10\x02\xe8\xce\x2b\xbe\x8f\xff\xd4\x80\x4f\x8d\x79\x71\xc8\xe5\x64\xfa\x47\x57\x4c\xc5\x31\x2e\xe9\x06\x65\xd5\x6e\xb6\x5d\x5e\x42\x81\xd6\xa8\xb8\x35\x74\x65\xa6\xed\x1b\x81\x5a\xe4\xb9\x2a\xc3\xa4\xf1\xa1\x15\x56\x3d\x05\x4b\xa9\x3a\x41\xbb\x62\xf5\xb5\x3e\x68\x55\xe3\xef\x8b\x27\xe1\x6f\xac\xec\xa2\xd6\x9b\x41\xf3\x6a\xcc\xdc\x2c\x6c\x89\x5f\xf9\x43\x0f\xa0\xce\x8b\x5f\x68\xaf\xc3\xdb\x9b\x14\xce\x4b\x7d\x8b\x13\x36\x2f\x49\x1a\xa0\xa6\x6f\x7f\x3b\x60\xfb\xfe\x5f\xd7\x0b\x1b\x25\xe9\xcf\x12\xb3\x99\x8b\xf7\x09\x21\x81\xd6\xe8\x99\x3b\x6b\xf4\x60\x9d\x84\xe7\x94\xf4\x9e\x57\x15\x4b\xab\x92\xf8\x14\xfd\x09\x00\x00\xff\xff\xaf\x0f\x8c\x34\xf5\x05\x00\x00"
-
-func executionnodeversionbeaconAdminAdd_version_to_tableCdcBytes() ([]byte, error) {
-	return bindataRead(
-		_executionnodeversionbeaconAdminAdd_version_to_tableCdc,
-		"executionNodeVersionBeacon/admin/add_version_to_table.cdc",
-	)
-}
-
-func executionnodeversionbeaconAdminAdd_version_to_tableCdc() (*asset, error) {
-	bytes, err := executionnodeversionbeaconAdminAdd_version_to_tableCdcBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "executionNodeVersionBeacon/admin/add_version_to_table.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x20, 0xdb, 0x6f, 0x8e, 0xfd, 0x3, 0xaa, 0xf, 0x53, 0x76, 0x16, 0x45, 0xaf, 0x15, 0x78, 0x30, 0x96, 0x42, 0x92, 0xfb, 0xf9, 0xe4, 0x33, 0x31, 0x92, 0x5e, 0x8c, 0xfb, 0xf1, 0x49, 0xa8, 0x45}}
-	return a, nil
-}
-
-var _executionnodeversionbeaconAdminChange_version_update_bufferCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x9c\x52\x4d\xcf\xd2\x40\x10\xbe\xf7\x57\x3c\xe1\xa0\x70\xa1\x1e\x8c\x87\x46\x7c\xd3\x42\x0f\x5c\x8a\x81\x17\xe2\x75\xdd\x4e\x69\x63\x3b\xd3\x6c\xa7\xf2\x26\x86\xff\x6e\xb6\x10\x3f\x62\x8b\xc6\xdb\x6e\x76\xe6\xf9\xda\xa7\x6a\x5a\x71\x8a\xf4\x85\x6c\xaf\x95\x70\x26\x39\x9d\xc8\x75\x95\x70\x42\xc6\x0a\xa3\x70\xd2\xe0\xcd\x4b\xfa\x29\x5d\x1f\x9f\xb7\xbb\x2c\xdb\x6d\xd2\x53\xba\x3f\x6c\x77\x59\x92\xc6\xeb\x5d\x16\x6f\x36\xfb\xf4\x70\x08\x82\x30\x0c\xf1\xec\x0c\x77\xc6\x7a\x28\x68\x69\x14\xa6\xae\xe5\xd2\x8d\x12\xc4\x79\x53\x31\x54\x60\x4b\xc3\x67\x1a\xf6\xb5\x24\xe4\x54\x54\x4c\x39\xbe\xde\xc6\x8e\x6d\x6e\x94\x92\xbe\x28\xc8\x05\x81\xfe\x24\x98\x33\x5d\x4e\x7f\xce\x44\x38\x6e\x59\xdf\xbd\x5d\xe0\x5b\x10\x00\x35\x3d\xb2\x37\x68\xd8\x53\x11\xe1\xd5\xf4\xd0\x72\x52\xbd\x27\x68\x1d\xb5\xc6\xd1\xdc\x58\xab\x11\xe2\x5e\xcb\xd8\x5a\xe9\x59\xbd\x00\x00\x08\x43\x24\xe2\x9c\x5c\x60\xe0\xa8\x20\x47\x6c\xc9\xfb\xf6\x66\xa7\x83\xa9\x9a\xb6\xa6\x86\x58\x2b\x3e\xc3\x51\x27\xbd\xb3\x34\x00\x76\x54\x17\xa3\x9a\x7e\xf7\x84\x15\xbc\xa6\xe5\xe7\x81\xfc\xfd\x7f\x19\xfc\x30\x10\x02\x73\x5f\x83\xe8\x41\x90\xd3\x10\x07\x15\x67\xce\xf4\xd1\x68\xb9\xb8\xa3\x3d\x3d\xa1\x35\x5c\xd9\xf9\x6c\x2d\x7d\x9d\xf3\x6b\xc5\x4d\xe4\xdf\x7e\x0a\xfb\x7b\x0e\x33\x0f\x75\xf5\xf1\xd3\xb0\x41\xf7\xac\xff\x31\x9a\xe5\xad\x72\x23\xed\xf1\xa5\xfa\xf5\xbe\xe5\xa4\x16\xfb\xa5\x8b\x30\xde\xb6\x1f\x3a\x5a\xe9\xf4\xa6\xe1\x41\x48\x67\xd2\x31\xce\x05\x56\xab\x09\x7c\x44\x98\xdd\x4f\x17\xd3\x81\x45\xd1\x0f\xcf\xf9\x6c\x60\xbe\x06\xdf\x03\x00\x00\xff\xff\x71\x22\xbf\x5f\xc3\x03\x00\x00"
-
-func executionnodeversionbeaconAdminChange_version_update_bufferCdcBytes() ([]byte, error) {
-	return bindataRead(
-		_executionnodeversionbeaconAdminChange_version_update_bufferCdc,
-		"executionNodeVersionBeacon/admin/change_version_update_buffer.cdc",
-	)
-}
-
-func executionnodeversionbeaconAdminChange_version_update_bufferCdc() (*asset, error) {
-	bytes, err := executionnodeversionbeaconAdminChange_version_update_bufferCdcBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "executionNodeVersionBeacon/admin/change_version_update_buffer.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xf2, 0x51, 0x57, 0x79, 0xba, 0x84, 0x33, 0xd6, 0x0, 0x90, 0x67, 0xd9, 0xac, 0x16, 0xd, 0xa0, 0x25, 0x2b, 0x18, 0x8d, 0xe4, 0xef, 0xd6, 0xf, 0xa8, 0x3b, 0x7b, 0xb1, 0xc9, 0x9f, 0xeb, 0x3}}
-	return a, nil
-}
-
-var _executionnodeversionbeaconAdminChange_version_update_buffer_varianceCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x9c\x92\x41\x8b\xdb\x30\x10\x85\xef\xfe\x15\x8f\x1c\xda\xe4\x12\xf7\x50\x7a\x30\x4d\x17\x27\x71\x61\x2f\x4e\x49\x36\xa1\x57\x55\x1e\xc7\x02\x5b\x63\xe4\x71\x13\x28\xfb\xdf\x8b\xe4\x90\x52\x88\xdd\xb2\x57\x31\xf3\xbe\xf7\x9e\xc6\x34\x2d\x3b\x41\x76\x25\xdd\x8b\x61\x9b\x73\x41\x27\x72\x9d\x61\xbb\x26\xa5\xd9\xa2\x74\xdc\xe0\xc3\x35\xfb\x9e\x6d\x8e\x2f\xcf\xbb\x3c\xdf\x6d\xb3\x53\xb6\x3f\x3c\xef\xf2\x75\x96\x6e\x76\x79\xba\xdd\xee\xb3\xc3\x21\x8a\xe2\x38\xc6\x8b\x53\xb6\x53\xda\x4b\x41\x2a\x25\x50\x75\xcd\x97\xee\x21\x20\x2d\x1a\x63\x21\x0c\x5d\x29\x7b\xa6\xb0\x2f\x15\xa1\xa0\xd2\x58\x2a\xf0\x73\x18\x3b\xb6\x85\x12\x5a\xf7\x65\x49\xee\xa4\x9c\x51\x56\x53\x14\xc9\x1f\xd0\xdc\xd2\xe5\xd1\x50\x82\xe3\x57\x73\xfd\xf4\x71\x81\x5f\x51\x04\xd4\x34\x95\x33\x98\xd9\x53\x99\xe0\xdd\xf8\xd0\x72\x34\x86\x07\xb4\x8e\x5a\xe5\x68\xae\xb4\x96\x04\x69\x2f\x55\xaa\x35\xf7\x56\xbc\x01\x00\x88\x63\xac\xd9\x39\xbe\x40\xc1\x51\x49\x8e\xac\x26\x5f\x80\x4f\x3d\xde\x90\x69\xda\x9a\x1a\xb2\x62\xec\x19\x8e\x3a\xee\x9d\xa6\x20\xd8\x51\x5d\x3e\xf4\xf4\x77\x26\xac\xe0\x3d\x2d\x7f\x04\xf8\xe7\x37\x05\xfc\x12\x80\xc0\xdc\xdf\x43\x32\x51\xe4\xb8\xc4\x41\xd8\xa9\x33\x7d\x53\x52\x2d\x6e\x6a\x4f\x4f\x68\x95\x35\x7a\x3e\xdb\x70\x5f\x17\xf6\xbd\x60\x30\xf9\xaf\x9f\xc2\xfe\xd6\xc3\xcc\x4b\xbd\xfa\xfa\x29\x6c\xd0\xad\xeb\xff\xac\x66\x39\xdc\xde\x69\xfc\xd4\xc6\xae\xeb\xce\x6d\xb9\x93\x81\x39\x51\xca\x99\x64\x8a\xb1\xc0\x6a\x85\x11\x10\x12\xcc\x86\x17\xdc\x9f\x2e\xaa\x83\x65\x41\x1f\xe6\x8b\x59\xf0\xf2\x1a\xfd\x0e\x00\x00\xff\xff\x3b\x28\xeb\xa2\xce\x03\x00\x00"
-
-func executionnodeversionbeaconAdminChange_version_update_buffer_varianceCdcBytes() ([]byte, error) {
-	return bindataRead(
-		_executionnodeversionbeaconAdminChange_version_update_buffer_varianceCdc,
-		"executionNodeVersionBeacon/admin/change_version_update_buffer_variance.cdc",
-	)
-}
-
-func executionnodeversionbeaconAdminChange_version_update_buffer_varianceCdc() (*asset, error) {
-	bytes, err := executionnodeversionbeaconAdminChange_version_update_buffer_varianceCdcBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "executionNodeVersionBeacon/admin/change_version_update_buffer_variance.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xb, 0xe7, 0x61, 0xb0, 0xc2, 0x71, 0xb0, 0x5d, 0xf8, 0xb0, 0xfe, 0x18, 0xae, 0x3a, 0xee, 0xeb, 0xe5, 0x18, 0x93, 0x80, 0xaa, 0x34, 0x8d, 0x29, 0x13, 0x83, 0xf7, 0xa5, 0xd8, 0x64, 0xd2, 0x7}}
-	return a, nil
-}
-
-var _executionnodeversionbeaconAdminDelete_upcoming_version_boundaryCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x9c\x93\x4f\x8f\x9b\x30\x10\xc5\xef\x7c\x8a\x51\x0e\x2d\xb9\xc0\x1e\xaa\x1e\x50\xbb\x2b\x12\x90\x9a\x0b\xa9\xf2\x4f\xbd\x3a\x66\x00\xab\xe0\xb1\xcc\xd0\x4d\x55\xe5\xbb\x57\x76\xc8\x6e\x56\x4d\x52\xb5\x1c\x10\xb2\x1f\x6f\xc6\xbf\x79\x56\x9d\x21\xcb\x90\x1f\x50\x0e\xac\x48\x17\x54\xe2\x0e\x6d\xaf\x48\xcf\x50\x48\xd2\x50\x59\xea\xe0\xe1\x90\x7f\xcb\xe7\xdb\xcd\x62\x59\x14\xcb\x2c\xdf\xe5\xab\xf5\x62\x59\xcc\xf2\x74\xbe\x2c\xd2\x2c\x5b\xe5\xeb\x75\x10\xc4\x71\x0c\x1b\x2b\x74\x2f\xa4\xb3\x02\x6e\x04\x83\x68\x5b\x7a\xee\xaf\x16\x48\xcb\x4e\x69\x60\x82\x12\x5b\x64\x04\x6e\xd0\x7b\xfc\x38\x6d\xc3\x9e\x06\x5d\x0a\xfb\x13\x3a\x61\x8c\xd2\x35\x38\x75\x83\xe7\xfd\x8d\xd8\xb7\x08\x82\xfd\x5a\x6f\x50\xaa\x4a\x61\xe9\x1d\xf6\x2d\xc9\xef\xd0\xa0\xaa\x1b\x06\x23\xac\xe8\x90\xd1\x06\x01\xbf\x76\x17\x7a\xcd\x17\x2f\x99\x8d\x85\x36\x94\xf9\x4e\x12\xd8\x2e\x34\x7f\xfc\x30\x85\x5f\x41\x00\xd0\xe2\x3d\x40\xfe\x14\x2b\xac\x12\x78\x77\x5b\x14\xdd\x3c\xbf\x2b\x60\x2c\x1a\x61\x31\x14\x52\x72\x02\xe9\xc0\x4d\x2a\x25\x0d\x9a\x5d\x03\x00\x5e\x30\x7e\xb9\xe7\x4e\x99\x1a\x79\x77\x41\x27\x9c\x46\x2d\xea\x9a\x1b\x78\x84\x07\x48\x60\x52\xd0\x9f\x54\xf1\xa0\x7a\xee\x5f\xe7\x10\x4d\x7c\xa5\xa3\x7f\xc7\x31\xcc\xc8\x5a\x7a\x06\x01\x16\x2b\xb4\xa8\x25\x3a\xad\x83\x7e\x7b\xa8\x16\x7b\x1a\xac\x44\xef\xd1\x63\x5b\x5d\x05\xf0\x16\x20\x7c\x06\x07\x20\xda\xfb\x7a\x9f\xfe\x8b\xe6\xe3\x08\x29\x74\xa9\x4d\xee\x91\xba\x69\xb1\x66\xb2\xa2\xc6\xaf\x82\x9b\xe9\xe8\xf6\xf4\x04\x46\x68\x25\xc3\xc9\x9c\x86\xb6\xd4\xef\x19\x4e\x4d\xfe\x2d\x16\xb0\x1a\x39\x4c\x9c\xd5\xd1\xcd\x1a\xfd\x1f\xe7\x71\xc6\x31\x64\x2f\xe1\x7f\x09\xbe\xbf\x72\x97\x0b\x7c\x35\xea\x6f\x63\x7e\x9e\xeb\xbf\x20\x8f\x4e\x13\xdf\x1a\x49\x9d\xd2\xf5\x59\x33\x3a\x5d\x5e\x91\x04\xee\xdc\x97\xf1\x70\xc7\xdf\x01\x00\x00\xff\xff\xa9\x31\xa9\xcc\x4d\x04\x00\x00"
-
-func executionnodeversionbeaconAdminDelete_upcoming_version_boundaryCdcBytes() ([]byte, error) {
-	return bindataRead(
-		_executionnodeversionbeaconAdminDelete_upcoming_version_boundaryCdc,
-		"executionNodeVersionBeacon/admin/delete_upcoming_version_boundary.cdc",
-	)
-}
-
-func executionnodeversionbeaconAdminDelete_upcoming_version_boundaryCdc() (*asset, error) {
-	bytes, err := executionnodeversionbeaconAdminDelete_upcoming_version_boundaryCdcBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "executionNodeVersionBeacon/admin/delete_upcoming_version_boundary.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x67, 0x6f, 0x69, 0x54, 0xce, 0x90, 0xda, 0xa5, 0x72, 0x7, 0x57, 0xd, 0x3a, 0xfe, 0x8d, 0xfd, 0x35, 0x5, 0xfc, 0x94, 0x21, 0x6b, 0xac, 0x4f, 0xad, 0xdf, 0x94, 0x98, 0xb7, 0x33, 0xd7, 0x7c}}
-	return a, nil
-}
-
-var _executionnodeversionbeaconScriptsGet_current_execution_node_versionCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x7c\x8e\xb1\x6a\xc3\x40\x10\x44\xfb\xfb\x8a\xe9\x62\x37\x51\xea\x34\xc1\x96\x8e\xe0\xe6\x04\x96\x63\xd2\xca\xd2\x2a\x59\xb0\x76\xcd\x6a\xcf\x18\x42\xfe\x3d\x10\xe1\xce\xa8\x9e\x37\x8f\xc7\xe3\x45\xcd\x11\x6f\xd4\x65\x67\x95\xa4\x3d\x1d\xc9\x26\x56\xd9\x52\xdb\xa9\x60\x30\x1d\xf1\x72\x8b\x9f\xb1\xfc\x38\xec\xea\x94\xea\x2a\x1e\xe3\xbe\xd9\xd5\x69\x1b\x37\x65\x9d\x36\x55\xb5\x8f\x4d\x13\x42\x51\x14\x78\x27\x9f\xe0\xdf\x84\x2e\x9b\x91\x38\xae\xb3\x0c\x3d\x0d\x2c\xd4\x83\x65\x9e\x55\xdc\xda\xce\x9f\xa6\x3b\x71\x68\x4f\x67\xfa\x77\xa8\x41\xf8\x0c\x1e\x20\x2a\x04\x9e\xee\xe7\x70\xc9\x27\x0c\x59\x30\xb6\x2c\xab\xf5\xeb\x42\xf6\x73\x43\xe3\x95\xec\x0d\x3f\x01\x00\x8c\x3c\x9b\x2c\xf1\x5f\xe4\xe5\x9c\xfc\x08\x5a\xad\xc3\x6f\xf8\x0b\x00\x00\xff\xff\x62\xb6\x46\xce\x2c\x01\x00\x00"
-
-func executionnodeversionbeaconScriptsGet_current_execution_node_versionCdcBytes() ([]byte, error) {
-	return bindataRead(
-		_executionnodeversionbeaconScriptsGet_current_execution_node_versionCdc,
-		"executionNodeVersionBeacon/scripts/get_current_execution_node_version.cdc",
-	)
-}
-
-func executionnodeversionbeaconScriptsGet_current_execution_node_versionCdc() (*asset, error) {
-	bytes, err := executionnodeversionbeaconScriptsGet_current_execution_node_versionCdcBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "executionNodeVersionBeacon/scripts/get_current_execution_node_version.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xa6, 0xb2, 0xbe, 0xf5, 0xc9, 0xd3, 0x15, 0x26, 0x88, 0x29, 0xf2, 0xb2, 0xd5, 0xd8, 0x54, 0xba, 0x9, 0x4f, 0xbb, 0x14, 0x57, 0x59, 0x8, 0x50, 0x9d, 0xdf, 0xf6, 0xf6, 0x1, 0x4b, 0xba, 0x98}}
-	return a, nil
-}
-
-var _executionnodeversionbeaconScriptsGet_current_execution_node_version_as_stringCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x7c\x8f\xbd\x6a\xc3\x40\x10\x84\xfb\x7b\x8a\x29\xa5\xc6\x4a\x1d\x08\xc1\x96\x8e\xe0\x46\x02\xcb\x31\x69\xcf\xd2\xca\x59\x38\xed\x99\xfb\x09\x86\xe0\x77\x0f\x96\x64\x52\x24\x78\xcb\x9d\xf9\x66\x76\x79\x3c\x3b\x1f\xa1\x2f\xd4\xa5\xc8\x4e\x6a\xd7\xd3\x81\x7c\x60\x27\x1b\x32\x9d\x13\x0c\xde\x8d\x78\xba\xe8\x0f\x5d\xbe\xef\xb7\x4d\x5d\x37\x95\x3e\xe8\x5d\xbb\x6d\xea\x8d\x5e\x97\x4d\xbd\xae\xaa\x9d\x6e\x5b\xa5\x8a\xa2\xc0\x1b\xc5\x80\xf8\x49\xe8\x92\xf7\x24\x11\x5f\x73\x18\x7a\x1a\x58\xa8\x07\xcb\x24\x2f\xeb\xbd\x39\x5a\x9a\x40\x13\x60\xd0\x46\xcf\x72\x82\xf3\x10\xb6\xe0\x01\xe2\x84\xc0\xe1\x4e\xab\x73\x3a\x62\x48\x82\xd1\xb0\x64\xf9\xf3\x02\xbc\xe2\x5b\x01\xb8\x01\x96\x7e\x2b\x5f\x1e\xbc\xb5\x3a\x51\x2c\xe7\x13\xff\x33\x65\xf9\x12\x79\x1b\x4f\x31\x79\xb9\xc7\xae\xa2\x9b\x5b\xb3\x7c\x72\x5c\x41\x36\xd0\x5f\xbb\xb0\x9d\x75\x75\x55\x3f\x01\x00\x00\xff\xff\x72\x4e\xde\xfb\x66\x01\x00\x00"
-
-func executionnodeversionbeaconScriptsGet_current_execution_node_version_as_stringCdcBytes() ([]byte, error) {
-	return bindataRead(
-		_executionnodeversionbeaconScriptsGet_current_execution_node_version_as_stringCdc,
-		"executionNodeVersionBeacon/scripts/get_current_execution_node_version_as_string.cdc",
-	)
-}
-
-func executionnodeversionbeaconScriptsGet_current_execution_node_version_as_stringCdc() (*asset, error) {
-	bytes, err := executionnodeversionbeaconScriptsGet_current_execution_node_version_as_stringCdcBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "executionNodeVersionBeacon/scripts/get_current_execution_node_version_as_string.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x2, 0x64, 0xec, 0x27, 0x5b, 0x3c, 0x80, 0xbe, 0x21, 0xf9, 0x48, 0xa, 0x42, 0x8e, 0xb6, 0xf, 0xfb, 0x9b, 0xa0, 0xfb, 0x9b, 0xa0, 0xf9, 0x57, 0xe1, 0xe, 0x67, 0x73, 0x33, 0x5, 0x71, 0xf1}}
-	return a, nil
-}
-
-var _executionnodeversionbeaconScriptsGet_next_version_boundary_pairCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x7c\xcf\x41\x6b\xfa\x40\x10\x05\xf0\x7b\x3e\xc5\x3b\xea\xe1\xff\xd7\x96\xd2\x83\xe0\x21\xea\x1e\xbc\x24\xc5\x54\x29\x88\x87\x35\x99\x24\x4b\xcd\x6c\x98\xcc\x4a\x42\xe9\x77\x2f\xb6\x7a\x12\xbc\xce\x0c\x6f\x7e\xcf\x35\xad\x17\x85\xe9\x29\x0f\xea\x3c\x27\xbe\xa0\x1d\x49\xe7\x3c\x2f\xc8\xe6\x9e\x51\x8a\x6f\x30\xed\xcd\x87\x59\x6e\xdf\xd7\x69\x92\xa4\x2b\xb3\x33\x9b\x6c\x9d\x26\x0b\x13\x2f\xd3\x24\x5e\xad\x36\x26\xcb\xa2\x68\x32\x99\x60\x43\x2a\x8e\xce\xd4\x41\x6b\x02\x53\xaf\x38\xff\xc5\xe1\xe8\x03\x17\x56\x06\xb4\xd6\x09\x1c\xc3\x8a\xd8\x01\xbe\xc4\x89\xb8\xd2\x1a\xf3\x39\x9e\x7f\x43\x84\x34\x08\xc7\x97\xf5\x7e\x7a\x98\x61\xbb\x66\x7d\x7d\xc1\x3f\x1c\x4f\x3e\xff\x44\x4d\xae\xaa\xf5\xee\xf2\xe9\x30\x7b\xd0\xe3\x7f\x46\xcd\x99\xe4\x86\x0c\xc2\x1d\xa8\x69\x75\xb8\x32\x5c\x79\x11\x0b\xc1\x75\x60\x8f\xd0\xe6\xbe\x71\x5c\xdd\xeb\x0b\x2a\x1d\x53\x11\xb5\xe1\x88\x32\x30\x1a\xeb\x78\x34\x9e\x61\x1f\xf3\x90\xa9\x84\x5c\x0f\xf8\x8a\x00\x5c\x71\x8f\x4c\x15\x69\x42\xbd\xde\x86\xd7\x17\x6f\xd6\xc9\x68\x1c\x7d\x47\x3f\x01\x00\x00\xff\xff\x97\x4b\x95\x23\x9d\x01\x00\x00"
-
-func executionnodeversionbeaconScriptsGet_next_version_boundary_pairCdcBytes() ([]byte, error) {
-	return bindataRead(
-		_executionnodeversionbeaconScriptsGet_next_version_boundary_pairCdc,
-		"executionNodeVersionBeacon/scripts/get_next_version_boundary_pair.cdc",
-	)
-}
-
-func executionnodeversionbeaconScriptsGet_next_version_boundary_pairCdc() (*asset, error) {
-	bytes, err := executionnodeversionbeaconScriptsGet_next_version_boundary_pairCdcBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "executionNodeVersionBeacon/scripts/get_next_version_boundary_pair.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x4, 0xd9, 0xf9, 0x91, 0x2, 0xd1, 0x3b, 0xb, 0xc, 0x46, 0x8a, 0xcf, 0xb9, 0x89, 0xe, 0x24, 0x72, 0x21, 0xd5, 0x83, 0x9, 0xa6, 0x5f, 0x99, 0x67, 0x46, 0xb4, 0x20, 0xb6, 0x85, 0x9a, 0x13}}
-	return a, nil
-}
-
-var _executionnodeversionbeaconScriptsGet_version_tableCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x7c\x8f\xbd\x6e\xab\x30\x14\xc7\x77\x9e\xe2\x3f\x26\x4b\x72\x87\xab\x0e\xd9\x92\xe0\x81\x05\x24\x48\x50\x57\x63\x0e\xf1\x51\xe1\x38\x32\xc7\x34\x52\x94\x77\xaf\xd4\x4a\x55\x27\x5e\xe0\xf7\xc1\xd3\x3d\x44\x85\x79\x90\x4b\xca\x41\xca\xd0\x53\x4b\x71\xe6\x20\x27\xb2\x2e\x08\x86\x18\x26\xfc\x7b\x98\x77\x73\xbe\x5e\x8a\xaa\x2c\xab\xdc\xb4\xa6\x6e\x8a\xaa\x3c\x99\xe3\xb9\x2a\x8f\x79\x5e\x9b\xa6\xc9\xb2\xfd\x7e\x8f\x9a\x34\x32\x2d\x34\x43\x3d\x61\xf9\x21\x5d\x6c\x37\x12\x7a\x1a\x58\xa8\x07\xcb\x9a\xee\xd3\xb3\xf3\xdf\x28\x17\x44\x2d\xcb\x8c\x2e\xa8\x87\xe7\x59\x43\x64\x67\x47\x58\xe9\x31\x24\x4d\xf1\x57\x80\x6e\x0c\xee\x03\x9e\xf8\xe6\x15\x5d\x48\xd2\xdb\xc8\x34\x67\xf7\xd4\x61\x48\x82\xc9\xb2\x6c\xb6\x07\x3c\xaf\x85\xe8\xdb\xff\xc3\x4a\xc1\xae\xa1\x69\xa1\xf8\xc2\x33\x03\x80\x48\x9a\xe2\x5a\xf1\xee\x46\xda\xfe\xf9\xdc\x6c\xb3\xd7\x57\x00\x00\x00\xff\xff\x01\x0c\xba\xe4\x56\x01\x00\x00"
-
-func executionnodeversionbeaconScriptsGet_version_tableCdcBytes() ([]byte, error) {
-	return bindataRead(
-		_executionnodeversionbeaconScriptsGet_version_tableCdc,
-		"executionNodeVersionBeacon/scripts/get_version_table.cdc",
-	)
-}
-
-func executionnodeversionbeaconScriptsGet_version_tableCdc() (*asset, error) {
-	bytes, err := executionnodeversionbeaconScriptsGet_version_tableCdcBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "executionNodeVersionBeacon/scripts/get_version_table.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xa6, 0xb8, 0x42, 0x95, 0x5d, 0x20, 0x99, 0x64, 0x16, 0x78, 0x17, 0x3c, 0xbb, 0x87, 0xba, 0xf5, 0x6e, 0xe, 0xbf, 0x84, 0xf3, 0x2c, 0xda, 0xe1, 0xdf, 0xcd, 0x7, 0x17, 0x1c, 0x64, 0x2, 0xf}}
-	return a, nil
-}
-
-var _executionnodeversionbeaconScriptsGet_version_update_bufferCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x7c\xd0\xbf\x4e\xf4\x30\x10\x04\xf0\x3e\x4f\x31\xe5\x5d\xf3\xdd\x57\x20\x0a\xba\xfb\xe3\xe2\x9a\x44\xba\x90\x88\xd6\x89\xd7\xb1\x05\x5e\x47\xf6\x9a\x3b\x84\x78\x77\x44\x02\x15\x12\xfd\xea\xb7\x33\xe3\xc3\x1c\x93\x40\xdd\x68\x2c\xe2\x23\xd7\xd1\x50\x4f\x29\xfb\xc8\x07\xd2\x63\x64\xd8\x14\x03\xfe\xdf\xd4\x93\x3a\x76\x8f\xe7\xa6\xae\x9b\x93\xea\xd5\xa5\x3d\x37\xf5\x41\xed\x8f\x4d\xbd\x3f\x9d\x2e\xaa\x6d\xab\x6a\xb7\xdb\xe1\x42\x52\x12\x67\x88\x23\xbc\xae\x4e\x37\x1b\x2d\x74\x28\xd6\x52\xc2\xd5\xf9\xd1\xc1\x90\xf5\x4c\xeb\x55\xf0\xec\x43\x09\xe0\x12\x06\x4a\x88\x16\xc3\x4b\x1c\x9f\xf3\xc2\x89\xd3\x82\x50\xb2\x60\xd6\x39\x63\x20\xb9\x12\x31\xca\x17\xe9\x79\x82\xfe\x79\x02\xcd\x06\x5e\xf2\x37\x6d\x56\x04\x8e\xfc\xe4\x64\xa1\x86\x58\xd8\xe8\xf4\x56\xcd\x65\x80\x2d\x8c\xa0\x3d\x6f\xb6\x0f\xe8\xce\x2c\xf7\x77\x78\xaf\x00\x20\x2d\xf9\xff\xd8\xe3\xdf\x44\xd2\xff\x2e\xb6\xd9\x56\x1f\x9f\x01\x00\x00\xff\xff\xfc\x5b\x3c\xc8\x4c\x01\x00\x00"
-
-func executionnodeversionbeaconScriptsGet_version_update_bufferCdcBytes() ([]byte, error) {
-	return bindataRead(
-		_executionnodeversionbeaconScriptsGet_version_update_bufferCdc,
-		"executionNodeVersionBeacon/scripts/get_version_update_buffer.cdc",
-	)
-}
-
-func executionnodeversionbeaconScriptsGet_version_update_bufferCdc() (*asset, error) {
-	bytes, err := executionnodeversionbeaconScriptsGet_version_update_bufferCdcBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "executionNodeVersionBeacon/scripts/get_version_update_buffer.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x28, 0x7c, 0xa1, 0x4c, 0xa7, 0x2a, 0xd3, 0x6c, 0xa, 0x30, 0xba, 0xee, 0xc8, 0x3b, 0x85, 0xbb, 0xb3, 0x33, 0x90, 0xd6, 0x29, 0x68, 0x5e, 0x51, 0x46, 0xbe, 0xcd, 0xc9, 0x3, 0x1e, 0x28, 0x6b}}
-	return a, nil
-}
-
-var _executionnodeversionbeaconScriptsIs_compatible_versionCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x7c\x90\xb1\x6e\xf2\x40\x10\x84\x7b\x3f\xc5\x94\x20\xa1\x9f\xbf\x88\x52\xb8\xc3\x70\x52\x68\x6c\x09\x07\x94\xf6\x6c\xd6\x66\x15\xdf\x2e\x3a\x9f\x2d\xac\x28\xef\x1e\x61\x82\x82\x1b\xea\x6f\xef\xbb\x99\x61\x77\x56\x1f\x60\x2e\x54\x76\x81\x55\x52\x3d\xd2\x81\x7c\xcb\x2a\x09\xd9\x52\x05\x95\x57\x87\xff\x17\xf3\x61\xd6\xfb\xf7\x6d\x96\xa6\xd9\xc6\x1c\xcc\x2e\xdf\x66\x69\x62\x56\xeb\x2c\x5d\x6d\x36\x3b\x93\xe7\x51\xb4\x5c\x2e\xb1\xa3\xd0\x79\x69\x61\x91\xa8\x36\x68\xb9\x16\xae\x06\x96\x1a\x5c\x21\x9c\x08\x35\xf7\x24\xe8\x6f\x5f\x80\x5b\xf4\xb6\xe1\x23\x6c\x78\xa0\x45\xa3\xe5\x27\x4e\xc4\xf5\x29\x8c\x56\xf5\x10\x6e\xa6\x8a\xc7\xa3\xab\xa7\xa0\x41\xe5\x38\x1e\x94\x9d\xf7\x24\x61\xea\x39\x77\x05\xaa\x4e\xe0\x2c\xcb\xcc\x0d\xc9\x95\xbd\x8d\x28\xc6\x7e\x2b\xe1\xf5\x65\x01\x37\xfc\x76\x8f\x9f\x2c\xf2\x2f\x27\xd7\x93\x9f\xc7\xb7\x8a\x5f\x11\x00\xf8\xb1\xf7\xb3\x57\xdc\xae\xd5\x9d\x6d\xe0\xa2\xb9\x93\x59\xf1\x18\x62\x92\x69\x71\x9f\x28\xfe\x0b\x35\x8f\xbe\x7f\x02\x00\x00\xff\xff\xdc\x2d\x82\x8e\xaf\x01\x00\x00"
-
-func executionnodeversionbeaconScriptsIs_compatible_versionCdcBytes() ([]byte, error) {
-	return bindataRead(
-		_executionnodeversionbeaconScriptsIs_compatible_versionCdc,
-		"executionNodeVersionBeacon/scripts/is_compatible_version.cdc",
-	)
-}
-
-func executionnodeversionbeaconScriptsIs_compatible_versionCdc() (*asset, error) {
-	bytes, err := executionnodeversionbeaconScriptsIs_compatible_versionCdcBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "executionNodeVersionBeacon/scripts/is_compatible_version.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x64, 0xf8, 0xea, 0xe9, 0xa, 0xa6, 0x91, 0xb5, 0x73, 0x8d, 0xcf, 0xc3, 0xaf, 0xf2, 0xcd, 0xa9, 0x9b, 0x23, 0x73, 0xd6, 0x71, 0x60, 0x77, 0x4b, 0x6b, 0xc7, 0xff, 0xf9, 0xc3, 0x6d, 0x54, 0x97}}
 	return a, nil
 }
 
@@ -4758,6 +4560,246 @@ func lockedtokensUserWithdraw_tokensCdc() (*asset, error) {
 	return a, nil
 }
 
+var _nodeversionbeaconAdminAdd_version_to_tableCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x8c\x94\x4d\x8f\xd3\x40\x0c\x86\xef\xf9\x15\xa6\x07\x48\xa5\x2a\xe5\x80\x10\x8a\x58\xaa\xf4\x43\x62\x0f\xb4\xab\xa6\xec\x05\x71\x70\x67\xdc\x24\x90\xcc\x84\x19\x67\xbb\x08\xed\x7f\x47\x93\xa4\x5f\x49\x2b\xed\xf5\x75\x6c\xbf\x7e\xec\x49\x56\x94\xda\x30\x2c\xb5\xa4\x47\x32\x36\xd3\x6a\x4a\x28\xb4\x82\x9d\xd1\x05\xbc\x7f\x5e\xae\xe6\x8b\xc7\xc5\x3a\xbe\x5f\x2d\xa7\x8b\x68\xb6\x5a\x46\xf3\xf9\x7a\x11\xc7\x9e\x37\x1e\x8f\x61\x63\x50\x59\x14\x9c\x69\x05\x9c\x22\x03\xe6\xb9\xde\xdb\xf3\x72\x91\x2c\x32\x05\xac\x01\xa5\x04\x04\x45\x7b\x78\x6a\x22\x4e\xe4\x94\xea\x42\x47\x09\xb7\x39\x81\xa4\x5d\xa6\x32\x95\x00\x1e\x03\x5b\x5d\x29\x89\xe6\x2f\x20\xbb\x24\x60\x34\x09\xf1\x34\xd7\xe2\xf7\x57\xca\x92\x94\x3d\x8f\x4f\x66\x7c\x0f\x5c\xa7\x6f\xf8\x4b\x9b\x10\xbe\xdf\x2b\xfe\x34\x6a\xa5\x4c\x75\xa5\x07\x64\x91\x76\x24\x43\x6b\xca\x09\x2d\x85\x10\xb3\xc9\x54\x32\x71\x91\x5e\xd3\x26\xeb\xe3\x07\x6f\x08\xff\x3c\x0f\x20\xa7\x2b\x28\x6b\x02\x6b\xda\x85\xf0\xb6\x17\x0b\xba\xa4\xda\x22\x8a\xf6\xad\x1a\xf6\x0b\x06\x31\x15\x4f\x64\x5c\xc3\xd2\x50\x89\x86\x7c\x14\x82\x43\x88\x2a\x4e\x23\x21\x74\xa5\xd8\x19\x02\x00\x18\x8f\x61\x66\x08\x99\x6a\x6a\xe7\xf4\xeb\x05\x3b\xb1\x44\x6b\x49\x42\x89\x06\x0b\x62\x32\xb6\x4e\xb4\x94\xef\x82\x93\x0d\xb8\xbb\xe9\xc3\xaf\xbf\x07\x28\x1a\xda\x07\xee\x23\x28\x1a\xd6\x07\xea\x23\x28\x1b\xd2\x07\xe6\x23\x67\xff\xc8\xf9\x02\x7b\x5d\x72\xe8\x1d\x46\x98\x6a\x63\xf4\x1e\x10\x0c\xed\xc8\x90\x12\xd4\x1e\x4f\xff\xd2\x0c\x59\x5d\x19\x41\xa7\x21\x6e\x2e\x04\xee\xc0\x71\x0b\xb6\x75\xf5\xcf\xaf\xd8\xce\x97\x76\x54\xdf\xc1\xbb\xb6\x99\x6e\x42\xcc\xda\x60\x42\x0f\xc8\xe9\xb0\xcd\x9d\x4c\xa0\x44\x95\x09\x7f\x30\xd3\x55\x2e\xd5\x3b\x86\xc6\xc0\x8d\xcb\x81\x75\x3b\xd1\xc0\x55\x78\x71\x4c\xe8\x99\x44\xc5\x74\x5a\x71\x24\x65\x6f\xbf\x2d\xa0\x8b\x97\xf5\x0a\x28\x01\x4a\x79\x08\xb4\x6f\x6e\xa3\x37\x2e\xd9\xbf\x72\xfe\x3d\x69\x74\x71\xba\x9d\x23\x3a\x0e\x50\x6a\xcb\x8d\xf9\x3e\xc2\x84\xb8\x15\x9a\xae\xc3\x1f\xbd\x26\x3f\xdf\x04\x96\x4d\x26\x78\xf1\xa7\xc2\x7c\xa3\xfd\x6e\x1f\x08\x61\xb0\x3c\x63\xb1\x47\x0b\x4a\xb3\xfb\x07\x91\xec\x90\xa9\xbb\x0c\x6a\x67\x2f\xde\xff\x00\x00\x00\xff\xff\x74\x77\xe5\x98\x0f\x05\x00\x00"
+
+func nodeversionbeaconAdminAdd_version_to_tableCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_nodeversionbeaconAdminAdd_version_to_tableCdc,
+		"nodeVersionBeacon/admin/add_version_to_table.cdc",
+	)
+}
+
+func nodeversionbeaconAdminAdd_version_to_tableCdc() (*asset, error) {
+	bytes, err := nodeversionbeaconAdminAdd_version_to_tableCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "nodeVersionBeacon/admin/add_version_to_table.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x5f, 0x5f, 0xdb, 0x58, 0x43, 0xe5, 0xf8, 0x26, 0xca, 0x52, 0xa6, 0x8d, 0xe2, 0x6b, 0xa3, 0x2d, 0xf6, 0x5d, 0xdc, 0xba, 0x29, 0x66, 0x31, 0x1f, 0x9a, 0x48, 0xb4, 0x9e, 0x67, 0x66, 0xf8, 0x51}}
+	return a, nil
+}
+
+var _nodeversionbeaconAdminChange_version_update_bufferCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x8c\x52\xbd\x8e\xd3\x40\x10\xee\xfd\x14\x9f\x52\x40\xd2\xc4\x14\x88\xc2\x22\x9c\xec\x4b\x8a\x34\x09\x4a\xb8\xf4\xcb\x7a\x1c\xaf\xb0\x67\xac\xdd\x31\x39\x09\xdd\xbb\xa3\x75\x22\x38\x61\x07\x5d\xb7\xab\x99\xf9\xfe\x66\x5c\xdb\x89\x57\xec\xa4\xa4\x13\xf9\xe0\x84\x0b\x32\x56\x18\x95\x97\x16\x1f\x9e\x77\xfb\xf5\xe6\xb4\x39\x1c\xb7\xfb\x5d\xb1\xc9\x1f\xf7\xbb\x7c\xbd\x3e\x6c\x8e\xc7\x24\x49\xd3\x14\xdf\xbc\xe1\x60\xac\x3a\x61\x68\x6d\x14\xa6\x69\xe4\x12\x5e\xc3\xe5\x65\xeb\x18\x2a\xb0\xb5\xe1\x33\x0d\x63\x5a\x13\x4a\xaa\x1c\x53\x89\x9f\xd7\xb6\xa7\xae\x34\x4a\x45\x5f\x55\xe4\x93\x44\xff\xe2\xce\x99\x2e\xa7\x71\x4f\x86\xa7\x2d\xeb\xa7\x8f\x0b\xfc\x4a\x12\xa0\xa1\x09\x0f\x03\xf5\x81\xaa\x0c\xef\x46\xb5\xe5\xbf\x12\x23\x4a\xe7\xa9\x33\x9e\xe6\xc6\x5a\xcd\x90\xf7\x5a\xe7\xd6\x4a\xcf\x1a\x59\x00\x20\x4d\x51\x88\xf7\x72\x81\x81\xa7\x8a\x3c\xb1\xa5\x68\x2e\x3a\x1a\x99\x76\x6d\xd7\x50\x4b\xac\x8e\xcf\xf0\x14\xa4\xf7\x96\x06\x9c\x40\x4d\xb5\xbc\xab\x17\x2b\x44\x05\xcb\xef\x03\xd5\xe7\x37\x88\xff\x32\xa0\x02\xf3\xb8\xb5\x6c\x9c\xc4\x68\xe0\xa8\xe2\xcd\x99\xbe\x1a\xad\x17\xb7\xd9\x87\x07\x74\x86\x9d\x9d\xcf\x1e\xa5\x6f\x4a\x7e\xaf\xb8\x0a\xb8\x13\x2c\x0e\x37\x47\xb3\x88\xf0\x12\xf3\xa3\x67\xb2\xbd\xd2\x2d\xac\xff\x9b\x5c\x5e\xef\x61\x62\xb5\x71\xe3\xaf\xff\x5b\x2e\x1a\xb1\x3f\x42\x86\xe9\x53\xf8\x43\xdf\x49\xd0\x2b\xf5\x38\x80\x33\xe9\x14\xd5\x02\xab\xd5\x1d\x58\x64\x98\xdd\x5e\x17\x13\xc0\xa2\xe8\x87\x72\x39\x1b\x08\x5f\x92\xdf\x01\x00\x00\xff\xff\x6c\x36\x7c\xad\x3c\x03\x00\x00"
+
+func nodeversionbeaconAdminChange_version_update_bufferCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_nodeversionbeaconAdminChange_version_update_bufferCdc,
+		"nodeVersionBeacon/admin/change_version_update_buffer.cdc",
+	)
+}
+
+func nodeversionbeaconAdminChange_version_update_bufferCdc() (*asset, error) {
+	bytes, err := nodeversionbeaconAdminChange_version_update_bufferCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "nodeVersionBeacon/admin/change_version_update_buffer.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xf6, 0xac, 0xb5, 0xb3, 0xab, 0x3e, 0x9b, 0x91, 0x7e, 0xfd, 0x21, 0x7, 0x38, 0xac, 0x1, 0x12, 0x5d, 0xb2, 0x16, 0x99, 0x62, 0x84, 0xcb, 0xdc, 0xbf, 0x13, 0x23, 0x34, 0x32, 0x27, 0x47, 0x4c}}
+	return a, nil
+}
+
+var _nodeversionbeaconAdminChange_version_update_buffer_varianceCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x8c\x92\xbf\x8e\xd3\x40\x10\xc6\x7b\x3f\xc5\xa7\x14\x90\x34\x31\x05\xa2\xb0\x08\x27\xe7\x12\x24\x9a\x04\x25\x5c\xfa\x61\x3d\x8e\x57\xb2\x67\xac\xf5\x98\x44\x42\xf7\xee\xc8\x76\x74\x20\x7c\x8e\xae\xdd\x9d\xf9\x7d\x7f\x76\x7d\x55\x6b\x30\xec\x34\xe3\x13\x87\xc6\xab\xac\x99\x9c\x0a\xf2\xa0\x15\x3e\x5c\x77\xfb\xcd\xf6\xb4\x3d\x1c\xbf\xed\x77\xeb\x6d\xfa\xb8\xdf\xa5\x9b\xcd\x61\x7b\x3c\x46\x51\x1c\xc7\xf8\x11\x48\x1a\x72\xe6\x55\x60\x05\x19\xa8\x2c\xf5\xd2\xfc\x8b\x4b\xb3\xca\x0b\x4c\xe1\x0a\x92\x33\xf7\x6b\x56\x30\x32\xce\xbd\x70\x86\x5f\xc3\xd8\x53\x9d\x91\xf1\xba\xcd\x73\x0e\x27\x0a\x9e\xc4\x71\x14\xd9\x5f\xfe\x5c\xf8\xf2\xda\x50\x82\xa7\xaf\xfe\xfa\xe9\xe3\x02\xbf\xa3\x08\x28\xf9\x95\x30\xbd\x87\x03\xe7\x09\xde\x8d\xee\x96\xff\x7b\xed\x28\x75\xe0\x9a\x02\xcf\xc9\x39\x4b\x90\xb6\x56\xa4\xce\x69\x2b\xd6\xa9\x00\x40\x1c\x63\xad\x21\xe8\x05\x84\xc0\x39\x07\x16\xc7\x5d\xca\x2e\xda\x28\xbd\xaf\xea\x92\x2b\x16\xf3\x72\x46\xe0\x46\xdb\xe0\xb8\xe7\x34\x5c\xe6\xcb\x49\xbf\x58\xa1\x73\xb0\xfc\xd9\x4b\x7d\x7e\x83\xf9\x2f\x3d\x15\x98\x77\xcf\x97\x8c\x9b\x18\x2d\x1c\x4d\x03\x9d\xf9\x3b\x59\xb1\xb8\xed\x3e\x3c\xa0\x26\xf1\x6e\x3e\x7b\xd4\xb6\xcc\xe4\xbd\x61\x30\x30\x51\x2c\x0e\xb7\x44\xb3\x8e\xf0\xdc\xf5\xc7\x57\x76\xad\xf1\xad\xac\xfb\x21\x97\xc3\xc7\x38\x4d\xff\x83\xa9\xa7\x7f\x91\xab\xb5\xb1\x41\x6a\x1c\xf8\xcc\x76\x0f\xbd\xc0\x6a\x85\x09\x3e\x12\xcc\x86\x13\xbc\x1c\x5d\xa8\x81\xa8\xa1\xed\xe7\xb3\x59\x6f\xe1\x39\xfa\x13\x00\x00\xff\xff\x21\x56\x21\x52\x47\x03\x00\x00"
+
+func nodeversionbeaconAdminChange_version_update_buffer_varianceCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_nodeversionbeaconAdminChange_version_update_buffer_varianceCdc,
+		"nodeVersionBeacon/admin/change_version_update_buffer_variance.cdc",
+	)
+}
+
+func nodeversionbeaconAdminChange_version_update_buffer_varianceCdc() (*asset, error) {
+	bytes, err := nodeversionbeaconAdminChange_version_update_buffer_varianceCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "nodeVersionBeacon/admin/change_version_update_buffer_variance.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xd7, 0x8, 0x9e, 0xa2, 0x43, 0xeb, 0x3c, 0x14, 0x29, 0xcf, 0xdc, 0xc1, 0xa5, 0x27, 0x54, 0x15, 0xd6, 0x3d, 0x34, 0x30, 0x0, 0x5a, 0x84, 0xb2, 0x8f, 0x55, 0xf, 0x70, 0x97, 0xba, 0xb4, 0xd3}}
+	return a, nil
+}
+
+var _nodeversionbeaconAdminDelete_upcoming_version_boundaryCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x8c\x52\x4d\x6f\xda\x40\x10\xbd\xfb\x57\x3c\x71\x68\xe1\x62\xe7\x50\xf5\x60\xb5\x89\x20\x20\x35\x17\x53\x01\xe1\xbe\xac\xc7\xf6\xaa\xf6\x8e\xb5\x1e\x37\x54\x15\xff\xbd\xda\xc5\x24\x34\x90\x28\x1c\x90\xb5\xfb\xe6\xed\xbc\x0f\xd3\xb4\xec\x04\x19\xe7\xb4\x25\xd7\x19\xb6\x33\x52\x9a\x2d\x0a\xc7\x0d\x6e\xf6\xd9\x72\xbe\xd8\x2e\x56\xeb\x87\x65\x36\x5b\x4c\xef\x97\xd9\x74\x3e\x5f\x2d\xd6\xeb\x28\x4a\x92\x04\x1b\xa7\x6c\xa7\xb4\x18\xb6\x90\x4a\x09\x54\x5d\xf3\x53\x77\x4e\x37\xcd\x1b\x63\x21\x8c\x9c\x6a\x12\x82\x54\x14\x46\x7f\x1f\xaf\xb1\xe3\xde\xe6\xca\xfd\x41\xa3\xda\xd6\xd8\x12\x1e\x5d\xd1\xe9\x7e\xa3\x76\x35\x41\x49\x38\xeb\x5a\xd2\xa6\x30\x94\x07\x86\x5d\xcd\xfa\x17\x2a\x32\x65\x25\x68\x95\x53\x0d\x09\xb9\x28\x92\x97\xa5\xc6\x01\xf3\x23\x40\x66\xc3\x43\x1b\x9e\x87\x4d\x52\x3c\x3e\x58\xf9\xfa\x65\x82\xbf\x51\x04\xd4\x74\xc5\x85\xb0\xfc\x8a\x8a\x14\x9f\x2e\xee\xe2\xd7\x22\x3d\x4b\xeb\xa8\x55\x8e\xc6\x4a\x6b\x49\x31\xed\xa5\x9a\x6a\xcd\xbd\x15\xff\x0a\x10\x00\xc3\x97\xff\x5d\x92\x96\x24\xdb\x33\xe5\xe3\x49\x5c\x93\x2d\xa5\xc2\x2d\x6e\x90\x62\x94\xf1\xa5\x63\xb4\x37\x9d\x74\x2f\x1e\xc7\xa3\xf0\xc0\x21\xfc\x27\x09\x66\xec\x1c\x3f\x41\xc1\x51\x41\x8e\xac\x26\x8f\xf5\x86\x5e\xe4\xe4\xa8\xe3\xde\x69\x0a\xa3\x1d\xd5\x45\xfc\xa6\x27\xf8\x0e\xaf\x32\xde\x05\xf6\x6f\x1f\x30\xe8\x76\xd0\x3d\xf6\xdd\x4a\xaf\x88\x7f\x3d\xb0\x16\x76\xaa\xa4\x9f\x4a\xaa\xc9\x30\x7b\x77\x87\x56\x59\xa3\xc7\xa3\x7b\xee\xeb\xdc\x7e\x16\x1c\x17\x78\x23\x3c\xac\x06\x45\x23\xcf\x70\xf0\x19\xd1\x9e\x74\x2f\xa7\x18\x92\x04\xf3\xe7\x66\x3e\xb7\x32\xb4\xff\xfc\x40\xae\xf6\xf0\xff\x0e\x9e\x82\xf9\x80\x79\xf1\x31\xa9\xc7\x56\x73\x63\x6c\x79\xc2\x0c\x04\xe7\xb5\x4d\xf1\x4e\x87\x07\x4d\x87\x7f\x01\x00\x00\xff\xff\x11\x6b\x57\xc5\xc6\x03\x00\x00"
+
+func nodeversionbeaconAdminDelete_upcoming_version_boundaryCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_nodeversionbeaconAdminDelete_upcoming_version_boundaryCdc,
+		"nodeVersionBeacon/admin/delete_upcoming_version_boundary.cdc",
+	)
+}
+
+func nodeversionbeaconAdminDelete_upcoming_version_boundaryCdc() (*asset, error) {
+	bytes, err := nodeversionbeaconAdminDelete_upcoming_version_boundaryCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "nodeVersionBeacon/admin/delete_upcoming_version_boundary.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x38, 0x29, 0x8b, 0x70, 0x20, 0x69, 0xd2, 0xc6, 0xc, 0x29, 0x17, 0xf, 0x73, 0xc2, 0x58, 0xa0, 0x5b, 0xc2, 0xf6, 0x86, 0x31, 0x71, 0xc1, 0x82, 0x50, 0x8f, 0xba, 0x8d, 0xdf, 0xfd, 0x1, 0x51}}
+	return a, nil
+}
+
+var _nodeversionbeaconAdminEmit_version_tableCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x8c\x52\x4d\x6f\xe2\x30\x10\xbd\xfb\x57\x3c\x71\xd8\x0d\x97\x64\xcf\x68\x5b\x14\x20\x87\x5e\x42\x95\x48\xdc\x8d\x33\x21\x96\x12\x4f\xe4\x4c\x0a\x52\xc5\x7f\xaf\x92\x20\x44\x4b\xa9\xea\x93\x3d\xe3\xf7\x31\xcf\xb6\x4d\xcb\x5e\x90\x72\x41\x3b\xf2\x9d\x65\xb7\x22\x6d\xd8\xa1\xf4\xdc\xe0\xdf\x29\xdd\x6e\x92\x5d\x92\xe5\x2f\xdb\x74\x95\xc4\xeb\x6d\x1a\x6f\x36\x59\x92\xe7\x4a\x45\x11\xd6\xba\xae\x3b\x48\x45\x68\x48\x2a\x2e\x20\x95\x16\x50\x63\x65\xaa\x8a\xde\xd7\x84\xa3\x95\x6a\x3c\x5a\x67\xb8\xb1\xee\x80\xb7\x49\xa9\x53\xe2\xb5\xeb\xb4\x11\xcb\x2e\x98\xe3\x5d\x29\x00\xa8\xe9\x1b\x3f\x71\xd1\x58\x97\x51\xb9\xc0\x9f\xbb\x5e\x78\x53\x19\xef\x4d\x3c\xad\xa7\x56\x7b\x0a\xb4\x31\xb2\x40\xdc\x4b\x15\x1b\xc3\xbd\x93\x41\x09\x97\x15\x45\x58\xb1\xf7\x7c\x84\x86\xa7\x92\x3c\x39\x43\x10\x1e\x0d\x7f\xe5\x85\xa7\x8e\x7b\x6f\xe8\x0a\xef\xa8\x2e\xc3\x87\x66\xf1\x84\x41\x3c\xdc\x8f\x0a\xff\x7f\xe1\xfc\xf9\xca\x0c\x04\xc3\x13\x2c\xee\xa3\xb8\x03\xe5\xc2\x5e\x1f\xe8\x55\x4b\x35\xbf\xc1\x2f\x97\x68\xb5\xb3\x26\x98\xad\xb9\xaf\x0b\xf7\x57\x30\x19\x79\x90\x2e\xb2\xcb\x74\xb3\x89\xe5\x0c\x60\xdc\xd0\x89\x4c\x2f\x74\x93\xda\xcf\x63\x87\xc3\x0f\xf8\xd4\x09\x2e\x8c\x4a\x9d\x3f\x02\x00\x00\xff\xff\xfd\x3f\xde\x86\x71\x02\x00\x00"
+
+func nodeversionbeaconAdminEmit_version_tableCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_nodeversionbeaconAdminEmit_version_tableCdc,
+		"nodeVersionBeacon/admin/emit_version_table.cdc",
+	)
+}
+
+func nodeversionbeaconAdminEmit_version_tableCdc() (*asset, error) {
+	bytes, err := nodeversionbeaconAdminEmit_version_tableCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "nodeVersionBeacon/admin/emit_version_table.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x1, 0x8e, 0x46, 0x20, 0xd9, 0x4c, 0x95, 0x76, 0xf7, 0xc7, 0xbf, 0xd, 0x5, 0xe8, 0x70, 0x91, 0xa3, 0xb6, 0xf3, 0x32, 0x9, 0xcb, 0x6d, 0x57, 0x92, 0x37, 0x2b, 0x50, 0xcb, 0x32, 0x55, 0x2f}}
+	return a, nil
+}
+
+var _nodeversionbeaconScriptsGet_current_node_versionCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x8e\x41\x4b\xc3\x40\x10\x85\xef\xfb\x2b\xde\xcd\xf6\x62\x3c\x7b\x91\xb6\x09\xe2\x25\x81\x46\x7a\xdf\x26\xb3\x3a\xd0\x9d\x29\xb3\xb3\x45\x10\xff\xbb\x60\x08\x08\x7a\x7e\xdf\xfb\xf8\x38\x5f\xd5\x1c\xbd\xce\x74\x22\x2b\xac\xb2\xa7\x38\xa9\x20\x99\x66\x3c\x7c\xf4\x43\xdb\x9d\xba\xe3\xf8\x32\xf4\xfb\x6e\x77\x18\xfa\x5d\xdb\x1e\xbb\x71\x0c\xa1\x69\x1a\x3c\x93\x17\xf8\x3b\x61\xaa\x66\x24\x8e\xdb\xe2\xc0\x4c\x89\x85\x66\xb0\x2c\xb3\x8a\x5b\x9c\xfc\xae\xac\xc4\x6b\x3c\x5f\xe8\xc7\xa1\x06\xe1\x0b\x38\x41\x54\x08\x5c\xd6\x73\xb8\xd6\x33\x52\x15\xe4\xc8\xb2\xd9\x3e\xfe\x8d\xbc\x1f\x29\xdf\xc8\x9e\xf0\x19\x00\xc0\xc8\xab\xc9\x3f\xd8\x1b\xf9\x61\x09\xfc\xb5\x6d\xb6\xe1\x2b\x7c\x07\x00\x00\xff\xff\x22\x9a\xe6\x47\xff\x00\x00\x00"
+
+func nodeversionbeaconScriptsGet_current_node_versionCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_nodeversionbeaconScriptsGet_current_node_versionCdc,
+		"nodeVersionBeacon/scripts/get_current_node_version.cdc",
+	)
+}
+
+func nodeversionbeaconScriptsGet_current_node_versionCdc() (*asset, error) {
+	bytes, err := nodeversionbeaconScriptsGet_current_node_versionCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "nodeVersionBeacon/scripts/get_current_node_version.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x2e, 0x31, 0x9a, 0x7e, 0xc7, 0x15, 0x1e, 0x19, 0x77, 0x29, 0x21, 0x70, 0xea, 0xbf, 0xb3, 0x8c, 0x3b, 0xb0, 0x31, 0x6, 0x10, 0xea, 0x83, 0x55, 0x28, 0x35, 0x28, 0x9f, 0xef, 0xb, 0x36, 0xb6}}
+	return a, nil
+}
+
+var _nodeversionbeaconScriptsGet_current_node_version_as_stringCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x64\x8f\xc1\x6a\xc3\x40\x0c\x44\xef\xfb\x15\x73\xb4\x2f\x71\xcf\x85\x52\x92\xd8\x94\x5e\x6c\x88\x4b\xee\x9b\x58\x4e\x05\x6b\x6d\xd0\xca\xa5\x50\xf2\xef\x25\xb6\x43\x0b\xd6\x51\x33\x6f\x46\xe2\xe1\x1a\xd5\x50\xc7\x8e\x8e\xa4\x89\xa3\xec\xc8\x9f\xa3\xa0\xd7\x38\xe0\xe9\xbb\x6e\xca\xea\x58\x1d\xda\xf7\xa6\xde\x55\xdb\x7d\x53\x6f\xcb\xf2\x50\xb5\xad\x73\x45\x51\xe0\x8d\x2c\xc1\x3e\x09\xe7\x51\x95\xc4\xf0\x35\x67\xa0\xa3\x9e\x85\x3a\xb0\x4c\xf2\xb2\xfe\xf0\xa7\x40\x13\xe8\x13\x3c\x5a\x53\x96\x0b\xa2\x42\x38\x80\x7b\x48\x14\x02\xa7\x07\xed\xae\xe3\x09\xfd\x28\x18\x3c\x4b\x96\x3f\x2f\xc0\x2b\x7e\x1c\x80\x3b\x10\xe8\xaf\xf2\x65\xfd\xc4\xe6\x42\xb6\x9f\x2f\xfb\xa7\x65\xf9\x12\x70\x1f\x25\x1b\x55\x1e\x21\x1b\x8b\x73\x47\x96\x4f\x8e\x1b\x28\x24\x5a\xdb\x85\xc3\xac\xbb\x9b\xfb\x0d\x00\x00\xff\xff\x80\x3f\x0a\x61\x42\x01\x00\x00"
+
+func nodeversionbeaconScriptsGet_current_node_version_as_stringCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_nodeversionbeaconScriptsGet_current_node_version_as_stringCdc,
+		"nodeVersionBeacon/scripts/get_current_node_version_as_string.cdc",
+	)
+}
+
+func nodeversionbeaconScriptsGet_current_node_version_as_stringCdc() (*asset, error) {
+	bytes, err := nodeversionbeaconScriptsGet_current_node_version_as_stringCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "nodeVersionBeacon/scripts/get_current_node_version_as_string.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x35, 0x7a, 0xa0, 0xdb, 0xbb, 0x68, 0xb, 0xe2, 0x8c, 0x8d, 0xd6, 0xf, 0xed, 0x73, 0x41, 0xbe, 0xbe, 0xb2, 0x9e, 0x42, 0x48, 0x6e, 0xa0, 0x13, 0xa5, 0xeb, 0xa7, 0x1a, 0x1e, 0x3a, 0x24, 0xda}}
+	return a, nil
+}
+
+var _nodeversionbeaconScriptsGet_next_table_updated_sequenceCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x64\x8e\x31\x4b\xc6\x30\x18\x84\xf7\xfc\x8a\xa3\x53\xbb\x24\x8b\x38\x38\xba\x88\x4b\x17\xd1\x3d\x4d\xae\x5a\x30\x6f\xea\x9b\x37\x52\x10\xff\xbb\x20\xdf\x37\x7c\x14\x6e\xba\x3b\x78\x9e\xad\xec\x55\x0d\x73\xcd\x7c\xa3\xb6\xad\xca\x23\x63\xaa\x82\x55\x6b\xc1\xe0\x83\xbf\x26\x55\x31\x8d\xc9\x5a\x38\x9d\x7d\xca\x69\x70\x2e\x84\x80\x27\x5a\x83\x7d\x10\xc2\xc3\xd0\xf8\xd5\x29\x89\x90\x5e\x16\x2a\xd6\xaa\xff\xa3\xc5\xe5\x93\xe8\x7b\x8e\xc6\x0c\x7e\x53\xcc\xed\x7d\xc1\xda\x05\x25\x6e\x32\x4e\x0f\x78\x7d\x16\xbb\xbf\xc3\x8f\x03\x00\xa5\x75\x95\xb3\xa6\x7f\xa7\xcd\x3c\xec\xa6\x7c\xb9\x50\xc7\xc9\xfd\xfe\x05\x00\x00\xff\xff\x5e\xc9\xfa\x30\xe0\x00\x00\x00"
+
+func nodeversionbeaconScriptsGet_next_table_updated_sequenceCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_nodeversionbeaconScriptsGet_next_table_updated_sequenceCdc,
+		"nodeVersionBeacon/scripts/get_next_table_updated_sequence.cdc",
+	)
+}
+
+func nodeversionbeaconScriptsGet_next_table_updated_sequenceCdc() (*asset, error) {
+	bytes, err := nodeversionbeaconScriptsGet_next_table_updated_sequenceCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "nodeVersionBeacon/scripts/get_next_table_updated_sequence.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x6b, 0x4e, 0xdc, 0x87, 0x75, 0x8, 0xbb, 0x3d, 0x43, 0xfe, 0xe2, 0xb8, 0xd3, 0xbc, 0x94, 0xec, 0x63, 0xa5, 0x47, 0x13, 0xbd, 0xd6, 0xc9, 0x4c, 0x75, 0x44, 0x72, 0x95, 0x63, 0x35, 0xef, 0xbd}}
+	return a, nil
+}
+
+var _nodeversionbeaconScriptsGet_next_version_boundary_pairCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\xce\xb1\x6e\xc2\x40\x0c\xc6\xf1\x3d\x4f\xf1\x8d\x30\xb4\xd0\xaa\xea\x80\xc4\x10\x4a\x06\x96\x50\x11\x95\x05\x31\x1c\x89\x93\x58\xe5\x7c\x91\xe3\x43\x44\x55\xdf\xbd\xa2\x85\x89\xae\xb6\xf5\xf7\x8f\x7d\x17\xd4\x90\x87\x8a\xb6\xa4\x3d\x07\x59\x90\x2b\x83\xa0\xd6\xe0\x31\x3d\xe7\xeb\x65\xb6\xcd\x36\xc5\x6a\x9d\x2f\xb2\xf4\x6d\x9d\xa7\xcb\xe5\x26\x2b\x8a\x24\x99\x4c\x26\xd8\x90\x29\xd3\x89\x7a\x58\x4b\x10\x3a\x1b\x4e\x7f\x15\x1c\x42\x94\xca\xe9\x80\xce\xb1\x82\x05\x4e\xd5\x0d\x08\x35\x8e\x24\x8d\xb5\x98\xcf\xf1\xfc\x1b\x51\xb2\xa8\x92\x5e\xd6\xbb\xe9\x7e\x86\x8f\x95\xd8\xeb\x0b\x1e\x70\x38\x86\xf2\x13\x2d\x71\xd3\xda\xdd\xe5\xd3\x7e\x76\xaf\x7e\x2c\xc8\x9f\x48\x6f\xb6\xa8\xd2\x83\x7c\x67\xc3\xf5\x3b\xd7\x17\xa8\x12\xb8\x87\x04\xc4\xae\x0c\x9e\xa5\xb9\x47\x57\x54\xb3\x50\x95\x74\xf1\x80\x3a\x0a\xbc\x63\x19\x8d\x67\xd8\xa5\x32\x14\xa6\xb1\xb4\x3d\xbe\x12\x00\x57\xd3\x3f\x94\x86\x2c\xa7\xb3\xdd\x86\xd7\xf2\xbb\x63\x1d\x8d\x93\xef\xe4\x27\x00\x00\xff\xff\x4a\x12\xef\xac\x79\x01\x00\x00"
+
+func nodeversionbeaconScriptsGet_next_version_boundary_pairCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_nodeversionbeaconScriptsGet_next_version_boundary_pairCdc,
+		"nodeVersionBeacon/scripts/get_next_version_boundary_pair.cdc",
+	)
+}
+
+func nodeversionbeaconScriptsGet_next_version_boundary_pairCdc() (*asset, error) {
+	bytes, err := nodeversionbeaconScriptsGet_next_version_boundary_pairCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "nodeVersionBeacon/scripts/get_next_version_boundary_pair.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x7d, 0x87, 0xea, 0xc8, 0xfe, 0x8b, 0x3a, 0xa5, 0x7f, 0x34, 0x94, 0x61, 0x26, 0x17, 0x12, 0x1b, 0x9b, 0xf9, 0xbe, 0x5a, 0x58, 0x8e, 0x71, 0x1d, 0xfe, 0xd4, 0xff, 0xc2, 0x52, 0x54, 0x36, 0x31}}
+	return a, nil
+}
+
+var _nodeversionbeaconScriptsGet_version_tableCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\xcf\x31\x6e\x83\x40\x10\x85\xe1\x9e\x53\xbc\xd2\x6e\x4c\x8a\x28\x85\x3b\x3b\x50\xb8\x01\x09\x12\xfa\x05\x06\xef\x28\x30\x6b\xcd\xce\x92\x48\x96\xef\x1e\x29\x91\xa2\x48\xf6\x05\xbe\xf7\x7e\x5e\x2e\x41\x0d\x55\x18\xa9\x23\x8d\x1c\xe4\x48\x6e\x08\x82\x49\xc3\x82\xa7\xaf\xaa\x2e\xca\xae\x6c\xda\x53\x5d\x1d\xcb\xc3\x6b\x5d\x1d\x8a\xa2\x29\xdb\x36\xcb\xf2\x3c\x47\x43\xa6\x4c\x2b\x45\x98\x27\xac\xbf\xc0\x9b\xeb\x67\xc2\x48\x13\x0b\x8d\x60\x79\x80\x7f\x7a\x1e\xfc\x8f\x30\x04\x31\xc7\x12\xd1\x07\xf3\xf0\x1c\x2d\x28\x0f\x6e\x86\x93\x11\x53\xb2\xa4\x7f\x2e\xfa\x39\x0c\x1f\xf0\xc4\x67\x6f\xe8\x43\x92\xd1\x29\x53\xcc\x2e\xa9\xc7\x94\x04\x8b\x63\xd9\x6c\xf7\xb8\xbe\x9f\xc4\x5e\x9e\xf7\xf7\xc3\xbb\x96\x96\x95\xf4\x86\x6b\x06\x00\x4a\x96\xf4\xc1\xbf\xdd\x99\xac\xfb\x17\xb3\xd9\x66\xb7\xef\x00\x00\x00\xff\xff\xd4\xa0\xad\xc1\x29\x01\x00\x00"
+
+func nodeversionbeaconScriptsGet_version_tableCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_nodeversionbeaconScriptsGet_version_tableCdc,
+		"nodeVersionBeacon/scripts/get_version_table.cdc",
+	)
+}
+
+func nodeversionbeaconScriptsGet_version_tableCdc() (*asset, error) {
+	bytes, err := nodeversionbeaconScriptsGet_version_tableCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "nodeVersionBeacon/scripts/get_version_table.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x65, 0xd2, 0x1b, 0x1e, 0xcb, 0x7f, 0x42, 0xef, 0x80, 0xda, 0x59, 0x83, 0x35, 0xf9, 0xe9, 0xcd, 0xec, 0xe8, 0x1, 0xf5, 0x8, 0xdc, 0x34, 0xad, 0x2a, 0x88, 0x19, 0xe5, 0x1b, 0x52, 0xb5, 0x9c}}
+	return a, nil
+}
+
+var _nodeversionbeaconScriptsGet_version_update_bufferCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x64\xcf\xb1\x4e\xc3\x30\x10\xc6\xf1\x3d\x4f\xf1\x8d\xed\x42\x18\x10\x03\x5b\x43\x32\x74\x49\xa4\x44\xcd\xee\xc4\xe7\xd8\x02\x9f\x23\xfb\x4c\x41\x88\x77\x47\x24\x74\xea\x7e\xf7\xbb\xfb\x3b\xbf\x86\x28\x68\x83\xa6\x91\x62\x72\x81\x2b\x52\x73\x60\x98\x18\x3c\x1e\x3f\xdb\xae\x6e\xc6\xa6\x1f\xce\x5d\x5b\x35\xa7\xd7\xae\x3d\xd5\x75\xdf\x0c\x43\x51\x94\x65\x89\x9e\x24\x47\x4e\x10\x4b\xf8\xd8\xd7\x2f\xab\x56\x42\x55\x36\x86\x22\xae\xd6\xcd\x16\x9a\x8c\x63\xda\xa7\xbc\x63\xe7\xb3\x07\x67\x3f\x51\x44\x30\x98\xde\xc3\xfc\x96\x36\x4e\xac\x12\xf8\x9c\x04\xab\x4a\x09\x13\xc9\x95\x88\x91\xff\x48\xc7\x0b\xd4\xed\x08\x14\x6b\x38\x49\xff\xb4\xde\x11\x58\x72\x8b\x95\x8d\x9a\x42\x66\xad\xe2\x57\xb1\xe6\x09\x26\x33\xbc\x72\x7c\x38\xbe\xe0\x72\x66\x79\x7e\xc2\x77\x01\x00\x71\xfb\xff\xbe\xfe\x61\x21\x19\xef\x7b\x0e\xc7\xe2\xe7\x37\x00\x00\xff\xff\xf5\xfa\xf3\x54\x31\x01\x00\x00"
+
+func nodeversionbeaconScriptsGet_version_update_bufferCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_nodeversionbeaconScriptsGet_version_update_bufferCdc,
+		"nodeVersionBeacon/scripts/get_version_update_buffer.cdc",
+	)
+}
+
+func nodeversionbeaconScriptsGet_version_update_bufferCdc() (*asset, error) {
+	bytes, err := nodeversionbeaconScriptsGet_version_update_bufferCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "nodeVersionBeacon/scripts/get_version_update_buffer.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x4b, 0x4e, 0x9e, 0xc3, 0x73, 0x5d, 0xcd, 0x71, 0x23, 0x5a, 0x78, 0xf4, 0xaa, 0x27, 0xcd, 0xb8, 0x3, 0xd5, 0xdb, 0x61, 0x84, 0xf8, 0x9e, 0xba, 0xf0, 0x39, 0x61, 0x4, 0xa8, 0x18, 0x85, 0xf6}}
+	return a, nil
+}
+
+var _nodeversionbeaconScriptsIs_compatible_versionCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x90\x41\x6b\x83\x40\x10\x46\xef\xfe\x8a\xef\x98\x40\xa8\x3d\x94\x1e\xbc\xc5\x28\x34\x17\x05\xa5\xb9\xaf\xba\xea\x50\x77\x46\xd6\x55\x2a\xa5\xff\xbd\xc4\x34\x54\x69\xce\xef\xe3\xed\xbc\x25\xd3\x8b\x75\x48\xa4\xd2\x17\x6d\x07\x12\x0e\xb5\x2a\x85\x51\x5b\x31\x78\xfe\x4c\xd2\x28\xbe\xc4\x59\x7e\x4e\x93\x30\x3e\x9e\xd2\xe4\x18\x45\x59\x9c\xe7\x9e\xe7\xfb\x3e\x32\xed\x46\xcb\x03\x14\x42\x91\x0e\x03\x35\x4c\xf5\x4c\xdc\x80\x6a\xb8\x56\xa3\xa1\x49\x33\xa6\x9b\x19\x34\x60\x52\x1d\x55\x50\x6e\x45\x8b\x4e\xca\x0f\xb4\x9a\x9a\xd6\x2d\x56\xb1\x60\xea\xb6\x8a\xf5\xe8\xea\x29\xf4\x2c\x5c\x2d\x83\x72\xb4\x56\xb3\xdb\x7a\xfa\xb1\x40\x3d\x32\x8c\x22\xde\x99\x39\xbc\xb2\xb7\x05\x05\x78\x3f\xb3\x7b\x7d\x39\xc0\xcc\xbf\xc9\xc1\xff\xfe\xa7\x5c\x9b\x49\xdb\x7d\x70\x2b\xfb\xf2\x00\xc0\x2e\xb9\x0f\xc6\x34\x9c\xc4\xf4\xca\x51\xd1\xdd\xc9\xae\x58\x3f\xb9\xb9\xe0\x70\xff\x90\xe0\xef\x84\xbd\xf7\xfd\x13\x00\x00\xff\xff\x25\x2f\x34\xeb\x8b\x01\x00\x00"
+
+func nodeversionbeaconScriptsIs_compatible_versionCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_nodeversionbeaconScriptsIs_compatible_versionCdc,
+		"nodeVersionBeacon/scripts/is_compatible_version.cdc",
+	)
+}
+
+func nodeversionbeaconScriptsIs_compatible_versionCdc() (*asset, error) {
+	bytes, err := nodeversionbeaconScriptsIs_compatible_versionCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "nodeVersionBeacon/scripts/is_compatible_version.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xbe, 0xc2, 0x94, 0x59, 0x21, 0x71, 0x6b, 0x8e, 0x16, 0x1f, 0x28, 0x1, 0xb6, 0x3b, 0xa9, 0x43, 0xd1, 0x6, 0x18, 0x4c, 0x3, 0xb6, 0x5f, 0xbe, 0x5f, 0xee, 0xe2, 0x4a, 0xfd, 0x36, 0x72, 0xc8}}
+	return a, nil
+}
+
 var _quorumcertificateAdminPublish_voterCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x8f\xc1\x4e\xc3\x30\x10\x44\xef\xfe\x8a\x39\xa1\x56\x42\x0d\xe7\x0a\x21\x45\x2e\x9c\x09\xe5\x07\x96\xb0\x89\x2d\x1c\x6f\xb4\xde\xb4\x48\x55\xff\x1d\x39\xbd\x80\xc4\x5e\x77\x66\xde\x4c\x9c\x66\x51\xc3\x4b\x92\xb3\x4f\x4b\x31\xd6\xce\x63\x50\x99\xf0\xf0\xdd\xf9\xf6\x70\x78\x7b\x3e\x1e\x9d\x6b\x1a\xbc\x73\x31\x98\x52\x2e\xd4\x5b\x94\x8c\x41\x14\x16\x18\x9d\x07\x7d\x4e\x31\xc3\x04\xf3\xf2\x91\x62\x09\x20\x28\x0f\xac\x9c\x7b\xae\x5e\x0b\x64\xa0\x94\xe4\x5c\x40\x7d\x2f\x4b\xb6\x52\xe5\xca\x63\xac\xcc\x35\xab\xf3\x38\x89\xc5\x3c\x3a\xf7\x1b\x73\x71\x0e\x00\x66\xe5\x99\x94\x37\x25\x8e\x99\x75\x8f\x76\xb1\xd0\xde\xa2\xb6\xb8\xac\x92\x7a\xb7\xf7\x2e\xc5\xfc\xf5\x78\xf7\x67\xd5\xae\xad\x25\x9f\x36\xcd\xda\xb1\x6f\x4e\x62\xac\x5e\x99\x4c\xf4\x1e\x46\x3a\xb2\xed\xf1\x8f\xe5\x68\xa2\x34\xf2\x2b\x59\xd8\xae\x9c\xab\xbb\xfe\x04\x00\x00\xff\xff\x97\xf7\x08\x84\x37\x01\x00\x00"
 
 func quorumcertificateAdminPublish_voterCdcBytes() ([]byte, error) {
@@ -6229,295 +6271,297 @@ func AssetNames() []string {
 
 // _bindata is a table, holding each asset generator, mapped to its name.
 var _bindata = map[string]func() (*asset, error){
-	"FlowServiceAccount/add_account_creator.cdc":                                          flowserviceaccountAdd_account_creatorCdc,
-	"FlowServiceAccount/deposit_fees.cdc":                                                 flowserviceaccountDeposit_feesCdc,
-	"FlowServiceAccount/remove_account_creator.cdc":                                       flowserviceaccountRemove_account_creatorCdc,
-	"FlowServiceAccount/scripts/get_account_creators.cdc":                                 flowserviceaccountScriptsGet_account_creatorsCdc,
-	"FlowServiceAccount/scripts/get_account_fee.cdc":                                      flowserviceaccountScriptsGet_account_feeCdc,
-	"FlowServiceAccount/scripts/get_execution_effort_weights.cdc":                         flowserviceaccountScriptsGet_execution_effort_weightsCdc,
-	"FlowServiceAccount/scripts/get_execution_memory_limit.cdc":                           flowserviceaccountScriptsGet_execution_memory_limitCdc,
-	"FlowServiceAccount/scripts/get_execution_memory_weights.cdc":                         flowserviceaccountScriptsGet_execution_memory_weightsCdc,
-	"FlowServiceAccount/scripts/get_fees_balance.cdc":                                     flowserviceaccountScriptsGet_fees_balanceCdc,
-	"FlowServiceAccount/scripts/get_is_account_creation_restricted.cdc":                   flowserviceaccountScriptsGet_is_account_creation_restrictedCdc,
-	"FlowServiceAccount/scripts/get_is_account_creator.cdc":                               flowserviceaccountScriptsGet_is_account_creatorCdc,
-	"FlowServiceAccount/scripts/get_tx_fee_parameters.cdc":                                flowserviceaccountScriptsGet_tx_fee_parametersCdc,
-	"FlowServiceAccount/set_execution_effort_weights.cdc":                                 flowserviceaccountSet_execution_effort_weightsCdc,
-	"FlowServiceAccount/set_execution_memory_limit.cdc":                                   flowserviceaccountSet_execution_memory_limitCdc,
-	"FlowServiceAccount/set_execution_memory_weights.cdc":                                 flowserviceaccountSet_execution_memory_weightsCdc,
-	"FlowServiceAccount/set_is_account_creation_restricted.cdc":                           flowserviceaccountSet_is_account_creation_restrictedCdc,
-	"FlowServiceAccount/set_tx_fee_parameters.cdc":                                        flowserviceaccountSet_tx_fee_parametersCdc,
-	"FlowServiceAccount/set_tx_fee_surge_factor.cdc":                                      flowserviceaccountSet_tx_fee_surge_factorCdc,
-	"contractAudits/admin/authorize_auditor.cdc":                                          contractauditsAdminAuthorize_auditorCdc,
-	"contractAudits/admin/cleanup_expired.cdc":                                            contractauditsAdminCleanup_expiredCdc,
-	"contractAudits/auditor/init.cdc":                                                     contractauditsAuditorInitCdc,
-	"contractAudits/auditor/new_audit.cdc":                                                contractauditsAuditorNew_auditCdc,
-	"contractAudits/auditor/new_audit_hashed.cdc":                                         contractauditsAuditorNew_audit_hashedCdc,
-	"contractAudits/auditor/remove_audit.cdc":                                             contractauditsAuditorRemove_auditCdc,
-	"contractAudits/fvm/deploy_contract.cdc":                                              contractauditsFvmDeploy_contractCdc,
-	"contractAudits/scripts/get_vouchers.cdc":                                             contractauditsScriptsGet_vouchersCdc,
-	"dkg/admin/force_stop_dkg.cdc":                                                        dkgAdminForce_stop_dkgCdc,
-	"dkg/admin/publish_participant.cdc":                                                   dkgAdminPublish_participantCdc,
-	"dkg/admin/set_safe_threshold.cdc":                                                    dkgAdminSet_safe_thresholdCdc,
-	"dkg/admin/start_dkg.cdc":                                                             dkgAdminStart_dkgCdc,
-	"dkg/admin/stop_dkg.cdc":                                                              dkgAdminStop_dkgCdc,
-	"dkg/create_participant.cdc":                                                          dkgCreate_participantCdc,
-	"dkg/scripts/get_consensus_nodes.cdc":                                                 dkgScriptsGet_consensus_nodesCdc,
-	"dkg/scripts/get_dkg_canonical_final_submission.cdc":                                  dkgScriptsGet_dkg_canonical_final_submissionCdc,
-	"dkg/scripts/get_dkg_completed.cdc":                                                   dkgScriptsGet_dkg_completedCdc,
-	"dkg/scripts/get_dkg_enabled.cdc":                                                     dkgScriptsGet_dkg_enabledCdc,
-	"dkg/scripts/get_final_submissions.cdc":                                               dkgScriptsGet_final_submissionsCdc,
-	"dkg/scripts/get_latest_whiteboard_messages.cdc":                                      dkgScriptsGet_latest_whiteboard_messagesCdc,
-	"dkg/scripts/get_node_final_submission.cdc":                                           dkgScriptsGet_node_final_submissionCdc,
-	"dkg/scripts/get_node_has_submitted.cdc":                                              dkgScriptsGet_node_has_submittedCdc,
-	"dkg/scripts/get_node_is_claimed.cdc":                                                 dkgScriptsGet_node_is_claimedCdc,
-	"dkg/scripts/get_node_is_registered.cdc":                                              dkgScriptsGet_node_is_registeredCdc,
-	"dkg/scripts/get_thresholds.cdc":                                                      dkgScriptsGet_thresholdsCdc,
-	"dkg/scripts/get_whiteboard_messages.cdc":                                             dkgScriptsGet_whiteboard_messagesCdc,
-	"dkg/send_final_submission.cdc":                                                       dkgSend_final_submissionCdc,
-	"dkg/send_whiteboard_message.cdc":                                                     dkgSend_whiteboard_messageCdc,
-	"epoch/admin/advance_view.cdc":                                                        epochAdminAdvance_viewCdc,
-	"epoch/admin/calculate_rewards.cdc":                                                   epochAdminCalculate_rewardsCdc,
-	"epoch/admin/deploy_epoch.cdc":                                                        epochAdminDeploy_epochCdc,
-	"epoch/admin/deploy_qc_dkg.cdc":                                                       epochAdminDeploy_qc_dkgCdc,
-	"epoch/admin/pay_rewards.cdc":                                                         epochAdminPay_rewardsCdc,
-	"epoch/admin/reset_epoch.cdc":                                                         epochAdminReset_epochCdc,
-	"epoch/admin/set_automatic_rewards.cdc":                                               epochAdminSet_automatic_rewardsCdc,
-	"epoch/admin/update_clusters.cdc":                                                     epochAdminUpdate_clustersCdc,
-	"epoch/admin/update_dkg_phase_views.cdc":                                              epochAdminUpdate_dkg_phase_viewsCdc,
-	"epoch/admin/update_epoch_config.cdc":                                                 epochAdminUpdate_epoch_configCdc,
-	"epoch/admin/update_epoch_views.cdc":                                                  epochAdminUpdate_epoch_viewsCdc,
-	"epoch/admin/update_reward.cdc":                                                       epochAdminUpdate_rewardCdc,
-	"epoch/admin/update_staking_views.cdc":                                                epochAdminUpdate_staking_viewsCdc,
-	"epoch/node/register_dkg_participant.cdc":                                             epochNodeRegister_dkg_participantCdc,
-	"epoch/node/register_node.cdc":                                                        epochNodeRegister_nodeCdc,
-	"epoch/node/register_qc_voter.cdc":                                                    epochNodeRegister_qc_voterCdc,
-	"epoch/scripts/get_config_metadata.cdc":                                               epochScriptsGet_config_metadataCdc,
-	"epoch/scripts/get_create_clusters.cdc":                                               epochScriptsGet_create_clustersCdc,
-	"epoch/scripts/get_current_view.cdc":                                                  epochScriptsGet_current_viewCdc,
-	"epoch/scripts/get_epoch_counter.cdc":                                                 epochScriptsGet_epoch_counterCdc,
-	"epoch/scripts/get_epoch_metadata.cdc":                                                epochScriptsGet_epoch_metadataCdc,
-	"epoch/scripts/get_epoch_phase.cdc":                                                   epochScriptsGet_epoch_phaseCdc,
-	"epoch/scripts/get_proposed_counter.cdc":                                              epochScriptsGet_proposed_counterCdc,
-	"epoch/scripts/get_randomize.cdc":                                                     epochScriptsGet_randomizeCdc,
-	"executionNodeVersionBeacon/admin/add_version_to_table.cdc":                           executionnodeversionbeaconAdminAdd_version_to_tableCdc,
-	"executionNodeVersionBeacon/admin/change_version_update_buffer.cdc":                   executionnodeversionbeaconAdminChange_version_update_bufferCdc,
-	"executionNodeVersionBeacon/admin/change_version_update_buffer_variance.cdc":          executionnodeversionbeaconAdminChange_version_update_buffer_varianceCdc,
-	"executionNodeVersionBeacon/admin/delete_upcoming_version_boundary.cdc":               executionnodeversionbeaconAdminDelete_upcoming_version_boundaryCdc,
-	"executionNodeVersionBeacon/scripts/get_current_execution_node_version.cdc":           executionnodeversionbeaconScriptsGet_current_execution_node_versionCdc,
-	"executionNodeVersionBeacon/scripts/get_current_execution_node_version_as_string.cdc": executionnodeversionbeaconScriptsGet_current_execution_node_version_as_stringCdc,
-	"executionNodeVersionBeacon/scripts/get_next_version_boundary_pair.cdc":               executionnodeversionbeaconScriptsGet_next_version_boundary_pairCdc,
-	"executionNodeVersionBeacon/scripts/get_version_table.cdc":                            executionnodeversionbeaconScriptsGet_version_tableCdc,
-	"executionNodeVersionBeacon/scripts/get_version_update_buffer.cdc":                    executionnodeversionbeaconScriptsGet_version_update_bufferCdc,
-	"executionNodeVersionBeacon/scripts/is_compatible_version.cdc":                        executionnodeversionbeaconScriptsIs_compatible_versionCdc,
-	"flowToken/burn_tokens.cdc":                                                           flowtokenBurn_tokensCdc,
-	"flowToken/create_forwarder.cdc":                                                      flowtokenCreate_forwarderCdc,
-	"flowToken/mint_tokens.cdc":                                                           flowtokenMint_tokensCdc,
-	"flowToken/scripts/get_balance.cdc":                                                   flowtokenScriptsGet_balanceCdc,
-	"flowToken/scripts/get_supply.cdc":                                                    flowtokenScriptsGet_supplyCdc,
-	"flowToken/setup_account.cdc":                                                         flowtokenSetup_accountCdc,
-	"flowToken/transfer_tokens.cdc":                                                       flowtokenTransfer_tokensCdc,
-	"idTableStaking/admin/add_approved_and_limits.cdc":                                    idtablestakingAdminAdd_approved_and_limitsCdc,
-	"idTableStaking/admin/add_approved_nodes.cdc":                                         idtablestakingAdminAdd_approved_nodesCdc,
-	"idTableStaking/admin/capability_end_epoch.cdc":                                       idtablestakingAdminCapability_end_epochCdc,
-	"idTableStaking/admin/change_candidate_limits.cdc":                                    idtablestakingAdminChange_candidate_limitsCdc,
-	"idTableStaking/admin/change_cut.cdc":                                                 idtablestakingAdminChange_cutCdc,
-	"idTableStaking/admin/change_minimums.cdc":                                            idtablestakingAdminChange_minimumsCdc,
-	"idTableStaking/admin/change_payout.cdc":                                              idtablestakingAdminChange_payoutCdc,
-	"idTableStaking/admin/end_epoch.cdc":                                                  idtablestakingAdminEnd_epochCdc,
-	"idTableStaking/admin/end_epoch_change_payout.cdc":                                    idtablestakingAdminEnd_epoch_change_payoutCdc,
-	"idTableStaking/admin/end_staking.cdc":                                                idtablestakingAdminEnd_stakingCdc,
-	"idTableStaking/admin/move_tokens.cdc":                                                idtablestakingAdminMove_tokensCdc,
-	"idTableStaking/admin/pay_rewards.cdc":                                                idtablestakingAdminPay_rewardsCdc,
-	"idTableStaking/admin/remove_approved_nodes.cdc":                                      idtablestakingAdminRemove_approved_nodesCdc,
-	"idTableStaking/admin/remove_invalid_nodes.cdc":                                       idtablestakingAdminRemove_invalid_nodesCdc,
-	"idTableStaking/admin/remove_node.cdc":                                                idtablestakingAdminRemove_nodeCdc,
-	"idTableStaking/admin/scale_rewards_test.cdc":                                         idtablestakingAdminScale_rewards_testCdc,
-	"idTableStaking/admin/set_approved_nodes.cdc":                                         idtablestakingAdminSet_approved_nodesCdc,
-	"idTableStaking/admin/set_claimed.cdc":                                                idtablestakingAdminSet_claimedCdc,
-	"idTableStaking/admin/set_node_weight.cdc":                                            idtablestakingAdminSet_node_weightCdc,
-	"idTableStaking/admin/set_non_operational.cdc":                                        idtablestakingAdminSet_non_operationalCdc,
-	"idTableStaking/admin/set_slot_limits.cdc":                                            idtablestakingAdminSet_slot_limitsCdc,
-	"idTableStaking/admin/start_staking.cdc":                                              idtablestakingAdminStart_stakingCdc,
-	"idTableStaking/admin/transfer_admin.cdc":                                             idtablestakingAdminTransfer_adminCdc,
-	"idTableStaking/admin/transfer_fees_admin.cdc":                                        idtablestakingAdminTransfer_fees_adminCdc,
-	"idTableStaking/admin/transfer_minter_deploy.cdc":                                     idtablestakingAdminTransfer_minter_deployCdc,
-	"idTableStaking/admin/upgrade_set_claimed.cdc":                                        idtablestakingAdminUpgrade_set_claimedCdc,
-	"idTableStaking/admin/upgrade_staking.cdc":                                            idtablestakingAdminUpgrade_stakingCdc,
-	"idTableStaking/delegation/del_request_unstaking.cdc":                                 idtablestakingDelegationDel_request_unstakingCdc,
-	"idTableStaking/delegation/del_stake_new_tokens.cdc":                                  idtablestakingDelegationDel_stake_new_tokensCdc,
-	"idTableStaking/delegation/del_stake_rewarded.cdc":                                    idtablestakingDelegationDel_stake_rewardedCdc,
-	"idTableStaking/delegation/del_stake_unstaked.cdc":                                    idtablestakingDelegationDel_stake_unstakedCdc,
-	"idTableStaking/delegation/del_withdraw_reward_tokens.cdc":                            idtablestakingDelegationDel_withdraw_reward_tokensCdc,
-	"idTableStaking/delegation/del_withdraw_unstaked_tokens.cdc":                          idtablestakingDelegationDel_withdraw_unstaked_tokensCdc,
-	"idTableStaking/delegation/delegator_add_capability.cdc":                              idtablestakingDelegationDelegator_add_capabilityCdc,
-	"idTableStaking/delegation/get_delegator_committed.cdc":                               idtablestakingDelegationGet_delegator_committedCdc,
-	"idTableStaking/delegation/get_delegator_info.cdc":                                    idtablestakingDelegationGet_delegator_infoCdc,
-	"idTableStaking/delegation/get_delegator_info_from_address.cdc":                       idtablestakingDelegationGet_delegator_info_from_addressCdc,
-	"idTableStaking/delegation/get_delegator_request.cdc":                                 idtablestakingDelegationGet_delegator_requestCdc,
-	"idTableStaking/delegation/get_delegator_rewarded.cdc":                                idtablestakingDelegationGet_delegator_rewardedCdc,
-	"idTableStaking/delegation/get_delegator_staked.cdc":                                  idtablestakingDelegationGet_delegator_stakedCdc,
-	"idTableStaking/delegation/get_delegator_unstaked.cdc":                                idtablestakingDelegationGet_delegator_unstakedCdc,
-	"idTableStaking/delegation/get_delegator_unstaking.cdc":                               idtablestakingDelegationGet_delegator_unstakingCdc,
-	"idTableStaking/delegation/get_delegator_unstaking_request.cdc":                       idtablestakingDelegationGet_delegator_unstaking_requestCdc,
-	"idTableStaking/delegation/register_delegator.cdc":                                    idtablestakingDelegationRegister_delegatorCdc,
-	"idTableStaking/delegation/register_many_delegators.cdc":                              idtablestakingDelegationRegister_many_delegatorsCdc,
-	"idTableStaking/node/node_add_capability.cdc":                                         idtablestakingNodeNode_add_capabilityCdc,
-	"idTableStaking/node/register_many_nodes.cdc":                                         idtablestakingNodeRegister_many_nodesCdc,
-	"idTableStaking/node/register_node.cdc":                                               idtablestakingNodeRegister_nodeCdc,
-	"idTableStaking/node/request_unstake.cdc":                                             idtablestakingNodeRequest_unstakeCdc,
-	"idTableStaking/node/stake_new_tokens.cdc":                                            idtablestakingNodeStake_new_tokensCdc,
-	"idTableStaking/node/stake_rewarded_tokens.cdc":                                       idtablestakingNodeStake_rewarded_tokensCdc,
-	"idTableStaking/node/stake_unstaked_tokens.cdc":                                       idtablestakingNodeStake_unstaked_tokensCdc,
-	"idTableStaking/node/unstake_all.cdc":                                                 idtablestakingNodeUnstake_allCdc,
-	"idTableStaking/node/update_networking_address.cdc":                                   idtablestakingNodeUpdate_networking_addressCdc,
-	"idTableStaking/node/withdraw_reward_tokens.cdc":                                      idtablestakingNodeWithdraw_reward_tokensCdc,
-	"idTableStaking/node/withdraw_unstaked_tokens.cdc":                                    idtablestakingNodeWithdraw_unstaked_tokensCdc,
-	"idTableStaking/scripts/get_approved_but_not_staked_nodes.cdc":                        idtablestakingScriptsGet_approved_but_not_staked_nodesCdc,
-	"idTableStaking/scripts/get_approved_nodes.cdc":                                       idtablestakingScriptsGet_approved_nodesCdc,
-	"idTableStaking/scripts/get_candidate_limits.cdc":                                     idtablestakingScriptsGet_candidate_limitsCdc,
-	"idTableStaking/scripts/get_candidate_nodes.cdc":                                      idtablestakingScriptsGet_candidate_nodesCdc,
-	"idTableStaking/scripts/get_current_table.cdc":                                        idtablestakingScriptsGet_current_tableCdc,
-	"idTableStaking/scripts/get_cut_percentage.cdc":                                       idtablestakingScriptsGet_cut_percentageCdc,
-	"idTableStaking/scripts/get_node_committed_tokens.cdc":                                idtablestakingScriptsGet_node_committed_tokensCdc,
-	"idTableStaking/scripts/get_node_info.cdc":                                            idtablestakingScriptsGet_node_infoCdc,
-	"idTableStaking/scripts/get_node_info_from_address.cdc":                               idtablestakingScriptsGet_node_info_from_addressCdc,
-	"idTableStaking/scripts/get_node_initial_weight.cdc":                                  idtablestakingScriptsGet_node_initial_weightCdc,
-	"idTableStaking/scripts/get_node_networking_addr.cdc":                                 idtablestakingScriptsGet_node_networking_addrCdc,
-	"idTableStaking/scripts/get_node_networking_key.cdc":                                  idtablestakingScriptsGet_node_networking_keyCdc,
-	"idTableStaking/scripts/get_node_rewarded_tokens.cdc":                                 idtablestakingScriptsGet_node_rewarded_tokensCdc,
-	"idTableStaking/scripts/get_node_role.cdc":                                            idtablestakingScriptsGet_node_roleCdc,
-	"idTableStaking/scripts/get_node_staked_tokens.cdc":                                   idtablestakingScriptsGet_node_staked_tokensCdc,
-	"idTableStaking/scripts/get_node_staking_key.cdc":                                     idtablestakingScriptsGet_node_staking_keyCdc,
-	"idTableStaking/scripts/get_node_total_commitment.cdc":                                idtablestakingScriptsGet_node_total_commitmentCdc,
-	"idTableStaking/scripts/get_node_total_commitment_without_delegators.cdc":             idtablestakingScriptsGet_node_total_commitment_without_delegatorsCdc,
-	"idTableStaking/scripts/get_node_type_ratio.cdc":                                      idtablestakingScriptsGet_node_type_ratioCdc,
-	"idTableStaking/scripts/get_node_unstaked_tokens.cdc":                                 idtablestakingScriptsGet_node_unstaked_tokensCdc,
-	"idTableStaking/scripts/get_node_unstaking_request.cdc":                               idtablestakingScriptsGet_node_unstaking_requestCdc,
-	"idTableStaking/scripts/get_node_unstaking_tokens.cdc":                                idtablestakingScriptsGet_node_unstaking_tokensCdc,
-	"idTableStaking/scripts/get_non_operational.cdc":                                      idtablestakingScriptsGet_non_operationalCdc,
-	"idTableStaking/scripts/get_proposed_table.cdc":                                       idtablestakingScriptsGet_proposed_tableCdc,
-	"idTableStaking/scripts/get_role_counts.cdc":                                          idtablestakingScriptsGet_role_countsCdc,
-	"idTableStaking/scripts/get_slot_limits.cdc":                                          idtablestakingScriptsGet_slot_limitsCdc,
-	"idTableStaking/scripts/get_stake_requirements.cdc":                                   idtablestakingScriptsGet_stake_requirementsCdc,
-	"idTableStaking/scripts/get_table.cdc":                                                idtablestakingScriptsGet_tableCdc,
-	"idTableStaking/scripts/get_total_staked.cdc":                                         idtablestakingScriptsGet_total_stakedCdc,
-	"idTableStaking/scripts/get_total_staked_by_type.cdc":                                 idtablestakingScriptsGet_total_staked_by_typeCdc,
-	"idTableStaking/scripts/get_weekly_payout.cdc":                                        idtablestakingScriptsGet_weekly_payoutCdc,
-	"inspect_field.cdc":                                                                   inspect_fieldCdc,
-	"lockedTokens/admin/admin_create_shared_accounts.cdc":                                 lockedtokensAdminAdmin_create_shared_accountsCdc,
-	"lockedTokens/admin/admin_deploy_contract.cdc":                                        lockedtokensAdminAdmin_deploy_contractCdc,
-	"lockedTokens/admin/admin_deposit_account_creator.cdc":                                lockedtokensAdminAdmin_deposit_account_creatorCdc,
-	"lockedTokens/admin/admin_remove_delegator.cdc":                                       lockedtokensAdminAdmin_remove_delegatorCdc,
-	"lockedTokens/admin/check_main_registration.cdc":                                      lockedtokensAdminCheck_main_registrationCdc,
-	"lockedTokens/admin/check_shared_registration.cdc":                                    lockedtokensAdminCheck_shared_registrationCdc,
-	"lockedTokens/admin/custody_create_account_with_lease_account.cdc":                    lockedtokensAdminCustody_create_account_with_lease_accountCdc,
-	"lockedTokens/admin/custody_create_only_lease_account.cdc":                            lockedtokensAdminCustody_create_only_lease_accountCdc,
-	"lockedTokens/admin/custody_create_only_shared_account.cdc":                           lockedtokensAdminCustody_create_only_shared_accountCdc,
-	"lockedTokens/admin/custody_create_shared_accounts.cdc":                               lockedtokensAdminCustody_create_shared_accountsCdc,
-	"lockedTokens/admin/custody_setup_account_creator.cdc":                                lockedtokensAdminCustody_setup_account_creatorCdc,
-	"lockedTokens/admin/deposit_locked_tokens.cdc":                                        lockedtokensAdminDeposit_locked_tokensCdc,
-	"lockedTokens/admin/get_unlocking_bad_accounts.cdc":                                   lockedtokensAdminGet_unlocking_bad_accountsCdc,
-	"lockedTokens/admin/unlock_tokens.cdc":                                                lockedtokensAdminUnlock_tokensCdc,
-	"lockedTokens/admin/unlock_tokens_for_multiple_accounts.cdc":                          lockedtokensAdminUnlock_tokens_for_multiple_accountsCdc,
-	"lockedTokens/delegator/delegate_new_tokens.cdc":                                      lockedtokensDelegatorDelegate_new_tokensCdc,
-	"lockedTokens/delegator/delegate_rewarded_tokens.cdc":                                 lockedtokensDelegatorDelegate_rewarded_tokensCdc,
-	"lockedTokens/delegator/delegate_unstaked_tokens.cdc":                                 lockedtokensDelegatorDelegate_unstaked_tokensCdc,
-	"lockedTokens/delegator/get_delegator_id.cdc":                                         lockedtokensDelegatorGet_delegator_idCdc,
-	"lockedTokens/delegator/get_delegator_info.cdc":                                       lockedtokensDelegatorGet_delegator_infoCdc,
-	"lockedTokens/delegator/get_delegator_node_id.cdc":                                    lockedtokensDelegatorGet_delegator_node_idCdc,
-	"lockedTokens/delegator/register_delegator.cdc":                                       lockedtokensDelegatorRegister_delegatorCdc,
-	"lockedTokens/delegator/request_unstaking.cdc":                                        lockedtokensDelegatorRequest_unstakingCdc,
-	"lockedTokens/delegator/withdraw_rewarded_tokens.cdc":                                 lockedtokensDelegatorWithdraw_rewarded_tokensCdc,
-	"lockedTokens/delegator/withdraw_rewarded_tokens_locked.cdc":                          lockedtokensDelegatorWithdraw_rewarded_tokens_lockedCdc,
-	"lockedTokens/delegator/withdraw_unstaked_tokens.cdc":                                 lockedtokensDelegatorWithdraw_unstaked_tokensCdc,
-	"lockedTokens/staker/get_node_id.cdc":                                                 lockedtokensStakerGet_node_idCdc,
-	"lockedTokens/staker/get_staker_info.cdc":                                             lockedtokensStakerGet_staker_infoCdc,
-	"lockedTokens/staker/register_node.cdc":                                               lockedtokensStakerRegister_nodeCdc,
-	"lockedTokens/staker/request_unstaking.cdc":                                           lockedtokensStakerRequest_unstakingCdc,
-	"lockedTokens/staker/stake_new_tokens.cdc":                                            lockedtokensStakerStake_new_tokensCdc,
-	"lockedTokens/staker/stake_rewarded_tokens.cdc":                                       lockedtokensStakerStake_rewarded_tokensCdc,
-	"lockedTokens/staker/stake_unstaked_tokens.cdc":                                       lockedtokensStakerStake_unstaked_tokensCdc,
-	"lockedTokens/staker/unstake_all.cdc":                                                 lockedtokensStakerUnstake_allCdc,
-	"lockedTokens/staker/update_networking_address.cdc":                                   lockedtokensStakerUpdate_networking_addressCdc,
-	"lockedTokens/staker/withdraw_rewarded_tokens.cdc":                                    lockedtokensStakerWithdraw_rewarded_tokensCdc,
-	"lockedTokens/staker/withdraw_rewarded_tokens_locked.cdc":                             lockedtokensStakerWithdraw_rewarded_tokens_lockedCdc,
-	"lockedTokens/staker/withdraw_unstaked_tokens.cdc":                                    lockedtokensStakerWithdraw_unstaked_tokensCdc,
-	"lockedTokens/user/deposit_tokens.cdc":                                                lockedtokensUserDeposit_tokensCdc,
-	"lockedTokens/user/get_locked_account_address.cdc":                                    lockedtokensUserGet_locked_account_addressCdc,
-	"lockedTokens/user/get_locked_account_balance.cdc":                                    lockedtokensUserGet_locked_account_balanceCdc,
-	"lockedTokens/user/get_multiple_unlock_limits.cdc":                                    lockedtokensUserGet_multiple_unlock_limitsCdc,
-	"lockedTokens/user/get_total_balance.cdc":                                             lockedtokensUserGet_total_balanceCdc,
-	"lockedTokens/user/get_unlock_limit.cdc":                                              lockedtokensUserGet_unlock_limitCdc,
-	"lockedTokens/user/withdraw_tokens.cdc":                                               lockedtokensUserWithdraw_tokensCdc,
-	"quorumCertificate/admin/publish_voter.cdc":                                           quorumcertificateAdminPublish_voterCdc,
-	"quorumCertificate/admin/start_voting.cdc":                                            quorumcertificateAdminStart_votingCdc,
-	"quorumCertificate/admin/stop_voting.cdc":                                             quorumcertificateAdminStop_votingCdc,
-	"quorumCertificate/create_voter.cdc":                                                  quorumcertificateCreate_voterCdc,
-	"quorumCertificate/scripts/generate_quorum_certificate.cdc":                           quorumcertificateScriptsGenerate_quorum_certificateCdc,
-	"quorumCertificate/scripts/get_cluster.cdc":                                           quorumcertificateScriptsGet_clusterCdc,
-	"quorumCertificate/scripts/get_cluster_complete.cdc":                                  quorumcertificateScriptsGet_cluster_completeCdc,
-	"quorumCertificate/scripts/get_cluster_node_weights.cdc":                              quorumcertificateScriptsGet_cluster_node_weightsCdc,
-	"quorumCertificate/scripts/get_cluster_vote_threshold.cdc":                            quorumcertificateScriptsGet_cluster_vote_thresholdCdc,
-	"quorumCertificate/scripts/get_cluster_votes.cdc":                                     quorumcertificateScriptsGet_cluster_votesCdc,
-	"quorumCertificate/scripts/get_cluster_weight.cdc":                                    quorumcertificateScriptsGet_cluster_weightCdc,
-	"quorumCertificate/scripts/get_clusters.cdc":                                          quorumcertificateScriptsGet_clustersCdc,
-	"quorumCertificate/scripts/get_node_has_voted.cdc":                                    quorumcertificateScriptsGet_node_has_votedCdc,
-	"quorumCertificate/scripts/get_node_weight.cdc":                                       quorumcertificateScriptsGet_node_weightCdc,
-	"quorumCertificate/scripts/get_qc_enabled.cdc":                                        quorumcertificateScriptsGet_qc_enabledCdc,
-	"quorumCertificate/scripts/get_voter_is_registered.cdc":                               quorumcertificateScriptsGet_voter_is_registeredCdc,
-	"quorumCertificate/scripts/get_voting_completed.cdc":                                  quorumcertificateScriptsGet_voting_completedCdc,
-	"quorumCertificate/submit_vote.cdc":                                                   quorumcertificateSubmit_voteCdc,
-	"stakingCollection/close_stake.cdc":                                                   stakingcollectionClose_stakeCdc,
-	"stakingCollection/create_machine_account.cdc":                                        stakingcollectionCreate_machine_accountCdc,
-	"stakingCollection/create_new_tokenholder_acct.cdc":                                   stakingcollectionCreate_new_tokenholder_acctCdc,
-	"stakingCollection/deploy_collection_contract.cdc":                                    stakingcollectionDeploy_collection_contractCdc,
-	"stakingCollection/register_delegator.cdc":                                            stakingcollectionRegister_delegatorCdc,
-	"stakingCollection/register_multiple_delegators.cdc":                                  stakingcollectionRegister_multiple_delegatorsCdc,
-	"stakingCollection/register_multiple_nodes.cdc":                                       stakingcollectionRegister_multiple_nodesCdc,
-	"stakingCollection/register_node.cdc":                                                 stakingcollectionRegister_nodeCdc,
-	"stakingCollection/request_unstaking.cdc":                                             stakingcollectionRequest_unstakingCdc,
-	"stakingCollection/restake_all_stakers.cdc":                                           stakingcollectionRestake_all_stakersCdc,
-	"stakingCollection/scripts/does_account_have_staking_collection.cdc":                  stakingcollectionScriptsDoes_account_have_staking_collectionCdc,
-	"stakingCollection/scripts/get_all_delegator_info.cdc":                                stakingcollectionScriptsGet_all_delegator_infoCdc,
-	"stakingCollection/scripts/get_all_node_info.cdc":                                     stakingcollectionScriptsGet_all_node_infoCdc,
-	"stakingCollection/scripts/get_delegator_ids.cdc":                                     stakingcollectionScriptsGet_delegator_idsCdc,
-	"stakingCollection/scripts/get_does_stake_exist.cdc":                                  stakingcollectionScriptsGet_does_stake_existCdc,
-	"stakingCollection/scripts/get_locked_tokens_used.cdc":                                stakingcollectionScriptsGet_locked_tokens_usedCdc,
-	"stakingCollection/scripts/get_machine_account_address.cdc":                           stakingcollectionScriptsGet_machine_account_addressCdc,
-	"stakingCollection/scripts/get_machine_accounts.cdc":                                  stakingcollectionScriptsGet_machine_accountsCdc,
-	"stakingCollection/scripts/get_node_ids.cdc":                                          stakingcollectionScriptsGet_node_idsCdc,
-	"stakingCollection/scripts/get_unlocked_tokens_used.cdc":                              stakingcollectionScriptsGet_unlocked_tokens_usedCdc,
-	"stakingCollection/setup_staking_collection.cdc":                                      stakingcollectionSetup_staking_collectionCdc,
-	"stakingCollection/stake_new_tokens.cdc":                                              stakingcollectionStake_new_tokensCdc,
-	"stakingCollection/stake_rewarded_tokens.cdc":                                         stakingcollectionStake_rewarded_tokensCdc,
-	"stakingCollection/stake_unstaked_tokens.cdc":                                         stakingcollectionStake_unstaked_tokensCdc,
-	"stakingCollection/test/deposit_tokens.cdc":                                           stakingcollectionTestDeposit_tokensCdc,
-	"stakingCollection/test/get_tokens.cdc":                                               stakingcollectionTestGet_tokensCdc,
-	"stakingCollection/transfer_delegator.cdc":                                            stakingcollectionTransfer_delegatorCdc,
-	"stakingCollection/transfer_node.cdc":                                                 stakingcollectionTransfer_nodeCdc,
-	"stakingCollection/unstake_all.cdc":                                                   stakingcollectionUnstake_allCdc,
-	"stakingCollection/update_networking_address.cdc":                                     stakingcollectionUpdate_networking_addressCdc,
-	"stakingCollection/withdraw_from_machine_account.cdc":                                 stakingcollectionWithdraw_from_machine_accountCdc,
-	"stakingCollection/withdraw_rewarded_tokens.cdc":                                      stakingcollectionWithdraw_rewarded_tokensCdc,
-	"stakingCollection/withdraw_unstaked_tokens.cdc":                                      stakingcollectionWithdraw_unstaked_tokensCdc,
-	"stakingProxy/add_node_info.cdc":                                                      stakingproxyAdd_node_infoCdc,
-	"stakingProxy/get_node_info.cdc":                                                      stakingproxyGet_node_infoCdc,
-	"stakingProxy/register_node.cdc":                                                      stakingproxyRegister_nodeCdc,
-	"stakingProxy/remove_node_info.cdc":                                                   stakingproxyRemove_node_infoCdc,
-	"stakingProxy/remove_staking_proxy.cdc":                                               stakingproxyRemove_staking_proxyCdc,
-	"stakingProxy/request_unstaking.cdc":                                                  stakingproxyRequest_unstakingCdc,
-	"stakingProxy/setup_node_account.cdc":                                                 stakingproxySetup_node_accountCdc,
-	"stakingProxy/stake_new_tokens.cdc":                                                   stakingproxyStake_new_tokensCdc,
-	"stakingProxy/stake_unstaked_tokens.cdc":                                              stakingproxyStake_unstaked_tokensCdc,
-	"stakingProxy/unstake_all.cdc":                                                        stakingproxyUnstake_allCdc,
-	"stakingProxy/withdraw_rewards.cdc":                                                   stakingproxyWithdraw_rewardsCdc,
-	"stakingProxy/withdraw_unstaked.cdc":                                                  stakingproxyWithdraw_unstakedCdc,
-	"storageFees/admin/set_parameters.cdc":                                                storagefeesAdminSet_parametersCdc,
-	"storageFees/scripts/get_account_available_balance.cdc":                               storagefeesScriptsGet_account_available_balanceCdc,
-	"storageFees/scripts/get_accounts_capacity_for_transaction_storage_check.cdc":         storagefeesScriptsGet_accounts_capacity_for_transaction_storage_checkCdc,
-	"storageFees/scripts/get_storage_capacity.cdc":                                        storagefeesScriptsGet_storage_capacityCdc,
-	"storageFees/scripts/get_storage_fee_conversion.cdc":                                  storagefeesScriptsGet_storage_fee_conversionCdc,
-	"storageFees/scripts/get_storage_fee_min.cdc":                                         storagefeesScriptsGet_storage_fee_minCdc,
+	"FlowServiceAccount/add_account_creator.cdc":                                  flowserviceaccountAdd_account_creatorCdc,
+	"FlowServiceAccount/deposit_fees.cdc":                                         flowserviceaccountDeposit_feesCdc,
+	"FlowServiceAccount/remove_account_creator.cdc":                               flowserviceaccountRemove_account_creatorCdc,
+	"FlowServiceAccount/scripts/get_account_creators.cdc":                         flowserviceaccountScriptsGet_account_creatorsCdc,
+	"FlowServiceAccount/scripts/get_account_fee.cdc":                              flowserviceaccountScriptsGet_account_feeCdc,
+	"FlowServiceAccount/scripts/get_execution_effort_weights.cdc":                 flowserviceaccountScriptsGet_execution_effort_weightsCdc,
+	"FlowServiceAccount/scripts/get_execution_memory_limit.cdc":                   flowserviceaccountScriptsGet_execution_memory_limitCdc,
+	"FlowServiceAccount/scripts/get_execution_memory_weights.cdc":                 flowserviceaccountScriptsGet_execution_memory_weightsCdc,
+	"FlowServiceAccount/scripts/get_fees_balance.cdc":                             flowserviceaccountScriptsGet_fees_balanceCdc,
+	"FlowServiceAccount/scripts/get_is_account_creation_restricted.cdc":           flowserviceaccountScriptsGet_is_account_creation_restrictedCdc,
+	"FlowServiceAccount/scripts/get_is_account_creator.cdc":                       flowserviceaccountScriptsGet_is_account_creatorCdc,
+	"FlowServiceAccount/scripts/get_tx_fee_parameters.cdc":                        flowserviceaccountScriptsGet_tx_fee_parametersCdc,
+	"FlowServiceAccount/set_execution_effort_weights.cdc":                         flowserviceaccountSet_execution_effort_weightsCdc,
+	"FlowServiceAccount/set_execution_memory_limit.cdc":                           flowserviceaccountSet_execution_memory_limitCdc,
+	"FlowServiceAccount/set_execution_memory_weights.cdc":                         flowserviceaccountSet_execution_memory_weightsCdc,
+	"FlowServiceAccount/set_is_account_creation_restricted.cdc":                   flowserviceaccountSet_is_account_creation_restrictedCdc,
+	"FlowServiceAccount/set_tx_fee_parameters.cdc":                                flowserviceaccountSet_tx_fee_parametersCdc,
+	"FlowServiceAccount/set_tx_fee_surge_factor.cdc":                              flowserviceaccountSet_tx_fee_surge_factorCdc,
+	"contractAudits/admin/authorize_auditor.cdc":                                  contractauditsAdminAuthorize_auditorCdc,
+	"contractAudits/admin/cleanup_expired.cdc":                                    contractauditsAdminCleanup_expiredCdc,
+	"contractAudits/auditor/init.cdc":                                             contractauditsAuditorInitCdc,
+	"contractAudits/auditor/new_audit.cdc":                                        contractauditsAuditorNew_auditCdc,
+	"contractAudits/auditor/new_audit_hashed.cdc":                                 contractauditsAuditorNew_audit_hashedCdc,
+	"contractAudits/auditor/remove_audit.cdc":                                     contractauditsAuditorRemove_auditCdc,
+	"contractAudits/fvm/deploy_contract.cdc":                                      contractauditsFvmDeploy_contractCdc,
+	"contractAudits/scripts/get_vouchers.cdc":                                     contractauditsScriptsGet_vouchersCdc,
+	"dkg/admin/force_stop_dkg.cdc":                                                dkgAdminForce_stop_dkgCdc,
+	"dkg/admin/publish_participant.cdc":                                           dkgAdminPublish_participantCdc,
+	"dkg/admin/set_safe_threshold.cdc":                                            dkgAdminSet_safe_thresholdCdc,
+	"dkg/admin/start_dkg.cdc":                                                     dkgAdminStart_dkgCdc,
+	"dkg/admin/stop_dkg.cdc":                                                      dkgAdminStop_dkgCdc,
+	"dkg/create_participant.cdc":                                                  dkgCreate_participantCdc,
+	"dkg/scripts/get_consensus_nodes.cdc":                                         dkgScriptsGet_consensus_nodesCdc,
+	"dkg/scripts/get_dkg_canonical_final_submission.cdc":                          dkgScriptsGet_dkg_canonical_final_submissionCdc,
+	"dkg/scripts/get_dkg_completed.cdc":                                           dkgScriptsGet_dkg_completedCdc,
+	"dkg/scripts/get_dkg_enabled.cdc":                                             dkgScriptsGet_dkg_enabledCdc,
+	"dkg/scripts/get_final_submissions.cdc":                                       dkgScriptsGet_final_submissionsCdc,
+	"dkg/scripts/get_latest_whiteboard_messages.cdc":                              dkgScriptsGet_latest_whiteboard_messagesCdc,
+	"dkg/scripts/get_node_final_submission.cdc":                                   dkgScriptsGet_node_final_submissionCdc,
+	"dkg/scripts/get_node_has_submitted.cdc":                                      dkgScriptsGet_node_has_submittedCdc,
+	"dkg/scripts/get_node_is_claimed.cdc":                                         dkgScriptsGet_node_is_claimedCdc,
+	"dkg/scripts/get_node_is_registered.cdc":                                      dkgScriptsGet_node_is_registeredCdc,
+	"dkg/scripts/get_thresholds.cdc":                                              dkgScriptsGet_thresholdsCdc,
+	"dkg/scripts/get_whiteboard_messages.cdc":                                     dkgScriptsGet_whiteboard_messagesCdc,
+	"dkg/send_final_submission.cdc":                                               dkgSend_final_submissionCdc,
+	"dkg/send_whiteboard_message.cdc":                                             dkgSend_whiteboard_messageCdc,
+	"epoch/admin/advance_view.cdc":                                                epochAdminAdvance_viewCdc,
+	"epoch/admin/calculate_rewards.cdc":                                           epochAdminCalculate_rewardsCdc,
+	"epoch/admin/deploy_epoch.cdc":                                                epochAdminDeploy_epochCdc,
+	"epoch/admin/deploy_qc_dkg.cdc":                                               epochAdminDeploy_qc_dkgCdc,
+	"epoch/admin/pay_rewards.cdc":                                                 epochAdminPay_rewardsCdc,
+	"epoch/admin/reset_epoch.cdc":                                                 epochAdminReset_epochCdc,
+	"epoch/admin/set_automatic_rewards.cdc":                                       epochAdminSet_automatic_rewardsCdc,
+	"epoch/admin/update_clusters.cdc":                                             epochAdminUpdate_clustersCdc,
+	"epoch/admin/update_dkg_phase_views.cdc":                                      epochAdminUpdate_dkg_phase_viewsCdc,
+	"epoch/admin/update_epoch_config.cdc":                                         epochAdminUpdate_epoch_configCdc,
+	"epoch/admin/update_epoch_views.cdc":                                          epochAdminUpdate_epoch_viewsCdc,
+	"epoch/admin/update_reward.cdc":                                               epochAdminUpdate_rewardCdc,
+	"epoch/admin/update_staking_views.cdc":                                        epochAdminUpdate_staking_viewsCdc,
+	"epoch/node/register_dkg_participant.cdc":                                     epochNodeRegister_dkg_participantCdc,
+	"epoch/node/register_node.cdc":                                                epochNodeRegister_nodeCdc,
+	"epoch/node/register_qc_voter.cdc":                                            epochNodeRegister_qc_voterCdc,
+	"epoch/scripts/get_config_metadata.cdc":                                       epochScriptsGet_config_metadataCdc,
+	"epoch/scripts/get_create_clusters.cdc":                                       epochScriptsGet_create_clustersCdc,
+	"epoch/scripts/get_current_view.cdc":                                          epochScriptsGet_current_viewCdc,
+	"epoch/scripts/get_epoch_counter.cdc":                                         epochScriptsGet_epoch_counterCdc,
+	"epoch/scripts/get_epoch_metadata.cdc":                                        epochScriptsGet_epoch_metadataCdc,
+	"epoch/scripts/get_epoch_phase.cdc":                                           epochScriptsGet_epoch_phaseCdc,
+	"epoch/scripts/get_proposed_counter.cdc":                                      epochScriptsGet_proposed_counterCdc,
+	"epoch/scripts/get_randomize.cdc":                                             epochScriptsGet_randomizeCdc,
+	"flowToken/burn_tokens.cdc":                                                   flowtokenBurn_tokensCdc,
+	"flowToken/create_forwarder.cdc":                                              flowtokenCreate_forwarderCdc,
+	"flowToken/mint_tokens.cdc":                                                   flowtokenMint_tokensCdc,
+	"flowToken/scripts/get_balance.cdc":                                           flowtokenScriptsGet_balanceCdc,
+	"flowToken/scripts/get_supply.cdc":                                            flowtokenScriptsGet_supplyCdc,
+	"flowToken/setup_account.cdc":                                                 flowtokenSetup_accountCdc,
+	"flowToken/transfer_tokens.cdc":                                               flowtokenTransfer_tokensCdc,
+	"idTableStaking/admin/add_approved_and_limits.cdc":                            idtablestakingAdminAdd_approved_and_limitsCdc,
+	"idTableStaking/admin/add_approved_nodes.cdc":                                 idtablestakingAdminAdd_approved_nodesCdc,
+	"idTableStaking/admin/capability_end_epoch.cdc":                               idtablestakingAdminCapability_end_epochCdc,
+	"idTableStaking/admin/change_candidate_limits.cdc":                            idtablestakingAdminChange_candidate_limitsCdc,
+	"idTableStaking/admin/change_cut.cdc":                                         idtablestakingAdminChange_cutCdc,
+	"idTableStaking/admin/change_minimums.cdc":                                    idtablestakingAdminChange_minimumsCdc,
+	"idTableStaking/admin/change_payout.cdc":                                      idtablestakingAdminChange_payoutCdc,
+	"idTableStaking/admin/end_epoch.cdc":                                          idtablestakingAdminEnd_epochCdc,
+	"idTableStaking/admin/end_epoch_change_payout.cdc":                            idtablestakingAdminEnd_epoch_change_payoutCdc,
+	"idTableStaking/admin/end_staking.cdc":                                        idtablestakingAdminEnd_stakingCdc,
+	"idTableStaking/admin/move_tokens.cdc":                                        idtablestakingAdminMove_tokensCdc,
+	"idTableStaking/admin/pay_rewards.cdc":                                        idtablestakingAdminPay_rewardsCdc,
+	"idTableStaking/admin/remove_approved_nodes.cdc":                              idtablestakingAdminRemove_approved_nodesCdc,
+	"idTableStaking/admin/remove_invalid_nodes.cdc":                               idtablestakingAdminRemove_invalid_nodesCdc,
+	"idTableStaking/admin/remove_node.cdc":                                        idtablestakingAdminRemove_nodeCdc,
+	"idTableStaking/admin/scale_rewards_test.cdc":                                 idtablestakingAdminScale_rewards_testCdc,
+	"idTableStaking/admin/set_approved_nodes.cdc":                                 idtablestakingAdminSet_approved_nodesCdc,
+	"idTableStaking/admin/set_claimed.cdc":                                        idtablestakingAdminSet_claimedCdc,
+	"idTableStaking/admin/set_node_weight.cdc":                                    idtablestakingAdminSet_node_weightCdc,
+	"idTableStaking/admin/set_non_operational.cdc":                                idtablestakingAdminSet_non_operationalCdc,
+	"idTableStaking/admin/set_slot_limits.cdc":                                    idtablestakingAdminSet_slot_limitsCdc,
+	"idTableStaking/admin/start_staking.cdc":                                      idtablestakingAdminStart_stakingCdc,
+	"idTableStaking/admin/transfer_admin.cdc":                                     idtablestakingAdminTransfer_adminCdc,
+	"idTableStaking/admin/transfer_fees_admin.cdc":                                idtablestakingAdminTransfer_fees_adminCdc,
+	"idTableStaking/admin/transfer_minter_deploy.cdc":                             idtablestakingAdminTransfer_minter_deployCdc,
+	"idTableStaking/admin/upgrade_set_claimed.cdc":                                idtablestakingAdminUpgrade_set_claimedCdc,
+	"idTableStaking/admin/upgrade_staking.cdc":                                    idtablestakingAdminUpgrade_stakingCdc,
+	"idTableStaking/delegation/del_request_unstaking.cdc":                         idtablestakingDelegationDel_request_unstakingCdc,
+	"idTableStaking/delegation/del_stake_new_tokens.cdc":                          idtablestakingDelegationDel_stake_new_tokensCdc,
+	"idTableStaking/delegation/del_stake_rewarded.cdc":                            idtablestakingDelegationDel_stake_rewardedCdc,
+	"idTableStaking/delegation/del_stake_unstaked.cdc":                            idtablestakingDelegationDel_stake_unstakedCdc,
+	"idTableStaking/delegation/del_withdraw_reward_tokens.cdc":                    idtablestakingDelegationDel_withdraw_reward_tokensCdc,
+	"idTableStaking/delegation/del_withdraw_unstaked_tokens.cdc":                  idtablestakingDelegationDel_withdraw_unstaked_tokensCdc,
+	"idTableStaking/delegation/delegator_add_capability.cdc":                      idtablestakingDelegationDelegator_add_capabilityCdc,
+	"idTableStaking/delegation/get_delegator_committed.cdc":                       idtablestakingDelegationGet_delegator_committedCdc,
+	"idTableStaking/delegation/get_delegator_info.cdc":                            idtablestakingDelegationGet_delegator_infoCdc,
+	"idTableStaking/delegation/get_delegator_info_from_address.cdc":               idtablestakingDelegationGet_delegator_info_from_addressCdc,
+	"idTableStaking/delegation/get_delegator_request.cdc":                         idtablestakingDelegationGet_delegator_requestCdc,
+	"idTableStaking/delegation/get_delegator_rewarded.cdc":                        idtablestakingDelegationGet_delegator_rewardedCdc,
+	"idTableStaking/delegation/get_delegator_staked.cdc":                          idtablestakingDelegationGet_delegator_stakedCdc,
+	"idTableStaking/delegation/get_delegator_unstaked.cdc":                        idtablestakingDelegationGet_delegator_unstakedCdc,
+	"idTableStaking/delegation/get_delegator_unstaking.cdc":                       idtablestakingDelegationGet_delegator_unstakingCdc,
+	"idTableStaking/delegation/get_delegator_unstaking_request.cdc":               idtablestakingDelegationGet_delegator_unstaking_requestCdc,
+	"idTableStaking/delegation/register_delegator.cdc":                            idtablestakingDelegationRegister_delegatorCdc,
+	"idTableStaking/delegation/register_many_delegators.cdc":                      idtablestakingDelegationRegister_many_delegatorsCdc,
+	"idTableStaking/node/node_add_capability.cdc":                                 idtablestakingNodeNode_add_capabilityCdc,
+	"idTableStaking/node/register_many_nodes.cdc":                                 idtablestakingNodeRegister_many_nodesCdc,
+	"idTableStaking/node/register_node.cdc":                                       idtablestakingNodeRegister_nodeCdc,
+	"idTableStaking/node/request_unstake.cdc":                                     idtablestakingNodeRequest_unstakeCdc,
+	"idTableStaking/node/stake_new_tokens.cdc":                                    idtablestakingNodeStake_new_tokensCdc,
+	"idTableStaking/node/stake_rewarded_tokens.cdc":                               idtablestakingNodeStake_rewarded_tokensCdc,
+	"idTableStaking/node/stake_unstaked_tokens.cdc":                               idtablestakingNodeStake_unstaked_tokensCdc,
+	"idTableStaking/node/unstake_all.cdc":                                         idtablestakingNodeUnstake_allCdc,
+	"idTableStaking/node/update_networking_address.cdc":                           idtablestakingNodeUpdate_networking_addressCdc,
+	"idTableStaking/node/withdraw_reward_tokens.cdc":                              idtablestakingNodeWithdraw_reward_tokensCdc,
+	"idTableStaking/node/withdraw_unstaked_tokens.cdc":                            idtablestakingNodeWithdraw_unstaked_tokensCdc,
+	"idTableStaking/scripts/get_approved_but_not_staked_nodes.cdc":                idtablestakingScriptsGet_approved_but_not_staked_nodesCdc,
+	"idTableStaking/scripts/get_approved_nodes.cdc":                               idtablestakingScriptsGet_approved_nodesCdc,
+	"idTableStaking/scripts/get_candidate_limits.cdc":                             idtablestakingScriptsGet_candidate_limitsCdc,
+	"idTableStaking/scripts/get_candidate_nodes.cdc":                              idtablestakingScriptsGet_candidate_nodesCdc,
+	"idTableStaking/scripts/get_current_table.cdc":                                idtablestakingScriptsGet_current_tableCdc,
+	"idTableStaking/scripts/get_cut_percentage.cdc":                               idtablestakingScriptsGet_cut_percentageCdc,
+	"idTableStaking/scripts/get_node_committed_tokens.cdc":                        idtablestakingScriptsGet_node_committed_tokensCdc,
+	"idTableStaking/scripts/get_node_info.cdc":                                    idtablestakingScriptsGet_node_infoCdc,
+	"idTableStaking/scripts/get_node_info_from_address.cdc":                       idtablestakingScriptsGet_node_info_from_addressCdc,
+	"idTableStaking/scripts/get_node_initial_weight.cdc":                          idtablestakingScriptsGet_node_initial_weightCdc,
+	"idTableStaking/scripts/get_node_networking_addr.cdc":                         idtablestakingScriptsGet_node_networking_addrCdc,
+	"idTableStaking/scripts/get_node_networking_key.cdc":                          idtablestakingScriptsGet_node_networking_keyCdc,
+	"idTableStaking/scripts/get_node_rewarded_tokens.cdc":                         idtablestakingScriptsGet_node_rewarded_tokensCdc,
+	"idTableStaking/scripts/get_node_role.cdc":                                    idtablestakingScriptsGet_node_roleCdc,
+	"idTableStaking/scripts/get_node_staked_tokens.cdc":                           idtablestakingScriptsGet_node_staked_tokensCdc,
+	"idTableStaking/scripts/get_node_staking_key.cdc":                             idtablestakingScriptsGet_node_staking_keyCdc,
+	"idTableStaking/scripts/get_node_total_commitment.cdc":                        idtablestakingScriptsGet_node_total_commitmentCdc,
+	"idTableStaking/scripts/get_node_total_commitment_without_delegators.cdc":     idtablestakingScriptsGet_node_total_commitment_without_delegatorsCdc,
+	"idTableStaking/scripts/get_node_type_ratio.cdc":                              idtablestakingScriptsGet_node_type_ratioCdc,
+	"idTableStaking/scripts/get_node_unstaked_tokens.cdc":                         idtablestakingScriptsGet_node_unstaked_tokensCdc,
+	"idTableStaking/scripts/get_node_unstaking_request.cdc":                       idtablestakingScriptsGet_node_unstaking_requestCdc,
+	"idTableStaking/scripts/get_node_unstaking_tokens.cdc":                        idtablestakingScriptsGet_node_unstaking_tokensCdc,
+	"idTableStaking/scripts/get_non_operational.cdc":                              idtablestakingScriptsGet_non_operationalCdc,
+	"idTableStaking/scripts/get_proposed_table.cdc":                               idtablestakingScriptsGet_proposed_tableCdc,
+	"idTableStaking/scripts/get_role_counts.cdc":                                  idtablestakingScriptsGet_role_countsCdc,
+	"idTableStaking/scripts/get_slot_limits.cdc":                                  idtablestakingScriptsGet_slot_limitsCdc,
+	"idTableStaking/scripts/get_stake_requirements.cdc":                           idtablestakingScriptsGet_stake_requirementsCdc,
+	"idTableStaking/scripts/get_table.cdc":                                        idtablestakingScriptsGet_tableCdc,
+	"idTableStaking/scripts/get_total_staked.cdc":                                 idtablestakingScriptsGet_total_stakedCdc,
+	"idTableStaking/scripts/get_total_staked_by_type.cdc":                         idtablestakingScriptsGet_total_staked_by_typeCdc,
+	"idTableStaking/scripts/get_weekly_payout.cdc":                                idtablestakingScriptsGet_weekly_payoutCdc,
+	"inspect_field.cdc":                                                           inspect_fieldCdc,
+	"lockedTokens/admin/admin_create_shared_accounts.cdc":                         lockedtokensAdminAdmin_create_shared_accountsCdc,
+	"lockedTokens/admin/admin_deploy_contract.cdc":                                lockedtokensAdminAdmin_deploy_contractCdc,
+	"lockedTokens/admin/admin_deposit_account_creator.cdc":                        lockedtokensAdminAdmin_deposit_account_creatorCdc,
+	"lockedTokens/admin/admin_remove_delegator.cdc":                               lockedtokensAdminAdmin_remove_delegatorCdc,
+	"lockedTokens/admin/check_main_registration.cdc":                              lockedtokensAdminCheck_main_registrationCdc,
+	"lockedTokens/admin/check_shared_registration.cdc":                            lockedtokensAdminCheck_shared_registrationCdc,
+	"lockedTokens/admin/custody_create_account_with_lease_account.cdc":            lockedtokensAdminCustody_create_account_with_lease_accountCdc,
+	"lockedTokens/admin/custody_create_only_lease_account.cdc":                    lockedtokensAdminCustody_create_only_lease_accountCdc,
+	"lockedTokens/admin/custody_create_only_shared_account.cdc":                   lockedtokensAdminCustody_create_only_shared_accountCdc,
+	"lockedTokens/admin/custody_create_shared_accounts.cdc":                       lockedtokensAdminCustody_create_shared_accountsCdc,
+	"lockedTokens/admin/custody_setup_account_creator.cdc":                        lockedtokensAdminCustody_setup_account_creatorCdc,
+	"lockedTokens/admin/deposit_locked_tokens.cdc":                                lockedtokensAdminDeposit_locked_tokensCdc,
+	"lockedTokens/admin/get_unlocking_bad_accounts.cdc":                           lockedtokensAdminGet_unlocking_bad_accountsCdc,
+	"lockedTokens/admin/unlock_tokens.cdc":                                        lockedtokensAdminUnlock_tokensCdc,
+	"lockedTokens/admin/unlock_tokens_for_multiple_accounts.cdc":                  lockedtokensAdminUnlock_tokens_for_multiple_accountsCdc,
+	"lockedTokens/delegator/delegate_new_tokens.cdc":                              lockedtokensDelegatorDelegate_new_tokensCdc,
+	"lockedTokens/delegator/delegate_rewarded_tokens.cdc":                         lockedtokensDelegatorDelegate_rewarded_tokensCdc,
+	"lockedTokens/delegator/delegate_unstaked_tokens.cdc":                         lockedtokensDelegatorDelegate_unstaked_tokensCdc,
+	"lockedTokens/delegator/get_delegator_id.cdc":                                 lockedtokensDelegatorGet_delegator_idCdc,
+	"lockedTokens/delegator/get_delegator_info.cdc":                               lockedtokensDelegatorGet_delegator_infoCdc,
+	"lockedTokens/delegator/get_delegator_node_id.cdc":                            lockedtokensDelegatorGet_delegator_node_idCdc,
+	"lockedTokens/delegator/register_delegator.cdc":                               lockedtokensDelegatorRegister_delegatorCdc,
+	"lockedTokens/delegator/request_unstaking.cdc":                                lockedtokensDelegatorRequest_unstakingCdc,
+	"lockedTokens/delegator/withdraw_rewarded_tokens.cdc":                         lockedtokensDelegatorWithdraw_rewarded_tokensCdc,
+	"lockedTokens/delegator/withdraw_rewarded_tokens_locked.cdc":                  lockedtokensDelegatorWithdraw_rewarded_tokens_lockedCdc,
+	"lockedTokens/delegator/withdraw_unstaked_tokens.cdc":                         lockedtokensDelegatorWithdraw_unstaked_tokensCdc,
+	"lockedTokens/staker/get_node_id.cdc":                                         lockedtokensStakerGet_node_idCdc,
+	"lockedTokens/staker/get_staker_info.cdc":                                     lockedtokensStakerGet_staker_infoCdc,
+	"lockedTokens/staker/register_node.cdc":                                       lockedtokensStakerRegister_nodeCdc,
+	"lockedTokens/staker/request_unstaking.cdc":                                   lockedtokensStakerRequest_unstakingCdc,
+	"lockedTokens/staker/stake_new_tokens.cdc":                                    lockedtokensStakerStake_new_tokensCdc,
+	"lockedTokens/staker/stake_rewarded_tokens.cdc":                               lockedtokensStakerStake_rewarded_tokensCdc,
+	"lockedTokens/staker/stake_unstaked_tokens.cdc":                               lockedtokensStakerStake_unstaked_tokensCdc,
+	"lockedTokens/staker/unstake_all.cdc":                                         lockedtokensStakerUnstake_allCdc,
+	"lockedTokens/staker/update_networking_address.cdc":                           lockedtokensStakerUpdate_networking_addressCdc,
+	"lockedTokens/staker/withdraw_rewarded_tokens.cdc":                            lockedtokensStakerWithdraw_rewarded_tokensCdc,
+	"lockedTokens/staker/withdraw_rewarded_tokens_locked.cdc":                     lockedtokensStakerWithdraw_rewarded_tokens_lockedCdc,
+	"lockedTokens/staker/withdraw_unstaked_tokens.cdc":                            lockedtokensStakerWithdraw_unstaked_tokensCdc,
+	"lockedTokens/user/deposit_tokens.cdc":                                        lockedtokensUserDeposit_tokensCdc,
+	"lockedTokens/user/get_locked_account_address.cdc":                            lockedtokensUserGet_locked_account_addressCdc,
+	"lockedTokens/user/get_locked_account_balance.cdc":                            lockedtokensUserGet_locked_account_balanceCdc,
+	"lockedTokens/user/get_multiple_unlock_limits.cdc":                            lockedtokensUserGet_multiple_unlock_limitsCdc,
+	"lockedTokens/user/get_total_balance.cdc":                                     lockedtokensUserGet_total_balanceCdc,
+	"lockedTokens/user/get_unlock_limit.cdc":                                      lockedtokensUserGet_unlock_limitCdc,
+	"lockedTokens/user/withdraw_tokens.cdc":                                       lockedtokensUserWithdraw_tokensCdc,
+	"nodeVersionBeacon/admin/add_version_to_table.cdc":                            nodeversionbeaconAdminAdd_version_to_tableCdc,
+	"nodeVersionBeacon/admin/change_version_update_buffer.cdc":                    nodeversionbeaconAdminChange_version_update_bufferCdc,
+	"nodeVersionBeacon/admin/change_version_update_buffer_variance.cdc":           nodeversionbeaconAdminChange_version_update_buffer_varianceCdc,
+	"nodeVersionBeacon/admin/delete_upcoming_version_boundary.cdc":                nodeversionbeaconAdminDelete_upcoming_version_boundaryCdc,
+	"nodeVersionBeacon/admin/emit_version_table.cdc":                              nodeversionbeaconAdminEmit_version_tableCdc,
+	"nodeVersionBeacon/scripts/get_current_node_version.cdc":                      nodeversionbeaconScriptsGet_current_node_versionCdc,
+	"nodeVersionBeacon/scripts/get_current_node_version_as_string.cdc":            nodeversionbeaconScriptsGet_current_node_version_as_stringCdc,
+	"nodeVersionBeacon/scripts/get_next_table_updated_sequence.cdc":               nodeversionbeaconScriptsGet_next_table_updated_sequenceCdc,
+	"nodeVersionBeacon/scripts/get_next_version_boundary_pair.cdc":                nodeversionbeaconScriptsGet_next_version_boundary_pairCdc,
+	"nodeVersionBeacon/scripts/get_version_table.cdc":                             nodeversionbeaconScriptsGet_version_tableCdc,
+	"nodeVersionBeacon/scripts/get_version_update_buffer.cdc":                     nodeversionbeaconScriptsGet_version_update_bufferCdc,
+	"nodeVersionBeacon/scripts/is_compatible_version.cdc":                         nodeversionbeaconScriptsIs_compatible_versionCdc,
+	"quorumCertificate/admin/publish_voter.cdc":                                   quorumcertificateAdminPublish_voterCdc,
+	"quorumCertificate/admin/start_voting.cdc":                                    quorumcertificateAdminStart_votingCdc,
+	"quorumCertificate/admin/stop_voting.cdc":                                     quorumcertificateAdminStop_votingCdc,
+	"quorumCertificate/create_voter.cdc":                                          quorumcertificateCreate_voterCdc,
+	"quorumCertificate/scripts/generate_quorum_certificate.cdc":                   quorumcertificateScriptsGenerate_quorum_certificateCdc,
+	"quorumCertificate/scripts/get_cluster.cdc":                                   quorumcertificateScriptsGet_clusterCdc,
+	"quorumCertificate/scripts/get_cluster_complete.cdc":                          quorumcertificateScriptsGet_cluster_completeCdc,
+	"quorumCertificate/scripts/get_cluster_node_weights.cdc":                      quorumcertificateScriptsGet_cluster_node_weightsCdc,
+	"quorumCertificate/scripts/get_cluster_vote_threshold.cdc":                    quorumcertificateScriptsGet_cluster_vote_thresholdCdc,
+	"quorumCertificate/scripts/get_cluster_votes.cdc":                             quorumcertificateScriptsGet_cluster_votesCdc,
+	"quorumCertificate/scripts/get_cluster_weight.cdc":                            quorumcertificateScriptsGet_cluster_weightCdc,
+	"quorumCertificate/scripts/get_clusters.cdc":                                  quorumcertificateScriptsGet_clustersCdc,
+	"quorumCertificate/scripts/get_node_has_voted.cdc":                            quorumcertificateScriptsGet_node_has_votedCdc,
+	"quorumCertificate/scripts/get_node_weight.cdc":                               quorumcertificateScriptsGet_node_weightCdc,
+	"quorumCertificate/scripts/get_qc_enabled.cdc":                                quorumcertificateScriptsGet_qc_enabledCdc,
+	"quorumCertificate/scripts/get_voter_is_registered.cdc":                       quorumcertificateScriptsGet_voter_is_registeredCdc,
+	"quorumCertificate/scripts/get_voting_completed.cdc":                          quorumcertificateScriptsGet_voting_completedCdc,
+	"quorumCertificate/submit_vote.cdc":                                           quorumcertificateSubmit_voteCdc,
+	"stakingCollection/close_stake.cdc":                                           stakingcollectionClose_stakeCdc,
+	"stakingCollection/create_machine_account.cdc":                                stakingcollectionCreate_machine_accountCdc,
+	"stakingCollection/create_new_tokenholder_acct.cdc":                           stakingcollectionCreate_new_tokenholder_acctCdc,
+	"stakingCollection/deploy_collection_contract.cdc":                            stakingcollectionDeploy_collection_contractCdc,
+	"stakingCollection/register_delegator.cdc":                                    stakingcollectionRegister_delegatorCdc,
+	"stakingCollection/register_multiple_delegators.cdc":                          stakingcollectionRegister_multiple_delegatorsCdc,
+	"stakingCollection/register_multiple_nodes.cdc":                               stakingcollectionRegister_multiple_nodesCdc,
+	"stakingCollection/register_node.cdc":                                         stakingcollectionRegister_nodeCdc,
+	"stakingCollection/request_unstaking.cdc":                                     stakingcollectionRequest_unstakingCdc,
+	"stakingCollection/restake_all_stakers.cdc":                                   stakingcollectionRestake_all_stakersCdc,
+	"stakingCollection/scripts/does_account_have_staking_collection.cdc":          stakingcollectionScriptsDoes_account_have_staking_collectionCdc,
+	"stakingCollection/scripts/get_all_delegator_info.cdc":                        stakingcollectionScriptsGet_all_delegator_infoCdc,
+	"stakingCollection/scripts/get_all_node_info.cdc":                             stakingcollectionScriptsGet_all_node_infoCdc,
+	"stakingCollection/scripts/get_delegator_ids.cdc":                             stakingcollectionScriptsGet_delegator_idsCdc,
+	"stakingCollection/scripts/get_does_stake_exist.cdc":                          stakingcollectionScriptsGet_does_stake_existCdc,
+	"stakingCollection/scripts/get_locked_tokens_used.cdc":                        stakingcollectionScriptsGet_locked_tokens_usedCdc,
+	"stakingCollection/scripts/get_machine_account_address.cdc":                   stakingcollectionScriptsGet_machine_account_addressCdc,
+	"stakingCollection/scripts/get_machine_accounts.cdc":                          stakingcollectionScriptsGet_machine_accountsCdc,
+	"stakingCollection/scripts/get_node_ids.cdc":                                  stakingcollectionScriptsGet_node_idsCdc,
+	"stakingCollection/scripts/get_unlocked_tokens_used.cdc":                      stakingcollectionScriptsGet_unlocked_tokens_usedCdc,
+	"stakingCollection/setup_staking_collection.cdc":                              stakingcollectionSetup_staking_collectionCdc,
+	"stakingCollection/stake_new_tokens.cdc":                                      stakingcollectionStake_new_tokensCdc,
+	"stakingCollection/stake_rewarded_tokens.cdc":                                 stakingcollectionStake_rewarded_tokensCdc,
+	"stakingCollection/stake_unstaked_tokens.cdc":                                 stakingcollectionStake_unstaked_tokensCdc,
+	"stakingCollection/test/deposit_tokens.cdc":                                   stakingcollectionTestDeposit_tokensCdc,
+	"stakingCollection/test/get_tokens.cdc":                                       stakingcollectionTestGet_tokensCdc,
+	"stakingCollection/transfer_delegator.cdc":                                    stakingcollectionTransfer_delegatorCdc,
+	"stakingCollection/transfer_node.cdc":                                         stakingcollectionTransfer_nodeCdc,
+	"stakingCollection/unstake_all.cdc":                                           stakingcollectionUnstake_allCdc,
+	"stakingCollection/update_networking_address.cdc":                             stakingcollectionUpdate_networking_addressCdc,
+	"stakingCollection/withdraw_from_machine_account.cdc":                         stakingcollectionWithdraw_from_machine_accountCdc,
+	"stakingCollection/withdraw_rewarded_tokens.cdc":                              stakingcollectionWithdraw_rewarded_tokensCdc,
+	"stakingCollection/withdraw_unstaked_tokens.cdc":                              stakingcollectionWithdraw_unstaked_tokensCdc,
+	"stakingProxy/add_node_info.cdc":                                              stakingproxyAdd_node_infoCdc,
+	"stakingProxy/get_node_info.cdc":                                              stakingproxyGet_node_infoCdc,
+	"stakingProxy/register_node.cdc":                                              stakingproxyRegister_nodeCdc,
+	"stakingProxy/remove_node_info.cdc":                                           stakingproxyRemove_node_infoCdc,
+	"stakingProxy/remove_staking_proxy.cdc":                                       stakingproxyRemove_staking_proxyCdc,
+	"stakingProxy/request_unstaking.cdc":                                          stakingproxyRequest_unstakingCdc,
+	"stakingProxy/setup_node_account.cdc":                                         stakingproxySetup_node_accountCdc,
+	"stakingProxy/stake_new_tokens.cdc":                                           stakingproxyStake_new_tokensCdc,
+	"stakingProxy/stake_unstaked_tokens.cdc":                                      stakingproxyStake_unstaked_tokensCdc,
+	"stakingProxy/unstake_all.cdc":                                                stakingproxyUnstake_allCdc,
+	"stakingProxy/withdraw_rewards.cdc":                                           stakingproxyWithdraw_rewardsCdc,
+	"stakingProxy/withdraw_unstaked.cdc":                                          stakingproxyWithdraw_unstakedCdc,
+	"storageFees/admin/set_parameters.cdc":                                        storagefeesAdminSet_parametersCdc,
+	"storageFees/scripts/get_account_available_balance.cdc":                       storagefeesScriptsGet_account_available_balanceCdc,
+	"storageFees/scripts/get_accounts_capacity_for_transaction_storage_check.cdc": storagefeesScriptsGet_accounts_capacity_for_transaction_storage_checkCdc,
+	"storageFees/scripts/get_storage_capacity.cdc":                                storagefeesScriptsGet_storage_capacityCdc,
+	"storageFees/scripts/get_storage_fee_conversion.cdc":                          storagefeesScriptsGet_storage_fee_conversionCdc,
+	"storageFees/scripts/get_storage_fee_min.cdc":                                 storagefeesScriptsGet_storage_fee_minCdc,
 }
 
 // AssetDebug is true if the assets were built with the debug flag enabled.
@@ -6660,22 +6704,6 @@ var _bintree = &bintree{nil, map[string]*bintree{
 			"get_epoch_phase.cdc": {epochScriptsGet_epoch_phaseCdc, map[string]*bintree{}},
 			"get_proposed_counter.cdc": {epochScriptsGet_proposed_counterCdc, map[string]*bintree{}},
 			"get_randomize.cdc": {epochScriptsGet_randomizeCdc, map[string]*bintree{}},
-		}},
-	}},
-	"executionNodeVersionBeacon": {nil, map[string]*bintree{
-		"admin": {nil, map[string]*bintree{
-			"add_version_to_table.cdc": {executionnodeversionbeaconAdminAdd_version_to_tableCdc, map[string]*bintree{}},
-			"change_version_update_buffer.cdc": {executionnodeversionbeaconAdminChange_version_update_bufferCdc, map[string]*bintree{}},
-			"change_version_update_buffer_variance.cdc": {executionnodeversionbeaconAdminChange_version_update_buffer_varianceCdc, map[string]*bintree{}},
-			"delete_upcoming_version_boundary.cdc": {executionnodeversionbeaconAdminDelete_upcoming_version_boundaryCdc, map[string]*bintree{}},
-		}},
-		"scripts": {nil, map[string]*bintree{
-			"get_current_execution_node_version.cdc": {executionnodeversionbeaconScriptsGet_current_execution_node_versionCdc, map[string]*bintree{}},
-			"get_current_execution_node_version_as_string.cdc": {executionnodeversionbeaconScriptsGet_current_execution_node_version_as_stringCdc, map[string]*bintree{}},
-			"get_next_version_boundary_pair.cdc": {executionnodeversionbeaconScriptsGet_next_version_boundary_pairCdc, map[string]*bintree{}},
-			"get_version_table.cdc": {executionnodeversionbeaconScriptsGet_version_tableCdc, map[string]*bintree{}},
-			"get_version_update_buffer.cdc": {executionnodeversionbeaconScriptsGet_version_update_bufferCdc, map[string]*bintree{}},
-			"is_compatible_version.cdc": {executionnodeversionbeaconScriptsIs_compatible_versionCdc, map[string]*bintree{}},
 		}},
 	}},
 	"flowToken": {nil, map[string]*bintree{
@@ -6840,6 +6868,24 @@ var _bintree = &bintree{nil, map[string]*bintree{
 			"get_total_balance.cdc": {lockedtokensUserGet_total_balanceCdc, map[string]*bintree{}},
 			"get_unlock_limit.cdc": {lockedtokensUserGet_unlock_limitCdc, map[string]*bintree{}},
 			"withdraw_tokens.cdc": {lockedtokensUserWithdraw_tokensCdc, map[string]*bintree{}},
+		}},
+	}},
+	"nodeVersionBeacon": {nil, map[string]*bintree{
+		"admin": {nil, map[string]*bintree{
+			"add_version_to_table.cdc": {nodeversionbeaconAdminAdd_version_to_tableCdc, map[string]*bintree{}},
+			"change_version_update_buffer.cdc": {nodeversionbeaconAdminChange_version_update_bufferCdc, map[string]*bintree{}},
+			"change_version_update_buffer_variance.cdc": {nodeversionbeaconAdminChange_version_update_buffer_varianceCdc, map[string]*bintree{}},
+			"delete_upcoming_version_boundary.cdc": {nodeversionbeaconAdminDelete_upcoming_version_boundaryCdc, map[string]*bintree{}},
+			"emit_version_table.cdc": {nodeversionbeaconAdminEmit_version_tableCdc, map[string]*bintree{}},
+		}},
+		"scripts": {nil, map[string]*bintree{
+			"get_current_node_version.cdc": {nodeversionbeaconScriptsGet_current_node_versionCdc, map[string]*bintree{}},
+			"get_current_node_version_as_string.cdc": {nodeversionbeaconScriptsGet_current_node_version_as_stringCdc, map[string]*bintree{}},
+			"get_next_table_updated_sequence.cdc": {nodeversionbeaconScriptsGet_next_table_updated_sequenceCdc, map[string]*bintree{}},
+			"get_next_version_boundary_pair.cdc": {nodeversionbeaconScriptsGet_next_version_boundary_pairCdc, map[string]*bintree{}},
+			"get_version_table.cdc": {nodeversionbeaconScriptsGet_version_tableCdc, map[string]*bintree{}},
+			"get_version_update_buffer.cdc": {nodeversionbeaconScriptsGet_version_update_bufferCdc, map[string]*bintree{}},
+			"is_compatible_version.cdc": {nodeversionbeaconScriptsIs_compatible_versionCdc, map[string]*bintree{}},
 		}},
 	}},
 	"quorumCertificate": {nil, map[string]*bintree{

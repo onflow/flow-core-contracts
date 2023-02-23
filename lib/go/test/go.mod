@@ -3,6 +3,7 @@ module github.com/onflow/flow-core-contracts/lib/go/test
 go 1.18
 
 require (
+	github.com/coreos/go-semver v0.3.0
 	github.com/onflow/cadence v0.31.3
 	github.com/onflow/flow-core-contracts/lib/go/contracts v0.11.2-0.20230124223822-093a67baaf47
 	github.com/onflow/flow-core-contracts/lib/go/templates v0.11.2-0.20230124223822-093a67baaf47

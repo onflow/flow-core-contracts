@@ -207,6 +207,16 @@ func CadenceUFix64(value string) cadence.Value {
 	return newValue
 }
 
+// CadenceUInt64 returns a UInt64 value from a uint64
+func CadenceUInt64(value uint64) cadence.Value {
+	return cadence.NewUInt64(value)
+}
+
+// CadenceUInt8 returns a UInt8 value from a uint8
+func CadenceUInt8(value uint8) cadence.Value {
+	return cadence.NewUInt8(value)
+}
+
 // CadenceString returns a string value from a string representation
 func CadenceString(value string) cadence.Value {
 	newValue, err := cadence.NewString(value)
@@ -216,6 +226,11 @@ func CadenceString(value string) cadence.Value {
 	}
 
 	return newValue
+}
+
+// CadenceBool returns a bool value from a bool
+func CadenceBool(value bool) cadence.Bool {
+	return cadence.NewBool(value)
 }
 
 // Converts a byte array to a Cadence array of UInt8
