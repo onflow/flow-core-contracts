@@ -20,6 +20,13 @@ so they can build a basic understanding of the programming language.
 
 `contracts/FlowToken.cdc`
 
+| Network         | Contract Address     |
+| --------------- | -------------------- |
+| Emulator/Canary | `0x0ae53cb6e3f42a79` |
+| Testnet         | `0x7e60df042a9c0868` |
+| Sandboxnet      | `0x0661ab7d6696a460` |
+| Mainnet         | `0x1654653399040a61` |
+
 This is the contract that defines the network token for Flow. 
 This token is used for account creation fees, transaction fees, staking, and more. It is 
 implemented as a regular smart contract so that it can be easily used 
@@ -28,15 +35,29 @@ for more information.
 
 You can find transactions for using the Flow Token in the `transactions/flowToken` directory.
 
-## Fee Contract
+## Flow Transaction Fee Contract
 
 `contracts/FlowFees.cdc`
+
+| Network         | Contract Address     |
+| --------------- | -------------------- |
+| Emulator/Canary | `0xe5a8b7f23e8b548f` |
+| Testnet         | `0x912d5440f7e3769e` |
+| Sandboxnet      | `0xe92c2039bbe9da96` |
+| Mainnet         | `0xf919ee77447b7497` |
 
 This contract defines fees that are spent for executing transactions and creating accounts.
 
 ## Storage Fee Contract
 
 `contracts/FlowStorageFees.cdc`
+
+| Network         | Contract Address     |
+| --------------- | -------------------- |
+| Emulator/Canary | `0xf8d6e0586b0a20c7` |
+| Testnet         | `0x8c5303eaa26202d6` |
+| Sandboxnet      | `0xf4527793ee68aede` |
+| Mainnet         | `0xe467b9dd11fa00df` |
 
 This contract defines fees that are spent to pay for the storage that an account uses.
 There is a minimum balance that an account needs to maintain in its main `FlowToken` Vault
@@ -47,24 +68,47 @@ You can see [more docs about storage capacity and fees here.](https://docs.onflo
 
 `contracts/FlowServiceAccount.cdc`
 
+| Network         | Contract Address     |
+| --------------- | -------------------- |
+| Emulator/Canary | `0xf8d6e0586b0a20c7` |
+| Testnet         | `0x8c5303eaa26202d6` |
+| Sandboxnet      | `0xf4527793ee68aede` |
+| Mainnet         | `0xe467b9dd11fa00df` |
+
 This contract manages account creation and flow token initialization. It enforces temporary
 requirements for which accounts are allowed to create other accounts, and provides common
 functionality for flow tokens.
 
 You can find transactions for interacting with the service account contract in the `transactions/FlowServiceAccount` directory.
 
-## Flow Identity Table, Staking, and Delegation Contract
+## Flow Epochs, Identity Table, and Staking Contracts
 
 `contracts/FlowIDTableStaking.cdc`
+`contracts/epochs/FlowEpoch.cdc`
 
-This contract manages the list of identities that correspond to node operators in the Flow network.
-Each node identity stakes tokens with this contract, and also gets paid rewards with this contract.
+| Network         | Contract Address     |
+| --------------- | -------------------- |
+| Emulator/Canary | `0xf8d6e0586b0a20c7` |
+| Testnet         | `0x9eca2b38b18b5dfe` |
+| Sandboxnet      | `0xf4527793ee68aede` |
+| Mainnet         | `0x8624b52f9ddcd04a` |
+
+These contract manages the list of identities that correspond to node operators in the Flow network
+as well as the process for adding and removing nodes from the network via Epochs.
+Each node identity stakes tokens with these contracts, and also gets paid rewards with their contracts.
 This contract also manages the logic for users to delegate their tokens to a node operator
-and receive their own rewards. You can see an explaination of this process in the staking section
+and receive their own rewards. You can see an explanation of this process in the staking section
 of the [Flow Docs website](https://docs.onflow.org/token/staking/).
 
 You can find all the transactions for interacting with the IDTableStaking contract with unlocked FLOW
-in the `transactions/idTableStaking` directory.
+in the `transactions/idTableStaking` directory, though it is recommended to use the staking collection
+transactions instead. These are described in the "Flow Staking Collection" section below.
+
+You can also find transactions and scripts for interacting
+with all the epoch smart contracts in the following directories:
+`transactions/epoch/`
+`transactions/dkg/`
+`transactions/quorumCertificate/`
 
 You can also find scripts for querying info about staking and stakers in the `transactions/idTableStaking/scripts/` directory.
 These scripts are documented in the [staking scripts section of the docs](https://docs.onflow.org/staking/scripts/)
@@ -73,12 +117,26 @@ These scripts are documented in the [staking scripts section of the docs](https:
 
 `contracts/LockedTokens.cdc`
 
+| Network         | Contract Address     |
+| --------------- | -------------------- |
+| Emulator/Canary | `0xf8d6e0586b0a20c7` |
+| Testnet         | `0x95e019a17d0e23d7` |
+| Sandboxnet      | `0xf4527793ee68aede` |
+| Mainnet         | `0x8d0e87b65159ae63` |
+
 This contract manages the two year lockup of Flow tokens that backers purchased in the initial
 token sale in October of 2020. See more documentation about `LockedTokens` [here.](https://docs.onflow.org/flow-token/locked-account-setup/)
 
 ## Flow Staking Collection Contract
 
 `contracts/FlowStakingCollection.cdc`
+
+| Network         | Contract Address     |
+| --------------- | -------------------- |
+| Emulator/Canary | `0xf8d6e0586b0a20c7` |
+| Testnet         | `0x95e019a17d0e23d7` |
+| Sandboxnet      | `0xf4527793ee68aede` |
+| Mainnet         | `0x8d0e87b65159ae63` |
 
 A Staking Collection is a resource that allows its owner to manage multiple staking
 objects in a single account via a single storage path, and perform staking and delegation actions using both locked and unlocked Flow.
@@ -98,7 +156,12 @@ if they have a brand new account, or have been staking through the locked accoun
 
 ### Is the staking collection mandatory
 
-The Flow team will be using the staking collection for Flow Port by default and we recommend that other services use it instead of any of the other account setups. If you provide a staking service for ledger or blocto users, you will need to upgrade to this if you want to give your users access to the entire functionality of their account if they are also using Flow Port. If their entire interaction with staking is through Flow Port, then all the changes are handled for them and there is nothing for you to worry about.
+Flow Port uses staking collection transaction by default other services are encouraged
+to use it instead of any of the other account staking setups.
+If you provide a staking service for ledger or blocto users, you will need to upgrade
+to this if you want to give your users access to the entire functionality of their account
+if they are also using Flow Port. If their entire interaction with staking is through Flow Port,
+then all the changes are handled for them and there is nothing for you to worry about.
 
 ### Staking Collection Technical features
 
@@ -112,25 +175,6 @@ The Flow team will be using the staking collection for Flow Port by default and 
 Looking for feedback on design decisions, implementation details, any events that would be useful to include in the contract, and whatever you feel is important!
 
 We intend for this to be the method that all Flow Port users (ledger, blocto, etc) use for the forseeable future. When we enable it in Flow Port, we will ask every user to run a transaction to set up their account to use the staking collection from then on. 
-
-
-## Epoch Contracts
-
-`contracts/epochs/FlowEpoch.cdc`
-`contracts/epochs/FlowClusterQC.cdc`
-`contracts/epochs/FlowDKG.cdc`
-
-These contracts manage the epoch functionality of Flow, the mechanism by which Flow tracks time, changes the approved list of node operators, and bootstrap consensus between different nodes. 
-`FlowClusterQC.cdc` and `FlowDKG.cdc` manage processes specific to collector and consensus nodes, respectively.
-`FlowEpoch.cdc` ties all of the epoch and staking contracts together into a coherent state machine that will run on its own.
-
-## Flow Contract Audits
-
-`contracts/FlowContractAudits.cdc`
-
-This contract contains a list of contract audit vouchers used for contract deployment. If enabled, on contract deployment the FVM will check the code hash
-and target account against the list of vouchers on this contract.
-The service account can authorize auditors to add/remove items to/from the list on this contract.
 
 # Testing
 
