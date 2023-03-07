@@ -47,7 +47,7 @@ pub contract FlowIDTableStaking {
     pub event TokensUnstaking(nodeID: String, amount: UFix64)
     pub event TokensUnstaked(nodeID: String, amount: UFix64)
     pub event NodeRemovedAndRefunded(nodeID: String, amount: UFix64)
-    pub event RewardsPaid(nodeID: String, amount: UFix64)
+    pub event RewardsPaid(nodeID: String, amount: UFix64, delegatorAmounts: {UInt32: UFix64})
     pub event UnstakedTokensWithdrawn(nodeID: String, amount: UFix64)
     pub event RewardTokensWithdrawn(nodeID: String, amount: UFix64)
     pub event NetworkingAddressUpdated(nodeID: String, newAddress: String)
@@ -1212,16 +1212,14 @@ pub contract FlowIDTableStaking {
                 
                 nodeRecord.tokensRewarded.deposit(from: <-rewardsVault.withdraw(amount: nodeReward))
 
-                emit RewardsPaid(nodeID: rewardBreakdown.nodeID, amount: nodeReward)
-
                 for delegator in rewardBreakdown.delegatorRewards.keys {
                     let delRecord = nodeRecord.borrowDelegatorRecord(delegator)
                     let delegatorReward = rewardBreakdown.delegatorRewards[delegator]!
                         
                     delRecord.tokensRewarded.deposit(from: <-rewardsVault.withdraw(amount: delegatorReward))
-
-                    emit DelegatorRewardsPaid(nodeID: rewardBreakdown.nodeID, delegatorID: delegator, amount: delegatorReward)
                 }
+
+                emit RewardsPaid(nodeID: rewardBreakdown.nodeID, amount: nodeReward, delegatorAmounts: rewardBreakdown.delegatorRewards)
             }
 
             var fromFees = feeBalance
