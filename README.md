@@ -158,7 +158,7 @@ if they have a brand new account, or have been staking through the locked accoun
 
 Flow Port uses staking collection transaction by default other services are encouraged
 to use it instead of any of the other account staking setups.
-If you provide a staking service for ledger or blocto users, you will need to upgrade
+If you provide a staking service for [Ledger](https://www.ledger.com/) or [Blocto](https://blocto.io/download) users, you will need to upgrade
 to this if you want to give your users access to the entire functionality of their account
 if they are also using Flow Port. If their entire interaction with staking is through Flow Port,
 then all the changes are handled for them and there is nothing for you to worry about.
