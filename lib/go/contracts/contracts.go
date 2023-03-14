@@ -286,7 +286,8 @@ func NodeVersionBeacon() []byte {
 	return []byte(code)
 }
 
-// FlowContractAudits returns the FlowContractAudits contract.
+// FlowContractAudits returns the deprecated FlowContractAudits contract.
+// This contract is no longer used on any network
 func FlowContractAudits() []byte {
 	code := assets.MustAssetString(flowContractAuditsFilename)
 
