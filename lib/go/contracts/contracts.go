@@ -34,6 +34,7 @@ const (
 	flowLockedTokensFilename      = "LockedTokens.cdc"
 	flowStakingProxyFilename      = "StakingProxy.cdc"
 	flowStakingCollectionFilename = "FlowStakingCollection.cdc"
+	flowContractAuditsFilename    = "FlowContractAudits.cdc"
 	flowNodeVersionBeaconFilename = "NodeVersionBeacon.cdc"
 
 	// Test contracts
@@ -281,6 +282,14 @@ func FlowEpoch(fungibleTokenAddress,
 // NodeVersionBeacon returns the NodeVersionBeacon contract content.
 func NodeVersionBeacon() []byte {
 	code := assets.MustAssetString(flowNodeVersionBeaconFilename)
+
+	return []byte(code)
+}
+
+// FlowContractAudits returns the deprecated FlowContractAudits contract.
+// This contract is no longer used on any network
+func FlowContractAudits() []byte {
+	code := assets.MustAssetString(flowContractAuditsFilename)
 
 	return []byte(code)
 }
