@@ -2,7 +2,7 @@ import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
 
 /// This transaction adds node IDs to the list of approved nodes in
 /// the ID table. 
-/// It also increases the candidate node limit and slot limits
+/// It also increases slot limits
 /// by the number of nodes who are added
 ///
 /// If any of the provided nodes already exist in the ID table, this
