@@ -355,7 +355,7 @@ pub contract FlowEpoch {
                     let currentEpochMetadata = FlowEpoch.getEpochMetadata(FlowEpoch.currentEpochCounter)!
                     // Pay rewards only if automatic rewards are enabled and the current view
                     // is the one immediately after the start view of the currenct epoch
-                    if FlowEpoch.automaticRewardsEnabled() && (currentBlock.view == (currentEpochMetadata.startView + UInt64(1))) {
+                    if FlowEpoch.automaticRewardsEnabled() {
                         self.payRewardsForPreviousEpoch()
                     }
                     if currentBlock.view >= currentEpochMetadata.stakingEndView {
