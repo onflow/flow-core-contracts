@@ -353,8 +353,9 @@ pub contract FlowEpoch {
                 case EpochPhase.STAKINGAUCTION:
                     let currentBlock = getCurrentBlock()
                     let currentEpochMetadata = FlowEpoch.getEpochMetadata(FlowEpoch.currentEpochCounter)!
-                    // Pay rewards only if automatic rewards are enabled and the current view
-                    // is the one immediately after the start view of the currenct epoch
+                    // Pay rewards only if automatic rewards are enabled
+                    // This will only actually happen once immediately after the epoch begins
+                    // because `payRewardsForPreviousEpoch()` will only pay rewards once
                     if FlowEpoch.automaticRewardsEnabled() {
                         self.payRewardsForPreviousEpoch()
                     }
@@ -806,6 +807,12 @@ pub contract FlowEpoch {
     }
 
     /// Gets the current amount of bonus tokens left to be destroyed
+    /// Bonus tokens are tokens that were allocated as a decentralization incentive
+    /// that are currently in the process of being destroyed. The presence of bonus
+    /// tokens throws off the intended calculation for the FLOW inflation rate
+    /// so they are not included in that calculation
+    /// Eventually, all the bonus tokens will be destroyed and
+    /// this will not be needed anymore
     pub fun getBonusTokens(): UFix64 {
         return self.account.copy<UFix64>(from: /storage/FlowBonusTokenAmount)
                 ?? 0.0
