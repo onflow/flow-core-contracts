@@ -6,21 +6,18 @@ import NodeVersionBeacon from 0xNODEVERSIONBEACONADDRESS
 
 transaction(blockHeightBoundaryToDelete: UInt64) {
 
-  let NodeVersionBeaconAdminRef: &NodeVersionBeacon.NodeVersionAdmin
+  let NodeVersionBeaconAdminRef: &NodeVersionBeacon.Admin
 
   prepare(acct: AuthAccount) {
-    pre {
-        NodeVersionBeacon.getVersionTable().length > 0 : "No boundary mapping exists to delete."
-    }
     // Borrow a reference to the NodeVersionAdmin resource
-    self.NodeVersionBeaconAdminRef = acct.borrow<&NodeVersionBeacon.NodeVersionAdmin>
-      (from: NodeVersionBeacon.NodeVersionAdminStoragePath)
+    self.NodeVersionBeaconAdminRef = acct.borrow<&NodeVersionBeacon.Admin>
+      (from: NodeVersionBeacon.AdminStoragePath)
       ?? panic("Couldn't borrow NodeVersionBeaconAdmin Resource")
   }
 
   execute {
     // Delete the version from the version table at the specified block height boundary
-    self.NodeVersionBeaconAdminRef.deleteUpcomingVersionBoundary(blockHeight: blockHeightBoundaryToDelete)
+    self.NodeVersionBeaconAdminRef.deleteVersionBoundary(blockHeight: blockHeightBoundaryToDelete)
   }
 
 }
