@@ -154,7 +154,7 @@ pub contract NodeVersionBeacon {
     /// Canonical storage path for the NodeVersionBeacon.Heartbeat resource.
     pub let HeartbeatStoragePath: StoragePath
 
-    /// Block heigh indexed version boundaries.
+    /// Block height indexed version boundaries.
     access(contract) let versionBoundary: {UInt64: VersionBoundary}    
     
     /// Sorted Array containing version boundary block heights.
