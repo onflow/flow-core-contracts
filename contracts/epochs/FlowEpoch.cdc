@@ -482,6 +482,7 @@ pub contract FlowEpoch {
         let rewardsSummary = stakingAdmin.calculateRewards()
         let currentMetadata = self.getEpochMetadata(self.currentEpochCounter)!
         currentMetadata.setRewardAmounts(rewardsSummary.breakdown)
+        currentMetadata.setTotalRewards(rewardsSummary.totalRewards)
         self.saveEpochMetadata(currentMetadata)
 
         if FlowEpoch.automaticRewardsEnabled() {
