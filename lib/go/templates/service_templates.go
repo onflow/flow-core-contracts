@@ -6,6 +6,10 @@ import (
 
 const (
 
+	// FlowToken Templates
+	mintFlowFilename       = "flowToken/mint_tokens.cdc"
+	getFlowBalanceFilename = "flowToken/scripts/get_balance.cdc"
+
 	// FlowStorageFees templates
 
 	changeStorageFeeParametersFilename                    = "storageFees/admin/set_parameters.cdc"
@@ -35,6 +39,19 @@ const (
 	getExecutionMemoryLimit   = "FlowServiceAccount/scripts/get_execution_memory_limit.cdc"
 	setExecutionMemoryLimit   = "FlowServiceAccount/set_execution_memory_limit.cdc"
 )
+
+// FlowToken Templates
+func GenerateMintFlowScript(env Environment) []byte {
+	code := assets.MustAssetString(mintFlowFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateGetFlowBalanceScript(env Environment) []byte {
+	code := assets.MustAssetString(getFlowBalanceFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
 
 // StorageFees Templates
 

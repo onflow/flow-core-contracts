@@ -498,7 +498,7 @@ func TestQuorumCertificateMoreNodes(t *testing.T) {
 	numberOfNodesPerCluster := 4
 
 	// Create new user accounts
-	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numberOfClusters*numberOfNodesPerCluster)
+	addresses, _, signers := registerAndMintManyAccounts(t, b, env, accountKeys, numberOfClusters*numberOfNodesPerCluster)
 
 	clusterNodeIDStrings := make([][]string, numberOfClusters*numberOfNodesPerCluster)
 
@@ -763,7 +763,7 @@ func TestQuorumCertificateNotSubmittedVote(t *testing.T) {
 	numberOfNodesPerCluster := 4
 
 	// Create new user accounts
-	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numberOfClusters*numberOfNodesPerCluster)
+	addresses, _, signers := registerAndMintManyAccounts(t, b, env, accountKeys, numberOfClusters*numberOfNodesPerCluster)
 
 	clusterNodeIDStrings := make([][]string, numberOfClusters*numberOfNodesPerCluster)
 

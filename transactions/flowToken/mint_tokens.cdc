@@ -1,11 +1,16 @@
 import FungibleToken from 0xFUNGIBLETOKENADDRESS
-import FlowToken from 0xTOKENADDRESS
+import FlowToken from 0xFLOWTOKENADDRESS
+
+/// This transaction mints tokens using the account that stores the Flow Token Admin resource
+/// This is the service account
 
 transaction(recipient: Address, amount: UFix64) {
+
     let tokenAdmin: &FlowToken.Administrator
     let tokenReceiver: &{FungibleToken.Receiver}
 
     prepare(signer: AuthAccount) {
+
         self.tokenAdmin = signer
             .borrow<&FlowToken.Administrator>(from: /storage/flowTokenAdmin)
             ?? panic("Signer is not the token admin")

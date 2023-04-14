@@ -108,7 +108,7 @@ func TestEpochClusters(t *testing.T) {
 	})
 
 	// create new user accounts, mint tokens for them, and register them for staking
-	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
+	addresses, _, signers := registerAndMintManyAccounts(t, b, env, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
 	_, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
 	registerNodesForStaking(t, b, env,
@@ -290,7 +290,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 	})
 
 	// create new user accounts, mint tokens for them, and register them for staking
-	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
+	addresses, _, signers := registerAndMintManyAccounts(t, b, env, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
 	_, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
 	registerNodesForStaking(t, b, env,
@@ -412,7 +412,7 @@ func TestEpochAdvance(t *testing.T) {
 	})
 
 	// create new user accounts, mint tokens for them, and register them for staking
-	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
+	addresses, _, signers := registerAndMintManyAccounts(t, b, env, accountKeys, numEpochAccounts)
 	ids, _, dkgIDs := generateNodeIDs(numEpochAccounts)
 	_, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
 	registerNodesForStaking(t, b, env,
@@ -552,7 +552,7 @@ func TestEpochQCDKGNodeRegistration(t *testing.T) {
 		rewardIncreaseFactor)
 
 	// create new user accounts, mint tokens for them, and register them for staking
-	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
+	addresses, _, signers := registerAndMintManyAccounts(t, b, env, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
 	_, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
 	registerNodesForStaking(t, b, env,
@@ -644,7 +644,7 @@ func TestEpochFullNodeRegistration(t *testing.T) {
 		rewardIncreaseFactor)
 
 	// create new user accounts, mint tokens for them, and register them for staking
-	addresses, publicKeys, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
+	addresses, publicKeys, signers := registerAndMintManyAccounts(t, b, env, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
 	_, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
 	registerNodesForEpochs(t, b, env,
@@ -676,7 +676,7 @@ func TestEpochQCDKG(t *testing.T) {
 		rewardIncreaseFactor)
 
 	// create new user accounts, mint tokens for them, and register them for staking
-	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
+	addresses, _, signers := registerAndMintManyAccounts(t, b, env, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
 	stakingPrivateKeys, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
 	registerNodesForStaking(t, b, env,
@@ -979,7 +979,7 @@ func TestEpochQCDKG(t *testing.T) {
 
 	t.Run("Can set the rewards with high fee amount, which should not increase the supply at all", func(t *testing.T) {
 
-		mintTokensForAccount(t, b, idTableAddress, "6572144.3875")
+		mintTokensForAccount(t, b, env, idTableAddress, "6572144.3875")
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateDepositFeesScript(env), idTableAddress)
 
@@ -1052,7 +1052,7 @@ func TestEpochReset(t *testing.T) {
 		rewardIncreaseFactor)
 
 	// create new user accounts, mint tokens for them, and register them for staking
-	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
+	addresses, _, signers := registerAndMintManyAccounts(t, b, env, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
 	stakingPrivateKeys, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
 	registerNodesForStaking(t, b, env,
