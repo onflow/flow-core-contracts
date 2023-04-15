@@ -10,7 +10,6 @@ import (
 
 	"github.com/onflow/cadence"
 	emulator "github.com/onflow/flow-emulator"
-	ft_templates "github.com/onflow/flow-ft/lib/go/templates"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/test"
@@ -269,11 +268,11 @@ func assertEqual(t *testing.T, expected, actual interface{}) bool {
 // Mints the specified amount of FLOW tokens for the specified account address
 // Using the mint tokens template from the onflow/flow-ft repo
 // signed by the service account
-func mintTokensForAccount(t *testing.T, b *emulator.Blockchain, recipient flow.Address, amount string) {
+func mintTokensForAccount(t *testing.T, b *emulator.Blockchain, env templates.Environment, recipient flow.Address, amount string) {
 
 	// Create a new mint FLOW transaction template authorized by the service account
 	tx := createTxWithTemplateAndAuthorizer(b,
-		ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"),
+		templates.GenerateMintFlowScript(env),
 		b.ServiceKey().Address)
 
 	// Add the recipient and amount as arguments
@@ -293,6 +292,7 @@ func mintTokensForAccount(t *testing.T, b *emulator.Blockchain, recipient flow.A
 func registerAndMintManyAccounts(
 	t *testing.T,
 	b *emulator.Blockchain,
+	env templates.Environment,
 	accountKeys *test.AccountKeys,
 	numAccounts int) ([]flow.Address, []*flow.AccountKey, []crypto.Signer) {
 
@@ -304,7 +304,7 @@ func registerAndMintManyAccounts(
 	// Create each new account and mint 1B tokens for it
 	for i := 0; i < numAccounts; i++ {
 		userAddresses[i], userPublicKeys[i], userSigners[i] = newAccountWithAddress(b, accountKeys)
-		mintTokensForAccount(t, b, userAddresses[i], "1000000000.0")
+		mintTokensForAccount(t, b, env, userAddresses[i], "1000000000.0")
 	}
 
 	return userAddresses, userPublicKeys, userSigners

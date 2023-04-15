@@ -61,7 +61,7 @@ func TestStakingCollectionGetTokens(t *testing.T) {
 	regAccountAddress, _, regAccountSigner := newAccountWithAddress(b, accountKeys)
 
 	// Add 1Billion tokens to regular account
-	mintTokensForAccount(t, b, regAccountAddress, "1000000000.0")
+	mintTokensForAccount(t, b, env, regAccountAddress, "1000000000.0")
 
 	// add a staking collection to a regular account with no locked account
 	t.Run("should be able to setup an account with a staking collection", func(t *testing.T) {
@@ -309,7 +309,7 @@ func TestStakingCollectionDepositTokens(t *testing.T) {
 	// create regular account
 	regAccountAddress, _, regAccountSigner := newAccountWithAddress(b, accountKeys)
 	// Add 1Billion tokens to regular account
-	mintTokensForAccount(t, b, regAccountAddress, "1000000000.0")
+	mintTokensForAccount(t, b, env, regAccountAddress, "1000000000.0")
 	addStakingCollectionToRegAcctWithNoLockedAcctTx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionSetup(env), regAccountAddress)
 	signAndSubmit(
 		t, b, addStakingCollectionToRegAcctWithNoLockedAcctTx,
@@ -448,7 +448,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 	deployAllCollectionContracts(t, b, accountKeys, &env, adminAddress, adminSigner)
 
 	// Create regular accounts
-	userAddresses, _, userSigners := registerAndMintManyAccounts(t, b, accountKeys, 4)
+	userAddresses, _, userSigners := registerAndMintManyAccounts(t, b, env, accountKeys, 4)
 	_, adminStakingKey, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
 
 	var amountToCommit interpreter.UFix64Value = 48000000000000
@@ -714,7 +714,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 	t.Run("Should be able to deposit and withdraw tokens from the machine account", func(t *testing.T) {
 
 		// Add 100 tokens to the machine account
-		mintTokensForAccount(t, b, machineAccounts[CadenceString(bastianID).(cadence.String)], "100.0")
+		mintTokensForAccount(t, b, env, machineAccounts[CadenceString(bastianID).(cadence.String)], "100.0")
 
 		// Should fail because this node does not exist in the collection
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionWithdrawFromMachineAccountScript(env), joshAddress)
@@ -754,7 +754,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 	t.Run("Should be able to register a execution and verification node in the staking collection and not create machine accounts", func(t *testing.T) {
 
-		mintTokensForAccount(t, b, joshAddress, "2000000.0")
+		mintTokensForAccount(t, b, env, joshAddress, "2000000.0")
 
 		_, executionStakingKey, _, executionNetworkingKey := generateKeysForNodeRegistration(t)
 
@@ -855,7 +855,7 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 	deployAllCollectionContracts(t, b, accountKeys, &env, adminAddress, adminSigner)
 
 	// Create regular accounts
-	userAddresses, _, userSigners := registerAndMintManyAccounts(t, b, accountKeys, 4)
+	userAddresses, _, userSigners := registerAndMintManyAccounts(t, b, env, accountKeys, 4)
 	_, adminStakingKey, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
 
 	var amountToCommit interpreter.UFix64Value = 48000000000000

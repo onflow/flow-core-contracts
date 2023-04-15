@@ -297,7 +297,7 @@ func TestIDTableRegistration(t *testing.T) {
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
 	idTableAddress, feesAddr := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, &env, true, []uint64{1, 1, 1, 1, 1})
 	_, adminStakingKey, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
-	mintTokensForAccount(t, b, idTableAddress, "1000000000.0")
+	mintTokensForAccount(t, b, env, idTableAddress, "1000000000.0")
 
 	setNodeRoleSlotLimits(t, b, env, idTableAddress, IDTableSigner, [5]uint16{1, 1, 1, 1, 1})
 
@@ -307,19 +307,19 @@ func TestIDTableRegistration(t *testing.T) {
 	// Create new user accounts
 	joshAddress, _, joshSigner := newAccountWithAddress(b, accountKeys)
 	_, joshStakingKey, _, joshNetworkingKey := generateKeysForNodeRegistration(t)
-	mintTokensForAccount(t, b, joshAddress, "1000000000.0")
+	mintTokensForAccount(t, b, env, joshAddress, "1000000000.0")
 
 	maxAddress, _, maxSigner := newAccountWithAddress(b, accountKeys)
 	_, maxStakingKey, _, maxNetworkingKey := generateKeysForNodeRegistration(t)
-	mintTokensForAccount(t, b, maxAddress, "1000000000.0")
+	mintTokensForAccount(t, b, env, maxAddress, "1000000000.0")
 
 	bastianAddress, _, bastianSigner := newAccountWithAddress(b, accountKeys)
 	_, bastianStakingKey, _, bastianNetworkingKey := generateKeysForNodeRegistration(t)
-	mintTokensForAccount(t, b, bastianAddress, "1000000000.0")
+	mintTokensForAccount(t, b, env, bastianAddress, "1000000000.0")
 
 	accessAddress, _, accessSigner := newAccountWithAddress(b, accountKeys)
 	_, accessStakingKey, _, accessNetworkingKey := generateKeysForNodeRegistration(t)
-	mintTokensForAccount(t, b, accessAddress, "1000000000.0")
+	mintTokensForAccount(t, b, env, accessAddress, "1000000000.0")
 
 	committed := make(map[string]interpreter.UFix64Value)
 
@@ -759,15 +759,15 @@ func TestIDTableApprovals(t *testing.T) {
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
 	_, adminStakingKey, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
 	idTableAddress, feesAddr := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, &env, true, []uint64{3, 3, 3, 3, 3})
-	mintTokensForAccount(t, b, idTableAddress, "1000000000.0")
+	mintTokensForAccount(t, b, env, idTableAddress, "1000000000.0")
 
 	accessAddress, _, accessSigner := newAccountWithAddress(b, accountKeys)
 	_, accessStakingKey, _, accessNetworkingKey := generateKeysForNodeRegistration(t)
-	mintTokensForAccount(t, b, accessAddress, "1000000000.0")
+	mintTokensForAccount(t, b, env, accessAddress, "1000000000.0")
 
 	joshAddress, _, joshSigner := newAccountWithAddress(b, accountKeys)
 	_, joshStakingKey, _, joshNetworkingKey := generateKeysForNodeRegistration(t)
-	mintTokensForAccount(t, b, joshAddress, "1000000000.0")
+	mintTokensForAccount(t, b, env, joshAddress, "1000000000.0")
 
 	env.IDTableAddress = idTableAddress.Hex()
 	env.FlowFeesAddress = feesAddr.Hex()
@@ -1051,7 +1051,7 @@ func TestIDTableStaking(t *testing.T) {
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
 	_, adminStakingKey, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
 	idTableAddress, feesAddr := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, &env, true, []uint64{3, 3, 3, 3, 3})
-	mintTokensForAccount(t, b, idTableAddress, "1000000000.0")
+	mintTokensForAccount(t, b, env, idTableAddress, "1000000000.0")
 
 	env.IDTableAddress = idTableAddress.Hex()
 	env.FlowFeesAddress = feesAddr.Hex()
@@ -1068,32 +1068,32 @@ func TestIDTableStaking(t *testing.T) {
 	// Create new user accounts
 	joshAddress, _, joshSigner := newAccountWithAddress(b, accountKeys)
 	_, joshStakingKey, _, joshNetworkingKey := generateKeysForNodeRegistration(t)
-	mintTokensForAccount(t, b, joshAddress, "1000000000.0")
+	mintTokensForAccount(t, b, env, joshAddress, "1000000000.0")
 
 	maxAddress, _, maxSigner := newAccountWithAddress(b, accountKeys)
 	_, maxStakingKey, _, maxNetworkingKey := generateKeysForNodeRegistration(t)
-	mintTokensForAccount(t, b, maxAddress, "1000000000.0")
+	mintTokensForAccount(t, b, env, maxAddress, "1000000000.0")
 
 	bastianAddress, _, bastianSigner := newAccountWithAddress(b, accountKeys)
 	_, bastianStakingKey, _, bastianNetworkingKey := generateKeysForNodeRegistration(t)
-	mintTokensForAccount(t, b, bastianAddress, "1000000000.0")
+	mintTokensForAccount(t, b, env, bastianAddress, "1000000000.0")
 
 	accessAddress, _, accessSigner := newAccountWithAddress(b, accountKeys)
 	_, accessStakingKey, _, accessNetworkingKey := generateKeysForNodeRegistration(t)
-	mintTokensForAccount(t, b, accessAddress, "1000000000.0")
+	mintTokensForAccount(t, b, env, accessAddress, "1000000000.0")
 
 	// Create new delegator user accounts
 	adminDelegatorAddress, _, adminDelegatorSigner := newAccountWithAddress(b, accountKeys)
-	mintTokensForAccount(t, b, adminDelegatorAddress, "1000000000.0")
+	mintTokensForAccount(t, b, env, adminDelegatorAddress, "1000000000.0")
 
 	joshDelegatorOneAddress, _, joshDelegatorOneSigner := newAccountWithAddress(b, accountKeys)
-	mintTokensForAccount(t, b, joshDelegatorOneAddress, "1000000000.0")
+	mintTokensForAccount(t, b, env, joshDelegatorOneAddress, "1000000000.0")
 
 	maxDelegatorOneAddress, _, maxDelegatorOneSigner := newAccountWithAddress(b, accountKeys)
-	mintTokensForAccount(t, b, maxDelegatorOneAddress, "1000000000.0")
+	mintTokensForAccount(t, b, env, maxDelegatorOneAddress, "1000000000.0")
 
 	maxDelegatorTwoAddress, _, maxDelegatorTwoSigner := newAccountWithAddress(b, accountKeys)
-	mintTokensForAccount(t, b, maxDelegatorTwoAddress, "1000000000.0")
+	mintTokensForAccount(t, b, env, maxDelegatorTwoAddress, "1000000000.0")
 
 	// Register the First nodes
 	var amountToCommit interpreter.UFix64Value = 25000000000000
@@ -2900,19 +2900,19 @@ func TestIDTableSlotSelection(t *testing.T) {
 
 	// Create new user accounts and generate staking info
 	access1Address, _, access1Signer := newAccountWithAddress(b, accountKeys)
-	mintTokensForAccount(t, b, access1Address, "1000000.0")
+	mintTokensForAccount(t, b, env, access1Address, "1000000.0")
 	_, access1StakingKey, _, access1NetworkingKey := generateKeysForNodeRegistration(t)
 
 	access2Address, _, access2Signer := newAccountWithAddress(b, accountKeys)
-	mintTokensForAccount(t, b, access2Address, "1000000.0")
+	mintTokensForAccount(t, b, env, access2Address, "1000000.0")
 	_, access2StakingKey, _, access2NetworkingKey := generateKeysForNodeRegistration(t)
 
 	access3Address, _, access3Signer := newAccountWithAddress(b, accountKeys)
-	mintTokensForAccount(t, b, access3Address, "1000000.0")
+	mintTokensForAccount(t, b, env, access3Address, "1000000.0")
 	_, access3StakingKey, _, access3NetworkingKey := generateKeysForNodeRegistration(t)
 
 	access4Address, _, access4Signer := newAccountWithAddress(b, accountKeys)
-	mintTokensForAccount(t, b, access4Address, "1000000.0")
+	mintTokensForAccount(t, b, env, access4Address, "1000000.0")
 	_, access4StakingKey, _, access4NetworkingKey := generateKeysForNodeRegistration(t)
 
 	t.Run("Should be able to set new slot limits", func(t *testing.T) {
@@ -3230,7 +3230,7 @@ func TestIDTableRewardsWitholding(t *testing.T) {
 	for i := 0; i < numNodes; i++ {
 
 		// Fund the node account
-		mintTokensForAccount(t, b, nodeAddresses[i], "1000000.0")
+		mintTokensForAccount(t, b, env, nodeAddresses[i], "1000000.0")
 
 		// Register the node
 		committed[adminID] = registerNode(t, b, env,
@@ -3252,7 +3252,7 @@ func TestIDTableRewardsWitholding(t *testing.T) {
 	for i := 0; i < numDelegators; i++ {
 
 		// Fund the delegator account
-		mintTokensForAccount(t, b, delegatorAddresses[i], "1000000.0")
+		mintTokensForAccount(t, b, env, delegatorAddresses[i], "1000000.0")
 
 		// Register the delegator
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterDelegatorScript(env), delegatorAddresses[i])

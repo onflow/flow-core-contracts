@@ -13,8 +13,6 @@ import (
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/test"
 
-	ft_templates "github.com/onflow/flow-ft/lib/go/templates"
-
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
 )
 
@@ -78,11 +76,7 @@ func TestManyNodesIDTable(t *testing.T) {
 		totalMint := numberOfNodes * nodeMintAmount
 		mintAmount := fmt.Sprintf("%d.0", totalMint)
 
-		script := ft_templates.GenerateMintTokensScript(
-			flow.HexToAddress(emulatorFTAddress),
-			flow.HexToAddress(emulatorFlowTokenAddress),
-			"FlowToken",
-		)
+		script := templates.GenerateMintFlowScript(env)
 
 		tx := createTxWithTemplateAndAuthorizer(b, script, b.ServiceKey().Address)
 
@@ -396,11 +390,7 @@ func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
 
 		for i := 0; i < unstakeAllNumNodes; i++ {
 
-			script := ft_templates.GenerateMintTokensScript(
-				flow.HexToAddress(emulatorFTAddress),
-				flow.HexToAddress(emulatorFlowTokenAddress),
-				"FlowToken",
-			)
+			script := templates.GenerateMintFlowScript(env)
 			tx := createTxWithTemplateAndAuthorizer(b, script, b.ServiceKey().Address)
 
 			_ = tx.AddArgument(cadence.NewAddress(nodeAddresses[i]))

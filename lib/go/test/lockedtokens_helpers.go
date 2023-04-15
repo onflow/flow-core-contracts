@@ -13,7 +13,6 @@ import (
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	emulator "github.com/onflow/flow-emulator"
-	ft_templates "github.com/onflow/flow-ft/lib/go/templates"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/test"
@@ -61,6 +60,7 @@ func (evt unlockedAccountRegisteredEvent) Address() flow.Address {
 func deployLockedTokensContract(
 	t *testing.T,
 	b *emulator.Blockchain,
+	env templates.Environment,
 	IDTableAddr, proxyAddr flow.Address,
 	lockedTokensAccountKey *flow.AccountKey,
 	adminAddress flow.Address,
@@ -123,11 +123,7 @@ func deployLockedTokensContract(
 	require.NoError(t, err)
 
 	// Mint tokens for the locked tokens admin
-	script := ft_templates.GenerateMintTokensScript(
-		flow.HexToAddress(emulatorFTAddress),
-		flow.HexToAddress(emulatorFlowTokenAddress),
-		"FlowToken",
-	)
+	script := templates.GenerateMintFlowScript(env)
 	tx = createTxWithTemplateAndAuthorizer(b, script, b.ServiceKey().Address)
 	_ = tx.AddArgument(cadence.NewAddress(lockedTokensAddr))
 	_ = tx.AddArgument(CadenceUFix64("1000000000.0"))
@@ -167,7 +163,7 @@ func createLockedAccountPairWithBalances(
 	var newUserAddress flow.Address
 
 	if adminAmount != "0.0" {
-		mintTokensForAccount(t, b, adminAddress, adminAmount)
+		mintTokensForAccount(t, b, env, adminAddress, adminAmount)
 	}
 
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateSharedAccountScript(env), adminAddress).
@@ -225,7 +221,7 @@ func createLockedAccountPairWithBalances(
 	}
 
 	if unlockedBalance != "0.0" {
-		mintTokensForAccount(t, b, newUserAddress, unlockedBalance)
+		mintTokensForAccount(t, b, env, newUserAddress, unlockedBalance)
 	}
 
 	return newUserAddress, newUserSharedAddress, newUserSigner
@@ -338,7 +334,7 @@ func deployAllCollectionContracts(t *testing.T,
 	assert.NoError(t, err)
 
 	lockedTokensAccountKey, lockedTokensSigner := accountKeys.NewWithSigner()
-	lockedTokensAddress := deployLockedTokensContract(t, b, flow.HexToAddress(env.IDTableAddress), stakingProxyAddress, lockedTokensAccountKey, adminAddress, adminSigner)
+	lockedTokensAddress := deployLockedTokensContract(t, b, *env, flow.HexToAddress(env.IDTableAddress), stakingProxyAddress, lockedTokensAccountKey, adminAddress, adminSigner)
 	env.StakingProxyAddress = stakingProxyAddress.Hex()
 	env.LockedTokensAddress = lockedTokensAddress.Hex()
 
@@ -467,7 +463,7 @@ func verifyStakingCollectionInfo(
 	expectedInfo StakingCollectionInfo,
 ) {
 	// check balance of unlocked account
-	result := executeScriptAndCheck(t, b, ft_templates.GenerateInspectVaultScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), [][]byte{jsoncdc.MustEncode(cadence.Address(flow.HexToAddress(expectedInfo.accountAddress)))})
+	result := executeScriptAndCheck(t, b, templates.GenerateGetFlowBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(flow.HexToAddress(expectedInfo.accountAddress)))})
 	assertEqual(t, CadenceUFix64(expectedInfo.unlockedBalance), result)
 
 	// check balance of locked account if it exists
