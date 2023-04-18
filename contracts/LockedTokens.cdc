@@ -206,7 +206,7 @@ pub contract LockedTokens {
         /// Registers a new Delegator with the Flow Staking contract
         /// the caller has to specify the ID of the node operator
         /// they are delegating to
-        pub fun registerDelegator(nodeID: String) {
+        pub fun registerDelegator(nodeID: String, amount: UFix64) {
             if let delegator <- self.nodeDelegator <- nil {
                 let delegatorInfo = FlowIDTableStaking.DelegatorInfo(nodeID: delegator.nodeID, delegatorID: delegator.id)
 
@@ -218,7 +218,11 @@ pub contract LockedTokens {
                 destroy delegator
             }
 
-            let delegator <- self.nodeDelegator <- FlowIDTableStaking.registerNewDelegator(nodeID: nodeID)
+            let vaultRef = self.vault.borrow()!
+
+            let tokens <- vaultRef.withdraw(amount: amount)
+
+            let delegator <- self.nodeDelegator <- FlowIDTableStaking.registerNewDelegator(nodeID: nodeID, tokensCommitted: <-tokens)
 
             destroy delegator
 
@@ -343,9 +347,9 @@ pub contract LockedTokens {
 
         /// The user calls this function if they want to register as a node operator
         /// They have to provide the node ID for the node they want to delegate to
-        pub fun createNodeDelegator(nodeID: String) {
+        pub fun createNodeDelegator(nodeID: String, amount: UFix64) {
 
-            self.borrowTokenManager().registerDelegator(nodeID: nodeID)
+            self.borrowTokenManager().registerDelegator(nodeID: nodeID, amount: amount)
 
             // create a new delegator proxy that can be accessed in transactions
             self.nodeDelegatorProxy = LockedNodeDelegatorProxy(tokenManager: self.tokenManager)

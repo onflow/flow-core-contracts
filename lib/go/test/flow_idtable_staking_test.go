@@ -795,7 +795,7 @@ func TestIDTableApprovals(t *testing.T) {
 
 	// Update the access node minimum to zero
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateChangeMinimumsScript(env), idTableAddress)
-	err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceUFix64("250000.0"), CadenceUFix64("250000.0"), CadenceUFix64("1250000.0"), CadenceUFix64("135000.0"), CadenceUFix64("0.0")}))
+	err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceUFix64("50.0"), CadenceUFix64("250000.0"), CadenceUFix64("250000.0"), CadenceUFix64("1250000.0"), CadenceUFix64("135000.0"), CadenceUFix64("0.0")}))
 	require.NoError(t, err)
 
 	signAndSubmit(
@@ -840,7 +840,7 @@ func TestIDTableApprovals(t *testing.T) {
 
 	// Update the access node minimum to 100
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateChangeMinimumsScript(env), idTableAddress)
-	err = tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceUFix64("250000.0"), CadenceUFix64("250000.0"), CadenceUFix64("1250000.0"), CadenceUFix64("135000.0"), CadenceUFix64("100.0")}))
+	err = tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceUFix64("50.0"), CadenceUFix64("250000.0"), CadenceUFix64("250000.0"), CadenceUFix64("1250000.0"), CadenceUFix64("135000.0"), CadenceUFix64("100.0")}))
 	require.NoError(t, err)
 	signAndSubmit(
 		t, b, tx,
@@ -1530,6 +1530,10 @@ func TestIDTableStaking(t *testing.T) {
 		err := tx.AddArgument(cadence.String(maxID))
 		require.NoError(t, err)
 
+		tokenAmount, err := cadence.NewUFix64("50.0")
+		require.NoError(t, err)
+		_ = tx.AddArgument(tokenAmount)
+
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{maxDelegatorOneAddress},
@@ -1681,33 +1685,21 @@ func TestIDTableStaking(t *testing.T) {
 
 	/************* Start of Delegation Tests *******************/
 
-	t.Run("Should be able to register first account to delegate to max", func(t *testing.T) {
+	t.Run("Should not be able to register a delegator below the minimum", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterDelegatorScript(env), maxDelegatorOneAddress)
 
 		err := tx.AddArgument(cadence.String(maxID))
 		require.NoError(t, err)
 
+		tokenAmount, _ := cadence.NewUFix64("0.0")
+		tx.AddArgument(tokenAmount)
+
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{maxDelegatorOneAddress},
 			[]crypto.Signer{maxDelegatorOneSigner},
-			false,
-		)
-	})
-
-	t.Run("Should be able to register second account to delegate to max", func(t *testing.T) {
-
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterDelegatorScript(env), maxDelegatorTwoAddress)
-
-		err := tx.AddArgument(cadence.String(maxID))
-		require.NoError(t, err)
-
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{maxDelegatorTwoAddress},
-			[]crypto.Signer{maxDelegatorTwoSigner},
-			false,
+			true,
 		)
 	})
 
@@ -1717,6 +1709,9 @@ func TestIDTableStaking(t *testing.T) {
 
 		err := tx.AddArgument(cadence.String(joshID))
 		require.NoError(t, err)
+
+		tokenAmount, _ := cadence.NewUFix64("50.0")
+		tx.AddArgument(tokenAmount)
 
 		signAndSubmit(
 			t, b, tx,
@@ -1733,6 +1728,9 @@ func TestIDTableStaking(t *testing.T) {
 		err := tx.AddArgument(cadence.String(adminID))
 		require.NoError(t, err)
 
+		tokenAmount, _ := cadence.NewUFix64("50.0")
+		tx.AddArgument(tokenAmount)
+
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{adminDelegatorAddress},
@@ -1748,6 +1746,9 @@ func TestIDTableStaking(t *testing.T) {
 		err := tx.AddArgument(cadence.String(accessID))
 		require.NoError(t, err)
 
+		tokenAmount, _ := cadence.NewUFix64("50.0")
+		tx.AddArgument(tokenAmount)
+
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{adminDelegatorAddress},
@@ -1759,7 +1760,7 @@ func TestIDTableStaking(t *testing.T) {
 	t.Run("Should be able to delegate new tokens to josh", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDelegatorStakeNewScript(env), joshDelegatorOneAddress)
-		_ = tx.AddArgument(CadenceUFix64("100000.0"))
+		_ = tx.AddArgument(CadenceUFix64("99950.0"))
 
 		signAndSubmit(
 			t, b, tx,
@@ -2020,15 +2021,18 @@ func TestIDTableStaking(t *testing.T) {
 		result = executeScriptAndCheck(t, b, templates.GenerateGetStakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		assertEqual(t, CadenceUFix64(staked[adminID].String()), result)
 
+		// Update test rewards values for the admin node
 		rewardsResult, _ := payRewards(false, totalPayout, totalStaked, cutPercentage, staked[adminID])
 		rewards[adminID] = rewards[adminID].Plus(stubInterpreter(), rewardsResult, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		assertEqual(t, CadenceUFix64(rewards[adminID].String()), result)
 
+		// Update test rewards values for the josh node
 		rewardsResult, _ = payRewards(false, totalPayout, totalStaked, cutPercentage, 0)
 		rewards[joshID] = rewards[joshID].Plus(stubInterpreter(), rewardsResult, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 
+		// Update test rewards values for the josh node delegator
 		rewardsResult, delegateeRewardsResult := payRewards(true, totalPayout, totalStaked, cutPercentage, 0)
 		rewards[joshID] = rewards[joshID].Plus(stubInterpreter(), delegateeRewardsResult, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 		rewards[joshID+firstDelegatorStringID] = rewards[joshID+firstDelegatorStringID].Plus(stubInterpreter(), rewardsResult, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
@@ -2045,17 +2049,8 @@ func TestIDTableStaking(t *testing.T) {
 		result = executeScriptAndCheck(t, b, templates.GenerateGetTotalTokensStakedByTypeScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(3))})
 		assertEqual(t, CadenceUFix64("1400000.0"), result)
 
-		result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorStakedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(maxID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
-		assertEqual(t, CadenceUFix64("0.0"), result)
-
-		result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorStakedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(maxID)), jsoncdc.MustEncode(cadence.UInt32(secondDelegatorID))})
-		assertEqual(t, CadenceUFix64("0.0"), result)
-
 		result = executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(maxID))})
 		assertEqual(t, CadenceUFix64("1060606.05"), result)
-
-		result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorRewardsScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(maxID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
-		assertEqual(t, CadenceUFix64("0.0"), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(accessID))})
 		assertEqual(t, CadenceUFix64("0.0"), result)
@@ -2166,26 +2161,6 @@ func TestIDTableStaking(t *testing.T) {
 		result = executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(maxID))})
 		assertEqual(t, CadenceUFix64("1060606.05"), result)
 
-		// Max Delegator Buckets
-
-		result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorUnstakedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(maxID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
-		assertEqual(t, CadenceUFix64("0.0"), result)
-
-		result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorCommittedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(maxID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
-		assertEqual(t, CadenceUFix64("0.0"), result)
-
-		result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorStakedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(maxID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
-		assertEqual(t, CadenceUFix64("0.0"), result)
-
-		result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorRequestScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(maxID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
-		assertEqual(t, CadenceUFix64("0.0"), result)
-
-		result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorUnstakingScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(maxID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
-		assertEqual(t, CadenceUFix64("0.0"), result)
-
-		result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorRewardsScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(maxID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
-		assertEqual(t, CadenceUFix64("0.0"), result)
-
 	})
 
 	t.Run("Should create new execution node", func(t *testing.T) {
@@ -2210,10 +2185,15 @@ func TestIDTableStaking(t *testing.T) {
 		assertEqual(t, CadenceUFix64("1400000.0"), result)
 	})
 
-	t.Run("Should be able to delegate new tokens to max", func(t *testing.T) {
+	t.Run("Should be able to register first account to delegate to max", func(t *testing.T) {
 
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDelegatorStakeNewScript(env), maxDelegatorOneAddress)
-		_ = tx.AddArgument(CadenceUFix64("100000.0"))
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterDelegatorScript(env), maxDelegatorOneAddress)
+
+		err := tx.AddArgument(cadence.String(maxID))
+		require.NoError(t, err)
+
+		tokenAmount, _ := cadence.NewUFix64("100000.0")
+		tx.AddArgument(tokenAmount)
 
 		signAndSubmit(
 			t, b, tx,
@@ -2221,9 +2201,17 @@ func TestIDTableStaking(t *testing.T) {
 			[]crypto.Signer{maxDelegatorOneSigner},
 			false,
 		)
+	})
 
-		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateDelegatorStakeNewScript(env), maxDelegatorTwoAddress)
-		_ = tx.AddArgument(CadenceUFix64("200000.0"))
+	t.Run("Should be able to register second account to delegate to max", func(t *testing.T) {
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterDelegatorScript(env), maxDelegatorTwoAddress)
+
+		err := tx.AddArgument(cadence.String(maxID))
+		require.NoError(t, err)
+
+		tokenAmount, _ := cadence.NewUFix64("200000.0")
+		tx.AddArgument(tokenAmount)
 
 		signAndSubmit(
 			t, b, tx,
@@ -2231,7 +2219,6 @@ func TestIDTableStaking(t *testing.T) {
 			[]crypto.Signer{maxDelegatorTwoSigner},
 			false,
 		)
-
 	})
 
 	t.Run("Should not be able request unstaking below the minimum if a node has delegators staked or committed", func(t *testing.T) {
@@ -2812,13 +2799,14 @@ func TestIDTableStaking(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateChangeMinimumsScript(env), idTableAddress)
 
+		delMin := CadenceUFix64("50.0")
 		colMin := CadenceUFix64("250000.0")
 		conMin := CadenceUFix64("250000.0")
 		exMin := CadenceUFix64("1250000.0")
 		verMin := CadenceUFix64("135000.0")
 		accMin := CadenceUFix64("0.0")
 
-		err := tx.AddArgument(cadence.NewArray([]cadence.Value{colMin, conMin, exMin, verMin, accMin}))
+		err := tx.AddArgument(cadence.NewArray([]cadence.Value{delMin, colMin, conMin, exMin, verMin, accMin}))
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -3258,15 +3246,6 @@ func TestIDTableRewardsWitholding(t *testing.T) {
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterDelegatorScript(env), delegatorAddresses[i])
 		err := tx.AddArgument(cadence.String(ids[i/5]))
 		require.NoError(t, err)
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{delegatorAddresses[i]},
-			[]crypto.Signer{delegatorSigners[i]},
-			false,
-		)
-
-		// Stake new tokens for the delegator
-		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateDelegatorStakeNewScript(env), delegatorAddresses[i])
 		_ = tx.AddArgument(CadenceUFix64("10000.0"))
 		signAndSubmit(
 			t, b, tx,

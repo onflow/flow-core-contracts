@@ -44,6 +44,26 @@ func TestManyNodesIDTable(t *testing.T) {
 
 	env.IDTableAddress = idTableAddress.Hex()
 
+	// Change the delegator staking minimum to zero
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateChangeMinimumsScript(env), idTableAddress)
+
+	delMin := CadenceUFix64("0.0")
+	colMin := CadenceUFix64("250000.0")
+	conMin := CadenceUFix64("250000.0")
+	exMin := CadenceUFix64("1250000.0")
+	verMin := CadenceUFix64("135000.0")
+	accMin := CadenceUFix64("0.0")
+
+	err := tx.AddArgument(cadence.NewArray([]cadence.Value{delMin, colMin, conMin, exMin, verMin, accMin}))
+	require.NoError(t, err)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]crypto.Signer{IDTableSigner},
+		false,
+	)
+
 	var nodeAccountKey *flow.AccountKey
 	var nodeSigner crypto.Signer
 	var nodeAddress flow.Address
@@ -363,6 +383,26 @@ func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
 	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, &env, true, []uint64{10000, 10000, 10000, 10000, 10000})
 
 	env.IDTableAddress = idTableAddress.Hex()
+
+	// Change the delegator staking minimum to zero
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateChangeMinimumsScript(env), idTableAddress)
+
+	delMin := CadenceUFix64("0.0")
+	colMin := CadenceUFix64("250000.0")
+	conMin := CadenceUFix64("250000.0")
+	exMin := CadenceUFix64("1250000.0")
+	verMin := CadenceUFix64("135000.0")
+	accMin := CadenceUFix64("0.0")
+
+	err := tx.AddArgument(cadence.NewArray([]cadence.Value{delMin, colMin, conMin, exMin, verMin, accMin}))
+	require.NoError(t, err)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]crypto.Signer{IDTableSigner},
+		false,
+	)
 
 	var nodeAccountKeys [unstakeAllNumNodes]*flow.AccountKey
 	var nodeSigners [unstakeAllNumNodes]crypto.Signer

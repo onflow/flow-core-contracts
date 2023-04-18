@@ -15,7 +15,7 @@ transaction(newMinimums: [UFix64]) {
 
     execute {
         let minimums: {UInt8: UFix64} = {}
-        var i: UInt8 = 1
+        var i: UInt8 = 0
         for min in newMinimums {
             minimums[i] = min
             i = i + UInt8(1)

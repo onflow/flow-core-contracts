@@ -257,7 +257,9 @@ pub contract FlowIDTableStaking {
 
     }
 
-    pub fun registerNewDelegator(nodeID: String): @NodeDelegator {
+    pub fun registerNewDelegator(nodeID: String, tokensCommitted: @FungibleToken.Vault): @NodeDelegator {
+
+        destroy tokensCommitted
 
         return <-create NodeDelegator(id: 1, nodeID: nodeID)
     }

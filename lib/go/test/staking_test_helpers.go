@@ -410,6 +410,8 @@ func registerDelegator(t *testing.T,
 		authorizer)
 
 	_ = tx.AddArgument(CadenceString(nodeID))
+	tokenAmount, _ := cadence.NewUFix64("0.0")
+	tx.AddArgument(tokenAmount)
 
 	signAndSubmit(
 		t, b, tx,
