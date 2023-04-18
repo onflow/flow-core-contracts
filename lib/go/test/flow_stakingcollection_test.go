@@ -433,7 +433,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 	// Create new keys for the epoch account
 	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
 
-	_, _ = initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
+	idTableAddress, _ := initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
 		startEpochCounter, // start epoch counter
 		numEpochViews,     // num views per epoch
 		numStakingViews,   // num views for staking auction
@@ -446,6 +446,26 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 	adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
 
 	deployAllCollectionContracts(t, b, accountKeys, &env, adminAddress, adminSigner)
+
+	// Change the delegator staking minimum to zero
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateChangeMinimumsScript(env), idTableAddress)
+
+	delMin := CadenceUFix64("0.0")
+	colMin := CadenceUFix64("250000.0")
+	conMin := CadenceUFix64("250000.0")
+	exMin := CadenceUFix64("1250000.0")
+	verMin := CadenceUFix64("135000.0")
+	accMin := CadenceUFix64("0.0")
+
+	err := tx.AddArgument(cadence.NewArray([]cadence.Value{delMin, colMin, conMin, exMin, verMin, accMin}))
+	require.NoError(t, err)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]crypto.Signer{IDTableSigner},
+		false,
+	)
 
 	// Create regular accounts
 	userAddresses, _, userSigners := registerAndMintManyAccounts(t, b, env, accountKeys, 4)
@@ -474,12 +494,12 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		false)
 
 	// end staking auction and epoch, then pay rewards
-	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), flow.HexToAddress(env.IDTableAddress))
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), flow.HexToAddress(env.IDTableAddress))
 	ids := make([]string, 1)
 	ids[0] = adminID
 	approvedNodeIDs := generateCadenceNodeDictionary(ids)
 
-	err := tx.AddArgument(approvedNodeIDs)
+	err = tx.AddArgument(approvedNodeIDs)
 	require.NoError(t, err)
 	signAndSubmit(
 		t, b, tx,

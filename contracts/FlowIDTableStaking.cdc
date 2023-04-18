@@ -77,6 +77,13 @@ pub contract FlowIDTableStaking {
 
     /// The minimum amount of tokens that each node type has to stake
     /// in order to be considered valid
+    /// Keys:
+    /// 0 - Delegators
+    /// 1 - Collector Nodes
+    /// 2 - Consensus Nodes
+    /// 3 - Execution Nodes
+    /// 4 - Verification Nodes
+    /// 5 - Access Nodes
     access(account) var minimumStakeRequired: {UInt8: UFix64}
 
     /// The total amount of tokens that are staked for all the nodes
@@ -832,10 +839,11 @@ pub contract FlowIDTableStaking {
     /// at the end of the staking auction, and pay rewards to nodes at the end of an epoch
     pub resource Admin {
 
-        /// Sets a new set of minimum staking requirements for all the nodes
+        /// Sets a new set of minimum staking requirements for all the nodes and delegators
+        /// Delegator minimum is at index 0, other nodes' indexes are their role numbers
         pub fun setMinimumStakeRequirements(_ newRequirements: {UInt8: UFix64}) {
             pre {
-                newRequirements.keys.length == 5: "Incorrect number of nodes"
+                newRequirements.keys.length == 6: "Incorrect number of nodes"
             }
             FlowIDTableStaking.minimumStakeRequired = newRequirements
             emit NewStakingMinimums(newMinimums: newRequirements)
@@ -1417,6 +1425,12 @@ pub contract FlowIDTableStaking {
                 for delegator in pendingDelegatorsList.keys {
                     let delRecord = nodeRecord.borrowDelegatorRecord(delegator)
 
+                    let actualCommittedForNextEpoch = delRecord.tokensCommitted.balance + delRecord.tokensStaked.balance - delRecord.tokensRequestedToUnstake
+                    if !FlowIDTableStaking.isGreaterThanMinimumForRole(numTokens: actualCommittedForNextEpoch, role: UInt8(0)) {
+                        delRecord.tokensUnstaked.deposit(from: <-delRecord.tokensCommitted.withdraw(amount: delRecord.tokensCommitted.balance))
+                        delRecord.tokensRequestedToUnstake = delRecord.tokensStaked.balance
+                    }
+
                     FlowIDTableStaking.totalTokensStakedByNodeType[nodeRecord.role] = FlowIDTableStaking.totalTokensStakedByNodeType[nodeRecord.role]! + delRecord.tokensCommitted.balance
 
                     // mark their committed tokens as staked
@@ -1505,7 +1519,7 @@ pub contract FlowIDTableStaking {
 
     /// Registers a new delegator with a unique ID for the specified node operator
     /// and returns a delegator object to the caller
-    pub fun registerNewDelegator(nodeID: String): @NodeDelegator {
+    pub fun registerNewDelegator(nodeID: String, tokensCommitted: @FungibleToken.Vault): @NodeDelegator {
         pre {
             FlowIDTableStaking.stakingEnabled(): "Cannot register a node operator if the staking auction isn't in progress"
         }
@@ -1515,6 +1529,12 @@ pub contract FlowIDTableStaking {
         assert (
             nodeRecord.role != UInt8(5),
             message: "Cannot register a delegator for an access node"
+        )
+
+        let minimum = self.minimumStakeRequired[UInt8(0)]!
+        assert(
+            self.isGreaterThanMinimumForRole(numTokens: tokensCommitted.balance, role: 0),
+            message: "Tokens committed for delegator registration is not above the minimum (".concat(minimum.toString()).concat(")")
         )
 
         assert (
@@ -1530,8 +1550,12 @@ pub contract FlowIDTableStaking {
 
         emit NewDelegatorCreated(nodeID: nodeRecord.id, delegatorID: nodeRecord.delegatorIDCounter)
 
-        // Return a new NodeDelegator object that the owner stores in their account
-        return <-create NodeDelegator(id: nodeRecord.delegatorIDCounter, nodeID: nodeRecord.id)
+        // Create a new NodeDelegator object that the owner stores in their account
+        let newDelegator <-create NodeDelegator(id: nodeRecord.delegatorIDCounter, nodeID: nodeRecord.id)
+
+        newDelegator.delegateNewTokens(from: <-tokensCommitted)
+
+        return <-newDelegator
     }
 
     /// borrow a reference to to one of the nodes in the record
@@ -1771,7 +1795,10 @@ pub contract FlowIDTableStaking {
     /// Checks if the amount of tokens is greater
     /// than the minimum staking requirement for the specified role
     pub fun isGreaterThanMinimumForRole(numTokens: UFix64, role: UInt8): Bool {
-        return numTokens >= self.minimumStakeRequired[role]!
+        let minimumStake = self.minimumStakeRequired[role]
+            ?? panic("Incorrect role provided for minimum stake. Must be 0, 1, 2, 3, 4, or 5")
+
+        return numTokens >= minimumStake
     }
 
     /// Indicates if the specified networking address is claimed by a node
@@ -1862,7 +1889,7 @@ pub contract FlowIDTableStaking {
         self.StakingAdminStoragePath = /storage/flowStakingAdmin
         self.DelegatorStoragePath = /storage/flowStakingDelegator
 
-        self.minimumStakeRequired = {UInt8(1): 250000.0, UInt8(2): 500000.0, UInt8(3): 1250000.0, UInt8(4): 135000.0, UInt8(5): 100.0}
+        self.minimumStakeRequired = {UInt8(0): 50.0, UInt8(1): 250000.0, UInt8(2): 500000.0, UInt8(3): 1250000.0, UInt8(4): 135000.0, UInt8(5): 100.0}
         self.totalTokensStakedByNodeType = {UInt8(1): 0.0, UInt8(2): 0.0, UInt8(3): 0.0, UInt8(4): 0.0, UInt8(5): 0.0}
         self.epochTokenPayout = epochTokenPayout
         self.nodeDelegatingRewardCut = rewardCut
