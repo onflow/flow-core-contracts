@@ -1,4 +1,4 @@
-import NodeVersionBeacon from "./../../../contracts/NodeVersionBeacon.cdc"
+import NodeVersionBeacon from 0xNODEVERSIONBEACONADDRESS
 
 /// Gets the next sequence number for the table updated event
 pub fun main(): UInt64 {

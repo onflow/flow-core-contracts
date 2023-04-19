@@ -96,22 +96,22 @@ func TestNodeVersionBeacon(t *testing.T) {
 		Source: string(versionBeaconContractScript),
 	}
 
-	versionThreshold := uint64(1234)
+	freezePeriod := uint64(1234)
 
-	err = deployContract(b, versionBeaconAddress, versionBeaconSigner, versionBeaconContract, []cadence.Value{cadence.UInt64(versionThreshold)})
+	err = deployContract(b, versionBeaconAddress, versionBeaconSigner, versionBeaconContract, []cadence.Value{cadence.UInt64(freezePeriod)})
 	require.NoError(t, err)
 
 	t.Run("Should have initialized contract correctly", func(t *testing.T) {
 
-		result := executeScriptAndCheck(t, b, templates.GenerateGetVersionUpdateBufferScript(env), nil)
+		result := executeScriptAndCheck(t, b, templates.GenerateGetVersionBoundaryFreezePeriodScript(env), nil)
 
-		assertEqual(t, CadenceUInt64(versionThreshold), result)
+		assertEqual(t, CadenceUInt64(freezePeriod), result)
 	})
 
 	t.Run("Should be able to send new version", func(t *testing.T) {
 
 		changeTx := createTxWithTemplateAndAuthorizer(b,
-			templates.GenerateAddVersionToTableScript(env),
+			templates.GenerateSetVersionBoundaryScript(env),
 			versionBeaconAddress)
 
 		versionMajor := uint8(2)
@@ -126,7 +126,7 @@ func TestNodeVersionBeacon(t *testing.T) {
 		preRelease := ""
 		err = changeTx.AddArgument(CadenceString(preRelease))
 		require.NoError(t, err)
-		versionHeight := versionThreshold + 44
+		versionHeight := freezePeriod + 44
 		err := changeTx.AddArgument(CadenceUInt64(versionHeight))
 		require.NoError(t, err)
 
@@ -140,7 +140,7 @@ func TestNodeVersionBeacon(t *testing.T) {
 		assert.Len(t, txChangeResults.Events, 0)
 
 		checkTx := createTxWithTemplateAndAuthorizer(b,
-			templates.GenerateEmitVersionTableScript(env),
+			templates.GenerateHeartbeatScript(env),
 			versionBeaconAddress)
 
 		txCheckResults := signAndSubmit(t, b, checkTx,
@@ -149,20 +149,30 @@ func TestNodeVersionBeacon(t *testing.T) {
 			false,
 		)
 
-		assert.Len(t, txCheckResults.Events, 1)
+		require.Empty(t, txCheckResults.Error)
+
+		require.Len(t, txCheckResults.Events, 1)
 
 		versionEvent := VersionBeaconEvent(txCheckResults.Events[0])
 
 		versionTable := versionEvent.VersionTable()
 
-		assert.Len(t, versionTable, 1)
-		assert.Equal(t, versionHeight, versionTable[0].height)
+		require.Len(t, versionTable, 2)
+		require.Equal(t, uint64(0), versionTable[0].height)
 
-		semver := semver.New(versionTable[0].version)
+		version := semver.New(versionTable[0].version)
 
-		assert.Equal(t, versionMajor, uint8(semver.Major))
-		assert.Equal(t, versionMinor, uint8(semver.Minor))
-		assert.Equal(t, versionPatch, uint8(semver.Patch))
+		require.Equal(t, uint8(0), uint8(version.Major))
+		require.Equal(t, uint8(0), uint8(version.Minor))
+		require.Equal(t, uint8(0), uint8(version.Patch))
+
+		require.Equal(t, versionHeight, versionTable[1].height)
+
+		version = semver.New(versionTable[1].version)
+
+		require.Equal(t, versionMajor, uint8(version.Major))
+		require.Equal(t, versionMinor, uint8(version.Minor))
+		require.Equal(t, versionPatch, uint8(version.Patch))
 	})
 }
 
