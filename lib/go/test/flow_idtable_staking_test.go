@@ -2874,6 +2874,156 @@ func TestIDTableStaking(t *testing.T) {
 	})
 }
 
+func TestIDTableDelegatorMinimums(t *testing.T) {
+	b, accountKeys, env := newTestSetup(t)
+
+	// Create new keys for the ID table account
+	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
+	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, &env, true, []uint64{10, 10, 10, 10, 3})
+	_, adminStakingKey, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
+	mintTokensForAccount(t, b, env, idTableAddress, "1000000.0")
+
+	// Create new user accounts and generate staking info
+	delegator1Address, _, delegator1Signer := newAccountWithAddress(b, accountKeys)
+	mintTokensForAccount(t, b, env, delegator1Address, "1000000.0")
+
+	delegator2Address, _, delegator2Signer := newAccountWithAddress(b, accountKeys)
+	mintTokensForAccount(t, b, env, delegator2Address, "1000000.0")
+
+	// Register the First node
+	var amountToCommit interpreter.UFix64Value = 25000000000000
+	registerNode(t, b, env,
+		idTableAddress,
+		IDTableSigner,
+		adminID,
+		fmt.Sprintf("%0128d", admin),
+		adminNetworkingKey,
+		adminStakingKey,
+		amountToCommit,
+		amountToCommit,
+		1,
+		false)
+
+	// Register the first delegator
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterDelegatorScript(env), delegator1Address)
+	tx.AddArgument(cadence.String(adminID))
+	tokenAmount, _ := cadence.NewUFix64("50.0")
+	tx.AddArgument(tokenAmount)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{delegator1Address},
+		[]crypto.Signer{delegator1Signer},
+		false,
+	)
+
+	approvedID := make([]string, 1)
+	approvedID[0] = adminID
+	approveIDDict := generateCadenceNodeDictionary(approvedID)
+
+	// End Staking Auction and move tokens which marks the node and delegator's tokens as staked
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), idTableAddress)
+
+	err := tx.AddArgument(approveIDDict)
+	require.NoError(t, err)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]crypto.Signer{IDTableSigner},
+		false,
+	)
+
+	// Register the second delegator also with 50 FLOW
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterDelegatorScript(env), delegator2Address)
+	tx.AddArgument(cadence.String(adminID))
+	tx.AddArgument(tokenAmount)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{delegator2Address},
+		[]crypto.Signer{delegator2Signer},
+		false,
+	)
+
+	// Unstake the second delegator below the limit
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateDelegatorRequestUnstakeScript(env), delegator2Address)
+	tx.AddArgument(CadenceUFix64("20.0"))
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{delegator2Address},
+		[]crypto.Signer{delegator2Signer},
+		false,
+	)
+
+	// Unstake the first delegator below the limit
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateDelegatorRequestUnstakeScript(env), delegator1Address)
+	tx.AddArgument(CadenceUFix64("25.0"))
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{delegator1Address},
+		[]crypto.Signer{delegator1Signer},
+		false,
+	)
+
+	// End staking auction and move tokens
+	// should fully unstake both delegators since they are below the limit
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), idTableAddress)
+
+	tx.AddArgument(approveIDDict)
+	require.NoError(t, err)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]crypto.Signer{IDTableSigner},
+		false,
+	)
+
+	// Make sure both delegators have unstaked tokens and all buckets reflect that
+	// Delegator One
+	result := executeScriptAndCheck(t, b, templates.GenerateGetDelegatorCommittedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+	assertEqual(t, CadenceUFix64("0.0"), result)
+
+	result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorUnstakedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+	assertEqual(t, CadenceUFix64("0.0"), result)
+
+	result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorStakedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+	assertEqual(t, CadenceUFix64("0.0"), result)
+
+	result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorUnstakingScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+	assertEqual(t, CadenceUFix64("50.0"), result)
+
+	result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorRequestScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+	assertEqual(t, CadenceUFix64("0.0"), result)
+
+	// Delegator Two
+	result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorCommittedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID)), jsoncdc.MustEncode(cadence.UInt32(secondDelegatorID))})
+	assertEqual(t, CadenceUFix64("0.0"), result)
+
+	result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorUnstakedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID)), jsoncdc.MustEncode(cadence.UInt32(secondDelegatorID))})
+	assertEqual(t, CadenceUFix64("50.0"), result)
+
+	result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorStakedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID)), jsoncdc.MustEncode(cadence.UInt32(secondDelegatorID))})
+	assertEqual(t, CadenceUFix64("0.0"), result)
+
+	result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorUnstakingScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID)), jsoncdc.MustEncode(cadence.UInt32(secondDelegatorID))})
+	assertEqual(t, CadenceUFix64("0.0"), result)
+
+	result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorRequestScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID)), jsoncdc.MustEncode(cadence.UInt32(secondDelegatorID))})
+	assertEqual(t, CadenceUFix64("0.0"), result)
+
+	// Make sure that the total staked for the node and node type reflects that too
+	result = executeScriptAndCheck(t, b, templates.GenerateGetTotalCommitmentBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
+	assertEqual(t, CadenceUFix64("250000.0"), result)
+
+	result = executeScriptAndCheck(t, b, templates.GenerateGetTotalTokensStakedByTypeScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(1))})
+	assertEqual(t, CadenceUFix64("250000.0"), result)
+
+}
+
 // TestIDTableSlotSelection tests the slot selection process for nodes which do not need to be allow-listed (Access Nodes).
 //  - If the number of candidate nodes exceeds the remaining slot limit, some candidate nodes will be randomly
 //     selected to be refunded and removed.
