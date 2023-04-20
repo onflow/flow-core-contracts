@@ -843,7 +843,8 @@ pub contract FlowIDTableStaking {
         /// Delegator minimum is at index 0, other nodes' indexes are their role numbers
         pub fun setMinimumStakeRequirements(_ newRequirements: {UInt8: UFix64}) {
             pre {
-                newRequirements.keys.length == 6: "Incorrect number of nodes"
+                newRequirements.keys.length == 6:
+                    "There must be six entries for minimum stake requirements (one for delegators and 5 for nodes)"
             }
             FlowIDTableStaking.minimumStakeRequired = newRequirements
             emit NewStakingMinimums(newMinimums: newRequirements)
@@ -1425,6 +1426,8 @@ pub contract FlowIDTableStaking {
                 for delegator in pendingDelegatorsList.keys {
                     let delRecord = nodeRecord.borrowDelegatorRecord(delegator)
 
+                    // If the delegator's committed tokens for the next epoch
+                    // Is less than the delegator minimum, unstake all their tokens
                     let actualCommittedForNextEpoch = delRecord.tokensCommitted.balance + delRecord.tokensStaked.balance - delRecord.tokensRequestedToUnstake
                     if !FlowIDTableStaking.isGreaterThanMinimumForRole(numTokens: actualCommittedForNextEpoch, role: UInt8(0)) {
                         delRecord.tokensUnstaked.deposit(from: <-delRecord.tokensCommitted.withdraw(amount: delRecord.tokensCommitted.balance))
