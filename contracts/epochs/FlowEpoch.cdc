@@ -426,7 +426,6 @@ pub contract FlowEpoch {
         pub fun resetEpoch(
             currentEpochCounter: UInt64,
             randomSource: String,
-            newPayout: UFix64?,
             startView: UInt64,
             stakingEndView: UInt64,
             endView: UInt64,
@@ -451,23 +450,28 @@ pub contract FlowEpoch {
                 FlowEpoch.borrowDKGAdmin().forceEndDKG()
             }
 
-            // Start a new Epoch, which increments the current epoch counter
-            FlowEpoch.startNewEpoch()
-
-            let currentBlock = getCurrentBlock()
-
+            // Create new Epoch metadata for the next epoch
+            // with the new values
             let newEpochMetadata = EpochMetadata(
-                    counter: FlowEpoch.currentEpochCounter,
+                    counter: currentEpochCounter + 1,
                     seed: randomSource,
                     startView: startView,
                     endView: endView,
                     stakingEndView: stakingEndView,
+                    // This will be overwritten in `calculateAndSetRewards` below
                     totalRewards: FlowIDTableStaking.getEpochTokenPayout(),
                     collectorClusters: collectorClusters,
                     clusterQCs: clusterQCs,
                     dkgKeys: dkgPubKeys)
 
             FlowEpoch.saveEpochMetadata(newEpochMetadata)
+
+            // Calculate rewards for the current epoch
+            // and set the payout for the next epoch
+            self.calculateAndSetRewards()
+
+            // Start a new Epoch, which increments the current epoch counter
+            FlowEpoch.startNewEpoch()
         }
     }
 

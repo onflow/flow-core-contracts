@@ -1178,12 +1178,11 @@ func TestEpochReset(t *testing.T) {
 		var endView uint64 = 200
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateResetEpochScript(env), idTableAddress)
-		_ = tx.AddArgument(cadence.NewUInt64(startEpochCounter + 1))
-		_ = tx.AddArgument(CadenceString("stillSoRandom"))
-		_ = tx.AddArgument(CadenceUFix64("1300000.0"))
-		_ = tx.AddArgument(cadence.NewUInt64(startView))
-		_ = tx.AddArgument(cadence.NewUInt64(stakingEndView))
-		_ = tx.AddArgument(cadence.NewUInt64(endView))
+		tx.AddArgument(cadence.NewUInt64(startEpochCounter + 1))
+		tx.AddArgument(CadenceString("stillSoRandom"))
+		tx.AddArgument(cadence.NewUInt64(startView))
+		tx.AddArgument(cadence.NewUInt64(stakingEndView))
+		tx.AddArgument(cadence.NewUInt64(endView))
 
 		signAndSubmit(
 			t, b, tx,
@@ -1200,12 +1199,11 @@ func TestEpochReset(t *testing.T) {
 		var endView uint64 = 200
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateResetEpochScript(env), idTableAddress)
-		_ = tx.AddArgument(cadence.NewUInt64(startEpochCounter))
-		_ = tx.AddArgument(CadenceString("stillSoRandom"))
-		_ = tx.AddArgument(CadenceUFix64("1300000.0"))
-		_ = tx.AddArgument(cadence.NewUInt64(startView))
-		_ = tx.AddArgument(cadence.NewUInt64(stakingEndView))
-		_ = tx.AddArgument(cadence.NewUInt64(endView))
+		tx.AddArgument(cadence.NewUInt64(startEpochCounter))
+		tx.AddArgument(CadenceString("stillSoRandom"))
+		tx.AddArgument(cadence.NewUInt64(startView))
+		tx.AddArgument(cadence.NewUInt64(stakingEndView))
+		tx.AddArgument(cadence.NewUInt64(endView))
 
 		signAndSubmit(
 			t, b, tx,
@@ -1222,12 +1220,11 @@ func TestEpochReset(t *testing.T) {
 		var endView uint64 = 200
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateResetEpochScript(env), idTableAddress)
-		_ = tx.AddArgument(cadence.NewUInt64(startEpochCounter))
-		_ = tx.AddArgument(CadenceString("stillSoRandom"))
-		_ = tx.AddArgument(CadenceUFix64("1300000.0"))
-		_ = tx.AddArgument(cadence.NewUInt64(startView))
-		_ = tx.AddArgument(cadence.NewUInt64(stakingEndView))
-		_ = tx.AddArgument(cadence.NewUInt64(endView))
+		tx.AddArgument(cadence.NewUInt64(startEpochCounter))
+		tx.AddArgument(CadenceString("stillSoRandom"))
+		tx.AddArgument(cadence.NewUInt64(startView))
+		tx.AddArgument(cadence.NewUInt64(stakingEndView))
+		tx.AddArgument(cadence.NewUInt64(endView))
 
 		signAndSubmit(
 			t, b, tx,
@@ -1244,12 +1241,11 @@ func TestEpochReset(t *testing.T) {
 		var endView uint64 = 160
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateResetEpochScript(env), idTableAddress)
-		_ = tx.AddArgument(cadence.NewUInt64(startEpochCounter))
-		_ = tx.AddArgument(CadenceString("stillSoRandom"))
-		_ = tx.AddArgument(CadenceUFix64("1300000.0"))
-		_ = tx.AddArgument(cadence.NewUInt64(startView))
-		_ = tx.AddArgument(cadence.NewUInt64(stakingEndView))
-		_ = tx.AddArgument(cadence.NewUInt64(endView))
+		tx.AddArgument(cadence.NewUInt64(startEpochCounter))
+		tx.AddArgument(CadenceString("stillSoRandom"))
+		tx.AddArgument(cadence.NewUInt64(startView))
+		tx.AddArgument(cadence.NewUInt64(stakingEndView))
+		tx.AddArgument(cadence.NewUInt64(endView))
 
 		signAndSubmit(
 			t, b, tx,
@@ -1277,5 +1273,94 @@ func TestEpochReset(t *testing.T) {
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetQCEnabledScript(env), nil)
 		assert.Equal(t, cadence.NewBool(false), result)
+	})
+
+	result := executeScriptAndCheck(t, b, templates.GenerateGetFlowTotalSupplyScript(env), nil)
+	assertEqual(t, CadenceUFix64("7000000000.0"), result)
+
+	t.Run("Can reset the epoch during the staking auction with automatic rewards enabled", func(t *testing.T) {
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochSetAutomaticRewardsScript(env), idTableAddress)
+
+		_ = tx.AddArgument(cadence.NewBool(true))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
+			false,
+		)
+
+		var startView uint64 = 100
+		var stakingEndView uint64 = 120
+		var endView uint64 = 160
+
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateResetEpochScript(env), idTableAddress)
+		tx.AddArgument(cadence.NewUInt64(startEpochCounter + 1))
+		tx.AddArgument(CadenceString("stillSoRandom"))
+		tx.AddArgument(cadence.NewUInt64(startView))
+		tx.AddArgument(cadence.NewUInt64(stakingEndView))
+		tx.AddArgument(cadence.NewUInt64(endView))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
+			false,
+		)
+
+		// Verify the current epoch's metadata to make sure rewards were calculated
+		// properly after the reset and that they haven't been paid yet
+		verifyEpochMetadata(t, b, env,
+			EpochMetadata{
+				counter:        startEpochCounter + 2,
+				seed:           "stillSoRandom",
+				startView:      startView,
+				endView:        endView,
+				stakingEndView: stakingEndView,
+				// The calculation of the total rewards should have happened
+				// because automatic rewards are enabled
+				// (total supply + current payount amount - bonus tokens) * reward increase factor
+				// (7000000000 + 1250000 - 0) * 0.00093871 = 6,571,204.6775
+				totalRewards:          "6572143.3875",
+				rewardsBreakdownArray: 0,
+				rewardsPaid:           false,
+				collectorClusters:     nil,
+				clusterQCs:            nil,
+				dkgKeys:               nil})
+
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochPayRewardsScript(env), idTableAddress)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
+			false,
+		)
+
+		// Verifies that the rewards from the previous epoch does not include the new epoch's amount
+		verifyEpochTotalRewardsPaid(t, b, idTableAddress,
+			EpochTotalRewardsPaid{
+				total:      "1250000.00000000",
+				fromFees:   "0.0",
+				minted:     "1250000.00000000",
+				feesBurned: "0.035"})
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(ids[0]))})
+		assertEqual(t, CadenceUFix64("249999.99300000"), result)
+
+		// Rewards have already been paid, so this should not do anything
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochPayRewardsScript(env), idTableAddress)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
+			false,
+		)
+
+		// The nodes rewards should not have increased
+		result = executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(ids[0]))})
+		assertEqual(t, CadenceUFix64("249999.99300000"), result)
 	})
 }
