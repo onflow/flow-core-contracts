@@ -459,7 +459,7 @@ pub contract FlowEpoch {
                     endView: endView,
                     stakingEndView: stakingEndView,
                     // This will be overwritten in `calculateAndSetRewards` below
-                    totalRewards: FlowIDTableStaking.getEpochTokenPayout(),
+                    totalRewards: UFix64(0.0),
                     collectorClusters: collectorClusters,
                     clusterQCs: clusterQCs,
                     dkgKeys: dkgPubKeys)

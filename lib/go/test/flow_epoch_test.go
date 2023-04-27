@@ -1261,7 +1261,7 @@ func TestEpochReset(t *testing.T) {
 				startView:             startView,
 				endView:               endView,
 				stakingEndView:        stakingEndView,
-				totalRewards:          "1250000.0",
+				totalRewards:          "0.0",
 				rewardsBreakdownArray: 0,
 				rewardsPaid:           false,
 				collectorClusters:     nil,
@@ -1282,7 +1282,7 @@ func TestEpochReset(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochSetAutomaticRewardsScript(env), idTableAddress)
 
-		_ = tx.AddArgument(cadence.NewBool(true))
+		tx.AddArgument(cadence.NewBool(true))
 
 		signAndSubmit(
 			t, b, tx,
