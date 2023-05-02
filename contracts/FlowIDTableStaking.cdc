@@ -834,10 +834,24 @@ pub contract FlowIDTableStaking {
             self.delegatorRewards[delegatorID] = rewards
         }
     }
+
+    /// Interface that only contains operations that are part
+    /// of the regular automated functioning of the epoch process
+    /// These are accessed by the `FlowEpoch` contract through a capability
+    pub resource interface EpochOperations {
+        pub fun setEpochTokenPayout(_ newPayout: UFix64)
+        pub fun setSlotLimits(slotLimits: {UInt8: UInt16})
+        pub fun setNodeWeight(nodeID: String, weight: UInt64)
+        pub fun startStakingAuction()
+        pub fun endStakingAuction()
+        pub fun payRewards(_ rewardsSummary: EpochRewardsSummary)
+        pub fun calculateRewards(): EpochRewardsSummary
+        pub fun moveTokens()
+    }
     
     /// Admin resource that has the ability to create new staker objects, remove insufficiently staked nodes
     /// at the end of the staking auction, and pay rewards to nodes at the end of an epoch
-    pub resource Admin {
+    pub resource Admin: EpochOperations {
 
         /// Sets a new set of minimum staking requirements for all the nodes and delegators
         /// Delegator minimum is at index 0, other nodes' indexes are their role numbers
