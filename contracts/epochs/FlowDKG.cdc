@@ -199,8 +199,18 @@ pub contract FlowDKG {
         }
     }
 
+    /// Interface that only contains operations that are part
+    /// of the regular automated functioning of the epoch process
+    /// These are accessed by the `FlowEpoch` contract through a capability
+    pub resource interface EpochOperations {
+        pub fun createParticipant(nodeID: String): @Participant
+        pub fun startDKG(nodeIDs: [String])
+        pub fun endDKG()
+        pub fun forceEndDKG()
+    }
+
     /// The Admin resource provides the ability to begin and end voting for an epoch
-    pub resource Admin {
+    pub resource Admin: EpochOperations {
 
         /// Sets the optional safe DKG success threshold
         /// Set the threshold to nil if it isn't needed

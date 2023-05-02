@@ -20,10 +20,10 @@ transaction(currentEpochCounter: UInt64,
             endView: UInt64) {
 
     prepare(signer: AuthAccount) {
-        let heartbeat = signer.borrow<&FlowEpoch.Heartbeat>(from: FlowEpoch.heartbeatStoragePath)
+        let epochAdmin = signer.borrow<&FlowEpoch.Admin>(from: FlowEpoch.adminStoragePath)
             ?? panic("Could not borrow heartbeat from storage path")
 
-        heartbeat.resetEpoch(currentEpochCounter: currentEpochCounter,
+        epochAdmin.resetEpoch(currentEpochCounter: currentEpochCounter,
                             randomSource: randomSource,
                              startView: startView,
                              stakingEndView: stakingEndView,
