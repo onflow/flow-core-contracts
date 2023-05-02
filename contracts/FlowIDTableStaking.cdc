@@ -75,7 +75,7 @@ pub contract FlowIDTableStaking {
     /// value = the record of that node's info, tokens, and delegators
     access(contract) var nodes: @{String: NodeRecord}
 
-    /// The minimum amount of tokens that each node type has to stake
+    /// The minimum amount of tokens that each staker type has to stake
     /// in order to be considered valid
     /// Keys:
     /// 0 - Delegators
@@ -881,7 +881,7 @@ pub contract FlowIDTableStaking {
             FlowIDTableStaking.account.save<{UInt8: UInt64}>(candidateNodeLimits, to: /storage/idTableCandidateNodeLimits)
         }
 
-        /// Set slot (count) limits for each node type (role).
+        /// Set slot (count) limits for each node role
         /// The slot limit limits the number of participant nodes with the given role which may be added to the network.
         /// It only prevents candidate nodes from joining. It does not cause existing participant nodes to unstake,
         /// even if the number of participant nodes exceeds the slot limit.
@@ -1699,7 +1699,7 @@ pub contract FlowIDTableStaking {
             ?? {1: {}, 2: {}, 3: {}, 4: {}, 5: {}}
     }
 
-    /// Get slot (count) limits for each node type (role).
+    /// Get slot (count) limits for each node role
     pub fun getRoleSlotLimits(): {UInt8: UInt16} {
         return FlowIDTableStaking.account.copy<{UInt8: UInt16}>(from: /storage/flowStakingSlotLimits)
             ?? {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
@@ -1795,8 +1795,8 @@ pub contract FlowIDTableStaking {
         return FlowIDTableStaking.nodes.keys
     }
 
-    /// Checks if the amount of tokens is greater
-    /// than the minimum staking requirement for the specified role
+    /// Checks if the amount of tokens is greater than the minimum staking requirement
+    /// for the specified staker role (including role == 0 for delegators)
     pub fun isGreaterThanMinimumForRole(numTokens: UFix64, role: UInt8): Bool {
         let minimumStake = self.minimumStakeRequired[role]
             ?? panic("Incorrect role provided for minimum stake. Must be 0, 1, 2, 3, 4, or 5")
@@ -1837,7 +1837,7 @@ pub contract FlowIDTableStaking {
             ?? panic("could not get non-operational node list")
     }
 
-    /// Gets the minimum stake requirements for all the node types
+    /// Gets the minimum stake requirements for all the staker types
     pub fun getMinimumStakeRequirements(): {UInt8: UFix64} {
         return self.minimumStakeRequired
     }
