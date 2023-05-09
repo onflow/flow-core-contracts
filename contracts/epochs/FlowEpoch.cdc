@@ -339,9 +339,11 @@ pub contract FlowEpoch {
             FlowEpoch.account.save(enabled, to: /storage/flowAutomaticRewardsEnabled)
         }
 
-        /// Protocol can use this to reboot the epoch with a new genesis
-        /// in case the epoch setup phase did not complete properly
-        /// before the end of an epoch
+        /// Ends the currently active epoch and starts a new one with the provided configuration.
+        /// The new epoch, after resetEpoch completes, has `counter = currentEpochCounter + 1`.
+        /// This function is used during sporks - since the consensus view is reset, and the protocol is
+        /// bootstrapped with a new initial state snapshot, this initializes FlowEpoch with the first epoch
+        /// of the new spork, as defined in that snapshot.
         pub fun resetEpoch(
             currentEpochCounter: UInt64,
             randomSource: String,
@@ -673,8 +675,8 @@ pub contract FlowEpoch {
     }
 
     /// Borrow a reference to the FlowIDTableStaking Admin resource
-    access(contract) fun borrowStakingAdmin(): &FlowIDTableStaking.Admin {
-        let adminCapability = self.account.copy<Capability>(from: FlowIDTableStaking.StakingAdminStoragePath)
+    access(contract) fun borrowStakingAdmin(): &FlowIDTableStaking.Admin{FlowIDTableStaking.EpochOperations} {
+        let adminCapability = self.account.copy<Capability>(from: /storage/flowStakingAdminEpochOperations)
             ?? panic("Could not get capability from account storage")
 
         // borrow a reference to the staking admin object
@@ -685,8 +687,8 @@ pub contract FlowEpoch {
     }
 
     /// Borrow a reference to the ClusterQCs Admin resource
-    access(contract) fun borrowClusterQCAdmin(): &FlowClusterQC.Admin {
-        let adminCapability = self.account.copy<Capability>(from: FlowClusterQC.AdminStoragePath)
+    access(contract) fun borrowClusterQCAdmin(): &FlowClusterQC.Admin{FlowClusterQC.EpochOperations} {
+        let adminCapability = self.account.copy<Capability>(from: /storage/flowQCAdminEpochOperations)
             ?? panic("Could not get capability from account storage")
 
         // borrow a reference to the QC admin object
@@ -697,8 +699,8 @@ pub contract FlowEpoch {
     }
 
     /// Borrow a reference to the DKG Admin resource
-    access(contract) fun borrowDKGAdmin(): &FlowDKG.Admin {
-        let adminCapability = self.account.copy<Capability>(from: FlowDKG.AdminStoragePath)
+    access(contract) fun borrowDKGAdmin(): &FlowDKG.Admin{FlowDKG.EpochOperations} {
+        let adminCapability = self.account.copy<Capability>(from: /storage/flowDKGAdminEpochOperations)
             ?? panic("Could not get capability from account storage")
 
         // borrow a reference to the dkg admin object
@@ -863,10 +865,39 @@ pub contract FlowEpoch {
         self.metadataStoragePath = /storage/flowEpochMetadata
 
         let epochMetadata: {UInt64: EpochMetadata} = {}
+
         self.account.save(epochMetadata, to: self.metadataStoragePath)
 
         self.account.save(<-create Admin(), to: self.adminStoragePath)
         self.account.save(<-create Heartbeat(), to: self.heartbeatStoragePath)
+
+        // Create a private capability to the staking admin and store it in a different path
+        // On a real network, the various admin resources will be stored in the service account
+        // so this is just for testing purposes
+        let stakingAdminCapability = self.account.link<&FlowIDTableStaking.Admin{FlowIDTableStaking.EpochOperations}>(
+                /private/flowStakingAdminEpochOperations,
+                target: FlowIDTableStaking.StakingAdminStoragePath
+            ) ?? panic("Could not link Flow staking admin capability")
+
+        self.account.save<Capability<&FlowIDTableStaking.Admin{FlowIDTableStaking.EpochOperations}>>(stakingAdminCapability, to: /storage/flowStakingAdminEpochOperations)
+
+        // Create a private capability to the qc admin in the service account
+        // and store it in the staking account
+        let qcAdminCapability = self.account.link<&FlowClusterQC.Admin{FlowClusterQC.EpochOperations}>(
+                /private/flowQCAdminEpochOperations,
+                target: FlowClusterQC.AdminStoragePath
+            ) ?? panic("Could not link Flow QC admin capability")
+
+        self.account.save<Capability<&FlowClusterQC.Admin{FlowClusterQC.EpochOperations}>>(qcAdminCapability, to: /storage/flowQCAdminEpochOperations)
+
+        // Create a private capability to the dkg admin in the service account
+        // and store it in the staking account
+        let dkgAdminCapability = self.account.link<&FlowDKG.Admin{FlowDKG.EpochOperations}>(
+                /private/flowDKGAdminEpochOperations,
+                target: FlowDKG.AdminStoragePath
+            ) ?? panic("Could not link Flow DKG admin capability")
+
+        self.account.save<Capability<&FlowDKG.Admin{FlowDKG.EpochOperations}>>(dkgAdminCapability, to: /storage/flowDKGAdminEpochOperations)
 
         self.borrowStakingAdmin().startStakingAuction()
 
@@ -881,6 +912,7 @@ pub contract FlowEpoch {
                     collectorClusters: collectorClusters,
                     clusterQCs: clusterQCs,
                     dkgKeys: dkgPubKeys)
+
         self.saveEpochMetadata(firstEpochMetadata)
     }
 }
