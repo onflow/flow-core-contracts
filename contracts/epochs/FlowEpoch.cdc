@@ -872,8 +872,10 @@ pub contract FlowEpoch {
         self.account.save(<-create Heartbeat(), to: self.heartbeatStoragePath)
 
         // Create a private capability to the staking admin and store it in a different path
-        // On a real network, the various admin resources will be stored in the service account
-        // so this is just for testing purposes
+        // On Mainnet and Testnet, the Admin resources are stored in the service account, rather than here.
+        // As a default, we store both the admin resources, and the capabilities linking to those resources, in the same account.
+        // This ensures that this constructor produces a state which is compatible with the system chunk
+        // so that newly created networks are functional without additional resource manipulation.
         let stakingAdminCapability = self.account.link<&FlowIDTableStaking.Admin{FlowIDTableStaking.EpochOperations}>(
                 /private/flowStakingAdminEpochOperations,
                 target: FlowIDTableStaking.StakingAdminStoragePath
@@ -881,8 +883,8 @@ pub contract FlowEpoch {
 
         self.account.save<Capability<&FlowIDTableStaking.Admin{FlowIDTableStaking.EpochOperations}>>(stakingAdminCapability, to: /storage/flowStakingAdminEpochOperations)
 
-        // Create a private capability to the qc admin in the service account
-        // and store it in the staking account
+        // Create a private capability to the qc admin
+        // and store it in a different path
         let qcAdminCapability = self.account.link<&FlowClusterQC.Admin{FlowClusterQC.EpochOperations}>(
                 /private/flowQCAdminEpochOperations,
                 target: FlowClusterQC.AdminStoragePath
@@ -890,8 +892,8 @@ pub contract FlowEpoch {
 
         self.account.save<Capability<&FlowClusterQC.Admin{FlowClusterQC.EpochOperations}>>(qcAdminCapability, to: /storage/flowQCAdminEpochOperations)
 
-        // Create a private capability to the dkg admin in the service account
-        // and store it in the staking account
+        // Create a private capability to the dkg admin
+        // and store it in a different path
         let dkgAdminCapability = self.account.link<&FlowDKG.Admin{FlowDKG.EpochOperations}>(
                 /private/flowDKGAdminEpochOperations,
                 target: FlowDKG.AdminStoragePath
