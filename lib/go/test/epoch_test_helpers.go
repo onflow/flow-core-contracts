@@ -130,7 +130,12 @@ func (evt EpochCommitEvent) dkgPubKeys() cadence.Array {
 
 // / Deploys the Quroum Certificate and Distributed Key Generation contracts to the provided account
 // /
-func deployQCDKGContract(t *testing.T, b *emulator.Blockchain, idTableAddress flow.Address, IDTableSigner crypto.Signer, env templates.Environment) {
+func deployQCDKGContract(
+	t *testing.T,
+	b *emulator.Blockchain,
+	idTableAddress flow.Address,
+	IDTableSigner crypto.Signer,
+	env templates.Environment) {
 
 	QCCode := contracts.FlowQC()
 	QCByteCode := bytesToCadenceArray(QCCode)
