@@ -448,17 +448,9 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 	deployAllCollectionContracts(t, b, accountKeys, &env, adminAddress, adminSigner)
 
 	// Change the delegator staking minimum to zero
-	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateChangeMinimumsScript(env), idTableAddress)
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateChangeDelegatorMinimumsScript(env), idTableAddress)
 
-	delMin := CadenceUFix64("0.0")
-	colMin := CadenceUFix64("250000.0")
-	conMin := CadenceUFix64("250000.0")
-	exMin := CadenceUFix64("1250000.0")
-	verMin := CadenceUFix64("135000.0")
-	accMin := CadenceUFix64("0.0")
-
-	err := tx.AddArgument(cadence.NewArray([]cadence.Value{delMin, colMin, conMin, exMin, verMin, accMin}))
-	require.NoError(t, err)
+	tx.AddArgument(CadenceUFix64("0.0"))
 
 	signAndSubmit(
 		t, b, tx,
@@ -499,7 +491,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 	ids[0] = adminID
 	approvedNodeIDs := generateCadenceNodeDictionary(ids)
 
-	err = tx.AddArgument(approvedNodeIDs)
+	err := tx.AddArgument(approvedNodeIDs)
 	require.NoError(t, err)
 	signAndSubmit(
 		t, b, tx,

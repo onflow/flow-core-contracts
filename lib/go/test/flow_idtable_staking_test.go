@@ -795,7 +795,7 @@ func TestIDTableApprovals(t *testing.T) {
 
 	// Update the access node minimum to zero
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateChangeMinimumsScript(env), idTableAddress)
-	err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceUFix64("50.0"), CadenceUFix64("250000.0"), CadenceUFix64("250000.0"), CadenceUFix64("1250000.0"), CadenceUFix64("135000.0"), CadenceUFix64("0.0")}))
+	err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceUFix64("250000.0"), CadenceUFix64("250000.0"), CadenceUFix64("1250000.0"), CadenceUFix64("135000.0"), CadenceUFix64("0.0")}))
 	require.NoError(t, err)
 
 	signAndSubmit(
@@ -840,7 +840,7 @@ func TestIDTableApprovals(t *testing.T) {
 
 	// Update the access node minimum to 100
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateChangeMinimumsScript(env), idTableAddress)
-	err = tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceUFix64("50.0"), CadenceUFix64("250000.0"), CadenceUFix64("250000.0"), CadenceUFix64("1250000.0"), CadenceUFix64("135000.0"), CadenceUFix64("100.0")}))
+	err = tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceUFix64("250000.0"), CadenceUFix64("250000.0"), CadenceUFix64("1250000.0"), CadenceUFix64("135000.0"), CadenceUFix64("100.0")}))
 	require.NoError(t, err)
 	signAndSubmit(
 		t, b, tx,
@@ -2799,14 +2799,13 @@ func TestIDTableStaking(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateChangeMinimumsScript(env), idTableAddress)
 
-		delMin := CadenceUFix64("50.0")
 		colMin := CadenceUFix64("250000.0")
 		conMin := CadenceUFix64("250000.0")
 		exMin := CadenceUFix64("1250000.0")
 		verMin := CadenceUFix64("135000.0")
 		accMin := CadenceUFix64("0.0")
 
-		err := tx.AddArgument(cadence.NewArray([]cadence.Value{delMin, colMin, conMin, exMin, verMin, accMin}))
+		err := tx.AddArgument(cadence.NewArray([]cadence.Value{colMin, conMin, exMin, verMin, accMin}))
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -3021,6 +3020,22 @@ func TestIDTableDelegatorMinimums(t *testing.T) {
 
 	result = executeScriptAndCheck(t, b, templates.GenerateGetTotalTokensStakedByTypeScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(1))})
 	assertEqual(t, CadenceUFix64("250000.0"), result)
+
+	// Should be able to update the delegator minimum
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateChangeDelegatorMinimumsScript(env), idTableAddress)
+
+	tx.AddArgument(CadenceUFix64("25.0"))
+	require.NoError(t, err)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]crypto.Signer{IDTableSigner},
+		false,
+	)
+
+	result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorStakeRequirementScript(env), nil)
+	assertEqual(t, CadenceUFix64("25.0"), result)
 
 }
 

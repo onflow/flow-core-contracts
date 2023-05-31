@@ -18,6 +18,7 @@ const (
 	moveTokensFilename              = "idTableStaking/admin/move_tokens.cdc"
 	endEpochFilename                = "idTableStaking/admin/end_epoch.cdc"
 	changeMinimumsFilename          = "idTableStaking/admin/change_minimums.cdc"
+	changeDelegatorMinimumsFilename = "idTableStaking/admin/change_del_minimums.cdc"
 	changeCutFilename               = "idTableStaking/admin/change_cut.cdc"
 	changePayoutFilename            = "idTableStaking/admin/change_payout.cdc"
 	endEpochChangePayoutFilename    = "idTableStaking/admin/end_epoch_change_payout.cdc"
@@ -71,6 +72,7 @@ const (
 	getNonOperationalListFilename               = "idTableStaking/scripts/get_non_operational.cdc"
 	getApprovedNodesFileName                    = "idTableStaking/scripts/get_approved_nodes.cdc"
 	stakeRequirementsFilename                   = "idTableStaking/scripts/get_stake_requirements.cdc"
+	delegatorStakeRequirementsFilename          = "idTableStaking/scripts/get_del_stake_requirements.cdc"
 	totalStakedByTypeFilename                   = "idTableStaking/scripts/get_total_staked_by_type.cdc"
 	totalStakedFilename                         = "idTableStaking/scripts/get_total_staked.cdc"
 	rewardRatioFilename                         = "idTableStaking/scripts/get_node_type_ratio.cdc"
@@ -166,6 +168,12 @@ func GenerateEndEpochScript(env Environment) []byte {
 // GenerateChangeMinimumsScript creates a script that changes the staking minimums
 func GenerateChangeMinimumsScript(env Environment) []byte {
 	code := assets.MustAssetString(changeMinimumsFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateChangeDelegatorMinimumsScript(env Environment) []byte {
+	code := assets.MustAssetString(changeDelegatorMinimumsFilename)
 
 	return []byte(ReplaceAddresses(code, env))
 }
@@ -347,6 +355,13 @@ func GenerateReturnTableScript(env Environment) []byte {
 // GenerateGetStakeRequirementsScript returns the stake requirement for a node type
 func GenerateGetStakeRequirementsScript(env Environment) []byte {
 	code := assets.MustAssetString(stakeRequirementsFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+// GenerateGetDelegatorStakeRequirementScript returns the stake requirement for delegators
+func GenerateGetDelegatorStakeRequirementScript(env Environment) []byte {
+	code := assets.MustAssetString(delegatorStakeRequirementsFilename)
 
 	return []byte(ReplaceAddresses(code, env))
 }
