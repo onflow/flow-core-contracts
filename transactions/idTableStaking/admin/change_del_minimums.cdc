@@ -1,8 +1,8 @@
 import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
 
-// This transaction changes the staking minumums for node operators
+// This transaction changes the flow token reward cut that nodes take from delegators
 
-transaction(newMinimums: [UFix64]) {
+transaction(newDelegatorMinimum: UFix64) {
 
     // Local variable for a reference to the ID Table Admin object
     let adminRef: &FlowIDTableStaking.Admin
@@ -14,13 +14,6 @@ transaction(newMinimums: [UFix64]) {
     }
 
     execute {
-        let minimums: {UInt8: UFix64} = {}
-        var i: UInt8 = 1
-        for min in newMinimums {
-            minimums[i] = min
-            i = i + UInt8(1)
-        }
-
-        self.adminRef.setMinimumStakeRequirements(minimums)
+        self.adminRef.setDelegatorMinimumStakeRequirement(newDelegatorMinimum)
     }
 }

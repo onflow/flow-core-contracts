@@ -68,6 +68,7 @@ pub contract FlowIDTableStaking {
     pub event NewDelegatorCutPercentage(newCutPercentage: UFix64)
     pub event NewWeeklyPayout(newPayout: UFix64)
     pub event NewStakingMinimums(newMinimums: {UInt8: UFix64})
+    pub event NewDelegatorStakingMinimum(newMinimum: UFix64)
 
     /// Holds the identity table for all the nodes in the network.
     /// Includes nodes that aren't actively participating
@@ -78,7 +79,6 @@ pub contract FlowIDTableStaking {
     /// The minimum amount of tokens that each staker type has to stake
     /// in order to be considered valid
     /// Keys:
-    /// 0 - Delegators
     /// 1 - Collector Nodes
     /// 2 - Consensus Nodes
     /// 3 - Execution Nodes
@@ -853,15 +853,23 @@ pub contract FlowIDTableStaking {
     /// at the end of the staking auction, and pay rewards to nodes at the end of an epoch
     pub resource Admin: EpochOperations {
 
-        /// Sets a new set of minimum staking requirements for all the nodes and delegators
-        /// Delegator minimum is at index 0, other nodes' indexes are their role numbers
+        /// Sets a new set of minimum staking requirements for all the nodes
+        /// Nodes' indexes are their role numbers
         pub fun setMinimumStakeRequirements(_ newRequirements: {UInt8: UFix64}) {
             pre {
-                newRequirements.keys.length == 6:
-                    "There must be six entries for minimum stake requirements (one for delegators and 5 for nodes)"
+                newRequirements.keys.length == 5:
+                    "There must be six entries for node minimum stake requirements"
             }
             FlowIDTableStaking.minimumStakeRequired = newRequirements
             emit NewStakingMinimums(newMinimums: newRequirements)
+        }
+
+        /// Sets a new set of minimum staking requirements for all the delegators
+        pub fun setDelegatorMinimumStakeRequirement(_ newRequirement: UFix64) {
+            FlowIDTableStaking.account.load<UFix64>(from: /storage/delegatorStakingMinimum)
+            FlowIDTableStaking.account.save(newRequirement, to: /storage/delegatorStakingMinimum)
+
+            emit NewDelegatorStakingMinimum(newMinimum: newRequirement)
         }
 
         /// Changes the total weekly payout to a new value
@@ -1441,9 +1449,9 @@ pub contract FlowIDTableStaking {
                     let delRecord = nodeRecord.borrowDelegatorRecord(delegator)
 
                     // If the delegator's committed tokens for the next epoch
-                    // Is less than the delegator minimum, unstake all their tokens
+                    // is less than the delegator minimum, unstake all their tokens
                     let actualCommittedForNextEpoch = delRecord.tokensCommitted.balance + delRecord.tokensStaked.balance - delRecord.tokensRequestedToUnstake
-                    if !FlowIDTableStaking.isGreaterThanMinimumForRole(numTokens: actualCommittedForNextEpoch, role: UInt8(0)) {
+                    if actualCommittedForNextEpoch < FlowIDTableStaking.getDelegatorMinimumStakeRequirement() {
                         delRecord.tokensUnstaked.deposit(from: <-delRecord.tokensCommitted.withdraw(amount: delRecord.tokensCommitted.balance))
                         delRecord.tokensRequestedToUnstake = delRecord.tokensStaked.balance
                     }
@@ -1548,9 +1556,9 @@ pub contract FlowIDTableStaking {
             message: "Cannot register a delegator for an access node"
         )
 
-        let minimum = self.minimumStakeRequired[UInt8(0)]!
+        let minimum = self.getDelegatorMinimumStakeRequirement()
         assert(
-            self.isGreaterThanMinimumForRole(numTokens: tokensCommitted.balance, role: 0),
+            tokensCommitted.balance >= minimum,
             message: "Tokens committed for delegator registration is not above the minimum (".concat(minimum.toString()).concat(")")
         )
 
@@ -1810,10 +1818,10 @@ pub contract FlowIDTableStaking {
     }
 
     /// Checks if the amount of tokens is greater than the minimum staking requirement
-    /// for the specified staker role (including role == 0 for delegators)
+    /// for the specified node role
     pub fun isGreaterThanMinimumForRole(numTokens: UFix64, role: UInt8): Bool {
         let minimumStake = self.minimumStakeRequired[role]
-            ?? panic("Incorrect role provided for minimum stake. Must be 0, 1, 2, 3, 4, or 5")
+            ?? panic("Incorrect role provided for minimum stake. Must be 1, 2, 3, 4, or 5")
 
         return numTokens >= minimumStake
     }
@@ -1851,9 +1859,15 @@ pub contract FlowIDTableStaking {
             ?? panic("could not get non-operational node list")
     }
 
-    /// Gets the minimum stake requirements for all the staker types
+    /// Gets the minimum stake requirements for all the node types
     pub fun getMinimumStakeRequirements(): {UInt8: UFix64} {
         return self.minimumStakeRequired
+    }
+
+    /// Gets the minimum stake requirement for delegators
+    pub fun getDelegatorMinimumStakeRequirement(): UFix64 {
+        return self.account.copy<UFix64>(from: /storage/delegatorStakingMinimum)
+            ?? 0.0
     }
 
     /// Gets a dictionary that indicates the current number of tokens staked
@@ -1906,7 +1920,8 @@ pub contract FlowIDTableStaking {
         self.StakingAdminStoragePath = /storage/flowStakingAdmin
         self.DelegatorStoragePath = /storage/flowStakingDelegator
 
-        self.minimumStakeRequired = {UInt8(0): 50.0, UInt8(1): 250000.0, UInt8(2): 500000.0, UInt8(3): 1250000.0, UInt8(4): 135000.0, UInt8(5): 100.0}
+        self.minimumStakeRequired = {UInt8(1): 250000.0, UInt8(2): 500000.0, UInt8(3): 1250000.0, UInt8(4): 135000.0, UInt8(5): 100.0}
+        self.account.save(50.0 as UFix64, to: /storage/delegatorStakingMinimum)
         self.totalTokensStakedByNodeType = {UInt8(1): 0.0, UInt8(2): 0.0, UInt8(3): 0.0, UInt8(4): 0.0, UInt8(5): 0.0}
         self.epochTokenPayout = epochTokenPayout
         self.nodeDelegatingRewardCut = rewardCut
