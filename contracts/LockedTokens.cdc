@@ -220,6 +220,11 @@ pub contract LockedTokens {
 
             let vaultRef = self.vault.borrow()!
 
+            assert(
+                vaultRef.balance >= FlowIDTableStaking.getDelegatorMinimumStakeRequirement(),
+                message: "Must have the delegation minimum FLOW requirement in the locked vault to register a node"
+            )
+
             let tokens <- vaultRef.withdraw(amount: amount)
 
             let delegator <- self.nodeDelegator <- FlowIDTableStaking.registerNewDelegator(nodeID: nodeID, tokensCommitted: <-tokens)
@@ -347,9 +352,9 @@ pub contract LockedTokens {
 
         /// The user calls this function if they want to register as a node operator
         /// They have to provide the node ID for the node they want to delegate to
-        pub fun createNodeDelegator(nodeID: String, amount: UFix64) {
+        pub fun createNodeDelegator(nodeID: String) {
 
-            self.borrowTokenManager().registerDelegator(nodeID: nodeID, amount: amount)
+            self.borrowTokenManager().registerDelegator(nodeID: nodeID, amount: FlowIDTableStaking.getDelegatorMinimumStakeRequirement())
 
             // create a new delegator proxy that can be accessed in transactions
             self.nodeDelegatorProxy = LockedNodeDelegatorProxy(tokenManager: self.tokenManager)
