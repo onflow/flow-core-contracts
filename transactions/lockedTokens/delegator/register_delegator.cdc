@@ -1,5 +1,6 @@
 import FlowToken from 0xFLOWTOKENADDRESS
 import LockedTokens from 0xLOCKEDTOKENADDRESS
+import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
 
 transaction(id: String, amount: UFix64) {
 
@@ -20,13 +21,21 @@ transaction(id: String, amount: UFix64) {
 
         if amount <= lockedBalance {
 
-            self.holderRef.createNodeDelegator(nodeID: id, amount: amount)
+            self.holderRef.createNodeDelegator(nodeID: id)
+
+            let stakerProxy = self.holderRef.borrowDelegator()
+
+            stakerProxy.delegateNewTokens(amount: amount - FlowIDTableStaking.getDelegatorMinimumStakeRequirement())
 
         } else if ((amount - lockedBalance) <= self.vaultRef.balance) {
 
             self.holderRef.deposit(from: <-self.vaultRef.withdraw(amount: amount - lockedBalance))
 
-            self.holderRef.createNodeDelegator(nodeID: id, amount: amount)
+            self.holderRef.createNodeDelegator(nodeID: id)
+
+            let stakerProxy = self.holderRef.borrowDelegator()
+
+            stakerProxy.delegateNewTokens(amount: amount - FlowIDTableStaking.getDelegatorMinimumStakeRequirement())
 
         } else {
             panic("Not enough tokens to stake!")

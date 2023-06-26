@@ -264,6 +264,12 @@ pub contract FlowIDTableStaking {
         return <-create NodeDelegator(id: 1, nodeID: nodeID)
     }
 
+    /// Gets the minimum stake requirement for delegators
+    pub fun getDelegatorMinimumStakeRequirement(): UFix64 {
+        return self.account.copy<UFix64>(from: /storage/delegatorStakingMinimum)
+            ?? 0.0
+    }
+
     init(_ epochTokenPayout: UFix64, _ rewardCut: UFix64, _ candidateLimits: {UInt8: UInt64}) {
     }
 }
