@@ -44,6 +44,7 @@ const (
 	// Each contract has placeholder addresses that need to be replaced
 	// depending on which network they are being used with
 	placeholderFungibleTokenAddress     = "0xFUNGIBLETOKENADDRESS"
+	placeholderFungibleTokenMVAddress   = "\"./FungibleTokenMetadataViews.cdc\""
 	placeholderFlowTokenAddress         = "0xFLOWTOKENADDRESS"
 	placeholderIDTableAddress           = "0xFLOWIDTABLESTAKINGADDRESS"
 	placeholderStakingProxyAddress      = "0xSTAKINGPROXYADDRESS"
@@ -87,6 +88,26 @@ func FlowToken(fungibleTokenAddress string) []byte {
 		code,
 		placeholderFungibleTokenAddress,
 		withHexPrefix(fungibleTokenAddress),
+	)
+
+	code = strings.ReplaceAll(
+		code,
+		placeholderFungibleTokenMVAddress,
+		withHexPrefix(fungibleTokenAddress),
+	)
+
+	// Replace the init method storage operations
+	code = strings.ReplaceAll(
+		code,
+		"self.account.",
+		"adminAccount.",
+	)
+
+	// Replace the init method admin account parameter
+	code = strings.ReplaceAll(
+		code,
+		"init()",
+		"init(adminAccount: AuthAccount)",
 	)
 
 	return []byte(code)
