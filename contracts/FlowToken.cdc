@@ -1,4 +1,5 @@
 import FungibleToken from 0xFUNGIBLETOKENADDRESS
+import FungibleTokenMetadataViews from "./FungibleTokenMetadataViews.cdc"
 
 pub contract FlowToken: FungibleToken {
 
@@ -82,6 +83,64 @@ pub contract FlowToken: FungibleToken {
             if self.balance > 0.0 {
                 FlowToken.totalSupply = FlowToken.totalSupply - self.balance
             }
+        }
+
+        /// Get all the Metadata Views implemented by FlowToken
+        ///
+        /// @return An array of Types defining the implemented views. This value will be used by
+        ///         developers to know which parameter to pass to the resolveView() method.
+        ///
+        pub fun getViews(): [Type]{
+            return [Type<FungibleTokenMetadataViews.FTView>(),
+                    Type<FungibleTokenMetadataViews.FTDisplay>(),
+                    Type<FungibleTokenMetadataViews.FTVaultData>()]
+        }
+
+        /// Get a Metadata View from FlowToken
+        ///
+        /// @param view: The Type of the desired view.
+        /// @return A structure representing the requested view.
+        ///
+        pub fun resolveView(_ view: Type): AnyStruct? {
+            switch view {
+                case Type<FungibleTokenMetadataViews.FTView>():
+                    return FungibleTokenMetadataViews.FTView(
+                        ftDisplay: self.resolveView(Type<FungibleTokenMetadataViews.FTDisplay>()) as! FungibleTokenMetadataViews.FTDisplay?,
+                        ftVaultData: self.resolveView(Type<FungibleTokenMetadataViews.FTVaultData>()) as! FungibleTokenMetadataViews.FTVaultData?
+                    )
+                case Type<FungibleTokenMetadataViews.FTDisplay>():
+                    let media = MetadataViews.Media(
+                            file: MetadataViews.HTTPFile(
+                            url: "https://assets.website-files.com/5f6294c0c7a8cdd643b1c820/5f6294c0c7a8cda55cb1c936_Flow_Wordmark.svg"
+                        ),
+                        mediaType: "image/svg+xml"
+                    )
+                    let medias = MetadataViews.Medias([media])
+                    return FungibleTokenMetadataViews.FTDisplay(
+                        name: "FLOW Network Token",
+                        symbol: "FLOW",
+                        description: "FLOW is the protocol token that is required for transaction fees, storage fees, staking, and many applications built on the Flow Blockchain",
+                        externalURL: MetadataViews.ExternalURL("https://flow.com"),
+                        logos: medias,
+                        socials: {
+                            "twitter": MetadataViews.ExternalURL("https://twitter.com/flow_blockchain")
+                        }
+                    )
+                case Type<FungibleTokenMetadataViews.FTVaultData>():
+                    return FungibleTokenMetadataViews.FTVaultData(
+                        storagePath: /storage/flowTokenVault,
+                        receiverPath: /public/flowTokenReceiver,
+                        metadataPath: /public/flowTokenBalance,
+                        providerPath: /private/flowTokenVault,
+                        receiverLinkedType: Type<&FlowToken.Vault{FungibleToken.Receiver}>(),
+                        metadataLinkedType: Type<&FlowToken.Vault{FungibleToken.Balance}>(),
+                        providerLinkedType: Type<&FlowToken.Vault{FungibleToken.Provider}>(),
+                        createEmptyVaultFunction: (fun (): @FungibleToken.Vault {
+                            return <-FlowToken.createEmptyVault()
+                        })
+                    )
+            }
+            return nil
         }
     }
 
@@ -167,18 +226,18 @@ pub contract FlowToken: FungibleToken {
         }
     }
 
-    init(adminAccount: AuthAccount) {
+    init() {
         self.totalSupply = 0.0
 
         // Create the Vault with the total supply of tokens and save it in storage
         //
         let vault <- create Vault(balance: self.totalSupply)
-        adminAccount.save(<-vault, to: /storage/flowTokenVault)
+        self.account.save(<-vault, to: /storage/flowTokenVault)
 
         // Create a public capability to the stored Vault that only exposes
         // the `deposit` method through the `Receiver` interface
         //
-        adminAccount.link<&FlowToken.Vault{FungibleToken.Receiver}>(
+        self.account.link<&FlowToken.Vault{FungibleToken.Receiver}>(
             /public/flowTokenReceiver,
             target: /storage/flowTokenVault
         )
@@ -186,13 +245,13 @@ pub contract FlowToken: FungibleToken {
         // Create a public capability to the stored Vault that only exposes
         // the `balance` field through the `Balance` interface
         //
-        adminAccount.link<&FlowToken.Vault{FungibleToken.Balance}>(
+        self.account.link<&FlowToken.Vault{FungibleToken.Balance}>(
             /public/flowTokenBalance,
             target: /storage/flowTokenVault
         )
 
         let admin <- create Administrator()
-        adminAccount.save(<-admin, to: /storage/flowTokenAdmin)
+        self.account.save(<-admin, to: /storage/flowTokenAdmin)
 
         // Emit an event that shows that the contract was initialized
         emit TokensInitialized(initialSupply: self.totalSupply)
