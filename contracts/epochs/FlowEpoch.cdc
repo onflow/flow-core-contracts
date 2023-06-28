@@ -202,20 +202,20 @@ access(all) contract FlowEpoch {
     /// Metadata that is managed and can be changed by the Admin///
     access(all) struct Config {
         /// The number of views in an entire epoch
-        access(all)(set) var numViewsInEpoch: UInt64
+        access(all)var numViewsInEpoch: UInt64
 
         /// The number of views in the staking auction
-        access(all)(set) var numViewsInStakingAuction: UInt64
+        access(all)var numViewsInStakingAuction: UInt64
         
         /// The number of views in each dkg phase
-        access(all)(set) var numViewsInDKGPhase: UInt64
+        access(all)var numViewsInDKGPhase: UInt64
 
         /// The number of collector clusters in each epoch
-        access(all)(set) var numCollectorClusters: UInt16
+        access(all)var numCollectorClusters: UInt16
 
         /// Tracks the rate at which the rewards payout increases every epoch
         /// This value is multiplied by the FLOW total supply to get the next payout
-        access(all)(set) var FLOWsupplyIncreasePercentage: UFix64
+        access(all)var FLOWsupplyIncreasePercentage: UFix64
 
         init(numViewsInEpoch: UInt64, numViewsInStakingAuction: UInt64, numViewsInDKGPhase: UInt64, numCollectorClusters: UInt16, FLOWsupplyIncreasePercentage: UFix64) {
             self.numViewsInEpoch = numViewsInEpoch

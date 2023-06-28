@@ -195,10 +195,10 @@ access(all) contract FlowClusterQC {
         access(all) var nodeID: String
 
         /// The signed message from the node (using the nodes `stakingKey`)
-        access(all)(set) var signature: String?
+        access(all)var signature: String?
 
         /// The hex-encoded message for the vote
-        access(all)(set) var message: String?
+        access(all)var message: String?
 
         /// The index of the cluster that this vote (and node) is in
         access(all) let clusterIndex: UInt16
