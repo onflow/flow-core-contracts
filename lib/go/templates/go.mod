@@ -3,7 +3,7 @@ module github.com/onflow/flow-core-contracts/lib/go/templates
 go 1.18
 
 require (
-	github.com/kevinburke/go-bindata v3.23.0+incompatible
+	github.com/kevinburke/go-bindata v3.24.0+incompatible
 	github.com/onflow/cadence v0.29.0-stable-cadence-4
 	github.com/onflow/flow-go-sdk v0.29.0-stable-cadence-4
 	github.com/psiemens/sconfig v0.1.0
