@@ -19,6 +19,7 @@ const (
 	epochCalculateSetRewardsFilename = "epoch/admin/calculate_rewards.cdc"
 	epochPayRewardsFilename          = "epoch/admin/pay_rewards.cdc"
 	epochSetAutoRewardsFilename      = "epoch/admin/set_automatic_rewards.cdc"
+	setBonusTokensFilename           = "epoch/admin/set_bonus_tokens.cdc"
 
 	// Node Transactions
 	epochRegisterNodeFilename           = "epoch/node/register_node.cdc"
@@ -33,6 +34,7 @@ const (
 	getEpochPhaseFilename           = "epoch/scripts/get_epoch_phase.cdc"
 	getCurrentViewFilename          = "epoch/scripts/get_current_view.cdc"
 	getFlowTotalSupplyFilename      = "flowToken/scripts/get_supply.cdc"
+	getFlowBonusTokensFilename      = "epoch/scripts/get_bonus_tokens.cdc"
 
 	// test scripts
 	getRandomizeFilename      = "epoch/scripts/get_randomize.cdc"
@@ -121,6 +123,12 @@ func GenerateEpochSetAutomaticRewardsScript(env Environment) []byte {
 	return []byte(ReplaceAddresses(code, env))
 }
 
+func GenerateEpochSetBonusTokensScript(env Environment) []byte {
+	code := assets.MustAssetString(setBonusTokensFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
 // Node Templates -----------------------------------------------
 
 func GenerateEpochRegisterNodeScript(env Environment) []byte {
@@ -193,6 +201,12 @@ func GenerateGetCurrentViewScript(env Environment) []byte {
 
 func GenerateGetFlowTotalSupplyScript(env Environment) []byte {
 	code := assets.MustAssetString(getFlowTotalSupplyFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateGetBonusTokensScript(env Environment) []byte {
+	code := assets.MustAssetString(getFlowBonusTokensFilename)
 
 	return []byte(ReplaceAddresses(code, env))
 }

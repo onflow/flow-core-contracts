@@ -9,14 +9,16 @@ const (
 
 	removeNodeFilename              = "idTableStaking/admin/remove_node.cdc"
 	endStakingFilename              = "idTableStaking/admin/end_staking.cdc"
-	removeUnapprovedNodesFilename   = "idTableStaking/admin/remove_unapproved_nodes.cdc"
+	removeInvalidNodesFilename      = "idTableStaking/admin/remove_invalid_nodes.cdc"
 	setApprovedNodesFilename        = "idTableStaking/admin/set_approved_nodes.cdc"
 	addApprovedNodesFilename        = "idTableStaking/admin/add_approved_nodes.cdc"
+	addApproveAndLimitsFilename     = "idTableStaking/admin/add_approved_and_limits.cdc"
 	removeApprovedNodesFilename     = "idTableStaking/admin/remove_approved_nodes.cdc"
 	payRewardsFilename              = "idTableStaking/admin/pay_rewards.cdc"
 	moveTokensFilename              = "idTableStaking/admin/move_tokens.cdc"
 	endEpochFilename                = "idTableStaking/admin/end_epoch.cdc"
 	changeMinimumsFilename          = "idTableStaking/admin/change_minimums.cdc"
+	changeDelegatorMinimumsFilename = "idTableStaking/admin/change_del_minimums.cdc"
 	changeCutFilename               = "idTableStaking/admin/change_cut.cdc"
 	changePayoutFilename            = "idTableStaking/admin/change_payout.cdc"
 	endEpochChangePayoutFilename    = "idTableStaking/admin/end_epoch_change_payout.cdc"
@@ -27,6 +29,9 @@ const (
 	capabilityEndEpochFilename      = "idTableStaking/admin/capability_end_epoch.cdc"
 	transferFeesAdminFilename       = "idTableStaking/admin/transfer_fees_admin.cdc"
 	setNonOperationalFilename       = "idTableStaking/admin/set_non_operational.cdc"
+	setCandidateLimitsFilename      = "idTableStaking/admin/change_candidate_limits.cdc"
+	setNodeWeightFilename           = "idTableStaking/admin/set_node_weight.cdc"
+	setSlotLimitsFilename           = "idTableStaking/admin/set_slot_limits.cdc"
 
 	// for testing only
 	scaleRewardsTestFilename = "idTableStaking/admin/scale_rewards_test.cdc"
@@ -44,6 +49,7 @@ const (
 
 	registerManyNodesFilename = "idTableStaking/node/register_many_nodes.cdc"
 
+	// Scripts
 	getTableFilename                            = "idTableStaking/scripts/get_table.cdc"
 	currentTableFilename                        = "idTableStaking/scripts/get_current_table.cdc"
 	proposedTableFilename                       = "idTableStaking/scripts/get_proposed_table.cdc"
@@ -66,10 +72,15 @@ const (
 	getNonOperationalListFilename               = "idTableStaking/scripts/get_non_operational.cdc"
 	getApprovedNodesFileName                    = "idTableStaking/scripts/get_approved_nodes.cdc"
 	stakeRequirementsFilename                   = "idTableStaking/scripts/get_stake_requirements.cdc"
+	delegatorStakeRequirementsFilename          = "idTableStaking/scripts/get_del_stake_requirements.cdc"
 	totalStakedByTypeFilename                   = "idTableStaking/scripts/get_total_staked_by_type.cdc"
 	totalStakedFilename                         = "idTableStaking/scripts/get_total_staked.cdc"
 	rewardRatioFilename                         = "idTableStaking/scripts/get_node_type_ratio.cdc"
 	weeklyPayoutFilename                        = "idTableStaking/scripts/get_weekly_payout.cdc"
+	getCandidateLimitsFilename                  = "idTableStaking/scripts/get_candidate_limits.cdc"
+	getCandidateNodesFilename                   = "idTableStaking/scripts/get_candidate_nodes.cdc"
+	getSlotLimitsFilename                       = "idTableStaking/scripts/get_slot_limits.cdc"
+	getRoleCountsFilename                       = "idTableStaking/scripts/get_role_counts.cdc"
 )
 
 // Admin Templates -----------------------------------------------------------
@@ -104,8 +115,8 @@ func GenerateEndStakingScript(env Environment) []byte {
 	return []byte(ReplaceAddresses(code, env))
 }
 
-func GenerateRemoveUnapprovedNodesScript(env Environment) []byte {
-	code := assets.MustAssetString(removeUnapprovedNodesFilename)
+func GenerateRemoveInvalidNodesScript(env Environment) []byte {
+	code := assets.MustAssetString(removeInvalidNodesFilename)
 
 	return []byte(ReplaceAddresses(code, env))
 }
@@ -118,6 +129,12 @@ func GenerateSetApprovedNodesScript(env Environment) []byte {
 
 func GenerateAddApprovedNodesScript(env Environment) []byte {
 	code := assets.MustAssetString(addApprovedNodesFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateAddApprovedAndLimitsScript(env Environment) []byte {
+	code := assets.MustAssetString(addApproveAndLimitsFilename)
 
 	return []byte(ReplaceAddresses(code, env))
 }
@@ -151,6 +168,12 @@ func GenerateEndEpochScript(env Environment) []byte {
 // GenerateChangeMinimumsScript creates a script that changes the staking minimums
 func GenerateChangeMinimumsScript(env Environment) []byte {
 	code := assets.MustAssetString(changeMinimumsFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateChangeDelegatorMinimumsScript(env Environment) []byte {
+	code := assets.MustAssetString(changeDelegatorMinimumsFilename)
 
 	return []byte(ReplaceAddresses(code, env))
 }
@@ -211,6 +234,24 @@ func GenerateTransferFeesAdminScript(env Environment) []byte {
 
 func GenerateSetNonOperationalScript(env Environment) []byte {
 	code := assets.MustAssetString(setNonOperationalFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateSetCandidateLimitsScript(env Environment) []byte {
+	code := assets.MustAssetString(setCandidateLimitsFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateSetNodeWeightScript(env Environment) []byte {
+	code := assets.MustAssetString(setNodeWeightFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateSetSlotLimitsScript(env Environment) []byte {
+	code := assets.MustAssetString(setSlotLimitsFilename)
 
 	return []byte(ReplaceAddresses(code, env))
 }
@@ -314,6 +355,13 @@ func GenerateReturnTableScript(env Environment) []byte {
 // GenerateGetStakeRequirementsScript returns the stake requirement for a node type
 func GenerateGetStakeRequirementsScript(env Environment) []byte {
 	code := assets.MustAssetString(stakeRequirementsFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+// GenerateGetDelegatorStakeRequirementScript returns the stake requirement for delegators
+func GenerateGetDelegatorStakeRequirementScript(env Environment) []byte {
+	code := assets.MustAssetString(delegatorStakeRequirementsFilename)
 
 	return []byte(ReplaceAddresses(code, env))
 }
@@ -487,6 +535,30 @@ func GenerateGetTotalCommitmentBalanceWithoutDelegatorsScript(env Environment) [
 
 func GenerateGetNonOperationalListScript(env Environment) []byte {
 	code := assets.MustAssetString(getNonOperationalListFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateGetCandidateLimitsScript(env Environment) []byte {
+	code := assets.MustAssetString(getCandidateLimitsFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateGetCandidateNodesScript(env Environment) []byte {
+	code := assets.MustAssetString(getCandidateNodesFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateGetSlotLimitsScript(env Environment) []byte {
+	code := assets.MustAssetString(getSlotLimitsFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateGetRoleCountsScript(env Environment) []byte {
+	code := assets.MustAssetString(getRoleCountsFilename)
 
 	return []byte(ReplaceAddresses(code, env))
 }

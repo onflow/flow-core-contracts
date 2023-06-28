@@ -130,7 +130,12 @@ func (evt EpochCommitEvent) dkgPubKeys() cadence.Array {
 
 // / Deploys the Quroum Certificate and Distributed Key Generation contracts to the provided account
 // /
-func deployQCDKGContract(t *testing.T, b *emulator.Blockchain, idTableAddress flow.Address, IDTableSigner crypto.Signer, env templates.Environment) {
+func deployQCDKGContract(
+	t *testing.T,
+	b *emulator.Blockchain,
+	idTableAddress flow.Address,
+	IDTableSigner crypto.Signer,
+	env templates.Environment) {
 
 	QCCode := contracts.FlowQC()
 	QCByteCode := bytesToCadenceArray(QCCode)
@@ -208,7 +213,7 @@ func initializeAllEpochContracts(
 	epochCounter, epochViews, stakingViews, dkgViews, numClusters uint64,
 	randomSource, rewardsAPY string) (flow.Address, uint64) {
 
-	idTableAddress, feesAddress := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, *env, true)
+	idTableAddress, feesAddress := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true, []uint64{10, 10, 10, 10, 10})
 	env.IDTableAddress = idTableAddress.Hex()
 	env.FlowFeesAddress = feesAddress.Hex()
 	env.QuorumCertificateAddress = idTableAddress.String()
@@ -301,7 +306,7 @@ func registerNodeWithSetupAccount(t *testing.T,
 	)
 
 	if !shouldFail {
-		newTokensCommitted = tokensCommitted.Plus(stubInterpreter(), amount).(interpreter.UFix64Value)
+		newTokensCommitted = tokensCommitted.Plus(stubInterpreter(), amount, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 	}
 
 	return

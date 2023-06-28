@@ -6,7 +6,6 @@ import (
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
-	ft_templates "github.com/onflow/flow-ft/lib/go/templates"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 	sdktemplates "github.com/onflow/flow-go-sdk/templates"
@@ -52,6 +51,16 @@ func TestStakingProxy(t *testing.T) {
 
 	_ = tx.AddArgument(CadenceUFix64("1250000.0"))
 	_ = tx.AddArgument(CadenceUFix64("0.03"))
+
+	// Construct Array
+	var candidateNodeLimits []uint64 = []uint64{10, 10, 10, 10, 10}
+	candidateLimitsArrayValues := make([]cadence.Value, 5)
+	for i, limit := range candidateNodeLimits {
+		candidateLimitsArrayValues[i] = cadence.NewUInt64(limit)
+	}
+	cadenceLimitArray := cadence.NewArray(candidateLimitsArrayValues).WithType(cadence.NewVariableSizedArrayType(cadence.NewUInt64Type()))
+
+	_ = tx.AddArgument(cadenceLimitArray)
 
 	signAndSubmit(
 		t, b, tx,
@@ -99,17 +108,13 @@ func TestStakingProxy(t *testing.T) {
 	adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
 
 	lockedTokensAccountKey, _ := accountKeys.NewWithSigner()
-	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress, lockedTokensAccountKey, adminAddress, adminSigner)
+	lockedTokensAddress := deployLockedTokensContract(t, b, env, idTableAddress, stakingProxyAddress, lockedTokensAccountKey, adminAddress, adminSigner)
 
 	env.LockedTokensAddress = lockedTokensAddress.Hex()
 
 	t.Run("Should be able to set up the admin account", func(t *testing.T) {
 
-		tx = createTxWithTemplateAndAuthorizer(b, ft_templates.GenerateMintTokensScript(
-			flow.HexToAddress(emulatorFTAddress),
-			flow.HexToAddress(emulatorFlowTokenAddress),
-			"FlowToken",
-		), b.ServiceKey().Address)
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateMintFlowScript(env), b.ServiceKey().Address)
 
 		_ = tx.AddArgument(cadence.NewAddress(lockedTokensAddress))
 		_ = tx.AddArgument(CadenceUFix64("1000000000.0"))
@@ -164,7 +169,7 @@ func TestStakingProxy(t *testing.T) {
 	var joshSharedAddress flow.Address
 	var joshAddress flow.Address
 
-	tx = createTxWithTemplateAndAuthorizer(b, ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), b.ServiceKey().Address)
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateMintFlowScript(env), b.ServiceKey().Address)
 	_ = tx.AddArgument(cadence.NewAddress(adminAddress))
 	_ = tx.AddArgument(CadenceUFix64("1000000000.0"))
 

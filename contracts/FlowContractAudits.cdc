@@ -1,3 +1,9 @@
+/// This contract was used to manage audits and approvals
+/// for deployment to Flow mainnet before permissionless deployment
+/// was enabled in June 2022. It is no longer used, but is still
+/// deployed to the Service Account, so it is documented here
+/// for reference
+
 pub contract FlowContractAudits {
     
     // Event that is emitted when a new Auditor resource is created

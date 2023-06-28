@@ -64,7 +64,15 @@ func stubInterpreter() *interpreter.Interpreter {
 // parameter: latest: Indicates if the contract should be the latest version.
 //
 //	This is only set to false when testing staking contract upgrades
-func deployStakingContract(t *testing.T, b *emulator.Blockchain, IDTableAccountKey *flow.AccountKey, IDTableSigner crypto.Signer, env templates.Environment, latest bool) (flow.Address, flow.Address) {
+func deployStakingContract(
+	t *testing.T,
+	b *emulator.Blockchain,
+	IDTableAccountKey *flow.AccountKey,
+	IDTableSigner crypto.Signer,
+	env *templates.Environment,
+	latest bool,
+	candidateNodeLimits []uint64,
+) (flow.Address, flow.Address) {
 
 	// create the public key array for the staking and fees account
 	publicKeys := make([]cadence.Value, 1)
@@ -73,7 +81,7 @@ func deployStakingContract(t *testing.T, b *emulator.Blockchain, IDTableAccountK
 	cadencePublicKeys := cadence.NewArray(publicKeys)
 
 	// Get the code byte-array for the fees contract
-	FeesCode := contracts.TestFlowFees(emulatorFTAddress, emulatorFlowTokenAddress)
+	FeesCode := contracts.TestFlowFees(emulatorFTAddress, emulatorFlowTokenAddress, emulatorStorageFees)
 
 	// Deploy the fees contract
 	feesAddr, err := b.CreateAccount([]*flow.AccountKey{IDTableAccountKey}, []sdktemplates.Contract{
@@ -97,7 +105,7 @@ func deployStakingContract(t *testing.T, b *emulator.Blockchain, IDTableAccountK
 	// Create the deployment transaction that transfers a FlowToken minter
 	// to the new account and deploys the IDTableStaking contract
 	tx := createTxWithTemplateAndAuthorizer(b,
-		templates.GenerateTransferMinterAndDeployScript(env),
+		templates.GenerateTransferMinterAndDeployScript(*env),
 		b.ServiceKey().Address)
 
 	// Add the keys argument, contract name, and code
@@ -108,6 +116,15 @@ func deployStakingContract(t *testing.T, b *emulator.Blockchain, IDTableAccountK
 	// Set the weekly payount amount and delegator cut percentage
 	_ = tx.AddArgument(CadenceUFix64("1250000.0"))
 	_ = tx.AddArgument(CadenceUFix64("0.08"))
+
+	// Construct Array
+	candidateLimitsArrayValues := make([]cadence.Value, 5)
+	for i, limit := range candidateNodeLimits {
+		candidateLimitsArrayValues[i] = cadence.NewUInt64(limit)
+	}
+	cadenceLimitArray := cadence.NewArray(candidateLimitsArrayValues).WithType(cadence.NewVariableSizedArrayType(cadence.NewUInt64Type()))
+
+	_ = tx.AddArgument(cadenceLimitArray)
 
 	// Submit the deployment transaction
 	signAndSubmit(
@@ -132,9 +149,11 @@ func deployStakingContract(t *testing.T, b *emulator.Blockchain, IDTableAccountK
 		i = i + 1
 	}
 
+	env.IDTableAddress = idTableAddress.Hex()
+
 	// Transfer the fees admin to the staking contract account
 	tx = flow.NewTransaction().
-		SetScript(templates.GenerateTransferFeesAdminScript(env)).
+		SetScript(templates.GenerateTransferFeesAdminScript(*env)).
 		SetGasLimit(9999).
 		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
 		SetPayer(b.ServiceKey().Address).
@@ -362,7 +381,7 @@ func registerNode(t *testing.T,
 	)
 
 	if !shouldFail {
-		newTokensCommitted = tokensCommitted.Plus(stubInterpreter(), amount).(interpreter.UFix64Value)
+		newTokensCommitted = tokensCommitted.Plus(stubInterpreter(), amount, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 	}
 
 	return
@@ -386,6 +405,8 @@ func registerDelegator(t *testing.T,
 		authorizer)
 
 	_ = tx.AddArgument(CadenceString(nodeID))
+	tokenAmount, _ := cadence.NewUFix64("0.0")
+	tx.AddArgument(tokenAmount)
 
 	signAndSubmit(
 		t, b, tx,
@@ -401,12 +422,14 @@ func endStakingMoveTokens(t *testing.T,
 	env templates.Environment,
 	authorizer flow.Address,
 	signer crypto.Signer,
-	nodeIDs []cadence.Value,
+	nodeIDs []string,
 ) {
 	// End staking auction and epoch
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), authorizer)
 
-	err := tx.AddArgument(cadence.NewArray(nodeIDs))
+	nodeIDsDict := generateCadenceNodeDictionary(nodeIDs)
+
+	err := tx.AddArgument(nodeIDsDict)
 	require.NoError(t, err)
 	signAndSubmit(
 		t, b, tx,
@@ -493,7 +516,7 @@ func commitNewTokens(t *testing.T,
 	)
 
 	if !shouldFail {
-		newTokensCommitted = tokensCommitted.Plus(stubInterpreter(), amount).(interpreter.UFix64Value)
+		newTokensCommitted = tokensCommitted.Plus(stubInterpreter(), amount, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 	} else {
 		newTokensCommitted = tokensCommitted
 	}
@@ -531,8 +554,8 @@ func commitUnstaked(t *testing.T,
 	)
 
 	if !shouldFail {
-		newTokensCommitted = tokensCommitted.Plus(stubInterpreter(), amount).(interpreter.UFix64Value)
-		newTokensUnstaked = tokensUnstaked.Minus(stubInterpreter(), amount).(interpreter.UFix64Value)
+		newTokensCommitted = tokensCommitted.Plus(stubInterpreter(), amount, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		newTokensUnstaked = tokensUnstaked.Minus(stubInterpreter(), amount, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 	} else {
 		newTokensCommitted = tokensCommitted
 		newTokensUnstaked = tokensUnstaked
@@ -570,8 +593,8 @@ func commitRewarded(t *testing.T,
 	)
 
 	if !shouldFail {
-		newTokensRewarded = tokensRewarded.Minus(stubInterpreter(), amount).(interpreter.UFix64Value)
-		newTokensCommitted = tokensCommitted.Plus(stubInterpreter(), amount).(interpreter.UFix64Value)
+		newTokensRewarded = tokensRewarded.Minus(stubInterpreter(), amount, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		newTokensCommitted = tokensCommitted.Plus(stubInterpreter(), amount, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 	} else {
 		newTokensRewarded = tokensRewarded
 		newTokensCommitted = tokensCommitted
@@ -610,12 +633,12 @@ func requestUnstaking(t *testing.T,
 
 	if !shouldFail {
 		if tokensCommitted > amount {
-			newTokensCommitted = tokensCommitted.Minus(stubInterpreter(), amount).(interpreter.UFix64Value)
-			newTokensUnstaked = tokensUnstaked.Plus(stubInterpreter(), amount).(interpreter.UFix64Value)
+			newTokensCommitted = tokensCommitted.Minus(stubInterpreter(), amount, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+			newTokensUnstaked = tokensUnstaked.Plus(stubInterpreter(), amount, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 			newRequest = request
 		} else {
-			newRequest = request.Plus(stubInterpreter(), amount.Minus(stubInterpreter(), tokensCommitted)).(interpreter.UFix64Value)
-			newTokensUnstaked = tokensUnstaked.Plus(stubInterpreter(), tokensCommitted).(interpreter.UFix64Value)
+			newRequest = request.Plus(stubInterpreter(), amount.Minus(stubInterpreter(), tokensCommitted, interpreter.EmptyLocationRange), interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+			newTokensUnstaked = tokensUnstaked.Plus(stubInterpreter(), tokensCommitted, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 			newTokensCommitted = 0
 		}
 	} else {
@@ -634,11 +657,11 @@ func payRewards(
 ) (
 	rewards, delegateeRewards interpreter.UFix64Value,
 ) {
-	calculatedRewards := totalPayout.Div(stubInterpreter(), totalStaked).Mul(stubInterpreter(), staked).(interpreter.UFix64Value)
+	calculatedRewards := totalPayout.Div(stubInterpreter(), totalStaked, interpreter.EmptyLocationRange).Mul(stubInterpreter(), staked, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 
 	if isDelegator {
-		delegateeRewards = calculatedRewards.Mul(stubInterpreter(), cut).(interpreter.UFix64Value)
-		rewards = calculatedRewards.Minus(stubInterpreter(), delegateeRewards).(interpreter.UFix64Value)
+		delegateeRewards = calculatedRewards.Mul(stubInterpreter(), cut, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		rewards = calculatedRewards.Minus(stubInterpreter(), delegateeRewards, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 
 	} else {
 		delegateeRewards = 0
@@ -653,19 +676,268 @@ func moveTokens(committed, staked, requested, unstaking, unstaked, totalStaked i
 ) (
 	newCommitted, newStaked, newRequested, newUnstaking, newUnstaked, newTotalStaked interpreter.UFix64Value,
 ) {
-	newTotalStaked = totalStaked.Plus(stubInterpreter(), committed).Minus(stubInterpreter(), requested).(interpreter.UFix64Value)
+	newTotalStaked = totalStaked.Plus(stubInterpreter(), committed, interpreter.EmptyLocationRange).Minus(stubInterpreter(), requested, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 
 	newCommitted = 0
 
-	newStaked = staked.Plus(stubInterpreter(), committed).(interpreter.UFix64Value)
+	newStaked = staked.Plus(stubInterpreter(), committed, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 
-	newUnstaked = unstaked.Plus(stubInterpreter(), unstaking).(interpreter.UFix64Value)
+	newUnstaked = unstaked.Plus(stubInterpreter(), unstaking, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 
 	newUnstaking = requested
 
-	newStaked = newStaked.Minus(stubInterpreter(), requested).(interpreter.UFix64Value)
+	newStaked = newStaked.Minus(stubInterpreter(), requested, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 
 	newRequested = 0
 
 	return
+}
+
+// Generates a Cadence {String: Bool} dictionary from an array of node IDs
+func generateCadenceNodeDictionary(nodeIDs []string) cadence.Value {
+
+	// Construct Array
+	nodeIDsCadenceArrayValues := make([]cadence.Value, len(nodeIDs))
+
+	// Construct Boolean
+	trueBool := cadence.NewBool(true)
+
+	keyValuePairArray := make([]cadence.KeyValuePair, len(nodeIDs))
+
+	for i, nodeID := range nodeIDs {
+		cadenceNodeID, _ := cadence.NewString(nodeID)
+
+		nodeIDsCadenceArrayValues[i] = cadenceNodeID
+
+		pair := cadence.KeyValuePair{Key: cadenceNodeID, Value: trueBool}
+
+		keyValuePairArray[i] = pair
+	}
+
+	return cadence.NewDictionary(keyValuePairArray).WithType(cadence.NewDictionaryType(cadence.NewStringType(), cadence.NewBoolType()))
+}
+
+// assertApprovedListEquals asserts the FlowIDTableStaking approved list matches
+// the given node ID list
+// The approved list is guaranteed to only have unique values
+func assertApprovedListEquals(
+	t *testing.T,
+	b *emulator.Blockchain,
+	env templates.Environment,
+	expected cadence.Value, // [String]
+) {
+	result := executeScriptAndCheck(t, b, templates.GenerateGetApprovedNodesScript(env), nil).(cadence.Array).Values
+	assertCadenceNodeArrayElementsEqual(t, expected.(cadence.Array).Values, result)
+}
+
+type CandidateNodes struct {
+	collector    []string
+	consensus    []string
+	execution    []string
+	verification []string
+	access       []string
+}
+
+// assertCandidateNodeListEquals asserts the FlowIDTableStaking candidate node list matches
+// the given node ID list
+func assertCandidateNodeListEquals(
+	t *testing.T,
+	b *emulator.Blockchain,
+	env templates.Environment,
+	expectedCandidateNodeList CandidateNodes,
+) {
+
+	result := executeScriptAndCheck(t, b, templates.GenerateGetCandidateNodesScript(env), nil).(cadence.Dictionary)
+
+	for _, rolePair := range result.Pairs {
+
+		actualNodeIDDict := rolePair.Value.(cadence.Dictionary).Pairs
+
+		if rolePair.Key == cadence.NewUInt8(1) {
+			expectedNodeIDDict := generateCadenceNodeDictionary(expectedCandidateNodeList.collector).(cadence.Dictionary).Pairs
+
+			assertCadenceNodeDictionaryKeysAndValuesEqual(t, expectedNodeIDDict, actualNodeIDDict)
+
+		} else if rolePair.Key == cadence.NewUInt8(2) {
+			expectedNodeIDDict := generateCadenceNodeDictionary(expectedCandidateNodeList.consensus).(cadence.Dictionary).Pairs
+
+			assertCadenceNodeDictionaryKeysAndValuesEqual(t, expectedNodeIDDict, actualNodeIDDict)
+
+		} else if rolePair.Key == cadence.NewUInt8(3) {
+			expectedNodeIDDict := generateCadenceNodeDictionary(expectedCandidateNodeList.execution).(cadence.Dictionary).Pairs
+
+			assertCadenceNodeDictionaryKeysAndValuesEqual(t, expectedNodeIDDict, actualNodeIDDict)
+
+		} else if rolePair.Key == cadence.NewUInt8(4) {
+			expectedNodeIDDict := generateCadenceNodeDictionary(expectedCandidateNodeList.verification).(cadence.Dictionary).Pairs
+
+			assertCadenceNodeDictionaryKeysAndValuesEqual(t, expectedNodeIDDict, actualNodeIDDict)
+
+		} else if rolePair.Key == cadence.NewUInt8(5) {
+			expectedNodeIDDict := generateCadenceNodeDictionary(expectedCandidateNodeList.access).(cadence.Dictionary).Pairs
+
+			assertCadenceNodeDictionaryKeysAndValuesEqual(t, expectedNodeIDDict, actualNodeIDDict)
+
+		}
+
+	}
+
+}
+
+// assertCandidateLimitsEquals asserts the FlowIDTableStaking
+// candidate node limits matches the given limit list
+func assertCandidateLimitsEquals(
+	t *testing.T,
+	b *emulator.Blockchain,
+	env templates.Environment,
+	expectedCandidateNodeList []uint64,
+) {
+
+	result := executeScriptAndCheck(t, b, templates.GenerateGetCandidateLimitsScript(env), nil).(cadence.Dictionary)
+
+	for _, rolePair := range result.Pairs {
+
+		if rolePair.Key == cadence.NewUInt8(1) {
+
+			assert.Equal(t, cadence.NewUInt64(expectedCandidateNodeList[0]), rolePair.Value)
+
+		} else if rolePair.Key == cadence.NewUInt8(2) {
+
+			assert.Equal(t, cadence.NewUInt64(expectedCandidateNodeList[1]), rolePair.Value)
+
+		} else if rolePair.Key == cadence.NewUInt8(3) {
+
+			assert.Equal(t, cadence.NewUInt64(expectedCandidateNodeList[2]), rolePair.Value)
+
+		} else if rolePair.Key == cadence.NewUInt8(4) {
+
+			assert.Equal(t, cadence.NewUInt64(expectedCandidateNodeList[3]), rolePair.Value)
+
+		} else if rolePair.Key == cadence.NewUInt8(5) {
+
+			assert.Equal(t, cadence.NewUInt64(expectedCandidateNodeList[4]), rolePair.Value)
+
+		}
+	}
+}
+
+// assertRoleCountsEquals asserts the FlowIDTableStaking
+// role counts matches the given list
+func assertRoleCountsEquals(
+	t *testing.T,
+	b *emulator.Blockchain,
+	env templates.Environment,
+	expectedRoleCountsList []uint16,
+) {
+
+	result := executeScriptAndCheck(t, b, templates.GenerateGetRoleCountsScript(env), nil).(cadence.Dictionary)
+
+	for _, rolePair := range result.Pairs {
+
+		if rolePair.Key == cadence.NewUInt8(1) {
+
+			assert.Equal(t, cadence.NewUInt16(expectedRoleCountsList[0]), rolePair.Value)
+
+		} else if rolePair.Key == cadence.NewUInt8(2) {
+
+			assert.Equal(t, cadence.NewUInt16(expectedRoleCountsList[1]), rolePair.Value)
+
+		} else if rolePair.Key == cadence.NewUInt8(3) {
+
+			assert.Equal(t, cadence.NewUInt16(expectedRoleCountsList[2]), rolePair.Value)
+
+		} else if rolePair.Key == cadence.NewUInt8(4) {
+
+			assert.Equal(t, cadence.NewUInt16(expectedRoleCountsList[3]), rolePair.Value)
+
+		} else if rolePair.Key == cadence.NewUInt8(5) {
+
+			assert.Equal(t, cadence.NewUInt16(expectedRoleCountsList[4]), rolePair.Value)
+
+		}
+	}
+}
+
+// / Sets the role slot limits to the specified values
+func setNodeRoleSlotLimits(
+	t *testing.T,
+	b *emulator.Blockchain,
+	env templates.Environment,
+	idTableAddress flow.Address,
+	idTableSigner crypto.Signer,
+	slotLimits [5]uint16,
+) {
+	// set the slot limits
+	cadenceSlotLimits := make([]cadence.Value, 5)
+	for i := 0; i < 5; i++ {
+		cadenceSlotLimits[i] = cadence.NewUInt16(slotLimits[i])
+	}
+
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetSlotLimitsScript(env), idTableAddress)
+
+	err := tx.AddArgument(cadence.NewArray(cadenceSlotLimits))
+	require.NoError(t, err)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]crypto.Signer{idTableSigner},
+		false,
+	)
+}
+
+// Asserts that {String: Bool} dictionaries of node IDs from the staking contract
+// have the same keys and values and have the same length
+// We have no guarantees about the order of elements, so we can't check that
+func assertCadenceNodeDictionaryKeysAndValuesEqual(t *testing.T, expected, actual []cadence.KeyValuePair) bool {
+	assert.Len(t, actual, len(expected))
+
+	for _, resultPair := range actual {
+		found := false
+		for _, expectedPair := range expected {
+			if resultPair.Key == expectedPair.Key && resultPair.Value == expectedPair.Value {
+				found = true
+			}
+		}
+
+		// One of the result values was not found in the expected list
+		if !assert.True(t, found) {
+			message := fmt.Sprintf(
+				"Dictionaries are not equal: \nexpected: %s\nactual  : %s",
+				expected,
+				actual,
+			)
+
+			return assert.Fail(t, message)
+		}
+	}
+	return true
+}
+
+// Asserts that arrays of node IDs from the staking contract
+// have the same elements and have the same length
+// We have no guarantees about the order of elements, so we can't check that
+func assertCadenceNodeArrayElementsEqual(t *testing.T, expected, actual []cadence.Value) bool {
+	assert.Len(t, actual, len(expected))
+
+	for _, resultVal := range actual {
+		found := false
+		for _, expectedVal := range expected {
+			if resultVal == expectedVal {
+				found = true
+			}
+		}
+
+		// One of the result values was not found in the expected list
+		if !assert.True(t, found) {
+			message := fmt.Sprintf(
+				"Arrays are not equal: \nexpected: %s\nactual  : %s",
+				expected,
+				actual,
+			)
+
+			return assert.Fail(t, message)
+		}
+	}
+	return true
 }

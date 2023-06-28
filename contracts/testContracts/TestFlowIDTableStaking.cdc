@@ -257,11 +257,19 @@ pub contract FlowIDTableStaking {
 
     }
 
-    pub fun registerNewDelegator(nodeID: String): @NodeDelegator {
+    pub fun registerNewDelegator(nodeID: String, tokensCommitted: @FungibleToken.Vault): @NodeDelegator {
+
+        destroy tokensCommitted
 
         return <-create NodeDelegator(id: 1, nodeID: nodeID)
     }
 
-    init(_ epochTokenPayout: UFix64, _ rewardCut: UFix64) {
+    /// Gets the minimum stake requirement for delegators
+    pub fun getDelegatorMinimumStakeRequirement(): UFix64 {
+        return self.account.copy<UFix64>(from: /storage/delegatorStakingMinimum)
+            ?? 0.0
+    }
+
+    init(_ epochTokenPayout: UFix64, _ rewardCut: UFix64, _ candidateLimits: {UInt8: UInt64}) {
     }
 }

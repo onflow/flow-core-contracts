@@ -61,7 +61,7 @@ func TestStakingCollectionGetTokens(t *testing.T) {
 	regAccountAddress, _, regAccountSigner := newAccountWithAddress(b, accountKeys)
 
 	// Add 1Billion tokens to regular account
-	mintTokensForAccount(t, b, regAccountAddress, "1000000000.0")
+	mintTokensForAccount(t, b, env, regAccountAddress, "1000000000.0")
 
 	// add a staking collection to a regular account with no locked account
 	t.Run("should be able to setup an account with a staking collection", func(t *testing.T) {
@@ -309,7 +309,7 @@ func TestStakingCollectionDepositTokens(t *testing.T) {
 	// create regular account
 	regAccountAddress, _, regAccountSigner := newAccountWithAddress(b, accountKeys)
 	// Add 1Billion tokens to regular account
-	mintTokensForAccount(t, b, regAccountAddress, "1000000000.0")
+	mintTokensForAccount(t, b, env, regAccountAddress, "1000000000.0")
 	addStakingCollectionToRegAcctWithNoLockedAcctTx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionSetup(env), regAccountAddress)
 	signAndSubmit(
 		t, b, addStakingCollectionToRegAcctWithNoLockedAcctTx,
@@ -433,7 +433,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 	// Create new keys for the epoch account
 	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
 
-	_, _ = initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
+	idTableAddress, _ := initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
 		startEpochCounter, // start epoch counter
 		numEpochViews,     // num views per epoch
 		numStakingViews,   // num views for staking auction
@@ -447,8 +447,20 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 	deployAllCollectionContracts(t, b, accountKeys, &env, adminAddress, adminSigner)
 
+	// Change the delegator staking minimum to zero
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateChangeDelegatorMinimumsScript(env), idTableAddress)
+
+	tx.AddArgument(CadenceUFix64("0.0"))
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]crypto.Signer{IDTableSigner},
+		false,
+	)
+
 	// Create regular accounts
-	userAddresses, _, userSigners := registerAndMintManyAccounts(t, b, accountKeys, 4)
+	userAddresses, _, userSigners := registerAndMintManyAccounts(t, b, env, accountKeys, 4)
 	_, adminStakingKey, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
 
 	var amountToCommit interpreter.UFix64Value = 48000000000000
@@ -474,8 +486,12 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		false)
 
 	// end staking auction and epoch, then pay rewards
-	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), flow.HexToAddress(env.IDTableAddress))
-	err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID)}))
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), flow.HexToAddress(env.IDTableAddress))
+	ids := make([]string, 1)
+	ids[0] = adminID
+	approvedNodeIDs := generateCadenceNodeDictionary(ids)
+
+	err := tx.AddArgument(approvedNodeIDs)
 	require.NoError(t, err)
 	signAndSubmit(
 		t, b, tx,
@@ -682,7 +698,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", bastian)))
 		_ = tx.AddArgument(CadenceString(bastianNetworkingKey))
 		_ = tx.AddArgument(CadenceString(bastianStakingKey))
-		_ = tx.AddArgument(CadenceUFix64("10000.0"))
+		_ = tx.AddArgument(CadenceUFix64("250000.0"))
 		_ = tx.AddArgument(cadence.NewOptional(cadencePublicKeys))
 
 		result := signAndSubmit(
@@ -696,9 +712,9 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 		verifyStakingCollectionInfo(t, b, env, StakingCollectionInfo{
 			accountAddress:     joshAddress.String(),
-			unlockedBalance:    "620000.0",
+			unlockedBalance:    "380000.0",
 			lockedBalance:      "0.0",
-			unlockedTokensUsed: "380000.0",
+			unlockedTokensUsed: "620000.0",
 			lockedTokensUsed:   "630000.0",
 			unlockLimit:        "0.0",
 			nodes:              []string{maxID, bastianID, joshID},
@@ -710,7 +726,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 	t.Run("Should be able to deposit and withdraw tokens from the machine account", func(t *testing.T) {
 
 		// Add 100 tokens to the machine account
-		mintTokensForAccount(t, b, machineAccounts[CadenceString(bastianID).(cadence.String)], "100.0")
+		mintTokensForAccount(t, b, env, machineAccounts[CadenceString(bastianID).(cadence.String)], "100.0")
 
 		// Should fail because this node does not exist in the collection
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionWithdrawFromMachineAccountScript(env), joshAddress)
@@ -737,9 +753,9 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 		verifyStakingCollectionInfo(t, b, env, StakingCollectionInfo{
 			accountAddress:     joshAddress.String(),
-			unlockedBalance:    "620050.0",
+			unlockedBalance:    "380050.0",
 			lockedBalance:      "0.0",
-			unlockedTokensUsed: "380000.0",
+			unlockedTokensUsed: "620000.0",
 			lockedTokensUsed:   "630000.0",
 			unlockLimit:        "0.0",
 			nodes:              []string{maxID, bastianID, joshID},
@@ -750,6 +766,8 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 	t.Run("Should be able to register a execution and verification node in the staking collection and not create machine accounts", func(t *testing.T) {
 
+		mintTokensForAccount(t, b, env, joshAddress, "2000000.0")
+
 		_, executionStakingKey, _, executionNetworkingKey := generateKeysForNodeRegistration(t)
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterNode(env), joshAddress)
@@ -758,7 +776,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", execution)))
 		_ = tx.AddArgument(CadenceString(executionNetworkingKey))
 		_ = tx.AddArgument(CadenceString(executionStakingKey))
-		_ = tx.AddArgument(CadenceUFix64("10000.0"))
+		_ = tx.AddArgument(CadenceUFix64("1250000.0"))
 		_ = tx.AddArgument(cadence.NewOptional(nil))
 
 		signAndSubmit(
@@ -784,11 +802,11 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterNode(env), joshAddress)
 		_ = tx.AddArgument(CadenceString(verificationID))
-		_ = tx.AddArgument(cadence.NewUInt8(3))
+		_ = tx.AddArgument(cadence.NewUInt8(4))
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", verification)))
 		_ = tx.AddArgument(CadenceString(verificationNetworkingKey))
 		_ = tx.AddArgument(CadenceString(verificationStakingKey))
-		_ = tx.AddArgument(CadenceUFix64("10000.0"))
+		_ = tx.AddArgument(CadenceUFix64("150000.0"))
 		_ = tx.AddArgument(cadence.NewOptional(nil))
 
 		signAndSubmit(
@@ -800,9 +818,9 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 		verifyStakingCollectionInfo(t, b, env, StakingCollectionInfo{
 			accountAddress:     joshAddress.String(),
-			unlockedBalance:    "600050.0",
+			unlockedBalance:    "980050.0",
 			lockedBalance:      "0.0",
-			unlockedTokensUsed: "400000.0",
+			unlockedTokensUsed: "2020000.0",
 			lockedTokensUsed:   "630000.0",
 			unlockLimit:        "0.0",
 			nodes:              []string{maxID, bastianID, executionID, verificationID, joshID},
@@ -849,7 +867,7 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 	deployAllCollectionContracts(t, b, accountKeys, &env, adminAddress, adminSigner)
 
 	// Create regular accounts
-	userAddresses, _, userSigners := registerAndMintManyAccounts(t, b, accountKeys, 4)
+	userAddresses, _, userSigners := registerAndMintManyAccounts(t, b, env, accountKeys, 4)
 	_, adminStakingKey, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
 
 	var amountToCommit interpreter.UFix64Value = 48000000000000
@@ -869,7 +887,12 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 
 	// end staking auction and epoch, then pay rewards
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), flow.HexToAddress(env.IDTableAddress))
-	err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID)}))
+
+	ids := make([]string, 1)
+	ids[0] = adminID
+	approvedNodeIDs := generateCadenceNodeDictionary(ids)
+
+	err := tx.AddArgument(approvedNodeIDs)
 	require.NoError(t, err)
 	signAndSubmit(
 		t, b, tx,
@@ -961,7 +984,7 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 	_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
 	_ = tx.AddArgument(CadenceString(joshNetworkingKey))
 	_ = tx.AddArgument(CadenceString(joshStakingKey))
-	_ = tx.AddArgument(CadenceUFix64("320000.0"))
+	_ = tx.AddArgument(CadenceUFix64("500000.0"))
 
 	signAndSubmit(
 		t, b, tx,
@@ -986,7 +1009,7 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 		verifyStakingCollectionInfo(t, b, env, StakingCollectionInfo{
 			accountAddress:     joshAddress.String(),
 			unlockedBalance:    "1000000.0",
-			lockedBalance:      "680000.0",
+			lockedBalance:      "500000.0",
 			unlockedTokensUsed: "0.0",
 			lockedTokensUsed:   "0.0",
 			unlockLimit:        "0.0",
@@ -1011,7 +1034,7 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 		verifyStakingCollectionInfo(t, b, env, StakingCollectionInfo{
 			accountAddress:     joshAddress.String(),
 			unlockedBalance:    "1000000.0",
-			lockedBalance:      "680000.0",
+			lockedBalance:      "500000.0",
 			unlockedTokensUsed: "0.0",
 			lockedTokensUsed:   "0.0",
 			unlockLimit:        "0.0",
@@ -1571,7 +1594,8 @@ func TestStakingCollectionRewards(t *testing.T) {
 
 	// end staking auction and epoch, then pay rewards
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), flow.HexToAddress(env.IDTableAddress))
-	err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID)}))
+	approvedNodeIDs := generateCadenceNodeDictionary([]string{adminID, joshID})
+	err := tx.AddArgument(approvedNodeIDs)
 	require.NoError(t, err)
 	signAndSubmit(
 		t, b, tx,
@@ -2016,7 +2040,7 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 
 		// End staking auction and epoch
 		endStakingMoveTokens(t, b, env, flow.HexToAddress(env.IDTableAddress), IDTableSigner,
-			[]cadence.Value{CadenceString(adminID), CadenceString(joshID)},
+			[]string{adminID, joshID},
 		)
 
 		// Should fail because node isn't ready to be closed. tokens in staked bucket
@@ -2126,7 +2150,7 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 
 		// End staking auction and epoch
 		endStakingMoveTokens(t, b, env, flow.HexToAddress(env.IDTableAddress), IDTableSigner,
-			[]cadence.Value{CadenceString(adminID), CadenceString(joshID)},
+			[]string{adminID, joshID},
 		)
 
 		// Should fail because node isn't ready to be closed. tokens in unstaking bucket
@@ -2176,7 +2200,7 @@ func TestStakingCollectionCloseStake(t *testing.T) {
 		)
 
 		endStakingMoveTokens(t, b, env, flow.HexToAddress(env.IDTableAddress), IDTableSigner,
-			[]cadence.Value{CadenceString(adminID), CadenceString(joshID)},
+			[]string{adminID, joshID},
 		)
 
 		verifyStakingInfo(t, b, env, StakingInfo{

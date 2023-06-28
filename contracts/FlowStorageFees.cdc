@@ -71,14 +71,7 @@ pub contract FlowStorageFees {
                 balance = balanceRef.balance
         }
 
-        // get address token balance
-        if balance < self.minimumStorageReservation {
-            // if < then minimum return 0
-            return 0.0
-        } else {
-            // return balance multiplied with megabytes per flow 
-            return balance.saturatingMultiply(self.storageMegaBytesPerReservedFLOW)
-        }
+        return self.accountBalanceToAccountStorageCapacity(balance)
     }
 
     /// calculateAccountsCapacity returns the storage capacity of a batch of accounts
@@ -89,6 +82,43 @@ pub contract FlowStorageFees {
             capacities.append(capacity)
         }
         return capacities
+    }
+
+    // getAccountsCapacityForTransactionStorageCheck returns the storage capacity of a batch of accounts
+    // This is used to check if a transaction will fail because of any account being over the storage capacity
+    // The payer is an exception as its storage capacity is derived from its balance minus the maximum possible transaction fees 
+    // (transaction fees if the execution effort is at the execution efort limit, a.k.a.: computation limit, a.k.a.: gas limit)
+    pub fun getAccountsCapacityForTransactionStorageCheck(accountAddresses: [Address], payer: Address, maxTxFees: UFix64): [UFix64] {
+        let capacities: [UFix64] = []
+        for accountAddress in accountAddresses {
+            var balance = 0.0
+            if let balanceRef = getAccount(accountAddress)
+                .getCapability<&FlowToken.Vault{FungibleToken.Balance}>(/public/flowTokenBalance)!
+                .borrow() {
+                    if accountAddress == payer {
+                        // if the account is the payer, deduct the maximum possible transaction fees from the balance
+                        balance = balanceRef.balance.saturatingSubtract(maxTxFees)
+                    } else {
+                        balance = balanceRef.balance
+                    }
+            }
+
+            capacities.append(self.accountBalanceToAccountStorageCapacity(balance)) 
+        }
+        return capacities
+    }
+
+    // accountBalanceToAccountStorageCapacity returns the storage capacity
+    // an account would have with given the flow balance of the account.
+    pub fun accountBalanceToAccountStorageCapacity(_ balance: UFix64): UFix64 {
+        // get address token balance
+        if balance < self.minimumStorageReservation {
+            // if < then minimum return 0
+            return 0.0
+        }
+
+        // return balance multiplied with megabytes per flow 
+        return self.flowToStorageCapacity(balance)
     }
 
     // Amount in Flow tokens
@@ -119,7 +149,7 @@ pub contract FlowStorageFees {
 
     /// Gets "available" balance of an account
     ///
-    /// The available balance is its default token balance minus what is reserved for storage.
+    /// The available balance of an account is its default token balance minus what is reserved for storage.
     /// If the account has no default balance it is counted as a balance of 0.0 FLOW
     pub fun defaultTokenAvailableBalance(_ accountAddress: Address): UFix64 {
         //get balance of account
@@ -132,13 +162,24 @@ pub contract FlowStorageFees {
         }
 
         // get how much should be reserved for storage
+        var reserved = self.defaultTokenReservedBalance(accountAddress)
+
+        return balance.saturatingSubtract(reserved)
+    }
+
+    /// Gets "reserved" balance of an account
+    ///
+    /// The reserved balance of an account is its storage used multiplied by the storage cost per flow token.
+    /// The reserved balance is at least the minimum storage reservation.
+    pub fun defaultTokenReservedBalance(_ accountAddress: Address): UFix64 {
+        let acct = getAccount(accountAddress)
         var reserved = self.storageCapacityToFlow(self.convertUInt64StorageBytesToUFix64Megabytes(acct.storageUsed))
         // at least self.minimumStorageReservation should be reserved
         if reserved < self.minimumStorageReservation {
             reserved = self.minimumStorageReservation
         }
 
-        return balance.saturatingSubtract(reserved)
+        return reserved
     }
 
     init() {
@@ -149,3 +190,4 @@ pub contract FlowStorageFees {
         self.account.save(<-admin, to: /storage/storageFeesAdmin)
     }
 }
+ 

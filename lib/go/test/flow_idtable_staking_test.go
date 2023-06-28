@@ -10,7 +10,7 @@ import (
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/cadence/runtime/interpreter"
-	emulator "github.com/onflow/flow-emulator"
+	//emulator "github.com/onflow/flow-emulator"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/test"
@@ -58,7 +58,7 @@ func TestIDTableDeployment(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true)
+	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, &env, true, []uint64{10, 10, 10, 10, 10})
 
 	env.IDTableAddress = idTableAddress.Hex()
 
@@ -88,7 +88,7 @@ func TestIDTableDeployment(t *testing.T) {
 		assertEqual(t, CadenceUFix64("135000.0"), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetStakeRequirementsScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(5))})
-		assertEqual(t, CadenceUFix64("0.0"), result)
+		assertEqual(t, CadenceUFix64("100.0"), result)
 
 		// Check that the total tokens staked for each node role are initialized correctly
 
@@ -128,6 +128,10 @@ func TestIDTableDeployment(t *testing.T) {
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetWeeklyPayoutScript(env), nil)
 		assertEqual(t, CadenceUFix64("1250000.0"), result)
+
+		assertCandidateLimitsEquals(t, b, env, []uint64{10, 10, 10, 10, 10})
+
+		assertRoleCountsEquals(t, b, env, []uint16{0, 0, 0, 0, 0})
 
 	})
 
@@ -235,13 +239,11 @@ func TestStakingTransferAdmin(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true)
+	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, &env, true, []uint64{10, 10, 10, 10, 10})
 
 	//
 	joshAccountKey, joshSigner := accountKeys.NewWithSigner()
 	joshAddress, _ := b.CreateAccount([]*flow.AccountKey{joshAccountKey}, nil)
-
-	env.IDTableAddress = idTableAddress.Hex()
 
 	t.Run("Should be able to transfer the admin capability to another account", func(t *testing.T) {
 
@@ -270,7 +272,10 @@ func TestStakingTransferAdmin(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(joshAddress)
 
-		err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID), CadenceString(maxID), CadenceString(accessID)}))
+		nodeIDs := make([]string, 0)
+		nodeIDDict := generateCadenceNodeDictionary(nodeIDs)
+
+		err := tx.AddArgument(nodeIDDict)
 		require.NoError(t, err)
 		tx.AddArgument(CadenceUFix64("1300000.0"))
 
@@ -284,93 +289,39 @@ func TestStakingTransferAdmin(t *testing.T) {
 
 }
 
-func TestIDTableStaking(t *testing.T) {
+func TestIDTableRegistration(t *testing.T) {
 
-	t.Parallel()
-
-	b := newBlockchain()
-
-	env := templates.Environment{
-		FungibleTokenAddress: emulatorFTAddress,
-		FlowTokenAddress:     emulatorFlowTokenAddress,
-	}
-
-	accountKeys := test.AccountKeyGenerator()
-
-	var totalPayout interpreter.UFix64Value = 125000000000000 // 1.25M
-	var cutPercentage interpreter.UFix64Value = 8000000       // 8.0 %
+	b, accountKeys, env := newTestSetup(t)
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	idTableAddress, feesAddr := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true)
+	idTableAddress, feesAddr := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, &env, true, []uint64{1, 1, 1, 1, 1})
+	_, adminStakingKey, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
+	mintTokensForAccount(t, b, env, idTableAddress, "1000000000.0")
+
+	setNodeRoleSlotLimits(t, b, env, idTableAddress, IDTableSigner, [5]uint16{1, 1, 1, 1, 1})
 
 	env.IDTableAddress = idTableAddress.Hex()
 	env.FlowFeesAddress = feesAddr.Hex()
 
-	var totalStaked interpreter.UFix64Value = 0
+	// Create new user accounts
+	joshAddress, _, joshSigner := newAccountWithAddress(b, accountKeys)
+	_, joshStakingKey, _, joshNetworkingKey := generateKeysForNodeRegistration(t)
+	mintTokensForAccount(t, b, env, joshAddress, "1000000000.0")
+
+	maxAddress, _, maxSigner := newAccountWithAddress(b, accountKeys)
+	_, maxStakingKey, _, maxNetworkingKey := generateKeysForNodeRegistration(t)
+	mintTokensForAccount(t, b, env, maxAddress, "1000000000.0")
+
+	bastianAddress, _, bastianSigner := newAccountWithAddress(b, accountKeys)
+	_, bastianStakingKey, _, bastianNetworkingKey := generateKeysForNodeRegistration(t)
+	mintTokensForAccount(t, b, env, bastianAddress, "1000000000.0")
+
+	accessAddress, _, accessSigner := newAccountWithAddress(b, accountKeys)
+	_, accessStakingKey, _, accessNetworkingKey := generateKeysForNodeRegistration(t)
+	mintTokensForAccount(t, b, env, accessAddress, "1000000000.0")
 
 	committed := make(map[string]interpreter.UFix64Value)
-	staked := make(map[string]interpreter.UFix64Value)
-	request := make(map[string]interpreter.UFix64Value)
-	unstaking := make(map[string]interpreter.UFix64Value)
-	unstaked := make(map[string]interpreter.UFix64Value)
-	rewards := make(map[string]interpreter.UFix64Value)
-
-	// Create new user accounts
-	joshAccountKey, joshSigner := accountKeys.NewWithSigner()
-	joshAddress, _ := b.CreateAccount([]*flow.AccountKey{joshAccountKey}, nil)
-	_, joshStakingKey, _, joshNetworkingKey := generateKeysForNodeRegistration(t)
-
-	// Create a new user account
-	maxAccountKey, maxSigner := accountKeys.NewWithSigner()
-	maxAddress, _ := b.CreateAccount([]*flow.AccountKey{maxAccountKey}, nil)
-	_, maxStakingKey, _, maxNetworkingKey := generateKeysForNodeRegistration(t)
-
-	// Create a new user account
-	bastianAccountKey, bastianSigner := accountKeys.NewWithSigner()
-	bastianAddress, _ := b.CreateAccount([]*flow.AccountKey{bastianAccountKey}, nil)
-	_, bastianStakingKey, _, bastianNetworkingKey := generateKeysForNodeRegistration(t)
-
-	// Create a new user account for access node
-	accessAccountKey, accessSigner := accountKeys.NewWithSigner()
-	accessAddress, _ := b.CreateAccount([]*flow.AccountKey{accessAccountKey}, nil)
-	_, accessStakingKey, _, accessNetworkingKey := generateKeysForNodeRegistration(t)
-
-	// Create new delegator user accounts
-	adminDelegatorAccountKey, adminDelegatorSigner := accountKeys.NewWithSigner()
-	adminDelegatorAddress, _ := b.CreateAccount([]*flow.AccountKey{adminDelegatorAccountKey}, nil)
-	_, adminStakingKey, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
-
-	joshDelegatorOneAccountKey, joshDelegatorOneSigner := accountKeys.NewWithSigner()
-	joshDelegatorOneAddress, _ := b.CreateAccount([]*flow.AccountKey{joshDelegatorOneAccountKey}, nil)
-
-	maxDelegatorOneAccountKey, maxDelegatorOneSigner := accountKeys.NewWithSigner()
-	maxDelegatorOneAddress, _ := b.CreateAccount([]*flow.AccountKey{maxDelegatorOneAccountKey}, nil)
-
-	maxDelegatorTwoAccountKey, maxDelegatorTwoSigner := accountKeys.NewWithSigner()
-	maxDelegatorTwoAddress, _ := b.CreateAccount([]*flow.AccountKey{maxDelegatorTwoAccountKey}, nil)
-
-	t.Run("Should be able to mint tokens for new accounts", func(t *testing.T) {
-
-		mintTokensForAccount(t, b, idTableAddress, "1000000000.0")
-
-		mintTokensForAccount(t, b, joshAddress, "1000000000.0")
-
-		mintTokensForAccount(t, b, maxAddress, "1000000000.0")
-
-		mintTokensForAccount(t, b, accessAddress, "1000000000.0")
-
-		mintTokensForAccount(t, b, bastianAddress, "1000000000.0")
-
-		mintTokensForAccount(t, b, maxDelegatorOneAddress, "1000000000.0")
-
-		mintTokensForAccount(t, b, maxDelegatorTwoAddress, "1000000000.0")
-
-		mintTokensForAccount(t, b, joshDelegatorOneAddress, "1000000000.0")
-
-		mintTokensForAccount(t, b, adminDelegatorAddress, "1000000000.0")
-
-	})
 
 	t.Run("Shouldn't be able to create invalid Node structs", func(t *testing.T) {
 
@@ -460,7 +411,7 @@ func TestIDTableStaking(t *testing.T) {
 
 		var amountToCommit interpreter.UFix64Value = 25000000000000
 
-		committed[adminID] = registerNode(t, b, env,
+		registerNode(t, b, env,
 			idTableAddress,
 			IDTableSigner,
 			adminID,
@@ -477,6 +428,7 @@ func TestIDTableStaking(t *testing.T) {
 		idArray := result.(cadence.Array).Values
 		assert.Len(t, idArray, 1)
 
+		// Should not be on the proposed list yet because it isn't approved
 		result = executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
 
 		idArray = result.(cadence.Array).Values
@@ -496,18 +448,6 @@ func TestIDTableStaking(t *testing.T) {
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetInitialWeightScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		assertEqual(t, cadence.NewUInt64(0), result)
-
-		result = executeScriptAndCheck(t, b, templates.GenerateGetStakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
-		assertEqual(t, CadenceUFix64(staked[adminID].String()), result)
-
-		result = executeScriptAndCheck(t, b, templates.GenerateGetCommittedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
-		assertEqual(t, CadenceUFix64(committed[adminID].String()), result)
-
-		result = executeScriptAndCheck(t, b, templates.GenerateGetUnstakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
-		assertEqual(t, CadenceUFix64(unstaked[adminID].String()), result)
-
-		result = executeScriptAndCheck(t, b, templates.GenerateGetUnstakingBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
-		assertEqual(t, CadenceUFix64(unstaking[adminID].String()), result)
 
 		registerNode(t, b, env,
 			idTableAddress,
@@ -630,136 +570,6 @@ func TestIDTableStaking(t *testing.T) {
 
 	})
 
-	t.Run("Should be able to add nodes to approved node list", func(t *testing.T) {
-
-		// [josh, max]
-		initialNodeIDs := cadence.NewArray([]cadence.Value{CadenceString(joshID), CadenceString(maxID)}).WithType(cadence.NewVariableSizedArrayType(cadence.NewStringType()))
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
-
-		err := tx.AddArgument(initialNodeIDs)
-		require.NoError(t, err)
-
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
-			false,
-		)
-
-		// adding an existing node to the approved node list should be a no-op
-		t.Run("existing node", func(t *testing.T) {
-			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateAddApprovedNodesScript(env), idTableAddress)
-
-			addingNodeIDs := cadence.NewArray([]cadence.Value{CadenceString(joshID)})
-			err := tx.AddArgument(addingNodeIDs)
-			require.NoError(t, err)
-
-			signAndSubmit(
-				t, b, tx,
-				[]flow.Address{idTableAddress},
-				[]crypto.Signer{IDTableSigner},
-				false,
-			)
-
-			assertApprovedListEquals(t, b, env, initialNodeIDs)
-		})
-		// adding a new node should result in that node being added to the existing list
-		t.Run("new node", func(t *testing.T) {
-			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateAddApprovedNodesScript(env), idTableAddress)
-
-			// should now be [josh, max, admin]
-			addingNodeIDs := cadence.NewArray([]cadence.Value{CadenceString(adminID)})
-			err := tx.AddArgument(addingNodeIDs)
-			require.NoError(t, err)
-
-			signAndSubmit(
-				t, b, tx,
-				[]flow.Address{idTableAddress},
-				[]crypto.Signer{IDTableSigner},
-				false,
-			)
-
-			expected := cadence.NewArray([]cadence.Value{CadenceString(joshID), CadenceString(maxID), CadenceString(adminID)}).WithType(cadence.NewVariableSizedArrayType(cadence.NewStringType()))
-			assertApprovedListEquals(t, b, env, expected)
-		})
-	})
-
-	t.Run("Should be able to remove nodes from approved node list", func(t *testing.T) {
-
-		// [josh, max]
-		initialNodeIDs := cadence.NewArray([]cadence.Value{CadenceString(joshID), CadenceString(maxID)})
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
-
-		err := tx.AddArgument(initialNodeIDs)
-		require.NoError(t, err)
-
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
-			false,
-		)
-
-		// removing an existing node from the approved node list should remove that node
-		t.Run("existing node", func(t *testing.T) {
-			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRemoveApprovedNodesScript(env), idTableAddress)
-
-			removingNodeIDs := cadence.NewArray([]cadence.Value{CadenceString(joshID)})
-			err := tx.AddArgument(removingNodeIDs)
-			require.NoError(t, err)
-
-			signAndSubmit(
-				t, b, tx,
-				[]flow.Address{idTableAddress},
-				[]crypto.Signer{IDTableSigner},
-				false,
-			)
-
-			expected := cadence.NewArray([]cadence.Value{CadenceString(maxID)}).WithType(cadence.NewVariableSizedArrayType(cadence.NewStringType()))
-			assertApprovedListEquals(t, b, env, expected)
-		})
-		// removing an unknown node should cause a revert
-		t.Run("unknown node", func(t *testing.T) {
-			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRemoveApprovedNodesScript(env), idTableAddress)
-
-			removingNodeIDs := cadence.NewArray([]cadence.Value{CadenceString(nonexistantID)})
-			err := tx.AddArgument(removingNodeIDs)
-			require.NoError(t, err)
-
-			signAndSubmit(
-				t, b, tx,
-				[]flow.Address{idTableAddress},
-				[]crypto.Signer{IDTableSigner},
-				true,
-			)
-		})
-	})
-
-	t.Run("Should be able to set and get the approved node list", func(t *testing.T) {
-
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
-
-		err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID), CadenceString(maxID), CadenceString(accessID)}))
-		require.NoError(t, err)
-
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
-			false,
-		)
-
-		// read the approved nodes list and check that our node ids exists
-		result := executeScriptAndCheck(t, b, templates.GenerateGetApprovedNodesScript(env), nil)
-		idArray := result.(cadence.Array).Values
-		assert.Len(t, idArray, 4)
-
-		// read the proposed nodes table and check that our node ids exists
-		result = executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
-		idArray = result.(cadence.Array).Values
-		assert.Len(t, idArray, 1)
-	})
-
 	t.Run("Shouldn't be able to remove a Node that doesn't exist", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRemoveNodeScript(env), idTableAddress)
@@ -776,7 +586,7 @@ func TestIDTableStaking(t *testing.T) {
 
 	t.Run("Should be able to create more valid Node structs", func(t *testing.T) {
 
-		var amountToCommit interpreter.UFix64Value = 48000000000000
+		var amountToCommit interpreter.UFix64Value = 50000000000000
 
 		committed[joshID] = registerNode(t, b, env,
 			joshAddress,
@@ -825,18 +635,34 @@ func TestIDTableStaking(t *testing.T) {
 
 		idArray := result.(cadence.Array).Values
 		assert.Len(t, idArray, 0)
-
-		result = executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
-
-		idArray = result.(cadence.Array).Values
-		assert.Len(t, idArray, 3)
 	})
 
-	t.Run("Should be able to remove a Node from the proposed record and add it back", func(t *testing.T) {
+	t.Run("Shouldn't be able to register a node if it would be more than the candidate limit", func(t *testing.T) {
 
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRemoveNodeScript(env), idTableAddress)
+		var amountToCommit interpreter.UFix64Value = 48000000000000
 
-		_ = tx.AddArgument(CadenceString(joshID))
+		registerNode(t, b, env,
+			bastianAddress,
+			bastianSigner,
+			bastianID,
+			fmt.Sprintf("%0128d", bastian),
+			bastianNetworkingKey,
+			bastianStakingKey,
+			amountToCommit,
+			committed[bastianID],
+			5,
+			true)
+	})
+
+	t.Run("Should be able to set new candidate limit and register the node that was previously rejected", func(t *testing.T) {
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetCandidateLimitsScript(env), idTableAddress)
+
+		err := tx.AddArgument(cadence.NewUInt8(5))
+		require.NoError(t, err)
+
+		err = tx.AddArgument(cadence.NewUInt64(2))
+		require.NoError(t, err)
 
 		signAndSubmit(
 			t, b, tx,
@@ -845,38 +671,497 @@ func TestIDTableStaking(t *testing.T) {
 			false,
 		)
 
-		result := executeScriptAndCheck(t, b, templates.GenerateReturnCurrentTableScript(env), nil)
-
-		idArray := result.(cadence.Array).Values
-		assert.Len(t, idArray, 0)
-
-		result = executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
-
-		idArray = result.(cadence.Array).Values
-		assert.Len(t, idArray, 3)
+		// read the candidate nodes limits and make sure they have changed
+		assertCandidateLimitsEquals(t, b, env, []uint64{1, 1, 1, 1, 2})
 
 		var amountToCommit interpreter.UFix64Value = 48000000000000
 
+		// Try to register the node again
+		// it should succeed this time
 		registerNode(t, b, env,
-			idTableAddress,
-			IDTableSigner,
-			joshID,
-			fmt.Sprintf("%0128d", josh),
-			joshNetworkingKey,
-			joshStakingKey,
+			bastianAddress,
+			bastianSigner,
+			bastianID,
+			fmt.Sprintf("%0128d", bastian),
+			bastianNetworkingKey,
+			bastianStakingKey,
 			amountToCommit,
-			committed[joshID],
-			2,
+			committed[bastianID],
+			5,
 			false)
 
+		// create expected candidate node list
+		candidates := CandidateNodes{
+			collector:    []string{adminID},
+			consensus:    []string{joshID},
+			execution:    []string{maxID},
+			verification: []string{},
+			access:       []string{accessID, bastianID},
+		}
+
+		assertCandidateNodeListEquals(t, b, env, candidates)
+	})
+
+	t.Run("Should remove nodes from the candidate list if they unstake below the minimum", func(t *testing.T) {
+
+		var amountToRequest interpreter.UFix64Value = 47990100000000
+
+		requestUnstaking(t, b, env,
+			bastianAddress,
+			bastianSigner,
+			amountToRequest,
+			committed[bastianID],
+			committed[bastianID],
+			committed[bastianID],
+			false,
+		)
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateUnstakeAllScript(env), accessAddress)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{accessAddress},
+			[]crypto.Signer{accessSigner},
+			false,
+		)
+
+		// New expected list should not include either
+		// of the newly unstaked access nodes
+		candidates := CandidateNodes{
+			collector:    []string{adminID},
+			consensus:    []string{joshID},
+			execution:    []string{maxID},
+			verification: []string{},
+			access:       []string{},
+		}
+
+		assertCandidateNodeListEquals(t, b, env, candidates)
+		assertRoleCountsEquals(t, b, env, []uint16{0, 0, 0, 0, 0})
+	})
+}
+
+// Tests for approvals
+// TODO: Move approval tests from TestIDTableStaking
+func TestIDTableApprovals(t *testing.T) {
+
+	t.Parallel()
+
+	b := newBlockchain()
+
+	env := templates.Environment{
+		FungibleTokenAddress: emulatorFTAddress,
+		FlowTokenAddress:     emulatorFlowTokenAddress,
+	}
+
+	accountKeys := test.AccountKeyGenerator()
+
+	// Create new keys for the ID table account
+	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
+	_, adminStakingKey, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
+	idTableAddress, feesAddr := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, &env, true, []uint64{3, 3, 3, 3, 3})
+	mintTokensForAccount(t, b, env, idTableAddress, "1000000000.0")
+
+	accessAddress, _, accessSigner := newAccountWithAddress(b, accountKeys)
+	_, accessStakingKey, _, accessNetworkingKey := generateKeysForNodeRegistration(t)
+	mintTokensForAccount(t, b, env, accessAddress, "1000000000.0")
+
+	joshAddress, _, joshSigner := newAccountWithAddress(b, accountKeys)
+	_, joshStakingKey, _, joshNetworkingKey := generateKeysForNodeRegistration(t)
+	mintTokensForAccount(t, b, env, joshAddress, "1000000000.0")
+
+	env.IDTableAddress = idTableAddress.Hex()
+	env.FlowFeesAddress = feesAddr.Hex()
+
+	committed := make(map[string]interpreter.UFix64Value)
+
+	var amountToCommit interpreter.UFix64Value = 25000000000000
+	committed[adminID] = registerNode(t, b, env,
+		idTableAddress,
+		IDTableSigner,
+		adminID,
+		fmt.Sprintf("%0128d", admin),
+		adminNetworkingKey,
+		adminStakingKey,
+		amountToCommit,
+		committed[adminID],
+		1,
+		false)
+
+	nodeIDs := make([]string, 2)
+	nodeIDs[0] = accessID
+	nodeIDs[1] = adminID
+	nodeIDDict := generateCadenceNodeDictionary(nodeIDs)
+	initialNodeIDs := cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(accessID)}).WithType(cadence.NewVariableSizedArrayType(cadence.NewStringType()))
+
+	// Update the access node minimum to zero
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateChangeMinimumsScript(env), idTableAddress)
+	err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceUFix64("250000.0"), CadenceUFix64("250000.0"), CadenceUFix64("1250000.0"), CadenceUFix64("135000.0"), CadenceUFix64("0.0")}))
+	require.NoError(t, err)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]crypto.Signer{IDTableSigner},
+		false,
+	)
+
+	// Register an access node
+	amountToCommit = 00000000
+	committed[adminID] = registerNode(t, b, env,
+		accessAddress,
+		accessSigner,
+		accessID,
+		fmt.Sprintf("%0128d", access),
+		accessNetworkingKey,
+		accessStakingKey,
+		amountToCommit,
+		committed[accessID],
+		5,
+		false)
+
+	// Register another
+	committed[adminID] = registerNode(t, b, env,
+		joshAddress,
+		joshSigner,
+		joshID,
+		fmt.Sprintf("%0128d", josh),
+		joshNetworkingKey,
+		joshStakingKey,
+		amountToCommit,
+		committed[joshID],
+		5,
+		false)
+
+	// Access nodes should not be on the proposed list because they haven't been selected yet
+	// The collector node is not approved, so it is also not included
+	result := executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
+	idArray := result.(cadence.Array).Values
+	assert.Len(t, idArray, 0)
+
+	// Update the access node minimum to 100
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateChangeMinimumsScript(env), idTableAddress)
+	err = tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceUFix64("250000.0"), CadenceUFix64("250000.0"), CadenceUFix64("1250000.0"), CadenceUFix64("135000.0"), CadenceUFix64("100.0")}))
+	require.NoError(t, err)
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]crypto.Signer{IDTableSigner},
+		false,
+	)
+
+	// None of the access nodes are on the proposed list because they are below the minimum and not approved
+	result = executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
+	idArray = result.(cadence.Array).Values
+	assert.Len(t, idArray, 0)
+
+	t.Run("Should be able to approve an access node that isn't above the minimum even if access is below the minimum", func(t *testing.T) {
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateAddApprovedAndLimitsScript(env), idTableAddress)
+
+		err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(accessID)}))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
+			false,
+		)
+		assertApprovedListEquals(t, b, env, initialNodeIDs)
+
+		// Access node should still not be on the proposed list because it
+		// has not been selected by slot selection
 		result = executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
 
 		idArray = result.(cadence.Array).Values
-		assert.Len(t, idArray, 3)
+		assert.Len(t, idArray, 1)
 
-		result = executeScriptAndCheck(t, b, templates.GenerateGetCommittedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(joshID))})
-		assertEqual(t, CadenceUFix64(committed[joshID].String()), result)
+		assertCandidateLimitsEquals(t, b, env, []uint64{3, 3, 3, 3, 3})
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetSlotLimitsScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(1))})
+		assertEqual(t, cadence.NewUInt16(10001), result)
+		result = executeScriptAndCheck(t, b, templates.GenerateGetSlotLimitsScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(5))})
+		assertEqual(t, cadence.NewUInt16(10001), result)
+
 	})
+
+	// removing an existing node from the approved node list should remove that node
+	t.Run("Should be able to remove a node from the approved list", func(t *testing.T) {
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRemoveApprovedNodesScript(env), idTableAddress)
+
+		removingNodeIDs := cadence.NewArray([]cadence.Value{CadenceString(adminID)})
+		err := tx.AddArgument(removingNodeIDs)
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
+			false,
+		)
+
+		expected := cadence.NewArray([]cadence.Value{CadenceString(accessID)}).WithType(cadence.NewVariableSizedArrayType(cadence.NewStringType()))
+		assertApprovedListEquals(t, b, env, expected)
+	})
+
+	// End the staking auction, which adds the node back to the approved list
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEndStakingScript(env), idTableAddress)
+
+	err = tx.AddArgument(nodeIDDict)
+	require.NoError(t, err)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]crypto.Signer{IDTableSigner},
+		false,
+	)
+
+	assertRoleCountsEquals(t, b, env, []uint16{1, 0, 0, 0, 1})
+
+	// removing an existing node from the approved node list should remove that node
+	t.Run("Removing a node from the approved list not during staking auction should refund it immediately", func(t *testing.T) {
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRemoveApprovedNodesScript(env), idTableAddress)
+
+		removingNodeIDs := cadence.NewArray([]cadence.Value{CadenceString(adminID)})
+		err := tx.AddArgument(removingNodeIDs)
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
+			false,
+		)
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetCommittedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
+		assertEqual(t, CadenceUFix64("0.0"), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetUnstakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
+		assertEqual(t, CadenceUFix64("250000.0"), result)
+
+		assertRoleCountsEquals(t, b, env, []uint16{0, 0, 0, 0, 1})
+
+	})
+
+	// Move tokens and start a new staking auction
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateMoveTokensScript(env), idTableAddress)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]crypto.Signer{IDTableSigner},
+		false,
+	)
+
+	// The current participant access node is participating with zero stake even though the minimum is 100,
+	// because it was approved by the admin
+	assertRoleCountsEquals(t, b, env, []uint16{0, 0, 0, 0, 1})
+	result = executeScriptAndCheck(t, b, templates.GenerateGetCommittedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(accessID))})
+	assertEqual(t, CadenceUFix64("0.0"), result)
+	result = executeScriptAndCheck(t, b, templates.GenerateGetStakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(accessID))})
+	assertEqual(t, CadenceUFix64("0.0"), result)
+	result = executeScriptAndCheck(t, b, templates.GenerateReturnCurrentTableScript(env), nil)
+	idArray = result.(cadence.Array).Values
+	assert.Len(t, idArray, 1)
+	assertEqual(t, CadenceString(accessID), idArray[0])
+
+	t.Run("Adding new stake to a zero-stake access node who is already a participant should not add them to the candidate list", func(t *testing.T) {
+		amountToCommit = 10000000000
+		commitNewTokens(t, b, env,
+			accessAddress,
+			accessSigner,
+			amountToCommit,
+			committed[accessID],
+			false)
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetCommittedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(accessID))})
+		assertEqual(t, CadenceUFix64("100.0"), result)
+
+		// Check that they were not added to the candidate node list
+		// expected candidate node list should be empty
+		candidates := CandidateNodes{
+			collector:    []string{},
+			consensus:    []string{},
+			execution:    []string{},
+			verification: []string{},
+			access:       []string{},
+		}
+
+		assertCandidateNodeListEquals(t, b, env, candidates)
+
+	})
+
+	// Approve josh access node
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateAddApprovedAndLimitsScript(env), idTableAddress)
+
+	err = tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(accessID), CadenceString(joshID)}))
+	require.NoError(t, err)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]crypto.Signer{IDTableSigner},
+		false,
+	)
+
+	t.Run("Adding new stake to a non-participant, approved, zero-stake access node should add them to the candidate list", func(t *testing.T) {
+		amountToCommit = 10000000000
+		commitNewTokens(t, b, env,
+			joshAddress,
+			joshSigner,
+			amountToCommit,
+			committed[joshID],
+			false)
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetCommittedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(joshID))})
+		assertEqual(t, CadenceUFix64("100.0"), result)
+
+		// Check that they were added to the candidate node list
+		candidates := CandidateNodes{
+			collector:    []string{},
+			consensus:    []string{},
+			execution:    []string{},
+			verification: []string{},
+			access:       []string{joshID},
+		}
+
+		assertCandidateNodeListEquals(t, b, env, candidates)
+
+	})
+}
+
+func TestIDTableStaking(t *testing.T) {
+
+	t.Parallel()
+
+	b := newBlockchain()
+
+	env := templates.Environment{
+		FungibleTokenAddress: emulatorFTAddress,
+		FlowTokenAddress:     emulatorFlowTokenAddress,
+	}
+
+	accountKeys := test.AccountKeyGenerator()
+
+	var totalPayout interpreter.UFix64Value = 125000000000000 // 1.25M
+	var cutPercentage interpreter.UFix64Value = 8000000       // 8.0 %
+
+	// Create new keys for the ID table account
+	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
+	_, adminStakingKey, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
+	idTableAddress, feesAddr := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, &env, true, []uint64{3, 3, 3, 3, 3})
+	mintTokensForAccount(t, b, env, idTableAddress, "1000000000.0")
+
+	env.IDTableAddress = idTableAddress.Hex()
+	env.FlowFeesAddress = feesAddr.Hex()
+
+	var totalStaked interpreter.UFix64Value = 0
+
+	committed := make(map[string]interpreter.UFix64Value)
+	staked := make(map[string]interpreter.UFix64Value)
+	request := make(map[string]interpreter.UFix64Value)
+	unstaking := make(map[string]interpreter.UFix64Value)
+	unstaked := make(map[string]interpreter.UFix64Value)
+	rewards := make(map[string]interpreter.UFix64Value)
+
+	// Create new user accounts
+	joshAddress, _, joshSigner := newAccountWithAddress(b, accountKeys)
+	_, joshStakingKey, _, joshNetworkingKey := generateKeysForNodeRegistration(t)
+	mintTokensForAccount(t, b, env, joshAddress, "1000000000.0")
+
+	maxAddress, _, maxSigner := newAccountWithAddress(b, accountKeys)
+	_, maxStakingKey, _, maxNetworkingKey := generateKeysForNodeRegistration(t)
+	mintTokensForAccount(t, b, env, maxAddress, "1000000000.0")
+
+	bastianAddress, _, bastianSigner := newAccountWithAddress(b, accountKeys)
+	_, bastianStakingKey, _, bastianNetworkingKey := generateKeysForNodeRegistration(t)
+	mintTokensForAccount(t, b, env, bastianAddress, "1000000000.0")
+
+	accessAddress, _, accessSigner := newAccountWithAddress(b, accountKeys)
+	_, accessStakingKey, _, accessNetworkingKey := generateKeysForNodeRegistration(t)
+	mintTokensForAccount(t, b, env, accessAddress, "1000000000.0")
+
+	// Create new delegator user accounts
+	adminDelegatorAddress, _, adminDelegatorSigner := newAccountWithAddress(b, accountKeys)
+	mintTokensForAccount(t, b, env, adminDelegatorAddress, "1000000000.0")
+
+	joshDelegatorOneAddress, _, joshDelegatorOneSigner := newAccountWithAddress(b, accountKeys)
+	mintTokensForAccount(t, b, env, joshDelegatorOneAddress, "1000000000.0")
+
+	maxDelegatorOneAddress, _, maxDelegatorOneSigner := newAccountWithAddress(b, accountKeys)
+	mintTokensForAccount(t, b, env, maxDelegatorOneAddress, "1000000000.0")
+
+	maxDelegatorTwoAddress, _, maxDelegatorTwoSigner := newAccountWithAddress(b, accountKeys)
+	mintTokensForAccount(t, b, env, maxDelegatorTwoAddress, "1000000000.0")
+
+	// Register the First nodes
+	var amountToCommit interpreter.UFix64Value = 25000000000000
+	committed[adminID] = registerNode(t, b, env,
+		idTableAddress,
+		IDTableSigner,
+		adminID,
+		fmt.Sprintf("%0128d", admin),
+		adminNetworkingKey,
+		adminStakingKey,
+		amountToCommit,
+		committed[adminID],
+		1,
+		false)
+
+	result := executeScriptAndCheck(t, b, templates.GenerateGetStakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
+	assertEqual(t, CadenceUFix64(staked[adminID].String()), result)
+
+	result = executeScriptAndCheck(t, b, templates.GenerateGetCommittedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
+	assertEqual(t, CadenceUFix64(committed[adminID].String()), result)
+
+	result = executeScriptAndCheck(t, b, templates.GenerateGetUnstakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
+	assertEqual(t, CadenceUFix64(unstaked[adminID].String()), result)
+
+	result = executeScriptAndCheck(t, b, templates.GenerateGetUnstakingBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
+	assertEqual(t, CadenceUFix64(unstaking[adminID].String()), result)
+
+	amountToCommit = 50000000000000
+
+	committed[joshID] = registerNode(t, b, env,
+		joshAddress,
+		joshSigner,
+		joshID,
+		fmt.Sprintf("%0128d", josh),
+		joshNetworkingKey,
+		joshStakingKey,
+		amountToCommit,
+		committed[joshID],
+		2,
+		false)
+
+	amountToCommit = 135000000000000
+
+	committed[maxID] = registerNode(t, b, env,
+		maxAddress,
+		maxSigner,
+		maxID,
+		fmt.Sprintf("%0128d", max),
+		maxNetworkingKey,
+		maxStakingKey,
+		amountToCommit,
+		committed[maxID],
+		3,
+		false)
+
+	amountToCommit = 5000000000000
+
+	committed[accessID] = registerNode(t, b, env,
+		accessAddress,
+		accessSigner,
+		accessID,
+		fmt.Sprintf("%0128d", access),
+		accessNetworkingKey,
+		accessStakingKey,
+		amountToCommit,
+		committed[accessID],
+		5,
+		false)
 
 	t.Run("Should be able to commit additional tokens for max's node", func(t *testing.T) {
 
@@ -910,7 +1195,19 @@ func TestIDTableStaking(t *testing.T) {
 
 	t.Run("Should be able to request unstaking which moves from comitted to unstaked", func(t *testing.T) {
 
-		var amountToRequest interpreter.UFix64Value = 10000000000000
+		var amountToRequest interpreter.UFix64Value = 2000000000000
+
+		committed[joshID], unstaked[joshID], request[joshID] = requestUnstaking(t, b, env,
+			joshAddress,
+			joshSigner,
+			amountToRequest,
+			committed[joshID],
+			unstaked[joshID],
+			request[joshID],
+			false,
+		)
+
+		amountToRequest = 10000000000000
 
 		committed[maxID], unstaked[maxID], request[maxID] = requestUnstaking(t, b, env,
 			maxAddress,
@@ -968,14 +1265,18 @@ func TestIDTableStaking(t *testing.T) {
 		assertEqual(t, CadenceUFix64(committed[maxID].String()), result)
 	})
 
-	t.Run("Should be able to end the staking auction, which removes insufficiently staked nodes", func(t *testing.T) {
+	// [josh, max]
+	nodeIDs := make([]string, 2)
+	nodeIDs[0] = joshID
+	nodeIDs[1] = maxID
+	nodeIDDict := generateCadenceNodeDictionary(nodeIDs)
+	initialNodeIDs := cadence.NewArray([]cadence.Value{CadenceString(maxID), CadenceString(joshID)}).WithType(cadence.NewVariableSizedArrayType(cadence.NewStringType()))
 
-		unstaked[joshID] = committed[joshID]
-		committed[joshID] = 0
+	t.Run("Should be able to add nodes to approved node list", func(t *testing.T) {
 
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndStakingScript(env), idTableAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
 
-		err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID), CadenceString(maxID), CadenceString(accessID)}))
+		err := tx.AddArgument(nodeIDDict)
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -984,6 +1285,143 @@ func TestIDTableStaking(t *testing.T) {
 			[]crypto.Signer{IDTableSigner},
 			false,
 		)
+
+		// adding an existing node to the approved node list should be a no-op
+		t.Run("existing node", func(t *testing.T) {
+			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateAddApprovedNodesScript(env), idTableAddress)
+
+			addingNodeIDs := cadence.NewArray([]cadence.Value{CadenceString(joshID)})
+			err := tx.AddArgument(addingNodeIDs)
+			require.NoError(t, err)
+
+			signAndSubmit(
+				t, b, tx,
+				[]flow.Address{idTableAddress},
+				[]crypto.Signer{IDTableSigner},
+				false,
+			)
+
+			assertApprovedListEquals(t, b, env, initialNodeIDs)
+		})
+
+		// adding a new node should result in that node being added to the existing list
+		t.Run("new node", func(t *testing.T) {
+			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateAddApprovedNodesScript(env), idTableAddress)
+
+			// should now be [josh, max, admin]
+			addingNodeIDs := cadence.NewArray([]cadence.Value{CadenceString(adminID)})
+			err := tx.AddArgument(addingNodeIDs)
+			require.NoError(t, err)
+
+			signAndSubmit(
+				t, b, tx,
+				[]flow.Address{idTableAddress},
+				[]crypto.Signer{IDTableSigner},
+				false,
+			)
+
+			expected := cadence.NewArray([]cadence.Value{CadenceString(maxID), CadenceString(adminID), CadenceString(joshID)}).WithType(cadence.NewVariableSizedArrayType(cadence.NewStringType()))
+			assertApprovedListEquals(t, b, env, expected)
+		})
+	})
+
+	t.Run("Should be able to remove nodes from approved node list", func(t *testing.T) {
+
+		// [josh, max]
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
+
+		err := tx.AddArgument(nodeIDDict)
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
+			false,
+		)
+
+		// removing an unknown node should be a no-op
+		t.Run("unknown node", func(t *testing.T) {
+			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRemoveApprovedNodesScript(env), idTableAddress)
+
+			removingNodeIDs := cadence.NewArray([]cadence.Value{CadenceString(nonexistantID)})
+			err := tx.AddArgument(removingNodeIDs)
+			require.NoError(t, err)
+
+			signAndSubmit(
+				t, b, tx,
+				[]flow.Address{idTableAddress},
+				[]crypto.Signer{IDTableSigner},
+				false,
+			)
+
+			expected := cadence.NewArray([]cadence.Value{CadenceString(maxID), CadenceString(joshID)}).WithType(cadence.NewVariableSizedArrayType(cadence.NewStringType()))
+			assertApprovedListEquals(t, b, env, expected)
+		})
+	})
+
+	fourNodeIDs := make([]string, 4)
+	fourNodeIDs[0] = adminID
+	fourNodeIDs[1] = joshID
+	fourNodeIDs[2] = maxID
+	fourNodeIDs[3] = accessID
+	fourNodeIDDict := generateCadenceNodeDictionary(fourNodeIDs)
+
+	t.Run("Should be able to set and get the approved node list", func(t *testing.T) {
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
+
+		err := tx.AddArgument(fourNodeIDDict)
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
+			false,
+		)
+
+		// read the approved nodes list and check that our node ids exists
+		result := executeScriptAndCheck(t, b, templates.GenerateGetApprovedNodesScript(env), nil)
+		idArray := result.(cadence.Array).Values
+		assert.Len(t, idArray, 4)
+
+		// read the proposed nodes table and check that our node ids exists
+		// The access node is not on the proposed list yet because it hasn't been selected
+		// by slot selection
+		result = executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
+		idArray = result.(cadence.Array).Values
+		assert.Len(t, idArray, 2)
+	})
+
+	t.Run("Should be able to end the staking auction, which removes insufficiently staked nodes", func(t *testing.T) {
+
+		unstaked[joshID] = unstaked[joshID] + committed[joshID]
+		committed[joshID] = 0
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndStakingScript(env), idTableAddress)
+
+		err := tx.AddArgument(fourNodeIDDict)
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
+			false,
+		)
+
+		// expected candidate node list should be empty
+		candidates := CandidateNodes{
+			collector:    []string{},
+			consensus:    []string{},
+			execution:    []string{},
+			verification: []string{},
+			access:       []string{},
+		}
+
+		assertCandidateNodeListEquals(t, b, env, candidates)
+		assertRoleCountsEquals(t, b, env, []uint16{1, 0, 1, 0, 1})
 
 		result := executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
 
@@ -1092,6 +1530,10 @@ func TestIDTableStaking(t *testing.T) {
 		err := tx.AddArgument(cadence.String(maxID))
 		require.NoError(t, err)
 
+		tokenAmount, err := cadence.NewUFix64("50.0")
+		require.NoError(t, err)
+		_ = tx.AddArgument(tokenAmount)
+
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{maxDelegatorOneAddress},
@@ -1153,6 +1595,7 @@ func TestIDTableStaking(t *testing.T) {
 		result = executeScriptAndCheck(t, b, templates.GenerateGetStakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(accessID))})
 		assertEqual(t, CadenceUFix64(staked[accessID].String()), result)
 
+		assertRoleCountsEquals(t, b, env, []uint16{1, 0, 1, 0, 1})
 	})
 
 	t.Run("Should be able to commit unstaked and new tokens from the node who was not included", func(t *testing.T) {
@@ -1175,6 +1618,19 @@ func TestIDTableStaking(t *testing.T) {
 			amountToCommit,
 			committed[joshID],
 			false)
+
+		// Re-add the node to the approve list since it was removed during the last end staking
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
+
+		err := tx.AddArgument(fourNodeIDDict)
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
+			false,
+		)
 
 		result := executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
 
@@ -1212,7 +1668,7 @@ func TestIDTableStaking(t *testing.T) {
 		assertEqual(t, CadenceUFix64(staked[adminID].String()), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetTotalCommitmentBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
-		assertEqual(t, CadenceUFix64((committed[adminID].Plus(stubInterpreter(), staked[adminID].Minus(stubInterpreter(), request[adminID]))).String()), result)
+		assertEqual(t, CadenceUFix64((committed[adminID].Plus(stubInterpreter(), staked[adminID].Minus(stubInterpreter(), request[adminID], interpreter.EmptyLocationRange), interpreter.EmptyLocationRange)).String()), result)
 
 		// josh, max, and access are proposed
 		result = executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
@@ -1229,33 +1685,21 @@ func TestIDTableStaking(t *testing.T) {
 
 	/************* Start of Delegation Tests *******************/
 
-	t.Run("Should be able to register first account to delegate to max", func(t *testing.T) {
+	t.Run("Should not be able to register a delegator below the minimum", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterDelegatorScript(env), maxDelegatorOneAddress)
 
 		err := tx.AddArgument(cadence.String(maxID))
 		require.NoError(t, err)
 
+		tokenAmount, _ := cadence.NewUFix64("0.0")
+		tx.AddArgument(tokenAmount)
+
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{maxDelegatorOneAddress},
 			[]crypto.Signer{maxDelegatorOneSigner},
-			false,
-		)
-	})
-
-	t.Run("Should be able to register second account to delegate to max", func(t *testing.T) {
-
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterDelegatorScript(env), maxDelegatorTwoAddress)
-
-		err := tx.AddArgument(cadence.String(maxID))
-		require.NoError(t, err)
-
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{maxDelegatorTwoAddress},
-			[]crypto.Signer{maxDelegatorTwoSigner},
-			false,
+			true,
 		)
 	})
 
@@ -1265,6 +1709,9 @@ func TestIDTableStaking(t *testing.T) {
 
 		err := tx.AddArgument(cadence.String(joshID))
 		require.NoError(t, err)
+
+		tokenAmount, _ := cadence.NewUFix64("50.0")
+		tx.AddArgument(tokenAmount)
 
 		signAndSubmit(
 			t, b, tx,
@@ -1281,6 +1728,9 @@ func TestIDTableStaking(t *testing.T) {
 		err := tx.AddArgument(cadence.String(adminID))
 		require.NoError(t, err)
 
+		tokenAmount, _ := cadence.NewUFix64("50.0")
+		tx.AddArgument(tokenAmount)
+
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{adminDelegatorAddress},
@@ -1296,6 +1746,9 @@ func TestIDTableStaking(t *testing.T) {
 		err := tx.AddArgument(cadence.String(accessID))
 		require.NoError(t, err)
 
+		tokenAmount, _ := cadence.NewUFix64("50.0")
+		tx.AddArgument(tokenAmount)
+
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{adminDelegatorAddress},
@@ -1307,7 +1760,7 @@ func TestIDTableStaking(t *testing.T) {
 	t.Run("Should be able to delegate new tokens to josh", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDelegatorStakeNewScript(env), joshDelegatorOneAddress)
-		_ = tx.AddArgument(CadenceUFix64("100000.0"))
+		_ = tx.AddArgument(CadenceUFix64("99950.0"))
 
 		signAndSubmit(
 			t, b, tx,
@@ -1322,7 +1775,7 @@ func TestIDTableStaking(t *testing.T) {
 		assertEqual(t, CadenceUFix64(committed[joshID].String()), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetTotalCommitmentBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(joshID))})
-		assertEqual(t, CadenceUFix64((committed[joshID].Plus(stubInterpreter(), committed[joshID+firstDelegatorStringID])).(interpreter.UFix64Value).String()), result)
+		assertEqual(t, CadenceUFix64((committed[joshID].Plus(stubInterpreter(), committed[joshID+firstDelegatorStringID], interpreter.EmptyLocationRange)).(interpreter.UFix64Value).String()), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorCommittedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(joshID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
 		assertEqual(t, CadenceUFix64(committed[joshID+firstDelegatorStringID].String()), result)
@@ -1335,8 +1788,8 @@ func TestIDTableStaking(t *testing.T) {
 	t.Run("Should be able to request unstake delegated tokens from Josh, which moves them from committed to unstaked", func(t *testing.T) {
 
 		var amountToUnstake interpreter.UFix64Value = 4000000000000
-		committed[joshID+firstDelegatorStringID] = committed[joshID+firstDelegatorStringID].Minus(stubInterpreter(), amountToUnstake).(interpreter.UFix64Value)
-		unstaked[joshID+firstDelegatorStringID] = unstaked[joshID+firstDelegatorStringID].Plus(stubInterpreter(), amountToUnstake).(interpreter.UFix64Value)
+		committed[joshID+firstDelegatorStringID] = committed[joshID+firstDelegatorStringID].Minus(stubInterpreter(), amountToUnstake, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		unstaked[joshID+firstDelegatorStringID] = unstaked[joshID+firstDelegatorStringID].Plus(stubInterpreter(), amountToUnstake, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDelegatorRequestUnstakeScript(env), joshDelegatorOneAddress)
 		_ = tx.AddArgument(CadenceUFix64(amountToUnstake.String()))
@@ -1352,7 +1805,7 @@ func TestIDTableStaking(t *testing.T) {
 		assertEqual(t, CadenceUFix64(committed[joshID].String()), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetTotalCommitmentBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(joshID))})
-		assertEqual(t, CadenceUFix64((committed[joshID].Plus(stubInterpreter(), committed[joshID+firstDelegatorStringID]).(interpreter.UFix64Value)).String()), result)
+		assertEqual(t, CadenceUFix64((committed[joshID].Plus(stubInterpreter(), committed[joshID+firstDelegatorStringID], interpreter.EmptyLocationRange).(interpreter.UFix64Value)).String()), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorCommittedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(joshID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
 		assertEqual(t, CadenceUFix64(committed[joshID+firstDelegatorStringID].String()), result)
@@ -1369,7 +1822,7 @@ func TestIDTableStaking(t *testing.T) {
 
 		var amountToWithdraw interpreter.UFix64Value = 2000000000000
 
-		unstaked[joshID+firstDelegatorStringID] = unstaked[joshID+firstDelegatorStringID].Minus(stubInterpreter(), amountToWithdraw).(interpreter.UFix64Value)
+		unstaked[joshID+firstDelegatorStringID] = unstaked[joshID+firstDelegatorStringID].Minus(stubInterpreter(), amountToWithdraw, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDelegatorWithdrawUnstakedScript(env), joshDelegatorOneAddress)
 
@@ -1394,8 +1847,8 @@ func TestIDTableStaking(t *testing.T) {
 
 		var amountToCommit interpreter.UFix64Value = 2000000000000
 
-		unstaked[joshID+firstDelegatorStringID] = unstaked[joshID+firstDelegatorStringID].Minus(stubInterpreter(), amountToCommit).(interpreter.UFix64Value)
-		committed[joshID+firstDelegatorStringID] = committed[joshID+firstDelegatorStringID].Plus(stubInterpreter(), amountToCommit).(interpreter.UFix64Value)
+		unstaked[joshID+firstDelegatorStringID] = unstaked[joshID+firstDelegatorStringID].Minus(stubInterpreter(), amountToCommit, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		committed[joshID+firstDelegatorStringID] = committed[joshID+firstDelegatorStringID].Plus(stubInterpreter(), amountToCommit, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDelegatorStakeUnstakedScript(env), joshDelegatorOneAddress)
 
@@ -1426,7 +1879,7 @@ func TestIDTableStaking(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndStakingScript(env), idTableAddress)
 
-		err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID), CadenceString(maxID), CadenceString(accessID)}))
+		err := tx.AddArgument(fourNodeIDDict)
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -1458,7 +1911,7 @@ func TestIDTableStaking(t *testing.T) {
 		assertEqual(t, CadenceUFix64(committed[adminID].String()), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetUnstakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(joshID))})
-		assertEqual(t, CadenceUFix64("0.0"), result)
+		assertEqual(t, CadenceUFix64("20000.0"), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetCommittedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(joshID))})
 		assertEqual(t, CadenceUFix64("580000.0"), result)
@@ -1468,6 +1921,8 @@ func TestIDTableStaking(t *testing.T) {
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetTotalTokensStakedScript(env), nil)
 		assertEqual(t, CadenceUFix64("1650000.0"), result)
+
+		assertRoleCountsEquals(t, b, env, []uint16{0, 1, 1, 0, 1})
 	})
 
 	t.Run("Should not be able to perform delegation actions when staking isn't enabled", func(t *testing.T) {
@@ -1566,18 +2021,21 @@ func TestIDTableStaking(t *testing.T) {
 		result = executeScriptAndCheck(t, b, templates.GenerateGetStakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		assertEqual(t, CadenceUFix64(staked[adminID].String()), result)
 
+		// Update test rewards values for the admin node
 		rewardsResult, _ := payRewards(false, totalPayout, totalStaked, cutPercentage, staked[adminID])
-		rewards[adminID] = rewards[adminID].Plus(stubInterpreter(), rewardsResult).(interpreter.UFix64Value)
+		rewards[adminID] = rewards[adminID].Plus(stubInterpreter(), rewardsResult, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		assertEqual(t, CadenceUFix64(rewards[adminID].String()), result)
 
+		// Update test rewards values for the josh node
 		rewardsResult, _ = payRewards(false, totalPayout, totalStaked, cutPercentage, 0)
-		rewards[joshID] = rewards[joshID].Plus(stubInterpreter(), rewardsResult).(interpreter.UFix64Value)
+		rewards[joshID] = rewards[joshID].Plus(stubInterpreter(), rewardsResult, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 
+		// Update test rewards values for the josh node delegator
 		rewardsResult, delegateeRewardsResult := payRewards(true, totalPayout, totalStaked, cutPercentage, 0)
-		rewards[joshID] = rewards[joshID].Plus(stubInterpreter(), delegateeRewardsResult).(interpreter.UFix64Value)
-		rewards[joshID+firstDelegatorStringID] = rewards[joshID+firstDelegatorStringID].Plus(stubInterpreter(), rewardsResult).(interpreter.UFix64Value)
+		rewards[joshID] = rewards[joshID].Plus(stubInterpreter(), delegateeRewardsResult, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		rewards[joshID+firstDelegatorStringID] = rewards[joshID+firstDelegatorStringID].Plus(stubInterpreter(), rewardsResult, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(joshID))})
 		assertEqual(t, CadenceUFix64(rewards[joshID].String()), result)
@@ -1591,17 +2049,8 @@ func TestIDTableStaking(t *testing.T) {
 		result = executeScriptAndCheck(t, b, templates.GenerateGetTotalTokensStakedByTypeScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(3))})
 		assertEqual(t, CadenceUFix64("1400000.0"), result)
 
-		result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorStakedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(maxID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
-		assertEqual(t, CadenceUFix64("0.0"), result)
-
-		result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorStakedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(maxID)), jsoncdc.MustEncode(cadence.UInt32(secondDelegatorID))})
-		assertEqual(t, CadenceUFix64("0.0"), result)
-
 		result = executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(maxID))})
 		assertEqual(t, CadenceUFix64("1060606.05"), result)
-
-		result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorRewardsScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(maxID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
-		assertEqual(t, CadenceUFix64("0.0"), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(accessID))})
 		assertEqual(t, CadenceUFix64("0.0"), result)
@@ -1712,26 +2161,6 @@ func TestIDTableStaking(t *testing.T) {
 		result = executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(maxID))})
 		assertEqual(t, CadenceUFix64("1060606.05"), result)
 
-		// Max Delegator Buckets
-
-		result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorUnstakedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(maxID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
-		assertEqual(t, CadenceUFix64("0.0"), result)
-
-		result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorCommittedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(maxID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
-		assertEqual(t, CadenceUFix64("0.0"), result)
-
-		result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorStakedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(maxID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
-		assertEqual(t, CadenceUFix64("0.0"), result)
-
-		result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorRequestScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(maxID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
-		assertEqual(t, CadenceUFix64("0.0"), result)
-
-		result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorUnstakingScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(maxID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
-		assertEqual(t, CadenceUFix64("0.0"), result)
-
-		result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorRewardsScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(maxID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
-		assertEqual(t, CadenceUFix64("0.0"), result)
-
 	})
 
 	t.Run("Should create new execution node", func(t *testing.T) {
@@ -1756,10 +2185,15 @@ func TestIDTableStaking(t *testing.T) {
 		assertEqual(t, CadenceUFix64("1400000.0"), result)
 	})
 
-	t.Run("Should be able to delegate new tokens to max", func(t *testing.T) {
+	t.Run("Should be able to register first account to delegate to max", func(t *testing.T) {
 
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDelegatorStakeNewScript(env), maxDelegatorOneAddress)
-		_ = tx.AddArgument(CadenceUFix64("100000.0"))
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterDelegatorScript(env), maxDelegatorOneAddress)
+
+		err := tx.AddArgument(cadence.String(maxID))
+		require.NoError(t, err)
+
+		tokenAmount, _ := cadence.NewUFix64("100000.0")
+		tx.AddArgument(tokenAmount)
 
 		signAndSubmit(
 			t, b, tx,
@@ -1767,9 +2201,17 @@ func TestIDTableStaking(t *testing.T) {
 			[]crypto.Signer{maxDelegatorOneSigner},
 			false,
 		)
+	})
 
-		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateDelegatorStakeNewScript(env), maxDelegatorTwoAddress)
-		_ = tx.AddArgument(CadenceUFix64("200000.0"))
+	t.Run("Should be able to register second account to delegate to max", func(t *testing.T) {
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterDelegatorScript(env), maxDelegatorTwoAddress)
+
+		err := tx.AddArgument(cadence.String(maxID))
+		require.NoError(t, err)
+
+		tokenAmount, _ := cadence.NewUFix64("200000.0")
+		tx.AddArgument(tokenAmount)
 
 		signAndSubmit(
 			t, b, tx,
@@ -1777,7 +2219,6 @@ func TestIDTableStaking(t *testing.T) {
 			[]crypto.Signer{maxDelegatorTwoSigner},
 			false,
 		)
-
 	})
 
 	t.Run("Should not be able request unstaking below the minimum if a node has delegators staked or committed", func(t *testing.T) {
@@ -1826,8 +2267,8 @@ func TestIDTableStaking(t *testing.T) {
 			false,
 		)
 
-		rewards[adminID] = rewards[adminID].Minus(stubInterpreter(), interpreter.NewUFix64ValueWithInteger(nil, func() uint64 { return newCommitAmount })).(interpreter.UFix64Value)
-		committed[adminID] = committed[adminID].Plus(stubInterpreter(), interpreter.NewUFix64ValueWithInteger(nil, func() uint64 { return newCommitAmount })).(interpreter.UFix64Value)
+		rewards[adminID] = rewards[adminID].Minus(stubInterpreter(), interpreter.NewUFix64ValueWithInteger(nil, func() uint64 { return newCommitAmount }, interpreter.EmptyLocationRange), interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		committed[adminID] = committed[adminID].Plus(stubInterpreter(), interpreter.NewUFix64ValueWithInteger(nil, func() uint64 { return newCommitAmount }, interpreter.EmptyLocationRange), interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 
 		result := executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		assertEqual(t, CadenceUFix64(rewards[adminID].String()), result)
@@ -1841,7 +2282,7 @@ func TestIDTableStaking(t *testing.T) {
 
 		var requestAmount interpreter.UFix64Value = 4000000000000
 
-		request[joshID+firstDelegatorStringID] = request[joshID+firstDelegatorStringID].Plus(stubInterpreter(), requestAmount).(interpreter.UFix64Value)
+		request[joshID+firstDelegatorStringID] = request[joshID+firstDelegatorStringID].Plus(stubInterpreter(), requestAmount, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDelegatorRequestUnstakeScript(env), joshDelegatorOneAddress)
 		_ = tx.AddArgument(CadenceUFix64(requestAmount.String()))
@@ -1874,7 +2315,7 @@ func TestIDTableStaking(t *testing.T) {
 
 		var cancelRequestAmount interpreter.UFix64Value = 2000000000000
 
-		request[joshID+firstDelegatorStringID] = request[joshID+firstDelegatorStringID].Minus(stubInterpreter(), cancelRequestAmount).(interpreter.UFix64Value)
+		request[joshID+firstDelegatorStringID] = request[joshID+firstDelegatorStringID].Minus(stubInterpreter(), cancelRequestAmount, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDelegatorStakeUnstakedScript(env), joshDelegatorOneAddress)
 
@@ -1898,7 +2339,7 @@ func TestIDTableStaking(t *testing.T) {
 
 		var requestAmount interpreter.UFix64Value = 2000000000000
 
-		request[joshID+firstDelegatorStringID] = request[joshID+firstDelegatorStringID].Plus(stubInterpreter(), requestAmount).(interpreter.UFix64Value)
+		request[joshID+firstDelegatorStringID] = request[joshID+firstDelegatorStringID].Plus(stubInterpreter(), requestAmount, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDelegatorRequestUnstakeScript(env), joshDelegatorOneAddress)
 		_ = tx.AddArgument(CadenceUFix64(requestAmount.String()))
@@ -1914,12 +2355,15 @@ func TestIDTableStaking(t *testing.T) {
 		assertEqual(t, CadenceUFix64(request[joshID+firstDelegatorStringID].String()), result)
 	})
 
+	fourNodeIDs[3] = bastianID
+	fourNodeIDDict = generateCadenceNodeDictionary(fourNodeIDs)
+
 	// End the staking auction
 	t.Run("Should be able to end the staking auction", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndStakingScript(env), idTableAddress)
 
-		err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID), CadenceString(maxID), CadenceString(bastianID)}))
+		err := tx.AddArgument(fourNodeIDDict)
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -1929,7 +2373,9 @@ func TestIDTableStaking(t *testing.T) {
 			false,
 		)
 
-		unstaked[adminID] = unstaked[adminID].Plus(stubInterpreter(), committed[adminID]).(interpreter.UFix64Value)
+		assertRoleCountsEquals(t, b, env, []uint16{0, 1, 2, 0, 1})
+
+		unstaked[adminID] = unstaked[adminID].Plus(stubInterpreter(), committed[adminID], interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 
 	})
 
@@ -1995,7 +2441,11 @@ func TestIDTableStaking(t *testing.T) {
 		result = executeScriptAndCheck(t, b, templates.GenerateGetTotalTokensStakedByTypeScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(3))})
 		assertEqual(t, CadenceUFix64("3100000.0"), result)
 
+		assertRoleCountsEquals(t, b, env, []uint16{0, 1, 2, 0, 1})
 	})
+
+	threeNodeIDs := fourNodeIDs[:len(fourNodeIDs)-1]
+	threeNodeIDDict := generateCadenceNodeDictionary(threeNodeIDs)
 
 	// Pay rewards and make sure josh and josh delegator got paid the right amounts based on the cut
 	t.Run("Should pay correct rewards, rewards are split up properly between stakers and delegators", func(t *testing.T) {
@@ -2018,7 +2468,7 @@ func TestIDTableStaking(t *testing.T) {
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEndStakingScript(env), idTableAddress)
 
-		err = tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID), CadenceString(maxID), CadenceString(bastianID)}))
+		err = tx.AddArgument(threeNodeIDDict)
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -2038,6 +2488,8 @@ func TestIDTableStaking(t *testing.T) {
 		assertEqual(t, CadenceUFix64("3720000.0"), result)
 
 		totalStaked = 372000000000000
+
+		assertRoleCountsEquals(t, b, env, []uint16{0, 1, 1, 0, 1})
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GeneratePayRewardsScript(env), idTableAddress)
 
@@ -2059,11 +2511,11 @@ func TestIDTableStaking(t *testing.T) {
 		assertEqual(t, CadenceUFix64(rewards[adminID].String()), result)
 
 		rewardsResult, _ := payRewards(false, totalPayout, totalStaked, cutPercentage, staked[joshID])
-		rewards[joshID] = rewards[joshID].Plus(stubInterpreter(), rewardsResult).(interpreter.UFix64Value)
+		rewards[joshID] = rewards[joshID].Plus(stubInterpreter(), rewardsResult, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 
 		rewardsResult, delegateeRewardsResult := payRewards(true, totalPayout, totalStaked, cutPercentage, staked[joshID+firstDelegatorStringID])
-		rewards[joshID] = rewards[joshID].Plus(stubInterpreter(), delegateeRewardsResult).(interpreter.UFix64Value)
-		rewards[joshID+firstDelegatorStringID] = rewards[joshID+firstDelegatorStringID].Plus(stubInterpreter(), rewardsResult).(interpreter.UFix64Value)
+		rewards[joshID] = rewards[joshID].Plus(stubInterpreter(), delegateeRewardsResult, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		rewards[joshID+firstDelegatorStringID] = rewards[joshID+firstDelegatorStringID].Plus(stubInterpreter(), rewardsResult, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(joshID))})
 		assertEqual(t, CadenceUFix64(rewards[joshID].String()), result)
@@ -2088,10 +2540,7 @@ func TestIDTableStaking(t *testing.T) {
 	// Move tokens. make sure josh delegators unstaking tokens are moved into their unstaked bucket
 	t.Run("Should Move tokens between buckets", func(t *testing.T) {
 
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), idTableAddress)
-
-		err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID), CadenceString(maxID)}))
-		require.NoError(t, err)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateMoveTokensScript(env), idTableAddress)
 
 		signAndSubmit(
 			t, b, tx,
@@ -2108,6 +2557,8 @@ func TestIDTableStaking(t *testing.T) {
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorUnstakedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(joshID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
 		assertEqual(t, CadenceUFix64("40000.0"), result)
+
+		assertRoleCountsEquals(t, b, env, []uint16{0, 1, 1, 0, 1})
 
 	})
 
@@ -2191,12 +2642,15 @@ func TestIDTableStaking(t *testing.T) {
 		)
 	})
 
+	twoNodeIDs := threeNodeIDs[:len(threeNodeIDs)-1]
+	twoNodeIDDict := generateCadenceNodeDictionary(twoNodeIDs)
+
 	// End the staking auction, saying that Max is not on the approved node list
 	t.Run("Should refund delegators when their node is not included in the auction", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), idTableAddress)
 
-		err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID)}))
+		err := tx.AddArgument(twoNodeIDDict)
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -2211,6 +2665,8 @@ func TestIDTableStaking(t *testing.T) {
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorUnstakedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(maxID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
 		assertEqual(t, CadenceUFix64("2000.0"), result)
+
+		assertRoleCountsEquals(t, b, env, []uint16{0, 1, 0, 0, 1})
 
 	})
 
@@ -2300,7 +2756,7 @@ func TestIDTableStaking(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), idTableAddress)
 
-		err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID)}))
+		err := tx.AddArgument(twoNodeIDDict)
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -2312,13 +2768,15 @@ func TestIDTableStaking(t *testing.T) {
 
 		result := executeScriptAndCheck(t, b, templates.GenerateGetDelegatorUnstakingScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(joshID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
 		assertEqual(t, CadenceUFix64("40000.0"), result)
+
+		assertRoleCountsEquals(t, b, env, []uint16{0, 0, 0, 0, 1})
 	})
 
 	t.Run("Should end epoch and change payout in the same transaction", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochChangePayoutScript(env), idTableAddress)
 
-		err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID)}))
+		err := tx.AddArgument(twoNodeIDDict)
 		require.NoError(t, err)
 
 		err = tx.AddArgument(CadenceUFix64("4000000.0"))
@@ -2400,9 +2858,9 @@ func TestIDTableStaking(t *testing.T) {
 
 	t.Run("Should be able to remove unapproved nodes from the table without ending staking", func(t *testing.T) {
 
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRemoveUnapprovedNodesScript(env), idTableAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRemoveInvalidNodesScript(env), idTableAddress)
 
-		err := tx.AddArgument(cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(joshID), CadenceString(bastianID)}))
+		err := tx.AddArgument(threeNodeIDDict)
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -2411,6 +2869,453 @@ func TestIDTableStaking(t *testing.T) {
 			[]crypto.Signer{IDTableSigner},
 			false,
 		)
+
+	})
+}
+
+func TestIDTableDelegatorMinimums(t *testing.T) {
+	b, accountKeys, env := newTestSetup(t)
+
+	// Create new keys for the ID table account
+	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
+	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, &env, true, []uint64{10, 10, 10, 10, 3})
+	_, adminStakingKey, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
+	mintTokensForAccount(t, b, env, idTableAddress, "1000000.0")
+
+	// Create new user accounts and generate staking info
+	delegator1Address, _, delegator1Signer := newAccountWithAddress(b, accountKeys)
+	mintTokensForAccount(t, b, env, delegator1Address, "1000000.0")
+
+	delegator2Address, _, delegator2Signer := newAccountWithAddress(b, accountKeys)
+	mintTokensForAccount(t, b, env, delegator2Address, "1000000.0")
+
+	// Register the First node
+	var amountToCommit interpreter.UFix64Value = 25000000000000
+	registerNode(t, b, env,
+		idTableAddress,
+		IDTableSigner,
+		adminID,
+		fmt.Sprintf("%0128d", admin),
+		adminNetworkingKey,
+		adminStakingKey,
+		amountToCommit,
+		amountToCommit,
+		1,
+		false)
+
+	// Register the first delegator
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterDelegatorScript(env), delegator1Address)
+	tx.AddArgument(cadence.String(adminID))
+	tokenAmount, _ := cadence.NewUFix64("50.0")
+	tx.AddArgument(tokenAmount)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{delegator1Address},
+		[]crypto.Signer{delegator1Signer},
+		false,
+	)
+
+	approvedID := make([]string, 1)
+	approvedID[0] = adminID
+	approveIDDict := generateCadenceNodeDictionary(approvedID)
+
+	// End Staking Auction and move tokens which marks the node and delegator's tokens as staked
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), idTableAddress)
+
+	err := tx.AddArgument(approveIDDict)
+	require.NoError(t, err)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]crypto.Signer{IDTableSigner},
+		false,
+	)
+
+	// Register the second delegator also with 50 FLOW
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterDelegatorScript(env), delegator2Address)
+	tx.AddArgument(cadence.String(adminID))
+	tx.AddArgument(tokenAmount)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{delegator2Address},
+		[]crypto.Signer{delegator2Signer},
+		false,
+	)
+
+	// Unstake the second delegator below the limit
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateDelegatorRequestUnstakeScript(env), delegator2Address)
+	tx.AddArgument(CadenceUFix64("20.0"))
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{delegator2Address},
+		[]crypto.Signer{delegator2Signer},
+		false,
+	)
+
+	// Unstake the first delegator below the limit
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateDelegatorRequestUnstakeScript(env), delegator1Address)
+	tx.AddArgument(CadenceUFix64("25.0"))
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{delegator1Address},
+		[]crypto.Signer{delegator1Signer},
+		false,
+	)
+
+	// End staking auction and move tokens
+	// should fully unstake both delegators since they are below the limit
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), idTableAddress)
+
+	tx.AddArgument(approveIDDict)
+	require.NoError(t, err)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]crypto.Signer{IDTableSigner},
+		false,
+	)
+
+	// Make sure both delegators have unstaked tokens and all buckets reflect that
+	// Delegator One
+	result := executeScriptAndCheck(t, b, templates.GenerateGetDelegatorCommittedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+	assertEqual(t, CadenceUFix64("0.0"), result)
+
+	result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorUnstakedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+	assertEqual(t, CadenceUFix64("0.0"), result)
+
+	result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorStakedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+	assertEqual(t, CadenceUFix64("0.0"), result)
+
+	result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorUnstakingScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+	assertEqual(t, CadenceUFix64("50.0"), result)
+
+	result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorRequestScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
+	assertEqual(t, CadenceUFix64("0.0"), result)
+
+	// Delegator Two
+	result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorCommittedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID)), jsoncdc.MustEncode(cadence.UInt32(secondDelegatorID))})
+	assertEqual(t, CadenceUFix64("0.0"), result)
+
+	result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorUnstakedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID)), jsoncdc.MustEncode(cadence.UInt32(secondDelegatorID))})
+	assertEqual(t, CadenceUFix64("50.0"), result)
+
+	result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorStakedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID)), jsoncdc.MustEncode(cadence.UInt32(secondDelegatorID))})
+	assertEqual(t, CadenceUFix64("0.0"), result)
+
+	result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorUnstakingScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID)), jsoncdc.MustEncode(cadence.UInt32(secondDelegatorID))})
+	assertEqual(t, CadenceUFix64("0.0"), result)
+
+	result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorRequestScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID)), jsoncdc.MustEncode(cadence.UInt32(secondDelegatorID))})
+	assertEqual(t, CadenceUFix64("0.0"), result)
+
+	// Make sure that the total staked for the node and node type reflects that too
+	result = executeScriptAndCheck(t, b, templates.GenerateGetTotalCommitmentBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
+	assertEqual(t, CadenceUFix64("250000.0"), result)
+
+	result = executeScriptAndCheck(t, b, templates.GenerateGetTotalTokensStakedByTypeScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(1))})
+	assertEqual(t, CadenceUFix64("250000.0"), result)
+
+	// Should be able to update the delegator minimum
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateChangeDelegatorMinimumsScript(env), idTableAddress)
+
+	tx.AddArgument(CadenceUFix64("25.0"))
+	require.NoError(t, err)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]crypto.Signer{IDTableSigner},
+		false,
+	)
+
+	result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorStakeRequirementScript(env), nil)
+	assertEqual(t, CadenceUFix64("25.0"), result)
+
+}
+
+// TestIDTableSlotSelection tests the slot selection process for nodes which do not need to be allow-listed (Access Nodes).
+//  - If the number of candidate nodes exceeds the remaining slot limit, some candidate nodes will be randomly
+//     selected to be refunded and removed.
+//  - If the number of participant nodes is equal to or exceeds the slot limit, no new candidates will be accepted
+//     but no participants will be removed.
+func TestIDTableSlotSelection(t *testing.T) {
+	b, accountKeys, env := newTestSetup(t)
+
+	// Create new keys for the ID table account
+	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
+	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, &env, true, []uint64{10, 10, 10, 10, 3})
+
+	// Create new user accounts and generate staking info
+	access1Address, _, access1Signer := newAccountWithAddress(b, accountKeys)
+	mintTokensForAccount(t, b, env, access1Address, "1000000.0")
+	_, access1StakingKey, _, access1NetworkingKey := generateKeysForNodeRegistration(t)
+
+	access2Address, _, access2Signer := newAccountWithAddress(b, accountKeys)
+	mintTokensForAccount(t, b, env, access2Address, "1000000.0")
+	_, access2StakingKey, _, access2NetworkingKey := generateKeysForNodeRegistration(t)
+
+	access3Address, _, access3Signer := newAccountWithAddress(b, accountKeys)
+	mintTokensForAccount(t, b, env, access3Address, "1000000.0")
+	_, access3StakingKey, _, access3NetworkingKey := generateKeysForNodeRegistration(t)
+
+	access4Address, _, access4Signer := newAccountWithAddress(b, accountKeys)
+	mintTokensForAccount(t, b, env, access4Address, "1000000.0")
+	_, access4StakingKey, _, access4NetworkingKey := generateKeysForNodeRegistration(t)
+
+	t.Run("Should be able to set new slot limits", func(t *testing.T) {
+		// Set the Slot Limits to 2 for access nodes
+		setNodeRoleSlotLimits(t, b, env, idTableAddress, IDTableSigner, [5]uint16{100, 100, 100, 100, 2})
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetSlotLimitsScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(1))})
+		assertEqual(t, cadence.NewUInt16(100), result)
+		result = executeScriptAndCheck(t, b, templates.GenerateGetSlotLimitsScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(2))})
+		assertEqual(t, cadence.NewUInt16(100), result)
+		result = executeScriptAndCheck(t, b, templates.GenerateGetSlotLimitsScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(3))})
+		assertEqual(t, cadence.NewUInt16(100), result)
+		result = executeScriptAndCheck(t, b, templates.GenerateGetSlotLimitsScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(4))})
+		assertEqual(t, cadence.NewUInt16(100), result)
+		result = executeScriptAndCheck(t, b, templates.GenerateGetSlotLimitsScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(5))})
+		assertEqual(t, cadence.NewUInt16(2), result)
+	})
+
+	var amountToCommit interpreter.UFix64Value = 10000000000000
+
+	// Register the first access node
+	registerNode(t, b, env,
+		access1Address,
+		access1Signer,
+		adminID,
+		fmt.Sprintf("%0128d", admin),
+		access1NetworkingKey,
+		access1StakingKey,
+		amountToCommit,
+		amountToCommit,
+		5,
+		false)
+
+	// Register the second access node
+	registerNode(t, b, env,
+		access2Address,
+		access2Signer,
+		joshID,
+		fmt.Sprintf("%0128d", josh),
+		access2NetworkingKey,
+		access2StakingKey,
+		amountToCommit,
+		amountToCommit,
+		5,
+		false)
+
+	// Register the third access node
+	registerNode(t, b, env,
+		access3Address,
+		access3Signer,
+		maxID,
+		fmt.Sprintf("%0128d", max),
+		access3NetworkingKey,
+		access3StakingKey,
+		amountToCommit,
+		amountToCommit,
+		5,
+		false)
+
+	noApprovalIDs := make([]string, 0)
+	noApprovalIDDict := generateCadenceNodeDictionary(noApprovalIDs)
+
+	// End the epoch, which marks the selected access nodes as staking
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), idTableAddress)
+	err := tx.AddArgument(noApprovalIDDict)
+	require.NoError(t, err)
+	slotResult := signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]crypto.Signer{IDTableSigner},
+		false,
+	)
+
+	assertRoleCountsEquals(t, b, env, []uint16{0, 0, 0, 0, 2})
+
+	var firstRemovedNodeID cadence.Value
+
+	// see which node was removed
+	for _, event := range slotResult.Events {
+		if event.Type == "A.179b6b1cb6755e31.FlowIDTableStaking.NodeRemovedAndRefunded" {
+			eventValue := event.Value
+			firstRemovedNodeID = eventValue.Fields[0]
+		}
+	}
+
+	// Current Participant Table should include two of the access nodes
+	result := executeScriptAndCheck(t, b, templates.GenerateReturnCurrentTableScript(env), nil)
+	idArray := result.(cadence.Array).Values
+	assert.Len(t, idArray, 2)
+
+	// Make sure that the non-removed nodes are staked
+	result = executeScriptAndCheck(t, b, templates.GenerateGetStakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(idArray[0])})
+	assertEqual(t, CadenceUFix64("100000.0"), result)
+	result = executeScriptAndCheck(t, b, templates.GenerateGetStakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(idArray[1])})
+	assertEqual(t, CadenceUFix64("100000.0"), result)
+
+	// Make sure that the node that was removed was unstaked
+	result = executeScriptAndCheck(t, b, templates.GenerateGetUnstakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(firstRemovedNodeID)})
+	assertEqual(t, CadenceUFix64("100000.0"), result)
+
+	// Set the Slot Limits to 1 for access nodes
+	// 2 nodes are already staked, which is above the limit
+	// but since they are already there, they won't be removed
+	setNodeRoleSlotLimits(t, b, env, idTableAddress, IDTableSigner, [5]uint16{1000, 1000, 1000, 1000, 1})
+
+	// Register the fourth access node
+	registerNode(t, b, env,
+		access4Address,
+		access4Signer,
+		bastianID,
+		fmt.Sprintf("%0128d", bastian),
+		access4NetworkingKey,
+		access4StakingKey,
+		amountToCommit,
+		amountToCommit,
+		5,
+		false)
+
+	// End the epoch, which should not unstake any access nodes which were already unstaked
+	// and should unstake the fourth who tried to join
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), idTableAddress)
+
+	err = tx.AddArgument(noApprovalIDDict)
+	require.NoError(t, err)
+
+	slotResult = signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]crypto.Signer{IDTableSigner},
+		false,
+	)
+
+	assertRoleCountsEquals(t, b, env, []uint16{0, 0, 0, 0, 2})
+
+	var secondRemovedNodeID cadence.Value
+
+	// see which node was removed
+	for _, event := range slotResult.Events {
+		if event.Type == "A.179b6b1cb6755e31.FlowIDTableStaking.NodeRemovedAndRefunded" {
+			eventValue := event.Value
+			secondRemovedNodeID = eventValue.Fields[0]
+		}
+	}
+
+	// Make sure that that removed node was the one who registered
+	assertEqual(t, CadenceString(bastianID), secondRemovedNodeID)
+
+	// Make sure that the node that was removed was unstaked
+	result = executeScriptAndCheck(t, b, templates.GenerateGetUnstakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(secondRemovedNodeID)})
+	assertEqual(t, CadenceUFix64("100000.0"), result)
+
+	// Make sure that the non-removed nodes are still staked
+	result = executeScriptAndCheck(t, b, templates.GenerateGetStakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(idArray[0])})
+	assertEqual(t, CadenceUFix64("100000.0"), result)
+	result = executeScriptAndCheck(t, b, templates.GenerateGetStakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(idArray[1])})
+	assertEqual(t, CadenceUFix64("100000.0"), result)
+
+	// Current Participant Table should include two of the access nodes
+	result = executeScriptAndCheck(t, b, templates.GenerateReturnCurrentTableScript(env), nil)
+	idArray = result.(cadence.Array).Values
+	assert.Len(t, idArray, 2)
+
+	// Unstake all for both access nodes that are still staked
+
+	var stakedAddressOne flow.Address
+	var stakedSignerOne crypto.Signer
+	var stakedAddressTwo flow.Address
+	var stakedSignerTwo crypto.Signer
+
+	if assert.ObjectsAreEqual(cadence.String(adminID), firstRemovedNodeID) {
+		stakedAddressOne = access2Address
+		stakedSignerOne = access2Signer
+		stakedAddressTwo = access3Address
+		stakedSignerTwo = access3Signer
+	} else if assert.ObjectsAreEqual(cadence.String(joshID), firstRemovedNodeID) {
+		stakedAddressOne = access1Address
+		stakedSignerOne = access1Signer
+		stakedAddressTwo = access3Address
+		stakedSignerTwo = access3Signer
+	} else if assert.ObjectsAreEqual(cadence.String(maxID), firstRemovedNodeID) {
+		stakedAddressOne = access1Address
+		stakedSignerOne = access1Signer
+		stakedAddressTwo = access2Address
+		stakedSignerTwo = access2Signer
+	}
+
+	t.Run("Should include a new node in a slot that was just opened from an existing node being removed", func(t *testing.T) {
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateUnstakeAllScript(env), stakedAddressOne)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{stakedAddressOne},
+			[]crypto.Signer{stakedSignerOne},
+			false,
+		)
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateUnstakeAllScript(env), stakedAddressTwo)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{stakedAddressTwo},
+			[]crypto.Signer{stakedSignerTwo},
+			false,
+		)
+
+		// Commit more tokens for the unstaked Node
+
+		commitUnstaked(t, b, env,
+			access4Address,
+			access4Signer,
+			amountToCommit,
+			amountToCommit,
+			amountToCommit,
+			false)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetCommittedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(bastianID))})
+		assertEqual(t, CadenceUFix64("100000.0"), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetUnstakingRequestScript(env), [][]byte{jsoncdc.MustEncode(idArray[0])})
+		assertEqual(t, CadenceUFix64("100000.0"), result)
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetUnstakingRequestScript(env), [][]byte{jsoncdc.MustEncode(idArray[1])})
+		assertEqual(t, CadenceUFix64("100000.0"), result)
+
+		// End the epoch, which should unstake the two who requested and stake bastian
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), idTableAddress)
+		err = tx.AddArgument(noApprovalIDDict)
+		require.NoError(t, err)
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
+			false,
+		)
+
+		assertRoleCountsEquals(t, b, env, []uint16{0, 0, 0, 0, 1})
+
+		// Current Participant Table should include one access node
+		result = executeScriptAndCheck(t, b, templates.GenerateReturnCurrentTableScript(env), nil)
+		singleIdArray := result.(cadence.Array).Values
+		assert.Len(t, singleIdArray, 1)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetUnstakingBalanceScript(env), [][]byte{jsoncdc.MustEncode(idArray[0])})
+		assertEqual(t, CadenceUFix64("100000.0"), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetUnstakingBalanceScript(env), [][]byte{jsoncdc.MustEncode(idArray[1])})
+		assertEqual(t, CadenceUFix64("100000.0"), result)
+
+		// Make sure that the node that was committed is now staked
+		result = executeScriptAndCheck(t, b, templates.GenerateGetStakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(CadenceString(bastianID))})
+		assertEqual(t, CadenceUFix64("100000.0"), result)
 
 	})
 }
@@ -2433,7 +3338,7 @@ func TestIDTableRewardsWitholding(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	idTableAddress, feesAddr := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true)
+	idTableAddress, feesAddr := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, &env, true, []uint64{10, 10, 10, 10, 10})
 
 	env.IDTableAddress = idTableAddress.Hex()
 	env.FlowFeesAddress = feesAddr.Hex()
@@ -2478,7 +3383,7 @@ func TestIDTableRewardsWitholding(t *testing.T) {
 	for i := 0; i < numNodes; i++ {
 
 		// Fund the node account
-		mintTokensForAccount(t, b, nodeAddresses[i], "1000000.0")
+		mintTokensForAccount(t, b, env, nodeAddresses[i], "1000000.0")
 
 		// Register the node
 		committed[adminID] = registerNode(t, b, env,
@@ -2500,21 +3405,12 @@ func TestIDTableRewardsWitholding(t *testing.T) {
 	for i := 0; i < numDelegators; i++ {
 
 		// Fund the delegator account
-		mintTokensForAccount(t, b, delegatorAddresses[i], "1000000.0")
+		mintTokensForAccount(t, b, env, delegatorAddresses[i], "1000000.0")
 
 		// Register the delegator
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterDelegatorScript(env), delegatorAddresses[i])
 		err := tx.AddArgument(cadence.String(ids[i/5]))
 		require.NoError(t, err)
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{delegatorAddresses[i]},
-			[]crypto.Signer{delegatorSigners[i]},
-			false,
-		)
-
-		// Stake new tokens for the delegator
-		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateDelegatorStakeNewScript(env), delegatorAddresses[i])
 		_ = tx.AddArgument(CadenceUFix64("10000.0"))
 		signAndSubmit(
 			t, b, tx,
@@ -2530,9 +3426,11 @@ func TestIDTableRewardsWitholding(t *testing.T) {
 		cadenceIDs[i] = CadenceString(ids[i])
 	}
 
+	nodeIDsDict := generateCadenceNodeDictionary(ids)
+
 	// End the epoch, which marks everyone as staking
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), idTableAddress)
-	err := tx.AddArgument(cadence.NewArray(cadenceIDs))
+	err := tx.AddArgument(nodeIDsDict)
 	require.NoError(t, err)
 	signAndSubmit(
 		t, b, tx,
@@ -2622,34 +3520,34 @@ func TestIDTableRewardsWitholding(t *testing.T) {
 		// Number of Nodes whose rewards have been withheld (For multiplying the token amounts)
 		var numWithheldNodes interpreter.UFix64Value = 200000000
 
-		var totalStaked interpreter.UFix64Value = delegatorCommitment.Mul(stubInterpreter(), numDelegators).Plus(stubInterpreter(), amountToCommit.Mul(stubInterpreter(), numNodesTotal)).(interpreter.UFix64Value)
+		var totalStaked interpreter.UFix64Value = delegatorCommitment.Mul(stubInterpreter(), numDelegators, interpreter.EmptyLocationRange).Plus(stubInterpreter(), amountToCommit.Mul(stubInterpreter(), numNodesTotal, interpreter.EmptyLocationRange), interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 
-		var totalStakedFromNonOperationalStakers interpreter.UFix64Value = delegatorCommitment.Mul(stubInterpreter(), numDelegatorsForNode0).Plus(stubInterpreter(), amountToCommit.Mul(stubInterpreter(), numWithheldNodes)).(interpreter.UFix64Value)
+		var totalStakedFromNonOperationalStakers interpreter.UFix64Value = delegatorCommitment.Mul(stubInterpreter(), numDelegatorsForNode0, interpreter.EmptyLocationRange).Plus(stubInterpreter(), amountToCommit.Mul(stubInterpreter(), numWithheldNodes, interpreter.EmptyLocationRange), interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 
 		// First calculate the node and delegator rewards assuming no withholding
-		nodeRewardWithoutWithold := totalPayout.Div(stubInterpreter(), totalStaked).Mul(stubInterpreter(), amountToCommit).(interpreter.UFix64Value)
-		delegatorReward := totalPayout.Div(stubInterpreter(), totalStaked).Mul(stubInterpreter(), delegatorCommitment).(interpreter.UFix64Value)
-		delegatorRewardNodeCut := delegatorReward.Mul(stubInterpreter(), cutPercentage).(interpreter.UFix64Value)
-		delegatorRewardMinusNode := delegatorReward.Minus(stubInterpreter(), delegatorRewardNodeCut).(interpreter.UFix64Value)
+		nodeRewardWithoutWithold := totalPayout.Div(stubInterpreter(), totalStaked, interpreter.EmptyLocationRange).Mul(stubInterpreter(), amountToCommit, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		delegatorReward := totalPayout.Div(stubInterpreter(), totalStaked, interpreter.EmptyLocationRange).Mul(stubInterpreter(), delegatorCommitment, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		delegatorRewardNodeCut := delegatorReward.Mul(stubInterpreter(), cutPercentage, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		delegatorRewardMinusNode := delegatorReward.Minus(stubInterpreter(), delegatorRewardNodeCut, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 
 		// The rewards for a node and its 5 delegators
 		// without including withheld rewards from other nodes
-		nodeRewardPlusDelegators := nodeRewardWithoutWithold.Plus(stubInterpreter(), delegatorRewardNodeCut.Mul(stubInterpreter(), numDelegatorsForNode0)).(interpreter.UFix64Value)
+		nodeRewardPlusDelegators := nodeRewardWithoutWithold.Plus(stubInterpreter(), delegatorRewardNodeCut.Mul(stubInterpreter(), numDelegatorsForNode0, interpreter.EmptyLocationRange), interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 
 		// Figure out the sum of tokens withheld from all punished nodes
-		amountWithheld := nodeRewardWithoutWithold.Mul(stubInterpreter(), numWithheldNodes).Plus(stubInterpreter(), delegatorReward.Mul(stubInterpreter(), numDelegatorsForNode0)).(interpreter.UFix64Value)
+		amountWithheld := nodeRewardWithoutWithold.Mul(stubInterpreter(), numWithheldNodes, interpreter.EmptyLocationRange).Plus(stubInterpreter(), delegatorReward.Mul(stubInterpreter(), numDelegatorsForNode0, interpreter.EmptyLocationRange), interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 
 		// Calculate the additional tokens to give to nodes and delegators
 		// only from the withheld tokens
-		nodeRewardFromWithheld := amountWithheld.Div(stubInterpreter(), totalStaked.Minus(stubInterpreter(), totalStakedFromNonOperationalStakers)).Mul(stubInterpreter(), amountToCommit).(interpreter.UFix64Value)
-		delegatorRewardFromWithheld := amountWithheld.Div(stubInterpreter(), totalStaked.Minus(stubInterpreter(), totalStakedFromNonOperationalStakers)).Mul(stubInterpreter(), delegatorCommitment).(interpreter.UFix64Value)
-		delegatorRewardNodeCutFromWithheld := delegatorRewardFromWithheld.Mul(stubInterpreter(), cutPercentage).(interpreter.UFix64Value)
-		delegatorRewardMinusNodeFromWithheld := delegatorRewardFromWithheld.Minus(stubInterpreter(), delegatorRewardNodeCutFromWithheld).(interpreter.UFix64Value)
+		nodeRewardFromWithheld := amountWithheld.Div(stubInterpreter(), totalStaked.Minus(stubInterpreter(), totalStakedFromNonOperationalStakers, interpreter.EmptyLocationRange), interpreter.EmptyLocationRange).Mul(stubInterpreter(), amountToCommit, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		delegatorRewardFromWithheld := amountWithheld.Div(stubInterpreter(), totalStaked.Minus(stubInterpreter(), totalStakedFromNonOperationalStakers, interpreter.EmptyLocationRange), interpreter.EmptyLocationRange).Mul(stubInterpreter(), delegatorCommitment, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		delegatorRewardNodeCutFromWithheld := delegatorRewardFromWithheld.Mul(stubInterpreter(), cutPercentage, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		delegatorRewardMinusNodeFromWithheld := delegatorRewardFromWithheld.Minus(stubInterpreter(), delegatorRewardNodeCutFromWithheld, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 
 		// Add the normal rewards to the rewards from withholding
-		totalNodeReward := nodeRewardWithoutWithold.Plus(stubInterpreter(), nodeRewardFromWithheld).(interpreter.UFix64Value)
-		totalNodeRewardPlusDelegators := nodeRewardPlusDelegators.Plus(stubInterpreter(), nodeRewardFromWithheld.Plus(stubInterpreter(), delegatorRewardNodeCutFromWithheld.Mul(stubInterpreter(), numDelegatorsForNode0))).(interpreter.UFix64Value)
-		totalDelegatorReward := delegatorRewardMinusNode.Plus(stubInterpreter(), delegatorRewardMinusNodeFromWithheld).(interpreter.UFix64Value)
+		totalNodeReward := nodeRewardWithoutWithold.Plus(stubInterpreter(), nodeRewardFromWithheld, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		totalNodeRewardPlusDelegators := nodeRewardPlusDelegators.Plus(stubInterpreter(), nodeRewardFromWithheld.Plus(stubInterpreter(), delegatorRewardNodeCutFromWithheld.Mul(stubInterpreter(), numDelegatorsForNode0, interpreter.EmptyLocationRange), interpreter.EmptyLocationRange), interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		totalDelegatorReward := delegatorRewardMinusNode.Plus(stubInterpreter(), delegatorRewardMinusNodeFromWithheld, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
 
 		// Nodes 1, 3-9
 		for i := 1; i < numNodes; i++ {
@@ -2668,17 +3566,4 @@ func TestIDTableRewardsWitholding(t *testing.T) {
 			assertEqual(t, CadenceUFix64(totalDelegatorReward.String()), result)
 		}
 	})
-}
-
-// assertApprovedListEquals asserts the FlowIDTableStaking approved list matches
-// the given node ID list
-func assertApprovedListEquals(
-	t *testing.T,
-	b *emulator.Blockchain,
-	env templates.Environment,
-	expected cadence.Value, // [String]
-) {
-
-	result := executeScriptAndCheck(t, b, templates.GenerateGetApprovedNodesScript(env), nil)
-	assert.Equal(t, expected, result)
 }

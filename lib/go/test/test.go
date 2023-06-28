@@ -10,7 +10,6 @@ import (
 
 	"github.com/onflow/cadence"
 	emulator "github.com/onflow/flow-emulator"
-	ft_templates "github.com/onflow/flow-ft/lib/go/templates"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/test"
@@ -41,10 +40,10 @@ const (
 	emulatorFTAddress        = "ee82856bf20e2aa6"
 	emulatorFlowTokenAddress = "0ae53cb6e3f42a79"
 	emulatorFlowFeesAddress  = "e5a8b7f23e8b548f"
+	emulatorStorageFees      = "f8d6e0586b0a20c7"
 )
 
 // Sets up testing and emulator objects and initialize the emulator default addresses
-//
 func newTestSetup(t *testing.T) (*emulator.Blockchain, *test.AccountKeys, templates.Environment) {
 	// Set for parallel processing
 	t.Parallel()
@@ -207,6 +206,16 @@ func CadenceUFix64(value string) cadence.Value {
 	return newValue
 }
 
+// CadenceUInt64 returns a UInt64 value from a uint64
+func CadenceUInt64(value uint64) cadence.Value {
+	return cadence.NewUInt64(value)
+}
+
+// CadenceUInt8 returns a UInt8 value from a uint8
+func CadenceUInt8(value uint8) cadence.Value {
+	return cadence.NewUInt8(value)
+}
+
 // CadenceString returns a string value from a string representation
 func CadenceString(value string) cadence.Value {
 	newValue, err := cadence.NewString(value)
@@ -216,6 +225,11 @@ func CadenceString(value string) cadence.Value {
 	}
 
 	return newValue
+}
+
+// CadenceBool returns a bool value from a bool
+func CadenceBool(value bool) cadence.Bool {
+	return cadence.NewBool(value)
 }
 
 // Converts a byte array to a Cadence array of UInt8
@@ -231,12 +245,11 @@ func bytesToCadenceArray(b []byte) cadence.Array {
 
 // assertEqual asserts that two objects are equal.
 //
-//    assertEqual(t, 123, 123)
+//	assertEqual(t, 123, 123)
 //
 // Pointer variable equality is determined based on the equality of the
 // referenced values (as opposed to the memory addresses). Function equality
 // cannot be determined and will always fail.
-//
 func assertEqual(t *testing.T, expected, actual interface{}) bool {
 
 	if assert.ObjectsAreEqual(expected, actual) {
@@ -255,11 +268,11 @@ func assertEqual(t *testing.T, expected, actual interface{}) bool {
 // Mints the specified amount of FLOW tokens for the specified account address
 // Using the mint tokens template from the onflow/flow-ft repo
 // signed by the service account
-func mintTokensForAccount(t *testing.T, b *emulator.Blockchain, recipient flow.Address, amount string) {
+func mintTokensForAccount(t *testing.T, b *emulator.Blockchain, env templates.Environment, recipient flow.Address, amount string) {
 
 	// Create a new mint FLOW transaction template authorized by the service account
 	tx := createTxWithTemplateAndAuthorizer(b,
-		ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"),
+		templates.GenerateMintFlowScript(env),
 		b.ServiceKey().Address)
 
 	// Add the recipient and amount as arguments
@@ -279,6 +292,7 @@ func mintTokensForAccount(t *testing.T, b *emulator.Blockchain, recipient flow.A
 func registerAndMintManyAccounts(
 	t *testing.T,
 	b *emulator.Blockchain,
+	env templates.Environment,
 	accountKeys *test.AccountKeys,
 	numAccounts int) ([]flow.Address, []*flow.AccountKey, []crypto.Signer) {
 
@@ -290,7 +304,7 @@ func registerAndMintManyAccounts(
 	// Create each new account and mint 1B tokens for it
 	for i := 0; i < numAccounts; i++ {
 		userAddresses[i], userPublicKeys[i], userSigners[i] = newAccountWithAddress(b, accountKeys)
-		mintTokensForAccount(t, b, userAddresses[i], "1000000000.0")
+		mintTokensForAccount(t, b, env, userAddresses[i], "1000000000.0")
 	}
 
 	return userAddresses, userPublicKeys, userSigners

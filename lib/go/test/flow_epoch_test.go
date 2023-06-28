@@ -108,7 +108,7 @@ func TestEpochClusters(t *testing.T) {
 	})
 
 	// create new user accounts, mint tokens for them, and register them for staking
-	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
+	addresses, _, signers := registerAndMintManyAccounts(t, b, env, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
 	_, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
 	registerNodesForStaking(t, b, env,
@@ -290,7 +290,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 	})
 
 	// create new user accounts, mint tokens for them, and register them for staking
-	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
+	addresses, _, signers := registerAndMintManyAccounts(t, b, env, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
 	_, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
 	registerNodesForStaking(t, b, env,
@@ -303,12 +303,8 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 	// Set the approved node list
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
 
-	approvedNodeIDs := make([]cadence.Value, numEpochAccounts)
-	for i := 0; i < numEpochAccounts; i++ {
-		id, _ := cadence.NewString(ids[i])
-		approvedNodeIDs[i] = id
-	}
-	err := tx.AddArgument(cadence.NewArray(approvedNodeIDs))
+	approvedNodeIDs := generateCadenceNodeDictionary(ids)
+	err := tx.AddArgument(approvedNodeIDs)
 	require.NoError(t, err)
 
 	signAndSubmit(
@@ -416,7 +412,7 @@ func TestEpochAdvance(t *testing.T) {
 	})
 
 	// create new user accounts, mint tokens for them, and register them for staking
-	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
+	addresses, _, signers := registerAndMintManyAccounts(t, b, env, accountKeys, numEpochAccounts)
 	ids, _, dkgIDs := generateNodeIDs(numEpochAccounts)
 	_, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
 	registerNodesForStaking(t, b, env,
@@ -429,12 +425,8 @@ func TestEpochAdvance(t *testing.T) {
 	// Set the approved node list
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
 
-	approvedNodeIDs := make([]cadence.Value, numEpochAccounts)
-	for i := 0; i < numEpochAccounts; i++ {
-		id, _ := cadence.NewString(ids[i])
-		approvedNodeIDs[i] = id
-	}
-	err := tx.AddArgument(cadence.NewArray(approvedNodeIDs))
+	approvedNodeIDs := generateCadenceNodeDictionary(ids)
+	err := tx.AddArgument(approvedNodeIDs)
 	require.NoError(t, err)
 
 	signAndSubmit(
@@ -560,7 +552,7 @@ func TestEpochQCDKGNodeRegistration(t *testing.T) {
 		rewardIncreaseFactor)
 
 	// create new user accounts, mint tokens for them, and register them for staking
-	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
+	addresses, _, signers := registerAndMintManyAccounts(t, b, env, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
 	_, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
 	registerNodesForStaking(t, b, env,
@@ -573,12 +565,8 @@ func TestEpochQCDKGNodeRegistration(t *testing.T) {
 	// Set the approved node list
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
 
-	approvedNodeIDs := make([]cadence.Value, numEpochAccounts)
-	for i := 0; i < numEpochAccounts; i++ {
-		id, _ := cadence.NewString(ids[i])
-		approvedNodeIDs[i] = id
-	}
-	err := tx.AddArgument(cadence.NewArray(approvedNodeIDs))
+	approvedNodeIDs := generateCadenceNodeDictionary(ids)
+	err := tx.AddArgument(approvedNodeIDs)
 	require.NoError(t, err)
 
 	signAndSubmit(
@@ -656,7 +644,7 @@ func TestEpochFullNodeRegistration(t *testing.T) {
 		rewardIncreaseFactor)
 
 	// create new user accounts, mint tokens for them, and register them for staking
-	addresses, publicKeys, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
+	addresses, publicKeys, signers := registerAndMintManyAccounts(t, b, env, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
 	_, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
 	registerNodesForEpochs(t, b, env,
@@ -688,7 +676,7 @@ func TestEpochQCDKG(t *testing.T) {
 		rewardIncreaseFactor)
 
 	// create new user accounts, mint tokens for them, and register them for staking
-	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
+	addresses, _, signers := registerAndMintManyAccounts(t, b, env, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
 	stakingPrivateKeys, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
 	registerNodesForStaking(t, b, env,
@@ -701,12 +689,8 @@ func TestEpochQCDKG(t *testing.T) {
 	// Set the approved node list
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
 
-	approvedNodeIDs := make([]cadence.Value, numEpochAccounts)
-	for i := 0; i < numEpochAccounts; i++ {
-		id, _ := cadence.NewString(ids[i])
-		approvedNodeIDs[i] = id
-	}
-	err := tx.AddArgument(cadence.NewArray(approvedNodeIDs))
+	approvedNodeIDs := generateCadenceNodeDictionary(ids)
+	err := tx.AddArgument(approvedNodeIDs)
 	require.NoError(t, err)
 
 	signAndSubmit(
@@ -882,6 +866,24 @@ func TestEpochQCDKG(t *testing.T) {
 
 	})
 
+	t.Run("Can set bonus token amount to modify rewards calculation", func(t *testing.T) {
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochSetBonusTokensScript(env), idTableAddress)
+
+		_ = tx.AddArgument(CadenceUFix64("1000000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
+			false,
+		)
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetBonusTokensScript(env), nil)
+		assertEqual(t, CadenceUFix64("1000000.0"), result)
+
+	})
+
 	t.Run("Can end the Epoch and start a new Epoch", func(t *testing.T) {
 
 		result := executeScriptAndCheck(t, b, templates.GenerateGetFlowTotalSupplyScript(env), nil)
@@ -922,7 +924,7 @@ func TestEpochQCDKG(t *testing.T) {
 		// Verifies that the rewards from the previous epoch does not include the new epoch's amount
 		verifyEpochTotalRewardsPaid(t, b, idTableAddress,
 			EpochTotalRewardsPaid{
-				total:      "1250000.0000",
+				total:      "0.0000",
 				fromFees:   "0.0",
 				minted:     "0.0000",
 				feesBurned: "0.0000"})
@@ -943,12 +945,15 @@ func TestEpochQCDKG(t *testing.T) {
 
 		verifyEpochMetadata(t, b, env,
 			EpochMetadata{
-				counter:               startEpochCounter + 1,
-				seed:                  "",
-				startView:             startView + numEpochViews,
-				endView:               startView + 2*numEpochViews - 1,
-				stakingEndView:        startView + numEpochViews + numStakingViews - 1,
-				totalRewards:          "6572143.3875",
+				counter:        startEpochCounter + 1,
+				seed:           "",
+				startView:      startView + numEpochViews,
+				endView:        startView + 2*numEpochViews - 1,
+				stakingEndView: startView + numEpochViews + numStakingViews - 1,
+				// The calculation of the total rewards should have been reduced because of the bonus tokens
+				// (total supply + current payount amount - bonus tokens) * reward increase factor
+				// (7000000000 + 1250000 - 1000000) * 0.00093871 = 6,571,204.6775
+				totalRewards:          "6571204.6775",
 				rewardsBreakdownArray: 0,
 				rewardsPaid:           false,
 				collectorClusters:     clusters,
@@ -957,7 +962,7 @@ func TestEpochQCDKG(t *testing.T) {
 
 		// Make sure the payout is the same as the total rewards in the epoch metadata
 		result = executeScriptAndCheck(t, b, templates.GenerateGetWeeklyPayoutScript(env), nil)
-		assertEqual(t, CadenceUFix64("6572143.3875"), result)
+		assertEqual(t, CadenceUFix64("6571204.6775"), result)
 
 		// DKG and QC are disabled at the end of the epoch
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGEnabledScript(env), nil)
@@ -966,13 +971,7 @@ func TestEpochQCDKG(t *testing.T) {
 		result = executeScriptAndCheck(t, b, templates.GenerateGetQCEnabledScript(env), nil)
 		assert.Equal(t, cadence.NewBool(false), result)
 
-		// DKG and QC are disabled at the end of the epoch
-		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGEnabledScript(env), nil)
-		assert.Equal(t, cadence.NewBool(false), result)
-
-		result = executeScriptAndCheck(t, b, templates.GenerateGetQCEnabledScript(env), nil)
-		assert.Equal(t, cadence.NewBool(false), result)
-
+		// The total supply did not increase because nobody was staked
 		result = executeScriptAndCheck(t, b, templates.GenerateGetFlowTotalSupplyScript(env), nil)
 		assertEqual(t, CadenceUFix64("7000000000.0"), result)
 
@@ -980,7 +979,7 @@ func TestEpochQCDKG(t *testing.T) {
 
 	t.Run("Can set the rewards with high fee amount, which should not increase the supply at all", func(t *testing.T) {
 
-		mintTokensForAccount(t, b, idTableAddress, "6572144.3875")
+		mintTokensForAccount(t, b, env, idTableAddress, "6572144.3875")
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateDepositFeesScript(env), idTableAddress)
 
@@ -1013,12 +1012,15 @@ func TestEpochQCDKG(t *testing.T) {
 
 		verifyEpochMetadata(t, b, env,
 			EpochMetadata{
-				counter:               startEpochCounter + 2,
-				seed:                  "",
-				startView:             startView + 2*numEpochViews,
-				endView:               startView + 3*numEpochViews - 1,
-				stakingEndView:        startView + 2*numEpochViews + numStakingViews - 1,
-				totalRewards:          "6577139.33765799",
+				counter:        startEpochCounter + 2,
+				seed:           "",
+				startView:      startView + 2*numEpochViews,
+				endView:        startView + 3*numEpochViews - 1,
+				stakingEndView: startView + 2*numEpochViews + numStakingViews - 1,
+				// This calculation does not add the rewards for the epoch because
+				// they are not minted since they all come from fees
+				// (7006572144.3875 - 1000000) * 0.00093871 = 6,576,200.62765799
+				totalRewards:          "6576200.62765799",
 				rewardsBreakdownArray: 0,
 				rewardsPaid:           false,
 				collectorClusters:     clusters,
@@ -1027,7 +1029,7 @@ func TestEpochQCDKG(t *testing.T) {
 
 		// Make sure the payout is the same as the total rewards in the epoch metadata
 		result = executeScriptAndCheck(t, b, templates.GenerateGetWeeklyPayoutScript(env), nil)
-		assertEqual(t, CadenceUFix64("6577139.33765799"), result)
+		assertEqual(t, CadenceUFix64("6576200.62765799"), result)
 
 	})
 }
@@ -1050,7 +1052,7 @@ func TestEpochReset(t *testing.T) {
 		rewardIncreaseFactor)
 
 	// create new user accounts, mint tokens for them, and register them for staking
-	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
+	addresses, _, signers := registerAndMintManyAccounts(t, b, env, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
 	stakingPrivateKeys, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
 	registerNodesForStaking(t, b, env,
@@ -1063,11 +1065,8 @@ func TestEpochReset(t *testing.T) {
 	// Set the approved node list
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
 
-	approvedNodeIDs := make([]cadence.Value, numEpochAccounts)
-	for i := 0; i < numEpochAccounts; i++ {
-		approvedNodeIDs[i] = CadenceString(ids[i])
-	}
-	err := tx.AddArgument(cadence.NewArray(approvedNodeIDs))
+	approvedNodeIDs := generateCadenceNodeDictionary(ids)
+	err := tx.AddArgument(approvedNodeIDs)
 	require.NoError(t, err)
 
 	signAndSubmit(
@@ -1179,12 +1178,11 @@ func TestEpochReset(t *testing.T) {
 		var endView uint64 = 200
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateResetEpochScript(env), idTableAddress)
-		_ = tx.AddArgument(cadence.NewUInt64(startEpochCounter + 1))
-		_ = tx.AddArgument(CadenceString("stillSoRandom"))
-		_ = tx.AddArgument(CadenceUFix64("1300000.0"))
-		_ = tx.AddArgument(cadence.NewUInt64(startView))
-		_ = tx.AddArgument(cadence.NewUInt64(stakingEndView))
-		_ = tx.AddArgument(cadence.NewUInt64(endView))
+		tx.AddArgument(cadence.NewUInt64(startEpochCounter + 1))
+		tx.AddArgument(CadenceString("stillSoRandom"))
+		tx.AddArgument(cadence.NewUInt64(startView))
+		tx.AddArgument(cadence.NewUInt64(stakingEndView))
+		tx.AddArgument(cadence.NewUInt64(endView))
 
 		signAndSubmit(
 			t, b, tx,
@@ -1201,12 +1199,11 @@ func TestEpochReset(t *testing.T) {
 		var endView uint64 = 200
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateResetEpochScript(env), idTableAddress)
-		_ = tx.AddArgument(cadence.NewUInt64(startEpochCounter))
-		_ = tx.AddArgument(CadenceString("stillSoRandom"))
-		_ = tx.AddArgument(CadenceUFix64("1300000.0"))
-		_ = tx.AddArgument(cadence.NewUInt64(startView))
-		_ = tx.AddArgument(cadence.NewUInt64(stakingEndView))
-		_ = tx.AddArgument(cadence.NewUInt64(endView))
+		tx.AddArgument(cadence.NewUInt64(startEpochCounter))
+		tx.AddArgument(CadenceString("stillSoRandom"))
+		tx.AddArgument(cadence.NewUInt64(startView))
+		tx.AddArgument(cadence.NewUInt64(stakingEndView))
+		tx.AddArgument(cadence.NewUInt64(endView))
 
 		signAndSubmit(
 			t, b, tx,
@@ -1223,12 +1220,11 @@ func TestEpochReset(t *testing.T) {
 		var endView uint64 = 200
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateResetEpochScript(env), idTableAddress)
-		_ = tx.AddArgument(cadence.NewUInt64(startEpochCounter))
-		_ = tx.AddArgument(CadenceString("stillSoRandom"))
-		_ = tx.AddArgument(CadenceUFix64("1300000.0"))
-		_ = tx.AddArgument(cadence.NewUInt64(startView))
-		_ = tx.AddArgument(cadence.NewUInt64(stakingEndView))
-		_ = tx.AddArgument(cadence.NewUInt64(endView))
+		tx.AddArgument(cadence.NewUInt64(startEpochCounter))
+		tx.AddArgument(CadenceString("stillSoRandom"))
+		tx.AddArgument(cadence.NewUInt64(startView))
+		tx.AddArgument(cadence.NewUInt64(stakingEndView))
+		tx.AddArgument(cadence.NewUInt64(endView))
 
 		signAndSubmit(
 			t, b, tx,
@@ -1245,12 +1241,11 @@ func TestEpochReset(t *testing.T) {
 		var endView uint64 = 160
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateResetEpochScript(env), idTableAddress)
-		_ = tx.AddArgument(cadence.NewUInt64(startEpochCounter))
-		_ = tx.AddArgument(CadenceString("stillSoRandom"))
-		_ = tx.AddArgument(CadenceUFix64("1300000.0"))
-		_ = tx.AddArgument(cadence.NewUInt64(startView))
-		_ = tx.AddArgument(cadence.NewUInt64(stakingEndView))
-		_ = tx.AddArgument(cadence.NewUInt64(endView))
+		tx.AddArgument(cadence.NewUInt64(startEpochCounter))
+		tx.AddArgument(CadenceString("stillSoRandom"))
+		tx.AddArgument(cadence.NewUInt64(startView))
+		tx.AddArgument(cadence.NewUInt64(stakingEndView))
+		tx.AddArgument(cadence.NewUInt64(endView))
 
 		signAndSubmit(
 			t, b, tx,
@@ -1266,7 +1261,7 @@ func TestEpochReset(t *testing.T) {
 				startView:             startView,
 				endView:               endView,
 				stakingEndView:        stakingEndView,
-				totalRewards:          "1250000.0",
+				totalRewards:          "0.0",
 				rewardsBreakdownArray: 0,
 				rewardsPaid:           false,
 				collectorClusters:     nil,
@@ -1278,5 +1273,94 @@ func TestEpochReset(t *testing.T) {
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetQCEnabledScript(env), nil)
 		assert.Equal(t, cadence.NewBool(false), result)
+	})
+
+	result := executeScriptAndCheck(t, b, templates.GenerateGetFlowTotalSupplyScript(env), nil)
+	assertEqual(t, CadenceUFix64("7000000000.0"), result)
+
+	t.Run("Can reset the epoch during the staking auction with automatic rewards enabled", func(t *testing.T) {
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochSetAutomaticRewardsScript(env), idTableAddress)
+
+		tx.AddArgument(cadence.NewBool(true))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
+			false,
+		)
+
+		var startView uint64 = 100
+		var stakingEndView uint64 = 120
+		var endView uint64 = 160
+
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateResetEpochScript(env), idTableAddress)
+		tx.AddArgument(cadence.NewUInt64(startEpochCounter + 1))
+		tx.AddArgument(CadenceString("stillSoRandom"))
+		tx.AddArgument(cadence.NewUInt64(startView))
+		tx.AddArgument(cadence.NewUInt64(stakingEndView))
+		tx.AddArgument(cadence.NewUInt64(endView))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
+			false,
+		)
+
+		// Verify the current epoch's metadata to make sure rewards were calculated
+		// properly after the reset and that they haven't been paid yet
+		verifyEpochMetadata(t, b, env,
+			EpochMetadata{
+				counter:        startEpochCounter + 2,
+				seed:           "stillSoRandom",
+				startView:      startView,
+				endView:        endView,
+				stakingEndView: stakingEndView,
+				// The calculation of the total rewards should have happened
+				// because automatic rewards are enabled
+				// (total supply + current payount amount - bonus tokens) * reward increase factor
+				// (7000000000 + 1250000 - 0) * 0.00093871 = 6,571,204.6775
+				totalRewards:          "6572143.3875",
+				rewardsBreakdownArray: 0,
+				rewardsPaid:           false,
+				collectorClusters:     nil,
+				clusterQCs:            nil,
+				dkgKeys:               nil})
+
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochPayRewardsScript(env), idTableAddress)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
+			false,
+		)
+
+		// Verifies that the rewards from the previous epoch does not include the new epoch's amount
+		verifyEpochTotalRewardsPaid(t, b, idTableAddress,
+			EpochTotalRewardsPaid{
+				total:      "1250000.00000000",
+				fromFees:   "0.0",
+				minted:     "1250000.00000000",
+				feesBurned: "0.035"})
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(ids[0]))})
+		assertEqual(t, CadenceUFix64("249999.99300000"), result)
+
+		// Rewards have already been paid, so this should not do anything
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochPayRewardsScript(env), idTableAddress)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
+			false,
+		)
+
+		// The nodes rewards should not have increased
+		result = executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(ids[0]))})
+		assertEqual(t, CadenceUFix64("249999.99300000"), result)
 	})
 }
