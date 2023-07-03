@@ -8,6 +8,7 @@ import (
 
 	_ "github.com/kevinburke/go-bindata"
 	ftcontracts "github.com/onflow/flow-ft/lib/go/contracts"
+	nftcontracts "github.com/onflow/flow-nft/lib/go/contracts"
 
 	"github.com/onflow/flow-core-contracts/lib/go/contracts/internal/assets"
 )
@@ -76,6 +77,24 @@ func withHexPrefix(address string) string {
 // FungibleToken returns the FungibleToken contract interface.
 func FungibleToken() []byte {
 	return ftcontracts.FungibleToken()
+}
+
+// FungibleTokenMetadataViews returns the FungibleTokenMetadataViews contract interface.
+func FungibleTokenMetadataViews(fungibleTokenAddr, metadataViewsAddr string) []byte {
+	return ftcontracts.FungibleTokenMetadataViews(fungibleTokenAddr, metadataViewsAddr)
+}
+
+func NonFungibleToken() []byte {
+	return nftcontracts.NonFungibleToken()
+}
+
+func ViewResolver() []byte {
+	return nftcontracts.ViewResolver()
+}
+
+// MetadataViews returns the MetadataViews contract interface.
+func MetadataViews(fungibleTokenAddr, nonFungibleTokenAddr string) []byte {
+	return nftcontracts.MetadataViews(fungibleTokenAddr, nonFungibleTokenAddr)
 }
 
 // FlowToken returns the FlowToken contract.
