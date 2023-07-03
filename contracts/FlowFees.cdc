@@ -1,4 +1,4 @@
-import FungibleToken from 0xFUNGIBLETOKENADDRESS
+import FungibleToken from "FungibleToken"
 import FlowToken from 0xFLOWTOKENADDRESS
 import FlowStorageFees from 0xFLOWSTORAGEFEESADDRESS
 

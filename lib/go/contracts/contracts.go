@@ -43,8 +43,10 @@ const (
 
 	// Each contract has placeholder addresses that need to be replaced
 	// depending on which network they are being used with
-	placeholderFungibleTokenAddress     = "0xFUNGIBLETOKENADDRESS"
-	placeholderFungibleTokenMVAddress   = "\"./FungibleTokenMetadataViews.cdc\""
+	placeholderFungibleTokenAddress     = "\"FungibleToken\""
+	placeholderFungibleTokenMVAddress   = "\"FungibleTokenMetadataViews\""
+	placeholderMetadataViewsAddress     = "\"MetadataViews\""
+	placeholderViewResolverAddress      = "\"ViewResolver\""
 	placeholderFlowTokenAddress         = "0xFLOWTOKENADDRESS"
 	placeholderIDTableAddress           = "0xFLOWIDTABLESTAKINGADDRESS"
 	placeholderStakingProxyAddress      = "0xSTAKINGPROXYADDRESS"
@@ -79,7 +81,7 @@ func FungibleToken() []byte {
 // FlowToken returns the FlowToken contract.
 //
 // The returned contract will import the FungibleToken contract from the specified address.
-func FlowToken(fungibleTokenAddress string) []byte {
+func FlowToken(fungibleTokenAddress, metadataViewsAddress, viewResolverAddress string) []byte {
 	code := assets.MustAssetString(flowTokenFilename)
 
 	// Replace the fungible token placeholder address
@@ -94,6 +96,18 @@ func FlowToken(fungibleTokenAddress string) []byte {
 		code,
 		placeholderFungibleTokenMVAddress,
 		withHexPrefix(fungibleTokenAddress),
+	)
+
+	code = strings.ReplaceAll(
+		code,
+		placeholderMetadataViewsAddress,
+		withHexPrefix(metadataViewsAddress),
+	)
+
+	code = strings.ReplaceAll(
+		code,
+		placeholderViewResolverAddress,
+		withHexPrefix(viewResolverAddress),
 	)
 
 	// Replace the init method storage operations

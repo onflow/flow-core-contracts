@@ -1,4 +1,4 @@
-import FungibleToken from 0xFUNGIBLETOKENADDRESS
+import FungibleToken from "FungibleToken"
 import FlowToken from 0xFLOWTOKENADDRESS
 import FlowIDTableStaking from 0xFLOWIDTABLESTAKINGADDRESS
 import FlowClusterQC from 0xQCADDRESS
