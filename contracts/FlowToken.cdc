@@ -1,7 +1,9 @@
-import FungibleToken from 0xFUNGIBLETOKENADDRESS
-import FungibleTokenMetadataViews from "./FungibleTokenMetadataViews.cdc"
+import FungibleToken from "FungibleToken"
+import MetadataViews from "MetadataViews"
+import FungibleTokenMetadataViews from "FungibleTokenMetadataViews"
+import ViewResolver from "ViewResolver"
 
-pub contract FlowToken: FungibleToken {
+pub contract FlowToken: FungibleToken, ViewResolver {
 
     // Total supply of Flow tokens in existence
     pub var totalSupply: UFix64
@@ -39,7 +41,7 @@ pub contract FlowToken: FungibleToken {
     // out of thin air. A special Minter resource needs to be defined to mint
     // new tokens.
     //
-    pub resource Vault: FungibleToken.Provider, FungibleToken.Receiver, FungibleToken.Balance {
+    pub resource Vault: FungibleToken.Provider, FungibleToken.Receiver, FungibleToken.Balance, MetadataViews.Resolver {
 
         // holds the balance of a users tokens
         pub var balance: UFix64
@@ -91,9 +93,7 @@ pub contract FlowToken: FungibleToken {
         ///         developers to know which parameter to pass to the resolveView() method.
         ///
         pub fun getViews(): [Type]{
-            return [Type<FungibleTokenMetadataViews.FTView>(),
-                    Type<FungibleTokenMetadataViews.FTDisplay>(),
-                    Type<FungibleTokenMetadataViews.FTVaultData>()]
+            return FlowToken.getViews()
         }
 
         /// Get a Metadata View from FlowToken
@@ -102,45 +102,7 @@ pub contract FlowToken: FungibleToken {
         /// @return A structure representing the requested view.
         ///
         pub fun resolveView(_ view: Type): AnyStruct? {
-            switch view {
-                case Type<FungibleTokenMetadataViews.FTView>():
-                    return FungibleTokenMetadataViews.FTView(
-                        ftDisplay: self.resolveView(Type<FungibleTokenMetadataViews.FTDisplay>()) as! FungibleTokenMetadataViews.FTDisplay?,
-                        ftVaultData: self.resolveView(Type<FungibleTokenMetadataViews.FTVaultData>()) as! FungibleTokenMetadataViews.FTVaultData?
-                    )
-                case Type<FungibleTokenMetadataViews.FTDisplay>():
-                    let media = MetadataViews.Media(
-                            file: MetadataViews.HTTPFile(
-                            url: "https://assets.website-files.com/5f6294c0c7a8cdd643b1c820/5f6294c0c7a8cda55cb1c936_Flow_Wordmark.svg"
-                        ),
-                        mediaType: "image/svg+xml"
-                    )
-                    let medias = MetadataViews.Medias([media])
-                    return FungibleTokenMetadataViews.FTDisplay(
-                        name: "FLOW Network Token",
-                        symbol: "FLOW",
-                        description: "FLOW is the protocol token that is required for transaction fees, storage fees, staking, and many applications built on the Flow Blockchain",
-                        externalURL: MetadataViews.ExternalURL("https://flow.com"),
-                        logos: medias,
-                        socials: {
-                            "twitter": MetadataViews.ExternalURL("https://twitter.com/flow_blockchain")
-                        }
-                    )
-                case Type<FungibleTokenMetadataViews.FTVaultData>():
-                    return FungibleTokenMetadataViews.FTVaultData(
-                        storagePath: /storage/flowTokenVault,
-                        receiverPath: /public/flowTokenReceiver,
-                        metadataPath: /public/flowTokenBalance,
-                        providerPath: /private/flowTokenVault,
-                        receiverLinkedType: Type<&FlowToken.Vault{FungibleToken.Receiver}>(),
-                        metadataLinkedType: Type<&FlowToken.Vault{FungibleToken.Balance}>(),
-                        providerLinkedType: Type<&FlowToken.Vault{FungibleToken.Provider}>(),
-                        createEmptyVaultFunction: (fun (): @FungibleToken.Vault {
-                            return <-FlowToken.createEmptyVault()
-                        })
-                    )
-            }
-            return nil
+            return FlowToken.resolveView(view)
         }
     }
 
@@ -153,6 +115,59 @@ pub contract FlowToken: FungibleToken {
     //
     pub fun createEmptyVault(): @FungibleToken.Vault {
         return <-create Vault(balance: 0.0)
+    }
+
+    pub fun getViews(): [Type] {
+        return [Type<FungibleTokenMetadataViews.FTView>(),
+                Type<FungibleTokenMetadataViews.FTDisplay>(),
+                Type<FungibleTokenMetadataViews.FTVaultData>()]
+    }
+
+    /// Get a Metadata View from FlowToken
+    ///
+    /// @param view: The Type of the desired view.
+    /// @return A structure representing the requested view.
+    ///
+    pub fun resolveView(_ view: Type): AnyStruct? {
+        switch view {
+            case Type<FungibleTokenMetadataViews.FTView>():
+                return FungibleTokenMetadataViews.FTView(
+                    ftDisplay: self.resolveView(Type<FungibleTokenMetadataViews.FTDisplay>()) as! FungibleTokenMetadataViews.FTDisplay?,
+                    ftVaultData: self.resolveView(Type<FungibleTokenMetadataViews.FTVaultData>()) as! FungibleTokenMetadataViews.FTVaultData?
+                )
+            case Type<FungibleTokenMetadataViews.FTDisplay>():
+                let media = MetadataViews.Media(
+                        file: MetadataViews.HTTPFile(
+                        url: "https://assets.website-files.com/5f6294c0c7a8cdd643b1c820/5f6294c0c7a8cda55cb1c936_Flow_Wordmark.svg"
+                    ),
+                    mediaType: "image/svg+xml"
+                )
+                let medias = MetadataViews.Medias([media])
+                return FungibleTokenMetadataViews.FTDisplay(
+                    name: "FLOW Network Token",
+                    symbol: "FLOW",
+                    description: "FLOW is the protocol token that is required for transaction fees, storage fees, staking, and many applications built on the Flow Blockchain",
+                    externalURL: MetadataViews.ExternalURL("https://flow.com"),
+                    logos: medias,
+                    socials: {
+                        "twitter": MetadataViews.ExternalURL("https://twitter.com/flow_blockchain")
+                    }
+                )
+            case Type<FungibleTokenMetadataViews.FTVaultData>():
+                return FungibleTokenMetadataViews.FTVaultData(
+                    storagePath: /storage/flowTokenVault,
+                    receiverPath: /public/flowTokenReceiver,
+                    metadataPath: /public/flowTokenBalance,
+                    providerPath: /private/flowTokenVault,
+                    receiverLinkedType: Type<&FlowToken.Vault{FungibleToken.Receiver, FungibleToken.Balance, MetadataViews.Resolver}>(),
+                    metadataLinkedType: Type<&FlowToken.Vault{FungibleToken.Balance, MetadataViews.Resolver}>(),
+                    providerLinkedType: Type<&FlowToken.Vault{FungibleToken.Provider}>(),
+                    createEmptyVaultFunction: (fun (): @FungibleToken.Vault {
+                        return <-FlowToken.createEmptyVault()
+                    })
+                )
+        }
+        return nil
     }
 
     pub resource Administrator {
@@ -237,7 +252,7 @@ pub contract FlowToken: FungibleToken {
         // Create a public capability to the stored Vault that only exposes
         // the `deposit` method through the `Receiver` interface
         //
-        self.account.link<&FlowToken.Vault{FungibleToken.Receiver}>(
+        self.account.link<&FlowToken.Vault{FungibleToken.Receiver, FungibleToken.Balance, MetadataViews.Resolver}>(
             /public/flowTokenReceiver,
             target: /storage/flowTokenVault
         )
@@ -245,7 +260,7 @@ pub contract FlowToken: FungibleToken {
         // Create a public capability to the stored Vault that only exposes
         // the `balance` field through the `Balance` interface
         //
-        self.account.link<&FlowToken.Vault{FungibleToken.Balance}>(
+        self.account.link<&FlowToken.Vault{FungibleToken.Balance, MetadataViews.Resolver}>(
             /public/flowTokenBalance,
             target: /storage/flowTokenVault
         )

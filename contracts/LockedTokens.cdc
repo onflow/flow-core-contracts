@@ -26,7 +26,7 @@
  */
 
 import FlowToken from 0xFLOWTOKENADDRESS
-import FungibleToken from 0xFUNGIBLETOKENADDRESS
+import FungibleToken from "FungibleToken"
 import FlowIDTableStaking from 0xFLOWIDTABLESTAKINGADDRESS
 import FlowStorageFees from 0xFLOWSTORAGEFEESADDRESS
 import StakingProxy from 0xSTAKINGPROXYADDRESS
