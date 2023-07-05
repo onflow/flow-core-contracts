@@ -1,6 +1,7 @@
 package test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -19,7 +20,7 @@ import (
 
 func TestLockedTokensStaker(t *testing.T) {
 	t.Parallel()
-	b := newBlockchain()
+	b, adapter := newBlockchain()
 
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
@@ -69,10 +70,12 @@ func TestLockedTokensStaker(t *testing.T) {
 	var i uint64
 	i = 0
 	for i < 1000 {
-		results, _ := b.GetEventsByHeight(i, "flow.AccountCreated")
-		for _, event := range results {
-			if event.Type == flow.EventAccountCreated {
-				idTableAddress = flow.Address(event.Value.Fields[0].(cadence.Address))
+		results, _ := adapter.GetEventsForHeightRange(context.Background(), "flow.AccountCreated", i, i)
+		for _, result := range results {
+			for _, event := range result.Events {
+				if event.Type == flow.EventAccountCreated {
+					idTableAddress = flow.Address(event.Value.Fields[0].(cadence.Address))
+				}
 			}
 		}
 
@@ -83,7 +86,7 @@ func TestLockedTokensStaker(t *testing.T) {
 
 	// Deploy the StakingProxy contract
 	stakingProxyCode := contracts.FlowStakingProxy()
-	stakingProxyAddress, err := b.CreateAccount(nil, []sdktemplates.Contract{
+	stakingProxyAddress, err := adapter.CreateAccount(context.Background(), nil, []sdktemplates.Contract{
 		{
 			Name:   "StakingProxy",
 			Source: string(stakingProxyCode),
@@ -96,7 +99,7 @@ func TestLockedTokensStaker(t *testing.T) {
 	assert.NoError(t, err)
 
 	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
-	adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
+	adminAddress, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{adminAccountKey}, nil)
 
 	lockedTokensAccountKey, _ := accountKeys.NewWithSigner()
 	lockedTokensAddress := deployLockedTokensContract(t, b, env, idTableAddress, stakingProxyAddress, lockedTokensAccountKey, adminAddress, adminSigner)
@@ -139,7 +142,7 @@ func TestLockedTokensStaker(t *testing.T) {
 			false,
 		)
 
-		createAccountsTxResult, err := b.GetTransactionResult(tx.ID())
+		createAccountsTxResult, err := adapter.GetTransactionResult(context.Background(), tx.ID())
 		assert.NoError(t, err)
 		assertEqual(t, flow.TransactionStatusSealed, createAccountsTxResult.Status)
 
@@ -187,7 +190,7 @@ func TestLockedTokensStaker(t *testing.T) {
 
 	// Create a new user account that is not registered
 	maxAccountKey, _ := accountKeys.NewWithSigner()
-	maxAddress, _ := b.CreateAccount([]*flow.AccountKey{maxAccountKey}, nil)
+	maxAddress, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{maxAccountKey}, nil)
 
 	t.Run("Should fail because the accounts are not registered", func(t *testing.T) {
 
@@ -627,7 +630,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 
 	t.Parallel()
 
-	b := newBlockchain()
+	b, adapter := newBlockchain()
 
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
@@ -678,11 +681,13 @@ func TestLockedTokensDelegator(t *testing.T) {
 	var i uint64
 	i = 0
 	for i < 1000 {
-		results, _ := b.GetEventsByHeight(i, "flow.AccountCreated")
+		results, _ := adapter.GetEventsForHeightRange(context.Background(), "flow.AccountCreated", i, i)
 
-		for _, event := range results {
-			if event.Type == flow.EventAccountCreated {
-				idTableAddress = flow.Address(event.Value.Fields[0].(cadence.Address))
+		for _, result := range results {
+			for _, event := range result.Events {
+				if event.Type == flow.EventAccountCreated {
+					idTableAddress = flow.Address(event.Value.Fields[0].(cadence.Address))
+				}
 			}
 		}
 
@@ -693,7 +698,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 
 	// Deploy the StakingProxy contract
 	stakingProxyCode := contracts.FlowStakingProxy()
-	stakingProxyAddress, err := b.CreateAccount(nil, []sdktemplates.Contract{
+	stakingProxyAddress, err := adapter.CreateAccount(context.Background(), nil, []sdktemplates.Contract{
 		{
 			Name:   "StakingProxy",
 			Source: string(stakingProxyCode),
@@ -709,7 +714,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 	env.StakingProxyAddress = stakingProxyAddress.Hex()
 
 	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
-	adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
+	adminAddress, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{adminAccountKey}, nil)
 
 	lockedTokensAccountKey, _ := accountKeys.NewWithSigner()
 	lockedTokensAddress := deployLockedTokensContract(t, b, env, idTableAddress, stakingProxyAddress, lockedTokensAccountKey, adminAddress, adminSigner)
@@ -752,7 +757,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 			false,
 		)
 
-		createAccountsTxResult, err := b.GetTransactionResult(tx.ID())
+		createAccountsTxResult, err := adapter.GetTransactionResult(context.Background(), tx.ID())
 		assert.NoError(t, err)
 		assertEqual(t, flow.TransactionStatusSealed, createAccountsTxResult.Status)
 
@@ -1091,7 +1096,7 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 
 	t.Parallel()
 
-	b := newBlockchain()
+	b, adapter := newBlockchain()
 
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
@@ -1142,11 +1147,13 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 	var i uint64
 	i = 0
 	for i < 1000 {
-		results, _ := b.GetEventsByHeight(i, "flow.AccountCreated")
+		results, _ := adapter.GetEventsForHeightRange(context.Background(), "flow.AccountCreated", i, i)
 
-		for _, event := range results {
-			if event.Type == flow.EventAccountCreated {
-				idTableAddress = flow.Address(event.Value.Fields[0].(cadence.Address))
+		for _, result := range results {
+			for _, event := range result.Events {
+				if event.Type == flow.EventAccountCreated {
+					idTableAddress = flow.Address(event.Value.Fields[0].(cadence.Address))
+				}
 			}
 		}
 
@@ -1157,7 +1164,7 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 
 	// Deploy the StakingProxy contract
 	stakingProxyCode := contracts.FlowStakingProxy()
-	stakingProxyAddress, err := b.CreateAccount(nil, []sdktemplates.Contract{
+	stakingProxyAddress, err := adapter.CreateAccount(context.Background(), nil, []sdktemplates.Contract{
 		{
 			Name:   "StakingProxy",
 			Source: string(stakingProxyCode),
@@ -1173,7 +1180,7 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 	assert.NoError(t, err)
 
 	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
-	adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
+	adminAddress, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{adminAccountKey}, nil)
 
 	lockedTokensAccountKey, _ := accountKeys.NewWithSigner()
 	lockedTokensAddress := deployLockedTokensContract(t, b, env, idTableAddress, stakingProxyAddress, lockedTokensAccountKey, adminAddress, adminSigner)
@@ -1182,7 +1189,7 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 
 	// Create new custody provider account
 	custodyAccountKey, custodySigner := accountKeys.NewWithSigner()
-	custodyAddress, _ := b.CreateAccount([]*flow.AccountKey{custodyAccountKey}, nil)
+	custodyAddress, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{custodyAccountKey}, nil)
 
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateMintFlowScript(env), b.ServiceKey().Address)
 	_ = tx.AddArgument(cadence.NewAddress(adminAddress))
@@ -1256,7 +1263,7 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 			false,
 		)
 
-		createAccountsTxResult, err := b.GetTransactionResult(tx.ID())
+		createAccountsTxResult, err := adapter.GetTransactionResult(context.Background(), tx.ID())
 		assert.NoError(t, err)
 		assertEqual(t, flow.TransactionStatusSealed, createAccountsTxResult.Status)
 
@@ -1289,7 +1296,7 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 
 	// Create new keys for a new user account
 	maxKey, maxSigner := accountKeys.NewWithSigner()
-	maxAddress, _ := b.CreateAccount([]*flow.AccountKey{maxKey}, nil)
+	maxAddress, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{maxKey}, nil)
 
 	maxPublicKey, err := sdktemplates.AccountKeyToCadenceCryptoKey(maxKey)
 	require.NoError(t, err)
@@ -1310,7 +1317,7 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 			false,
 		)
 
-		createAccountsTxResult, err := b.GetTransactionResult(tx.ID())
+		createAccountsTxResult, err := adapter.GetTransactionResult(context.Background(), tx.ID())
 		assert.NoError(t, err)
 		assertEqual(t, flow.TransactionStatusSealed, createAccountsTxResult.Status)
 
@@ -1325,7 +1332,7 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 	})
 
 	leaseKey, leaseSigner := accountKeys.NewWithSigner()
-	leaseAddress, _ := b.CreateAccount([]*flow.AccountKey{leaseKey}, nil)
+	leaseAddress, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{leaseKey}, nil)
 
 	var leaseSharedAddress flow.Address
 
@@ -1342,7 +1349,7 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 			false,
 		)
 
-		createAccountsTxResult, err := b.GetTransactionResult(tx.ID())
+		createAccountsTxResult, err := adapter.GetTransactionResult(context.Background(), tx.ID())
 		assert.NoError(t, err)
 		assertEqual(t, flow.TransactionStatusSealed, createAccountsTxResult.Status)
 
@@ -1369,7 +1376,7 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 			false,
 		)
 
-		createAccountsTxResult, err := b.GetTransactionResult(tx.ID())
+		createAccountsTxResult, err := adapter.GetTransactionResult(context.Background(), tx.ID())
 		assert.NoError(t, err)
 		assertEqual(t, flow.TransactionStatusSealed, createAccountsTxResult.Status)
 
@@ -1446,7 +1453,7 @@ func TestLockedTokensRealStaking(t *testing.T) {
 
 	t.Parallel()
 
-	b := newBlockchain()
+	b, adapter := newBlockchain()
 
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
@@ -1463,7 +1470,7 @@ func TestLockedTokensRealStaking(t *testing.T) {
 
 	// Deploy the StakingProxy contract
 	stakingProxyCode := contracts.FlowStakingProxy()
-	stakingProxyAddress, err := b.CreateAccount(nil, []sdktemplates.Contract{
+	stakingProxyAddress, err := adapter.CreateAccount(context.Background(), nil, []sdktemplates.Contract{
 		{
 			Name:   "StakingProxy",
 			Source: string(stakingProxyCode),
@@ -1476,7 +1483,7 @@ func TestLockedTokensRealStaking(t *testing.T) {
 	assert.NoError(t, err)
 
 	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
-	adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
+	adminAddress, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{adminAccountKey}, nil)
 
 	lockedTokensAccountKey, _ := accountKeys.NewWithSigner()
 	lockedTokensAddress := deployLockedTokensContract(t, b, env, idTableAddress, stakingProxyAddress, lockedTokensAccountKey, adminAddress, adminSigner)
@@ -1519,7 +1526,7 @@ func TestLockedTokensRealStaking(t *testing.T) {
 			false,
 		)
 
-		createAccountsTxResult, err := b.GetTransactionResult(tx.ID())
+		createAccountsTxResult, err := adapter.GetTransactionResult(context.Background(), tx.ID())
 		assert.NoError(t, err)
 		assertEqual(t, flow.TransactionStatusSealed, createAccountsTxResult.Status)
 
@@ -1778,7 +1785,7 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 
 	t.Parallel()
 
-	b := newBlockchain()
+	b, adapter := newBlockchain()
 
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
@@ -1795,7 +1802,7 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 
 	// Deploy the StakingProxy contract
 	stakingProxyCode := contracts.FlowStakingProxy()
-	stakingProxyAddress, err := b.CreateAccount(nil, []sdktemplates.Contract{
+	stakingProxyAddress, err := adapter.CreateAccount(context.Background(), nil, []sdktemplates.Contract{
 		{
 			Name:   "StakingProxy",
 			Source: string(stakingProxyCode),
@@ -1810,7 +1817,7 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 
 	env.StakingProxyAddress = stakingProxyAddress.Hex()
 	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
-	adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
+	adminAddress, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{adminAccountKey}, nil)
 	lockedTokensAccountKey, _ := accountKeys.NewWithSigner()
 	lockedTokensAddress := deployLockedTokensContract(t, b, env, idTableAddress, stakingProxyAddress, lockedTokensAccountKey, adminAddress, adminSigner)
 	env.LockedTokensAddress = lockedTokensAddress.Hex()
@@ -1851,7 +1858,7 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 			false,
 		)
 
-		createAccountsTxResult, err := b.GetTransactionResult(tx.ID())
+		createAccountsTxResult, err := adapter.GetTransactionResult(context.Background(), tx.ID())
 		assert.NoError(t, err)
 		assertEqual(t, flow.TransactionStatusSealed, createAccountsTxResult.Status)
 
@@ -2076,7 +2083,7 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 
 func TestLockedTokensUnlockMultipleAccounts(t *testing.T) {
 
-	b, accountKeys, env := newTestSetup(t)
+	b, adapter, accountKeys, env := newTestSetup(t)
 	// Create new keys for the epoch account
 	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
 
@@ -2090,9 +2097,9 @@ func TestLockedTokensUnlockMultipleAccounts(t *testing.T) {
 		rewardIncreaseFactor)
 
 	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
-	adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
+	adminAddress, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{adminAccountKey}, nil)
 
-	deployAllCollectionContracts(t, b, accountKeys, &env, adminAddress, adminSigner)
+	deployAllCollectionContracts(t, b, adapter, accountKeys, &env, adminAddress, adminSigner)
 
 	numAccounts := 40
 
@@ -2105,16 +2112,16 @@ func TestLockedTokensUnlockMultipleAccounts(t *testing.T) {
 
 	// Create regular accounts that cannot be unlocked
 	nonLockedAccountKey, _ := accountKeys.NewWithSigner()
-	nonLockedAddress, _ := b.CreateAccount([]*flow.AccountKey{nonLockedAccountKey}, nil)
+	nonLockedAddress, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{nonLockedAccountKey}, nil)
 
 	nonLocked2AccountKey, _ := accountKeys.NewWithSigner()
-	nonLocked2Address, _ := b.CreateAccount([]*flow.AccountKey{nonLocked2AccountKey}, nil)
+	nonLocked2Address, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{nonLocked2AccountKey}, nil)
 
 	// initialize a bunch of locked accounts with 100M FLOW in each locked account
 	for i := 0; i < numAccounts; i++ {
 
 		accountAddresses[i], sharedAccountAddresses[i], accountSigners[i] = createLockedAccountPairWithBalances(
-			t, b,
+			t, b, adapter,
 			accountKeys,
 			env,
 			"1000000000.0",

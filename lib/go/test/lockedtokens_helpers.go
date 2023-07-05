@@ -1,8 +1,11 @@
 package test
 
 import (
+	"context"
 	"encoding/hex"
 	"fmt"
+	"github.com/onflow/flow-emulator/adapters"
+	"github.com/onflow/flow-emulator/convert"
 	"testing"
 
 	"github.com/onflow/flow-emulator/types"
@@ -12,7 +15,7 @@ import (
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
-	emulator "github.com/onflow/flow-emulator"
+	emulator "github.com/onflow/flow-emulator/emulator"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/test"
@@ -59,7 +62,7 @@ func (evt unlockedAccountRegisteredEvent) Address() flow.Address {
 // and mint tokens for the locked tokens admin account
 func deployLockedTokensContract(
 	t *testing.T,
-	b *emulator.Blockchain,
+	b emulator.Emulator,
 	env templates.Environment,
 	IDTableAddr, proxyAddr flow.Address,
 	lockedTokensAccountKey *flow.AccountKey,
@@ -100,7 +103,10 @@ func deployLockedTokensContract(
 	assert.NoError(t, err)
 	err = tx.SignEnvelope(b.ServiceKey().Address, b.ServiceKey().Index, serviceSigner)
 	require.NoError(t, err)
-	err = b.AddTransaction(*tx)
+
+	flowtx := convert.SDKTransactionToFlow(*tx)
+
+	err = b.AddTransaction(*flowtx)
 	require.NoError(t, err)
 	result, err := b.ExecuteNextTransaction()
 	require.NoError(t, err)
@@ -138,11 +144,12 @@ func deployLockedTokensContract(
 	return lockedTokensAddr
 }
 
-/// Creates a new pair of normal and locked accounts
-/// with their balances initialized to the provided values
+// / Creates a new pair of normal and locked accounts
+// / with their balances initialized to the provided values
 func createLockedAccountPairWithBalances(
 	t *testing.T,
-	b *emulator.Blockchain,
+	b emulator.Emulator,
+	adapter *adapters.SDKAdapter,
 	accountKeys *test.AccountKeys,
 	env templates.Environment,
 	adminAmount string,
@@ -178,7 +185,7 @@ func createLockedAccountPairWithBalances(
 		false,
 	)
 
-	createAccountsTxResult, err := b.GetTransactionResult(tx.ID())
+	createAccountsTxResult, err := adapter.GetTransactionResult(context.Background(), tx.ID())
 	assert.NoError(t, err)
 	assertEqual(t, flow.TransactionStatusSealed, createAccountsTxResult.Status)
 
@@ -235,7 +242,7 @@ type DelegatorIDs struct {
 	id     uint32
 }
 
-/// Used to verify staking collection info in tests
+// / Used to verify staking collection info in tests
 type StakingCollectionInfo struct {
 	accountAddress     string
 	unlockedBalance    string
@@ -274,7 +281,7 @@ func (evt machineAccountCreatedEvent) Address() flow.Address {
 
 // Deploys the staking collection contract to the specified lockedTokensAddress
 // because the staking collection needs to be deployed to the same account as LockedTokens
-func deployCollectionContract(t *testing.T, b *emulator.Blockchain,
+func deployCollectionContract(t *testing.T, b emulator.Emulator,
 	idTableAddress,
 	stakingProxyAddress,
 	lockedTokensAddress flow.Address,
@@ -311,7 +318,8 @@ func deployCollectionContract(t *testing.T, b *emulator.Blockchain,
 // Deploys the staking contract, staking proxy, locked tokens contract,
 // and staking collection contract all in the same function
 func deployAllCollectionContracts(t *testing.T,
-	b *emulator.Blockchain,
+	b emulator.Emulator,
+	adapter *adapters.SDKAdapter,
 	accountKeys *test.AccountKeys,
 	env *templates.Environment,
 	adminAddress flow.Address,
@@ -321,7 +329,7 @@ func deployAllCollectionContracts(t *testing.T,
 
 	// Deploy the StakingProxy contract
 	stakingProxyCode := contracts.FlowStakingProxy()
-	stakingProxyAddress, err := b.CreateAccount(nil, []sdktemplates.Contract{
+	stakingProxyAddress, err := adapter.CreateAccount(context.Background(), nil, []sdktemplates.Contract{
 		{
 			Name:   "StakingProxy",
 			Source: string(stakingProxyCode),
@@ -347,10 +355,10 @@ func deployAllCollectionContracts(t *testing.T,
 // registers a node and a delegator in the locked account,
 // creates a staking collection and stores it in the unlocked account,
 // and registers a node and a delegator in the unlocked account.
-//
 func registerStakingCollectionNodesAndDelegators(
 	t *testing.T,
-	b *emulator.Blockchain,
+	b emulator.Emulator,
+	adapter *adapters.SDKAdapter,
 	accountKeys *test.AccountKeys,
 	env templates.Environment,
 	lockedBalance, unlockedBalance string,
@@ -361,7 +369,7 @@ func registerStakingCollectionNodesAndDelegators(
 
 	// Create a locked account pair with tokens in both accounts
 	newUserAddress, newUserSharedAddress, newUserSigner := createLockedAccountPairWithBalances(
-		t, b,
+		t, b, adapter,
 		accountKeys,
 		env,
 		"1000000000.0",
@@ -455,10 +463,9 @@ func registerStakingCollectionNodesAndDelegators(
 
 // Queries all the important information from a user's staking collection
 // and verifies it against the provided expectedInfo struct
-//
 func verifyStakingCollectionInfo(
 	t *testing.T,
-	b *emulator.Blockchain,
+	b emulator.Emulator,
 	env templates.Environment,
 	expectedInfo StakingCollectionInfo,
 ) {
@@ -535,7 +542,7 @@ func verifyStakingCollectionInfo(
 // Queries the machine account address of a recently registered Node
 func getMachineAccountFromEvent(
 	t *testing.T,
-	b *emulator.Blockchain,
+	b emulator.Emulator,
 	env templates.Environment,
 	result *types.TransactionResult,
 ) flow.Address {
