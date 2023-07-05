@@ -1,6 +1,7 @@
 package test
 
 import (
+	"context"
 	"encoding/hex"
 	"fmt"
 	"github.com/onflow/flow-go/module/signature"
@@ -58,7 +59,7 @@ func initClusters(clusterNodeIDStrings [][]string, numberOfClusters, numberOfNod
 }
 
 func TestQuorumCertificate(t *testing.T) {
-	b := newBlockchain()
+	b, adapter := newBlockchain()
 
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
@@ -71,7 +72,7 @@ func TestQuorumCertificate(t *testing.T) {
 	QCAccountKey, QCSigner := accountKeys.NewWithSigner()
 	QCCode := contracts.FlowQC()
 
-	QCAddress, err := b.CreateAccount([]*flow.AccountKey{QCAccountKey}, []sdktemplates.Contract{
+	QCAddress, err := adapter.CreateAccount(context.Background(), []*flow.AccountKey{QCAccountKey}, []sdktemplates.Contract{
 		{
 			Name:   "FlowClusterQC",
 			Source: string(QCCode),
@@ -85,12 +86,12 @@ func TestQuorumCertificate(t *testing.T) {
 
 	// Create new user accounts
 	joshAccountKey, joshSigner := accountKeys.NewWithSigner()
-	joshAddress, _ := b.CreateAccount([]*flow.AccountKey{joshAccountKey}, nil)
+	joshAddress, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{joshAccountKey}, nil)
 	joshPrivateStakingKey, joshPublicStakingKey, _, _ := generateKeysForNodeRegistration(t)
 
 	// Create a new user account
 	maxAccountKey, maxSigner := accountKeys.NewWithSigner()
-	maxAddress, _ := b.CreateAccount([]*flow.AccountKey{maxAccountKey}, nil)
+	maxAddress, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{maxAccountKey}, nil)
 	maxPrivateStakingKey, maxPublicStakingKey, _, _ := generateKeysForNodeRegistration(t)
 
 	collectorVoteHasher := signature.NewBLSHasher(collectorVoteTag)
@@ -455,7 +456,7 @@ func TestQuorumCertificate(t *testing.T) {
 }
 
 func TestQuorumCertificateMoreNodes(t *testing.T) {
-	b := newBlockchain()
+	b, adapter := newBlockchain()
 
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
@@ -468,7 +469,7 @@ func TestQuorumCertificateMoreNodes(t *testing.T) {
 	QCAccountKey, QCSigner := accountKeys.NewWithSigner()
 	QCCode := contracts.FlowQC()
 
-	QCAddress, err := b.CreateAccount([]*flow.AccountKey{QCAccountKey}, []sdktemplates.Contract{
+	QCAddress, err := adapter.CreateAccount(context.Background(), []*flow.AccountKey{QCAccountKey}, []sdktemplates.Contract{
 		{
 			Name:   "FlowClusterQC",
 			Source: string(QCCode),
@@ -723,7 +724,7 @@ func TestQuorumCertificateMoreNodes(t *testing.T) {
 }
 
 func TestQuorumCertificateNotSubmittedVote(t *testing.T) {
-	b := newBlockchain()
+	b, adapter := newBlockchain()
 
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
@@ -736,7 +737,7 @@ func TestQuorumCertificateNotSubmittedVote(t *testing.T) {
 	QCAccountKey, QCSigner := accountKeys.NewWithSigner()
 	QCCode := contracts.FlowQC()
 
-	QCAddress, err := b.CreateAccount([]*flow.AccountKey{QCAccountKey}, []sdktemplates.Contract{
+	QCAddress, err := adapter.CreateAccount(context.Background(), []*flow.AccountKey{QCAccountKey}, []sdktemplates.Contract{
 		{
 			Name:   "FlowClusterQC",
 			Source: string(QCCode),

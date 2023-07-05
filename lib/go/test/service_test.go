@@ -1,6 +1,7 @@
 package test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/onflow/cadence"
@@ -23,7 +24,7 @@ func TestContracts(t *testing.T) {
 
 	t.Parallel()
 
-	b := newBlockchain()
+	b, adapter := newBlockchain()
 
 	env := templates.Environment{
 		FungibleTokenAddress:  emulatorFTAddress,
@@ -38,7 +39,7 @@ func TestContracts(t *testing.T) {
 
 	// deploy the FlowStorageFees contract
 	storageFeesCode := contracts.FlowStorageFees(emulatorFTAddress, emulatorFlowTokenAddress)
-	storageFeesAddress, err := b.CreateAccount([]*flow.AccountKey{storageFeesAccountKey}, []sdktemplates.Contract{
+	storageFeesAddress, err := adapter.CreateAccount(context.Background(), []*flow.AccountKey{storageFeesAccountKey}, []sdktemplates.Contract{
 		{
 			Name:   "FlowStorageFees",
 			Source: string(storageFeesCode),
@@ -405,7 +406,7 @@ func TestContracts(t *testing.T) {
 		"0xe5a8b7f23e8b548f",
 		storageFeesAddress.String(),
 	)
-	_, err = b.CreateAccount(nil, []sdktemplates.Contract{
+	_, err = adapter.CreateAccount(context.Background(), nil, []sdktemplates.Contract{
 		{
 			Name:   "FlowServiceAccount",
 			Source: string(serviceAccountCode),

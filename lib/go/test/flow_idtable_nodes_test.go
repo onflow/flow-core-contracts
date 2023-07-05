@@ -1,14 +1,16 @@
 package test
 
 import (
+	"context"
 	"fmt"
+	"github.com/onflow/cadence/runtime/common"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/onflow/cadence"
-	emulator "github.com/onflow/flow-emulator"
+	"github.com/onflow/flow-emulator/emulator"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/test"
@@ -29,7 +31,7 @@ func TestManyNodesIDTable(t *testing.T) {
 
 	t.Parallel()
 
-	b := newBlockchain(emulator.WithTransactionMaxGasLimit(10000000))
+	b, adapter := newBlockchain(emulator.WithTransactionMaxGasLimit(10000000))
 
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
@@ -62,7 +64,7 @@ func TestManyNodesIDTable(t *testing.T) {
 
 	// Create a new node account for nodes
 	nodeAccountKey, nodeSigner = accountKeys.NewWithSigner()
-	nodeAddress, _ = b.CreateAccount([]*flow.AccountKey{nodeAccountKey}, nil)
+	nodeAddress, _ = adapter.CreateAccount(context.Background(), []*flow.AccountKey{nodeAccountKey}, nil)
 
 	approvedNodes := make([]cadence.Value, numberOfNodes)
 	approvedNodesStringArray := make([]string, numberOfNodes)
@@ -79,7 +81,7 @@ func TestManyNodesIDTable(t *testing.T) {
 
 	// Create many a new delegator account
 	delegatorAccountKey, delegatorSigner = accountKeys.NewWithSigner()
-	delegatorAddress, _ = b.CreateAccount([]*flow.AccountKey{delegatorAccountKey}, nil)
+	delegatorAddress, _ = adapter.CreateAccount(context.Background(), []*flow.AccountKey{delegatorAccountKey}, nil)
 
 	delegatorPaths := make([]cadence.Value, numberOfDelegators)
 
@@ -146,7 +148,7 @@ func TestManyNodesIDTable(t *testing.T) {
 
 			nodeStakingAmounts[i] = tokenAmount
 
-			nodePaths[i] = cadence.Path{Domain: "storage", Identifier: fmt.Sprintf("node%06d", i)}
+			nodePaths[i] = cadence.Path{Domain: common.PathDomainStorage, Identifier: fmt.Sprintf("node%06d", i)}
 
 		}
 
@@ -254,7 +256,7 @@ func TestManyNodesIDTable(t *testing.T) {
 
 		for i := 0; i < numberOfDelegators; i++ {
 
-			delegatorPaths[i] = cadence.Path{Domain: "storage", Identifier: fmt.Sprintf("del%06d", i)}
+			delegatorPaths[i] = cadence.Path{Domain: common.PathDomainStorage, Identifier: fmt.Sprintf("del%06d", i)}
 
 		}
 
@@ -361,7 +363,7 @@ func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
 
 	t.Parallel()
 
-	b := newBlockchain(emulator.WithTransactionMaxGasLimit(100000000))
+	b, adapter := newBlockchain(emulator.WithTransactionMaxGasLimit(100000000))
 
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
@@ -395,7 +397,7 @@ func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
 	// Create many new node accounts for nodes
 	for i := 0; i < unstakeAllNumNodes; i++ {
 		nodeAccountKeys[i], nodeSigners[i] = accountKeys.NewWithSigner()
-		nodeAddresses[i], _ = b.CreateAccount([]*flow.AccountKey{nodeAccountKeys[i]}, nil)
+		nodeAddresses[i], _ = adapter.CreateAccount(context.Background(), []*flow.AccountKey{nodeAccountKeys[i]}, nil)
 	}
 
 	approvedNodes := make([]cadence.Value, unstakeAllNumNodes)
@@ -406,7 +408,7 @@ func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
 
 	// Create many new delegator accounts
 	delegatorAccountKey, delegatorSigner = accountKeys.NewWithSigner()
-	delegatorAddress, _ = b.CreateAccount([]*flow.AccountKey{delegatorAccountKey}, nil)
+	delegatorAddress, _ = adapter.CreateAccount(context.Background(), []*flow.AccountKey{delegatorAccountKey}, nil)
 
 	delegatorPaths := make([]cadence.Value, unstakeAllNumDelegators)
 
@@ -485,7 +487,7 @@ func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
 
 		for i := 0; i < unstakeAllNumDelegators; i++ {
 
-			delegatorPaths[i] = cadence.Path{Domain: "storage", Identifier: fmt.Sprintf("del%06d", i)}
+			delegatorPaths[i] = cadence.Path{Domain: common.PathDomainStorage, Identifier: fmt.Sprintf("del%06d", i)}
 
 		}
 
