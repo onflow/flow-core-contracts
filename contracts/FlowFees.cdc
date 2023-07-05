@@ -1,6 +1,6 @@
 import FungibleToken from "FungibleToken"
-import FlowToken from "FlowToken"
-import FlowStorageFees from "FlowStorageFees"
+import FlowToken from 0xFLOWTOKENADDRESS
+import FlowStorageFees from 0xFLOWSTORAGEFEESADDRESS
 
 access(all) contract FlowFees {
 
@@ -19,7 +19,7 @@ access(all) contract FlowFees {
     // Private vault with public deposit function
     access(self) var vault: @FlowToken.Vault
 
-    access(all) fun deposit(from: @{FungibleToken.Vault}) {
+    access(all) fun deposit(from: @FungibleToken.Vault) {
         let from <- from as! @FlowToken.Vault
         let balance = from.balance
         self.vault.deposit(from: <-from)
@@ -35,7 +35,7 @@ access(all) contract FlowFees {
         // withdraw
         //
         // Allows the administrator to withdraw tokens from the fee vault
-        access(all) fun withdrawTokensFromFeeVault(amount: UFix64): @{FungibleToken.Vault} {
+        access(all) fun withdrawTokensFromFeeVault(amount: UFix64): @FungibleToken.Vault {
             let vault <- FlowFees.vault.withdraw(amount: amount)
             emit TokensWithdrawn(amount: amount)
             return <-vault
@@ -75,10 +75,10 @@ access(all) contract FlowFees {
     access(all) struct VerifyPayerBalanceResult {
         // True if the payer has sufficient balance for the transaction execution to continue
         access(all) let canExecuteTransaction: Bool
-        // The minimum payer balance required for the transaction execution to continue.
+        // The minimum payer balance required for the transaction execution to continue. 
         // This value is defined by verifyPayersBalanceForTransactionExecution.
         access(all) let requiredBalance: UFix64
-        // The maximum transaction fees (inclusion fees + execution fees) the transaction can incur
+        // The maximum transaction fees (inclusion fees + execution fees) the transaction can incur 
         // (if all available execution effort is used)
         access(all) let maximumTransactionFees: UFix64
 
@@ -95,12 +95,12 @@ access(all) contract FlowFees {
     // and returns the maximum possible transaction fees.
     // (according to the inclusion effort and maximum execution effort of the transaction).
     //
-    // The requiredBalance balance is defined as the minimum account balance +
+    // The requiredBalance balance is defined as the minimum account balance + 
     //  maximum transaction fees (inclusion fees + execution fees at max execution effort).
     access(all) fun verifyPayersBalanceForTransactionExecution(
-        _ payerAcct: auth(BorrowValue) &Account,
-        inclusionEffort: UFix64,
-        maxExecutionEffort: UFix64
+        _ payerAcct: AuthAccount, 
+        inclusionEffort: UFix64, 
+        maxExecutionEffort: UFix64,
     ): VerifyPayerBalanceResult {
         // Get the maximum fees required for the transaction.
         var maxTransactionFee = self.computeFees(inclusionEffort: inclusionEffort, executionEffort: maxExecutionEffort)
@@ -111,21 +111,21 @@ access(all) contract FlowFees {
         if minimumRequiredBalance == UFix64(0) {
             // If the required balance is zero exit early.
             return VerifyPayerBalanceResult(
-                canExecuteTransaction: true,
+                canExecuteTransaction: true, 
                 requiredBalance: minimumRequiredBalance,
-                maximumTransactionFees: maxTransactionFee
+                maximumTransactionFees: maxTransactionFee,
             )
         }
-
+        
         // Get the balance of the payers default vault.
         // In the edge case where the payer doesnt have a vault, treat the balance as 0.
         var balance = 0.0
-        if let tokenVault = payerAcct.storage.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault) {
+        if let tokenVault = payerAcct.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault) {
             balance = tokenVault.balance
         }
 
         return VerifyPayerBalanceResult(
-            // The transaction can be executed it the payers balance is greater than the minimum required balance.
+            // The transaction can be executed it the payers balance is greater than the minimum required balance. 
             canExecuteTransaction: balance >= minimumRequiredBalance,
             requiredBalance: minimumRequiredBalance,
             maximumTransactionFees: maxTransactionFee)
@@ -133,28 +133,28 @@ access(all) contract FlowFees {
 
     /// Called when a transaction is submitted to deduct the fee
     /// from the AuthAccount that submitted it
-    access(all) fun deductTransactionFee(_ acct: auth(BorrowValue) &Account, inclusionEffort: UFix64, executionEffort: UFix64) {
+    access(all) fun deductTransactionFee(_ acct: AuthAccount, inclusionEffort: UFix64, executionEffort: UFix64) {
         var feeAmount = self.computeFees(inclusionEffort: inclusionEffort, executionEffort: executionEffort)
 
         if feeAmount == UFix64(0) {
-            // If there are no fees to deduct, do not continue,
+            // If there are no fees to deduct, do not continue, 
             // so that there are no unnecessarily emitted events
             return
         }
 
-        let tokenVault = acct.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault)
+        let tokenVault = acct.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)
             ?? panic("Unable to borrow reference to the default token vault")
 
-
+        
         if feeAmount > tokenVault.balance {
-            // In the future this code path will never be reached,
+            // In the future this code path will never be reached, 
             // as payers that are under account minimum balance will not have their transactions included in a collection
             //
             // Currently this is not used to fail the transaction (as that is the responsibility of the minimum account balance logic),
-            // But is used to reduce the balance of the vault to 0.0, if the vault has less available balance than the transaction fees.
+            // But is used to reduce the balance of the vault to 0.0, if the vault has less available balance than the transaction fees. 
             feeAmount = tokenVault.balance
         }
-
+        
         let feeVault <- tokenVault.withdraw(amount: feeAmount)
         self.vault.deposit(from: <-feeVault)
 
@@ -162,31 +162,31 @@ access(all) contract FlowFees {
         emit FeesDeducted(amount: feeAmount, inclusionEffort: inclusionEffort, executionEffort: executionEffort)
     }
 
-    access(all) view fun getFeeParameters(): FeeParameters {
-        return self.account.storage.copy<FeeParameters>(from: /storage/FlowTxFeeParameters) ?? panic("Error getting tx fee parameters. They need to be initialized first!")
+    access(all) fun getFeeParameters(): FeeParameters {
+        return self.account.copy<FeeParameters>(from: /storage/FlowTxFeeParameters) ?? panic("Error getting tx fee parameters. They need to be initialized first!")
     }
 
     access(self) fun setFeeParameters(_ feeParameters: FeeParameters) {
         // empty storage before writing new FeeParameters to it
-        self.account.storage.load<FeeParameters>(from: /storage/FlowTxFeeParameters)
-        self.account.storage.save(feeParameters,to: /storage/FlowTxFeeParameters)
+        self.account.load<FeeParameters>(from: /storage/FlowTxFeeParameters)
+        self.account.save(feeParameters,to: /storage/FlowTxFeeParameters)
         emit FeeParametersChanged(surgeFactor: feeParameters.surgeFactor, inclusionEffortCost: feeParameters.inclusionEffortCost, executionEffortCost: feeParameters.executionEffortCost)
     }
 
-
+    
     // compute the transaction fees with the current fee parameters and the given inclusionEffort and executionEffort
-    access(all) view fun computeFees(inclusionEffort: UFix64, executionEffort: UFix64): UFix64 {
+    access(all) fun computeFees(inclusionEffort: UFix64, executionEffort: UFix64): UFix64 {
         let params = self.getFeeParameters()
-
+        
         let totalFees = params.surgeFactor * ( inclusionEffort * params.inclusionEffortCost + executionEffort * params.executionEffortCost )
         return totalFees
     }
 
-    init() {
+    init(adminAccount: AuthAccount) {
         // Create a new FlowToken Vault and save it in storage
-        self.vault <- FlowToken.createEmptyVault(vaultType: Type<@FlowToken.Vault>()) as! @FlowToken.Vault
+        self.vault <- FlowToken.createEmptyVault() as! @FlowToken.Vault
 
         let admin <- create Administrator()
-        self.account.storage.save(<-admin, to: /storage/flowFeesAdmin)
+        adminAccount.save(<-admin, to: /storage/flowFeesAdmin)
     }
 }

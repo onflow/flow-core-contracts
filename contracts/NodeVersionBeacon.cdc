@@ -1,8 +1,8 @@
 /// The NodeVersionBeacon contract holds the past and future protocol versions.
 /// that should be used to execute/handle blocks at aa given block height.
-///
+/// 
 /// The service account holds the NodeVersionBeacon.Heartbeat resource
-/// which is responsible for emitting the VersionBeacon event.
+/// which is responsible for emitting the VersionBeacon event. 
 /// The event contains the current version and all the upcoming versions.
 /// The event is emitted every time the version table is updated
 /// or a version boundary is reached.
@@ -12,7 +12,7 @@
 /// changed if they occur after the current block height + versionUpdateFreezePeriod.
 /// This is to ensure that nodes have enough time to react to version table changes.
 /// The versionUpdateFreezePeriod can also be changed by the admin resource, but only if
-/// there are no upcoming version boundaries within the current versionUpdateFreezePeriod or
+/// there are no upcoming version boundaries within the current versionUpdateFreezePeriod or 
 /// the new versionUpdateFreezePeriod.
 ///
 /// The contract itself can be used to query the current version and the next upcoming version.
@@ -37,7 +37,7 @@ access(all) contract NodeVersionBeacon {
 
         /// Returns version in Semver format (e.g. v<major>.<minor>.<patch>-<preRelease>)
         /// as a String
-        access(all) view fun toString(): String {
+        access(all) fun toString(): String {
             let semverCoreString = self.major.toString()
                  .concat(".")
                  .concat(
@@ -58,49 +58,49 @@ access(all) contract NodeVersionBeacon {
 
         /// Returns true if Semver core is greater than
         /// passed Semver core and false otherwise
-        access(all) view fun coreGreaterThan(_ other: Semver): Bool {
+        access(all) fun coreGreaterThan(_ other: Semver): Bool {
             if (self.major != other.major) {
                 return self.major > other.major
             }
-
+            
             if (self.minor != other.minor) {
                 return self.minor > other.minor
             }
 
             if (self.patch != other.patch) {
                 return self.patch > other.patch
-            }
+            } 
 
             return false
         }
 
         /// Returns true if Semver core is greater than or
         /// equal to passed Semver core and false otherwise
-        access(all) view fun coreGreaterThanOrEqualTo(_ other: Semver): Bool {
+        access(all) fun coreGreaterThanOrEqualTo(_ other: Semver): Bool {
             return self.coreGreaterThan(other) || self.coreEqualTo(other)
         }
 
         /// Returns true if Semver core is less than
         /// passed Semver core and false otherwise
-        access(all) view fun coreLessThan(_ other: Semver): Bool {
+        access(all) fun coreLessThan(_ other: Semver): Bool {
             return !self.coreGreaterThanOrEqualTo(other)
         }
 
         /// Returns true if Semver core is less than or
         /// equal to passed Semver core and false otherwise
-        access(all) view fun coreLessThanOrEqualTo(_ other: Semver): Bool {
+        access(all) fun coreLessThanOrEqualTo(_ other: Semver): Bool {
             return !self.coreGreaterThan(other)
         }
 
         /// Returns true if Semver is equal to passed
         /// Semver core and false otherwise
-        access(all) view fun coreEqualTo(_ other: Semver): Bool {
+        access(all) fun coreEqualTo(_ other: Semver): Bool {
             return self.major == other.major && self.minor == other.minor && self.patch == other.patch
         }
 
         /// Returns true if Semver is *exactly* equal to passed
         /// Semver and false otherwise
-        access(all) view fun strictEqualTo(_ other: Semver): Bool {
+        access(all) fun strictEqualTo(_ other: Semver): Bool {
             return self.coreEqualTo(other) && self.preRelease == other.preRelease
         }
     }
@@ -121,7 +121,7 @@ access(all) contract NodeVersionBeacon {
         }
     }
 
-    /// Returns the zero boundary. Used as a sentinel value
+    /// Returns the zero boundary. Used as a sentinel value 
     /// for versions before the version beacon contract.
     /// Simplifies edge case code.
     /// The zero boundary is at block height 0 and has version v0.0.0.
@@ -129,15 +129,15 @@ access(all) contract NodeVersionBeacon {
     access(all) fun zeroVersionBoundary(): VersionBoundary {
         let zeroVersion = self.zeroSemver()
         return VersionBoundary(
-            blockHeight: 0,
-            version: zeroVersion
+            blockHeight: 0, 
+            version: zeroVersion,
         )
     }
 
     /// Event emitted when the version table is updated.
     /// It contains the current version and all the upcoming versions
     /// sorted by block height.
-    /// The sequence increases by one each time an event is emitted.
+    /// The sequence increases by one each time an event is emitted. 
     /// It can be used to verify no events were missed.
     access(all) event VersionBeacon(
         versionBoundaries: [VersionBoundary],
@@ -155,17 +155,17 @@ access(all) contract NodeVersionBeacon {
     access(all) let HeartbeatStoragePath: StoragePath
 
     /// Block height indexed version boundaries.
-    access(contract) let versionBoundary: {UInt64: VersionBoundary}
-
+    access(contract) let versionBoundary: {UInt64: VersionBoundary}    
+    
     /// Sorted Array containing version boundary block heights.
     access(contract) var versionBoundaryBlockList: [UInt64]
 
     /// Index in the versionBoundaryBlockList of the next upcoming version boundary,
     /// or nil if no upcoming version boundary.
     access(contract) var firstUpcomingBoundary: UInt64?
-
-    /// versionUpdateFreezePeriod is the number of blocks (past the current one) for which version boundary
-    /// changes are not allowed. This is to ensure that nodes have enough time to react to
+    
+    /// versionUpdateFreezePeriod is the number of blocks (past the current one) for which version boundary 
+    /// changes are not allowed. This is to ensure that nodes have enough time to react to 
     /// version table changes.
     access(contract) var versionBoundaryFreezePeriod: UInt64
 
@@ -193,10 +193,10 @@ access(all) contract NodeVersionBeacon {
             if exists {
                 // this was an update so nothing else needs to be done
                 return
-            }
+            } 
 
             // We have to insert the block height into the ordered list.
-            // This is an inefficient algorithm, but it is not expected that the list of
+            // This is an inefficient algorithm, but it is not expected that the list of 
             // upcoming versions will be long.
             var i = NodeVersionBeacon.versionBoundaryBlockList.length
             while i > 1 && NodeVersionBeacon.versionBoundaryBlockList[i-1] > versionBoundary.blockHeight  {
@@ -230,7 +230,7 @@ access(all) contract NodeVersionBeacon {
             NodeVersionBeacon.versionBoundary.remove(key: blockHeight)
 
             // We have to remove the block height from the ordered list.
-            // This is an inefficient algorithm, but it is not expected that the list of
+            // This is an inefficient algorithm, but it is not expected that the list of 
             // upcoming versions will be long.
             var i = NodeVersionBeacon.versionBoundaryBlockList.length - 1
             while i > 0 && NodeVersionBeacon.versionBoundaryBlockList[i] > blockHeight  {
@@ -244,7 +244,7 @@ access(all) contract NodeVersionBeacon {
             // the index has to be fixed, but you cannot change records before the index
             // so the only case to be addressed is that the index is pointing off the list,
             // because the list is now shorter.
-            if NodeVersionBeacon.firstUpcomingBoundary != nil &&
+            if NodeVersionBeacon.firstUpcomingBoundary != nil && 
                 NodeVersionBeacon.firstUpcomingBoundary! >= UInt64(NodeVersionBeacon.versionBoundaryBlockList.length) {
                 NodeVersionBeacon.firstUpcomingBoundary = nil
             }
@@ -264,8 +264,8 @@ access(all) contract NodeVersionBeacon {
             if NodeVersionBeacon.firstUpcomingBoundary == nil {
                 NodeVersionBeacon.versionBoundaryFreezePeriod = newFreezePeriod
                 return
-            }
-
+            } 
+            
             let nextBlockBoundary = NodeVersionBeacon.versionBoundaryBlockList[NodeVersionBeacon.firstUpcomingBoundary!]
 
             // Ensure that the we're not currently within the old or new freeze period
@@ -277,14 +277,14 @@ access(all) contract NodeVersionBeacon {
             )
 
             NodeVersionBeacon.versionBoundaryFreezePeriod = newFreezePeriod
-
+            
             emit NodeVersionBoundaryFreezePeriodChanged(freezePeriod: newFreezePeriod)
         }
     }
 
     /// Heartbeat resource that emits the version beacon event and keeps track of upcoming versions.
     /// This resource should always be held only by the service account,
-    /// because the service account should be the only one emitting the event,
+    /// because the service account should be the only one emitting the event, 
     /// and only during the system transaction
     access(all) resource Heartbeat {
         // heartbeat is called during the system transaction every block.
@@ -300,13 +300,13 @@ access(all) contract NodeVersionBeacon {
         }
 
         access(self) fun emitVersionBeaconEvent(versionBoundaries : [VersionBoundary]) {
-
+            
             emit VersionBeacon(versionBoundaries: versionBoundaries,
                 sequence: NodeVersionBeacon.nextVersionBeaconEventSequence)
             // After emitting the event increase the event sequence number and set the flag to false
             // so the event won't be emitted on the next block if there isn't any changes to the table
             NodeVersionBeacon.nextVersionBeaconEventSequence = NodeVersionBeacon.nextVersionBeaconEventSequence + 1
-
+        
         }
 
         /// Check if the index pointing to the next version boundary needs to be moved.
@@ -317,7 +317,7 @@ access(all) contract NodeVersionBeacon {
 
             let currentBlockHeight = getCurrentBlock().height
             var boundaryIndex =  NodeVersionBeacon.firstUpcomingBoundary!
-            while boundaryIndex < UInt64(NodeVersionBeacon.versionBoundaryBlockList.length)
+            while boundaryIndex < UInt64(NodeVersionBeacon.versionBoundaryBlockList.length) 
               && NodeVersionBeacon.versionBoundaryBlockList[boundaryIndex] <= currentBlockHeight {
                 boundaryIndex = boundaryIndex + 1
             }
@@ -330,7 +330,7 @@ access(all) contract NodeVersionBeacon {
             if boundaryIndex >= UInt64(NodeVersionBeacon.versionBoundaryBlockList.length) {
                 NodeVersionBeacon.firstUpcomingBoundary = nil
             } else {
-                NodeVersionBeacon.firstUpcomingBoundary = boundaryIndex
+                NodeVersionBeacon.firstUpcomingBoundary = boundaryIndex 
             }
 
             // If we passed a boundary re-emit the VersionBeacon event
@@ -373,20 +373,20 @@ access(all) contract NodeVersionBeacon {
     }
 
     /// Returns the versionBoundaryFreezePeriod
-    access(all) view fun getVersionBoundaryFreezePeriod(): UInt64 {
+    access(all) fun getVersionBoundaryFreezePeriod(): UInt64 {
         return NodeVersionBeacon.versionBoundaryFreezePeriod
     }
 
     /// Returns the sequence number of the next version beacon event
     /// This can be used to verify that no version beacon events were missed.
-    access(all) view fun getNextVersionBeaconSequence(): UInt64 {
+    access(all) fun getNextVersionBeaconSequence(): UInt64 {
         return self.nextVersionBeaconEventSequence
     }
 
     /// Function that returns the version that was defined at the most
     /// recent block height boundary. May return zero boundary.
     access(all) fun getCurrentVersionBoundary(): VersionBoundary {
-        var current: UInt64 = 0
+        var current = 0 as UInt64
 
         // index is never 0 since version 0 is always in the past
         if let index = NodeVersionBeacon.firstUpcomingBoundary {
@@ -412,9 +412,9 @@ access(all) contract NodeVersionBeacon {
     }
 
     /// Checks whether given version was compatible at the given historical block height
-    access(all) view fun getVersionBoundary(effectiveAtBlockHeight: UInt64): VersionBoundary {
+    access(all) fun getVersionBoundary(effectiveAtBlockHeight: UInt64): VersionBoundary {
         let block = self.searchForClosestHistoricalBlockBoundary(blockHeight: effectiveAtBlockHeight)
-
+ 
         return self.versionBoundary[block]!
     }
 
@@ -423,14 +423,14 @@ access(all) contract NodeVersionBeacon {
         access(all) let perPage: Int
         access(all) let totalLength: Int
         access(all) let values : [VersionBoundary]
-
-        view init(page: Int, perPage: Int, totalLength: Int, values: [VersionBoundary]) {
+    
+        init(page: Int, perPage: Int, totalLength: Int, values: [VersionBoundary]) {
             self.page = page
             self.perPage = perPage
             self.totalLength = totalLength
             self.values = values
         }
-
+        
     }
 
     /// Returns a page of version boundaries
@@ -463,7 +463,7 @@ access(all) contract NodeVersionBeacon {
 
 
     /// Binary search algorithm to find closest value key in versionTable that is <= target value
-    access(contract) view fun searchForClosestHistoricalBlockBoundary(blockHeight: UInt64): UInt64 {
+    access(contract) fun searchForClosestHistoricalBlockBoundary(blockHeight: UInt64): UInt64 {
         // Return last block boundary if target is beyond
         let length = self.versionBoundaryBlockList.length
         if blockHeight >= self.versionBoundaryBlockList[length - 1] {
@@ -499,9 +499,9 @@ access(all) contract NodeVersionBeacon {
         self.AdminStoragePath = /storage/NodeVersionBeaconAdmin
         self.HeartbeatStoragePath = /storage/NodeVersionBeaconHeartbeat
 
-        // insert a zero-th version to make the API simpler and more robust
+        // insert a zero-th version to make the API simpler and more robust 
         let zero = NodeVersionBeacon.zeroVersionBoundary()
-
+        
         self.versionBoundary = {zero.blockHeight:zero}
         self.versionBoundaryBlockList = [zero.blockHeight]
         self.versionBoundaryFreezePeriod = versionUpdateFreezePeriod
@@ -511,7 +511,8 @@ access(all) contract NodeVersionBeacon {
         // emit the event on the first heartbeat to send the zero version
         self.emitEventOnNextHeartbeat = true
 
-        self.account.storage.save(<-create Admin(), to: self.AdminStoragePath)
-        self.account.storage.save(<-create Heartbeat(), to: self.HeartbeatStoragePath)
+        self.account.save(<-create Admin(), to: self.AdminStoragePath)
+        self.account.save(<-create Heartbeat(), to: self.HeartbeatStoragePath)
     }
 }
+ 

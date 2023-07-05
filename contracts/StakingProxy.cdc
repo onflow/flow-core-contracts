@@ -75,7 +75,7 @@ access(all) contract StakingProxy {
     /// staking helper relationships with them
     access(all) resource interface NodeStakerProxyHolderPublic {
 
-        access(all) fun addStakingProxy(nodeID: String, proxy: {NodeStakerProxy})
+        access(all) fun addStakingProxy(nodeID: String, proxy: AnyStruct{NodeStakerProxy})
 
         access(all) fun getNodeInfo(nodeID: String): NodeInfo?
     }
@@ -88,7 +88,7 @@ access(all) contract StakingProxy {
         /// Maps node IDs to any struct that implements the NodeStakerProxy interface
         /// allows node operators to work with users with locked tokens
         /// and with unstaked tokens
-        access(self) var stakingProxies: {String: {NodeStakerProxy}}
+        access(self) var stakingProxies: {String: AnyStruct{NodeStakerProxy}}
 
         /// Maps node IDs to NodeInfo
         access(self) var nodeInfo: {String: NodeInfo}
@@ -121,7 +121,7 @@ access(all) contract StakingProxy {
         /// the node operator's NodeInfo to operate a node
         /// They store their `NodeStakerProxy` here to allow the node
         /// operator to perform some staking actions also
-        access(all) fun addStakingProxy(nodeID: String, proxy: {NodeStakerProxy}) {
+        access(all) fun addStakingProxy(nodeID: String, proxy: AnyStruct{NodeStakerProxy}) {
             pre {
                 self.stakingProxies[nodeID] == nil
             }
@@ -130,7 +130,7 @@ access(all) contract StakingProxy {
 
         /// The node operator can call the removeStakingProxy function
         /// to remove a staking proxy if it is no longer needed
-        access(all) fun removeStakingProxy(nodeID: String): {NodeStakerProxy} {
+        access(all) fun removeStakingProxy(nodeID: String): AnyStruct{NodeStakerProxy} {
             pre {
                 self.stakingProxies[nodeID] != nil
             }
@@ -140,7 +140,7 @@ access(all) contract StakingProxy {
 
         /// Borrow a "reference" to the staking proxy so staking operations
         /// can be performed with it
-        access(all) fun borrowStakingProxy(nodeID: String): {NodeStakerProxy}? {
+        access(all) fun borrowStakingProxy(nodeID: String): AnyStruct{NodeStakerProxy}? {
             return self.stakingProxies[nodeID]
         }
     }

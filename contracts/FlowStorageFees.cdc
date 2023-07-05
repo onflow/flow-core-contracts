@@ -15,7 +15,7 @@
  */
 
 import FungibleToken from "FungibleToken"
-import FlowToken from "FlowToken"
+import FlowToken from 0xFLOWTOKENADDRESS
 
 access(all) contract FlowStorageFees {
 
@@ -65,10 +65,10 @@ access(all) contract FlowStorageFees {
     /// If the account has no default balance it is counted as a balance of 0.0 FLOW
     access(all) fun calculateAccountCapacity(_ accountAddress: Address): UFix64 {
         var balance = 0.0
-        let acct = getAccount(accountAddress)
-
-        if let balanceRef = acct.capabilities.borrow<&FlowToken.Vault>(/public/flowTokenBalance) {
-            balance = balanceRef.balance
+        if let balanceRef = getAccount(accountAddress)
+            .getCapability<&FlowToken.Vault{FungibleToken.Balance}>(/public/flowTokenBalance)!
+            .borrow() {
+                balance = balanceRef.balance
         }
 
         return self.accountBalanceToAccountStorageCapacity(balance)
@@ -92,15 +92,15 @@ access(all) contract FlowStorageFees {
         let capacities: [UFix64] = []
         for accountAddress in accountAddresses {
             var balance = 0.0
-            let acct = getAccount(accountAddress)
-
-            if let balanceRef = acct.capabilities.borrow<&FlowToken.Vault>(/public/flowTokenBalance) {
-                if accountAddress == payer {
-                    // if the account is the payer, deduct the maximum possible transaction fees from the balance
-                    balance = balanceRef.balance.saturatingSubtract(maxTxFees)
-                } else {
-                    balance = balanceRef.balance
-                }
+            if let balanceRef = getAccount(accountAddress)
+                .getCapability<&FlowToken.Vault{FungibleToken.Balance}>(/public/flowTokenBalance)!
+                .borrow() {
+                    if accountAddress == payer {
+                        // if the account is the payer, deduct the maximum possible transaction fees from the balance
+                        balance = balanceRef.balance.saturatingSubtract(maxTxFees)
+                    } else {
+                        balance = balanceRef.balance
+                    }
             }
 
             capacities.append(self.accountBalanceToAccountStorageCapacity(balance)) 
@@ -110,7 +110,7 @@ access(all) contract FlowStorageFees {
 
     // accountBalanceToAccountStorageCapacity returns the storage capacity
     // an account would have with given the flow balance of the account.
-    access(all) view fun accountBalanceToAccountStorageCapacity(_ balance: UFix64): UFix64 {
+    access(all) fun accountBalanceToAccountStorageCapacity(_ balance: UFix64): UFix64 {
         // get address token balance
         if balance < self.minimumStorageReservation {
             // if < then minimum return 0
@@ -123,15 +123,15 @@ access(all) contract FlowStorageFees {
 
     // Amount in Flow tokens
     // Returns megabytes
-    access(all) view fun flowToStorageCapacity(_ amount: UFix64): UFix64 {
+    access(all) fun flowToStorageCapacity(_ amount: UFix64): UFix64 {
         return amount.saturatingMultiply(FlowStorageFees.storageMegaBytesPerReservedFLOW)
     }
 
     // Amount in megabytes
     // Returns Flow tokens
-    access(all) view fun storageCapacityToFlow(_ amount: UFix64): UFix64 {
-        if FlowStorageFees.storageMegaBytesPerReservedFLOW == 0.0 {
-            return 0.0
+    access(all) fun storageCapacityToFlow(_ amount: UFix64): UFix64 {
+        if FlowStorageFees.storageMegaBytesPerReservedFLOW == 0.0 as UFix64 {
+            return 0.0 as UFix64
         }
         // possible loss of precision
         // putting the result back into `flowToStorageCapacity` might not yield the same result
@@ -139,9 +139,9 @@ access(all) contract FlowStorageFees {
     }
 
     // converts storage used from UInt64 Bytes to UFix64 Megabytes.
-    access(all) view fun convertUInt64StorageBytesToUFix64Megabytes(_ storage: UInt64): UFix64 {
+    access(all) fun convertUInt64StorageBytesToUFix64Megabytes(_ storage: UInt64): UFix64 {
         // safe convert UInt64 to UFix64 (without overflow)
-        let f = UFix64(storage % 100000000) * 0.00000001 + UFix64(storage / 100000000)
+        let f = UFix64(storage % 100000000 as UInt64) * 0.00000001 as UFix64 + UFix64(storage / 100000000 as UInt64)
         // decimal point correction. Megabytes to bytes have a conversion of 10^-6 while UFix64 minimum value is 10^-8
         let storageMb = f.saturatingMultiply(100.0)
         return storageMb
@@ -155,8 +155,9 @@ access(all) contract FlowStorageFees {
         //get balance of account
         let acct = getAccount(accountAddress)
         var balance = 0.0
-
-        if let balanceRef = acct.capabilities.borrow<&FlowToken.Vault>(/public/flowTokenBalance) {
+        if let balanceRef = acct
+            .getCapability(/public/flowTokenBalance)
+            .borrow<&FlowToken.Vault{FungibleToken.Balance}>() {
             balance = balanceRef.balance
         }
 
@@ -170,9 +171,9 @@ access(all) contract FlowStorageFees {
     ///
     /// The reserved balance of an account is its storage used multiplied by the storage cost per flow token.
     /// The reserved balance is at least the minimum storage reservation.
-    access(all) view fun defaultTokenReservedBalance(_ accountAddress: Address): UFix64 {
+    access(all) fun defaultTokenReservedBalance(_ accountAddress: Address): UFix64 {
         let acct = getAccount(accountAddress)
-        var reserved = self.storageCapacityToFlow(self.convertUInt64StorageBytesToUFix64Megabytes(acct.storage.used))
+        var reserved = self.storageCapacityToFlow(self.convertUInt64StorageBytesToUFix64Megabytes(acct.storageUsed))
         // at least self.minimumStorageReservation should be reserved
         if reserved < self.minimumStorageReservation {
             reserved = self.minimumStorageReservation
@@ -186,7 +187,7 @@ access(all) contract FlowStorageFees {
         self.minimumStorageReservation = 0.0 // or 0 kb of minimum storage reservation
 
         let admin <- create Administrator()
-        self.account.storage.save(<-admin, to: /storage/storageFeesAdmin)
+        self.account.save(<-admin, to: /storage/storageFeesAdmin)
     }
 }
  
