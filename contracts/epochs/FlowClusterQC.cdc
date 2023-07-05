@@ -22,7 +22,7 @@
 
 import Crypto
 
-pub contract FlowClusterQC {
+access(all) contract FlowClusterQC {
 
     // ================================================================================
     // CONTRACT VARIABLES
@@ -30,7 +30,7 @@ pub contract FlowClusterQC {
 
     /// Indicates whether votes are currently being collected.
     /// If false, no node operator will be able to submit votes
-    pub var inProgress: Bool
+    access(all) var inProgress: Bool
 
     /// The collection node clusters for the current epoch
     access(account) var clusters: [Cluster]
@@ -53,21 +53,21 @@ pub contract FlowClusterQC {
     // ================================================================================
 
     /// Canonical paths for admin and voter resources
-    pub let AdminStoragePath: StoragePath
-    pub let VoterStoragePath: StoragePath
+    access(all) let AdminStoragePath: StoragePath
+    access(all) let VoterStoragePath: StoragePath
 
     /// Represents a collection node cluster for a given epoch. 
-    pub struct Cluster {
+    access(all) struct Cluster {
 
         /// The index of the cluster within the cluster array. This uniquely identifies
         /// a cluster for a given epoch
-        pub let index: UInt16
+        access(all) let index: UInt16
 
         /// Weights for each nodeID in the cluster
-        pub let nodeWeights: {String: UInt64}
+        access(all) let nodeWeights: {String: UInt64}
 
         /// The total node weight of all the nodes in the cluster
-        pub let totalWeight: UInt64
+        access(all) let totalWeight: UInt64
 
         /// Votes that nodes claim at the beginning of each EpochSetup phase
         /// Key is node ID from the identity table contract
@@ -77,10 +77,10 @@ pub contract FlowClusterQC {
         /// adds their signature and message, then adds it back to this vote list.
         /// If a node has voted, their `signature` and `message` field will be non-`nil`
         /// If a node hasn't voted, their `signature` and `message` field will be `nil`
-        pub var generatedVotes: {String: Vote}
+        access(all) var generatedVotes: {String: Vote}
 
         /// Tracks each unique vote and how much combined weight has been sent for the vote
-        pub var uniqueVoteMessageTotalWeights: {String: UInt64}
+        access(all) var uniqueVoteMessageTotalWeights: {String: UInt64}
 
         init(index: UInt16, nodeWeights: {String: UInt64}) {
             self.index = index
@@ -96,13 +96,13 @@ pub contract FlowClusterQC {
         }
 
         /// Returns the number of nodes in the cluster
-        pub fun size(): UInt16 {
+        access(all) fun size(): UInt16 {
             return UInt16(self.nodeWeights.length) 
         }
 
         /// Returns the minimum sum of vote weight required in order to be able to generate a
         /// valid quorum certificate for this cluster.
-        pub view fun voteThreshold(): UInt64 {
+        access(all) view fun voteThreshold(): UInt64 {
             if self.totalWeight == 0 as UInt64 {
                 return 0 as UInt64
             }
@@ -127,7 +127,7 @@ pub contract FlowClusterQC {
         /// Then this cluster's QC generation is considered complete and this method returns 
         /// the vote message that reached quorum
         /// If no vote is found to reach quorum, then `nil` is returned
-        pub view fun isComplete(): String? {
+        access(all) view fun isComplete(): String? {
             for message in self.uniqueVoteMessageTotalWeights.keys {
                 if self.uniqueVoteMessageTotalWeights[message]! >= self.voteThreshold() {
                     return message
@@ -138,7 +138,7 @@ pub contract FlowClusterQC {
 
         /// Generates the Quorum Certificate for this cluster
         /// If the cluster is not complete, this returns `nil`
-        pub fun generateQuorumCertificate(): ClusterQC? {
+        access(all) fun generateQuorumCertificate(): ClusterQC? {
 
             // Only generate the QC if the voting is complete for this cluster
             if let quorumMessage = self.isComplete() {
@@ -189,22 +189,22 @@ pub contract FlowClusterQC {
     /// `Vote` represents a vote from one collection node. 
     /// It simply contains strings with the signed message
     /// the hex encoded message itself. Votes are aggregated to build quorum certificates
-    pub struct Vote {
+    access(all) struct Vote {
 
         /// The node ID from the staking contract
-        pub var nodeID: String
+        access(all) var nodeID: String
 
         /// The signed message from the node (using the nodes `stakingKey`)
-        pub(set) var signature: String?
+        access(all)var signature: String?
 
         /// The hex-encoded message for the vote
-        pub(set) var message: String?
+        access(all)var message: String?
 
         /// The index of the cluster that this vote (and node) is in
-        pub let clusterIndex: UInt16
+        access(all) let clusterIndex: UInt16
 
         /// The weight of the vote (and node)
-        pub let weight: UInt64
+        access(all) let weight: UInt64
 
         init(nodeID: String, clusterIndex: UInt16, voteWeight: UInt64) {
             pre {
@@ -220,19 +220,19 @@ pub contract FlowClusterQC {
 
     /// Represents the quorum certificate for a specific cluster
     /// and all the nodes/votes in the cluster
-    pub struct ClusterQC {
+    access(all) struct ClusterQC {
 
         /// The index of the qc in the cluster record
-        pub let index: UInt16
+        access(all) let index: UInt16
 
         /// The vote signatures from all the nodes in the cluster
-        pub var voteSignatures: [String]
+        access(all) var voteSignatures: [String]
 
         /// The vote message from all the valid voters in the cluster
-        pub var voteMessage: String
+        access(all) var voteMessage: String
 
         /// The node IDs that correspond to each vote
-        pub var voterIDs: [String]
+        access(all) var voterIDs: [String]
 
         init(index: UInt16, signatures: [String], message: String, voterIDs: [String]) {
             self.index = index
@@ -241,11 +241,11 @@ pub contract FlowClusterQC {
             self.voterIDs = voterIDs
         }
 
-        pub fun addSignature(_ signature: String) {
+        access(all) fun addSignature(_ signature: String) {
             self.voteSignatures.append(signature)
         }
 
-        pub fun addVoterID(_ voterID: String) {
+        access(all) fun addVoterID(_ voterID: String) {
             self.voterIDs.append(voterID)
         }
     }
@@ -253,13 +253,13 @@ pub contract FlowClusterQC {
     /// The Voter resource is generated for each collection node after they register.
     /// Each resource instance is good for all future potential epochs, but will
     /// only be valid if the node operator has been confirmed as a collector node for the next epoch.
-    pub resource Voter {
+    access(all) resource Voter {
 
         /// The nodeID of the voter (from the staking contract)
-        pub let nodeID: String
+        access(all) let nodeID: String
 
         /// The staking key of the node (from the staking contract)
-        pub var stakingKey: String
+        access(all) var stakingKey: String
 
         init(nodeID: String, stakingKey: String) {
             pre {
@@ -281,7 +281,7 @@ pub contract FlowClusterQC {
         /// Params: voteSignature: Signed `voteMessage` with the nodes `stakingKey`
         ///         voteMessage: Hex-encoded message
         ///
-        pub fun vote(voteSignature: String, voteMessage: String) {
+        access(all) fun vote(voteSignature: String, voteMessage: String) {
             pre {
                 FlowClusterQC.inProgress: "Voting phase is not in progress"
                 voteSignature.length > 0: "Vote signature must not be empty"
@@ -336,21 +336,21 @@ pub contract FlowClusterQC {
     /// Interface that only contains operations that are part
     /// of the regular automated functioning of the epoch process
     /// These are accessed by the `FlowEpoch` contract through a capability
-    pub resource interface EpochOperations {
-        pub fun createVoter(nodeID: String, stakingKey: String): @Voter
-        pub fun startVoting(clusters: [Cluster]) 
-        pub fun stopVoting()
-        pub fun forceStopVoting()
+    access(all) resource interface EpochOperations {
+        access(all) fun createVoter(nodeID: String, stakingKey: String): @Voter
+        access(all) fun startVoting(clusters: [Cluster]) 
+        access(all) fun stopVoting()
+        access(all) fun forceStopVoting()
     }
 
     /// The Admin resource provides the ability to create to Voter resource objects,
     /// begin voting, and end voting for an epoch
-    pub resource Admin: EpochOperations {
+    access(all) resource Admin: EpochOperations {
 
         /// Creates a new Voter resource for a collection node
         /// This function will be publicly accessible in the FlowEpoch
         /// contract, which will restrict the creation to only collector nodes
-        pub fun createVoter(nodeID: String, stakingKey: String): @Voter {
+        access(all) fun createVoter(nodeID: String, stakingKey: String): @Voter {
             return <-create Voter(nodeID: nodeID, stakingKey: stakingKey)
         }
 
@@ -360,7 +360,7 @@ pub contract FlowClusterQC {
         /// transitioning to the Epoch Setup Phase.
         ///
         /// CAUTION: calling this erases the votes for the current/previous epoch.
-        pub fun startVoting(clusters: [Cluster]) {
+        access(all) fun startVoting(clusters: [Cluster]) {
             FlowClusterQC.inProgress = true
             FlowClusterQC.clusters = clusters
 
@@ -380,7 +380,7 @@ pub contract FlowClusterQC {
 
         /// Stops voting for the current epoch. Can only be called once a 2/3 
         /// majority of each cluster has submitted a vote. 
-        pub fun stopVoting() {
+        access(all) fun stopVoting() {
             pre {
                 FlowClusterQC.votingCompleted(): "Voting must be complete before it can be stopped"
             }
@@ -389,25 +389,25 @@ pub contract FlowClusterQC {
 
         /// Force a stop of the voting period
         /// Should only be used if the protocol halts and needs to be reset
-        pub fun forceStopVoting() {
+        access(all) fun forceStopVoting() {
             FlowClusterQC.inProgress = false
         }
     }
 
     /// Returns a boolean telling if the voter is registered for the current voting phase
-    pub view fun voterIsRegistered(_ nodeID: String): Bool {
+    access(all) view fun voterIsRegistered(_ nodeID: String): Bool {
         return FlowClusterQC.nodeCluster[nodeID] != nil
     }
 
     /// Returns a boolean telling if the node has claimed their `Voter` resource object
     /// The object can only be claimed once, but if the node destroys their `Voter` object,
     /// It could be claimed again
-    pub view fun voterIsClaimed(_ nodeID: String): Bool {
+    access(all) view fun voterIsClaimed(_ nodeID: String): Bool {
         return FlowClusterQC.voterClaimed[nodeID] != nil
     }
 
     /// Returns whether this voter has successfully submitted a vote for this epoch.
-    pub view fun nodeHasVoted(_ nodeID: String): Bool {
+    access(all) view fun nodeHasVoted(_ nodeID: String): Bool {
 
         // Get the cluster that this node belongs to
         if let clusterIndex = FlowClusterQC.nodeCluster[nodeID] {
@@ -424,12 +424,12 @@ pub contract FlowClusterQC {
     }
 
     /// Gets all of the collector clusters for the current epoch
-    pub view fun getClusters(): [Cluster] {
+    access(all) view fun getClusters(): [Cluster] {
         return self.clusters
     }
 
     /// Returns true if we have collected enough votes for all clusters.
-    pub view fun votingCompleted(): Bool {
+    access(all) view fun votingCompleted(): Bool {
         for cluster in FlowClusterQC.clusters {
             if cluster.isComplete() == nil {
                 return false

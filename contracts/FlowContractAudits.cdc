@@ -4,47 +4,47 @@
 /// deployed to the Service Account, so it is documented here
 /// for reference
 
-pub contract FlowContractAudits {
+access(all) contract FlowContractAudits {
     
     // Event that is emitted when a new Auditor resource is created
-    pub event AuditorCreated()
+    access(all) event AuditorCreated()
 
     // Event that is emitted when a new contract audit voucher is created
-    pub event VoucherCreated(address: Address?, recurrent: Bool, expiryBlockHeight: UInt64?, codeHash: String)
+    access(all) event VoucherCreated(address: Address?, recurrent: Bool, expiryBlockHeight: UInt64?, codeHash: String)
 
     // Event that is emitted when a contract audit voucher is used
-    pub event VoucherUsed(address: Address, key: String, recurrent: Bool, expiryBlockHeight: UInt64?)
+    access(all) event VoucherUsed(address: Address, key: String, recurrent: Bool, expiryBlockHeight: UInt64?)
 
     // Event that is emitted when a contract audit voucher is removed
-    pub event VoucherRemoved(key: String, recurrent: Bool, expiryBlockHeight: UInt64?)
+    access(all) event VoucherRemoved(key: String, recurrent: Bool, expiryBlockHeight: UInt64?)
 
     // Dictionary of all vouchers
     access(contract) var vouchers: {String: AuditVoucher}
 
     // The storage path for the admin resource
-    pub let AdminStoragePath: StoragePath
+    access(all) let AdminStoragePath: StoragePath
 
     // The storage Path for auditors' AuditorProxy
-    pub let AuditorProxyStoragePath: StoragePath
+    access(all) let AuditorProxyStoragePath: StoragePath
 
     // The public path for auditors' AuditorProxy capability
-    pub let AuditorProxyPublicPath: PublicPath
+    access(all) let AuditorProxyPublicPath: PublicPath
 
     // Single audit voucher that is used for contract deployment
-    pub struct AuditVoucher {
+    access(all) struct AuditVoucher {
         
         // Address of the account the voucher is intended for
         // If nil, the contract can be deployed to any account
-        pub let address: Address?
+        access(all) let address: Address?
 
         // If false, the voucher will be removed after first use
-        pub let recurrent: Bool
+        access(all) let recurrent: Bool
 
         // If non-nil, the voucher won't be valid after the expiry block height
-        pub let expiryBlockHeight: UInt64?
+        access(all) let expiryBlockHeight: UInt64?
         
         // Hash of contract code
-        pub let codeHash: String
+        access(all) let codeHash: String
         
         init(address: Address?, recurrent: Bool, expiryBlockHeight: UInt64?, codeHash: String) {
             self.address = address
@@ -55,33 +55,33 @@ pub contract FlowContractAudits {
     }
 
     // Returns all current vouchers
-    pub fun getAllVouchers(): {String: AuditVoucher} {
+    access(all) fun getAllVouchers(): {String: AuditVoucher} {
         return self.vouchers
     }
 
     // Get the associated dictionary key for given address and codeHash
-    pub fun generateVoucherKey(address: Address?, codeHash: String): String {
+    access(all) fun generateVoucherKey(address: Address?, codeHash: String): String {
         if address != nil {
             return address!.toString().concat("-").concat(codeHash)
         }
         return "any-".concat(codeHash)
     }
     
-    pub fun hashContractCode(_ code: String): String {
+    access(all) fun hashContractCode(_ code: String): String {
         return String.encodeHex(HashAlgorithm.SHA3_256.hash(code.utf8))
     }
 
     // Auditors can create new vouchers and remove them
-    pub resource Auditor {
+    access(all) resource Auditor {
 
         // Create new voucher with contract code
-        pub fun addVoucher(address: Address?, recurrent: Bool, expiryOffset: UInt64?, code: String) {
+        access(all) fun addVoucher(address: Address?, recurrent: Bool, expiryOffset: UInt64?, code: String) {
             let codeHash = FlowContractAudits.hashContractCode(code)
             self.addVoucherHashed(address: address, recurrent: recurrent, expiryOffset: expiryOffset, codeHash: codeHash)
         }
 
         // Create new voucher with hashed contract code
-        pub fun addVoucherHashed(address: Address?, recurrent: Bool, expiryOffset: UInt64?, codeHash: String) {
+        access(all) fun addVoucherHashed(address: Address?, recurrent: Bool, expiryOffset: UInt64?, codeHash: String) {
 
             // calculate expiry block height based on expiryOffset
             var expiryBlockHeight: UInt64? = nil
@@ -102,35 +102,35 @@ pub contract FlowContractAudits {
         }
 
         // Remove a voucher with given key
-        pub fun deleteVoucher(key: String) {
+        access(all) fun deleteVoucher(key: String) {
             FlowContractAudits.deleteVoucher(key)            
         }
     }
 
     // Used by admin to set the Auditor capability
-    pub resource interface AuditorProxyPublic {
-        pub fun setAuditorCapability(_ cap: Capability<&Auditor>)
+    access(all) resource interface AuditorProxyPublic {
+        access(all) fun setAuditorCapability(_ cap: Capability<&Auditor>)
     }
 
     // The auditor account will have audit access through AuditorProxy
     // This enables the admin account to revoke access
     // See https://docs.onflow.org/cadence/design-patterns/#capability-revocation
-    pub resource AuditorProxy: AuditorProxyPublic {
+    access(all) resource AuditorProxy: AuditorProxyPublic {
         access(self) var auditorCapability: Capability<&Auditor>?
 
-        pub fun setAuditorCapability(_ cap: Capability<&Auditor>) {
+        access(all) fun setAuditorCapability(_ cap: Capability<&Auditor>) {
             self.auditorCapability = cap
         }
 
-        pub fun addVoucher(address: Address?, recurrent: Bool, expiryOffset: UInt64?, code: String) {
+        access(all) fun addVoucher(address: Address?, recurrent: Bool, expiryOffset: UInt64?, code: String) {
             self.auditorCapability!.borrow()!.addVoucher(address: address, recurrent: recurrent, expiryOffset: expiryOffset, code: code)
         }
 
-        pub fun addVoucherHashed(address: Address?, recurrent: Bool, expiryOffset: UInt64?, codeHash: String) {
+        access(all) fun addVoucherHashed(address: Address?, recurrent: Bool, expiryOffset: UInt64?, codeHash: String) {
             self.auditorCapability!.borrow()!.addVoucherHashed(address: address, recurrent: recurrent, expiryOffset: expiryOffset, codeHash: codeHash)
         }
 
-        pub fun deleteVoucher(key: String) {
+        access(all) fun deleteVoucher(key: String) {
             self.auditorCapability!.borrow()!.deleteVoucher(key: key)
         }
 
@@ -141,20 +141,20 @@ pub contract FlowContractAudits {
     }
 
     // Can be called by anyone but needs a capability to function
-    pub fun createAuditorProxy(): @AuditorProxy {
+    access(all) fun createAuditorProxy(): @AuditorProxy {
         return <- create AuditorProxy()
     }
 
-    pub resource Administrator {
+    access(all) resource Administrator {
         
         // Creates new Auditor
-        pub fun createNewAuditor(): @Auditor {
+        access(all) fun createNewAuditor(): @Auditor {
             emit AuditorCreated()
             return <-create Auditor()
         }
 
         // Checks all vouchers and removes expired ones
-        pub fun cleanupExpiredVouchers() {
+        access(all) fun cleanupExpiredVouchers() {
             for key in FlowContractAudits.vouchers.keys {                
                 let v = FlowContractAudits.vouchers[key]!
                 if v.expiryBlockHeight != nil {
@@ -166,7 +166,7 @@ pub contract FlowContractAudits {
         }
 
         // For testing
-        pub fun useVoucherForDeploy(address: Address, code: String): Bool {
+        access(all) fun useVoucherForDeploy(address: Address, code: String): Bool {
             return FlowContractAudits.useVoucherForDeploy(address: address, code: code)
         }
     }
