@@ -54,13 +54,8 @@ func (evt EpochTotalRewardsPaidEvent) FeesBurned() cadence.UFix64 {
 }
 
 func stubInterpreter() *interpreter.Interpreter {
-	interp, _ := interpreter.NewInterpreter(
-		nil,
-		nil,
-		&interpreter.Config{},
-	)
-
-	return interp
+	inter, _ := interpreter.NewInterpreter(nil, nil, &interpreter.Config{})
+	return inter
 }
 
 // Defines utility functions that are used for testing the staking contract
