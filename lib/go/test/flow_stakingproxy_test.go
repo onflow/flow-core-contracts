@@ -1,6 +1,7 @@
 package test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -21,7 +22,7 @@ func TestStakingProxy(t *testing.T) {
 
 	t.Parallel()
 
-	b := newBlockchain()
+	b, adapter := newBlockchain()
 
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
@@ -74,11 +75,13 @@ func TestStakingProxy(t *testing.T) {
 	var i uint64
 	i = 0
 	for i < 1000 {
-		results, _ := b.GetEventsByHeight(i, "flow.AccountCreated")
+		results, _ := adapter.GetEventsForHeightRange(context.Background(), "flow.AccountCreated", i, i)
 
-		for _, event := range results {
-			if event.Type == flow.EventAccountCreated {
-				idTableAddress = flow.Address(event.Value.Fields[0].(cadence.Address))
+		for _, result := range results {
+			for _, event := range result.Events {
+				if event.Type == flow.EventAccountCreated {
+					idTableAddress = flow.Address(event.Value.Fields[0].(cadence.Address))
+				}
 			}
 		}
 
@@ -89,7 +92,7 @@ func TestStakingProxy(t *testing.T) {
 
 	// Deploy the StakingProxy contract
 	stakingProxyCode := contracts.FlowStakingProxy()
-	stakingProxyAddress, err := b.CreateAccount(nil, []sdktemplates.Contract{
+	stakingProxyAddress, err := adapter.CreateAccount(context.Background(), nil, []sdktemplates.Contract{
 		{
 			Name:   "StakingProxy",
 			Source: string(stakingProxyCode),
@@ -105,7 +108,7 @@ func TestStakingProxy(t *testing.T) {
 	env.StakingProxyAddress = stakingProxyAddress.Hex()
 
 	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
-	adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
+	adminAddress, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{adminAccountKey}, nil)
 
 	lockedTokensAccountKey, _ := accountKeys.NewWithSigner()
 	lockedTokensAddress := deployLockedTokensContract(t, b, env, idTableAddress, stakingProxyAddress, lockedTokensAccountKey, adminAddress, adminSigner)
@@ -129,7 +132,7 @@ func TestStakingProxy(t *testing.T) {
 
 	// Create a new node operator account for staking helper
 	nodeAccountKey, nodeSigner := accountKeys.NewWithSigner()
-	nodeAddress, _ := b.CreateAccount([]*flow.AccountKey{nodeAccountKey}, nil)
+	nodeAddress, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{nodeAccountKey}, nil)
 
 	t.Run("Should be able to set up the node account for staking helper", func(t *testing.T) {
 
@@ -194,7 +197,7 @@ func TestStakingProxy(t *testing.T) {
 			false,
 		)
 
-		createAccountsTxResult, err := b.GetTransactionResult(tx.ID())
+		createAccountsTxResult, err := adapter.GetTransactionResult(context.Background(), tx.ID())
 		assert.NoError(t, err)
 		assertEqual(t, flow.TransactionStatusSealed, createAccountsTxResult.Status)
 

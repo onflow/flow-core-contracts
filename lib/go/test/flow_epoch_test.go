@@ -32,7 +32,7 @@ const (
 )
 
 func TestEpochDeployment(t *testing.T) {
-	b, accountKeys, env := newTestSetup(t)
+	b, _, accountKeys, env := newTestSetup(t)
 
 	// Create new keys for the epoch account
 	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
@@ -78,7 +78,7 @@ func TestEpochDeployment(t *testing.T) {
 }
 
 func TestEpochClusters(t *testing.T) {
-	b, accountKeys, env := newTestSetup(t)
+	b, _, accountKeys, env := newTestSetup(t)
 
 	// Create new keys for the epoch account
 	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
@@ -133,7 +133,7 @@ func TestEpochClusters(t *testing.T) {
 }
 
 func TestEpochPhaseMetadataChange(t *testing.T) {
-	b, accountKeys, env := newTestSetup(t)
+	b, _, accountKeys, env := newTestSetup(t)
 
 	// Create new keys for the epoch account
 	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
@@ -385,7 +385,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 }
 
 func TestEpochAdvance(t *testing.T) {
-	b, accountKeys, env := newTestSetup(t)
+	b, adapter, accountKeys, env := newTestSetup(t)
 
 	// Create new keys for the epoch account
 	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
@@ -470,7 +470,7 @@ func TestEpochAdvance(t *testing.T) {
 				clusterQCs:            nil,
 				dkgKeys:               nil})
 
-		verifyEpochSetup(t, b, idTableAddress,
+		verifyEpochSetup(t, b, adapter, idTableAddress,
 			EpochSetup{
 				counter:            startEpochCounter + 1,
 				nodeInfoLength:     numEpochAccounts,
@@ -535,7 +535,7 @@ func TestEpochAdvance(t *testing.T) {
 }
 
 func TestEpochQCDKGNodeRegistration(t *testing.T) {
-	b, accountKeys, env := newTestSetup(t)
+	b, _, accountKeys, env := newTestSetup(t)
 
 	// Create new keys for the epoch account
 	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
@@ -627,7 +627,7 @@ func TestEpochQCDKGNodeRegistration(t *testing.T) {
 }
 
 func TestEpochFullNodeRegistration(t *testing.T) {
-	b, accountKeys, env := newTestSetup(t)
+	b, _, accountKeys, env := newTestSetup(t)
 
 	// Create new keys for the epoch account
 	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
@@ -659,7 +659,7 @@ func TestEpochFullNodeRegistration(t *testing.T) {
 }
 
 func TestEpochQCDKG(t *testing.T) {
-	b, accountKeys, env := newTestSetup(t)
+	b, adapter, accountKeys, env := newTestSetup(t)
 
 	// Create new keys for the epoch account
 	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
@@ -851,7 +851,7 @@ func TestEpochQCDKG(t *testing.T) {
 				numCollectorClusters:     2,
 				rewardPercentage:         rewardIncreaseFactor})
 
-		verifyEpochCommit(t, b, idTableAddress,
+		verifyEpochCommit(t, b, adapter, idTableAddress,
 			EpochCommit{
 				counter:    startEpochCounter + 1,
 				dkgPubKeys: finalKeyStrings,
@@ -1035,7 +1035,7 @@ func TestEpochQCDKG(t *testing.T) {
 }
 
 func TestEpochReset(t *testing.T) {
-	b, accountKeys, env := newTestSetup(t)
+	b, _, accountKeys, env := newTestSetup(t)
 
 	// Create new keys for the epoch account
 	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()

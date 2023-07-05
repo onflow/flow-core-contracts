@@ -1,9 +1,11 @@
 package test
 
 import (
+	"context"
 	"fmt"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
-	emulator "github.com/onflow/flow-emulator"
+	"github.com/onflow/flow-emulator/convert"
+	"github.com/onflow/flow-emulator/emulator"
 	flowgo "github.com/onflow/flow-go/model/flow"
 	"testing"
 
@@ -19,7 +21,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func deployContract(b *emulator.Blockchain, address flow.Address, signer crypto.Signer, contract sdktemplates.Contract, args []cadence.Value) error {
+func deployContract(b emulator.Emulator, address flow.Address, signer crypto.Signer, contract sdktemplates.Contract, args []cadence.Value) error {
 
 	addAccountContractTemplate := `
 	transaction(name: String, code: String %s) {
@@ -57,7 +59,9 @@ func deployContract(b *emulator.Blockchain, address flow.Address, signer crypto.
 		return err
 	}
 
-	err = b.AddTransaction(*tx)
+	flowTx := convert.SDKTransactionToFlow(*tx)
+
+	err = b.AddTransaction(*flowTx)
 	if err != nil {
 		return err
 	}
@@ -72,7 +76,7 @@ func deployContract(b *emulator.Blockchain, address flow.Address, signer crypto.
 
 func TestNodeVersionBeacon(t *testing.T) {
 
-	b := newBlockchain()
+	b, adapter := newBlockchain()
 
 	env := templates.Environment{
 		ServiceAccountAddress: b.ServiceKey().Address.Hex(),
@@ -84,7 +88,7 @@ func TestNodeVersionBeacon(t *testing.T) {
 
 	versionBeaconContractScript := contracts.NodeVersionBeacon()
 
-	versionBeaconAddress, err := b.CreateAccount([]*flow.AccountKey{versionBeaconAccountKey}, nil)
+	versionBeaconAddress, err := adapter.CreateAccount(context.Background(), []*flow.AccountKey{versionBeaconAccountKey}, nil)
 	assert.NoError(t, err)
 	_, err = b.CommitBlock()
 	assert.NoError(t, err)

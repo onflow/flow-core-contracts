@@ -1,6 +1,7 @@
 package test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -10,7 +11,6 @@ import (
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/cadence/runtime/interpreter"
-	//emulator "github.com/onflow/flow-emulator"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/test"
@@ -47,7 +47,7 @@ func TestIDTableDeployment(t *testing.T) {
 
 	t.Parallel()
 
-	b := newBlockchain()
+	b, _ := newBlockchain()
 
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
@@ -228,7 +228,7 @@ func TestStakingTransferAdmin(t *testing.T) {
 
 	t.Parallel()
 
-	b := newBlockchain()
+	b, adapter := newBlockchain()
 
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
@@ -243,7 +243,7 @@ func TestStakingTransferAdmin(t *testing.T) {
 
 	//
 	joshAccountKey, joshSigner := accountKeys.NewWithSigner()
-	joshAddress, _ := b.CreateAccount([]*flow.AccountKey{joshAccountKey}, nil)
+	joshAddress, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{joshAccountKey}, nil)
 
 	t.Run("Should be able to transfer the admin capability to another account", func(t *testing.T) {
 
@@ -291,7 +291,7 @@ func TestStakingTransferAdmin(t *testing.T) {
 
 func TestIDTableRegistration(t *testing.T) {
 
-	b, accountKeys, env := newTestSetup(t)
+	b, _, accountKeys, env := newTestSetup(t)
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
@@ -746,7 +746,7 @@ func TestIDTableApprovals(t *testing.T) {
 
 	t.Parallel()
 
-	b := newBlockchain()
+	b, _ := newBlockchain()
 
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
@@ -1035,7 +1035,7 @@ func TestIDTableStaking(t *testing.T) {
 
 	t.Parallel()
 
-	b := newBlockchain()
+	b, _ := newBlockchain()
 
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
@@ -2874,7 +2874,7 @@ func TestIDTableStaking(t *testing.T) {
 }
 
 func TestIDTableDelegatorMinimums(t *testing.T) {
-	b, accountKeys, env := newTestSetup(t)
+	b, _, accountKeys, env := newTestSetup(t)
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
@@ -3040,12 +3040,12 @@ func TestIDTableDelegatorMinimums(t *testing.T) {
 }
 
 // TestIDTableSlotSelection tests the slot selection process for nodes which do not need to be allow-listed (Access Nodes).
-//  - If the number of candidate nodes exceeds the remaining slot limit, some candidate nodes will be randomly
+//   - If the number of candidate nodes exceeds the remaining slot limit, some candidate nodes will be randomly
 //     selected to be refunded and removed.
-//  - If the number of participant nodes is equal to or exceeds the slot limit, no new candidates will be accepted
+//   - If the number of participant nodes is equal to or exceeds the slot limit, no new candidates will be accepted
 //     but no participants will be removed.
 func TestIDTableSlotSelection(t *testing.T) {
-	b, accountKeys, env := newTestSetup(t)
+	b, _, accountKeys, env := newTestSetup(t)
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
@@ -3324,7 +3324,7 @@ func TestIDTableRewardsWitholding(t *testing.T) {
 
 	t.Parallel()
 
-	b := newBlockchain()
+	b, adapter := newBlockchain()
 
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
@@ -3361,7 +3361,7 @@ func TestIDTableRewardsWitholding(t *testing.T) {
 	// Create all the node accounts
 	for i := 0; i < numNodes; i++ {
 		nodeKeys[i], nodeSigners[i] = accountKeys.NewWithSigner()
-		nodeAddresses[i], _ = b.CreateAccount([]*flow.AccountKey{nodeKeys[i]}, nil)
+		nodeAddresses[i], _ = adapter.CreateAccount(context.Background(), []*flow.AccountKey{nodeKeys[i]}, nil)
 		_, nodeStakingKeys[i], _, nodeNetworkingKeys[i] = generateKeysForNodeRegistration(t)
 	}
 
@@ -3373,7 +3373,7 @@ func TestIDTableRewardsWitholding(t *testing.T) {
 	// Create all the delegator accounts
 	for i := 0; i < numDelegators; i++ {
 		delegatorKeys[i], delegatorSigners[i] = accountKeys.NewWithSigner()
-		delegatorAddresses[i], _ = b.CreateAccount([]*flow.AccountKey{delegatorKeys[i]}, nil)
+		delegatorAddresses[i], _ = adapter.CreateAccount(context.Background(), []*flow.AccountKey{delegatorKeys[i]}, nil)
 	}
 
 	// Each node will commit 500k FLOW
