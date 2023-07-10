@@ -98,7 +98,7 @@ access(all) contract FlowEpoch {
     /// The EpochCommit service event is emitted when we transition from the Epoch
     /// Committed phase. It is emitted only when all preparation for the upcoming epoch
     /// has been completed
-    access(all) event EpochCommit(
+    access(all) event EpochCommit (
 
         /// The counter for the upcoming epoch. Must be equal to the counter in the
         /// previous EpochSetup event.
@@ -250,8 +250,8 @@ access(all) contract FlowEpoch {
     /// 
     access(contract) fun saveEpochMetadata(_ newMetadata: EpochMetadata) {
         pre {
-            self.currentEpochCounter == (0 as UInt64) ||
-            (newMetadata.counter >= self.currentEpochCounter - (1 as UInt64) &&
+            self.currentEpochCounter == 0 ||
+            (newMetadata.counter >= self.currentEpochCounter - 1 &&
             newMetadata.counter <= self.proposedEpochCounter()):
                 "Cannot modify epoch metadata from epochs after the proposed epoch or before the previous epoch"
         }
@@ -327,7 +327,7 @@ access(all) contract FlowEpoch {
         access(all) fun updateFLOWSupplyIncreasePercentage(_ newPercentage: UFix64) {
             pre {
                 FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION: "Can only update fields during the staking auction"
-                newPercentage <= 1.0 as UFix64: "New value must be between zero and one"
+                newPercentage <= 1.0: "New value must be between zero and one"
             }
 
             FlowEpoch.configurableMetadata.FLOWsupplyIncreasePercentage = newPercentage
@@ -525,7 +525,7 @@ access(all) contract FlowEpoch {
 
     /// Pays rewards to the nodes and delegators of the previous epoch
     access(account) fun payRewardsForPreviousEpoch() {
-        if let previousEpochMetadata = self.getEpochMetadata(self.currentEpochCounter - (1 as UInt64)) {
+        if let previousEpochMetadata = self.getEpochMetadata(self.currentEpochCounter - 1) {
             if !previousEpochMetadata.rewardsPaid {
                 let summary = FlowIDTableStaking.EpochRewardsSummary(totalRewards: previousEpochMetadata.totalRewards, breakdown: previousEpochMetadata.rewardAmounts)
                 self.borrowStakingAdmin().payRewards(summary)
@@ -611,7 +611,7 @@ access(all) contract FlowEpoch {
                                                 startView: currentEpochMetadata.endView + UInt64(1),
                                                 endView: currentEpochMetadata.endView + self.configurableMetadata.numViewsInEpoch,
                                                 stakingEndView: currentEpochMetadata.endView + self.configurableMetadata.numViewsInStakingAuction,
-                                                totalRewards: 0.0 as UFix64,
+                                                totalRewards: 0.0,
                                                 collectorClusters: collectorClusters,
                                                 clusterQCs: [],
                                                 dkgKeys: [])
@@ -626,9 +626,9 @@ access(all) contract FlowEpoch {
                         finalView: proposedEpochMetadata.endView,
                         collectorClusters: collectorClusters,
                         randomSource: randomSource,
-                        DKGPhase1FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + self.configurableMetadata.numViewsInDKGPhase - 1 as UInt64,
-                        DKGPhase2FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + (2 as UInt64 * self.configurableMetadata.numViewsInDKGPhase) - 1 as UInt64,
-                        DKGPhase3FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + (3 as UInt64 * self.configurableMetadata.numViewsInDKGPhase) - 1 as UInt64)
+                        DKGPhase1FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + self.configurableMetadata.numViewsInDKGPhase - 1,
+                        DKGPhase2FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + (2 * self.configurableMetadata.numViewsInDKGPhase) - 1,
+                        DKGPhase3FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + (3 * self.configurableMetadata.numViewsInDKGPhase) - 1)
     }
 
     /// Ends the EpochSetup phase when the QC and DKG are completed
@@ -712,12 +712,8 @@ access(all) contract FlowEpoch {
 
     /// Makes sure the set of phase lengths (in views) are valid.
     /// Sub-phases cannot be greater than the full epoch length.
-<<<<<<< HEAD
-    pub view fun isValidPhaseConfiguration(_ auctionLen: UInt64, _ dkgPhaseLen: UInt64, _ epochLen: UInt64): Bool {
-=======
     access(all) view fun isValidPhaseConfiguration(_ auctionLen: UInt64, _ dkgPhaseLen: UInt64, _ epochLen: UInt64): Bool {
->>>>>>> origin/merge-stable-cadence
-        return (auctionLen + ((3 as UInt64)*dkgPhaseLen)) < epochLen
+        return (auctionLen + (3*dkgPhaseLen)) < epochLen
     }
 
     /// Randomizes the list of collector node ID and uses a round robin algorithm
@@ -734,7 +730,7 @@ access(all) contract FlowEpoch {
         let nodeWeightsDictionary: [{String: UInt64}] = []
         while clusterIndex < self.configurableMetadata.numCollectorClusters {
             nodeWeightsDictionary.append({})
-            clusterIndex = clusterIndex + 1 as UInt16
+            clusterIndex = clusterIndex + 1
         }
         clusterIndex = 0
 
@@ -745,7 +741,7 @@ access(all) contract FlowEpoch {
             nodeWeightsDictionary[clusterIndex][id] = nodeInfo.initialWeight
             
             // Advance to the next cluster, or back to the first if we have gotten to the last one
-            clusterIndex = clusterIndex + 1 as UInt16
+            clusterIndex = clusterIndex + 1
             if clusterIndex == self.configurableMetadata.numCollectorClusters {
                 clusterIndex = 0
             }
@@ -756,7 +752,7 @@ access(all) contract FlowEpoch {
         clusterIndex = 0
         while clusterIndex < self.configurableMetadata.numCollectorClusters {
             clusters.append(FlowClusterQC.Cluster(index: clusterIndex, nodeWeights: nodeWeightsDictionary[clusterIndex]!))
-            clusterIndex = clusterIndex + 1 as UInt16
+            clusterIndex = clusterIndex + 1
         }
 
         return clusters
@@ -816,28 +812,16 @@ access(all) contract FlowEpoch {
     }
 
     /// Returns the metadata that is able to be configured by the admin
-<<<<<<< HEAD
-    pub view fun getConfigMetadata(): Config {
-=======
     access(all) view fun getConfigMetadata(): Config {
->>>>>>> origin/merge-stable-cadence
         return self.configurableMetadata
     }
 
     /// The proposed Epoch counter is always the current counter plus 1
-<<<<<<< HEAD
-    pub view fun proposedEpochCounter(): UInt64 {
-        return self.currentEpochCounter + 1 as UInt64
-    }
-
-    pub view fun automaticRewardsEnabled(): Bool {
-=======
     access(all) view fun proposedEpochCounter(): UInt64 {
         return self.currentEpochCounter + 1 as UInt64
     }
 
     access(all) view fun automaticRewardsEnabled(): Bool {
->>>>>>> origin/merge-stable-cadence
         return self.account.copy<Bool>(from: /storage/flowAutomaticRewardsEnabled) ?? false
     }
 
@@ -924,8 +908,8 @@ access(all) contract FlowEpoch {
         let firstEpochMetadata = EpochMetadata(counter: self.currentEpochCounter,
                     seed: randomSource,
                     startView: currentBlock.view,
-                    endView: currentBlock.view + self.configurableMetadata.numViewsInEpoch - (1 as UInt64),
-                    stakingEndView: currentBlock.view + self.configurableMetadata.numViewsInStakingAuction - (1 as UInt64),
+                    endView: currentBlock.view + self.configurableMetadata.numViewsInEpoch - 1,
+                    stakingEndView: currentBlock.view + self.configurableMetadata.numViewsInStakingAuction - 1,
                     totalRewards: FlowIDTableStaking.getEpochTokenPayout(),
                     collectorClusters: collectorClusters,
                     clusterQCs: clusterQCs,

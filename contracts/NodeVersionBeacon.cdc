@@ -386,7 +386,7 @@ access(all) contract NodeVersionBeacon {
     /// Function that returns the version that was defined at the most
     /// recent block height boundary. May return zero boundary.
     access(all) fun getCurrentVersionBoundary(): VersionBoundary {
-        var current = 0 as UInt64
+        var current = 0
 
         // index is never 0 since version 0 is always in the past
         if let index = NodeVersionBeacon.firstUpcomingBoundary {
