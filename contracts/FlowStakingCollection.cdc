@@ -854,7 +854,7 @@ access(all) contract FlowStakingCollection {
 
                     let unlockedVault = self.unlockedVault!.borrow()!
                     var availableBalance: UFix64 = 0.0
-                    if FlowStorageFees.storageMegaBytesPerReservedFLOW != (0.0 as UFix64) {
+                    if FlowStorageFees.storageMegaBytesPerReservedFLOW != (0.0) {
                         availableBalance = FlowStorageFees.defaultTokenAvailableBalance(machineAccountInfo.machineAccountVaultProvider.borrow()!.owner!.address)
                     } else {
                         availableBalance = vaultRef.balance

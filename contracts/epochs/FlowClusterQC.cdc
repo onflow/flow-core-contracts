@@ -103,8 +103,8 @@ access(all) contract FlowClusterQC {
         /// Returns the minimum sum of vote weight required in order to be able to generate a
         /// valid quorum certificate for this cluster.
         access(all) view fun voteThreshold(): UInt64 {
-            if self.totalWeight == 0 as UInt64 {
-                return 0 as UInt64
+            if self.totalWeight == 0 {
+                return 0
             }
 
             let floorOneThird = self.totalWeight / UInt64(3) // integer division, includes floor

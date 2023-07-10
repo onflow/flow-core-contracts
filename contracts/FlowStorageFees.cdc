@@ -130,8 +130,8 @@ access(all) contract FlowStorageFees {
     // Amount in megabytes
     // Returns Flow tokens
     access(all) fun storageCapacityToFlow(_ amount: UFix64): UFix64 {
-        if FlowStorageFees.storageMegaBytesPerReservedFLOW == 0.0 as UFix64 {
-            return 0.0 as UFix64
+        if FlowStorageFees.storageMegaBytesPerReservedFLOW == 0.0 {
+            return 0.0
         }
         // possible loss of precision
         // putting the result back into `flowToStorageCapacity` might not yield the same result
@@ -141,7 +141,7 @@ access(all) contract FlowStorageFees {
     // converts storage used from UInt64 Bytes to UFix64 Megabytes.
     access(all) fun convertUInt64StorageBytesToUFix64Megabytes(_ storage: UInt64): UFix64 {
         // safe convert UInt64 to UFix64 (without overflow)
-        let f = UFix64(storage % 100000000 as UInt64) * 0.00000001 as UFix64 + UFix64(storage / 100000000 as UInt64)
+        let f = UFix64(storage % 100000000) * 0.00000001 + UFix64(storage / 100000000)
         // decimal point correction. Megabytes to bytes have a conversion of 10^-6 while UFix64 minimum value is 10^-8
         let storageMb = f.saturatingMultiply(100.0)
         return storageMb
