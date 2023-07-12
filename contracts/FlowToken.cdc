@@ -120,7 +120,8 @@ pub contract FlowToken: FungibleToken, ViewResolver {
     pub fun getViews(): [Type] {
         return [Type<FungibleTokenMetadataViews.FTView>(),
                 Type<FungibleTokenMetadataViews.FTDisplay>(),
-                Type<FungibleTokenMetadataViews.FTVaultData>()]
+                Type<FungibleTokenMetadataViews.FTVaultData>(),
+                Type<FungibleTokenMetadataViews.TotalSupply>()]
     }
 
     /// Get a Metadata View from FlowToken
@@ -138,7 +139,7 @@ pub contract FlowToken: FungibleToken, ViewResolver {
             case Type<FungibleTokenMetadataViews.FTDisplay>():
                 let media = MetadataViews.Media(
                         file: MetadataViews.HTTPFile(
-                        url: "https://assets.website-files.com/5f6294c0c7a8cdd643b1c820/5f6294c0c7a8cda55cb1c936_Flow_Wordmark.svg"
+                        url: FlowToken.getLogoURI()
                     ),
                     mediaType: "image/svg+xml"
                 )
@@ -146,7 +147,7 @@ pub contract FlowToken: FungibleToken, ViewResolver {
                 return FungibleTokenMetadataViews.FTDisplay(
                     name: "FLOW Network Token",
                     symbol: "FLOW",
-                    description: "FLOW is the protocol token that is required for transaction fees, storage fees, staking, and many applications built on the Flow Blockchain",
+                    description: "FLOW is the native token for the Flow blockchain. It is required for securing the network, transaction fees, storage fees, staking, FLIP voting and may be used by applications built on the Flow Blockchain",
                     externalURL: MetadataViews.ExternalURL("https://flow.com"),
                     logos: medias,
                     socials: {
@@ -166,6 +167,8 @@ pub contract FlowToken: FungibleToken, ViewResolver {
                         return <-FlowToken.createEmptyVault()
                     })
                 )
+            case Type<FungibleTokenMetadataViews.TotalSupply>():
+                return FungibleTokenMetadataViews.TotalSupply(totalSupply: FlowToken.totalSupply)
         }
         return nil
     }
@@ -241,12 +244,21 @@ pub contract FlowToken: FungibleToken, ViewResolver {
         }
     }
 
+    /// Gets the Flow Logo XML URI from storage
+    pub fun getLogoURI(): String {
+        return FlowToken.account.copy<String>(from: /storage/flowTokenLogoURI) ?? ""
+    }
+
     init() {
         self.totalSupply = 0.0
 
         // Create the Vault with the total supply of tokens and save it in storage
         //
         let vault <- create Vault(balance: self.totalSupply)
+
+        // Example of how to resolve a metadata view for a Vault
+        let ftView = vault.resolveView(Type<FungibleTokenMetadataViews.FTView>())
+
         self.account.save(<-vault, to: /storage/flowTokenVault)
 
         // Create a public capability to the stored Vault that only exposes
