@@ -87,7 +87,7 @@ func FungibleTokenMetadataViews(fungibleTokenAddr, metadataViewsAddr, viewResolv
 }
 
 func NonFungibleToken(viewResolverAddress string) []byte {
-	return nftcontracts.NonFungibleTokenV2(viewResolverAddress)
+	return nftcontracts.NonFungibleTokenV2(flow.HexToAddress(viewResolverAddress))
 }
 
 func ViewResolver() []byte {
