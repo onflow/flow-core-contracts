@@ -415,6 +415,8 @@ access(all) contract FlowIDTableStaking {
         access(all) let id: String
     }
 
+    access(all) entitlement NodeOperator
+
     /// Resource that the node operator controls for staking
     access(all) resource NodeStaker: NodeStakerPublic {
 
@@ -438,7 +440,7 @@ access(all) contract FlowIDTableStaking {
         }
 
         /// Change the node's networking address to a new one
-        access(all) fun updateNetworkingAddress(_ newAddress: String) {
+        access(NodeOperator) fun updateNetworkingAddress(_ newAddress: String) {
             pre {
                 FlowIDTableStaking.stakingEnabled(): "Cannot update networking address if the staking auction isn't in progress"
                 newAddress.length > 0 && newAddress.length <= 510: "The networkingAddress must be less than 510 characters"
@@ -458,7 +460,7 @@ access(all) contract FlowIDTableStaking {
         }
 
         /// Add new tokens to the system to stake during the next epoch
-        access(all) fun stakeNewTokens(_ tokens: @FungibleToken.Vault) {
+        access(NodeOperator) fun stakeNewTokens(_ tokens: @FungibleToken.Vault) {
             pre {
                 FlowIDTableStaking.stakingEnabled(): "Cannot stake if the staking auction isn't in progress"
             }
@@ -481,7 +483,7 @@ access(all) contract FlowIDTableStaking {
         }
 
         /// Stake tokens that are in the tokensUnstaked bucket
-        access(all) fun stakeUnstakedTokens(amount: UFix64) {
+        access(NodeOperator) fun stakeUnstakedTokens(amount: UFix64) {
             pre {
                 FlowIDTableStaking.stakingEnabled(): "Cannot stake if the staking auction isn't in progress"
             }
@@ -515,7 +517,7 @@ access(all) contract FlowIDTableStaking {
         }
 
         /// Stake tokens that are in the tokensRewarded bucket
-        access(all) fun stakeRewardedTokens(amount: UFix64) {
+        access(NodeOperator) fun stakeRewardedTokens(amount: UFix64) {
             pre {
                 FlowIDTableStaking.stakingEnabled(): "Cannot stake if the staking auction isn't in progress"
             }
@@ -536,7 +538,7 @@ access(all) contract FlowIDTableStaking {
         }
 
         /// Request amount tokens to be removed from staking at the end of the next epoch
-        access(all) fun requestUnstaking(amount: UFix64) {
+        access(NodeOperator) fun requestUnstaking(amount: UFix64) {
             pre {
                 FlowIDTableStaking.stakingEnabled(): "Cannot unstake if the staking auction isn't in progress"
             }
@@ -594,7 +596,7 @@ access(all) contract FlowIDTableStaking {
 
         /// Requests to unstake all of the node operators staked and committed tokens
         /// as well as all the staked and committed tokens of all of their delegators
-        access(all) fun unstakeAll() {
+        access(NodeOperator) fun unstakeAll() {
             pre {
                 FlowIDTableStaking.stakingEnabled(): "Cannot unstake if the staking auction isn't in progress"
             }
@@ -624,7 +626,7 @@ access(all) contract FlowIDTableStaking {
         }
 
         /// Withdraw tokens from the unstaked bucket
-        access(all) fun withdrawUnstakedTokens(amount: UFix64): @FungibleToken.Vault {
+        access(NodeOperator) fun withdrawUnstakedTokens(amount: UFix64): @FungibleToken.Vault {
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
 
             emit UnstakedTokensWithdrawn(nodeID: nodeRecord.id, amount: amount)
@@ -633,7 +635,7 @@ access(all) contract FlowIDTableStaking {
         }
 
         /// Withdraw tokens from the rewarded bucket
-        access(all) fun withdrawRewardedTokens(amount: UFix64): @FungibleToken.Vault {
+        access(NodeOperator) fun withdrawRewardedTokens(amount: UFix64): @FungibleToken.Vault {
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
 
             emit RewardTokensWithdrawn(nodeID: nodeRecord.id, amount: amount)
@@ -649,6 +651,8 @@ access(all) contract FlowIDTableStaking {
         access(all) let nodeID: String
     }
 
+    access(all) entitlement DelegatorOwner
+
     /// Resource object that the delegator stores in their account to perform staking actions
     access(all) resource NodeDelegator: NodeDelegatorPublic {
 
@@ -661,7 +665,7 @@ access(all) contract FlowIDTableStaking {
         }
 
         /// Delegate new tokens to the node operator
-        access(all) fun delegateNewTokens(from: @FungibleToken.Vault) {
+        access(DelegatorOwner) fun delegateNewTokens(from: @FungibleToken.Vault) {
             pre {
                 FlowIDTableStaking.stakingEnabled(): "Cannot delegate if the staking auction isn't in progress"
             }
@@ -679,7 +683,7 @@ access(all) contract FlowIDTableStaking {
         }
 
         /// Delegate tokens from the unstaked bucket to the node operator
-        access(all) fun delegateUnstakedTokens(amount: UFix64) {
+        access(DelegatorOwner) fun delegateUnstakedTokens(amount: UFix64) {
             pre {
                 FlowIDTableStaking.stakingEnabled(): "Cannot delegate if the staking auction isn't in progress"
             }
@@ -708,7 +712,7 @@ access(all) contract FlowIDTableStaking {
         }
 
         /// Delegate tokens from the rewards bucket to the node operator
-        access(all) fun delegateRewardedTokens(amount: UFix64) {
+        access(DelegatorOwner) fun delegateRewardedTokens(amount: UFix64) {
             pre {
                 FlowIDTableStaking.stakingEnabled(): "Cannot delegate if the staking auction isn't in progress"
             }
@@ -724,7 +728,7 @@ access(all) contract FlowIDTableStaking {
         }
 
         /// Request to unstake delegated tokens during the next epoch
-        access(all) fun requestUnstaking(amount: UFix64) {
+        access(DelegatorOwner) fun requestUnstaking(amount: UFix64) {
             pre {
                 FlowIDTableStaking.stakingEnabled(): "Cannot request unstaking if the staking auction isn't in progress"
             }
@@ -766,7 +770,7 @@ access(all) contract FlowIDTableStaking {
         }
 
         /// Withdraw tokens from the unstaked bucket
-        access(all) fun withdrawUnstakedTokens(amount: UFix64): @FungibleToken.Vault {
+        access(DelegatorOwner) fun withdrawUnstakedTokens(amount: UFix64): @FungibleToken.Vault {
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.nodeID)
             let delRecord = nodeRecord.borrowDelegatorRecord(self.id)
 
@@ -776,7 +780,7 @@ access(all) contract FlowIDTableStaking {
         }
 
         /// Withdraw tokens from the rewarded bucket
-        access(all) fun withdrawRewardedTokens(amount: UFix64): @FungibleToken.Vault {
+        access(DelegatorOwner) fun withdrawRewardedTokens(amount: UFix64): @FungibleToken.Vault {
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.nodeID)
             let delRecord = nodeRecord.borrowDelegatorRecord(self.id)
 

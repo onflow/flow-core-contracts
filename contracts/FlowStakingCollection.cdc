@@ -88,6 +88,8 @@ access(all) contract FlowStakingCollection {
         access(all) fun getMachineAccounts(): {String: MachineAccountInfo}
     }
 
+    access(all) entitlement CollectionOwner
+
     /// The resource that stakers store in their accounts to store
     /// all their staking objects and capability to the locked account object
     /// Keeps track of how many locked and unlocked tokens are staked
@@ -327,7 +329,7 @@ access(all) contract FlowStakingCollection {
         /// If the user has used any locked tokens, removing NodeStaker objects is not allowed.
         /// We do not clear the machine account field for this node here
         /// because the operator may want to keep it the same
-        access(all) fun removeNode(nodeID: String): @FlowIDTableStaking.NodeStaker? {
+        access(CollectionOwner) fun removeNode(nodeID: String): @FlowIDTableStaking.NodeStaker? {
             pre {
                 self.doesStakeExist(nodeID: nodeID, delegatorID: nil): "Specified node does not exist in this collection"
                 self.lockedTokensUsed == UFix64(0.0): "Cannot remove node if locked tokens are used"
@@ -357,7 +359,7 @@ access(all) contract FlowStakingCollection {
 
         /// Function to remove an existing NodeDelegator object.
         /// If the user has used any locked tokens, removing NodeDelegator objects is not allowed.
-        access(all) fun removeDelegator(nodeID: String, delegatorID: UInt32): @FlowIDTableStaking.NodeDelegator? {
+        access(CollectionOwner) fun removeDelegator(nodeID: String, delegatorID: UInt32): @FlowIDTableStaking.NodeDelegator? {
             pre {
                 self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID): "Specified delegator does not exist in this collection"
                 self.lockedTokensUsed == UFix64(0.0): "Cannot remove delegator if locked tokens are used"
@@ -390,7 +392,7 @@ access(all) contract FlowStakingCollection {
         /// Operations to register new staking objects
 
         /// Function to register a new Staking Record to the Staking Collection
-        access(all) fun registerNode(id: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String, amount: UFix64, payer: AuthAccount): AuthAccount? {
+        access(CollectionOwner) fun registerNode(id: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String, amount: UFix64, payer: AuthAccount): AuthAccount? {
 
             let tokens <- self.getTokens(amount: amount)
 
@@ -508,7 +510,7 @@ access(all) contract FlowStakingCollection {
 
         /// If a user has created a node before epochs were enabled, they'll need to use this function
         /// to create their machine account with their node 
-        access(all) fun createMachineAccountForExistingNode(nodeID: String, payer: AuthAccount): AuthAccount? {
+        access(CollectionOwner) fun createMachineAccountForExistingNode(nodeID: String, payer: AuthAccount): AuthAccount? {
             pre {
                 self.doesStakeExist(nodeID: nodeID, delegatorID: nil)
             }
@@ -535,7 +537,7 @@ access(all) contract FlowStakingCollection {
         }
 
         /// Allows the owner to withdraw any available FLOW from their machine account
-        access(all) fun withdrawFromMachineAccount(nodeID: String, amount: UFix64) {
+        access(CollectionOwner) fun withdrawFromMachineAccount(nodeID: String, amount: UFix64) {
             pre {
                 self.doesStakeExist(nodeID: nodeID, delegatorID: nil): "Specified stake does not exist in this collection"
             }
@@ -554,7 +556,7 @@ access(all) contract FlowStakingCollection {
         }
 
         /// Function to register a new Delegator Record to the Staking Collection
-        access(all) fun registerDelegator(nodeID: String, amount: UFix64) {
+        access(CollectionOwner) fun registerDelegator(nodeID: String, amount: UFix64) {
             let delegatorIDs = self.getDelegatorIDs()
             for idInfo in delegatorIDs {
                 if idInfo.delegatorNodeID == nodeID { 
@@ -598,7 +600,7 @@ access(all) contract FlowStakingCollection {
         // and their delegator ID to specify that it is for their delegator object
 
         /// Updates the stored networking address for the specified node
-        access(all) fun updateNetworkingAddress(nodeID: String, newAddress: String) {
+        access(CollectionOwner) fun updateNetworkingAddress(nodeID: String, newAddress: String) {
             pre {
                 self.doesStakeExist(nodeID: nodeID, delegatorID: nil): "Specified stake does not exist in this collection"
             }
@@ -614,7 +616,7 @@ access(all) contract FlowStakingCollection {
         }
 
         /// Function to stake new tokens for an existing Stake or Delegation record in the StakingCollection
-        access(all) fun stakeNewTokens(nodeID: String, delegatorID: UInt32?, amount: UFix64) {
+        access(CollectionOwner) fun stakeNewTokens(nodeID: String, delegatorID: UInt32?, amount: UFix64) {
             pre {
                 self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID): "Specified stake does not exist in this collection"
             }
@@ -657,7 +659,7 @@ access(all) contract FlowStakingCollection {
         }
 
         /// Function to stake unstaked tokens for an existing Stake or Delegation record in the StakingCollection
-        access(all) fun stakeUnstakedTokens(nodeID: String, delegatorID: UInt32?, amount: UFix64) {
+        access(CollectionOwner) fun stakeUnstakedTokens(nodeID: String, delegatorID: UInt32?, amount: UFix64) {
             pre {
                 self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID): "Specified stake does not exist in this collection"
             }
@@ -679,7 +681,7 @@ access(all) contract FlowStakingCollection {
         }
 
         /// Function to stake rewarded tokens for an existing Stake or Delegation record in the StakingCollection
-        access(all) fun stakeRewardedTokens(nodeID: String, delegatorID: UInt32?, amount: UFix64) {
+        access(CollectionOwner) fun stakeRewardedTokens(nodeID: String, delegatorID: UInt32?, amount: UFix64) {
             pre {
                 self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID): "Specified stake does not exist in this collection"
             }
@@ -706,7 +708,7 @@ access(all) contract FlowStakingCollection {
         }
 
         /// Function to request tokens to be unstaked for an existing Stake or Delegation record in the StakingCollection
-        access(all) fun requestUnstaking(nodeID: String, delegatorID: UInt32?, amount: UFix64) { 
+        access(CollectionOwner) fun requestUnstaking(nodeID: String, delegatorID: UInt32?, amount: UFix64) { 
             pre {
                 self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID): "Specified stake does not exist in this collection"
             }
@@ -729,7 +731,7 @@ access(all) contract FlowStakingCollection {
 
         /// Function to unstake all tokens for an existing node staking record in the StakingCollection
         /// Only available for node operators
-        access(all) fun unstakeAll(nodeID: String) {
+        access(CollectionOwner) fun unstakeAll(nodeID: String) {
             pre {
                 self.doesStakeExist(nodeID: nodeID, delegatorID: nil): "Specified stake does not exist in this collection"
             }
@@ -743,7 +745,7 @@ access(all) contract FlowStakingCollection {
         }
 
         /// Function to withdraw unstaked tokens for an existing Stake or Delegation record in the StakingCollection
-        access(all) fun withdrawUnstakedTokens(nodeID: String, delegatorID: UInt32?, amount: UFix64) { 
+        access(CollectionOwner) fun withdrawUnstakedTokens(nodeID: String, delegatorID: UInt32?, amount: UFix64) { 
             pre {
                 self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID): "Specified stake does not exist in this collection"
             }
@@ -766,7 +768,7 @@ access(all) contract FlowStakingCollection {
         }
 
         /// Function to withdraw rewarded tokens for an existing Stake or Delegation record in the StakingCollection
-        access(all) fun withdrawRewardedTokens(nodeID: String, delegatorID: UInt32?, amount: UFix64) {
+        access(CollectionOwner) fun withdrawRewardedTokens(nodeID: String, delegatorID: UInt32?, amount: UFix64) {
             pre {
                 self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID): "Specified stake does not exist in this collection"
             }
@@ -810,7 +812,7 @@ access(all) contract FlowStakingCollection {
 
         /// Closes an existing stake or delegation, moving all withdrawable tokens back to the users account and removing the stake
         /// or delegator object from the StakingCollection.
-        access(all) fun closeStake(nodeID: String, delegatorID: UInt32?) {
+        access(CollectionOwner) fun closeStake(nodeID: String, delegatorID: UInt32?) {
             pre {
                 self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID): "Specified stake does not exist in this collection"
             }

@@ -262,6 +262,8 @@ access(all) contract LockedTokens {
         access(all) view fun getDelegatorNodeID(): String?
     }
 
+    access(all) entitlement TokenOperations
+
     /// Stored in Holder unlocked account
     access(all) resource TokenHolder: FungibleToken.Receiver, FungibleToken.Provider, LockedAccountInfo {
 
@@ -329,13 +331,13 @@ access(all) contract LockedTokens {
 
         /// Withdraws tokens from the locked vault. This will only succeed
         /// if the withdraw amount is less than or equal to the limit
-        access(all) fun withdraw(amount: UFix64): @FungibleToken.Vault {
+        access(TokenOperations) fun withdraw(amount: UFix64): @FungibleToken.Vault {
             return <- self.borrowTokenManager().withdraw(amount: amount)
         }
 
         /// The user calls this function if they want to register as a node operator
         /// They have to provide all the info for their node
-        access(all) fun createNodeStaker(nodeInfo: StakingProxy.NodeInfo, amount: UFix64) {
+        access(TokenOperations) fun createNodeStaker(nodeInfo: StakingProxy.NodeInfo, amount: UFix64) {
 
             self.borrowTokenManager().registerNode(nodeInfo: nodeInfo, amount: amount)
 
@@ -345,7 +347,7 @@ access(all) contract LockedTokens {
 
         /// The user calls this function if they want to register as a node operator
         /// They have to provide the node ID for the node they want to delegate to
-        access(all) fun createNodeDelegator(nodeID: String) {
+        access(TokenOperations) fun createNodeDelegator(nodeID: String) {
 
             self.borrowTokenManager().registerDelegator(nodeID: nodeID, amount: FlowIDTableStaking.getDelegatorMinimumStakeRequirement())
 
@@ -355,7 +357,7 @@ access(all) contract LockedTokens {
 
         /// Borrow a "reference" to the staking object which allows the caller
         /// to perform all staking actions with locked tokens.
-        access(all) fun borrowStaker(): LockedNodeStakerProxy {
+        access(TokenOperations) fun borrowStaker(): LockedNodeStakerProxy {
             pre {
                 self.nodeStakerProxy != nil:
                     "The NodeStakerProxy doesn't exist!"
@@ -371,7 +373,7 @@ access(all) contract LockedTokens {
 
         /// Borrow a "reference" to the delegating object which allows the caller
         /// to perform all delegating actions with locked tokens.
-        access(all) fun borrowDelegator(): LockedNodeDelegatorProxy {
+        access(TokenOperations) fun borrowDelegator(): LockedNodeDelegatorProxy {
             pre {
                 self.nodeDelegatorProxy != nil:
                     "The NodeDelegatorProxy doesn't exist!"
