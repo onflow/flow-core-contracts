@@ -77,8 +77,8 @@ func withHexPrefix(address string) string {
 }
 
 // FungibleToken returns the FungibleToken contract interface.
-func FungibleToken() []byte {
-	return ftcontracts.FungibleToken()
+func FungibleToken(viewResolverAddress string) []byte {
+	return ftcontracts.FungibleTokenV2(viewResolverAddress)
 }
 
 // FungibleTokenMetadataViews returns the FungibleTokenMetadataViews contract interface.
@@ -86,8 +86,8 @@ func FungibleTokenMetadataViews(fungibleTokenAddr, metadataViewsAddr, viewResolv
 	return ftcontracts.FungibleTokenMetadataViews(fungibleTokenAddr, metadataViewsAddr, viewResolverAddress)
 }
 
-func NonFungibleToken() []byte {
-	return nftcontracts.NonFungibleToken()
+func NonFungibleToken(viewResolverAddress string) []byte {
+	return nftcontracts.NonFungibleTokenV2(viewResolverAddress)
 }
 
 func ViewResolver() []byte {
