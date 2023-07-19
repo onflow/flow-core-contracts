@@ -41,14 +41,37 @@ access(all) contract FlowToken: FungibleToken, ViewResolver {
     // out of thin air. A special Minter resource needs to be defined to mint
     // new tokens.
     //
-    access(all) resource Vault: FungibleToken.Provider, FungibleToken.Receiver, FungibleToken.Balance, MetadataViews.Resolver {
+    access(all) resource Vault: FungibleToken.Vault, FungibleToken.Provider, FungibleToken.Receiver, FungibleToken.Balance, MetadataViews.Resolver {
 
         // holds the balance of a users tokens
         access(all) var balance: UFix64
 
+        access(all) view fun getBalance(): UFix64 {
+            return self.balance
+        }
+
         // initialize the balance at resource creation time
         init(balance: UFix64) {
             self.balance = balance
+        }
+
+        /// getSupportedVaultTypes optionally returns a list of vault types that this receiver accepts
+        access(all) view fun getSupportedVaultTypes(): {Type: Bool} {
+            return {self.getType(): true}
+        }
+
+        access(all) view fun isSupportedVaultType(type: Type): Bool {
+            if type == self.getType { return true } else { return false }
+        }
+
+        /// Returns the storage path where the vault should typically be stored
+        access(all) view fun getDefaultStoragePath(): StoragePath? {
+            return /storage/flowTokenVault
+        }
+
+        /// Returns the public path where this vault should have a public capability
+        access(all) view fun getDefaultPublicPath(): PublicPath? {
+            return /public/flowTokenReceiver
         }
 
         // withdraw
@@ -81,6 +104,17 @@ access(all) contract FlowToken: FungibleToken, ViewResolver {
             destroy vault
         }
 
+        access(all) fun transfer(amount: UFix64, receiver: Capability<&{FungibleToken.Receiver}>) {
+            let transferVault <- self.withdraw(amount: amount)
+
+            // Get a reference to the recipient's Receiver
+            let receiverRef = receiver.borrow()
+                ?? panic("Could not borrow receiver reference to the recipient's Vault")
+
+            // Deposit the withdrawn tokens in the recipient's receiver
+            receiverRef.deposit(from: <-transferVault)
+        }
+
         destroy() {
             if self.balance > 0.0 {
                 FlowToken.totalSupply = FlowToken.totalSupply - self.balance
@@ -101,7 +135,7 @@ access(all) contract FlowToken: FungibleToken, ViewResolver {
         /// @param view: The Type of the desired view.
         /// @return A structure representing the requested view.
         ///
-        access(all) view fun resolveView(_ view: Type): AnyStruct? {
+        access(all) fun resolveView(_ view: Type): AnyStruct? {
             return FlowToken.resolveView(view)
         }
     }
@@ -129,7 +163,7 @@ access(all) contract FlowToken: FungibleToken, ViewResolver {
     /// @param view: The Type of the desired view.
     /// @return A structure representing the requested view.
     ///
-    access(all) view fun resolveView(_ view: Type): AnyStruct? {
+    access(all) fun resolveView(_ view: Type): AnyStruct? {
         switch view {
             case Type<FungibleTokenMetadataViews.FTView>():
                 return FungibleTokenMetadataViews.FTView(
