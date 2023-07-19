@@ -821,7 +821,7 @@ access(all) contract FlowEpoch {
         return self.currentEpochCounter + 1 as UInt64
     }
 
-    access(all) view fun automaticRewardsEnabled(): Bool {
+    access(all) fun automaticRewardsEnabled(): Bool {
         return self.account.copy<Bool>(from: /storage/flowAutomaticRewardsEnabled) ?? false
     }
 
