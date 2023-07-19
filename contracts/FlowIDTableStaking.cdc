@@ -1774,7 +1774,7 @@ access(all) contract FlowIDTableStaking {
     /// After the staking auction ends, specifically after unapproved nodes have been
     /// removed and slots have been filled and for the rest of the epoch,
     /// This list will accurately represent the nodes that will be in the next epoch
-    access(all) view fun getProposedNodeIDs(): [String] {
+    access(all) fun getProposedNodeIDs(): [String] {
 
         let nodeIDs = FlowIDTableStaking.getNodeIDs()
         let approvedNodeIDs: {String: Bool} = FlowIDTableStaking.getApprovedList()
@@ -1831,22 +1831,22 @@ access(all) contract FlowIDTableStaking {
     }
 
     /// Indicates if the specified networking address is claimed by a node
-    access(all) view fun getNetworkingAddressClaimed(address: String): Bool {
+    access(all) fun getNetworkingAddressClaimed(address: String): Bool {
         return self.getClaimed(path: /storage/networkingAddressesClaimed, key: address)
     }
 
     /// Indicates if the specified networking key is claimed by a node
-    access(all) view fun getNetworkingKeyClaimed(key: String): Bool {
+    access(all) fun getNetworkingKeyClaimed(key: String): Bool {
         return self.getClaimed(path: /storage/networkingKeysClaimed, key: key)
     }
 
     /// Indicates if the specified staking key is claimed by a node
-    access(all) view fun getStakingKeyClaimed(key: String): Bool {
+    access(all) fun getStakingKeyClaimed(key: String): Bool {
         return self.getClaimed(path: /storage/stakingKeysClaimed, key: key)
     }
 
     /// Gets the claimed status of a particular piece of node metadata
-    access(account) view fun getClaimed(path: StoragePath, key: String): Bool {
+    access(account) fun getClaimed(path: StoragePath, key: String): Bool {
 		let claimedDictionary = self.account.borrow<&{String: Bool}>(from: path)
             ?? panic("Invalid path for dictionary")
         return claimedDictionary[key] ?? false

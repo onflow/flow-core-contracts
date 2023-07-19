@@ -63,19 +63,19 @@ access(all) contract FlowStorageFees {
     ///
     /// Returns megabytes
     /// If the account has no default balance it is counted as a balance of 0.0 FLOW
-    access(all) view fun calculateAccountCapacity(_ accountAddress: Address): UFix64 {
+    access(all) fun calculateAccountCapacity(_ accountAddress: Address): UFix64 {
         var balance = 0.0
         if let balanceRef = getAccount(accountAddress)
             .getCapability<&FlowToken.Vault{FungibleToken.Balance}>(/public/flowTokenBalance)!
             .borrow() {
-                balance = balanceRef.balance
+                balance = balanceRef.getBalance()
         }
 
         return self.accountBalanceToAccountStorageCapacity(balance)
     }
 
     /// calculateAccountsCapacity returns the storage capacity of a batch of accounts
-    access(all) view fun calculateAccountsCapacity(_ accountAddresses: [Address]): [UFix64] {
+    access(all) fun calculateAccountsCapacity(_ accountAddresses: [Address]): [UFix64] {
         let capacities: [UFix64] = []
         for accountAddress in accountAddresses {
             let capacity = self.calculateAccountCapacity(accountAddress)
@@ -88,7 +88,7 @@ access(all) contract FlowStorageFees {
     // This is used to check if a transaction will fail because of any account being over the storage capacity
     // The payer is an exception as its storage capacity is derived from its balance minus the maximum possible transaction fees 
     // (transaction fees if the execution effort is at the execution efort limit, a.k.a.: computation limit, a.k.a.: gas limit)
-    access(all) view fun getAccountsCapacityForTransactionStorageCheck(accountAddresses: [Address], payer: Address, maxTxFees: UFix64): [UFix64] {
+    access(all) fun getAccountsCapacityForTransactionStorageCheck(accountAddresses: [Address], payer: Address, maxTxFees: UFix64): [UFix64] {
         let capacities: [UFix64] = []
         for accountAddress in accountAddresses {
             var balance = 0.0
@@ -97,9 +97,9 @@ access(all) contract FlowStorageFees {
                 .borrow() {
                     if accountAddress == payer {
                         // if the account is the payer, deduct the maximum possible transaction fees from the balance
-                        balance = balanceRef.balance.saturatingSubtract(maxTxFees)
+                        balance = balanceRef.getBalance().saturatingSubtract(maxTxFees)
                     } else {
-                        balance = balanceRef.balance
+                        balance = balanceRef.getBalance()
                     }
             }
 
@@ -151,14 +151,14 @@ access(all) contract FlowStorageFees {
     ///
     /// The available balance of an account is its default token balance minus what is reserved for storage.
     /// If the account has no default balance it is counted as a balance of 0.0 FLOW
-    access(all) view fun defaultTokenAvailableBalance(_ accountAddress: Address): UFix64 {
+    access(all) fun defaultTokenAvailableBalance(_ accountAddress: Address): UFix64 {
         //get balance of account
         let acct = getAccount(accountAddress)
         var balance = 0.0
         if let balanceRef = acct
             .getCapability(/public/flowTokenBalance)
             .borrow<&FlowToken.Vault{FungibleToken.Balance}>() {
-            balance = balanceRef.balance
+            balance = balanceRef.getBalance()
         }
 
         // get how much should be reserved for storage
