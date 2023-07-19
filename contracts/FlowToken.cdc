@@ -139,7 +139,7 @@ access(all) contract FlowToken: ViewResolver {
             return FlowToken.resolveView(view)
         }
 
-        access(all) fun createEmptyVault(): @FlowToken{FungibleToken.Vault} {
+        access(all) fun createEmptyVault(): @FlowToken.Vault{FungibleToken.Vault} {
             return <-create Vault(balance: 0.0)
         }
     }
