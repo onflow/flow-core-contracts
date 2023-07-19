@@ -92,7 +92,7 @@ access(all) contract FlowToken: FungibleToken, ViewResolver {
         /// @return An array of Types defining the implemented views. This value will be used by
         ///         developers to know which parameter to pass to the resolveView() method.
         ///
-        access(all) fun getViews(): [Type]{
+        access(all) view fun getViews(): [Type]{
             return FlowToken.getViews()
         }
 
@@ -101,7 +101,7 @@ access(all) contract FlowToken: FungibleToken, ViewResolver {
         /// @param view: The Type of the desired view.
         /// @return A structure representing the requested view.
         ///
-        access(all) fun resolveView(_ view: Type): AnyStruct? {
+        access(all) view fun resolveView(_ view: Type): AnyStruct? {
             return FlowToken.resolveView(view)
         }
     }
@@ -117,7 +117,7 @@ access(all) contract FlowToken: FungibleToken, ViewResolver {
         return <-create Vault(balance: 0.0)
     }
 
-    access(all) fun getViews(): [Type] {
+    access(all) view fun getViews(): [Type] {
         return [Type<FungibleTokenMetadataViews.FTView>(),
                 Type<FungibleTokenMetadataViews.FTDisplay>(),
                 Type<FungibleTokenMetadataViews.FTVaultData>(),
@@ -129,7 +129,7 @@ access(all) contract FlowToken: FungibleToken, ViewResolver {
     /// @param view: The Type of the desired view.
     /// @return A structure representing the requested view.
     ///
-    access(all) fun resolveView(_ view: Type): AnyStruct? {
+    access(all) view fun resolveView(_ view: Type): AnyStruct? {
         switch view {
             case Type<FungibleTokenMetadataViews.FTView>():
                 return FungibleTokenMetadataViews.FTView(
@@ -245,7 +245,7 @@ access(all) contract FlowToken: FungibleToken, ViewResolver {
     }
 
     /// Gets the Flow Logo XML URI from storage
-    access(all) fun getLogoURI(): String {
+    access(all) view fun getLogoURI(): String {
         return FlowToken.account.copy<String>(from: /storage/flowTokenLogoURI) ?? ""
     }
 
