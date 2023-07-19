@@ -102,7 +102,7 @@ func MetadataViews(fungibleTokenAddr, nonFungibleTokenAddr, viewResolverAddr str
 // FlowToken returns the FlowToken contract.
 //
 // The returned contract will import the FungibleToken contract from the specified address.
-func FlowToken(fungibleTokenAddress, metadataViewsAddress, viewResolverAddress string) []byte {
+func FlowToken(fungibleTokenAddress, fungibleTokenMVAddress, metadataViewsAddress, viewResolverAddress string) []byte {
 	code := assets.MustAssetString(flowTokenFilename)
 
 	// Replace the fungible token placeholder address
@@ -116,7 +116,7 @@ func FlowToken(fungibleTokenAddress, metadataViewsAddress, viewResolverAddress s
 	code = strings.ReplaceAll(
 		code,
 		placeholderFungibleTokenMVAddress,
-		withHexPrefix(fungibleTokenAddress),
+		withHexPrefix(fungibleTokenMVAddress),
 	)
 
 	code = strings.ReplaceAll(
