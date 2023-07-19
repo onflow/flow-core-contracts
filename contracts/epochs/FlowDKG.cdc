@@ -395,7 +395,7 @@ access(all) contract FlowDKG {
     /// This safe threshold is used to artificially increase the DKG participation requirements to 
     /// ensure a lower-bound number of Random Beacon Committee members (beyond the bare minimum required
     /// by the DKG protocol).
-    access(all) view fun getSafeThresholdPercentage(): UFix64? {
+    access(all) fun getSafeThresholdPercentage(): UFix64? {
         let safetyRate = self.account.copy<UFix64>(from: /storage/flowDKGSafeThreshold)
         return safetyRate
     }

@@ -61,7 +61,7 @@ access(all) contract FlowToken: ViewResolver {
         }
 
         access(all) view fun isSupportedVaultType(type: Type): Bool {
-            if type == self.getType { return true } else { return false }
+            if (type == self.getType()) { return true } else { return false }
         }
 
         /// Returns the storage path where the vault should typically be stored
@@ -83,7 +83,7 @@ access(all) contract FlowToken: ViewResolver {
         // created Vault to the context that called so it can be deposited
         // elsewhere.
         //
-        access(FungibleToken.Withdrawable) fun withdraw(amount: UFix64): @FlowToken.Vault {
+        access(FungibleToken.Withdrawable) fun withdraw(amount: UFix64): @AnyResource{FungibleToken.Vault} {
             self.balance = self.balance - amount
             emit TokensWithdrawn(amount: amount, from: self.owner?.address)
             return <-create Vault(balance: amount)
@@ -96,7 +96,7 @@ access(all) contract FlowToken: ViewResolver {
         // It is allowed to destroy the sent Vault because the Vault
         // was a temporary holder of the tokens. The Vault's balance has
         // been consumed and therefore can be destroyed.
-        access(all) fun deposit(from: @FlowToken.Vault) {
+        access(all) fun deposit(from: @AnyResource{FungibleToken.Vault}) {
             let vault <- from as! @FlowToken.Vault
             self.balance = self.balance + vault.balance
             emit TokensDeposited(amount: vault.balance, to: self.owner?.address)
@@ -137,6 +137,10 @@ access(all) contract FlowToken: ViewResolver {
         ///
         access(all) fun resolveView(_ view: Type): AnyStruct? {
             return FlowToken.resolveView(view)
+        }
+
+        access(all) fun createEmptyVault(): @FlowToken{FungibleToken.Vault} {
+            return <-create Vault(balance: 0.0)
         }
     }
 
@@ -194,8 +198,8 @@ access(all) contract FlowToken: ViewResolver {
                     receiverPath: /public/flowTokenReceiver,
                     metadataPath: /public/flowTokenBalance,
                     providerPath: /private/flowTokenVault,
-                    receiverLinkedType: Type<&FlowToken.Vault{FungibleToken.Receiver, FungibleToken.Balance, MetadataViews.Resolver}>(),
-                    metadataLinkedType: Type<&FlowToken.Vault{FungibleToken.Balance, MetadataViews.Resolver}>(),
+                    receiverLinkedType: Type<&FlowToken.Vault{FungibleToken.Receiver, FungibleToken.Balance, ViewResolver.Resolver}>(),
+                    metadataLinkedType: Type<&FlowToken.Vault{FungibleToken.Balance, ViewResolver.Resolver}>(),
                     providerLinkedType: Type<&FlowToken.Vault{FungibleToken.Provider}>(),
                     createEmptyVaultFunction: (fun (): @{FungibleToken.Vault} {
                         return <-FlowToken.createEmptyVault()
@@ -270,7 +274,7 @@ access(all) contract FlowToken: ViewResolver {
         // Note: the burned tokens are automatically subtracted from the
         // total supply in the Vault destructor.
         //
-        access(all) fun burnTokens(from: @FungibleToken.Vault) {
+        access(all) fun burnTokens(from: @FlowToken.Vault) {
             let vault <- from as! @FlowToken.Vault
             let amount = vault.balance
             destroy vault
@@ -279,7 +283,7 @@ access(all) contract FlowToken: ViewResolver {
     }
 
     /// Gets the Flow Logo XML URI from storage
-    access(all) view fun getLogoURI(): String {
+    access(all) fun getLogoURI(): String {
         return FlowToken.account.copy<String>(from: /storage/flowTokenLogoURI) ?? ""
     }
 

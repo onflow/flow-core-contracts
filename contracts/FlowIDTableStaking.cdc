@@ -1627,7 +1627,7 @@ access(all) contract FlowIDTableStaking {
     }
 
     /// Gets the current list of participant (staked in the current epoch) nodes as a dictionary.
-    access(all) view fun getParticipantNodeList(): {String: Bool}? {
+    access(all) fun getParticipantNodeList(): {String: Bool}? {
         return self.account.copy<{String: Bool}>(from: /storage/idTableCurrentList)
     }
 
@@ -1670,7 +1670,7 @@ access(all) contract FlowIDTableStaking {
 
     /// Gets a list of node IDs who have pending token movements
     /// or who's delegators have pending movements
-    access(all) view fun getMovesPendingList(): {String: {UInt32: Bool}}? {
+    access(all) fun getMovesPendingList(): {String: {UInt32: Bool}}? {
         return self.account.copy<{String: {UInt32: Bool}}>(from: /storage/idTableMovesPendingList)
     }
 
@@ -1681,7 +1681,7 @@ access(all) contract FlowIDTableStaking {
     /// The candidate node list is a dictionary that maps node roles
     /// to a list of node IDs of that role
     /// Gets the candidate node list size limits for each role
-    access(all) view fun getCandidateNodeLimits(): {UInt8: UInt64}? {
+    access(all) fun getCandidateNodeLimits(): {UInt8: UInt64}? {
         return self.account.copy<{UInt8: UInt64}>(from: /storage/idTableCandidateNodeLimits)
     }
 
@@ -1720,19 +1720,19 @@ access(all) contract FlowIDTableStaking {
     }
 
     /// Returns the current candidate node list
-    access(all) view fun getCandidateNodeList(): {UInt8: {String: Bool}} {
+    access(all) fun getCandidateNodeList(): {UInt8: {String: Bool}} {
         return FlowIDTableStaking.account.copy<{UInt8: {String: Bool}}>(from: /storage/idTableCandidateNodes)
             ?? {1: {}, 2: {}, 3: {}, 4: {}, 5: {}}
     }
 
     /// Get slot (count) limits for each node role
-    access(all) view fun getRoleSlotLimits(): {UInt8: UInt16} {
+    access(all) fun getRoleSlotLimits(): {UInt8: UInt16} {
         return FlowIDTableStaking.account.copy<{UInt8: UInt16}>(from: /storage/flowStakingSlotLimits)
             ?? {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
     }
 
     /// Returns a dictionary that indicates how many participant nodes there are for each role
-    access(all) view fun getCurrentRoleNodeCounts(): {UInt8: UInt16} {
+    access(all) fun getCurrentRoleNodeCounts(): {UInt8: UInt16} {
         if let currentCounts = FlowIDTableStaking.account.copy<{UInt8: UInt16}>(from: /storage/flowStakingRoleNodeCounts) {
             return currentCounts
         } else {
@@ -1764,7 +1764,7 @@ access(all) contract FlowIDTableStaking {
     }
 
     /// Indicates if the staking auction is currently enabled
-    access(all) view fun stakingEnabled(): Bool {
+    access(all) fun stakingEnabled(): Bool {
         return self.account.copy<Bool>(from: /storage/stakingEnabled) ?? false
     }
 
@@ -1853,12 +1853,12 @@ access(all) contract FlowIDTableStaking {
     }
 
     /// Returns the list of approved node IDs that the admin has set
-    access(all) view getApprovedList(): {String: Bool}? {
+    access(all) getApprovedList(): {String: Bool}? {
         return self.account.copy<{String: Bool}>(from: /storage/idTableApproveList)
     }
 
     /// Returns the list of node IDs whose rewards will be reduced in the next payment
-    access(all) view fun getNonOperationalNodesList(): {String: UFix64} {
+    access(all) fun getNonOperationalNodesList(): {String: UFix64} {
         return self.account.copy<{String: UFix64}>(from: /storage/idTableNonOperationalNodesList)
             ?? panic("could not get non-operational node list")
     }
@@ -1869,7 +1869,7 @@ access(all) contract FlowIDTableStaking {
     }
 
     /// Gets the minimum stake requirement for delegators
-    access(all) view fun getDelegatorMinimumStakeRequirement(): UFix64 {
+    access(all) fun getDelegatorMinimumStakeRequirement(): UFix64 {
         return self.account.copy<UFix64>(from: /storage/delegatorStakingMinimum)
             ?? 0.0
     }
