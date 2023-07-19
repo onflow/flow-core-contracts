@@ -284,7 +284,7 @@ access(all) contract FlowIDTableStaking {
         access(all) let tokensRequestedToUnstake: UFix64
         access(all) let initialWeight: UInt64
 
-        init(nodeID: String) {
+        view init(nodeID: String) {
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
 
             self.id = nodeRecord.id
@@ -304,7 +304,7 @@ access(all) contract FlowIDTableStaking {
         }
 
         /// Derived Fields
-        access(all) fun totalCommittedWithDelegators(): UFix64 {
+        access(all) view fun totalCommittedWithDelegators(): UFix64 {
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
             var committedSum = self.totalCommittedWithoutDelegators()
             for delegator in self.delegators {
@@ -314,12 +314,12 @@ access(all) contract FlowIDTableStaking {
             return committedSum
         }
 
-        access(all) fun totalCommittedWithoutDelegators(): UFix64 {
+        access(all) view fun totalCommittedWithoutDelegators(): UFix64 {
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
             return nodeRecord.nodeFullCommittedBalance()
         }
 
-        access(all) fun totalStakedWithDelegators(): UFix64 {
+        access(all) view fun totalStakedWithDelegators(): UFix64 {
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
             var stakedSum = self.tokensStaked
             for delegator in self.delegators {
@@ -329,7 +329,7 @@ access(all) contract FlowIDTableStaking {
             return stakedSum
         }
 
-        access(all) fun totalTokensInRecord(): UFix64 {
+        access(all) view fun totalTokensInRecord(): UFix64 {
             return self.tokensStaked + self.tokensCommitted + self.tokensUnstaking + self.tokensUnstaked + self.tokensRewarded
         }
     }
@@ -393,7 +393,7 @@ access(all) contract FlowIDTableStaking {
         access(all) let tokensUnstaked: UFix64
         access(all) let tokensRequestedToUnstake: UFix64
 
-        init(nodeID: String, delegatorID: UInt32) {
+        view init(nodeID: String, delegatorID: UInt32) {
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
             let delegatorRecord = nodeRecord.borrowDelegatorRecord(delegatorID)
             self.id = delegatorID
@@ -406,7 +406,7 @@ access(all) contract FlowIDTableStaking {
             self.tokensRequestedToUnstake = delegatorRecord.tokensRequestedToUnstake
         }
 
-        access(all) fun totalTokensInRecord(): UFix64 {
+        access(all) view fun totalTokensInRecord(): UFix64 {
             return self.tokensStaked + self.tokensCommitted + self.tokensUnstaking + self.tokensUnstaked + self.tokensRewarded
         }
     }
@@ -796,7 +796,7 @@ access(all) contract FlowIDTableStaking {
         access(all) let totalRewards: UFix64
         access(all) let breakdown: [RewardsBreakdown]
 
-        init(totalRewards: UFix64, breakdown: [RewardsBreakdown]) {
+        view init(totalRewards: UFix64, breakdown: [RewardsBreakdown]) {
             self.totalRewards = totalRewards
             self.breakdown = breakdown
         }
@@ -808,7 +808,7 @@ access(all) contract FlowIDTableStaking {
         access(all) var nodeRewards: UFix64
         access(all) let delegatorRewards: {UInt32: UFix64}
 
-        init(nodeID: String) {
+        view init(nodeID: String) {
             self.nodeID = nodeID
             self.nodeRewards = 0.0
             self.delegatorRewards = {}
@@ -1726,13 +1726,13 @@ access(all) contract FlowIDTableStaking {
     }
 
     /// Get slot (count) limits for each node role
-    access(all) fun getRoleSlotLimits(): {UInt8: UInt16} {
+    access(all) view fun getRoleSlotLimits(): {UInt8: UInt16} {
         return FlowIDTableStaking.account.copy<{UInt8: UInt16}>(from: /storage/flowStakingSlotLimits)
             ?? {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
     }
 
     /// Returns a dictionary that indicates how many participant nodes there are for each role
-    access(all) fun getCurrentRoleNodeCounts(): {UInt8: UInt16} {
+    access(all) view fun getCurrentRoleNodeCounts(): {UInt8: UInt16} {
         if let currentCounts = FlowIDTableStaking.account.copy<{UInt8: UInt16}>(from: /storage/flowStakingRoleNodeCounts) {
             return currentCounts
         } else {
@@ -1774,7 +1774,7 @@ access(all) contract FlowIDTableStaking {
     /// After the staking auction ends, specifically after unapproved nodes have been
     /// removed and slots have been filled and for the rest of the epoch,
     /// This list will accurately represent the nodes that will be in the next epoch
-    access(all) fun getProposedNodeIDs(): [String] {
+    access(all) view fun getProposedNodeIDs(): [String] {
 
         let nodeIDs = FlowIDTableStaking.getNodeIDs()
         let approvedNodeIDs: {String: Bool} = FlowIDTableStaking.getApprovedList()
@@ -1853,7 +1853,7 @@ access(all) contract FlowIDTableStaking {
     }
 
     /// Returns the list of approved node IDs that the admin has set
-    access(all) view un getApprovedList(): {String: Bool}? {
+    access(all) view getApprovedList(): {String: Bool}? {
         return self.account.copy<{String: Bool}>(from: /storage/idTableApproveList)
     }
 
@@ -1869,7 +1869,7 @@ access(all) contract FlowIDTableStaking {
     }
 
     /// Gets the minimum stake requirement for delegators
-    access(all) fun getDelegatorMinimumStakeRequirement(): UFix64 {
+    access(all) view fun getDelegatorMinimumStakeRequirement(): UFix64 {
         return self.account.copy<UFix64>(from: /storage/delegatorStakingMinimum)
             ?? 0.0
     }

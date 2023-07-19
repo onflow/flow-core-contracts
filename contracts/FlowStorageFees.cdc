@@ -63,7 +63,7 @@ access(all) contract FlowStorageFees {
     ///
     /// Returns megabytes
     /// If the account has no default balance it is counted as a balance of 0.0 FLOW
-    access(all) fun calculateAccountCapacity(_ accountAddress: Address): UFix64 {
+    access(all) view fun calculateAccountCapacity(_ accountAddress: Address): UFix64 {
         var balance = 0.0
         if let balanceRef = getAccount(accountAddress)
             .getCapability<&FlowToken.Vault{FungibleToken.Balance}>(/public/flowTokenBalance)!
@@ -75,7 +75,7 @@ access(all) contract FlowStorageFees {
     }
 
     /// calculateAccountsCapacity returns the storage capacity of a batch of accounts
-    access(all) fun calculateAccountsCapacity(_ accountAddresses: [Address]): [UFix64] {
+    access(all) view fun calculateAccountsCapacity(_ accountAddresses: [Address]): [UFix64] {
         let capacities: [UFix64] = []
         for accountAddress in accountAddresses {
             let capacity = self.calculateAccountCapacity(accountAddress)
@@ -88,7 +88,7 @@ access(all) contract FlowStorageFees {
     // This is used to check if a transaction will fail because of any account being over the storage capacity
     // The payer is an exception as its storage capacity is derived from its balance minus the maximum possible transaction fees 
     // (transaction fees if the execution effort is at the execution efort limit, a.k.a.: computation limit, a.k.a.: gas limit)
-    access(all) fun getAccountsCapacityForTransactionStorageCheck(accountAddresses: [Address], payer: Address, maxTxFees: UFix64): [UFix64] {
+    access(all) view fun getAccountsCapacityForTransactionStorageCheck(accountAddresses: [Address], payer: Address, maxTxFees: UFix64): [UFix64] {
         let capacities: [UFix64] = []
         for accountAddress in accountAddresses {
             var balance = 0.0
@@ -110,7 +110,7 @@ access(all) contract FlowStorageFees {
 
     // accountBalanceToAccountStorageCapacity returns the storage capacity
     // an account would have with given the flow balance of the account.
-    access(all) fun accountBalanceToAccountStorageCapacity(_ balance: UFix64): UFix64 {
+    access(all) view fun accountBalanceToAccountStorageCapacity(_ balance: UFix64): UFix64 {
         // get address token balance
         if balance < self.minimumStorageReservation {
             // if < then minimum return 0
@@ -123,13 +123,13 @@ access(all) contract FlowStorageFees {
 
     // Amount in Flow tokens
     // Returns megabytes
-    access(all) fun flowToStorageCapacity(_ amount: UFix64): UFix64 {
+    access(all) view fun flowToStorageCapacity(_ amount: UFix64): UFix64 {
         return amount.saturatingMultiply(FlowStorageFees.storageMegaBytesPerReservedFLOW)
     }
 
     // Amount in megabytes
     // Returns Flow tokens
-    access(all) fun storageCapacityToFlow(_ amount: UFix64): UFix64 {
+    access(all) view fun storageCapacityToFlow(_ amount: UFix64): UFix64 {
         if FlowStorageFees.storageMegaBytesPerReservedFLOW == 0.0 {
             return 0.0
         }
@@ -139,7 +139,7 @@ access(all) contract FlowStorageFees {
     }
 
     // converts storage used from UInt64 Bytes to UFix64 Megabytes.
-    access(all) fun convertUInt64StorageBytesToUFix64Megabytes(_ storage: UInt64): UFix64 {
+    access(all) view fun convertUInt64StorageBytesToUFix64Megabytes(_ storage: UInt64): UFix64 {
         // safe convert UInt64 to UFix64 (without overflow)
         let f = UFix64(storage % 100000000) * 0.00000001 + UFix64(storage / 100000000)
         // decimal point correction. Megabytes to bytes have a conversion of 10^-6 while UFix64 minimum value is 10^-8
@@ -151,7 +151,7 @@ access(all) contract FlowStorageFees {
     ///
     /// The available balance of an account is its default token balance minus what is reserved for storage.
     /// If the account has no default balance it is counted as a balance of 0.0 FLOW
-    access(all) fun defaultTokenAvailableBalance(_ accountAddress: Address): UFix64 {
+    access(all) view fun defaultTokenAvailableBalance(_ accountAddress: Address): UFix64 {
         //get balance of account
         let acct = getAccount(accountAddress)
         var balance = 0.0
@@ -171,7 +171,7 @@ access(all) contract FlowStorageFees {
     ///
     /// The reserved balance of an account is its storage used multiplied by the storage cost per flow token.
     /// The reserved balance is at least the minimum storage reservation.
-    access(all) fun defaultTokenReservedBalance(_ accountAddress: Address): UFix64 {
+    access(all) view fun defaultTokenReservedBalance(_ accountAddress: Address): UFix64 {
         let acct = getAccount(accountAddress)
         var reserved = self.storageCapacityToFlow(self.convertUInt64StorageBytesToUFix64Megabytes(acct.storageUsed))
         // at least self.minimumStorageReservation should be reserved
