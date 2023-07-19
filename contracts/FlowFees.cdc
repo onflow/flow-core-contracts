@@ -19,7 +19,7 @@ access(all) contract FlowFees {
     // Private vault with public deposit function
     access(self) var vault: @FlowToken.Vault
 
-    access(all) fun deposit(from: @FungibleToken.Vault) {
+    access(all) fun deposit(from: @{FungibleToken.Vault}) {
         let from <- from as! @FlowToken.Vault
         let balance = from.getBalance()
         self.vault.deposit(from: <-from)
@@ -35,7 +35,7 @@ access(all) contract FlowFees {
         // withdraw
         //
         // Allows the administrator to withdraw tokens from the fee vault
-        access(all) fun withdrawTokensFromFeeVault(amount: UFix64): @FungibleToken.Vault {
+        access(all) fun withdrawTokensFromFeeVault(amount: UFix64): @{FungibleToken.Vault} {
             let vault <- FlowFees.vault.withdraw(amount: amount)
             emit TokensWithdrawn(amount: amount)
             return <-vault
