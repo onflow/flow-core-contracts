@@ -3,7 +3,7 @@ import MetadataViews from "MetadataViews"
 import FungibleTokenMetadataViews from "FungibleTokenMetadataViews"
 import ViewResolver from "ViewResolver"
 
-access(all) contract FlowToken: FungibleToken, ViewResolver {
+access(all) contract FlowToken: ViewResolver {
 
     // Total supply of Flow tokens in existence
     access(all) var totalSupply: UFix64
@@ -41,7 +41,7 @@ access(all) contract FlowToken: FungibleToken, ViewResolver {
     // out of thin air. A special Minter resource needs to be defined to mint
     // new tokens.
     //
-    access(all) resource Vault: FungibleToken.Vault, FungibleToken.Provider, FungibleToken.Receiver, FungibleToken.Balance, MetadataViews.Resolver {
+    access(all) resource Vault: FungibleToken.Vault, FungibleToken.Provider, FungibleToken.Receiver, FungibleToken.Balance, ViewResolver.Resolver {
 
         // holds the balance of a users tokens
         access(all) var balance: UFix64
@@ -83,7 +83,7 @@ access(all) contract FlowToken: FungibleToken, ViewResolver {
         // created Vault to the context that called so it can be deposited
         // elsewhere.
         //
-        access(FungibleToken.Withdrawable) fun withdraw(amount: UFix64): @FungibleToken.Vault {
+        access(FungibleToken.Withdrawable) fun withdraw(amount: UFix64): @FlowToken.Vault {
             self.balance = self.balance - amount
             emit TokensWithdrawn(amount: amount, from: self.owner?.address)
             return <-create Vault(balance: amount)
@@ -96,7 +96,7 @@ access(all) contract FlowToken: FungibleToken, ViewResolver {
         // It is allowed to destroy the sent Vault because the Vault
         // was a temporary holder of the tokens. The Vault's balance has
         // been consumed and therefore can be destroyed.
-        access(all) fun deposit(from: @FungibleToken.Vault) {
+        access(all) fun deposit(from: @FlowToken.Vault) {
             let vault <- from as! @FlowToken.Vault
             self.balance = self.balance + vault.balance
             emit TokensDeposited(amount: vault.balance, to: self.owner?.address)
@@ -104,7 +104,7 @@ access(all) contract FlowToken: FungibleToken, ViewResolver {
             destroy vault
         }
 
-        access(all) fun transfer(amount: UFix64, receiver: Capability<&{FungibleToken.Receiver}>) {
+        access(FungibleToken.Withdrawable) fun transfer(amount: UFix64, receiver: Capability<&{FungibleToken.Receiver}>) {
             let transferVault <- self.withdraw(amount: amount)
 
             // Get a reference to the recipient's Receiver
@@ -147,7 +147,7 @@ access(all) contract FlowToken: FungibleToken, ViewResolver {
     // and store the returned Vault in their storage in order to allow their
     // account to be able to receive deposits of this token type.
     //
-    access(all) fun createEmptyVault(): @FungibleToken.Vault {
+    access(all) fun createEmptyVault(): @FlowToken.Vault {
         return <-create Vault(balance: 0.0)
     }
 
@@ -197,7 +197,7 @@ access(all) contract FlowToken: FungibleToken, ViewResolver {
                     receiverLinkedType: Type<&FlowToken.Vault{FungibleToken.Receiver, FungibleToken.Balance, MetadataViews.Resolver}>(),
                     metadataLinkedType: Type<&FlowToken.Vault{FungibleToken.Balance, MetadataViews.Resolver}>(),
                     providerLinkedType: Type<&FlowToken.Vault{FungibleToken.Provider}>(),
-                    createEmptyVaultFunction: (fun (): @FungibleToken.Vault {
+                    createEmptyVaultFunction: (fun (): @{FungibleToken.Vault} {
                         return <-FlowToken.createEmptyVault()
                     })
                 )
@@ -298,7 +298,7 @@ access(all) contract FlowToken: FungibleToken, ViewResolver {
         // Create a public capability to the stored Vault that only exposes
         // the `deposit` method through the `Receiver` interface
         //
-        self.account.link<&FlowToken.Vault{FungibleToken.Receiver, FungibleToken.Balance, MetadataViews.Resolver}>(
+        self.account.link<&FlowToken.Vault{FungibleToken.Receiver, FungibleToken.Balance, ViewResolver.Resolver}>(
             /public/flowTokenReceiver,
             target: /storage/flowTokenVault
         )
@@ -306,7 +306,7 @@ access(all) contract FlowToken: FungibleToken, ViewResolver {
         // Create a public capability to the stored Vault that only exposes
         // the `balance` field through the `Balance` interface
         //
-        self.account.link<&FlowToken.Vault{FungibleToken.Balance, MetadataViews.Resolver}>(
+        self.account.link<&FlowToken.Vault{FungibleToken.Balance, ViewResolver.Resolver}>(
             /public/flowTokenBalance,
             target: /storage/flowTokenVault
         )
