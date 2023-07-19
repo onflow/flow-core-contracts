@@ -120,11 +120,11 @@ access(all) contract LockedTokens {
         // FungibleToken.Receiver actions
 
         /// Deposits unlocked tokens to the vault
-        access(all) fun deposit(from: @FungibleToken.Vault) {
+        access(all) fun deposit(from: @{FungibleToken.Vault}) {
             self.depositUnlockedTokens(from: <-from)
         }
 
-        access(self) fun depositUnlockedTokens(from: @FungibleToken.Vault) {
+        access(self) fun depositUnlockedTokens(from: @{FungibleToken.Vault}) {
             let vaultRef = self.vault.borrow()!
 
             let balance = from.balance
@@ -137,11 +137,11 @@ access(all) contract LockedTokens {
         // FungibleToken.Provider actions
 
         /// Withdraws unlocked tokens from the vault
-        access(all) fun withdraw(amount: UFix64): @FungibleToken.Vault {
+        access(all) fun withdraw(amount: UFix64): @{FungibleToken.Vault} {
             return <-self.withdrawUnlockedTokens(amount: amount)
         }
 
-        access(self) fun withdrawUnlockedTokens(amount: UFix64): @FungibleToken.Vault {
+        access(self) fun withdrawUnlockedTokens(amount: UFix64): @{FungibleToken.Vault} {
             pre {
                 self.unlockLimit >= amount: "Requested amount exceeds unlocked token limit"
             }
@@ -323,7 +323,7 @@ access(all) contract LockedTokens {
 
         /// Deposits tokens in the locked vault, which marks them as
         /// unlocked and available to withdraw
-        access(all) fun deposit(from: @FungibleToken.Vault) {
+        access(all) fun deposit(from: @{FungibleToken.Vault}) {
             self.borrowTokenManager().deposit(from: <-from)
         }
 
@@ -331,7 +331,7 @@ access(all) contract LockedTokens {
 
         /// Withdraws tokens from the locked vault. This will only succeed
         /// if the withdraw amount is less than or equal to the limit
-        access(TokenOperations) fun withdraw(amount: UFix64): @FungibleToken.Vault {
+        access(TokenOperations) fun withdraw(amount: UFix64): @{FungibleToken.Vault} {
             return <- self.borrowTokenManager().withdraw(amount: amount)
         }
 

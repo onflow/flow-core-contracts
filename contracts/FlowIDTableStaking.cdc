@@ -169,7 +169,7 @@ access(all) contract FlowIDTableStaking {
             networkingAddress: String,
             networkingKey: String,
             stakingKey: String,
-            tokensCommitted: @FungibleToken.Vault
+            tokensCommitted: @{FungibleToken.Vault}
         ) {
             pre {
                 id.length == 64: "Node ID length must be 32 bytes (64 hex characters)"
@@ -460,7 +460,7 @@ access(all) contract FlowIDTableStaking {
         }
 
         /// Add new tokens to the system to stake during the next epoch
-        access(NodeOperator) fun stakeNewTokens(_ tokens: @FungibleToken.Vault) {
+        access(NodeOperator) fun stakeNewTokens(_ tokens: @{FungibleToken.Vault}) {
             pre {
                 FlowIDTableStaking.stakingEnabled(): "Cannot stake if the staking auction isn't in progress"
             }
@@ -626,7 +626,7 @@ access(all) contract FlowIDTableStaking {
         }
 
         /// Withdraw tokens from the unstaked bucket
-        access(NodeOperator) fun withdrawUnstakedTokens(amount: UFix64): @FungibleToken.Vault {
+        access(NodeOperator) fun withdrawUnstakedTokens(amount: UFix64): @{FungibleToken.Vault} {
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
 
             emit UnstakedTokensWithdrawn(nodeID: nodeRecord.id, amount: amount)
@@ -635,7 +635,7 @@ access(all) contract FlowIDTableStaking {
         }
 
         /// Withdraw tokens from the rewarded bucket
-        access(NodeOperator) fun withdrawRewardedTokens(amount: UFix64): @FungibleToken.Vault {
+        access(NodeOperator) fun withdrawRewardedTokens(amount: UFix64): @{FungibleToken.Vault} {
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
 
             emit RewardTokensWithdrawn(nodeID: nodeRecord.id, amount: amount)
@@ -665,7 +665,7 @@ access(all) contract FlowIDTableStaking {
         }
 
         /// Delegate new tokens to the node operator
-        access(DelegatorOwner) fun delegateNewTokens(from: @FungibleToken.Vault) {
+        access(DelegatorOwner) fun delegateNewTokens(from: @{FungibleToken.Vault}) {
             pre {
                 FlowIDTableStaking.stakingEnabled(): "Cannot delegate if the staking auction isn't in progress"
             }
@@ -770,7 +770,7 @@ access(all) contract FlowIDTableStaking {
         }
 
         /// Withdraw tokens from the unstaked bucket
-        access(DelegatorOwner) fun withdrawUnstakedTokens(amount: UFix64): @FungibleToken.Vault {
+        access(DelegatorOwner) fun withdrawUnstakedTokens(amount: UFix64): @{FungibleToken.Vault} {
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.nodeID)
             let delRecord = nodeRecord.borrowDelegatorRecord(self.id)
 
@@ -780,7 +780,7 @@ access(all) contract FlowIDTableStaking {
         }
 
         /// Withdraw tokens from the rewarded bucket
-        access(DelegatorOwner) fun withdrawRewardedTokens(amount: UFix64): @FungibleToken.Vault {
+        access(DelegatorOwner) fun withdrawRewardedTokens(amount: UFix64): @{FungibleToken.Vault} {
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.nodeID)
             let delRecord = nodeRecord.borrowDelegatorRecord(self.id)
 
@@ -1516,7 +1516,7 @@ access(all) contract FlowIDTableStaking {
                           networkingAddress: String,
                           networkingKey: String,
                           stakingKey: String,
-                          tokensCommitted: @FungibleToken.Vault): @NodeStaker
+                          tokensCommitted: @{FungibleToken.Vault}): @NodeStaker
     {
         pre {
             FlowIDTableStaking.stakingEnabled(): "Cannot register a node operator if the staking auction isn't in progress"
@@ -1548,7 +1548,7 @@ access(all) contract FlowIDTableStaking {
 
     /// Registers a new delegator with a unique ID for the specified node operator
     /// and returns a delegator object to the caller
-    access(all) fun registerNewDelegator(nodeID: String, tokensCommitted: @FungibleToken.Vault): @NodeDelegator {
+    access(all) fun registerNewDelegator(nodeID: String, tokensCommitted: @{FungibleToken.Vault}): @NodeDelegator {
         pre {
             FlowIDTableStaking.stakingEnabled(): "Cannot register a node operator if the staking auction isn't in progress"
         }

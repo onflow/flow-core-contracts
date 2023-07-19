@@ -172,7 +172,7 @@ access(all) contract FlowStakingCollection {
 
         /// Called when committing tokens for staking. Gets tokens from either or both vaults
         /// Uses locked tokens first, then unlocked if any more are still needed
-        access(self) fun getTokens(amount: UFix64): @FungibleToken.Vault {
+        access(self) fun getTokens(amount: UFix64): @{FungibleToken.Vault} {
 
             let unlockedVault = self.unlockedVault.borrow()!
             let unlockedBalance = unlockedVault.balance - FlowStorageFees.minimumStorageReservation
@@ -234,7 +234,7 @@ access(all) contract FlowStakingCollection {
 
         /// Deposits tokens back to a vault after being withdrawn from a Stake or Delegation.
         /// Deposits to unlocked tokens first, if possible, followed by locked tokens
-        access(self) fun depositTokens(from: @FungibleToken.Vault) {
+        access(self) fun depositTokens(from: @{FungibleToken.Vault}) {
             pre {
                 // This error should never be triggered in production becasue the tokens used fields
                 // should be properly managed by all the other functions
