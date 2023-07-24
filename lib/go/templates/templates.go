@@ -14,19 +14,20 @@ import (
 )
 
 const (
-	placeholderFungibleTokenAddress     = "0xFUNGIBLETOKENADDRESS"
-	placeholderFlowTokenAddress         = "0xFLOWTOKENADDRESS"
-	placeholderIDTableAddress           = "0xIDENTITYTABLEADDRESS"
-	placeholderLockedTokensAddress      = "0xLOCKEDTOKENADDRESS"
-	placeholderStakingProxyAddress      = "0xSTAKINGPROXYADDRESS"
-	placeholderQuorumCertificateAddress = "0xQCADDRESS"
-	placeholderFlowFeesAddress          = "0xFLOWFEESADDRESS"
-	placeholderStorageFeesAddress       = "0xFLOWSTORAGEFEESADDRESS"
-	placeholderServiceAccountAddress    = "0xFLOWSERVICEADDRESS"
-	placeholderDKGAddress               = "0xDKGADDRESS"
-	placeholderEpochAddress             = "0xEPOCHADDRESS"
-	placeholderStakingCollectionAddress = "0xSTAKINGCOLLECTIONADDRESS"
-	placeholderNodeVersionBeaconAddress = "0xNODEVERSIONBEACONADDRESS"
+	placeholderFungibleTokenAddress      = "0xFUNGIBLETOKENADDRESS"
+	placeholderFlowTokenAddress          = "0xFLOWTOKENADDRESS"
+	placeholderIDTableAddress            = "0xIDENTITYTABLEADDRESS"
+	placeholderLockedTokensAddress       = "0xLOCKEDTOKENADDRESS"
+	placeholderStakingProxyAddress       = "0xSTAKINGPROXYADDRESS"
+	placeholderQuorumCertificateAddress  = "0xQCADDRESS"
+	placeholderFlowFeesAddress           = "0xFLOWFEESADDRESS"
+	placeholderStorageFeesAddress        = "0xFLOWSTORAGEFEESADDRESS"
+	placeholderServiceAccountAddress     = "0xFLOWSERVICEADDRESS"
+	placeholderDKGAddress                = "0xDKGADDRESS"
+	placeholderEpochAddress              = "0xEPOCHADDRESS"
+	placeholderStakingCollectionAddress  = "0xSTAKINGCOLLECTIONADDRESS"
+	placeholderNodeVersionBeaconAddress  = "0xNODEVERSIONBEACONADDRESS"
+	placeholderSourceOfRandomnessAddress = "0xSORADDRESS"
 )
 
 type Environment struct {
@@ -43,6 +44,7 @@ type Environment struct {
 	FlowFeesAddress          string
 	ServiceAccountAddress    string
 	NodeVersionBeaconAddress string
+	SourceOfRandomness       string
 }
 
 func withHexPrefix(address string) string {
@@ -135,6 +137,12 @@ func ReplaceAddresses(code string, env Environment) string {
 		code,
 		placeholderNodeVersionBeaconAddress,
 		withHexPrefix(env.NodeVersionBeaconAddress),
+	)
+
+	code = strings.ReplaceAll(
+		code,
+		placeholderSourceOfRandomnessAddress,
+		withHexPrefix(env.SourceOfRandomness),
 	)
 
 	return code
