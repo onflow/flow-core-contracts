@@ -66,7 +66,7 @@ access(all) contract FlowStorageFees {
     access(all) fun calculateAccountCapacity(_ accountAddress: Address): UFix64 {
         var balance = 0.0
         if let balanceRef = getAccount(accountAddress)
-            .getCapability<&FlowToken.Vault{FungibleToken.Balance}>(/public/flowTokenBalance)!
+            .getCapability<&FlowToken.Vault>(/public/flowTokenBalance)!
             .borrow() {
                 balance = balanceRef.getBalance()
         }
@@ -93,7 +93,7 @@ access(all) contract FlowStorageFees {
         for accountAddress in accountAddresses {
             var balance = 0.0
             if let balanceRef = getAccount(accountAddress)
-                .getCapability<&FlowToken.Vault{FungibleToken.Balance}>(/public/flowTokenBalance)!
+                .getCapability<&FlowToken.Vault>(/public/flowTokenBalance)!
                 .borrow() {
                     if accountAddress == payer {
                         // if the account is the payer, deduct the maximum possible transaction fees from the balance
@@ -157,7 +157,7 @@ access(all) contract FlowStorageFees {
         var balance = 0.0
         if let balanceRef = acct
             .getCapability(/public/flowTokenBalance)
-            .borrow<&FlowToken.Vault{FungibleToken.Balance}>() {
+            .borrow<&FlowToken.Vault>() {
             balance = balanceRef.getBalance()
         }
 

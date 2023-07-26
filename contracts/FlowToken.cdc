@@ -198,9 +198,9 @@ access(all) contract FlowToken: ViewResolver {
                     receiverPath: /public/flowTokenReceiver,
                     metadataPath: /public/flowTokenBalance,
                     providerPath: /private/flowTokenVault,
-                    receiverLinkedType: Type<&FlowToken.Vault{FungibleToken.Receiver, FungibleToken.Balance, ViewResolver.Resolver}>(),
-                    metadataLinkedType: Type<&FlowToken.Vault{FungibleToken.Balance, ViewResolver.Resolver}>(),
-                    providerLinkedType: Type<&FlowToken.Vault{FungibleToken.Provider}>(),
+                    receiverLinkedType: Type<&FlowToken.Vault>(),
+                    metadataLinkedType: Type<&FlowToken.Vault>(),
+                    providerLinkedType: Type<&FlowToken.Vault>(),
                     createEmptyVaultFunction: (fun (): @{FungibleToken.Vault} {
                         return <-FlowToken.createEmptyVault()
                     })
@@ -302,7 +302,7 @@ access(all) contract FlowToken: ViewResolver {
         // Create a public capability to the stored Vault that only exposes
         // the `deposit` method through the `Receiver` interface
         //
-        self.account.link<&FlowToken.Vault{FungibleToken.Receiver, FungibleToken.Balance, ViewResolver.Resolver}>(
+        self.account.link<&FlowToken.Vault>(
             /public/flowTokenReceiver,
             target: /storage/flowTokenVault
         )
@@ -310,7 +310,7 @@ access(all) contract FlowToken: ViewResolver {
         // Create a public capability to the stored Vault that only exposes
         // the `balance` field through the `Balance` interface
         //
-        self.account.link<&FlowToken.Vault{FungibleToken.Balance, ViewResolver.Resolver}>(
+        self.account.link<&FlowToken.Vault>(
             /public/flowTokenBalance,
             target: /storage/flowTokenVault
         )

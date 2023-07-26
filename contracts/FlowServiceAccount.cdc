@@ -31,14 +31,14 @@ access(all) contract FlowServiceAccount {
 
         // Create a public capability to the Vault that only exposes
         // the deposit function through the Receiver interface
-        acct.link<&FlowToken.Vault{FungibleToken.Receiver}>(
+        acct.link<&FlowToken.Vault>(
             /public/flowTokenReceiver,
             target: /storage/flowTokenVault
         )
 
         // Create a public capability to the Vault that only exposes
         // the balance field through the Balance interface
-        acct.link<&FlowToken.Vault{FungibleToken.Balance}>(
+        acct.link<&FlowToken.Vault>(
             /public/flowTokenBalance,
             target: /storage/flowTokenVault
         )
@@ -51,7 +51,7 @@ access(all) contract FlowServiceAccount {
         var balance = 0.0
         if let balanceRef = acct
             .getCapability(/public/flowTokenBalance)
-            .borrow<&FlowToken.Vault{FungibleToken.Balance}>(){
+            .borrow<&FlowToken.Vault>(){
                 balance = balanceRef.getBalance()
             }
 
