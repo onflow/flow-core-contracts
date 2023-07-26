@@ -52,7 +52,7 @@ access(all) contract FlowServiceAccount {
         if let balanceRef = acct
             .getCapability(/public/flowTokenBalance)
             .borrow<&FlowToken.Vault{FungibleToken.Balance}>(){
-                balance = balanceRef.balance
+                balance = balanceRef.getBalance()
             }
 
         return balance
@@ -75,8 +75,8 @@ access(all) contract FlowServiceAccount {
 
         let tokenVault = self.defaultTokenVault(acct)
         var feeAmount = self.transactionFee
-        if self.transactionFee > tokenVault.balance {
-            feeAmount = tokenVault.balance
+        if self.transactionFee > tokenVault.getBalance() {
+            feeAmount = tokenVault.getBalance()
         }
         
         let feeVault <- tokenVault.withdraw(amount: feeAmount)

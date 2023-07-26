@@ -83,7 +83,7 @@ access(all) contract FlowToken: ViewResolver {
         // created Vault to the context that called so it can be deposited
         // elsewhere.
         //
-        access(FungibleToken.Withdrawable) fun withdraw(amount: UFix64): @AnyResource{FungibleToken.Vault} {
+        access(FungibleToken.Withdrawable) fun withdraw(amount: UFix64): @{FungibleToken.Vault} {
             self.balance = self.balance - amount
             emit TokensWithdrawn(amount: amount, from: self.owner?.address)
             return <-create Vault(balance: amount)
@@ -96,7 +96,7 @@ access(all) contract FlowToken: ViewResolver {
         // It is allowed to destroy the sent Vault because the Vault
         // was a temporary holder of the tokens. The Vault's balance has
         // been consumed and therefore can be destroyed.
-        access(all) fun deposit(from: @AnyResource{FungibleToken.Vault}) {
+        access(all) fun deposit(from: @{FungibleToken.Vault}) {
             let vault <- from as! @FlowToken.Vault
             self.balance = self.balance + vault.balance
             emit TokensDeposited(amount: vault.balance, to: self.owner?.address)
@@ -139,7 +139,7 @@ access(all) contract FlowToken: ViewResolver {
             return FlowToken.resolveView(view)
         }
 
-        access(all) fun createEmptyVault(): @FlowToken.Vault{FungibleToken.Vault} {
+        access(all) fun createEmptyVault(): @{FungibleToken.Vault} {
             return <-create Vault(balance: 0.0)
         }
     }
