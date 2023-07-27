@@ -654,7 +654,7 @@ access(all) contract LockedTokens {
         }
 
         /// Get an accounts capability
-        access(all) fun getAccount(address: Address): Capability<&LockedTokenManager{TokenAdmin}>? {
+        access(all) fun getAccount(address: Address): Capability<&LockedTokenManager>? {
             return self.accounts[address]
         }
 
