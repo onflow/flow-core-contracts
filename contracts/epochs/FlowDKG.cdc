@@ -263,8 +263,12 @@ access(all) contract FlowDKG {
         access(all) fun endDKG() {
             pre { 
                 FlowDKG.dkgEnabled == true: "Cannot end the DKG when it is already disabled"
-                FlowDKG.dkgCompleted() != nil: "Cannot end the DKG until enough final arrays have been submitted"
             }
+            let finalSubmissions = FlowDKG.dkgCompleted()
+            assert(
+                finalSubmissions != nil,
+                message: "Cannot end the DKG until enough final arrays have been submitted"
+            )
 
             FlowDKG.dkgEnabled = false
 
