@@ -375,7 +375,7 @@ access(all) contract FlowDKG {
     /// 
     /// This function returns the NON-INCLUSIVE lower bound of honest participants. If this function 
     /// returns threshold t, there must be AT LEAST t+1 honest nodes for the DKG to succeed.
-    access(all) view fun getSafeSuccessThreshold(): UInt64 {
+    access(all) fun getSafeSuccessThreshold(): UInt64 {
         var threshold = self.getNativeSuccessThreshold()
 
         // Get the safety rate percentage

@@ -206,7 +206,7 @@ access(all) contract FlowClusterQC {
         /// The weight of the vote (and node)
         access(all) let weight: UInt64
 
-        init(nodeID: String, clusterIndex: UInt16, voteWeight: UInt64) {
+        view init(nodeID: String, clusterIndex: UInt16, voteWeight: UInt64) {
             pre {
                 nodeID.length == 64: "Voter ID must be a valid length node ID"
             }
@@ -234,7 +234,7 @@ access(all) contract FlowClusterQC {
         /// The node IDs that correspond to each vote
         access(all) var voterIDs: [String]
 
-        init(index: UInt16, signatures: [String], message: String, voterIDs: [String]) {
+        view init(index: UInt16, signatures: [String], message: String, voterIDs: [String]) {
             self.index = index
             self.voteSignatures = signatures
             self.voteMessage = message
