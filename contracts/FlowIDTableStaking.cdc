@@ -1853,7 +1853,7 @@ access(all) contract FlowIDTableStaking {
     }
 
     /// Returns the list of approved node IDs that the admin has set
-    access(all) getApprovedList(): {String: Bool}? {
+    access(all) fun getApprovedList(): {String: Bool}? {
         return self.account.copy<{String: Bool}>(from: /storage/idTableApproveList)
     }
 
