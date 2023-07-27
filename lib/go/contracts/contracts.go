@@ -26,20 +26,20 @@ import (
 ///
 
 const (
-	flowFeesFilename               = "FlowFees.cdc"
-	storageFeesFilename            = "FlowStorageFees.cdc"
-	flowServiceAccountFilename     = "FlowServiceAccount.cdc"
-	flowTokenFilename              = "FlowToken.cdc"
-	flowIdentityTableFilename      = "FlowIDTableStaking.cdc"
-	flowQCFilename                 = "epochs/FlowClusterQC.cdc"
-	flowDKGFilename                = "epochs/FlowDKG.cdc"
-	flowEpochFilename              = "epochs/FlowEpoch.cdc"
-	flowLockedTokensFilename       = "LockedTokens.cdc"
-	flowStakingProxyFilename       = "StakingProxy.cdc"
-	flowStakingCollectionFilename  = "FlowStakingCollection.cdc"
-	flowContractAuditsFilename     = "FlowContractAudits.cdc"
-	flowNodeVersionBeaconFilename  = "NodeVersionBeacon.cdc"
-	flowSourceOfRandomnessFilename = "SourceOfRandomness.cdc"
+	flowFeesFilename                      = "FlowFees.cdc"
+	storageFeesFilename                   = "FlowStorageFees.cdc"
+	flowServiceAccountFilename            = "FlowServiceAccount.cdc"
+	flowTokenFilename                     = "FlowToken.cdc"
+	flowIdentityTableFilename             = "FlowIDTableStaking.cdc"
+	flowQCFilename                        = "epochs/FlowClusterQC.cdc"
+	flowDKGFilename                       = "epochs/FlowDKG.cdc"
+	flowEpochFilename                     = "epochs/FlowEpoch.cdc"
+	flowLockedTokensFilename              = "LockedTokens.cdc"
+	flowStakingProxyFilename              = "StakingProxy.cdc"
+	flowStakingCollectionFilename         = "FlowStakingCollection.cdc"
+	flowContractAuditsFilename            = "FlowContractAudits.cdc"
+	flowNodeVersionBeaconFilename         = "NodeVersionBeacon.cdc"
+	flowSourceOfRandomnessHistoryFilename = "SourceOfRandomnessHistory.cdc"
 
 	// Test contracts
 	// only used for testing
@@ -343,8 +343,8 @@ func NodeVersionBeacon() []byte {
 	return []byte(code)
 }
 
-func SourceOfRandomness() []byte {
-	code := assets.MustAssetString(flowSourceOfRandomnessFilename)
+func SourceOfRandomnessHistory() []byte {
+	code := assets.MustAssetString(flowSourceOfRandomnessHistoryFilename)
 
 	return []byte(code)
 }
