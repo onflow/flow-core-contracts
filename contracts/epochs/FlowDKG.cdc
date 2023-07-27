@@ -402,7 +402,7 @@ access(all) contract FlowDKG {
 
     /// Returns the final set of keys if any one set of keys has strictly more than (nodes-1)/2 submissions
     /// Returns nil if not found (incomplete)
-    access(all) view fun dkgCompleted(): [String?]? {
+    access(all) fun dkgCompleted(): [String?]? {
         if !self.dkgEnabled { return nil }
 
         var index = 0
