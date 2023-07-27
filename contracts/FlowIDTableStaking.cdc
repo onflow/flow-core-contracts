@@ -242,7 +242,7 @@ access(all) contract FlowIDTableStaking {
         }
 
         /// Utility Function that checks a node's overall committed balance from its borrowed record
-        access(account) fun nodeFullCommittedBalance(): UFix64 {
+        access(account) view fun nodeFullCommittedBalance(): UFix64 {
             if (self.tokensCommitted.balance + self.tokensStaked.balance) < self.tokensRequestedToUnstake {
                 return 0.0
             } else {
@@ -251,7 +251,7 @@ access(all) contract FlowIDTableStaking {
         }
 
         /// borrow a reference to to one of the delegators for a node in the record
-        access(account) fun borrowDelegatorRecord(_ delegatorID: UInt32): &DelegatorRecord {
+        access(account) view fun borrowDelegatorRecord(_ delegatorID: UInt32): &DelegatorRecord {
             pre {
                 self.delegators[delegatorID] != nil:
                     "Specified delegator ID does not exist in the record"
@@ -389,7 +389,7 @@ access(all) contract FlowIDTableStaking {
         }
 
         /// Utility Function that checks a delegator's overall committed balance from its borrowed record
-        access(contract) fun delegatorFullCommittedBalance(): UFix64 {
+        access(contract) view fun delegatorFullCommittedBalance(): UFix64 {
             if (self.tokensCommitted.balance + self.tokensStaked.balance) < self.tokensRequestedToUnstake {
                 return 0.0
             } else {
@@ -720,7 +720,7 @@ access(all) contract FlowIDTableStaking {
                 remainingAmount = 0.0
             } else if remainingAmount > delRecord.tokensRequestedToUnstake {
                 remainingAmount = remainingAmount - delRecord.tokensRequestedToUnstake
-                delRecord.tokensRequestedToUnstake(0.0)
+                delRecord.setTokensRequestedToUnstake(0.0)
             }
 
             // Commit the remaining unstaked tokens
@@ -1407,7 +1407,7 @@ access(all) contract FlowIDTableStaking {
                     rewardsBreakdown.setDelegatorReward(delegatorID: delegator, rewards: delegatorRewardAmount)
                 }
                 
-                rewardsBreakdown.nodeRewards = nodeRewardAmount
+                rewardsBreakdown.setNodeRewards(nodeRewardAmount)
                 rewardsBreakdownArray.append(rewardsBreakdown)
             }
 
@@ -1481,7 +1481,7 @@ access(all) contract FlowIDTableStaking {
                     let actualCommittedForNextEpoch = delRecord.tokensCommitted.balance + delRecord.tokensStaked.balance - delRecord.tokensRequestedToUnstake
                     if actualCommittedForNextEpoch < FlowIDTableStaking.getDelegatorMinimumStakeRequirement() {
                         delRecord.tokensUnstaked.deposit(from: <-delRecord.tokensCommitted.withdraw(amount: delRecord.tokensCommitted.balance))
-                        delRecord.tokensRequestedToUnstake = delRecord.tokensStaked.balance
+                        delRecord.setTokensRequestedToUnstake(delRecord.tokensStaked.balance)
                     }
 
                     FlowIDTableStaking.totalTokensStakedByNodeType[nodeRecord.role] = FlowIDTableStaking.totalTokensStakedByNodeType[nodeRecord.role]! + delRecord.tokensCommitted.balance
@@ -1857,29 +1857,29 @@ access(all) contract FlowIDTableStaking {
     }
 
     /// Indicates if the specified networking address is claimed by a node
-    access(all) fun getNetworkingAddressClaimed(address: String): Bool {
+    access(all) view fun getNetworkingAddressClaimed(address: String): Bool {
         return self.getClaimed(path: /storage/networkingAddressesClaimed, key: address)
     }
 
     /// Indicates if the specified networking key is claimed by a node
-    access(all) fun getNetworkingKeyClaimed(key: String): Bool {
+    access(all) view fun getNetworkingKeyClaimed(key: String): Bool {
         return self.getClaimed(path: /storage/networkingKeysClaimed, key: key)
     }
 
     /// Indicates if the specified staking key is claimed by a node
-    access(all) fun getStakingKeyClaimed(key: String): Bool {
+    access(all) view fun getStakingKeyClaimed(key: String): Bool {
         return self.getClaimed(path: /storage/stakingKeysClaimed, key: key)
     }
 
     /// Gets the claimed status of a particular piece of node metadata
-    access(account) fun getClaimed(path: StoragePath, key: String): Bool {
+    access(account) view fun getClaimed(path: StoragePath, key: String): Bool {
 		let claimedDictionary = self.account.borrow<&{String: Bool}>(from: path)
             ?? panic("Invalid path for dictionary")
         return claimedDictionary[key] ?? false
     }
 
     /// Returns the list of approved node IDs that the admin has set
-    access(all) fun getApprovedList(): {String: Bool}? {
+    access(all) view fun getApprovedList(): {String: Bool}? {
         return self.account.copy<{String: Bool}>(from: /storage/idTableApproveList)
     }
 
