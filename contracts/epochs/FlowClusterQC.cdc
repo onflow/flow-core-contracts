@@ -195,10 +195,10 @@ access(all) contract FlowClusterQC {
         access(all) var nodeID: String
 
         /// The signed message from the node (using the nodes `stakingKey`)
-        access(all)var signature: String?
+        access(all) var signature: String?
 
         /// The hex-encoded message for the vote
-        access(all)var message: String?
+        access(all) var message: String?
 
         /// The index of the cluster that this vote (and node) is in
         access(all) let clusterIndex: UInt16
@@ -215,6 +215,14 @@ access(all) contract FlowClusterQC {
             self.nodeID = nodeID
             self.clusterIndex = clusterIndex
             self.weight = voteWeight
+        }
+
+        pub fun setSignature(_ signature: String) {
+            self.signature = signature
+        }
+
+        pub fun setMessage(_ message: String) {
+            self.message = message
         }
     }
 
@@ -318,8 +326,8 @@ access(all) contract FlowClusterQC {
             let vote = cluster.getGeneratedVote(nodeId: self.nodeID)!
 
             // Set the signature and message fields
-            vote.signature = voteSignature
-            vote.message = voteMessage
+            vote.setSignature(voteSignature)
+            vote.setMessage(voteMessage)
 
             // Set the new total weight for the vote
             let totalWeight = cluster.getUniqueVoteMessageTotalWeight(vote: voteMessage) ?? 0
