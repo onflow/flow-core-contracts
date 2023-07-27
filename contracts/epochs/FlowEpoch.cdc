@@ -225,7 +225,7 @@ access(all) contract FlowEpoch {
         /// The number of collector clusters in each epoch
         access(all) var numCollectorClusters: UInt16
 
-        access(all) fun setNumCollectorClusters(_ numClusters: UInt64) {
+        access(all) fun setNumCollectorClusters(_ numClusters: UInt16) {
             self.numCollectorClusters = numClusters
         }
 
@@ -233,7 +233,7 @@ access(all) contract FlowEpoch {
         /// This value is multiplied by the FLOW total supply to get the next payout
         access(all) var FLOWsupplyIncreasePercentage: UFix64
 
-        access(all) fun setFLOWsupplyIncreasePercentage(_ percentage: UInt64) {
+        access(all) fun setFLOWsupplyIncreasePercentage(_ percentage: UFix64) {
             self.FLOWsupplyIncreasePercentage = percentage
         }
 
