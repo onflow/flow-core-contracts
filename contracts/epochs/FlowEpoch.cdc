@@ -202,20 +202,40 @@ access(all) contract FlowEpoch {
     /// Metadata that is managed and can be changed by the Admin///
     access(all) struct Config {
         /// The number of views in an entire epoch
-        access(all)var numViewsInEpoch: UInt64
+        access(all) var numViewsInEpoch: UInt64
+
+        access(all) fun setNumViewsInEpoch(_ views: UInt64) {
+            self.numViewsInEpoch = views
+        }
 
         /// The number of views in the staking auction
-        access(all)var numViewsInStakingAuction: UInt64
+        access(all) var numViewsInStakingAuction: UInt64
+
+        access(all) fun setNumViewsInStakingAuction(_ views: UInt64) {
+            self.numViewsInStakingAuction = views
+        }
         
         /// The number of views in each dkg phase
-        access(all)var numViewsInDKGPhase: UInt64
+        access(all) var numViewsInDKGPhase: UInt64
+
+        access(all) fun setNumViewsInDKGPhase(_ views: UInt64) {
+            self.numViewsInDKGPhase = views
+        }
 
         /// The number of collector clusters in each epoch
-        access(all)var numCollectorClusters: UInt16
+        access(all) var numCollectorClusters: UInt16
+
+        access(all) fun setNumCollectorClusters(_ numClusters: UInt64) {
+            self.numCollectorClusters = numClusters
+        }
 
         /// Tracks the rate at which the rewards payout increases every epoch
         /// This value is multiplied by the FLOW total supply to get the next payout
-        access(all)var FLOWsupplyIncreasePercentage: UFix64
+        access(all) var FLOWsupplyIncreasePercentage: UFix64
+
+        access(all) fun setFLOWsupplyIncreasePercentage(_ percentage: UInt64) {
+            self.FLOWsupplyIncreasePercentage = percentage
+        }
 
         init(numViewsInEpoch: UInt64, numViewsInStakingAuction: UInt64, numViewsInDKGPhase: UInt64, numCollectorClusters: UInt16, FLOWsupplyIncreasePercentage: UFix64) {
             self.numViewsInEpoch = numViewsInEpoch
@@ -291,7 +311,7 @@ access(all) contract FlowEpoch {
                     newEpochViews): "New Epoch Views must be greater than the sum of staking and DKG Phase views"
             }
 
-            FlowEpoch.configurableMetadata.numViewsInEpoch = newEpochViews
+            FlowEpoch.configurableMetadata.setNumViewsInEpoch(newEpochViews)
         }
 
         access(all) fun updateAuctionViews(_ newAuctionViews: UInt64) {
@@ -302,7 +322,7 @@ access(all) contract FlowEpoch {
                     FlowEpoch.configurableMetadata.numViewsInEpoch): "Epoch Views must be greater than the sum of new staking and DKG Phase views"
             }
 
-            FlowEpoch.configurableMetadata.numViewsInStakingAuction = newAuctionViews
+            FlowEpoch.configurableMetadata.setNumViewsInStakingAuction(newAuctionViews)
         }
 
         access(all) fun updateDKGPhaseViews(_ newPhaseViews: UInt64) {
@@ -313,7 +333,7 @@ access(all) contract FlowEpoch {
                     FlowEpoch.configurableMetadata.numViewsInEpoch): "Epoch Views must be greater than the sum of staking and new DKG Phase views"
             }
 
-            FlowEpoch.configurableMetadata.numViewsInDKGPhase = newPhaseViews
+            FlowEpoch.configurableMetadata.setNumViewsInDKGPhase(newPhaseViews)
         }
 
         access(all) fun updateNumCollectorClusters(_ newNumClusters: UInt16) {
@@ -321,7 +341,7 @@ access(all) contract FlowEpoch {
                 FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION: "Can only update fields during the staking auction"
             }
 
-            FlowEpoch.configurableMetadata.numCollectorClusters = newNumClusters
+            FlowEpoch.configurableMetadata.setNumCollectorClusters(newNumClusters)
         }
 
         access(all) fun updateFLOWSupplyIncreasePercentage(_ newPercentage: UFix64) {
@@ -330,7 +350,7 @@ access(all) contract FlowEpoch {
                 newPercentage <= 1.0: "New value must be between zero and one"
             }
 
-            FlowEpoch.configurableMetadata.FLOWsupplyIncreasePercentage = newPercentage
+            FlowEpoch.configurableMetadata.setFLOWsupplyIncreasePercentage(newPercentage)
         }
 
         // Enable or disable automatic rewards calculations and payments
