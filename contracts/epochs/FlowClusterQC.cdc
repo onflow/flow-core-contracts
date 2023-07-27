@@ -217,11 +217,11 @@ access(all) contract FlowClusterQC {
             self.weight = voteWeight
         }
 
-        pub fun setSignature(_ signature: String) {
+        access(all) fun setSignature(_ signature: String) {
             self.signature = signature
         }
 
-        pub fun setMessage(_ message: String) {
+        access(all) fun setMessage(_ message: String) {
             self.message = message
         }
     }
