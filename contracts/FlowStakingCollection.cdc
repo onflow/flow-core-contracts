@@ -498,9 +498,9 @@ access(all) contract FlowStakingCollection {
             }
 
             // Make sure that the vault capability is created
-            var machineAccountVaultProvider = machineAccount.getCapability<&FlowToken.Vault>(/private/machineAccountPrivateVault)
+            var machineAccountVaultProvider = machineAccount.getCapability<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(/private/machineAccountPrivateVault)
             if !machineAccountVaultProvider.check() {
-                machineAccountVaultProvider = machineAccount.link<&FlowToken.Vault>(/private/machineAccountPrivateVault, target: /storage/flowTokenVault)!
+                machineAccountVaultProvider = machineAccount.link<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(/private/machineAccountPrivateVault, target: /storage/flowTokenVault)!
             }
             
             // Create the new Machine account info object and store it
@@ -1090,7 +1090,7 @@ access(all) contract FlowStakingCollection {
     }
 
     /// Creates a brand new empty staking collection resource and returns it to the caller
-    access(all) fun createStakingCollection(unlockedVault: Capability<&FlowToken.Vault>, tokenHolder: Capability<auth(FungibleToken.Withdrawable, LockedTokens.TokenOperations) &LockedTokens.TokenHolder>?): @StakingCollection {
+    access(all) fun createStakingCollection(unlockedVault: Capability<auth(FungibleToken.Withdrawable) &FlowToken.Vault>, tokenHolder: Capability<auth(FungibleToken.Withdrawable, LockedTokens.TokenOperations) &LockedTokens.TokenHolder>?): @StakingCollection {
         return <- create StakingCollection(unlockedVault: unlockedVault, tokenHolder: tokenHolder)
     }
 
