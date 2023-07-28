@@ -112,7 +112,7 @@ access(all) contract FlowStakingCollection {
 
         /// Capabilty to the TokenHolder object in the unlocked account
         /// Accounts without a locked account will not store this, it will be nil
-        access(self) var tokenHolder: Capability<&LockedTokens.TokenHolder>?
+        access(self) var tokenHolder: Capability<auth(FungibleToken.Withdrawable, LockedTokens.TokenOperations) &LockedTokens.TokenHolder>?
 
         /// Tracks how many locked and unlocked tokens the staker is using for all their nodes and/or delegators
         /// When committing new tokens, locked tokens are used first, followed by unlocked tokens
@@ -123,7 +123,7 @@ access(all) contract FlowStakingCollection {
         /// Tracks the machine accounts associated with nodes
         access(self) var machineAccounts: {String: MachineAccountInfo}
 
-        init(unlockedVault: Capability<&FlowToken.Vault>, tokenHolder: Capability<&LockedTokens.TokenHolder>?) {
+        init(unlockedVault: Capability<&FlowToken.Vault>, tokenHolder: Capability<auth(FungibleToken.Withdrawable, LockedTokens.TokenOperations) &LockedTokens.TokenHolder>?) {
             pre {
                 unlockedVault.check(): "Invalid FlowToken.Vault capability"
             }
@@ -1090,7 +1090,7 @@ access(all) contract FlowStakingCollection {
     }
 
     /// Creates a brand new empty staking collection resource and returns it to the caller
-    access(all) fun createStakingCollection(unlockedVault: Capability<&FlowToken.Vault>, tokenHolder: Capability<&LockedTokens.TokenHolder>?): @StakingCollection {
+    access(all) fun createStakingCollection(unlockedVault: Capability<&FlowToken.Vault>, tokenHolder: Capability<auth(FungibleToken.Withdrawable, LockedTokens.TokenOperations) &LockedTokens.TokenHolder>?): @StakingCollection {
         return <- create StakingCollection(unlockedVault: unlockedVault, tokenHolder: tokenHolder)
     }
 
