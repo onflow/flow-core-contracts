@@ -55,9 +55,9 @@ access(all) contract FlowStakingCollection {
         access(all) let role: UInt8
         // Capability to the FLOW Vault to allow the owner
         // to withdraw or deposit to their machine account if needed
-        access(contract) let machineAccountVaultProvider: Capability<&FlowToken.Vault>
+        access(contract) let machineAccountVaultProvider: Capability<auth(FungibleToken.Withdrawable) &FlowToken.Vault>
 
-        init(nodeID: String, role: UInt8, machineAccountVaultProvider: Capability<&FlowToken.Vault>) {
+        init(nodeID: String, role: UInt8, machineAccountVaultProvider: Capability<auth(FungibleToken.Withdrawable) &FlowToken.Vault>) {
             pre {
                 machineAccountVaultProvider.check(): "Invalid Flow Token Vault Provider"
             }
@@ -98,11 +98,11 @@ access(all) contract FlowStakingCollection {
     access(all) resource StakingCollection: StakingCollectionPublic {
 
         /// unlocked vault
-        access(self) var unlockedVault: Capability<&FlowToken.Vault>
+        access(self) var unlockedVault: Capability<auth(FungibleToken.Withdrawable) &FlowToken.Vault>
 
         /// locked vault
         /// will be nil if the account has no corresponding locked account
-        access(self) var lockedVault: Capability<&FlowToken.Vault>?
+        access(self) var lockedVault: Capability<auth(FungibleToken.Withdrawable) &FlowToken.Vault>?
 
         /// Stores staking objects for nodes and delegators
         /// Can only use one delegator per node ID
@@ -238,7 +238,7 @@ access(all) contract FlowStakingCollection {
             pre {
                 // This error should never be triggered in production becasue the tokens used fields
                 // should be properly managed by all the other functions
-                from.balance <= self.unlockedTokensUsed + self.lockedTokensUsed: "Cannot deposit more than is already used"
+                from.getBalance() <= self.unlockedTokensUsed + self.lockedTokensUsed: "Cannot deposit more than is already used"
             }
 
             let unlockedVault = self.unlockedVault.borrow()!
@@ -246,8 +246,8 @@ access(all) contract FlowStakingCollection {
             /// If there is a locked account, get the locked vault holder for depositing
             if self.lockedVault != nil {
   
-                if (from.balance <= self.unlockedTokensUsed) {
-                    self.unlockedTokensUsed = self.unlockedTokensUsed - from.balance
+                if (from.getBalance() <= self.unlockedTokensUsed) {
+                    self.unlockedTokensUsed = self.unlockedTokensUsed - from.getBalance()
 
                     unlockedVault.deposit(from: <-from)
                 } else {
@@ -255,12 +255,12 @@ access(all) contract FlowStakingCollection {
                     unlockedVault.deposit(from: <-from.withdraw(amount: self.unlockedTokensUsed))
                     self.unlockedTokensUsed = 0.0
 
-                    self.lockedTokensUsed = self.lockedTokensUsed - from.balance
+                    self.lockedTokensUsed = self.lockedTokensUsed - from.getBalance()
                     // followed by returning the difference as locked tokens
                     self.lockedVault!.borrow()!.deposit(from: <-from)
                 }
             } else {
-                self.unlockedTokensUsed = self.unlockedTokensUsed - from.balance
+                self.unlockedTokensUsed = self.unlockedTokensUsed - from.getBalance()
                 
                 // If there is no locked account, get the users vault capability and deposit tokens to it.
                 unlockedVault.deposit(from: <-from)
@@ -576,7 +576,7 @@ access(all) contract FlowStakingCollection {
         /// Borrows a reference to a node in the collection
         access(self) view fun borrowNode(_ nodeID: String): &FlowIDTableStaking.NodeStaker? {
             if self.nodeStakers[nodeID] != nil {
-                return &self.nodeStakers[nodeID] as &FlowIDTableStaking.NodeStaker?
+                return &self.nodeStakers[nodeID] as auth(FlowIDTableStaking.NodeOperator) &FlowIDTableStaking.NodeStaker?
             } else {
                 return nil
             }
@@ -585,7 +585,7 @@ access(all) contract FlowStakingCollection {
         /// Borrows a reference to a delegator in the collection
         access(self) view fun borrowDelegator(nodeID: String, delegatorID: UInt32): &FlowIDTableStaking.NodeDelegator? {
             if self.nodeDelegators[nodeID] != nil {
-                let delegatorRef = (&self.nodeDelegators[nodeID] as &FlowIDTableStaking.NodeDelegator?)!
+                let delegatorRef = (&self.nodeDelegators[nodeID] as auth(FlowIDTableStaking.DelegatorOwner) &FlowIDTableStaking.NodeDelegator?)!
                 if delegatorRef.id == delegatorID { return delegatorRef } else { return nil }
             } else {
                 return nil
@@ -1003,7 +1003,7 @@ access(all) contract FlowStakingCollection {
     // Getter functions for accounts StakingCollection information
 
     /// Function to get see if a node or delegator exists in an accounts staking collection
-    access(all) view fun doesStakeExist(address: Address, nodeID: String, delegatorID: UInt32?): Bool {
+    access(all) fun doesStakeExist(address: Address, nodeID: String, delegatorID: UInt32?): Bool {
         let account = getAccount(address)
 
         let stakingCollectionRef = account.getCapability<&StakingCollection>(self.StakingCollectionPublicPath).borrow()
@@ -1013,7 +1013,7 @@ access(all) contract FlowStakingCollection {
     }
 
     /// Function to get the unlocked tokens used amount for an account
-    access(all) view fun getUnlockedTokensUsed(address: Address): UFix64 {
+    access(all) fun getUnlockedTokensUsed(address: Address): UFix64 {
         let account = getAccount(address)
 
         let stakingCollectionRef = account.getCapability<&StakingCollection>(self.StakingCollectionPublicPath).borrow()
@@ -1023,7 +1023,7 @@ access(all) contract FlowStakingCollection {
     }
 
     /// Function to get the locked tokens used amount for an account
-    access(all) view fun getLockedTokensUsed(address: Address): UFix64 {
+    access(all) fun getLockedTokensUsed(address: Address): UFix64 {
         let account = getAccount(address)
 
         let stakingCollectionRef = account.getCapability<&StakingCollection>(self.StakingCollectionPublicPath).borrow()
@@ -1083,7 +1083,7 @@ access(all) contract FlowStakingCollection {
     }
 
     /// Determines if an account is set up with a Staking Collection
-    access(all) view fun doesAccountHaveStakingCollection(address: Address): Bool {
+    access(all) fun doesAccountHaveStakingCollection(address: Address): Bool {
         let account = getAccount(address)
 
         return account.getCapability<&StakingCollection>(self.StakingCollectionPublicPath).check()
