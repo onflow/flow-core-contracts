@@ -309,7 +309,7 @@ access(all) contract LockedTokens {
         }
 
         /// Utility function to borrow a reference to the LockedTokenManager object
-        access(account) fun borrowTokenManager(): &LockedTokenManager {
+        access(account) fun borrowTokenManager(): auth(FungibleToken.Withdrawable) &LockedTokenManager {
             return self.tokenManager.borrow()!
         }
 
@@ -423,7 +423,7 @@ access(all) contract LockedTokens {
 
         access(self) var tokenManager: Capability<auth(FungibleToken.Withdrawable) &LockedTokenManager>
 
-        init(tokenManager: Capability<&LockedTokenManager>) {
+        init(tokenManager: Capability<auth(FungibleToken.Withdrawable) &LockedTokenManager>) {
             pre {
                 tokenManager.borrow() != nil: "Invalid token manager capability"
             }
@@ -551,7 +551,7 @@ access(all) contract LockedTokens {
 
         access(self) var tokenManager: Capability<auth(FungibleToken.Withdrawable) &LockedTokenManager>
 
-        init(tokenManager: Capability<&LockedTokenManager>) {
+        init(tokenManager: Capability<auth(FungibleToken.Withdrawable) &LockedTokenManager>) {
             pre {
                 tokenManager.borrow() != nil: "Invalid LockedTokenManager capability"
             }
