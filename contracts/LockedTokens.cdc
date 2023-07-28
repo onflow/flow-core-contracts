@@ -91,7 +91,7 @@ access(all) contract LockedTokens {
         /// All locked FLOW tokens are stored in this vault, which can be accessed in two ways:
         ///   1) Directly, in a transaction co-signed by both the token holder and token administrator
         ///   2) Indirectly via the LockedTokenManager, in a transaction signed by the token holder
-        access(all) var vault: Capability<&FlowToken.Vault>
+        access(all) var vault: Capability<auth(FungibleToken.Withdrawable) &FlowToken.Vault>
 
         /// The amount of tokens that the user can withdraw.
         /// It is decreased when the user withdraws
@@ -105,7 +105,7 @@ access(all) contract LockedTokens {
         /// signs up to be a delegator
         access(all) var nodeDelegator: @FlowIDTableStaking.NodeDelegator?
 
-        init(vault: Capability<&FlowToken.Vault>) {
+        init(vault: Capability<auth(FungibleToken.Withdrawable) &FlowToken.Vault>) {
             self.vault = vault
             self.nodeStaker <- nil
             self.nodeDelegator <- nil
@@ -118,6 +118,17 @@ access(all) contract LockedTokens {
         }
 
         // FungibleToken.Receiver actions
+        access(all) view fun getSupportedVaultTypes(): {Type: Bool} {
+            return {Type<@FlowToken.Vault>(): true}
+        }
+
+        /// Returns whether or not the given type is accepted by the Receiver
+        /// A vault that can accept any type should just return true by default
+        access(all) view fun isSupportedVaultType(type: Type): Bool {
+            if let isSupported = self.getSupportedVaultTypes[type] { 
+                return isSupported 
+            }
+        }
 
         /// Deposits unlocked tokens to the vault
         access(all) fun deposit(from: @{FungibleToken.Vault}) {
@@ -127,7 +138,7 @@ access(all) contract LockedTokens {
         access(self) fun depositUnlockedTokens(from: @{FungibleToken.Vault}) {
             let vaultRef = self.vault.borrow()!
 
-            let balance = from.balance
+            let balance = from.getBalance()
 
             vaultRef.deposit(from: <- from)
 
@@ -137,7 +148,7 @@ access(all) contract LockedTokens {
         // FungibleToken.Provider actions
 
         /// Withdraws unlocked tokens from the vault
-        access(all) fun withdraw(amount: UFix64): @{FungibleToken.Vault} {
+        access(FungibleToken.Withdrawable) fun withdraw(amount: UFix64): @{FungibleToken.Vault} {
             return <-self.withdrawUnlockedTokens(amount: amount)
         }
 
@@ -321,6 +332,18 @@ access(all) contract LockedTokens {
             return self.borrowTokenManager().unlockLimit
         }
 
+        access(all) view fun getSupportedVaultTypes(): {Type: Bool} {
+            return {Type<@FlowToken.Vault>(): true}
+        }
+
+        /// Returns whether or not the given type is accepted by the Receiver
+        /// A vault that can accept any type should just return true by default
+        access(all) view fun isSupportedVaultType(type: Type): Bool {
+            if let isSupported = self.getSupportedVaultTypes[type] { 
+                return isSupported 
+            }
+        }
+
         /// Deposits tokens in the locked vault, which marks them as
         /// unlocked and available to withdraw
         access(all) fun deposit(from: @{FungibleToken.Vault}) {
@@ -331,7 +354,7 @@ access(all) contract LockedTokens {
 
         /// Withdraws tokens from the locked vault. This will only succeed
         /// if the withdraw amount is less than or equal to the limit
-        access(TokenOperations) fun withdraw(amount: UFix64): @{FungibleToken.Vault} {
+        access(FungibleToken.Withdrawable) fun withdraw(amount: UFix64): @{FungibleToken.Vault} {
             return <- self.borrowTokenManager().withdraw(amount: amount)
         }
 
@@ -705,7 +728,7 @@ access(all) contract LockedTokens {
 
     /// Public function to create a new Locked Token Manager
     /// every time a new user account is created
-    access(all) fun createLockedTokenManager(vault: Capability<&FlowToken.Vault>): @LockedTokenManager {
+    access(all) fun createLockedTokenManager(vault: Capability<auth(FungibleToken.Withdrawable) &FlowToken.Vault>): @LockedTokenManager {
         return <- create LockedTokenManager(vault: vault)
     }
 
