@@ -123,7 +123,7 @@ access(all) contract FlowStakingCollection {
         /// Tracks the machine accounts associated with nodes
         access(self) var machineAccounts: {String: MachineAccountInfo}
 
-        init(unlockedVault: Capability<&FlowToken.Vault>, tokenHolder: Capability<auth(FungibleToken.Withdrawable, LockedTokens.TokenOperations) &LockedTokens.TokenHolder>?) {
+        init(unlockedVault: Capability<auth(FungibleToken.Withdrawable) &FlowToken.Vault>, tokenHolder: Capability<auth(FungibleToken.Withdrawable, LockedTokens.TokenOperations) &LockedTokens.TokenHolder>?) {
             pre {
                 unlockedVault.check(): "Invalid FlowToken.Vault capability"
             }
@@ -429,7 +429,7 @@ access(all) contract FlowStakingCollection {
             let machineAcct = AuthAccount(payer: payer)
 
             // Get the vault capability and create the machineAccountInfo struct
-            let machineAccountVaultProvider = machineAcct.link<&FlowToken.Vault>(/private/machineAccountPrivateVault, target: /storage/flowTokenVault)!
+            let machineAccountVaultProvider = machineAcct.link<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(/private/machineAccountPrivateVault, target: /storage/flowTokenVault)!
             let machineAccountInfo = MachineAccountInfo(nodeID: nodeInfo.id, role: nodeInfo.role, machineAccountVaultProvider: machineAccountVaultProvider)
             
             // If they are a collector node, create a QC Voter object and store it in the account
@@ -574,7 +574,7 @@ access(all) contract FlowStakingCollection {
         }
 
         /// Borrows a reference to a node in the collection
-        access(self) view fun borrowNode(_ nodeID: String): &FlowIDTableStaking.NodeStaker? {
+        access(self) view fun borrowNode(_ nodeID: String): auth(FlowIDTableStaking.NodeOperator) &FlowIDTableStaking.NodeStaker? {
             if self.nodeStakers[nodeID] != nil {
                 return &self.nodeStakers[nodeID] as auth(FlowIDTableStaking.NodeOperator) &FlowIDTableStaking.NodeStaker?
             } else {
@@ -583,7 +583,7 @@ access(all) contract FlowStakingCollection {
         }
 
         /// Borrows a reference to a delegator in the collection
-        access(self) view fun borrowDelegator(nodeID: String, delegatorID: UInt32): &FlowIDTableStaking.NodeDelegator? {
+        access(self) view fun borrowDelegator(nodeID: String, delegatorID: UInt32): auth(FlowIDTableStaking.DelegatorOwner) &FlowIDTableStaking.NodeDelegator? {
             if self.nodeDelegators[nodeID] != nil {
                 let delegatorRef = (&self.nodeDelegators[nodeID] as auth(FlowIDTableStaking.DelegatorOwner) &FlowIDTableStaking.NodeDelegator?)!
                 if delegatorRef.id == delegatorID { return delegatorRef } else { return nil }
