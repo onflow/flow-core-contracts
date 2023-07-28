@@ -1,4 +1,4 @@
-pub contract SourceOfRandomness {
+pub contract SourceOfRandomnessHistory {
 
     /// Canonical storage path for the SourceOfRandomness.Heartbeat resource.
     pub let HeartbeatStoragePath: StoragePath
@@ -8,7 +8,7 @@ pub contract SourceOfRandomness {
             // called every block in the system transaction
 
             // only callable in the system transaction and by the service account
-            let blockEntropy = entropy()
+            let blockEntropy = randomSourceHistory()
         }
     }
 
