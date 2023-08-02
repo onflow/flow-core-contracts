@@ -1,5 +1,5 @@
 import Crypto
-import FlowToken from 0xFLOWTOKENADDRESS
+import FlowToken from "FlowToken"
 
 transaction(publicKeys: [Crypto.KeyListEntry], contractName: String, code: [UInt8], rewardAmount: UFix64, rewardCut: UFix64, candidateNodeLimits: [UInt64]) {
 

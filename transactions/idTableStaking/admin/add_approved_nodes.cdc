@@ -1,4 +1,4 @@
-import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
+import FlowIDTableStaking from "FlowIDTableStaking"
 
 // This transaction adds node IDs to the list of approved nodes in
 // the ID table. 

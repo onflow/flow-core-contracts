@@ -1,10 +1,10 @@
-import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
+import FlowIDTableStaking from "FlowIDTableStaking"
 import LockedTokens from 0xLOCKEDTOKENADDRESS
 
 // Returns an array of DelegatorInfo objects that the account controls
 // in its normal account and shared account
 
-pub fun main(account: Address): [FlowIDTableStaking.DelegatorInfo] {
+access(all) fun main(account: Address): [FlowIDTableStaking.DelegatorInfo] {
 
     let delegatorInfoArray: [FlowIDTableStaking.DelegatorInfo] = []
 

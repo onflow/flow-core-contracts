@@ -1,6 +1,6 @@
-import FungibleToken from 0xFUNGIBLETOKENADDRESS
-import FlowToken from 0xFLOWTOKENADDRESS
-import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
+import FungibleToken from "FungibleToken"
+import FlowToken from "FlowToken"
+import FlowIDTableStaking from "FlowIDTableStaking"
 import LockedTokens from 0xLOCKEDTOKENADDRESS
 import FlowStakingCollection from 0xSTAKINGCOLLECTIONADDRESS
 

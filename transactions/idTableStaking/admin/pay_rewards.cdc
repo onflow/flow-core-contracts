@@ -1,4 +1,4 @@
-import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
+import FlowIDTableStaking from "FlowIDTableStaking"
 
 // This transaction pays rewards to all the staked nodes
 

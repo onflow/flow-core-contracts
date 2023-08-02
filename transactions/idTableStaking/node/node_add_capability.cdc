@@ -1,5 +1,5 @@
-import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
-import FlowToken from 0xFLOWTOKENADDRESS
+import FlowIDTableStaking from "FlowIDTableStaking"
+import FlowToken from "FlowToken"
 
 // This transaction adds a public node capability to an account with
 // an existing NodeStaker object
@@ -8,7 +8,7 @@ transaction {
 
     prepare(acct: AuthAccount) {
 
-        if acct.borrow<&FlowIDTableStaking.NodeStaker>(from: FlowIDTableStaking.NodeStakerStoragePath) == nil ||
+        if acct.borrow<auth(FlowIDTableStaking.NodeOperator) &FlowIDTableStaking.NodeStaker>(from: FlowIDTableStaking.NodeStakerStoragePath) == nil ||
             acct.getCapability<&{FlowIDTableStaking.NodeStakerPublic}>(FlowIDTableStaking.NodeStakerPublicPath).check()
         {
             return

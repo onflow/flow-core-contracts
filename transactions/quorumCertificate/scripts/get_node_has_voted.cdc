@@ -2,7 +2,7 @@ import FlowClusterQC from 0xQCADDRESS
 
 // Returns a boolean indicating if a node has submitted a vote for this epoch
 
-pub fun main(nodeID: String): Bool {
+access(all) fun main(nodeID: String): Bool {
 
     // If we are in the staking auction phase (voting not in progress), the votes
     // from last epoch are still stored and nodeHasVoted reports True. Since we

@@ -11,8 +11,8 @@
  */
 
 import FungibleToken from "FungibleToken"
-import FlowToken from 0xFLOWTOKENADDRESS
-import FlowIDTableStaking from 0xFLOWIDTABLESTAKINGADDRESS
+import FlowToken from "FlowToken"
+import FlowIDTableStaking from "FlowIDTableStaking"
 import LockedTokens from 0xLOCKEDTOKENSADDRESS
 import FlowStorageFees from 0xFLOWSTORAGEFEESADDRESS
 import FlowClusterQC from 0xQCADDRESS

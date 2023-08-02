@@ -1,6 +1,6 @@
 import FlowClusterQC from 0xQCADDRESS
 
-pub fun main(): Bool {
+access(all) fun main(): Bool {
 
     return FlowClusterQC.inProgress
 

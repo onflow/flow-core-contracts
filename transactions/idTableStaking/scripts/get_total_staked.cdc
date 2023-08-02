@@ -1,6 +1,6 @@
-import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
+import FlowIDTableStaking from "FlowIDTableStaking"
 
-pub fun main(): UFix64 {
+access(all) fun main(): UFix64 {
     let stakedTokens = FlowIDTableStaking.getTotalTokensStakedByNodeType()
 
     // calculate the total number of tokens staked

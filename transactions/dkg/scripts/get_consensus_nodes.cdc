@@ -1,5 +1,5 @@
 import FlowDKG from 0xDKGADDRESS
 
-pub fun main(): [String] {
+access(all) fun main(): [String] {
     return FlowDKG.getConsensusNodeIDs()
 }

@@ -1,6 +1,6 @@
 
 
-pub fun main(tokenAdmin: Address): {Address: UFix64} {
+access(all) fun main(tokenAdmin: Address): {Address: UFix64} {
 
     let copyofDictionary: {Address: UFix64} = {}
 

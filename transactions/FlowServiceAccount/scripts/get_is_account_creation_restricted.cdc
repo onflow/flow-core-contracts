@@ -1,5 +1,5 @@
 import FlowServiceAccount from 0xFLOWSERVICEADDRESS
 
-pub fun main(): Bool {
+access(all) fun main(): Bool {
     return FlowServiceAccount.isAccountCreationRestricted()
 }

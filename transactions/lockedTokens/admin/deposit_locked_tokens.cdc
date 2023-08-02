@@ -1,5 +1,5 @@
-import FungibleToken from 0xFUNGIBLETOKENADDRESS
-import FlowToken from 0xFLOWTOKENADDRESS
+import FungibleToken from "FungibleToken"
+import FlowToken from "FlowToken"
 
 import LockedTokens from 0xLOCKEDTOKENADDRESS
 
@@ -11,7 +11,7 @@ transaction(to: Address, amount: UFix64) {
     prepare(admin: AuthAccount) {
 
         // Get a reference to the admin's stored vault
-        let vaultRef = admin.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)
+        let vaultRef = admin.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)
 			?? panic("Could not borrow reference to the owner's Vault!")
 
         let adminRef = admin

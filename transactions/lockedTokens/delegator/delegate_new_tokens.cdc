@@ -1,5 +1,5 @@
-import FlowToken from 0xFLOWTOKENADDRESS
-import FungibleToken from 0xFUNGIBLETOKENADDRESS
+import FlowToken from "FlowToken"
+import FungibleToken from "FungibleToken"
 import LockedTokens from 0xLOCKEDTOKENADDRESS
 
 transaction(amount: UFix64) {
@@ -12,7 +12,7 @@ transaction(amount: UFix64) {
         self.holderRef = account.borrow<&LockedTokens.TokenHolder>(from: LockedTokens.TokenHolderStoragePath)
             ?? panic("Could not borrow reference to TokenHolder")
 
-        self.vaultRef = account.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)
+        self.vaultRef = account.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)
             ?? panic("Could not borrow flow token vault reference")
     }
 

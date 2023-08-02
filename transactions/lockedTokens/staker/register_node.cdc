@@ -1,4 +1,5 @@
-import FlowToken from 0xFLOWTOKENADDRESS
+import FlowToken from "FlowToken"
+import FungibleToken from "FungibleToken"
 import LockedTokens from 0xLOCKEDTOKENADDRESS
 import StakingProxy from 0xSTAKINGPROXYADDRESS
 
@@ -12,7 +13,7 @@ transaction(id: String, role: UInt8, networkingAddress: String, networkingKey: S
         self.holderRef = account.borrow<&LockedTokens.TokenHolder>(from: LockedTokens.TokenHolderStoragePath)
             ?? panic("Could not borrow ref to TokenHolder")
 
-        self.vaultRef = account.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)
+        self.vaultRef = account.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)
             ?? panic("Could not borrow flow token vault reference")
     }
 

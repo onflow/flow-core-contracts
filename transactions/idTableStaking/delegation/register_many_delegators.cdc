@@ -1,5 +1,5 @@
-import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
-import FlowToken from 0xFLOWTOKENADDRESS
+import FlowIDTableStaking from "FlowIDTableStaking"
+import FlowToken from "FlowToken"
 
 transaction(nodeIDs: [String], paths: [StoragePath]) {
 

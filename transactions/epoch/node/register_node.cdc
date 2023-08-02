@@ -1,9 +1,10 @@
 import Crypto
-import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
-import FlowToken from 0xFLOWTOKENADDRESS
+import FlowIDTableStaking from "FlowIDTableStaking"
+import FlowToken from "FlowToken"
 import FlowClusterQC from 0xQCADDRESS
 import FlowDKG from 0xDKGADDRESS
 import FlowEpoch from 0xEPOCHADDRESS
+import FungibleToken from "FungibleToken"
 
 // This transaction creates a new node struct object
 // Then, if the node is a collector node, creates a new account and adds a QC object to it
@@ -19,11 +20,11 @@ transaction(
     publicKeys: [Crypto.KeyListEntry]
 ) {
 
-    let flowTokenRef: &FlowToken.Vault
+    let flowTokenRef: auth(FungibleToken.Withdrawable) &FlowToken.Vault
 
     prepare(acct: AuthAccount) {
 
-        self.flowTokenRef = acct.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)
+        self.flowTokenRef = acct.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)
             ?? panic("Could not borrow reference to FLOW Vault")
 
         // Register Node

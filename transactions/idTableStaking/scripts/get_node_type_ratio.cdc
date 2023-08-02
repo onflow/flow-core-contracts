@@ -1,8 +1,8 @@
-import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
+import FlowIDTableStaking from "FlowIDTableStaking"
 
 // This script returns the balance of staked tokens of a node
 
-pub fun main(role: UInt8): UFix64 {
+access(all) fun main(role: UInt8): UFix64 {
     let ratios = FlowIDTableStaking.getRewardRatios()
 
     return ratios[role]!

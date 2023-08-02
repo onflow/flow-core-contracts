@@ -28,18 +28,17 @@
  */
 
 import FungibleToken from "FungibleToken"
-import FlowToken from 0xFLOWTOKENADDRESS
+import FlowToken from "FlowToken"
 import FlowFees from 0xFLOWFEESADDRESS
 import Crypto
 
 access(all) contract FlowIDTableStaking {
 
-    /****** ID Table and Staking Events ******/
-
+    /// Epoch
     access(all) event NewEpoch(totalStaked: UFix64, totalRewardPayout: UFix64)
     access(all) event EpochTotalRewardsPaid(total: UFix64, fromFees: UFix64, minted: UFix64, feesBurned: UFix64)
 
-    /// Node Events
+    /// Node
     access(all) event NewNodeCreated(nodeID: String, role: UInt8, amountCommitted: UFix64)
     access(all) event TokensCommitted(nodeID: String, amount: UFix64)
     access(all) event TokensStaked(nodeID: String, amount: UFix64)
@@ -53,7 +52,7 @@ access(all) contract FlowIDTableStaking {
     access(all) event NetworkingAddressUpdated(nodeID: String, newAddress: String)
     access(all) event NodeWeightChanged(nodeID: String, newWeight: UInt64)
 
-    /// Delegator Events
+    /// Delegator
     access(all) event NewDelegatorCreated(nodeID: String, delegatorID: UInt32)
     access(all) event DelegatorTokensCommitted(nodeID: String, delegatorID: UInt32, amount: UFix64)
     access(all) event DelegatorTokensStaked(nodeID: String, delegatorID: UInt32, amount: UFix64)
@@ -64,7 +63,7 @@ access(all) contract FlowIDTableStaking {
     access(all) event DelegatorUnstakedTokensWithdrawn(nodeID: String, delegatorID: UInt32, amount: UFix64)
     access(all) event DelegatorRewardTokensWithdrawn(nodeID: String, delegatorID: UInt32, amount: UFix64)
 
-    /// Contract Field Change Events
+    /// Contract Fields
     access(all) event NewDelegatorCutPercentage(newCutPercentage: UFix64)
     access(all) event NewWeeklyPayout(newPayout: UFix64)
     access(all) event NewStakingMinimums(newMinimums: {UInt8: UFix64})
@@ -73,7 +72,6 @@ access(all) contract FlowIDTableStaking {
     /// Holds the identity table for all the nodes in the network.
     /// Includes nodes that aren't actively participating
     /// key = node ID
-    /// value = the record of that node's info, tokens, and delegators
     access(contract) var nodes: @{String: NodeRecord}
 
     /// The minimum amount of tokens that each staker type has to stake
@@ -90,8 +88,7 @@ access(all) contract FlowIDTableStaking {
     /// of each node type during the current epoch
     access(account) var totalTokensStakedByNodeType: {UInt8: UFix64}
 
-    /// The total amount of tokens that are paid as rewards every epoch
-    /// could be manually changed by the admin resource
+    /// The total amount of tokens that will be paid as rewards duringt the current epoch
     access(account) var epochTokenPayout: UFix64
 
     /// The ratio of the weekly awards that each node type gets
@@ -119,12 +116,7 @@ access(all) contract FlowIDTableStaking {
         /// Set when the node is created
         access(all) let id: String
 
-        /// The type of node:
-        /// 1 = collection
-        /// 2 = consensus
-        /// 3 = execution
-        /// 4 = verification
-        /// 5 = access
+        /// The type of node
         access(all) var role: UInt8
 
         access(all) var networkingAddress: String
@@ -151,7 +143,7 @@ access(all) contract FlowIDTableStaking {
         /// Staking rewards are paid to this bucket
         access(all) var tokensRewarded: @FlowToken.Vault
 
-        /// list of delegators for this node operator
+        /// List of delegators for this node operator
         access(all) let delegators: @{UInt32: DelegatorRecord}
 
         /// The incrementing ID used to register new delegators
@@ -160,7 +152,7 @@ access(all) contract FlowIDTableStaking {
         /// The amount of tokens that this node has requested to unstake for the next epoch
         access(all) var tokensRequestedToUnstake: UFix64
 
-        /// weight as determined by the amount staked after the staking auction
+        /// Weight as determined by the amount staked after the staking auction (currently always 100)
         access(all) var initialWeight: UInt64
 
         init(
@@ -447,8 +439,7 @@ access(all) contract FlowIDTableStaking {
             self.id = id
         }
 
-        /// Tells whether the node is currently eligible for CandidateNodeStatus
-        /// which means that it is a new node who currently is not participating with tokens staked
+        /// Tells whether the node is a new node who currently is not participating with tokens staked
         /// and has enough committed for the next epoch for its role
         access(self) fun isEligibleForCandidateNodeStatus(_ nodeRecord: &FlowIDTableStaking.NodeRecord): Bool {
             let participantList = FlowIDTableStaking.getParticipantNodeList()!
@@ -877,8 +868,6 @@ access(all) contract FlowIDTableStaking {
         access(all) fun moveTokens()
     }
     
-    /// Admin resource that has the ability to create new staker objects, remove insufficiently staked nodes
-    /// at the end of the staking auction, and pay rewards to nodes at the end of an epoch
     access(all) resource Admin: EpochOperations {
 
         /// Sets a new set of minimum staking requirements for all the nodes
@@ -963,9 +952,7 @@ access(all) contract FlowIDTableStaking {
                     message: "Percentage value to decrease rewards payout should be between 0 and 1"
                 )
             }
-
             let list = FlowIDTableStaking.account.load<{String: UFix64}>(from: /storage/idTableNonOperationalNodesList)
-
             FlowIDTableStaking.account.save<{String: UFix64}>(nodeIDs, to: /storage/idTableNonOperationalNodesList)
         }
 
@@ -978,7 +965,6 @@ access(all) contract FlowIDTableStaking {
 
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
             nodeRecord.setWeight(weight)
-
             emit NodeWeightChanged(nodeID: nodeID, newWeight: weight)
         }
 
@@ -1102,7 +1088,6 @@ access(all) contract FlowIDTableStaking {
                 ?? panic("Could not read the approve list from storage")
 
             self.removeInvalidNodes(approvedNodeIDs: approvedNodeIDs)
-
             self.fillNodeRoleSlots()
 
             FlowIDTableStaking.account.load<Bool>(from: /storage/stakingEnabled)

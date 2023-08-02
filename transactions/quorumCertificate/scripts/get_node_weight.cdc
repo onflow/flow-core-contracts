@@ -1,6 +1,6 @@
 import FlowClusterQC from 0xQCADDRESS
 
-pub fun main(clusterIndex: UInt16, nodeID: String): UInt64 {
+access(all) fun main(clusterIndex: UInt16, nodeID: String): UInt64 {
 
     let clusters = FlowClusterQC.getClusters()
 

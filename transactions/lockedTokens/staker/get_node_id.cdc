@@ -1,6 +1,6 @@
 import LockedTokens from 0xLOCKEDTOKENADDRESS
 
-pub fun main(account: Address): String {
+access(all) fun main(account: Address): String {
 
     let lockedAccountInfoRef = getAccount(account)
         .getCapability<&LockedTokens.TokenHolder{LockedTokens.LockedAccountInfo}>(

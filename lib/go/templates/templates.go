@@ -14,9 +14,11 @@ import (
 )
 
 const (
-	placeholderFungibleTokenAddress     = "0xFUNGIBLETOKENADDRESS"
-	placeholderFlowTokenAddress         = "0xFLOWTOKENADDRESS"
-	placeholderIDTableAddress           = "0xIDENTITYTABLEADDRESS"
+	placeholderFungibleTokenAddress     = "\"FungibleToken\""
+	OLD_placeholderFungibleTokenAddress = "0xFUNGIBLETOKENADDRESS"
+	placeholderFlowTokenAddress         = "\"FlowToken\""
+	OLD_placeholderFlowTokenAddress     = "0xFLOWTOKENADDRESS"
+	placeholderIDTableAddress           = "\"FlowIDTableStaking\""
 	placeholderLockedTokensAddress      = "0xLOCKEDTOKENADDRESS"
 	placeholderStakingProxyAddress      = "0xSTAKINGPROXYADDRESS"
 	placeholderQuorumCertificateAddress = "0xQCADDRESS"
@@ -58,6 +60,18 @@ func withHexPrefix(address string) string {
 }
 
 func ReplaceAddresses(code string, env Environment) string {
+
+	code = strings.ReplaceAll(
+		code,
+		OLD_placeholderFungibleTokenAddress,
+		withHexPrefix(env.FungibleTokenAddress),
+	)
+
+	code = strings.ReplaceAll(
+		code,
+		OLD_placeholderFlowTokenAddress,
+		withHexPrefix(env.FlowTokenAddress),
+	)
 
 	code = strings.ReplaceAll(
 		code,

@@ -23,8 +23,8 @@ Steps to set up accounts with token forwarder:
     getting the Receiver from the account that is the recipient.
 */
 
-import FungibleToken from 0xFUNGIBLETOKENADDRESS
-import FlowToken from 0xTOKENADDRESS
+import FungibleToken from "FungibleToken"
+import FlowToken from "FlowToken"
 import TokenForwarding from 0xFORWARDINGADDRESS
 
 transaction(receiver: Address) {

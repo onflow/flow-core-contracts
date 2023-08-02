@@ -1,6 +1,6 @@
 import StakingProxy from 0xSTAKINGPROXYADDRESS
 
-pub fun main(account: Address, nodeID: String): StakingProxy.NodeInfo {
+access(all) fun main(account: Address, nodeID: String): StakingProxy.NodeInfo {
 
     let proxyCapability = getAccount(account)
         .getCapability<&StakingProxy.NodeStakerProxyHolder{StakingProxy.NodeStakerProxyHolderPublic}>(

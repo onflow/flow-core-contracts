@@ -1,5 +1,5 @@
 import Crypto
-import FlowToken from 0xFLOWTOKENADDRESS
+import FlowToken from "FlowToken"
 import LockedTokens from 0xLOCKEDTOKENADDRESS
 import FlowStakingCollection from 0xSTAKINGCOLLECTIONADDRESS
 

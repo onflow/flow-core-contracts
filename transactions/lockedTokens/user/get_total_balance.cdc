@@ -1,6 +1,6 @@
-import FungibleToken from 0xFUNGIBLETOKENADDRESS
-import FlowToken from 0xFLOWTOKENADDRESS
-import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
+import FungibleToken from "FungibleToken"
+import FlowToken from "FlowToken"
+import FlowIDTableStaking from "FlowIDTableStaking"
 import LockedTokens from 0xLOCKEDTOKENADDRESS
 
 // This script gets the TOTAL number of FLOW an account owns, across unlocked, locked, and staking.
@@ -15,7 +15,7 @@ import LockedTokens from 0xLOCKEDTOKENADDRESS
 // tokens in shared account delegating
 
 
-pub fun main(address: Address): UFix64 {
+access(all) fun main(address: Address): UFix64 {
 
     var sum = 0.0
 

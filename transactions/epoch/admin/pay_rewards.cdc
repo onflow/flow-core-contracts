@@ -1,5 +1,5 @@
 import FlowEpoch from 0xEPOCHADDRESS
-import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
+import FlowIDTableStaking from "FlowIDTableStaking"
 
 /// Pays the rewards for the previous epoch
 /// If the rewards have already been paid, the payment will not happen

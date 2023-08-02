@@ -1,6 +1,6 @@
 import LockedTokens from 0xLOCKEDTOKENADDRESS
 
-pub fun main(accounts: [Address]): [UFix64] {
+access(all) fun main(accounts: [Address]): [UFix64] {
 
     var limits: [UFix64] = []
 

@@ -1,5 +1,5 @@
 import FlowServiceAccount from 0xFLOWSERVICEADDRESS
 
-pub fun main(): [Address] {
+access(all) fun main(): [Address] {
     return FlowServiceAccount.getAccountCreators()
 }

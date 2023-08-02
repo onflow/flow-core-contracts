@@ -1,6 +1,6 @@
 import Crypto
-import FlowToken from 0xFLOWTOKENADDRESS
-import FungibleToken from 0xFUNGIBLETOKENADDRESS
+import FlowToken from "FlowToken"
+import FungibleToken from "FungibleToken"
 import LockedTokens from 0xLOCKEDTOKENADDRESS
 
 /// Transaction that a custody provider would sign

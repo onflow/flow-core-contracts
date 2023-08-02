@@ -1,5 +1,5 @@
 import FlowDKG from 0xDKGADDRESS
 
-pub fun main(): Bool {
+access(all) fun main(): Bool {
     return FlowDKG.dkgCompleted() != nil
 }

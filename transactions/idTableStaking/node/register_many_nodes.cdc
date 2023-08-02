@@ -1,5 +1,6 @@
-import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
-import FlowToken from 0xFLOWTOKENADDRESS
+import FlowIDTableStaking from "FlowIDTableStaking"
+import FlowToken from "FlowToken"
+import FungibleToken from "FungibleToken"
 
 transaction(
     ids: [String],
@@ -17,7 +18,7 @@ transaction(
 
         for path in paths {
 
-            let flowTokenRef = acct.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)
+            let flowTokenRef = acct.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)
                 ?? panic("Could not borrow reference to FLOW Vault")
 
             let tokensCommitted <- flowTokenRef.withdraw(amount: amounts[i])

@@ -1,8 +1,8 @@
-import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
+import FlowIDTableStaking from "FlowIDTableStaking"
 
 // This script gets all the info about a delegator and returns it
 
-pub fun main(address: Address): FlowIDTableStaking.DelegatorInfo {
+access(all) fun main(address: Address): FlowIDTableStaking.DelegatorInfo {
 
     let delegator = getAccount(address)
         .getCapability<&{FlowIDTableStaking.NodeDelegatorPublic}>(/public/flowStakingDelegator)

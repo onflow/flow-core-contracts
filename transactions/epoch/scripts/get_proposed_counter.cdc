@@ -1,5 +1,5 @@
 import FlowEpoch from 0xEPOCHADDRESS
 
-pub fun main(): UInt64 {
+access(all) fun main(): UInt64 {
     return FlowEpoch.proposedEpochCounter()
 }

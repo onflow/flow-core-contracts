@@ -8,7 +8,7 @@
  */
 
 import FungibleToken from "FungibleToken"
-import FlowToken from 0xFLOWTOKENADDRESS
+import FlowToken from "FlowToken"
 
 pub contract FlowIDTableStaking {
 

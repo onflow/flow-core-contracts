@@ -1,6 +1,7 @@
-import FlowToken from 0xFLOWTOKENADDRESS
+import FlowToken from "FlowToken"
 import LockedTokens from 0xLOCKEDTOKENADDRESS
-import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
+import FlowIDTableStaking from "FlowIDTableStaking"
+import FungibleToken from "FungibleToken"
 
 transaction(id: String, amount: UFix64) {
 
@@ -12,7 +13,7 @@ transaction(id: String, amount: UFix64) {
         self.holderRef = account.borrow<&LockedTokens.TokenHolder>(from: LockedTokens.TokenHolderStoragePath) 
             ?? panic("TokenHolder is not saved at specified path")
 
-        self.vaultRef = account.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)
+        self.vaultRef = account.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)
             ?? panic("Could not borrow flow token vault reference")
     }
 

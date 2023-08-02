@@ -4,8 +4,8 @@
 //
 // The burning amount would be a parameter to the transaction
 
-import FungibleToken from 0xFUNGIBLETOKENADDRESS
-import FlowToken from 0xFLOWTOKENADDRESS
+import FungibleToken from "FungibleToken"
+import FlowToken from "FlowToken"
 
 transaction(amount: UFix64) {
 
@@ -17,7 +17,7 @@ transaction(amount: UFix64) {
     prepare(signer: AuthAccount) {
 
         // Withdraw tokens from the admin vault in storage
-        self.vault <- signer.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)!
+        self.vault <- signer.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)!
             .withdraw(amount: amount)
 
         // Create a reference to the admin admin resource in storage
