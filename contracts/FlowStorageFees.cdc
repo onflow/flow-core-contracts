@@ -15,7 +15,7 @@
  */
 
 import FungibleToken from "FungibleToken"
-import FlowToken from 0xFLOWTOKENADDRESS
+import FlowToken from "FlowToken"
 
 access(all) contract FlowStorageFees {
 

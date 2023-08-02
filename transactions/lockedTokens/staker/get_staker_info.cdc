@@ -1,5 +1,5 @@
 import FlowIDTableStaking from "FlowIDTableStaking"
-import LockedTokens from "LockedTokens"
+import LockedTokens from 0xLOCKEDTOKENADDRESS
 
 // Returns an array of NodeInfo objects that the account controls
 // in its normal account and shared account
@@ -10,22 +10,22 @@ access(all) fun main(account: Address): [FlowIDTableStaking.NodeInfo] {
 
     let pubAccount = getAccount(account)
 
-    let optionalNodeStakerRef = pubAccount
-        .capabilities.borrow<&{FlowIDTableStaking.NodeStakerPublic}>(
+    let nodeStakerCap = pubAccount
+        .getCapability<&{FlowIDTableStaking.NodeStakerPublic}>(
             FlowIDTableStaking.NodeStakerPublicPath
         )
 
-    if let nodeStakerRef = optionalNodeStakerRef {
+    if let nodeStakerRef = nodeStakerCap.borrow() {
         let info = FlowIDTableStaking.NodeInfo(nodeID: nodeStakerRef.id)
         nodeInfoArray.append(info)
     }
 
-    let optionalLockedAccountInfoRef = pubAccount
-        .capabilities.borrow<&LockedTokens.TokenHolder>(
+    let lockedAccountInfoCap = pubAccount
+        .getCapability<&LockedTokens.TokenHolder{LockedTokens.LockedAccountInfo}>(
             LockedTokens.LockedAccountInfoPublicPath
         )
 
-    if let lockedAccountInfoRef = optionalLockedAccountInfoRef {
+    if let lockedAccountInfoRef = lockedAccountInfoCap.borrow() {
         if let nodeID = lockedAccountInfoRef.getNodeID() {
             let info = FlowIDTableStaking.NodeInfo(nodeID: nodeID)
             nodeInfoArray.append(info)

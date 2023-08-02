@@ -1,7 +1,7 @@
 import FungibleToken from "FungibleToken"
 import FlowToken from "FlowToken"
 import FlowIDTableStaking from "FlowIDTableStaking"
-import LockedTokens from "LockedTokens"
+import LockedTokens from 0xLOCKEDTOKENADDRESS
 
 // This script gets the TOTAL number of FLOW an account owns, across unlocked, locked, and staking.
 
@@ -21,28 +21,30 @@ access(all) fun main(address: Address): UFix64 {
 
     let account = getAccount(address)
 
-    if let vaultRef = account.capabilities.borrow<&FlowToken.Vault>(/public/flowTokenBalance) {
+    if let vaultRef = account.getCapability(/public/flowTokenBalance)
+        .borrow<&FlowToken.Vault{FungibleToken.Balance}>() 
+    {
         sum = sum + vaultRef.balance
     }
 
     // Get token balance from the unlocked account's node staking pools
-    let optionalNodeStakerRef = account
-        .capabilities.borrow<&{FlowIDTableStaking.NodeStakerPublic}>(
+    let nodeStakerCap = account
+        .getCapability<&{FlowIDTableStaking.NodeStakerPublic}>(
             FlowIDTableStaking.NodeStakerPublicPath
         )
 
-    if let nodeStakerRef = optionalNodeStakerRef {
+    if let nodeStakerRef = nodeStakerCap.borrow() {
         let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeStakerRef.id)
         sum = sum + nodeInfo.totalTokensInRecord()
     }
 
     // Get token balance from the unlocked account's delegator staking pools
-    let optionalDelegatorRef = account
-        .capabilities.borrow<&{FlowIDTableStaking.NodeDelegatorPublic}>(
+    let delegatorCap = account
+        .getCapability<&{FlowIDTableStaking.NodeDelegatorPublic}>(
             /public/flowStakingDelegator
         )
 
-    if let delegatorRef = optionalDelegatorRef {
+    if let delegatorRef = delegatorCap.borrow() {
         let delegatorInfo = FlowIDTableStaking.DelegatorInfo(
             nodeID: delegatorRef.nodeID,
             delegatorID: delegatorRef.id
@@ -52,12 +54,12 @@ access(all) fun main(address: Address): UFix64 {
     }
 
     // Get the locked account public capability
-    let optionalLockedAccountInfoRef = account
-        .capabilities.borrow<&LockedTokens.TokenHolder>(
+    let lockedAccountInfoCap = account
+        .getCapability<&LockedTokens.TokenHolder{LockedTokens.LockedAccountInfo}>(
             LockedTokens.LockedAccountInfoPublicPath
         )
 
-    if let lockedAccountInfoRef = optionalLockedAccountInfoRef {
+    if let lockedAccountInfoRef = lockedAccountInfoCap.borrow() {
         // Add the locked account balance
         sum = sum + lockedAccountInfoRef.getLockedAccountBalance()
 

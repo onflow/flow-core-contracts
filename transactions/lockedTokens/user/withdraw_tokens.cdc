@@ -1,17 +1,17 @@
 import FungibleToken from "FungibleToken"
 import FlowToken from "FlowToken"
-import LockedTokens from "LockedTokens"
+import LockedTokens from 0xLOCKEDTOKENADDRESS
 
 transaction(amount: UFix64) {
 
-    let holderRef: auth(LockedTokens.TokenOperations, FungibleToken.Withdraw) &LockedTokens.TokenHolder
-    let vaultRef: auth(FungibleToken.Withdraw) &FlowToken.Vault
+    let holderRef: &LockedTokens.TokenHolder
+    let vaultRef: &FlowToken.Vault
 
-    prepare(acct: auth(BorrowValue) &Account) {
-        self.holderRef = acct.storage.borrow<auth(LockedTokens.TokenOperations, FungibleToken.Withdraw) &LockedTokens.TokenHolder>(from: LockedTokens.TokenHolderStoragePath)
-            ?? panic("The primary user account does not have an associated locked account")
+    prepare(acct: AuthAccount) {
+        self.holderRef = acct.borrow<&LockedTokens.TokenHolder>(from: LockedTokens.TokenHolderStoragePath)
+            ?? panic("Could not borrow a reference to TokenHolder")
 
-        self.vaultRef = acct.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault)
+        self.vaultRef = acct.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)
             ?? panic("Could not borrow flow token vault ref")
     }
 

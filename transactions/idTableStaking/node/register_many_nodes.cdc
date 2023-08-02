@@ -12,13 +12,13 @@ transaction(
     paths: [StoragePath]
 ) {
 
-    prepare(acct: auth(Storage) &Account) {
+    prepare(acct: AuthAccount) {
 
         var i = 0
 
         for path in paths {
 
-            let flowTokenRef = acct.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault)
+            let flowTokenRef = acct.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)
                 ?? panic("Could not borrow reference to FLOW Vault")
 
             let tokensCommitted <- flowTokenRef.withdraw(amount: amounts[i])
@@ -33,7 +33,7 @@ transaction(
             )
 
             // Store the node object
-            acct.storage.save(<-nodeStaker, to: path)
+            acct.save(<-nodeStaker, to: path)
 
             i = i + 1
         }

@@ -23,28 +23,25 @@ Steps to set up accounts with token forwarder:
     getting the Receiver from the account that is the recipient.
 */
 
-import "FungibleToken"
-import "FlowToken"
-import "TokenForwarding"
+import FungibleToken from "FungibleToken"
+import FlowToken from "FlowToken"
+import TokenForwarding from 0xFORWARDINGADDRESS
 
 transaction(receiver: Address) {
 
-    prepare(acct: auth(BorrowValue, Capabilities) &Account) {
+    prepare(acct: AuthAccount) {
         let recipient = getAccount(receiver)
-            .capabilities.get<&{FungibleToken.Receiver}>(/public/flowTokenReceiver)
+            .getCapability<&{FungibleToken.Receiver}>(/public/flowTokenReceiver)
 
         let vault <- TokenForwarding.createNewForwarder(recipient: recipient)
-        acct.storage.save(<-vault, to: /storage/flowTokenForwarder)
+        acct.save(<-vault, to: /storage/flowTokenForwarder)
 
-        let cap = acct.capabilities.get<&{FungibleToken.Receiver}>(/public/flowTokenReceiver) {
-        if cap.check() {
-            acct.capabilities.unpublish(/public/flowTokenReceiver)
+        if acct.getCapability(/public/flowTokenReceiver).check<&{FungibleToken.Receiver}>() {
+            acct.unlink(/public/flowTokenReceiver)
         }
-
-        let forwarderCap = acct.capabilities.storage.issue<&{FungibleToken.Receiver}>(/storage/flowTokenForwarder)
-        acct.capabilities.publish<&{FungibleToken.Receiver}>(
-            forwarderCap,
-            at: /public/flowTokenReceiver
+        acct.link<&{FungibleToken.Receiver}>(
+            /public/flowTokenReceiver,
+            target: /storage/flowTokenForwarder
         )
     }
 }

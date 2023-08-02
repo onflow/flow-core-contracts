@@ -1,6 +1,6 @@
 import FungibleToken from "FungibleToken"
 import FlowToken from "FlowToken"
-import FlowFees from "FlowFees"
+import FlowFees from 0xFLOWFEESADDRESS
 
 // Deposit tokens to the FlowFees Vault
 // only for testing
@@ -10,10 +10,10 @@ transaction(amount: UFix64) {
     // The Vault resource that holds the tokens that are being transferred
     let sentVault: @{FungibleToken.Vault}
 
-    prepare(signer: auth(BorrowValue) &Account) {
+    prepare(signer: AuthAccount) {
 
         // Get a reference to the signer's stored vault
-        let vaultRef = signer.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault)
+        let vaultRef = signer.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)
 			?? panic("Could not borrow reference to the owner's Vault!")
 
         // Withdraw tokens from the signer's stored vault

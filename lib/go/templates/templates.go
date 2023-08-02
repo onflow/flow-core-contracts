@@ -14,48 +14,37 @@ import (
 )
 
 const (
-	placeholderFungibleTokenAddress       = "\"FungibleToken\""
-	placeholderViewResolverAddress        = "\"ViewResolver\""
-	placeholderFungibleTokenMVAddress     = "\"FungibleTokenMetadataViews\""
-	placeholderMetadataViewsAddress       = "\"MetadataViews\""
-	placeholderBurnerAddress              = "\"Burner\""
-	placeholderFlowTokenAddress           = "\"FlowToken\""
-	placeholderIDTableAddress             = "\"FlowIDTableStaking\""
-	placeholderLockedTokensAddress        = "\"LockedTokens\""
-	placeholderStakingProxyAddress        = "\"StakingProxy\""
-	placeholderQuorumCertificateAddress   = "\"FlowClusterQC\""
-	placeholderFlowFeesAddress            = "\"FlowFees\""
-	placeholderStorageFeesAddress         = "\"FlowStorageFees\""
-	placeholderServiceAccountAddress      = "\"FlowServiceAccount\""
-	placeholderDKGAddress                 = "\"FlowDKG\""
-	placeholderEpochAddress               = "\"FlowEpoch\""
-	placeholderStakingCollectionAddress   = "\"FlowStakingCollection\""
-	placeholderNodeVersionBeaconAddress   = "\"NodeVersionBeacon\""
-	placeholderRandomBeaconHistoryAddress = "\"RandomBeaconHistory\""
+	placeholderFungibleTokenAddress     = "\"FungibleToken\""
+	OLD_placeholderFungibleTokenAddress = "0xFUNGIBLETOKENADDRESS"
+	placeholderFlowTokenAddress         = "\"FlowToken\""
+	OLD_placeholderFlowTokenAddress     = "0xFLOWTOKENADDRESS"
+	placeholderIDTableAddress           = "\"FlowIDTableStaking\""
+	placeholderLockedTokensAddress      = "0xLOCKEDTOKENADDRESS"
+	placeholderStakingProxyAddress      = "0xSTAKINGPROXYADDRESS"
+	placeholderQuorumCertificateAddress = "0xQCADDRESS"
+	placeholderFlowFeesAddress          = "0xFLOWFEESADDRESS"
+	placeholderStorageFeesAddress       = "0xFLOWSTORAGEFEESADDRESS"
+	placeholderServiceAccountAddress    = "0xFLOWSERVICEADDRESS"
+	placeholderDKGAddress               = "0xDKGADDRESS"
+	placeholderEpochAddress             = "0xEPOCHADDRESS"
+	placeholderStakingCollectionAddress = "0xSTAKINGCOLLECTIONADDRESS"
+	placeholderNodeVersionBeaconAddress = "0xNODEVERSIONBEACONADDRESS"
 )
 
 type Environment struct {
-	Network                           string
-	ViewResolverAddress               string
-	BurnerAddress                     string
-	FungibleTokenAddress              string
-	NonFungibleTokenAddress           string
-	MetadataViewsAddress              string
-	FungibleTokenMetadataViewsAddress string
-	FungibleTokenSwitchboardAddress   string
-	FlowTokenAddress                  string
-	IDTableAddress                    string
-	LockedTokensAddress               string
-	StakingProxyAddress               string
-	QuorumCertificateAddress          string
-	DkgAddress                        string
-	EpochAddress                      string
-	StorageFeesAddress                string
-	FlowFeesAddress                   string
-	StakingCollectionAddress          string
-	ServiceAccountAddress             string
-	NodeVersionBeaconAddress          string
-	RandomBeaconHistoryAddress        string
+	Network                  string
+	FungibleTokenAddress     string
+	FlowTokenAddress         string
+	IDTableAddress           string
+	LockedTokensAddress      string
+	StakingProxyAddress      string
+	QuorumCertificateAddress string
+	DkgAddress               string
+	EpochAddress             string
+	StorageFeesAddress       string
+	FlowFeesAddress          string
+	ServiceAccountAddress    string
+	NodeVersionBeaconAddress string
 }
 
 func withHexPrefix(address string) string {
@@ -74,26 +63,14 @@ func ReplaceAddresses(code string, env Environment) string {
 
 	code = strings.ReplaceAll(
 		code,
-		placeholderFungibleTokenMVAddress,
-		withHexPrefix(env.FungibleTokenMetadataViewsAddress),
+		OLD_placeholderFungibleTokenAddress,
+		withHexPrefix(env.FungibleTokenAddress),
 	)
 
 	code = strings.ReplaceAll(
 		code,
-		placeholderMetadataViewsAddress,
-		withHexPrefix(env.MetadataViewsAddress),
-	)
-
-	code = strings.ReplaceAll(
-		code,
-		placeholderBurnerAddress,
-		withHexPrefix(env.BurnerAddress),
-	)
-
-	code = strings.ReplaceAll(
-		code,
-		placeholderViewResolverAddress,
-		withHexPrefix(env.ViewResolverAddress),
+		OLD_placeholderFlowTokenAddress,
+		withHexPrefix(env.FlowTokenAddress),
 	)
 
 	code = strings.ReplaceAll(
@@ -172,12 +149,6 @@ func ReplaceAddresses(code string, env Environment) string {
 		code,
 		placeholderNodeVersionBeaconAddress,
 		withHexPrefix(env.NodeVersionBeaconAddress),
-	)
-
-	code = strings.ReplaceAll(
-		code,
-		placeholderRandomBeaconHistoryAddress,
-		withHexPrefix(env.RandomBeaconHistoryAddress),
 	)
 
 	return code

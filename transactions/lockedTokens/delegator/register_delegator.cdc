@@ -1,19 +1,19 @@
 import FlowToken from "FlowToken"
-import LockedTokens from "LockedTokens"
+import LockedTokens from 0xLOCKEDTOKENADDRESS
 import FlowIDTableStaking from "FlowIDTableStaking"
 import FungibleToken from "FungibleToken"
 
 transaction(id: String, amount: UFix64) {
 
-    let holderRef: auth(LockedTokens.TokenOperations, FungibleToken.Withdraw) &LockedTokens.TokenHolder
+    let holderRef: &LockedTokens.TokenHolder
 
-    let vaultRef: auth(FungibleToken.Withdraw) &FlowToken.Vault
+    let vaultRef: &FlowToken.Vault
 
-    prepare(account: auth(BorrowValue) &Account) {
-        self.holderRef = account.storage.borrow<auth(LockedTokens.TokenOperations, FungibleToken.Withdraw) &LockedTokens.TokenHolder>(from: LockedTokens.TokenHolderStoragePath)
+    prepare(account: AuthAccount) {
+        self.holderRef = account.borrow<&LockedTokens.TokenHolder>(from: LockedTokens.TokenHolderStoragePath) 
             ?? panic("TokenHolder is not saved at specified path")
 
-        self.vaultRef = account.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault)
+        self.vaultRef = account.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)
             ?? panic("Could not borrow flow token vault reference")
     }
 

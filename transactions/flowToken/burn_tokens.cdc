@@ -4,8 +4,8 @@
 //
 // The burning amount would be a parameter to the transaction
 
-import "FungibleToken"
-import "FlowToken"
+import FungibleToken from "FungibleToken"
+import FlowToken from "FlowToken"
 
 transaction(amount: UFix64) {
 
@@ -14,14 +14,14 @@ transaction(amount: UFix64) {
 
     let admin: &FlowToken.Administrator
 
-    prepare(signer: auth(BorrowValue) &Account) {
+    prepare(signer: AuthAccount) {
 
         // Withdraw tokens from the admin vault in storage
-        self.vault <- signer.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault)!
+        self.vault <- signer.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)!
             .withdraw(amount: amount)
 
         // Create a reference to the admin admin resource in storage
-        self.admin = signer.storage.borrow<&FlowToken.Administrator>(from: /storage/flowTokenAdmin)
+        self.admin = signer.borrow<&FlowToken.Administrator>(from: /storage/flowTokenAdmin)
             ?? panic("Could not borrow a reference to the admin resource")
     }
 

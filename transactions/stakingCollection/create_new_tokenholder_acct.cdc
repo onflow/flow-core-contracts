@@ -1,8 +1,7 @@
 import Crypto
 import FlowToken from "FlowToken"
-import FungibleToken from "FungibleToken"
-import LockedTokens from "LockedTokens"
-import FlowStakingCollection from "FlowStakingCollection"
+import LockedTokens from 0xLOCKEDTOKENADDRESS
+import FlowStakingCollection from 0xSTAKINGCOLLECTIONADDRESS
 
 // This transaction allows the controller of the locked account
 // to create a new LockedTokens.TokenHolder object and store it in a new account
@@ -13,69 +12,52 @@ import FlowStakingCollection from "FlowStakingCollection"
 // or revoke all keys from that account
 
 transaction(publicKeys: [Crypto.KeyListEntry]) {
-    prepare(signer: auth(BorrowValue, Storage, Capabilities) &Account) {
+    prepare(signer: AuthAccount) {
 
-        // Create the new account and add public keys.
-        let newAccount = Account(payer: signer)
+        // Create the new account and add public keys
+        let newAccount = AuthAccount(payer: signer)
         for key in publicKeys {
             newAccount.keys.add(publicKey: key.publicKey, hashAlgorithm: key.hashAlgorithm, weight: key.weight)
         }
 
-        // Get the TokenManager Capability from the locked account.
-        let tokenManagerCapabilityController = signer.capabilities.storage.getControllers(forPath: LockedTokens.LockedTokenManagerStoragePath)[2]!
-        let tokenManagerCapability = tokenManagerCapabilityController.capability as! Capability<auth(FungibleToken.Withdraw, LockedTokens.UnlockTokens) &LockedTokens.LockedTokenManager>
+        // Get the TokenManager Capability from the locked account
+        let tokenManagerCapability = signer
+            .getCapability<&LockedTokens.LockedTokenManager>(
+            LockedTokens.LockedTokenManagerPrivatePath)
 
-        // Use the manager capability to create a new TokenHolder.
+        // Use the manager capability to create a new TokenHolder
         let tokenHolder <- LockedTokens.createTokenHolder(
             lockedAddress: signer.address,
             tokenManager: tokenManagerCapability
         )
 
-        // Save the TokenHolder resource to the new account and create a public capability.
-        newAccount.storage.save(
+        // Save the TokenHolder resource to the new account and create a public capability
+        newAccount.save(
             <-tokenHolder,
-            to: LockedTokens.TokenHolderStoragePath
+            to: LockedTokens.TokenHolderStoragePath,
         )
 
-        let tokenHolderCap = newAccount.capabilities.storage
-            .issue<&LockedTokens.TokenHolder>(LockedTokens.TokenHolderStoragePath)
-        newAccount.capabilities.publish(
-            tokenHolderCap,
-            at: LockedTokens.LockedAccountInfoPublicPath
+        newAccount.link<&LockedTokens.TokenHolder{LockedTokens.LockedAccountInfo}>(
+            LockedTokens.LockedAccountInfoPublicPath,
+            target: LockedTokens.TokenHolderStoragePath
         )
 
 
-        // Create capabilities for the token holder and unlocked vault.
-        let lockedHolder = newAccount.capabilities.storage.issue<auth(FungibleToken.Withdraw, LockedTokens.TokenOperations) &LockedTokens.TokenHolder>(LockedTokens.TokenHolderStoragePath)
-        let flowToken = newAccount.capabilities.storage.issue<auth(FungibleToken.Withdraw) &FlowToken.Vault>(/storage/flowTokenVault)
+        // Create private capabilities for the token holder and unlocked vault
+        let lockedHolder = newAccount.link<&LockedTokens.TokenHolder>(/private/flowTokenHolder, target: LockedTokens.TokenHolderStoragePath)!
+        let flowToken = newAccount.link<&FlowToken.Vault>(/private/flowTokenVault, target: /storage/flowTokenVault)!
         
-        // Create a new Staking Collection and put it in storage.
+        // Create a new Staking Collection and put it in storage
         if lockedHolder.check() {
-            newAccount.storage.save(
-                <- FlowStakingCollection.createStakingCollection(
-                    unlockedVault: flowToken,
-                    tokenHolder: lockedHolder
-                ),
-                to: FlowStakingCollection.StakingCollectionStoragePath
-            )
+            newAccount.save(<-FlowStakingCollection.createStakingCollection(unlockedVault: flowToken, tokenHolder: lockedHolder), to: FlowStakingCollection.StakingCollectionStoragePath)
         } else {
-            newAccount.storage.save(
-                <- FlowStakingCollection.createStakingCollection(
-                    unlockedVault: flowToken,
-                    tokenHolder: nil
-                ),
-                to: FlowStakingCollection.StakingCollectionStoragePath
-            )
+            newAccount.save(<-FlowStakingCollection.createStakingCollection(unlockedVault: flowToken, tokenHolder: nil), to: FlowStakingCollection.StakingCollectionStoragePath)
         }
 
-        // Publish a capability to the created staking collection.
-        let stakingCollectionCap = newAccount.capabilities.storage.issue<&FlowStakingCollection.StakingCollection>(
-            FlowStakingCollection.StakingCollectionStoragePath
-        )
-
-        newAccount.capabilities.publish(
-            stakingCollectionCap,
-            at: FlowStakingCollection.StakingCollectionPublicPath
+        // Create a public link to the staking collection
+        newAccount.link<&FlowStakingCollection.StakingCollection{FlowStakingCollection.StakingCollectionPublic}>(
+            FlowStakingCollection.StakingCollectionPublicPath,
+            target: FlowStakingCollection.StakingCollectionStoragePath
         )
     }
 }

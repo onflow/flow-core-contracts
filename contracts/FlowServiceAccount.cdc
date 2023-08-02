@@ -1,5 +1,5 @@
 import FungibleToken from "FungibleToken"
-import FlowToken from 0xFLOWTOKENADDRESS
+import FlowToken from "FlowToken"
 import FlowFees from 0xFLOWFEESADDRESS
 import FlowStorageFees from 0xFLOWSTORAGEFEESADDRESS
 

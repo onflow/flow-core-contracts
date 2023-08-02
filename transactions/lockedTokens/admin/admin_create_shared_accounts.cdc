@@ -1,7 +1,7 @@
 import Crypto
 import FlowToken from "FlowToken"
 import FungibleToken from "FungibleToken"
-import LockedTokens from "LockedTokens"
+import LockedTokens from 0xLOCKEDTOKENADDRESS
 
 /// Transaction that the main token admin would sign
 /// to create a shared account and an unlocked
@@ -13,11 +13,11 @@ transaction(
     fullUserPublicKey: Crypto.KeyListEntry, // Weight: 1000
 )  {
 
-    prepare(admin: auth(BorrowValue) &Account) {
+    prepare(admin: AuthAccount) {
 
         // Create the new accounts and add their keys
-        let sharedAccount = Account(payer: admin)
-        let userAccount = Account(payer: admin)
+        let sharedAccount = AuthAccount(payer: admin)
+        let userAccount = AuthAccount(payer: admin)
 
         sharedAccount.keys.add(publicKey: partialAdminPublicKey.publicKey, hashAlgorithm: partialAdminPublicKey.hashAlgorithm, weight: partialAdminPublicKey.weight)
         sharedAccount.keys.add(publicKey: partialUserPublicKey.publicKey, hashAlgorithm: partialUserPublicKey.hashAlgorithm, weight: partialUserPublicKey.weight)
@@ -25,64 +25,70 @@ transaction(
         userAccount.keys.add(publicKey: fullUserPublicKey.publicKey, hashAlgorithm: fullUserPublicKey.hashAlgorithm, weight: fullUserPublicKey.weight)
 
         // Create a private link to the stored vault
-        let vaultCapability = sharedAccount.capabilities.storage.issue
-            <auth(FungibleToken.Withdraw) &FlowToken.Vault>
-            (/storage/flowTokenVault)
+        let vaultCapability = sharedAccount
+            .link<&FlowToken.Vault>(
+                /private/flowTokenVault,
+                target: /storage/flowTokenVault
+            )
+            ?? panic("Could not link Flow Token Vault capability")
 
         // create a locked token manager and stored it in the shared account
         let lockedTokenManager <- LockedTokens.createLockedTokenManager(vault: vaultCapability)
-        sharedAccount.storage.save(<-lockedTokenManager, to: LockedTokens.LockedTokenManagerStoragePath)
+        sharedAccount.save(<-lockedTokenManager, to: LockedTokens.LockedTokenManagerStoragePath)
 
         let tokenManagerCapability = sharedAccount
-            .capabilities.storage.issue<auth(FungibleToken.Withdraw, LockedTokens.UnlockTokens) &LockedTokens.LockedTokenManager>(
-                LockedTokens.LockedTokenManagerStoragePath)
+            .link<&LockedTokens.LockedTokenManager>(
+                LockedTokens.LockedTokenManagerPrivatePath,
+                target: LockedTokens.LockedTokenManagerStoragePath
+        )   ?? panic("Could not link token manager capability")
 
         let tokenHolder <- LockedTokens.createTokenHolder(
             lockedAddress: sharedAccount.address,
             tokenManager: tokenManagerCapability
         )
 
-        userAccount.storage.save(
+        userAccount.save(
             <-tokenHolder,
-            to: LockedTokens.TokenHolderStoragePath
+            to: LockedTokens.TokenHolderStoragePath,
         )
 
-        let infoCap = userAccount.capabilities.storage.issue<&LockedTokens.TokenHolder>(
-            LockedTokens.TokenHolderStoragePath
+        userAccount.link<&LockedTokens.TokenHolder{LockedTokens.LockedAccountInfo}>(
+            LockedTokens.LockedAccountInfoPublicPath,
+            target: LockedTokens.TokenHolderStoragePath
         )
-        userAccount.capabilities.publish(infoCap, at: LockedTokens.LockedAccountInfoPublicPath)
 
-        let tokenAdminCollection = admin.storage
-            .borrow<auth(LockedTokens.AccountCreator) &LockedTokens.TokenAdminCollection>(
+        let tokenAdminCapability = sharedAccount
+            .link<&LockedTokens.LockedTokenManager>(
+                LockedTokens.LockedTokenAdminPrivatePath,
+                target: LockedTokens.LockedTokenManagerStoragePath
+            )
+            ?? panic("Could not link token admin to token manager")
+
+        let tokenAdminCollection = admin
+            .borrow<&LockedTokens.TokenAdminCollection>(
                 from: LockedTokens.LockedTokenAdminCollectionStoragePath
             )
             ?? panic("Could not borrow reference to admin collection")
 
-        let tokenManagerUnlockCapability = sharedAccount
-            .capabilities.storage.issue<auth(FungibleToken.Withdraw, LockedTokens.UnlockTokens) &LockedTokens.LockedTokenManager>(
-                LockedTokens.LockedTokenManagerStoragePath)
-
         tokenAdminCollection.addAccount(
             sharedAccountAddress: sharedAccount.address,
             unlockedAccountAddress: userAccount.address,
-            tokenAdmin: tokenManagerUnlockCapability
+            tokenAdmin: tokenAdminCapability
         )
 
         // Override the default FlowToken receiver
-        sharedAccount.capabilities.unpublish(/public/flowTokenReceiver)
+        sharedAccount.unlink(/public/flowTokenReceiver)
 
         // create new receiver that marks received tokens as unlocked
-        let lockedTokensManagerCap = sharedAccount.capabilities.storage.issue<&{FungibleToken.Receiver}>(LockedTokens.LockedTokenManagerStoragePath)
-        sharedAccount.capabilities.publish(
-            lockedTokensManagerCap,
-            at: /public/flowTokenReceiver
+        sharedAccount.link<&AnyResource{FungibleToken.Receiver}>(
+            /public/flowTokenReceiver,
+            target: LockedTokens.LockedTokenManagerStoragePath
         )
 
         // put normal receiver in a separate unique path
-        let tokenReceiverCap = sharedAccount.capabilities.storage.issue<&{FungibleToken.Receiver}>(/storage/flowTokenVault)
-        sharedAccount.capabilities.publish(
-            tokenReceiverCap,
-            at: /public/lockedFlowTokenReceiver
+        sharedAccount.link<&AnyResource{FungibleToken.Receiver}>(
+            /public/lockedFlowTokenReceiver,
+            target: /storage/flowTokenVault
         )
     }
 }

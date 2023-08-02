@@ -7,18 +7,21 @@ transaction(amount: UFix64) {
     // Local variable for a reference to the node object
     let stakerRef: auth(FlowIDTableStaking.NodeOperator) &FlowIDTableStaking.NodeStaker
 
-    let flowTokenRef: auth(FungibleToken.Withdraw) &FlowToken.Vault
+    let flowTokenRef: auth(FungibleToken.Withdrawable) &FlowToken.Vault
 
-    prepare(acct: auth(BorrowValue) &Account) {
+    prepare(acct: AuthAccount) {
         // borrow a reference to the node object
-        self.stakerRef = acct.storage.borrow<auth(FlowIDTableStaking.NodeOperator) &FlowIDTableStaking.NodeStaker>(from: FlowIDTableStaking.NodeStakerStoragePath)
+        self.stakerRef = acct.borrow<auth(FlowIDTableStaking.NodeOperator) &FlowIDTableStaking.NodeStaker>(from: FlowIDTableStaking.NodeStakerStoragePath)
             ?? panic("Could not borrow reference to staking admin")
 
-        self.flowTokenRef = acct.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault)
+        self.flowTokenRef = acct.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)
             ?? panic("Could not borrow reference to FLOW Vault")
+
     }
 
     execute {
+
         self.stakerRef.stakeNewTokens(<-self.flowTokenRef.withdraw(amount: amount))
+
     }
 }

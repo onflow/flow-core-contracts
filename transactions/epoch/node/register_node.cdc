@@ -1,9 +1,9 @@
 import Crypto
 import FlowIDTableStaking from "FlowIDTableStaking"
 import FlowToken from "FlowToken"
-import FlowClusterQC from "FlowClusterQC"
-import FlowDKG from "FlowDKG"
-import FlowEpoch from "FlowEpoch"
+import FlowClusterQC from 0xQCADDRESS
+import FlowDKG from 0xDKGADDRESS
+import FlowEpoch from 0xEPOCHADDRESS
 import FungibleToken from "FungibleToken"
 
 // This transaction creates a new node struct object
@@ -20,15 +20,15 @@ transaction(
     publicKeys: [Crypto.KeyListEntry]
 ) {
 
-    let flowTokenRef: auth(FungibleToken.Withdraw) &FlowToken.Vault
+    let flowTokenRef: auth(FungibleToken.Withdrawable) &FlowToken.Vault
 
-    prepare(acct: auth(Storage, Capabilities, AddKey) &Account) {
+    prepare(acct: AuthAccount) {
 
-        self.flowTokenRef = acct.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault)
+        self.flowTokenRef = acct.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)
             ?? panic("Could not borrow reference to FLOW Vault")
 
         // Register Node
-        if acct.storage.borrow<&FlowIDTableStaking.NodeStaker>(from: FlowIDTableStaking.NodeStakerStoragePath) == nil {
+        if acct.borrow<&FlowIDTableStaking.NodeStaker>(from: FlowIDTableStaking.NodeStakerStoragePath) == nil {
 
             let nodeStaker <- FlowIDTableStaking.addNodeRecord(
                 id: id,
@@ -39,13 +39,15 @@ transaction(
                 tokensCommitted: <-self.flowTokenRef.withdraw(amount: amount)
             )
 
-            acct.storage.save(<-nodeStaker, to: FlowIDTableStaking.NodeStakerStoragePath)
+            acct.save(<-nodeStaker, to: FlowIDTableStaking.NodeStakerStoragePath)
 
-            let nodeStakerCap = acct.capabilities.storage.issue<&{FlowIDTableStaking.NodeStakerPublic}>(FlowIDTableStaking.NodeStakerStoragePath)
-            acct.capabilities.publish(nodeStakerCap, at: FlowIDTableStaking.NodeStakerPublicPath)
+            acct.link<&{FlowIDTableStaking.NodeStakerPublic}>(
+                FlowIDTableStaking.NodeStakerPublicPath,
+                target: FlowIDTableStaking.NodeStakerStoragePath
+            )
         }
 
-        let nodeRef = acct.storage.borrow<&FlowIDTableStaking.NodeStaker>(from: FlowIDTableStaking.NodeStakerStoragePath)
+        let nodeRef = acct.borrow<&FlowIDTableStaking.NodeStaker>(from: FlowIDTableStaking.NodeStakerStoragePath)
             ?? panic("Could not borrow node reference from storage path")
 
         let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeRef.id)
@@ -53,23 +55,27 @@ transaction(
         // If the node is a collector or consensus node, create a secondary account for their specific objects
         if nodeInfo.role == 1 as UInt8 {
 
-            let machineAcct = Account(payer: acct)
+            let machineAcct = AuthAccount(payer: acct)
             for key in publicKeys {
                 machineAcct.keys.add(publicKey: key.publicKey, hashAlgorithm: key.hashAlgorithm, weight: key.weight)
             }
 
             let qcVoter <- FlowEpoch.getClusterQCVoter(nodeStaker: nodeRef)
-            machineAcct.storage.save(<-qcVoter, to: FlowClusterQC.VoterStoragePath)
+
+            machineAcct.save(<-qcVoter, to: FlowClusterQC.VoterStoragePath)
 
         } else if nodeInfo.role == 2 as UInt8 {
 
-            let machineAcct = Account(payer: acct)
+            let machineAcct = AuthAccount(payer: acct)
             for key in publicKeys {
                 machineAcct.keys.add(publicKey: key.publicKey, hashAlgorithm: key.hashAlgorithm, weight: key.weight)
             }
 
             let dkgParticipant <- FlowEpoch.getDKGParticipant(nodeStaker: nodeRef)
-            machineAcct.storage.save(<-dkgParticipant, to: FlowDKG.ParticipantStoragePath)
+
+            machineAcct.save(<-dkgParticipant, to: FlowDKG.ParticipantStoragePath)
+
         }
+
     }
 }
