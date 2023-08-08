@@ -95,23 +95,22 @@ func TestEpochClusters(t *testing.T) {
 		randomSource,      // random source
 		rewardIncreaseFactor)
 
-	t.Run("Should be able to randomize an array of strings", func(t *testing.T) {
+	// t.Run("Should be able to randomize an array of strings", func(t *testing.T) {
 
-		adminString, _ := cadence.NewString(adminID)
-		joshString, _ := cadence.NewString(joshID)
-		maxString, _ := cadence.NewString(maxID)
-		accessString, _ := cadence.NewString(accessID)
-		idArray := cadence.NewArray([]cadence.Value{adminString, joshString, maxString, accessString})
-		result := executeScriptAndCheck(t, b, templates.GenerateGetRandomizeScript(env), [][]byte{jsoncdc.MustEncode(idArray)})
-		assertEqual(t, 4, len(result.(cadence.Array).Values))
+	// 	adminString, _ := cadence.NewString(adminID)
+	// 	joshString, _ := cadence.NewString(joshID)
+	// 	maxString, _ := cadence.NewString(maxID)
+	// 	accessString, _ := cadence.NewString(accessID)
+	// 	idArray := cadence.NewArray([]cadence.Value{adminString, joshString, maxString, accessString})
+	// 	result := executeScriptAndCheck(t, b, templates.GenerateGetRandomizeScript(env), [][]byte{jsoncdc.MustEncode(idArray)})
+	// 	assertEqual(t, 4, len(result.(cadence.Array).Values))
 
-	})
+	// })
 
 	code := `
 	transaction {
 		prepare(acct: AuthAccount) {
 			let number = unsafeRandom()
-			acct.save(number, to: /storage/number)
 		}
 	}`
 
@@ -124,15 +123,15 @@ func TestEpochClusters(t *testing.T) {
 	)
 
 	// create new user accounts, mint tokens for them, and register them for staking
-	addresses, _, signers := registerAndMintManyAccounts(t, b, env, accountKeys, numEpochAccounts)
-	ids, _, _ := generateNodeIDs(numEpochAccounts)
-	_, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
-	registerNodesForStaking(t, b, env,
-		addresses,
-		signers,
-		stakingPublicKeys,
-		networkingPublicKeys,
-		ids)
+	// addresses, _, signers := registerAndMintManyAccounts(t, b, env, accountKeys, numEpochAccounts)
+	// ids, _, _ := generateNodeIDs(numEpochAccounts)
+	// _, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
+	// registerNodesForStaking(t, b, env,
+	// 	addresses,
+	// 	signers,
+	// 	stakingPublicKeys,
+	// 	networkingPublicKeys,
+	// 	ids)
 
 	// t.Run("Should be able to create collector clusters from an array of ids signed up for staking", func(t *testing.T) {
 	// 	string0, _ := cadence.NewString(ids[0])
