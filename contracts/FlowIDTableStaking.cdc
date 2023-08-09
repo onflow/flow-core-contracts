@@ -477,7 +477,7 @@ pub contract FlowIDTableStaking {
                 FlowIDTableStaking.addToCandidateNodeList(nodeID: nodeRecord.id, roleToAdd: nodeRecord.role)
             }
 
-            FlowIDTableStaking.setNewMovesPending(nodeID: self.id, delegatorID: nil)
+            FlowIDTableStaking.setNewMovesPending(nodeID: self.id, delegatorID: nil, existingList: nil)
         }
 
         /// Stake tokens that are in the tokensUnstaked bucket
@@ -511,7 +511,7 @@ pub contract FlowIDTableStaking {
                 FlowIDTableStaking.addToCandidateNodeList(nodeID: nodeRecord.id, roleToAdd: nodeRecord.role)
             }
 
-            FlowIDTableStaking.setNewMovesPending(nodeID: self.id, delegatorID: nil)
+            FlowIDTableStaking.setNewMovesPending(nodeID: self.id, delegatorID: nil, existingList: nil)
         }
 
         /// Stake tokens that are in the tokensRewarded bucket
@@ -532,7 +532,7 @@ pub contract FlowIDTableStaking {
                 FlowIDTableStaking.addToCandidateNodeList(nodeID: nodeRecord.id, roleToAdd: nodeRecord.role)
             }
 
-            FlowIDTableStaking.setNewMovesPending(nodeID: self.id, delegatorID: nil)
+            FlowIDTableStaking.setNewMovesPending(nodeID: self.id, delegatorID: nil, existingList: nil)
         }
 
         /// Request amount tokens to be removed from staking at the end of the next epoch
@@ -580,7 +580,7 @@ pub contract FlowIDTableStaking {
                 // update request to show that leftover amount is requested to be unstaked
                 nodeRecord.tokensRequestedToUnstake = nodeRecord.tokensRequestedToUnstake + (amount - amountCommitted)
 
-                FlowIDTableStaking.setNewMovesPending(nodeID: self.id, delegatorID: nil)
+                FlowIDTableStaking.setNewMovesPending(nodeID: self.id, delegatorID: nil, existingList: nil)
 
                 emit TokensUnstaked(nodeID: self.id, amount: amountCommitted)
                 emit NodeTokensRequestedToUnstake(nodeID: self.id, amount: nodeRecord.tokensRequestedToUnstake)
@@ -615,7 +615,7 @@ pub contract FlowIDTableStaking {
                 /// update request to show that leftover amount is requested to be unstaked
                 nodeRecord.tokensRequestedToUnstake = nodeRecord.tokensStaked.balance
 
-                FlowIDTableStaking.setNewMovesPending(nodeID: self.id, delegatorID: nil)
+                FlowIDTableStaking.setNewMovesPending(nodeID: self.id, delegatorID: nil, existingList: nil)
 
                 emit NodeTokensRequestedToUnstake(nodeID: self.id, amount: nodeRecord.tokensRequestedToUnstake)
             }
@@ -675,7 +675,7 @@ pub contract FlowIDTableStaking {
             // Commit the new tokens to the delegator record
             delRecord.tokensCommitted.deposit(from: <-from)
 
-            FlowIDTableStaking.setNewMovesPending(nodeID: self.nodeID, delegatorID: self.id)
+            FlowIDTableStaking.setNewMovesPending(nodeID: self.nodeID, delegatorID: self.id, existingList: nil)
         }
 
         /// Delegate tokens from the unstaked bucket to the node operator
@@ -704,7 +704,7 @@ pub contract FlowIDTableStaking {
 
             emit DelegatorTokensCommitted(nodeID: self.nodeID, delegatorID: self.id, amount: amount)
 
-            FlowIDTableStaking.setNewMovesPending(nodeID: self.nodeID, delegatorID: self.id)
+            FlowIDTableStaking.setNewMovesPending(nodeID: self.nodeID, delegatorID: self.id, existingList: nil)
         }
 
         /// Delegate tokens from the rewards bucket to the node operator
@@ -720,7 +720,7 @@ pub contract FlowIDTableStaking {
 
             emit DelegatorTokensCommitted(nodeID: self.nodeID, delegatorID: self.id, amount: amount)
 
-            FlowIDTableStaking.setNewMovesPending(nodeID: self.nodeID, delegatorID: self.id)
+            FlowIDTableStaking.setNewMovesPending(nodeID: self.nodeID, delegatorID: self.id, existingList: nil)
         }
 
         /// Request to unstake delegated tokens during the next epoch
@@ -758,7 +758,7 @@ pub contract FlowIDTableStaking {
                 /// update request to show that leftover amount is requested to be unstaked
                 delRecord.tokensRequestedToUnstake = delRecord.tokensRequestedToUnstake + (amount - amountCommitted)
 
-                FlowIDTableStaking.setNewMovesPending(nodeID: self.nodeID, delegatorID: self.id)
+                FlowIDTableStaking.setNewMovesPending(nodeID: self.nodeID, delegatorID: self.id, existingList: nil)
 
                 emit DelegatorTokensUnstaked(nodeID: self.nodeID, delegatorID: self.id, amount: amountCommitted)
                 emit DelegatorTokensRequestedToUnstake(nodeID: self.nodeID, delegatorID: self.id, amount: delRecord.tokensRequestedToUnstake)
@@ -975,7 +975,7 @@ pub contract FlowIDTableStaking {
             for id in currentApproveList.keys {
                 if newApproveList[id] == nil {
                     if FlowIDTableStaking.stakingEnabled() {
-                        FlowIDTableStaking.setNewMovesPending(nodeID: id, delegatorID: nil)
+                        FlowIDTableStaking.setNewMovesPending(nodeID: id, delegatorID: nil, existingList: nil)
                     } else {
                         self.unsafeRemoveAndRefundNodeRecord(id)
                     }
@@ -1020,6 +1020,9 @@ pub contract FlowIDTableStaking {
                 FlowIDTableStaking.account.save(currentRoleNodeCounts, to: /storage/flowStakingRoleNodeCounts)
             }
 
+            var movesPendingList = FlowIDTableStaking.account.load<{String: {UInt32: Bool}}>(from: /storage/idTableMovesPendingList)
+                ?? panic("No moves pending list in account storage")
+
             // Iterate through all delegators and unstake their tokens
             // since their node has unstaked
             for delegator in nodeRecord.delegators.keys {
@@ -1035,11 +1038,13 @@ pub contract FlowIDTableStaking {
                 // Request to unstake all tokens
                 if delRecord.tokensStaked.balance > 0.0 {
                     delRecord.tokensRequestedToUnstake = delRecord.tokensStaked.balance
-                    FlowIDTableStaking.setNewMovesPending(nodeID: nodeRecord.id, delegatorID: delegator)
+                    movesPendingList = FlowIDTableStaking.setNewMovesPending(nodeID: nodeRecord.id, delegatorID: delegator, existingList: movesPendingList)
                 }
             }
 
-            FlowIDTableStaking.setNewMovesPending(nodeID: nodeRecord.id, delegatorID: nil)
+            movesPendingList = FlowIDTableStaking.setNewMovesPending(nodeID: nodeRecord.id, delegatorID: nil, existingList: movesPendingList)
+            // Save the updated moves pending list
+            FlowIDTableStaking.account.save<{String: {UInt32: Bool}}>(movesPendingList, to: /storage/idTableMovesPendingList)
 
             FlowIDTableStaking.removeFromCandidateNodeList(nodeID: nodeRecord.id, role: nodeRecord.role)
 
@@ -1405,8 +1410,7 @@ pub contract FlowIDTableStaking {
                 ?? panic("No moves pending list in account storage")
 
             // Reset the movesPendingList
-            let movesPendingList: {String: {UInt32: Bool}} = {}
-            FlowIDTableStaking.account.save<{String: {UInt32: Bool}}>(movesPendingList, to: /storage/idTableMovesPendingList)
+            var movesPendingList: {String: {UInt32: Bool}} = {}
 
             let stakedNodeIDs: {String: Bool} = FlowIDTableStaking.getParticipantNodeList()!
 
@@ -1439,7 +1443,7 @@ pub contract FlowIDTableStaking {
                     }
                     // unstaked tokens automatically mark the node as pending
                     // because they will move in the next epoch
-                    FlowIDTableStaking.setNewMovesPending(nodeID: nodeID, delegatorID: nil)
+                    movesPendingList = FlowIDTableStaking.setNewMovesPending(nodeID: nodeID, delegatorID: nil, existingList: movesPendingList)
                 }
 
                 let pendingDelegatorsList = movesPendingNodeIDs[nodeID]!
@@ -1476,7 +1480,7 @@ pub contract FlowIDTableStaking {
                         delRecord.tokensUnstaking.deposit(from: <-delRecord.tokensStaked.withdraw(amount: delRecord.tokensRequestedToUnstake))
                         // unstaked tokens automatically mark the delegator as pending
                         // because they will move in the next epoch
-                        FlowIDTableStaking.setNewMovesPending(nodeID: nodeID, delegatorID: delegator)
+                        movesPendingList = FlowIDTableStaking.setNewMovesPending(nodeID: nodeID, delegatorID: delegator, existingList: movesPendingList)
                     }
 
                     // subtract their requested tokens from the total staked for their node type
@@ -1491,6 +1495,9 @@ pub contract FlowIDTableStaking {
                 // Reset the tokens requested field so it can be used for the next epoch
                 nodeRecord.tokensRequestedToUnstake = 0.0
             }
+
+            // Save the updated moves pending list
+            FlowIDTableStaking.account.save<{String: {UInt32: Bool}}>(movesPendingList, to: /storage/idTableMovesPendingList)
 
             // Start the new epoch's staking auction
             self.startStakingAuction()
@@ -1636,12 +1643,14 @@ pub contract FlowIDTableStaking {
 
     /// Adds a node and/or a delegator to the list of node IDs who have pending token movements
     /// or whose delegators have pending movements
-    access(contract) fun setNewMovesPending(nodeID: String, delegatorID: UInt32?) {
+    /// Can pass an existing list to add it to that instead of the saved one, like during `moveTokens`
+    access(contract) fun setNewMovesPending(nodeID: String, delegatorID: UInt32?, existingList: {String: {UInt32: Bool}}?): {String: {UInt32: Bool}} {
         if self.nodes[nodeID] == nil {
-            return
+            return existingList ?? {}
         }
-        let movesPendingList = self.account.load<{String: {UInt32: Bool}}>(from: /storage/idTableMovesPendingList)
-            ?? panic("No moves pending list in account storage")
+
+        let movesPendingList = existingList ?? (self.account.load<{String: {UInt32: Bool}}>(from: /storage/idTableMovesPendingList)
+            ?? panic("No moves pending list in account storage"))
 
         // Create an empty list of delegators with pending moves for the node ID
         var delegatorList: {UInt32: Bool} = {}
@@ -1661,7 +1670,11 @@ pub contract FlowIDTableStaking {
         // If it was just a node, it will save an empty/unmodified delegator list
         movesPendingList[nodeID] = delegatorList
 
-        self.account.save<{String: {UInt32: Bool}}>(movesPendingList, to: /storage/idTableMovesPendingList)
+        // Only save the result to storage if the call indicated that we were supposed to
+        if existingList == nil {
+            self.account.save<{String: {UInt32: Bool}}>(movesPendingList, to: /storage/idTableMovesPendingList)
+        }
+        return movesPendingList
     }
 
     /// Gets a list of node IDs who have pending token movements

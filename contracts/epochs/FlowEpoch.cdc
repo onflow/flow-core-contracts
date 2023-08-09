@@ -420,13 +420,13 @@ pub contract FlowEpoch {
                     }
                 case EpochPhase.EPOCHSETUP:
                     if FlowClusterQC.votingCompleted() && (FlowDKG.dkgCompleted() != nil) {
+                        self.calculateAndSetRewards()
                         self.startEpochCommit()
                     }
                 case EpochPhase.EPOCHCOMMIT:
                     let currentBlock = getCurrentBlock()
                     let currentEpochMetadata = FlowEpoch.getEpochMetadata(FlowEpoch.currentEpochCounter)!
                     if currentBlock.view >= currentEpochMetadata.endView {
-                        self.calculateAndSetRewards()
                         self.endEpoch()
                     }
                 default:

@@ -9,7 +9,7 @@ transaction(amount: UFix64) {
     prepare(acct: AuthAccount) {
         // borrow a reference to the node object
         self.stakerRef = acct.borrow<&FlowIDTableStaking.NodeStaker>(from: FlowIDTableStaking.NodeStakerStoragePath)
-            ?? panic("Could not borrow reference to staking admin")
+            ?? panic("Could not borrow reference to the node object")
 
     }
 
