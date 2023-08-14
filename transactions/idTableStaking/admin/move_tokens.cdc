@@ -1,9 +1,8 @@
 import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
-import FlowEpoch from 0xEPOCHADDRESS
 
 // This transaction moves tokens between buckets
 
-transaction {
+transaction(epoch:UInt64) {
 
     // Local variable for a reference to the ID Table Admin object
     let adminRef: &FlowIDTableStaking.Admin
@@ -15,6 +14,6 @@ transaction {
     }
 
     execute {
-        self.adminRef.moveTokens(FlowEpoch.currentEpochCounter)
+        self.adminRef.moveTokens(epoch)
     }
 }

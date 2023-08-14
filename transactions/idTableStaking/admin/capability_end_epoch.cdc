@@ -8,7 +8,7 @@ import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
 // and moves tokens between buckets
 // It also sets a new token payout for the next epoch
 
-transaction(ids: {String: Bool}, newPayout: UFix64) {
+transaction(ids: {String: Bool}, newPayout: UFix64, epoch:UInt64) {
 
     // Local variable for a reference to the ID Table Admin object
     let adminRef: &FlowIDTableStaking.Admin
@@ -33,6 +33,6 @@ transaction(ids: {String: Bool}, newPayout: UFix64) {
 
         self.adminRef.endStakingAuction()
 
-        self.adminRef.moveTokens(FlowEpoch.currentEpochCounter)
+        self.adminRef.moveTokens(epoch)
     }
 }
