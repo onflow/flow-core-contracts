@@ -3,8 +3,9 @@ package test
 import (
 	"context"
 	"fmt"
-	"github.com/onflow/cadence/runtime/common"
 	"testing"
+
+	"github.com/onflow/cadence/runtime/common"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -243,6 +244,9 @@ func TestManyNodesIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(idTableAddress)
 
+		err = tx.AddArgument(CadenceUInt64(1))
+		assert.NoError(t, err)
+
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
@@ -328,6 +332,9 @@ func TestManyNodesIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(idTableAddress)
 
+		err := tx.AddArgument(CadenceUInt64(1))
+		assert.NoError(t, err)
+
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
@@ -347,6 +354,9 @@ func TestManyNodesIDTable(t *testing.T) {
 			AddAuthorizer(idTableAddress)
 
 		err := tx.AddArgument(approvedNodesDict)
+		require.NoError(t, err)
+
+		err = tx.AddArgument(CadenceUInt64(1))
 		require.NoError(t, err)
 
 		signAndSubmit(

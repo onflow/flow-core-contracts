@@ -3,9 +3,10 @@ package test
 import (
 	"context"
 	"fmt"
+	"testing"
+
 	"github.com/onflow/flow-emulator/adapters"
 	"github.com/rs/zerolog"
-	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -445,11 +446,13 @@ func endStakingMoveTokens(t *testing.T,
 ) {
 	// End staking auction and epoch
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), authorizer)
-
 	nodeIDsDict := generateCadenceNodeDictionary(nodeIDs)
 
 	err := tx.AddArgument(nodeIDsDict)
 	require.NoError(t, err)
+	err = tx.AddArgument(CadenceUInt64(1))
+	require.NoError(t, err)
+
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{authorizer},
