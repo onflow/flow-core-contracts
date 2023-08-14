@@ -278,6 +278,7 @@ func TestStakingTransferAdmin(t *testing.T) {
 		err := tx.AddArgument(nodeIDDict)
 		require.NoError(t, err)
 		tx.AddArgument(CadenceUFix64("1300000.0"))
+		tx.AddArgument(CadenceUInt64(1))
 
 		signAndSubmit(
 			t, b, tx,
@@ -946,6 +947,7 @@ func TestIDTableApprovals(t *testing.T) {
 
 	// Move tokens and start a new staking auction
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateMoveTokensScript(env), idTableAddress)
+	tx.AddArgument(CadenceUInt64(1))
 
 	signAndSubmit(
 		t, b, tx,
@@ -1545,6 +1547,7 @@ func TestIDTableStaking(t *testing.T) {
 	t.Run("Should Move committed tokens to staked buckets", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateMoveTokensScript(env), idTableAddress)
+		tx.AddArgument(CadenceUInt64(1))
 
 		signAndSubmit(
 			t, b, tx,
@@ -2060,6 +2063,7 @@ func TestIDTableStaking(t *testing.T) {
 	t.Run("Should Move tokens between buckets", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateMoveTokensScript(env), idTableAddress)
+		tx.AddArgument(CadenceUInt64(1))
 
 		signAndSubmit(
 			t, b, tx,
@@ -2385,6 +2389,7 @@ func TestIDTableStaking(t *testing.T) {
 	t.Run("Should Move tokens between buckets", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateMoveTokensScript(env), idTableAddress)
+		tx.AddArgument(CadenceUInt64(1))
 
 		signAndSubmit(
 			t, b, tx,
@@ -2541,6 +2546,7 @@ func TestIDTableStaking(t *testing.T) {
 	t.Run("Should Move tokens between buckets", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateMoveTokensScript(env), idTableAddress)
+		tx.AddArgument(CadenceUInt64(1))
 
 		signAndSubmit(
 			t, b, tx,
@@ -2653,6 +2659,9 @@ func TestIDTableStaking(t *testing.T) {
 		err := tx.AddArgument(twoNodeIDDict)
 		require.NoError(t, err)
 
+		err = tx.AddArgument(CadenceUInt64(1))
+		require.NoError(t, err)
+
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
@@ -2759,6 +2768,9 @@ func TestIDTableStaking(t *testing.T) {
 		err := tx.AddArgument(twoNodeIDDict)
 		require.NoError(t, err)
 
+		err = tx.AddArgument(CadenceUInt64(1))
+		require.NoError(t, err)
+
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
@@ -2780,6 +2792,9 @@ func TestIDTableStaking(t *testing.T) {
 		require.NoError(t, err)
 
 		err = tx.AddArgument(CadenceUFix64("4000000.0"))
+		require.NoError(t, err)
+
+		err = tx.AddArgument(CadenceUInt64(1))
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -2926,6 +2941,9 @@ func TestIDTableDelegatorMinimums(t *testing.T) {
 	err := tx.AddArgument(approveIDDict)
 	require.NoError(t, err)
 
+	err = tx.AddArgument(CadenceUInt64(1))
+	require.NoError(t, err)
+
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{idTableAddress},
@@ -2971,7 +2989,10 @@ func TestIDTableDelegatorMinimums(t *testing.T) {
 	// should fully unstake both delegators since they are below the limit
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), idTableAddress)
 
-	tx.AddArgument(approveIDDict)
+	err = tx.AddArgument(approveIDDict)
+	require.NoError(t, err)
+
+	err = tx.AddArgument(CadenceUInt64(1))
 	require.NoError(t, err)
 
 	signAndSubmit(
@@ -3132,6 +3153,8 @@ func TestIDTableSlotSelection(t *testing.T) {
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), idTableAddress)
 	err := tx.AddArgument(noApprovalIDDict)
 	require.NoError(t, err)
+	err = tx.AddArgument(CadenceUInt64(1))
+	require.NoError(t, err)
 	slotResult := signAndSubmit(
 		t, b, tx,
 		[]flow.Address{idTableAddress},
@@ -3189,6 +3212,9 @@ func TestIDTableSlotSelection(t *testing.T) {
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), idTableAddress)
 
 	err = tx.AddArgument(noApprovalIDDict)
+	require.NoError(t, err)
+
+	err = tx.AddArgument(CadenceUInt64(1))
 	require.NoError(t, err)
 
 	slotResult = signAndSubmit(
@@ -3293,6 +3319,10 @@ func TestIDTableSlotSelection(t *testing.T) {
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), idTableAddress)
 		err = tx.AddArgument(noApprovalIDDict)
 		require.NoError(t, err)
+
+		err = tx.AddArgument(CadenceUInt64(1))
+		require.NoError(t, err)
+
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
@@ -3432,6 +3462,10 @@ func TestIDTableRewardsWitholding(t *testing.T) {
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), idTableAddress)
 	err := tx.AddArgument(nodeIDsDict)
 	require.NoError(t, err)
+
+	err = tx.AddArgument(CadenceUInt64(1))
+	require.NoError(t, err)
+
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{idTableAddress},

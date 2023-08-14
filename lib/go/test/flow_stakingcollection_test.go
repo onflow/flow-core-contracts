@@ -3,9 +3,10 @@ package test
 import (
 	"context"
 	"fmt"
+	"testing"
+
 	"github.com/onflow/flow-emulator/convert"
 	sdktemplates "github.com/onflow/flow-go-sdk/templates"
-	"testing"
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
@@ -495,6 +496,9 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 	err := tx.AddArgument(approvedNodeIDs)
 	require.NoError(t, err)
+
+	err = tx.AddArgument(CadenceUInt64(1))
+	require.NoError(t, err)
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{flow.HexToAddress(env.IDTableAddress)},
@@ -896,6 +900,10 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 
 	err := tx.AddArgument(approvedNodeIDs)
 	require.NoError(t, err)
+
+	err = tx.AddArgument(CadenceUInt64(1))
+	require.NoError(t, err)
+
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{flow.HexToAddress(env.IDTableAddress)},
@@ -1599,6 +1607,10 @@ func TestStakingCollectionRewards(t *testing.T) {
 	approvedNodeIDs := generateCadenceNodeDictionary([]string{adminID, joshID})
 	err := tx.AddArgument(approvedNodeIDs)
 	require.NoError(t, err)
+
+	err = tx.AddArgument(CadenceUInt64(1))
+	require.NoError(t, err)
+
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{flow.HexToAddress(env.IDTableAddress)},
