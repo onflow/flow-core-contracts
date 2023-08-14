@@ -946,6 +946,7 @@ func TestIDTableApprovals(t *testing.T) {
 
 	// Move tokens and start a new staking auction
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateMoveTokensScript(env), idTableAddress)
+	tx.AddArgument(CadenceUInt64(1))
 
 	signAndSubmit(
 		t, b, tx,
@@ -1545,6 +1546,7 @@ func TestIDTableStaking(t *testing.T) {
 	t.Run("Should Move committed tokens to staked buckets", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateMoveTokensScript(env), idTableAddress)
+		tx.AddArgument(CadenceUInt64(1))
 
 		signAndSubmit(
 			t, b, tx,
@@ -2060,6 +2062,7 @@ func TestIDTableStaking(t *testing.T) {
 	t.Run("Should Move tokens between buckets", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateMoveTokensScript(env), idTableAddress)
+		tx.AddArgument(CadenceUInt64(1))
 
 		signAndSubmit(
 			t, b, tx,
@@ -2385,6 +2388,7 @@ func TestIDTableStaking(t *testing.T) {
 	t.Run("Should Move tokens between buckets", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateMoveTokensScript(env), idTableAddress)
+		tx.AddArgument(CadenceUInt64(1))
 
 		signAndSubmit(
 			t, b, tx,
@@ -2541,6 +2545,7 @@ func TestIDTableStaking(t *testing.T) {
 	t.Run("Should Move tokens between buckets", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateMoveTokensScript(env), idTableAddress)
+		tx.AddArgument(CadenceUInt64(1))
 
 		signAndSubmit(
 			t, b, tx,
