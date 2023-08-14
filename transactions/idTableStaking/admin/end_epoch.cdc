@@ -1,5 +1,5 @@
 import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
-
+import FlowEpoch from 0xEPOCHADDRESS
 // This transaction effectively ends the epoch and starts a new one.
 //
 // It combines the end_staking and move_tokens transactions
@@ -22,6 +22,6 @@ transaction(ids: {String: Bool}) {
         
         self.adminRef.endStakingAuction()
 
-        self.adminRef.moveTokens()
+        self.adminRef.moveTokens(FlowEpoch.currentEpochCounter)
     }
 }

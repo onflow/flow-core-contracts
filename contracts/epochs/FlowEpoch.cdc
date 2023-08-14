@@ -547,7 +547,7 @@ pub contract FlowEpoch {
             self.borrowDKGAdmin().endDKG()
         }
 
-        self.borrowStakingAdmin().moveTokens()
+        self.borrowStakingAdmin().moveTokens(self.proposedEpochCounter())
 
         self.currentEpochPhase = EpochPhase.STAKINGAUCTION
 

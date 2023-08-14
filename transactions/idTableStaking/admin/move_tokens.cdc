@@ -1,4 +1,5 @@
 import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
+import FlowEpoch from 0xEPOCHADDRESS
 
 // This transaction moves tokens between buckets
 
@@ -14,6 +15,6 @@ transaction {
     }
 
     execute {
-        self.adminRef.moveTokens()
+        self.adminRef.moveTokens(FlowEpoch.currentEpochCounter)
     }
 }

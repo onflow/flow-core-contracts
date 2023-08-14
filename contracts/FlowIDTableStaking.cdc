@@ -36,7 +36,7 @@ pub contract FlowIDTableStaking {
 
     /****** ID Table and Staking Events ******/
 
-    pub event NewEpoch(totalStaked: UFix64, totalRewardPayout: UFix64)
+    pub event NewEpoch(totalStaked: UFix64, totalRewardPayout: UFix64, epoch:UInt64)
     pub event EpochTotalRewardsPaid(total: UFix64, fromFees: UFix64, minted: UFix64, feesBurned: UFix64)
 
     /// Node Events
@@ -846,7 +846,7 @@ pub contract FlowIDTableStaking {
         pub fun endStakingAuction()
         pub fun payRewards(_ rewardsSummary: EpochRewardsSummary)
         pub fun calculateRewards(): EpochRewardsSummary
-        pub fun moveTokens()
+        pub fun moveTokens(_ epoch:UInt64)
     }
     
     /// Admin resource that has the ability to create new staker objects, remove insufficiently staked nodes
@@ -1393,7 +1393,7 @@ pub contract FlowIDTableStaking {
         /// Tokens that have been committed are moved to the staked bucket
         /// Tokens that were unstaking during the last epoch are fully unstaked
         /// Unstaking requests are filled by moving those tokens from staked to unstaking
-        pub fun moveTokens() {
+        pub fun moveTokens(_ epoch:UInt64) {
             pre {
                 !FlowIDTableStaking.stakingEnabled(): "Cannot move tokens if the staking auction is still in progress"
             }
@@ -1501,7 +1501,7 @@ pub contract FlowIDTableStaking {
             // Indicates that the tokens have moved and the epoch has ended
             // Tells what the new reward payout will be. The new payout is calculated and changed
             // before this method is executed and will not be changed for the rest of the epoch
-            emit NewEpoch(totalStaked: FlowIDTableStaking.getTotalStaked(), totalRewardPayout: FlowIDTableStaking.epochTokenPayout)
+            emit NewEpoch(totalStaked: FlowIDTableStaking.getTotalStaked(), totalRewardPayout: FlowIDTableStaking.epochTokenPayout, epoch:epoch)
         }
     }
 
