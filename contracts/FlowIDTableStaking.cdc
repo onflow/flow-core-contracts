@@ -921,6 +921,18 @@ pub contract FlowIDTableStaking {
             FlowIDTableStaking.account.save(slotLimits, to: /storage/flowStakingSlotLimits)
         }
 
+        /// Sets the number of open node slots to allow per epoch
+        /// Only access nodes are used for this currently,
+        /// but other node types will be added in the future when more permissionless
+        /// node operation can be enabled
+        pub fun setOpenNodeSlots(openSlots: {UInt8: UInt16}) {
+            pre {
+                openSlots[UInt8(5)] != nil: "Need to have a value set for access nodes"
+            }
+
+            FlowIDTableStaking.account.load<{UInt8: UInt16}>(from: /storage/flowStakingOpenNodeSlots)
+            FlowIDTableStaking.account.save(openSlots, to: /storage/flowStakingOpenNodeSlots)
+        }
 
         /// Sets a list of node IDs who will not receive rewards for the current epoch
         /// This is used during epochs to punish nodes who have poor uptime 
@@ -1167,6 +1179,8 @@ pub contract FlowIDTableStaking {
 
             let slotLimits: {UInt8: UInt16} = FlowIDTableStaking.getRoleSlotLimits()
 
+            let openSlots = FlowIDTableStaking.getOpenNodeSlots()
+
             let nodesToAdd: [String] = []
 
             // Load and reset the candidate node list
@@ -1223,10 +1237,18 @@ pub contract FlowIDTableStaking {
                 }
 
                 nodesToAdd.appendAll(candidateNodesForRole.keys)
+
+                // Add the desired open slots for each role to the current node count
+                // to make the slot limits
+                if let openSlotsForRole = openSlots[role] {
+                    slotLimits[role] = currentNodeCount[role]! + openSlotsForRole
+                }
             }
 
             FlowIDTableStaking.account.load<{UInt8: UInt16}>(from: /storage/flowStakingRoleNodeCounts)
             FlowIDTableStaking.account.save(currentNodeCount, to: /storage/flowStakingRoleNodeCounts)
+
+            self.setSlotLimits(slotLimits: slotLimits)
 
             return nodesToAdd
         }
@@ -1762,6 +1784,12 @@ pub contract FlowIDTableStaking {
     pub fun getRoleSlotLimits(): {UInt8: UInt16} {
         return FlowIDTableStaking.account.copy<{UInt8: UInt16}>(from: /storage/flowStakingSlotLimits)
             ?? {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
+    }
+
+    /// Gets the number of allowed open slots per node role
+    pub fun getOpenNodeSlots(): {UInt8: UInt16} {
+        return FlowIDTableStaking.account.copy<{UInt8: UInt16}>(from: /storage/flowStakingOpenNodeSlots)
+            ?? {}
     }
 
     /// Returns a dictionary that indicates how many participant nodes there are for each role
