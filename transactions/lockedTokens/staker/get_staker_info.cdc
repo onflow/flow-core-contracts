@@ -21,7 +21,7 @@ access(all) fun main(account: Address): [FlowIDTableStaking.NodeInfo] {
     }
 
     let lockedAccountInfoCap = pubAccount
-        .getCapability<&LockedTokens.TokenHolder{LockedTokens.LockedAccountInfo}>(
+        .getCapability<&LockedTokens.TokenHolder>(
             LockedTokens.LockedAccountInfoPublicPath
         )
 

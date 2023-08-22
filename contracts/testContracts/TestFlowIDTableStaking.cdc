@@ -10,17 +10,17 @@
 import FungibleToken from "FungibleToken"
 import FlowToken from "FlowToken"
 
-pub contract FlowIDTableStaking {
+access(all) contract FlowIDTableStaking {
 
     /*********** ID Table and Staking Composite Type Definitions *************/
 
     /// Contains information that is specific to a node in Flow
     /// only lives in this contract
-    pub resource NodeRecord {
+    access(all) resource NodeRecord {
 
         /// The unique ID of the node
         /// Set when the node is created
-        pub let id: String
+        access(all) let id: String
 
         /// The type of node:
         /// 1 = collection
@@ -28,16 +28,16 @@ pub contract FlowIDTableStaking {
         /// 3 = execution
         /// 4 = verification
         /// 5 = access
-        pub var role: UInt8
+        access(all) var role: UInt8
 
         /// The address used for networking
-        pub(set) var networkingAddress: String
+        access(all) var networkingAddress: String
 
         /// the public key for networking
-        pub(set) var networkingKey: String
+        access(all) var networkingKey: String
 
         /// the public key for staking
-        pub(set) var stakingKey: String
+        access(all) var stakingKey: String
 
         init(
             id: String,
@@ -45,7 +45,7 @@ pub contract FlowIDTableStaking {
             networkingAddress: String,
             networkingKey: String,
             stakingKey: String,
-            tokensCommitted: @FungibleToken.Vault
+            tokensCommitted: @{FungibleToken.Vault}
         ) {
 
             self.id = id
@@ -59,24 +59,24 @@ pub contract FlowIDTableStaking {
     }
 
         // Struct to create to get read-only info about a node
-    pub struct NodeInfo {
-        pub let id: String
-        pub let role: UInt8
-        pub let networkingAddress: String
-        pub let networkingKey: String
-        pub let stakingKey: String
-        pub let tokensStaked: UFix64
-        pub let totalTokensStaked: UFix64
-        pub let tokensCommitted: UFix64
-        pub let tokensUnstaking: UFix64
-        pub let tokensUnstaked: UFix64
-        pub let tokensRewarded: UFix64
+    access(all) struct NodeInfo {
+        access(all) let id: String
+        access(all) let role: UInt8
+        access(all) let networkingAddress: String
+        access(all) let networkingKey: String
+        access(all) let stakingKey: String
+        access(all) let tokensStaked: UFix64
+        access(all) let totalTokensStaked: UFix64
+        access(all) let tokensCommitted: UFix64
+        access(all) let tokensUnstaking: UFix64
+        access(all) let tokensUnstaked: UFix64
+        access(all) let tokensRewarded: UFix64
 
         /// list of delegator IDs for this node operator
-        pub let delegators: [UInt32]
-        pub let delegatorIDCounter: UInt32
-        pub let tokensRequestedToUnstake: UFix64
-        pub let initialWeight: UInt64
+        access(all) let delegators: [UInt32]
+        access(all) let delegatorIDCounter: UInt32
+        access(all) let tokensRequestedToUnstake: UFix64
+        access(all) let initialWeight: UInt64
 
         init(nodeID: String) {
 
@@ -99,51 +99,51 @@ pub contract FlowIDTableStaking {
     }
 
     /// Resource that the node operator controls for staking
-    pub resource NodeStaker {
+    access(all) resource NodeStaker {
 
         /// Unique ID for the node operator
-        pub let id: String
+        access(all) let id: String
 
         init(id: String) {
             self.id = id
         }
 
-        pub fun updateNetworkingAddress(_ newAddress: String) {
+        access(all) fun updateNetworkingAddress(_ newAddress: String) {
             
         }
 
         /// Add new tokens to the system to stake during the next epoch
-        pub fun stakeNewTokens(_ tokens: @FungibleToken.Vault) {
+        access(all) fun stakeNewTokens(_ tokens: @{FungibleToken.Vault}) {
 
             destroy tokens
         }
 
         /// Stake tokens that are in the tokensUnstaked bucket
         /// but haven't been officially staked
-        pub fun stakeUnstakedTokens(amount: UFix64) {
+        access(all) fun stakeUnstakedTokens(amount: UFix64) {
 
         }
 
         /// Stake tokens that are in the tokensRewarded bucket
         /// but haven't been officially staked
-        pub fun stakeRewardedTokens(amount: UFix64) {
+        access(all) fun stakeRewardedTokens(amount: UFix64) {
 
         }
 
         /// Request amount tokens to be removed from staking
         /// at the end of the next epoch
-        pub fun requestUnstaking(amount: UFix64) {
+        access(all) fun requestUnstaking(amount: UFix64) {
 
         }
 
         /// Requests to unstake all of the node operators staked and committed tokens,
         /// as well as all the staked and committed tokens of all of their delegators
-        pub fun unstakeAll() {
+        access(all) fun unstakeAll() {
 
         }
 
         /// Withdraw tokens from the unstaked bucket
-        pub fun withdrawUnstakedTokens(amount: UFix64): @FungibleToken.Vault {
+        access(all) fun withdrawUnstakedTokens(amount: UFix64): @{FungibleToken.Vault} {
             let flowTokenMinter = FlowIDTableStaking.account.borrow<&FlowToken.Minter>(from: /storage/flowTokenMinter)
                 ?? panic("Could not borrow minter reference")
 
@@ -152,7 +152,7 @@ pub contract FlowIDTableStaking {
         }
 
         /// Withdraw tokens from the rewarded bucket
-        pub fun withdrawRewardedTokens(amount: UFix64): @FungibleToken.Vault {
+        access(all) fun withdrawRewardedTokens(amount: UFix64): @{FungibleToken.Vault} {
             let flowTokenMinter = FlowIDTableStaking.account.borrow<&FlowToken.Minter>(from: /storage/flowTokenMinter)
                 ?? panic("Could not borrow minter reference")
 
@@ -161,16 +161,16 @@ pub contract FlowIDTableStaking {
 
     }
 
-    pub struct DelegatorInfo {
+    access(all) struct DelegatorInfo {
 
-        pub let id: UInt32
-        pub let nodeID: String
-        pub let tokensCommitted: UFix64
-        pub let tokensStaked: UFix64
-        pub let tokensUnstaking: UFix64
-        pub let tokensRewarded: UFix64
-        pub let tokensUnstaked: UFix64
-        pub let tokensRequestedToUnstake: UFix64
+        access(all) let id: UInt32
+        access(all) let nodeID: String
+        access(all) let tokensCommitted: UFix64
+        access(all) let tokensStaked: UFix64
+        access(all) let tokensUnstaking: UFix64
+        access(all) let tokensRewarded: UFix64
+        access(all) let tokensUnstaked: UFix64
+        access(all) let tokensRequestedToUnstake: UFix64
 
         init(nodeID: String, delegatorID: UInt32) {
 
@@ -188,13 +188,13 @@ pub contract FlowIDTableStaking {
 
     /// Resource object that the delegator stores in their account
     /// to perform staking actions
-    pub resource NodeDelegator {
+    access(all) resource NodeDelegator {
 
         /// Each delegator for a node operator has a unique ID
-        pub let id: UInt32
+        access(all) let id: UInt32
 
         /// The ID of the node operator that this delegator delegates to
-        pub let nodeID: String
+        access(all) let nodeID: String
 
         init(id: UInt32, nodeID: String) {
             self.id = id
@@ -202,28 +202,28 @@ pub contract FlowIDTableStaking {
         }
 
         /// Delegate new tokens to the node operator
-        pub fun delegateNewTokens(from: @FungibleToken.Vault) {
+        access(all) fun delegateNewTokens(from: @{FungibleToken.Vault}) {
 
             destroy from
         }
 
         /// Delegate tokens from the unstaked bucket to the node operator
-        pub fun delegateUnstakedTokens(amount: UFix64) {
+        access(all) fun delegateUnstakedTokens(amount: UFix64) {
 
         }
 
         /// Delegate tokens from the rewards bucket to the node operator
-        pub fun delegateRewardedTokens(amount: UFix64) {
+        access(all) fun delegateRewardedTokens(amount: UFix64) {
 
         }
 
         /// Request to unstake delegated tokens during the next epoch
-        pub fun requestUnstaking(amount: UFix64) {
+        access(all) fun requestUnstaking(amount: UFix64) {
 
         }
 
         /// Withdraw tokens from the unstaked bucket
-        pub fun withdrawUnstakedTokens(amount: UFix64): @FungibleToken.Vault {
+        access(all) fun withdrawUnstakedTokens(amount: UFix64): @{FungibleToken.Vault} {
             let flowTokenMinter = FlowIDTableStaking.account.borrow<&FlowToken.Minter>(from: /storage/flowTokenMinter)
                 ?? panic("Could not borrow minter reference")
 
@@ -231,7 +231,7 @@ pub contract FlowIDTableStaking {
         }
 
         /// Withdraw tokens from the rewarded bucket
-        pub fun withdrawRewardedTokens(amount: UFix64): @FungibleToken.Vault {
+        access(all) fun withdrawRewardedTokens(amount: UFix64): @{FungibleToken.Vault} {
             let flowTokenMinter = FlowIDTableStaking.account.borrow<&FlowToken.Minter>(from: /storage/flowTokenMinter)
                 ?? panic("Could not borrow minter reference")
 
@@ -242,13 +242,13 @@ pub contract FlowIDTableStaking {
     /// Any node can call this function to register a new Node
     /// It returns the resource for nodes that they can store in
     /// their account storage
-    pub fun addNodeRecord(
+    access(all) fun addNodeRecord(
         id: String,
         role: UInt8,
         networkingAddress: String,
         networkingKey: String,
         stakingKey: String,
-        tokensCommitted: @FungibleToken.Vault
+        tokensCommitted: @{FungibleToken.Vault}
     ): @NodeStaker {
         destroy tokensCommitted
 
@@ -257,7 +257,7 @@ pub contract FlowIDTableStaking {
 
     }
 
-    pub fun registerNewDelegator(nodeID: String, tokensCommitted: @FungibleToken.Vault): @NodeDelegator {
+    access(all) fun registerNewDelegator(nodeID: String, tokensCommitted: @{FungibleToken.Vault}): @NodeDelegator {
 
         destroy tokensCommitted
 
@@ -265,7 +265,7 @@ pub contract FlowIDTableStaking {
     }
 
     /// Gets the minimum stake requirement for delegators
-    pub fun getDelegatorMinimumStakeRequirement(): UFix64 {
+    access(all) fun getDelegatorMinimumStakeRequirement(): UFix64 {
         return self.account.copy<UFix64>(from: /storage/delegatorStakingMinimum)
             ?? 0.0
     }

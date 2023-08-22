@@ -6,7 +6,7 @@ import LockedTokens from 0xLOCKEDTOKENADDRESS
 transaction(to: Address, amount: UFix64) {
 
     // The Vault resource that holds the tokens that are being transferred
-    let sentVault: @FungibleToken.Vault
+    let sentVault: @{FungibleToken.Vault}
 
     prepare(admin: AuthAccount) {
 
@@ -36,7 +36,7 @@ transaction(to: Address, amount: UFix64) {
 
         // Get a reference to the recipient's Receiver
         let receiverRef = recipient
-            .getCapability<&AnyResource{FungibleToken.Receiver}>(
+            .getCapability<&{FungibleToken.Receiver}>(
                 /public/lockedFlowTokenReceiver
             )
             .borrow()

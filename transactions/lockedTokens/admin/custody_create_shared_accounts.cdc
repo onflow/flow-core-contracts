@@ -24,7 +24,7 @@ transaction(
         userAccount.keys.add(publicKey: fullUserPublicKey.publicKey, hashAlgorithm: fullUserPublicKey.hashAlgorithm, weight: fullUserPublicKey.weight)
 
         let vaultCapability = sharedAccount
-            .link<&FlowToken.Vault>(
+            .link<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(
                 /private/flowTokenVault,
                 target: /storage/flowTokenVault
             )
@@ -35,7 +35,7 @@ transaction(
         sharedAccount.save(<-lockedTokenManager, to: LockedTokens.LockedTokenManagerStoragePath)
 
         let tokenManagerCapability = sharedAccount
-            .link<&LockedTokens.LockedTokenManager>(
+            .link<auth(FungibleToken.Withdrawable) &LockedTokens.LockedTokenManager>(
                 LockedTokens.LockedTokenManagerPrivatePath,
                 target: LockedTokens.LockedTokenManagerStoragePath
             )
@@ -51,13 +51,13 @@ transaction(
             to: LockedTokens.TokenHolderStoragePath,
         )
 
-        userAccount.link<&LockedTokens.TokenHolder{LockedTokens.LockedAccountInfo}>(
+        userAccount.link<&LockedTokens.TokenHolder>(
             LockedTokens.LockedAccountInfoPublicPath,
             target: LockedTokens.TokenHolderStoragePath
         )
 
         let tokenAdminCapability = sharedAccount
-            .link<&LockedTokens.LockedTokenManager>(
+            .link<auth(FungibleToken.Withdrawable) &LockedTokens.LockedTokenManager>(
                 LockedTokens.LockedTokenAdminPrivatePath,
                 target: LockedTokens.LockedTokenManagerStoragePath
             )
@@ -79,13 +79,13 @@ transaction(
         sharedAccount.unlink(/public/flowTokenReceiver)
 
         // create new receiver that marks received tokens as unlocked
-        sharedAccount.link<&AnyResource{FungibleToken.Receiver}>(
+        sharedAccount.link<&{FungibleToken.Receiver}>(
             /public/flowTokenReceiver,
             target: LockedTokens.LockedTokenManagerStoragePath
         )
 
         // pub normal receiver in a separate unique path
-        sharedAccount.link<&AnyResource{FungibleToken.Receiver}>(
+        sharedAccount.link<&{FungibleToken.Receiver}>(
             /public/lockedFlowTokenReceiver,
             target: /storage/flowTokenVault
         )

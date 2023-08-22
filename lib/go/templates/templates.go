@@ -76,6 +76,12 @@ func ReplaceAddresses(code string, env Environment) string {
 
 	code = strings.ReplaceAll(
 		code,
+		OLD_placeholderLockedTokensAddress,
+		withHexPrefix(env.LockedTokensAddress),
+	)
+
+	code = strings.ReplaceAll(
+		code,
 		placeholderFungibleTokenAddress,
 		withHexPrefix(env.FungibleTokenAddress),
 	)

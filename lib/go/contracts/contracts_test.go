@@ -5,8 +5,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/onflow/flow-core-contracts/lib/go/templates"
-
 	"github.com/onflow/flow-core-contracts/lib/go/contracts"
 )
 
@@ -15,53 +13,27 @@ const (
 )
 
 func TestFlowTokenContract(t *testing.T) {
-	env := templates.Environment{
-		FungibleTokenAddress: fakeAddr,
-		ViewResolverAddress:  fakeAddr,
-		BurnerAddress:        fakeAddr,
-	}
-	contract := contracts.FlowToken(env)
+	contract := contracts.FlowToken(fakeAddr, fakeAddr, fakeAddr, fakeAddr)
 	assert.NotNil(t, contract)
 }
 
 func TestFlowFeesContract(t *testing.T) {
-	env := templates.Environment{
-		FungibleTokenAddress: fakeAddr,
-		FlowTokenAddress:     fakeAddr,
-		StorageFeesAddress:   fakeAddr,
-	}
-	contract := contracts.FlowFees(env)
+	contract := contracts.FlowFees(fakeAddr, fakeAddr, fakeAddr)
 	assert.NotNil(t, contract)
 }
 
 func TestStorageFeesContract(t *testing.T) {
-	env := templates.Environment{
-		FungibleTokenAddress: fakeAddr,
-		FlowTokenAddress:     fakeAddr,
-	}
-	contract := contracts.FlowStorageFees(env)
+	contract := contracts.FlowStorageFees(fakeAddr, fakeAddr)
 	assert.NotNil(t, contract)
 }
 
 func TestFlowServiceAccountContract(t *testing.T) {
-	env := templates.Environment{
-		FungibleTokenAddress: fakeAddr,
-		FlowTokenAddress:     fakeAddr,
-		StorageFeesAddress:   fakeAddr,
-		FlowFeesAddress:      fakeAddr,
-	}
-	contract := contracts.FlowServiceAccount(env)
+	contract := contracts.FlowServiceAccount(fakeAddr, fakeAddr, fakeAddr, fakeAddr)
 	assert.NotNil(t, contract)
 }
 
 func TestFlowIdentityTableContract(t *testing.T) {
-	env := templates.Environment{
-		FungibleTokenAddress: fakeAddr,
-		FlowTokenAddress:     fakeAddr,
-		BurnerAddress:        fakeAddr,
-		FlowFeesAddress:      fakeAddr,
-	}
-	contract := contracts.FlowIDTableStaking(env)
+	contract := contracts.FlowIDTableStaking(fakeAddr, fakeAddr, fakeAddr, true)
 	assert.NotNil(t, contract)
 }
 
@@ -71,17 +43,7 @@ func TestFlowQCContract(t *testing.T) {
 }
 
 func TestStakingCollection(t *testing.T) {
-	env := templates.Environment{
-		FungibleTokenAddress:     fakeAddr,
-		FlowTokenAddress:         fakeAddr,
-		StorageFeesAddress:       fakeAddr,
-		IDTableAddress:           fakeAddr,
-		LockedTokensAddress:      fakeAddr,
-		QuorumCertificateAddress: fakeAddr,
-		DkgAddress:               fakeAddr,
-		EpochAddress:             fakeAddr,
-	}
-	contract := contracts.FlowStakingCollection(env)
+	contract := contracts.FlowStakingCollection(fakeAddr, fakeAddr, fakeAddr, fakeAddr, fakeAddr, fakeAddr, fakeAddr, fakeAddr, fakeAddr)
 	assert.NotNil(t, contract)
 }
 
