@@ -26,7 +26,7 @@ transaction(unlockInfo: {Address: UFix64}) {
             // revert the entire transaction if it fails
             // to get the information for a single address
             if let lockedAccountInfoRef = getAccount(unlockedAddress)
-                .getCapability<&LockedTokens.TokenHolder{LockedTokens.LockedAccountInfo}>(LockedTokens.LockedAccountInfoPublicPath)
+                .getCapability<&LockedTokens.TokenHolder>(LockedTokens.LockedAccountInfoPublicPath)
                 .borrow() {
 
                 let lockedAccountAddress = lockedAccountInfoRef.getLockedAccountAddress()

@@ -263,20 +263,10 @@ access(all) contract LockedTokens {
         }
     }
 
-    /// This interfaces allows anybody to read information about the locked account.
-    access(all) resource interface LockedAccountInfo {
-        access(all) fun getLockedAccountAddress(): Address
-        access(all) fun getLockedAccountBalance(): UFix64
-        access(all) fun getUnlockLimit(): UFix64
-        access(all) view fun getNodeID(): String?
-        access(all) view fun getDelegatorID(): UInt32?
-        access(all) view fun getDelegatorNodeID(): String?
-    }
-
     access(all) entitlement TokenOperations
 
     /// Stored in Holder unlocked account
-    access(all) resource TokenHolder: FungibleToken.Receiver, FungibleToken.Provider, LockedAccountInfo {
+    access(all) resource TokenHolder: FungibleToken.Receiver, FungibleToken.Provider {
 
         /// The address of the shared (locked) account.
         access(all) var address: Address
@@ -312,8 +302,6 @@ access(all) contract LockedTokens {
         access(account) fun borrowTokenManager(): auth(FungibleToken.Withdrawable) &LockedTokenManager {
             return self.tokenManager.borrow()!
         }
-
-        // LockedAccountInfo actions
 
         /// Returns the locked account address for this token holder.
         access(all) fun getLockedAccountAddress(): Address {

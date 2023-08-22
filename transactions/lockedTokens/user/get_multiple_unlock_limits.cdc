@@ -6,7 +6,7 @@ access(all) fun main(accounts: [Address]): [UFix64] {
 
     for account in accounts {
         let lockedAccountInfoRef = getAccount(account)
-            .getCapability<&LockedTokens.TokenHolder{LockedTokens.LockedAccountInfo}>(
+            .getCapability<&LockedTokens.TokenHolder>(
                 LockedTokens.LockedAccountInfoPublicPath
             )
             .borrow()

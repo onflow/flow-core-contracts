@@ -13,7 +13,7 @@ const (
 )
 
 func TestFlowTokenContract(t *testing.T) {
-	contract := contracts.FlowToken(fakeAddr, fakeAddr, fakeAddr)
+	contract := contracts.FlowToken(fakeAddr, fakeAddr, fakeAddr, fakeAddr)
 	assert.NotNil(t, contract)
 }
 

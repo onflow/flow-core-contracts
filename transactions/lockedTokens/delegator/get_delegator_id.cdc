@@ -3,7 +3,7 @@ import LockedTokens from 0xLOCKEDTOKENADDRESS
 access(all) fun main(account: Address): UInt32 {
 
     let lockedAccountInfoRef = getAccount(account)
-        .getCapability<&LockedTokens.TokenHolder{LockedTokens.LockedAccountInfo}>(
+        .getCapability<&LockedTokens.TokenHolder>(
             LockedTokens.LockedAccountInfoPublicPath
         )
         .borrow()

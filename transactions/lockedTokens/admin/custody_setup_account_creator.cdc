@@ -12,7 +12,7 @@ transaction {
         )
             
         // create new receiver that marks received tokens as unlocked
-        custodyProvider.link<&LockedTokens.LockedAccountCreator{LockedTokens.LockedAccountCreatorPublic}>(
+        custodyProvider.link<&LockedTokens.LockedAccountCreator>(
             LockedTokens.LockedAccountCreatorPublicPath,
             target: LockedTokens.LockedAccountCreatorStoragePath
         )

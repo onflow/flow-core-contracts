@@ -22,7 +22,7 @@ access(all) fun main(address: Address): UFix64 {
     let account = getAccount(address)
 
     if let vaultRef = account.getCapability(/public/flowTokenBalance)
-        .borrow<&FlowToken.Vault{FungibleToken.Balance}>() 
+        .borrow<&FlowToken.Vault>() 
     {
         sum = sum + vaultRef.balance
     }
@@ -55,7 +55,7 @@ access(all) fun main(address: Address): UFix64 {
 
     // Get the locked account public capability
     let lockedAccountInfoCap = account
-        .getCapability<&LockedTokens.TokenHolder{LockedTokens.LockedAccountInfo}>(
+        .getCapability<&LockedTokens.TokenHolder>(
             LockedTokens.LockedAccountInfoPublicPath
         )
 

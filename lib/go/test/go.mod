@@ -4,12 +4,12 @@ go 1.18
 
 require (
 	github.com/coreos/go-semver v0.3.0
-	github.com/onflow/cadence v0.39.13-stable-cadence.0.20230719215202-3311f5f8189b
-	github.com/onflow/flow-core-contracts/lib/go/contracts v1.2.4-0.20230728191924-d03de9aa57b1
-	github.com/onflow/flow-core-contracts/lib/go/templates v1.2.3
-	github.com/onflow/flow-emulator v0.53.1-0.20230801165926-9fd4af1cce5b
-	github.com/onflow/flow-go v0.31.1-0.20230801162100-85890d2bf9bb
-	github.com/onflow/flow-go-sdk v0.41.10-0.20230719221154-2a4946e41c23
+	github.com/onflow/cadence v0.39.13-stable-cadence.0.20230815215130-fc15617946a1
+	github.com/onflow/flow-core-contracts/lib/go/contracts v1.2.4-0.20230808220007-f00e74ca675b
+	github.com/onflow/flow-core-contracts/lib/go/templates v1.2.4-0.20230808220007-f00e74ca675b
+	github.com/onflow/flow-emulator v0.54.1-0.20230815221351-758e3a5bb92a
+	github.com/onflow/flow-go v0.31.1-0.20230815221159-accf10b9fbaa
+	github.com/onflow/flow-go-sdk v0.41.10-0.20230815215544-c3e9ce914aee
 	github.com/onflow/flow-go/crypto v0.24.9
 	github.com/rs/zerolog v1.29.0
 	github.com/stretchr/testify v1.8.4
@@ -87,8 +87,8 @@ require (
 	github.com/multiformats/go-multistream v0.4.1 // indirect
 	github.com/multiformats/go-varint v0.0.7 // indirect
 	github.com/onflow/atree v0.6.0 // indirect
-	github.com/onflow/flow-ft/lib/go/contracts v0.7.1-0.20230726183918-f90805445bfa // indirect
-	github.com/onflow/flow-nft/lib/go/contracts v1.1.1-0.20230726191152-4293bb676808 // indirect
+	github.com/onflow/flow-ft/lib/go/contracts v0.7.1-0.20230818200853-ab1b03e98a95 // indirect
+	github.com/onflow/flow-nft/lib/go/contracts v1.1.1-0.20230818200521-3acffe2472a3 // indirect
 	github.com/onflow/flow/protobuf/go/flow v0.3.2-0.20230628215638-83439d22e0ce // indirect
 	github.com/onflow/nft-storefront/lib/go/contracts v0.0.0-20221222181731-14b90207cead // indirect
 	github.com/onflow/sdks v0.5.0 // indirect
@@ -98,10 +98,10 @@ require (
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/prometheus/client_golang v1.14.0 // indirect
+	github.com/prometheus/client_golang v1.16.0 // indirect
 	github.com/prometheus/client_model v0.4.0 // indirect
 	github.com/prometheus/common v0.42.0 // indirect
-	github.com/prometheus/procfs v0.9.0 // indirect
+	github.com/prometheus/procfs v0.10.1 // indirect
 	github.com/psiemens/graceland v1.0.0 // indirect
 	github.com/psiemens/sconfig v0.1.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect

@@ -9,7 +9,7 @@ transaction(custodyProviderAddress: Address) {
     prepare(admin: AuthAccount) {
 
         let capabilityReceiver = getAccount(custodyProviderAddress)
-            .getCapability<&LockedTokens.LockedAccountCreator{LockedTokens.LockedAccountCreatorPublic}>(
+            .getCapability<&LockedTokens.LockedAccountCreator>(
                 LockedTokens.LockedAccountCreatorPublicPath
             )
             .borrow()

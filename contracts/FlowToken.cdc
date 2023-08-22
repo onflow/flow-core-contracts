@@ -41,7 +41,7 @@ access(all) contract FlowToken: ViewResolver {
     // out of thin air. A special Minter resource needs to be defined to mint
     // new tokens.
     //
-    access(all) resource Vault: FungibleToken.Vault, FungibleToken.Provider, FungibleToken.Receiver, FungibleToken.Balance, ViewResolver.Resolver {
+    access(all) resource Vault: FungibleToken.Vault, FungibleToken.Provider, FungibleToken.Receiver, ViewResolver.Resolver {
 
         // holds the balance of a users tokens
         access(all) var balance: UFix64
