@@ -3,9 +3,10 @@ package test
 import (
 	"context"
 	"fmt"
+	"testing"
+
 	"github.com/onflow/flow-emulator/adapters"
 	"github.com/rs/zerolog"
-	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -877,7 +878,36 @@ func assertRoleCountsEquals(
 	}
 }
 
-// / Sets the role slot limits to the specified values
+// Sets the automatic open slots for access nodes for each epoch
+// will include other node types in the future
+func setNodeRoleOpenSlots(
+	t *testing.T,
+	b emulator.Emulator,
+	env templates.Environment,
+	idTableAddress flow.Address,
+	idTableSigner crypto.Signer,
+	openSlots [5]uint16,
+) {
+	// // set the open slot values
+	// cadenceOpenSlots := make([]cadence.Value, 5)
+	// for i := 0; i < 5; i++ {
+	// 	cadenceOpenSlots[i] = cadence.NewUInt16(openSlots[i])
+	// }
+
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetOpenSlotsScript(env), idTableAddress)
+
+	err := tx.AddArgument(cadence.NewUInt16(openSlots[4]))
+	require.NoError(t, err)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]crypto.Signer{idTableSigner},
+		false,
+	)
+}
+
+// Sets the role slot limits to the specified values
 func setNodeRoleSlotLimits(
 	t *testing.T,
 	b emulator.Emulator,

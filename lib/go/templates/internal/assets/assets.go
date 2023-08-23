@@ -92,6 +92,7 @@
 // idTableStaking/admin/set_claimed.cdc (612B)
 // idTableStaking/admin/set_node_weight.cdc (629B)
 // idTableStaking/admin/set_non_operational.cdc (764B)
+// idTableStaking/admin/set_open_node_slots.cdc (916B)
 // idTableStaking/admin/set_slot_limits.cdc (1.314kB)
 // idTableStaking/admin/start_staking.cdc (576B)
 // idTableStaking/admin/transfer_admin.cdc (730B)
@@ -2195,6 +2196,26 @@ func idtablestakingAdminSet_non_operationalCdc() (*asset, error) {
 
 	info := bindataFileInfo{name: "idTableStaking/admin/set_non_operational.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x32, 0x99, 0x51, 0x92, 0xa9, 0x12, 0x60, 0xc4, 0xab, 0xdc, 0x1b, 0x6d, 0x9, 0x41, 0xee, 0xae, 0xda, 0xfa, 0xb1, 0x2f, 0xe9, 0x74, 0x21, 0x64, 0x50, 0x37, 0xde, 0xc7, 0x84, 0xda, 0x31, 0x2b}}
+	return a, nil
+}
+
+var _idtablestakingAdminSet_open_node_slotsCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x74\x52\xc1\x6a\xdb\x40\x10\xbd\xeb\x2b\x1e\x39\x14\x05\x82\xd4\x1e\x5a\x8a\x68\x1a\xd4\x2a\x05\x43\x48\x4b\xec\x1e\x7a\x5c\xaf\x46\xd6\x26\xf2\x8e\xd8\x1d\xd9\x31\xc6\xff\x5e\x76\x65\xb5\xa9\xe3\xce\x45\xb0\x9a\xf7\xe6\xcd\xbc\x67\xd6\x3d\x3b\xc1\xb7\x8e\xb7\xb3\x6a\xa1\x96\x1d\xcd\x45\x3d\x19\xbb\x42\xe3\x78\x8d\xb7\xcf\xb3\xea\xf6\x7e\x31\x5b\xfc\x5a\x94\x5f\xee\x6e\xcb\xaa\x7a\xb8\x9d\xcf\x93\x24\xcf\x73\x2c\x5a\xe3\x21\x4e\x59\xaf\xb4\x18\xb6\xf0\x24\x1e\xd2\x12\xb8\x27\x0b\xcb\x35\xc1\x77\x2c\x1e\x0d\x3b\x28\xad\xc9\xfb\xf8\xea\x23\xfc\xfb\x49\x93\x72\x14\xc1\x76\x58\x2f\xc9\x81\x9b\xe3\xbb\xb4\x4a\xe2\xcf\xc0\x1a\x91\xa4\x74\x0b\xea\x59\xb7\x57\x70\xb4\x52\xae\xee\x02\x35\x37\x68\x79\x8b\xb5\xb2\xbb\x71\x0c\x1e\xd9\x58\xaa\x61\x6c\x24\xee\x1d\x6d\x0c\x0f\x7e\x84\x66\xc7\x1d\x68\x17\xc9\x1d\x35\x8e\x7c\x4b\xf5\x0b\xf6\x24\x79\xb1\x5d\x1a\xc6\x97\x71\x89\x79\xd0\x55\xe0\xe7\xcc\xca\xbb\x0f\x97\xd8\x27\x09\x00\xe4\x39\xee\x58\xab\x0e\x1b\xe5\x4c\x38\xe4\xb8\x76\x60\x26\x47\x56\x13\x84\xa3\x8e\x59\x85\x78\x68\x94\xf5\xda\x58\xf0\xf2\x91\xb4\x44\x8a\x8e\x04\x2a\x3c\x3e\x50\x53\xe0\xcd\x6b\x53\xb2\x08\x19\xe7\xf5\x8e\x7a\xe5\x28\x55\x5a\x4b\x81\x72\x90\xb6\xd4\x9a\x07\x2b\x41\x11\x8e\x95\xe7\x58\xb2\x73\xbc\x3d\x27\x44\x9d\xce\x0f\xe5\xa9\x6b\xb2\x49\x04\xae\x83\x6f\x92\x8d\x1c\x9f\xfe\xab\xe8\x73\x1a\xd2\x52\x9c\x89\x51\x76\xfc\xc6\xb6\xb9\xb0\x53\x2b\xfa\xa1\xa4\xbd\xfc\x33\x30\xd4\xcd\x0d\x7a\x65\x8d\x4e\x2f\xbe\xf2\xd0\xd5\xb0\x2c\x93\xee\x7f\x54\xfb\x63\x36\xa3\xbe\x8b\x91\xe3\x30\x9e\x83\x9e\x49\x0f\x42\x93\x1b\xa1\x36\xca\xc5\xd0\x04\xbf\x2a\x13\x5d\x54\x6e\x57\x60\x1f\x9c\xfb\x38\x19\x78\xc0\x35\xf6\x87\xbf\xa8\xd7\x88\xcc\x58\x4f\x4e\xd2\x27\xda\x15\x78\x7f\x85\x93\x24\x5c\x26\xc9\xf9\xeb\x65\x9e\x24\xa4\xfc\x9e\x6b\x8a\x9d\xe9\xc4\xed\x8b\x33\x63\xa6\x75\x0e\xbf\x03\x00\x00\xff\xff\xc9\x09\xa3\xcf\x94\x03\x00\x00"
+
+func idtablestakingAdminSet_open_node_slotsCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_idtablestakingAdminSet_open_node_slotsCdc,
+		"idTableStaking/admin/set_open_node_slots.cdc",
+	)
+}
+
+func idtablestakingAdminSet_open_node_slotsCdc() (*asset, error) {
+	bytes, err := idtablestakingAdminSet_open_node_slotsCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "idTableStaking/admin/set_open_node_slots.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x8a, 0x92, 0x6b, 0x66, 0xe9, 0x67, 0xd6, 0x9f, 0x61, 0x14, 0xbe, 0xf1, 0x4, 0x20, 0x33, 0xcf, 0xff, 0xee, 0x16, 0x1e, 0x5, 0xdb, 0xed, 0x7c, 0xe0, 0x4e, 0x35, 0x18, 0x75, 0x70, 0x77, 0xa7}}
 	return a, nil
 }
 
@@ -6321,6 +6342,7 @@ var _bindata = map[string]func() (*asset, error){
 	"idTableStaking/admin/set_claimed.cdc":                                        idtablestakingAdminSet_claimedCdc,
 	"idTableStaking/admin/set_node_weight.cdc":                                    idtablestakingAdminSet_node_weightCdc,
 	"idTableStaking/admin/set_non_operational.cdc":                                idtablestakingAdminSet_non_operationalCdc,
+	"idTableStaking/admin/set_open_node_slots.cdc":                                idtablestakingAdminSet_open_node_slotsCdc,
 	"idTableStaking/admin/set_slot_limits.cdc":                                    idtablestakingAdminSet_slot_limitsCdc,
 	"idTableStaking/admin/start_staking.cdc":                                      idtablestakingAdminStart_stakingCdc,
 	"idTableStaking/admin/transfer_admin.cdc":                                     idtablestakingAdminTransfer_adminCdc,
@@ -6680,6 +6702,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 			"set_claimed.cdc": {idtablestakingAdminSet_claimedCdc, map[string]*bintree{}},
 			"set_node_weight.cdc": {idtablestakingAdminSet_node_weightCdc, map[string]*bintree{}},
 			"set_non_operational.cdc": {idtablestakingAdminSet_non_operationalCdc, map[string]*bintree{}},
+			"set_open_node_slots.cdc": {idtablestakingAdminSet_open_node_slotsCdc, map[string]*bintree{}},
 			"set_slot_limits.cdc": {idtablestakingAdminSet_slot_limitsCdc, map[string]*bintree{}},
 			"start_staking.cdc": {idtablestakingAdminStart_stakingCdc, map[string]*bintree{}},
 			"transfer_admin.cdc": {idtablestakingAdminTransfer_adminCdc, map[string]*bintree{}},
