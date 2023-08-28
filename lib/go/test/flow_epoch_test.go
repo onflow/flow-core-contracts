@@ -3,8 +3,9 @@ package test
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/onflow/flow-go/module/signature"
 	"testing"
+
+	"github.com/onflow/flow-go/module/signature"
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
@@ -911,6 +912,17 @@ func TestEpochQCDKG(t *testing.T) {
 
 		// Advance to new epoch
 		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "ENDEPOCH", false)
+
+		verifyEpochStart(t, b, adapter, idTableAddress,
+			EpochStart{
+				counter:        startEpochCounter + 1,
+				firstView:      startView + numEpochViews,
+				stakingEndView: startView + numEpochViews + numStakingViews - 1,
+				finalView:      startView + 2*numEpochViews - 1,
+				totalStaked:    "6750000.0",
+				totalSupply:    "7000000000.0",
+				rewards:        "6571204.6775",
+			})
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochPayRewardsScript(env), idTableAddress)
 

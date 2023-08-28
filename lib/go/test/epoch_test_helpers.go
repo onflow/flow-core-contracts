@@ -3,8 +3,9 @@ package test
 import (
 	"context"
 	"fmt"
-	"github.com/onflow/flow-emulator/adapters"
 	"testing"
+
+	"github.com/onflow/flow-emulator/adapters"
 
 	sdktemplates "github.com/onflow/flow-go-sdk/templates"
 
@@ -60,6 +61,47 @@ type ConfigMetadata struct {
 	rewardPercentage         string
 	numViewsInDKGPhase       uint64
 	numCollectorClusters     uint16
+}
+
+// / Used to verify the EpochStart event fields in tests
+type EpochStart struct {
+	counter        uint64
+	firstView      uint64
+	stakingEndView uint64
+	finalView      uint64
+	totalStaked    string
+	totalSupply    string
+	rewards        string
+}
+
+type EpochStartEvent flow.Event
+
+func (evt EpochStartEvent) Counter() cadence.UInt64 {
+	return evt.Value.Fields[0].(cadence.UInt64)
+}
+
+func (evt EpochStartEvent) firstView() cadence.UInt64 {
+	return evt.Value.Fields[1].(cadence.UInt64)
+}
+
+func (evt EpochStartEvent) stakingEndView() cadence.UInt64 {
+	return evt.Value.Fields[2].(cadence.UInt64)
+}
+
+func (evt EpochStartEvent) finalView() cadence.UInt64 {
+	return evt.Value.Fields[3].(cadence.UInt64)
+}
+
+func (evt EpochStartEvent) totalStaked() cadence.UFix64 {
+	return evt.Value.Fields[4].(cadence.UFix64)
+}
+
+func (evt EpochStartEvent) totalSupply() cadence.UFix64 {
+	return evt.Value.Fields[5].(cadence.UFix64)
+}
+
+func (evt EpochStartEvent) rewards() cadence.UFix64 {
+	return evt.Value.Fields[6].(cadence.UFix64)
 }
 
 // / Used to verify the EpochSetup event fields in tests
@@ -525,6 +567,47 @@ func verifyConfigMetadata(
 
 	result = executeScriptAndCheck(t, b, templates.GenerateGetEpochPhaseScript(env), nil)
 	assertEqual(t, cadence.NewUInt8(expectedMetadata.currentEpochPhase), result)
+
+}
+
+// / Verifies that the epoch start event values are equal to the provided expected values
+func verifyEpochStart(
+	t *testing.T,
+	b emulator.Emulator,
+	adapter *adapters.SDKAdapter,
+	epochAddress flow.Address,
+	expectedStart EpochStart) {
+
+	var emittedEvent EpochStartEvent
+
+	var i uint64
+	i = 0
+	for i < 1000 {
+		results, _ := adapter.GetEventsForHeightRange(context.Background(), "A."+epochAddress.String()+".FlowEpoch.EpochStart", i, i)
+
+		for _, result := range results {
+			for _, event := range result.Events {
+				if event.Type == "A."+epochAddress.String()+".FlowEpoch.EpochStart" {
+					emittedEvent = EpochStartEvent(event)
+				}
+			}
+		}
+
+		i = i + 1
+	}
+
+	// counter
+	assertEqual(t, cadence.NewUInt64(expectedStart.counter), emittedEvent.Counter())
+
+	// views
+	assertEqual(t, cadence.NewUInt64(expectedStart.firstView), emittedEvent.firstView())
+	assertEqual(t, cadence.NewUInt64(expectedStart.stakingEndView), emittedEvent.stakingEndView())
+	assertEqual(t, cadence.NewUInt64(expectedStart.finalView), emittedEvent.finalView())
+
+	// FLOW amounts
+	assertEqual(t, CadenceUFix64(expectedStart.totalStaked), emittedEvent.totalStaked())
+	assertEqual(t, CadenceUFix64(expectedStart.totalSupply), emittedEvent.totalSupply())
+	assertEqual(t, CadenceUFix64(expectedStart.rewards), emittedEvent.rewards())
 
 }
 

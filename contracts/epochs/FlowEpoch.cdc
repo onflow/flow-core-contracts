@@ -57,9 +57,37 @@ pub contract FlowEpoch {
         pub case Access
     }
 
+    /// The Epoch Start service event is emitted when the contract transitions
+    /// to a new epoch in the staking auction phase.
+    /// It contains the finalized identity table for the upcoming epoch.
+    pub event EpochStart (
+        
+        /// The counter for the current epoch that is beginning
+        counter: UInt64,
+
+        /// The first view (inclusive) of the current epoch.
+        firstView: UInt64,
+
+        /// The last view (inclusive) of the current epoch's staking auction.
+        stakingAuctionEndView: UInt64,
+
+        /// The last view (inclusive) of the current epoch.
+        finalView: UInt64,
+
+        /// Total FLOW staked by all nodes and delegators for the current epoch.
+        totalStaked: UFix64,
+
+        /// Total supply of all FLOW for the current epoch
+        /// Includes the rewards that will be paid for the previous epoch
+        totalFlowSupply: UFix64,
+
+        /// The total rewards that will be paid out at the end of the current epoch.
+        totalRewards: UFix64,
+    )
+
     /// The Epoch Setup service event is emitted when we transition to the Epoch Setup
     /// phase. It contains the finalized identity table for the upcoming epoch.
-    pub event EpochSetup(
+    pub event EpochSetup (
         
         /// The counter for the upcoming epoch. Must be one greater than the
         /// counter for the current epoch.
@@ -98,7 +126,7 @@ pub contract FlowEpoch {
     /// The EpochCommit service event is emitted when we transition from the Epoch
     /// Committed phase. It is emitted only when all preparation for the upcoming epoch
     /// has been completed
-    pub event EpochCommit(
+    pub event EpochCommit (
 
         /// The counter for the upcoming epoch. Must be equal to the counter in the
         /// previous EpochSetup event.
@@ -553,6 +581,19 @@ pub contract FlowEpoch {
 
         // Update the epoch counters
         self.currentEpochCounter = self.proposedEpochCounter()
+
+        let previousEpochMetadata = self.getEpochMetadata(self.currentEpochCounter - 1)!
+        let newEpochMetadata = self.getEpochMetadata(self.currentEpochCounter)!
+
+        emit EpochStart (
+            counter: self.currentEpochCounter,
+            firstView: newEpochMetadata.startView,
+            stakingAuctionEndView: newEpochMetadata.stakingEndView,
+            finalView: newEpochMetadata.endView,
+            totalStaked: FlowIDTableStaking.getTotalStaked(),
+            totalFlowSupply: FlowToken.totalSupply + previousEpochMetadata.totalRewards,
+            totalRewards: FlowIDTableStaking.getEpochTokenPayout(),
+        )
     }
 
     /// Ends the staking Auction with all the proposed nodes approved
