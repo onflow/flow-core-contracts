@@ -142,7 +142,7 @@ func FlowToken(fungibleTokenAddress, fungibleTokenMVAddress, metadataViewsAddres
 	code = strings.ReplaceAll(
 		code,
 		"init()",
-		"init(adminAccount: AuthAccount)",
+		"init(adminAccount: auth(Storage, Capabilities) &Account)",
 	)
 
 	return []byte(code)
@@ -414,14 +414,14 @@ func TestFlowFees(fungibleTokenAddress, flowTokenAddress, storageFeesAddress str
 
 	code = strings.ReplaceAll(
 		code,
-		"init(adminAccount: AuthAccount)",
+		"init(adminAccount: &Account)",
 		"init()",
 	)
 
 	code = strings.ReplaceAll(
 		code,
 		"adminAccount.save(<-admin, to: /storage/flowFeesAdmin)",
-		"self.account.save(<-admin, to: /storage/flowFeesAdmin)",
+		"self.account.storage.save(<-admin, to: /storage/flowFeesAdmin)",
 	)
 
 	return []byte(code)

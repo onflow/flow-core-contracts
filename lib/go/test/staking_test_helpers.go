@@ -128,7 +128,7 @@ func deployStakingContract(
 	for i, limit := range candidateNodeLimits {
 		candidateLimitsArrayValues[i] = cadence.NewUInt64(limit)
 	}
-	cadenceLimitArray := cadence.NewArray(candidateLimitsArrayValues).WithType(cadence.NewVariableSizedArrayType(cadence.NewUInt64Type()))
+	cadenceLimitArray := cadence.NewArray(candidateLimitsArrayValues).WithType(cadence.NewVariableSizedArrayType(cadence.UInt64Type))
 
 	_ = tx.AddArgument(cadenceLimitArray)
 
@@ -728,7 +728,7 @@ func generateCadenceNodeDictionary(nodeIDs []string) cadence.Value {
 		keyValuePairArray[i] = pair
 	}
 
-	return cadence.NewDictionary(keyValuePairArray).WithType(cadence.NewDictionaryType(cadence.NewStringType(), cadence.NewBoolType()))
+	return cadence.NewDictionary(keyValuePairArray).WithType(cadence.NewDictionaryType(cadence.StringType, cadence.BoolType))
 }
 
 // assertApprovedListEquals asserts the FlowIDTableStaking approved list matches

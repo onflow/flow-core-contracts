@@ -98,7 +98,7 @@ access(all) contract FlowFees {
     // The requiredBalance balance is defined as the minimum account balance + 
     //  maximum transaction fees (inclusion fees + execution fees at max execution effort).
     access(all) fun verifyPayersBalanceForTransactionExecution(
-        _ payerAcct: AuthAccount, 
+        _ payerAcct: auth(BorrowValue) &Account,
         inclusionEffort: UFix64, 
         maxExecutionEffort: UFix64,
     ): VerifyPayerBalanceResult {
@@ -120,7 +120,7 @@ access(all) contract FlowFees {
         // Get the balance of the payers default vault.
         // In the edge case where the payer doesnt have a vault, treat the balance as 0.
         var balance = 0.0
-        if let tokenVault = payerAcct.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault) {
+        if let tokenVault = payerAcct.storage.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault) {
             balance = tokenVault.getBalance()
         }
 
@@ -133,7 +133,7 @@ access(all) contract FlowFees {
 
     /// Called when a transaction is submitted to deduct the fee
     /// from the AuthAccount that submitted it
-    access(all) fun deductTransactionFee(_ acct: AuthAccount, inclusionEffort: UFix64, executionEffort: UFix64) {
+    access(all) fun deductTransactionFee(_ acct: auth(BorrowValue) &Account, inclusionEffort: UFix64, executionEffort: UFix64) {
         var feeAmount = self.computeFees(inclusionEffort: inclusionEffort, executionEffort: executionEffort)
 
         if feeAmount == UFix64(0) {
@@ -142,7 +142,7 @@ access(all) contract FlowFees {
             return
         }
 
-        let tokenVault = acct.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)
+        let tokenVault = acct.storage.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)
             ?? panic("Unable to borrow reference to the default token vault")
 
         
@@ -163,13 +163,13 @@ access(all) contract FlowFees {
     }
 
     access(all) fun getFeeParameters(): FeeParameters {
-        return self.account.copy<FeeParameters>(from: /storage/FlowTxFeeParameters) ?? panic("Error getting tx fee parameters. They need to be initialized first!")
+        return self.account.storage.copy<FeeParameters>(from: /storage/FlowTxFeeParameters) ?? panic("Error getting tx fee parameters. They need to be initialized first!")
     }
 
     access(self) fun setFeeParameters(_ feeParameters: FeeParameters) {
         // empty storage before writing new FeeParameters to it
-        self.account.load<FeeParameters>(from: /storage/FlowTxFeeParameters)
-        self.account.save(feeParameters,to: /storage/FlowTxFeeParameters)
+        self.account.storage.load<FeeParameters>(from: /storage/FlowTxFeeParameters)
+        self.account.storage.save(feeParameters,to: /storage/FlowTxFeeParameters)
         emit FeeParametersChanged(surgeFactor: feeParameters.surgeFactor, inclusionEffortCost: feeParameters.inclusionEffortCost, executionEffortCost: feeParameters.executionEffortCost)
     }
 
@@ -182,11 +182,11 @@ access(all) contract FlowFees {
         return totalFees
     }
 
-    init(adminAccount: AuthAccount) {
+    init(adminAccount: auth(SaveValue) &Account) {
         // Create a new FlowToken Vault and save it in storage
         self.vault <- FlowToken.createEmptyVault() as! @FlowToken.Vault
 
         let admin <- create Administrator()
-        adminAccount.save(<-admin, to: /storage/flowFeesAdmin)
+        adminAccount.storage.save(<-admin, to: /storage/flowFeesAdmin)
     }
 }

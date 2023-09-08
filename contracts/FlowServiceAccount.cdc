@@ -25,33 +25,29 @@ access(all) contract FlowServiceAccount {
     access(contract) var accountCreators: {Address: Bool}
 
     /// Initialize an account with a FlowToken Vault and publish capabilities.
-    access(all) fun initDefaultToken(_ acct: AuthAccount) {
+    access(all) fun initDefaultToken(_ acct: auth(SaveValue, Capabilities) &Account) {
         // Create a new FlowToken Vault and save it in storage
-        acct.save(<-FlowToken.createEmptyVault(), to: /storage/flowTokenVault)
+        acct.storage.save(<-FlowToken.createEmptyVault(), to: /storage/flowTokenVault)
 
         // Create a public capability to the Vault that only exposes
         // the deposit function through the Receiver interface
-        acct.link<&FlowToken.Vault>(
-            /public/flowTokenReceiver,
-            target: /storage/flowTokenVault
-        )
+        let receiverCapability = acct.capabilities.storage.issue<&FlowToken.Vault>(/storage/flowTokenVault)
+        acct.capabilities.publish(receiverCapability, at: /public/flowTokenReceiver)
 
         // Create a public capability to the Vault that only exposes
         // the balance field through the Balance interface
-        acct.link<&FlowToken.Vault>(
-            /public/flowTokenBalance,
-            target: /storage/flowTokenVault
-        )
+        let balanceCapability = self.account.capabilities.storage.issue<&FlowToken.Vault>(/storage/flowTokenVault)
+        self.account.capabilities.publish(balanceCapability, at: /public/flowTokenBalance)
     }
 
     /// Get the default token balance on an account
     ///
     /// Returns 0 if the account has no default balance
-    access(all) fun defaultTokenBalance(_ acct: PublicAccount): UFix64 {
+    access(all) fun defaultTokenBalance(_ acct: &Account): UFix64 {
         var balance = 0.0
         if let balanceRef = acct
-            .getCapability(/public/flowTokenBalance)
-            .borrow<&FlowToken.Vault>(){
+            .capabilities.get<&FlowToken.Vault>(/public/flowTokenBalance)!
+            .borrow(){
                 balance = balanceRef.getBalance()
             }
 
@@ -59,8 +55,8 @@ access(all) contract FlowServiceAccount {
     }
 
     /// Return a reference to the default token vault on an account
-    access(all) fun defaultTokenVault(_ acct: AuthAccount): auth(FungibleToken.Withdrawable) &FlowToken.Vault {
-        return acct.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)
+    access(all) fun defaultTokenVault(_ acct: auth(BorrowValue) &Account): auth(FungibleToken.Withdrawable) &FlowToken.Vault {
+        return acct.storage.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)
             ?? panic("Unable to borrow reference to the default token vault")
     }
 
@@ -68,7 +64,7 @@ access(all) contract FlowServiceAccount {
     ///
     /// Called when a transaction is submitted to deduct the fee
     /// from the AuthAccount that submitted it
-    access(all) fun deductTransactionFee(_ acct: AuthAccount) {
+    access(all) fun deductTransactionFee(_ acct: auth(BorrowValue) &Account) {
         if self.transactionFee == UFix64(0) {
             return
         }
@@ -86,7 +82,7 @@ access(all) contract FlowServiceAccount {
     /// - Deducts the account creation fee from a payer account.
     /// - Inits the default token.
     /// - Inits account storage capacity.
-    access(all) fun setupNewAccount(newAccount: AuthAccount, payer: AuthAccount) {
+    access(all) fun setupNewAccount(newAccount: auth(SaveValue, BorrowValue, Capabilities) &Account, payer: auth(BorrowValue) &Account) {
         if !FlowServiceAccount.isAccountCreator(payer.address) {
             panic("Account not authorized to create accounts")
         }
@@ -119,7 +115,7 @@ access(all) contract FlowServiceAccount {
 
     /// Is true if new acconts can only be created by approved accounts `self.accountCreators`
     access(all) fun isAccountCreationRestricted(): Bool {
-        return self.account.copy<Bool>(from: /storage/isAccountCreationRestricted) ?? false
+        return self.account.storage.copy<Bool>(from: /storage/isAccountCreationRestricted) ?? false
     }
 
     // Authorization resource to change the fields of the contract
@@ -130,19 +126,19 @@ access(all) contract FlowServiceAccount {
 
     // Gets Execution Effort Weights from the service account's storage 
     access(all) fun getExecutionEffortWeights(): {UInt64: UInt64} {
-        return self.account.copy<{UInt64: UInt64}>(from: /storage/executionEffortWeights) 
+        return self.account.storage.copy<{UInt64: UInt64}>(from: /storage/executionEffortWeights)
             ?? panic("execution effort weights not set yet")
     }
 
     // Gets Execution Memory Weights from the service account's storage 
     access(all) fun getExecutionMemoryWeights(): {UInt64: UInt64} {
-        return self.account.copy<{UInt64: UInt64}>(from: /storage/executionMemoryWeights) 
+        return self.account.storage.copy<{UInt64: UInt64}>(from: /storage/executionMemoryWeights)
             ?? panic("execution memory weights not set yet")
     }
 
     // Gets Execution Memory Limit from the service account's storage
     access(all) fun getExecutionMemoryLimit(): UInt64 {
-        return self.account.copy<UInt64>(from: /storage/executionMemoryLimit) 
+        return self.account.storage.copy<UInt64>(from: /storage/executionMemoryLimit)
             ?? panic("execution memory limit not set yet")
     }
 
@@ -183,8 +179,8 @@ access(all) contract FlowServiceAccount {
 
          access(all) fun setIsAccountCreationRestricted(_ enabled: Bool) {
             let path = /storage/isAccountCreationRestricted
-            let oldValue = FlowServiceAccount.account.load<Bool>(from: path)
-            FlowServiceAccount.account.save<Bool>(enabled, to: path)
+            let oldValue = FlowServiceAccount.account.storage.load<Bool>(from: path)
+            FlowServiceAccount.account.storage.save<Bool>(enabled, to: path)
             if enabled != oldValue {
                 emit IsAccountCreationRestrictedUpdated(isRestricted: enabled)
             }
@@ -200,6 +196,6 @@ access(all) contract FlowServiceAccount {
         let admin <- create Administrator()
         admin.addAccountCreator(self.account.address)
 
-        self.account.save(<-admin, to: /storage/flowServiceAdmin)
+        self.account.storage.save(<-admin, to: /storage/flowServiceAdmin)
     }
 }
