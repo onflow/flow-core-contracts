@@ -45,4 +45,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/onflow/flow-ft/lib/go/contracts => ../../../../../flow-ft/lib/go/contracts
+replace github.com/onflow/flow-ft/lib/go/contracts => ../../../../flow-ft/lib/go/contracts

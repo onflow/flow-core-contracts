@@ -59,7 +59,7 @@ func TestStakingProxy(t *testing.T) {
 	for i, limit := range candidateNodeLimits {
 		candidateLimitsArrayValues[i] = cadence.NewUInt64(limit)
 	}
-	cadenceLimitArray := cadence.NewArray(candidateLimitsArrayValues).WithType(cadence.NewVariableSizedArrayType(cadence.NewUInt64Type()))
+	cadenceLimitArray := cadence.NewArray(candidateLimitsArrayValues).WithType(cadence.NewVariableSizedArrayType(cadence.UInt64Type))
 
 	_ = tx.AddArgument(cadenceLimitArray)
 

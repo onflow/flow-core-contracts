@@ -66,7 +66,7 @@ access(all) contract FlowStorageFees {
     access(all) fun calculateAccountCapacity(_ accountAddress: Address): UFix64 {
         var balance = 0.0
         if let balanceRef = getAccount(accountAddress)
-            .getCapability<&FlowToken.Vault>(/public/flowTokenBalance)!
+            .capabilities.get<&FlowToken.Vault>(/public/flowTokenBalance)!
             .borrow() {
                 balance = balanceRef.getBalance()
         }
@@ -93,7 +93,7 @@ access(all) contract FlowStorageFees {
         for accountAddress in accountAddresses {
             var balance = 0.0
             if let balanceRef = getAccount(accountAddress)
-                .getCapability<&FlowToken.Vault>(/public/flowTokenBalance)!
+                .capabilities.get<&FlowToken.Vault>(/public/flowTokenBalance)!
                 .borrow() {
                     if accountAddress == payer {
                         // if the account is the payer, deduct the maximum possible transaction fees from the balance
@@ -156,8 +156,8 @@ access(all) contract FlowStorageFees {
         let acct = getAccount(accountAddress)
         var balance = 0.0
         if let balanceRef = acct
-            .getCapability(/public/flowTokenBalance)
-            .borrow<&FlowToken.Vault>() {
+            .capabilities.get<&FlowToken.Vault>(/public/flowTokenBalance)!
+            .borrow() {
             balance = balanceRef.getBalance()
         }
 
@@ -173,7 +173,7 @@ access(all) contract FlowStorageFees {
     /// The reserved balance is at least the minimum storage reservation.
     access(all) view fun defaultTokenReservedBalance(_ accountAddress: Address): UFix64 {
         let acct = getAccount(accountAddress)
-        var reserved = self.storageCapacityToFlow(self.convertUInt64StorageBytesToUFix64Megabytes(acct.storageUsed))
+        var reserved = self.storageCapacityToFlow(self.convertUInt64StorageBytesToUFix64Megabytes(acct.storage.used))
         // at least self.minimumStorageReservation should be reserved
         if reserved < self.minimumStorageReservation {
             reserved = self.minimumStorageReservation
@@ -187,7 +187,7 @@ access(all) contract FlowStorageFees {
         self.minimumStorageReservation = 0.0 // or 0 kb of minimum storage reservation
 
         let admin <- create Administrator()
-        self.account.save(<-admin, to: /storage/storageFeesAdmin)
+        self.account.storage.save(<-admin, to: /storage/storageFeesAdmin)
     }
 }
  
