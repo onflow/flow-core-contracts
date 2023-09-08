@@ -284,7 +284,7 @@ access(all) contract FlowToken: ViewResolver {
 
     /// Gets the Flow Logo XML URI from storage
     access(all) fun getLogoURI(): String {
-        return FlowToken.account.copy<String>(from: /storage/flowTokenLogoURI) ?? ""
+        return FlowToken.account.storage.copy<String>(from: /storage/flowTokenLogoURI) ?? ""
     }
 
     init() {
@@ -297,26 +297,22 @@ access(all) contract FlowToken: ViewResolver {
         // Example of how to resolve a metadata view for a Vault
         let ftView = vault.resolveView(Type<FungibleTokenMetadataViews.FTView>())
 
-        self.account.save(<-vault, to: /storage/flowTokenVault)
+        self.account.storage.save(<-vault, to: /storage/flowTokenVault)
 
         // Create a public capability to the stored Vault that only exposes
         // the `deposit` method through the `Receiver` interface
         //
-        self.account.link<&FlowToken.Vault>(
-            /public/flowTokenReceiver,
-            target: /storage/flowTokenVault
-        )
+        let receiverCapability = self.account.capabilities.storage.issue<&FlowToken.Vault>(/storage/flowTokenVault)
+        self.account.capabilities.publish(receiverCapability, at: /public/flowTokenReceiver)
 
         // Create a public capability to the stored Vault that only exposes
         // the `balance` field through the `Balance` interface
         //
-        self.account.link<&FlowToken.Vault>(
-            /public/flowTokenBalance,
-            target: /storage/flowTokenVault
-        )
+        let balanceCapability = self.account.capabilities.storage.issue<&FlowToken.Vault>(/storage/flowTokenVault)
+        self.account.capabilities.publish(balanceCapability, at: /public/flowTokenBalance)
 
         let admin <- create Administrator()
-        self.account.save(<-admin, to: /storage/flowTokenAdmin)
+        self.account.storage.save(<-admin, to: /storage/flowTokenAdmin)
 
         // Emit an event that shows that the contract was initialized
         emit TokensInitialized(initialSupply: self.totalSupply)
