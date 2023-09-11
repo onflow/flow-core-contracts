@@ -144,7 +144,7 @@ access(all) contract FlowIDTableStaking {
 
         /// Withdraw tokens from the unstaked bucket
         access(all) fun withdrawUnstakedTokens(amount: UFix64): @{FungibleToken.Vault} {
-            let flowTokenMinter = FlowIDTableStaking.account.borrow<&FlowToken.Minter>(from: /storage/flowTokenMinter)
+            let flowTokenMinter = FlowIDTableStaking.account.storage.borrow<&FlowToken.Minter>(from: /storage/flowTokenMinter)
                 ?? panic("Could not borrow minter reference")
 
             return <- flowTokenMinter.mintTokens(amount: amount)
@@ -153,7 +153,7 @@ access(all) contract FlowIDTableStaking {
 
         /// Withdraw tokens from the rewarded bucket
         access(all) fun withdrawRewardedTokens(amount: UFix64): @{FungibleToken.Vault} {
-            let flowTokenMinter = FlowIDTableStaking.account.borrow<&FlowToken.Minter>(from: /storage/flowTokenMinter)
+            let flowTokenMinter = FlowIDTableStaking.account.storage.borrow<&FlowToken.Minter>(from: /storage/flowTokenMinter)
                 ?? panic("Could not borrow minter reference")
 
             return <- flowTokenMinter.mintTokens(amount: amount)
@@ -224,7 +224,7 @@ access(all) contract FlowIDTableStaking {
 
         /// Withdraw tokens from the unstaked bucket
         access(all) fun withdrawUnstakedTokens(amount: UFix64): @{FungibleToken.Vault} {
-            let flowTokenMinter = FlowIDTableStaking.account.borrow<&FlowToken.Minter>(from: /storage/flowTokenMinter)
+            let flowTokenMinter = FlowIDTableStaking.account.storage.borrow<&FlowToken.Minter>(from: /storage/flowTokenMinter)
                 ?? panic("Could not borrow minter reference")
 
             return <- flowTokenMinter.mintTokens(amount: amount)
@@ -232,7 +232,7 @@ access(all) contract FlowIDTableStaking {
 
         /// Withdraw tokens from the rewarded bucket
         access(all) fun withdrawRewardedTokens(amount: UFix64): @{FungibleToken.Vault} {
-            let flowTokenMinter = FlowIDTableStaking.account.borrow<&FlowToken.Minter>(from: /storage/flowTokenMinter)
+            let flowTokenMinter = FlowIDTableStaking.account.storage.borrow<&FlowToken.Minter>(from: /storage/flowTokenMinter)
                 ?? panic("Could not borrow minter reference")
 
             return <- flowTokenMinter.mintTokens(amount: amount)
