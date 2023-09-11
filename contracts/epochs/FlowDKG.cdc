@@ -220,12 +220,12 @@ access(all) contract FlowDKG {
                 newThresholdPercentage == nil ||  newThresholdPercentage! < 1.0: "The threshold percentage must be in [0,1)"
             }
 
-            FlowDKG.account.load<UFix64>(from: /storage/flowDKGSafeThreshold)
+            FlowDKG.account.storage.load<UFix64>(from: /storage/flowDKGSafeThreshold)
 
             // If newThresholdPercentage is nil, we exit here. Since we loaded from
             // storage previously, this results in /storage/flowDKGSafeThreshold being empty
             if let percentage = newThresholdPercentage {
-                FlowDKG.account.save<UFix64>(percentage, to: /storage/flowDKGSafeThreshold)
+                FlowDKG.account.storage.save<UFix64>(percentage, to: /storage/flowDKGSafeThreshold)
             }
         }
 
@@ -400,7 +400,7 @@ access(all) contract FlowDKG {
     /// ensure a lower-bound number of Random Beacon Committee members (beyond the bare minimum required
     /// by the DKG protocol).
     access(all) fun getSafeThresholdPercentage(): UFix64? {
-        let safetyRate = self.account.copy<UFix64>(from: /storage/flowDKGSafeThreshold)
+        let safetyRate = self.account.storage.copy<UFix64>(from: /storage/flowDKGSafeThreshold)
         return safetyRate
     }
 
@@ -445,7 +445,7 @@ access(all) contract FlowDKG {
         self.nodeClaimed = {}
         self.whiteboardMessages = []
 
-        self.account.save(<-create Admin(), to: self.AdminStoragePath)
+        self.account.storage.save(<-create Admin(), to: self.AdminStoragePath)
     }
 }
  

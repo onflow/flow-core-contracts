@@ -316,5 +316,6 @@ access(all) contract FlowToken: ViewResolver {
 
         // Emit an event that shows that the contract was initialized
         emit TokensInitialized(initialSupply: self.totalSupply)
+
     }
 }

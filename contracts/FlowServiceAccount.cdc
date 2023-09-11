@@ -36,8 +36,8 @@ access(all) contract FlowServiceAccount {
 
         // Create a public capability to the Vault that only exposes
         // the balance field through the Balance interface
-        let balanceCapability = self.account.capabilities.storage.issue<&FlowToken.Vault>(/storage/flowTokenVault)
-        self.account.capabilities.publish(balanceCapability, at: /public/flowTokenBalance)
+        let balanceCapability = acct.capabilities.storage.issue<&FlowToken.Vault>(/storage/flowTokenVault)
+        acct.capabilities.publish(balanceCapability, at: /public/flowTokenBalance)
     }
 
     /// Get the default token balance on an account
