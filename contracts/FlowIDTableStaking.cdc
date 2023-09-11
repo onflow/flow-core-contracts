@@ -875,7 +875,7 @@ access(all) contract FlowIDTableStaking {
         access(all) fun calculateRewards(): EpochRewardsSummary
         access(all) fun moveTokens()
     }
-    
+
     access(all) resource Admin: EpochOperations {
 
         /// Sets a new set of minimum staking requirements for all the nodes

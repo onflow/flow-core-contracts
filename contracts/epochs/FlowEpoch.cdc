@@ -260,7 +260,10 @@ access(all) contract FlowEpoch {
     /// Epoch Metadata is stored in account storage so the growing dictionary
     /// does not have to be loaded every time the contract is loaded
     access(all) fun getEpochMetadata(_ epochCounter: UInt64): EpochMetadata? {
-        if let metadataDictionary = self.account.borrow<&{UInt64: EpochMetadata}>(from: self.metadataStoragePath) {
+        // TODO: Make this `borrow`, when Cadence supports dereferencing.
+        // So the overhead of copying the entire dictionary would be avoided.
+        // Instead borrow, and get a dereference-copy of the element.
+        if let metadataDictionary = self.account.storage.copy<{UInt64: EpochMetadata}>(from: self.metadataStoragePath) {
             return metadataDictionary[epochCounter]
         }
         return nil
@@ -275,7 +278,7 @@ access(all) contract FlowEpoch {
             newMetadata.counter <= self.proposedEpochCounter()):
                 "Cannot modify epoch metadata from epochs after the proposed epoch or before the previous epoch"
         }
-        if let metadataDictionary = self.account.borrow<&{UInt64: EpochMetadata}>(from: self.metadataStoragePath) {
+        if let metadataDictionary = self.account.storage.borrow<auth(Mutate) &{UInt64: EpochMetadata}>(from: self.metadataStoragePath) {
             if let metadata = metadataDictionary[newMetadata.counter] {
                 assert (
                     metadata.counter == newMetadata.counter,
@@ -355,8 +358,8 @@ access(all) contract FlowEpoch {
 
         // Enable or disable automatic rewards calculations and payments
         access(all) fun updateAutomaticRewardsEnabled(_ enabled: Bool) {
-            FlowEpoch.account.load<Bool>(from: /storage/flowAutomaticRewardsEnabled)
-            FlowEpoch.account.save(enabled, to: /storage/flowAutomaticRewardsEnabled)
+            FlowEpoch.account.storage.load<Bool>(from: /storage/flowAutomaticRewardsEnabled)
+            FlowEpoch.account.storage.save(enabled, to: /storage/flowAutomaticRewardsEnabled)
         }
 
         /// Ends the currently active epoch and starts a new one with the provided configuration.
@@ -696,7 +699,7 @@ access(all) contract FlowEpoch {
 
     /// Borrow a reference to the FlowIDTableStaking Admin resource
     access(contract) view fun borrowStakingAdmin(): &FlowIDTableStaking.Admin {
-        let adminCapability = self.account.copy<Capability>(from: /storage/flowStakingAdminEpochOperations)
+        let adminCapability = self.account.storage.copy<Capability>(from: /storage/flowStakingAdminEpochOperations)
             ?? panic("Could not get capability from account storage")
 
         // borrow a reference to the staking admin object
@@ -708,7 +711,7 @@ access(all) contract FlowEpoch {
 
     /// Borrow a reference to the ClusterQCs Admin resource
     access(contract) fun borrowClusterQCAdmin(): &FlowClusterQC.Admin {
-        let adminCapability = self.account.copy<Capability>(from: /storage/flowQCAdminEpochOperations)
+        let adminCapability = self.account.storage.copy<Capability>(from: /storage/flowQCAdminEpochOperations)
             ?? panic("Could not get capability from account storage")
 
         // borrow a reference to the QC admin object
@@ -720,7 +723,7 @@ access(all) contract FlowEpoch {
 
     /// Borrow a reference to the DKG Admin resource
     access(contract) fun borrowDKGAdmin(): &FlowDKG.Admin {
-        let adminCapability = self.account.copy<Capability>(from: /storage/flowDKGAdminEpochOperations)
+        let adminCapability = self.account.storage.copy<Capability>(from: /storage/flowDKGAdminEpochOperations)
             ?? panic("Could not get capability from account storage")
 
         // borrow a reference to the dkg admin object
@@ -842,7 +845,7 @@ access(all) contract FlowEpoch {
     }
 
     access(all) fun automaticRewardsEnabled(): Bool {
-        return self.account.copy<Bool>(from: /storage/flowAutomaticRewardsEnabled) ?? false
+        return self.account.storage.copy<Bool>(from: /storage/flowAutomaticRewardsEnabled) ?? false
     }
 
     /// Gets the current amount of bonus tokens left to be destroyed
@@ -853,7 +856,7 @@ access(all) contract FlowEpoch {
     /// Eventually, all the bonus tokens will be destroyed and
     /// this will not be needed anymore
     access(all) fun getBonusTokens(): UFix64 {
-        return self.account.copy<UFix64>(from: /storage/FlowBonusTokenAmount)
+        return self.account.storage.copy<UFix64>(from: /storage/FlowBonusTokenAmount)
                 ?? 0.0
     }
 
@@ -886,40 +889,28 @@ access(all) contract FlowEpoch {
 
         let epochMetadata: {UInt64: EpochMetadata} = {}
 
-        self.account.save(epochMetadata, to: self.metadataStoragePath)
+        self.account.storage.save(epochMetadata, to: self.metadataStoragePath)
 
-        self.account.save(<-create Admin(), to: self.adminStoragePath)
-        self.account.save(<-create Heartbeat(), to: self.heartbeatStoragePath)
+        self.account.storage.save(<-create Admin(), to: self.adminStoragePath)
+        self.account.storage.save(<-create Heartbeat(), to: self.heartbeatStoragePath)
 
         // Create a private capability to the staking admin and store it in a different path
         // On Mainnet and Testnet, the Admin resources are stored in the service account, rather than here.
         // As a default, we store both the admin resources, and the capabilities linking to those resources, in the same account.
         // This ensures that this constructor produces a state which is compatible with the system chunk
         // so that newly created networks are functional without additional resource manipulation.
-        let stakingAdminCapability = self.account.link<&FlowIDTableStaking.Admin>(
-                /private/flowStakingAdminEpochOperations,
-                target: FlowIDTableStaking.StakingAdminStoragePath
-            ) ?? panic("Could not link Flow staking admin capability")
-
-        self.account.save<Capability<&FlowIDTableStaking.Admin>>(stakingAdminCapability, to: /storage/flowStakingAdminEpochOperations)
+        let stakingAdminCapability = self.account.capabilities.storage.issue<&FlowIDTableStaking.Admin>(FlowIDTableStaking.StakingAdminStoragePath)
+        self.account.storage.save<Capability<&FlowIDTableStaking.Admin>>(stakingAdminCapability, to: /storage/flowStakingAdminEpochOperations)
 
         // Create a private capability to the qc admin
         // and store it in a different path
-        let qcAdminCapability = self.account.link<&FlowClusterQC.Admin>(
-                /private/flowQCAdminEpochOperations,
-                target: FlowClusterQC.AdminStoragePath
-            ) ?? panic("Could not link Flow QC admin capability")
-
-        self.account.save<Capability<&FlowClusterQC.Admin>>(qcAdminCapability, to: /storage/flowQCAdminEpochOperations)
+        let qcAdminCapability = self.account.capabilities.storage.issue<&FlowClusterQC.Admin>(FlowClusterQC.AdminStoragePath)
+        self.account.storage.save<Capability<&FlowClusterQC.Admin>>(qcAdminCapability, to: /storage/flowQCAdminEpochOperations)
 
         // Create a private capability to the dkg admin
         // and store it in a different path
-        let dkgAdminCapability = self.account.link<&FlowDKG.Admin>(
-                /private/flowDKGAdminEpochOperations,
-                target: FlowDKG.AdminStoragePath
-            ) ?? panic("Could not link Flow DKG admin capability")
-
-        self.account.save<Capability<&FlowDKG.Admin>>(dkgAdminCapability, to: /storage/flowDKGAdminEpochOperations)
+        let dkgAdminCapability = self.account.capabilities.storage.issue<&FlowDKG.Admin>(FlowDKG.AdminStoragePath)
+        self.account.storage.save<Capability<&FlowDKG.Admin>>(dkgAdminCapability, to: /storage/flowDKGAdminEpochOperations)
 
         self.borrowStakingAdmin().startStakingAuction()
 
