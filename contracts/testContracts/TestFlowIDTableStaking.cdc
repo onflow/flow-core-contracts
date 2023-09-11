@@ -266,7 +266,7 @@ access(all) contract FlowIDTableStaking {
 
     /// Gets the minimum stake requirement for delegators
     access(all) fun getDelegatorMinimumStakeRequirement(): UFix64 {
-        return self.account.copy<UFix64>(from: /storage/delegatorStakingMinimum)
+        return self.account.storage.copy<UFix64>(from: /storage/delegatorStakingMinimum)
             ?? 0.0
     }
 
