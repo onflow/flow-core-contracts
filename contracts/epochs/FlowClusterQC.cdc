@@ -456,6 +456,6 @@ access(all) contract FlowClusterQC {
         self.voterClaimed = {}
         self.nodeCluster = {}
 
-        self.account.save(<-create Admin(), to: self.AdminStoragePath)
+        self.account.storage.save(<-create Admin(), to: self.AdminStoragePath)
     }
 }
