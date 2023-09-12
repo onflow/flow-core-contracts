@@ -13,8 +13,8 @@ transaction(ids: {String: Bool}, newPayout: UFix64) {
     // Local variable for a reference to the ID Table Admin object
     let adminRef: &FlowIDTableStaking.Admin
 
-    prepare(acct: auth(CopyValue) &Account) {
-        let adminCapability = acct.storage.copy<Capability>(from: FlowIDTableStaking.StakingAdminStoragePath)
+    prepare(acct: &Account) {
+        let adminCapability = acct.copy<Capability>(from: FlowIDTableStaking.StakingAdminStoragePath)
             ?? panic("Could not get capability from account storage")
 
         // borrow a reference to the admin object
@@ -25,7 +25,7 @@ transaction(ids: {String: Bool}, newPayout: UFix64) {
     execute {
 
         let rewardsSummary = self.adminRef.calculateRewards()
-        self.adminRef.payRewards(forEpochCounter: 1, rewardsSummary: rewardsSummary)
+        self.adminRef.payRewards(rewardsSummary)
 
         self.adminRef.setEpochTokenPayout(newPayout)
 
@@ -33,6 +33,6 @@ transaction(ids: {String: Bool}, newPayout: UFix64) {
 
         self.adminRef.endStakingAuction()
 
-        self.adminRef.moveTokens(newEpochCounter: 2)
+        self.adminRef.moveTokens()
     }
 }
