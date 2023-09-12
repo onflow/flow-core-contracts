@@ -5,9 +5,9 @@ go 1.18
 require (
 	github.com/kevinburke/go-bindata v3.23.0+incompatible
 	github.com/onflow/flow-ft/lib/go/contracts v0.7.1-0.20230906165834-daca6600a634
-	github.com/onflow/flow-go-sdk v0.41.7-stable-cadence
+	github.com/onflow/flow-go-sdk v0.44.0-stable-cadence.1.0.20230912230115-25ad6f515ce6
 	github.com/onflow/flow-nft/lib/go/contracts v1.1.1-0.20230906170014-ac628577704c
-	github.com/stretchr/testify v1.8.2
+	github.com/stretchr/testify v1.8.4
 )
 
 require (
@@ -25,8 +25,8 @@ require (
 	github.com/logrusorgru/aurora/v4 v4.0.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
-	github.com/onflow/atree v0.6.0 // indirect
-	github.com/onflow/cadence v0.39.13-stable-cadence // indirect
+	github.com/onflow/atree v0.6.1-0.20230711151834-86040b30171f // indirect
+	github.com/onflow/cadence v0.41.0-stable-cadence.1.0.20230908213403-8f1134670ed0 // indirect
 	github.com/onflow/flow-go/crypto v0.24.7 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
