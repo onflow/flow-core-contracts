@@ -13,7 +13,7 @@ transaction(ids: {String: Bool}, newPayout: UFix64) {
     // Local variable for a reference to the ID Table Admin object
     let adminRef: &FlowIDTableStaking.Admin
 
-    prepare(acct: AuthAccount) {
+    prepare(acct: &Account) {
         let adminCapability = acct.copy<Capability>(from: FlowIDTableStaking.StakingAdminStoragePath)
             ?? panic("Could not get capability from account storage")
 

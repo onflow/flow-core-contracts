@@ -511,8 +511,8 @@ access(all) contract NodeVersionBeacon {
         // emit the event on the first heartbeat to send the zero version
         self.emitEventOnNextHeartbeat = true
 
-        self.account.save(<-create Admin(), to: self.AdminStoragePath)
-        self.account.save(<-create Heartbeat(), to: self.HeartbeatStoragePath)
+        self.account.storage.save(<-create Admin(), to: self.AdminStoragePath)
+        self.account.storage.save(<-create Heartbeat(), to: self.HeartbeatStoragePath)
     }
 }
  

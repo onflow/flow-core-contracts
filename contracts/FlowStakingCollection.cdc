@@ -392,7 +392,7 @@ access(all) contract FlowStakingCollection {
         /// Operations to register new staking objects
 
         /// Function to register a new Staking Record to the Staking Collection
-        access(CollectionOwner) fun registerNode(id: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String, amount: UFix64, payer: AuthAccount): AuthAccount? {
+        access(CollectionOwner) fun registerNode(id: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String, amount: UFix64, payer: auth(BorrowValue) &Account): &Account? {
 
             let tokens <- self.getTokens(amount: amount)
 
@@ -421,15 +421,15 @@ access(all) contract FlowStakingCollection {
         /// Only returns an AuthAccount object if the node is collector or consensus, otherwise returns nil
         /// The caller's qc or dkg object is stored in the new account
         /// but it is the caller's responsibility to add public keys to it
-        access(self) fun registerMachineAccount(nodeReference: &FlowIDTableStaking.NodeStaker, payer: AuthAccount): AuthAccount? {
+        access(self) fun registerMachineAccount(nodeReference: &FlowIDTableStaking.NodeStaker, payer: auth(BorrowValue) &Account): &Account? {
 
             let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeReference.id)
 
             // Create the new account
-            let machineAcct = AuthAccount(payer: payer)
+            let machineAcct = Account(payer: payer)
 
             // Get the vault capability and create the machineAccountInfo struct
-            let machineAccountVaultProvider = machineAcct.link<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(/private/machineAccountPrivateVault, target: /storage/flowTokenVault)!
+            let machineAccountVaultProvider = machineAcct.capabilities.storage.issue<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(/storage/flowTokenVault)!
             let machineAccountInfo = MachineAccountInfo(nodeID: nodeInfo.id, role: nodeInfo.role, machineAccountVaultProvider: machineAccountVaultProvider)
             
             // If they are a collector node, create a QC Voter object and store it in the account
@@ -437,7 +437,7 @@ access(all) contract FlowStakingCollection {
 
                 // Get the voter object and store it
                 let qcVoter <- FlowEpoch.getClusterQCVoter(nodeStaker: nodeReference)
-                machineAcct.save(<-qcVoter, to: FlowClusterQC.VoterStoragePath)
+                machineAcct.storage.save(<-qcVoter, to: FlowClusterQC.VoterStoragePath)
 
                 // set this node's machine account
                 self.machineAccounts[nodeInfo.id] = machineAccountInfo
@@ -451,7 +451,7 @@ access(all) contract FlowStakingCollection {
 
                 // get the participant object and store it
                 let dkgParticipant <- FlowEpoch.getDKGParticipant(nodeStaker: nodeReference)
-                machineAcct.save(<-dkgParticipant, to: FlowDKG.ParticipantStoragePath)
+                machineAcct.storage.save(<-dkgParticipant, to: FlowDKG.ParticipantStoragePath)
 
                 // set this node's machine account
                 self.machineAccounts[nodeInfo.id] = machineAccountInfo
@@ -470,7 +470,7 @@ access(all) contract FlowStakingCollection {
         /// or if they decide they want to use a different machine account for one of their nodes
         /// If they want to use a different machine account, it is their responsibility to
         /// transfer the qc or dkg object to the new account
-        access(all) fun addMachineAccountRecord(nodeID: String, machineAccount: AuthAccount) {
+        access(all) fun addMachineAccountRecord(nodeID: String, machineAccount: auth(BorrowValue, StorageCapabilities) &Account) {
             pre {
                 self.doesStakeExist(nodeID: nodeID, delegatorID: nil): "Cannot add a machine account record for a node that you do not own"
             }
@@ -480,7 +480,7 @@ access(all) contract FlowStakingCollection {
             // Make sure that the QC or DKG object in the machine account is correct for this node ID
 
             if nodeInfo.role == FlowEpoch.NodeRole.Collector.rawValue {
-                let qcVoterRef = machineAccount.borrow<&FlowClusterQC.Voter>(from: FlowClusterQC.VoterStoragePath)
+                let qcVoterRef = machineAccount.storage.borrow<&FlowClusterQC.Voter>(from: FlowClusterQC.VoterStoragePath)
                     ?? panic("Could not access QC Voter object from the provided machine account")
 
                 assert(
@@ -488,7 +488,7 @@ access(all) contract FlowStakingCollection {
                     message: "QC Voter Object in machine account does not match machine node ID"
                 )
             } else if nodeInfo.role == FlowEpoch.NodeRole.Consensus.rawValue {
-                let dkgParticipantRef = machineAccount.borrow<&FlowDKG.Participant>(from: FlowDKG.ParticipantStoragePath)
+                let dkgParticipantRef = machineAccount.storage.borrow<&FlowDKG.Participant>(from: FlowDKG.ParticipantStoragePath)
                     ?? panic("Could not access DKG Participant object from the provided machine account")
 
                 assert(
@@ -498,11 +498,8 @@ access(all) contract FlowStakingCollection {
             }
 
             // Make sure that the vault capability is created
-            var machineAccountVaultProvider = machineAccount.getCapability<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(/private/machineAccountPrivateVault)
-            if !machineAccountVaultProvider.check() {
-                machineAccountVaultProvider = machineAccount.link<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(/private/machineAccountPrivateVault, target: /storage/flowTokenVault)!
-            }
-            
+            var machineAccountVaultProvider = machineAccount.capabilities.storage.issue<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(/storage/flowTokenVault)!
+
             // Create the new Machine account info object and store it
             let machineAccountInfo = MachineAccountInfo(nodeID: nodeID, role: nodeInfo.role, machineAccountVaultProvider: machineAccountVaultProvider)
             self.machineAccounts[nodeID] = machineAccountInfo
@@ -510,7 +507,7 @@ access(all) contract FlowStakingCollection {
 
         /// If a user has created a node before epochs were enabled, they'll need to use this function
         /// to create their machine account with their node 
-        access(CollectionOwner) fun createMachineAccountForExistingNode(nodeID: String, payer: AuthAccount): AuthAccount? {
+        access(CollectionOwner) fun createMachineAccountForExistingNode(nodeID: String, payer: auth(BorrowValue) &Account): &Account? {
             pre {
                 self.doesStakeExist(nodeID: nodeID, delegatorID: nil)
             }
@@ -1006,7 +1003,7 @@ access(all) contract FlowStakingCollection {
     access(all) fun doesStakeExist(address: Address, nodeID: String, delegatorID: UInt32?): Bool {
         let account = getAccount(address)
 
-        let stakingCollectionRef = account.getCapability<&StakingCollection>(self.StakingCollectionPublicPath).borrow()
+        let stakingCollectionRef = account.capabilities.get<&StakingCollection>(self.StakingCollectionPublicPath)!.borrow()
             ?? panic("Could not borrow ref to StakingCollection")
 
         return stakingCollectionRef.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID)
@@ -1016,7 +1013,7 @@ access(all) contract FlowStakingCollection {
     access(all) fun getUnlockedTokensUsed(address: Address): UFix64 {
         let account = getAccount(address)
 
-        let stakingCollectionRef = account.getCapability<&StakingCollection>(self.StakingCollectionPublicPath).borrow()
+        let stakingCollectionRef = account.capabilities.get<&StakingCollection>(self.StakingCollectionPublicPath)!.borrow()
             ?? panic("Could not borrow ref to StakingCollection")
 
         return stakingCollectionRef.unlockedTokensUsed
@@ -1026,7 +1023,7 @@ access(all) contract FlowStakingCollection {
     access(all) fun getLockedTokensUsed(address: Address): UFix64 {
         let account = getAccount(address)
 
-        let stakingCollectionRef = account.getCapability<&StakingCollection>(self.StakingCollectionPublicPath).borrow()
+        let stakingCollectionRef = account.capabilities.get<&StakingCollection>(self.StakingCollectionPublicPath)!.borrow()
             ?? panic("Could not borrow ref to StakingCollection")
 
         return stakingCollectionRef.lockedTokensUsed
@@ -1036,7 +1033,7 @@ access(all) contract FlowStakingCollection {
     access(all) fun getNodeIDs(address: Address): [String] {
         let account = getAccount(address)
 
-        let stakingCollectionRef = account.getCapability<&StakingCollection>(self.StakingCollectionPublicPath).borrow()
+        let stakingCollectionRef = account.capabilities.get<&StakingCollection>(self.StakingCollectionPublicPath)!.borrow()
             ?? panic("Could not borrow ref to StakingCollection")
 
         return stakingCollectionRef.getNodeIDs()
@@ -1046,7 +1043,7 @@ access(all) contract FlowStakingCollection {
     access(all) fun getDelegatorIDs(address: Address): [DelegatorIDs] {
         let account = getAccount(address)
 
-        let stakingCollectionRef = account.getCapability<&StakingCollection>(self.StakingCollectionPublicPath).borrow()
+        let stakingCollectionRef = account.capabilities.get<&StakingCollection>(self.StakingCollectionPublicPath)!.borrow()
             ?? panic("Could not borrow ref to StakingCollection")
 
         return stakingCollectionRef.getDelegatorIDs()
@@ -1056,7 +1053,7 @@ access(all) contract FlowStakingCollection {
     access(all) fun getAllNodeInfo(address: Address): [FlowIDTableStaking.NodeInfo] {
         let account = getAccount(address)
 
-        let stakingCollectionRef = account.getCapability<&StakingCollection>(self.StakingCollectionPublicPath).borrow()
+        let stakingCollectionRef = account.capabilities.get<&StakingCollection>(self.StakingCollectionPublicPath)!.borrow()
             ?? panic("Could not borrow ref to StakingCollection")
 
         return stakingCollectionRef.getAllNodeInfo()
@@ -1066,7 +1063,7 @@ access(all) contract FlowStakingCollection {
     access(all) fun getAllDelegatorInfo(address: Address): [FlowIDTableStaking.DelegatorInfo] {
         let account = getAccount(address)
 
-        let stakingCollectionRef = account.getCapability<&StakingCollection>(self.StakingCollectionPublicPath).borrow()
+        let stakingCollectionRef = account.capabilities.get<&StakingCollection>(self.StakingCollectionPublicPath)!.borrow()
             ?? panic("Could not borrow ref to StakingCollection")
 
         return stakingCollectionRef.getAllDelegatorInfo()
@@ -1076,7 +1073,7 @@ access(all) contract FlowStakingCollection {
     access(all) fun getMachineAccounts(address: Address): {String: MachineAccountInfo} {
         let account = getAccount(address)
 
-        let stakingCollectionRef = account.getCapability<&StakingCollection>(self.StakingCollectionPublicPath).borrow()
+        let stakingCollectionRef = account.capabilities.get<&StakingCollection>(self.StakingCollectionPublicPath)!.borrow()
             ?? panic("Could not borrow ref to StakingCollection")
 
         return stakingCollectionRef.getMachineAccounts()
@@ -1086,7 +1083,7 @@ access(all) contract FlowStakingCollection {
     access(all) fun doesAccountHaveStakingCollection(address: Address): Bool {
         let account = getAccount(address)
 
-        return account.getCapability<&StakingCollection>(self.StakingCollectionPublicPath).check()
+        return account.capabilities.get<&StakingCollection>(self.StakingCollectionPublicPath)!.check()
     }
 
     /// Creates a brand new empty staking collection resource and returns it to the caller

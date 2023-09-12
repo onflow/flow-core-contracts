@@ -730,7 +730,7 @@ access(all) contract LockedTokens {
         return <-create LockedAccountCreator()
     }
 
-    init(admin: AuthAccount) {
+    init(admin: auth(Storage) &Account) {
         self.LockedTokenManagerStoragePath = /storage/lockedTokenManager
         self.LockedTokenManagerPrivatePath = /private/lockedTokenManager
 
@@ -744,11 +744,11 @@ access(all) contract LockedTokens {
         self.LockedAccountCreatorPublicPath = /public/lockedAccountCreator
 
         /// create a single admin collection and store it
-        admin.save(<-create TokenAdminCollection(), to: self.LockedTokenAdminCollectionStoragePath)
+        admin.storage.save(<-create TokenAdminCollection(), to: self.LockedTokenAdminCollectionStoragePath)
 
-        admin.link<&LockedTokens.TokenAdminCollection>(
-            LockedTokens.LockedTokenAdminPrivatePath,
-            target: LockedTokens.LockedTokenAdminCollectionStoragePath
-        ) ?? panic("Could not get a capability to the admin collection")
+        // admin.link<&LockedTokens.TokenAdminCollection>(
+        //    LockedTokens.LockedTokenAdminPrivatePath,
+        //    target: LockedTokens.LockedTokenAdminCollectionStoragePath
+        // ) ?? panic("Could not get a capability to the admin collection")
     }
 }

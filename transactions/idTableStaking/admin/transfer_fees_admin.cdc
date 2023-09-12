@@ -2,7 +2,7 @@ import FlowFees from 0xFLOWFEESADDRESS
 
 transaction {
 
-    prepare(owner: AuthAccount, receiver: AuthAccount) {
+    prepare(owner: &Account, receiver: &Account) {
 
         // Link the staking admin capability to a private place
         let feesAdmin <- owner.load<@FlowFees.Administrator>(from: /storage/flowFeesAdmin)!
