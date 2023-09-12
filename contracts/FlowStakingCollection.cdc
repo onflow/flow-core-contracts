@@ -1038,7 +1038,7 @@ access(all) contract FlowStakingCollection {
 
         return stakingCollectionRef.getNodeIDs()
     }
-        
+
     /// Function to get all delegator ids for all Delegation records in a users StakingCollection, if one exists.
     access(all) fun getDelegatorIDs(address: Address): [DelegatorIDs] {
         let account = getAccount(address)
