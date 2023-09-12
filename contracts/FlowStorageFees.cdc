@@ -65,10 +65,12 @@ access(all) contract FlowStorageFees {
     /// If the account has no default balance it is counted as a balance of 0.0 FLOW
     access(all) fun calculateAccountCapacity(_ accountAddress: Address): UFix64 {
         var balance = 0.0
-        if let balanceRef = getAccount(accountAddress)
-            .capabilities.get<&FlowToken.Vault>(/public/flowTokenBalance)!
-            .borrow() {
+        let acct = getAccount(accountAddress)
+
+        if let balanceCap = acct.capabilities.get<&FlowToken.Vault>(/public/flowTokenBalance) {
+            if let balanceRef = balanceCap.borrow() {
                 balance = balanceRef.getBalance()
+            }
         }
 
         return self.accountBalanceToAccountStorageCapacity(balance)
@@ -92,15 +94,17 @@ access(all) contract FlowStorageFees {
         let capacities: [UFix64] = []
         for accountAddress in accountAddresses {
             var balance = 0.0
-            if let balanceRef = getAccount(accountAddress)
-                .capabilities.get<&FlowToken.Vault>(/public/flowTokenBalance)!
-                .borrow() {
+            let acct = getAccount(accountAddress)
+
+            if let balanceCap = acct.capabilities.get<&FlowToken.Vault>(/public/flowTokenBalance) {
+                if let balanceRef = balanceCap.borrow() {
                     if accountAddress == payer {
                         // if the account is the payer, deduct the maximum possible transaction fees from the balance
                         balance = balanceRef.getBalance().saturatingSubtract(maxTxFees)
                     } else {
                         balance = balanceRef.getBalance()
                     }
+                }
             }
 
             capacities.append(self.accountBalanceToAccountStorageCapacity(balance)) 
@@ -155,10 +159,11 @@ access(all) contract FlowStorageFees {
         //get balance of account
         let acct = getAccount(accountAddress)
         var balance = 0.0
-        if let balanceRef = acct
-            .capabilities.get<&FlowToken.Vault>(/public/flowTokenBalance)!
-            .borrow() {
-            balance = balanceRef.getBalance()
+
+        if let balanceCap = acct.capabilities.get<&FlowToken.Vault>(/public/flowTokenBalance) {
+            if let balanceRef = balanceCap.borrow() {
+                balance = balanceRef.getBalance()
+            }
         }
 
         // get how much should be reserved for storage

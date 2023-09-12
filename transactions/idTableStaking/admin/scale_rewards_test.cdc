@@ -2,7 +2,7 @@ import FlowIDTableStaking from "FlowIDTableStaking"
 
 transaction {
 
-    prepare(acct: AuthAccount) {
+    prepare(acct: &Account) {
         let rewardsBreakdown = FlowIDTableStaking.RewardsBreakdown(nodeID: "000000001")
 
         rewardsBreakdown.setNodeRewards(1000.0)
