@@ -14,14 +14,14 @@ transaction(amount: UFix64) {
 
     let admin: &FlowToken.Administrator
 
-    prepare(signer: AuthAccount) {
+    prepare(signer: auth(BorrowValue) &Account) {
 
         // Withdraw tokens from the admin vault in storage
-        self.vault <- signer.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)!
+        self.vault <- signer.storage.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)!
             .withdraw(amount: amount)
 
         // Create a reference to the admin admin resource in storage
-        self.admin = signer.borrow<&FlowToken.Administrator>(from: /storage/flowTokenAdmin)
+        self.admin = signer.storage.borrow<&FlowToken.Administrator>(from: /storage/flowTokenAdmin)
             ?? panic("Could not borrow a reference to the admin resource")
     }
 

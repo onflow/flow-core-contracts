@@ -4,10 +4,8 @@ import FlowDKG from 0xDKGADDRESS
 
 transaction {
 
-    prepare(signer: AuthAccount) {
-
-        signer.link<&FlowDKG.Admin>(/public/dkgAdmin, target: FlowDKG.AdminStoragePath)
-
+    prepare(signer: auth(Capabilities) &Account) {
+        let adminCap = signer.capabilities.storage.issue<&FlowDKG.Admin>(FlowDKG.AdminStoragePath)
+        signer.capabilities.publish(adminCap, at: /public/dkgAdmin)
     }
-
 }

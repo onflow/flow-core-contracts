@@ -13,11 +13,11 @@ transaction(
     fullUserPublicKey: Crypto.KeyListEntry, // Weight: 1000
 )  {
 
-    prepare(admin: AuthAccount) {
+    prepare(admin: auth(BorrowValue) &Account) {
 
         // Create the new accounts and add their keys
-        let sharedAccount = AuthAccount(payer: admin)
-        let userAccount = AuthAccount(payer: admin)
+        let sharedAccount = Account(payer: admin)
+        let userAccount = Account(payer: admin)
 
         sharedAccount.keys.add(publicKey: partialAdminPublicKey.publicKey, hashAlgorithm: partialAdminPublicKey.hashAlgorithm, weight: partialAdminPublicKey.weight)
         sharedAccount.keys.add(publicKey: partialUserPublicKey.publicKey, hashAlgorithm: partialUserPublicKey.hashAlgorithm, weight: partialUserPublicKey.weight)
@@ -64,7 +64,7 @@ transaction(
             )
             ?? panic("Could not link token admin to token manager")
 
-        let tokenAdminCollection = admin
+        let tokenAdminCollection = admin.storage
             .borrow<&LockedTokens.TokenAdminCollection>(
                 from: LockedTokens.LockedTokenAdminCollectionStoragePath
             )
@@ -77,18 +77,20 @@ transaction(
         )
 
         // Override the default FlowToken receiver
-        sharedAccount.unlink(/public/flowTokenReceiver)
+        sharedAccount.capabilities.unpublish(/public/flowTokenReceiver)
 
         // create new receiver that marks received tokens as unlocked
-        sharedAccount.link<&{FungibleToken.Receiver}>(
-            /public/flowTokenReceiver,
-            target: LockedTokens.LockedTokenManagerStoragePath
+        let lockedTokensManagerCap = sharedAccount.capabilties.storage.issue<&{FungibleToken.Receiver}>(LockedTokens.LockedTokenManagerStoragePath)
+        sharedAccount.capabilties.publish(
+            lockedTokensManagerCap,
+            at: /public/flowTokenReceiver,
         )
 
         // put normal receiver in a separate unique path
-        sharedAccount.link<&{FungibleToken.Receiver}>(
-            /public/lockedFlowTokenReceiver,
-            target: /storage/flowTokenVault
+        let tokenReceiverCap = sharedAccount.capabilties.storage.issue<&{FungibleToken.Receiver}>(/storage/flowTokenVault)
+        sharedAccount.capabilties.publish(
+            tokenReceiverCap
+            at: /public/lockedFlowTokenReceiver,
         )
     }
 }

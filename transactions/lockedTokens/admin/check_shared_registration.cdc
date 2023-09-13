@@ -5,9 +5,9 @@ import LockedTokens from 0xLOCKEDTOKENADDRESS
 
 transaction(lockedAccount: Address) {
 
-    prepare(signer: AuthAccount) {
+    prepare(signer: auth(BorrowValue) &Account) {
 
-        let adminRef = signer.borrow<&LockedTokens.TokenAdminCollection>(from: LockedTokens.LockedTokenAdminCollectionStoragePath)
+        let adminRef = signer.storage.borrow<&LockedTokens.TokenAdminCollection>(from: LockedTokens.LockedTokenAdminCollectionStoragePath)
             ?? panic("Could not borrow a reference to the locked token admin collection")
 
         assert (

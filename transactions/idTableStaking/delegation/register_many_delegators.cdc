@@ -3,7 +3,7 @@ import FlowToken from "FlowToken"
 
 transaction(nodeIDs: [String], paths: [StoragePath]) {
 
-    prepare(acct: AuthAccount) {
+    prepare(acct: auth(SaveValue) &Account) {
 
         var i = 0
 
@@ -12,7 +12,7 @@ transaction(nodeIDs: [String], paths: [StoragePath]) {
             let newDelegator <- FlowIDTableStaking.registerNewDelegator(nodeID: nodeIDs[i], tokensCommitted: <-FlowToken.createEmptyVault())
 
             // Store the delegator object
-            acct.save(<-newDelegator, to: path)
+            acct.storage.save(<-newDelegator, to: path)
 
             i = i + 1
             if i == nodeIDs.length {

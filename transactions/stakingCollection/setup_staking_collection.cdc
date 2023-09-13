@@ -9,42 +9,58 @@ import FlowStakingCollection from 0xSTAKINGCOLLECTIONADDRESS
 /// or staking objects stored in the unlocked account
 
 transaction {
-    prepare(signer: AuthAccount) {
+    prepare(signer: auth(BorrowValue) &Account) {
 
         // If there isn't already a staking collection
-        if signer.borrow<&FlowStakingCollection.StakingCollection>(from: FlowStakingCollection.StakingCollectionStoragePath) == nil {
+        if signer.storage.borrow<&FlowStakingCollection.StakingCollection>(from: FlowStakingCollection.StakingCollectionStoragePath) == nil {
 
             // Create private capabilities for the token holder and unlocked vault
-            let lockedHolder = signer.link<&LockedTokens.TokenHolder>(/private/flowTokenHolder, target: LockedTokens.TokenHolderStoragePath)!
-            let flowToken = signer.link<&FlowToken.Vault>(/private/flowTokenVault, target: /storage/flowTokenVault)!
-            
+            let lockedHolder = signer.capabilities.storage.issue<&LockedTokens.TokenHolder>(target: LockedTokens.TokenHolderStoragePath)!
+            let flowToken = signer.capabilities.storage.issue<&FlowToken.Vault>(target: /storage/flowTokenVault)!
+
             // Create a new Staking Collection and put it in storage
             if lockedHolder.check() {
-                signer.save(<-FlowStakingCollection.createStakingCollection(unlockedVault: flowToken, tokenHolder: lockedHolder), to: FlowStakingCollection.StakingCollectionStoragePath)
+                newAccount.storage.save(
+                    <- FlowStakingCollection.createStakingCollection(
+                        unlockedVault: flowToken,
+                        tokenHolder: lockedHolder
+                    ),
+                    to: FlowStakingCollection.StakingCollectionStoragePath
+                )
             } else {
-                signer.save(<-FlowStakingCollection.createStakingCollection(unlockedVault: flowToken, tokenHolder: nil), to: FlowStakingCollection.StakingCollectionStoragePath)
+                newAccount.storage.save(
+                    <- FlowStakingCollection.createStakingCollection(
+                        unlockedVault: flowToken,
+                        tokenHolder: nil
+                    ),
+                    to: FlowStakingCollection.StakingCollectionStoragePath
+                )
             }
 
-            // Create a public link to the staking collection
-            signer.link<&FlowStakingCollection.StakingCollection{FlowStakingCollection.StakingCollectionPublic}>(
-                FlowStakingCollection.StakingCollectionPublicPath,
+            // Publish a capability to the created staking collection.
+            let stakingCollectionCap = newAccount.capabilities.storage.issue<&FlowStakingCollection.StakingCollection{FlowStakingCollection.StakingCollectionPublic}>(
                 target: FlowStakingCollection.StakingCollectionStoragePath
+            )
+
+            newAccount.capabilities.publish(
+                stakingCollectionCap
+                at: FlowStakingCollection.StakingCollectionPublicPath
             )
         }
 
         // borrow a reference to the staking collection
-        let collectionRef = signer.borrow<&FlowStakingCollection.StakingCollection>(from: FlowStakingCollection.StakingCollectionStoragePath)
+        let collectionRef = signer.storage.borrow<&FlowStakingCollection.StakingCollection>(from: FlowStakingCollection.StakingCollectionStoragePath)
             ?? panic("Could not borrow staking collection reference")
 
         // If there is a node staker object in the account, put it in the staking collection
-        if signer.borrow<&FlowIDTableStaking.NodeStaker>(from: FlowIDTableStaking.NodeStakerStoragePath) != nil {
-            let node <- signer.load<@FlowIDTableStaking.NodeStaker>(from: FlowIDTableStaking.NodeStakerStoragePath)!
+        if signer.storage.borrow<&FlowIDTableStaking.NodeStaker>(from: FlowIDTableStaking.NodeStakerStoragePath) != nil {
+            let node <- signer.storage.load<@FlowIDTableStaking.NodeStaker>(from: FlowIDTableStaking.NodeStakerStoragePath)!
             collectionRef.addNodeObject(<-node, machineAccountInfo: nil)
         }
 
         // If there is a delegator object in the account, put it in the staking collection
-        if signer.borrow<&FlowIDTableStaking.NodeDelegator>(from: FlowIDTableStaking.DelegatorStoragePath) != nil {
-            let delegator <- signer.load<@FlowIDTableStaking.NodeDelegator>(from: FlowIDTableStaking.DelegatorStoragePath)!
+        if signer.storage.borrow<&FlowIDTableStaking.NodeDelegator>(from: FlowIDTableStaking.DelegatorStoragePath) != nil {
+            let delegator <- signer.storage.load<@FlowIDTableStaking.NodeDelegator>(from: FlowIDTableStaking.DelegatorStoragePath)!
             collectionRef.addDelegatorObject(<-delegator)
         }
     }

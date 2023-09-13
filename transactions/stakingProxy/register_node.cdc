@@ -5,13 +5,13 @@ transaction(address: Address, id: String, amount: UFix64) {
 
     let holderRef: &LockedTokens.TokenHolder
 
-    prepare(account: AuthAccount) {
-        self.holderRef = account.borrow<&LockedTokens.TokenHolder>(from: LockedTokens.TokenHolderStoragePath)
+    prepare(account: auth(BorrowValue) &Account) {
+        self.holderRef = account.storage.borrow<&LockedTokens.TokenHolder>(from: LockedTokens.TokenHolderStoragePath)
             ?? panic("Could not borrow reference to TokenHolder")
     }
 
     execute {
-        let nodeOperatorRef = getAccount(address).getCapability
+        let nodeOperatorRef = getAccount(address).capabilities.get
             <&StakingProxy.NodeStakerProxyHolder{StakingProxy.NodeStakerProxyHolderPublic}>
             (StakingProxy.NodeOperatorCapabilityPublicPath)!.borrow() 
             ?? panic("Could not borrow node operator public capability")

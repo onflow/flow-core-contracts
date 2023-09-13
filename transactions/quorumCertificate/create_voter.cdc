@@ -13,16 +13,16 @@ import FlowClusterQC from 0xQCADDRESS
 
 transaction(adminAddress: Address, nodeID: String, stakingKey: String) {
 
-    prepare(signer: AuthAccount) {
+    prepare(signer: auth(SaveValue) &Account) {
 
         // Get the admin reference from the admin account
         let admin = getAccount(adminAddress)
-        let adminRef = admin.getCapability<&FlowClusterQC.Admin>(/public/voterCreator)!
+        let adminRef = admin.capabilities.get<&FlowClusterQC.Admin>(/public/voterCreator)!
             .borrow() ?? panic("Could not borrow a reference to the admin")
 
         // Create a voter object and save it to storage
         let voter <- adminRef.createVoter(nodeID: nodeID, stakingKey: stakingKey)
 
-        signer.save(<-voter, to: FlowClusterQC.VoterStoragePath)
+        signer.storage.save(<-voter, to: FlowClusterQC.VoterStoragePath)
     }
 }

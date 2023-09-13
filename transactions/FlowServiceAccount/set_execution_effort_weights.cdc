@@ -38,8 +38,8 @@
 // ]
 // ```
 transaction(newWeights: {UInt64: UInt64}) {
-    prepare(signer: AuthAccount) {
-        signer.load<{UInt64: UInt64}>(from: /storage/executionEffortWeights)
-        signer.save(newWeights, to: /storage/executionEffortWeights)
+    prepare(signer: auth(Storage) &Account) {
+        signer.storage.load<{UInt64: UInt64}>(from: /storage/executionEffortWeights)
+        signer.storage.save(newWeights, to: /storage/executionEffortWeights)
     }
 }

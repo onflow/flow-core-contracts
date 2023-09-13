@@ -25,7 +25,7 @@ func deployContract(b emulator.Emulator, address flow.Address, signer crypto.Sig
 
 	addAccountContractTemplate := `
 	transaction(name: String, code: String %s) {
-		prepare(signer: AuthAccount) {
+		prepare(signer: auth(AddContract) &Account) {
 			signer.contracts.add(name: name, code: code.decodeHex() %s)
 		}
 	}`

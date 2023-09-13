@@ -8,16 +8,16 @@ import LockedTokens from 0xLOCKEDTOKENADDRESS
 
 transaction(unlockInfo: {Address: UFix64}) {
 
-    prepare(admin: AuthAccount) {
+    prepare(admin: auth(Storage) &Account) {
 
         // Unlocked Account addresses that had some sort of error
         // are stored in this dictionary so they can be inspected later
         // If the transaction needs to run multiple times,
         // then the dictionary is not overwritten
-        var badAccounts: {Address: UFix64} = admin.load<{Address: UFix64}>(from: /storage/unlockingBadAccounts)
+        var badAccounts: {Address: UFix64} = admin.storage.load<{Address: UFix64}>(from: /storage/unlockingBadAccounts)
             ?? {} as {Address: UFix64}
 
-        let adminRef = admin.borrow<&LockedTokens.TokenAdminCollection>(from: LockedTokens.LockedTokenAdminCollectionStoragePath)
+        let adminRef = admin.storage.borrow<&LockedTokens.TokenAdminCollection>(from: LockedTokens.LockedTokenAdminCollectionStoragePath)
             ?? panic("Could not borrow a reference to the admin collection")
 
         for unlockedAddress in unlockInfo.keys {
@@ -26,7 +26,7 @@ transaction(unlockInfo: {Address: UFix64}) {
             // revert the entire transaction if it fails
             // to get the information for a single address
             if let lockedAccountInfoRef = getAccount(unlockedAddress)
-                .getCapability<&LockedTokens.TokenHolder>(LockedTokens.LockedAccountInfoPublicPath)
+                .capabilities.get<&LockedTokens.TokenHolder>(LockedTokens.LockedAccountInfoPublicPath)!
                 .borrow() {
 
                 let lockedAccountAddress = lockedAccountInfoRef.getLockedAccountAddress()
@@ -55,7 +55,9 @@ transaction(unlockInfo: {Address: UFix64}) {
             badAccounts[unlockedAddress] = unlockInfo[unlockedAddress]
         }
 
-        admin.save<{Address: UFix64}>(badAccounts, to: /storage/unlockingBadAccounts)
-        admin.link<&{Address: UFix64}>(/public/unlockingBadAccounts, target: /storage/unlockingBadAccounts)
+        admin.storage.save<{Address: UFix64}>(badAccounts, to: /storage/unlockingBadAccounts)
+
+        let unlockingBadAccountCap = admin.capabilities.storage.issue<&{Address: UFix64}>(/storage/unlockingBadAccounts)
+        admin.capabilities.publish(unlockingBadAccountCap, at: /public/unlockingBadAccounts)
     }
 }

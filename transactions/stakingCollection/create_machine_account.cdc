@@ -8,8 +8,8 @@ transaction(nodeID: String, publicKeys: [Crypto.KeyListEntry]) {
     
     let stakingCollectionRef: &FlowStakingCollection.StakingCollection
 
-    prepare(account: AuthAccount) {
-        self.stakingCollectionRef = account.borrow<&FlowStakingCollection.StakingCollection>(from: FlowStakingCollection.StakingCollectionStoragePath)
+    prepare(account: auth(BorrowValue) &Account) {
+        self.stakingCollectionRef = account.storage.borrow<&FlowStakingCollection.StakingCollection>(from: FlowStakingCollection.StakingCollectionStoragePath)
             ?? panic("Could not borrow ref to StakingCollection")
 
         if let machineAccount = self.stakingCollectionRef.createMachineAccountForExistingNode(nodeID: nodeID, payer: account) {

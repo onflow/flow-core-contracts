@@ -5,7 +5,8 @@ import FlowClusterQC from 0xQCADDRESS
 
 transaction {
 
-    prepare(signer: AuthAccount) {
-        signer.link<&FlowClusterQC.Admin>(/public/voterCreator, target: FlowClusterQC.AdminStoragePath)
+    prepare(signer: auth(Capabilities) &Account) {
+        let adminCap = signer.capabilities.storage.issue<&FlowClusterQC.Admin>(FlowClusterQC.AdminStoragePath)
+        signer.capabilities.issue(adminCap, at: /public/voterCreator)
     }
 }

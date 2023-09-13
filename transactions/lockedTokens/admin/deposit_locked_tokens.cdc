@@ -8,13 +8,13 @@ transaction(to: Address, amount: UFix64) {
     // The Vault resource that holds the tokens that are being transferred
     let sentVault: @{FungibleToken.Vault}
 
-    prepare(admin: AuthAccount) {
+    prepare(admin: auth(BorrowValue) &Account) {
 
         // Get a reference to the admin's stored vault
-        let vaultRef = admin.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)
+        let vaultRef = admin.storage.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)
 			?? panic("Could not borrow reference to the owner's Vault!")
 
-        let adminRef = admin
+        let adminRef = admin.storage
             .borrow<&LockedTokens.TokenAdminCollection>(
                 from: LockedTokens.LockedTokenAdminCollectionStoragePath
             )
@@ -36,9 +36,9 @@ transaction(to: Address, amount: UFix64) {
 
         // Get a reference to the recipient's Receiver
         let receiverRef = recipient
-            .getCapability<&{FungibleToken.Receiver}>(
+            .capabilities.get<&{FungibleToken.Receiver}>(
                 /public/lockedFlowTokenReceiver
-            )
+            )!
             .borrow()
 			?? panic("Could not borrow receiver reference to the recipient's locked Vault")
 

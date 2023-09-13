@@ -10,12 +10,12 @@ transaction(amount: UFix64) {
 
     let flowTokenRef: auth(FungibleToken.Withdrawable) &FlowToken.Vault
 
-    prepare(acct: AuthAccount) {
+    prepare(acct: auth(BorrowValue) &Account) {
         // borrow a reference to the delegator object
-        self.delegatorRef = acct.borrow<auth(FlowIDTableStaking.DelegatorOwner) &FlowIDTableStaking.NodeDelegator>(from: FlowIDTableStaking.DelegatorStoragePath)
+        self.delegatorRef = acct.storage.borrow<auth(FlowIDTableStaking.DelegatorOwner) &FlowIDTableStaking.NodeDelegator>(from: FlowIDTableStaking.DelegatorStoragePath)
             ?? panic("Could not borrow reference to delegator")
 
-        self.flowTokenRef = acct.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)
+        self.flowTokenRef = acct.storage.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)
             ?? panic("Could not borrow reference to FLOW Vault")
 
     }
