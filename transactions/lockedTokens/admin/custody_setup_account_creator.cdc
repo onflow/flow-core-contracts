@@ -2,19 +2,23 @@ import LockedTokens from 0xLOCKEDTOKENADDRESS
 
 transaction {
 
-    prepare(custodyProvider: AuthAccount) {
+    prepare(custodyProvider: auth(SaveValue, Capabilities) &Account) {
 
         let accountCreator <- LockedTokens.createLockedAccountCreator()
 
-        custodyProvider.save(
+        custodyProvider.storage.save(
             <-accountCreator, 
             to: LockedTokens.LockedAccountCreatorStoragePath,
         )
-            
+
         // create new receiver that marks received tokens as unlocked
-        custodyProvider.link<&LockedTokens.LockedAccountCreator>(
-            LockedTokens.LockedAccountCreatorPublicPath,
-            target: LockedTokens.LockedAccountCreatorStoragePath
+        let lockedAccountCreatorCap = custodyProvider.capabilities.storage.issue<&LockedTokens.LockedAccountCreator>(
+            LockedTokens.LockedAccountCreatorStoragePath
+        )
+
+        custodyProvider.capabilities.publish<&LockedTokens.LockedAccountCreator>(
+            lockedAccountCreatorCap,
+            at: LockedTokens.LockedAccountCreatorPublicPath,
         )
     }
 }

@@ -11,10 +11,10 @@ import FlowClusterQC from 0xQCADDRESS
 
 transaction(indices: [UInt16], clusterNodeIDs: [[String]], nodeWeights: [[UInt64]]) {
 
-    prepare(signer: AuthAccount) {
+    prepare(signer: auth(BorrowValue) &Account) {
 
         // Borrow a reference to the QC admin object
-        let adminRef = signer.borrow<&FlowClusterQC.Admin>(from: FlowClusterQC.AdminStoragePath)
+        let adminRef = signer.storage.borrow<&FlowClusterQC.Admin>(from: FlowClusterQC.AdminStoragePath)
             ?? panic("Could not borrow reference to qc admin")
 
         let clusters: [FlowClusterQC.Cluster] = []

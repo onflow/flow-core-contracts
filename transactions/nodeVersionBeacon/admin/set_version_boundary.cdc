@@ -14,7 +14,7 @@ transaction(
   let NodeVersionBeaconAdminRef: &NodeVersionBeacon.Admin
   let newVersionBoundary: NodeVersionBeacon.VersionBoundary
 
-  prepare(acct: AuthAccount) {
+  prepare(acct: auth(BorrowValue) &Account) {
     // Create the new version from the passed parameters
     let newVersion = NodeVersionBeacon.Semver(
       major: newMajor, minor: newMinor, patch: newPatch, preRelease: newPreRelease
@@ -23,7 +23,7 @@ transaction(
     self.newVersionBoundary = NodeVersionBeacon.VersionBoundary(blockHeight: blockHeight, version: newVersion)
 
     // Borrow a reference to the NodeVersionAdmin resource
-    self.NodeVersionBeaconAdminRef = acct.borrow<&NodeVersionBeacon.Admin>
+    self.NodeVersionBeaconAdminRef = acct.storage.borrow<&NodeVersionBeacon.Admin>
       (from: NodeVersionBeacon.AdminStoragePath)
       ?? panic("Couldn't borrow NodeVersionBeacon.Admin Resource")
   }
@@ -34,7 +34,7 @@ transaction(
   }
 
   post{
-    NodeVersionBeacon.getVersionBoundary(effectiveAtBlockHeight: blockHeight).version.strictEqualTo(self.newVersionBoundary.version)
-     : "New version was not added to the versionTable"
+    NodeVersionBeacon.getVersionBoundary(effectiveAtBlockHeight: blockHeight).version
+        .strictEqualTo(self.newVersionBoundary.version) : "New version was not added to the versionTable"
   }
 }

@@ -6,17 +6,21 @@ import FlowToken from "FlowToken"
 
 transaction {
 
-    prepare(acct: AuthAccount) {
+    prepare(acct: auth(BorrowValue) &Account) {
 
-        if acct.borrow<auth(FlowIDTableStaking.NodeOperator) &FlowIDTableStaking.NodeStaker>(from: FlowIDTableStaking.NodeStakerStoragePath) == nil ||
-            acct.getCapability<&{FlowIDTableStaking.NodeStakerPublic}>(FlowIDTableStaking.NodeStakerPublicPath).check()
+        if acct.storage.borrow<auth(FlowIDTableStaking.NodeOperator) &FlowIDTableStaking.NodeStaker>(from: FlowIDTableStaking.NodeStakerStoragePath) == nil ||
+            acct.capabilities.get<&{FlowIDTableStaking.NodeStakerPublic}>(FlowIDTableStaking.NodeStakerPublicPath)!.check()
         {
             return
         }
 
-        acct.link<&{FlowIDTableStaking.NodeStakerPublic}>(
-            FlowIDTableStaking.NodeStakerPublicPath,
-            target: FlowIDTableStaking.NodeStakerStoragePath
+        let nodeStakerCap = acct.capabilities.storage.issue<&{FlowIDTableStaking.NodeStakerPublic}>(
+            FlowIDTableStaking.NodeStakerStoragePath
+        )
+
+        acct.capabilities.publish(
+            nodeStakerCap,
+            at: FlowIDTableStaking.NodeStakerPublicPath,
         )
     }
 }

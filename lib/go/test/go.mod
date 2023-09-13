@@ -5,11 +5,11 @@ go 1.18
 require (
 	github.com/coreos/go-semver v0.3.0
 	github.com/onflow/cadence v0.41.0-stable-cadence.1.0.20230908213403-8f1134670ed0
-	github.com/onflow/flow-core-contracts/lib/go/contracts v1.2.4-0.20230912211318-8bc39ac51e11
-	github.com/onflow/flow-core-contracts/lib/go/templates v1.2.4-0.20230912211318-8bc39ac51e11
+	github.com/onflow/flow-core-contracts/lib/go/contracts v1.2.4-0.20230913165100-6cc568171e6a
+	github.com/onflow/flow-core-contracts/lib/go/templates v1.2.4-0.20230913165100-6cc568171e6a
 	github.com/onflow/flow-emulator v0.54.1-0.20230815221351-758e3a5bb92a
-	github.com/onflow/flow-go v0.31.1-0.20230908222556-1f376cc4392c
-	github.com/onflow/flow-go-sdk v0.44.0-stable-cadence.1.0.20230908221325-06f28e649c30
+	github.com/onflow/flow-go v0.31.1-0.20230912223233-26a5aeb2636a
+	github.com/onflow/flow-go-sdk v0.44.0-stable-cadence.1.0.20230912230115-25ad6f515ce6
 	github.com/onflow/flow-go/crypto v0.24.9
 	github.com/rs/zerolog v1.29.0
 	github.com/stretchr/testify v1.8.4
@@ -87,10 +87,10 @@ require (
 	github.com/multiformats/go-multistream v0.4.1 // indirect
 	github.com/multiformats/go-varint v0.0.7 // indirect
 	github.com/onflow/atree v0.6.1-0.20230711151834-86040b30171f // indirect
-	github.com/onflow/flow-ft/lib/go/contracts v0.7.1-0.20230906165834-daca6600a634 // indirect
-	github.com/onflow/flow-nft/lib/go/contracts v1.1.1-0.20230906170014-ac628577704c // indirect
+	github.com/onflow/flow-ft/lib/go/contracts v0.7.1-0.20230913160646-09adc7d3b513 // indirect
+	github.com/onflow/flow-nft/lib/go/contracts v1.1.1-0.20230913160722-e4f5f3f4b87a // indirect
 	github.com/onflow/flow/protobuf/go/flow v0.3.2-0.20230628215638-83439d22e0ce // indirect
-	github.com/onflow/sdks v0.5.0 // indirect
+	github.com/onflow/sdks v0.5.1-0.20230912225508-b35402f12bba // indirect
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
 	github.com/pbnjay/memory v0.0.0-20210728143218-7b4eea64cf58 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.6 // indirect

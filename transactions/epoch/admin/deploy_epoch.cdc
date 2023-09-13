@@ -13,7 +13,7 @@ transaction(name: String,
             clusterQCs: [FlowClusterQC.ClusterQC],
             dkgPubKeys: [String]) {
 
-  prepare(signer: AuthAccount) {
+  prepare(signer: auth(AddContract) &Account) {
 
     signer.contracts.add(name: name, 
             code: code,

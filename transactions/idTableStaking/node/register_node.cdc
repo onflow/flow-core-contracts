@@ -16,9 +16,9 @@ transaction(
 
     let flowTokenRef: auth(FungibleToken.Withdrawable) &FlowToken.Vault
 
-    prepare(acct: AuthAccount) {
+    prepare(acct: auth(Storage, Capabilities) &Account) {
 
-        self.flowTokenRef = acct.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)
+        self.flowTokenRef = acct.storage.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)
             ?? panic("Could not borrow reference to FLOW Vault")
 
         let nodeStaker <- FlowIDTableStaking.addNodeRecord(
@@ -30,13 +30,17 @@ transaction(
             tokensCommitted: <-self.flowTokenRef.withdraw(amount: amount)
         )
 
-        if acct.borrow<auth(FlowIDTableStaking.NodeOperator) &FlowIDTableStaking.NodeStaker>(from: FlowIDTableStaking.NodeStakerStoragePath) == nil {
+        if acct.storage.borrow<auth(FlowIDTableStaking.NodeOperator) &FlowIDTableStaking.NodeStaker>(from: FlowIDTableStaking.NodeStakerStoragePath) == nil {
 
-            acct.save(<-nodeStaker, to: FlowIDTableStaking.NodeStakerStoragePath)
+            acct.storage.save(<-nodeStaker, to: FlowIDTableStaking.NodeStakerStoragePath)
 
-            acct.link<&{FlowIDTableStaking.NodeStakerPublic}>(
-                FlowIDTableStaking.NodeStakerPublicPath,
-                target: FlowIDTableStaking.NodeStakerStoragePath
+            let nodeStakerCap = acct.capabilities.storage.issue<&{FlowIDTableStaking.NodeStakerPublic}>(
+                FlowIDTableStaking.NodeStakerStoragePath
+            )
+
+            acct.capabilities.publish(
+                nodeStakerCap,
+                at: FlowIDTableStaking.NodeStakerPublicPath,
             )
         } else {
             destroy nodeStaker

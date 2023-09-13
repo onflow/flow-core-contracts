@@ -2,8 +2,8 @@ import FlowEpoch from 0xEPOCHADDRESS
 import FlowIDTableStaking from "FlowIDTableStaking"
 
 transaction(phase: String) {
-    prepare(signer: AuthAccount) {
-        let heartbeat = signer.borrow<&FlowEpoch.Heartbeat>(from: FlowEpoch.heartbeatStoragePath)
+    prepare(signer: auth(BorrowValue) &Account) {
+        let heartbeat = signer.storage.borrow<&FlowEpoch.Heartbeat>(from: FlowEpoch.heartbeatStoragePath)
             ?? panic("Could not borrow heartbeat from storage path")
 
         if phase == "EPOCHSETUP" {

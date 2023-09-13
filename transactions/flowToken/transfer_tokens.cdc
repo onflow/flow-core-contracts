@@ -13,10 +13,10 @@ transaction(amount: UFix64, to: Address) {
     // The Vault resource that holds the tokens that are being transferred
     let sentVault: @FungibleToken.Vault
 
-    prepare(signer: AuthAccount) {
+    prepare(signer: auth(BorrowValue) &Account) {
 
         // Get a reference to the signer's stored vault
-        let vaultRef = signer.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)
+        let vaultRef = signer.storage.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)
 			?? panic("Could not borrow reference to the owner's Vault!")
 
         // Withdraw tokens from the signer's stored vault
@@ -27,8 +27,8 @@ transaction(amount: UFix64, to: Address) {
 
         // Get a reference to the recipient's Receiver
         let receiverRef =  getAccount(to)
-            .getCapability(/public/flowTokenReceiver)
-            .borrow<&{FungibleToken.Receiver}>()
+            .capabilities.get<&{FungibleToken.Receiver}>(/public/flowTokenReceiver)!
+            .borrow()
 			?? panic("Could not borrow receiver reference to the recipient's Vault")
 
         // Deposit the withdrawn tokens in the recipient's receiver
