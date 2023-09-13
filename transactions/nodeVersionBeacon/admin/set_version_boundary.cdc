@@ -1,4 +1,4 @@
-import NodeVersionBeacon from "NodeVersionBeacon"
+import NodeVersionBeacon from 0xNODEVERSIONBEACONADDRESS
 
 /// Transaction that allows NodeVersionAdmin to add a new version to the
 /// version table defining a version boundary at the targetBlockHeight
@@ -33,7 +33,7 @@ transaction(
     self.NodeVersionBeaconAdminRef.setVersionBoundary(versionBoundary: self.newVersionBoundary)
   }
 
-  post {
+  post{
     NodeVersionBeacon.getVersionBoundary(effectiveAtBlockHeight: blockHeight).version
         .strictEqualTo(self.newVersionBoundary.version) : "New version was not added to the versionTable"
   }

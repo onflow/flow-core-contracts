@@ -7,9 +7,9 @@ import LockedTokens from 0xLOCKEDTOKENADDRESS
 
 transaction(amount: UFix64) {
 
-    prepare(signer: AuthAccount) {
+    prepare(signer: auth(BorrowValue) &Account) {
 
-        let collectionRef = signer.borrow<&FlowStakingCollection.StakingCollection>(from: FlowStakingCollection.StakingCollectionStoragePath)
+        let collectionRef = signer.storage.borrow<&FlowStakingCollection.StakingCollection>(from: FlowStakingCollection.StakingCollectionStoragePath)
             ?? panic("Could not borrow a reference to the staking collection")
             
         let tokens <- collectionRef.getTokens(amount: amount)

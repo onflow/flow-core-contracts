@@ -22,7 +22,7 @@ transaction(
 
     let flowTokenRef: auth(FungibleToken.Withdrawable) &FlowToken.Vault
 
-    prepare(acct: auth(BorrowValue) &Account) {
+    prepare(acct: auth(Storage, Capabilities, AddKey) &Account) {
 
         self.flowTokenRef = acct.storage.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)
             ?? panic("Could not borrow reference to FLOW Vault")
@@ -42,10 +42,10 @@ transaction(
             acct.storage.save(<-nodeStaker, to: FlowIDTableStaking.NodeStakerStoragePath)
 
             let nodeStakerCap = acct.capabilities.storage.issue<&{FlowIDTableStaking.NodeStakerPublic}>(FlowIDTableStaking.NodeStakerStoragePath)
-            acct.capabilities.storage.publish(nodeStakerCap, to: FlowIDTableStaking.NodeStakerPublicPath)
+            acct.capabilities.publish(nodeStakerCap, at: FlowIDTableStaking.NodeStakerPublicPath)
         }
 
-        let nodeRef = acct.borrow<&FlowIDTableStaking.NodeStaker>(from: FlowIDTableStaking.NodeStakerStoragePath)
+        let nodeRef = acct.storage.borrow<&FlowIDTableStaking.NodeStaker>(from: FlowIDTableStaking.NodeStakerStoragePath)
             ?? panic("Could not borrow node reference from storage path")
 
         let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeRef.id)

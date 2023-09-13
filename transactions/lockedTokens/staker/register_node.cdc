@@ -9,16 +9,22 @@ transaction(id: String, role: UInt8, networkingAddress: String, networkingKey: S
 
     let vaultRef: &FlowToken.Vault
 
-    prepare(account: AuthAccount) {
-        self.holderRef = account.borrow<&LockedTokens.TokenHolder>(from: LockedTokens.TokenHolderStoragePath)
+    prepare(account: auth(BorrowValue) &Account) {
+        self.holderRef = account.storage.borrow<&LockedTokens.TokenHolder>(from: LockedTokens.TokenHolderStoragePath)
             ?? panic("Could not borrow ref to TokenHolder")
 
-        self.vaultRef = account.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)
+        self.vaultRef = account.storage.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)
             ?? panic("Could not borrow flow token vault reference")
     }
 
     execute {
-        let nodeInfo = StakingProxy.NodeInfo(nodeID: id, role: role, networkingAddress: networkingAddress, networkingKey: networkingKey, stakingKey: stakingKey)
+        let nodeInfo = StakingProxy.NodeInfo(
+          nodeID: id,
+          role: role,
+          networkingAddress: networkingAddress,
+          networkingKey: networkingKey,
+          stakingKey: stakingKey
+        )
 
         let lockedBalance = self.holderRef.getLockedAccountBalance()
 

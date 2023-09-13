@@ -21,17 +21,17 @@ access(all) fun main(address: Address): UFix64 {
 
     let account = getAccount(address)
 
-    if let vaultRef = account.getCapability(/public/flowTokenBalance)
-        .borrow<&FlowToken.Vault>() 
+    if let vaultRef = account.capabilities.get<&FlowToken.Vault>(/public/flowTokenBalance)!
+        .borrow()
     {
         sum = sum + vaultRef.balance
     }
 
     // Get token balance from the unlocked account's node staking pools
     let nodeStakerCap = account
-        .getCapability<&{FlowIDTableStaking.NodeStakerPublic}>(
+        .capabilities.get<&{FlowIDTableStaking.NodeStakerPublic}>(
             FlowIDTableStaking.NodeStakerPublicPath
-        )
+        )!
 
     if let nodeStakerRef = nodeStakerCap.borrow() {
         let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeStakerRef.id)
@@ -40,9 +40,9 @@ access(all) fun main(address: Address): UFix64 {
 
     // Get token balance from the unlocked account's delegator staking pools
     let delegatorCap = account
-        .getCapability<&{FlowIDTableStaking.NodeDelegatorPublic}>(
+        .capabilities.get<&{FlowIDTableStaking.NodeDelegatorPublic}>(
             /public/flowStakingDelegator
-        )
+        )!
 
     if let delegatorRef = delegatorCap.borrow() {
         let delegatorInfo = FlowIDTableStaking.DelegatorInfo(
@@ -55,9 +55,9 @@ access(all) fun main(address: Address): UFix64 {
 
     // Get the locked account public capability
     let lockedAccountInfoCap = account
-        .getCapability<&LockedTokens.TokenHolder>(
+        .capabilities.get<&LockedTokens.TokenHolder>(
             LockedTokens.LockedAccountInfoPublicPath
-        )
+        )!
 
     if let lockedAccountInfoRef = lockedAccountInfoCap.borrow() {
         // Add the locked account balance

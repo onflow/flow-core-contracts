@@ -1,5 +1,5 @@
 import Crypto
-import FlowStakingCollection from "FlowStakingCollection"
+import FlowStakingCollection from 0xSTAKINGCOLLECTIONADDRESS
 
 /// Registers a delegator in the staking collection resource
 /// for the specified node information and the amount of tokens to commit
@@ -10,15 +10,13 @@ transaction(id: String,
             networkingKey: String,
             stakingKey: String,
             amount: UFix64,
-            machineAccountKey: String, 
-            machineAccountKeySignatureAlgorithm: UInt8, 
-            machineAccountKeyHashAlgorithm: UInt8) {
-
-    let stakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) &FlowStakingCollection.StakingCollection
+            publicKeys: [Crypto.KeyListEntry]?) {
+    
+    let stakingCollectionRef: &FlowStakingCollection.StakingCollection
 
     prepare(account: auth(BorrowValue) &Account) {
-        self.stakingCollectionRef = account.storage.borrow<auth(FlowStakingCollection.CollectionOwner) &FlowStakingCollection.StakingCollection>(from: FlowStakingCollection.StakingCollectionStoragePath)
-            ?? panic("Could not borrow a reference to a StakingCollection in the primary user's account")
+        self.stakingCollectionRef = account.storage.borrow<&FlowStakingCollection.StakingCollection>(from: FlowStakingCollection.StakingCollectionStoragePath)
+            ?? panic("Could not borrow ref to StakingCollection")
 
         if let machineAccount = self.stakingCollectionRef.registerNode(
             id: id,
@@ -27,19 +25,14 @@ transaction(id: String,
             networkingKey: networkingKey,
             stakingKey: stakingKey,
             amount: amount,
-            payer: account
-        ) {
-            let sigAlgo = SignatureAlgorithm(rawValue: machineAccountKeySignatureAlgorithm)
-                ?? panic("Could not get a signature algorithm from the raw enum value provided")
-
-            let hashAlgo = HashAlgorithm(rawValue: machineAccountKeyHashAlgorithm)
-                ?? panic("Could not get a hash algorithm from the raw enum value provided")
-            
-            let publicKey = PublicKey(
-			    publicKey: machineAccountKey.decodeHex(),
-			    signatureAlgorithm: sigAlgo
-		    )
-            machineAccount.keys.add(publicKey: publicKey, hashAlgorithm: hashAlgo, weight: 1000.0)
+            payer: account) 
+        {
+            if publicKeys == nil || publicKeys!.length == 0 {
+                panic("Cannot provide zero keys for the machine account")
+            }
+            for key in publicKeys! {
+                machineAccount.keys.add(publicKey: key.publicKey, hashAlgorithm: key.hashAlgorithm, weight: key.weight)
+            }
         }
     }
 }

@@ -6,8 +6,8 @@ import FlowToken from "FlowToken"
 access(all) fun main(account: Address): UFix64 {
 
     let vaultRef = getAccount(account)
-        .getCapability(/public/flowTokenBalance)
-        .borrow<&FlowToken.Vault{FungibleToken.Balance}>()
+        .capabilities.get<&FlowToken.Vault{FungibleToken.Balance}>(/public/flowTokenBalance)!
+        .borrow()
         ?? panic("Could not borrow Balance reference to the Vault")
 
     return vaultRef.balance

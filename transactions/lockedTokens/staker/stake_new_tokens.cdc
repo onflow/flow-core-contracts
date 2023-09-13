@@ -10,11 +10,11 @@ transaction(amount: UFix64) {
 
     let vaultRef: &FlowToken.Vault
 
-    prepare(account: AuthAccount) {
-        self.holderRef = account.borrow<&LockedTokens.TokenHolder>(from: LockedTokens.TokenHolderStoragePath)
+    prepare(account: auth(BorrowValue) &Account) {
+        self.holderRef = account.storage.borrow<&LockedTokens.TokenHolder>(from: LockedTokens.TokenHolderStoragePath)
             ?? panic("Could not borrow reference to TokenHolder")
 
-        self.vaultRef = account.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)
+        self.vaultRef = account.storage.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)
             ?? panic("Could not borrow flow token vault reference")
     }
 

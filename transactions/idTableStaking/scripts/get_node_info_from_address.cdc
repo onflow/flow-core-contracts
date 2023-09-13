@@ -5,7 +5,8 @@ import FlowIDTableStaking from "FlowIDTableStaking"
 access(all) fun main(address: Address): FlowIDTableStaking.NodeInfo {
 
     let nodeStaker = getAccount(address)
-        .capabilities.borrow<&{FlowIDTableStaking.NodeStakerPublic}>(FlowIDTableStaking.NodeStakerPublicPath)
+        .capabilities.get<&{FlowIDTableStaking.NodeStakerPublic}>(FlowIDTableStaking.NodeStakerPublicPath)!
+        .borrow()
         ?? panic("Could not borrow reference to node staker object")
 
     return FlowIDTableStaking.NodeInfo(nodeID: nodeStaker.id)

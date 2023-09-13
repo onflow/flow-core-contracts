@@ -11,9 +11,9 @@ access(all) fun main(account: Address): [FlowIDTableStaking.DelegatorInfo] {
     let pubAccount = getAccount(account)
 
     let delegatorCap = pubAccount
-        .getCapability<&{FlowIDTableStaking.NodeDelegatorPublic}>(
+        .capabilities.get<&{FlowIDTableStaking.NodeDelegatorPublic}>(
             /public/flowStakingDelegator
-        )
+        )!
 
     if let delegatorRef = delegatorCap.borrow() {
         let info = FlowIDTableStaking.DelegatorInfo(
@@ -24,9 +24,9 @@ access(all) fun main(account: Address): [FlowIDTableStaking.DelegatorInfo] {
     }
 
     let lockedAccountInfoCap = pubAccount
-        .getCapability<&LockedTokens.TokenHolder>(
+        .capabilities.get<&LockedTokens.TokenHolder>(
             LockedTokens.LockedAccountInfoPublicPath
-        )
+        )!
 
     if let lockedAccountInfoRef = lockedAccountInfoCap.borrow() {
         let nodeID = lockedAccountInfoRef.getDelegatorNodeID()

@@ -1,4 +1,4 @@
-import FlowStakingCollection from "FlowStakingCollection"
+import FlowStakingCollection from 0xSTAKINGCOLLECTIONADDRESS
 
 // Closes out a staking object in the staking collection
 // This does not remove the record from the identity table,
@@ -6,11 +6,11 @@ import FlowStakingCollection from "FlowStakingCollection"
 
 transaction(nodeID: String, delegatorID: UInt32?) {
     
-    let stakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) &FlowStakingCollection.StakingCollection
+    let stakingCollectionRef: &FlowStakingCollection.StakingCollection
 
     prepare(account: auth(BorrowValue) &Account) {
-        self.stakingCollectionRef = account.storage.borrow<auth(FlowStakingCollection.CollectionOwner) &FlowStakingCollection.StakingCollection>(from: FlowStakingCollection.StakingCollectionStoragePath)
-            ?? panic("Could not borrow a reference to a StakingCollection in the primary user's account")
+        self.stakingCollectionRef = account.storage.borrow<&FlowStakingCollection.StakingCollection>(from: FlowStakingCollection.StakingCollectionStoragePath)
+            ?? panic("Could not borrow ref to StakingCollection")
     }
 
     execute {

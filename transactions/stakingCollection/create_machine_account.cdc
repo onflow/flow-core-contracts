@@ -1,32 +1,24 @@
 import Crypto
-import FlowStakingCollection from "FlowStakingCollection"
+import FlowStakingCollection from 0xSTAKINGCOLLECTIONADDRESS
 
 /// Creates a machine account for a node that is already in the staking collection
 /// and adds public keys to the new account
 
-transaction(nodeID: String, 
-            machineAccountKey: String, 
-            machineAccountKeySignatureAlgorithm: UInt8, 
-            machineAccountKeyHashAlgorithm: UInt8) {
+transaction(nodeID: String, publicKeys: [Crypto.KeyListEntry]) {
     
-    let stakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) &FlowStakingCollection.StakingCollection
+    let stakingCollectionRef: &FlowStakingCollection.StakingCollection
 
     prepare(account: auth(BorrowValue) &Account) {
-        self.stakingCollectionRef = account.storage.borrow<auth(FlowStakingCollection.CollectionOwner) &FlowStakingCollection.StakingCollection>(from: FlowStakingCollection.StakingCollectionStoragePath)
-            ?? panic("Could not borrow a reference to a StakingCollection in the primary user's account")
+        self.stakingCollectionRef = account.storage.borrow<&FlowStakingCollection.StakingCollection>(from: FlowStakingCollection.StakingCollectionStoragePath)
+            ?? panic("Could not borrow ref to StakingCollection")
 
         if let machineAccount = self.stakingCollectionRef.createMachineAccountForExistingNode(nodeID: nodeID, payer: account) {
-            let sigAlgo = SignatureAlgorithm(rawValue: machineAccountKeySignatureAlgorithm)
-                ?? panic("Could not get a signature algorithm from the raw enum value provided")
-
-            let hashAlgo = HashAlgorithm(rawValue: machineAccountKeyHashAlgorithm)
-                ?? panic("Could not get a hash algorithm from the raw enum value provided")
-            
-            let publicKey = PublicKey(
-			    publicKey: machineAccountKey.decodeHex(),
-			    signatureAlgorithm: sigAlgo
-		    )
-            machineAccount.keys.add(publicKey: publicKey, hashAlgorithm: hashAlgo, weight: 1000.0)
+            if publicKeys == nil || publicKeys!.length == 0 {
+                panic("Cannot provide zero keys for the machine account")
+            }
+            for key in publicKeys {
+                machineAccount.keys.add(publicKey: key.publicKey, hashAlgorithm: key.hashAlgorithm, weight: key.weight)
+            }
         } else {
             panic("Could not create a machine account for the node")
         }
