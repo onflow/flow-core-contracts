@@ -123,7 +123,10 @@ access(all) contract FlowStakingCollection {
         /// Tracks the machine accounts associated with nodes
         access(self) var machineAccounts: {String: MachineAccountInfo}
 
-        init(unlockedVault: Capability<auth(FungibleToken.Withdrawable) &FlowToken.Vault>, tokenHolder: Capability<auth(FungibleToken.Withdrawable, LockedTokens.TokenOperations) &LockedTokens.TokenHolder>?) {
+        init(
+            unlockedVault: Capability<auth(FungibleToken.Withdrawable) &FlowToken.Vault>,
+            tokenHolder: Capability<auth(FungibleToken.Withdrawable, LockedTokens.TokenOperations) &LockedTokens.TokenHolder>?
+        ) {
             pre {
                 unlockedVault.check(): "Invalid FlowToken.Vault capability"
             }
@@ -309,7 +312,14 @@ access(all) contract FlowStakingCollection {
             let stakingInfo = FlowIDTableStaking.NodeInfo(nodeID: id)
             let totalStaked = stakingInfo.totalTokensInRecord() - stakingInfo.tokensRewarded
             self.unlockedTokensUsed = self.unlockedTokensUsed + totalStaked
-            emit NodeAddedToStakingCollection(nodeID: stakingInfo.id, role: stakingInfo.role, amountCommitted: stakingInfo.totalCommittedWithoutDelegators(), address: self.owner?.address)
+
+            emit NodeAddedToStakingCollection(
+                nodeID: stakingInfo.id,
+                role: stakingInfo.role,
+                amountCommitted: stakingInfo.totalCommittedWithoutDelegators(),
+                address: self.owner?.address
+            )
+
             self.nodeStakers[id] <-! node
             // Set the machine account for the existing node
             // can be the same as the old account if needed
@@ -392,11 +402,26 @@ access(all) contract FlowStakingCollection {
         /// Operations to register new staking objects
 
         /// Function to register a new Staking Record to the Staking Collection
-        access(CollectionOwner) fun registerNode(id: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String, amount: UFix64, payer: auth(BorrowValue) &Account): &Account? {
+        access(CollectionOwner) fun registerNode(
+            id: String,
+            role: UInt8,
+            networkingAddress: String,
+            networkingKey: String,
+            stakingKey: String,
+            amount: UFix64,
+            payer: auth(BorrowValue) &Account
+        ): auth(Storage, Capabilities, Contracts, Keys, Inbox) &Account? {
 
             let tokens <- self.getTokens(amount: amount)
 
-            let nodeStaker <- FlowIDTableStaking.addNodeRecord(id: id, role: role, networkingAddress: networkingAddress, networkingKey: networkingKey, stakingKey: stakingKey, tokensCommitted: <-tokens)
+            let nodeStaker <- FlowIDTableStaking.addNodeRecord(
+                id: id,
+                role: role,
+                networkingAddress: networkingAddress,
+                networkingKey: networkingKey,
+                stakingKey: stakingKey,
+                tokensCommitted: <-tokens
+            )
 
             emit NodeAddedToStakingCollection(nodeID: nodeStaker.id, role: role, amountCommitted: amount, address: self.owner?.address)
 
@@ -421,7 +446,10 @@ access(all) contract FlowStakingCollection {
         /// Only returns an AuthAccount object if the node is collector or consensus, otherwise returns nil
         /// The caller's qc or dkg object is stored in the new account
         /// but it is the caller's responsibility to add public keys to it
-        access(self) fun registerMachineAccount(nodeReference: &FlowIDTableStaking.NodeStaker, payer: auth(BorrowValue) &Account): &Account? {
+        access(self) fun registerMachineAccount(
+            nodeReference: &FlowIDTableStaking.NodeStaker,
+            payer: auth(BorrowValue) &Account
+        ): auth(Storage, Capabilities, Contracts, Keys, Inbox) &Account? {
 
             let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeReference.id)
 
@@ -430,7 +458,11 @@ access(all) contract FlowStakingCollection {
 
             // Get the vault capability and create the machineAccountInfo struct
             let machineAccountVaultProvider = machineAcct.capabilities.storage.issue<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(/storage/flowTokenVault)!
-            let machineAccountInfo = MachineAccountInfo(nodeID: nodeInfo.id, role: nodeInfo.role, machineAccountVaultProvider: machineAccountVaultProvider)
+            let machineAccountInfo = MachineAccountInfo(
+                nodeID: nodeInfo.id,
+                role: nodeInfo.role,
+                machineAccountVaultProvider: machineAccountVaultProvider
+            )
             
             // If they are a collector node, create a QC Voter object and store it in the account
             if nodeInfo.role == FlowEpoch.NodeRole.Collector.rawValue {
@@ -442,7 +474,11 @@ access(all) contract FlowStakingCollection {
                 // set this node's machine account
                 self.machineAccounts[nodeInfo.id] = machineAccountInfo
 
-                emit MachineAccountCreated(nodeID: nodeInfo.id, role: FlowEpoch.NodeRole.Collector.rawValue, address: machineAccountVaultProvider.borrow()!.owner!.address)
+                emit MachineAccountCreated(
+                    nodeID: nodeInfo.id,
+                    role: FlowEpoch.NodeRole.Collector.rawValue,
+                    address: machineAccountVaultProvider.borrow()!.owner!.address
+                )
 
                 return machineAcct
 
