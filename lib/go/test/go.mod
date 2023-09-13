@@ -5,10 +5,10 @@ go 1.18
 require (
 	github.com/coreos/go-semver v0.3.0
 	github.com/onflow/cadence v0.41.0-stable-cadence.1.0.20230908213403-8f1134670ed0
-	github.com/onflow/flow-core-contracts/lib/go/contracts v1.2.4-0.20230913195300-f4efd4c46624
-	github.com/onflow/flow-core-contracts/lib/go/templates v1.2.4-0.20230913195300-f4efd4c46624
-	github.com/onflow/flow-emulator v0.54.1-0.20230815221351-758e3a5bb92a
-	github.com/onflow/flow-go v0.31.1-0.20230912223233-26a5aeb2636a
+	github.com/onflow/flow-core-contracts/lib/go/contracts v1.2.4-0.20230913220622-4159a41b5577
+	github.com/onflow/flow-core-contracts/lib/go/templates v1.2.4-0.20230913220622-4159a41b5577
+	github.com/onflow/flow-emulator v0.54.1-0.20230912234944-690e2ed31cb4
+	github.com/onflow/flow-go v0.31.1-0.20230913222030-3a7984d09ff0
 	github.com/onflow/flow-go-sdk v0.44.0-stable-cadence.1.0.20230912230115-25ad6f515ce6
 	github.com/onflow/flow-go/crypto v0.24.9
 	github.com/rs/zerolog v1.29.0
@@ -158,11 +158,3 @@ require (
 replace github.com/onflow/flow-core-contracts/lib/go/contracts => ../contracts
 
 replace github.com/onflow/flow-core-contracts/lib/go/templates => ../templates
-
-replace (
-	github.com/onflow/cadence => ../../../../cadence
-	github.com/onflow/flow-emulator => ../../../../flow-emulator
-	github.com/onflow/flow-go => ../../../../flow-go
-	github.com/onflow/flow-go-sdk => ../../../../flow-go-sdk
-	github.com/onflow/flow-nft/lib/go/contracts => ../../../../flow-nft/lib/go/contracts
-)
