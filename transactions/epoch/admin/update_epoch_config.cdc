@@ -1,7 +1,7 @@
 import FlowEpoch from 0xEPOCHADDRESS
 
 transaction(dkgPhaseLen: UInt64, stakingLen: UInt64, epochLen: UInt64) {
-    prepare(signer: storage.) {
+    prepare(signer: auth(BorrowValue) &Account) {
         let epochAdmin = signer.storage.borrow<&FlowEpoch.Admin>(from: FlowEpoch.adminStoragePath)
             ?? panic("Could not borrow admin from storage path")
 
