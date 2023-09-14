@@ -21,30 +21,28 @@ access(all) fun main(address: Address): UFix64 {
 
     let account = getAccount(address)
 
-    if let vaultRef = account.capabilities.get<&FlowToken.Vault>(/public/flowTokenBalance)!
-        .borrow()
-    {
+    if let vaultRef = account.capabilities.borrow<&FlowToken.Vault>(/public/flowTokenBalance) {
         sum = sum + vaultRef.balance
     }
 
     // Get token balance from the unlocked account's node staking pools
-    let nodeStakerCap = account
-        .capabilities.get<&{FlowIDTableStaking.NodeStakerPublic}>(
+    let optionalNodeStakerRef = account
+        .capabilities.borrow<&{FlowIDTableStaking.NodeStakerPublic}>(
             FlowIDTableStaking.NodeStakerPublicPath
-        )!
+        )
 
-    if let nodeStakerRef = nodeStakerCap.borrow() {
+    if let nodeStakerRef = optionalNodeStakerRef {
         let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeStakerRef.id)
         sum = sum + nodeInfo.totalTokensInRecord()
     }
 
     // Get token balance from the unlocked account's delegator staking pools
-    let delegatorCap = account
-        .capabilities.get<&{FlowIDTableStaking.NodeDelegatorPublic}>(
+    let optionalDelegatorRef = account
+        .capabilities.borrow<&{FlowIDTableStaking.NodeDelegatorPublic}>(
             /public/flowStakingDelegator
         )!
 
-    if let delegatorRef = delegatorCap.borrow() {
+    if let delegatorRef = optionalDelegatorRef {
         let delegatorInfo = FlowIDTableStaking.DelegatorInfo(
             nodeID: delegatorRef.nodeID,
             delegatorID: delegatorRef.id
@@ -54,12 +52,12 @@ access(all) fun main(address: Address): UFix64 {
     }
 
     // Get the locked account public capability
-    let lockedAccountInfoCap = account
+    let optionalLockedAccountInfoRef = account
         .capabilities.get<&LockedTokens.TokenHolder>(
             LockedTokens.LockedAccountInfoPublicPath
         )!
 
-    if let lockedAccountInfoRef = lockedAccountInfoCap.borrow() {
+    if let lockedAccountInfoRef = optionalLockedAccountInfoRef {
         // Add the locked account balance
         sum = sum + lockedAccountInfoRef.getLockedAccountBalance()
 

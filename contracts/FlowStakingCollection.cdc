@@ -1039,7 +1039,7 @@ access(all) contract FlowStakingCollection {
     access(all) fun doesStakeExist(address: Address, nodeID: String, delegatorID: UInt32?): Bool {
         let account = getAccount(address)
 
-        let stakingCollectionRef = account.capabilities.get<&StakingCollection>(self.StakingCollectionPublicPath)!.borrow()
+        let stakingCollectionRef = account.capabilities.borrow<&StakingCollection>(self.StakingCollectionPublicPath)
             ?? panic("Could not borrow ref to StakingCollection")
 
         return stakingCollectionRef.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID)
@@ -1049,7 +1049,7 @@ access(all) contract FlowStakingCollection {
     access(all) fun getUnlockedTokensUsed(address: Address): UFix64 {
         let account = getAccount(address)
 
-        let stakingCollectionRef = account.capabilities.get<&StakingCollection>(self.StakingCollectionPublicPath)!.borrow()
+        let stakingCollectionRef = account.capabilities.borrow<&StakingCollection>(self.StakingCollectionPublicPath)
             ?? panic("Could not borrow ref to StakingCollection")
 
         return stakingCollectionRef.unlockedTokensUsed
@@ -1059,7 +1059,7 @@ access(all) contract FlowStakingCollection {
     access(all) fun getLockedTokensUsed(address: Address): UFix64 {
         let account = getAccount(address)
 
-        let stakingCollectionRef = account.capabilities.get<&StakingCollection>(self.StakingCollectionPublicPath)!.borrow()
+        let stakingCollectionRef = account.capabilities.borrow<&StakingCollection>(self.StakingCollectionPublicPath)
             ?? panic("Could not borrow ref to StakingCollection")
 
         return stakingCollectionRef.lockedTokensUsed
@@ -1069,7 +1069,7 @@ access(all) contract FlowStakingCollection {
     access(all) fun getNodeIDs(address: Address): [String] {
         let account = getAccount(address)
 
-        let stakingCollectionRef = account.capabilities.get<&StakingCollection>(self.StakingCollectionPublicPath)!.borrow()
+        let stakingCollectionRef = account.capabilities.borrow<&StakingCollection>(self.StakingCollectionPublicPath)
             ?? panic("Could not borrow ref to StakingCollection")
 
         return stakingCollectionRef.getNodeIDs()
@@ -1079,7 +1079,7 @@ access(all) contract FlowStakingCollection {
     access(all) fun getDelegatorIDs(address: Address): [DelegatorIDs] {
         let account = getAccount(address)
 
-        let stakingCollectionRef = account.capabilities.get<&StakingCollection>(self.StakingCollectionPublicPath)!.borrow()
+        let stakingCollectionRef = account.capabilities.borrow<&StakingCollection>(self.StakingCollectionPublicPath)
             ?? panic("Could not borrow ref to StakingCollection")
 
         return stakingCollectionRef.getDelegatorIDs()
@@ -1089,7 +1089,7 @@ access(all) contract FlowStakingCollection {
     access(all) fun getAllNodeInfo(address: Address): [FlowIDTableStaking.NodeInfo] {
         let account = getAccount(address)
 
-        let stakingCollectionRef = account.capabilities.get<&StakingCollection>(self.StakingCollectionPublicPath)!.borrow()
+        let stakingCollectionRef = account.capabilities.borrow<&StakingCollection>(self.StakingCollectionPublicPath)
             ?? panic("Could not borrow ref to StakingCollection")
 
         return stakingCollectionRef.getAllNodeInfo()
@@ -1099,7 +1099,7 @@ access(all) contract FlowStakingCollection {
     access(all) fun getAllDelegatorInfo(address: Address): [FlowIDTableStaking.DelegatorInfo] {
         let account = getAccount(address)
 
-        let stakingCollectionRef = account.capabilities.get<&StakingCollection>(self.StakingCollectionPublicPath)!.borrow()
+        let stakingCollectionRef = account.capabilities.borrow<&StakingCollection>(self.StakingCollectionPublicPath)
             ?? panic("Could not borrow ref to StakingCollection")
 
         return stakingCollectionRef.getAllDelegatorInfo()
@@ -1109,7 +1109,7 @@ access(all) contract FlowStakingCollection {
     access(all) fun getMachineAccounts(address: Address): {String: MachineAccountInfo} {
         let account = getAccount(address)
 
-        let stakingCollectionRef = account.capabilities.get<&StakingCollection>(self.StakingCollectionPublicPath)!.borrow()
+        let stakingCollectionRef = account.capabilities.borrow<&StakingCollection>(self.StakingCollectionPublicPath)
             ?? panic("Could not borrow ref to StakingCollection")
 
         return stakingCollectionRef.getMachineAccounts()

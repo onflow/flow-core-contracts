@@ -11,8 +11,7 @@ transaction(mainAccount: Address) {
             ?? panic("Could not borrow a reference to the locked token admin collection")
 
         let lockedAccountInfoRef = getAccount(mainAccount)
-            .capabilities.get<&LockedTokens.TokenHolder>(LockedTokens.LockedAccountInfoPublicPath)!
-            .borrow()
+            .capabilities.borrow<&LockedTokens.TokenHolder>(LockedTokens.LockedAccountInfoPublicPath)
             ?? panic("Could not borrow a reference to public LockedAccountInfo")
 
         let lockedAccount = lockedAccountInfoRef.getLockedAccountAddress()
