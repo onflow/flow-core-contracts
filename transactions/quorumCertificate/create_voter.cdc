@@ -17,8 +17,8 @@ transaction(adminAddress: Address, nodeID: String, stakingKey: String) {
 
         // Get the admin reference from the admin account
         let admin = getAccount(adminAddress)
-        let adminRef = admin.capabilities.get<&FlowClusterQC.Admin>(/public/voterCreator)!
-            .borrow() ?? panic("Could not borrow a reference to the admin")
+        let adminRef = admin.capabilities.borrow<&FlowClusterQC.Admin>(/public/voterCreator)
+            ?? panic("Could not borrow a reference to the admin")
 
         // Create a voter object and save it to storage
         let voter <- adminRef.createVoter(nodeID: nodeID, stakingKey: stakingKey)

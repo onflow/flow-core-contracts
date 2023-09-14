@@ -5,8 +5,7 @@ import FlowIDTableStaking from "FlowIDTableStaking"
 access(all) fun main(address: Address): FlowIDTableStaking.DelegatorInfo {
 
     let delegator = getAccount(address)
-        .capabilities.get<&{FlowIDTableStaking.NodeDelegatorPublic}>(/public/flowStakingDelegator)!
-        .borrow()
+        .capabilities.borrow<&{FlowIDTableStaking.NodeDelegatorPublic}>(/public/flowStakingDelegator)
         ?? panic("Could not borrow reference to delegator object")
 
     return FlowIDTableStaking.DelegatorInfo(nodeID: delegator.nodeID, delegatorID: delegator.id)

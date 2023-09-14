@@ -36,10 +36,9 @@ transaction(to: Address, amount: UFix64) {
 
         // Get a reference to the recipient's Receiver
         let receiverRef = recipient
-            .capabilities.get<&{FungibleToken.Receiver}>(
+            .capabilities.borrow<&{FungibleToken.Receiver}>(
                 /public/lockedFlowTokenReceiver
-            )!
-            .borrow()
+            )
 			?? panic("Could not borrow receiver reference to the recipient's locked Vault")
 
         // Deposit the withdrawn tokens in the recipient's receiver

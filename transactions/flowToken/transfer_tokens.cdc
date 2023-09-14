@@ -27,8 +27,7 @@ transaction(amount: UFix64, to: Address) {
 
         // Get a reference to the recipient's Receiver
         let receiverRef =  getAccount(to)
-            .capabilities.get<&{FungibleToken.Receiver}>(/public/flowTokenReceiver)!
-            .borrow()
+            .capabilities.borrow<&{FungibleToken.Receiver}>(/public/flowTokenReceiver)
 			?? panic("Could not borrow receiver reference to the recipient's Vault")
 
         // Deposit the withdrawn tokens in the recipient's receiver

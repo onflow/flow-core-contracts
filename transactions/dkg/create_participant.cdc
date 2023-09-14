@@ -3,8 +3,8 @@ import FlowDKG from 0xDKGADDRESS
 transaction(address: Address, nodeID: String) {
 
     prepare(signer: auth(SaveValue) &Account) {
-        let admin = getAccount(address).capabilities.get<&FlowDKG.Admin>(/public/dkgAdmin)!
-            .borrow() ?? panic("Could not borrow admin reference")
+        let admin = getAccount(address).capabilities.borrow<&FlowDKG.Admin>(/public/dkgAdmin)
+             ?? panic("Could not borrow admin reference")
 
         let dkgParticipant <- admin.createParticipant(nodeID: nodeID)
 

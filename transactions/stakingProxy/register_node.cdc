@@ -11,9 +11,10 @@ transaction(address: Address, id: String, amount: UFix64) {
     }
 
     execute {
-        let nodeOperatorRef = getAccount(address).capabilities.get
-            <&StakingProxy.NodeStakerProxyHolder{StakingProxy.NodeStakerProxyHolderPublic}>
-            (StakingProxy.NodeOperatorCapabilityPublicPath)!.borrow() 
+        let nodeOperatorRef = getAccount(address).capabilities
+            .borrow<&StakingProxy.NodeStakerProxyHolder{StakingProxy.NodeStakerProxyHolderPublic}>(
+                StakingProxy.NodeOperatorCapabilityPublicPath
+            )
             ?? panic("Could not borrow node operator public capability")
 
         let nodeInfo = nodeOperatorRef.getNodeInfo(nodeID: id)

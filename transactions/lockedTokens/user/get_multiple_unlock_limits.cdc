@@ -6,10 +6,9 @@ access(all) fun main(accounts: [Address]): [UFix64] {
 
     for account in accounts {
         let lockedAccountInfoRef = getAccount(account)
-            .capabilities.get<&LockedTokens.TokenHolder>(
+            .capabilities.borrow<&LockedTokens.TokenHolder>(
                 LockedTokens.LockedAccountInfoPublicPath
-            )!
-            .borrow()
+            )
             ?? panic("Could not borrow a reference to public LockedAccountInfo")
 
         limits.append(lockedAccountInfoRef.getUnlockLimit())
