@@ -23,8 +23,7 @@ transaction(nodeID: String, delegatorID: UInt32, to: Address) {
 
         // Borrow a capability to the public methods available on the receivers StakingCollection.
         self.toStakingCollectionCap = toAccount.capabilities
-            .get<&FlowStakingCollection.StakingCollection{FlowStakingCollection.StakingCollectionPublic}>(FlowStakingCollection.StakingCollectionPublicPath)!
-            .borrow()
+            .borrow<&FlowStakingCollection.StakingCollection{FlowStakingCollection.StakingCollectionPublic}>(FlowStakingCollection.StakingCollectionPublicPath)
             ?? panic("Could not borrow ref to StakingCollection")
     }
 

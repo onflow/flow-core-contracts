@@ -10,22 +10,22 @@ access(all) fun main(account: Address): [FlowIDTableStaking.NodeInfo] {
 
     let pubAccount = getAccount(account)
 
-    let nodeStakerCap = pubAccount
-        .capabilities.get<&{FlowIDTableStaking.NodeStakerPublic}>(
+    let optionalNodeStakerRef = pubAccount
+        .capabilities.borrow<&{FlowIDTableStaking.NodeStakerPublic}>(
             FlowIDTableStaking.NodeStakerPublicPath
-        )!
+        )
 
-    if let nodeStakerRef = nodeStakerCap.borrow() {
+    if let nodeStakerRef = optionalNodeStakerRef {
         let info = FlowIDTableStaking.NodeInfo(nodeID: nodeStakerRef.id)
         nodeInfoArray.append(info)
     }
 
-    let lockedAccountInfoCap = pubAccount
-        .capabilities.get<&LockedTokens.TokenHolder>(
+    let optionalLockedAccountInfoRef = pubAccount
+        .capabilities.borrow<&LockedTokens.TokenHolder>(
             LockedTokens.LockedAccountInfoPublicPath
-        )!
+        )
 
-    if let lockedAccountInfoRef = lockedAccountInfoCap.borrow() {
+    if let lockedAccountInfoRef = optionalLockedAccountInfoRef {
         if let nodeID = lockedAccountInfoRef.getNodeID() {
             let info = FlowIDTableStaking.NodeInfo(nodeID: nodeID)
             nodeInfoArray.append(info)
