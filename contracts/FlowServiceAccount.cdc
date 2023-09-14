@@ -80,7 +80,11 @@ access(all) contract FlowServiceAccount {
     /// - Deducts the account creation fee from a payer account.
     /// - Inits the default token.
     /// - Inits account storage capacity.
-    access(all) fun setupNewAccount(newAccount: auth(SaveValue, BorrowValue, Capabilities) &Account, payer: auth(BorrowValue) &Account) {
+    access(all) fun setupNewAccount(
+        newAccount: auth(SaveValue, BorrowValue, Capabilities) &Account,
+        payer: auth(BorrowValue) &Account
+    ) {
+
         if !FlowServiceAccount.isAccountCreator(payer.address) {
             panic("Account not authorized to create accounts")
         }

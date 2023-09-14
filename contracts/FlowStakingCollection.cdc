@@ -331,7 +331,12 @@ access(all) contract FlowStakingCollection {
             let stakingInfo = FlowIDTableStaking.DelegatorInfo(nodeID: delegator.nodeID, delegatorID: delegator.id)
             let totalStaked = stakingInfo.totalTokensInRecord() - stakingInfo.tokensRewarded
             self.unlockedTokensUsed = self.unlockedTokensUsed + totalStaked
-            emit DelegatorAddedToStakingCollection(nodeID: stakingInfo.nodeID, delegatorID: stakingInfo.id, amountCommitted: stakingInfo.tokensStaked + stakingInfo.tokensCommitted - stakingInfo.tokensRequestedToUnstake, address: self.owner?.address)
+            emit DelegatorAddedToStakingCollection(
+                nodeID: stakingInfo.nodeID,
+                delegatorID: stakingInfo.id,
+                amountCommitted: stakingInfo.tokensStaked + stakingInfo.tokensCommitted - stakingInfo.tokensRequestedToUnstake,
+                address: self.owner?.address
+            )
             self.nodeDelegators[delegator.nodeID] <-! delegator
         }
 
@@ -387,7 +392,11 @@ access(all) contract FlowStakingCollection {
                     // Removes the NodeDelegator object from the Staking Collections internal nodeDelegators map.
                     let nodeDelegator <- self.nodeDelegators[nodeID] <- nil
 
-                    emit DelegatorRemovedFromStakingCollection(nodeID: nodeID, delegatorID: delegatorID, address: self.owner?.address)
+                    emit DelegatorRemovedFromStakingCollection(
+                        nodeID: nodeID,
+                        delegatorID: delegatorID,
+                        address: self.owner?.address
+                    )
 
                     return <- nodeDelegator
                 } else { 
@@ -423,7 +432,12 @@ access(all) contract FlowStakingCollection {
                 tokensCommitted: <-tokens
             )
 
-            emit NodeAddedToStakingCollection(nodeID: nodeStaker.id, role: role, amountCommitted: amount, address: self.owner?.address)
+            emit NodeAddedToStakingCollection(
+                nodeID: nodeStaker.id,
+                role: role,
+                amountCommitted: amount,
+                address: self.owner?.address
+            )
 
             self.nodeStakers[id] <-! nodeStaker
 
@@ -457,7 +471,9 @@ access(all) contract FlowStakingCollection {
             let machineAcct = Account(payer: payer)
 
             // Get the vault capability and create the machineAccountInfo struct
-            let machineAccountVaultProvider = machineAcct.capabilities.storage.issue<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(/storage/flowTokenVault)!
+            let machineAccountVaultProvider = machineAcct.capabilities.storage
+                .issue<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(/storage/flowTokenVault)!
+
             let machineAccountInfo = MachineAccountInfo(
                 nodeID: nodeInfo.id,
                 role: nodeInfo.role,
@@ -492,7 +508,11 @@ access(all) contract FlowStakingCollection {
                 // set this node's machine account
                 self.machineAccounts[nodeInfo.id] = machineAccountInfo
 
-                emit MachineAccountCreated(nodeID: nodeInfo.id, role: FlowEpoch.NodeRole.Consensus.rawValue, address: machineAccountVaultProvider.borrow()!.owner!.address)
+                emit MachineAccountCreated(
+                    nodeID: nodeInfo.id,
+                    role: FlowEpoch.NodeRole.Consensus.rawValue,
+                    address: machineAccountVaultProvider.borrow()!.owner!.address
+                )
 
                 return machineAcct
             }
@@ -506,7 +526,11 @@ access(all) contract FlowStakingCollection {
         /// or if they decide they want to use a different machine account for one of their nodes
         /// If they want to use a different machine account, it is their responsibility to
         /// transfer the qc or dkg object to the new account
-        access(all) fun addMachineAccountRecord(nodeID: String, machineAccount: auth(BorrowValue, StorageCapabilities) &Account) {
+        access(all) fun addMachineAccountRecord(
+            nodeID: String,
+            machineAccount: auth(BorrowValue, StorageCapabilities) &Account
+        ) {
+
             pre {
                 self.doesStakeExist(nodeID: nodeID, delegatorID: nil): "Cannot add a machine account record for a node that you do not own"
             }
@@ -534,10 +558,16 @@ access(all) contract FlowStakingCollection {
             }
 
             // Make sure that the vault capability is created
-            var machineAccountVaultProvider = machineAccount.capabilities.storage.issue<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(/storage/flowTokenVault)!
+            let machineAccountVaultProvider = machineAccount.capabilities.storage
+                .issue<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(/storage/flowTokenVault)!
 
             // Create the new Machine account info object and store it
-            let machineAccountInfo = MachineAccountInfo(nodeID: nodeID, role: nodeInfo.role, machineAccountVaultProvider: machineAccountVaultProvider)
+            let machineAccountInfo = MachineAccountInfo(
+                nodeID: nodeID,
+                role: nodeInfo.role,
+                machineAccountVaultProvider: machineAccountVaultProvider
+            )
+
             self.machineAccounts[nodeID] = machineAccountInfo
         }
 
@@ -601,7 +631,12 @@ access(all) contract FlowStakingCollection {
 
             let nodeDelegator <- FlowIDTableStaking.registerNewDelegator(nodeID: nodeID, tokensCommitted: <-tokens)
 
-            emit DelegatorAddedToStakingCollection(nodeID: nodeDelegator.nodeID, delegatorID: nodeDelegator.id, amountCommitted: amount, address: self.owner?.address)
+            emit DelegatorAddedToStakingCollection(
+                nodeID: nodeDelegator.nodeID,
+                delegatorID: nodeDelegator.id,
+                amountCommitted: amount,
+                address: self.owner?.address
+            )
 
             self.nodeDelegators[nodeDelegator.nodeID] <-! nodeDelegator
         }
@@ -1123,7 +1158,10 @@ access(all) contract FlowStakingCollection {
     }
 
     /// Creates a brand new empty staking collection resource and returns it to the caller
-    access(all) fun createStakingCollection(unlockedVault: Capability<auth(FungibleToken.Withdrawable) &FlowToken.Vault>, tokenHolder: Capability<auth(FungibleToken.Withdrawable, LockedTokens.TokenOperations) &LockedTokens.TokenHolder>?): @StakingCollection {
+    access(all) fun createStakingCollection(
+        unlockedVault: Capability<auth(FungibleToken.Withdrawable) &FlowToken.Vault>,
+        tokenHolder: Capability<auth(FungibleToken.Withdrawable, LockedTokens.TokenOperations) &LockedTokens.TokenHolder>?
+    ): @StakingCollection {
         return <- create StakingCollection(unlockedVault: unlockedVault, tokenHolder: tokenHolder)
     }
 
