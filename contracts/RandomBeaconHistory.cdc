@@ -16,7 +16,7 @@ pub contract RandomBeaconHistory {
     access(contract) var initHeight: UInt64?
     /// Sequence of random sources recorded by the Heartbeat, stored as an array over a mapping to reduce storage
     access(contract) let randomSourceHistory: [[UInt8]]
-    
+
     /// The path of the Heartbeat resource in the deployment account
     pub let HeartbeatStoragePath: StoragePath
 
@@ -36,13 +36,15 @@ pub contract RandomBeaconHistory {
         /// @param randomSourceHistory The random source to record
         ///
         pub fun heartbeat(randomSourceHistory: [UInt8]) {
-            let now = getCurrentBlock().height
+
+            let currentBlockHeight = getCurrentBlock().height
             if RandomBeaconHistory.initHeight == nil {
-                RandomBeaconHistory.initHeight = now
-                emit HearbeatInitialized(atBlockHeight: now)
+                RandomBeaconHistory.initHeight = currentBlockHeight
+                emit HearbeatInitialized(atBlockHeight: currentBlockHeight)
             }
+
             RandomBeaconHistory.randomSourceHistory.append(randomSourceHistory)
-            emit NewSourceOfRandomness(atBlockHeight: now, randomSource: randomSourceHistory)
+            emit NewSourceOfRandomness(atBlockHeight: currentBlockHeight, randomSource: randomSourceHistory)
         }
     }
 
@@ -59,7 +61,7 @@ pub contract RandomBeaconHistory {
             atBlockHeight >= self.initHeight!: "Requested block height precedes recorded history"
             atBlockHeight < getCurrentBlock().height: "Source of randomness not yet recorded"
         }
-        let index = UInt64(atBlockHeight - self.initHeight!)
+        let index: UInt64 = atBlockHeight - self.initHeight!
 
         assert(
             index >= 0 && index < UInt64(self.randomSourceHistory.length),
@@ -74,10 +76,7 @@ pub contract RandomBeaconHistory {
     /// @return An array of random sources, each source an array of UInt8
     ///
     pub fun getRandomSourceHistory(): [[UInt8]] {
-        pre {
-            self.initHeight != nil: "Heartbeat has not been initialized"
-        }
-        return self.randomSourceHistory
+        return self.initHeight != nil ? self.randomSourceHistory : panic("Heartbeat has not been initialized")
     }
 
     /// Getter for the block height at which the first source of randomness was recorded

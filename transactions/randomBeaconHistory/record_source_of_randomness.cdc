@@ -12,10 +12,10 @@ transaction(sor: [UInt8]) {
         let randomBeaconHistoryHeartbeat = serviceAccount.borrow<&RandomBeaconHistory.Heartbeat>(
                 from: RandomBeaconHistory.HeartbeatStoragePath
             ) ?? panic("Couldn't borrow RandomBeaconHistory.Heartbeat Resource")
-        
+
         // TODO
         // let sor: [UInt8] = randomSourceHistory()
-        
+
         // Commit the source of randomness at the current blockheight
         randomBeaconHistoryHeartbeat.heartbeat(randomSourceHistory: sor)
     }
