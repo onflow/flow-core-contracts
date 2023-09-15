@@ -17,10 +17,8 @@ pub contract RandomBeaconHistory {
     /// Sequence of random sources recorded by the Heartbeat, stored as an array over a mapping to reduce storage
     access(contract) let randomSourceHistory: [[UInt8]]
     
-    /* --- Canonical Paths --- */
-    //
+    /// The path of the Heartbeat resource in the deployment account
     pub let HeartbeatStoragePath: StoragePath
-    pub let HeartbeatPublicPath: PublicPath
 
     /* --- Events --- */
     //
@@ -49,7 +47,8 @@ pub contract RandomBeaconHistory {
     }
 
     /// Getter for the source of randomness at a given block height. Panics if the requested block height either
-    /// precedes or exceeds the recorded history.
+    /// precedes or exceeds the recorded history. Note that a source of randomness for block n will not be accessible
+    /// until block n+1.
     ///
     /// @param atBlockHeight The block height at which to retrieve the source of randomness
     /// @return The source of randomness at the given block height
@@ -93,9 +92,7 @@ pub contract RandomBeaconHistory {
         self.initHeight = nil
         self.randomSourceHistory = []
         self.HeartbeatStoragePath = /storage/FlowRandomBeaconHistoryHeartbeat
-        self.HeartbeatPublicPath = /public/FlowRandomBeaconHistoryHeartbeat
 
-        // Save the Heartbeat resource to the deploying account & link the HeartbeatPublic Capability
         self.account.save(<-create Heartbeat(), to: self.HeartbeatStoragePath)
     }
 }
