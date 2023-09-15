@@ -12,6 +12,11 @@
 ///
 pub contract RandomBeaconHistory {
 
+    /// The height at which the first source of randomness was recorded
+    access(contract) var initHeight: UInt64?
+    /// Sequence of random sources recorded by the Heartbeat, stored as an array over a mapping to reduce storage
+    access(contract) let randomSourceHistory: [[UInt8]]
+    
     /* --- Canonical Paths --- */
     //
     pub let HeartbeatStoragePath: StoragePath
@@ -24,68 +29,9 @@ pub contract RandomBeaconHistory {
 
     /* --- Hearbeat --- */
     //
-    /// A publicly queryable interface for the Heartbeat resource.
-    ///
-    pub resource interface HeartbeatPublic {
-        pub fun getRandomSourceHistory(): [[UInt8]]
-        pub fun getInitHeight(): UInt64
-        pub fun sourceOfRandomness(atBlockHeight blockHeight: UInt64): [UInt8]
-    }
-
     /// The Heartbeat resource containing each block's source of randomness in sequence
     ///
-    pub resource Heartbeat : HeartbeatPublic {
-        /// The height at which the first source of randomness was recorded
-        access(self) var initHeight: UInt64?
-        /// Sequence of random sources recorded by the Heartbeat, stored as an array over a mapping to reduce storage
-        // TODO: Test at scale
-        access(self) let randomSourceHistory: [[UInt8]]
-
-        init() {
-            self.initHeight = nil
-            self.randomSourceHistory = []
-        }
-
-        /// Getter for the totality of recorded randomness source history
-        ///
-        /// @return An array of random sources, each source an array of UInt8
-        ///
-        pub fun getRandomSourceHistory(): [[UInt8]] {
-            pre {
-                self.initHeight != nil: "Heartbeat has not been initialized"
-            }
-            return self.randomSourceHistory
-        }
-
-        /// Getter for the block height at which the first source of randomness was recorded
-        ///
-        /// @return The block height at which the first source of randomness was recorded
-        ///
-        pub fun getInitHeight(): UInt64 {
-            return self.initHeight ?? panic("Heartbeat has not been initialized")
-        }
-
-        /// Getter for the source of randomness at a given block height. Panics if the requested block height either
-        /// precedes or exceeds the recorded history.
-        ///
-        /// @param atBlockHeight The block height at which to retrieve the source of randomness
-        /// @return The source of randomness at the given block height
-        ///
-        pub fun sourceOfRandomness(atBlockHeight: UInt64): [UInt8] {
-            pre {
-                self.initHeight != nil: "Heartbeat has not been initialized"
-                atBlockHeight >= self.initHeight!: "Requested block height precedes recorded history"
-                atBlockHeight < getCurrentBlock().height: "Source of randomness not yet recorded"
-            }
-            let index = UInt64(atBlockHeight - self.initHeight!)
-
-            assert(
-                index >= 0 && index < UInt64(self.randomSourceHistory.length),
-                message: "Problem finding random source history index"
-            )
-
-            return self.randomSourceHistory[index]
-        }
+    pub resource Heartbeat {
 
         /// Callable by owner of the Heartbeat resource, Flow Service Account, records the provided random source
         ///
@@ -93,27 +39,63 @@ pub contract RandomBeaconHistory {
         ///
         pub fun heartbeat(randomSourceHistory: [UInt8]) {
             let now = getCurrentBlock().height
-            if self.initHeight == nil {
-                self.initHeight = now
+            if RandomBeaconHistory.initHeight == nil {
+                RandomBeaconHistory.initHeight = now
                 emit HearbeatInitialized(atBlockHeight: now)
             }
-            self.randomSourceHistory.append(randomSourceHistory)
+            RandomBeaconHistory.randomSourceHistory.append(randomSourceHistory)
             emit NewSourceOfRandomness(atBlockHeight: now, randomSource: randomSourceHistory)
         }
     }
 
-    /// Returns the address of this contract
+    /// Getter for the source of randomness at a given block height. Panics if the requested block height either
+    /// precedes or exceeds the recorded history.
     ///
-    pub fun getRandomBeaconHistoryAddress(): Address {
-        return self.account.address
+    /// @param atBlockHeight The block height at which to retrieve the source of randomness
+    /// @return The source of randomness at the given block height
+    ///
+    pub fun sourceOfRandomness(atBlockHeight: UInt64): [UInt8] {
+        pre {
+            self.initHeight != nil: "Heartbeat has not been initialized"
+            atBlockHeight >= self.initHeight!: "Requested block height precedes recorded history"
+            atBlockHeight < getCurrentBlock().height: "Source of randomness not yet recorded"
+        }
+        let index = UInt64(atBlockHeight - self.initHeight!)
+
+        assert(
+            index >= 0 && index < UInt64(self.randomSourceHistory.length),
+            message: "Problem finding random source history index"
+        )
+
+        return self.randomSourceHistory[index]
+    }
+
+    /// Getter for the totality of recorded randomness source history
+    ///
+    /// @return An array of random sources, each source an array of UInt8
+    ///
+    pub fun getRandomSourceHistory(): [[UInt8]] {
+        pre {
+            self.initHeight != nil: "Heartbeat has not been initialized"
+        }
+        return self.randomSourceHistory
+    }
+
+    /// Getter for the block height at which the first source of randomness was recorded
+    ///
+    /// @return The block height at which the first source of randomness was recorded
+    ///
+    pub fun getInitHeight(): UInt64 {
+        return self.initHeight ?? panic("Heartbeat has not been initialized")
     }
 
     init() {
+        self.initHeight = nil
+        self.randomSourceHistory = []
         self.HeartbeatStoragePath = /storage/FlowRandomBeaconHistoryHeartbeat
         self.HeartbeatPublicPath = /public/FlowRandomBeaconHistoryHeartbeat
 
         // Save the Heartbeat resource to the deploying account & link the HeartbeatPublic Capability
         self.account.save(<-create Heartbeat(), to: self.HeartbeatStoragePath)
-        self.account.link<&{HeartbeatPublic}>(self.HeartbeatPublicPath, target: self.HeartbeatStoragePath)
     }
 }

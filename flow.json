@@ -1,16 +1,9 @@
 {
-	"emulators": {
-		"default": {
-			"port": 3569,
-			"serviceAccount": "emulator-account"
-		}
-	},
 	"contracts": {
 		"FlowClusterQC": "./contracts/epochs/FlowClusterQC.cdc",
-		"FlowEpoch": "./contracts/epochs/FlowEpoch.cdc",
-		"FlowDKG": "./contracts/epochs/FlowEpoch.cdc",
-		"NodeVersionBeacon": "./contracts/NodeVersionBeacon.cdc",
 		"FlowContractAudits": "./contracts/FlowContractAudits.cdc",
+		"FlowDKG": "./contracts/epochs/FlowEpoch.cdc",
+		"FlowEpoch": "./contracts/epochs/FlowEpoch.cdc",
 		"FlowFees": "./contracts/FlowFees.cdc",
 		"FlowIDTableStaking": "./contracts/FlowIDTableStaking.cdc",
 		"FlowIDTableStaking_old": "./contracts/FlowIDTableStaking_old.cdc",
@@ -19,6 +12,8 @@
 		"FlowStorageFees": "./contracts/FlowStorageFees.cdc",
 		"FlowToken": "./contracts/FlowToken.cdc",
 		"LockedTokens": "./contracts/LockedTokens.cdc",
+		"NodeVersionBeacon": "./contracts/NodeVersionBeacon.cdc",
+		"RandomBeaconHistory": "./contracts/RandomBeaconHistory.cdc",
 		"StakingProxy": "./contracts/StakingProxy.cdc"
 	},
 	"networks": {
@@ -31,6 +26,5 @@
 			"address": "f8d6e0586b0a20c7",
 			"key": "7677f7c9410f8773b482737c778b5d7c6acfdbbae718d61e4727a07667f66004"
 		}
-	},
-	"deployments": {}
+	}
 }
