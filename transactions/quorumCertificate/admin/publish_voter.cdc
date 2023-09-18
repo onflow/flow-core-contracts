@@ -7,6 +7,6 @@ transaction {
 
     prepare(signer: auth(Capabilities) &Account) {
         let adminCap = signer.capabilities.storage.issue<&FlowClusterQC.Admin>(FlowClusterQC.AdminStoragePath)
-        signer.capabilities.issue(adminCap, at: /public/voterCreator)
+        signer.capabilities.publish(adminCap, at: /public/voterCreator)
     }
 }
