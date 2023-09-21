@@ -37,7 +37,8 @@ transaction(publicKeys: [Crypto.KeyListEntry]) {
             to: LockedTokens.TokenHolderStoragePath,
         )
 
-        let tokenHolderCap = newAccount.capabilities.storage.issue<&LockedTokens.TokenHolder{LockedTokens.LockedAccountInfo}>(LockedTokens.TokenHolderStoragePath)
+        let tokenHolderCap = newAccount.capabilities.storage
+            .issue<&LockedTokens.TokenHolder{LockedTokens.LockedAccountInfo}>(LockedTokens.TokenHolderStoragePath)
         newAccount.capabilities.publish(
             tokenHolderCap
             at: LockedTokens.LockedAccountInfoPublicPath,
@@ -45,8 +46,8 @@ transaction(publicKeys: [Crypto.KeyListEntry]) {
 
 
         // Create capabilities for the token holder and unlocked vault.
-        let lockedHolder = newAccount.capabilities.storage.issue<&LockedTokens.TokenHolder>(LockedTokens.TokenHolderStoragePath)!
-        let flowToken = newAccount.capabilities.storage.issue<&FlowToken.Vault>(/storage/flowTokenVault)!
+        let lockedHolder = newAccount.capabilities.storage.issue<&LockedTokens.TokenHolder>(LockedTokens.TokenHolderStoragePath)
+        let flowToken = newAccount.capabilities.storage.issue<&FlowToken.Vault>(/storage/flowTokenVault)
         
         // Create a new Staking Collection and put it in storage.
         if lockedHolder.check() {
