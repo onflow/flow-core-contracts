@@ -40,7 +40,7 @@ transaction(
 
             acct.capabilities.publish(
                 nodeStakerCap,
-                at: FlowIDTableStaking.NodeStakerPublicPath,
+                at: FlowIDTableStaking.NodeStakerPublicPath
             )
         } else {
             destroy nodeStaker

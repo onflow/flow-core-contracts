@@ -9,7 +9,7 @@ transaction {
     prepare(acct: auth(BorrowValue) &Account) {
 
         if acct.storage.borrow<auth(FlowIDTableStaking.NodeOperator) &FlowIDTableStaking.NodeStaker>(from: FlowIDTableStaking.NodeStakerStoragePath) == nil ||
-            acct.capabilities.get<&{FlowIDTableStaking.NodeStakerPublic}>(FlowIDTableStaking.NodeStakerPublicPath)!.check()
+            acct.capabilities.get<&{FlowIDTableStaking.NodeStakerPublic}>(FlowIDTableStaking.NodeStakerPublicPath)?.check() ?? false
         {
             return
         }
@@ -20,7 +20,7 @@ transaction {
 
         acct.capabilities.publish(
             nodeStakerCap,
-            at: FlowIDTableStaking.NodeStakerPublicPath,
+            at: FlowIDTableStaking.NodeStakerPublicPath
         )
     }
 }

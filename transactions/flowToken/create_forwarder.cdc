@@ -38,7 +38,7 @@ transaction(receiver: Address) {
 
         if let cap = acct.capabilities.get<&{FungibleToken.Receiver}>(/public/flowTokenReceiver) {
             if cap.check() {
-                acct.unlink(/public/flowTokenReceiver)
+                acct.capabilities.unpublish(/public/flowTokenReceiver)
             }
         }
 
