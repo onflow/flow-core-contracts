@@ -33,7 +33,7 @@ transaction(
     self.NodeVersionBeaconAdminRef.setVersionBoundary(versionBoundary: self.newVersionBoundary)
   }
 
-  post{
+  post {
     NodeVersionBeacon.getVersionBoundary(effectiveAtBlockHeight: blockHeight).version
         .strictEqualTo(self.newVersionBoundary.version) : "New version was not added to the versionTable"
   }

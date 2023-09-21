@@ -51,7 +51,7 @@ transaction(
                 LockedTokens.LockedTokenManagerStoragePath
             )
 
-        let lockedAccountCreator = custodyProvider.storage.
+        let lockedAccountCreator = custodyProvider.storage
             .borrow<&LockedTokens.LockedAccountCreator>(from: LockedTokens.LockedAccountCreatorStoragePath)
 
         lockedAccountCreator.addAccount(
@@ -67,14 +67,14 @@ transaction(
         let lockedTokensManagerCap = sharedAccount.capabilties.storage.issue<&{FungibleToken.Receiver}>(LockedTokens.LockedTokenManagerStoragePath)
         sharedAccount.capabilties.publish(
             lockedTokensManagerCap,
-            at: /public/flowTokenReceiver,
+            at: /public/flowTokenReceiver
         )
 
         // put normal receiver in a separate unique path.
         let tokenReceiverCap = sharedAccount.capabilties.storage.issue<&{FungibleToken.Receiver}>(/storage/flowTokenVault)
         sharedAccount.capabilties.publish(
-            tokenReceiverCap
-            at: /public/lockedFlowTokenReceiver,
+            tokenReceiverCap,
+            at: /public/lockedFlowTokenReceiver
         )
     }
 }

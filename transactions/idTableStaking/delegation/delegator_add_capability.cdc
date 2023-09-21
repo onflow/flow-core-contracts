@@ -19,7 +19,7 @@ transaction {
         )
         acct.capabilities.publish(
             delegatorCap,
-            at:/public/flowStakingDelegator,
+            at: /public/flowStakingDelegator,
         )
     }
 }
