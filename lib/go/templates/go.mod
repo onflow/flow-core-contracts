@@ -4,8 +4,8 @@ go 1.18
 
 require (
 	github.com/kevinburke/go-bindata v3.24.0+incompatible
-	github.com/onflow/cadence v0.41.0-stable-cadence.1.0.20230908213403-8f1134670ed0
-	github.com/onflow/flow-go-sdk v0.44.0-stable-cadence.1.0.20230915213126-68e7ffb5595f
+	github.com/onflow/cadence v1.0.0-preview.1
+	github.com/onflow/flow-go-sdk v0.44.0-stable-cadence.2
 	github.com/psiemens/sconfig v0.1.0
 	github.com/spf13/cobra v1.5.0
 )
@@ -33,7 +33,6 @@ require (
 	github.com/mitchellh/mapstructure v1.1.2 // indirect
 	github.com/onflow/atree v0.6.1-0.20230711151834-86040b30171f // indirect
 	github.com/onflow/flow-go/crypto v0.24.7 // indirect
-	github.com/onflow/flow-nft/lib/go/contracts v1.1.1-0.20230915224343-ca2663ed82cf // indirect
 	github.com/pelletier/go-toml v1.2.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
