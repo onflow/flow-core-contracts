@@ -22,7 +22,7 @@ transaction {
 
             signer.capabilities.publish<&FlowToken.Vault{FungibleToken.Receiver}>(
                 vaultCap,
-                at: /public/flowTokenReceiver,
+                at: /public/flowTokenReceiver
             )
 
             // Create a public capability to the Vault that only exposes
@@ -33,7 +33,7 @@ transaction {
 
             signer.capabilities.publish<&FlowToken.Vault{FungibleToken.Receiver}>(
                 vaultCap,
-                at: /public/flowTokenBalance,
+                at: /public/flowTokenBalance
             )
         }
     }
