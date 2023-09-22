@@ -9,7 +9,7 @@ transaction {
     prepare(acct: auth(BorrowValue) &Account) {
 
         if acct.storage.borrow<auth(FlowIDTableStaking.DelegatorOwner) &FlowIDTableStaking.NodeDelegator>(from: FlowIDTableStaking.DelegatorStoragePath) == nil ||
-            acct.capabilities.get<&{FlowIDTableStaking.NodeDelegatorPublic}>(/public/flowStakingDelegator)!.check()
+            acct.capabilities.get<&{FlowIDTableStaking.NodeDelegatorPublic}>(/public/flowStakingDelegator)?.check() ?? false
         {
             return
         }
