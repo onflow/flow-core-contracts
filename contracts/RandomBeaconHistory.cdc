@@ -10,7 +10,7 @@
 ///
 /// Read the full FLIP here: https://github.com/onflow/flips/pull/123
 ///
-pub contract RandomBeaconHistory {
+access(all) contract RandomBeaconHistory {
 
     /// The height at which the first source of randomness was recorded
     access(contract) var initHeight: UInt64?
@@ -20,31 +20,24 @@ pub contract RandomBeaconHistory {
     /// The path of the Heartbeat resource in the deployment account
     pub let HeartbeatStoragePath: StoragePath
 
-    /* --- Events --- */
-    //
-    pub event HearbeatInitialized(atBlockHeight: UInt64)
-    pub event NewSourceOfRandomness(atBlockHeight: UInt64, randomSource: [UInt8])
-
     /* --- Hearbeat --- */
     //
     /// The Heartbeat resource containing each block's source of randomness in sequence
     ///
-    pub resource Heartbeat {
+    access(all) resource Heartbeat {
 
         /// Callable by owner of the Heartbeat resource, Flow Service Account, records the provided random source
         ///
         /// @param randomSourceHistory The random source to record
         ///
-        pub fun heartbeat(randomSourceHistory: [UInt8]) {
+        access(all) fun heartbeat(randomSourceHistory: [UInt8]) {
 
             let currentBlockHeight = getCurrentBlock().height
             if RandomBeaconHistory.initHeight == nil {
                 RandomBeaconHistory.initHeight = currentBlockHeight
-                emit HearbeatInitialized(atBlockHeight: currentBlockHeight)
             }
 
             RandomBeaconHistory.randomSourceHistory.append(randomSourceHistory)
-            emit NewSourceOfRandomness(atBlockHeight: currentBlockHeight, randomSource: randomSourceHistory)
         }
     }
 
@@ -55,9 +48,9 @@ pub contract RandomBeaconHistory {
     /// @param atBlockHeight The block height at which to retrieve the source of randomness
     /// @return The source of randomness at the given block height
     ///
-    pub fun sourceOfRandomness(atBlockHeight: UInt64): [UInt8] {
+    access(all) fun sourceOfRandomness(atBlockHeight: UInt64): [UInt8] {
         pre {
-            self.initHeight != nil: "Heartbeat has not been initialized"
+            self.initHeight != nil: "History has not yet been initialized"
             atBlockHeight >= self.initHeight!: "Requested block height precedes recorded history"
             atBlockHeight < getCurrentBlock().height: "Source of randomness not yet recorded"
         }
@@ -75,16 +68,16 @@ pub contract RandomBeaconHistory {
     ///
     /// @return An array of random sources, each source an array of UInt8
     ///
-    pub fun getRandomSourceHistory(): [[UInt8]] {
-        return self.initHeight != nil ? self.randomSourceHistory : panic("Heartbeat has not been initialized")
+    access(all) view fun getRandomSourceHistory(): [[UInt8]] {
+        return self.initHeight != nil ? self.randomSourceHistory : panic("History has not yet been initialized")
     }
 
     /// Getter for the block height at which the first source of randomness was recorded
     ///
     /// @return The block height at which the first source of randomness was recorded
     ///
-    pub fun getInitHeight(): UInt64 {
-        return self.initHeight ?? panic("Heartbeat has not been initialized")
+    access(all) view fun getInitHeight(): UInt64 {
+        return self.initHeight ?? panic("History has not yet been initialized")
     }
 
     init() {
