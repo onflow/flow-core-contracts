@@ -42,7 +42,7 @@ transaction(
 
         userAccount.storage.save(
             <-tokenHolder,
-            to: LockedTokens.TokenHolderStoragePath,
+            to: LockedTokens.TokenHolderStoragePath
         )
 
         let tokenHolderCap = userAccount.capabilities.storage.issue<&LockedTokens.TokenHolder>(LockedTokens.TokenHolderStoragePath)

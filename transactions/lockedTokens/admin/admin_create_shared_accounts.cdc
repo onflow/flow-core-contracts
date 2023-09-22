@@ -49,7 +49,7 @@ transaction(
 
         userAccount.save(
             <-tokenHolder,
-            to: LockedTokens.TokenHolderStoragePath,
+            to: LockedTokens.TokenHolderStoragePath
         )
 
         userAccount.link<&LockedTokens.TokenHolder>(

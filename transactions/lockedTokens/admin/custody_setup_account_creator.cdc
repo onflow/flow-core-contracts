@@ -7,8 +7,8 @@ transaction {
         let accountCreator <- LockedTokens.createLockedAccountCreator()
 
         custodyProvider.storage.save(
-            <-accountCreator, 
-            to: LockedTokens.LockedAccountCreatorStoragePath,
+            <-accountCreator,
+            to: LockedTokens.LockedAccountCreatorStoragePath
         )
 
         // create new receiver that marks received tokens as unlocked
@@ -18,7 +18,7 @@ transaction {
 
         custodyProvider.capabilities.publish<&LockedTokens.LockedAccountCreator>(
             lockedAccountCreatorCap,
-            at: LockedTokens.LockedAccountCreatorPublicPath,
+            at: LockedTokens.LockedAccountCreatorPublicPath
         )
     }
 }
