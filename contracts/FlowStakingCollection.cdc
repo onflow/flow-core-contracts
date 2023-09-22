@@ -1153,8 +1153,9 @@ access(all) contract FlowStakingCollection {
     /// Determines if an account is set up with a Staking Collection
     access(all) fun doesAccountHaveStakingCollection(address: Address): Bool {
         let account = getAccount(address)
-
-        return account.capabilities.get<&StakingCollection>(self.StakingCollectionPublicPath)!.check()
+        return account.capabilities
+            .get<&StakingCollection>(self.StakingCollectionPublicPath)?
+            .check() ?? false
     }
 
     /// Creates a brand new empty staking collection resource and returns it to the caller

@@ -34,14 +34,14 @@ transaction(publicKeys: [Crypto.KeyListEntry]) {
         // Save the TokenHolder resource to the new account and create a public capability.
         newAccount.storage.save(
             <-tokenHolder,
-            to: LockedTokens.TokenHolderStoragePath,
+            to: LockedTokens.TokenHolderStoragePath
         )
 
         let tokenHolderCap = newAccount.capabilities.storage
             .issue<&LockedTokens.TokenHolder{LockedTokens.LockedAccountInfo}>(LockedTokens.TokenHolderStoragePath)
         newAccount.capabilities.publish(
             tokenHolderCap
-            at: LockedTokens.LockedAccountInfoPublicPath,
+            at: LockedTokens.LockedAccountInfoPublicPath
         )
 
 
