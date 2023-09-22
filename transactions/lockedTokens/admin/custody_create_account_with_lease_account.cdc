@@ -18,8 +18,8 @@ transaction(
         let userAccount = Account(payer: custodyProvider)
 
         sharedAccount.keys.add(publicKey: fullAdminPublicKey.publicKey, hashAlgorithm: fullAdminPublicKey.hashAlgorithm, weight: fullAdminPublicKey.weight)
-            
-        userAccount.keys.add(publicKey: fullUserPublicKey.publicKey, hashAlgorithm: fullUserPublicKey.hashAlgorithm, weight: fullUserPublicKey.weight)  
+
+        userAccount.keys.add(publicKey: fullUserPublicKey.publicKey, hashAlgorithm: fullUserPublicKey.hashAlgorithm, weight: fullUserPublicKey.weight)
 
         let vaultCapability = sharedAccount.capabilities.storage
             .issue<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(/storage/flowTokenVault)
@@ -36,8 +36,8 @@ transaction(
         let tokenHolder <- LockedTokens.createTokenHolder(lockedAddress: sharedAccount.address, tokenManager: tokenManagerCapability)
 
         userAccount.storage.save(
-            <-tokenHolder, 
-            to: LockedTokens.TokenHolderStoragePath,
+            <-tokenHolder,
+            to: LockedTokens.TokenHolderStoragePath
         )
 
         let tokenHolderCap = userAccount.capabilities.storage.issue<&LockedTokens.TokenHolder>(LockedTokens.TokenHolderStoragePath)

@@ -6,8 +6,8 @@ import FlowDKG from 0xDKGADDRESS
 import FlowFees from 0xFLOWFEESADDRESS
 
 // The top-level smart contract managing the lifecycle of epochs. In Flow,
-// epochs are the smallest unit of time where the identity table (the set of 
-// network operators) is static. Operators may only leave or join the network 
+// epochs are the smallest unit of time where the identity table (the set of
+// network operators) is static. Operators may only leave or join the network
 // at epoch boundaries. Operators may be ejected during an epoch for various
 // misdemeanours, but they remain in the identity table until the epoch ends.
 //
@@ -19,10 +19,10 @@ import FlowFees from 0xFLOWFEESADDRESS
 //
 // 1)  STAKING PHASE
 // Node operators are able to submit staking requests for the NEXT epoch during
-// this phase. At the end of this phase, the Epoch smart contract resolves the 
-// outstanding staking requests and determines the identity table for the next 
-// epoch. The Epoch smart contract emits the EpochSetup service event containing 
-// the identity table for the next epoch, which initiates the transition to the 
+// this phase. At the end of this phase, the Epoch smart contract resolves the
+// outstanding staking requests and determines the identity table for the next
+// epoch. The Epoch smart contract emits the EpochSetup service event containing
+// the identity table for the next epoch, which initiates the transition to the
 // Epoch Setup Phase.
 //
 // 2) SETUP PHASE
@@ -60,7 +60,7 @@ access(all) contract FlowEpoch {
     /// The Epoch Setup service event is emitted when we transition to the Epoch Setup
     /// phase. It contains the finalized identity table for the upcoming epoch.
     access(all) event EpochSetup(
-        
+
         /// The counter for the upcoming epoch. Must be one greater than the
         /// counter for the current epoch.
         counter: UInt64,
@@ -82,14 +82,14 @@ access(all) contract FlowEpoch {
         /// cluster, with their weights and votes
         collectorClusters: [FlowClusterQC.Cluster],
 
-        /// The source of randomness to seed the leader selection algorithm with 
+        /// The source of randomness to seed the leader selection algorithm with
         /// for the upcoming epoch.
         randomSource: String,
 
         /// The deadlines of each phase in the DKG protocol to be completed in the upcoming
-        /// EpochSetup phase. Deadlines are specified in terms of a consensus view number. 
-        /// When a DKG participant observes a finalized and sealed block with view greater 
-        /// than the given deadline, it can safely transition to the next phase. 
+        /// EpochSetup phase. Deadlines are specified in terms of a consensus view number.
+        /// When a DKG participant observes a finalized and sealed block with view greater
+        /// than the given deadline, it can safely transition to the next phase.
         DKGPhase1FinalView: UInt64,
         DKGPhase2FinalView: UInt64,
         DKGPhase3FinalView: UInt64
@@ -104,7 +104,7 @@ access(all) contract FlowEpoch {
         /// previous EpochSetup event.
         counter: UInt64,
 
-        /// The result of the QC aggregation process. Each element contains 
+        /// The result of the QC aggregation process. Each element contains
         /// all the nodes and votes received for a particular cluster
         /// QC stands for quorum certificate that each cluster generates.
         clusterQCs: [FlowClusterQC.ClusterQC],
@@ -112,7 +112,7 @@ access(all) contract FlowEpoch {
         /// The resulting public keys from the DKG process, encoded as by the flow-go
         /// crypto library, then hex-encoded.
         /// Group public key is the first element, followed by the individual keys
-        dkgPubKeys: [String],
+        dkgPubKeys: [String]
     )
 
     /// Contains specific metadata about a particular epoch
@@ -188,7 +188,7 @@ access(all) contract FlowEpoch {
 
         access(account) fun setRewardsPaid(_ rewardsPaid: Bool) {
             self.rewardsPaid = rewardsPaid
-        } 
+        }
 
         access(account) fun setClusterQCs(qcs: [FlowClusterQC.ClusterQC]) {
             self.clusterQCs = qcs
@@ -214,7 +214,7 @@ access(all) contract FlowEpoch {
         access(all) fun setNumViewsInStakingAuction(_ views: UInt64) {
             self.numViewsInStakingAuction = views
         }
-        
+
         /// The number of views in each dkg phase
         access(all) var numViewsInDKGPhase: UInt64
 
@@ -270,7 +270,7 @@ access(all) contract FlowEpoch {
     }
 
     /// Saves a modified EpochMetadata struct to the metadata in account storage
-    /// 
+    ///
     access(contract) fun saveEpochMetadata(_ newMetadata: EpochMetadata) {
         pre {
             self.currentEpochCounter == 0 ||
@@ -421,7 +421,7 @@ access(all) contract FlowEpoch {
 
     /// Resource that is controlled by the protocol and is used
     /// to change the current phase of the epoch or reset the epoch if needed
-    /// 
+    ///
     access(all) resource Heartbeat {
 
         /// Function that is called every block to advance the epoch
@@ -615,7 +615,7 @@ access(all) contract FlowEpoch {
                 consensusNodeIDs.append(nodeInfo.id)
             }
         }
-        
+
         // Organize the collector nodes into clusters
         let collectorClusters = self.createCollectorClusters(nodeIDs: collectorNodeIDs)
 
@@ -644,7 +644,7 @@ access(all) contract FlowEpoch {
         self.currentEpochPhase = EpochPhase.EPOCHSETUP
 
         emit EpochSetup(counter: proposedEpochMetadata.counter,
-                        nodeInfo: nodeInfoArray, 
+                        nodeInfo: nodeInfoArray,
                         firstView: proposedEpochMetadata.startView,
                         finalView: proposedEpochMetadata.endView,
                         collectorClusters: collectorClusters,
@@ -762,7 +762,7 @@ access(all) contract FlowEpoch {
             let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: id)
 
             nodeWeightsDictionary[clusterIndex][id] = nodeInfo.initialWeight
-            
+
             // Advance to the next cluster, or back to the first if we have gotten to the last one
             clusterIndex = clusterIndex + 1
             if clusterIndex == self.configurableMetadata.numCollectorClusters {
@@ -780,22 +780,22 @@ access(all) contract FlowEpoch {
 
         return clusters
     }
-  
-    /// A function to generate a random permutation of arr[] 
+
+    /// A function to generate a random permutation of arr[]
     /// using the fisher yates shuffling algorithm
-    access(all) fun randomize(_ array: [String]): [String] {  
+    access(all) fun randomize(_ array: [String]): [String] {
 
         var i = array.length - 1
 
-        // Start from the last element and swap one by one. We don't 
-        // need to run for the first element that's why i > 0 
+        // Start from the last element and swap one by one. We don't
+        // need to run for the first element that's why i > 0
         while i > 0
-        { 
-            // Pick a random index from 0 to i 
+        {
+            // Pick a random index from 0 to i
             var randomNum = unsafeRandom()
             var randomIndex = randomNum % UInt64(i + 1)
-    
-            // Swap arr[i] with the element at random index 
+
+            // Swap arr[i] with the element at random index
             var temp = array[i]
             array[i] = array[randomIndex]
             array[randomIndex] = temp
@@ -861,9 +861,9 @@ access(all) contract FlowEpoch {
     }
 
     init (currentEpochCounter: UInt64,
-          numViewsInEpoch: UInt64, 
-          numViewsInStakingAuction: UInt64, 
-          numViewsInDKGPhase: UInt64, 
+          numViewsInEpoch: UInt64,
+          numViewsInStakingAuction: UInt64,
+          numViewsInDKGPhase: UInt64,
           numCollectorClusters: UInt16,
           FLOWsupplyIncreasePercentage: UFix64,
           randomSource: String,
@@ -880,7 +880,7 @@ access(all) contract FlowEpoch {
                                            numViewsInDKGPhase: numViewsInDKGPhase,
                                            numCollectorClusters: numCollectorClusters,
                                            FLOWsupplyIncreasePercentage: FLOWsupplyIncreasePercentage)
-        
+
         self.currentEpochCounter = currentEpochCounter
         self.currentEpochPhase = EpochPhase.STAKINGAUCTION
         self.adminStoragePath = /storage/flowEpochAdmin
@@ -929,4 +929,3 @@ access(all) contract FlowEpoch {
         self.saveEpochMetadata(firstEpochMetadata)
     }
 }
- 

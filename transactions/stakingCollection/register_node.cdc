@@ -11,7 +11,7 @@ transaction(id: String,
             stakingKey: String,
             amount: UFix64,
             publicKeys: [Crypto.KeyListEntry]?) {
-    
+
     let stakingCollectionRef: &FlowStakingCollection.StakingCollection
 
     prepare(account: auth(BorrowValue) &Account) {
@@ -25,8 +25,8 @@ transaction(id: String,
             networkingKey: networkingKey,
             stakingKey: stakingKey,
             amount: amount,
-            payer: account) 
-        {
+            payer: account
+        ) {
             if publicKeys == nil || publicKeys!.length == 0 {
                 panic("Cannot provide zero keys for the machine account")
             }
