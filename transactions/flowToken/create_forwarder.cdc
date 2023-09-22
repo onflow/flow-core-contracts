@@ -45,7 +45,7 @@ transaction(receiver: Address) {
         let forwarderCap = acct.capabilities.storage.issue<&{FungibleToken.Receiver}>(/storage/flowTokenForwarder)
         acct.capabilities.publish<&{FungibleToken.Receiver}>(
             forwarderCap,
-            at: /public/flowTokenReceiver,
+            at: /public/flowTokenReceiver
         )
     }
 }
