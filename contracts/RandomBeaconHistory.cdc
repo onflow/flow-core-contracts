@@ -153,7 +153,7 @@ access(all) contract RandomBeaconHistory {
     ///
     /// @return The block height at which the first source of randomness was recorded
     ///
-    access(all) view fun getlowestHeight(): UInt64 {
+    access(all) view fun getLowestHeight(): UInt64 {
         return self.lowestHeight ?? panic("History has not yet been initialized")
     }
 
