@@ -53,9 +53,9 @@ access(all) fun main(address: Address): UFix64 {
 
     // Get the locked account public capability
     let optionalLockedAccountInfoRef = account
-        .capabilities.get<&LockedTokens.TokenHolder>(
+        .capabilities.borrow<&LockedTokens.TokenHolder>(
             LockedTokens.LockedAccountInfoPublicPath
-        )!
+        )
 
     if let lockedAccountInfoRef = optionalLockedAccountInfoRef {
         // Add the locked account balance
