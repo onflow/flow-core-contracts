@@ -19,12 +19,12 @@
 access(all) contract RandomBeaconHistory {
 
     /// The height at which the first source of randomness was recorded
-    access(contract) var initHeight: UInt64?
+    access(contract) var lowestHeight: UInt64?
     /// Sequence of random sources recorded by the Heartbeat, stored as an array over a mapping to reduce storage
     access(contract) let randomSourceHistory: [[UInt8]]
 
     /// The path of the Heartbeat resource in the deployment account
-    pub let HeartbeatStoragePath: StoragePath
+    access(all) let HeartbeatStoragePath: StoragePath
 
     /* --- Hearbeat --- */
     //
@@ -39,8 +39,8 @@ access(all) contract RandomBeaconHistory {
         access(all) fun heartbeat(randomSourceHistory: [UInt8]) {
 
             let currentBlockHeight = getCurrentBlock().height
-            if RandomBeaconHistory.initHeight == nil {
-                RandomBeaconHistory.initHeight = currentBlockHeight
+            if RandomBeaconHistory.lowestHeight == nil {
+                RandomBeaconHistory.lowestHeight = currentBlockHeight
             }
 
             RandomBeaconHistory.randomSourceHistory.append(randomSourceHistory)
@@ -56,11 +56,11 @@ access(all) contract RandomBeaconHistory {
     ///
     access(all) fun sourceOfRandomness(atBlockHeight: UInt64): [UInt8] {
         pre {
-            self.initHeight != nil: "History has not yet been initialized"
-            atBlockHeight >= self.initHeight!: "Requested block height precedes recorded history"
+            self.lowestHeight != nil: "History has not yet been initialized"
+            atBlockHeight >= self.lowestHeight!: "Requested block height precedes recorded history"
             atBlockHeight < getCurrentBlock().height: "Source of randomness not yet recorded"
         }
-        let index: UInt64 = atBlockHeight - self.initHeight!
+        let index: UInt64 = atBlockHeight - self.lowestHeight!
 
         assert(
             index >= 0 && index < UInt64(self.randomSourceHistory.length),
@@ -75,19 +75,19 @@ access(all) contract RandomBeaconHistory {
     /// @return An array of random sources, each source an array of UInt8
     ///
     access(all) view fun getRandomSourceHistory(): [[UInt8]] {
-        return self.initHeight != nil ? self.randomSourceHistory : panic("History has not yet been initialized")
+        return self.lowestHeight != nil ? self.randomSourceHistory : panic("History has not yet been initialized")
     }
 
     /// Getter for the block height at which the first source of randomness was recorded
     ///
     /// @return The block height at which the first source of randomness was recorded
     ///
-    access(all) view fun getInitHeight(): UInt64 {
-        return self.initHeight ?? panic("History has not yet been initialized")
+    access(all) view fun getlowestHeight(): UInt64 {
+        return self.lowestHeight ?? panic("History has not yet been initialized")
     }
 
     init() {
-        self.initHeight = nil
+        self.lowestHeight = nil
         self.randomSourceHistory = []
         self.HeartbeatStoragePath = /storage/FlowRandomBeaconHistoryHeartbeat
 
