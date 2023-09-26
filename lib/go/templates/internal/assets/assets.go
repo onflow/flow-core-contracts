@@ -236,7 +236,9 @@
 // quorumCertificate/scripts/get_voting_completed.cdc (187B)
 // quorumCertificate/submit_vote.cdc (584B)
 // randomBeaconHistory/record_source_of_randomness.cdc (1.026kB)
-// randomBeaconHistory/scripts/get_source_of_randomness.cdc (272B)
+// randomBeaconHistory/scripts/get_latest_source_of_randomness.cdc (200B)
+// randomBeaconHistory/scripts/get_source_of_randomness.cdc (305B)
+// randomBeaconHistory/scripts/get_source_of_randomness_page.cdc (333B)
 // stakingCollection/close_stake.cdc (758B)
 // stakingCollection/create_machine_account.cdc (1.152kB)
 // stakingCollection/create_new_tokenholder_acct.cdc (2.95kB)
@@ -5077,7 +5079,27 @@ func randombeaconhistoryRecord_source_of_randomnessCdc() (*asset, error) {
 	return a, nil
 }
 
-var _randombeaconhistoryScriptsGet_source_of_randomnessCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x8e\x31\x4b\xc5\x40\x10\x84\xfb\xfb\x15\xc3\xab\x7c\xcd\x4b\x23\x22\x29\x53\xc5\x4a\x08\x58\x89\xc5\xe5\xb2\x67\x0e\xbd\xdd\xb8\xb7\x27\x88\xf8\xdf\x25\x27\x08\x4a\xba\x5d\x86\xf9\xe6\x4b\x79\x13\x35\x9c\x26\xcf\x8b\xe4\x81\x7c\x10\x1e\x53\x31\xd1\x8f\x93\x73\x5d\xd7\x61\x22\xd3\x44\xef\x54\x60\x2b\xa1\x48\xd5\x40\x90\x08\x6d\x0d\xa6\x52\x10\x45\x5b\xa8\xf4\x56\xa9\x18\x2d\x98\x5f\x25\xbc\x60\xa5\xf4\xbc\x1a\xa2\x4a\x6e\xf9\xc1\x08\x82\xb0\xa9\x0f\x76\xd9\xc7\xdc\x56\x67\xc4\xca\xc8\x3e\xf1\x95\xb7\x61\xc7\x8c\x8d\xd2\xe3\xe1\x8e\xed\xe6\xfa\xdc\xe3\x71\xbf\x6e\x9f\xf0\xe9\x00\x40\xc9\xaa\xf2\x11\xfb\xf2\x23\x7b\x1f\xa7\x5f\xd5\xff\xcc\x3f\xef\xd9\x7d\xb9\xef\x00\x00\x00\xff\xff\x9a\xa7\x0c\x93\x10\x01\x00\x00"
+var _randombeaconhistoryScriptsGet_latest_source_of_randomnessCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x8d\xb1\xae\x83\x30\x0c\x45\xf7\x7c\xc5\x15\x13\x19\x1e\xd2\x5b\x19\xe9\xc2\x56\xa9\xfd\x82\x28\x35\x10\x15\xec\xca\x71\x86\xaa\xea\xbf\x57\x84\x15\x8f\xf7\x9c\x23\xa7\xed\x25\x6a\x68\x6e\x81\x1f\xb2\x0d\x14\xa2\xf0\x98\xb2\x89\xbe\x1b\xe7\x42\x8c\x94\x73\x1b\xd6\xd5\x63\x2a\x8c\x2d\x24\x6e\x7d\x8f\x13\xbb\x3b\xb6\xbb\x14\x8d\x84\x8f\x03\x00\x25\x2b\xca\xa7\x76\xae\xde\x75\x3a\x18\xef\x5f\x6a\xb2\x5f\xb0\x61\x95\xf8\x1c\x29\xcd\x8b\xf5\x98\xc9\x2e\x45\x95\xf8\x98\x5b\xdf\x2d\x95\xe0\x0f\xff\xb5\xf1\xee\xeb\x7e\x01\x00\x00\xff\xff\xf0\x98\xc8\x29\xc8\x00\x00\x00"
+
+func randombeaconhistoryScriptsGet_latest_source_of_randomnessCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_randombeaconhistoryScriptsGet_latest_source_of_randomnessCdc,
+		"randomBeaconHistory/scripts/get_latest_source_of_randomness.cdc",
+	)
+}
+
+func randombeaconhistoryScriptsGet_latest_source_of_randomnessCdc() (*asset, error) {
+	bytes, err := randombeaconhistoryScriptsGet_latest_source_of_randomnessCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "randomBeaconHistory/scripts/get_latest_source_of_randomness.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xea, 0xa4, 0x75, 0x4f, 0xef, 0x7f, 0xaa, 0x32, 0x42, 0x97, 0x99, 0x27, 0x7f, 0xe5, 0x88, 0xed, 0x26, 0x42, 0xef, 0xc0, 0xfc, 0x6, 0xb9, 0xfe, 0x81, 0xc, 0x3, 0x7e, 0x1a, 0xdd, 0xca, 0x78}}
+	return a, nil
+}
+
+var _randombeaconhistoryScriptsGet_source_of_randomnessCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x8f\xb1\x4e\x03\x31\x0c\x86\xf7\x3c\xc5\xaf\x4e\xbd\xa5\xb7\x20\x86\x8e\x9d\xca\x84\x74\x88\x07\x08\xa9\xc3\x45\x5c\x6c\xb0\x1d\x24\x84\x78\x77\xd4\x9c\x84\x44\x75\x63\xf2\xdb\xdf\xe7\xbf\xd4\x77\x51\xc7\x6e\x8a\x7c\x91\x7a\xa2\x98\x84\xcf\xc5\x5c\xf4\x6b\x17\xc2\x38\x8e\x98\xc8\xb5\xd0\x27\x19\x7c\x26\x98\x34\x4d\x04\xc9\xd0\xbe\xc1\x64\x86\x2c\xda\x43\xa5\x8f\x46\xe6\x74\xc1\xcb\x22\xe9\x0d\x33\x95\xd7\xd9\x91\x55\x6a\xcf\x37\x24\x48\xc2\xae\x31\xf9\xe1\x2a\x0b\x31\x25\x32\xdb\xc7\x65\x19\x90\x1b\xa3\xc6\xc2\xfb\xe8\xa7\x2b\xee\xdc\x69\x47\x3c\x3f\xb0\xdf\xdf\x0d\xc7\x2d\xdc\x61\xfd\x7b\x5a\xaf\xfc\x0e\x00\xa0\xe4\x4d\x79\x73\x7a\x6d\xf3\x98\xa7\xbf\x2e\xb7\xb2\x7f\xcf\x21\xfc\x84\xdf\x00\x00\x00\xff\xff\x5d\x21\x51\x1c\x31\x01\x00\x00"
 
 func randombeaconhistoryScriptsGet_source_of_randomnessCdcBytes() ([]byte, error) {
 	return bindataRead(
@@ -5093,7 +5115,27 @@ func randombeaconhistoryScriptsGet_source_of_randomnessCdc() (*asset, error) {
 	}
 
 	info := bindataFileInfo{name: "randomBeaconHistory/scripts/get_source_of_randomness.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xda, 0x3b, 0xce, 0x73, 0xfa, 0xff, 0x8b, 0x4, 0x78, 0x37, 0x4b, 0x24, 0xd0, 0x4e, 0xdd, 0xab, 0x14, 0x8a, 0x5d, 0x3d, 0x3d, 0x91, 0x9e, 0x31, 0x49, 0x54, 0x6, 0x32, 0xa5, 0x52, 0x17, 0xda}}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x28, 0xa6, 0x99, 0x82, 0xb8, 0xdc, 0x36, 0x48, 0xb8, 0x9f, 0xd3, 0xec, 0xc3, 0x76, 0x62, 0xbd, 0xbc, 0x45, 0xc2, 0x80, 0x8d, 0xaf, 0x6f, 0x37, 0xc6, 0x4a, 0xf1, 0x85, 0x7e, 0x56, 0xab, 0x12}}
+	return a, nil
+}
+
+var _randombeaconhistoryScriptsGet_source_of_randomness_pageCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x84\x8e\xb1\x4e\xc3\x40\x10\x44\xfb\xfb\x8a\x51\xaa\x44\x42\x71\x83\x28\x52\x52\x41\x87\x82\xf8\x80\xe3\x32\xb6\x4f\xd8\xbb\x66\x77\x8d\x84\x10\xff\x8e\x6c\x28\x28\x8c\x68\xdf\xe8\xcd\x4c\x1d\x27\xb5\xc0\xee\x9c\xe5\xa2\xe3\x2d\x73\x51\xb9\xab\x1e\x6a\xef\xbb\x94\x9a\xa6\xc1\x99\x61\x95\x6f\x74\x44\x4f\xb8\xce\x56\x08\x6d\x61\xab\x21\x74\x47\xab\xb6\x86\xc6\xd7\x99\x1e\xbc\xe0\x79\xd0\xf2\x82\x9e\xb5\xeb\x03\xad\xe9\xb8\xe6\x1b\x23\x28\x2a\x61\xb9\xc4\x71\x19\x4b\xb9\x14\xba\xef\xf3\x30\x1c\xd0\xce\x82\x31\x57\xd9\x4f\xb9\xe3\x09\x4f\xf7\x12\x37\xd7\x57\x98\x68\x0f\xbf\xc0\xe1\xb4\x55\x7b\xfc\x66\x8f\xeb\xdb\x1f\xb6\x58\xf8\x48\x00\x60\x8c\xd9\x64\x53\xec\x18\x7f\xb8\xff\xfc\x48\x9f\xe9\x2b\x00\x00\xff\xff\xe1\xa0\x91\xb1\x4d\x01\x00\x00"
+
+func randombeaconhistoryScriptsGet_source_of_randomness_pageCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_randombeaconhistoryScriptsGet_source_of_randomness_pageCdc,
+		"randomBeaconHistory/scripts/get_source_of_randomness_page.cdc",
+	)
+}
+
+func randombeaconhistoryScriptsGet_source_of_randomness_pageCdc() (*asset, error) {
+	bytes, err := randombeaconhistoryScriptsGet_source_of_randomness_pageCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "randomBeaconHistory/scripts/get_source_of_randomness_page.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x28, 0xae, 0xe5, 0xc6, 0x0, 0x15, 0xac, 0xd2, 0xf4, 0xc4, 0x3e, 0x0, 0x25, 0x6f, 0xa1, 0xf4, 0x2, 0x62, 0x33, 0x18, 0x44, 0xc0, 0x41, 0x81, 0x88, 0x50, 0x88, 0x40, 0x93, 0xca, 0x9c, 0xf2}}
 	return a, nil
 }
 
@@ -6444,7 +6486,9 @@ var _bindata = map[string]func() (*asset, error){
 	"quorumCertificate/scripts/get_voting_completed.cdc":                          quorumcertificateScriptsGet_voting_completedCdc,
 	"quorumCertificate/submit_vote.cdc":                                           quorumcertificateSubmit_voteCdc,
 	"randomBeaconHistory/record_source_of_randomness.cdc":                         randombeaconhistoryRecord_source_of_randomnessCdc,
+	"randomBeaconHistory/scripts/get_latest_source_of_randomness.cdc":             randombeaconhistoryScriptsGet_latest_source_of_randomnessCdc,
 	"randomBeaconHistory/scripts/get_source_of_randomness.cdc":                    randombeaconhistoryScriptsGet_source_of_randomnessCdc,
+	"randomBeaconHistory/scripts/get_source_of_randomness_page.cdc":               randombeaconhistoryScriptsGet_source_of_randomness_pageCdc,
 	"stakingCollection/close_stake.cdc":                                           stakingcollectionClose_stakeCdc,
 	"stakingCollection/create_machine_account.cdc":                                stakingcollectionCreate_machine_accountCdc,
 	"stakingCollection/create_new_tokenholder_acct.cdc":                           stakingcollectionCreate_new_tokenholder_acctCdc,
@@ -6834,7 +6878,9 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	"randomBeaconHistory": {nil, map[string]*bintree{
 		"record_source_of_randomness.cdc": {randombeaconhistoryRecord_source_of_randomnessCdc, map[string]*bintree{}},
 		"scripts": {nil, map[string]*bintree{
+			"get_latest_source_of_randomness.cdc": {randombeaconhistoryScriptsGet_latest_source_of_randomnessCdc, map[string]*bintree{}},
 			"get_source_of_randomness.cdc": {randombeaconhistoryScriptsGet_source_of_randomnessCdc, map[string]*bintree{}},
+			"get_source_of_randomness_page.cdc": {randombeaconhistoryScriptsGet_source_of_randomness_pageCdc, map[string]*bintree{}},
 		}},
 	}},
 	"stakingCollection": {nil, map[string]*bintree{
