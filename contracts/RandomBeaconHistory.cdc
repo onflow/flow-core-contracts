@@ -47,35 +47,106 @@ access(all) contract RandomBeaconHistory {
         }
     }
 
+    /* --- RandomSourceHistory --- */
+    //
+    /// Represents a random source value for a given block height
+    ///
+    access(all) struct RandomSource {
+        access(all) let blockHeight: UInt64
+        access(all) let value: [UInt8]
+    
+        init(blockHeight: UInt64, value: [UInt8]) {
+            self.blockHeight = blockHeight
+            self.value = value
+        }
+    }
+
+    /* --- RandomSourceHistoryPage --- */
+    //
+    /// Contains RandomSource values ordered chronologically according to associated block height
+    ///
+    access(all) struct RandomSourceHistoryPage {
+        access(all) let page: UInt64
+        access(all) let perPage: UInt64
+        access(all) let totalLength: UInt64
+        access(all) let values: [RandomSource]
+    
+        init(page: UInt64, perPage: UInt64, totalLength: UInt64, values: [RandomSource]) {
+            self.page = page
+            self.perPage = perPage
+            self.totalLength = totalLength
+            self.values = values
+        }
+    }
+
+    /* --- Contract Methods --- */
+    //
     /// Getter for the source of randomness at a given block height. Panics if the requested block height either
     /// precedes or exceeds the recorded history. Note that a source of randomness for block n will not be accessible
     /// until block n+1.
     ///
     /// @param atBlockHeight The block height at which to retrieve the source of randomness
-    /// @return The source of randomness at the given block height
     ///
-    access(all) fun sourceOfRandomness(atBlockHeight: UInt64): [UInt8] {
+    /// @return The source of randomness at the given block height as RandomSource struct
+    ///
+    access(all) fun sourceOfRandomness(atBlockHeight: UInt64): RandomSource {
         pre {
             self.lowestHeight != nil: "History has not yet been initialized"
             atBlockHeight >= self.lowestHeight!: "Requested block height precedes recorded history"
             atBlockHeight < getCurrentBlock().height: "Source of randomness not yet recorded"
         }
         let index: UInt64 = atBlockHeight - self.lowestHeight!
-
         assert(
             index >= 0 && index < UInt64(self.randomSourceHistory.length),
             message: "Problem finding random source history index"
         )
-
-        return self.randomSourceHistory[index]
+        return RandomSource(blockHeight: atBlockHeight, value: self.randomSourceHistory[index])
     }
 
-    /// Getter for the totality of recorded randomness source history
+    /// Retrieves a page from the history of random sources, ordered chronologically
     ///
-    /// @return An array of random sources, each source an array of UInt8
+    /// @param page: The page number to retrieve, 0-indexed
+    /// @param perPage: The number of random sources to include per page
     ///
-    access(all) view fun getRandomSourceHistory(): [[UInt8]] {
-        return self.lowestHeight != nil ? self.randomSourceHistory : panic("History has not yet been initialized")
+    /// @return A RandomSourceHistoryPage containing RandomSource values in choronological order according to
+    /// associated block height
+    ///
+    access(all) view fun getRandomSourceHistoryPage(page: UInt64, perPage: UInt64): RandomSourceHistoryPage {
+        pre {
+            self.lowestHeight != nil: "History has not yet been initialized"
+        }
+        let values: [RandomSource] = []
+        let totalLength = UInt64(self.randomSourceHistory.length)
+
+        var startIndex = page * perPage
+        if startIndex > totalLength {
+            startIndex = totalLength
+        }
+        var endIndex = startIndex + perPage
+        if endIndex > totalLength {
+            endIndex = totalLength
+        }
+        // Return empty page if request exceeds last page
+        if startIndex == endIndex {
+            return RandomSourceHistoryPage(page: page, perPage: perPage, totalLength: totalLength, values: values)
+        }
+
+        // Iterate over history and construct page RandomSource values
+        for i, block in self.randomSourceHistory.slice(from: Int(startIndex), upTo: Int(endIndex)) {
+            values.append(
+                RandomSource(
+                    blockHeight: self.lowestHeight! + startIndex + UInt64(i),
+                    value: self.randomSourceHistory[startIndex + UInt64(i)]
+                )
+            )
+        }
+
+        return RandomSourceHistoryPage(
+            page: page,
+            perPage: perPage,
+            totalLength: totalLength,
+            values: values
+        )
     }
 
     /// Getter for the block height at which the first source of randomness was recorded
