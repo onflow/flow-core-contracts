@@ -109,20 +109,20 @@ func TestIDTableDeployment(t *testing.T) {
 
 		// Check that the reward ratios were initialized correctly for each node role
 
-		// result = executeScriptAndCheck(t, b, templates.GenerateGetRewardRatioScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(1))})
-		// assertEqual(t, CadenceUFix64("0.168"), result)
+		result = executeScriptAndCheck(t, b, templates.GenerateGetRewardRatioScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(1))})
+		assertEqual(t, CadenceUFix64("0.168"), result)
 
-		// result = executeScriptAndCheck(t, b, templates.GenerateGetRewardRatioScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(2))})
-		// assertEqual(t, CadenceUFix64("0.518"), result)
+		result = executeScriptAndCheck(t, b, templates.GenerateGetRewardRatioScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(2))})
+		assertEqual(t, CadenceUFix64("0.518"), result)
 
-		// result = executeScriptAndCheck(t, b, templates.GenerateGetRewardRatioScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(3))})
-		// assertEqual(t, CadenceUFix64("0.078"), result)
+		result = executeScriptAndCheck(t, b, templates.GenerateGetRewardRatioScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(3))})
+		assertEqual(t, CadenceUFix64("0.078"), result)
 
-		// result = executeScriptAndCheck(t, b, templates.GenerateGetRewardRatioScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(4))})
-		// assertEqual(t, CadenceUFix64("0.236"), result)
+		result = executeScriptAndCheck(t, b, templates.GenerateGetRewardRatioScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(4))})
+		assertEqual(t, CadenceUFix64("0.236"), result)
 
-		// result = executeScriptAndCheck(t, b, templates.GenerateGetRewardRatioScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(5))})
-		// assertEqual(t, CadenceUFix64("0.0"), result)
+		result = executeScriptAndCheck(t, b, templates.GenerateGetRewardRatioScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt8(5))})
+		assertEqual(t, CadenceUFix64("0.0"), result)
 
 		// Check that the weekly payout was initialized correctly
 

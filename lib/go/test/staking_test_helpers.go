@@ -111,8 +111,7 @@ func deployStakingContract(
 	env.FlowFeesAddress = feesAddr.Hex()
 
 	// Get the code byte-array for the staking contract
-	IDTableCode := contracts.FlowIDTableStaking(emulatorFTAddress, emulatorFlowTokenAddress, feesAddr.String(), latest)
-	cadenceCode := bytesToCadenceArray(IDTableCode)
+	IDTableCode, _ := cadence.NewString(string(contracts.FlowIDTableStaking(emulatorFTAddress, emulatorFlowTokenAddress, feesAddr.String(), latest))[:])
 
 	// Create the deployment transaction that transfers a FlowToken minter
 	// to the new account and deploys the IDTableStaking contract
@@ -123,7 +122,7 @@ func deployStakingContract(
 	// Add the keys argument, contract name, and code
 	tx.AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys))
 	tx.AddRawArgument(jsoncdc.MustEncode(CadenceString("FlowIDTableStaking")))
-	tx.AddRawArgument(jsoncdc.MustEncode(cadenceCode))
+	tx.AddArgument(IDTableCode)
 
 	// Set the weekly payount amount and delegator cut percentage
 	_ = tx.AddArgument(CadenceUFix64("1250000.0"))
@@ -888,13 +887,8 @@ func setNodeRoleOpenSlots(
 	idTableSigner crypto.Signer,
 	openSlots [5]uint16,
 ) {
-	// // set the open slot values
-	// cadenceOpenSlots := make([]cadence.Value, 5)
-	// for i := 0; i < 5; i++ {
-	// 	cadenceOpenSlots[i] = cadence.NewUInt16(openSlots[i])
-	// }
 
-	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetOpenSlotsScript(env), idTableAddress)
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetOpenAccessSlotsScript(env), idTableAddress)
 
 	err := tx.AddArgument(cadence.NewUInt16(openSlots[4]))
 	require.NoError(t, err)

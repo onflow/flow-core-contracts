@@ -32,7 +32,7 @@ const (
 	setCandidateLimitsFilename      = "idTableStaking/admin/change_candidate_limits.cdc"
 	setNodeWeightFilename           = "idTableStaking/admin/set_node_weight.cdc"
 	setSlotLimitsFilename           = "idTableStaking/admin/set_slot_limits.cdc"
-	setOpenSlotsFilename            = "idTableStaking/admin/set_open_node_slots.cdc"
+	setOpenAccessSlotsFilename      = "idTableStaking/admin/set_open_access_node_slots.cdc"
 
 	// for testing only
 	scaleRewardsTestFilename = "idTableStaking/admin/scale_rewards_test.cdc"
@@ -257,8 +257,8 @@ func GenerateSetSlotLimitsScript(env Environment) []byte {
 	return []byte(ReplaceAddresses(code, env))
 }
 
-func GenerateSetOpenSlotsScript(env Environment) []byte {
-	code := assets.MustAssetString(setOpenSlotsFilename)
+func GenerateSetOpenAccessSlotsScript(env Environment) []byte {
+	code := assets.MustAssetString(setOpenAccessSlotsFilename)
 
 	return []byte(ReplaceAddresses(code, env))
 }
