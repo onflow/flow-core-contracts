@@ -59,7 +59,6 @@ pub contract FlowEpoch {
 
     /// The Epoch Start service event is emitted when the contract transitions
     /// to a new epoch in the staking auction phase.
-    /// It contains the finalized identity table for the upcoming epoch.
     pub event EpochStart (
         
         /// The counter for the current epoch that is beginning

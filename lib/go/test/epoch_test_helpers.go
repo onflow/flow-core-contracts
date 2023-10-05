@@ -580,20 +580,14 @@ func verifyEpochStart(
 
 	var emittedEvent EpochStartEvent
 
-	var i uint64
-	i = 0
-	for i < 1000 {
-		results, _ := adapter.GetEventsForHeightRange(context.Background(), "A."+epochAddress.String()+".FlowEpoch.EpochStart", i, i)
-
-		for _, result := range results {
-			for _, event := range result.Events {
-				if event.Type == "A."+epochAddress.String()+".FlowEpoch.EpochStart" {
-					emittedEvent = EpochStartEvent(event)
-				}
+	results, _ := adapter.GetEventsForHeightRange(context.Background(), "A."+epochAddress.String()+".FlowEpoch.EpochStart", 0, 1000)
+	for _, result := range results {
+		for _, event := range result.Events {
+			if event.Type == "A."+epochAddress.String()+".FlowEpoch.EpochStart" {
+				emittedEvent = EpochStartEvent(event)
+				break
 			}
 		}
-
-		i = i + 1
 	}
 
 	// counter
