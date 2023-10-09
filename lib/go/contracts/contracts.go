@@ -343,7 +343,7 @@ func NodeVersionBeacon() []byte {
 	return []byte(code)
 }
 
-func SourceOfRandomnessHistory() []byte {
+func RandomBeaconHistory() []byte {
 	code := assets.MustAssetString(flowRandomBeaconHistoryFilename)
 
 	return []byte(code)
