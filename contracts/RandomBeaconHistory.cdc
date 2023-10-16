@@ -85,11 +85,11 @@ access(all) contract RandomBeaconHistory {
     /// precedes or exceeds the recorded history. Note that a source of randomness for block n will not be accessible
     /// until block n+1.
     ///
-    /// @param blockHeight The block height at which to retrieve the source of randomness
+    /// @param atBlockHeight The block height at which to retrieve the source of randomness
     ///
     /// @return The source of randomness at the given block height as RandomSource struct
     ///
-    access(all) fun sourceOfRandomnessAtBlockHeight(blockHeight: UInt64): RandomSource {
+    access(all) fun sourceOfRandomness(atBlockHeight blockHeight: UInt64): RandomSource {
         pre {
             self.lowestHeight != nil: "History has not yet been initialized"
             blockHeight >= self.lowestHeight!: "Requested block height precedes recorded history"
