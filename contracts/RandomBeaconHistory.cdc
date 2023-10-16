@@ -85,22 +85,22 @@ access(all) contract RandomBeaconHistory {
     /// precedes or exceeds the recorded history. Note that a source of randomness for block n will not be accessible
     /// until block n+1.
     ///
-    /// @param atBlockHeight The block height at which to retrieve the source of randomness
+    /// @param blockHeight The block height at which to retrieve the source of randomness
     ///
     /// @return The source of randomness at the given block height as RandomSource struct
     ///
-    access(all) fun sourceOfRandomness(atBlockHeight: UInt64): RandomSource {
+    access(all) fun sourceOfRandomnessAtBlockHeight(blockHeight: UInt64): RandomSource {
         pre {
             self.lowestHeight != nil: "History has not yet been initialized"
-            atBlockHeight >= self.lowestHeight!: "Requested block height precedes recorded history"
-            atBlockHeight < getCurrentBlock().height: "Source of randomness not yet recorded"
+            blockHeight >= self.lowestHeight!: "Requested block height precedes recorded history"
+            blockHeight < getCurrentBlock().height: "Source of randomness not yet recorded"
         }
-        let index: UInt64 = atBlockHeight - self.lowestHeight!
+        let index = blockHeight - self.lowestHeight!
         assert(
             index >= 0 && index < UInt64(self.randomSourceHistory.length),
             message: "Problem finding random source history index"
         )
-        return RandomSource(blockHeight: atBlockHeight, value: self.randomSourceHistory[index])
+        return RandomSource(blockHeight: blockHeight, value: self.randomSourceHistory[index])
     }
 
     /// Retrieves a page from the history of random sources, ordered chronologically
@@ -111,7 +111,7 @@ access(all) contract RandomBeaconHistory {
     /// @return A RandomSourceHistoryPage containing RandomSource values in choronological order according to
     /// associated block height
     ///
-    access(all) view fun getRandomSourceHistoryPage(page: UInt64, perPage: UInt64): RandomSourceHistoryPage {
+    access(all) view fun getRandomSourceHistoryPage(_ page: UInt64, perPage: UInt64): RandomSourceHistoryPage {
         pre {
             self.lowestHeight != nil: "History has not yet been initialized"
         }
@@ -132,10 +132,11 @@ access(all) contract RandomBeaconHistory {
         }
 
         // Iterate over history and construct page RandomSource values
+        let lowestHeight = self.lowestHeight!
         for i, block in self.randomSourceHistory.slice(from: Int(startIndex), upTo: Int(endIndex)) {
             values.append(
                 RandomSource(
-                    blockHeight: self.lowestHeight! + startIndex + UInt64(i),
+                    blockHeight: lowestHeight + startIndex + UInt64(i),
                     value: self.randomSourceHistory[startIndex + UInt64(i)]
                 )
             )
