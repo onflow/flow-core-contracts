@@ -358,6 +358,11 @@ pub contract FlowDKG {
         return self.uniqueFinalSubmissions
     }
 
+    /// Get the count of the final submissions array
+    pub fun getFinalSubmissionCount(): {Int: UInt64} {
+        return self.uniqueFinalSubmissionCount
+    }
+
     /// Gets the native threshold that the submission count needs to exceed to be considered complete [t=floor((n-1)/2)]
     /// This function returns the NON-INCLUSIVE lower bound of honest participants.
     /// For the DKG to succeed, the number of honest participants must EXCEED this threshold value.
