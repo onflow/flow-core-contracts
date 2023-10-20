@@ -34,6 +34,7 @@
 // dkg/scripts/get_node_has_submitted.cdc (116B)
 // dkg/scripts/get_node_is_claimed.cdc (218B)
 // dkg/scripts/get_node_is_registered.cdc (123B)
+// dkg/scripts/get_submissions_count.cdc (114B)
 // dkg/scripts/get_thresholds.cdc (408B)
 // dkg/scripts/get_whiteboard_messages.cdc (115B)
 // dkg/send_final_submission.cdc (412B)
@@ -1035,6 +1036,26 @@ func dkgScriptsGet_node_is_registeredCdc() (*asset, error) {
 
 	info := bindataFileInfo{name: "dkg/scripts/get_node_is_registered.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xad, 0xbc, 0xa5, 0x94, 0xca, 0x89, 0x42, 0xfc, 0xbd, 0x28, 0x1d, 0x72, 0xd4, 0x0, 0x1d, 0xf2, 0xeb, 0xd3, 0x6a, 0x1, 0x26, 0xf1, 0xb5, 0x35, 0x15, 0x12, 0x7a, 0xfa, 0xdf, 0x6, 0x62, 0x4a}}
+	return a, nil
+}
+
+var _dkgScriptsGet_submissions_countCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x34\xcc\xc1\x0a\x82\x40\x10\x06\xe0\xfb\x3c\xc5\x7f\xd4\x4b\x74\x88\x0e\xde\xa2\x4d\x11\x6f\x2d\x3d\x80\x82\xc6\x80\x3b\x23\xeb\x0c\x05\xb2\xef\xde\xa9\x17\xf8\x38\x6d\x9a\x0d\xed\xaa\x9f\x30\x74\x58\xb2\x26\x9c\xbf\x61\xe8\x6e\x21\x3c\x1f\x31\x12\x6d\x3e\x61\x71\x41\x1a\x59\xaa\xba\x01\x8e\x5e\xac\xc1\xab\x17\xbb\x5e\x0a\x0e\x02\x80\x3c\x9b\x67\xf9\x33\xa7\xf7\x6c\x2d\xcb\xb8\x46\x9f\x12\xef\x3b\xab\xdc\xd5\xc5\xaa\x9a\x0a\xfd\x02\x00\x00\xff\xff\xe5\xd7\x26\xa5\x72\x00\x00\x00"
+
+func dkgScriptsGet_submissions_countCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_dkgScriptsGet_submissions_countCdc,
+		"dkg/scripts/get_submissions_count.cdc",
+	)
+}
+
+func dkgScriptsGet_submissions_countCdc() (*asset, error) {
+	bytes, err := dkgScriptsGet_submissions_countCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "dkg/scripts/get_submissions_count.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xc2, 0x62, 0x13, 0x4c, 0x53, 0x43, 0x18, 0xf7, 0xc7, 0xa8, 0x39, 0x4a, 0x6c, 0x6, 0x96, 0x10, 0xa8, 0x3c, 0x70, 0xe5, 0xaa, 0x27, 0x86, 0x32, 0x10, 0x17, 0x58, 0x9d, 0x83, 0x72, 0x85, 0x6e}}
 	return a, nil
 }
 
@@ -6263,6 +6284,7 @@ var _bindata = map[string]func() (*asset, error){
 	"dkg/scripts/get_node_has_submitted.cdc":                                      dkgScriptsGet_node_has_submittedCdc,
 	"dkg/scripts/get_node_is_claimed.cdc":                                         dkgScriptsGet_node_is_claimedCdc,
 	"dkg/scripts/get_node_is_registered.cdc":                                      dkgScriptsGet_node_is_registeredCdc,
+	"dkg/scripts/get_submissions_count.cdc":                                       dkgScriptsGet_submissions_countCdc,
 	"dkg/scripts/get_thresholds.cdc":                                              dkgScriptsGet_thresholdsCdc,
 	"dkg/scripts/get_whiteboard_messages.cdc":                                     dkgScriptsGet_whiteboard_messagesCdc,
 	"dkg/send_final_submission.cdc":                                               dkgSend_final_submissionCdc,
@@ -6606,6 +6628,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 			"get_node_has_submitted.cdc": {dkgScriptsGet_node_has_submittedCdc, map[string]*bintree{}},
 			"get_node_is_claimed.cdc": {dkgScriptsGet_node_is_claimedCdc, map[string]*bintree{}},
 			"get_node_is_registered.cdc": {dkgScriptsGet_node_is_registeredCdc, map[string]*bintree{}},
+			"get_submissions_count.cdc": {dkgScriptsGet_submissions_countCdc, map[string]*bintree{}},
 			"get_thresholds.cdc": {dkgScriptsGet_thresholdsCdc, map[string]*bintree{}},
 			"get_whiteboard_messages.cdc": {dkgScriptsGet_whiteboard_messagesCdc, map[string]*bintree{}},
 		}},
