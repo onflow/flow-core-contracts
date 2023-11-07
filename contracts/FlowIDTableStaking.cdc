@@ -1624,7 +1624,7 @@ pub contract FlowIDTableStaking {
     /// Updates a claimed boolean for a specific path to indicate that
     /// a piece of node metadata has been claimed by a node
     access(account) fun updateClaimed(path: StoragePath, _ key: String, claimed: Bool) {
-        let claimedDictionary = self.account.load<{String: Bool}>(from: path)
+        let claimedDictionary = self.account.borrow<&{String: Bool}>(from: path)
             ?? panic("Invalid path for dictionary")
 
         if claimed {
@@ -1632,8 +1632,6 @@ pub contract FlowIDTableStaking {
         } else {
             claimedDictionary.remove(key: key)
         }
-
-        self.account.save(claimedDictionary, to: path)
     }
 
     /// Sets a list of approved node IDs for the current epoch
@@ -1725,13 +1723,12 @@ pub contract FlowIDTableStaking {
             role >= UInt8(1) && role <= UInt8(5): "The role must be 1, 2, 3, 4, or 5"
         }
 
-        var candidateNodes = FlowIDTableStaking.account.load<{UInt8: {String: Bool}}>(from: /storage/idTableCandidateNodes) ?? {}
+        var candidateNodes = FlowIDTableStaking.account.borrow<&{UInt8: {String: Bool}}>(from: /storage/idTableCandidateNodes)
+            ?? panic("Could not load candidate node list from storage")
         var candidateNodesForRole = candidateNodes[role]!
         
         candidateNodesForRole.remove(key: nodeID)
         candidateNodes[role] = candidateNodesForRole
-
-        FlowIDTableStaking.account.save(candidateNodes, to: /storage/idTableCandidateNodes)
     }
 
     /// Returns the current candidate node list
