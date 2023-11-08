@@ -902,11 +902,11 @@ pub contract FlowIDTableStaking {
         pub fun setSlotLimits(slotLimits: {UInt8: UInt16}) {
             pre {
                 slotLimits.keys.length == 5: "Slot Limits Dictionary can only have 5 entries"
-                slotLimits[UInt8(1)] != nil: "Need to have a limit set for collector nodes"
-                slotLimits[UInt8(2)] != nil: "Need to have a limit set for consensus nodes"
-                slotLimits[UInt8(3)] != nil: "Need to have a limit set for execution nodes"
-                slotLimits[UInt8(4)] != nil: "Need to have a limit set for verification nodes"
-                slotLimits[UInt8(5)] != nil: "Need to have a limit set for access nodes"
+                slotLimits[1] != nil: "Need to have a limit set for collector nodes"
+                slotLimits[2] != nil: "Need to have a limit set for consensus nodes"
+                slotLimits[3] != nil: "Need to have a limit set for execution nodes"
+                slotLimits[4] != nil: "Need to have a limit set for verification nodes"
+                slotLimits[5] != nil: "Need to have a limit set for access nodes"
             }
 
             FlowIDTableStaking.account.load<{UInt8: UInt16}>(from: /storage/flowStakingSlotLimits)
@@ -918,7 +918,7 @@ pub contract FlowIDTableStaking {
         /// but other node types will be added in the future
         pub fun setOpenNodeSlots(openSlots: {UInt8: UInt16}) {
             pre {
-                openSlots[UInt8(5)] != nil: "Need to have a value set for access nodes"
+                openSlots[5] != nil: "Need to have a value set for access nodes"
             }
 
             FlowIDTableStaking.account.load<{UInt8: UInt16}>(from: /storage/flowStakingOpenNodeSlots)
@@ -1425,7 +1425,7 @@ pub contract FlowIDTableStaking {
 
             // Reset the movesPendingList
             var emptyMovesPendingList: {String: {UInt32: Bool}} = {}
-            FlowIDTableStaking.account.save<{String: {UInt32: Bool}}>(emptyMovesPendingList, to: /storage/idTableMovesPendingList)
+            FlowIDTableStaking.account.save(emptyMovesPendingList, to: /storage/idTableMovesPendingList)
             let newMovesPendingList = FlowIDTableStaking.account.borrow<&{String: {UInt32: Bool}}>(from: /storage/idTableMovesPendingList)
                 ?? panic("No moves pending list in account storage")
 
