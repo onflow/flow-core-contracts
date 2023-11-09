@@ -1050,7 +1050,7 @@ pub contract FlowIDTableStaking {
             // remove the refunded node from the approve list
             let approveList = FlowIDTableStaking.getApprovedList()
                 ?? panic("Could not load approve list from storage")
-            approveList[nodeID] = nil
+            approveList.remove(key: nodeID)
             self.unsafeSetApprovedList(approveList)
             self.unsafeRemoveAndRefundNodeRecord(nodeID)
         }
@@ -1190,7 +1190,7 @@ pub contract FlowIDTableStaking {
                     for nodeIndex in deletionList.keys {
                         let nodeID = candidateNodesForRole.keys[nodeIndex]
                         self.removeAndRefundNodeRecord(nodeID)
-                        candidateNodesForRole[nodeID] = nil
+                        candidateNodesForRole.remove(key: nodeID)
                     }
 
                     // Set the current node count for the role to the limit for the role, since they were all filled
@@ -1456,7 +1456,7 @@ pub contract FlowIDTableStaking {
                     nodeRecord.tokensUnstaking.deposit(from: <-nodeRecord.tokensStaked.withdraw(amount: nodeRecord.tokensRequestedToUnstake))
                     // If the node no longer has above the minimum, remove them from the list of active nodes
                     if !FlowIDTableStaking.isGreaterThanMinimumForRole(numTokens: nodeRecord.tokensStaked.balance, role: nodeRecord.role) {
-                        stakedNodeIDs[nodeRecord.id] = nil
+                        stakedNodeIDs.remove(key: nodeRecord.id)
                     }
                     // unstaked tokens automatically mark the node as pending
                     // because they will move in the next epoch
