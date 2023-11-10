@@ -119,7 +119,10 @@ pub contract FlowEpoch {
         /// than the given deadline, it can safely transition to the next phase. 
         DKGPhase1FinalView: UInt64,
         DKGPhase2FinalView: UInt64,
-        DKGPhase3FinalView: UInt64
+        DKGPhase3FinalView: UInt64,
+
+        /// The target end time for the upcoming epoch, specified in second-precision Unix time
+        targetEndTime: Int64
     )
 
     /// The EpochCommit service event is emitted when we transition from the Epoch
@@ -226,7 +229,7 @@ pub contract FlowEpoch {
         }
     }
 
-    /// Metadata that is managed and can be changed by the Admin///
+    /// Metadata that is managed and can be changed by the Admin
     pub struct Config {
         /// The number of views in an entire epoch
         pub(set) var numViewsInEpoch: UInt64
@@ -250,6 +253,29 @@ pub contract FlowEpoch {
             self.numViewsInDKGPhase = numViewsInDKGPhase
             self.numCollectorClusters = numCollectorClusters
             self.FLOWsupplyIncreasePercentage = FLOWsupplyIncreasePercentage
+        }
+    }
+
+    /// Configuration for epoch timing. 
+    /// Each epoch is assigned a target end time when it is setup (within the EpochSetup event). 
+    /// The configuration defines a reference epoch counter and timestamp, which defines 
+    /// all future target end times. If `targetEpochCounter` is an upcoming epoch, then
+    /// its target end time is given by:
+    ///
+    ///   targetEndTime = refTimestamp + duration * (targetEpochCounter-refCounter)
+    ///
+    pub struct EpochTimingConfig {
+        /// The duration of each epoch, in seconds
+	    pub(set) duration: UInt64
+        /// The counter of the reference epoch
+	    pub(set) refCounter: UInt64
+        /// The end time of the reference epoch, specified in second-precision Unix time
+        pub(set) refTimestamp: Int64
+
+        init(duration: UInt64, refCounter: UInt64, refTimestamp: Int64) {
+             self.duration = duration
+             self.refCounter = refCounter
+             self.refTimestamp = refTimestamp
         }
     }
 
