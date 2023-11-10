@@ -266,11 +266,16 @@ pub contract FlowEpoch {
     ///
     pub struct EpochTimingConfig {
         /// The duration of each epoch, in seconds
-	    pub(set) duration: UInt64
+        pub let duration: UInt64
         /// The counter of the reference epoch
-	    pub(set) refCounter: UInt64
+        pub let refCounter: UInt64
         /// The end time of the reference epoch, specified in second-precision Unix time
-        pub(set) refTimestamp: Int64
+        pub let refTimestamp: Int64
+
+        /// Compute target switchover time based on offset from reference counter/switchover.
+        pub fun getTargetEndTimeForEpoch(_ targetEpochCounter: UInt64): Int64 {
+            return self.refTimestamp + Int64(self.duration) * (Int64(targetEpochCounter)-Int64(self.refCounter))
+        }
 
         init(duration: UInt64, refCounter: UInt64, refTimestamp: Int64) {
              self.duration = duration
@@ -367,6 +372,11 @@ pub contract FlowEpoch {
             }
 
             FlowEpoch.configurableMetadata.numViewsInDKGPhase = newPhaseViews
+        }
+
+        pub fun updateEpochTimingConfig(_ newConfig: EpochTimingConfig) {
+            FlowEpoch.account.load<EpochTimingConfig>(from: /storage/flowEpochTimingConfig)
+            FlowEpoch.account.save(newConfig, to: /storage/flowEpochTimingConfig)
         }
 
         pub fun updateNumCollectorClusters(_ newNumClusters: UInt16) {
@@ -877,6 +887,13 @@ pub contract FlowEpoch {
     /// Returns the metadata that is able to be configured by the admin
     pub fun getConfigMetadata(): Config {
         return self.configurableMetadata
+    }
+
+    /// Returns the config for epoch timing, which can be configured by the admin.
+    /// Conceptually, this should be part of `Config`, however it was added later in an
+    /// upgrade which requires new fields be specified separately from existing structs.
+    pub fun getEpochTimingConfig(): EpochTimingConfig {
+        return self.account.copy<EpochTimingConfig>(from: /storage/flowEpochTimingConfig)!
     }
 
     /// The proposed Epoch counter is always the current counter plus 1
