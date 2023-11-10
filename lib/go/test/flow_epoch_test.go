@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/onflow/flow-go/module/signature"
 
@@ -439,6 +440,8 @@ func TestEpochAdvance(t *testing.T) {
 
 	t.Run("Proposed metadata, QC, and DKG should have been created properly for epoch setup", func(t *testing.T) {
 
+		epochTimingConfigResult := executeScriptAndCheck(t, b, templates.GenerateGetEpochTimingConfigScript(env), nil)
+
 		// Advance to epoch Setup and make sure that the epoch cannot be ended
 		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHSETUP", false)
 
@@ -471,6 +474,13 @@ func TestEpochAdvance(t *testing.T) {
 				clusterQCs:            nil,
 				dkgKeys:               nil})
 
+		verifyEpochTimingConfig(t, b, env,
+			EpochTimingConfig{
+				duration:     numEpochViews,
+				refCounter:   startEpochCounter,
+				refTimestamp: uint64(time.Now().Unix()),
+			})
+
 		verifyEpochSetup(t, b, adapter, idTableAddress,
 			EpochSetup{
 				counter:            startEpochCounter + 1,
@@ -481,7 +491,9 @@ func TestEpochAdvance(t *testing.T) {
 				randomSource:       "",
 				dkgPhase1FinalView: startView + numEpochViews + numStakingViews + numDKGViews - 1,
 				dkgPhase2FinalView: startView + numEpochViews + numStakingViews + 2*numDKGViews - 1,
-				dkgPhase3FinalView: startView + numEpochViews + numStakingViews + 3*numDKGViews - 1})
+				dkgPhase3FinalView: startView + numEpochViews + numStakingViews + 3*numDKGViews - 1,
+				targetEndTime:      expectedTargetEndTime(epochTimingConfigResult, startEpochCounter+1),
+			})
 
 		// QC Contract Checks
 		result := executeScriptAndCheck(t, b, templates.GenerateGetClusterWeightScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt16(uint16(0)))})

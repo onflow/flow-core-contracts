@@ -12,6 +12,7 @@ const (
 	updateStakingViewsFilename       = "epoch/admin/update_staking_views.cdc"
 	updateDKGViewsFilename           = "epoch/admin/update_dkg_phase_views.cdc"
 	updateEpochConfigFilename        = "epoch/admin/update_epoch_config.cdc"
+	updateEpochTimingConfigFilename  = "epoch/admin/update_epoch_timing_config.cdc"
 	updateNumClustersFilename        = "epoch/admin/update_clusters.cdc"
 	updateRewardPercentageFilename   = "epoch/admin/update_reward.cdc"
 	advanceViewFilename              = "epoch/admin/advance_view.cdc"
@@ -31,6 +32,7 @@ const (
 	getProposedEpochCounterFilename = "epoch/scripts/get_proposed_counter.cdc"
 	getEpochMetadataFilename        = "epoch/scripts/get_epoch_metadata.cdc"
 	getConfigMetadataFilename       = "epoch/scripts/get_config_metadata.cdc"
+	getTimingConfigFilename         = "epoch/scripts/get_epoch_timing_config.cdc"
 	getEpochPhaseFilename           = "epoch/scripts/get_epoch_phase.cdc"
 	getCurrentViewFilename          = "epoch/scripts/get_current_view.cdc"
 	getFlowTotalSupplyFilename      = "flowToken/scripts/get_supply.cdc"
@@ -77,6 +79,12 @@ func GenerateUpdateDKGViewsScript(env Environment) []byte {
 
 func GenerateUpdateEpochConfigScript(env Environment) []byte {
 	code := assets.MustAssetString(updateEpochConfigFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateUpdateEpochTimingConfigScript(env Environment) []byte {
+	code := assets.MustAssetString(updateEpochTimingConfigFilename)
 
 	return []byte(ReplaceAddresses(code, env))
 }
@@ -171,6 +179,12 @@ func GenerateGetEpochMetadataScript(env Environment) []byte {
 
 func GenerateGetEpochConfigMetadataScript(env Environment) []byte {
 	code := assets.MustAssetString(getConfigMetadataFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateGetEpochTimingConfigScript(env Environment) []byte {
+	code := assets.MustAssetString(getTimingConfigFilename)
 
 	return []byte(ReplaceAddresses(code, env))
 }
