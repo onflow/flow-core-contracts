@@ -122,7 +122,7 @@ pub contract FlowEpoch {
         DKGPhase3FinalView: UInt64,
 
         /// The target end time for the upcoming epoch, specified in second-precision Unix time
-        targetEndTime: Int64
+        targetEndTime: UInt64
     )
 
     /// The EpochCommit service event is emitted when we transition from the Epoch
@@ -270,14 +270,14 @@ pub contract FlowEpoch {
         /// The counter of the reference epoch
         pub let refCounter: UInt64
         /// The end time of the reference epoch, specified in second-precision Unix time
-        pub let refTimestamp: Int64
+        pub let refTimestamp: UInt64
 
         /// Compute target switchover time based on offset from reference counter/switchover.
-        pub fun getTargetEndTimeForEpoch(_ targetEpochCounter: UInt64): Int64 {
-            return self.refTimestamp + Int64(self.duration) * (Int64(targetEpochCounter)-Int64(self.refCounter))
+        pub fun getTargetEndTimeForEpoch(_ targetEpochCounter: UInt64): UInt64 {
+            return self.refTimestamp + self.duration * (targetEpochCounter-self.refCounter)
         }
 
-        init(duration: UInt64, refCounter: UInt64, refTimestamp: Int64) {
+        init(duration: UInt64, refCounter: UInt64, refTimestamp: UInt64) {
              self.duration = duration
              self.refCounter = refCounter
              self.refTimestamp = refTimestamp
@@ -677,7 +677,7 @@ pub contract FlowEpoch {
 
         let currentEpochMetadata = self.getEpochMetadata(self.currentEpochCounter)!
 
-        // Initialze the metadata for the next epoch
+        // Initialize the metadata for the next epoch
         // QC and DKG metadata will be filled in later
         let proposedEpochMetadata = EpochMetadata(counter: self.proposedEpochCounter(),
                                                 seed: randomSource,
@@ -688,6 +688,9 @@ pub contract FlowEpoch {
                                                 collectorClusters: collectorClusters,
                                                 clusterQCs: [],
                                                 dkgKeys: [])
+
+        // Compute the target end time for the next epoch
+        let proposedTargetEndTime = self.getEpochTimingConfig().getTargetEndTimeForEpoch(self.proposedEpochCounter())
 
         self.saveEpochMetadata(proposedEpochMetadata)
 
@@ -701,7 +704,8 @@ pub contract FlowEpoch {
                         randomSource: randomSource,
                         DKGPhase1FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + self.configurableMetadata.numViewsInDKGPhase - 1 as UInt64,
                         DKGPhase2FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + (2 as UInt64 * self.configurableMetadata.numViewsInDKGPhase) - 1 as UInt64,
-                        DKGPhase3FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + (3 as UInt64 * self.configurableMetadata.numViewsInDKGPhase) - 1 as UInt64)
+                        DKGPhase3FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + (3 as UInt64 * self.configurableMetadata.numViewsInDKGPhase) - 1 as UInt64,
+                        targetEndTime: proposedTargetEndTime)
     }
 
     /// Ends the EpochSetup phase when the QC and DKG are completed
@@ -937,7 +941,14 @@ pub contract FlowEpoch {
                                            numViewsInDKGPhase: numViewsInDKGPhase,
                                            numCollectorClusters: numCollectorClusters,
                                            FLOWsupplyIncreasePercentage: FLOWsupplyIncreasePercentage)
-        
+
+        // Set a reasonable default for the epoch timing config targeting 1 block per second
+        let defaultEpochTimingConfig = EpochTimingConfig(
+            duration: numViewsInEpoch,
+            refCounter: currentEpochCounter,
+            refTimestamp: UInt64(getCurrentBlock().timestamp))
+        FlowEpoch.account.save(defaultEpochTimingConfig, to: /storage/flowEpochTimingConfig)
+
         self.currentEpochCounter = currentEpochCounter
         self.currentEpochPhase = EpochPhase.STAKINGAUCTION
         self.adminStoragePath = /storage/flowEpochAdmin
