@@ -467,6 +467,55 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 	})
 }
 
+func TestEpochTiming(t *testing.T) {
+	b, _, accountKeys, env := newTestSetup(t)
+
+	// Create new keys for the epoch account
+	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
+
+	// Deploys the staking contract, qc, dkg, and epoch lifecycle contract
+	// staking contract is deployed with default values (1.25M rewards, 8% cut)
+	initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
+		startEpochCounter, // start epoch counter
+		numEpochViews,     // num views per epoch
+		numStakingViews,   // num views for staking auction
+		numDKGViews,       // num views for DKG phase
+		numClusters,       // num collector clusters
+		randomSource,      // random source
+		rewardIncreaseFactor)
+
+	epochTimingConfigResult := executeScriptAndCheck(t, b, templates.GenerateGetEpochTimingConfigScript(env), nil)
+
+	t.Run("should be able to observe end times for current epoch", func(t *testing.T) {
+		gotEndTimeCdc := executeScriptAndCheck(t, b, templates.GenerateGetTargetEndTimeForEpochScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt64(startEpochCounter))})
+		gotEndTime := gotEndTimeCdc.ToGoValue().(uint64)
+		expectedEndTime := expectedTargetEndTime(epochTimingConfigResult, startEpochCounter)
+		assert.Equal(t, expectedEndTime, gotEndTime)
+
+		// sanity check: should be within 10 minutes of the current time
+		gotEndTimeParsed := time.Unix(int64(gotEndTime), 0)
+		assert.InDelta(t, time.Now().Unix(), gotEndTimeParsed.Unix(), float64(10*time.Minute))
+		gotEndTimeParsed.Sub(time.Now())
+	})
+
+	t.Run("should be able to observe end times for future epochs", func(t *testing.T) {
+		var lastEndTime uint64
+		for _, epoch := range []uint64{1, 2, 3, 10, 100, 1000, 10_000} {
+			gotEndTimeCdc := executeScriptAndCheck(t, b, templates.GenerateGetTargetEndTimeForEpochScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt64(epoch))})
+			gotEndTime := gotEndTimeCdc.ToGoValue().(uint64)
+			expectedEndTime := expectedTargetEndTime(epochTimingConfigResult, epoch)
+			assert.Equal(t, expectedEndTime, gotEndTime)
+
+			// sanity check: target end time should be strictly increasing
+			if lastEndTime > 0 {
+				assert.Greater(t, gotEndTime, lastEndTime)
+			}
+
+			lastEndTime = gotEndTime
+		}
+	})
+}
+
 func TestEpochAdvance(t *testing.T) {
 	b, adapter, accountKeys, env := newTestSetup(t)
 

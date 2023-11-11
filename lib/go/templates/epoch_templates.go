@@ -28,15 +28,16 @@ const (
 	epochRegisterDKGParticipantFilename = "epoch/node/register_dkg_participant.cdc"
 
 	// Scripts
-	getCurrentEpochCounterFilename  = "epoch/scripts/get_epoch_counter.cdc"
-	getProposedEpochCounterFilename = "epoch/scripts/get_proposed_counter.cdc"
-	getEpochMetadataFilename        = "epoch/scripts/get_epoch_metadata.cdc"
-	getConfigMetadataFilename       = "epoch/scripts/get_config_metadata.cdc"
-	getTimingConfigFilename         = "epoch/scripts/get_epoch_timing_config.cdc"
-	getEpochPhaseFilename           = "epoch/scripts/get_epoch_phase.cdc"
-	getCurrentViewFilename          = "epoch/scripts/get_current_view.cdc"
-	getFlowTotalSupplyFilename      = "flowToken/scripts/get_supply.cdc"
-	getFlowBonusTokensFilename      = "epoch/scripts/get_bonus_tokens.cdc"
+	getCurrentEpochCounterFilename   = "epoch/scripts/get_epoch_counter.cdc"
+	getProposedEpochCounterFilename  = "epoch/scripts/get_proposed_counter.cdc"
+	getEpochMetadataFilename         = "epoch/scripts/get_epoch_metadata.cdc"
+	getConfigMetadataFilename        = "epoch/scripts/get_config_metadata.cdc"
+	getTimingConfigFilename          = "epoch/scripts/get_epoch_timing_config.cdc"
+	getTargetEndTimeForEpochFilename = "epoch/scripts/get_target_end_time_for_epoch.cdc"
+	getEpochPhaseFilename            = "epoch/scripts/get_epoch_phase.cdc"
+	getCurrentViewFilename           = "epoch/scripts/get_current_view.cdc"
+	getFlowTotalSupplyFilename       = "flowToken/scripts/get_supply.cdc"
+	getFlowBonusTokensFilename       = "epoch/scripts/get_bonus_tokens.cdc"
 
 	// test scripts
 	getRandomizeFilename      = "epoch/scripts/get_randomize.cdc"
@@ -185,6 +186,12 @@ func GenerateGetEpochConfigMetadataScript(env Environment) []byte {
 
 func GenerateGetEpochTimingConfigScript(env Environment) []byte {
 	code := assets.MustAssetString(getTimingConfigFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateGetTargetEndTimeForEpochScript(env Environment) []byte {
+	code := assets.MustAssetString(getTargetEndTimeForEpochFilename)
 
 	return []byte(ReplaceAddresses(code, env))
 }

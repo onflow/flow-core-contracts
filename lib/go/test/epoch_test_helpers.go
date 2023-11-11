@@ -162,6 +162,10 @@ func (evt EpochSetupEvent) dkgFinalViews() (cadence.UInt64, cadence.UInt64, cade
 	return fields[6].(cadence.UInt64), fields[7].(cadence.UInt64), fields[8].(cadence.UInt64)
 }
 
+func (evt EpochSetupEvent) targetEndTime() cadence.UInt64 {
+	return evt.Value.Fields[9].(cadence.UInt64)
+}
+
 type EpochCommitEvent flow.Event
 
 func (evt EpochCommitEvent) Counter() cadence.UInt64 {
@@ -662,6 +666,7 @@ func verifyEpochSetup(
 	assertEqual(t, cadence.NewUInt64(expectedSetup.dkgPhase1FinalView), phase1View)
 	assertEqual(t, cadence.NewUInt64(expectedSetup.dkgPhase2FinalView), phase2View)
 	assertEqual(t, cadence.NewUInt64(expectedSetup.dkgPhase3FinalView), phase3View)
+	assertEqual(t, cadence.NewUInt64(expectedSetup.targetEndTime), emittedEvent.targetEndTime())
 }
 
 // / Verifies that the EpochCommit event values are equal to the provided expected values

@@ -67,6 +67,7 @@
 // epoch/scripts/get_epoch_timing_config.cdc (129B)
 // epoch/scripts/get_proposed_counter.cdc (108B)
 // epoch/scripts/get_randomize.cdc (121B)
+// epoch/scripts/get_target_end_time_for_epoch.cdc (258B)
 // flowToken/burn_tokens.cdc (1.085kB)
 // flowToken/create_forwarder.cdc (1.815kB)
 // flowToken/mint_tokens.cdc (1.026kB)
@@ -1699,6 +1700,26 @@ func epochScriptsGet_randomizeCdc() (*asset, error) {
 
 	info := bindataFileInfo{name: "epoch/scripts/get_randomize.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x15, 0x1a, 0x8d, 0x4d, 0xe8, 0x67, 0x7a, 0x7b, 0xc6, 0xeb, 0x95, 0xae, 0xc7, 0x7a, 0x1a, 0x50, 0xb8, 0x2b, 0xa3, 0xb1, 0x4c, 0xa0, 0x83, 0xea, 0xa9, 0x8e, 0xc1, 0x5b, 0x3d, 0x41, 0x8a, 0x79}}
+	return a, nil
+}
+
+var _epochScriptsGet_target_end_time_for_epochCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x4c\x8f\x4d\x0a\xc2\x30\x10\x85\xf7\x39\xc5\x5b\xb6\x1b\x71\x21\x2e\x04\x05\xe9\x0f\xba\x52\x6c\x3d\x40\xad\x69\x0d\x34\x93\x30\x24\x28\x48\xef\x2e\x4d\x5b\x6c\x16\xe1\xc1\x7c\xdf\x3c\x46\x69\x6b\xd8\x21\xef\xcc\x3b\xb3\xa6\x7e\xa1\x61\xa3\xb1\xfe\x64\xd7\x4b\x72\x3a\xa6\xe9\x2d\x2b\x0a\x21\xac\x7f\xa0\xf1\x04\x5d\x29\x8a\x5c\xc5\xad\x74\x81\xde\xe1\x7e\x26\xb7\xdd\xc4\x73\xc0\x57\x00\x80\x65\x39\xa5\xe1\x2d\x04\x1c\xf6\xff\xae\x55\xed\x99\x25\x8d\x93\xc4\x78\x72\x92\x83\xd4\x87\xbf\x93\x0e\xb5\xa1\x46\xb5\x58\x4a\xf3\xaa\x52\x69\x45\x6d\x12\x80\x28\x0e\x06\x4b\xe7\x99\x26\x69\x00\xcb\xb1\x99\x9e\xa5\xd2\x32\x37\x1c\xc4\xe5\x01\xb1\xe8\x7f\x01\x00\x00\xff\xff\x4c\x97\xdf\x07\x02\x01\x00\x00"
+
+func epochScriptsGet_target_end_time_for_epochCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_epochScriptsGet_target_end_time_for_epochCdc,
+		"epoch/scripts/get_target_end_time_for_epoch.cdc",
+	)
+}
+
+func epochScriptsGet_target_end_time_for_epochCdc() (*asset, error) {
+	bytes, err := epochScriptsGet_target_end_time_for_epochCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "epoch/scripts/get_target_end_time_for_epoch.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x22, 0xdd, 0x7, 0xc, 0x15, 0x68, 0xe9, 0x1, 0x77, 0x80, 0xe2, 0x2f, 0x44, 0xa8, 0xc, 0xf6, 0x4f, 0x60, 0x38, 0xab, 0xbe, 0x6e, 0x2c, 0xc4, 0x97, 0x55, 0x49, 0xad, 0x21, 0x6d, 0xb4, 0xa0}}
 	return a, nil
 }
 
@@ -6380,6 +6401,7 @@ var _bindata = map[string]func() (*asset, error){
 	"epoch/scripts/get_epoch_timing_config.cdc":                                   epochScriptsGet_epoch_timing_configCdc,
 	"epoch/scripts/get_proposed_counter.cdc":                                      epochScriptsGet_proposed_counterCdc,
 	"epoch/scripts/get_randomize.cdc":                                             epochScriptsGet_randomizeCdc,
+	"epoch/scripts/get_target_end_time_for_epoch.cdc":                             epochScriptsGet_target_end_time_for_epochCdc,
 	"flowToken/burn_tokens.cdc":                                                   flowtokenBurn_tokensCdc,
 	"flowToken/create_forwarder.cdc":                                              flowtokenCreate_forwarderCdc,
 	"flowToken/mint_tokens.cdc":                                                   flowtokenMint_tokensCdc,
@@ -6735,6 +6757,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 			"get_epoch_timing_config.cdc": {epochScriptsGet_epoch_timing_configCdc, map[string]*bintree{}},
 			"get_proposed_counter.cdc": {epochScriptsGet_proposed_counterCdc, map[string]*bintree{}},
 			"get_randomize.cdc": {epochScriptsGet_randomizeCdc, map[string]*bintree{}},
+			"get_target_end_time_for_epoch.cdc": {epochScriptsGet_target_end_time_for_epochCdc, map[string]*bintree{}},
 		}},
 	}},
 	"flowToken": {nil, map[string]*bintree{
