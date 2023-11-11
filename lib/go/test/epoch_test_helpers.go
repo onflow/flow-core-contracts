@@ -47,10 +47,6 @@ type EpochMetadata struct {
 	dkgKeys               []string
 }
 
-func (e EpochMetadata) epochLength() uint64 {
-	return e.endView - e.startView + 1
-}
-
 // / Used to verify the configurable Epoch metadata in tests
 type ConfigMetadata struct {
 	currentEpochCounter      uint64
