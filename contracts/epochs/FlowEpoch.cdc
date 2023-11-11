@@ -375,6 +375,9 @@ pub contract FlowEpoch {
         }
 
         pub fun updateEpochTimingConfig(_ newConfig: EpochTimingConfig) {
+            pre {
+                FlowEpoch.currentEpochCounter >= newConfig.refCounter: "Reference epoch must be before next epoch"
+            }
             FlowEpoch.account.load<EpochTimingConfig>(from: /storage/flowEpochTimingConfig)
             FlowEpoch.account.save(newConfig, to: /storage/flowEpochTimingConfig)
         }
