@@ -3,6 +3,7 @@ package test
 import (
 	"encoding/hex"
 	"fmt"
+	"math/rand"
 	"testing"
 	"time"
 
@@ -61,6 +62,13 @@ func TestEpochDeployment(t *testing.T) {
 			numViewsInDKGPhase:       numDKGViews,
 			numCollectorClusters:     numClusters,
 			rewardPercentage:         rewardIncreaseFactor})
+
+	verifyEpochTimingConfig(t, b, env,
+		EpochTimingConfig{
+			duration:     numEpochViews,
+			refCounter:   startEpochCounter,
+			refTimestamp: uint64(time.Now().Unix()),
+		})
 
 	// Verify that the current epoch was initialized correctly
 	verifyEpochMetadata(t, b, env,
@@ -291,6 +299,43 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 				rewardPercentage:         "0.04"})
 	})
 
+	t.Run("should be able to update timing config when staking enabled (Staking phase)", func(t *testing.T) {
+		timingConfig := EpochTimingConfig{
+			duration:     rand.Uint64() % 100_000,
+			refCounter:   0,
+			refTimestamp: uint64(time.Now().Unix()),
+		}
+
+		t.Run("invalid EpochTimingConfig", func(t *testing.T) {
+			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateEpochTimingConfigScript(env), idTableAddress)
+			_ = tx.AddArgument(CadenceUInt64(timingConfig.duration))
+			// Use a reference counter in the future, which validates the precondition
+			_ = tx.AddArgument(CadenceUInt64(timingConfig.refCounter + 100))
+			_ = tx.AddArgument(CadenceUInt64(timingConfig.refTimestamp))
+			signAndSubmit(
+				t, b, tx,
+				[]flow.Address{idTableAddress},
+				[]crypto.Signer{IDTableSigner},
+				true,
+			)
+		})
+
+		t.Run("valid EpochTimingConfig", func(t *testing.T) {
+			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateEpochTimingConfigScript(env), idTableAddress)
+			_ = tx.AddArgument(CadenceUInt64(timingConfig.duration))
+			_ = tx.AddArgument(CadenceUInt64(timingConfig.refCounter))
+			_ = tx.AddArgument(CadenceUInt64(timingConfig.refTimestamp))
+			signAndSubmit(
+				t, b, tx,
+				[]flow.Address{idTableAddress},
+				[]crypto.Signer{IDTableSigner},
+				false,
+			)
+			// timing config should be updated
+			verifyEpochTimingConfig(t, b, env, timingConfig)
+		})
+	})
+
 	// create new user accounts, mint tokens for them, and register them for staking
 	addresses, _, signers := registerAndMintManyAccounts(t, b, env, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
@@ -382,7 +427,43 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 				numViewsInDKGPhase:       2,
 				numCollectorClusters:     2,
 				rewardPercentage:         "0.04"})
+	})
 
+	t.Run("should be able to update timing config when staking disabled (Setup/Commit phases)", func(t *testing.T) {
+		timingConfig := EpochTimingConfig{
+			duration:     rand.Uint64() % 100_000,
+			refCounter:   0,
+			refTimestamp: uint64(time.Now().Unix()),
+		}
+
+		t.Run("invalid EpochTimingConfig", func(t *testing.T) {
+			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateEpochTimingConfigScript(env), idTableAddress)
+			_ = tx.AddArgument(CadenceUInt64(timingConfig.duration))
+			// Use a reference counter in the future, which validates the precondition
+			_ = tx.AddArgument(CadenceUInt64(timingConfig.refCounter + 100))
+			_ = tx.AddArgument(CadenceUInt64(timingConfig.refTimestamp))
+			signAndSubmit(
+				t, b, tx,
+				[]flow.Address{idTableAddress},
+				[]crypto.Signer{IDTableSigner},
+				true,
+			)
+		})
+
+		t.Run("valid EpochTimingConfig", func(t *testing.T) {
+			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateEpochTimingConfigScript(env), idTableAddress)
+			_ = tx.AddArgument(CadenceUInt64(timingConfig.duration))
+			_ = tx.AddArgument(CadenceUInt64(timingConfig.refCounter))
+			_ = tx.AddArgument(CadenceUInt64(timingConfig.refTimestamp))
+			signAndSubmit(
+				t, b, tx,
+				[]flow.Address{idTableAddress},
+				[]crypto.Signer{IDTableSigner},
+				false,
+			)
+			// timing config should be updated
+			verifyEpochTimingConfig(t, b, env, timingConfig)
+		})
 	})
 }
 
