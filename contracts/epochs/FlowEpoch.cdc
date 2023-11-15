@@ -441,9 +441,9 @@ pub contract FlowEpoch {
                 FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION: "Can only end staking auction during the staking auction"
             }
 
-            FlowEpoch.endStakingAuction()
+            let proposedNodeIDs = FlowEpoch.endStakingAuction()
 
-            FlowEpoch.startEpochSetup(randomSource: unsafeRandom().toString())
+            FlowEpoch.startEpochSetup(proposedNodeIDs: proposedNodeIDs, randomSource: unsafeRandom().toString())
         }
 
         /// Calls `FlowEpoch` functions to end the Epoch Setup phase
@@ -556,16 +556,13 @@ pub contract FlowEpoch {
     }
 
     /// Ends the staking Auction with all the proposed nodes approved
-    access(account) fun endStakingAuction() {
-        self.borrowStakingAdmin().endStakingAuction()
+    access(account) fun endStakingAuction(): [String] {
+        return self.borrowStakingAdmin().endStakingAuction()
     }
 
     /// Starts the EpochSetup phase and emits the epoch setup event
     /// This has to be called directly after `endStakingAuction`
-    access(account) fun startEpochSetup(randomSource: String) {
-
-        // Get all the nodes that are proposed for the next epoch
-        let ids = FlowIDTableStaking.getProposedNodeIDs()
+    access(account) fun startEpochSetup(proposedNodeIDs: [String], randomSource: String) {
 
         // Holds the node Information of all the approved nodes
         var nodeInfoArray: [FlowIDTableStaking.NodeInfo] = []
@@ -579,7 +576,7 @@ pub contract FlowEpoch {
         // Get NodeInfo for all the nodes
         // Get all the collector and consensus nodes
         // to initialize the QC and DKG
-        for id in ids {
+        for id in proposedNodeIDs {
             let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: id)
 
             nodeInfoArray.append(nodeInfo)
