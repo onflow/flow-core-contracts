@@ -36,8 +36,8 @@ pub contract FlowIDTableStaking {
 
     /****** ID Table and Staking Events ******/
 
-    pub event NewEpoch(totalStaked: UFix64, totalRewardPayout: UFix64)
-    pub event EpochTotalRewardsPaid(total: UFix64, fromFees: UFix64, minted: UFix64, feesBurned: UFix64)
+    pub event NewEpoch(totalStaked: UFix64, totalRewardPayout: UFix64, newEpochCounter: UInt64)
+    pub event EpochTotalRewardsPaid(total: UFix64, fromFees: UFix64, minted: UFix64, feesBurned: UFix64, epochCounterForRewards: UInt64)
 
     /// Node Events
     pub event NewNodeCreated(nodeID: String, role: UInt8, amountCommitted: UFix64)
@@ -47,7 +47,7 @@ pub contract FlowIDTableStaking {
     pub event TokensUnstaking(nodeID: String, amount: UFix64)
     pub event TokensUnstaked(nodeID: String, amount: UFix64)
     pub event NodeRemovedAndRefunded(nodeID: String, amount: UFix64)
-    pub event RewardsPaid(nodeID: String, amount: UFix64)
+    pub event RewardsPaid(nodeID: String, amount: UFix64, epochCounter:  UInt64)
     pub event UnstakedTokensWithdrawn(nodeID: String, amount: UFix64)
     pub event RewardTokensWithdrawn(nodeID: String, amount: UFix64)
     pub event NetworkingAddressUpdated(nodeID: String, newAddress: String)
@@ -60,7 +60,7 @@ pub contract FlowIDTableStaking {
     pub event DelegatorTokensRequestedToUnstake(nodeID: String, delegatorID: UInt32, amount: UFix64)
     pub event DelegatorTokensUnstaking(nodeID: String, delegatorID: UInt32, amount: UFix64)
     pub event DelegatorTokensUnstaked(nodeID: String, delegatorID: UInt32, amount: UFix64)
-    pub event DelegatorRewardsPaid(nodeID: String, delegatorID: UInt32, amount: UFix64)
+    pub event DelegatorRewardsPaid(nodeID: String, delegatorID: UInt32, amount: UFix64, epochCounter:  UInt64)
     pub event DelegatorUnstakedTokensWithdrawn(nodeID: String, delegatorID: UInt32, amount: UFix64)
     pub event DelegatorRewardTokensWithdrawn(nodeID: String, delegatorID: UInt32, amount: UFix64)
 
@@ -839,9 +839,9 @@ pub contract FlowIDTableStaking {
         pub fun setNodeWeight(nodeID: String, weight: UInt64)
         pub fun startStakingAuction()
         pub fun endStakingAuction(): [String]
-        pub fun payRewards(_ rewardsSummary: EpochRewardsSummary)
+        pub fun payRewards(forEpochCounter: UInt64, rewardsSummary: EpochRewardsSummary)
         pub fun calculateRewards(): EpochRewardsSummary
-        pub fun moveTokens()
+        pub fun moveTokens(newEpochCounter: UInt64)
     }
     
     pub resource Admin: EpochOperations {
@@ -1223,14 +1223,14 @@ pub contract FlowIDTableStaking {
 
         /// Called at the end of the epoch to pay rewards to node operators
         /// based on the tokens that they have staked
-        pub fun payRewards(_ rewardsSummary: EpochRewardsSummary) {
+        pub fun payRewards(forEpochCounter: UInt64, rewardsSummary: EpochRewardsSummary) {
 
             let rewardsBreakdownArray = rewardsSummary.breakdown
             let totalRewards = rewardsSummary.totalRewards
             
             // If there are no node operators to pay rewards to, do not mint new tokens
             if rewardsBreakdownArray.length == 0 {
-                emit EpochTotalRewardsPaid(total: totalRewards, fromFees: 0.0, minted: 0.0, feesBurned: 0.0)
+                emit EpochTotalRewardsPaid(total: totalRewards, fromFees: 0.0, minted: 0.0, feesBurned: 0.0, epochCounterForRewards: forEpochCounter)
 
                 // Clear the non-operational node list so it doesn't persist to the next rewards payment
                 let emptyNodeList: {String: UFix64} = {}
@@ -1267,17 +1267,17 @@ pub contract FlowIDTableStaking {
                     let delegatorReward = rewardBreakdown.delegatorRewards[delegator]!
                         
                     delRecord.tokensRewarded.deposit(from: <-rewardsVault.withdraw(amount: delegatorReward))
-                    emit DelegatorRewardsPaid(nodeID: rewardBreakdown.nodeID, delegatorID: delegator, amount: delegatorReward)
+                    emit DelegatorRewardsPaid(nodeID: rewardBreakdown.nodeID, delegatorID: delegator, amount: delegatorReward, epochCounter: forEpochCounter)
                 }
 
-                emit RewardsPaid(nodeID: rewardBreakdown.nodeID, amount: nodeReward)
+                emit RewardsPaid(nodeID: rewardBreakdown.nodeID, amount: nodeReward, epochCounter: forEpochCounter)
             }
 
             var fromFees = feeBalance
             if feeBalance >= totalRewards {
                 fromFees = totalRewards
             }
-            emit EpochTotalRewardsPaid(total: totalRewards, fromFees: fromFees, minted: mintedRewards, feesBurned: rewardsVault.balance)
+            emit EpochTotalRewardsPaid(total: totalRewards, fromFees: fromFees, minted: mintedRewards, feesBurned: rewardsVault.balance, epochCounterForRewards: forEpochCounter)
 
             // Clear the non-operational node list so it doesn't persist to the next rewards payment
             let emptyNodeList: {String: UFix64} = {}
@@ -1412,7 +1412,7 @@ pub contract FlowIDTableStaking {
         /// Tokens that have been committed are moved to the staked bucket
         /// Tokens that were unstaking during the last epoch are fully unstaked
         /// Unstaking requests are filled by moving those tokens from staked to unstaking
-        pub fun moveTokens() {
+        pub fun moveTokens(newEpochCounter: UInt64) {
             pre {
                 !FlowIDTableStaking.stakingEnabled(): "Cannot move tokens if the staking auction is still in progress"
             }
@@ -1522,7 +1522,9 @@ pub contract FlowIDTableStaking {
             // Indicates that the tokens have moved and the epoch has ended
             // Tells what the new reward payout will be. The new payout is calculated and changed
             // before this method is executed and will not be changed for the rest of the epoch
-            emit NewEpoch(totalStaked: FlowIDTableStaking.getTotalStaked(), totalRewardPayout: FlowIDTableStaking.epochTokenPayout)
+            emit NewEpoch(totalStaked: FlowIDTableStaking.getTotalStaked(),
+                          totalRewardPayout: FlowIDTableStaking.epochTokenPayout,
+                          newEpochCounter: newEpochCounter)
         }
     }
 

@@ -25,7 +25,7 @@ transaction(ids: {String: Bool}, newPayout: UFix64) {
     execute {
 
         let rewardsSummary = self.adminRef.calculateRewards()
-        self.adminRef.payRewards(rewardsSummary)
+        self.adminRef.payRewards(forEpochCounter: 1, rewardsSummary: rewardsSummary)
 
         self.adminRef.setEpochTokenPayout(newPayout)
 
@@ -33,6 +33,6 @@ transaction(ids: {String: Bool}, newPayout: UFix64) {
 
         self.adminRef.endStakingAuction()
 
-        self.adminRef.moveTokens()
+        self.adminRef.moveTokens(newEpochCounter: 2)
     }
 }

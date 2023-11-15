@@ -594,7 +594,7 @@ pub contract FlowEpoch {
         if let previousEpochMetadata = self.getEpochMetadata(self.currentEpochCounter - (1 as UInt64)) {
             if !previousEpochMetadata.rewardsPaid {
                 let summary = FlowIDTableStaking.EpochRewardsSummary(totalRewards: previousEpochMetadata.totalRewards, breakdown: previousEpochMetadata.rewardAmounts)
-                self.borrowStakingAdmin().payRewards(summary)
+                self.borrowStakingAdmin().payRewards(forEpochCounter: previousEpochMetadata.counter, rewardsSummary: summary)
                 previousEpochMetadata.setRewardsPaid(true)
                 self.saveEpochMetadata(previousEpochMetadata)
             }
@@ -613,7 +613,7 @@ pub contract FlowEpoch {
             self.borrowDKGAdmin().endDKG()
         }
 
-        self.borrowStakingAdmin().moveTokens()
+        self.borrowStakingAdmin().moveTokens(newEpochCounter: self.proposedEpochCounter())
 
         self.currentEpochPhase = EpochPhase.STAKINGAUCTION
 

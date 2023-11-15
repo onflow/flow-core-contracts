@@ -25,6 +25,6 @@ transaction(ids: {String: Bool}, newPayout: UFix64) {
 
         self.adminRef.endStakingAuction()
 
-        self.adminRef.moveTokens()
+        self.adminRef.moveTokens(newEpochCounter: 2)
     }
 }
