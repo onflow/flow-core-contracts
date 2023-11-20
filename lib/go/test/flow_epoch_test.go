@@ -67,7 +67,7 @@ func TestEpochDeployment(t *testing.T) {
 		EpochTimingConfig{
 			duration:     numEpochViews,
 			refCounter:   startEpochCounter,
-			refTimestamp: uint64(time.Now().Unix()),
+			refTimestamp: uint64(time.Now().Unix()) + numEpochViews,
 		})
 
 	// Verify that the current epoch was initialized correctly
@@ -608,7 +608,7 @@ func TestEpochAdvance(t *testing.T) {
 			EpochTimingConfig{
 				duration:     numEpochViews,
 				refCounter:   startEpochCounter,
-				refTimestamp: uint64(time.Now().Unix()),
+				refTimestamp: uint64(time.Now().Unix()) + numEpochViews,
 			})
 
 		verifyEpochSetup(t, b, adapter, idTableAddress,

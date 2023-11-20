@@ -954,7 +954,7 @@ pub contract FlowEpoch {
         let defaultEpochTimingConfig = EpochTimingConfig(
             duration: numViewsInEpoch,
             refCounter: currentEpochCounter,
-            refTimestamp: UInt64(getCurrentBlock().timestamp))
+            refTimestamp: UInt64(getCurrentBlock().timestamp)+numViewsInEpoch)
         FlowEpoch.account.save(defaultEpochTimingConfig, to: /storage/flowEpochTimingConfig)
 
         self.currentEpochCounter = currentEpochCounter
