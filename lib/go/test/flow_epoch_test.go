@@ -622,6 +622,7 @@ func TestEpochAdvance(t *testing.T) {
 				dkgPhase1FinalView: startView + numEpochViews + numStakingViews + numDKGViews - 1,
 				dkgPhase2FinalView: startView + numEpochViews + numStakingViews + 2*numDKGViews - 1,
 				dkgPhase3FinalView: startView + numEpochViews + numStakingViews + 3*numDKGViews - 1,
+				targetDuration:     numEpochViews,
 				targetEndTime:      expectedTargetEndTime(epochTimingConfigResult, startEpochCounter+1),
 			})
 

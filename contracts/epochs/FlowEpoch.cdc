@@ -121,6 +121,8 @@ pub contract FlowEpoch {
         DKGPhase2FinalView: UInt64,
         DKGPhase3FinalView: UInt64,
 
+        /// The target duration for the upcoming epoch, in seconds
+        targetDuration: UInt64,
         /// The target end time for the upcoming epoch, specified in second-precision Unix time
         targetEndTime: UInt64
     )
@@ -693,7 +695,9 @@ pub contract FlowEpoch {
                                                 dkgKeys: [])
 
         // Compute the target end time for the next epoch
-        let proposedTargetEndTime = self.getEpochTimingConfig().getTargetEndTimeForEpoch(self.proposedEpochCounter())
+        let timingConfig = self.getEpochTimingConfig()
+        let proposedTargetDuration = timingConfig.duration
+        let proposedTargetEndTime = timingConfig.getTargetEndTimeForEpoch(self.proposedEpochCounter())
 
         self.saveEpochMetadata(proposedEpochMetadata)
 
@@ -708,6 +712,7 @@ pub contract FlowEpoch {
                         DKGPhase1FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + self.configurableMetadata.numViewsInDKGPhase - 1 as UInt64,
                         DKGPhase2FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + (2 as UInt64 * self.configurableMetadata.numViewsInDKGPhase) - 1 as UInt64,
                         DKGPhase3FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + (3 as UInt64 * self.configurableMetadata.numViewsInDKGPhase) - 1 as UInt64,
+                        targetDuration: proposedTargetDuration,
                         targetEndTime: proposedTargetEndTime)
     }
 
