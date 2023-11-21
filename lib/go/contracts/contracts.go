@@ -26,19 +26,20 @@ import (
 ///
 
 const (
-	flowFeesFilename              = "FlowFees.cdc"
-	storageFeesFilename           = "FlowStorageFees.cdc"
-	flowServiceAccountFilename    = "FlowServiceAccount.cdc"
-	flowTokenFilename             = "FlowToken.cdc"
-	flowIdentityTableFilename     = "FlowIDTableStaking.cdc"
-	flowQCFilename                = "epochs/FlowClusterQC.cdc"
-	flowDKGFilename               = "epochs/FlowDKG.cdc"
-	flowEpochFilename             = "epochs/FlowEpoch.cdc"
-	flowLockedTokensFilename      = "LockedTokens.cdc"
-	flowStakingProxyFilename      = "StakingProxy.cdc"
-	flowStakingCollectionFilename = "FlowStakingCollection.cdc"
-	flowContractAuditsFilename    = "FlowContractAudits.cdc"
-	flowNodeVersionBeaconFilename = "NodeVersionBeacon.cdc"
+	flowFeesFilename                = "FlowFees.cdc"
+	storageFeesFilename             = "FlowStorageFees.cdc"
+	flowServiceAccountFilename      = "FlowServiceAccount.cdc"
+	flowTokenFilename               = "FlowToken.cdc"
+	flowIdentityTableFilename       = "FlowIDTableStaking.cdc"
+	flowQCFilename                  = "epochs/FlowClusterQC.cdc"
+	flowDKGFilename                 = "epochs/FlowDKG.cdc"
+	flowEpochFilename               = "epochs/FlowEpoch.cdc"
+	flowLockedTokensFilename        = "LockedTokens.cdc"
+	flowStakingProxyFilename        = "StakingProxy.cdc"
+	flowStakingCollectionFilename   = "FlowStakingCollection.cdc"
+	flowContractAuditsFilename      = "FlowContractAudits.cdc"
+	flowNodeVersionBeaconFilename   = "NodeVersionBeacon.cdc"
+	flowRandomBeaconHistoryFilename = "RandomBeaconHistory.cdc"
 
 	// Test contracts
 	// only used for testing
@@ -338,6 +339,12 @@ func FlowEpoch(fungibleTokenAddress,
 // NodeVersionBeacon returns the NodeVersionBeacon contract content.
 func NodeVersionBeacon() []byte {
 	code := assets.MustAssetString(flowNodeVersionBeaconFilename)
+
+	return []byte(code)
+}
+
+func RandomBeaconHistory() []byte {
+	code := assets.MustAssetString(flowRandomBeaconHistoryFilename)
 
 	return []byte(code)
 }

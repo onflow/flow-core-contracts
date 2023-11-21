@@ -14,6 +14,6 @@ transaction {
     }
 
     execute {
-        self.adminRef.moveTokens()
+        self.adminRef.moveTokens(newEpochCounter: 2)
     }
 }

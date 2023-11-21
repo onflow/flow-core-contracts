@@ -15,7 +15,7 @@ transaction(ids: {String: Bool}) {
     }
 
     execute {
-
-        self.adminRef.removeInvalidNodes(approvedNodeIDs: ids)
+        self.adminRef.setApprovedList(ids)
+        self.adminRef.removeInvalidNodes()
     }
 }

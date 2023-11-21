@@ -57,6 +57,33 @@ access(all) contract FlowEpoch {
         access(all) case Access
     }
 
+    /// The Epoch Start service event is emitted when the contract transitions
+    /// to a new epoch in the staking auction phase.
+    access(all) event EpochStart (
+        
+        /// The counter for the current epoch that is beginning
+        counter: UInt64,
+
+        /// The first view (inclusive) of the current epoch.
+        firstView: UInt64,
+
+        /// The last view (inclusive) of the current epoch's staking auction.
+        stakingAuctionEndView: UInt64,
+
+        /// The last view (inclusive) of the current epoch.
+        finalView: UInt64,
+
+        /// Total FLOW staked by all nodes and delegators for the current epoch.
+        totalStaked: UFix64,
+
+        /// Total supply of all FLOW for the current epoch
+        /// Includes the rewards that will be paid for the previous epoch
+        totalFlowSupply: UFix64,
+
+        /// The total rewards that will be paid out at the end of the current epoch.
+        totalRewards: UFix64,
+    )
+
     /// The Epoch Setup service event is emitted when we transition to the Epoch Setup
     /// phase. It contains the finalized identity table for the upcoming epoch.
     access(all) event EpochSetup(
@@ -92,7 +119,12 @@ access(all) contract FlowEpoch {
         /// than the given deadline, it can safely transition to the next phase.
         DKGPhase1FinalView: UInt64,
         DKGPhase2FinalView: UInt64,
-        DKGPhase3FinalView: UInt64
+        DKGPhase3FinalView: UInt64,
+
+        /// The target duration for the upcoming epoch, in seconds
+        targetDuration: UInt64,
+        /// The target end time for the upcoming epoch, specified in second-precision Unix time
+        targetEndTime: UInt64
     )
 
     /// The EpochCommit service event is emitted when we transition from the Epoch
@@ -246,6 +278,34 @@ access(all) contract FlowEpoch {
         }
     }
 
+    /// Configuration for epoch timing. 
+    /// Each epoch is assigned a target end time when it is setup (within the EpochSetup event). 
+    /// The configuration defines a reference epoch counter and timestamp, which defines 
+    /// all future target end times. If `targetEpochCounter` is an upcoming epoch, then
+    /// its target end time is given by:
+    ///
+    ///   targetEndTime = refTimestamp + duration * (targetEpochCounter-refCounter)
+    ///
+    access(all) struct EpochTimingConfig {
+        /// The duration of each epoch, in seconds
+        access(all) let duration: UInt64
+        /// The counter of the reference epoch
+        access(all) let refCounter: UInt64
+        /// The end time of the reference epoch, specified in second-precision Unix time
+        access(all) let refTimestamp: UInt64
+
+        /// Compute target switchover time based on offset from reference counter/switchover.
+        access(all) fun getTargetEndTimeForEpoch(_ targetEpochCounter: UInt64): UInt64 {
+            return self.refTimestamp + self.duration * (targetEpochCounter-self.refCounter)
+        }
+
+        init(duration: UInt64, refCounter: UInt64, refTimestamp: UInt64) {
+             self.duration = duration
+             self.refCounter = refCounter
+             self.refTimestamp = refTimestamp
+        }
+    }
+
     /// Holds the `FlowEpoch.Config` struct with the configurable metadata
     access(contract) let configurableMetadata: Config
 
@@ -337,6 +397,14 @@ access(all) contract FlowEpoch {
             }
 
             FlowEpoch.configurableMetadata.setNumViewsInDKGPhase(newPhaseViews)
+        }
+
+        access(all) fun updateEpochTimingConfig(_ newConfig: EpochTimingConfig) {
+            pre {
+                FlowEpoch.currentEpochCounter >= newConfig.refCounter: "Reference epoch must be before next epoch"
+            }
+            FlowEpoch.account.load<EpochTimingConfig>(from: /storage/flowEpochTimingConfig)
+            FlowEpoch.account.save(newConfig, to: /storage/flowEpochTimingConfig)
         }
 
         access(all) fun updateNumCollectorClusters(_ newNumClusters: UInt16) {
@@ -443,13 +511,13 @@ access(all) contract FlowEpoch {
                     }
                 case EpochPhase.EPOCHSETUP:
                     if FlowClusterQC.votingCompleted() && (FlowDKG.dkgCompleted() != nil) {
+                        self.calculateAndSetRewards()
                         self.startEpochCommit()
                     }
                 case EpochPhase.EPOCHCOMMIT:
                     let currentBlock = getCurrentBlock()
                     let currentEpochMetadata = FlowEpoch.getEpochMetadata(FlowEpoch.currentEpochCounter)!
                     if currentBlock.view >= currentEpochMetadata.endView {
-                        self.calculateAndSetRewards()
                         self.endEpoch()
                     }
                 default:
@@ -464,9 +532,9 @@ access(all) contract FlowEpoch {
                 FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION: "Can only end staking auction during the staking auction"
             }
 
-            FlowEpoch.endStakingAuction()
+            let proposedNodeIDs = FlowEpoch.endStakingAuction()
 
-            FlowEpoch.startEpochSetup(randomSource: unsafeRandom().toString())
+            FlowEpoch.startEpochSetup(proposedNodeIDs: proposedNodeIDs, randomSource: unsafeRandom().toString())
         }
 
         /// Calls `FlowEpoch` functions to end the Epoch Setup phase
@@ -551,7 +619,7 @@ access(all) contract FlowEpoch {
         if let previousEpochMetadata = self.getEpochMetadata(self.currentEpochCounter - 1) {
             if !previousEpochMetadata.rewardsPaid {
                 let summary = FlowIDTableStaking.EpochRewardsSummary(totalRewards: previousEpochMetadata.totalRewards, breakdown: previousEpochMetadata.rewardAmounts)
-                self.borrowStakingAdmin().payRewards(summary)
+                self.borrowStakingAdmin().payRewards(forEpochCounter: previousEpochMetadata.counter, rewardsSummary: summary)
                 previousEpochMetadata.setRewardsPaid(true)
                 self.saveEpochMetadata(previousEpochMetadata)
             }
@@ -570,25 +638,35 @@ access(all) contract FlowEpoch {
             self.borrowDKGAdmin().endDKG()
         }
 
-        self.borrowStakingAdmin().moveTokens()
+        self.borrowStakingAdmin().moveTokens(newEpochCounter: self.proposedEpochCounter())
 
         self.currentEpochPhase = EpochPhase.STAKINGAUCTION
 
         // Update the epoch counters
         self.currentEpochCounter = self.proposedEpochCounter()
+
+        let previousEpochMetadata = self.getEpochMetadata(self.currentEpochCounter - 1)!
+        let newEpochMetadata = self.getEpochMetadata(self.currentEpochCounter)!
+
+        emit EpochStart (
+            counter: self.currentEpochCounter,
+            firstView: newEpochMetadata.startView,
+            stakingAuctionEndView: newEpochMetadata.stakingEndView,
+            finalView: newEpochMetadata.endView,
+            totalStaked: FlowIDTableStaking.getTotalStaked(),
+            totalFlowSupply: FlowToken.totalSupply + previousEpochMetadata.totalRewards,
+            totalRewards: FlowIDTableStaking.getEpochTokenPayout(),
+        )
     }
 
     /// Ends the staking Auction with all the proposed nodes approved
-    access(account) fun endStakingAuction() {
-        self.borrowStakingAdmin().endStakingAuction()
+    access(account) fun endStakingAuction(): [String] {
+        return self.borrowStakingAdmin().endStakingAuction()
     }
 
     /// Starts the EpochSetup phase and emits the epoch setup event
     /// This has to be called directly after `endStakingAuction`
-    access(account) fun startEpochSetup(randomSource: String) {
-
-        // Get all the nodes that are proposed for the next epoch
-        let ids = FlowIDTableStaking.getProposedNodeIDs()
+    access(account) fun startEpochSetup(proposedNodeIDs: [String], randomSource: String) {
 
         // Holds the node Information of all the approved nodes
         var nodeInfoArray: [FlowIDTableStaking.NodeInfo] = []
@@ -602,7 +680,7 @@ access(all) contract FlowEpoch {
         // Get NodeInfo for all the nodes
         // Get all the collector and consensus nodes
         // to initialize the QC and DKG
-        for id in ids {
+        for id in proposedNodeIDs {
             let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: id)
 
             nodeInfoArray.append(nodeInfo)
@@ -627,7 +705,7 @@ access(all) contract FlowEpoch {
 
         let currentEpochMetadata = self.getEpochMetadata(self.currentEpochCounter)!
 
-        // Initialze the metadata for the next epoch
+        // Initialize the metadata for the next epoch
         // QC and DKG metadata will be filled in later
         let proposedEpochMetadata = EpochMetadata(counter: self.proposedEpochCounter(),
                                                 seed: randomSource,
@@ -639,6 +717,11 @@ access(all) contract FlowEpoch {
                                                 clusterQCs: [],
                                                 dkgKeys: [])
 
+        // Compute the target end time for the next epoch
+        let timingConfig = self.getEpochTimingConfig()
+        let proposedTargetDuration = timingConfig.duration
+        let proposedTargetEndTime = timingConfig.getTargetEndTimeForEpoch(self.proposedEpochCounter())
+
         self.saveEpochMetadata(proposedEpochMetadata)
 
         self.currentEpochPhase = EpochPhase.EPOCHSETUP
@@ -649,9 +732,11 @@ access(all) contract FlowEpoch {
                         finalView: proposedEpochMetadata.endView,
                         collectorClusters: collectorClusters,
                         randomSource: randomSource,
-                        DKGPhase1FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + self.configurableMetadata.numViewsInDKGPhase - 1,
-                        DKGPhase2FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + (2 * self.configurableMetadata.numViewsInDKGPhase) - 1,
-                        DKGPhase3FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + (3 * self.configurableMetadata.numViewsInDKGPhase) - 1)
+                        DKGPhase1FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + self.configurableMetadata.numViewsInDKGPhase - 1 as UInt64,
+                        DKGPhase2FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + (2 as UInt64 * self.configurableMetadata.numViewsInDKGPhase) - 1 as UInt64,
+                        DKGPhase3FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + (3 as UInt64 * self.configurableMetadata.numViewsInDKGPhase) - 1 as UInt64,
+                        targetDuration: proposedTargetDuration,
+                        targetEndTime: proposedTargetEndTime)
     }
 
     /// Ends the EpochSetup phase when the QC and DKG are completed
@@ -839,6 +924,13 @@ access(all) contract FlowEpoch {
         return self.configurableMetadata
     }
 
+    /// Returns the config for epoch timing, which can be configured by the admin.
+    /// Conceptually, this should be part of `Config`, however it was added later in an
+    /// upgrade which requires new fields be specified separately from existing structs.
+    access(all) fun getEpochTimingConfig(): EpochTimingConfig {
+        return self.account.copy<EpochTimingConfig>(from: /storage/flowEpochTimingConfig)!
+    }
+
     /// The proposed Epoch counter is always the current counter plus 1
     access(all) view fun proposedEpochCounter(): UInt64 {
         return self.currentEpochCounter + 1 as UInt64
@@ -880,6 +972,13 @@ access(all) contract FlowEpoch {
                                            numViewsInDKGPhase: numViewsInDKGPhase,
                                            numCollectorClusters: numCollectorClusters,
                                            FLOWsupplyIncreasePercentage: FLOWsupplyIncreasePercentage)
+
+        // Set a reasonable default for the epoch timing config targeting 1 block per second
+        let defaultEpochTimingConfig = EpochTimingConfig(
+            duration: numViewsInEpoch,
+            refCounter: currentEpochCounter,
+            refTimestamp: UInt64(getCurrentBlock().timestamp)+numViewsInEpoch)
+        FlowEpoch.account.save(defaultEpochTimingConfig, to: /storage/flowEpochTimingConfig)
 
         self.currentEpochCounter = currentEpochCounter
         self.currentEpochPhase = EpochPhase.STAKINGAUCTION

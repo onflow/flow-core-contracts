@@ -1,36 +1,106 @@
 {
-	"emulators": {
-		"default": {
-			"port": 3569,
-			"serviceAccount": "emulator-account"
-		}
-	},
-	"contracts": {
-		"FlowClusterQC": "./contracts/epochs/FlowClusterQC.cdc",
-		"FlowEpoch": "./contracts/epochs/FlowEpoch.cdc",
-		"FlowDKG": "./contracts/epochs/FlowEpoch.cdc",
-		"NodeVersionBeacon": "./contracts/NodeVersionBeacon.cdc",
-		"FlowContractAudits": "./contracts/FlowContractAudits.cdc",
-		"FlowFees": "./contracts/FlowFees.cdc",
-		"FlowIDTableStaking": "./contracts/FlowIDTableStaking.cdc",
-		"FlowIDTableStaking_old": "./contracts/FlowIDTableStaking_old.cdc",
-		"FlowServiceAccount": "./contracts/FlowServiceAccount.cdc",
-		"FlowStakingCollection": "./contracts/FlowStakingCollection.cdc",
-		"FlowStorageFees": "./contracts/FlowStorageFees.cdc",
-		"FlowToken": "./contracts/FlowToken.cdc",
-		"LockedTokens": "./contracts/LockedTokens.cdc",
-		"StakingProxy": "./contracts/StakingProxy.cdc"
-	},
-	"networks": {
-		"emulator": "127.0.0.1:3569",
-		"mainnet": "access.mainnet.nodes.onflow.org:9000",
-		"testnet": "access.devnet.nodes.onflow.org:9000"
-	},
-	"accounts": {
-		"emulator-account": {
-			"address": "f8d6e0586b0a20c7",
-			"key": "7677f7c9410f8773b482737c778b5d7c6acfdbbae718d61e4727a07667f66004"
-		}
-	},
-	"deployments": {}
+  "contracts": {
+    "FlowClusterQC": {
+      "source": "./contracts/epochs/FlowClusterQC.cdc",
+      "aliases": {
+        "testing": "0x0000000000000007"
+      }
+    },
+    "FlowContractAudits": {
+      "source": "./contracts/FlowContractAudits.cdc",
+      "aliases": {
+        "testing": "0x0000000000000007"
+      }
+    },
+    "FlowDKG": {
+      "source": "./contracts/epochs/FlowEpoch.cdc",
+      "aliases": {
+        "testing": "0x0000000000000007"
+      }
+    },
+    "FlowEpoch": {
+      "source": "./contracts/epochs/FlowEpoch.cdc",
+      "aliases": {
+        "testing": "0x0000000000000007"
+      }
+    },
+    "FlowFees": {
+      "source": "./contracts/FlowFees.cdc",
+      "aliases": {
+        "testing": "0x0000000000000007"
+      }
+    },
+    "FlowIDTableStaking": {
+      "source": "./contracts/FlowIDTableStaking.cdc",
+      "aliases": {
+        "testing": "0x0000000000000007"
+      }
+    },
+    "FlowIDTableStaking_old": {
+      "source": "./contracts/FlowIDTableStaking_old.cdc",
+      "aliases": {
+        "testing": "0x0000000000000007"
+      }
+    },
+    "FlowServiceAccount": {
+      "source": "./contracts/FlowServiceAccount.cdc",
+      "aliases": {
+        "testing": "0x0000000000000007"
+      }
+    },
+    "FlowStakingCollection": {
+      "source": "./contracts/FlowStakingCollection.cdc",
+      "aliases": {
+        "testing": "0x0000000000000007"
+      }
+    },
+    "FlowStorageFees": {
+      "source": "./contracts/FlowStorageFees.cdc",
+      "aliases": {
+        "testing": "0x0000000000000007"
+      }
+    },
+    "FlowToken": {
+      "source": "./contracts/FlowToken.cdc",
+      "aliases": {
+        "testing": "0x0000000000000007"
+      }
+    },
+    "LockedTokens": {
+      "source": "./contracts/LockedTokens.cdc",
+      "aliases": {
+        "testing": "0x0000000000000007"
+      }
+    },
+    "NodeVersionBeacon": {
+      "source": "./contracts/NodeVersionBeacon.cdc",
+      "aliases": {
+        "testing": "0x0000000000000007"
+      }
+    },
+    "RandomBeaconHistory": {
+      "source": "./contracts/RandomBeaconHistory.cdc",
+      "aliases": {
+        "testing": "0x0000000000000007"
+      }
+    },
+    "StakingProxy": {
+      "source": "./contracts/StakingProxy.cdc",
+      "aliases": {
+        "testing": "0x0000000000000007"
+      }
+    }
+  },
+  "networks": {
+    "emulator": "127.0.0.1:3569",
+    "testing": "127.0.0.1:3569",
+    "mainnet": "access.mainnet.nodes.onflow.org:9000",
+    "testnet": "access.devnet.nodes.onflow.org:9000"
+  },
+  "accounts": {
+    "emulator-account": {
+      "address": "f8d6e0586b0a20c7",
+      "key": "7677f7c9410f8773b482737c778b5d7c6acfdbbae718d61e4727a07667f66004"
+    }
+  }
 }

@@ -33,7 +33,7 @@ func TestStakingProxy(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, _ := accountKeys.NewWithSigner()
-	IDTableCode := contracts.TESTFlowIDTableStaking(emulatorFTAddress, emulatorFlowTokenAddress)
+	IDTableCode, _ := cadence.NewString(string(contracts.TESTFlowIDTableStaking(emulatorFTAddress, emulatorFlowTokenAddress))[:])
 
 	publicKeys := make([]cadence.Value, 1)
 
@@ -42,13 +42,13 @@ func TestStakingProxy(t *testing.T) {
 	publicKeys[0] = publicKey
 
 	cadencePublicKeys := cadence.NewArray(publicKeys)
-	cadenceCode := bytesToCadenceArray(IDTableCode)
 
 	// Deploy the IDTableStaking contract
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateTransferMinterAndDeployScript(env), b.ServiceKey().Address).
 		AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys)).
-		AddRawArgument(jsoncdc.MustEncode(CadenceString("FlowIDTableStaking"))).
-		AddRawArgument(jsoncdc.MustEncode(cadenceCode))
+		AddRawArgument(jsoncdc.MustEncode(CadenceString("FlowIDTableStaking")))
+
+	_ = tx.AddArgument(IDTableCode)
 
 	_ = tx.AddArgument(CadenceUFix64("1250000.0"))
 	_ = tx.AddArgument(CadenceUFix64("0.03"))

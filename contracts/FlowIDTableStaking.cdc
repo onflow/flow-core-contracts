@@ -35,8 +35,8 @@ import Crypto
 access(all) contract FlowIDTableStaking {
 
     /// Epoch
-    access(all) event NewEpoch(totalStaked: UFix64, totalRewardPayout: UFix64)
-    access(all) event EpochTotalRewardsPaid(total: UFix64, fromFees: UFix64, minted: UFix64, feesBurned: UFix64)
+    access(all) event NewEpoch(totalStaked: UFix64, totalRewardPayout: UFix64, newEpochCounter: UInt64)
+    access(all) event EpochTotalRewardsPaid(total: UFix64, fromFees: UFix64, minted: UFix64, feesBurned: UFix64, epochCounterForRewards: UInt64)
 
     /// Node
     access(all) event NewNodeCreated(nodeID: String, role: UInt8, amountCommitted: UFix64)
@@ -46,7 +46,7 @@ access(all) contract FlowIDTableStaking {
     access(all) event TokensUnstaking(nodeID: String, amount: UFix64)
     access(all) event TokensUnstaked(nodeID: String, amount: UFix64)
     access(all) event NodeRemovedAndRefunded(nodeID: String, amount: UFix64)
-    access(all) event RewardsPaid(nodeID: String, amount: UFix64)
+    access(all) event RewardsPaid(nodeID: String, amount: UFix64, epochCounter:  UInt64)
     access(all) event UnstakedTokensWithdrawn(nodeID: String, amount: UFix64)
     access(all) event RewardTokensWithdrawn(nodeID: String, amount: UFix64)
     access(all) event NetworkingAddressUpdated(nodeID: String, newAddress: String)
@@ -59,7 +59,7 @@ access(all) contract FlowIDTableStaking {
     access(all) event DelegatorTokensRequestedToUnstake(nodeID: String, delegatorID: UInt32, amount: UFix64)
     access(all) event DelegatorTokensUnstaking(nodeID: String, delegatorID: UInt32, amount: UFix64)
     access(all) event DelegatorTokensUnstaked(nodeID: String, delegatorID: UInt32, amount: UFix64)
-    access(all) event DelegatorRewardsPaid(nodeID: String, delegatorID: UInt32, amount: UFix64)
+    access(all) event DelegatorRewardsPaid(nodeID: String, delegatorID: UInt32, amount: UFix64, epochCounter:  UInt64)
     access(all) event DelegatorUnstakedTokensWithdrawn(nodeID: String, delegatorID: UInt32, amount: UFix64)
     access(all) event DelegatorRewardTokensWithdrawn(nodeID: String, delegatorID: UInt32, amount: UFix64)
 
@@ -92,8 +92,6 @@ access(all) contract FlowIDTableStaking {
     access(account) var epochTokenPayout: UFix64
 
     /// The ratio of the weekly awards that each node type gets
-    /// key = node role
-    /// value = decimal number between 0 and 1 indicating a percentage
     /// NOTE: Currently is not used
     access(contract) var rewardRatios: {UInt8: UFix64}
 
@@ -450,7 +448,7 @@ access(all) contract FlowIDTableStaking {
         /// Tells whether the node is a new node who currently is not participating with tokens staked
         /// and has enough committed for the next epoch for its role
         access(self) fun isEligibleForCandidateNodeStatus(_ nodeRecord: &FlowIDTableStaking.NodeRecord): Bool {
-            let participantList = FlowIDTableStaking.getParticipantNodeList()!
+            let participantList = FlowIDTableStaking.account.borrow<&{String: Bool}>(from: /storage/idTableCurrentList)!
             if participantList[nodeRecord.id] == true {
                 return false
             }
@@ -498,7 +496,7 @@ access(all) contract FlowIDTableStaking {
                 FlowIDTableStaking.addToCandidateNodeList(nodeID: nodeRecord.id, roleToAdd: nodeRecord.role)
             }
 
-            FlowIDTableStaking.setNewMovesPending(nodeID: self.id, delegatorID: nil)
+            FlowIDTableStaking.modifyNewMovesPending(nodeID: self.id, delegatorID: nil, existingList: nil)
         }
 
         /// Stake tokens that are in the tokensUnstaked bucket
@@ -532,7 +530,7 @@ access(all) contract FlowIDTableStaking {
                 FlowIDTableStaking.addToCandidateNodeList(nodeID: nodeRecord.id, roleToAdd: nodeRecord.role)
             }
 
-            FlowIDTableStaking.setNewMovesPending(nodeID: self.id, delegatorID: nil)
+            FlowIDTableStaking.modifyNewMovesPending(nodeID: self.id, delegatorID: nil, existingList: nil)
         }
 
         /// Stake tokens that are in the tokensRewarded bucket
@@ -553,7 +551,7 @@ access(all) contract FlowIDTableStaking {
                 FlowIDTableStaking.addToCandidateNodeList(nodeID: nodeRecord.id, roleToAdd: nodeRecord.role)
             }
 
-            FlowIDTableStaking.setNewMovesPending(nodeID: self.id, delegatorID: nil)
+            FlowIDTableStaking.modifyNewMovesPending(nodeID: self.id, delegatorID: nil, existingList: nil)
         }
 
         /// Request amount tokens to be removed from staking at the end of the next epoch
@@ -581,7 +579,6 @@ access(all) contract FlowIDTableStaking {
                 message: "Cannot unstake below the minimum if there are delegators"
             )
 
-            // Get the balance of the tokens that are currently committed
             let amountCommitted = nodeRecord.tokensCommitted.balance
 
             // If the request can come from committed, withdraw from committed to unstaked
@@ -601,7 +598,7 @@ access(all) contract FlowIDTableStaking {
                 // update request to show that leftover amount is requested to be unstaked
                 nodeRecord.setTokensRequestedToUnstake(nodeRecord.tokensRequestedToUnstake + (amount - amountCommitted))
 
-                FlowIDTableStaking.setNewMovesPending(nodeID: self.id, delegatorID: nil)
+                FlowIDTableStaking.modifyNewMovesPending(nodeID: self.id, delegatorID: nil, existingList: nil)
 
                 emit TokensUnstaked(nodeID: self.id, amount: amountCommitted)
                 emit NodeTokensRequestedToUnstake(nodeID: self.id, amount: nodeRecord.tokensRequestedToUnstake)
@@ -636,7 +633,7 @@ access(all) contract FlowIDTableStaking {
                 /// update request to show that leftover amount is requested to be unstaked
                 nodeRecord.setTokensRequestedToUnstake(nodeRecord.tokensStaked.balance)
 
-                FlowIDTableStaking.setNewMovesPending(nodeID: self.id, delegatorID: nil)
+                FlowIDTableStaking.modifyNewMovesPending(nodeID: self.id, delegatorID: nil, existingList: nil)
 
                 emit NodeTokensRequestedToUnstake(nodeID: self.id, amount: nodeRecord.tokensRequestedToUnstake)
             }
@@ -698,7 +695,7 @@ access(all) contract FlowIDTableStaking {
             // Commit the new tokens to the delegator record
             delRecord.tokensCommitted.deposit(from: <-from)
 
-            FlowIDTableStaking.setNewMovesPending(nodeID: self.nodeID, delegatorID: self.id)
+            FlowIDTableStaking.modifyNewMovesPending(nodeID: self.nodeID, delegatorID: self.id, existingList: nil)
         }
 
         /// Delegate tokens from the unstaked bucket to the node operator
@@ -727,7 +724,7 @@ access(all) contract FlowIDTableStaking {
 
             emit DelegatorTokensCommitted(nodeID: self.nodeID, delegatorID: self.id, amount: amount)
 
-            FlowIDTableStaking.setNewMovesPending(nodeID: self.nodeID, delegatorID: self.id)
+            FlowIDTableStaking.modifyNewMovesPending(nodeID: self.nodeID, delegatorID: self.id, existingList: nil)
         }
 
         /// Delegate tokens from the rewards bucket to the node operator
@@ -743,7 +740,7 @@ access(all) contract FlowIDTableStaking {
 
             emit DelegatorTokensCommitted(nodeID: self.nodeID, delegatorID: self.id, amount: amount)
 
-            FlowIDTableStaking.setNewMovesPending(nodeID: self.nodeID, delegatorID: self.id)
+            FlowIDTableStaking.modifyNewMovesPending(nodeID: self.nodeID, delegatorID: self.id, existingList: nil)
         }
 
         /// Request to unstake delegated tokens during the next epoch
@@ -781,7 +778,7 @@ access(all) contract FlowIDTableStaking {
                 /// update request to show that leftover amount is requested to be unstaked
                 delRecord.setTokensRequestedToUnstake(delRecord.tokensRequestedToUnstake + (amount - amountCommitted))
 
-                FlowIDTableStaking.setNewMovesPending(nodeID: self.nodeID, delegatorID: self.id)
+                FlowIDTableStaking.modifyNewMovesPending(nodeID: self.nodeID, delegatorID: self.id, existingList: nil)
 
                 emit DelegatorTokensUnstaked(nodeID: self.nodeID, delegatorID: self.id, amount: amountCommitted)
                 emit DelegatorTokensRequestedToUnstake(nodeID: self.nodeID, delegatorID: self.id, amount: delRecord.tokensRequestedToUnstake)
@@ -870,10 +867,10 @@ access(all) contract FlowIDTableStaking {
         access(all) fun setSlotLimits(slotLimits: {UInt8: UInt16})
         access(all) fun setNodeWeight(nodeID: String, weight: UInt64)
         access(all) fun startStakingAuction()
-        access(all) fun endStakingAuction()
-        access(all) fun payRewards(_ rewardsSummary: EpochRewardsSummary)
+        access(all) fun endStakingAuction(): [String]
+        access(all) fun payRewards(forEpochCounter: UInt64, rewardsSummary: EpochRewardsSummary)
         access(all) fun calculateRewards(): EpochRewardsSummary
-        access(all) fun moveTokens()
+        access(all) fun moveTokens(newEpochCounter: UInt64)
     }
 
     access(all) resource Admin: EpochOperations {
@@ -935,17 +932,28 @@ access(all) contract FlowIDTableStaking {
         access(all) fun setSlotLimits(slotLimits: {UInt8: UInt16}) {
             pre {
                 slotLimits.keys.length == 5: "Slot Limits Dictionary can only have 5 entries"
-                slotLimits[UInt8(1)] != nil: "Need to have a limit set for collector nodes"
-                slotLimits[UInt8(2)] != nil: "Need to have a limit set for consensus nodes"
-                slotLimits[UInt8(3)] != nil: "Need to have a limit set for execution nodes"
-                slotLimits[UInt8(4)] != nil: "Need to have a limit set for verification nodes"
-                slotLimits[UInt8(5)] != nil: "Need to have a limit set for access nodes"
+                slotLimits[1] != nil: "Need to have a limit set for collector nodes"
+                slotLimits[2] != nil: "Need to have a limit set for consensus nodes"
+                slotLimits[3] != nil: "Need to have a limit set for execution nodes"
+                slotLimits[4] != nil: "Need to have a limit set for verification nodes"
+                slotLimits[5] != nil: "Need to have a limit set for access nodes"
             }
 
             FlowIDTableStaking.account.storage.load<{UInt8: UInt16}>(from: /storage/flowStakingSlotLimits)
             FlowIDTableStaking.account.storage.save(slotLimits, to: /storage/flowStakingSlotLimits)
         }
 
+        /// Sets the number of open node slots to allow per epoch
+        /// Only access nodes are used for this currently,
+        /// but other node types will be added in the future
+        access(all) fun setOpenNodeSlots(openSlots: {UInt8: UInt16}) {
+            pre {
+                openSlots[5] != nil: "Need to have a value set for access nodes"
+            }
+
+            FlowIDTableStaking.account.load<{UInt8: UInt16}>(from: /storage/flowStakingOpenNodeSlots)
+            FlowIDTableStaking.account.save(openSlots, to: /storage/flowStakingOpenNodeSlots)
+        }
 
         /// Sets a list of node IDs who will not receive rewards for the current epoch
         /// This is used during epochs to punish nodes who have poor uptime 
@@ -960,8 +968,8 @@ access(all) contract FlowIDTableStaking {
                     message: "Percentage value to decrease rewards payout should be between 0 and 1"
                 )
             }
-            let list = FlowIDTableStaking.account.storage.load<{String: UFix64}>(from: /storage/idTableNonOperationalNodesList)
-            FlowIDTableStaking.account.storage.save<{String: UFix64}>(nodeIDs, to: /storage/idTableNonOperationalNodesList)
+            FlowIDTableStaking.account.load<{String: UFix64}>(from: /storage/idTableNonOperationalNodesList)
+            FlowIDTableStaking.account.save<{String: UFix64}>(nodeIDs, to: /storage/idTableNonOperationalNodesList)
         }
 
         /// Allows the protocol to set a specific weight for a node
@@ -990,31 +998,28 @@ access(all) contract FlowIDTableStaking {
             }
 
             // If one of the nodes has been removed from the approve list
-            // it need to be set as movesPending so it
-            // will be caught in the `removeInvalidNodes` method
-            // If this happens not during the staking auction, the node should be removed
-            // and marked to unstake immediately
+            // it need to be set as movesPending so it will be caught in the `removeInvalidNodes` method
+            // If this happens not during the staking auction, the node should be removed and marked to unstake immediately
             for id in currentApproveList.keys {
                 if newApproveList[id] == nil {
                     if FlowIDTableStaking.stakingEnabled() {
-                        FlowIDTableStaking.setNewMovesPending(nodeID: id, delegatorID: nil)
+                        FlowIDTableStaking.modifyNewMovesPending(nodeID: id, delegatorID: nil, existingList: nil)
                     } else {
                         self.unsafeRemoveAndRefundNodeRecord(id)
                     }
                 }
             }
-
             self.unsafeSetApprovedList(newApproveList)
         }
 
-        /// sets the approved list without validating it (requires caller to validate)
+        /// Sets the approved list without validating it (requires caller to validate)
         access(self) fun unsafeSetApprovedList(_ newApproveList: {String: Bool}) {
             let currentApproveList = FlowIDTableStaking.account.storage.load<{String: Bool}>(from: /storage/idTableApproveList)
                 ?? panic("Could not load the current approve list from storage")
             FlowIDTableStaking.account.storage.save<{String: Bool}>(newApproveList, to: /storage/idTableApproveList)
         }
 
-        /// removes and refunds the node record without also removing them from the approved-list
+        /// Removes and refunds the node record without also removing them from the approved-list
         access(self) fun unsafeRemoveAndRefundNodeRecord(_ nodeID: String) {
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
 
@@ -1042,6 +1047,9 @@ access(all) contract FlowIDTableStaking {
                 FlowIDTableStaking.account.storage.save(currentRoleNodeCounts, to: /storage/flowStakingRoleNodeCounts)
             }
 
+            var movesPendingList = FlowIDTableStaking.account.borrow<&{String: {UInt32: Bool}}>(from: /storage/idTableMovesPendingList)
+                ?? panic("No moves pending list in account storage")
+
             // Iterate through all delegators and unstake their tokens
             // since their node has unstaked
             let keys = nodeRecord.delegators.keys
@@ -1062,11 +1070,11 @@ access(all) contract FlowIDTableStaking {
                 // Request to unstake all tokens
                 if delRecord.tokensStaked.balance > 0.0 {
                     delRecord.setTokensRequestedToUnstake(delRecord.tokensStaked.balance)
-                    FlowIDTableStaking.setNewMovesPending(nodeID: nodeRecord.id, delegatorID: delegator)
+                    FlowIDTableStaking.modifyNewMovesPending(nodeID: nodeRecord.id, delegatorID: delegator, existingList: movesPendingList)
                 }
             }
 
-            FlowIDTableStaking.setNewMovesPending(nodeID: nodeRecord.id, delegatorID: nil)
+            FlowIDTableStaking.modifyNewMovesPending(nodeID: nodeRecord.id, delegatorID: nil, existingList: movesPendingList)
 
             FlowIDTableStaking.removeFromCandidateNodeList(nodeID: nodeRecord.id, role: nodeRecord.role)
 
@@ -1080,10 +1088,8 @@ access(all) contract FlowIDTableStaking {
             // remove the refunded node from the approve list
             let approveList = FlowIDTableStaking.getApprovedList()
                 ?? panic("Could not load approve list from storage")
-            approveList[nodeID] = nil
+            approveList.remove(key: nodeID)
             self.unsafeSetApprovedList(approveList)
-
-            // refund it
             self.unsafeRemoveAndRefundNodeRecord(nodeID)
         }
 
@@ -1094,30 +1100,33 @@ access(all) contract FlowIDTableStaking {
             FlowIDTableStaking.account.storage.save(true, to: /storage/stakingEnabled)
         }
 
-        /// Ends the staking Auction by removing any unapproved nodes
-        /// and setting stakingEnabled to false
-        access(all) fun endStakingAuction() {
-            let approvedNodeIDs = FlowIDTableStaking.getApprovedList()
-                ?? panic("Could not read the approve list from storage")
+        /// Ends the staking Auction by removing any unapproved nodes and setting stakingEnabled to false
+        /// returns a list of all the proposed node IDs for the next epoch
+        access(all) fun endStakingAuction(): [String] {
+            var proposedNodeList = self.removeInvalidNodes()
+            var newNodes = self.fillNodeRoleSlots()
+            for id in newNodes {
+                proposedNodeList[id] = true
+            }
 
-            self.removeInvalidNodes(approvedNodeIDs: approvedNodeIDs)
-            self.fillNodeRoleSlots()
+            FlowIDTableStaking.account.load<Bool>(from: /storage/stakingEnabled)
+            FlowIDTableStaking.account.save(false, to: /storage/stakingEnabled)
 
-            FlowIDTableStaking.account.storage.load<Bool>(from: /storage/stakingEnabled)
-            FlowIDTableStaking.account.storage.save(false, to: /storage/stakingEnabled)
+            return proposedNodeList.keys
         }
 
         /// Iterates through all the registered nodes and if it finds
         /// a node that has insufficient tokens committed for the next epoch or isn't in the approved list
         /// it moves their committed tokens to their unstaked bucket
-        ///
-        /// Parameter: approvedNodeIDs: A list of nodeIDs that have been approved
-        /// by the protocol to be a staker for the next epoch. The node software
-        /// checks if the node that corresponds to each proposed ID is running properly
-        /// and that its node info is correct
-        access(all) fun removeInvalidNodes(approvedNodeIDs: {String: Bool}) {
+        access(all) fun removeInvalidNodes(): {String: Bool} {
+            let approvedNodeIDs = FlowIDTableStaking.getApprovedList()
+                ?? panic("Could not read the approve list from storage")
+
             let movesPendingList = FlowIDTableStaking.getMovesPendingList()
                 ?? panic("Could not copy moves pending list from storage")
+
+            let participantList = FlowIDTableStaking.getParticipantNodeList()
+                ?? panic("Could not copy participant list from storage")    
 
             // We only iterate through movesPendingList here because any node
             // that has insufficient stake committed will be because it has submitted
@@ -1139,6 +1148,7 @@ access(all) contract FlowIDTableStaking {
                 if nodeRecord.role != UInt8(5) && (!greaterThanMin || !nodeIsApproved) {
                     self.removeAndRefundNodeRecord(nodeID)
                     FlowIDTableStaking.removeFromCandidateNodeList(nodeID: nodeRecord.id, role: nodeRecord.role)
+                    participantList.remove(key: nodeRecord.id)
                     continue
                 }
 
@@ -1151,11 +1161,14 @@ access(all) contract FlowIDTableStaking {
                 //  - New ANs may be unapproved, but must have submitted sufficient stake
                 if nodeRecord.role == UInt8(5) && !greaterThanMin && !nodeIsApproved {
                     self.removeAndRefundNodeRecord(nodeID)
+                    participantList.remove(key: nodeRecord.id)
                     continue
                 }
 
                 nodeRecord.setWeight(100)
             }
+
+            return participantList
         }
 
         /// Each node role only has a certain number of slots available per epoch
@@ -1165,11 +1178,15 @@ access(all) contract FlowIDTableStaking {
         /// All candidate nodes left staked after this function exits are implicitly selected to fill the 
         /// available slots, and will become participants at the next epoch transition.
         /// 
-        access(all) fun fillNodeRoleSlots() {
+        access(all) fun fillNodeRoleSlots(): [String] {
 
             var currentNodeCount: {UInt8: UInt16} = FlowIDTableStaking.getCurrentRoleNodeCounts()
 
             let slotLimits: {UInt8: UInt16} = FlowIDTableStaking.getRoleSlotLimits()
+
+            let openSlots = FlowIDTableStaking.getOpenNodeSlots()
+
+            let nodesToAdd: [String] = []
 
             // Load and reset the candidate node list
             let candidateNodes = FlowIDTableStaking.account.storage.load<{UInt8: {String: Bool}}>(from: /storage/idTableCandidateNodes) ?? {}
@@ -1211,6 +1228,7 @@ access(all) contract FlowIDTableStaking {
                     for nodeIndex in deletionList.keys {
                         let nodeID = candidateNodesForRole.keys[nodeIndex]
                         self.removeAndRefundNodeRecord(nodeID)
+                        candidateNodesForRole.remove(key: nodeID)
                     }
 
                     // Set the current node count for the role to the limit for the role, since they were all filled
@@ -1222,22 +1240,35 @@ access(all) contract FlowIDTableStaking {
                     // No action is needed to mark the nodes as added because they are already included
                     currentNodeCount[role] = currentNodeCount[role]! + UInt16(candidateNodesForRole.keys.length)
                 }
+
+                nodesToAdd.appendAll(candidateNodesForRole.keys)
+
+                // Add the desired open slots for each role to the current node count
+                // to make the slot limits. This could lower the slot limits if the
+                // new open slots are lower than the existing slot limits
+                if let openSlotsForRole = openSlots[role] {
+                    slotLimits[role] = currentNodeCount[role]! + openSlotsForRole
+                }
             }
 
-            FlowIDTableStaking.account.storage.load<{UInt8: UInt16}>(from: /storage/flowStakingRoleNodeCounts)
-            FlowIDTableStaking.account.storage.save(currentNodeCount, to: /storage/flowStakingRoleNodeCounts)
+            FlowIDTableStaking.account.load<{UInt8: UInt16}>(from: /storage/flowStakingRoleNodeCounts)
+            FlowIDTableStaking.account.save(currentNodeCount, to: /storage/flowStakingRoleNodeCounts)
+
+            self.setSlotLimits(slotLimits: slotLimits)
+
+            return nodesToAdd
         }
 
         /// Called at the end of the epoch to pay rewards to node operators
         /// based on the tokens that they have staked
-        access(all) fun payRewards(_ rewardsSummary: EpochRewardsSummary) {
+        access(all) fun payRewards(forEpochCounter: UInt64, rewardsSummary: EpochRewardsSummary) {
 
             let rewardsBreakdownArray = rewardsSummary.breakdown
             let totalRewards = rewardsSummary.totalRewards
             
             // If there are no node operators to pay rewards to, do not mint new tokens
             if rewardsBreakdownArray.length == 0 {
-                emit EpochTotalRewardsPaid(total: totalRewards, fromFees: 0.0, minted: 0.0, feesBurned: 0.0)
+                emit EpochTotalRewardsPaid(total: totalRewards, fromFees: 0.0, minted: 0.0, feesBurned: 0.0, epochCounterForRewards: forEpochCounter)
 
                 // Clear the non-operational node list so it doesn't persist to the next rewards payment
                 let emptyNodeList: {String: UFix64} = {}
@@ -1274,17 +1305,17 @@ access(all) contract FlowIDTableStaking {
                     let delegatorReward = rewardBreakdown.delegatorRewards[delegator]!
                         
                     delRecord.tokensRewarded.deposit(from: <-rewardsVault.withdraw(amount: delegatorReward))
-                    emit DelegatorRewardsPaid(nodeID: rewardBreakdown.nodeID, delegatorID: delegator, amount: delegatorReward)
+                    emit DelegatorRewardsPaid(nodeID: rewardBreakdown.nodeID, delegatorID: delegator, amount: delegatorReward, epochCounter: forEpochCounter)
                 }
 
-                emit RewardsPaid(nodeID: rewardBreakdown.nodeID, amount: nodeReward)
+                emit RewardsPaid(nodeID: rewardBreakdown.nodeID, amount: nodeReward, epochCounter: forEpochCounter)
             }
 
             var fromFees = feeBalance
             if feeBalance >= totalRewards {
                 fromFees = totalRewards
             }
-            emit EpochTotalRewardsPaid(total: totalRewards, fromFees: fromFees, minted: mintedRewards, feesBurned: rewardsVault.getBalance())
+            emit EpochTotalRewardsPaid(total: totalRewards, fromFees: fromFees, minted: mintedRewards, feesBurned: rewardsVault.balance, epochCounterForRewards: forEpochCounter)
 
             // Clear the non-operational node list so it doesn't persist to the next rewards payment
             let emptyNodeList: {String: UFix64} = {}
@@ -1429,7 +1460,7 @@ access(all) contract FlowIDTableStaking {
         /// Tokens that have been committed are moved to the staked bucket
         /// Tokens that were unstaking during the last epoch are fully unstaked
         /// Unstaking requests are filled by moving those tokens from staked to unstaking
-        access(all) fun moveTokens() {
+        access(all) fun moveTokens(newEpochCounter: UInt64) {
             pre {
                 !FlowIDTableStaking.stakingEnabled(): "Cannot move tokens if the staking auction is still in progress"
             }
@@ -1441,8 +1472,10 @@ access(all) contract FlowIDTableStaking {
                 ?? panic("No moves pending list in account storage")
 
             // Reset the movesPendingList
-            let movesPendingList: {String: {UInt32: Bool}} = {}
-            FlowIDTableStaking.account.storage.save<{String: {UInt32: Bool}}>(movesPendingList, to: /storage/idTableMovesPendingList)
+            var emptyMovesPendingList: {String: {UInt32: Bool}} = {}
+            FlowIDTableStaking.account.save(emptyMovesPendingList, to: /storage/idTableMovesPendingList)
+            let newMovesPendingList = FlowIDTableStaking.account.borrow<&{String: {UInt32: Bool}}>(from: /storage/idTableMovesPendingList)
+                ?? panic("No moves pending list in account storage")
 
             let stakedNodeIDs: {String: Bool} = FlowIDTableStaking.getParticipantNodeList()!
 
@@ -1471,11 +1504,11 @@ access(all) contract FlowIDTableStaking {
                     nodeRecord.tokensUnstaking.deposit(from: <-nodeRecord.tokensStaked.withdraw(amount: nodeRecord.tokensRequestedToUnstake))
                     // If the node no longer has above the minimum, remove them from the list of active nodes
                     if !FlowIDTableStaking.isGreaterThanMinimumForRole(numTokens: nodeRecord.tokensStaked.balance, role: nodeRecord.role) {
-                        stakedNodeIDs[nodeRecord.id] = nil
+                        stakedNodeIDs.remove(key: nodeRecord.id)
                     }
                     // unstaked tokens automatically mark the node as pending
                     // because they will move in the next epoch
-                    FlowIDTableStaking.setNewMovesPending(nodeID: nodeID, delegatorID: nil)
+                    FlowIDTableStaking.modifyNewMovesPending(nodeID: nodeID, delegatorID: nil, existingList: newMovesPendingList)
                 }
 
                 let pendingDelegatorsList = movesPendingNodeIDs[nodeID]!
@@ -1512,7 +1545,7 @@ access(all) contract FlowIDTableStaking {
                         delRecord.tokensUnstaking.deposit(from: <-delRecord.tokensStaked.withdraw(amount: delRecord.tokensRequestedToUnstake))
                         // unstaked tokens automatically mark the delegator as pending
                         // because they will move in the next epoch
-                        FlowIDTableStaking.setNewMovesPending(nodeID: nodeID, delegatorID: delegator)
+                        FlowIDTableStaking.modifyNewMovesPending(nodeID: nodeID, delegatorID: delegator, existingList: newMovesPendingList)
                     }
 
                     // subtract their requested tokens from the total staked for their node type
@@ -1537,7 +1570,9 @@ access(all) contract FlowIDTableStaking {
             // Indicates that the tokens have moved and the epoch has ended
             // Tells what the new reward payout will be. The new payout is calculated and changed
             // before this method is executed and will not be changed for the rest of the epoch
-            emit NewEpoch(totalStaked: FlowIDTableStaking.getTotalStaked(), totalRewardPayout: FlowIDTableStaking.epochTokenPayout)
+            emit NewEpoch(totalStaked: FlowIDTableStaking.getTotalStaked(),
+                          totalRewardPayout: FlowIDTableStaking.epochTokenPayout,
+                          newEpochCounter: newEpochCounter)
         }
     }
 
@@ -1641,7 +1676,7 @@ access(all) contract FlowIDTableStaking {
     /// Updates a claimed boolean for a specific path to indicate that
     /// a piece of node metadata has been claimed by a node
     access(account) fun updateClaimed(path: StoragePath, _ key: String, claimed: Bool) {
-        let claimedDictionary = self.account.storage.load<{String: Bool}>(from: path)
+        let claimedDictionary = self.account.borrow<&{String: Bool}>(from: path)
             ?? panic("Invalid path for dictionary")
 
         if claimed {
@@ -1649,8 +1684,6 @@ access(all) contract FlowIDTableStaking {
         } else {
             claimedDictionary.remove(key: key)
         }
-
-        self.account.storage.save(claimedDictionary, to: path)
     }
 
     /// Sets a list of approved node IDs for the current epoch
@@ -1672,14 +1705,16 @@ access(all) contract FlowIDTableStaking {
         return nodeIDs.keys
     }
 
-    /// Adds a node and/or a delegator to the list of node IDs who have pending token movements
-    /// or whose delegators have pending movements
-    access(contract) fun setNewMovesPending(nodeID: String, delegatorID: UInt32?) {
-        if self.nodes[nodeID] == nil {
-            return
-        }
-        let movesPendingList = self.account.storage.load<{String: {UInt32: Bool}}>(from: /storage/idTableMovesPendingList)
-            ?? panic("No moves pending list in account storage")
+    /// Adds a node and/or delegator to the moves pending list
+    /// and returns the list
+    /// If `existingList` is `nil`, this loads the current list from storage and modifies it
+    /// If `existingList` is non-`nil`, this modifies the given list instead of loading from storage
+    access(contract) fun modifyNewMovesPending(nodeID: String,
+                                               delegatorID: UInt32?,
+                                               existingList: &{String: {UInt32: Bool}}?)
+    {
+        let movesPendingList = existingList ?? (self.account.borrow<&{String: {UInt32: Bool}}>(from: /storage/idTableMovesPendingList)
+            ?? panic("No moves pending list in account storage"))
 
         // Create an empty list of delegators with pending moves for the node ID
         var delegatorList: {UInt32: Bool} = {}
@@ -1698,8 +1733,6 @@ access(all) contract FlowIDTableStaking {
         // Save the modified list to the node's entry
         // If it was just a node, it will save an empty/unmodified delegator list
         movesPendingList[nodeID] = delegatorList
-
-        self.account.storage.save<{String: {UInt32: Bool}}>(movesPendingList, to: /storage/idTableMovesPendingList)
     }
 
     /// Gets a list of node IDs who have pending token movements
@@ -1725,7 +1758,7 @@ access(all) contract FlowIDTableStaking {
             roleToAdd >= UInt8(1) && roleToAdd <= UInt8(5): "The role must be 1, 2, 3, 4, or 5"
         }
 
-        var candidateNodes = FlowIDTableStaking.account.storage.load<{UInt8: {String: Bool}}>(from: /storage/idTableCandidateNodes) ?? {}
+        var candidateNodes = FlowIDTableStaking.account.borrow<&{UInt8: {String: Bool}}>(from: /storage/idTableCandidateNodes)!
         var candidateNodesForRole = candidateNodes[roleToAdd]!
 
         if UInt64(candidateNodesForRole.keys.length) >= self.getCandidateNodeLimits()![roleToAdd]! {
@@ -1734,8 +1767,6 @@ access(all) contract FlowIDTableStaking {
 
         candidateNodesForRole[nodeID] = true
         candidateNodes[roleToAdd] = candidateNodesForRole
-
-        FlowIDTableStaking.account.storage.save(candidateNodes, to: /storage/idTableCandidateNodes)
     }
 
     /// Removes the provided node ID from the candidate node list
@@ -1744,13 +1775,12 @@ access(all) contract FlowIDTableStaking {
             role >= UInt8(1) && role <= UInt8(5): "The role must be 1, 2, 3, 4, or 5"
         }
 
-        var candidateNodes = FlowIDTableStaking.account.storage.load<{UInt8: {String: Bool}}>(from: /storage/idTableCandidateNodes) ?? {}
+        var candidateNodes = FlowIDTableStaking.account.borrow<&{UInt8: {String: Bool}}>(from: /storage/idTableCandidateNodes)
+            ?? panic("Could not load candidate node list from storage")
         var candidateNodesForRole = candidateNodes[role]!
         
         candidateNodesForRole.remove(key: nodeID)
         candidateNodes[role] = candidateNodesForRole
-
-        FlowIDTableStaking.account.storage.save(candidateNodes, to: /storage/idTableCandidateNodes)
     }
 
     /// Returns the current candidate node list
@@ -1763,6 +1793,12 @@ access(all) contract FlowIDTableStaking {
     access(all) fun getRoleSlotLimits(): {UInt8: UInt16} {
         return FlowIDTableStaking.account.storage.copy<{UInt8: UInt16}>(from: /storage/flowStakingSlotLimits)
             ?? {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
+    }
+
+    /// Gets the number of auto-opened slots for each node role. 
+    access(all) fun getOpenNodeSlots(): {UInt8: UInt16} {
+        return FlowIDTableStaking.account.copy<{UInt8: UInt16}>(from: /storage/flowStakingOpenNodeSlots)
+            ?? {}
     }
 
     /// Returns a dictionary that indicates how many participant nodes there are for each role
@@ -1992,4 +2028,3 @@ access(all) contract FlowIDTableStaking {
         self.account.storage.save(<-create Admin(), to: self.StakingAdminStoragePath)
     }
 }
- 
