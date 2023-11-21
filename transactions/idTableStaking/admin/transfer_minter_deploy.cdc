@@ -1,7 +1,7 @@
 import Crypto
 import FlowToken from 0xFLOWTOKENADDRESS
 
-transaction(publicKeys: [Crypto.KeyListEntry], contractName: String, code: [UInt8], rewardAmount: UFix64, rewardCut: UFix64, candidateNodeLimits: [UInt64]) {
+transaction(publicKeys: [Crypto.KeyListEntry], contractName: String, code: String, rewardAmount: UFix64, rewardCut: UFix64, candidateNodeLimits: [UInt64]) {
 
   prepare(signer: AuthAccount) {
 
@@ -31,7 +31,7 @@ transaction(publicKeys: [Crypto.KeyListEntry], contractName: String, code: [UInt
       role = role + 1
     }
 
-    acct.contracts.add(name: contractName, code: code, rewardAmount, rewardCut, candidateNodeLimitsDict)
+    acct.contracts.add(name: contractName, code: code.utf8, rewardAmount, rewardCut, candidateNodeLimitsDict)
   }
 
 }

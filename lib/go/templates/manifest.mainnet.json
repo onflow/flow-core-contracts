@@ -440,7 +440,7 @@
     {
       "id": "TH.25",
       "name": "Update Networking Address",
-      "source": "import FlowIDTableStaking from 0x8624b52f9ddcd04a\n\ntransaction(newAddress: String) {\n\n    // Local variable for a reference to the node object\n    let stakerRef: \u0026FlowIDTableStaking.NodeStaker\n\n    prepare(acct: AuthAccount) {\n        // borrow a reference to the node object\n        self.stakerRef = acct.borrow\u003c\u0026FlowIDTableStaking.NodeStaker\u003e(from: FlowIDTableStaking.NodeStakerStoragePath)\n            ?? panic(\"Could not borrow reference to staking admin\")\n    }\n\n    execute {\n\n        self.stakerRef.updateNetworkingAddress(newAddress)\n\n    }\n}",
+      "source": "import FlowIDTableStaking from 0x8624b52f9ddcd04a\n\ntransaction(newAddress: String) {\n\n    // Local variable for a reference to the node object\n    let stakerRef: \u0026FlowIDTableStaking.NodeStaker\n\n    prepare(acct: AuthAccount) {\n        // borrow a reference to the node object\n        self.stakerRef = acct.borrow\u003c\u0026FlowIDTableStaking.NodeStaker\u003e(from: FlowIDTableStaking.NodeStakerStoragePath)\n            ?? panic(\"Could not borrow reference to the node object\")\n    }\n\n    execute {\n\n        self.stakerRef.updateNetworkingAddress(newAddress)\n\n    }\n}",
       "arguments": [
         {
           "type": "String",
@@ -455,7 +455,7 @@
         }
       ],
       "network": "mainnet",
-      "hash": "e79cb076f2f7da7a3039b5061916e081a823087f1560bdf3caea773992892873"
+      "hash": "23bd3120d6d4c48190a21675760203e42e6fb1e825859a70526f41237e5511a1"
     },
     {
       "id": "SCO.01",

@@ -3,9 +3,10 @@ package test
 import (
 	"context"
 	"fmt"
+	"testing"
+
 	"github.com/onflow/flow-emulator/adapters"
 	"github.com/rs/zerolog"
-	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -110,8 +111,7 @@ func deployStakingContract(
 	env.FlowFeesAddress = feesAddr.Hex()
 
 	// Get the code byte-array for the staking contract
-	IDTableCode := contracts.FlowIDTableStaking(emulatorFTAddress, emulatorFlowTokenAddress, feesAddr.String(), latest)
-	cadenceCode := bytesToCadenceArray(IDTableCode)
+	IDTableCode, _ := cadence.NewString(string(contracts.FlowIDTableStaking(emulatorFTAddress, emulatorFlowTokenAddress, feesAddr.String(), latest))[:])
 
 	// Create the deployment transaction that transfers a FlowToken minter
 	// to the new account and deploys the IDTableStaking contract
@@ -122,7 +122,7 @@ func deployStakingContract(
 	// Add the keys argument, contract name, and code
 	tx.AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys))
 	tx.AddRawArgument(jsoncdc.MustEncode(CadenceString("FlowIDTableStaking")))
-	tx.AddRawArgument(jsoncdc.MustEncode(cadenceCode))
+	tx.AddArgument(IDTableCode)
 
 	// Set the weekly payount amount and delegator cut percentage
 	_ = tx.AddArgument(CadenceUFix64("1250000.0"))
@@ -877,7 +877,31 @@ func assertRoleCountsEquals(
 	}
 }
 
-// / Sets the role slot limits to the specified values
+// Sets the automatic open slots for access nodes for each epoch
+// will include other node types in the future
+func setNodeRoleOpenSlots(
+	t *testing.T,
+	b emulator.Emulator,
+	env templates.Environment,
+	idTableAddress flow.Address,
+	idTableSigner crypto.Signer,
+	openSlots [5]uint16,
+) {
+
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetOpenAccessSlotsScript(env), idTableAddress)
+
+	err := tx.AddArgument(cadence.NewUInt16(openSlots[4]))
+	require.NoError(t, err)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]crypto.Signer{idTableSigner},
+		false,
+	)
+}
+
+// Sets the role slot limits to the specified values
 func setNodeRoleSlotLimits(
 	t *testing.T,
 	b emulator.Emulator,

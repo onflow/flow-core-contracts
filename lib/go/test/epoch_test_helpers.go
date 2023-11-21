@@ -3,22 +3,20 @@ package test
 import (
 	"context"
 	"fmt"
-	"github.com/onflow/flow-emulator/adapters"
 	"testing"
-
-	sdktemplates "github.com/onflow/flow-go-sdk/templates"
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/cadence/runtime/interpreter"
+	"github.com/onflow/flow-core-contracts/lib/go/contracts"
+	"github.com/onflow/flow-core-contracts/lib/go/templates"
+	"github.com/onflow/flow-emulator/adapters"
 	emulator "github.com/onflow/flow-emulator/emulator"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
+	sdktemplates "github.com/onflow/flow-go-sdk/templates"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/onflow/flow-core-contracts/lib/go/contracts"
-	"github.com/onflow/flow-core-contracts/lib/go/templates"
 )
 
 /*
@@ -62,6 +60,54 @@ type ConfigMetadata struct {
 	numCollectorClusters     uint16
 }
 
+// EpochTimingConfig is used to verify timing config stored on-chain.
+type EpochTimingConfig struct {
+	duration     uint64
+	refCounter   uint64
+	refTimestamp uint64
+}
+
+// / Used to verify the EpochStart event fields in tests
+type EpochStart struct {
+	counter        uint64
+	firstView      uint64
+	stakingEndView uint64
+	finalView      uint64
+	totalStaked    string
+	totalSupply    string
+	rewards        string
+}
+
+type EpochStartEvent flow.Event
+
+func (evt EpochStartEvent) Counter() cadence.UInt64 {
+	return evt.Value.Fields[0].(cadence.UInt64)
+}
+
+func (evt EpochStartEvent) firstView() cadence.UInt64 {
+	return evt.Value.Fields[1].(cadence.UInt64)
+}
+
+func (evt EpochStartEvent) stakingEndView() cadence.UInt64 {
+	return evt.Value.Fields[2].(cadence.UInt64)
+}
+
+func (evt EpochStartEvent) finalView() cadence.UInt64 {
+	return evt.Value.Fields[3].(cadence.UInt64)
+}
+
+func (evt EpochStartEvent) totalStaked() cadence.UFix64 {
+	return evt.Value.Fields[4].(cadence.UFix64)
+}
+
+func (evt EpochStartEvent) totalSupply() cadence.UFix64 {
+	return evt.Value.Fields[5].(cadence.UFix64)
+}
+
+func (evt EpochStartEvent) rewards() cadence.UFix64 {
+	return evt.Value.Fields[6].(cadence.UFix64)
+}
+
 // / Used to verify the EpochSetup event fields in tests
 type EpochSetup struct {
 	counter            uint64
@@ -73,6 +119,8 @@ type EpochSetup struct {
 	dkgPhase1FinalView uint64
 	dkgPhase2FinalView uint64
 	dkgPhase3FinalView uint64
+	targetDuration     uint64
+	targetEndTime      uint64
 }
 
 // / Used to verify the EpochCommit event fields in tests
@@ -114,6 +162,14 @@ func (evt EpochSetupEvent) randomSource() cadence.String {
 func (evt EpochSetupEvent) dkgFinalViews() (cadence.UInt64, cadence.UInt64, cadence.UInt64) {
 	fields := evt.Value.Fields
 	return fields[6].(cadence.UInt64), fields[7].(cadence.UInt64), fields[8].(cadence.UInt64)
+}
+
+func (evt EpochSetupEvent) targetDuration() cadence.UInt64 {
+	return evt.Value.Fields[9].(cadence.UInt64)
+}
+
+func (evt EpochSetupEvent) targetEndTime() cadence.UInt64 {
+	return evt.Value.Fields[10].(cadence.UInt64)
 }
 
 type EpochCommitEvent flow.Event
@@ -492,6 +548,24 @@ func verifyEpochMetadata(
 	}
 }
 
+// verifyEpochTimingConfig verifies that the epoch timing config on-chain matches the expected value.
+// For the reference timestamp, we allow a delta of 30s.
+func verifyEpochTimingConfig(
+	t *testing.T,
+	b emulator.Emulator,
+	env templates.Environment,
+	expectedConfig EpochTimingConfig,
+) {
+
+	result := executeScriptAndCheck(t, b, templates.GenerateGetEpochTimingConfigScript(env), nil)
+	timingConfigFields := result.(cadence.Struct).Fields
+
+	// A default epoch timing config should be set in the constructor
+	assertEqual(t, cadence.NewUInt64(expectedConfig.duration), timingConfigFields[0])
+	assertEqual(t, cadence.NewUInt64(expectedConfig.refCounter), timingConfigFields[1])
+	assert.InDelta(t, expectedConfig.refTimestamp, timingConfigFields[2].ToGoValue().(uint64), 30)
+}
+
 // / Verifies that the configurable epoch metadata is equal to the provided values
 func verifyConfigMetadata(
 	t *testing.T,
@@ -508,14 +582,9 @@ func verifyConfigMetadata(
 	result = executeScriptAndCheck(t, b, templates.GenerateGetEpochConfigMetadataScript(env), nil)
 	metadataFields := result.(cadence.Struct).Fields
 
-	views := metadataFields[0]
-	assertEqual(t, cadence.NewUInt64(expectedMetadata.numViewsInEpoch), views)
-
-	views = metadataFields[1]
-	assertEqual(t, cadence.NewUInt64(expectedMetadata.numViewsInStakingAuction), views)
-
-	views = metadataFields[2]
-	assertEqual(t, cadence.NewUInt64(expectedMetadata.numViewsInDKGPhase), views)
+	assertEqual(t, cadence.NewUInt64(expectedMetadata.numViewsInEpoch), metadataFields[0])
+	assertEqual(t, cadence.NewUInt64(expectedMetadata.numViewsInStakingAuction), metadataFields[1])
+	assertEqual(t, cadence.NewUInt64(expectedMetadata.numViewsInDKGPhase), metadataFields[2])
 
 	clusters := metadataFields[3]
 	assertEqual(t, cadence.NewUInt16(expectedMetadata.numCollectorClusters), clusters)
@@ -525,6 +594,40 @@ func verifyConfigMetadata(
 
 	result = executeScriptAndCheck(t, b, templates.GenerateGetEpochPhaseScript(env), nil)
 	assertEqual(t, cadence.NewUInt8(expectedMetadata.currentEpochPhase), result)
+}
+
+// Verifies that the epoch start event values are equal to the provided expected values
+func verifyEpochStart(
+	t *testing.T,
+	b emulator.Emulator,
+	adapter *adapters.SDKAdapter,
+	epochAddress flow.Address,
+	expectedStart EpochStart) {
+
+	var emittedEvent EpochStartEvent
+
+	results, _ := adapter.GetEventsForHeightRange(context.Background(), "A."+epochAddress.String()+".FlowEpoch.EpochStart", 0, 1000)
+	for _, result := range results {
+		for _, event := range result.Events {
+			if event.Type == "A."+epochAddress.String()+".FlowEpoch.EpochStart" {
+				emittedEvent = EpochStartEvent(event)
+				break
+			}
+		}
+	}
+
+	// counter
+	assertEqual(t, cadence.NewUInt64(expectedStart.counter), emittedEvent.Counter())
+
+	// views
+	assertEqual(t, cadence.NewUInt64(expectedStart.firstView), emittedEvent.firstView())
+	assertEqual(t, cadence.NewUInt64(expectedStart.stakingEndView), emittedEvent.stakingEndView())
+	assertEqual(t, cadence.NewUInt64(expectedStart.finalView), emittedEvent.finalView())
+
+	// FLOW amounts
+	assertEqual(t, CadenceUFix64(expectedStart.totalStaked), emittedEvent.totalStaked())
+	assertEqual(t, CadenceUFix64(expectedStart.totalSupply), emittedEvent.totalSupply())
+	assertEqual(t, CadenceUFix64(expectedStart.rewards), emittedEvent.rewards())
 
 }
 
@@ -569,6 +672,8 @@ func verifyEpochSetup(
 	assertEqual(t, cadence.NewUInt64(expectedSetup.dkgPhase1FinalView), phase1View)
 	assertEqual(t, cadence.NewUInt64(expectedSetup.dkgPhase2FinalView), phase2View)
 	assertEqual(t, cadence.NewUInt64(expectedSetup.dkgPhase3FinalView), phase3View)
+	assertEqual(t, cadence.NewUInt64(expectedSetup.targetDuration), emittedEvent.targetDuration())
+	assertEqual(t, cadence.NewUInt64(expectedSetup.targetEndTime), emittedEvent.targetEndTime())
 }
 
 // / Verifies that the EpochCommit event values are equal to the provided expected values
@@ -605,4 +710,15 @@ func verifyEpochCommit(
 	// quorum certificates
 	verifyClusterQCs(t, expectedCommitted.clusterQCs, emittedEvent.clusterQCs().Values)
 
+}
+
+// expectedTargetEndTime returns the expected `targetEndTime` for the given target epoch,
+// as a second-precision Unix time.
+func expectedTargetEndTime(timingConfig cadence.Value, targetEpoch uint64) uint64 {
+	fields := timingConfig.(cadence.Struct).Fields
+	duration := fields[0].ToGoValue().(uint64)
+	refCounter := fields[1].ToGoValue().(uint64)
+	refTimestamp := fields[2].ToGoValue().(uint64)
+
+	return refTimestamp + duration*(targetEpoch-refCounter)
 }

@@ -1,11 +1,16 @@
 import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
 
-// This transaction sets the slot limits for each node type 
+/// This transaction sets the slot limits for each node type 
 
-// slotLimits is a UInt16 array that contains the limit for
-// each node type in order from 0-4. It is used to populate
-// a dictionary that has keys shifted +1 so that they align
-// with the enumerated node types from 1-5
+/// slotLimits is a UInt16 array that contains the limit for
+/// each node type in order from 0-4. It is used to populate
+/// a dictionary that has keys shifted +1 so that they align
+/// with the enumerated node types from 1-5
+
+/// There is another mechanism which allows for a specified
+/// number of slots for each node role per epoch.
+/// If that mechanism has a value set for a node role, it will override
+/// whatever has been set with this transaction.
 
 transaction(slotLimits: [UInt16]) {
 

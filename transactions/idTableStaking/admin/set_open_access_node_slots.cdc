@@ -1,12 +1,11 @@
 import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
 
-// This transaction effectively ends the epoch and starts a new one.
-//
-// It combines the end_staking and move_tokens transactions
-// which ends the staking auction, which refunds nodes with insufficient stake
-// and moves tokens between buckets
+/// This transaction sets the open node slots for access nodes
+/// Open node slots are the number of slots that are open
+/// each epoch, regardless of how many nodes joined in the previous epoch.
+/// They are refreshed each epoch
 
-transaction(ids: {String: Bool}) {
+transaction(openAccessSlots: UInt16) {
 
     // Local variable for a reference to the ID Table Admin object
     let adminRef: &FlowIDTableStaking.Admin
@@ -18,10 +17,12 @@ transaction(ids: {String: Bool}) {
     }
 
     execute {
-        self.adminRef.setApprovedList(ids)
-        
-        self.adminRef.endStakingAuction()
 
-        self.adminRef.moveTokens(newEpochCounter: 2)
+        var openSlotDictionary: {UInt8: UInt16} = {}
+
+        openSlotDictionary.insert(key: 5, openAccessSlots)
+
+
+        self.adminRef.setOpenNodeSlots(openSlots: openSlotDictionary)
     }
 }
