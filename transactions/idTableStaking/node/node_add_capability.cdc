@@ -6,7 +6,7 @@ import FlowToken from "FlowToken"
 
 transaction {
 
-    prepare(acct: auth(BorrowValue) &Account) {
+    prepare(acct: auth(BorrowValue, Capabilities) &Account) {
 
         if acct.storage.borrow<auth(FlowIDTableStaking.NodeOperator) &FlowIDTableStaking.NodeStaker>(from: FlowIDTableStaking.NodeStakerStoragePath) == nil ||
             acct.capabilities.get<&{FlowIDTableStaking.NodeStakerPublic}>(FlowIDTableStaking.NodeStakerPublicPath)?.check() ?? false

@@ -4,7 +4,7 @@ import FungibleToken from "FungibleToken"
 
 transaction(nodeID: String, amount: UFix64) {
 
-    prepare(acct: auth(Storage) &Account) {
+    prepare(acct: auth(Storage, Capabilities) &Account) {
 
         let flowTokenRef = acct.storage.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)
             ?? panic("Could not borrow reference to FLOW Vault")
@@ -16,6 +16,6 @@ transaction(nodeID: String, amount: UFix64) {
         acct.storage.save(<-newDelegator, to: FlowIDTableStaking.DelegatorStoragePath)
 
         let delegatorCap = acct.capabilities.storage.issue<&{FlowIDTableStaking.NodeDelegatorPublic}>(FlowIDTableStaking.DelegatorStoragePath)
-        acct.capabilities.storage.issue(delegatorCap, at: /public/flowStakingDelegator)
+        acct.capabilities.publish(delegatorCap, at: /public/flowStakingDelegator)
     }
 }

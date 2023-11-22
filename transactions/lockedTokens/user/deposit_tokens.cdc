@@ -5,7 +5,7 @@ import LockedTokens from 0xLOCKEDTOKENADDRESS
 transaction(amount: UFix64) {
 
     let holderRef: &LockedTokens.TokenHolder
-    let vaultRef: &FlowToken.Vault
+    let vaultRef: auth(FungibleToken.Withdrawable) &FlowToken.Vault
 
     prepare(acct: auth(BorrowValue) &Account) {
         self.holderRef = acct.storage.borrow<&LockedTokens.TokenHolder>(from: LockedTokens.TokenHolderStoragePath)

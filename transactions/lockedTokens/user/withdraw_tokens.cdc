@@ -4,14 +4,14 @@ import LockedTokens from 0xLOCKEDTOKENADDRESS
 
 transaction(amount: UFix64) {
 
-    let holderRef: &LockedTokens.TokenHolder
-    let vaultRef: &FlowToken.Vault
+    let holderRef: auth(LockedTokens.TokenOperations, FungibleToken.Withdrawable) &LockedTokens.TokenHolder
+    let vaultRef: auth(FungibleToken.Withdrawable) &FlowToken.Vault
 
     prepare(acct: auth(BorrowValue) &Account) {
-        self.holderRef = acct.storage.borrow<&LockedTokens.TokenHolder>(from: LockedTokens.TokenHolderStoragePath)
+        self.holderRef = acct.storage.borrow<auth(LockedTokens.TokenOperations, FungibleToken.Withdrawable) &LockedTokens.TokenHolder>(from: LockedTokens.TokenHolderStoragePath)
             ?? panic("Could not borrow a reference to TokenHolder")
 
-        self.vaultRef = acct.storage.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)
+        self.vaultRef = acct.storage.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)
             ?? panic("Could not borrow flow token vault ref")
     }
 

@@ -40,7 +40,7 @@ access(all) fun main(address: Address): UFix64 {
     let optionalDelegatorRef = account
         .capabilities.borrow<&{FlowIDTableStaking.NodeDelegatorPublic}>(
             /public/flowStakingDelegator
-        )!
+        )
 
     if let delegatorRef = optionalDelegatorRef {
         let delegatorInfo = FlowIDTableStaking.DelegatorInfo(

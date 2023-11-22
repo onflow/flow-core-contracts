@@ -174,6 +174,20 @@ func FlowFees(fungibleTokenAddress, flowTokenAddress, storageFees string) []byte
 		withHexPrefix(storageFees),
 	)
 
+	// Replace the init method storage operations
+	code = strings.ReplaceAll(
+		code,
+		"self.account.storage.save(<-admin, to: /storage/flowFeesAdmin)",
+		"adminAccount.storage.save(<-admin, to: /storage/flowFeesAdmin)",
+	)
+
+	// Replace the init method admin account parameter
+	code = strings.ReplaceAll(
+		code,
+		"init()",
+		"init(adminAccount: auth(SaveValue) &Account)",
+	)
+
 	return []byte(code)
 }
 
@@ -393,8 +407,6 @@ func TESTFlowStakingCollection(
 	code = strings.ReplaceAll(code, placeholderDKGAddr, withHexPrefix(dkgAddress))
 	code = strings.ReplaceAll(code, placeholderEpochAddr, withHexPrefix(epochAddress))
 
-	code = strings.ReplaceAll(code, "access(self)", "pub")
-
 	return []byte(code)
 }
 
@@ -417,18 +429,6 @@ func TestFlowFees(fungibleTokenAddress, flowTokenAddress, storageFeesAddress str
 		code,
 		placeholderStorageFeesAddress,
 		withHexPrefix(storageFeesAddress),
-	)
-
-	code = strings.ReplaceAll(
-		code,
-		"init(adminAccount: &Account)",
-		"init()",
-	)
-
-	code = strings.ReplaceAll(
-		code,
-		"adminAccount.save(<-admin, to: /storage/flowFeesAdmin)",
-		"self.account.storage.save(<-admin, to: /storage/flowFeesAdmin)",
 	)
 
 	return []byte(code)

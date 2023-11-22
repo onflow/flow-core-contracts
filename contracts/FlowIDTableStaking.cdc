@@ -448,7 +448,7 @@ access(all) contract FlowIDTableStaking {
         /// Tells whether the node is a new node who currently is not participating with tokens staked
         /// and has enough committed for the next epoch for its role
         access(self) fun isEligibleForCandidateNodeStatus(_ nodeRecord: &FlowIDTableStaking.NodeRecord): Bool {
-            let participantList = FlowIDTableStaking.account.borrow<&{String: Bool}>(from: /storage/idTableCurrentList)!
+            let participantList = FlowIDTableStaking.account.storage.borrow<&{String: Bool}>(from: /storage/idTableCurrentList)!
             if participantList[nodeRecord.id] == true {
                 return false
             }
@@ -951,8 +951,8 @@ access(all) contract FlowIDTableStaking {
                 openSlots[5] != nil: "Need to have a value set for access nodes"
             }
 
-            FlowIDTableStaking.account.load<{UInt8: UInt16}>(from: /storage/flowStakingOpenNodeSlots)
-            FlowIDTableStaking.account.save(openSlots, to: /storage/flowStakingOpenNodeSlots)
+            FlowIDTableStaking.account.storage.load<{UInt8: UInt16}>(from: /storage/flowStakingOpenNodeSlots)
+            FlowIDTableStaking.account.storage.save(openSlots, to: /storage/flowStakingOpenNodeSlots)
         }
 
         /// Sets a list of node IDs who will not receive rewards for the current epoch
@@ -968,8 +968,8 @@ access(all) contract FlowIDTableStaking {
                     message: "Percentage value to decrease rewards payout should be between 0 and 1"
                 )
             }
-            FlowIDTableStaking.account.load<{String: UFix64}>(from: /storage/idTableNonOperationalNodesList)
-            FlowIDTableStaking.account.save<{String: UFix64}>(nodeIDs, to: /storage/idTableNonOperationalNodesList)
+            FlowIDTableStaking.account.storage.load<{String: UFix64}>(from: /storage/idTableNonOperationalNodesList)
+            FlowIDTableStaking.account.storage.save<{String: UFix64}>(nodeIDs, to: /storage/idTableNonOperationalNodesList)
         }
 
         /// Allows the protocol to set a specific weight for a node
@@ -1047,7 +1047,7 @@ access(all) contract FlowIDTableStaking {
                 FlowIDTableStaking.account.storage.save(currentRoleNodeCounts, to: /storage/flowStakingRoleNodeCounts)
             }
 
-            var movesPendingList = FlowIDTableStaking.account.borrow<&{String: {UInt32: Bool}}>(from: /storage/idTableMovesPendingList)
+            var movesPendingList = FlowIDTableStaking.account.storage.borrow<auth(Mutate) &{String: {UInt32: Bool}}>(from: /storage/idTableMovesPendingList)
                 ?? panic("No moves pending list in account storage")
 
             // Iterate through all delegators and unstake their tokens
@@ -1109,8 +1109,8 @@ access(all) contract FlowIDTableStaking {
                 proposedNodeList[id] = true
             }
 
-            FlowIDTableStaking.account.load<Bool>(from: /storage/stakingEnabled)
-            FlowIDTableStaking.account.save(false, to: /storage/stakingEnabled)
+            FlowIDTableStaking.account.storage.load<Bool>(from: /storage/stakingEnabled)
+            FlowIDTableStaking.account.storage.save(false, to: /storage/stakingEnabled)
 
             return proposedNodeList.keys
         }
@@ -1251,8 +1251,8 @@ access(all) contract FlowIDTableStaking {
                 }
             }
 
-            FlowIDTableStaking.account.load<{UInt8: UInt16}>(from: /storage/flowStakingRoleNodeCounts)
-            FlowIDTableStaking.account.save(currentNodeCount, to: /storage/flowStakingRoleNodeCounts)
+            FlowIDTableStaking.account.storage.load<{UInt8: UInt16}>(from: /storage/flowStakingRoleNodeCounts)
+            FlowIDTableStaking.account.storage.save(currentNodeCount, to: /storage/flowStakingRoleNodeCounts)
 
             self.setSlotLimits(slotLimits: slotLimits)
 
@@ -1315,7 +1315,7 @@ access(all) contract FlowIDTableStaking {
             if feeBalance >= totalRewards {
                 fromFees = totalRewards
             }
-            emit EpochTotalRewardsPaid(total: totalRewards, fromFees: fromFees, minted: mintedRewards, feesBurned: rewardsVault.balance, epochCounterForRewards: forEpochCounter)
+            emit EpochTotalRewardsPaid(total: totalRewards, fromFees: fromFees, minted: mintedRewards, feesBurned: rewardsVault.getBalance(), epochCounterForRewards: forEpochCounter)
 
             // Clear the non-operational node list so it doesn't persist to the next rewards payment
             let emptyNodeList: {String: UFix64} = {}
@@ -1473,8 +1473,8 @@ access(all) contract FlowIDTableStaking {
 
             // Reset the movesPendingList
             var emptyMovesPendingList: {String: {UInt32: Bool}} = {}
-            FlowIDTableStaking.account.save(emptyMovesPendingList, to: /storage/idTableMovesPendingList)
-            let newMovesPendingList = FlowIDTableStaking.account.borrow<&{String: {UInt32: Bool}}>(from: /storage/idTableMovesPendingList)
+            FlowIDTableStaking.account.storage.save(emptyMovesPendingList, to: /storage/idTableMovesPendingList)
+            let newMovesPendingList = FlowIDTableStaking.account.storage.borrow<auth(Mutate) &{String: {UInt32: Bool}}>(from: /storage/idTableMovesPendingList)
                 ?? panic("No moves pending list in account storage")
 
             let stakedNodeIDs: {String: Bool} = FlowIDTableStaking.getParticipantNodeList()!
@@ -1676,7 +1676,7 @@ access(all) contract FlowIDTableStaking {
     /// Updates a claimed boolean for a specific path to indicate that
     /// a piece of node metadata has been claimed by a node
     access(account) fun updateClaimed(path: StoragePath, _ key: String, claimed: Bool) {
-        let claimedDictionary = self.account.borrow<&{String: Bool}>(from: path)
+        let claimedDictionary = self.account.storage.borrow<auth(Mutate) &{String: Bool}>(from: path)
             ?? panic("Invalid path for dictionary")
 
         if claimed {
@@ -1711,28 +1711,30 @@ access(all) contract FlowIDTableStaking {
     /// If `existingList` is non-`nil`, this modifies the given list instead of loading from storage
     access(contract) fun modifyNewMovesPending(nodeID: String,
                                                delegatorID: UInt32?,
-                                               existingList: &{String: {UInt32: Bool}}?)
+                                               existingList: auth(Mutate) &{String: {UInt32: Bool}}?)
     {
-        let movesPendingList = existingList ?? (self.account.borrow<&{String: {UInt32: Bool}}>(from: /storage/idTableMovesPendingList)
+        let movesPendingList = existingList ?? (self.account.storage.borrow<auth(Mutate) &{String: {UInt32: Bool}}>(from: /storage/idTableMovesPendingList)
             ?? panic("No moves pending list in account storage"))
 
-        // Create an empty list of delegators with pending moves for the node ID
-        var delegatorList: {UInt32: Bool} = {}
-
         // If there is already a list for the given node ID, overwrite the created one
-        if let existingDelegatorList = movesPendingList[nodeID] {
-            delegatorList = existingDelegatorList
-        }
+        if let existingDelegatorList = movesPendingList.remove(key: nodeID) {
 
-        // If this function call is to record a delegator's movement,
-        // record the ID
-        if let unwrappedDelegatorID = delegatorID {
-            delegatorList[unwrappedDelegatorID] = true
+            // If this function call is to record a delegator's movement,
+            // record the ID
+            if let unwrappedDelegatorID = delegatorID {
+                existingDelegatorList[unwrappedDelegatorID] = true
+            }
+            movesPendingList[nodeID] = existingDelegatorList
+        } else {
+            // Create an empty list of delegators with pending moves for the node ID
+            var delegatorList: {UInt32: Bool} = {}
+            // If this function call is to record a delegator's movement,
+            // record the ID
+            if let unwrappedDelegatorID = delegatorID {
+                delegatorList[unwrappedDelegatorID] = true
+            }
+            movesPendingList[nodeID] = delegatorList
         }
-
-        // Save the modified list to the node's entry
-        // If it was just a node, it will save an empty/unmodified delegator list
-        movesPendingList[nodeID] = delegatorList
     }
 
     /// Gets a list of node IDs who have pending token movements
@@ -1758,8 +1760,9 @@ access(all) contract FlowIDTableStaking {
             roleToAdd >= UInt8(1) && roleToAdd <= UInt8(5): "The role must be 1, 2, 3, 4, or 5"
         }
 
-        var candidateNodes = FlowIDTableStaking.account.borrow<&{UInt8: {String: Bool}}>(from: /storage/idTableCandidateNodes)!
-        var candidateNodesForRole = candidateNodes[roleToAdd]!
+        var candidateNodes = FlowIDTableStaking.account.storage.borrow<auth(Mutate) &{UInt8: {String: Bool}}>(from: /storage/idTableCandidateNodes)!
+        var candidateNodesForRole = candidateNodes.remove(key: roleToAdd)
+            ?? panic("Could not get candidate nodes for role: ".concat(roleToAdd.toString()))
 
         if UInt64(candidateNodesForRole.keys.length) >= self.getCandidateNodeLimits()![roleToAdd]! {
             panic("Candidate node limit exceeded for node role ".concat(roleToAdd.toString()))
@@ -1775,9 +1778,10 @@ access(all) contract FlowIDTableStaking {
             role >= UInt8(1) && role <= UInt8(5): "The role must be 1, 2, 3, 4, or 5"
         }
 
-        var candidateNodes = FlowIDTableStaking.account.borrow<&{UInt8: {String: Bool}}>(from: /storage/idTableCandidateNodes)
+        var candidateNodes = FlowIDTableStaking.account.storage.borrow<auth(Mutate) &{UInt8: {String: Bool}}>(from: /storage/idTableCandidateNodes)
             ?? panic("Could not load candidate node list from storage")
-        var candidateNodesForRole = candidateNodes[role]!
+        var candidateNodesForRole = candidateNodes.remove(key: role)
+            ?? panic("Could not get candidate nodes for role: ".concat(role.toString()))
         
         candidateNodesForRole.remove(key: nodeID)
         candidateNodes[role] = candidateNodesForRole
@@ -1797,8 +1801,8 @@ access(all) contract FlowIDTableStaking {
 
     /// Gets the number of auto-opened slots for each node role. 
     access(all) fun getOpenNodeSlots(): {UInt8: UInt16} {
-        return FlowIDTableStaking.account.copy<{UInt8: UInt16}>(from: /storage/flowStakingOpenNodeSlots)
-            ?? {}
+        return FlowIDTableStaking.account.storage.copy<{UInt8: UInt16}>(from: /storage/flowStakingOpenNodeSlots)
+            ?? ({} as {UInt8: UInt16})
     }
 
     /// Returns a dictionary that indicates how many participant nodes there are for each role

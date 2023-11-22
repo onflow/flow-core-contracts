@@ -9,8 +9,6 @@ import (
 
 	"github.com/onflow/flow-go/module/signature"
 
-	"github.com/onflow/flow-go/module/signature"
-
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/stretchr/testify/assert"
@@ -97,7 +95,7 @@ func TestEpochClusters(t *testing.T) {
 
 	// Deploys the staking contract, qc, dkg, and epoch lifecycle contract
 	// staking contract is deployed with default values (1.25M rewards, 8% cut)
-	idTableAddress, _ := initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
+	_, _ = initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
 		startEpochCounter, // start epoch counter
 		numEpochViews,     // num views per epoch
 		numStakingViews,   // num views for staking auction
@@ -106,55 +104,39 @@ func TestEpochClusters(t *testing.T) {
 		randomSource,      // random source
 		rewardIncreaseFactor)
 
-	// t.Run("Should be able to randomize an array of strings", func(t *testing.T) {
+	t.Run("Should be able to randomize an array of strings", func(t *testing.T) {
 
-	// 	adminString, _ := cadence.NewString(adminID)
-	// 	joshString, _ := cadence.NewString(joshID)
-	// 	maxString, _ := cadence.NewString(maxID)
-	// 	accessString, _ := cadence.NewString(accessID)
-	// 	idArray := cadence.NewArray([]cadence.Value{adminString, joshString, maxString, accessString})
-	// 	result := executeScriptAndCheck(t, b, templates.GenerateGetRandomizeScript(env), [][]byte{jsoncdc.MustEncode(idArray)})
-	// 	assertEqual(t, 4, len(result.(cadence.Array).Values))
+		adminString, _ := cadence.NewString(adminID)
+		joshString, _ := cadence.NewString(joshID)
+		maxString, _ := cadence.NewString(maxID)
+		accessString, _ := cadence.NewString(accessID)
+		idArray := cadence.NewArray([]cadence.Value{adminString, joshString, maxString, accessString})
+		result := executeScriptAndCheck(t, b, templates.GenerateGetRandomizeScript(env), [][]byte{jsoncdc.MustEncode(idArray)})
+		assertEqual(t, 4, len(result.(cadence.Array).Values))
 
-	// })
-
-	code := `
-	transaction {
-		prepare(acct: AuthAccount) {
-			let number = unsafeRandom()
-		}
-	}`
-
-	tx := createTxWithTemplateAndAuthorizer(b, []byte(fmt.Sprintf(code)), idTableAddress)
-	signAndSubmit(
-		t, b, tx,
-		[]flow.Address{idTableAddress},
-		[]crypto.Signer{IDTableSigner},
-		false,
-	)
+	})
 
 	// create new user accounts, mint tokens for them, and register them for staking
-	// addresses, _, signers := registerAndMintManyAccounts(t, b, env, accountKeys, numEpochAccounts)
-	// ids, _, _ := generateNodeIDs(numEpochAccounts)
-	// _, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
-	// registerNodesForStaking(t, b, env,
-	// 	addresses,
-	// 	signers,
-	// 	stakingPublicKeys,
-	// 	networkingPublicKeys,
-	// 	ids)
+	addresses, _, signers := registerAndMintManyAccounts(t, b, env, accountKeys, numEpochAccounts)
+	ids, _, _ := generateNodeIDs(numEpochAccounts)
+	_, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
+	registerNodesForStaking(t, b, env,
+		addresses,
+		signers,
+		stakingPublicKeys,
+		networkingPublicKeys,
+		ids)
 
-	// t.Run("Should be able to create collector clusters from an array of ids signed up for staking", func(t *testing.T) {
-	// 	string0, _ := cadence.NewString(ids[0])
-	// 	string1, _ := cadence.NewString(ids[1])
-	// 	string2, _ := cadence.NewString(ids[2])
-	// 	string3, _ := cadence.NewString(ids[3])
-	// 	idArray := cadence.NewArray([]cadence.Value{string0, string1, string2, string3})
-	// 	result := executeScriptAndCheck(t, b, templates.GenerateGetCreateClustersScript(env), [][]byte{jsoncdc.MustEncode(idArray)})
-	// 	assertEqual(t, 2, len(result.(cadence.Array).Values))
+	t.Run("Should be able to create collector clusters from an array of ids signed up for staking", func(t *testing.T) {
+		string0, _ := cadence.NewString(ids[0])
+		string1, _ := cadence.NewString(ids[1])
+		string2, _ := cadence.NewString(ids[2])
+		string3, _ := cadence.NewString(ids[3])
+		idArray := cadence.NewArray([]cadence.Value{string0, string1, string2, string3})
+		result := executeScriptAndCheck(t, b, templates.GenerateGetCreateClustersScript(env), [][]byte{jsoncdc.MustEncode(idArray)})
+		assertEqual(t, 2, len(result.(cadence.Array).Values))
 
-	//
-	// })
+	})
 
 }
 

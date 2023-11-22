@@ -25,44 +25,37 @@ transaction(
         userAccount.keys.add(publicKey: fullUserPublicKey.publicKey, hashAlgorithm: fullUserPublicKey.hashAlgorithm, weight: fullUserPublicKey.weight)
 
         // Create a private link to the stored vault
-        let vaultCapability = sharedAccount
-            .link<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(
-                /private/flowTokenVault,
-                target: /storage/flowTokenVault
-            )
-            ?? panic("Could not link Flow Token Vault capability")
+        let vaultCapability = sharedAccount.capabilities.storage.issue
+            <auth(FungibleToken.Withdrawable) &FlowToken.Vault>
+            (/storage/flowTokenVault)
 
         // create a locked token manager and stored it in the shared account
         let lockedTokenManager <- LockedTokens.createLockedTokenManager(vault: vaultCapability)
-        sharedAccount.save(<-lockedTokenManager, to: LockedTokens.LockedTokenManagerStoragePath)
+        sharedAccount.storage.save(<-lockedTokenManager, to: LockedTokens.LockedTokenManagerStoragePath)
 
         let tokenManagerCapability = sharedAccount
-            .link<auth(FungibleToken.Withdrawable) &LockedTokens.LockedTokenManager>(
-                LockedTokens.LockedTokenManagerPrivatePath,
-                target: LockedTokens.LockedTokenManagerStoragePath
-        )   ?? panic("Could not link token manager capability")
+            .capabilities.storage.issue<auth(FungibleToken.Withdrawable) &LockedTokens.LockedTokenManager>(
+                LockedTokens.LockedTokenManagerStoragePath)
 
         let tokenHolder <- LockedTokens.createTokenHolder(
             lockedAddress: sharedAccount.address,
             tokenManager: tokenManagerCapability
         )
 
-        userAccount.save(
+        userAccount.storage.save(
             <-tokenHolder,
             to: LockedTokens.TokenHolderStoragePath
         )
 
-        userAccount.link<&LockedTokens.TokenHolder>(
-            LockedTokens.LockedAccountInfoPublicPath,
-            target: LockedTokens.TokenHolderStoragePath
+        let infoCap = userAccount.capabilities.storage.issue<&LockedTokens.TokenHolder>(
+            LockedTokens.TokenHolderStoragePath
         )
+        userAccount.capabilities.publish(infoCap, at: LockedTokens.LockedAccountInfoPublicPath)
 
         let tokenAdminCapability = sharedAccount
-            .link<auth(FungibleToken.Withdrawable) &LockedTokens.LockedTokenManager>(
-                LockedTokens.LockedTokenAdminPrivatePath,
-                target: LockedTokens.LockedTokenManagerStoragePath
+            .capabilities.storage.issue<auth(FungibleToken.Withdrawable) &LockedTokens.LockedTokenManager>(
+                LockedTokens.LockedTokenManagerStoragePath
             )
-            ?? panic("Could not link token admin to token manager")
 
         let tokenAdminCollection = admin.storage
             .borrow<&LockedTokens.TokenAdminCollection>(
@@ -80,15 +73,15 @@ transaction(
         sharedAccount.capabilities.unpublish(/public/flowTokenReceiver)
 
         // create new receiver that marks received tokens as unlocked
-        let lockedTokensManagerCap = sharedAccount.capabilties.storage.issue<&{FungibleToken.Receiver}>(LockedTokens.LockedTokenManagerStoragePath)
-        sharedAccount.capabilties.publish(
+        let lockedTokensManagerCap = sharedAccount.capabilities.storage.issue<&{FungibleToken.Receiver}>(LockedTokens.LockedTokenManagerStoragePath)
+        sharedAccount.capabilities.publish(
             lockedTokensManagerCap,
             at: /public/flowTokenReceiver
         )
 
         // put normal receiver in a separate unique path
-        let tokenReceiverCap = sharedAccount.capabilties.storage.issue<&{FungibleToken.Receiver}>(/storage/flowTokenVault)
-        sharedAccount.capabilties.publish(
+        let tokenReceiverCap = sharedAccount.capabilities.storage.issue<&{FungibleToken.Receiver}>(/storage/flowTokenVault)
+        sharedAccount.capabilities.publish(
             tokenReceiverCap,
             at: /public/lockedFlowTokenReceiver
         )

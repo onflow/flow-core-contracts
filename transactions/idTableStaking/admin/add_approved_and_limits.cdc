@@ -33,7 +33,7 @@ transaction(newApprovedIDs: [String]) {
     			continue
 			}
 
-			let nodeInfo = FlowIDTableStaking.NodeInfo(newNodeID)
+			let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: newNodeID)
 
 			slotLimits[nodeInfo.role] = slotLimits[nodeInfo.role]! + 1
 

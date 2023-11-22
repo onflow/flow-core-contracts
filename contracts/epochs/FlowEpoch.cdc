@@ -403,8 +403,8 @@ access(all) contract FlowEpoch {
             pre {
                 FlowEpoch.currentEpochCounter >= newConfig.refCounter: "Reference epoch must be before next epoch"
             }
-            FlowEpoch.account.load<EpochTimingConfig>(from: /storage/flowEpochTimingConfig)
-            FlowEpoch.account.save(newConfig, to: /storage/flowEpochTimingConfig)
+            FlowEpoch.account.storage.load<EpochTimingConfig>(from: /storage/flowEpochTimingConfig)
+            FlowEpoch.account.storage.save(newConfig, to: /storage/flowEpochTimingConfig)
         }
 
         access(all) fun updateNumCollectorClusters(_ newNumClusters: UInt16) {
@@ -928,7 +928,7 @@ access(all) contract FlowEpoch {
     /// Conceptually, this should be part of `Config`, however it was added later in an
     /// upgrade which requires new fields be specified separately from existing structs.
     access(all) fun getEpochTimingConfig(): EpochTimingConfig {
-        return self.account.copy<EpochTimingConfig>(from: /storage/flowEpochTimingConfig)!
+        return self.account.storage.copy<EpochTimingConfig>(from: /storage/flowEpochTimingConfig)!
     }
 
     /// The proposed Epoch counter is always the current counter plus 1
@@ -978,7 +978,7 @@ access(all) contract FlowEpoch {
             duration: numViewsInEpoch,
             refCounter: currentEpochCounter,
             refTimestamp: UInt64(getCurrentBlock().timestamp)+numViewsInEpoch)
-        FlowEpoch.account.save(defaultEpochTimingConfig, to: /storage/flowEpochTimingConfig)
+        FlowEpoch.account.storage.save(defaultEpochTimingConfig, to: /storage/flowEpochTimingConfig)
 
         self.currentEpochCounter = currentEpochCounter
         self.currentEpochPhase = EpochPhase.STAKINGAUCTION
