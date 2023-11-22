@@ -182,11 +182,11 @@ access(all) contract FlowFees {
         return totalFees
     }
 
-    init(adminAccount: auth(SaveValue) &Account) {
+    init() {
         // Create a new FlowToken Vault and save it in storage
         self.vault <- FlowToken.createEmptyVault() as! @FlowToken.Vault
 
         let admin <- create Administrator()
-        adminAccount.storage.save(<-admin, to: /storage/flowFeesAdmin)
+        self.account.storage.save(<-admin, to: /storage/flowFeesAdmin)
     }
 }

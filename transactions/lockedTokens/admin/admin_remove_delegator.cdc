@@ -1,4 +1,4 @@
-import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
+import FlowIDTableStaking from "FlowIDTableStaking"
 import LockedTokens from 0xLOCKEDTOKENADDRESS
 
 transaction {

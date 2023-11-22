@@ -5,12 +5,12 @@ import FungibleToken from "FungibleToken"
 
 transaction(id: String, amount: UFix64) {
 
-    let holderRef: &LockedTokens.TokenHolder
+    let holderRef: auth(LockedTokens.TokenOperations, FungibleToken.Withdrawable) &LockedTokens.TokenHolder
 
-    let vaultRef: &FlowToken.Vault
+    let vaultRef: auth(FungibleToken.Withdrawable) &FlowToken.Vault
 
     prepare(account: auth(BorrowValue) &Account) {
-        self.holderRef = account.storage.borrow<&LockedTokens.TokenHolder>(from: LockedTokens.TokenHolderStoragePath)
+        self.holderRef = account.storage.borrow<auth(LockedTokens.TokenOperations, FungibleToken.Withdrawable) &LockedTokens.TokenHolder>(from: LockedTokens.TokenHolderStoragePath)
             ?? panic("TokenHolder is not saved at specified path")
 
         self.vaultRef = account.storage.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)

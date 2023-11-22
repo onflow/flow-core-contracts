@@ -8,7 +8,7 @@ import LockedTokens from 0xLOCKEDTOKENADDRESS
 
 transaction(unlockInfo: {Address: UFix64}) {
 
-    prepare(admin: auth(Storage) &Account) {
+    prepare(admin: auth(Storage, Capabilities) &Account) {
 
         // Unlocked Account addresses that had some sort of error
         // are stored in this dictionary so they can be inspected later
