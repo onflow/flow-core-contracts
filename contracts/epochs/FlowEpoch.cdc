@@ -511,7 +511,13 @@ pub contract FlowEpoch {
 
             let proposedNodeIDs = FlowEpoch.endStakingAuction()
 
-            FlowEpoch.startEpochSetup(proposedNodeIDs: proposedNodeIDs, randomSource: unsafeRandom().toString())
+            /// random source must be a hex string of 32 characters (i.e 16 bytes or 128 bits)
+            /// `revertibleRandom` returns a UInt64 (8 bytes)
+            let randomLow = revertibleRandom().toBigEndianBytes()
+            let randomHigh = revertibleRandom().toBigEndianBytes()
+            var randomSource = String.encodeHex(randomHigh).concat(String.encodeHex(randomLow))
+
+            FlowEpoch.startEpochSetup(proposedNodeIDs: proposedNodeIDs, randomSource: randomSource)
         }
 
         /// Calls `FlowEpoch` functions to end the Epoch Setup phase
