@@ -516,6 +516,10 @@ pub contract FlowEpoch {
             let randomLow = revertibleRandom().toBigEndianBytes()
             let randomHigh = revertibleRandom().toBigEndianBytes()
             var randomSource = String.encodeHex(randomHigh).concat(String.encodeHex(randomLow))
+            assert (
+                randomSource.length == 32,
+                message: "Random source must be a hex string of 32 characters"
+            ) 
 
             FlowEpoch.startEpochSetup(proposedNodeIDs: proposedNodeIDs, randomSource: randomSource)
         }
