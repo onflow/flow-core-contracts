@@ -886,6 +886,8 @@ github.com/onflow/cadence v1.0.0-preview.1 h1:Y/q/43aDc93/1Atsxx3+e2V/dZiQuF1Tqk
 github.com/onflow/cadence v1.0.0-preview.1/go.mod h1:Q5Up9Kt+J6zuAFmgrsiKz6t//E/hR5/iuVjH62pdztk=
 github.com/onflow/flow-ft/lib/go/contracts v0.7.1-0.20231121165523-9e68e5a6ce6a h1:pDUUKxDmHpO7P7lRUu2Niq0VbCcKU9IWEHclbTI37m0=
 github.com/onflow/flow-ft/lib/go/contracts v0.7.1-0.20231121165523-9e68e5a6ce6a/go.mod h1:uugR8U8Rlk2Xbn1ne7WWkPIcLReOyyXeQ/6tBg2Lsu8=
+github.com/onflow/flow-ft/lib/go/contracts v0.7.1-0.20231201182806-a95f9ec50b08 h1:52o4zeQlBhn0EGkg/AWudypTYKr4nmKkT5qxfD0L9Hw=
+github.com/onflow/flow-ft/lib/go/contracts v0.7.1-0.20231201182806-a95f9ec50b08/go.mod h1:uugR8U8Rlk2Xbn1ne7WWkPIcLReOyyXeQ/6tBg2Lsu8=
 github.com/onflow/flow-go-sdk v0.41.7-stable-cadence/go.mod h1:ejVN+bqcsTHVvRpDDJDoBNdmcxUfFMW4IvdTbMeQ/hQ=
 github.com/onflow/flow-go-sdk v0.44.0-stable-cadence.2 h1:vUVO6m85BiT8c50Oc8YGc3CU+sGqiKW9FZbmiRph2dU=
 github.com/onflow/flow-go-sdk v0.44.0-stable-cadence.2/go.mod h1:mbLrR3MkYbi9LH3yasDj1jrR4QTR8vjRLVFCm4jMHn0=
@@ -895,6 +897,8 @@ github.com/onflow/flow-nft/lib/go/contracts v1.1.1-0.20230921055127-6493dc1ba948
 github.com/onflow/flow-nft/lib/go/contracts v1.1.1-0.20230921055127-6493dc1ba948/go.mod h1:cWMAsK1grBHKPIKxYVUv2rX+Nz0Ttq+PEQz4OjqCmpU=
 github.com/onflow/flow-nft/lib/go/contracts v1.1.1-0.20231120214141-b11e79f1bb27 h1:qm4ErSz3B3lsdVy/usLYpLvpzibbG6xQTkxAIcmYuDs=
 github.com/onflow/flow-nft/lib/go/contracts v1.1.1-0.20231120214141-b11e79f1bb27/go.mod h1:OKA2xWNugqqbaFSmxdb1VWixtuqSdz/VK1MlbdcIUxw=
+github.com/onflow/flow-nft/lib/go/contracts v1.1.1-0.20231204201122-eb1dd9560768 h1:MxeL05qV/fKEkrQhAmjJ8D9W2r8BuKfpljc1EOlg1q4=
+github.com/onflow/flow-nft/lib/go/contracts v1.1.1-0.20231204201122-eb1dd9560768/go.mod h1:OKA2xWNugqqbaFSmxdb1VWixtuqSdz/VK1MlbdcIUxw=
 github.com/onflow/flow/protobuf/go/flow v0.3.2-0.20221202093946-932d1c70e288/go.mod h1:gQxYqCfkI8lpnKsmIjwtN2mV/N2PIwc1I+RUK4HPIc8=
 github.com/onflow/sdks v0.5.0/go.mod h1:F0dj0EyHC55kknLkeD10js4mo14yTdMotnWMslPirrU=
 github.com/onflow/sdks v0.5.1-0.20230912225508-b35402f12bba/go.mod h1:F0dj0EyHC55kknLkeD10js4mo14yTdMotnWMslPirrU=

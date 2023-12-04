@@ -104,23 +104,6 @@ access(all) contract FlowToken: ViewResolver {
             destroy vault
         }
 
-        access(FungibleToken.Withdrawable) fun transfer(amount: UFix64, receiver: Capability<&{FungibleToken.Receiver}>) {
-            let transferVault <- self.withdraw(amount: amount)
-
-            // Get a reference to the recipient's Receiver
-            let receiverRef = receiver.borrow()
-                ?? panic("Could not borrow receiver reference to the recipient's Vault")
-
-            // Deposit the withdrawn tokens in the recipient's receiver
-            receiverRef.deposit(from: <-transferVault)
-        }
-
-        destroy() {
-            if self.balance > 0.0 {
-                FlowToken.totalSupply = FlowToken.totalSupply - self.balance
-            }
-        }
-
         /// Get all the Metadata Views implemented by FlowToken
         ///
         /// @return An array of Types defining the implemented views. This value will be used by
@@ -275,9 +258,16 @@ access(all) contract FlowToken: ViewResolver {
         // total supply in the Vault destructor.
         //
         access(all) fun burnTokens(from: @FlowToken.Vault) {
-            let vault <- from as! @FlowToken.Vault
-            let amount = vault.balance
-            destroy vault
+            FlowToken.burnTokens(from: <-from)
+        }
+    }
+
+    access(all) fun burnTokens(from: @FlowToken.Vault) {
+        let vault <- from as! @FlowToken.Vault
+        let amount = vault.balance
+        destroy vault
+        if amount > 0.0 {
+            FlowToken.totalSupply = FlowToken.totalSupply - amount
             emit TokensBurned(amount: amount)
         }
     }
