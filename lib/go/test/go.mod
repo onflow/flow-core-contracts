@@ -5,8 +5,6 @@ go 1.18
 require (
 	github.com/coreos/go-semver v0.3.0
 	github.com/onflow/cadence v0.42.5
-	github.com/onflow/flow-core-contracts/lib/go/contracts v1.2.4-0.20231016154253-a00dbf7c061f
-	github.com/onflow/flow-core-contracts/lib/go/templates v1.2.4-0.20231016154253-a00dbf7c061f
 	github.com/onflow/flow-emulator v0.58.0
 	github.com/onflow/flow-go v0.32.4-0.20231115172515-c1ec969fd6f2
 	github.com/onflow/flow-go-sdk v0.41.16
@@ -181,6 +179,13 @@ require (
 	modernc.org/mathutil v1.5.0 // indirect
 	modernc.org/memory v1.5.0 // indirect
 	modernc.org/sqlite v1.21.1 // indirect
+)
+
+require (
+	// replaced by module version in this repo - disregard pinned version
+	github.com/onflow/flow-core-contracts/lib/go/contracts v1.2.4-0.20231016154253-a00dbf7c061f
+	// replaced by module version in this repo - disregard pinned version
+	github.com/onflow/flow-core-contracts/lib/go/templates v1.2.4-0.20231016154253-a00dbf7c061f
 )
 
 replace github.com/onflow/flow-core-contracts/lib/go/contracts => ../contracts
