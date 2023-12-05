@@ -44,6 +44,6 @@ require (
 // despite it being several months old and many revisions behind the tip.
 // This retract block is based on https://go.dev/ref/mod#go-mod-file-retract.
 retract (
-	v1.2.3 // accidentally published with out-of-order tag
 	v1.2.4 // contains retraction only
+	v1.2.3 // accidentally published with out-of-order tag
 )
