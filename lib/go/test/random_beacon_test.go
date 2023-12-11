@@ -14,6 +14,11 @@ import (
 func TestRandomBeaconHistory(t *testing.T) {
 	_, adapter := newBlockchain()
 
+	// env := templates.Environment{
+	// 	FungibleTokenAddress: emulatorFTAddress,
+	// 	FlowTokenAddress:     emulatorFlowTokenAddress,
+	// }
+
 	accountKeys := test.AccountKeyGenerator()
 
 	// Create new keys for the DKG account and deploy
@@ -27,4 +32,6 @@ func TestRandomBeaconHistory(t *testing.T) {
 		},
 	})
 	assert.NoError(t, err)
+
+	//env.DkgAddress = DKGAddress.Hex()
 }
