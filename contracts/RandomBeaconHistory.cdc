@@ -71,7 +71,7 @@ access(all) contract RandomBeaconHistory {
         access(all) let totalLength: UInt64
         access(all) let values: [RandomSource]
     
-        init(page: UInt64, perPage: UInt64, totalLength: UInt64, values: [RandomSource]) {
+        view init(page: UInt64, perPage: UInt64, totalLength: UInt64, values: [RandomSource]) {
             self.page = page
             self.perPage = perPage
             self.totalLength = totalLength
@@ -111,7 +111,7 @@ access(all) contract RandomBeaconHistory {
     /// @return A RandomSourceHistoryPage containing RandomSource values in choronological order according to
     /// associated block height
     ///
-    access(all) view fun getRandomSourceHistoryPage(_ page: UInt64, perPage: UInt64): RandomSourceHistoryPage {
+    access(all) fun getRandomSourceHistoryPage(_ page: UInt64, perPage: UInt64): RandomSourceHistoryPage {
         pre {
             self.lowestHeight != nil: "History has not yet been initialized"
         }
@@ -163,6 +163,6 @@ access(all) contract RandomBeaconHistory {
         self.randomSourceHistory = []
         self.HeartbeatStoragePath = /storage/FlowRandomBeaconHistoryHeartbeat
 
-        self.account.save(<-create Heartbeat(), to: self.HeartbeatStoragePath)
+        self.account.storage.save(<-create Heartbeat(), to: self.HeartbeatStoragePath)
     }
 }
