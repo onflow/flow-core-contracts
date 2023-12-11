@@ -45,4 +45,11 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-// replace github.com/onflow/flow-ft/lib/go/contracts => ../../../../flow-ft/lib/go/contracts
+// This retraction block retracts version v1.2.3, which was tagged out-of-order.
+// Currently go considers v1.2.3 to be the latest version, due to semver ordering,
+// despite it being several months old and many revisions behind the tip.
+// This retract block is based on https://go.dev/ref/mod#go-mod-file-retract.
+retract (
+	v1.2.4 // contains retraction only
+	v1.2.3 // accidentally published with out-of-order tag
+)
