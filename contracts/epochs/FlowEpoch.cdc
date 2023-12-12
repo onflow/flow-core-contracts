@@ -534,7 +534,7 @@ access(all) contract FlowEpoch {
 
             let proposedNodeIDs = FlowEpoch.endStakingAuction()
 
-            FlowEpoch.startEpochSetup(proposedNodeIDs: proposedNodeIDs, randomSource: unsafeRandom().toString())
+            FlowEpoch.startEpochSetup(proposedNodeIDs: proposedNodeIDs, randomSource: revertibleRandom<UInt64>().toString())
         }
 
         /// Calls `FlowEpoch` functions to end the Epoch Setup phase
@@ -877,7 +877,7 @@ access(all) contract FlowEpoch {
         while i > 0
         {
             // Pick a random index from 0 to i
-            var randomNum = unsafeRandom()
+            var randomNum = revertibleRandom<UInt64>()
             var randomIndex = randomNum % UInt64(i + 1)
 
             // Swap arr[i] with the element at random index
