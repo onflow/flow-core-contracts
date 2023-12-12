@@ -117,12 +117,6 @@ access(all) contract FlowDKG {
             FlowDKG.nodeClaimed[nodeID] = true
         }
 
-        /// If the Participant resource is destroyed,
-        /// It could potentially be claimed again
-        destroy () {
-            FlowDKG.nodeClaimed[self.nodeID] = false
-        }
-
         /// Posts a whiteboard message to the contract
         access(all) fun postMessage(_ content: String) {
             pre {

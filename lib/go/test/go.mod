@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/coreos/go-semver v0.3.0
-	github.com/onflow/cadence v1.0.0-preview.1
+	github.com/onflow/cadence v1.0.0-preview.1.0.20231211223059-394691058b70
 	github.com/onflow/flow-core-contracts/lib/go/contracts v1.2.4-0.20230913220622-4159a41b5577
 	github.com/onflow/flow-core-contracts/lib/go/templates v1.2.4-0.20230913220622-4159a41b5577
 	github.com/onflow/flow-emulator v0.54.1-0.20230912234944-690e2ed31cb4
@@ -39,7 +39,6 @@ require (
 	github.com/go-logr/logr v1.2.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
-	github.com/go-test/deep v1.1.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/glog v1.1.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
@@ -67,6 +66,8 @@ require (
 	github.com/kevinburke/go-bindata v3.24.0+incompatible // indirect
 	github.com/klauspost/compress v1.16.5 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.5 // indirect
+	github.com/kr/pretty v0.3.1 // indirect
+	github.com/kr/text v0.2.0 // indirect
 	github.com/libp2p/go-buffer-pool v0.1.0 // indirect
 	github.com/libp2p/go-libp2p v0.28.1 // indirect
 	github.com/logrusorgru/aurora v2.0.3+incompatible // indirect
@@ -87,8 +88,8 @@ require (
 	github.com/multiformats/go-multistream v0.4.1 // indirect
 	github.com/multiformats/go-varint v0.0.7 // indirect
 	github.com/onflow/atree v0.6.1-0.20230711151834-86040b30171f // indirect
-	github.com/onflow/flow-ft/lib/go/contracts v0.7.1-0.20231201182806-a95f9ec50b08 // indirect
-	github.com/onflow/flow-nft/lib/go/contracts v1.1.1-0.20231204201122-eb1dd9560768 // indirect
+	github.com/onflow/flow-ft/lib/go/contracts v0.7.1-0.20231212194336-a2802ba36596 // indirect
+	github.com/onflow/flow-nft/lib/go/contracts v1.1.1-0.20231212194623-24d595274bdd // indirect
 	github.com/onflow/flow/protobuf/go/flow v0.3.2-0.20230628215638-83439d22e0ce // indirect
 	github.com/onflow/sdks v0.5.1-0.20230912225508-b35402f12bba // indirect
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
@@ -105,6 +106,7 @@ require (
 	github.com/psiemens/sconfig v0.1.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
+	github.com/rogpeppe/go-internal v1.9.0 // indirect
 	github.com/sethvargo/go-retry v0.2.3 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/slok/go-http-metrics v0.10.0 // indirect

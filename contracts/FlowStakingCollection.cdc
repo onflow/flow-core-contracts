@@ -95,6 +95,13 @@ access(all) contract FlowStakingCollection {
     /// Keeps track of how many locked and unlocked tokens are staked
     /// so it knows which tokens to give to the user when they deposit and withdraw
     /// different types of tokens
+    /// 
+    /// WARNING: If you destroy a staking collection with the `destroy` command,
+    /// you will lose access to all your nodes and delegators that the staking collection
+    /// manages. If you want to destroy it, you must either transfer your node to a different account
+    /// unstake all your tokens and withdraw
+    /// your unstaked tokens and rewards first before destroying.
+    /// Then use the `destroyStakingCollection` method to destroy it
     access(all) resource StakingCollection: StakingCollectionPublic {
 
         /// unlocked vault
@@ -153,24 +160,6 @@ access(all) contract FlowStakingCollection {
             }
 
             self.machineAccounts = {}
-        }
-
-        /// Close all the stakes before destroying everything
-        /// This uses the closeStake method, so it will panic if there are still tokens staked in any of the objects
-        destroy() {
-            let nodeIDs = self.getNodeIDs()
-            let delegatorIDs = self.getDelegatorIDs()
-
-            for nodeID in nodeIDs {
-                self.closeStake(nodeID: nodeID, delegatorID: nil)
-            }
-
-            for delegatorID in delegatorIDs {
-                self.closeStake(nodeID: delegatorID.delegatorNodeID, delegatorID: delegatorID.delegatorID)
-            }
-
-            destroy self.nodeStakers
-            destroy self.nodeDelegators
         }
 
         /// Called when committing tokens for staking. Gets tokens from either or both vaults
@@ -1164,6 +1153,24 @@ access(all) contract FlowStakingCollection {
         tokenHolder: Capability<auth(FungibleToken.Withdrawable, LockedTokens.TokenOperations) &LockedTokens.TokenHolder>?
     ): @StakingCollection {
         return <- create StakingCollection(unlockedVault: unlockedVault, tokenHolder: tokenHolder)
+    }
+
+    /// Destroys the provided staking collection
+    /// This closes all the stakes before destroying everything
+    /// This uses the closeStake method, so it will panic if there are still tokens staked in any of the objects
+    access(all) fun destroyStakingCollection(_ collection: @StakingCollection) {
+        let nodeIDs = collection.getNodeIDs()
+        let delegatorIDs = collection.getDelegatorIDs()
+
+        for nodeID in nodeIDs {
+            collection.closeStake(nodeID: nodeID, delegatorID: nil)
+        }
+
+        for delegatorID in delegatorIDs {
+            collection.closeStake(nodeID: delegatorID.delegatorNodeID, delegatorID: delegatorID.delegatorID)
+        }
+
+        destroy collection
     }
 
     init() {

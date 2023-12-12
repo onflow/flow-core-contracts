@@ -279,11 +279,6 @@ access(all) contract FlowClusterQC {
             FlowClusterQC.voterClaimed[nodeID] = true
         }
 
-        // If the voter resource is destroyed, a new one could potentially be claimed
-        destroy () {
-            FlowClusterQC.voterClaimed[self.nodeID] = nil
-        }
-
         /// Submits the given vote. Can be called only once per epoch
         /// 
         /// Params: voteSignature: Signed `voteMessage` with the nodes `stakingKey`

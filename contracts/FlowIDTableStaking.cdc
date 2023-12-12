@@ -125,21 +125,21 @@ access(all) contract FlowIDTableStaking {
 
         /// The total tokens that only this node currently has staked, not including delegators
         /// This value must always be above the minimum requirement to stay staked or accept delegators
-        access(Identity) var tokensStaked: @FlowToken.Vault
+        access(mapping Identity) var tokensStaked: @FlowToken.Vault
 
         /// The tokens that this node has committed to stake for the next epoch.
         /// Moves to the tokensStaked bucket at the end of an epoch
-        access(Identity) var tokensCommitted: @FlowToken.Vault
+        access(mapping Identity) var tokensCommitted: @FlowToken.Vault
 
         /// The tokens that this node has unstaked from the previous epoch
         /// Moves to the tokensUnstaked bucket at the end of an epoch.
-        access(Identity) var tokensUnstaking: @FlowToken.Vault
+        access(mapping Identity) var tokensUnstaking: @FlowToken.Vault
 
         /// Tokens that this node has unstaked and are able to withdraw whenever they want
-        access(Identity) var tokensUnstaked: @FlowToken.Vault
+        access(mapping Identity) var tokensUnstaked: @FlowToken.Vault
 
         /// Staking rewards are paid to this bucket
-        access(Identity) var tokensRewarded: @FlowToken.Vault
+        access(mapping Identity) var tokensRewarded: @FlowToken.Vault
 
         /// List of delegators for this node operator
         access(all) let delegators: @{UInt32: DelegatorRecord}
@@ -207,28 +207,6 @@ access(all) contract FlowIDTableStaking {
             self.tokensRequestedToUnstake = 0.0
 
             emit NewNodeCreated(nodeID: self.id, role: self.role, amountCommitted: self.tokensCommitted.balance)
-        }
-
-        destroy() {
-            let flowTokenRef = FlowIDTableStaking.account.storage.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)!
-            FlowIDTableStaking.totalTokensStakedByNodeType[self.role] = FlowIDTableStaking.totalTokensStakedByNodeType[self.role]! - self.tokensStaked.balance
-            flowTokenRef.deposit(from: <-self.tokensStaked)
-            flowTokenRef.deposit(from: <-self.tokensCommitted)
-            flowTokenRef.deposit(from: <-self.tokensUnstaking)
-            flowTokenRef.deposit(from: <-self.tokensUnstaked)
-            flowTokenRef.deposit(from: <-self.tokensRewarded)
-
-            // Return all of the delegators' funds
-            for delegator in self.delegators.keys {
-                let delRecord = self.borrowDelegatorRecord(delegator)
-                flowTokenRef.deposit(from: <-delRecord.tokensCommitted.withdraw(amount: delRecord.tokensCommitted.balance))
-                flowTokenRef.deposit(from: <-delRecord.tokensStaked.withdraw(amount: delRecord.tokensStaked.balance))
-                flowTokenRef.deposit(from: <-delRecord.tokensUnstaked.withdraw(amount: delRecord.tokensUnstaked.balance))
-                flowTokenRef.deposit(from: <-delRecord.tokensRewarded.withdraw(amount: delRecord.tokensRewarded.balance))
-                flowTokenRef.deposit(from: <-delRecord.tokensUnstaking.withdraw(amount: delRecord.tokensUnstaking.balance))
-            }
-
-            destroy self.delegators
         }
 
         /// Utility Function that checks a node's overall committed balance from its borrowed record
@@ -352,19 +330,19 @@ access(all) contract FlowIDTableStaking {
     /// This resource is stored in the NodeRecord object that is being delegated to
     access(all) resource DelegatorRecord {
         /// Tokens this delegator has committed for the next epoch
-        access(Identity) var tokensCommitted: @FlowToken.Vault
+        access(mapping Identity) var tokensCommitted: @FlowToken.Vault
 
         /// Tokens this delegator has staked for the current epoch
-        access(Identity) var tokensStaked: @FlowToken.Vault
+        access(mapping Identity) var tokensStaked: @FlowToken.Vault
 
         /// Tokens this delegator has requested to unstake and is locked for the current epoch
-        access(Identity) var tokensUnstaking: @FlowToken.Vault
+        access(mapping Identity) var tokensUnstaking: @FlowToken.Vault
 
         /// Tokens this delegator has been rewarded and can withdraw
-        access(Identity) let tokensRewarded: @FlowToken.Vault
+        access(mapping Identity) let tokensRewarded: @FlowToken.Vault
 
         /// Tokens that this delegator unstaked and can withdraw
-        access(Identity) let tokensUnstaked: @FlowToken.Vault
+        access(mapping Identity) let tokensUnstaked: @FlowToken.Vault
 
         /// Amount of tokens that the delegator has requested to unstake
         access(all) var tokensRequestedToUnstake: UFix64
@@ -376,14 +354,6 @@ access(all) contract FlowIDTableStaking {
             self.tokensRewarded <- FlowToken.createEmptyVault() as! @FlowToken.Vault
             self.tokensUnstaked <- FlowToken.createEmptyVault() as! @FlowToken.Vault
             self.tokensRequestedToUnstake = 0.0
-        }
-
-        destroy () {
-            destroy self.tokensCommitted
-            destroy self.tokensStaked
-            destroy self.tokensUnstaking
-            destroy self.tokensRewarded
-            destroy self.tokensUnstaked
         }
 
         /// Utility Function that checks a delegator's overall committed balance from its borrowed record
@@ -1215,7 +1185,7 @@ access(all) contract FlowIDTableStaking {
                     
                     // Randomly select which indicies will be removed
                     while numNodesToRemove > 0 {
-                        let selection = UInt16(unsafeRandom() % UInt64(candidateNodesForRole.keys.length))
+                        let selection = UInt16(revertibleRandom<UInt64>() % UInt64(candidateNodesForRole.keys.length))
                         // If the index has already, been selected, try again
                         // if it has not, mark it to be removed
                         if deletionList[selection] == nil {

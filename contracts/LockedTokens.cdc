@@ -112,11 +112,6 @@ access(all) contract LockedTokens {
             self.unlockLimit = 0.0
         }
 
-        destroy () {
-            destroy self.nodeStaker
-            destroy self.nodeDelegator
-        }
-
         // FungibleToken.Receiver actions
         access(all) view fun getSupportedVaultTypes(): {Type: Bool} {
             return {Type<@FlowToken.Vault>(): true}
@@ -245,9 +240,14 @@ access(all) contract LockedTokens {
             emit LockedAccountRegisteredAsDelegator(address: self.owner!.address, nodeID: nodeID)
         }
 
-        access(all) fun borrowNode(): &FlowIDTableStaking.NodeStaker? {
-            let nodeRef: &FlowIDTableStaking.NodeStaker? = &self.nodeStaker as &FlowIDTableStaking.NodeStaker?
+        access(all) fun borrowNode(): auth(FlowIDTableStaking.NodeOperator) &FlowIDTableStaking.NodeStaker? {
+            let nodeRef = &self.nodeStaker as auth(FlowIDTableStaking.NodeOperator) &FlowIDTableStaking.NodeStaker?
             return nodeRef
+        }
+
+        access(all) fun borrowDelegator(): auth(FlowIDTableStaking.DelegatorOwner) &FlowIDTableStaking.NodeDelegator? {
+            let delegatorRef = &self.nodeDelegator as auth(FlowIDTableStaking.DelegatorOwner) &FlowIDTableStaking.NodeDelegator?
+            return delegatorRef
         }
 
         access(all) fun removeNode(): @FlowIDTableStaking.NodeStaker? {
@@ -431,7 +431,7 @@ access(all) contract LockedTokens {
                 message: "Cannot change networking address if there is no node object!"
             )
 
-            tokenManagerRef.nodeStaker?.updateNetworkingAddress(newAddress)
+            tokenManagerRef.borrowNode()?.updateNetworkingAddress(newAddress)
         }
 
         /// Stakes new locked tokens
@@ -445,7 +445,7 @@ access(all) contract LockedTokens {
 
             let vaultRef = tokenManagerRef.vault.borrow()!
 
-            tokenManagerRef.nodeStaker?.stakeNewTokens(<-vaultRef.withdraw(amount: amount))
+            tokenManagerRef.borrowNode()?.stakeNewTokens(<-vaultRef.withdraw(amount: amount))
         }
 
         /// Stakes unstaked tokens from the staking contract
@@ -457,7 +457,7 @@ access(all) contract LockedTokens {
                 message: "Cannot stake if there is no node object!"
             )
 
-            tokenManagerRef.nodeStaker?.stakeUnstakedTokens(amount: amount)
+            tokenManagerRef.borrowNode()?.stakeUnstakedTokens(amount: amount)
         }
 
         /// Stakes rewarded tokens. Rewarded tokens are freely withdrawable
@@ -471,7 +471,7 @@ access(all) contract LockedTokens {
                 message: "Cannot stake if there is no node object!"
             )
 
-            tokenManagerRef.nodeStaker?.stakeRewardedTokens(amount: amount)
+            tokenManagerRef.borrowNode()?.stakeRewardedTokens(amount: amount)
 
             tokenManagerRef.increaseUnlockLimit(delta: amount)
         }
@@ -485,7 +485,7 @@ access(all) contract LockedTokens {
                 message: "Cannot stake if there is no node object!"
             )
 
-            tokenManagerRef.nodeStaker?.requestUnstaking(amount: amount)
+            tokenManagerRef.borrowNode()?.requestUnstaking(amount: amount)
         }
 
         /// Requests to unstake all of the node's tokens and all of
@@ -498,7 +498,7 @@ access(all) contract LockedTokens {
                 message: "Cannot stake if there is no node object!"
             )
 
-            tokenManagerRef.nodeStaker?.unstakeAll()
+            tokenManagerRef.borrowNode()?.unstakeAll()
         }
 
         /// Withdraw the unstaked tokens back to
@@ -515,7 +515,7 @@ access(all) contract LockedTokens {
 
             let vaultRef = tokenManagerRef.vault.borrow()!
 
-            let withdrawnTokens <- tokenManagerRef.nodeStaker?.withdrawUnstakedTokens(amount: amount)!
+            let withdrawnTokens <- tokenManagerRef.borrowNode()?.withdrawUnstakedTokens(amount: amount)!
 
             vaultRef.deposit(from: <-withdrawnTokens)
         }
@@ -530,7 +530,7 @@ access(all) contract LockedTokens {
                 message: "Cannot stake if there is no node object!"
             )
 
-            tokenManagerRef.deposit(from: <-tokenManagerRef.nodeStaker?.withdrawRewardedTokens(amount: amount)!)
+            tokenManagerRef.deposit(from: <-tokenManagerRef.borrowNode()?.withdrawRewardedTokens(amount: amount)!)
         }
     }
 
@@ -561,7 +561,7 @@ access(all) contract LockedTokens {
 
             let vaultRef = tokenManagerRef.vault.borrow()!
 
-            tokenManagerRef.nodeDelegator?.delegateNewTokens(from: <-vaultRef.withdraw(amount: amount))
+            tokenManagerRef.borrowDelegator()?.delegateNewTokens(from: <-vaultRef.withdraw(amount: amount))
         }
 
         /// Delegate tokens from the unstaked staking bucket
@@ -573,7 +573,7 @@ access(all) contract LockedTokens {
                 message: "Cannot stake if there is no delegator object!"
             )
 
-            tokenManagerRef.nodeDelegator?.delegateUnstakedTokens(amount: amount)
+            tokenManagerRef.borrowDelegator()?.delegateUnstakedTokens(amount: amount)
         }
 
         /// Delegate rewarded tokens. Increases the unlock limit
@@ -586,7 +586,7 @@ access(all) contract LockedTokens {
                 message: "Cannot stake if there is no delegator object!"
             )
 
-            tokenManagerRef.nodeDelegator?.delegateRewardedTokens(amount: amount)
+            tokenManagerRef.borrowDelegator()?.delegateRewardedTokens(amount: amount)
 
             tokenManagerRef.increaseUnlockLimit(delta: amount)
         }
@@ -600,7 +600,7 @@ access(all) contract LockedTokens {
                 message: "Cannot stake if there is no delegator object!"
             )
 
-            tokenManagerRef.nodeDelegator?.requestUnstaking(amount: amount)
+            tokenManagerRef.borrowDelegator()?.requestUnstaking(amount: amount)
         }
 
         /// withdraw unstaked tokens back to the locked vault
@@ -615,7 +615,7 @@ access(all) contract LockedTokens {
 
             let vaultRef = tokenManagerRef.vault.borrow()!
 
-            vaultRef.deposit(from: <-tokenManagerRef.nodeDelegator?.withdrawUnstakedTokens(amount: amount)!)
+            vaultRef.deposit(from: <-tokenManagerRef.borrowDelegator()?.withdrawUnstakedTokens(amount: amount)!)
         }
 
         /// Withdraw rewarded tokens back to the locked vault,
@@ -629,7 +629,7 @@ access(all) contract LockedTokens {
                 message: "Cannot stake if there is no delegator object!"
             )
 
-            tokenManagerRef.deposit(from: <-tokenManagerRef.nodeDelegator?.withdrawRewardedTokens(amount: amount)!)
+            tokenManagerRef.deposit(from: <-tokenManagerRef.borrowDelegator()?.withdrawRewardedTokens(amount: amount)!)
         }
     }
 
