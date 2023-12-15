@@ -5,10 +5,10 @@ go 1.18
 require (
 	github.com/coreos/go-semver v0.3.0
 	github.com/onflow/cadence v0.42.5
-	github.com/onflow/flow-emulator v0.58.0
-	github.com/onflow/flow-go v0.32.4-0.20231115172515-c1ec969fd6f2
+	github.com/onflow/flow-emulator v0.59.0
+	github.com/onflow/flow-go v0.32.4-0.20231130134727-3c01c7f8966c
 	github.com/onflow/flow-go-sdk v0.41.16
-	github.com/onflow/flow-go/crypto v0.24.10
+	github.com/onflow/flow-go/crypto v0.25.0
 	github.com/rs/zerolog v1.29.0
 	github.com/stretchr/testify v1.8.4
 )
@@ -105,7 +105,7 @@ require (
 	github.com/onflow/atree v0.6.0 // indirect
 	github.com/onflow/flow-ft/lib/go/contracts v0.7.1-0.20230711213910-baad011d2b13 // indirect
 	github.com/onflow/flow-nft/lib/go/contracts v1.1.0 // indirect
-	github.com/onflow/flow/protobuf/go/flow v0.3.2-0.20231018182244-e72527c55c63 // indirect
+	github.com/onflow/flow/protobuf/go/flow v0.3.2-0.20231124194313-106cc495def6 // indirect
 	github.com/onflow/nft-storefront/lib/go/contracts v0.0.0-20221222181731-14b90207cead // indirect
 	github.com/onflow/sdks v0.5.0 // indirect
 	github.com/onsi/gomega v1.27.4 // indirect
@@ -134,6 +134,7 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.15.0 // indirect
+	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/subosito/gotenv v1.4.2 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7 // indirect
 	github.com/texttheater/golang-levenshtein/levenshtein v0.0.0-20200805054039-cae8b0eaed6c // indirect

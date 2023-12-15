@@ -3,12 +3,13 @@ package test
 import (
 	"context"
 	"fmt"
-	"github.com/onflow/flow-emulator/adapters"
-	"github.com/onflow/flow-emulator/convert"
-	"github.com/rs/zerolog"
 	"io/ioutil"
 	"math/rand"
 	"testing"
+
+	"github.com/onflow/flow-emulator/adapters"
+	"github.com/onflow/flow-emulator/convert"
+	"github.com/rs/zerolog"
 
 	"github.com/onflow/flow-emulator/types"
 
