@@ -318,7 +318,13 @@ pub contract LockedTokens {
         /// Subtracts the minimum storage reservation from the value because that portion
         /// of the locked balance is not available to use
         pub fun getLockedAccountBalance(): UFix64 {
-            return self.borrowTokenManager().getBalance() - FlowStorageFees.minimumStorageReservation
+
+            let balance=self.borrowTokenManager().getBalance()
+
+            if balance < FlowStorageFees.minimumStorageReservation {
+                return 0.0
+            }
+            return balance - FlowStorageFees.minimumStorageReservation
         }
 
         // Returns the unlocked limit for this token holder.
