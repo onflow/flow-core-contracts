@@ -20,7 +20,6 @@ require (
 	github.com/fsnotify/fsnotify v1.4.7 // indirect
 	github.com/fxamacker/cbor/v2 v2.4.1-0.20230228173756-c0c9f774e40c // indirect
 	github.com/fxamacker/circlehash v0.3.0 // indirect
-	github.com/go-test/deep v1.1.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/k0kubun/pp v3.0.1+incompatible // indirect
