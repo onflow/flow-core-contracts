@@ -3,8 +3,9 @@ package test
 import (
 	"context"
 	"fmt"
-	"github.com/onflow/cadence/runtime/common"
 	"testing"
+
+	"github.com/onflow/cadence/runtime/common"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -27,7 +28,7 @@ const (
 	unstakeAllNumDelegators = 2000
 )
 
-func TestManyNodesIDTable(t *testing.T) {
+func TestIDTableManyNodes(t *testing.T) {
 
 	t.Parallel()
 
@@ -359,7 +360,7 @@ func TestManyNodesIDTable(t *testing.T) {
 
 }
 
-func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
+func TestIDTableUnstakeAllManyDelegators(t *testing.T) {
 
 	t.Parallel()
 

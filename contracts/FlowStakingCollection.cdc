@@ -562,7 +562,7 @@ access(all) contract FlowStakingCollection {
 
         /// If a user has created a node before epochs were enabled, they'll need to use this function
         /// to create their machine account with their node 
-        access(CollectionOwner) fun createMachineAccountForExistingNode(nodeID: String, payer: auth(BorrowValue) &Account): &Account? {
+        access(CollectionOwner) fun createMachineAccountForExistingNode(nodeID: String, payer: auth(BorrowValue) &Account): auth(Storage, Capabilities, Contracts, Keys, Inbox) &Account? {
             pre {
                 self.doesStakeExist(nodeID: nodeID, delegatorID: nil)
             }

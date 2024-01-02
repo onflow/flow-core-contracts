@@ -98,6 +98,8 @@ access(all) contract FlowIDTableStaking {
         }
     }
 
+    access(all) entitlement NodeOperator
+
     /// Resource that the node operator controls for staking
     access(all) resource NodeStaker {
 
@@ -108,42 +110,42 @@ access(all) contract FlowIDTableStaking {
             self.id = id
         }
 
-        access(all) fun updateNetworkingAddress(_ newAddress: String) {
+        access(NodeOperator) fun updateNetworkingAddress(_ newAddress: String) {
             
         }
 
         /// Add new tokens to the system to stake during the next epoch
-        access(all) fun stakeNewTokens(_ tokens: @{FungibleToken.Vault}) {
+        access(NodeOperator) fun stakeNewTokens(_ tokens: @{FungibleToken.Vault}) {
 
             destroy tokens
         }
 
         /// Stake tokens that are in the tokensUnstaked bucket
         /// but haven't been officially staked
-        access(all) fun stakeUnstakedTokens(amount: UFix64) {
+        access(NodeOperator) fun stakeUnstakedTokens(amount: UFix64) {
 
         }
 
         /// Stake tokens that are in the tokensRewarded bucket
         /// but haven't been officially staked
-        access(all) fun stakeRewardedTokens(amount: UFix64) {
+        access(NodeOperator) fun stakeRewardedTokens(amount: UFix64) {
 
         }
 
         /// Request amount tokens to be removed from staking
         /// at the end of the next epoch
-        access(all) fun requestUnstaking(amount: UFix64) {
+        access(NodeOperator) fun requestUnstaking(amount: UFix64) {
 
         }
 
         /// Requests to unstake all of the node operators staked and committed tokens,
         /// as well as all the staked and committed tokens of all of their delegators
-        access(all) fun unstakeAll() {
+        access(NodeOperator) fun unstakeAll() {
 
         }
 
         /// Withdraw tokens from the unstaked bucket
-        access(all) fun withdrawUnstakedTokens(amount: UFix64): @{FungibleToken.Vault} {
+        access(NodeOperator) fun withdrawUnstakedTokens(amount: UFix64): @{FungibleToken.Vault} {
             let flowTokenMinter = FlowIDTableStaking.account.storage.borrow<&FlowToken.Minter>(from: /storage/flowTokenMinter)
                 ?? panic("Could not borrow minter reference")
 
@@ -152,7 +154,7 @@ access(all) contract FlowIDTableStaking {
         }
 
         /// Withdraw tokens from the rewarded bucket
-        access(all) fun withdrawRewardedTokens(amount: UFix64): @{FungibleToken.Vault} {
+        access(NodeOperator) fun withdrawRewardedTokens(amount: UFix64): @{FungibleToken.Vault} {
             let flowTokenMinter = FlowIDTableStaking.account.storage.borrow<&FlowToken.Minter>(from: /storage/flowTokenMinter)
                 ?? panic("Could not borrow minter reference")
 
@@ -160,6 +162,8 @@ access(all) contract FlowIDTableStaking {
         }
 
     }
+
+    access(all) entitlement DelegatorOwner
 
     access(all) struct DelegatorInfo {
 
@@ -202,28 +206,28 @@ access(all) contract FlowIDTableStaking {
         }
 
         /// Delegate new tokens to the node operator
-        access(all) fun delegateNewTokens(from: @{FungibleToken.Vault}) {
+        access(DelegatorOwner) fun delegateNewTokens(from: @{FungibleToken.Vault}) {
 
             destroy from
         }
 
         /// Delegate tokens from the unstaked bucket to the node operator
-        access(all) fun delegateUnstakedTokens(amount: UFix64) {
+        access(DelegatorOwner) fun delegateUnstakedTokens(amount: UFix64) {
 
         }
 
         /// Delegate tokens from the rewards bucket to the node operator
-        access(all) fun delegateRewardedTokens(amount: UFix64) {
+        access(DelegatorOwner) fun delegateRewardedTokens(amount: UFix64) {
 
         }
 
         /// Request to unstake delegated tokens during the next epoch
-        access(all) fun requestUnstaking(amount: UFix64) {
+        access(DelegatorOwner) fun requestUnstaking(amount: UFix64) {
 
         }
 
         /// Withdraw tokens from the unstaked bucket
-        access(all) fun withdrawUnstakedTokens(amount: UFix64): @{FungibleToken.Vault} {
+        access(DelegatorOwner) fun withdrawUnstakedTokens(amount: UFix64): @{FungibleToken.Vault} {
             let flowTokenMinter = FlowIDTableStaking.account.storage.borrow<&FlowToken.Minter>(from: /storage/flowTokenMinter)
                 ?? panic("Could not borrow minter reference")
 
@@ -231,7 +235,7 @@ access(all) contract FlowIDTableStaking {
         }
 
         /// Withdraw tokens from the rewarded bucket
-        access(all) fun withdrawRewardedTokens(amount: UFix64): @{FungibleToken.Vault} {
+        access(DelegatorOwner) fun withdrawRewardedTokens(amount: UFix64): @{FungibleToken.Vault} {
             let flowTokenMinter = FlowIDTableStaking.account.storage.borrow<&FlowToken.Minter>(from: /storage/flowTokenMinter)
                 ?? panic("Could not borrow minter reference")
 

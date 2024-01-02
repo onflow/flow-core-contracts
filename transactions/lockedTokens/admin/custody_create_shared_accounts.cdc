@@ -53,8 +53,9 @@ transaction(
                 LockedTokens.LockedTokenManagerStoragePath
             )
 
-        let lockedAccountCreator = custodyProvider.storage.
+        let lockedAccountCreator = custodyProvider.storage
             .borrow<&LockedTokens.LockedAccountCreator>(from: LockedTokens.LockedAccountCreatorStoragePath)
+            ?? panic("Could not borrow account creator reference")
 
         lockedAccountCreator.addAccount(
             sharedAccountAddress: sharedAccount.address,
@@ -66,15 +67,15 @@ transaction(
         sharedAccount.capabilities.unpublish(/public/flowTokenReceiver)
 
         // create new receiver that marks received tokens as unlocked.
-        let lockedTokensManagerCap = sharedAccount.capabilties.storage.issue<&{FungibleToken.Receiver}>(LockedTokens.LockedTokenManagerStoragePath)
-        sharedAccount.capabilties.publish(
+        let lockedTokensManagerCap = sharedAccount.capabilities.storage.issue<&{FungibleToken.Receiver}>(LockedTokens.LockedTokenManagerStoragePath)
+        sharedAccount.capabilities.publish(
             lockedTokensManagerCap,
             at: /public/flowTokenReceiver
         )
 
         // put normal receiver in a separate unique path.
-        let tokenReceiverCap = sharedAccount.capabilties.storage.issue<&{FungibleToken.Receiver}>(/storage/flowTokenVault)
-        sharedAccount.capabilties.publish(
+        let tokenReceiverCap = sharedAccount.capabilities.storage.issue<&{FungibleToken.Receiver}>(/storage/flowTokenVault)
+        sharedAccount.capabilities.publish(
             tokenReceiverCap,
             at: /public/lockedFlowTokenReceiver
         )

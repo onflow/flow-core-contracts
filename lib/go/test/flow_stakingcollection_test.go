@@ -3,9 +3,10 @@ package test
 import (
 	"context"
 	"fmt"
+	"testing"
+
 	"github.com/onflow/flow-emulator/convert"
 	sdktemplates "github.com/onflow/flow-go-sdk/templates"
-	"testing"
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
@@ -2862,7 +2863,7 @@ func TestStakingCollectionCreateNewTokenHolder(t *testing.T) {
 		require.NoError(t, result.Error)
 
 		// Search emitted events from the transaction result
-		// to find the address of the locked tokens contract
+		// to find the address of the new locked account
 		var newAccountAddr flow.Address
 
 		for _, event := range result.Events {

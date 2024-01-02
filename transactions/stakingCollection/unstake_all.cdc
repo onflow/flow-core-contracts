@@ -4,10 +4,10 @@ import FlowStakingCollection from 0xSTAKINGCOLLECTIONADDRESS
 
 transaction(nodeID: String) {
     
-    let stakingCollectionRef: &FlowStakingCollection.StakingCollection
+    let stakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) &FlowStakingCollection.StakingCollection
 
     prepare(account: auth(BorrowValue) &Account) {
-        self.stakingCollectionRef = account.storage.borrow<&FlowStakingCollection.StakingCollection>(from: FlowStakingCollection.StakingCollectionStoragePath)
+        self.stakingCollectionRef = account.storage.borrow<auth(FlowStakingCollection.CollectionOwner) &FlowStakingCollection.StakingCollection>(from: FlowStakingCollection.StakingCollectionStoragePath)
             ?? panic("Could not borrow ref to StakingCollection")
     }
 

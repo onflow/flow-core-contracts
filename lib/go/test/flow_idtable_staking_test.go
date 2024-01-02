@@ -224,7 +224,7 @@ func TestIDTableDeployment(t *testing.T) {
 	})
 }
 
-func TestStakingTransferAdmin(t *testing.T) {
+func TestIDTableTransferAdmin(t *testing.T) {
 
 	t.Parallel()
 
