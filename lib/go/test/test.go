@@ -3,12 +3,14 @@ package test
 import (
 	"context"
 	"fmt"
-	"github.com/onflow/flow-emulator/adapters"
-	"github.com/onflow/flow-emulator/convert"
-	"github.com/rs/zerolog"
 	"io/ioutil"
 	"math/rand"
 	"testing"
+
+	"github.com/btcsuite/btcd/chaincfg/chainhash"
+	"github.com/onflow/flow-emulator/adapters"
+	"github.com/onflow/flow-emulator/convert"
+	"github.com/rs/zerolog"
 
 	"github.com/onflow/flow-emulator/types"
 
@@ -24,6 +26,11 @@ import (
 
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
 )
+
+// this is added to resolve the issue with chainhash ambiguous import,
+// the code is not used, but it's needed to force go.mod specify and retain chainhash version
+// workaround for issue: https://github.com/golang/go/issues/27899
+var _ = chainhash.Hash{}
 
 /***********************************************
 *
