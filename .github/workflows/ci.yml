@@ -13,7 +13,7 @@ jobs:
         with:
           go-version: '1.19'
       - name: Install Flow CLI
-        run: sh -ci "$(curl -fsSL https://raw.githubusercontent.com/onflow/flow-cli/master/install.sh)" -- v1.5.0
+        run: sh -ci "$(curl -fsSL https://raw.githubusercontent.com/onflow/flow-cli/master/install.sh)" -- v1.9.2-stable-cadence.1
       - name: Flow cli Version
         run: flow version
       - name: Update PATH
