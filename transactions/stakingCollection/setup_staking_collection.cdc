@@ -9,18 +9,18 @@ import FlowStakingCollection from 0xSTAKINGCOLLECTIONADDRESS
 /// or staking objects stored in the unlocked account
 
 transaction {
-    prepare(signer: auth(BorrowValue) &Account) {
+    prepare(signer: auth(BorrowValue, Storage, Capabilities) &Account) {
 
         // If there isn't already a staking collection
         if signer.storage.borrow<&FlowStakingCollection.StakingCollection>(from: FlowStakingCollection.StakingCollectionStoragePath) == nil {
 
             // Create private capabilities for the token holder and unlocked vault
-            let lockedHolder = signer.capabilities.storage.issue<&LockedTokens.TokenHolder>(target: LockedTokens.TokenHolderStoragePath)!
-            let flowToken = signer.capabilities.storage.issue<&FlowToken.Vault>(target: /storage/flowTokenVault)!
+            let lockedHolder = signer.capabilities.storage.issue<auth(FungibleToken.Withdrawable, LockedTokens.TokenOperations) &LockedTokens.TokenHolder>(LockedTokens.TokenHolderStoragePath)!
+            let flowToken = signer.capabilities.storage.issue<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(/storage/flowTokenVault)!
 
             // Create a new Staking Collection and put it in storage
             if lockedHolder.check() {
-                newAccount.storage.save(
+                signer.storage.save(
                     <- FlowStakingCollection.createStakingCollection(
                         unlockedVault: flowToken,
                         tokenHolder: lockedHolder
@@ -28,7 +28,7 @@ transaction {
                     to: FlowStakingCollection.StakingCollectionStoragePath
                 )
             } else {
-                newAccount.storage.save(
+                signer.storage.save(
                     <- FlowStakingCollection.createStakingCollection(
                         unlockedVault: flowToken,
                         tokenHolder: nil
@@ -38,12 +38,12 @@ transaction {
             }
 
             // Publish a capability to the created staking collection.
-            let stakingCollectionCap = newAccount.capabilities.storage.issue<&FlowStakingCollection.StakingCollection{FlowStakingCollection.StakingCollectionPublic}>(
-                target: FlowStakingCollection.StakingCollectionStoragePath
+            let stakingCollectionCap = signer.capabilities.storage.issue<&FlowStakingCollection.StakingCollection>(
+                FlowStakingCollection.StakingCollectionStoragePath
             )
 
-            newAccount.capabilities.publish(
-                stakingCollectionCap
+            signer.capabilities.publish(
+                stakingCollectionCap,
                 at: FlowStakingCollection.StakingCollectionPublicPath
             )
         }

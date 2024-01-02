@@ -16,7 +16,7 @@ transaction {
             LockedTokens.LockedAccountCreatorStoragePath
         )
 
-        custodyProvider.capabilities.publish<&LockedTokens.LockedAccountCreator>(
+        custodyProvider.capabilities.publish(
             lockedAccountCreatorCap,
             at: LockedTokens.LockedAccountCreatorPublicPath
         )

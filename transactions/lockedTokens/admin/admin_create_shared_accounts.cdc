@@ -52,11 +52,6 @@ transaction(
         )
         userAccount.capabilities.publish(infoCap, at: LockedTokens.LockedAccountInfoPublicPath)
 
-        let tokenAdminCapability = sharedAccount
-            .capabilities.storage.issue<auth(FungibleToken.Withdrawable) &LockedTokens.LockedTokenManager>(
-                LockedTokens.LockedTokenManagerStoragePath
-            )
-
         let tokenAdminCollection = admin.storage
             .borrow<&LockedTokens.TokenAdminCollection>(
                 from: LockedTokens.LockedTokenAdminCollectionStoragePath
@@ -66,7 +61,7 @@ transaction(
         tokenAdminCollection.addAccount(
             sharedAccountAddress: sharedAccount.address,
             unlockedAccountAddress: userAccount.address,
-            tokenAdmin: tokenAdminCapability
+            tokenAdmin: tokenManagerCapability
         )
 
         // Override the default FlowToken receiver

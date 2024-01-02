@@ -534,7 +534,17 @@ access(all) contract FlowEpoch {
 
             let proposedNodeIDs = FlowEpoch.endStakingAuction()
 
-            FlowEpoch.startEpochSetup(proposedNodeIDs: proposedNodeIDs, randomSource: revertibleRandom<UInt64>().toString())
+            /// random source must be a hex string of 32 characters (i.e 16 bytes or 128 bits)
+            /// `revertibleRandom` returns a UInt64 (8 bytes)
+            let randomLow = revertibleRandom<UInt64>().toBigEndianBytes()
+            let randomHigh = revertibleRandom<UInt64>().toBigEndianBytes()
+            var randomSource = String.encodeHex(randomHigh).concat(String.encodeHex(randomLow))
+            assert (
+                randomSource.length == 32,
+                message: "Random source must be a hex string of 32 characters"
+            ) 
+
+            FlowEpoch.startEpochSetup(proposedNodeIDs: proposedNodeIDs, randomSource: randomSource)
         }
 
         /// Calls `FlowEpoch` functions to end the Epoch Setup phase

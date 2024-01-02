@@ -400,6 +400,9 @@ func TESTFlowStakingCollection(
 	code = strings.ReplaceAll(code, placeholderDKGAddr, withHexPrefix(dkgAddress))
 	code = strings.ReplaceAll(code, placeholderEpochAddr, withHexPrefix(epochAddress))
 
+	code = strings.ReplaceAll(code, "access(self) fun getTokens", "access(all) fun getTokens")
+	code = strings.ReplaceAll(code, "access(self) fun depositTokens", "access(all) fun depositTokens")
+
 	return []byte(code)
 }
 

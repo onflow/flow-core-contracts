@@ -3,16 +3,16 @@ import StakingProxy from 0xSTAKINGPROXYADDRESS
 
 transaction(address: Address, id: String, amount: UFix64) {
 
-    let holderRef: &LockedTokens.TokenHolder
+    let holderRef: auth(LockedTokens.TokenOperations) &LockedTokens.TokenHolder
 
     prepare(account: auth(BorrowValue) &Account) {
-        self.holderRef = account.storage.borrow<&LockedTokens.TokenHolder>(from: LockedTokens.TokenHolderStoragePath)
+        self.holderRef = account.storage.borrow<auth(LockedTokens.TokenOperations) &LockedTokens.TokenHolder>(from: LockedTokens.TokenHolderStoragePath)
             ?? panic("Could not borrow reference to TokenHolder")
     }
 
     execute {
         let nodeOperatorRef = getAccount(address).capabilities
-            .borrow<&StakingProxy.NodeStakerProxyHolder{StakingProxy.NodeStakerProxyHolderPublic}>(
+            .borrow<&StakingProxy.NodeStakerProxyHolder>(
                 StakingProxy.NodeOperatorCapabilityPublicPath
             )
             ?? panic("Could not borrow node operator public capability")

@@ -37,7 +37,7 @@ access(all) contract NodeVersionBeacon {
 
         /// Returns version in Semver format (e.g. v<major>.<minor>.<patch>-<preRelease>)
         /// as a String
-        access(all) fun toString(): String {
+        access(all) view fun toString(): String {
             let semverCoreString = self.major.toString()
                  .concat(".")
                  .concat(
@@ -58,7 +58,7 @@ access(all) contract NodeVersionBeacon {
 
         /// Returns true if Semver core is greater than
         /// passed Semver core and false otherwise
-        access(all) fun coreGreaterThan(_ other: Semver): Bool {
+        access(all) view fun coreGreaterThan(_ other: Semver): Bool {
             if (self.major != other.major) {
                 return self.major > other.major
             }
@@ -76,31 +76,31 @@ access(all) contract NodeVersionBeacon {
 
         /// Returns true if Semver core is greater than or
         /// equal to passed Semver core and false otherwise
-        access(all) fun coreGreaterThanOrEqualTo(_ other: Semver): Bool {
+        access(all) view fun coreGreaterThanOrEqualTo(_ other: Semver): Bool {
             return self.coreGreaterThan(other) || self.coreEqualTo(other)
         }
 
         /// Returns true if Semver core is less than
         /// passed Semver core and false otherwise
-        access(all) fun coreLessThan(_ other: Semver): Bool {
+        access(all) view fun coreLessThan(_ other: Semver): Bool {
             return !self.coreGreaterThanOrEqualTo(other)
         }
 
         /// Returns true if Semver core is less than or
         /// equal to passed Semver core and false otherwise
-        access(all) fun coreLessThanOrEqualTo(_ other: Semver): Bool {
+        access(all) view fun coreLessThanOrEqualTo(_ other: Semver): Bool {
             return !self.coreGreaterThan(other)
         }
 
         /// Returns true if Semver is equal to passed
         /// Semver core and false otherwise
-        access(all) fun coreEqualTo(_ other: Semver): Bool {
+        access(all) view fun coreEqualTo(_ other: Semver): Bool {
             return self.major == other.major && self.minor == other.minor && self.patch == other.patch
         }
 
         /// Returns true if Semver is *exactly* equal to passed
         /// Semver and false otherwise
-        access(all) fun strictEqualTo(_ other: Semver): Bool {
+        access(all) view fun strictEqualTo(_ other: Semver): Bool {
             return self.coreEqualTo(other) && self.preRelease == other.preRelease
         }
     }
@@ -373,13 +373,13 @@ access(all) contract NodeVersionBeacon {
     }
 
     /// Returns the versionBoundaryFreezePeriod
-    access(all) fun getVersionBoundaryFreezePeriod(): UInt64 {
+    access(all) view fun getVersionBoundaryFreezePeriod(): UInt64 {
         return NodeVersionBeacon.versionBoundaryFreezePeriod
     }
 
     /// Returns the sequence number of the next version beacon event
     /// This can be used to verify that no version beacon events were missed.
-    access(all) fun getNextVersionBeaconSequence(): UInt64 {
+    access(all) view fun getNextVersionBeaconSequence(): UInt64 {
         return self.nextVersionBeaconEventSequence
     }
 
@@ -412,7 +412,7 @@ access(all) contract NodeVersionBeacon {
     }
 
     /// Checks whether given version was compatible at the given historical block height
-    access(all) fun getVersionBoundary(effectiveAtBlockHeight: UInt64): VersionBoundary {
+    access(all) view fun getVersionBoundary(effectiveAtBlockHeight: UInt64): VersionBoundary {
         let block = self.searchForClosestHistoricalBlockBoundary(blockHeight: effectiveAtBlockHeight)
 
         return self.versionBoundary[block]!
@@ -424,7 +424,7 @@ access(all) contract NodeVersionBeacon {
         access(all) let totalLength: Int
         access(all) let values : [VersionBoundary]
 
-        init(page: Int, perPage: Int, totalLength: Int, values: [VersionBoundary]) {
+        view init(page: Int, perPage: Int, totalLength: Int, values: [VersionBoundary]) {
             self.page = page
             self.perPage = perPage
             self.totalLength = totalLength
@@ -463,7 +463,7 @@ access(all) contract NodeVersionBeacon {
 
 
     /// Binary search algorithm to find closest value key in versionTable that is <= target value
-    access(contract) fun searchForClosestHistoricalBlockBoundary(blockHeight: UInt64): UInt64 {
+    access(contract) view fun searchForClosestHistoricalBlockBoundary(blockHeight: UInt64): UInt64 {
         // Return last block boundary if target is beyond
         let length = self.versionBoundaryBlockList.length
         if blockHeight >= self.versionBoundaryBlockList[length - 1] {
