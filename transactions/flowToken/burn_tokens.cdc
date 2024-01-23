@@ -17,7 +17,7 @@ transaction(amount: UFix64) {
     prepare(signer: auth(BorrowValue) &Account) {
 
         // Withdraw tokens from the admin vault in storage
-        self.vault <- signer.storage.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)!
+        self.vault <- signer.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault)!
             .withdraw(amount: amount)
 
         // Create a reference to the admin admin resource in storage

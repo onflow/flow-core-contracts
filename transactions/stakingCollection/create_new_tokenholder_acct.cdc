@@ -23,7 +23,7 @@ transaction(publicKeys: [Crypto.KeyListEntry]) {
 
         // Get the TokenManager Capability from the locked account.
         let tokenManagerCapabilityController = signer.capabilities.storage.getControllers(forPath: LockedTokens.LockedTokenManagerStoragePath)[1]!
-        let tokenManagerCapability = tokenManagerCapabilityController.capability as! Capability<auth(FungibleToken.Withdrawable) &LockedTokens.LockedTokenManager>
+        let tokenManagerCapability = tokenManagerCapabilityController.capability as! Capability<auth(FungibleToken.Withdraw) &LockedTokens.LockedTokenManager>
 
         // Use the manager capability to create a new TokenHolder.
         let tokenHolder <- LockedTokens.createTokenHolder(
@@ -46,8 +46,8 @@ transaction(publicKeys: [Crypto.KeyListEntry]) {
 
 
         // Create capabilities for the token holder and unlocked vault.
-        let lockedHolder = newAccount.capabilities.storage.issue<auth(FungibleToken.Withdrawable, LockedTokens.TokenOperations) &LockedTokens.TokenHolder>(LockedTokens.TokenHolderStoragePath)
-        let flowToken = newAccount.capabilities.storage.issue<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(/storage/flowTokenVault)
+        let lockedHolder = newAccount.capabilities.storage.issue<auth(FungibleToken.Withdraw, LockedTokens.TokenOperations) &LockedTokens.TokenHolder>(LockedTokens.TokenHolderStoragePath)
+        let flowToken = newAccount.capabilities.storage.issue<auth(FungibleToken.Withdraw) &FlowToken.Vault>(/storage/flowTokenVault)
         
         // Create a new Staking Collection and put it in storage.
         if lockedHolder.check() {

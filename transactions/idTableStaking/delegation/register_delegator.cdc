@@ -6,7 +6,7 @@ transaction(nodeID: String, amount: UFix64) {
 
     prepare(acct: auth(Storage, Capabilities) &Account) {
 
-        let flowTokenRef = acct.storage.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)
+        let flowTokenRef = acct.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault)
             ?? panic("Could not borrow reference to FLOW Vault")
 
         // Create a new delegator object for the node

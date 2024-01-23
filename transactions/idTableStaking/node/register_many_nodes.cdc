@@ -18,7 +18,7 @@ transaction(
 
         for path in paths {
 
-            let flowTokenRef = acct.storage.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)
+            let flowTokenRef = acct.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault)
                 ?? panic("Could not borrow reference to FLOW Vault")
 
             let tokensCommitted <- flowTokenRef.withdraw(amount: amounts[i])

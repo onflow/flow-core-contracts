@@ -11,7 +11,7 @@ transaction(to: Address, amount: UFix64) {
     prepare(admin: auth(BorrowValue) &Account) {
 
         // Get a reference to the admin's stored vault
-        let vaultRef = admin.storage.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)
+        let vaultRef = admin.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault)
 			?? panic("Could not borrow reference to the owner's Vault!")
 
         let adminRef = admin.storage

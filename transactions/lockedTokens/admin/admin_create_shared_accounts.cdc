@@ -26,7 +26,7 @@ transaction(
 
         // Create a private link to the stored vault
         let vaultCapability = sharedAccount.capabilities.storage.issue
-            <auth(FungibleToken.Withdrawable) &FlowToken.Vault>
+            <auth(FungibleToken.Withdraw) &FlowToken.Vault>
             (/storage/flowTokenVault)
 
         // create a locked token manager and stored it in the shared account
@@ -34,7 +34,7 @@ transaction(
         sharedAccount.storage.save(<-lockedTokenManager, to: LockedTokens.LockedTokenManagerStoragePath)
 
         let tokenManagerCapability = sharedAccount
-            .capabilities.storage.issue<auth(FungibleToken.Withdrawable) &LockedTokens.LockedTokenManager>(
+            .capabilities.storage.issue<auth(FungibleToken.Withdraw) &LockedTokens.LockedTokenManager>(
                 LockedTokens.LockedTokenManagerStoragePath)
 
         let tokenHolder <- LockedTokens.createTokenHolder(
