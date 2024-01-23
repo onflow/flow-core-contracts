@@ -24,14 +24,14 @@ transaction(
         userAccount.keys.add(publicKey: fullUserPublicKey.publicKey, hashAlgorithm: fullUserPublicKey.hashAlgorithm, weight: fullUserPublicKey.weight)
 
         let vaultCapability = sharedAccount.capabilities.storage
-            .issue<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(/storage/flowTokenVault)
+            .issue<auth(FungibleToken.Withdraw) &FlowToken.Vault>(/storage/flowTokenVault)
 
         let lockedTokenManager <- LockedTokens.createLockedTokenManager(vault: vaultCapability)
 
         sharedAccount.storage.save(<-lockedTokenManager, to: LockedTokens.LockedTokenManagerStoragePath)
 
         let tokenManagerCapability = sharedAccount.capabilities.storage
-            .issue<auth(FungibleToken.Withdrawable) &LockedTokens.LockedTokenManager>(
+            .issue<auth(FungibleToken.Withdraw) &LockedTokens.LockedTokenManager>(
                 LockedTokens.LockedTokenManagerStoragePath
             )
 
@@ -49,7 +49,7 @@ transaction(
         userAccount.capabilities.publish(tokenHolderCap, at: LockedTokens.LockedAccountInfoPublicPath)
 
         let tokenAdminCapability = sharedAccount.capabilities.storage
-            .issue<auth(FungibleToken.Withdrawable) &LockedTokens.LockedTokenManager>(
+            .issue<auth(FungibleToken.Withdraw) &LockedTokens.LockedTokenManager>(
                 LockedTokens.LockedTokenManagerStoragePath
             )
 

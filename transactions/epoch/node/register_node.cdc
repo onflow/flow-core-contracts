@@ -20,11 +20,11 @@ transaction(
     publicKeys: [Crypto.KeyListEntry]
 ) {
 
-    let flowTokenRef: auth(FungibleToken.Withdrawable) &FlowToken.Vault
+    let flowTokenRef: auth(FungibleToken.Withdraw) &FlowToken.Vault
 
     prepare(acct: auth(Storage, Capabilities, AddKey) &Account) {
 
-        self.flowTokenRef = acct.storage.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)
+        self.flowTokenRef = acct.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault)
             ?? panic("Could not borrow reference to FLOW Vault")
 
         // Register Node

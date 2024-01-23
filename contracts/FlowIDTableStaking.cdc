@@ -219,12 +219,12 @@ access(all) contract FlowIDTableStaking {
         }
 
         /// borrow a reference to to one of the delegators for a node in the record
-        access(account) view fun borrowDelegatorRecord(_ delegatorID: UInt32): auth(FungibleToken.Withdrawable) &DelegatorRecord {
+        access(account) view fun borrowDelegatorRecord(_ delegatorID: UInt32): auth(FungibleToken.Withdraw) &DelegatorRecord {
             pre {
                 self.delegators[delegatorID] != nil:
                     "Specified delegator ID does not exist in the record"
             }
-            return (&self.delegators[delegatorID] as auth(FungibleToken.Withdrawable) &DelegatorRecord?)!
+            return (&self.delegators[delegatorID] as auth(FungibleToken.Withdraw) &DelegatorRecord?)!
         }
 
         /// Add a delegator to the node record
@@ -1627,12 +1627,12 @@ access(all) contract FlowIDTableStaking {
     }
 
     /// borrow a reference to to one of the nodes in the record
-    access(account) view fun borrowNodeRecord(_ nodeID: String): auth(FungibleToken.Withdrawable) &NodeRecord {
+    access(account) view fun borrowNodeRecord(_ nodeID: String): auth(FungibleToken.Withdraw) &NodeRecord {
         pre {
             FlowIDTableStaking.nodes[nodeID] != nil:
                 "Specified node ID does not exist in the record"
         }
-        return (&FlowIDTableStaking.nodes[nodeID] as auth(FungibleToken.Withdrawable) &NodeRecord?)!
+        return (&FlowIDTableStaking.nodes[nodeID] as auth(FungibleToken.Withdraw) &NodeRecord?)!
     }
 
     /// borrow a reference to the `FlowFees` admin resource for paying rewards

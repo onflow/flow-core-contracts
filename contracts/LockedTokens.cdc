@@ -91,7 +91,7 @@ access(all) contract LockedTokens {
         /// All locked FLOW tokens are stored in this vault, which can be accessed in two ways:
         ///   1) Directly, in a transaction co-signed by both the token holder and token administrator
         ///   2) Indirectly via the LockedTokenManager, in a transaction signed by the token holder
-        access(all) var vault: Capability<auth(FungibleToken.Withdrawable) &FlowToken.Vault>
+        access(all) var vault: Capability<auth(FungibleToken.Withdraw) &FlowToken.Vault>
 
         /// The amount of tokens that the user can withdraw.
         /// It is decreased when the user withdraws
@@ -105,7 +105,7 @@ access(all) contract LockedTokens {
         /// signs up to be a delegator
         access(all) var nodeDelegator: @FlowIDTableStaking.NodeDelegator?
 
-        init(vault: Capability<auth(FungibleToken.Withdrawable) &FlowToken.Vault>) {
+        init(vault: Capability<auth(FungibleToken.Withdraw) &FlowToken.Vault>) {
             self.vault = vault
             self.nodeStaker <- nil
             self.nodeDelegator <- nil
@@ -143,7 +143,7 @@ access(all) contract LockedTokens {
         // FungibleToken.Provider actions
 
         /// Withdraws unlocked tokens from the vault
-        access(FungibleToken.Withdrawable) fun withdraw(amount: UFix64): @{FungibleToken.Vault} {
+        access(FungibleToken.Withdraw) fun withdraw(amount: UFix64): @{FungibleToken.Vault} {
             return <-self.withdrawUnlockedTokens(amount: amount)
         }
 
@@ -273,7 +273,7 @@ access(all) contract LockedTokens {
 
         /// Capability that is used to access the LockedTokenManager
         /// in the shared account
-        access(account) var tokenManager: Capability<auth(FungibleToken.Withdrawable) &LockedTokenManager>
+        access(account) var tokenManager: Capability<auth(FungibleToken.Withdraw) &LockedTokenManager>
 
         /// Used to perform staking actions if the user has signed up
         /// as a node operator
@@ -283,7 +283,7 @@ access(all) contract LockedTokens {
         /// as a delegator
         access(self) var nodeDelegatorProxy: LockedNodeDelegatorProxy?
 
-        init(lockedAddress: Address, tokenManager: Capability<auth(FungibleToken.Withdrawable) &LockedTokenManager>) {
+        init(lockedAddress: Address, tokenManager: Capability<auth(FungibleToken.Withdraw) &LockedTokenManager>) {
             pre {
                 tokenManager.borrow() != nil: "Must pass a LockedTokenManager capability"
             }
@@ -299,7 +299,7 @@ access(all) contract LockedTokens {
         }
 
         /// Utility function to borrow a reference to the LockedTokenManager object
-        access(account) fun borrowTokenManager(): auth(FungibleToken.Withdrawable) &LockedTokenManager {
+        access(account) fun borrowTokenManager(): auth(FungibleToken.Withdraw) &LockedTokenManager {
             return self.tokenManager.borrow()!
         }
 
@@ -348,7 +348,7 @@ access(all) contract LockedTokens {
 
         /// Withdraws tokens from the locked vault. This will only succeed
         /// if the withdraw amount is less than or equal to the limit
-        access(FungibleToken.Withdrawable) fun withdraw(amount: UFix64): @{FungibleToken.Vault} {
+        access(FungibleToken.Withdraw) fun withdraw(amount: UFix64): @{FungibleToken.Vault} {
             return <- self.borrowTokenManager().withdraw(amount: amount)
         }
 
@@ -415,9 +415,9 @@ access(all) contract LockedTokens {
     /// Used to perform staking actions
     access(all) struct LockedNodeStakerProxy: StakingProxy.NodeStakerProxy {
 
-        access(self) var tokenManager: Capability<auth(FungibleToken.Withdrawable) &LockedTokenManager>
+        access(self) var tokenManager: Capability<auth(FungibleToken.Withdraw) &LockedTokenManager>
 
-        init(tokenManager: Capability<auth(FungibleToken.Withdrawable) &LockedTokenManager>) {
+        init(tokenManager: Capability<auth(FungibleToken.Withdraw) &LockedTokenManager>) {
             pre {
                 tokenManager.borrow() != nil: "Invalid token manager capability"
             }
@@ -543,9 +543,9 @@ access(all) contract LockedTokens {
     /// Used to perform delegating actions in transactions
     access(all) struct LockedNodeDelegatorProxy: StakingProxy.NodeDelegatorProxy {
 
-        access(self) var tokenManager: Capability<auth(FungibleToken.Withdrawable) &LockedTokenManager>
+        access(self) var tokenManager: Capability<auth(FungibleToken.Withdraw) &LockedTokenManager>
 
-        init(tokenManager: Capability<auth(FungibleToken.Withdrawable) &LockedTokenManager>) {
+        init(tokenManager: Capability<auth(FungibleToken.Withdraw) &LockedTokenManager>) {
             pre {
                 tokenManager.borrow() != nil: "Invalid LockedTokenManager capability"
             }
@@ -643,7 +643,7 @@ access(all) contract LockedTokens {
         access(all) fun addAccount(
             sharedAccountAddress: Address,
             unlockedAccountAddress: Address,
-            tokenAdmin: Capability<auth(FungibleToken.Withdrawable) &LockedTokenManager>)
+            tokenAdmin: Capability<auth(FungibleToken.Withdraw) &LockedTokenManager>)
     }
 
     /// Resource that the Dapper Labs token admin
@@ -652,7 +652,7 @@ access(all) contract LockedTokens {
     access(all) resource TokenAdminCollection: AddAccount {
 
         /// Mapping of account addresses to LockedTokenManager capabilities
-        access(self) var accounts: {Address: Capability<auth(FungibleToken.Withdrawable) &LockedTokenManager>}
+        access(self) var accounts: {Address: Capability<auth(FungibleToken.Withdraw) &LockedTokenManager>}
 
         init() {
             self.accounts = {}
@@ -663,7 +663,7 @@ access(all) contract LockedTokens {
         access(all) fun addAccount(
             sharedAccountAddress: Address,
             unlockedAccountAddress: Address,
-            tokenAdmin: Capability<auth(FungibleToken.Withdrawable) &LockedTokenManager>)
+            tokenAdmin: Capability<auth(FungibleToken.Withdraw) &LockedTokenManager>)
         {
             self.accounts[sharedAccountAddress] = tokenAdmin
             emit SharedAccountRegistered(address: sharedAccountAddress)
@@ -671,7 +671,7 @@ access(all) contract LockedTokens {
         }
 
         /// Get an accounts capability
-        access(all) fun getAccount(address: Address): Capability<auth(FungibleToken.Withdrawable) &LockedTokenManager>? {
+        access(all) fun getAccount(address: Address): Capability<auth(FungibleToken.Withdraw) &LockedTokenManager>? {
             return self.accounts[address]
         }
 
@@ -703,7 +703,7 @@ access(all) contract LockedTokens {
 
         access(all) fun addAccount(sharedAccountAddress: Address,
                            unlockedAccountAddress: Address,
-                           tokenAdmin: Capability<auth(FungibleToken.Withdrawable) &LockedTokenManager>) {
+                           tokenAdmin: Capability<auth(FungibleToken.Withdraw) &LockedTokenManager>) {
 
             pre {
                 self.addAccountCapability != nil:
@@ -722,13 +722,13 @@ access(all) contract LockedTokens {
 
     /// Public function to create a new Locked Token Manager
     /// every time a new user account is created
-    access(all) fun createLockedTokenManager(vault: Capability<auth(FungibleToken.Withdrawable) &FlowToken.Vault>): @LockedTokenManager {
+    access(all) fun createLockedTokenManager(vault: Capability<auth(FungibleToken.Withdraw) &FlowToken.Vault>): @LockedTokenManager {
         return <- create LockedTokenManager(vault: vault)
     }
 
     // Creates a new TokenHolder resource for this LockedTokenManager
     /// that the user can store in their unlocked account.
-    access(all) fun createTokenHolder(lockedAddress: Address, tokenManager: Capability<auth(FungibleToken.Withdrawable) &LockedTokenManager>): @TokenHolder {
+    access(all) fun createTokenHolder(lockedAddress: Address, tokenManager: Capability<auth(FungibleToken.Withdraw) &LockedTokenManager>): @TokenHolder {
         return <- create TokenHolder(lockedAddress: lockedAddress, tokenManager: tokenManager)
     }
 

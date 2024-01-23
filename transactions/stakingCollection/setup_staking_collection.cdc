@@ -15,8 +15,8 @@ transaction {
         if signer.storage.borrow<&FlowStakingCollection.StakingCollection>(from: FlowStakingCollection.StakingCollectionStoragePath) == nil {
 
             // Create private capabilities for the token holder and unlocked vault
-            let lockedHolder = signer.capabilities.storage.issue<auth(FungibleToken.Withdrawable, LockedTokens.TokenOperations) &LockedTokens.TokenHolder>(LockedTokens.TokenHolderStoragePath)!
-            let flowToken = signer.capabilities.storage.issue<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(/storage/flowTokenVault)!
+            let lockedHolder = signer.capabilities.storage.issue<auth(FungibleToken.Withdraw, LockedTokens.TokenOperations) &LockedTokens.TokenHolder>(LockedTokens.TokenHolderStoragePath)!
+            let flowToken = signer.capabilities.storage.issue<auth(FungibleToken.Withdraw) &FlowToken.Vault>(/storage/flowTokenVault)!
 
             // Create a new Staking Collection and put it in storage
             if lockedHolder.check() {

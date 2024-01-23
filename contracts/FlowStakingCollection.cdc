@@ -55,9 +55,9 @@ access(all) contract FlowStakingCollection {
         access(all) let role: UInt8
         // Capability to the FLOW Vault to allow the owner
         // to withdraw or deposit to their machine account if needed
-        access(contract) let machineAccountVaultProvider: Capability<auth(FungibleToken.Withdrawable) &FlowToken.Vault>
+        access(contract) let machineAccountVaultProvider: Capability<auth(FungibleToken.Withdraw) &FlowToken.Vault>
 
-        init(nodeID: String, role: UInt8, machineAccountVaultProvider: Capability<auth(FungibleToken.Withdrawable) &FlowToken.Vault>) {
+        init(nodeID: String, role: UInt8, machineAccountVaultProvider: Capability<auth(FungibleToken.Withdraw) &FlowToken.Vault>) {
             pre {
                 machineAccountVaultProvider.check(): "Invalid Flow Token Vault Provider"
             }
@@ -105,11 +105,11 @@ access(all) contract FlowStakingCollection {
     access(all) resource StakingCollection: StakingCollectionPublic {
 
         /// unlocked vault
-        access(self) var unlockedVault: Capability<auth(FungibleToken.Withdrawable) &FlowToken.Vault>
+        access(self) var unlockedVault: Capability<auth(FungibleToken.Withdraw) &FlowToken.Vault>
 
         /// locked vault
         /// will be nil if the account has no corresponding locked account
-        access(self) var lockedVault: Capability<auth(FungibleToken.Withdrawable) &FlowToken.Vault>?
+        access(self) var lockedVault: Capability<auth(FungibleToken.Withdraw) &FlowToken.Vault>?
 
         /// Stores staking objects for nodes and delegators
         /// Can only use one delegator per node ID
@@ -119,7 +119,7 @@ access(all) contract FlowStakingCollection {
 
         /// Capabilty to the TokenHolder object in the unlocked account
         /// Accounts without a locked account will not store this, it will be nil
-        access(self) var tokenHolder: Capability<auth(FungibleToken.Withdrawable, LockedTokens.TokenOperations) &LockedTokens.TokenHolder>?
+        access(self) var tokenHolder: Capability<auth(FungibleToken.Withdraw, LockedTokens.TokenOperations) &LockedTokens.TokenHolder>?
 
         /// Tracks how many locked and unlocked tokens the staker is using for all their nodes and/or delegators
         /// When committing new tokens, locked tokens are used first, followed by unlocked tokens
@@ -131,8 +131,8 @@ access(all) contract FlowStakingCollection {
         access(self) var machineAccounts: {String: MachineAccountInfo}
 
         init(
-            unlockedVault: Capability<auth(FungibleToken.Withdrawable) &FlowToken.Vault>,
-            tokenHolder: Capability<auth(FungibleToken.Withdrawable, LockedTokens.TokenOperations) &LockedTokens.TokenHolder>?
+            unlockedVault: Capability<auth(FungibleToken.Withdraw) &FlowToken.Vault>,
+            tokenHolder: Capability<auth(FungibleToken.Withdraw, LockedTokens.TokenOperations) &LockedTokens.TokenHolder>?
         ) {
             pre {
                 unlockedVault.check(): "Invalid FlowToken.Vault capability"
@@ -461,7 +461,7 @@ access(all) contract FlowStakingCollection {
 
             // Get the vault capability and create the machineAccountInfo struct
             let machineAccountVaultProvider = machineAcct.capabilities.storage
-                .issue<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(/storage/flowTokenVault)!
+                .issue<auth(FungibleToken.Withdraw) &FlowToken.Vault>(/storage/flowTokenVault)!
 
             let machineAccountInfo = MachineAccountInfo(
                 nodeID: nodeInfo.id,
@@ -548,7 +548,7 @@ access(all) contract FlowStakingCollection {
 
             // Make sure that the vault capability is created
             let machineAccountVaultProvider = machineAccount.capabilities.storage
-                .issue<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(/storage/flowTokenVault)!
+                .issue<auth(FungibleToken.Withdraw) &FlowToken.Vault>(/storage/flowTokenVault)!
 
             // Create the new Machine account info object and store it
             let machineAccountInfo = MachineAccountInfo(
@@ -1149,8 +1149,8 @@ access(all) contract FlowStakingCollection {
 
     /// Creates a brand new empty staking collection resource and returns it to the caller
     access(all) fun createStakingCollection(
-        unlockedVault: Capability<auth(FungibleToken.Withdrawable) &FlowToken.Vault>,
-        tokenHolder: Capability<auth(FungibleToken.Withdrawable, LockedTokens.TokenOperations) &LockedTokens.TokenHolder>?
+        unlockedVault: Capability<auth(FungibleToken.Withdraw) &FlowToken.Vault>,
+        tokenHolder: Capability<auth(FungibleToken.Withdraw, LockedTokens.TokenOperations) &LockedTokens.TokenHolder>?
     ): @StakingCollection {
         return <- create StakingCollection(unlockedVault: unlockedVault, tokenHolder: tokenHolder)
     }

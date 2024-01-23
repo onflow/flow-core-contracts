@@ -27,7 +27,7 @@ access(all) contract FlowServiceAccount {
     /// Initialize an account with a FlowToken Vault and publish capabilities.
     access(all) fun initDefaultToken(_ acct: auth(SaveValue, Capabilities) &Account) {
         // Create a new FlowToken Vault and save it in storage
-        acct.storage.save(<-FlowToken.createEmptyVault(), to: /storage/flowTokenVault)
+        acct.storage.save(<-FlowToken.createEmptyVault(vaultType: Type<@FlowToken.Vault>()), to: /storage/flowTokenVault)
 
         // Create a public capability to the Vault that only exposes
         // the deposit function through the Receiver interface
@@ -53,8 +53,8 @@ access(all) contract FlowServiceAccount {
     }
 
     /// Return a reference to the default token vault on an account
-    access(all) fun defaultTokenVault(_ acct: auth(BorrowValue) &Account): auth(FungibleToken.Withdrawable) &FlowToken.Vault {
-        return acct.storage.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)
+    access(all) fun defaultTokenVault(_ acct: auth(BorrowValue) &Account): auth(FungibleToken.Withdraw) &FlowToken.Vault {
+        return acct.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault)
             ?? panic("Unable to borrow reference to the default token vault")
     }
 

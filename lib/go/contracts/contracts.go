@@ -50,7 +50,6 @@ const (
 	placeholderFungibleTokenAddress     = "\"FungibleToken\""
 	placeholderFungibleTokenMVAddress   = "\"FungibleTokenMetadataViews\""
 	placeholderMetadataViewsAddress     = "\"MetadataViews\""
-	placeholderViewResolverAddress      = "\"ViewResolver\""
 	placeholderFlowTokenAddress         = "\"FlowToken\""
 	placeholderIDTableAddress           = "\"FlowIDTableStaking\""
 	placeholderStakingProxyAddress      = "0xSTAKINGPROXYADDRESS"
@@ -79,7 +78,7 @@ func withHexPrefix(address string) string {
 
 // FungibleToken returns the FungibleToken contract interface.
 func FungibleToken(viewResolverAddress string) []byte {
-	return ftcontracts.FungibleTokenV2(viewResolverAddress)
+	return ftcontracts.FungibleToken(viewResolverAddress)
 }
 
 // FungibleTokenMetadataViews returns the FungibleTokenMetadataViews contract interface.
@@ -88,11 +87,11 @@ func FungibleTokenMetadataViews(fungibleTokenAddr, metadataViewsAddr, viewResolv
 }
 
 func NonFungibleToken(viewResolverAddress string) []byte {
-	return nftcontracts.NonFungibleTokenV2(flow.HexToAddress(viewResolverAddress))
+	return nftcontracts.NonFungibleToken(flow.HexToAddress(viewResolverAddress))
 }
 
 func ViewResolver() []byte {
-	return nftcontracts.Resolver()
+	return nftcontracts.ViewResolver()
 }
 
 // MetadataViews returns the MetadataViews contract interface.
@@ -124,12 +123,6 @@ func FlowToken(fungibleTokenAddress, fungibleTokenMVAddress, metadataViewsAddres
 		code,
 		placeholderMetadataViewsAddress,
 		withHexPrefix(metadataViewsAddress),
-	)
-
-	code = strings.ReplaceAll(
-		code,
-		placeholderViewResolverAddress,
-		withHexPrefix(viewResolverAddress),
 	)
 
 	// Replace the init method storage operations

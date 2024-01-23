@@ -142,7 +142,7 @@ access(all) contract FlowFees {
             return
         }
 
-        let tokenVault = acct.storage.borrow<auth(FungibleToken.Withdrawable) &FlowToken.Vault>(from: /storage/flowTokenVault)
+        let tokenVault = acct.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault)
             ?? panic("Unable to borrow reference to the default token vault")
 
 
@@ -184,7 +184,7 @@ access(all) contract FlowFees {
 
     init() {
         // Create a new FlowToken Vault and save it in storage
-        self.vault <- FlowToken.createEmptyVault() as! @FlowToken.Vault
+        self.vault <- FlowToken.createEmptyVault(vaultType: Type<@FlowToken.Vault>()) as! @FlowToken.Vault
 
         let admin <- create Administrator()
         self.account.storage.save(<-admin, to: /storage/flowFeesAdmin)
