@@ -89,6 +89,18 @@
       "aliases": {
         "testing": "0x0000000000000007"
       }
+    },
+    "Burner": {
+      "source": "./contracts/Burner.cdc",
+      "aliases": {
+        "testing": "0x0000000000000007"
+      }
+    },
+    "BurnableTest": {
+      "source": "./contracts/testContracts/BurnableTest.cdc",
+      "aliases": {
+        "testing": "0x0000000000000007"
+      }
     }
   },
   "networks": {
