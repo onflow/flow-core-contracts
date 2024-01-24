@@ -77,8 +77,8 @@ func withHexPrefix(address string) string {
 }
 
 // FungibleToken returns the FungibleToken contract interface.
-func FungibleToken(viewResolverAddress string) []byte {
-	return ftcontracts.FungibleToken(viewResolverAddress)
+func FungibleToken(viewResolverAddress, burnerAddress string) []byte {
+	return ftcontracts.FungibleToken(viewResolverAddress, burnerAddress)
 }
 
 // FungibleTokenMetadataViews returns the FungibleTokenMetadataViews contract interface.
