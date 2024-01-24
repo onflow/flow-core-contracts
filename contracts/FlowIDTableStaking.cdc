@@ -200,10 +200,10 @@ access(all) contract FlowIDTableStaking {
             FlowIDTableStaking.updateClaimed(path: /storage/stakingKeysClaimed, stakingKey, claimed: true)
 
             self.tokensCommitted <- tokensCommitted as! @FlowToken.Vault
-            self.tokensStaked <- FlowToken.createEmptyVault() as! @FlowToken.Vault
-            self.tokensUnstaking <- FlowToken.createEmptyVault() as! @FlowToken.Vault
-            self.tokensUnstaked <- FlowToken.createEmptyVault() as! @FlowToken.Vault
-            self.tokensRewarded <- FlowToken.createEmptyVault() as! @FlowToken.Vault
+            self.tokensStaked <- FlowToken.createEmptyVault(vaultType: Type<@FlowToken.Vault>()) as! @FlowToken.Vault
+            self.tokensUnstaking <- FlowToken.createEmptyVault(vaultType: Type<@FlowToken.Vault>()) as! @FlowToken.Vault
+            self.tokensUnstaked <- FlowToken.createEmptyVault(vaultType: Type<@FlowToken.Vault>()) as! @FlowToken.Vault
+            self.tokensRewarded <- FlowToken.createEmptyVault(vaultType: Type<@FlowToken.Vault>()) as! @FlowToken.Vault
             self.tokensRequestedToUnstake = 0.0
 
             emit NewNodeCreated(nodeID: self.id, role: self.role, amountCommitted: self.tokensCommitted.balance)
@@ -348,11 +348,11 @@ access(all) contract FlowIDTableStaking {
         access(all) var tokensRequestedToUnstake: UFix64
 
         init() {
-            self.tokensCommitted <- FlowToken.createEmptyVault() as! @FlowToken.Vault
-            self.tokensStaked <- FlowToken.createEmptyVault() as! @FlowToken.Vault
-            self.tokensUnstaking <- FlowToken.createEmptyVault() as! @FlowToken.Vault
-            self.tokensRewarded <- FlowToken.createEmptyVault() as! @FlowToken.Vault
-            self.tokensUnstaked <- FlowToken.createEmptyVault() as! @FlowToken.Vault
+            self.tokensCommitted <- FlowToken.createEmptyVault(vaultType: Type<@FlowToken.Vault>()) as! @FlowToken.Vault
+            self.tokensStaked <- FlowToken.createEmptyVault(vaultType: Type<@FlowToken.Vault>()) as! @FlowToken.Vault
+            self.tokensUnstaking <- FlowToken.createEmptyVault(vaultType: Type<@FlowToken.Vault>()) as! @FlowToken.Vault
+            self.tokensRewarded <- FlowToken.createEmptyVault(vaultType: Type<@FlowToken.Vault>()) as! @FlowToken.Vault
+            self.tokensUnstaked <- FlowToken.createEmptyVault(vaultType: Type<@FlowToken.Vault>()) as! @FlowToken.Vault
             self.tokensRequestedToUnstake = 0.0
         }
 
@@ -1565,7 +1565,7 @@ access(all) contract FlowIDTableStaking {
                                          networkingAddress: networkingAddress,
                                          networkingKey: networkingKey,
                                          stakingKey: stakingKey,
-                                         tokensCommitted: <-FlowToken.createEmptyVault())
+                                         tokensCommitted: <-FlowToken.createEmptyVault(vaultType: Type<@FlowToken.Vault>()))
 
         let minimum = self.minimumStakeRequired[role]!
 

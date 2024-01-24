@@ -8,6 +8,12 @@ access(all) contract FlowToken: FungibleToken {
     // Total supply of Flow tokens in existence
     access(all) var totalSupply: UFix64
 
+    // Event that is emitted when tokens are withdrawn from a Vault
+    access(all) event TokensWithdrawn(amount: UFix64, from: Address?)
+
+    // Event that is emitted when tokens are deposited to a Vault
+    access(all) event TokensDeposited(amount: UFix64, to: Address?)
+
     // Event that is emitted when new tokens are minted
     access(all) event TokensMinted(amount: UFix64)
 
@@ -66,6 +72,7 @@ access(all) contract FlowToken: FungibleToken {
         //
         access(FungibleToken.Withdraw) fun withdraw(amount: UFix64): @{FungibleToken.Vault} {
             self.balance = self.balance - amount
+            emit TokensWithdrawn(amount: amount, from: self.owner?.address)
             return <-create Vault(balance: amount)
         }
 
@@ -79,6 +86,7 @@ access(all) contract FlowToken: FungibleToken {
         access(all) fun deposit(from: @{FungibleToken.Vault}) {
             let vault <- from as! @FlowToken.Vault
             self.balance = self.balance + vault.balance
+            emit TokensDeposited(amount: vault.balance, to: self.owner?.address)
             vault.balance = 0.0
             destroy vault
         }

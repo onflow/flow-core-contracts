@@ -198,7 +198,7 @@ access(all) contract FlowStakingCollection {
                     // minus whatever was used from the locked tokens
                     self.unlockedTokensUsed = self.unlockedTokensUsed + numUnlockedTokensToUse
 
-                    let tokens <- FlowToken.createEmptyVault()
+                    let tokens <- FlowToken.createEmptyVault(vaultType: Type<@FlowToken.Vault>())
 
                     // Get the actual tokens from each vault
                     let lockedPortion <- lockedVault.withdraw(amount: lockedBalance)
