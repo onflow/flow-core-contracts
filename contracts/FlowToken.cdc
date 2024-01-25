@@ -1,7 +1,7 @@
 import FungibleToken from "FungibleToken"
 import MetadataViews from "MetadataViews"
 import FungibleTokenMetadataViews from "FungibleTokenMetadataViews"
-//import ViewResolver from "ViewResolver"
+import Burner from "Burner"
 
 access(all) contract FlowToken: FungibleToken {
 
@@ -16,9 +16,6 @@ access(all) contract FlowToken: FungibleToken {
 
     // Event that is emitted when new tokens are minted
     access(all) event TokensMinted(amount: UFix64)
-
-    // Event that is emitted when tokens are destroyed
-    access(all) event TokensBurned(amount: UFix64)
 
     // Event that is emitted when a new minter resource is created
     access(all) event MinterCreated(allowedAmount: UFix64)
@@ -50,6 +47,14 @@ access(all) contract FlowToken: FungibleToken {
         // initialize the balance at resource creation time
         init(balance: UFix64) {
             self.balance = balance
+        }
+
+        /// Called when a fungible token is burned via the `Burner.burn()` method
+        access(contract) fun burnCallback() {
+            if self.balance > 0.0 {
+                FlowToken.totalSupply = FlowToken.totalSupply - self.getBalance()
+            }
+            self.balance = 0.0
         }
 
         /// getSupportedVaultTypes optionally returns a list of vault types that this receiver accepts
@@ -125,19 +130,6 @@ access(all) contract FlowToken: FungibleToken {
         return <-create Vault(balance: 0.0)
     }
 
-    /// Function that destroys a Vault instance, effectively burning the tokens.
-    ///
-    /// @param from: The Vault resource containing the tokens to burn
-    ///
-    /// Will need to add an update to total supply
-    /// See https://github.com/onflow/flips/pull/131
-    access(all) fun burn(_ vault: @{FungibleToken.Vault}) {
-        if vault.balance > 0.0 {
-            FlowToken.totalSupply = FlowToken.totalSupply - vault.getBalance()
-        }
-        destroy vault
-    }
-
     /// Gets a list of the metadata views that this contract supports
     access(all) view fun getContractViews(resourceType: Type?): [Type] {
         return [Type<FungibleTokenMetadataViews.FTView>(),
@@ -204,15 +196,6 @@ access(all) contract FlowToken: FungibleToken {
             emit MinterCreated(allowedAmount: allowedAmount)
             return <-create Minter(allowedAmount: allowedAmount)
         }
-
-        // createNewBurner
-        //
-        // Function that creates and returns a new burner resource
-        //
-        access(all) fun createNewBurner(): @Burner {
-            emit BurnerCreated()
-            return <-create Burner()
-        }
     }
 
     // Minter
@@ -242,34 +225,6 @@ access(all) contract FlowToken: FungibleToken {
 
         init(allowedAmount: UFix64) {
             self.allowedAmount = allowedAmount
-        }
-    }
-
-    // Burner
-    //
-    // Resource object that token admin accounts can hold to burn tokens.
-    //
-    access(all) resource Burner {
-
-        // burnTokens
-        //
-        // Function that destroys a Vault instance, effectively burning the tokens.
-        //
-        // Note: the burned tokens are automatically subtracted from the
-        // total supply in the Vault destructor.
-        //
-        access(all) fun burnTokens(from: @FlowToken.Vault) {
-            FlowToken.burnTokens(from: <-from)
-        }
-    }
-
-    access(all) fun burnTokens(from: @FlowToken.Vault) {
-        let vault <- from as! @FlowToken.Vault
-        let amount = vault.balance
-        destroy vault
-        if amount > 0.0 {
-            FlowToken.totalSupply = FlowToken.totalSupply - amount
-            emit TokensBurned(amount: amount)
         }
     }
 

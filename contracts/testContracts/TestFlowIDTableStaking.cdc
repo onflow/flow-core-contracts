@@ -9,6 +9,7 @@
 
 import FungibleToken from "FungibleToken"
 import FlowToken from "FlowToken"
+import Burner from "Burner"
 
 access(all) contract FlowIDTableStaking {
 
@@ -54,7 +55,7 @@ access(all) contract FlowIDTableStaking {
             self.networkingKey = networkingKey
             self.stakingKey = stakingKey
 
-            destroy tokensCommitted
+            Burner.burn(<-tokensCommitted)
         }
     }
 
@@ -117,7 +118,7 @@ access(all) contract FlowIDTableStaking {
         /// Add new tokens to the system to stake during the next epoch
         access(NodeOperator) fun stakeNewTokens(_ tokens: @{FungibleToken.Vault}) {
 
-            destroy tokens
+            Burner.burn(<-tokens)
         }
 
         /// Stake tokens that are in the tokensUnstaked bucket
@@ -208,7 +209,7 @@ access(all) contract FlowIDTableStaking {
         /// Delegate new tokens to the node operator
         access(DelegatorOwner) fun delegateNewTokens(from: @{FungibleToken.Vault}) {
 
-            destroy from
+            Burner.burn(<-from)
         }
 
         /// Delegate tokens from the unstaked bucket to the node operator
@@ -254,7 +255,7 @@ access(all) contract FlowIDTableStaking {
         stakingKey: String,
         tokensCommitted: @{FungibleToken.Vault}
     ): @NodeStaker {
-        destroy tokensCommitted
+        Burner.burn(<-tokensCommitted)
 
         // return a new NodeStaker object that the node operator stores in their account
         return <-create NodeStaker(id: id)
@@ -263,7 +264,7 @@ access(all) contract FlowIDTableStaking {
 
     access(all) fun registerNewDelegator(nodeID: String, tokensCommitted: @{FungibleToken.Vault}): @NodeDelegator {
 
-        destroy tokensCommitted
+        Burner.burn(<-tokensCommitted)
 
         return <-create NodeDelegator(id: 1, nodeID: nodeID)
     }
