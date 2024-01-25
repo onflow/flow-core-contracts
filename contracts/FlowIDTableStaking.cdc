@@ -29,6 +29,7 @@
 
 import FungibleToken from "FungibleToken"
 import FlowToken from "FlowToken"
+import Burner from "Burner"
 import FlowFees from 0xFLOWFEESADDRESS
 import Crypto
 
@@ -1292,7 +1293,7 @@ access(all) contract FlowIDTableStaking {
             self.setNonOperationalNodesList(emptyNodeList)
 
             // Destroy the remaining fees, even if there are some left
-            destroy rewardsVault
+            Burner.burn(<-rewardsVault)
         }
 
         /// Calculates rewards for all the staked node operators and delegators

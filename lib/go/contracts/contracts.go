@@ -52,6 +52,7 @@ const (
 	placeholderMetadataViewsAddress     = "\"MetadataViews\""
 	placeholderFlowTokenAddress         = "\"FlowToken\""
 	placeholderIDTableAddress           = "\"FlowIDTableStaking\""
+	placeholderBurnerAddress            = "\"Burner\""
 	placeholderStakingProxyAddress      = "0xSTAKINGPROXYADDRESS"
 	placeholderQCAddr                   = "0xQCADDRESS"
 	placeholderDKGAddr                  = "0xDKGADDRESS"
@@ -77,8 +78,8 @@ func withHexPrefix(address string) string {
 }
 
 // FungibleToken returns the FungibleToken contract interface.
-func FungibleToken(viewResolverAddress string) []byte {
-	return ftcontracts.FungibleToken(viewResolverAddress)
+func FungibleToken(viewResolverAddress, burnerAddress string) []byte {
+	return ftcontracts.FungibleToken(viewResolverAddress, burnerAddress)
 }
 
 // FungibleTokenMetadataViews returns the FungibleTokenMetadataViews contract interface.
@@ -94,6 +95,10 @@ func ViewResolver() []byte {
 	return nftcontracts.ViewResolver()
 }
 
+func Burner() []byte {
+	return ftcontracts.Burner()
+}
+
 // MetadataViews returns the MetadataViews contract interface.
 func MetadataViews(fungibleTokenAddr, nonFungibleTokenAddr, viewResolverAddr string) []byte {
 	return nftcontracts.MetadataViews(flow.HexToAddress(fungibleTokenAddr), flow.HexToAddress(nonFungibleTokenAddr), flow.HexToAddress(viewResolverAddr))
@@ -102,7 +107,7 @@ func MetadataViews(fungibleTokenAddr, nonFungibleTokenAddr, viewResolverAddr str
 // FlowToken returns the FlowToken contract.
 //
 // The returned contract will import the FungibleToken contract from the specified address.
-func FlowToken(fungibleTokenAddress, fungibleTokenMVAddress, metadataViewsAddress, viewResolverAddress string) []byte {
+func FlowToken(fungibleTokenAddress, fungibleTokenMVAddress, metadataViewsAddress, burnerAddress string) []byte {
 	code := assets.MustAssetString(flowTokenFilename)
 
 	// Replace the fungible token placeholder address
@@ -123,6 +128,12 @@ func FlowToken(fungibleTokenAddress, fungibleTokenMVAddress, metadataViewsAddres
 		code,
 		placeholderMetadataViewsAddress,
 		withHexPrefix(metadataViewsAddress),
+	)
+
+	code = strings.ReplaceAll(
+		code,
+		placeholderBurnerAddress,
+		withHexPrefix(burnerAddress),
 	)
 
 	// Replace the init method storage operations
@@ -243,7 +254,7 @@ func FlowServiceAccount(fungibleTokenAddress, flowTokenAddress, flowFeesAddress,
 // # The staking contract imports the FungibleToken and FlowToken contracts
 //
 // Parameter: latest: indicates if the contract is the latest version, or an old version. Used to test upgrades
-func FlowIDTableStaking(fungibleTokenAddress, flowTokenAddress, flowFeesAddress string, latest bool) []byte {
+func FlowIDTableStaking(fungibleTokenAddress, flowTokenAddress, flowFeesAddress, burnerAddress string, latest bool) []byte {
 	var code string
 
 	code = assets.MustAssetString(flowIdentityTableFilename)
@@ -251,6 +262,7 @@ func FlowIDTableStaking(fungibleTokenAddress, flowTokenAddress, flowFeesAddress 
 	code = strings.ReplaceAll(code, placeholderFungibleTokenAddress, withHexPrefix(fungibleTokenAddress))
 	code = strings.ReplaceAll(code, placeholderFlowTokenAddress, withHexPrefix(flowTokenAddress))
 	code = strings.ReplaceAll(code, placeholderFlowFeesAddress, withHexPrefix(flowFeesAddress))
+	code = strings.ReplaceAll(code, placeholderBurnerAddress, withHexPrefix(burnerAddress))
 
 	return []byte(code)
 }
