@@ -40,10 +40,6 @@ access(all) contract FlowToken: FungibleToken {
         // holds the balance of a users tokens
         access(all) var balance: UFix64
 
-        access(all) view fun getBalance(): UFix64 {
-            return self.balance
-        }
-
         // initialize the balance at resource creation time
         init(balance: UFix64) {
             self.balance = balance
@@ -52,7 +48,7 @@ access(all) contract FlowToken: FungibleToken {
         /// Called when a fungible token is burned via the `Burner.burn()` method
         access(contract) fun burnCallback() {
             if self.balance > 0.0 {
-                FlowToken.totalSupply = FlowToken.totalSupply - self.getBalance()
+                FlowToken.totalSupply = FlowToken.totalSupply - self.balance
             }
             self.balance = 0.0
         }
@@ -64,6 +60,11 @@ access(all) contract FlowToken: FungibleToken {
 
         access(all) view fun isSupportedVaultType(type: Type): Bool {
             if (type == self.getType()) { return true } else { return false }
+        }
+
+        /// Asks if the amount can be withdrawn from this vault
+        access(all) view fun isAvailableToWithdraw(amount: UFix64): Bool {
+            return amount <= self.balance
         }
 
         // withdraw
