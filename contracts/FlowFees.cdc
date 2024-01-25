@@ -21,14 +21,14 @@ access(all) contract FlowFees {
 
     access(all) fun deposit(from: @{FungibleToken.Vault}) {
         let from <- from as! @FlowToken.Vault
-        let balance = from.getBalance()
+        let balance = from.balance
         self.vault.deposit(from: <-from)
         emit TokensDeposited(amount: balance)
     }
 
     /// Get the balance of the Fees Vault
     access(all) fun getFeeBalance(): UFix64 {
-        return self.vault.getBalance()
+        return self.vault.balance
     }
 
     access(all) resource Administrator {
@@ -121,7 +121,7 @@ access(all) contract FlowFees {
         // In the edge case where the payer doesnt have a vault, treat the balance as 0.
         var balance = 0.0
         if let tokenVault = payerAcct.storage.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault) {
-            balance = tokenVault.getBalance()
+            balance = tokenVault.balance
         }
 
         return VerifyPayerBalanceResult(
@@ -146,13 +146,13 @@ access(all) contract FlowFees {
             ?? panic("Unable to borrow reference to the default token vault")
 
 
-        if feeAmount > tokenVault.getBalance() {
+        if feeAmount > tokenVault.balance {
             // In the future this code path will never be reached,
             // as payers that are under account minimum balance will not have their transactions included in a collection
             //
             // Currently this is not used to fail the transaction (as that is the responsibility of the minimum account balance logic),
             // But is used to reduce the balance of the vault to 0.0, if the vault has less available balance than the transaction fees.
-            feeAmount = tokenVault.getBalance()
+            feeAmount = tokenVault.balance
         }
 
         let feeVault <- tokenVault.withdraw(amount: feeAmount)

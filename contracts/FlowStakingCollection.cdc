@@ -230,7 +230,7 @@ access(all) contract FlowStakingCollection {
             pre {
                 // This error should never be triggered in production becasue the tokens used fields
                 // should be properly managed by all the other functions
-                from.getBalance() <= self.unlockedTokensUsed + self.lockedTokensUsed: "Cannot deposit more than is already used"
+                from.balance <= self.unlockedTokensUsed + self.lockedTokensUsed: "Cannot deposit more than is already used"
             }
 
             let unlockedVault = self.unlockedVault.borrow()!
@@ -238,8 +238,8 @@ access(all) contract FlowStakingCollection {
             /// If there is a locked account, get the locked vault holder for depositing
             if self.lockedVault != nil {
   
-                if (from.getBalance() <= self.unlockedTokensUsed) {
-                    self.unlockedTokensUsed = self.unlockedTokensUsed - from.getBalance()
+                if (from.balance <= self.unlockedTokensUsed) {
+                    self.unlockedTokensUsed = self.unlockedTokensUsed - from.balance
 
                     unlockedVault.deposit(from: <-from)
                 } else {
@@ -247,12 +247,12 @@ access(all) contract FlowStakingCollection {
                     unlockedVault.deposit(from: <-from.withdraw(amount: self.unlockedTokensUsed))
                     self.unlockedTokensUsed = 0.0
 
-                    self.lockedTokensUsed = self.lockedTokensUsed - from.getBalance()
+                    self.lockedTokensUsed = self.lockedTokensUsed - from.balance
                     // followed by returning the difference as locked tokens
                     self.lockedVault!.borrow()!.deposit(from: <-from)
                 }
             } else {
-                self.unlockedTokensUsed = self.unlockedTokensUsed - from.getBalance()
+                self.unlockedTokensUsed = self.unlockedTokensUsed - from.balance
                 
                 // If there is no locked account, get the users vault capability and deposit tokens to it.
                 unlockedVault.deposit(from: <-from)

@@ -46,7 +46,7 @@ access(all) contract FlowServiceAccount {
     access(all) fun defaultTokenBalance(_ acct: &Account): UFix64 {
         var balance = 0.0
         if let balanceRef = acct.capabilities.borrow<&FlowToken.Vault>(/public/flowTokenBalance) {
-            balance = balanceRef.getBalance()
+            balance = balanceRef.balance
         }
 
         return balance
@@ -69,8 +69,8 @@ access(all) contract FlowServiceAccount {
 
         let tokenVault = self.defaultTokenVault(acct)
         var feeAmount = self.transactionFee
-        if self.transactionFee > tokenVault.getBalance() {
-            feeAmount = tokenVault.getBalance()
+        if self.transactionFee > tokenVault.balance {
+            feeAmount = tokenVault.balance
         }
         
         let feeVault <- tokenVault.withdraw(amount: feeAmount)

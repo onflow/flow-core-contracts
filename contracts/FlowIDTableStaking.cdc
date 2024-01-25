@@ -456,7 +456,7 @@ access(all) contract FlowIDTableStaking {
             // Borrow the node's record from the staking contract
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.id)
 
-            emit TokensCommitted(nodeID: nodeRecord.id, amount: tokens.getBalance())
+            emit TokensCommitted(nodeID: nodeRecord.id, amount: tokens.balance)
 
             // Add the new tokens to tokens committed
             nodeRecord.tokensCommitted.deposit(from: <-tokens)
@@ -661,7 +661,7 @@ access(all) contract FlowIDTableStaking {
             let nodeRecord = FlowIDTableStaking.borrowNodeRecord(self.nodeID)
             let delRecord = nodeRecord.borrowDelegatorRecord(self.id)
 
-            emit DelegatorTokensCommitted(nodeID: self.nodeID, delegatorID: self.id, amount: from.getBalance())
+            emit DelegatorTokensCommitted(nodeID: self.nodeID, delegatorID: self.id, amount: from.balance)
 
             // Commit the new tokens to the delegator record
             delRecord.tokensCommitted.deposit(from: <-from)
@@ -1286,7 +1286,7 @@ access(all) contract FlowIDTableStaking {
             if feeBalance >= totalRewards {
                 fromFees = totalRewards
             }
-            emit EpochTotalRewardsPaid(total: totalRewards, fromFees: fromFees, minted: mintedRewards, feesBurned: rewardsVault.getBalance(), epochCounterForRewards: forEpochCounter)
+            emit EpochTotalRewardsPaid(total: totalRewards, fromFees: fromFees, minted: mintedRewards, feesBurned: rewardsVault.balance, epochCounterForRewards: forEpochCounter)
 
             // Clear the non-operational node list so it doesn't persist to the next rewards payment
             let emptyNodeList: {String: UFix64} = {}
@@ -1571,7 +1571,7 @@ access(all) contract FlowIDTableStaking {
         let minimum = self.minimumStakeRequired[role]!
 
         assert(
-            self.isGreaterThanMinimumForRole(numTokens: tokensCommitted.getBalance(), role: role),
+            self.isGreaterThanMinimumForRole(numTokens: tokensCommitted.balance, role: role),
             message: "Tokens committed for registration is not above the minimum (".concat(minimum.toString()).concat(") for the chosen node role (".concat(role.toString()).concat(")"))
         )
 
@@ -1602,7 +1602,7 @@ access(all) contract FlowIDTableStaking {
 
         let minimum = self.getDelegatorMinimumStakeRequirement()
         assert(
-            tokensCommitted.getBalance() >= minimum,
+            tokensCommitted.balance >= minimum,
             message: "Tokens committed for delegator registration is not above the minimum (".concat(minimum.toString()).concat(")")
         )
 

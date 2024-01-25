@@ -133,7 +133,7 @@ access(all) contract LockedTokens {
         access(self) fun depositUnlockedTokens(from: @{FungibleToken.Vault}) {
             let vaultRef = self.vault.borrow()!
 
-            let balance = from.getBalance()
+            let balance = from.balance
 
             vaultRef.deposit(from: <- from)
 
@@ -141,6 +141,12 @@ access(all) contract LockedTokens {
         }
 
         // FungibleToken.Provider actions
+
+        /// Asks if the amount can be withdrawn from this vault
+        access(all) view fun isAvailableToWithdraw(amount: UFix64): Bool {
+            let vaultRef = self.vault.borrow()!
+            return amount <= vaultRef.balance
+        }
 
         /// Withdraws unlocked tokens from the vault
         access(FungibleToken.Withdraw) fun withdraw(amount: UFix64): @{FungibleToken.Vault} {
@@ -165,7 +171,7 @@ access(all) contract LockedTokens {
             return <-vault
         }
 
-        access(all) fun getBalance(): UFix64 {
+        access(all) view fun getBalance(): UFix64 {
             let vaultRef = self.vault.borrow()!
             return vaultRef.balance
         }
@@ -299,7 +305,7 @@ access(all) contract LockedTokens {
         }
 
         /// Utility function to borrow a reference to the LockedTokenManager object
-        access(account) fun borrowTokenManager(): auth(FungibleToken.Withdraw) &LockedTokenManager {
+        access(account) view fun borrowTokenManager(): auth(FungibleToken.Withdraw) &LockedTokenManager {
             return self.tokenManager.borrow()!
         }
 
@@ -311,7 +317,7 @@ access(all) contract LockedTokens {
         /// Returns the locked account balance for this token holder.
         /// Subtracts the minimum storage reservation from the value because that portion
         /// of the locked balance is not available to use
-        access(all) fun getLockedAccountBalance(): UFix64 {
+        access(all) view fun getLockedAccountBalance(): UFix64 {
 
             let balance = self.borrowTokenManager().getBalance()
 
@@ -345,6 +351,11 @@ access(all) contract LockedTokens {
         }
 
         // FungibleToken.Provider actions
+
+        /// Asks if the amount can be withdrawn from this vault
+        access(all) view fun isAvailableToWithdraw(amount: UFix64): Bool {
+            return amount <= self.getLockedAccountBalance()
+        }
 
         /// Withdraws tokens from the locked vault. This will only succeed
         /// if the withdraw amount is less than or equal to the limit

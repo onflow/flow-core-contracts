@@ -68,7 +68,7 @@ access(all) contract FlowStorageFees {
         let acct = getAccount(accountAddress)
 
         if let balanceRef = acct.capabilities.borrow<&FlowToken.Vault>(/public/flowTokenBalance) {
-            balance = balanceRef.getBalance()
+            balance = balanceRef.balance
         }
 
         return self.accountBalanceToAccountStorageCapacity(balance)
@@ -97,9 +97,9 @@ access(all) contract FlowStorageFees {
             if let balanceRef = acct.capabilities.borrow<&FlowToken.Vault>(/public/flowTokenBalance) {
                 if accountAddress == payer {
                     // if the account is the payer, deduct the maximum possible transaction fees from the balance
-                    balance = balanceRef.getBalance().saturatingSubtract(maxTxFees)
+                    balance = balanceRef.balance.saturatingSubtract(maxTxFees)
                 } else {
-                    balance = balanceRef.getBalance()
+                    balance = balanceRef.balance
                 }
             }
 
@@ -157,7 +157,7 @@ access(all) contract FlowStorageFees {
         var balance = 0.0
 
         if let balanceRef = acct.capabilities.borrow<&FlowToken.Vault>(/public/flowTokenBalance) {
-            balance = balanceRef.getBalance()
+            balance = balanceRef.balance
         }
 
         // get how much should be reserved for storage
