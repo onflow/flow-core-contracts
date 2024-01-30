@@ -43,10 +43,19 @@ require (
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/zeebo/blake3 v0.2.3 // indirect
 	go.opentelemetry.io/otel v1.14.0 // indirect
-	golang.org/x/crypto v0.7.0 // indirect
-	golang.org/x/sys v0.6.0 // indirect
-	golang.org/x/text v0.8.0 // indirect
+	golang.org/x/crypto v0.17.0 // indirect
+	golang.org/x/sys v0.15.0 // indirect
+	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
+)
+
+// This retraction block retracts version v1.2.3, which was tagged out-of-order.
+// Currently go considers v1.2.3 to be the latest version, due to semver ordering,
+// despite it being several months old and many revisions behind the tip.
+// This retract block is based on https://go.dev/ref/mod#go-mod-file-retract.
+retract (
+	v1.2.4 // contains retraction only
+	v1.2.3 // accidentally published with out-of-order tag
 )
