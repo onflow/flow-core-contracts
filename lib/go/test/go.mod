@@ -7,9 +7,9 @@ require (
 	github.com/coreos/go-semver v0.3.0
 	github.com/onflow/cadence v0.42.5
 	github.com/onflow/crypto v0.25.0
-	github.com/onflow/flow-emulator v0.58.1-0.20240130123529-733cc9417abc
+	github.com/onflow/flow-emulator v0.59.0
 	github.com/onflow/flow-go v0.32.4-0.20231130134727-3c01c7f8966c
-	github.com/onflow/flow-go-sdk v0.44.0
+	github.com/onflow/flow-go-sdk v0.41.16
 	github.com/rs/zerolog v1.29.0
 	github.com/stretchr/testify v1.8.4
 )
