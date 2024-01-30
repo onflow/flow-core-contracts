@@ -3,24 +3,24 @@ package test
 import (
 	"context"
 	"fmt"
-	"github.com/onflow/flow-emulator/adapters"
-	"github.com/onflow/flow-emulator/convert"
-	"github.com/rs/zerolog"
 	"io/ioutil"
 	"math/rand"
 	"testing"
 
+	"github.com/onflow/flow-emulator/adapters"
+	"github.com/onflow/flow-emulator/convert"
+	"github.com/rs/zerolog"
+
 	"github.com/onflow/flow-emulator/types"
 
 	"github.com/onflow/cadence"
+	"github.com/onflow/crypto"
 	"github.com/onflow/flow-emulator/emulator"
 	"github.com/onflow/flow-go-sdk"
-	"github.com/onflow/flow-go-sdk/crypto"
+	sdkcrypto "github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	flow_crypto "github.com/onflow/flow-go/crypto"
 
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
 )
@@ -91,7 +91,7 @@ func newBlockchain(opts ...emulator.Option) (emulator.Emulator, *adapters.SDKAda
 
 // Create a new, empty account for testing
 // and return the address, public keys, and signer objects
-func newAccountWithAddress(b emulator.Emulator, accountKeys *test.AccountKeys) (flow.Address, *flow.AccountKey, crypto.Signer) {
+func newAccountWithAddress(b emulator.Emulator, accountKeys *test.AccountKeys) (flow.Address, *flow.AccountKey, sdkcrypto.Signer) {
 	newAccountKey, newSigner := accountKeys.NewWithSigner()
 	logger := zerolog.Nop()
 	adapter := adapters.NewSDKAdapter(&logger, b)
@@ -135,7 +135,7 @@ func signAndSubmit(
 	b emulator.Emulator,
 	tx *flow.Transaction,
 	signerAddresses []flow.Address,
-	signers []crypto.Signer,
+	signers []sdkcrypto.Signer,
 	shouldRevert bool,
 ) *types.TransactionResult {
 	// sign transaction with each signer
@@ -293,7 +293,7 @@ func mintTokensForAccount(t *testing.T, b emulator.Emulator, env templates.Envir
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{},
-		[]crypto.Signer{},
+		[]sdkcrypto.Signer{},
 		false,
 	)
 }
@@ -305,12 +305,12 @@ func registerAndMintManyAccounts(
 	b emulator.Emulator,
 	env templates.Environment,
 	accountKeys *test.AccountKeys,
-	numAccounts int) ([]flow.Address, []*flow.AccountKey, []crypto.Signer) {
+	numAccounts int) ([]flow.Address, []*flow.AccountKey, []sdkcrypto.Signer) {
 
 	// make new addresses, keys, and signers
 	var userAddresses = make([]flow.Address, numAccounts)
 	var userPublicKeys = make([]*flow.AccountKey, numAccounts)
-	var userSigners = make([]crypto.Signer, numAccounts)
+	var userSigners = make([]sdkcrypto.Signer, numAccounts)
 
 	// Create each new account and mint 1B tokens for it
 	for i := 0; i < numAccounts; i++ {
@@ -322,13 +322,13 @@ func registerAndMintManyAccounts(
 }
 
 // Generates a new private/public key pair
-func generateKeys(t *testing.T, algorithmName flow_crypto.SigningAlgorithm) (crypto.PrivateKey, crypto.PublicKey) {
+func generateKeys(t *testing.T, algorithmName crypto.SigningAlgorithm) (crypto.PrivateKey, crypto.PublicKey) {
 	seedMinLength := 48
 	seed := make([]byte, seedMinLength)
 	n, err := rand.Read(seed)
 	require.Equal(t, n, seedMinLength)
 	require.NoError(t, err)
-	sk, err := flow_crypto.GeneratePrivateKey(algorithmName, seed)
+	sk, err := crypto.GeneratePrivateKey(algorithmName, seed)
 	require.NoError(t, err)
 
 	publicKey := sk.PublicKey()
