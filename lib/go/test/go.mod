@@ -6,12 +6,12 @@ require (
 	github.com/btcsuite/btcd/chaincfg/chainhash v1.1.0
 	github.com/coreos/go-semver v0.3.0
 	github.com/onflow/cadence v1.0.0-M4
+	github.com/onflow/crypto v0.25.0
 	github.com/onflow/flow-core-contracts/lib/go/contracts v1.2.4-0.20231016154253-a00dbf7c061f
 	github.com/onflow/flow-core-contracts/lib/go/templates v1.2.4-0.20231016154253-a00dbf7c061f
 	github.com/onflow/flow-emulator v1.0.0-M1
 	github.com/onflow/flow-go v0.33.2-0.20240126002816-f0770a716d61
 	github.com/onflow/flow-go-sdk v1.0.0-M1
-	github.com/onflow/flow-go/crypto v0.25.0
 	github.com/rs/zerolog v1.29.0
 	github.com/stretchr/testify v1.8.4
 )
@@ -92,7 +92,7 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/libp2p/go-buffer-pool v0.1.0 // indirect
-	github.com/libp2p/go-libp2p v0.28.2 // indirect
+	github.com/libp2p/go-libp2p v0.28.1 // indirect
 	github.com/logrusorgru/aurora v2.0.3+incompatible // indirect
 	github.com/logrusorgru/aurora/v4 v4.0.0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
@@ -114,7 +114,6 @@ require (
 	github.com/multiformats/go-varint v0.0.7 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/onflow/atree v0.6.1-0.20230711151834-86040b30171f // indirect
-	github.com/onflow/crypto v0.25.0 // indirect
 	github.com/onflow/flow-ft/lib/go/contracts v0.7.1-0.20240201000302-9141cd6d33e3 // indirect
 	github.com/onflow/flow-nft/lib/go/contracts v1.1.1-0.20240131235457-fdeb8eefcaeb // indirect
 	github.com/onflow/flow/protobuf/go/flow v0.3.2-0.20231213135419-ae911cc351a2 // indirect

@@ -7,16 +7,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/onflow/flow-go/module/signature"
-
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
+	"github.com/onflow/crypto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
 	"github.com/onflow/flow-go-sdk"
-	"github.com/onflow/flow-go-sdk/crypto"
+	sdkcrypto "github.com/onflow/flow-go-sdk/crypto"
 )
 
 const (
@@ -166,7 +165,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			true,
 		)
 
@@ -178,7 +177,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			false,
 		)
 
@@ -190,7 +189,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			false,
 		)
 
@@ -200,7 +199,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			true,
 		)
 
@@ -210,7 +209,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			false,
 		)
 
@@ -220,7 +219,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			true,
 		)
 
@@ -230,7 +229,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			false,
 		)
 
@@ -240,7 +239,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			true,
 		)
 
@@ -250,7 +249,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			false,
 		)
 
@@ -260,7 +259,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			false,
 		)
 
@@ -270,7 +269,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			true,
 		)
 
@@ -280,7 +279,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			false,
 		)
 
@@ -313,7 +312,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 			signAndSubmit(
 				t, b, tx,
 				[]flow.Address{idTableAddress},
-				[]crypto.Signer{IDTableSigner},
+				[]sdkcrypto.Signer{IDTableSigner},
 				true,
 			)
 		})
@@ -326,7 +325,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 			signAndSubmit(
 				t, b, tx,
 				[]flow.Address{idTableAddress},
-				[]crypto.Signer{IDTableSigner},
+				[]sdkcrypto.Signer{IDTableSigner},
 				false,
 			)
 			// timing config should be updated
@@ -355,7 +354,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{idTableAddress},
-		[]crypto.Signer{IDTableSigner},
+		[]sdkcrypto.Signer{IDTableSigner},
 		false,
 	)
 
@@ -370,7 +369,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			true,
 		)
 
@@ -380,7 +379,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			true,
 		)
 
@@ -390,7 +389,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			true,
 		)
 
@@ -400,7 +399,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			true,
 		)
 
@@ -410,7 +409,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			true,
 		)
 
@@ -443,7 +442,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 			signAndSubmit(
 				t, b, tx,
 				[]flow.Address{idTableAddress},
-				[]crypto.Signer{IDTableSigner},
+				[]sdkcrypto.Signer{IDTableSigner},
 				true,
 			)
 		})
@@ -456,7 +455,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 			signAndSubmit(
 				t, b, tx,
 				[]flow.Address{idTableAddress},
-				[]crypto.Signer{IDTableSigner},
+				[]sdkcrypto.Signer{IDTableSigner},
 				false,
 			)
 			// timing config should be updated
@@ -562,7 +561,7 @@ func TestEpochAdvance(t *testing.T) {
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{idTableAddress},
-		[]crypto.Signer{IDTableSigner},
+		[]sdkcrypto.Signer{IDTableSigner},
 		false,
 	)
 
@@ -714,7 +713,7 @@ func TestEpochQCDKGNodeRegistration(t *testing.T) {
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{idTableAddress},
-		[]crypto.Signer{IDTableSigner},
+		[]sdkcrypto.Signer{IDTableSigner},
 		false,
 	)
 
@@ -729,7 +728,7 @@ func TestEpochQCDKGNodeRegistration(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{addresses[1]},
-			[]crypto.Signer{signers[1]},
+			[]sdkcrypto.Signer{signers[1]},
 			true,
 		)
 
@@ -739,7 +738,7 @@ func TestEpochQCDKGNodeRegistration(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{addresses[0]},
-			[]crypto.Signer{signers[0]},
+			[]sdkcrypto.Signer{signers[0]},
 			true,
 		)
 	})
@@ -752,7 +751,7 @@ func TestEpochQCDKGNodeRegistration(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{addresses[0]},
-			[]crypto.Signer{signers[0]},
+			[]sdkcrypto.Signer{signers[0]},
 			false,
 		)
 
@@ -762,7 +761,7 @@ func TestEpochQCDKGNodeRegistration(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{addresses[1]},
-			[]crypto.Signer{signers[1]},
+			[]sdkcrypto.Signer{signers[1]},
 			false,
 		)
 	})
@@ -838,7 +837,7 @@ func TestEpochQCDKG(t *testing.T) {
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{idTableAddress},
-		[]crypto.Signer{IDTableSigner},
+		[]sdkcrypto.Signer{IDTableSigner},
 		false,
 	)
 
@@ -850,7 +849,7 @@ func TestEpochQCDKG(t *testing.T) {
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{addresses[0]},
-		[]crypto.Signer{signers[0]},
+		[]sdkcrypto.Signer{signers[0]},
 		false,
 	)
 
@@ -858,7 +857,7 @@ func TestEpochQCDKG(t *testing.T) {
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{addresses[5]},
-		[]crypto.Signer{signers[5]},
+		[]sdkcrypto.Signer{signers[5]},
 		false,
 	)
 
@@ -867,7 +866,7 @@ func TestEpochQCDKG(t *testing.T) {
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{addresses[1]},
-		[]crypto.Signer{signers[1]},
+		[]sdkcrypto.Signer{signers[1]},
 		false,
 	)
 
@@ -888,7 +887,7 @@ func TestEpochQCDKG(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{addresses[1]},
-			[]crypto.Signer{signers[1]},
+			[]sdkcrypto.Signer{signers[1]},
 			false,
 		)
 
@@ -903,7 +902,7 @@ func TestEpochQCDKG(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{addresses[1]},
-			[]crypto.Signer{signers[1]},
+			[]sdkcrypto.Signer{signers[1]},
 			false,
 		)
 
@@ -931,7 +930,7 @@ func TestEpochQCDKG(t *testing.T) {
 	clusterQCs[0] = make([]string, 2)
 	clusterQCs[1] = make([]string, 2)
 
-	collectorVoteHasher := signature.NewBLSHasher(collectorVoteTag)
+	collectorVoteHasher := crypto.NewExpandMsgXOFKMAC128(collectorVoteTag)
 
 	t.Run("Can perform QC actions during Epoch Setup and advance to EpochCommit", func(t *testing.T) {
 
@@ -950,7 +949,7 @@ func TestEpochQCDKG(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{addresses[0]},
-			[]crypto.Signer{signers[0]},
+			[]sdkcrypto.Signer{signers[0]},
 			false,
 		)
 
@@ -969,7 +968,7 @@ func TestEpochQCDKG(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{addresses[5]},
-			[]crypto.Signer{signers[5]},
+			[]sdkcrypto.Signer{signers[5]},
 			false,
 		)
 
@@ -1017,7 +1016,7 @@ func TestEpochQCDKG(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			false,
 		)
 
@@ -1038,7 +1037,7 @@ func TestEpochQCDKG(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			false,
 		)
 
@@ -1047,7 +1046,7 @@ func TestEpochQCDKG(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			false,
 		)
 
@@ -1070,7 +1069,7 @@ func TestEpochQCDKG(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			false,
 		)
 
@@ -1141,7 +1140,7 @@ func TestEpochQCDKG(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			false,
 		)
 
@@ -1156,7 +1155,7 @@ func TestEpochQCDKG(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			false,
 		)
 
@@ -1225,7 +1224,7 @@ func TestEpochReset(t *testing.T) {
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{idTableAddress},
-		[]crypto.Signer{IDTableSigner},
+		[]sdkcrypto.Signer{IDTableSigner},
 		false,
 	)
 
@@ -1237,7 +1236,7 @@ func TestEpochReset(t *testing.T) {
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{addresses[0]},
-		[]crypto.Signer{signers[0]},
+		[]sdkcrypto.Signer{signers[0]},
 		false,
 	)
 
@@ -1245,7 +1244,7 @@ func TestEpochReset(t *testing.T) {
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{addresses[5]},
-		[]crypto.Signer{signers[5]},
+		[]sdkcrypto.Signer{signers[5]},
 		false,
 	)
 
@@ -1254,7 +1253,7 @@ func TestEpochReset(t *testing.T) {
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{addresses[1]},
-		[]crypto.Signer{signers[1]},
+		[]sdkcrypto.Signer{signers[1]},
 		false,
 	)
 
@@ -1262,7 +1261,7 @@ func TestEpochReset(t *testing.T) {
 	clusterQCs[0] = make([]string, 1)
 	clusterQCs[1] = make([]string, 1)
 
-	collectorVoteHasher := signature.NewBLSHasher(collectorVoteTag)
+	collectorVoteHasher := crypto.NewExpandMsgXOFKMAC128(collectorVoteTag)
 
 	t.Run("Can perform QC actions during Epoch Setup but cannot advance to EpochCommit if DKG isn't complete", func(t *testing.T) {
 
@@ -1280,7 +1279,7 @@ func TestEpochReset(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{addresses[0]},
-			[]crypto.Signer{signers[0]},
+			[]sdkcrypto.Signer{signers[0]},
 			false,
 		)
 
@@ -1298,7 +1297,7 @@ func TestEpochReset(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{addresses[5]},
-			[]crypto.Signer{signers[5]},
+			[]sdkcrypto.Signer{signers[5]},
 			false,
 		)
 
@@ -1340,7 +1339,7 @@ func TestEpochReset(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			true,
 		)
 	})
@@ -1361,7 +1360,7 @@ func TestEpochReset(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			true,
 		)
 	})
@@ -1382,7 +1381,7 @@ func TestEpochReset(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			true,
 		)
 	})
@@ -1403,7 +1402,7 @@ func TestEpochReset(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			false,
 		)
 
@@ -1440,7 +1439,7 @@ func TestEpochReset(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			false,
 		)
 
@@ -1458,7 +1457,7 @@ func TestEpochReset(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			false,
 		)
 
@@ -1487,7 +1486,7 @@ func TestEpochReset(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			false,
 		)
 
@@ -1508,7 +1507,7 @@ func TestEpochReset(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			false,
 		)
 
