@@ -176,8 +176,8 @@ access(all) contract FlowToken: FungibleToken {
                     storagePath: /storage/flowTokenVault,
                     receiverPath: /public/flowTokenReceiver,
                     metadataPath: /public/flowTokenBalance,
-                    receiverLinkedType: Type<&FlowToken.Vault>(),
-                    metadataLinkedType: Type<&FlowToken.Vault>(),
+                    receiverLinkedType: Type<&{FungibleToken.Receiver, FungibleToken.Vault}>(),
+                    metadataLinkedType: Type<&{FungibleToken.Balance, FungibleToken.Vault}>(),
                     createEmptyVaultFunction: (fun (): @{FungibleToken.Vault} {
                         return <-vaultRef.createEmptyVault()
                     })
@@ -246,13 +246,13 @@ access(all) contract FlowToken: FungibleToken {
         // Create a public capability to the stored Vault that only exposes
         // the `deposit` method through the `Receiver` interface
         //
-        let receiverCapability = self.account.capabilities.storage.issue<&FlowToken.Vault>(/storage/flowTokenVault)
+        let receiverCapability = self.account.capabilities.storage.issue<&{FungibleToken.Receiver, FungibleToken.Vault}>(/storage/flowTokenVault)
         self.account.capabilities.publish(receiverCapability, at: /public/flowTokenReceiver)
 
         // Create a public capability to the stored Vault that only exposes
         // the `balance` field through the `Balance` interface
         //
-        let balanceCapability = self.account.capabilities.storage.issue<&FlowToken.Vault>(/storage/flowTokenVault)
+        let balanceCapability = self.account.capabilities.storage.issue<&{FungibleToken.Balance, FungibleToken.Vault}>(/storage/flowTokenVault)
         self.account.capabilities.publish(balanceCapability, at: /public/flowTokenBalance)
 
         let admin <- create Administrator()

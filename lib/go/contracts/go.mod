@@ -4,9 +4,9 @@ go 1.18
 
 require (
 	github.com/kevinburke/go-bindata v3.23.0+incompatible
-	github.com/onflow/flow-ft/lib/go/contracts v0.7.1-0.20240201000302-9141cd6d33e3
+	github.com/onflow/flow-ft/lib/go/contracts v0.7.1-0.20240201191527-4670592eba7c
 	github.com/onflow/flow-go-sdk v1.0.0-M1
-	github.com/onflow/flow-nft/lib/go/contracts v1.1.1-0.20240131235457-fdeb8eefcaeb
+	github.com/onflow/flow-nft/lib/go/contracts v1.1.1-0.20240201190730-ebdb001eb83c
 	github.com/stretchr/testify v1.8.4
 )
 
