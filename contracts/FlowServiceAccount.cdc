@@ -31,12 +31,12 @@ access(all) contract FlowServiceAccount {
 
         // Create a public capability to the Vault that only exposes
         // the deposit function through the Receiver interface
-        let receiverCapability = acct.capabilities.storage.issue<&FlowToken.Vault>(/storage/flowTokenVault)
+        let receiverCapability = acct.capabilities.storage.issue<&{FungibleToken.Receiver, FungibleToken.Vault}>(/storage/flowTokenVault)
         acct.capabilities.publish(receiverCapability, at: /public/flowTokenReceiver)
 
         // Create a public capability to the Vault that only exposes
         // the balance field through the Balance interface
-        let balanceCapability = acct.capabilities.storage.issue<&FlowToken.Vault>(/storage/flowTokenVault)
+        let balanceCapability = acct.capabilities.storage.issue<&{FungibleToken.Balance, FungibleToken.Vault}>(/storage/flowTokenVault)
         acct.capabilities.publish(balanceCapability, at: /public/flowTokenBalance)
     }
 
@@ -45,7 +45,7 @@ access(all) contract FlowServiceAccount {
     /// Returns 0 if the account has no default balance
     access(all) fun defaultTokenBalance(_ acct: &Account): UFix64 {
         var balance = 0.0
-        if let balanceRef = acct.capabilities.borrow<&FlowToken.Vault>(/public/flowTokenBalance) {
+        if let balanceRef = acct.capabilities.borrow<&{FungibleToken.Balance}>(/public/flowTokenBalance) {
             balance = balanceRef.balance
         }
 
