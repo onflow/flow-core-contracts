@@ -9,7 +9,7 @@ transaction(nodeIDs: [String], paths: [StoragePath]) {
 
         for path in paths {
             // Create a new delegator object for the node
-            let newDelegator <- FlowIDTableStaking.registerNewDelegator(nodeID: nodeIDs[i], tokensCommitted: <-FlowToken.createEmptyVault())
+            let newDelegator <- FlowIDTableStaking.registerNewDelegator(nodeID: nodeIDs[i], tokensCommitted: <-FlowToken.createEmptyVault(vaultType: Type<@FlowToken.Vault>()))
 
             // Store the delegator object
             acct.storage.save(<-newDelegator, to: path)
