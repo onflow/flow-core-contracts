@@ -246,13 +246,13 @@ access(all) contract FlowToken: FungibleToken {
         // Create a public capability to the stored Vault that only exposes
         // the `deposit` method through the `Receiver` interface
         //
-        let receiverCapability = self.account.capabilities.storage.issue<&{FungibleToken.Receiver, FungibleToken.Vault}>(/storage/flowTokenVault)
+        let receiverCapability = self.account.capabilities.storage.issue<&FlowToken.Vault>(/storage/flowTokenVault)
         self.account.capabilities.publish(receiverCapability, at: /public/flowTokenReceiver)
 
         // Create a public capability to the stored Vault that only exposes
         // the `balance` field through the `Balance` interface
         //
-        let balanceCapability = self.account.capabilities.storage.issue<&{FungibleToken.Balance, FungibleToken.Vault}>(/storage/flowTokenVault)
+        let balanceCapability = self.account.capabilities.storage.issue<&FlowToken.Vault>(/storage/flowTokenVault)
         self.account.capabilities.publish(balanceCapability, at: /public/flowTokenBalance)
 
         let admin <- create Administrator()

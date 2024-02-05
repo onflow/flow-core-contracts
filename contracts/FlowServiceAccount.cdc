@@ -31,12 +31,12 @@ access(all) contract FlowServiceAccount {
 
         // Create a public capability to the Vault that only exposes
         // the deposit function through the Receiver interface
-        let receiverCapability = acct.capabilities.storage.issue<&{FungibleToken.Receiver, FungibleToken.Vault}>(/storage/flowTokenVault)
+        let receiverCapability = acct.capabilities.storage.issue<&FlowToken.Vault>(/storage/flowTokenVault)
         acct.capabilities.publish(receiverCapability, at: /public/flowTokenReceiver)
 
         // Create a public capability to the Vault that only exposes
         // the balance field through the Balance interface
-        let balanceCapability = acct.capabilities.storage.issue<&{FungibleToken.Balance, FungibleToken.Vault}>(/storage/flowTokenVault)
+        let balanceCapability = acct.capabilities.storage.issue<&FlowToken.Vault>(/storage/flowTokenVault)
         acct.capabilities.publish(balanceCapability, at: /public/flowTokenBalance)
     }
 
