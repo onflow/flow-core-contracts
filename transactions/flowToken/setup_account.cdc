@@ -16,22 +16,22 @@ transaction {
 
             // Create a public capability to the Vault that only exposes
             // the deposit function through the Receiver interface
-            let vaultCap = signer.capabilities.storage.issue<&{FungibleToken.Receiver, FungibleToken.Vault}>(
+            let vaultCap = signer.capabilities.storage.issue<&FlowToken.Vault>(
                 /storage/flowTokenVault
             )
 
-            signer.capabilities.publish<&{FungibleToken.Receiver, FungibleToken.Vault}>(
+            signer.capabilities.publish(
                 vaultCap,
                 at: /public/flowTokenReceiver
             )
 
             // Create a public capability to the Vault that only exposes
             // the balance field through the Balance interface
-            let balanceCap = signer.capabilities.storage.issue<&{FungibleToken.Balance, FungibleToken.Vault}>(
+            let balanceCap = signer.capabilities.storage.issue<&FlowToken.Vault>(
                 /storage/flowTokenVault
             )
 
-            signer.capabilities.publish<&FlowToken.Vault>(
+            signer.capabilities.publish(
                 balanceCap,
                 at: /public/flowTokenBalance
             )
