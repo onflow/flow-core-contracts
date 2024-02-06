@@ -1,6 +1,6 @@
 import FungibleToken from "FungibleToken"
 import FlowToken from "FlowToken"
-import FlowStorageFees from 0xFLOWSTORAGEFEESADDRESS
+import FlowStorageFees from "FlowStorageFees"
 
 access(all) contract FlowFees {
 
