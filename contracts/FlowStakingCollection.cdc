@@ -13,11 +13,11 @@
 import FungibleToken from "FungibleToken"
 import FlowToken from "FlowToken"
 import FlowIDTableStaking from "FlowIDTableStaking"
-import LockedTokens from 0xLOCKEDTOKENSADDRESS
-import FlowStorageFees from 0xFLOWSTORAGEFEESADDRESS
-import FlowClusterQC from 0xQCADDRESS
-import FlowDKG from 0xDKGADDRESS
-import FlowEpoch from 0xEPOCHADDRESS
+import LockedTokens from "LockedTokens"
+import FlowStorageFees from "FlowStorageFees"
+import FlowClusterQC from "FlowClusterQC"
+import FlowDKG from "FlowDKG"
+import FlowEpoch from "FlowEpoch"
 
 access(all) contract FlowStakingCollection {
 

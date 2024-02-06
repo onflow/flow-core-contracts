@@ -47,10 +47,10 @@ var _ = chainhash.Hash{}
 ************************************************/
 
 const (
+	emulatorServiceAccount   = "f8d6e0586b0a20c7"
 	emulatorFTAddress        = "ee82856bf20e2aa6"
 	emulatorFlowTokenAddress = "0ae53cb6e3f42a79"
 	emulatorFlowFeesAddress  = "e5a8b7f23e8b548f"
-	emulatorStorageFees      = "f8d6e0586b0a20c7"
 )
 
 // Sets up testing and emulator objects and initialize the emulator default addresses

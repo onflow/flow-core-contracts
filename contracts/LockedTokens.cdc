@@ -28,8 +28,8 @@
 import FlowToken from "FlowToken"
 import FungibleToken from "FungibleToken"
 import FlowIDTableStaking from "FlowIDTableStaking"
-import FlowStorageFees from 0xFLOWSTORAGEFEESADDRESS
-import StakingProxy from 0xSTAKINGPROXYADDRESS
+import FlowStorageFees from "FlowStorageFees"
+import StakingProxy from "StakingProxy"
 
 access(all) contract LockedTokens {
 
