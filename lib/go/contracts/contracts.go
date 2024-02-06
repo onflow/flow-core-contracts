@@ -86,6 +86,11 @@ func FungibleTokenMetadataViews(fungibleTokenAddr, metadataViewsAddr, viewResolv
 	return ftcontracts.FungibleTokenMetadataViews(fungibleTokenAddr, metadataViewsAddr, viewResolverAddress)
 }
 
+// FungibleTokenMetadataViews returns the FungibleTokenMetadataViews contract interface.
+func FungibleTokenSwitchboard(fungibleTokenAddr string) []byte {
+	return ftcontracts.FungibleTokenMetadataViews(fungibleTokenAddr)
+}
+
 func NonFungibleToken(viewResolverAddress string) []byte {
 	return nftcontracts.NonFungibleToken(flow.HexToAddress(viewResolverAddress))
 }
