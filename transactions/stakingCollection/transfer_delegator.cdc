@@ -16,7 +16,7 @@ transaction(nodeID: String, delegatorID: UInt32, to: Address) {
 
         // Get a reference to the authorizers StakingCollection
         self.fromStakingCollectionRef = account.storage.borrow<auth(FlowStakingCollection.CollectionOwner) &FlowStakingCollection.StakingCollection>(from: FlowStakingCollection.StakingCollectionStoragePath)
-            ?? panic("Could not borrow ref to StakingCollection")
+            ?? panic("Could not borrow a reference to a StakingCollection in the primary user's account")
 
         // Get the PublicAccount of the account to transfer the NodeDelegator to. 
         let toAccount = getAccount(to)
@@ -24,7 +24,7 @@ transaction(nodeID: String, delegatorID: UInt32, to: Address) {
         // Borrow a capability to the public methods available on the receivers StakingCollection.
         self.toStakingCollectionCap = toAccount.capabilities
             .borrow<&FlowStakingCollection.StakingCollection>(FlowStakingCollection.StakingCollectionPublicPath)
-            ?? panic("Could not borrow ref to StakingCollection")
+            ?? panic("Could not borrow a referamce to a StakingCollection in the receiver's account")
     }
 
     execute {

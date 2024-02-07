@@ -9,7 +9,7 @@ transaction(amount: UFix64) {
 
     prepare(acct: auth(BorrowValue) &Account) {
         self.holderRef = acct.storage.borrow<&LockedTokens.TokenHolder>(from: LockedTokens.TokenHolderStoragePath)
-            ?? panic("Could not borrow a reference to TokenHolder")
+            ?? panic("The primary user account does not have an associated locked account")
 
         self.vaultRef = acct.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault)
             ?? panic("Could not borrow flow token vault ref")

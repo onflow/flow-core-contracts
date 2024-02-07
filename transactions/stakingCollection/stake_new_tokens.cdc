@@ -10,7 +10,7 @@ transaction(nodeID: String, delegatorID: UInt32?, amount: UFix64) {
 
     prepare(account: auth(BorrowValue) &Account) {
         self.stakingCollectionRef = account.storage.borrow<auth(FlowStakingCollection.CollectionOwner) &FlowStakingCollection.StakingCollection>(from: FlowStakingCollection.StakingCollectionStoragePath)
-            ?? panic("Could not borrow ref to StakingCollection")
+            ?? panic("Could not borrow a reference to a StakingCollection in the primary user's account")
     }
 
     execute {

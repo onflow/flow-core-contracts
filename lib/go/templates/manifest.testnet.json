@@ -4,7 +4,7 @@
     {
       "id": "TH.01",
       "name": "Withdraw Unlocked FLOW",
-      "source": "import FungibleToken from 0x9a0766d93b6608b7\nimport FlowToken from 0x7e60df042a9c0868\nimport LockedTokens from 0x95e019a17d0e23d7\n\ntransaction(amount: UFix64) {\n\n    let holderRef: auth(LockedTokens.TokenOperations, FungibleToken.Withdraw) \u0026LockedTokens.TokenHolder\n    let vaultRef: auth(FungibleToken.Withdraw) \u0026FlowToken.Vault\n\n    prepare(acct: auth(BorrowValue) \u0026Account) {\n        self.holderRef = acct.storage.borrow\u003cauth(LockedTokens.TokenOperations, FungibleToken.Withdraw) \u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath)\n            ?? panic(\"Could not borrow a reference to TokenHolder\")\n\n        self.vaultRef = acct.storage.borrow\u003cauth(FungibleToken.Withdraw) \u0026FlowToken.Vault\u003e(from: /storage/flowTokenVault)\n            ?? panic(\"Could not borrow flow token vault ref\")\n    }\n\n    execute {\n        self.vaultRef.deposit(from: \u003c-self.holderRef.withdraw(amount: amount))\n    }\n}\n",
+      "source": "import FungibleToken from 0x9a0766d93b6608b7\nimport FlowToken from 0x7e60df042a9c0868\nimport LockedTokens from 0x95e019a17d0e23d7\n\ntransaction(amount: UFix64) {\n\n    let holderRef: auth(LockedTokens.TokenOperations, FungibleToken.Withdraw) \u0026LockedTokens.TokenHolder\n    let vaultRef: auth(FungibleToken.Withdraw) \u0026FlowToken.Vault\n\n    prepare(acct: auth(BorrowValue) \u0026Account) {\n        self.holderRef = acct.storage.borrow\u003cauth(LockedTokens.TokenOperations, FungibleToken.Withdraw) \u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath)\n            ?? panic(\"The primary user account does not have an associated locked account\")\n\n        self.vaultRef = acct.storage.borrow\u003cauth(FungibleToken.Withdraw) \u0026FlowToken.Vault\u003e(from: /storage/flowTokenVault)\n            ?? panic(\"Could not borrow flow token vault ref\")\n    }\n\n    execute {\n        self.vaultRef.deposit(from: \u003c-self.holderRef.withdraw(amount: amount))\n    }\n}\n",
       "arguments": [
         {
           "type": "UFix64",
@@ -19,12 +19,12 @@
         }
       ],
       "network": "testnet",
-      "hash": "baca378532499da57d1df14da64f07ca5a07f177cc3f65c3fe605347256ee2d7"
+      "hash": "094798e93daeacaa9ff262486a3683ec5a5e2204407e7d00bc3416fbf3efa3b1"
     },
     {
       "id": "TH.02",
       "name": "Deposit Unlocked FLOW",
-      "source": "import FungibleToken from 0x9a0766d93b6608b7\nimport FlowToken from 0x7e60df042a9c0868\nimport LockedTokens from 0x95e019a17d0e23d7\n\ntransaction(amount: UFix64) {\n\n    let holderRef: \u0026LockedTokens.TokenHolder\n    let vaultRef: auth(FungibleToken.Withdraw) \u0026FlowToken.Vault\n\n    prepare(acct: auth(BorrowValue) \u0026Account) {\n        self.holderRef = acct.storage.borrow\u003c\u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath)\n            ?? panic(\"Could not borrow a reference to TokenHolder\")\n\n        self.vaultRef = acct.storage.borrow\u003cauth(FungibleToken.Withdraw) \u0026FlowToken.Vault\u003e(from: /storage/flowTokenVault)\n            ?? panic(\"Could not borrow flow token vault ref\")\n    }\n\n    execute {\n        self.holderRef.deposit(from: \u003c-self.vaultRef.withdraw(amount: amount))\n    }\n}\n",
+      "source": "import FungibleToken from 0x9a0766d93b6608b7\nimport FlowToken from 0x7e60df042a9c0868\nimport LockedTokens from 0x95e019a17d0e23d7\n\ntransaction(amount: UFix64) {\n\n    let holderRef: \u0026LockedTokens.TokenHolder\n    let vaultRef: auth(FungibleToken.Withdraw) \u0026FlowToken.Vault\n\n    prepare(acct: auth(BorrowValue) \u0026Account) {\n        self.holderRef = acct.storage.borrow\u003c\u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath)\n            ?? panic(\"The primary user account does not have an associated locked account\")\n\n        self.vaultRef = acct.storage.borrow\u003cauth(FungibleToken.Withdraw) \u0026FlowToken.Vault\u003e(from: /storage/flowTokenVault)\n            ?? panic(\"Could not borrow flow token vault ref\")\n    }\n\n    execute {\n        self.holderRef.deposit(from: \u003c-self.vaultRef.withdraw(amount: amount))\n    }\n}\n",
       "arguments": [
         {
           "type": "UFix64",
@@ -39,7 +39,7 @@
         }
       ],
       "network": "testnet",
-      "hash": "fc2b44ac4249a0e0a5a26d63b6e9ad7afbc08f311ba281ec59bdb8554f620e80"
+      "hash": "17ffcd60667893674d8d4044bdd8232959dc8b694df1dd88d1b9c5443352f253"
     },
     {
       "id": "TH.06",
@@ -468,7 +468,7 @@
     {
       "id": "SCO.02",
       "name": "Register Delegator",
-      "source": "import FlowStakingCollection from 0x95e019a17d0e23d7\n\n/// Registers a delegator in the staking collection resource\n/// for the specified nodeID and the amount of tokens to commit\n\ntransaction(id: String, amount: UFix64) {\n    \n    let stakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.stakingCollectionRef = account.storage.borrow\u003cauth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow ref to StakingCollection\")\n    }\n\n    execute {\n        self.stakingCollectionRef.registerDelegator(nodeID: id, amount: amount)      \n    }\n}\n",
+      "source": "import FlowStakingCollection from 0x95e019a17d0e23d7\n\n/// Registers a delegator in the staking collection resource\n/// for the specified nodeID and the amount of tokens to commit\n\ntransaction(id: String, amount: UFix64) {\n    \n    let stakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.stakingCollectionRef = account.storage.borrow\u003cauth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow a reference to a StakingCollection in the primary user's account\")\n    }\n\n    execute {\n        self.stakingCollectionRef.registerDelegator(nodeID: id, amount: amount)      \n    }\n}\n",
       "arguments": [
         {
           "type": "String",
@@ -494,12 +494,12 @@
         }
       ],
       "network": "testnet",
-      "hash": "bbc61359628d6e0c30c1338bfba7a1dba424b866c3f5eb13388dfd3f633d6f02"
+      "hash": "e093df9c425be9cdbee44bdbbd721f6aff523e41802a50cf0ff353873e9f9483"
     },
     {
       "id": "SCO.03",
       "name": "Register Node",
-      "source": "import Crypto\nimport FlowStakingCollection from 0x95e019a17d0e23d7\n\n/// Registers a delegator in the staking collection resource\n/// for the specified node information and the amount of tokens to commit\n\ntransaction(id: String,\n            role: UInt8,\n            networkingAddress: String,\n            networkingKey: String,\n            stakingKey: String,\n            amount: UFix64,\n            publicKeys: [Crypto.KeyListEntry]?) {\n\n    let stakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.stakingCollectionRef = account.storage.borrow\u003cauth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow ref to StakingCollection\")\n\n        if let machineAccount = self.stakingCollectionRef.registerNode(\n            id: id,\n            role: role,\n            networkingAddress: networkingAddress,\n            networkingKey: networkingKey,\n            stakingKey: stakingKey,\n            amount: amount,\n            payer: account\n        ) {\n            if publicKeys == nil || publicKeys!.length == 0 {\n                panic(\"Cannot provide zero keys for the machine account\")\n            }\n            for key in publicKeys! {\n                machineAccount.keys.add(publicKey: key.publicKey, hashAlgorithm: key.hashAlgorithm, weight: key.weight)\n            }\n        }\n    }\n}\n",
+      "source": "import Crypto\nimport FlowStakingCollection from 0x95e019a17d0e23d7\n\n/// Registers a delegator in the staking collection resource\n/// for the specified node information and the amount of tokens to commit\n\ntransaction(id: String,\n            role: UInt8,\n            networkingAddress: String,\n            networkingKey: String,\n            stakingKey: String,\n            amount: UFix64,\n            publicKeys: [Crypto.KeyListEntry]?) {\n\n    let stakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.stakingCollectionRef = account.storage.borrow\u003cauth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow a reference to a StakingCollection in the primary user's account\")\n\n        if let machineAccount = self.stakingCollectionRef.registerNode(\n            id: id,\n            role: role,\n            networkingAddress: networkingAddress,\n            networkingKey: networkingKey,\n            stakingKey: stakingKey,\n            amount: amount,\n            payer: account\n        ) {\n            if publicKeys == nil || publicKeys!.length == 0 {\n                panic(\"Cannot provide zero keys for the machine account\")\n            }\n            for key in publicKeys! {\n                machineAccount.keys.add(publicKey: key.publicKey, hashAlgorithm: key.hashAlgorithm, weight: key.weight)\n            }\n        }\n    }\n}\n",
       "arguments": [
         {
           "type": "String",
@@ -619,12 +619,12 @@
         }
       ],
       "network": "testnet",
-      "hash": "a98abb80fe8321b37c65d66972d27cc7da9fe7d5e575fe39f95a71a84e306d31"
+      "hash": "ea29e83e0a6e6d4382001a9e2e0397b6ee19be4fb5850c29f271673f2db85b3a"
     },
     {
       "id": "SCO.04",
       "name": "Create Machine Account",
-      "source": "import Crypto\nimport FlowStakingCollection from 0x95e019a17d0e23d7\n\n/// Creates a machine account for a node that is already in the staking collection\n/// and adds public keys to the new account\n\ntransaction(nodeID: String, publicKeys: [Crypto.KeyListEntry]) {\n    \n    let stakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.stakingCollectionRef = account.storage.borrow\u003cauth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow ref to StakingCollection\")\n\n        if let machineAccount = self.stakingCollectionRef.createMachineAccountForExistingNode(nodeID: nodeID, payer: account) {\n            if publicKeys == nil || publicKeys!.length == 0 {\n                panic(\"Cannot provide zero keys for the machine account\")\n            }\n            for key in publicKeys {\n                machineAccount.keys.add(publicKey: key.publicKey, hashAlgorithm: key.hashAlgorithm, weight: key.weight)\n            }\n        } else {\n            panic(\"Could not create a machine account for the node\")\n        }\n    }\n}\n",
+      "source": "import Crypto\nimport FlowStakingCollection from 0x95e019a17d0e23d7\n\n/// Creates a machine account for a node that is already in the staking collection\n/// and adds public keys to the new account\n\ntransaction(nodeID: String, publicKeys: [Crypto.KeyListEntry]) {\n    \n    let stakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.stakingCollectionRef = account.storage.borrow\u003cauth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow a reference to a StakingCollection in the primary user's account\")\n\n        if let machineAccount = self.stakingCollectionRef.createMachineAccountForExistingNode(nodeID: nodeID, payer: account) {\n            if publicKeys == nil || publicKeys!.length == 0 {\n                panic(\"Cannot provide zero keys for the machine account\")\n            }\n            for key in publicKeys {\n                machineAccount.keys.add(publicKey: key.publicKey, hashAlgorithm: key.hashAlgorithm, weight: key.weight)\n            }\n        } else {\n            panic(\"Could not create a machine account for the node\")\n        }\n    }\n}\n",
       "arguments": [
         {
           "type": "String",
@@ -676,12 +676,12 @@
         }
       ],
       "network": "testnet",
-      "hash": "f81cbe9d07980c4ac80257f63476fde140d08b0b040ed2ac8b3117067b95a19c"
+      "hash": "bb2b73496d87ca467d5409fa41901ab80ec02d41a66b5c097b4f60625e11c69d"
     },
     {
       "id": "SCO.05",
       "name": "Request Unstaking",
-      "source": "import FlowStakingCollection from 0x95e019a17d0e23d7\n\n/// Requests unstaking for the specified node or delegator in the staking collection\n\ntransaction(nodeID: String, delegatorID: UInt32?, amount: UFix64) {\n    \n    let stakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.stakingCollectionRef = account.storage.borrow\u003cauth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow ref to StakingCollection\")\n    }\n\n    execute {\n        self.stakingCollectionRef.requestUnstaking(nodeID: nodeID, delegatorID: delegatorID, amount: amount)\n    }\n}\n",
+      "source": "import FlowStakingCollection from 0x95e019a17d0e23d7\n\n/// Requests unstaking for the specified node or delegator in the staking collection\n\ntransaction(nodeID: String, delegatorID: UInt32?, amount: UFix64) {\n    \n    let stakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.stakingCollectionRef = account.storage.borrow\u003cauth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow a reference to a StakingCollection in the primary user's account\")\n    }\n\n    execute {\n        self.stakingCollectionRef.requestUnstaking(nodeID: nodeID, delegatorID: delegatorID, amount: amount)\n    }\n}\n",
       "arguments": [
         {
           "type": "String",
@@ -725,12 +725,12 @@
         }
       ],
       "network": "testnet",
-      "hash": "0e868a8c719ebdf067198ec805e6d946b8d6b6ecc8780e141ecc6e7f1a23dcb4"
+      "hash": "2d59f2c2c402f919c8dba30009e31480d54e2b250d2e10456e1ff029bd7cce99"
     },
     {
       "id": "SCO.06",
       "name": "Stake New Tokens",
-      "source": "import FlowStakingCollection from 0x95e019a17d0e23d7\n\n/// Commits new tokens to stake for the specified node or delegator in the staking collection\n/// The tokens from the locked vault are used first, if it exists\n/// followed by the tokens from the unlocked vault\n\ntransaction(nodeID: String, delegatorID: UInt32?, amount: UFix64) {\n    \n    let stakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.stakingCollectionRef = account.storage.borrow\u003cauth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow ref to StakingCollection\")\n    }\n\n    execute {\n        self.stakingCollectionRef.stakeNewTokens(nodeID: nodeID, delegatorID: delegatorID, amount: amount)\n    }\n}\n",
+      "source": "import FlowStakingCollection from 0x95e019a17d0e23d7\n\n/// Commits new tokens to stake for the specified node or delegator in the staking collection\n/// The tokens from the locked vault are used first, if it exists\n/// followed by the tokens from the unlocked vault\n\ntransaction(nodeID: String, delegatorID: UInt32?, amount: UFix64) {\n    \n    let stakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.stakingCollectionRef = account.storage.borrow\u003cauth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow a reference to a StakingCollection in the primary user's account\")\n    }\n\n    execute {\n        self.stakingCollectionRef.stakeNewTokens(nodeID: nodeID, delegatorID: delegatorID, amount: amount)\n    }\n}\n",
       "arguments": [
         {
           "type": "String",
@@ -774,12 +774,12 @@
         }
       ],
       "network": "testnet",
-      "hash": "bd567a1cff4472091604f49eaa32bbb8b25dea7f4bdb7f7a4a40b1f9865d0169"
+      "hash": "cf2b03950077352487e6344ab65edc3e1856731ab9cf68aa2ebbe279ae496d4b"
     },
     {
       "id": "SCO.07",
       "name": "Stake Rewarded Tokens",
-      "source": "import FlowStakingCollection from 0x95e019a17d0e23d7\n\n/// Commits rewarded tokens to stake for the specified node or delegator in the staking collection\n\ntransaction(nodeID: String, delegatorID: UInt32?, amount: UFix64) {\n    \n    let stakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.stakingCollectionRef = account.storage.borrow\u003cauth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow ref to StakingCollection\")\n    }\n\n    execute {\n        self.stakingCollectionRef.stakeRewardedTokens(nodeID: nodeID, delegatorID: delegatorID, amount: amount)\n    }\n}\n",
+      "source": "import FlowStakingCollection from 0x95e019a17d0e23d7\n\n/// Commits rewarded tokens to stake for the specified node or delegator in the staking collection\n\ntransaction(nodeID: String, delegatorID: UInt32?, amount: UFix64) {\n    \n    let stakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.stakingCollectionRef = account.storage.borrow\u003cauth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow a reference to a StakingCollection in the primary user's account\")\n    }\n\n    execute {\n        self.stakingCollectionRef.stakeRewardedTokens(nodeID: nodeID, delegatorID: delegatorID, amount: amount)\n    }\n}\n",
       "arguments": [
         {
           "type": "String",
@@ -823,12 +823,12 @@
         }
       ],
       "network": "testnet",
-      "hash": "39a656942f7255daaae8d414be2f9a55a7f1b2c0016d6506ccc60764dc2a5d24"
+      "hash": "4395faf2e515eea4d40f82416ad387575f0d5a580612223c361130e53e72f00b"
     },
     {
       "id": "SCO.08",
       "name": "Stake Unstaked Tokens",
-      "source": "import FlowStakingCollection from 0x95e019a17d0e23d7\n\n/// Commits unstaked tokens to stake for the specified node or delegator in the staking collection\n\ntransaction(nodeID: String, delegatorID: UInt32?, amount: UFix64) {\n    \n    let stakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.stakingCollectionRef = account.storage.borrow\u003cauth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow ref to StakingCollection\")\n    }\n\n    execute {\n        self.stakingCollectionRef.stakeUnstakedTokens(nodeID: nodeID, delegatorID: delegatorID, amount: amount)\n    }\n}\n",
+      "source": "import FlowStakingCollection from 0x95e019a17d0e23d7\n\n/// Commits unstaked tokens to stake for the specified node or delegator in the staking collection\n\ntransaction(nodeID: String, delegatorID: UInt32?, amount: UFix64) {\n    \n    let stakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.stakingCollectionRef = account.storage.borrow\u003cauth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow a reference to a StakingCollection in the primary user's account\")\n    }\n\n    execute {\n        self.stakingCollectionRef.stakeUnstakedTokens(nodeID: nodeID, delegatorID: delegatorID, amount: amount)\n    }\n}\n",
       "arguments": [
         {
           "type": "String",
@@ -872,12 +872,12 @@
         }
       ],
       "network": "testnet",
-      "hash": "8aa46983fcdd33905720c59b280743817f9153fb04252928ffef2b672e4b5c93"
+      "hash": "0b1721f2a8ef6c0c4121ef83c7b38f2141eebcd65c72dab9ebaafe1b4d66fea8"
     },
     {
       "id": "SCO.09",
       "name": "Unstake All",
-      "source": "import FlowStakingCollection from 0x95e019a17d0e23d7\n\n/// Requests to unstake ALL tokens for the specified node or delegator in the staking collection\n\ntransaction(nodeID: String) {\n    \n    let stakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.stakingCollectionRef = account.storage.borrow\u003cauth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow ref to StakingCollection\")\n    }\n\n    execute {\n        self.stakingCollectionRef.unstakeAll(nodeID: nodeID)\n    }\n}\n",
+      "source": "import FlowStakingCollection from 0x95e019a17d0e23d7\n\n/// Requests to unstake ALL tokens for the specified node or delegator in the staking collection\n\ntransaction(nodeID: String) {\n    \n    let stakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.stakingCollectionRef = account.storage.borrow\u003cauth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow a reference to a StakingCollection in the primary user's account\")\n    }\n\n    execute {\n        self.stakingCollectionRef.unstakeAll(nodeID: nodeID)\n    }\n}\n",
       "arguments": [
         {
           "type": "String",
@@ -892,12 +892,12 @@
         }
       ],
       "network": "testnet",
-      "hash": "20f46888d167b973bb903248dbbcef45d4529bc41b7f7e3a03148bd909988c60"
+      "hash": "c84843e3399be2ce95ea00e7c17d72db3c5c3363ec008c7a1c1cfa5b6afe70ae"
     },
     {
       "id": "SCO.10",
       "name": "Withdraw Rewarded Tokens",
-      "source": "import FlowStakingCollection from 0x95e019a17d0e23d7\n\n/// Request to withdraw rewarded tokens for the specified node or delegator in the staking collection\n/// The tokens are automatically deposited to the unlocked account vault first,\n/// And then any locked tokens are deposited into the locked account vault\n\ntransaction(nodeID: String, delegatorID: UInt32?, amount: UFix64) {\n    \n    let stakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.stakingCollectionRef = account.storage.borrow\u003cauth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow ref to StakingCollection\")\n    }\n\n    execute {\n        self.stakingCollectionRef.withdrawRewardedTokens(nodeID: nodeID, delegatorID: delegatorID, amount: amount)\n    }\n}\n",
+      "source": "import FlowStakingCollection from 0x95e019a17d0e23d7\n\n/// Request to withdraw rewarded tokens for the specified node or delegator in the staking collection\n/// The tokens are automatically deposited to the unlocked account vault first,\n/// And then any locked tokens are deposited into the locked account vault\n\ntransaction(nodeID: String, delegatorID: UInt32?, amount: UFix64) {\n    \n    let stakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.stakingCollectionRef = account.storage.borrow\u003cauth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow a reference to a StakingCollection in the primary user's account\")\n    }\n\n    execute {\n        self.stakingCollectionRef.withdrawRewardedTokens(nodeID: nodeID, delegatorID: delegatorID, amount: amount)\n    }\n}\n",
       "arguments": [
         {
           "type": "String",
@@ -941,12 +941,12 @@
         }
       ],
       "network": "testnet",
-      "hash": "6dc4302bdebb2ce5c154fe7726f00d38a9cef741995494eb925bc793123d44ed"
+      "hash": "5a07ca4c016973bdeb168590e111b2c2855833b5ece11ffb28b08b8668f258a8"
     },
     {
       "id": "SCO.11",
       "name": "Withdraw Unstaked Tokens",
-      "source": "import FlowStakingCollection from 0x95e019a17d0e23d7\n\n/// Request to withdraw unstaked tokens for the specified node or delegator in the staking collection\n/// The tokens are automatically deposited to the unlocked account vault first,\n/// And then any locked tokens are deposited into the locked account vault if it is there\n\ntransaction(nodeID: String, delegatorID: UInt32?, amount: UFix64) {\n    \n    let stakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.stakingCollectionRef = account.storage.borrow\u003cauth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow ref to StakingCollection\")\n    }\n\n    execute {\n        self.stakingCollectionRef.withdrawUnstakedTokens(nodeID: nodeID, delegatorID: delegatorID, amount: amount)\n    }\n}\n",
+      "source": "import FlowStakingCollection from 0x95e019a17d0e23d7\n\n/// Request to withdraw unstaked tokens for the specified node or delegator in the staking collection\n/// The tokens are automatically deposited to the unlocked account vault first,\n/// And then any locked tokens are deposited into the locked account vault if it is there\n\ntransaction(nodeID: String, delegatorID: UInt32?, amount: UFix64) {\n    \n    let stakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.stakingCollectionRef = account.storage.borrow\u003cauth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow a reference to a StakingCollection in the primary user's account\")\n    }\n\n    execute {\n        self.stakingCollectionRef.withdrawUnstakedTokens(nodeID: nodeID, delegatorID: delegatorID, amount: amount)\n    }\n}\n",
       "arguments": [
         {
           "type": "String",
@@ -990,12 +990,12 @@
         }
       ],
       "network": "testnet",
-      "hash": "fe68dea0de693f29fdc7c46ed712f4c2c11b950d23edea0fdb767e04f71d6f34"
+      "hash": "01fd4ea83d20510d24ed9f245873a7ee2715aefb774495c80bce7e3e34d6442e"
     },
     {
       "id": "SCO.12",
       "name": "Close Stake",
-      "source": "import FlowStakingCollection from 0x95e019a17d0e23d7\n\n// Closes out a staking object in the staking collection\n// This does not remove the record from the identity table,\n// but it does mean that the account that closes it cannot ever access it again\n\ntransaction(nodeID: String, delegatorID: UInt32?) {\n    \n    let stakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.stakingCollectionRef = account.storage.borrow\u003cauth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow ref to StakingCollection\")\n    }\n\n    execute {\n        self.stakingCollectionRef.closeStake(nodeID: nodeID, delegatorID: delegatorID)\n    }\n}\n",
+      "source": "import FlowStakingCollection from 0x95e019a17d0e23d7\n\n// Closes out a staking object in the staking collection\n// This does not remove the record from the identity table,\n// but it does mean that the account that closes it cannot ever access it again\n\ntransaction(nodeID: String, delegatorID: UInt32?) {\n    \n    let stakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.stakingCollectionRef = account.storage.borrow\u003cauth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow a reference to a StakingCollection in the primary user's account\")\n    }\n\n    execute {\n        self.stakingCollectionRef.closeStake(nodeID: nodeID, delegatorID: delegatorID)\n    }\n}\n",
       "arguments": [
         {
           "type": "String",
@@ -1028,12 +1028,12 @@
         }
       ],
       "network": "testnet",
-      "hash": "b488275765d1c1166028a072f381d7dd15aadd30805e3b9b8ecdb9e8cefde91c"
+      "hash": "7e216d96d75414b27c2301a3b0a7816804d43014337a14731d1493531116d185"
     },
     {
       "id": "SCO.13",
       "name": "Transfer Node",
-      "source": "import FlowStakingCollection from 0x95e019a17d0e23d7\n\n// Transfers a NodeStaker object from an authorizers accoount\n// and adds the NodeStaker to another accounts Staking Collection\n// identified by the to Address.\n\ntransaction(nodeID: String, to: Address) {\n    let fromStakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\n    let toStakingCollectionCap: \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        // The account to transfer the NodeStaker object to must have a valid Staking Collection in order to receive the NodeStaker.\n        if (!FlowStakingCollection.doesAccountHaveStakingCollection(address: to)) {\n            panic(\"Destination account must have a Staking Collection set up.\")\n        }\n\n        // Get a reference to the authorizers StakingCollection\n        self.fromStakingCollectionRef = account.storage.borrow\u003cauth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow ref to StakingCollection\")\n\n        // Get the PublicAccount of the account to transfer the NodeStaker to. \n        let toAccount = getAccount(to)\n\n        // Borrow a capability to the public methods available on the receivers StakingCollection.\n        self.toStakingCollectionCap = toAccount.capabilities\n            .borrow\u003c\u0026FlowStakingCollection.StakingCollection\u003e(FlowStakingCollection.StakingCollectionPublicPath)\n            ?? panic(\"Could not borrow ref to StakingCollection\")\n\n        let machineAccountInfo = self.fromStakingCollectionRef.getMachineAccounts()[nodeID]\n            ?? panic(\"Could not get machine account info for the specified node ID\")\n\n        // Remove the NodeStaker from the authorizers StakingCollection.\n        let nodeStaker \u003c- self.fromStakingCollectionRef.removeNode(nodeID: nodeID)\n\n        // Deposit the NodeStaker to the receivers StakingCollection.\n        self.toStakingCollectionCap.addNodeObject(\u003c- nodeStaker!, machineAccountInfo: machineAccountInfo)\n    }\n}",
+      "source": "import FlowStakingCollection from 0x95e019a17d0e23d7\n\n// Transfers a NodeStaker object from an authorizers accoount\n// and adds the NodeStaker to another accounts Staking Collection\n// identified by the to Address.\n\ntransaction(nodeID: String, to: Address) {\n    let fromStakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\n    let toStakingCollectionCap: \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        // The account to transfer the NodeStaker object to must have a valid Staking Collection in order to receive the NodeStaker.\n        if (!FlowStakingCollection.doesAccountHaveStakingCollection(address: to)) {\n            panic(\"Destination account must have a Staking Collection set up.\")\n        }\n\n        // Get a reference to the authorizers StakingCollection\n        self.fromStakingCollectionRef = account.storage.borrow\u003cauth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow a reference to a StakingCollection in the primary user's account\")\n\n        // Get the PublicAccount of the account to transfer the NodeStaker to. \n        let toAccount = getAccount(to)\n\n        // Borrow a capability to the public methods available on the receivers StakingCollection.\n        self.toStakingCollectionCap = toAccount.capabilities\n            .borrow\u003c\u0026FlowStakingCollection.StakingCollection\u003e(FlowStakingCollection.StakingCollectionPublicPath)\n            ?? panic(\"Could not borrow a reference to a StakingCollection in the receiver's account\")\n\n        let machineAccountInfo = self.fromStakingCollectionRef.getMachineAccounts()[nodeID]\n            ?? panic(\"Could not get machine account info for the specified node ID\")\n\n        // Remove the NodeStaker from the authorizers StakingCollection.\n        let nodeStaker \u003c- self.fromStakingCollectionRef.removeNode(nodeID: nodeID)\n\n        // Deposit the NodeStaker to the receivers StakingCollection.\n        self.toStakingCollectionCap.addNodeObject(\u003c- nodeStaker!, machineAccountInfo: machineAccountInfo)\n    }\n}",
       "arguments": [
         {
           "type": "String",
@@ -1059,12 +1059,12 @@
         }
       ],
       "network": "testnet",
-      "hash": "57859903fde52b65b166f1f8fee9c18d6c7260739a8753a79ef014b02f0b2fab"
+      "hash": "311f4071dda8b17ac6cbc6f0a27e98bd426026825d3c68308903fead884e616e"
     },
     {
       "id": "SCO.14",
       "name": "Transfer Delegator",
-      "source": "import FlowStakingCollection from 0x95e019a17d0e23d7\n\n// Transfers a NodeDelegator object from an authorizers accoount\n// and adds the NodeDelegator to another accounts Staking Collection\n// identified by the to Address.\n\ntransaction(nodeID: String, delegatorID: UInt32, to: Address) {\n    let fromStakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\n    let toStakingCollectionCap: \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        // The account to transfer the NodeDelegator object to must have a valid Staking Collection in order to receive the NodeDelegator.\n        if (!FlowStakingCollection.doesAccountHaveStakingCollection(address: to)) {\n            panic(\"Destination account must have a Staking Collection set up.\")\n        }\n\n        // Get a reference to the authorizers StakingCollection\n        self.fromStakingCollectionRef = account.storage.borrow\u003cauth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow ref to StakingCollection\")\n\n        // Get the PublicAccount of the account to transfer the NodeDelegator to. \n        let toAccount = getAccount(to)\n\n        // Borrow a capability to the public methods available on the receivers StakingCollection.\n        self.toStakingCollectionCap = toAccount.capabilities\n            .borrow\u003c\u0026FlowStakingCollection.StakingCollection\u003e(FlowStakingCollection.StakingCollectionPublicPath)\n            ?? panic(\"Could not borrow ref to StakingCollection\")\n    }\n\n    execute {\n        // Remove the NodeDelegator from the authorizers StakingCollection.\n        let nodeDelegator \u003c- self.fromStakingCollectionRef.removeDelegator(nodeID: nodeID, delegatorID: delegatorID)\n\n        // Deposit the NodeDelegator to the receivers StakingCollection.\n        self.toStakingCollectionCap.addDelegatorObject(\u003c- nodeDelegator!)\n    }\n}",
+      "source": "import FlowStakingCollection from 0x95e019a17d0e23d7\n\n// Transfers a NodeDelegator object from an authorizers accoount\n// and adds the NodeDelegator to another accounts Staking Collection\n// identified by the to Address.\n\ntransaction(nodeID: String, delegatorID: UInt32, to: Address) {\n    let fromStakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\n    let toStakingCollectionCap: \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        // The account to transfer the NodeDelegator object to must have a valid Staking Collection in order to receive the NodeDelegator.\n        if (!FlowStakingCollection.doesAccountHaveStakingCollection(address: to)) {\n            panic(\"Destination account must have a Staking Collection set up.\")\n        }\n\n        // Get a reference to the authorizers StakingCollection\n        self.fromStakingCollectionRef = account.storage.borrow\u003cauth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow a reference to a StakingCollection in the primary user's account\")\n\n        // Get the PublicAccount of the account to transfer the NodeDelegator to. \n        let toAccount = getAccount(to)\n\n        // Borrow a capability to the public methods available on the receivers StakingCollection.\n        self.toStakingCollectionCap = toAccount.capabilities\n            .borrow\u003c\u0026FlowStakingCollection.StakingCollection\u003e(FlowStakingCollection.StakingCollectionPublicPath)\n            ?? panic(\"Could not borrow a referamce to a StakingCollection in the receiver's account\")\n    }\n\n    execute {\n        // Remove the NodeDelegator from the authorizers StakingCollection.\n        let nodeDelegator \u003c- self.fromStakingCollectionRef.removeDelegator(nodeID: nodeID, delegatorID: delegatorID)\n\n        // Deposit the NodeDelegator to the receivers StakingCollection.\n        self.toStakingCollectionCap.addDelegatorObject(\u003c- nodeDelegator!)\n    }\n}",
       "arguments": [
         {
           "type": "String",
@@ -1101,12 +1101,12 @@
         }
       ],
       "network": "testnet",
-      "hash": "770b1a66b462e46e2cfaedaebedfddc94fe4e3a877b7e73f73b444f802c8c578"
+      "hash": "f9fa239cb78b3e07b8f8d56e173e2673b4b53aeb07d507a769c8d96eaf400b8d"
     },
     {
       "id": "SCO.15",
       "name": "Withdraw From Machine Account",
-      "source": "import FlowStakingCollection from 0x95e019a17d0e23d7\n\n/// Request to withdraw tokens from the machine account\n/// The tokens are automatically deposited to the unlocked account vault\n\ntransaction(nodeID: String, amount: UFix64) {\n    \n    let stakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.stakingCollectionRef = account.storage.borrow\u003cauth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow ref to StakingCollection\")\n    }\n\n    execute {\n        self.stakingCollectionRef.withdrawFromMachineAccount(nodeID: nodeID, amount: amount)\n    }\n}\n",
+      "source": "import FlowStakingCollection from 0x95e019a17d0e23d7\n\n/// Request to withdraw tokens from the machine account\n/// The tokens are automatically deposited to the unlocked account vault\n\ntransaction(nodeID: String, amount: UFix64) {\n    \n    let stakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.stakingCollectionRef = account.storage.borrow\u003cauth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow a reference to a StakingCollection in the primary user's account\")\n    }\n\n    execute {\n        self.stakingCollectionRef.withdrawFromMachineAccount(nodeID: nodeID, amount: amount)\n    }\n}\n",
       "arguments": [
         {
           "type": "String",
@@ -1132,12 +1132,12 @@
         }
       ],
       "network": "testnet",
-      "hash": "ffc0618f599477283475121bb54789e9c7b860fa74d0bcbfb90d8551d4adba57"
+      "hash": "fdd40862af04dc36dd0e9e727966c6f81dd6be8246b9c70afd18297aac9e86a8"
     },
     {
       "id": "SCO.16",
       "name": "Update Networking Address",
-      "source": "import FlowStakingCollection from 0x95e019a17d0e23d7\n\n/// Changes the networking address for the specified node\n\ntransaction(nodeID: String, newAddress: String) {\n    \n    let stakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.stakingCollectionRef = account.storage.borrow\u003cauth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow ref to StakingCollection\")\n    }\n\n    execute {\n        self.stakingCollectionRef.updateNetworkingAddress(nodeID: nodeID, newAddress: newAddress)\n    }\n}\n",
+      "source": "import FlowStakingCollection from 0x95e019a17d0e23d7\n\n/// Changes the networking address for the specified node\n\ntransaction(nodeID: String, newAddress: String) {\n    \n    let stakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.stakingCollectionRef = account.storage.borrow\u003cauth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow a reference to a StakingCollection in the primary user's account\")\n    }\n\n    execute {\n        self.stakingCollectionRef.updateNetworkingAddress(nodeID: nodeID, newAddress: newAddress)\n    }\n}\n",
       "arguments": [
         {
           "type": "String",
@@ -1163,7 +1163,7 @@
         }
       ],
       "network": "testnet",
-      "hash": "0b8b6fbdd32ebcf5adf1a431e88bd8ac31bde3a64443a735f3ed597ebca48ae6"
+      "hash": "3a68789d8cd56e6c7b064057045a56340746aac710db57700de2c33eb6610e5f"
     }
   ]
 }
