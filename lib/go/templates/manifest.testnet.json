@@ -2,6 +2,923 @@
   "network": "testnet",
   "templates": [
     {
+      "id": "FA.01",
+      "name": "Create Account",
+      "source": "import Crypto\n\ntransaction(publicKeys: [Crypto.KeyListEntry]) {\n\tprepare(signer: AuthAccount) {\n\t\tlet account = AuthAccount(payer: signer)\n\n\t\t// add all the keys to the account\n\t\tfor key in publicKeys {\n\t\t\taccount.keys.add(publicKey: key.publicKey, hashAlgorithm: key.hashAlgorithm, weight: key.weight)\n\t\t}\n\t}\n}",
+      "arguments": [
+        {
+          "type": "[Crypto.KeyListEntry]",
+          "name": "publicKeys",
+          "label": "Public Keys",
+          "sampleValues": [
+            {
+              "value": [
+                {
+                  "value": {
+                    "id": "I.Crypto.Crypto.KeyListEntry",
+                    "fields": [
+                      {
+                        "value": {
+                          "value": "1000",
+                          "type": "Int"
+                        },
+                        "name": "keyIndex"
+                      },
+                      {
+                        "value": {
+                          "value": {
+                            "id": "PublicKey",
+                            "fields": [
+                              {
+                                "value": {
+                                  "value": [
+                                    {
+                                      "value": "97",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "12",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "124",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "219",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "204",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "59",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "7",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "91",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "97",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "129",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "185",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "79",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "239",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "14",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "225",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "138",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "73",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "165",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "97",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "50",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "130",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "75",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "20",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "18",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "65",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "93",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "134",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "219",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "149",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "255",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "224",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "164",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "11",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "117",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "167",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "23",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "13",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "229",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "66",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "42",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "182",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "239",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "41",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "49",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "164",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "6",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "195",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "226",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "122",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "138",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "105",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "221",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "9",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "138",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "217",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "173",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "11",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "177",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "59",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "116",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "136",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "64",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "203",
+                                      "type": "UInt8"
+                                    },
+                                    {
+                                      "value": "230",
+                                      "type": "UInt8"
+                                    }
+                                  ],
+                                  "type": "Array"
+                                },
+                                "name": "publicKey"
+                              },
+                              {
+                                "value": {
+                                  "value": {
+                                    "id": "SignatureAlgorithm",
+                                    "fields": [
+                                      {
+                                        "value": {
+                                          "value": "1",
+                                          "type": "UInt8"
+                                        },
+                                        "name": "rawValue"
+                                      }
+                                    ]
+                                  },
+                                  "type": "Enum"
+                                },
+                                "name": "signatureAlgorithm"
+                              }
+                            ]
+                          },
+                          "type": "Struct"
+                        },
+                        "name": "publicKey"
+                      },
+                      {
+                        "value": {
+                          "value": {
+                            "id": "HashAlgorithm",
+                            "fields": [
+                              {
+                                "value": {
+                                  "value": "3",
+                                  "type": "UInt8"
+                                },
+                                "name": "rawValue"
+                              }
+                            ]
+                          },
+                          "type": "Enum"
+                        },
+                        "name": "hashAlgorithm"
+                      },
+                      {
+                        "value": {
+                          "value": "1000.00000000",
+                          "type": "UFix64"
+                        },
+                        "name": "weight"
+                      },
+                      {
+                        "value": {
+                          "value": false,
+                          "type": "Bool"
+                        },
+                        "name": "isRevoked"
+                      }
+                    ]
+                  },
+                  "type": "Struct"
+                }
+              ],
+              "type": "Array"
+            }
+          ]
+        }
+      ],
+      "network": "testnet",
+      "hash": "fcc2f30bfbe5e5aa3b713bd7ccb044764dce93313aa5231339679e37015c5276"
+    },
+    {
+      "id": "FA.02",
+      "name": "Add Key",
+      "source": "import Crypto\n\ntransaction(key: Crypto.KeyListEntry) {\n\tprepare(signer: AuthAccount) {\n\t\tsigner.keys.add(publicKey: key.publicKey, hashAlgorithm: key.hashAlgorithm, weight: key.weight)\n\t}\n}",
+      "arguments": [
+        {
+          "type": "Crypto.KeyListEntry",
+          "name": "key",
+          "label": "Public Key",
+          "sampleValues": [
+            {
+              "value": {
+                "id": "I.Crypto.Crypto.KeyListEntry",
+                "fields": [
+                  {
+                    "value": {
+                      "value": "1000",
+                      "type": "Int"
+                    },
+                    "name": "keyIndex"
+                  },
+                  {
+                    "value": {
+                      "value": {
+                        "id": "PublicKey",
+                        "fields": [
+                          {
+                            "value": {
+                              "value": [
+                                {
+                                  "value": "97",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "12",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "124",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "219",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "204",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "59",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "7",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "91",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "97",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "129",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "185",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "79",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "239",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "14",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "225",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "138",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "73",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "165",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "97",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "50",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "130",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "75",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "20",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "18",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "65",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "93",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "134",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "219",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "149",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "255",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "224",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "164",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "11",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "117",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "167",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "23",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "13",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "229",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "66",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "42",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "182",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "239",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "41",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "49",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "164",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "6",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "195",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "226",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "122",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "138",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "105",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "221",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "9",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "138",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "217",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "173",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "11",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "177",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "59",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "116",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "136",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "64",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "203",
+                                  "type": "UInt8"
+                                },
+                                {
+                                  "value": "230",
+                                  "type": "UInt8"
+                                }
+                              ],
+                              "type": "Array"
+                            },
+                            "name": "publicKey"
+                          },
+                          {
+                            "value": {
+                              "value": {
+                                "id": "SignatureAlgorithm",
+                                "fields": [
+                                  {
+                                    "value": {
+                                      "value": "1",
+                                      "type": "UInt8"
+                                    },
+                                    "name": "rawValue"
+                                  }
+                                ]
+                              },
+                              "type": "Enum"
+                            },
+                            "name": "signatureAlgorithm"
+                          }
+                        ]
+                      },
+                      "type": "Struct"
+                    },
+                    "name": "publicKey"
+                  },
+                  {
+                    "value": {
+                      "value": {
+                        "id": "HashAlgorithm",
+                        "fields": [
+                          {
+                            "value": {
+                              "value": "3",
+                              "type": "UInt8"
+                            },
+                            "name": "rawValue"
+                          }
+                        ]
+                      },
+                      "type": "Enum"
+                    },
+                    "name": "hashAlgorithm"
+                  },
+                  {
+                    "value": {
+                      "value": "1000.00000000",
+                      "type": "UFix64"
+                    },
+                    "name": "weight"
+                  },
+                  {
+                    "value": {
+                      "value": false,
+                      "type": "Bool"
+                    },
+                    "name": "isRevoked"
+                  }
+                ]
+              },
+              "type": "Struct"
+            }
+          ]
+        }
+      ],
+      "network": "testnet",
+      "hash": "bc3f3d521f71d87e4c7389b2dbf7678b95b92fc3393063849121df4c1c851e0a"
+    },
+    {
+      "id": "FA.03",
+      "name": "Remove Key",
+      "source": "transaction(keyIndex: Int) {\n\tprepare(signer: AuthAccount) {\n\t\tsigner.keys.revoke(keyIndex: keyIndex)\n\t}\n}",
+      "arguments": [
+        {
+          "type": "Int",
+          "name": "keyIndex",
+          "label": "Key Index",
+          "sampleValues": [
+            {
+              "value": "1",
+              "type": "Int"
+            }
+          ]
+        }
+      ],
+      "network": "testnet",
+      "hash": "ec5dcc5918a24734f3ddd7d687b6138e33d2e2a7ab0e0d815f4b873a7b762ac5"
+    },
+    {
+      "id": "FT.01",
+      "name": "Setup Fungible Token Vault",
+      "source": "import FungibleToken from 0x9a0766d93b6608b7\nimport FungibleTokenMetadataViews from 0x9a0766d93b6608b7\n\n/// This transaction is what an account would run\n/// to set itself up to manage fungible tokens. This function\n/// uses views to know where to set up the vault\n/// in storage and to create the empty vault.\n\ntransaction(contractAddress: Address, contractName: String) {\n\n    prepare(signer: auth(SaveValue, Capabilities) \u0026Account) {\n        // Borrow a reference to the vault stored on the passed account at the passed publicPath\n        let resolverRef = getAccount(contractAddress)\n            .contracts.borrow\u003c\u0026FungibleToken\u003e(name: contractName)\n            ?? panic(\"Could not borrow a reference to the fungible token contract\")\n\n        // Use that reference to retrieve the FTView \n        let ftVaultData = resolverRef.resolveContractView(resourceType: nil, viewType: Type\u003cFungibleTokenMetadataViews.FTVaultData\u003e()) as! FungibleTokenMetadataViews.FTVaultData?\n            ?? panic(\"Could not resolve the FTVaultData view for the given Fungible token contract\")\n\n        // Create a new empty vault using the createEmptyVault function inside the FTVaultData\n        let emptyVault \u003c-ftVaultData.createEmptyVault()\n\n        // Save it to the account\n        signer.storage.save(\u003c-emptyVault, to: ftVaultData.storagePath)\n        \n        // Create a public capability for the vault which includes the .Resolver interface\n        let vaultCap = signer.capabilities.storage.issue\u003c\u0026{FungibleToken.Vault}\u003e(ftVaultData.storagePath)\n        signer.capabilities.publish(vaultCap, at: ftVaultData.metadataPath)\n\n        // Create a public capability for the vault exposing the receiver interface\n        let receiverCap = signer.capabilities.storage.issue\u003c\u0026{FungibleToken.Receiver}\u003e(ftVaultData.storagePath)\n        signer.capabilities.publish(receiverCap, at: ftVaultData.receiverPath)\n\n    }\n}\n ",
+      "arguments": [
+        {
+          "type": "Address",
+          "name": "contractAddress",
+          "label": "FT Contract Address",
+          "sampleValues": [
+            {
+              "value": "0x8c5303eaa26202d6",
+              "type": "Address"
+            }
+          ]
+        },
+        {
+          "type": "String",
+          "name": "contractName",
+          "label": "FT Contract Name",
+          "sampleValues": [
+            {
+              "value": "FiatToken",
+              "type": "String"
+            }
+          ]
+        }
+      ],
+      "network": "testnet",
+      "hash": "61eb858316b62fedbec6a9d155076a4f394315edaa91a6335b267d2efbea255e"
+    },
+    {
+      "id": "FT.02",
+      "name": "Transfer Fungible Token",
+      "source": "import FungibleToken from 0x9a0766d93b6608b7\n\n/// Can pass in any storage path and receiver path instead of just the default.\n/// This lets you choose the token you want to send as well the capability you want to send it to.\n///\n/// Any token path can be passed as an argument here, so wallets should\n/// should check argument values to make sure the intended token path is passed in\n///\ntransaction(amount: UFix64, to: Address, senderPath: StoragePath, receiverPath: PublicPath) {\n\n    // The Vault resource that holds the tokens that are being transferred\n    let tempVault: @{FungibleToken.Vault}\n\n    prepare(signer: auth(BorrowValue) \u0026Account) {\n\n        // Get a reference to the signer's stored vault\n        let vaultRef = signer.storage.borrow\u003cauth(FungibleToken.Withdraw) \u0026{FungibleToken.Provider}\u003e(from: senderPath)\n\t\t\t?? panic(\"Could not borrow reference to the owner's Vault!\")\n\n        self.tempVault \u003c- vaultRef.withdraw(amount: amount)\n    }\n\n    execute {\n        let recipient = getAccount(to)\n        let receiverRef = recipient.capabilities.borrow\u003c\u0026{FungibleToken.Receiver}\u003e(receiverPath)\n            ?? panic(\"Could not borrow reference to the recipient's Receiver!\")\n\n        // Transfer tokens from the signer's stored vault to the receiver capability\n        receiverRef.deposit(from: \u003c-self.tempVault)\n    }\n}",
+      "arguments": [
+        {
+          "type": "UFix64",
+          "name": "amount",
+          "label": "Amount",
+          "sampleValues": [
+            {
+              "value": "92233720368.54775808",
+              "type": "UFix64"
+            }
+          ]
+        },
+        {
+          "type": "Address",
+          "name": "to",
+          "label": "Recipient",
+          "sampleValues": [
+            {
+              "value": "0x8c5303eaa26202d6",
+              "type": "Address"
+            }
+          ]
+        },
+        {
+          "type": "StoragePath",
+          "name": "senderPath",
+          "label": "Sender's Collection Path",
+          "sampleValues": [
+            {
+              "value": {
+                "domain": "storage",
+                "identifier": "samplePathIdentifier"
+              },
+              "type": "Path"
+            }
+          ]
+        },
+        {
+          "type": "PublicPath",
+          "name": "receiverPath",
+          "label": "Recipient's Receiver Path",
+          "sampleValues": [
+            {
+              "value": {
+                "domain": "storage",
+                "identifier": "samplePathIdentifier"
+              },
+              "type": "Path"
+            }
+          ]
+        }
+      ],
+      "network": "testnet",
+      "hash": "fbe5032968d55b004d4f38e40ccaeff0d98140d21276995144469899bff56735"
+    },
+    {
+      "id": "NFT.01",
+      "name": "Setup NFT Collection",
+      "source": "/// This transaction is what an account would run\n/// to set itself up to receive NFTs. This function\n/// uses views to know where to set up the collection\n/// in storage and to create the empty collection.\n\nimport NonFungibleToken from 0x631e88ae7f1d7c20\nimport MetadataViews from 0x631e88ae7f1d7c20\n\ntransaction(contractAddress: Address, contractName: String) {\n\n    prepare(signer: auth(IssueStorageCapabilityController, PublishCapability, SaveValue) \u0026Account) {\n        // Borrow a reference to the nft contract deployed to the passed account\n        let resolverRef = getAccount(contractAddress)\n            .contracts.borrow\u003c\u0026NonFungibleToken\u003e(name: contractName)\n            ?? panic(\"Could not borrow a reference to the non-fungible token contract\")\n\n        // Use that reference to retrieve the NFTCollectionData view \n        let collectionData = resolverRef.resolveContractView(resourceType: nil, viewType: Type\u003cMetadataViews.NFTCollectionData\u003e()) as! MetadataViews.NFTCollectionData?\n            ?? panic(\"Could not resolve the NFTCollectionData view for the given non-fungible token contract\")\n\n        // Create a new empty collections\n        let emptyCollection \u003c- collectionData.createEmptyCollection()\n\n        // save it to the account\n        signer.storage.save(\u003c-emptyCollection, to: collectionData.storagePath)\n\n        // create a public capability for the collection\n        let collectionCap = signer.capabilities.storage.issue\u003c\u0026{NonFungibleToken.Collection}\u003e(\n                collectionData.storagePath\n            )\n        signer.capabilities.publish(collectionCap, at: collectionData.publicPath)\n    }\n}\n",
+      "arguments": [
+        {
+          "type": "Address",
+          "name": "contractAddress",
+          "label": "NFT Contract Address",
+          "sampleValues": [
+            {
+              "value": "0x8c5303eaa26202d6",
+              "type": "Address"
+            }
+          ]
+        },
+        {
+          "type": "String",
+          "name": "contractName",
+          "label": "NFT Contract Name",
+          "sampleValues": [
+            {
+              "value": "TopShot",
+              "type": "String"
+            }
+          ]
+        }
+      ],
+      "network": "testnet",
+      "hash": "98966f4ef503ab75eeebe2d24d2dd3d2fb92d7d945db5bc76f79a6c60070bd33"
+    },
+    {
+      "id": "NFT.02",
+      "name": "Transfer NFT",
+      "source": "/// This transaction is for transferring an ExampleNFT from one account to another\n\nimport \"ViewResolver\"\nimport \"MetadataViews\"\nimport 0x631e88ae7f1d7c20\nimport \"ExampleNFT\"\n\ntransaction(contractAddress: Address, contractName: String, recipient: Address, withdrawID: UInt64) {\n\n    /// Reference to the withdrawer's collection\n    let withdrawRef: auth(NonFungibleToken.Withdraw) \u0026{NonFungibleToken.Collection}\n\n    /// Reference of the collection to deposit the NFT to\n    let receiverRef: \u0026{NonFungibleToken.Receiver}\n\n    prepare(signer: auth(BorrowValue) \u0026Account) {\n\n        // borrow the NFT contract as ViewResolver reference\n        let viewResolver = getAccount(contractAddress).contracts.borrow\u003c\u0026ViewResolver\u003e(name: contractName)\n            ?? panic(\"Could not borrow ViewResolver of given name from address\")\n\n        // resolve the NFT collection data from the NFT contract\n        let collectionData = viewResolver.resolveContractView(resourceType: nil, viewType: Type\u003cMetadataViews.NFTCollectionData\u003e()) as! MetadataViews.NFTCollectionData?\n            ?? panic(\"ViewResolver does not resolve NFTCollectionData view\")\n\n        // borrow a reference to the signer's NFT collection\n        self.withdrawRef = signer.storage.borrow\u003cauth(NonFungibleToken.Withdraw) \u0026{NonFungibleToken.Collection}\u003e(\n                from: collectionData.storagePath\n            ) ?? panic(\"Account does not store an object at the specified path\")\n\n        // get the recipients public account object\n        let recipient = getAccount(recipient)\n\n        // borrow a public reference to the receivers collection\n        let receiverCap = recipient.capabilities.get\u003c\u0026{NonFungibleToken.Receiver}\u003e(collectionData.publicPath)\n            ?? panic(\"Could not get the recipient's Receiver Capability\")\n\n        self.receiverRef = receiverCap.borrow()\n            ?? panic(\"Could not borrow reference to the recipient's receiver\")\n\n    }\n\n    execute {\n\n        let nft \u003c- self.withdrawRef.withdraw(withdrawID: withdrawID)\n        self.receiverRef.deposit(token: \u003c-nft)\n\n    }\n\n    post {\n        !self.withdrawRef.getIDs().contains(withdrawID): \"Original owner should not have the NFT anymore\"\n    }\n}\n",
+      "arguments": [
+        {
+          "type": "UInt64",
+          "name": "id",
+          "label": "NFT ID to Transfer",
+          "sampleValues": [
+            {
+              "value": "10",
+              "type": "UInt64"
+            }
+          ]
+        },
+        {
+          "type": "Address",
+          "name": "to",
+          "label": "Recipient",
+          "sampleValues": [
+            {
+              "value": "0x8c5303eaa26202d6",
+              "type": "Address"
+            }
+          ]
+        },
+        {
+          "type": "StoragePath",
+          "name": "senderPath",
+          "label": "Sender's Collection Path",
+          "sampleValues": [
+            {
+              "value": {
+                "domain": "storage",
+                "identifier": "samplePathIdentifier"
+              },
+              "type": "Path"
+            }
+          ]
+        },
+        {
+          "type": "PublicPath",
+          "name": "receiverPath",
+          "label": "Recipient's Receiver Path",
+          "sampleValues": [
+            {
+              "value": {
+                "domain": "storage",
+                "identifier": "samplePathIdentifier"
+              },
+              "type": "Path"
+            }
+          ]
+        }
+      ],
+      "network": "testnet",
+      "hash": "cbbf41e79e3c8e8bea325427e15c2c098441da45cff0ab95131848ec8aefa0cd"
+    },
+    {
       "id": "TH.01",
       "name": "Withdraw Unlocked FLOW",
       "source": "import FungibleToken from 0x9a0766d93b6608b7\nimport FlowToken from 0x7e60df042a9c0868\nimport LockedTokens from 0x95e019a17d0e23d7\n\ntransaction(amount: UFix64) {\n\n    let holderRef: auth(LockedTokens.TokenOperations, FungibleToken.Withdraw) \u0026LockedTokens.TokenHolder\n    let vaultRef: auth(FungibleToken.Withdraw) \u0026FlowToken.Vault\n\n    prepare(acct: auth(BorrowValue) \u0026Account) {\n        self.holderRef = acct.storage.borrow\u003cauth(LockedTokens.TokenOperations, FungibleToken.Withdraw) \u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath)\n            ?? panic(\"The primary user account does not have an associated locked account\")\n\n        self.vaultRef = acct.storage.borrow\u003cauth(FungibleToken.Withdraw) \u0026FlowToken.Vault\u003e(from: /storage/flowTokenVault)\n            ?? panic(\"Could not borrow flow token vault ref\")\n    }\n\n    execute {\n        self.vaultRef.deposit(from: \u003c-self.holderRef.withdraw(amount: amount))\n    }\n}\n",
@@ -40,422 +957,6 @@
       ],
       "network": "testnet",
       "hash": "17ffcd60667893674d8d4044bdd8232959dc8b694df1dd88d1b9c5443352f253"
-    },
-    {
-      "id": "TH.06",
-      "name": "Register Node",
-      "source": "import FlowToken from 0x7e60df042a9c0868\nimport FungibleToken from 0x9a0766d93b6608b7\nimport LockedTokens from 0x95e019a17d0e23d7\nimport StakingProxy from 0x7aad92e5a0715d21\n\ntransaction(id: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String, amount: UFix64) {\n\n    let holderRef: auth(LockedTokens.TokenOperations, FungibleToken.Withdraw) \u0026LockedTokens.TokenHolder\n\n    let vaultRef: auth(FungibleToken.Withdraw) \u0026FlowToken.Vault\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.holderRef = account.storage.borrow\u003cauth(LockedTokens.TokenOperations, FungibleToken.Withdraw) \u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath)\n            ?? panic(\"Could not borrow ref to TokenHolder\")\n\n        self.vaultRef = account.storage.borrow\u003cauth(FungibleToken.Withdraw) \u0026FlowToken.Vault\u003e(from: /storage/flowTokenVault)\n            ?? panic(\"Could not borrow flow token vault reference\")\n    }\n\n    execute {\n        let nodeInfo = StakingProxy.NodeInfo(\n          nodeID: id,\n          role: role,\n          networkingAddress: networkingAddress,\n          networkingKey: networkingKey,\n          stakingKey: stakingKey\n        )\n\n        let lockedBalance = self.holderRef.getLockedAccountBalance()\n\n        if amount \u003c= lockedBalance {\n\n            self.holderRef.createNodeStaker(nodeInfo: nodeInfo, amount: amount)\n\n        } else if ((amount - lockedBalance) \u003c= self.vaultRef.balance) {\n\n            self.holderRef.deposit(from: \u003c-self.vaultRef.withdraw(amount: amount - lockedBalance))\n\n            self.holderRef.createNodeStaker(nodeInfo: nodeInfo, amount: amount)\n\n        } else {\n            panic(\"Not enough tokens to stake!\")\n        }\n        \n    }\n}\n",
-      "arguments": [
-        {
-          "type": "String",
-          "name": "id",
-          "label": "Node ID",
-          "sampleValues": [
-            {
-              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6",
-              "type": "String"
-            }
-          ]
-        },
-        {
-          "type": "UInt8",
-          "name": "role",
-          "label": "Node Role",
-          "sampleValues": [
-            {
-              "value": "1",
-              "type": "UInt8"
-            }
-          ]
-        },
-        {
-          "type": "String",
-          "name": "networkingAddress",
-          "label": "Networking Address",
-          "sampleValues": [
-            {
-              "value": "flow-node.test:3569",
-              "type": "String"
-            }
-          ]
-        },
-        {
-          "type": "String",
-          "name": "networkingKey",
-          "label": "Networking Key",
-          "sampleValues": [
-            {
-              "value": "1348307bc77c688e80049de9d081aa09755da33e6997605fa059db2144fc85e560cbe6f7da8d74b453f5916618cb8fd392c2db856f3e78221dc68db1b1d914e4",
-              "type": "String"
-            }
-          ]
-        },
-        {
-          "type": "String",
-          "name": "stakingKey",
-          "label": "Staking Key",
-          "sampleValues": [
-            {
-              "value": "9e9ae0d645fd5fd9050792e0b0daa82cc1686d9133afa0f81a784b375c42ae48567d1545e7a9e1965f2c1a32f73cf8575ebb7a967f6e4d104d2df78eb8be409135d12da0499b8a00771f642c1b9c49397f22b440439f036c3bdee82f5309dab3",
-              "type": "String"
-            }
-          ]
-        },
-        {
-          "type": "UFix64",
-          "name": "amount",
-          "label": "Amount",
-          "sampleValues": [
-            {
-              "value": "92233720368.54775808",
-              "type": "UFix64"
-            }
-          ]
-        }
-      ],
-      "network": "testnet",
-      "hash": "af4a5bee843d4c45c4aaff6f4d047b86c00f13c53cf82d11d7fbe59245927914"
-    },
-    {
-      "id": "TH.08",
-      "name": "Stake New Locked FLOW",
-      "source": "import FlowToken from 0x7e60df042a9c0868\nimport FungibleToken from 0x9a0766d93b6608b7\nimport LockedTokens from 0x95e019a17d0e23d7\nimport StakingProxy from 0x7aad92e5a0715d21\n\ntransaction(amount: UFix64) {\n\n    let holderRef: auth(LockedTokens.TokenOperations, FungibleToken.Withdraw) \u0026LockedTokens.TokenHolder\n\n    let vaultRef: auth(FungibleToken.Withdraw) \u0026FlowToken.Vault\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.holderRef = account.storage.borrow\u003cauth(LockedTokens.TokenOperations, FungibleToken.Withdraw) \u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath)\n            ?? panic(\"Could not borrow reference to TokenHolder\")\n\n        self.vaultRef = account.storage.borrow\u003cauth(FungibleToken.Withdraw) \u0026FlowToken.Vault\u003e(from: /storage/flowTokenVault)\n            ?? panic(\"Could not borrow flow token vault reference\")\n    }\n\n    execute {\n        let stakerProxy = self.holderRef.borrowStaker()\n\n        let lockedBalance = self.holderRef.getLockedAccountBalance()\n\n        if amount \u003c= lockedBalance {\n\n            stakerProxy.stakeNewTokens(amount: amount)\n\n        } else if ((amount - lockedBalance) \u003c= self.vaultRef.balance) {\n\n            self.holderRef.deposit(from: \u003c-self.vaultRef.withdraw(amount: amount - lockedBalance))\n\n            stakerProxy.stakeNewTokens(amount: amount)\n            \n        } else {\n            panic(\"Not enough tokens to stake!\")\n        }\n    }\n}\n",
-      "arguments": [
-        {
-          "type": "UFix64",
-          "name": "amount",
-          "label": "Amount",
-          "sampleValues": [
-            {
-              "value": "92233720368.54775808",
-              "type": "UFix64"
-            }
-          ]
-        }
-      ],
-      "network": "testnet",
-      "hash": "0de2be29b4e3c0e672945f56e351bfa627f9b835bbebc24d69de3d6b914b0069"
-    },
-    {
-      "id": "TH.09",
-      "name": "Re-stake Unstaked FLOW",
-      "source": "import LockedTokens from 0x95e019a17d0e23d7\nimport StakingProxy from 0x7aad92e5a0715d21\nimport FungibleToken from 0x9a0766d93b6608b7\n\ntransaction(amount: UFix64) {\n\n    let holderRef: auth(LockedTokens.TokenOperations, FungibleToken.Withdraw) \u0026LockedTokens.TokenHolder\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.holderRef = account.storage.borrow\u003cauth(LockedTokens.TokenOperations, FungibleToken.Withdraw) \u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath)\n            ?? panic(\"Could not borrow reference to TokenHolder\")\n    }\n\n    execute {\n        let stakerProxy = self.holderRef.borrowStaker()\n\n        stakerProxy.stakeUnstakedTokens(amount: amount)\n    }\n}\n",
-      "arguments": [
-        {
-          "type": "UFix64",
-          "name": "amount",
-          "label": "Amount",
-          "sampleValues": [
-            {
-              "value": "92233720368.54775808",
-              "type": "UFix64"
-            }
-          ]
-        }
-      ],
-      "network": "testnet",
-      "hash": "9b2eed9099742a2f002df6941117df03c68f113c62b6b27f0150cb00ef97f21f"
-    },
-    {
-      "id": "TH.10",
-      "name": "Re-stake Rewarded FLOW",
-      "source": "import LockedTokens from 0x95e019a17d0e23d7\nimport StakingProxy from 0x7aad92e5a0715d21\nimport FungibleToken from 0x9a0766d93b6608b7\n\ntransaction(amount: UFix64) {\n\n    let holderRef: auth(LockedTokens.TokenOperations, FungibleToken.Withdraw) \u0026LockedTokens.TokenHolder\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.holderRef = account.storage.borrow\u003cauth(LockedTokens.TokenOperations, FungibleToken.Withdraw) \u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath)\n            ?? panic(\"Could not borrow reference to TokenHolder\")\n    }\n\n    execute {\n        let stakerProxy = self.holderRef.borrowStaker()\n\n        stakerProxy.stakeRewardedTokens(amount: amount)\n    }\n}\n",
-      "arguments": [
-        {
-          "type": "UFix64",
-          "name": "amount",
-          "label": "Amount",
-          "sampleValues": [
-            {
-              "value": "92233720368.54775808",
-              "type": "UFix64"
-            }
-          ]
-        }
-      ],
-      "network": "testnet",
-      "hash": "9c11d765716accd6ccccaa71826efd030eaec491cd288f12b3578c30406d02d7"
-    },
-    {
-      "id": "TH.11",
-      "name": "Request Unstake of FLOW",
-      "source": "import LockedTokens from 0x95e019a17d0e23d7\nimport StakingProxy from 0x7aad92e5a0715d21\nimport FungibleToken from 0x9a0766d93b6608b7\n\ntransaction(amount: UFix64) {\n\n    let holderRef: auth(LockedTokens.TokenOperations, FungibleToken.Withdraw) \u0026LockedTokens.TokenHolder\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.holderRef = account.storage.borrow\u003cauth(LockedTokens.TokenOperations, FungibleToken.Withdraw) \u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath)\n            ?? panic(\"Could not borrow reference to TokenHolder\")\n    }\n\n    execute {\n        let stakerProxy = self.holderRef.borrowStaker()\n\n        stakerProxy.requestUnstaking(amount: amount)\n    }\n}\n",
-      "arguments": [
-        {
-          "type": "UFix64",
-          "name": "amount",
-          "label": "Amount",
-          "sampleValues": [
-            {
-              "value": "92233720368.54775808",
-              "type": "UFix64"
-            }
-          ]
-        }
-      ],
-      "network": "testnet",
-      "hash": "8a16eb440a6f2b0ba055c988195d18f1ac0ae87c9c47b6e3148295783a2edca0"
-    },
-    {
-      "id": "TH.12",
-      "name": "Unstake All FLOW",
-      "source": "import LockedTokens from 0x95e019a17d0e23d7\nimport StakingProxy from 0x7aad92e5a0715d21\nimport FungibleToken from 0x9a0766d93b6608b7\n\ntransaction() {\n\n    let holderRef: auth(LockedTokens.TokenOperations, FungibleToken.Withdraw) \u0026LockedTokens.TokenHolder\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.holderRef = account.storage.borrow\u003cauth(LockedTokens.TokenOperations, FungibleToken.Withdraw) \u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath)\n            ?? panic(\"Could not borrow reference to TokenHolder\")\n    }\n\n    execute {\n        let stakerProxy = self.holderRef.borrowStaker()\n\n        stakerProxy.unstakeAll()\n    }\n}\n",
-      "arguments": [],
-      "network": "testnet",
-      "hash": "4e077e9ccdb995324823e202333ab3b31c52a773a3b33db070e9b1c3db8f24d4"
-    },
-    {
-      "id": "TH.13",
-      "name": "Withdraw Unstaked FLOW",
-      "source": "import LockedTokens from 0x95e019a17d0e23d7\nimport StakingProxy from 0x7aad92e5a0715d21\nimport FungibleToken from 0x9a0766d93b6608b7\n\ntransaction(amount: UFix64) {\n\n    let holderRef: auth(LockedTokens.TokenOperations, FungibleToken.Withdraw) \u0026LockedTokens.TokenHolder\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.holderRef = account.storage.borrow\u003cauth(LockedTokens.TokenOperations, FungibleToken.Withdraw) \u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath)\n            ?? panic(\"Could not borrow reference to TokenHolder\")\n    }\n\n    execute {\n        let stakerProxy = self.holderRef.borrowStaker()\n\n        stakerProxy.withdrawUnstakedTokens(amount: amount)\n    }\n}\n",
-      "arguments": [
-        {
-          "type": "UFix64",
-          "name": "amount",
-          "label": "Amount",
-          "sampleValues": [
-            {
-              "value": "92233720368.54775808",
-              "type": "UFix64"
-            }
-          ]
-        }
-      ],
-      "network": "testnet",
-      "hash": "f28537c488e3967c414acdc8c853579d7cde872dbc867418b71b6708d24654c9"
-    },
-    {
-      "id": "TH.14",
-      "name": "Withdraw Rewarded FLOW",
-      "source": "import LockedTokens from 0x95e019a17d0e23d7\nimport FlowToken from 0x7e60df042a9c0868\nimport FungibleToken from 0x9a0766d93b6608b7\n\ntransaction(amount: UFix64) {\n\n    let holderRef: auth(LockedTokens.TokenOperations, FungibleToken.Withdraw) \u0026LockedTokens.TokenHolder\n    let vaultRef: \u0026FlowToken.Vault\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.holderRef = account.storage.borrow\u003cauth(LockedTokens.TokenOperations, FungibleToken.Withdraw) \u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath)\n            ?? panic(\"Could not borrow reference to TokenHolder\")\n\n        self.vaultRef = account.storage.borrow\u003c\u0026FlowToken.Vault\u003e(from: /storage/flowTokenVault)\n            ?? panic(\"Could not borrow reference to FlowToken value\")\n    }\n\n    execute {\n        let stakerProxy = self.holderRef.borrowStaker()\n\n        stakerProxy.withdrawRewardedTokens(amount: amount)\n        self.vaultRef.deposit(from: \u003c-self.holderRef.withdraw(amount: amount))\n    }\n}\n",
-      "arguments": [
-        {
-          "type": "UFix64",
-          "name": "amount",
-          "label": "Amount",
-          "sampleValues": [
-            {
-              "value": "92233720368.54775808",
-              "type": "UFix64"
-            }
-          ]
-        }
-      ],
-      "network": "testnet",
-      "hash": "a48cf76e38ef6818acfb35123a68b138caa66a1f27f2ee07c932ba74d6eca26e"
-    },
-    {
-      "id": "TH.16",
-      "name": "Register Operator Node",
-      "source": "import LockedTokens from 0x95e019a17d0e23d7\nimport StakingProxy from 0x7aad92e5a0715d21\n\ntransaction(address: Address, id: String, amount: UFix64) {\n\n    let holderRef: auth(LockedTokens.TokenOperations) \u0026LockedTokens.TokenHolder\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.holderRef = account.storage.borrow\u003cauth(LockedTokens.TokenOperations) \u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath)\n            ?? panic(\"Could not borrow reference to TokenHolder\")\n    }\n\n    execute {\n        let nodeOperatorRef = getAccount(address).capabilities\n            .borrow\u003c\u0026StakingProxy.NodeStakerProxyHolder\u003e(\n                StakingProxy.NodeOperatorCapabilityPublicPath\n            )\n            ?? panic(\"Could not borrow node operator public capability\")\n\n        let nodeInfo = nodeOperatorRef.getNodeInfo(nodeID: id)\n            ?? panic(\"Couldn't get info for nodeID=\".concat(id))\n\n        self.holderRef.createNodeStaker(nodeInfo: nodeInfo, amount: amount)\n\n        let nodeStakerProxy = self.holderRef.borrowStaker()\n\n        nodeOperatorRef.addStakingProxy(nodeID: nodeInfo.id, proxy: nodeStakerProxy)\n    }\n}\n",
-      "arguments": [
-        {
-          "type": "Address",
-          "name": "address",
-          "label": "Operator Address",
-          "sampleValues": [
-            {
-              "value": "0x8c5303eaa26202d6",
-              "type": "Address"
-            }
-          ]
-        },
-        {
-          "type": "String",
-          "name": "id",
-          "label": "Node ID",
-          "sampleValues": [
-            {
-              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6",
-              "type": "String"
-            }
-          ]
-        },
-        {
-          "type": "UFix64",
-          "name": "amount",
-          "label": "Amount",
-          "sampleValues": [
-            {
-              "value": "92233720368.54775808",
-              "type": "UFix64"
-            }
-          ]
-        }
-      ],
-      "network": "testnet",
-      "hash": "9768a26085d718e69939f898b33cbe17cdcc8ef33d6c8d7ffda057fdced8324f"
-    },
-    {
-      "id": "TH.17",
-      "name": "Register Delegator",
-      "source": "import FlowToken from 0x7e60df042a9c0868\nimport LockedTokens from 0x95e019a17d0e23d7\nimport FlowIDTableStaking from 0x9eca2b38b18b5dfe\nimport FungibleToken from 0x9a0766d93b6608b7\n\ntransaction(id: String, amount: UFix64) {\n\n    let holderRef: auth(LockedTokens.TokenOperations, FungibleToken.Withdraw) \u0026LockedTokens.TokenHolder\n\n    let vaultRef: auth(FungibleToken.Withdraw) \u0026FlowToken.Vault\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.holderRef = account.storage.borrow\u003cauth(LockedTokens.TokenOperations, FungibleToken.Withdraw) \u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath)\n            ?? panic(\"TokenHolder is not saved at specified path\")\n\n        self.vaultRef = account.storage.borrow\u003cauth(FungibleToken.Withdraw) \u0026FlowToken.Vault\u003e(from: /storage/flowTokenVault)\n            ?? panic(\"Could not borrow flow token vault reference\")\n    }\n\n    execute {\n        let lockedBalance = self.holderRef.getLockedAccountBalance()\n\n        if amount \u003c= lockedBalance {\n\n            self.holderRef.createNodeDelegator(nodeID: id)\n\n            let stakerProxy = self.holderRef.borrowDelegator()\n\n            stakerProxy.delegateNewTokens(amount: amount - FlowIDTableStaking.getDelegatorMinimumStakeRequirement())\n\n        } else if ((amount - lockedBalance) \u003c= self.vaultRef.balance) {\n\n            self.holderRef.deposit(from: \u003c-self.vaultRef.withdraw(amount: amount - lockedBalance))\n\n            self.holderRef.createNodeDelegator(nodeID: id)\n\n            let stakerProxy = self.holderRef.borrowDelegator()\n\n            stakerProxy.delegateNewTokens(amount: amount - FlowIDTableStaking.getDelegatorMinimumStakeRequirement())\n\n        } else {\n            panic(\"Not enough tokens to stake!\")\n        }\n    }\n}\n",
-      "arguments": [
-        {
-          "type": "String",
-          "name": "id",
-          "label": "Node ID",
-          "sampleValues": [
-            {
-              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6",
-              "type": "String"
-            }
-          ]
-        },
-        {
-          "type": "UFix64",
-          "name": "amount",
-          "label": "Amount",
-          "sampleValues": [
-            {
-              "value": "92233720368.54775808",
-              "type": "UFix64"
-            }
-          ]
-        }
-      ],
-      "network": "testnet",
-      "hash": "b1ea953e7aed9e212f2f0e855e9122d3e1c2126c2b1ce318ac5d05c2bc3afbea"
-    },
-    {
-      "id": "TH.19",
-      "name": "Delegate New Locked FLOW",
-      "source": "import FlowToken from 0x7e60df042a9c0868\nimport FungibleToken from 0x9a0766d93b6608b7\nimport LockedTokens from 0x95e019a17d0e23d7\n\ntransaction(amount: UFix64) {\n\n    let holderRef: auth(LockedTokens.TokenOperations, FungibleToken.Withdraw) \u0026LockedTokens.TokenHolder\n\n    let vaultRef: auth(FungibleToken.Withdraw) \u0026FlowToken.Vault\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.holderRef = account.storage.borrow\u003cauth(LockedTokens.TokenOperations, FungibleToken.Withdraw) \u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath)\n            ?? panic(\"Could not borrow reference to TokenHolder\")\n\n        self.vaultRef = account.storage.borrow\u003cauth(FungibleToken.Withdraw) \u0026FlowToken.Vault\u003e(from: /storage/flowTokenVault)\n            ?? panic(\"Could not borrow flow token vault reference\")\n    }\n\n    execute {\n        let stakerProxy = self.holderRef.borrowDelegator()\n\n        let lockedBalance = self.holderRef.getLockedAccountBalance()\n\n        if amount \u003c= lockedBalance {\n\n            stakerProxy.delegateNewTokens(amount: amount)\n\n        } else if ((amount - lockedBalance) \u003c= self.vaultRef.balance) {\n\n            self.holderRef.deposit(from: \u003c-self.vaultRef.withdraw(amount: amount - lockedBalance))\n\n            stakerProxy.delegateNewTokens(amount: amount)\n        } else {\n            panic(\"Not enough tokens to stake!\")\n        }\n    }\n}\n",
-      "arguments": [
-        {
-          "type": "UFix64",
-          "name": "amount",
-          "label": "Amount",
-          "sampleValues": [
-            {
-              "value": "92233720368.54775808",
-              "type": "UFix64"
-            }
-          ]
-        }
-      ],
-      "network": "testnet",
-      "hash": "f39299420444e21759568d0b263b71826f17e406e2c0270840db2a4dad3b33d7"
-    },
-    {
-      "id": "TH.20",
-      "name": "Re-delegate Unstaked FLOW",
-      "source": "import LockedTokens from 0x95e019a17d0e23d7\nimport FungibleToken from 0x9a0766d93b6608b7\n\ntransaction(amount: UFix64) {\n    let nodeDelegatorProxy: LockedTokens.LockedNodeDelegatorProxy\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        let holderRef = account.storage.borrow\u003cauth(LockedTokens.TokenOperations, FungibleToken.Withdraw) \u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath)\n            ?? panic(\"TokenHolder is not saved at specified path\")\n\n        self.nodeDelegatorProxy = holderRef.borrowDelegator()\n    }\n\n    execute {\n        self.nodeDelegatorProxy.delegateUnstakedTokens(amount: amount)\n    }\n}\n",
-      "arguments": [
-        {
-          "type": "UFix64",
-          "name": "amount",
-          "label": "Amount",
-          "sampleValues": [
-            {
-              "value": "92233720368.54775808",
-              "type": "UFix64"
-            }
-          ]
-        }
-      ],
-      "network": "testnet",
-      "hash": "472c8c222dbeacd505e2db7fb20da0a709b45605e0a169ec8d4448c99fdfae95"
-    },
-    {
-      "id": "TH.21",
-      "name": "Re-delegate Rewarded FLOW",
-      "source": "import LockedTokens from 0x95e019a17d0e23d7\nimport FungibleToken from 0x9a0766d93b6608b7\n\ntransaction(amount: UFix64) {\n    let nodeDelegatorProxy: LockedTokens.LockedNodeDelegatorProxy\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        let holderRef = account.storage.borrow\u003cauth(LockedTokens.TokenOperations, FungibleToken.Withdraw) \u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath)\n            ?? panic(\"TokenHolder is not saved at specified path\")\n        \n        self.nodeDelegatorProxy = holderRef.borrowDelegator()\n    }\n\n    execute {\n        self.nodeDelegatorProxy.delegateRewardedTokens(amount: amount)\n    }\n}\n",
-      "arguments": [
-        {
-          "type": "UFix64",
-          "name": "amount",
-          "label": "Amount",
-          "sampleValues": [
-            {
-              "value": "92233720368.54775808",
-              "type": "UFix64"
-            }
-          ]
-        }
-      ],
-      "network": "testnet",
-      "hash": "e618fbfde5089f5a0ab2fa05f908f65290296a404d23e9de1f0361c28e0e16fc"
-    },
-    {
-      "id": "TH.22",
-      "name": "Unstake Delegated FLOW",
-      "source": "import LockedTokens from 0x95e019a17d0e23d7\nimport FungibleToken from 0x9a0766d93b6608b7\n\ntransaction(amount: UFix64) {\n    let nodeDelegatorProxy: LockedTokens.LockedNodeDelegatorProxy\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        let holderRef = account.storage.borrow\u003cauth(LockedTokens.TokenOperations, FungibleToken.Withdraw) \u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath)\n            ?? panic(\"TokenHolder is not saved at specified path\")\n        \n        self.nodeDelegatorProxy = holderRef.borrowDelegator()\n    }\n\n    execute {\n        self.nodeDelegatorProxy.requestUnstaking(amount: amount)\n    }\n}\n",
-      "arguments": [
-        {
-          "type": "UFix64",
-          "name": "amount",
-          "label": "Amount",
-          "sampleValues": [
-            {
-              "value": "92233720368.54775808",
-              "type": "UFix64"
-            }
-          ]
-        }
-      ],
-      "network": "testnet",
-      "hash": "d7bc6c6cd0ecf6a1e327ce1a8b95585fd624ca6066c896ae14b58c4be85fc10e"
-    },
-    {
-      "id": "TH.23",
-      "name": "Withdraw Unstaked FLOW",
-      "source": "import LockedTokens from 0x95e019a17d0e23d7\nimport FungibleToken from 0x9a0766d93b6608b7\n\ntransaction(amount: UFix64) {\n    let nodeDelegatorProxy: LockedTokens.LockedNodeDelegatorProxy\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        let holderRef = account.storage.borrow\u003cauth(LockedTokens.TokenOperations, FungibleToken.Withdraw) \u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath)\n            ?? panic(\"TokenHolder is not saved at specified path\")\n        \n        self.nodeDelegatorProxy = holderRef.borrowDelegator()\n    }\n\n    execute {\n        self.nodeDelegatorProxy.withdrawUnstakedTokens(amount: amount)\n    }\n}\n",
-      "arguments": [
-        {
-          "type": "UFix64",
-          "name": "amount",
-          "label": "Amount",
-          "sampleValues": [
-            {
-              "value": "92233720368.54775808",
-              "type": "UFix64"
-            }
-          ]
-        }
-      ],
-      "network": "testnet",
-      "hash": "b60067583b91ab8be3e76619f93985b4c1cdc03bc2c310e79e8065f84e65b1c6"
-    },
-    {
-      "id": "TH.24",
-      "name": "Withdraw Rewarded FLOW",
-      "source": "import LockedTokens from 0x95e019a17d0e23d7\nimport FlowToken from 0x7e60df042a9c0868\nimport FungibleToken from 0x9a0766d93b6608b7\n\ntransaction(amount: UFix64) {\n\n    let holderRef: auth(LockedTokens.TokenOperations, FungibleToken.Withdraw) \u0026LockedTokens.TokenHolder\n    let vaultRef: \u0026FlowToken.Vault\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.holderRef = account.storage.borrow\u003cauth(LockedTokens.TokenOperations, FungibleToken.Withdraw) \u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath)\n            ?? panic(\"Could not borrow reference to TokenHolder\")\n\n        self.vaultRef = account.storage.borrow\u003c\u0026FlowToken.Vault\u003e(from: /storage/flowTokenVault)\n            ?? panic(\"Could not borrow reference to FlowToken value\")\n    }\n\n    execute {\n        let delegatorProxy = self.holderRef.borrowDelegator()\n\n        delegatorProxy.withdrawRewardedTokens(amount: amount)\n        self.vaultRef.deposit(from: \u003c-self.holderRef.withdraw(amount: amount))\n    }\n}\n",
-      "arguments": [
-        {
-          "type": "UFix64",
-          "name": "amount",
-          "label": "Amount",
-          "sampleValues": [
-            {
-              "value": "92233720368.54775808",
-              "type": "UFix64"
-            }
-          ]
-        }
-      ],
-      "network": "testnet",
-      "hash": "efc7c6866b01b89cb2f1436e525b273deeca5f8e765ec823889656d5f46ccd31"
-    },
-    {
-      "id": "TH.25",
-      "name": "Update Networking Address",
-      "source": "import FlowIDTableStaking from 0x9eca2b38b18b5dfe\n\ntransaction(newAddress: String) {\n\n    // Local variable for a reference to the node object\n    let stakerRef: auth(FlowIDTableStaking.NodeOperator) \u0026FlowIDTableStaking.NodeStaker\n\n    prepare(acct: auth(BorrowValue) \u0026Account) {\n        // borrow a reference to the node object\n        self.stakerRef = acct.storage.borrow\u003cauth(FlowIDTableStaking.NodeOperator) \u0026FlowIDTableStaking.NodeStaker\u003e(from: FlowIDTableStaking.NodeStakerStoragePath)\n            ?? panic(\"Could not borrow reference to staking admin\")\n    }\n\n    execute {\n        self.stakerRef.updateNetworkingAddress(newAddress)\n    }\n}\n",
-      "arguments": [
-        {
-          "type": "String",
-          "name": "address",
-          "label": "Address",
-          "sampleValues": [
-            {
-              "value": "flow-node.test:3569",
-              "type": "String"
-            }
-          ]
-        }
-      ],
-      "network": "testnet",
-      "hash": "876e4967516a8e8635b2f0818fcf25583c50105e41093d7ba62c3e408091cfb3"
     },
     {
       "id": "SCO.01",

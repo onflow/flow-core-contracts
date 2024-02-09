@@ -71,24 +71,16 @@ func GenerateSetupFTAccountFromAddressScript(env Environment) []byte {
 	return ft_templates.GenerateSetupAccountFromAddressScript(env.FungibleTokenAddress, env.FungibleTokenMetadataViewsAddress)
 }
 
-func GenerateTransferGenericVaultWithPathsScript(env Environment) []byte {
-	return ft_templates.GenerateTransferGenericVaultWithPathsScript(env.FungibleTokenAddress)
-}
-
-func GenerateTransferGenericVaultWithAddressScript(env Environment) []byte {
-	return ft_templates.GenerateTransferGenericVaultWithAddressScript(env.FungibleTokenAddress, env.FungibleTokenMetadataViewsAddress)
+func GenerateTransferGenericVaultScript(env Environment) []byte {
+	return ft_templates.GenerateTransferGenericVaultScript(env.FungibleTokenAddress)
 }
 
 func GenerateSetupNFTAccountFromAddressScript(env Environment) []byte {
 	return nft_templates.GenerateSetupAccountFromAddressScript(env.NonFungibleTokenAddress, env.MetadataViewsAddress)
 }
 
-func GenerateTransferGenericNFTWithPathsScript(env Environment) []byte {
-	return nft_templates.GenerateTransferGenericNFTWithPathsScript(env.NonFungibleTokenAddress)
-}
-
-func GenerateTransferGenericNFTWithAddressScript(env Environment) []byte {
-	return nft_templates.GenerateTransferGenericNFTWithAddressScript(env.NonFungibleTokenAddress, env.MetadataViewsAddress)
+func GenerateTransferGenericNFTScript(env Environment) []byte {
+	return nft_templates.GenerateTransferGenericNFTScript(env.NonFungibleTokenAddress)
 }
 
 // FlowToken Templates

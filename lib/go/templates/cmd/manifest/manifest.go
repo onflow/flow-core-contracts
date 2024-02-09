@@ -6,7 +6,10 @@ import (
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
+	"github.com/onflow/cadence/runtime/common"
 	"github.com/onflow/flow-go-sdk"
+	sdktemplates "github.com/onflow/flow-go-sdk/templates"
+	"github.com/onflow/flow-go-sdk/test"
 
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
 )
@@ -91,14 +94,14 @@ func generateManifest(env templates.Environment) *manifest {
 		panic(err)
 	}
 
-	sampleKeyWeightRaw, err := cadence.NewUFix64("1000.0")
-	if err != nil {
-		panic(err)
-	}
-	sampleKeyWeight := cadenceValue{sampleKeyWeightRaw}
-
-	sampleSigAlgoEnumRawValue := cadenceValue{cadence.NewUInt8(1)}
-	sampleHashAlgoEnumRawValue := cadenceValue{cadence.NewUInt8(1)}
+	accountKeys := test.AccountKeyGenerator()
+	sampleFlowAccountKey, _ := accountKeys.NewWithSigner()
+	publicKeys := make([]cadence.Value, 1)
+	cadenceAccountKey, err := sdktemplates.AccountKeyToCadenceCryptoKey(sampleFlowAccountKey)
+	sampleCadenceAccountKey := cadenceValue{cadenceAccountKey}
+	publicKeys[0] = cadenceAccountKey
+	cadencePublicKeys := cadence.NewArray(publicKeys)
+	sampleCadenceAccountKeys := cadenceValue{cadencePublicKeys}
 
 	sampleKeyIndex := cadenceValue{cadence.NewInt(1)}
 
@@ -108,8 +111,10 @@ func generateManifest(env templates.Environment) *manifest {
 	sampleID := cadenceValue{cadence.NewUInt64(10)}
 	sampleNFTContractName := cadenceValue{cadence.String("TopShot")}
 
-	sampleStoragePathID := cadenceValue{cadence.String("flowTokenVault")}
-	samplePublicPathID := cadenceValue{cadence.String("flowTokenReceiver")}
+	cadenceStoragePath := cadence.Path{Domain: common.PathDomainStorage, Identifier: "samplePathIdentifier"}
+	sampleStoragePath := cadenceValue{cadenceStoragePath}
+	cadencePublicPath := cadence.Path{Domain: common.PathDomainStorage, Identifier: "samplePathIdentifier"}
+	samplePublicPath := cadenceValue{cadencePublicPath}
 
 	sampleNodeID := cadenceValue{
 		cadence.String("88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"),
@@ -141,71 +146,40 @@ func generateManifest(env templates.Environment) *manifest {
 
 	sampleDelegatorID := cadenceValue{cadence.NewUInt32(42)}
 
-	sampleRawKey := cadence.String("f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164")
-	sampleKey := cadenceValue{sampleRawKey}
+	sampleEmptyPublicKeys := cadence.NewArray([]cadence.Value{})
+
+	sampleOnePublicKey := cadence.NewArray([]cadence.Value{
+		cadence.String("f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"),
+	})
+
+	sampleThreePublicKeys := cadence.NewArray([]cadence.Value{
+		cadence.String("f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"),
+		cadence.String("f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"),
+		cadence.String("f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"),
+	})
 
 	m.addTemplate(generateTemplate(
 		"FA.01", "Create Account",
 		env,
 		templates.GenerateCreateAccountScript,
-		[]argument{
-			{
-				Type:         "String",
-				Name:         "key",
-				Label:        "Public Key",
-				SampleValues: []cadenceValue{sampleKey},
-			},
-			{
-				Type:         "UInt8",
-				Name:         "signatureAlgorithm",
-				Label:        "Raw Value for Signature Algorithm Enum",
-				SampleValues: []cadenceValue{sampleSigAlgoEnumRawValue},
-			},
-			{
-				Type:         "UInt8",
-				Name:         "hashAlgorithm",
-				Label:        "Raw Value for Hash Algorithm Enum",
-				SampleValues: []cadenceValue{sampleHashAlgoEnumRawValue},
-			},
-			{
-				Type:         "UFix64",
-				Name:         "weight",
-				Label:        "Key Weight",
-				SampleValues: []cadenceValue{sampleKeyWeight},
-			},
-		},
+		[]argument{{
+			Type:         "[Crypto.KeyListEntry]",
+			Name:         "publicKeys",
+			Label:        "Public Keys",
+			SampleValues: []cadenceValue{sampleCadenceAccountKeys},
+		}},
 	))
 
 	m.addTemplate(generateTemplate(
 		"FA.02", "Add Key",
 		env,
 		templates.GenerateAddKeyScript,
-		[]argument{
-			{
-				Type:         "String",
-				Name:         "key",
-				Label:        "Public Key",
-				SampleValues: []cadenceValue{sampleKey},
-			},
-			{
-				Type:         "UInt8",
-				Name:         "signatureAlgorithm",
-				Label:        "Raw Value for Signature Algorithm Enum",
-				SampleValues: []cadenceValue{sampleSigAlgoEnumRawValue},
-			},
-			{
-				Type:         "UInt8",
-				Name:         "hashAlgorithm",
-				Label:        "Raw Value for Hash Algorithm Enum",
-				SampleValues: []cadenceValue{sampleHashAlgoEnumRawValue},
-			},
-			{
-				Type:         "UFix64",
-				Name:         "weight",
-				Label:        "Key Weight",
-				SampleValues: []cadenceValue{sampleKeyWeight},
-			},
-		},
+		[]argument{{
+			Type:         "Crypto.KeyListEntry",
+			Name:         "key",
+			Label:        "Public Key",
+			SampleValues: []cadenceValue{sampleCadenceAccountKey},
+		}},
 	))
 
 	m.addTemplate(generateTemplate(
@@ -241,9 +215,9 @@ func generateManifest(env templates.Environment) *manifest {
 	))
 
 	m.addTemplate(generateTemplate(
-		"FT.02", "Transfer Fungible Token with Paths",
+		"FT.02", "Transfer Fungible Token",
 		env,
-		templates.GenerateTransferGenericVaultWithPathsScript,
+		templates.GenerateTransferGenericVaultScript,
 		[]argument{
 			{
 				Type:         "UFix64",
@@ -258,48 +232,16 @@ func generateManifest(env templates.Environment) *manifest {
 				SampleValues: []cadenceValue{sampleAddress(env.Network)},
 			},
 			{
-				Type:         "String",
-				Name:         "senderPathIdentifier",
-				Label:        "Sender's Collection Path Identifier",
-				SampleValues: []cadenceValue{sampleStoragePathID},
+				Type:         "StoragePath",
+				Name:         "senderPath",
+				Label:        "Sender's Collection Path",
+				SampleValues: []cadenceValue{sampleStoragePath},
 			},
 			{
-				Type:         "String",
-				Name:         "receiverPathIdentifier",
-				Label:        "Recipient's Receiver Path Identifier",
-				SampleValues: []cadenceValue{samplePublicPathID},
-			},
-		},
-	))
-
-	m.addTemplate(generateTemplate(
-		"FT.03", "Transfer Fungible Token with Address",
-		env,
-		templates.GenerateTransferGenericVaultWithAddressScript,
-		[]argument{
-			{
-				Type:         "UFix64",
-				Name:         "amount",
-				Label:        "Amount",
-				SampleValues: []cadenceValue{sampleAmount},
-			},
-			{
-				Type:         "Address",
-				Name:         "to",
-				Label:        "Recipient",
-				SampleValues: []cadenceValue{sampleAddress(env.Network)},
-			},
-			{
-				Type:         "Address",
-				Name:         "contractAddress",
-				Label:        "FT Contract Address",
-				SampleValues: []cadenceValue{sampleAddress(env.Network)},
-			},
-			{
-				Type:         "String",
-				Name:         "contractName",
-				Label:        "FT Contract Name",
-				SampleValues: []cadenceValue{sampleFTContractName},
+				Type:         "PublicPath",
+				Name:         "receiverPath",
+				Label:        "Recipient's Receiver Path",
+				SampleValues: []cadenceValue{samplePublicPath},
 			},
 		},
 	))
@@ -325,48 +267,10 @@ func generateManifest(env templates.Environment) *manifest {
 	))
 
 	m.addTemplate(generateTemplate(
-		"NFT.02", "Transfer NFT with Paths",
+		"NFT.02", "Transfer NFT",
 		env,
-		templates.GenerateTransferGenericNFTWithPathsScript,
+		templates.GenerateTransferGenericNFTScript,
 		[]argument{
-			{
-				Type:         "Address",
-				Name:         "to",
-				Label:        "Recipient",
-				SampleValues: []cadenceValue{sampleAddress(env.Network)},
-			},
-			{
-				Type:         "UInt64",
-				Name:         "id",
-				Label:        "NFT ID to Transfer",
-				SampleValues: []cadenceValue{sampleID},
-			},
-			{
-				Type:         "String",
-				Name:         "senderPathIdentifier",
-				Label:        "Sender's Collection Path Identifier",
-				SampleValues: []cadenceValue{sampleStoragePathID},
-			},
-			{
-				Type:         "String",
-				Name:         "receiverPathIdentifier",
-				Label:        "Recipient's Receiver Path Identifier",
-				SampleValues: []cadenceValue{samplePublicPathID},
-			},
-		},
-	))
-
-	m.addTemplate(generateTemplate(
-		"NFT.03", "Transfer NFT with Address",
-		env,
-		templates.GenerateTransferGenericNFTWithAddressScript,
-		[]argument{
-			{
-				Type:         "Address",
-				Name:         "to",
-				Label:        "Recipient",
-				SampleValues: []cadenceValue{sampleAddress(env.Network)},
-			},
 			{
 				Type:         "UInt64",
 				Name:         "id",
@@ -375,15 +279,21 @@ func generateManifest(env templates.Environment) *manifest {
 			},
 			{
 				Type:         "Address",
-				Name:         "contractAddress",
-				Label:        "NFT Contract Address",
+				Name:         "to",
+				Label:        "Recipient",
 				SampleValues: []cadenceValue{sampleAddress(env.Network)},
 			},
 			{
-				Type:         "String",
-				Name:         "contractName",
-				Label:        "NFT Contract Name",
-				SampleValues: []cadenceValue{sampleNFTContractName},
+				Type:         "StoragePath",
+				Name:         "senderPath",
+				Label:        "Sender's Collection Path",
+				SampleValues: []cadenceValue{sampleStoragePath},
+			},
+			{
+				Type:         "PublicPath",
+				Name:         "receiverPath",
+				Label:        "Recipient's Receiver Path",
+				SampleValues: []cadenceValue{samplePublicPath},
 			},
 		},
 	))
@@ -481,22 +391,15 @@ func generateManifest(env templates.Environment) *manifest {
 				SampleValues: []cadenceValue{sampleAmount},
 			},
 			{
-				Type:         "String",
-				Name:         "machineAccountKey",
-				Label:        "Machine Account Public Key",
-				SampleValues: []cadenceValue{sampleKey},
-			},
-			{
-				Type:         "UInt8",
-				Name:         "machineAccountKeySignatureAlgorithm",
-				Label:        "Raw Value for Machine Account Signature Algorithm Enum",
-				SampleValues: []cadenceValue{sampleSigAlgoEnumRawValue},
-			},
-			{
-				Type:         "UInt8",
-				Name:         "machineAccountKeyHashAlgorithm",
-				Label:        "Raw Value for Machine Account Hash Algorithm Enum",
-				SampleValues: []cadenceValue{sampleHashAlgoEnumRawValue},
+				Type:  "[String]?",
+				Name:  "publicKeys",
+				Label: "Public Keys",
+				SampleValues: []cadenceValue{
+					sampleNullOptional,
+					optionalCadenceValue(sampleEmptyPublicKeys),
+					optionalCadenceValue(sampleOnePublicKey),
+					optionalCadenceValue(sampleThreePublicKeys),
+				},
 			},
 		},
 	))
@@ -513,22 +416,14 @@ func generateManifest(env templates.Environment) *manifest {
 				SampleValues: []cadenceValue{sampleNodeID},
 			},
 			{
-				Type:         "String",
-				Name:         "machineAccountKey",
-				Label:        "Machine Account Public Key",
-				SampleValues: []cadenceValue{sampleKey},
-			},
-			{
-				Type:         "UInt8",
-				Name:         "machineAccountKeySignatureAlgorithm",
-				Label:        "Raw Value for Machine Account Signature Algorithm Enum",
-				SampleValues: []cadenceValue{sampleSigAlgoEnumRawValue},
-			},
-			{
-				Type:         "UInt8",
-				Name:         "machineAccountKeyHashAlgorithm",
-				Label:        "Raw Value for Machine Account Hash Algorithm Enum",
-				SampleValues: []cadenceValue{sampleHashAlgoEnumRawValue},
+				Type:  "[String]",
+				Name:  "publicKeys",
+				Label: "Public Keys",
+				SampleValues: []cadenceValue{
+					{sampleEmptyPublicKeys},
+					{sampleOnePublicKey},
+					{sampleThreePublicKeys},
+				},
 			},
 		},
 	))
