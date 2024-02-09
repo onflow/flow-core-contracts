@@ -18,6 +18,9 @@
 // FlowServiceAccount/set_is_account_creation_restricted.cdc (609B)
 // FlowServiceAccount/set_tx_fee_parameters.cdc (629B)
 // FlowServiceAccount/set_tx_fee_surge_factor.cdc (488B)
+// accounts/add_key.cdc (189B)
+// accounts/create_new_account.cdc (311B)
+// accounts/revoke_key.cdc (106B)
 // dkg/admin/force_stop_dkg.cdc (353B)
 // dkg/admin/publish_participant.cdc (317B)
 // dkg/admin/set_safe_threshold.cdc (444B)
@@ -718,6 +721,66 @@ func flowserviceaccountSet_tx_fee_surge_factorCdc() (*asset, error) {
 
 	info := bindataFileInfo{name: "FlowServiceAccount/set_tx_fee_surge_factor.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xfd, 0xa8, 0x68, 0xff, 0x31, 0x16, 0xd5, 0x7a, 0xb4, 0x74, 0x23, 0xc5, 0xad, 0x1c, 0x8c, 0x72, 0xf, 0x17, 0x52, 0x0, 0xad, 0xca, 0x79, 0xd2, 0xb0, 0xf2, 0x8d, 0xb, 0x3c, 0x8a, 0x3f, 0xd2}}
+	return a, nil
+}
+
+var _accountsAdd_keyCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x54\xcc\x41\x0a\xc3\x20\x10\x05\xd0\x75\x3c\x85\xcb\x04\x82\x07\xc8\x2e\x94\xae\xd2\x4b\x58\x33\xc4\xc1\x44\x65\x1c\x29\x43\xc9\xdd\x4b\x6b\x29\x74\xf7\xff\x7f\xf0\xf1\xc8\x89\x58\x5f\x48\x32\x27\xa5\x98\x6c\x2c\xd6\x31\xa6\xd8\x07\x90\xe9\x0b\x66\x01\xb9\x61\xe1\x6b\x64\x92\x41\x3f\x55\x97\x09\xb2\x25\xe8\x0b\x6e\x11\x68\xd2\x73\x65\x3f\x3b\x97\x6a\xe4\x8f\x77\x0d\x4c\x00\x29\xc6\xae\x6b\x9f\xeb\x7d\x47\xb7\xbc\x3f\x03\x88\xf9\xd5\x51\x7b\x5b\xfc\xbc\x6f\x89\x90\xfd\xd1\xf4\x6f\x1a\xf5\x03\x70\xf3\xdc\xa8\xe5\x41\x75\xa7\x3a\x5f\x01\x00\x00\xff\xff\x1b\x32\x5d\xb7\xbd\x00\x00\x00"
+
+func accountsAdd_keyCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_accountsAdd_keyCdc,
+		"accounts/add_key.cdc",
+	)
+}
+
+func accountsAdd_keyCdc() (*asset, error) {
+	bytes, err := accountsAdd_keyCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "accounts/add_key.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xbc, 0x3f, 0x3d, 0x52, 0x1f, 0x71, 0xd8, 0x7e, 0x4c, 0x73, 0x89, 0xb2, 0xdb, 0xf7, 0x67, 0x8b, 0x95, 0xb9, 0x2f, 0xc3, 0x39, 0x30, 0x63, 0x84, 0x91, 0x21, 0xdf, 0x4c, 0x1c, 0x85, 0x1e, 0xa}}
+	return a, nil
+}
+
+var _accountsCreate_new_accountCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x54\x8f\xb1\x6a\xc4\x30\x0c\x86\x67\xe9\x29\x34\x26\x70\xe4\xf6\x40\x87\x50\x3a\x5d\xdf\xa0\x74\x50\x13\x35\x36\xcd\xd9\x46\x56\x28\xa6\xe4\xdd\x4b\xe2\xa3\xd7\xdb\xe4\xff\xfb\x3f\xdb\xf2\xd7\x14\xd5\xe8\x59\x4b\xb2\x88\x68\xca\x21\xf3\x68\x3e\x86\x26\xad\x1f\x8b\x1f\x2f\x52\x72\x4f\x6f\xb5\xd0\x5d\xa4\xbc\xfa\x6c\x2f\xc1\xb4\xbc\xb7\xf4\x83\x90\x54\x12\xab\x34\xd9\xcf\x41\xb4\xa7\x61\x35\x37\x8c\x63\x5c\x83\x1d\x1c\x16\x31\xe2\x1a\xd0\xd3\x7f\xdc\x24\x2e\xbb\x51\xcd\x16\x11\xe0\x7c\x26\x9e\x26\xe2\x65\x21\x73\x42\x5f\x52\x32\x59\x3c\xe6\xdb\x15\x08\xf0\x19\x75\x27\xe4\x03\xdd\xbf\x78\x3c\x05\xb7\x52\xb7\x8b\x1d\x4f\xd3\x7d\x87\x7e\x57\xba\xbf\xe3\x89\x1c\x67\x37\x2c\x73\x54\x6f\xee\x5a\xe9\x43\x74\xa2\x6f\xf1\xb3\xb3\x8a\xea\xdc\x22\xc0\x86\xb0\xe1\xf6\x1b\x00\x00\xff\xff\x85\xcc\x76\xbd\x37\x01\x00\x00"
+
+func accountsCreate_new_accountCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_accountsCreate_new_accountCdc,
+		"accounts/create_new_account.cdc",
+	)
+}
+
+func accountsCreate_new_accountCdc() (*asset, error) {
+	bytes, err := accountsCreate_new_accountCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "accounts/create_new_account.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xfc, 0xc2, 0xf3, 0xb, 0xfb, 0xe5, 0xe5, 0xaa, 0x3b, 0x71, 0x3b, 0xd7, 0xcc, 0xb0, 0x44, 0x76, 0x4d, 0xce, 0x93, 0x31, 0x3a, 0xa5, 0x23, 0x13, 0x39, 0x67, 0x9e, 0x37, 0x1, 0x5c, 0x52, 0x76}}
+	return a, nil
+}
+
+var _accountsRevoke_keyCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x2a\x29\x4a\xcc\x2b\x4e\x4c\x2e\xc9\xcc\xcf\xd3\xc8\x4e\xad\xf4\xcc\x4b\x49\xad\xb0\x52\xf0\xcc\x2b\xd1\x54\xa8\xe6\xe2\x2c\x28\x4a\x2d\x48\x2c\x4a\xd5\x28\xce\x4c\xcf\x4b\x2d\xb2\x52\x70\x2c\x2d\xc9\x70\x4c\x4e\xce\x2f\x85\xca\x73\x42\x24\xf4\xb2\x53\x2b\x8b\xf5\x8a\x52\xcb\xf2\xb3\x53\x91\x4c\x81\xb1\x34\xb9\x38\x6b\xb9\x6a\x01\x01\x00\x00\xff\xff\x01\x6a\x3c\x7a\x6a\x00\x00\x00"
+
+func accountsRevoke_keyCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_accountsRevoke_keyCdc,
+		"accounts/revoke_key.cdc",
+	)
+}
+
+func accountsRevoke_keyCdc() (*asset, error) {
+	bytes, err := accountsRevoke_keyCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "accounts/revoke_key.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xec, 0x5d, 0xcc, 0x59, 0x18, 0xa2, 0x47, 0x34, 0xf3, 0xdd, 0xd7, 0xd6, 0x87, 0xb6, 0x13, 0x8e, 0x33, 0xd2, 0xe2, 0xa7, 0xab, 0xe, 0xd, 0x81, 0x5f, 0x4b, 0x87, 0x3a, 0x7b, 0x76, 0x2a, 0xc5}}
 	return a, nil
 }
 
@@ -6330,6 +6393,9 @@ var _bindata = map[string]func() (*asset, error){
 	"FlowServiceAccount/set_is_account_creation_restricted.cdc":                   flowserviceaccountSet_is_account_creation_restrictedCdc,
 	"FlowServiceAccount/set_tx_fee_parameters.cdc":                                flowserviceaccountSet_tx_fee_parametersCdc,
 	"FlowServiceAccount/set_tx_fee_surge_factor.cdc":                              flowserviceaccountSet_tx_fee_surge_factorCdc,
+	"accounts/add_key.cdc":                                                        accountsAdd_keyCdc,
+	"accounts/create_new_account.cdc":                                             accountsCreate_new_accountCdc,
+	"accounts/revoke_key.cdc":                                                     accountsRevoke_keyCdc,
 	"dkg/admin/force_stop_dkg.cdc":                                                dkgAdminForce_stop_dkgCdc,
 	"dkg/admin/publish_participant.cdc":                                           dkgAdminPublish_participantCdc,
 	"dkg/admin/set_safe_threshold.cdc":                                            dkgAdminSet_safe_thresholdCdc,
@@ -6674,6 +6740,11 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"set_is_account_creation_restricted.cdc": {flowserviceaccountSet_is_account_creation_restrictedCdc, map[string]*bintree{}},
 		"set_tx_fee_parameters.cdc": {flowserviceaccountSet_tx_fee_parametersCdc, map[string]*bintree{}},
 		"set_tx_fee_surge_factor.cdc": {flowserviceaccountSet_tx_fee_surge_factorCdc, map[string]*bintree{}},
+	}},
+	"accounts": {nil, map[string]*bintree{
+		"add_key.cdc": {accountsAdd_keyCdc, map[string]*bintree{}},
+		"create_new_account.cdc": {accountsCreate_new_accountCdc, map[string]*bintree{}},
+		"revoke_key.cdc": {accountsRevoke_keyCdc, map[string]*bintree{}},
 	}},
 	"dkg": {nil, map[string]*bintree{
 		"admin": {nil, map[string]*bintree{

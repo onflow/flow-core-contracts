@@ -34,20 +34,23 @@ const (
 )
 
 type Environment struct {
-	Network                    string
-	FungibleTokenAddress       string
-	FlowTokenAddress           string
-	IDTableAddress             string
-	LockedTokensAddress        string
-	StakingProxyAddress        string
-	QuorumCertificateAddress   string
-	DkgAddress                 string
-	EpochAddress               string
-	StorageFeesAddress         string
-	FlowFeesAddress            string
-	ServiceAccountAddress      string
-	NodeVersionBeaconAddress   string
-	RandomBeaconHistoryAddress string
+	Network                           string
+	FungibleTokenAddress              string
+	NonFungibleTokenAddress           string
+	MetadataViewsAddress              string
+	FungibleTokenMetadataViewsAddress string
+	FlowTokenAddress                  string
+	IDTableAddress                    string
+	LockedTokensAddress               string
+	StakingProxyAddress               string
+	QuorumCertificateAddress          string
+	DkgAddress                        string
+	EpochAddress                      string
+	StorageFeesAddress                string
+	FlowFeesAddress                   string
+	ServiceAccountAddress             string
+	NodeVersionBeaconAddress          string
+	RandomBeaconHistoryAddress        string
 }
 
 func withHexPrefix(address string) string {

@@ -1815,12 +1815,16 @@ github.com/onflow/flow-emulator v1.0.0-M1 h1:0hBEmvm73F+5HhN5ugkOP3UyN+Ea9yGWflE
 github.com/onflow/flow-emulator v1.0.0-M1/go.mod h1:JFJCeQVyhCQVD2Tq4QhctIXK6j5U6aU15yoEwMJt5AQ=
 github.com/onflow/flow-ft/lib/go/contracts v0.7.1-0.20240205224107-320aa3cf09e0 h1:u6/YcUvO8jU0f3Evb/6agzXqeOo+VbL2a3mmj/5ifRs=
 github.com/onflow/flow-ft/lib/go/contracts v0.7.1-0.20240205224107-320aa3cf09e0/go.mod h1:PwsL8fC81cjnUnTfmyL/HOIyHnyaw/JA474Wfj2tl6A=
+github.com/onflow/flow-ft/lib/go/templates v0.7.1-0.20240209175139-2ab8303b23b7 h1:gTfNhnUGDdHStqqsPqWjqQ5ewqeWBH+VttcOWyh2EP4=
+github.com/onflow/flow-ft/lib/go/templates v0.7.1-0.20240209175139-2ab8303b23b7/go.mod h1:uQ8XFqmMK2jxyBSVrmyuwdWjTEb+6zGjRYotfDJ5pAE=
 github.com/onflow/flow-go v0.33.2-0.20240126211806-97279f96695f h1:F1y95CpteZn0i4v0FDGjKiqI13Xlir3hX4x0C1xMRoc=
 github.com/onflow/flow-go v0.33.2-0.20240126211806-97279f96695f/go.mod h1:9q+c+fuTpc/emueM/2bI/Ih2jw3V+9WS3Eu+pWBuLW0=
 github.com/onflow/flow-go-sdk v1.0.0-M1 h1:mke/ebYwNRRWPZqcwCV56Alx0A8psew43ZbSEUQ4TL8=
 github.com/onflow/flow-go-sdk v1.0.0-M1/go.mod h1:TDW0MNuCs4SvqYRUzkbRnRmHQL1h4X8wURsCw9P9beo=
 github.com/onflow/flow-nft/lib/go/contracts v1.1.1-0.20240205233530-86ee8c352fa6 h1:/2vvjKkWG/3cKP3IpgiGNqXi0yskn4GmNTjmeCwMoz8=
 github.com/onflow/flow-nft/lib/go/contracts v1.1.1-0.20240205233530-86ee8c352fa6/go.mod h1:2gpbza+uzs1k7x31hkpBPlggIRkI53Suo0n2AyA2HcE=
+github.com/onflow/flow-nft/lib/go/templates v0.0.0-20240209175113-e3b2202ee7a7 h1:7pHK+IcNjHjXqV87V5cTeNXTYtF3LjBLNDuh2SiGUug=
+github.com/onflow/flow-nft/lib/go/templates v0.0.0-20240209175113-e3b2202ee7a7/go.mod h1:p+2hRvtjLUR3MW1NsoJe5Gqgr2eeH49QB6+s6ze00w0=
 github.com/onflow/flow/protobuf/go/flow v0.3.2-0.20231121210617-52ee94b830c2/go.mod h1:NA2pX2nw8zuaxfKphhKsk00kWLwfd+tv8mS23YXO4Sk=
 github.com/onflow/flow/protobuf/go/flow v0.3.2-0.20231213135419-ae911cc351a2 h1:+rT+UsfTR39JZO8ht2+4fkaWfHw74SCj1fyz1lWuX8A=
 github.com/onflow/flow/protobuf/go/flow v0.3.2-0.20231213135419-ae911cc351a2/go.mod h1:NA2pX2nw8zuaxfKphhKsk00kWLwfd+tv8mS23YXO4Sk=
