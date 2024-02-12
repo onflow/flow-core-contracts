@@ -8,8 +8,6 @@ import (
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/cadence/runtime/common"
 	"github.com/onflow/flow-go-sdk"
-	sdktemplates "github.com/onflow/flow-go-sdk/templates"
-	"github.com/onflow/flow-go-sdk/test"
 
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
 )
@@ -94,14 +92,14 @@ func generateManifest(env templates.Environment) *manifest {
 		panic(err)
 	}
 
-	accountKeys := test.AccountKeyGenerator()
-	sampleFlowAccountKey, _ := accountKeys.NewWithSigner()
-	publicKeys := make([]cadence.Value, 1)
-	cadenceAccountKey, err := sdktemplates.AccountKeyToCadenceCryptoKey(sampleFlowAccountKey)
-	sampleCadenceAccountKey := cadenceValue{cadenceAccountKey}
-	publicKeys[0] = cadenceAccountKey
-	cadencePublicKeys := cadence.NewArray(publicKeys)
-	sampleCadenceAccountKeys := cadenceValue{cadencePublicKeys}
+	sampleKeyWeightRaw, err := cadence.NewUFix64("1000.0")
+	if err != nil {
+		panic(err)
+	}
+	sampleKeyWeight := cadenceValue{sampleKeyWeightRaw}
+
+	sampleSigAlgoEnumRawValue := cadenceValue{cadence.NewUInt8(1)}
+	sampleHashAlgoEnumRawValue := cadenceValue{cadence.NewUInt8(1)}
 
 	sampleKeyIndex := cadenceValue{cadence.NewInt(1)}
 
@@ -148,6 +146,9 @@ func generateManifest(env templates.Environment) *manifest {
 
 	sampleEmptyPublicKeys := cadence.NewArray([]cadence.Value{})
 
+	sampleRawKey := cadence.String("f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164")
+	sampleKey := cadenceValue{sampleRawKey}
+
 	sampleOnePublicKey := cadence.NewArray([]cadence.Value{
 		cadence.String("f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"),
 	})
@@ -162,24 +163,64 @@ func generateManifest(env templates.Environment) *manifest {
 		"FA.01", "Create Account",
 		env,
 		templates.GenerateCreateAccountScript,
-		[]argument{{
-			Type:         "[Crypto.KeyListEntry]",
-			Name:         "publicKeys",
-			Label:        "Public Keys",
-			SampleValues: []cadenceValue{sampleCadenceAccountKeys},
-		}},
+		[]argument{
+			{
+				Type:         "String",
+				Name:         "key",
+				Label:        "Public Key",
+				SampleValues: []cadenceValue{sampleKey},
+			},
+			{
+				Type:         "UInt8",
+				Name:         "signatureAlgorithm",
+				Label:        "Raw Value for Signature Algorithm Enum",
+				SampleValues: []cadenceValue{sampleSigAlgoEnumRawValue},
+			},
+			{
+				Type:         "UInt8",
+				Name:         "hashAlgorithm",
+				Label:        "Raw Value for Hash Algorithm Enum",
+				SampleValues: []cadenceValue{sampleHashAlgoEnumRawValue},
+			},
+			{
+				Type:         "UFix64",
+				Name:         "weight",
+				Label:        "Key Weight",
+				SampleValues: []cadenceValue{sampleKeyWeight},
+			},
+		},
 	))
 
 	m.addTemplate(generateTemplate(
 		"FA.02", "Add Key",
 		env,
 		templates.GenerateAddKeyScript,
-		[]argument{{
-			Type:         "Crypto.KeyListEntry",
-			Name:         "key",
-			Label:        "Public Key",
-			SampleValues: []cadenceValue{sampleCadenceAccountKey},
-		}},
+		[]argument{
+			{
+				Type:         "String",
+				Name:         "key",
+				Label:        "Public Key",
+				SampleValues: []cadenceValue{sampleKey},
+			},
+			{
+				Type:         "UInt8",
+				Name:         "signatureAlgorithm",
+				Label:        "Raw Value for Signature Algorithm Enum",
+				SampleValues: []cadenceValue{sampleSigAlgoEnumRawValue},
+			},
+			{
+				Type:         "UInt8",
+				Name:         "hashAlgorithm",
+				Label:        "Raw Value for Hash Algorithm Enum",
+				SampleValues: []cadenceValue{sampleHashAlgoEnumRawValue},
+			},
+			{
+				Type:         "UFix64",
+				Name:         "weight",
+				Label:        "Key Weight",
+				SampleValues: []cadenceValue{sampleKeyWeight},
+			},
+		},
 	))
 
 	m.addTemplate(generateTemplate(

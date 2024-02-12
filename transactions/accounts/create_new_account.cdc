@@ -1,12 +1,20 @@
 import Crypto
 
-transaction(publicKeys: [Crypto.KeyListEntry]) {
-	prepare(signer: AuthAccount) {
-		let account = AuthAccount(payer: signer)
-
-		// add all the keys to the account
-		for key in publicKeys {
-			account.keys.add(publicKey: key.publicKey, hashAlgorithm: key.hashAlgorithm, weight: key.weight)
+transaction(key: String, signatureAlgorithm: UInt8, hashAlgorithm: UInt8, weight: UFix64) {
+	prepare(signer: auth(BorrowValue, Storage) &Account) {
+		pre {
+			signatureAlgorithm >= 1 && signatureAlgorithm <= 3: "Must provide a signature algoritm raw value that is 1, 2, or 3"
+			hashAlgorithm >= 1 && hashAlgorithm <= 6: "Must provide a hash algoritm raw value that is between 1 and 6"
+			weight <= 1000.0: "The key weight must be between 0 and 1000"
 		}
+
+		let publicKey = PublicKey(
+			publicKey: key.decodeHex(),
+			signatureAlgorithm: SignatureAlgorithm(rawValue: signatureAlgorithm)!
+		)
+
+		let account = Account(payer: signer)
+
+		account.keys.add(publicKey: publicKey, hashAlgorithm: HashAlgorithm(rawValue: hashAlgorithm)!, weight: weight)
 	}
 }

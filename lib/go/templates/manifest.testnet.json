@@ -4,724 +4,113 @@
     {
       "id": "FA.01",
       "name": "Create Account",
-      "source": "import Crypto\n\ntransaction(publicKeys: [Crypto.KeyListEntry]) {\n\tprepare(signer: AuthAccount) {\n\t\tlet account = AuthAccount(payer: signer)\n\n\t\t// add all the keys to the account\n\t\tfor key in publicKeys {\n\t\t\taccount.keys.add(publicKey: key.publicKey, hashAlgorithm: key.hashAlgorithm, weight: key.weight)\n\t\t}\n\t}\n}",
+      "source": "import Crypto\n\ntransaction(key: String, signatureAlgorithm: UInt8, hashAlgorithm: UInt8, weight: UFix64) {\n\tprepare(signer: auth(BorrowValue, Storage) \u0026Account) {\n\t\tpre {\n\t\t\tsignatureAlgorithm \u003e= 1 \u0026\u0026 signatureAlgorithm \u003c= 3: \"Must provide a signature algoritm raw value that is 1, 2, or 3\"\n\t\t\thashAlgorithm \u003e= 1 \u0026\u0026 hashAlgorithm \u003c= 6: \"Must provide a hash algoritm raw value that is between 1 and 6\"\n\t\t\tweight \u003c= 1000.0: \"The key weight must be between 0 and 1000\"\n\t\t}\n\n\t\tlet publicKey = PublicKey(\n\t\t\tpublicKey: key.decodeHex(),\n\t\t\tsignatureAlgorithm: SignatureAlgorithm(rawValue: signatureAlgorithm)!\n\t\t)\n\n\t\tlet account = Account(payer: signer)\n\n\t\taccount.keys.add(publicKey: publicKey, hashAlgorithm: HashAlgorithm(rawValue: hashAlgorithm)!, weight: weight)\n\t}\n}",
       "arguments": [
         {
-          "type": "[Crypto.KeyListEntry]",
-          "name": "publicKeys",
-          "label": "Public Keys",
-          "sampleValues": [
-            {
-              "value": [
-                {
-                  "value": {
-                    "id": "I.Crypto.Crypto.KeyListEntry",
-                    "fields": [
-                      {
-                        "value": {
-                          "value": "1000",
-                          "type": "Int"
-                        },
-                        "name": "keyIndex"
-                      },
-                      {
-                        "value": {
-                          "value": {
-                            "id": "PublicKey",
-                            "fields": [
-                              {
-                                "value": {
-                                  "value": [
-                                    {
-                                      "value": "97",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "12",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "124",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "219",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "204",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "59",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "7",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "91",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "97",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "129",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "185",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "79",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "239",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "14",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "225",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "138",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "73",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "165",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "97",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "50",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "130",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "75",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "20",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "18",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "65",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "93",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "134",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "219",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "149",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "255",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "224",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "164",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "11",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "117",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "167",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "23",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "13",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "229",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "66",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "42",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "182",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "239",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "41",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "49",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "164",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "6",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "195",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "226",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "122",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "138",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "105",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "221",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "9",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "138",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "217",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "173",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "11",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "177",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "59",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "116",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "136",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "64",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "203",
-                                      "type": "UInt8"
-                                    },
-                                    {
-                                      "value": "230",
-                                      "type": "UInt8"
-                                    }
-                                  ],
-                                  "type": "Array"
-                                },
-                                "name": "publicKey"
-                              },
-                              {
-                                "value": {
-                                  "value": {
-                                    "id": "SignatureAlgorithm",
-                                    "fields": [
-                                      {
-                                        "value": {
-                                          "value": "1",
-                                          "type": "UInt8"
-                                        },
-                                        "name": "rawValue"
-                                      }
-                                    ]
-                                  },
-                                  "type": "Enum"
-                                },
-                                "name": "signatureAlgorithm"
-                              }
-                            ]
-                          },
-                          "type": "Struct"
-                        },
-                        "name": "publicKey"
-                      },
-                      {
-                        "value": {
-                          "value": {
-                            "id": "HashAlgorithm",
-                            "fields": [
-                              {
-                                "value": {
-                                  "value": "3",
-                                  "type": "UInt8"
-                                },
-                                "name": "rawValue"
-                              }
-                            ]
-                          },
-                          "type": "Enum"
-                        },
-                        "name": "hashAlgorithm"
-                      },
-                      {
-                        "value": {
-                          "value": "1000.00000000",
-                          "type": "UFix64"
-                        },
-                        "name": "weight"
-                      },
-                      {
-                        "value": {
-                          "value": false,
-                          "type": "Bool"
-                        },
-                        "name": "isRevoked"
-                      }
-                    ]
-                  },
-                  "type": "Struct"
-                }
-              ],
-              "type": "Array"
-            }
-          ]
-        }
-      ],
-      "network": "testnet",
-      "hash": "fcc2f30bfbe5e5aa3b713bd7ccb044764dce93313aa5231339679e37015c5276"
-    },
-    {
-      "id": "FA.02",
-      "name": "Add Key",
-      "source": "import Crypto\n\ntransaction(key: Crypto.KeyListEntry) {\n\tprepare(signer: AuthAccount) {\n\t\tsigner.keys.add(publicKey: key.publicKey, hashAlgorithm: key.hashAlgorithm, weight: key.weight)\n\t}\n}",
-      "arguments": [
-        {
-          "type": "Crypto.KeyListEntry",
+          "type": "String",
           "name": "key",
           "label": "Public Key",
           "sampleValues": [
             {
-              "value": {
-                "id": "I.Crypto.Crypto.KeyListEntry",
-                "fields": [
-                  {
-                    "value": {
-                      "value": "1000",
-                      "type": "Int"
-                    },
-                    "name": "keyIndex"
-                  },
-                  {
-                    "value": {
-                      "value": {
-                        "id": "PublicKey",
-                        "fields": [
-                          {
-                            "value": {
-                              "value": [
-                                {
-                                  "value": "97",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "12",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "124",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "219",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "204",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "59",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "7",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "91",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "97",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "129",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "185",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "79",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "239",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "14",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "225",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "138",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "73",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "165",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "97",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "50",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "130",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "75",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "20",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "18",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "65",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "93",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "134",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "219",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "149",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "255",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "224",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "164",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "11",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "117",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "167",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "23",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "13",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "229",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "66",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "42",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "182",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "239",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "41",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "49",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "164",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "6",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "195",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "226",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "122",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "138",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "105",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "221",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "9",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "138",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "217",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "173",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "11",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "177",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "59",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "116",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "136",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "64",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "203",
-                                  "type": "UInt8"
-                                },
-                                {
-                                  "value": "230",
-                                  "type": "UInt8"
-                                }
-                              ],
-                              "type": "Array"
-                            },
-                            "name": "publicKey"
-                          },
-                          {
-                            "value": {
-                              "value": {
-                                "id": "SignatureAlgorithm",
-                                "fields": [
-                                  {
-                                    "value": {
-                                      "value": "1",
-                                      "type": "UInt8"
-                                    },
-                                    "name": "rawValue"
-                                  }
-                                ]
-                              },
-                              "type": "Enum"
-                            },
-                            "name": "signatureAlgorithm"
-                          }
-                        ]
-                      },
-                      "type": "Struct"
-                    },
-                    "name": "publicKey"
-                  },
-                  {
-                    "value": {
-                      "value": {
-                        "id": "HashAlgorithm",
-                        "fields": [
-                          {
-                            "value": {
-                              "value": "3",
-                              "type": "UInt8"
-                            },
-                            "name": "rawValue"
-                          }
-                        ]
-                      },
-                      "type": "Enum"
-                    },
-                    "name": "hashAlgorithm"
-                  },
-                  {
-                    "value": {
-                      "value": "1000.00000000",
-                      "type": "UFix64"
-                    },
-                    "name": "weight"
-                  },
-                  {
-                    "value": {
-                      "value": false,
-                      "type": "Bool"
-                    },
-                    "name": "isRevoked"
-                  }
-                ]
-              },
-              "type": "Struct"
+              "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164",
+              "type": "String"
+            }
+          ]
+        },
+        {
+          "type": "UInt8",
+          "name": "signatureAlgorithm",
+          "label": "Raw Value for Signature Algorithm Enum",
+          "sampleValues": [
+            {
+              "value": "1",
+              "type": "UInt8"
+            }
+          ]
+        },
+        {
+          "type": "UInt8",
+          "name": "hashAlgorithm",
+          "label": "Raw Value for Hash Algorithm Enum",
+          "sampleValues": [
+            {
+              "value": "1",
+              "type": "UInt8"
+            }
+          ]
+        },
+        {
+          "type": "UFix64",
+          "name": "weight",
+          "label": "Key Weight",
+          "sampleValues": [
+            {
+              "value": "1000.00000000",
+              "type": "UFix64"
             }
           ]
         }
       ],
       "network": "testnet",
-      "hash": "bc3f3d521f71d87e4c7389b2dbf7678b95b92fc3393063849121df4c1c851e0a"
+      "hash": "63d8b6a045bf8e6196198184db685c2cf22932503ccb2dcb85c7d2dc04c882ba"
+    },
+    {
+      "id": "FA.02",
+      "name": "Add Key",
+      "source": "import Crypto\n\ntransaction(key: String, signatureAlgorithm: UInt8, hashAlgorithm: UInt8, weight: UFix64) {\n\n\tprepare(signer: auth(AddKey) \u0026Account) {\n\t\tpre {\n\t\t\tsignatureAlgorithm \u003e= 1 \u0026\u0026 signatureAlgorithm \u003c= 3: \"Must provide a signature algoritm raw value that is 1, 2, or 3\"\n\t\t\thashAlgorithm \u003e= 1 \u0026\u0026 hashAlgorithm \u003c= 6: \"Must provide a hash algoritm raw value that is between 1 and 6\"\n\t\t\tweight \u003c= 1000.0: \"The key weight must be between 0 and 1000\"\n\t\t}\n\t\tlet publicKey = PublicKey(\n\t\t\tpublicKey: key.decodeHex(),\n\t\t\tsignatureAlgorithm: SignatureAlgorithm(rawValue: signatureAlgorithm)!\n\t\t)\n\n\t\tsigner.keys.add(publicKey: publicKey, hashAlgorithm: HashAlgorithm(rawValue: hashAlgorithm)!, weight: weight)\n\t}\n}",
+      "arguments": [
+        {
+          "type": "String",
+          "name": "key",
+          "label": "Public Key",
+          "sampleValues": [
+            {
+              "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164",
+              "type": "String"
+            }
+          ]
+        },
+        {
+          "type": "UInt8",
+          "name": "signatureAlgorithm",
+          "label": "Raw Value for Signature Algorithm Enum",
+          "sampleValues": [
+            {
+              "value": "1",
+              "type": "UInt8"
+            }
+          ]
+        },
+        {
+          "type": "UInt8",
+          "name": "hashAlgorithm",
+          "label": "Raw Value for Hash Algorithm Enum",
+          "sampleValues": [
+            {
+              "value": "1",
+              "type": "UInt8"
+            }
+          ]
+        },
+        {
+          "type": "UFix64",
+          "name": "weight",
+          "label": "Key Weight",
+          "sampleValues": [
+            {
+              "value": "1000.00000000",
+              "type": "UFix64"
+            }
+          ]
+        }
+      ],
+      "network": "testnet",
+      "hash": "21d4e87df171ccbe015efe69dc2ffd24814c5fc0f2e364daf5c80515ce4a8bd9"
     },
     {
       "id": "FA.03",
       "name": "Remove Key",
-      "source": "transaction(keyIndex: Int) {\n\tprepare(signer: AuthAccount) {\n\t\tsigner.keys.revoke(keyIndex: keyIndex)\n\t}\n}",
+      "source": "transaction(keyIndex: Int) {\n\tprepare(signer: auth(RevokeKey) \u0026Account) {\n\t\tif let key = signer.keys.get(keyIndex: keyIndex) {\n\t\t\tsigner.keys.revoke(keyIndex: keyIndex)\n\t\t} else {\n\t\t\tpanic(\"No key with the given index exists on the authorizer's account\")\n\t\t}\n\t}\n}",
       "arguments": [
         {
           "type": "Int",
@@ -736,7 +125,7 @@
         }
       ],
       "network": "testnet",
-      "hash": "ec5dcc5918a24734f3ddd7d687b6138e33d2e2a7ab0e0d815f4b873a7b762ac5"
+      "hash": "6c7ab72837fdce77a910f6fc0c622c6c4d5b17f6fbf7295f345d50d3508dd515"
     },
     {
       "id": "FT.01",
