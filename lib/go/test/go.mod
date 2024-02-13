@@ -5,11 +5,11 @@ go 1.18
 require (
 	github.com/btcsuite/btcd/chaincfg/chainhash v1.1.0
 	github.com/coreos/go-semver v0.3.0
-	github.com/onflow/cadence v1.0.0-M4
+	github.com/onflow/cadence v1.0.0-M5
 	github.com/onflow/crypto v0.25.0
-	github.com/onflow/flow-emulator v1.0.0-M1
-	github.com/onflow/flow-go v0.33.2-0.20240126211806-97279f96695f
-	github.com/onflow/flow-go-sdk v1.0.0-M1
+	github.com/onflow/flow-emulator v1.0.0-M3
+	github.com/onflow/flow-go v0.33.2-0.20240206235622-50f8c81f1f43
+	github.com/onflow/flow-go-sdk v1.0.0-M2
 	github.com/rs/zerolog v1.29.0
 	github.com/stretchr/testify v1.8.4
 )
@@ -96,7 +96,7 @@ require (
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/mattn/go-runewidth v0.0.14 // indirect
+	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/minio/sha256-simd v1.0.1 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
@@ -116,7 +116,7 @@ require (
 	github.com/onflow/flow-ft/lib/go/templates v0.7.1-0.20240213220156-959b70719876 // indirect
 	github.com/onflow/flow-nft/lib/go/contracts v1.1.1-0.20240205233530-86ee8c352fa6 // indirect
 	github.com/onflow/flow-nft/lib/go/templates v0.0.0-20240213205729-48f42d9896f8 // indirect
-	github.com/onflow/flow/protobuf/go/flow v0.3.2-0.20231213135419-ae911cc351a2 // indirect
+	github.com/onflow/flow/protobuf/go/flow v0.3.7 // indirect
 	github.com/onflow/sdks v0.5.1-0.20230912225508-b35402f12bba // indirect
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
 	github.com/pbnjay/memory v0.0.0-20210728143218-7b4eea64cf58 // indirect
