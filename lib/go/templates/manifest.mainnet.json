@@ -160,8 +160,8 @@
     },
     {
       "id": "FT.02",
-      "name": "Transfer Fungible Token",
-      "source": "import FungibleToken from 0xf233dcee88fe0abe\n\n/// Can pass in any storage path and receiver path instead of just the default.\n/// This lets you choose the token you want to send as well the capability you want to send it to.\n///\n/// Any token path can be passed as an argument here, so wallets should\n/// should check argument values to make sure the intended token path is passed in\n///\ntransaction(amount: UFix64, to: Address, senderPath: StoragePath, receiverPath: PublicPath) {\n\n    // The Vault resource that holds the tokens that are being transferred\n    let tempVault: @{FungibleToken.Vault}\n\n    prepare(signer: auth(BorrowValue) \u0026Account) {\n\n        // Get a reference to the signer's stored vault\n        let vaultRef = signer.storage.borrow\u003cauth(FungibleToken.Withdraw) \u0026{FungibleToken.Provider}\u003e(from: senderPath)\n\t\t\t?? panic(\"Could not borrow reference to the owner's Vault!\")\n\n        self.tempVault \u003c- vaultRef.withdraw(amount: amount)\n    }\n\n    execute {\n        let recipient = getAccount(to)\n        let receiverRef = recipient.capabilities.borrow\u003c\u0026{FungibleToken.Receiver}\u003e(receiverPath)\n            ?? panic(\"Could not borrow reference to the recipient's Receiver!\")\n\n        // Transfer tokens from the signer's stored vault to the receiver capability\n        receiverRef.deposit(from: \u003c-self.tempVault)\n    }\n}",
+      "name": "Transfer Fungible Token with Paths",
+      "source": "import FungibleToken from 0xf233dcee88fe0abe\n\n/// Can pass in any storage path and receiver path identifier instead of just the default.\n/// This lets you choose the token you want to send as well the capability you want to send it to.\n///\n/// Any token path can be passed as an argument here, so wallets should\n/// should check argument values to make sure the intended token path is passed in\n///\ntransaction(amount: UFix64, to: Address, senderPathIdentifier: String, receiverPathIdentifier: String) {\n\n    // The Vault resource that holds the tokens that are being transferred\n    let tempVault: @{FungibleToken.Vault}\n\n    prepare(signer: auth(BorrowValue) \u0026Account) {\n\n        let storagePath = StoragePath(identifier: senderPathIdentifier)\n            ?? panic(\"Could not construct a storage path from the provided path identifier string\")\n\n        // Get a reference to the signer's stored vault\n        let vaultRef = signer.storage.borrow\u003cauth(FungibleToken.Withdraw) \u0026{FungibleToken.Provider}\u003e(from: storagePath)\n\t\t\t?? panic(\"Could not borrow reference to the owner's Vault!\")\n\n        self.tempVault \u003c- vaultRef.withdraw(amount: amount)\n    }\n\n    execute {\n        let publicPath = PublicPath(identifier: receiverPathIdentifier)\n            ?? panic(\"Could not construct a public path from the provided path identifier string\")\n\n        let recipient = getAccount(to)\n        let receiverRef = recipient.capabilities.borrow\u003c\u0026{FungibleToken.Receiver}\u003e(publicPath)\n            ?? panic(\"Could not borrow reference to the recipient's Receiver!\")\n\n        // Transfer tokens from the signer's stored vault to the receiver capability\n        receiverRef.deposit(from: \u003c-self.tempVault)\n    }\n}",
       "arguments": [
         {
           "type": "UFix64",
@@ -186,36 +186,83 @@
           ]
         },
         {
-          "type": "StoragePath",
-          "name": "senderPath",
-          "label": "Sender's Collection Path",
+          "type": "String",
+          "name": "senderPathIdentifier",
+          "label": "Sender's Collection Path Identifier",
           "sampleValues": [
             {
-              "value": {
-                "domain": "storage",
-                "identifier": "samplePathIdentifier"
-              },
-              "type": "Path"
+              "value": "flowTokenVault",
+              "type": "String"
             }
           ]
         },
         {
-          "type": "PublicPath",
-          "name": "receiverPath",
-          "label": "Recipient's Receiver Path",
+          "type": "String",
+          "name": "receiverPathIdentifier",
+          "label": "Recipient's Receiver Path Identifier",
           "sampleValues": [
             {
-              "value": {
-                "domain": "storage",
-                "identifier": "samplePathIdentifier"
-              },
-              "type": "Path"
+              "value": "flowTokenReceiver",
+              "type": "String"
             }
           ]
         }
       ],
       "network": "mainnet",
-      "hash": "45f365ce6b9a048f85b02c03d3311961358e0b623e5c87165ab25bcc90638c60"
+      "hash": "6e5b8c83a3e8445eaa4bed391978443f124d9aa457fabdbaa016e0f65b57591e"
+    },
+    {
+      "id": "FT.03",
+      "name": "Transfer Fungible Token with Address",
+      "source": "import FungibleToken from 0xf233dcee88fe0abe\nimport FungibleTokenMetadataViews from 0xf233dcee88fe0abe\n\n/// Can pass in any contract address and name to transfer a token from that contract\n/// This lets you choose the token you want to send\n///\n/// Any contract can be chosen here, so wallets should check argument values\n/// to make sure the intended token path is passed in\n///\ntransaction(amount: UFix64, to: Address, contractAddress: Address, contractName: String) {\n\n    // The Vault resource that holds the tokens that are being transferred\n    let tempVault: @{FungibleToken.Vault}\n\n    // FTVaultData struct to get paths from\n    let vaultData: FungibleTokenMetadataViews.FTVaultData\n\n    prepare(signer: auth(BorrowValue) \u0026Account) {\n\n        // Borrow a reference to the vault stored on the passed account at the passed publicPath\n        let resolverRef = getAccount(contractAddress)\n            .contracts.borrow\u003c\u0026FungibleToken\u003e(name: contractName)\n            ?? panic(\"Could not borrow a reference to the fungible token contract\")\n\n        // Use that reference to retrieve the FTView \n        self.vaultData = resolverRef.resolveContractView(resourceType: nil, viewType: Type\u003cFungibleTokenMetadataViews.FTVaultData\u003e()) as! FungibleTokenMetadataViews.FTVaultData?\n            ?? panic(\"Could not resolve the FTVaultData view for the given Fungible token contract\")\n\n        // Get a reference to the signer's stored vault\n        let vaultRef = signer.storage.borrow\u003cauth(FungibleToken.Withdraw) \u0026{FungibleToken.Provider}\u003e(from: self.vaultData.storagePath)\n\t\t\t?? panic(\"Could not borrow reference to the owner's Vault!\")\n\n        self.tempVault \u003c- vaultRef.withdraw(amount: amount)\n    }\n\n    execute {\n        let recipient = getAccount(to)\n        let receiverRef = recipient.capabilities.borrow\u003c\u0026{FungibleToken.Receiver}\u003e(self.vaultData.receiverPath)\n            ?? panic(\"Could not borrow reference to the recipient's Receiver!\")\n\n        // Transfer tokens from the signer's stored vault to the receiver capability\n        receiverRef.deposit(from: \u003c-self.tempVault)\n    }\n}",
+      "arguments": [
+        {
+          "type": "UFix64",
+          "name": "amount",
+          "label": "Amount",
+          "sampleValues": [
+            {
+              "value": "92233720368.54775808",
+              "type": "UFix64"
+            }
+          ]
+        },
+        {
+          "type": "Address",
+          "name": "to",
+          "label": "Recipient",
+          "sampleValues": [
+            {
+              "value": "0xe467b9dd11fa00df",
+              "type": "Address"
+            }
+          ]
+        },
+        {
+          "type": "Address",
+          "name": "contractAddress",
+          "label": "FT Contract Address",
+          "sampleValues": [
+            {
+              "value": "0xe467b9dd11fa00df",
+              "type": "Address"
+            }
+          ]
+        },
+        {
+          "type": "String",
+          "name": "contractName",
+          "label": "FT Contract Name",
+          "sampleValues": [
+            {
+              "value": "FiatToken",
+              "type": "String"
+            }
+          ]
+        }
+      ],
+      "network": "mainnet",
+      "hash": "efa05208b7db01aa887f3f70ff8a3bf155749d5f8ff91f723707f2786261db36"
     },
     {
       "id": "NFT.01",
@@ -250,9 +297,73 @@
     },
     {
       "id": "NFT.02",
-      "name": "Transfer NFT",
-      "source": "/// This transaction is for transferring an ExampleNFT from one account to another\n\nimport \"ViewResolver\"\nimport \"MetadataViews\"\nimport 0x1d7e57aa55817448\nimport \"ExampleNFT\"\n\ntransaction(contractAddress: Address, contractName: String, recipient: Address, withdrawID: UInt64) {\n\n    /// Reference to the withdrawer's collection\n    let withdrawRef: auth(NonFungibleToken.Withdraw) \u0026{NonFungibleToken.Collection}\n\n    /// Reference of the collection to deposit the NFT to\n    let receiverRef: \u0026{NonFungibleToken.Receiver}\n\n    prepare(signer: auth(BorrowValue) \u0026Account) {\n\n        // borrow the NFT contract as ViewResolver reference\n        let viewResolver = getAccount(contractAddress).contracts.borrow\u003c\u0026ViewResolver\u003e(name: contractName)\n            ?? panic(\"Could not borrow ViewResolver of given name from address\")\n\n        // resolve the NFT collection data from the NFT contract\n        let collectionData = viewResolver.resolveContractView(resourceType: nil, viewType: Type\u003cMetadataViews.NFTCollectionData\u003e()) as! MetadataViews.NFTCollectionData?\n            ?? panic(\"ViewResolver does not resolve NFTCollectionData view\")\n\n        // borrow a reference to the signer's NFT collection\n        self.withdrawRef = signer.storage.borrow\u003cauth(NonFungibleToken.Withdraw) \u0026{NonFungibleToken.Collection}\u003e(\n                from: collectionData.storagePath\n            ) ?? panic(\"Account does not store an object at the specified path\")\n\n        // get the recipients public account object\n        let recipient = getAccount(recipient)\n\n        // borrow a public reference to the receivers collection\n        let receiverCap = recipient.capabilities.get\u003c\u0026{NonFungibleToken.Receiver}\u003e(collectionData.publicPath)\n            ?? panic(\"Could not get the recipient's Receiver Capability\")\n\n        self.receiverRef = receiverCap.borrow()\n            ?? panic(\"Could not borrow reference to the recipient's receiver\")\n\n    }\n\n    execute {\n\n        let nft \u003c- self.withdrawRef.withdraw(withdrawID: withdrawID)\n        self.receiverRef.deposit(token: \u003c-nft)\n\n    }\n\n    post {\n        !self.withdrawRef.getIDs().contains(withdrawID): \"Original owner should not have the NFT anymore\"\n    }\n}\n",
+      "name": "Transfer NFT with Paths",
+      "source": "import NonFungibleToken from 0x1d7e57aa55817448\n\n/// Can pass in any storage path and receiver path instead of just the default.\n/// This lets you choose the token you want to send as well the capability you want to send it to.\n///\n/// Any token path can be passed as an argument here, so wallets should\n/// should check argument values to make sure the intended token path is passed in\n///\ntransaction(to: Address, id: UInt64, senderPathIdentifier: String, receiverPathIdentifier: String) {\n\n    // The NFT resource to be transferred\n    let tempNFT: @{NonFungibleToken.NFT}\n\n    prepare(signer: auth(BorrowValue) \u0026Account) {\n\n        let storagePath = StoragePath(identifier: senderPathIdentifier)\n            ?? panic(\"Could not construct a storage path from the provided path identifier string\")\n\n        // borrow a reference to the signer's NFT collection\n        let withdrawRef = signer.storage.borrow\u003cauth(NonFungibleToken.Withdraw) \u0026{NonFungibleToken.Collection}\u003e(\n                from: storagePath\n            ) ?? panic(\"Account does not store a collection object at the specified path\")\n\n        self.tempNFT \u003c- withdrawRef.withdraw(withdrawID: id)\n    }\n\n    execute {\n        let publicPath = PublicPath(identifier: receiverPathIdentifier)\n            ?? panic(\"Could not construct a public path from the provided path identifier string\")\n\n        // get the recipients public account object\n        let recipient = getAccount(to)\n\n        // borrow a public reference to the receivers collection\n        let receiverCap = recipient.capabilities.get\u003c\u0026{NonFungibleToken.Receiver}\u003e(publicPath)\n            ?? panic(\"Could not get the recipient's Receiver Capability\")\n\n        let receiverRef = receiverCap.borrow()\n            ?? panic(\"Could not borrow reference to the recipient's receiver\")\n\n        // Deposit the NFT to the receiver\n        receiverRef.deposit(token: \u003c-self.tempNFT)\n    }\n}",
       "arguments": [
+        {
+          "type": "Address",
+          "name": "to",
+          "label": "Recipient",
+          "sampleValues": [
+            {
+              "value": "0xe467b9dd11fa00df",
+              "type": "Address"
+            }
+          ]
+        },
+        {
+          "type": "UInt64",
+          "name": "id",
+          "label": "NFT ID to Transfer",
+          "sampleValues": [
+            {
+              "value": "10",
+              "type": "UInt64"
+            }
+          ]
+        },
+        {
+          "type": "String",
+          "name": "senderPathIdentifier",
+          "label": "Sender's Collection Path Identifier",
+          "sampleValues": [
+            {
+              "value": "flowTokenVault",
+              "type": "String"
+            }
+          ]
+        },
+        {
+          "type": "String",
+          "name": "receiverPathIdentifier",
+          "label": "Recipient's Receiver Path Identifier",
+          "sampleValues": [
+            {
+              "value": "flowTokenReceiver",
+              "type": "String"
+            }
+          ]
+        }
+      ],
+      "network": "mainnet",
+      "hash": "4c509996ec971e19f26d497a7daa7563bdb10d2a401b5cf214eff95beec565fc"
+    },
+    {
+      "id": "NFT.03",
+      "name": "Transfer NFT with Address",
+      "source": "import NonFungibleToken from 0x1d7e57aa55817448\nimport MetadataViews from 0x1d7e57aa55817448\n\n/// Can pass in any contract address and name\n/// This lets you choose the token you want to send because\n/// the transaction gets the metadata from the provided contract.\n///\ntransaction(to: Address, id: UInt64, contractAddress: Address, contractName: String) {\n\n    // The NFT resource to be transferred\n    let tempNFT: @{NonFungibleToken.NFT}\n\n    // NFTCollectionData struct to get paths from\n    let collectionData: MetadataViews.NFTCollectionData\n\n    prepare(signer: auth(BorrowValue) \u0026Account) {\n\n        // Borrow a reference to the nft contract deployed to the passed account\n        let resolverRef = getAccount(contractAddress)\n            .contracts.borrow\u003c\u0026NonFungibleToken\u003e(name: contractName)\n            ?? panic(\"Could not borrow a reference to the non-fungible token contract\")\n\n        // Use that reference to retrieve the NFTCollectionData view \n        self.collectionData = resolverRef.resolveContractView(resourceType: nil, viewType: Type\u003cMetadataViews.NFTCollectionData\u003e()) as! MetadataViews.NFTCollectionData?\n            ?? panic(\"Could not resolve the NFTCollectionData view for the given non-fungible token contract\")\n\n\n        // borrow a reference to the signer's NFT collection\n        let withdrawRef = signer.storage.borrow\u003cauth(NonFungibleToken.Withdraw) \u0026{NonFungibleToken.Collection}\u003e(\n                from: self.collectionData.storagePath\n            ) ?? panic(\"Account does not store a collection object at the specified path\")\n\n        self.tempNFT \u003c- withdrawRef.withdraw(withdrawID: id)\n    }\n\n    execute {\n        // get the recipients public account object\n        let recipient = getAccount(to)\n\n        // borrow a public reference to the receivers collection\n        let receiverCap = recipient.capabilities.get\u003c\u0026{NonFungibleToken.Receiver}\u003e(self.collectionData.publicPath)\n            ?? panic(\"Could not get the recipient's Receiver Capability\")\n\n        let receiverRef = receiverCap.borrow()\n            ?? panic(\"Could not borrow reference to the recipient's receiver\")\n\n        // Deposit the NFT to the receiver\n        receiverRef.deposit(token: \u003c-self.tempNFT)\n    }\n}",
+      "arguments": [
+        {
+          "type": "Address",
+          "name": "to",
+          "label": "Recipient",
+          "sampleValues": [
+            {
+              "value": "0xe467b9dd11fa00df",
+              "type": "Address"
+            }
+          ]
+        },
         {
           "type": "UInt64",
           "name": "id",
@@ -266,8 +377,8 @@
         },
         {
           "type": "Address",
-          "name": "to",
-          "label": "Recipient",
+          "name": "contractAddress",
+          "label": "NFT Contract Address",
           "sampleValues": [
             {
               "value": "0xe467b9dd11fa00df",
@@ -276,36 +387,19 @@
           ]
         },
         {
-          "type": "StoragePath",
-          "name": "senderPath",
-          "label": "Sender's Collection Path",
+          "type": "String",
+          "name": "contractName",
+          "label": "NFT Contract Name",
           "sampleValues": [
             {
-              "value": {
-                "domain": "storage",
-                "identifier": "samplePathIdentifier"
-              },
-              "type": "Path"
-            }
-          ]
-        },
-        {
-          "type": "PublicPath",
-          "name": "receiverPath",
-          "label": "Recipient's Receiver Path",
-          "sampleValues": [
-            {
-              "value": {
-                "domain": "storage",
-                "identifier": "samplePathIdentifier"
-              },
-              "type": "Path"
+              "value": "TopShot",
+              "type": "String"
             }
           ]
         }
       ],
       "network": "mainnet",
-      "hash": "7c63278cf0421fd292c97bc953461939d40665833437ce5b4fb48655199fc285"
+      "hash": "4787be99c4a72becd7193a28dfd4f4cef3d00610b2b0dfdaba79df41792f69df"
     },
     {
       "id": "TH.01",
