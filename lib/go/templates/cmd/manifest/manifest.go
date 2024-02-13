@@ -6,7 +6,6 @@ import (
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
-	"github.com/onflow/cadence/runtime/common"
 	"github.com/onflow/flow-go-sdk"
 
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
@@ -109,10 +108,8 @@ func generateManifest(env templates.Environment) *manifest {
 	sampleID := cadenceValue{cadence.NewUInt64(10)}
 	sampleNFTContractName := cadenceValue{cadence.String("TopShot")}
 
-	cadenceStoragePath := cadence.Path{Domain: common.PathDomainStorage, Identifier: "samplePathIdentifier"}
-	sampleStoragePath := cadenceValue{cadenceStoragePath}
-	cadencePublicPath := cadence.Path{Domain: common.PathDomainStorage, Identifier: "samplePathIdentifier"}
-	samplePublicPath := cadenceValue{cadencePublicPath}
+	sampleStoragePathID := cadenceValue{cadence.String("flowTokenVault")}
+	samplePublicPathID := cadenceValue{cadence.String("flowTokenReceiver")}
 
 	sampleNodeID := cadenceValue{
 		cadence.String("88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"),
@@ -256,9 +253,9 @@ func generateManifest(env templates.Environment) *manifest {
 	))
 
 	m.addTemplate(generateTemplate(
-		"FT.02", "Transfer Fungible Token",
+		"FT.02", "Transfer Fungible Token with Paths",
 		env,
-		templates.GenerateTransferGenericVaultScript,
+		templates.GenerateTransferGenericVaultWithPathsScript,
 		[]argument{
 			{
 				Type:         "UFix64",
@@ -273,16 +270,48 @@ func generateManifest(env templates.Environment) *manifest {
 				SampleValues: []cadenceValue{sampleAddress(env.Network)},
 			},
 			{
-				Type:         "StoragePath",
-				Name:         "senderPath",
-				Label:        "Sender's Collection Path",
-				SampleValues: []cadenceValue{sampleStoragePath},
+				Type:         "String",
+				Name:         "senderPathIdentifier",
+				Label:        "Sender's Collection Path Identifier",
+				SampleValues: []cadenceValue{sampleStoragePathID},
 			},
 			{
-				Type:         "PublicPath",
-				Name:         "receiverPath",
-				Label:        "Recipient's Receiver Path",
-				SampleValues: []cadenceValue{samplePublicPath},
+				Type:         "String",
+				Name:         "receiverPathIdentifier",
+				Label:        "Recipient's Receiver Path Identifier",
+				SampleValues: []cadenceValue{samplePublicPathID},
+			},
+		},
+	))
+
+	m.addTemplate(generateTemplate(
+		"FT.03", "Transfer Fungible Token with Address",
+		env,
+		templates.GenerateTransferGenericVaultWithAddressScript,
+		[]argument{
+			{
+				Type:         "UFix64",
+				Name:         "amount",
+				Label:        "Amount",
+				SampleValues: []cadenceValue{sampleAmount},
+			},
+			{
+				Type:         "Address",
+				Name:         "to",
+				Label:        "Recipient",
+				SampleValues: []cadenceValue{sampleAddress(env.Network)},
+			},
+			{
+				Type:         "Address",
+				Name:         "contractAddress",
+				Label:        "FT Contract Address",
+				SampleValues: []cadenceValue{sampleAddress(env.Network)},
+			},
+			{
+				Type:         "String",
+				Name:         "contractName",
+				Label:        "FT Contract Name",
+				SampleValues: []cadenceValue{sampleFTContractName},
 			},
 		},
 	))
@@ -308,10 +337,48 @@ func generateManifest(env templates.Environment) *manifest {
 	))
 
 	m.addTemplate(generateTemplate(
-		"NFT.02", "Transfer NFT",
+		"NFT.02", "Transfer NFT with Paths",
 		env,
-		templates.GenerateTransferGenericNFTScript,
+		templates.GenerateTransferGenericNFTWithPathsScript,
 		[]argument{
+			{
+				Type:         "Address",
+				Name:         "to",
+				Label:        "Recipient",
+				SampleValues: []cadenceValue{sampleAddress(env.Network)},
+			},
+			{
+				Type:         "UInt64",
+				Name:         "id",
+				Label:        "NFT ID to Transfer",
+				SampleValues: []cadenceValue{sampleID},
+			},
+			{
+				Type:         "String",
+				Name:         "senderPathIdentifier",
+				Label:        "Sender's Collection Path Identifier",
+				SampleValues: []cadenceValue{sampleStoragePathID},
+			},
+			{
+				Type:         "String",
+				Name:         "receiverPathIdentifier",
+				Label:        "Recipient's Receiver Path Identifier",
+				SampleValues: []cadenceValue{samplePublicPathID},
+			},
+		},
+	))
+
+	m.addTemplate(generateTemplate(
+		"NFT.03", "Transfer NFT with Address",
+		env,
+		templates.GenerateTransferGenericNFTWithAddressScript,
+		[]argument{
+			{
+				Type:         "Address",
+				Name:         "to",
+				Label:        "Recipient",
+				SampleValues: []cadenceValue{sampleAddress(env.Network)},
+			},
 			{
 				Type:         "UInt64",
 				Name:         "id",
@@ -320,21 +387,15 @@ func generateManifest(env templates.Environment) *manifest {
 			},
 			{
 				Type:         "Address",
-				Name:         "to",
-				Label:        "Recipient",
+				Name:         "contractAddress",
+				Label:        "NFT Contract Address",
 				SampleValues: []cadenceValue{sampleAddress(env.Network)},
 			},
 			{
-				Type:         "StoragePath",
-				Name:         "senderPath",
-				Label:        "Sender's Collection Path",
-				SampleValues: []cadenceValue{sampleStoragePath},
-			},
-			{
-				Type:         "PublicPath",
-				Name:         "receiverPath",
-				Label:        "Recipient's Receiver Path",
-				SampleValues: []cadenceValue{samplePublicPath},
+				Type:         "String",
+				Name:         "contractName",
+				Label:        "NFT Contract Name",
+				SampleValues: []cadenceValue{sampleNFTContractName},
 			},
 		},
 	))
