@@ -10,8 +10,6 @@ import (
 	ftcontracts "github.com/onflow/flow-ft/lib/go/contracts"
 	nftcontracts "github.com/onflow/flow-nft/lib/go/contracts"
 
-	"github.com/onflow/flow-go-sdk"
-
 	"github.com/onflow/flow-core-contracts/lib/go/contracts/internal/assets"
 )
 
@@ -92,7 +90,7 @@ func FungibleTokenSwitchboard(fungibleTokenAddr string) []byte {
 }
 
 func NonFungibleToken(viewResolverAddress string) []byte {
-	return nftcontracts.NonFungibleToken(flow.HexToAddress(viewResolverAddress))
+	return nftcontracts.NonFungibleToken(viewResolverAddress)
 }
 
 func ViewResolver() []byte {
@@ -105,7 +103,7 @@ func Burner() []byte {
 
 // MetadataViews returns the MetadataViews contract interface.
 func MetadataViews(fungibleTokenAddr, nonFungibleTokenAddr, viewResolverAddr string) []byte {
-	return nftcontracts.MetadataViews(flow.HexToAddress(fungibleTokenAddr), flow.HexToAddress(nonFungibleTokenAddr), flow.HexToAddress(viewResolverAddr))
+	return nftcontracts.MetadataViews(fungibleTokenAddr, nonFungibleTokenAddr, viewResolverAddr)
 }
 
 // FlowToken returns the FlowToken contract.
