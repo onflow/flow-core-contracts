@@ -483,7 +483,7 @@
     {
       "id": "SCO.03",
       "name": "Register Node",
-      "source": "import Crypto\nimport FlowStakingCollection from 0x8d0e87b65159ae63\n\n/// Registers a delegator in the staking collection resource\n/// for the specified node information and the amount of tokens to commit\n\ntransaction(id: String,\n            role: UInt8,\n            networkingAddress: String,\n            networkingKey: String,\n            stakingKey: String,\n            amount: UFix64,\n            publicKeys: [Crypto.KeyListEntry]?) {\n\n    let stakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.stakingCollectionRef = account.storage.borrow\u003cauth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow a reference to a StakingCollection in the primary user's account\")\n\n        if let machineAccount = self.stakingCollectionRef.registerNode(\n            id: id,\n            role: role,\n            networkingAddress: networkingAddress,\n            networkingKey: networkingKey,\n            stakingKey: stakingKey,\n            amount: amount,\n            payer: account\n        ) {\n            if publicKeys == nil || publicKeys!.length == 0 {\n                panic(\"Cannot provide zero keys for the machine account\")\n            }\n            for key in publicKeys! {\n                machineAccount.keys.add(publicKey: key.publicKey, hashAlgorithm: key.hashAlgorithm, weight: key.weight)\n            }\n        }\n    }\n}\n",
+      "source": "import Crypto\nimport FlowStakingCollection from 0x8d0e87b65159ae63\n\n/// Registers a delegator in the staking collection resource\n/// for the specified node information and the amount of tokens to commit\n\ntransaction(id: String,\n            role: UInt8,\n            networkingAddress: String,\n            networkingKey: String,\n            stakingKey: String,\n            amount: UFix64,\n            machineAccountKey: String, \n            machineAccountKeySignatureAlgorithm: UInt8, \n            machineAccountKeyHashAlgorithm: UInt8) {\n\n    let stakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.stakingCollectionRef = account.storage.borrow\u003cauth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow a reference to a StakingCollection in the primary user's account\")\n\n        if let machineAccount = self.stakingCollectionRef.registerNode(\n            id: id,\n            role: role,\n            networkingAddress: networkingAddress,\n            networkingKey: networkingKey,\n            stakingKey: stakingKey,\n            amount: amount,\n            payer: account\n        ) {\n            let sigAlgo = SignatureAlgorithm(rawValue: machineAccountKeySignatureAlgorithm)\n                ?? panic(\"Could not get a signature algorithm from the raw enum value provided\")\n\n            let hashAlgo = HashAlgorithm(rawValue: machineAccountKeyHashAlgorithm)\n                ?? panic(\"Could not get a hash algorithm from the raw enum value provided\")\n            \n            let publicKey = PublicKey(\n\t\t\t    publicKey: machineAccountKey.decodeHex(),\n\t\t\t    signatureAlgorithm: sigAlgo\n\t\t    )\n            machineAccount.keys.add(publicKey: publicKey, hashAlgorithm: hashAlgo, weight: 1000.0)\n        }\n    }\n}\n",
       "arguments": [
         {
           "type": "String",
@@ -552,63 +552,46 @@
           ]
         },
         {
-          "type": "[String]?",
-          "name": "publicKeys",
-          "label": "Public Keys",
+          "type": "String",
+          "name": "machineAccountKey",
+          "label": "Machine Account Public Key",
           "sampleValues": [
             {
-              "value": null,
-              "type": "Optional"
-            },
+              "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164",
+              "type": "String"
+            }
+          ]
+        },
+        {
+          "type": "UInt8",
+          "name": "machineAccountKeySignatureAlgorithm",
+          "label": "Raw Value for Machine Account Signature Algorithm Enum",
+          "sampleValues": [
             {
-              "value": {
-                "value": [],
-                "type": "Array"
-              },
-              "type": "Optional"
-            },
+              "value": "1",
+              "type": "UInt8"
+            }
+          ]
+        },
+        {
+          "type": "UInt8",
+          "name": "machineAccountKeyHashAlgorithm",
+          "label": "Raw Value for Machine Account Hash Algorithm Enum",
+          "sampleValues": [
             {
-              "value": {
-                "value": [
-                  {
-                    "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164",
-                    "type": "String"
-                  }
-                ],
-                "type": "Array"
-              },
-              "type": "Optional"
-            },
-            {
-              "value": {
-                "value": [
-                  {
-                    "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164",
-                    "type": "String"
-                  },
-                  {
-                    "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164",
-                    "type": "String"
-                  },
-                  {
-                    "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164",
-                    "type": "String"
-                  }
-                ],
-                "type": "Array"
-              },
-              "type": "Optional"
+              "value": "1",
+              "type": "UInt8"
             }
           ]
         }
       ],
       "network": "mainnet",
-      "hash": "4073ffd5a78fda78e2292f5cea7e19443158c1eae7ba27ea24fee5c043060290"
+      "hash": "3b0b2bbc3a2ad674122c182112f7008a8d3d1b60b107033c0ebe7bbe50df5267"
     },
     {
       "id": "SCO.04",
       "name": "Create Machine Account",
-      "source": "import Crypto\nimport FlowStakingCollection from 0x8d0e87b65159ae63\n\n/// Creates a machine account for a node that is already in the staking collection\n/// and adds public keys to the new account\n\ntransaction(nodeID: String, publicKeys: [Crypto.KeyListEntry]) {\n    \n    let stakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.stakingCollectionRef = account.storage.borrow\u003cauth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow a reference to a StakingCollection in the primary user's account\")\n\n        if let machineAccount = self.stakingCollectionRef.createMachineAccountForExistingNode(nodeID: nodeID, payer: account) {\n            if publicKeys == nil || publicKeys!.length == 0 {\n                panic(\"Cannot provide zero keys for the machine account\")\n            }\n            for key in publicKeys {\n                machineAccount.keys.add(publicKey: key.publicKey, hashAlgorithm: key.hashAlgorithm, weight: key.weight)\n            }\n        } else {\n            panic(\"Could not create a machine account for the node\")\n        }\n    }\n}\n",
+      "source": "import Crypto\nimport FlowStakingCollection from 0x8d0e87b65159ae63\n\n/// Creates a machine account for a node that is already in the staking collection\n/// and adds public keys to the new account\n\ntransaction(nodeID: String, \n            machineAccountKey: String, \n            machineAccountKeySignatureAlgorithm: UInt8, \n            machineAccountKeyHashAlgorithm: UInt8) {\n    \n    let stakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.stakingCollectionRef = account.storage.borrow\u003cauth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow a reference to a StakingCollection in the primary user's account\")\n\n        if let machineAccount = self.stakingCollectionRef.createMachineAccountForExistingNode(nodeID: nodeID, payer: account) {\n            let sigAlgo = SignatureAlgorithm(rawValue: machineAccountKeySignatureAlgorithm)\n                ?? panic(\"Could not get a signature algorithm from the raw enum value provided\")\n\n            let hashAlgo = HashAlgorithm(rawValue: machineAccountKeyHashAlgorithm)\n                ?? panic(\"Could not get a hash algorithm from the raw enum value provided\")\n            \n            let publicKey = PublicKey(\n\t\t\t    publicKey: machineAccountKey.decodeHex(),\n\t\t\t    signatureAlgorithm: sigAlgo\n\t\t    )\n            machineAccount.keys.add(publicKey: publicKey, hashAlgorithm: hashAlgo, weight: 1000.0)\n        } else {\n            panic(\"Could not create a machine account for the node\")\n        }\n    }\n}\n",
       "arguments": [
         {
           "type": "String",
@@ -622,45 +605,41 @@
           ]
         },
         {
-          "type": "[String]",
-          "name": "publicKeys",
-          "label": "Public Keys",
+          "type": "String",
+          "name": "machineAccountKey",
+          "label": "Machine Account Public Key",
           "sampleValues": [
             {
-              "value": [],
-              "type": "Array"
-            },
+              "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164",
+              "type": "String"
+            }
+          ]
+        },
+        {
+          "type": "UInt8",
+          "name": "machineAccountKeySignatureAlgorithm",
+          "label": "Raw Value for Machine Account Signature Algorithm Enum",
+          "sampleValues": [
             {
-              "value": [
-                {
-                  "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164",
-                  "type": "String"
-                }
-              ],
-              "type": "Array"
-            },
+              "value": "1",
+              "type": "UInt8"
+            }
+          ]
+        },
+        {
+          "type": "UInt8",
+          "name": "machineAccountKeyHashAlgorithm",
+          "label": "Raw Value for Machine Account Hash Algorithm Enum",
+          "sampleValues": [
             {
-              "value": [
-                {
-                  "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164",
-                  "type": "String"
-                },
-                {
-                  "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164",
-                  "type": "String"
-                },
-                {
-                  "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164",
-                  "type": "String"
-                }
-              ],
-              "type": "Array"
+              "value": "1",
+              "type": "UInt8"
             }
           ]
         }
       ],
       "network": "mainnet",
-      "hash": "333e2035ff1cf7fe636722804837c1498cdd3b93b1d412f56bca060a5a55aed8"
+      "hash": "f0a6cedb6703cd4ce4cc3b735e5edb5a7e5b17a87a725343d745e5d53b7c0a01"
     },
     {
       "id": "SCO.05",

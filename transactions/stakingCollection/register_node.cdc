@@ -10,7 +10,9 @@ transaction(id: String,
             networkingKey: String,
             stakingKey: String,
             amount: UFix64,
-            publicKeys: [Crypto.KeyListEntry]?) {
+            machineAccountKey: String, 
+            machineAccountKeySignatureAlgorithm: UInt8, 
+            machineAccountKeyHashAlgorithm: UInt8) {
 
     let stakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) &FlowStakingCollection.StakingCollection
 
@@ -27,12 +29,17 @@ transaction(id: String,
             amount: amount,
             payer: account
         ) {
-            if publicKeys == nil || publicKeys!.length == 0 {
-                panic("Cannot provide zero keys for the machine account")
-            }
-            for key in publicKeys! {
-                machineAccount.keys.add(publicKey: key.publicKey, hashAlgorithm: key.hashAlgorithm, weight: key.weight)
-            }
+            let sigAlgo = SignatureAlgorithm(rawValue: machineAccountKeySignatureAlgorithm)
+                ?? panic("Could not get a signature algorithm from the raw enum value provided")
+
+            let hashAlgo = HashAlgorithm(rawValue: machineAccountKeyHashAlgorithm)
+                ?? panic("Could not get a hash algorithm from the raw enum value provided")
+            
+            let publicKey = PublicKey(
+			    publicKey: machineAccountKey.decodeHex(),
+			    signatureAlgorithm: sigAlgo
+		    )
+            machineAccount.keys.add(publicKey: publicKey, hashAlgorithm: hashAlgo, weight: 1000.0)
         }
     }
 }
