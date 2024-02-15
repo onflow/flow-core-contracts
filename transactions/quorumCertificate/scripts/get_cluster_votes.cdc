@@ -1,4 +1,4 @@
-import FlowClusterQC from 0xQCADDRESS
+import FlowClusterQC from "FlowClusterQC"
 
 // Returns an array of Votes for the specified cluster
 

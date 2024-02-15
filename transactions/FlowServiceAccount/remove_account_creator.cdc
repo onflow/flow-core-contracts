@@ -1,4 +1,4 @@
-import FlowServiceAccount from 0xFLOWSERVICEADDRESS
+import FlowServiceAccount from "FlowServiceAccount"
 
 // This transaction removes an account creator
 transaction(accountCreator: Address) {

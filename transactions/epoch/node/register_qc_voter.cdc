@@ -1,6 +1,6 @@
-import FlowEpoch from 0xEPOCHADDRESS
+import FlowEpoch from "FlowEpoch"
 import FlowIDTableStaking from "FlowIDTableStaking"
-import FlowClusterQC from 0xQCADDRESS
+import FlowClusterQC from "FlowClusterQC"
 
 transaction() {
 

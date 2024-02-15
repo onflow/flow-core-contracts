@@ -38,7 +38,7 @@ func TestContracts(t *testing.T) {
 	storageFeesAccountKey, storageFeesSigner := accountKeys.NewWithSigner()
 
 	// deploy the FlowStorageFees contract
-	storageFeesCode := contracts.FlowStorageFees(emulatorFTAddress, emulatorFlowTokenAddress)
+	storageFeesCode := contracts.FlowStorageFees(env)
 	storageFeesAddress, err := adapter.CreateAccount(context.Background(), []*flow.AccountKey{storageFeesAccountKey}, []sdktemplates.Contract{
 		{
 			Name:   "FlowStorageFees",
@@ -401,10 +401,7 @@ func TestContracts(t *testing.T) {
 
 	// deploy the ServiceAccount contract
 	serviceAccountCode := contracts.FlowServiceAccount(
-		emulatorFTAddress,
-		emulatorFlowTokenAddress,
-		"0xe5a8b7f23e8b548f",
-		storageFeesAddress.String(),
+		env,
 	)
 	_, err = adapter.CreateAccount(context.Background(), nil, []sdktemplates.Contract{
 		{

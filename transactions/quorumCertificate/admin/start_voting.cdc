@@ -1,4 +1,4 @@
-import FlowClusterQC from 0xQCADDRESS
+import FlowClusterQC from "FlowClusterQC"
 
 // Test transaction for the QC admin to start the QC voting period
 // with a array of collector node clusters

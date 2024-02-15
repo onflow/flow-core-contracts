@@ -1,4 +1,4 @@
-import FlowStakingCollection from 0xSTAKINGCOLLECTIONADDRESS
+import FlowStakingCollection from "FlowStakingCollection"
 import FlowIDTableStaking from "FlowIDTableStaking"
 
 /// Tells if the specified node or delegator exists in the staking collection 

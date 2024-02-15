@@ -1,5 +1,5 @@
 import Crypto
-import FlowStakingCollection from 0xSTAKINGCOLLECTIONADDRESS
+import FlowStakingCollection from "FlowStakingCollection"
 
 /// Registers a delegator in the staking collection resource
 /// for the specified node information and the amount of tokens to commit

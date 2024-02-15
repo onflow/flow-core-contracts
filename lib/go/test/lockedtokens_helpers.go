@@ -73,12 +73,7 @@ func deployLockedTokensContract(
 
 	// Get the code of the locked tokens contract
 	// with the import addresses replaced
-	lockedTokensCode := contracts.FlowLockedTokens(
-		emulatorFTAddress,
-		emulatorFlowTokenAddress,
-		IDTableAddr.Hex(),
-		proxyAddr.Hex(),
-		b.ServiceKey().Address.String(),
+	lockedTokensCode := contracts.FlowLockedTokens(env),
 	)
 	// Encode the contract as a Cadence string
 	cadenceCode := CadenceString(hex.EncodeToString(lockedTokensCode))

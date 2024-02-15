@@ -1,5 +1,5 @@
 import FlowToken from "FlowToken"
-import LockedTokens from 0xLOCKEDTOKENADDRESS
+import LockedTokens from "LockedTokens"
 import FlowIDTableStaking from "FlowIDTableStaking"
 import FungibleToken from "FungibleToken"
 

@@ -1,4 +1,4 @@
-import FlowDKG from 0xDKGADDRESS
+import FlowDKG from "FlowDKG"
 
 transaction(address: Address, nodeID: String) {
 

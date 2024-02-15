@@ -231,7 +231,7 @@ func deployEpochContract(
 	epochCounter, epochViews, stakingViews, dkgViews, numClusters uint64,
 	randomSource, rewardAPY string) {
 
-	EpochCode := contracts.FlowEpoch(emulatorFTAddress, emulatorFlowTokenAddress, idTableAddress.String(), idTableAddress.String(), idTableAddress.String(), feesAddr.String())
+	EpochCode := contracts.FlowEpoch(env)
 	EpochByteCode := bytesToCadenceArray(EpochCode)
 
 	epochName, _ := cadence.NewString("FlowEpoch")

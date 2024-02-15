@@ -1,4 +1,4 @@
-import NodeVersionBeacon from 0xNODEVERSIONBEACONADDRESS
+import NodeVersionBeacon from "NodeVersionBeacon"
 
 /// Transaction that allows NodeVersionAdmin to add a new version to the
 /// version table defining a version boundary at the targetBlockHeight

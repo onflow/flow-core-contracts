@@ -1,4 +1,4 @@
-import FlowClusterQC from 0xQCADDRESS
+import FlowClusterQC from "FlowClusterQC"
 
 // Test transaction for the QC contract to stop the voting period
 

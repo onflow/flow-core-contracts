@@ -1,4 +1,4 @@
-import FlowClusterQC from 0xQCADDRESS
+import FlowClusterQC from "FlowClusterQC"
 
 // Returns a boolean indicating if a node has submitted a vote for this epoch
 

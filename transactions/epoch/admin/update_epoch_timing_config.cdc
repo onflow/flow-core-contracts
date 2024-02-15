@@ -1,4 +1,4 @@
-import FlowEpoch from 0xEPOCHADDRESS
+import FlowEpoch from "FlowEpoch"
 
 transaction(duration: UInt64, refCounter: UInt64, refTimestamp: UInt64) {
     prepare(signer: auth(BorrowValue) &Account) {

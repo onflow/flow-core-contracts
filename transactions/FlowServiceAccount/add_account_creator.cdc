@@ -1,4 +1,4 @@
-import FlowServiceAccount from 0xFLOWSERVICEADDRESS
+import FlowServiceAccount from "FlowServiceAccount"
 
 // This transaction adds a new account crerator
 transaction(accountCreator: Address) {

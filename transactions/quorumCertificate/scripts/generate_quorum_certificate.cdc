@@ -1,4 +1,4 @@
-import FlowClusterQC from 0xQCADDRESS
+import FlowClusterQC from "FlowClusterQC"
 
 // Gets the status of a cluster's QC generation
 

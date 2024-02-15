@@ -1,4 +1,4 @@
-import FlowStakingCollection from 0xSTAKINGCOLLECTIONADDRESS
+import FlowStakingCollection from "FlowStakingCollection"
 
 // Closes out a staking object in the staking collection
 // This does not remove the record from the identity table,

@@ -1,4 +1,4 @@
-import FlowStakingCollection from 0xSTAKINGCOLLECTIONADDRESS
+import FlowStakingCollection from "FlowStakingCollection"
 
 /// Returns an array of all the delegator IDs stored in the staking collection
 

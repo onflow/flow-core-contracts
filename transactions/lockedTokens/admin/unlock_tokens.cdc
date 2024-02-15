@@ -1,4 +1,4 @@
-import LockedTokens from 0xLOCKEDTOKENADDRESS
+import LockedTokens from "LockedTokens"
 
 transaction(targetAccount: Address, delta: UFix64) {
 

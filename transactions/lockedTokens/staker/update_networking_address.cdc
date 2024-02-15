@@ -1,4 +1,4 @@
-import LockedTokens from 0xLOCKEDTOKENADDRESS
+import LockedTokens from "LockedTokens"
 import FungibleToken from "FungibleToken"
 
 transaction(newAddress: String) {

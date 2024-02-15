@@ -1,5 +1,5 @@
 import FlowIDTableStaking from "FlowIDTableStaking"
-import LockedTokens from 0xLOCKEDTOKENADDRESS
+import LockedTokens from "LockedTokens"
 
 // Returns an array of NodeInfo objects that the account controls
 // in its normal account and shared account

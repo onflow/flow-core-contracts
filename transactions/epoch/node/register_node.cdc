@@ -1,9 +1,9 @@
 import Crypto
 import FlowIDTableStaking from "FlowIDTableStaking"
 import FlowToken from "FlowToken"
-import FlowClusterQC from 0xQCADDRESS
-import FlowDKG from 0xDKGADDRESS
-import FlowEpoch from 0xEPOCHADDRESS
+import FlowClusterQC from "FlowClusterQC"
+import FlowDKG from "FlowDKG"
+import FlowEpoch from "FlowEpoch"
 import FungibleToken from "FungibleToken"
 
 // This transaction creates a new node struct object

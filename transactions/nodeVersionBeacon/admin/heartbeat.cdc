@@ -1,4 +1,4 @@
-import NodeVersionBeacon from 0xNODEVERSIONBEACONADDRESS
+import NodeVersionBeacon from "NodeVersionBeacon"
 
 // Calls the method that emits the table with the incoming versions
 transaction() {

@@ -1,6 +1,6 @@
-import FlowEpoch from 0xEPOCHADDRESS
+import FlowEpoch from "FlowEpoch"
 import FlowIDTableStaking from "FlowIDTableStaking"
-import FlowDKG from 0xDKGADDRESS
+import FlowDKG from "FlowDKG"
 
 transaction() {
 
