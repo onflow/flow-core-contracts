@@ -202,4 +202,4 @@ require (
 
 // replace github.com/onflow/flow-core-contracts/lib/go/contracts => ../contracts
 
-replace github.com/onflow/flow-core-contracts/lib/go/templates => ../templates
+// replace github.com/onflow/flow-core-contracts/lib/go/templates => ../templates

@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/kevinburke/go-bindata v3.24.0+incompatible
-	github.com/onflow/flow-core-contracts/lib/go/templates v0.15.2-0.20240206003101-928bf99024d7
+	github.com/onflow/flow-core-contracts/lib/go/templates v0.15.2-0.20240215153337-0be5cb4b4bc9
 	github.com/onflow/flow-ft/lib/go/contracts v0.7.1-0.20240205224107-320aa3cf09e0
 	github.com/onflow/flow-nft/lib/go/contracts v1.1.1-0.20240214230837-cd2c42e54b4a
 	github.com/stretchr/testify v1.8.4
@@ -73,5 +73,3 @@ retract (
 	v1.2.4 // contains retraction only
 	v1.2.3 // accidentally published with out-of-order tag
 )
-
-replace github.com/onflow/flow-core-contracts/lib/go/templates => ../templates
