@@ -141,20 +141,8 @@ func generateManifest(env templates.Environment) *manifest {
 
 	sampleDelegatorID := cadenceValue{cadence.NewUInt32(42)}
 
-	sampleEmptyPublicKeys := cadence.NewArray([]cadence.Value{})
-
 	sampleRawKey := cadence.String("f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164")
 	sampleKey := cadenceValue{sampleRawKey}
-
-	sampleOnePublicKey := cadence.NewArray([]cadence.Value{
-		cadence.String("f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"),
-	})
-
-	sampleThreePublicKeys := cadence.NewArray([]cadence.Value{
-		cadence.String("f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"),
-		cadence.String("f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"),
-		cadence.String("f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"),
-	})
 
 	m.addTemplate(generateTemplate(
 		"FA.01", "Create Account",
@@ -493,15 +481,22 @@ func generateManifest(env templates.Environment) *manifest {
 				SampleValues: []cadenceValue{sampleAmount},
 			},
 			{
-				Type:  "[String]?",
-				Name:  "publicKeys",
-				Label: "Public Keys",
-				SampleValues: []cadenceValue{
-					sampleNullOptional,
-					optionalCadenceValue(sampleEmptyPublicKeys),
-					optionalCadenceValue(sampleOnePublicKey),
-					optionalCadenceValue(sampleThreePublicKeys),
-				},
+				Type:         "String",
+				Name:         "machineAccountKey",
+				Label:        "Machine Account Public Key",
+				SampleValues: []cadenceValue{sampleKey},
+			},
+			{
+				Type:         "UInt8",
+				Name:         "machineAccountKeySignatureAlgorithm",
+				Label:        "Raw Value for Machine Account Signature Algorithm Enum",
+				SampleValues: []cadenceValue{sampleSigAlgoEnumRawValue},
+			},
+			{
+				Type:         "UInt8",
+				Name:         "machineAccountKeyHashAlgorithm",
+				Label:        "Raw Value for Machine Account Hash Algorithm Enum",
+				SampleValues: []cadenceValue{sampleHashAlgoEnumRawValue},
 			},
 		},
 	))
@@ -518,14 +513,22 @@ func generateManifest(env templates.Environment) *manifest {
 				SampleValues: []cadenceValue{sampleNodeID},
 			},
 			{
-				Type:  "[String]",
-				Name:  "publicKeys",
-				Label: "Public Keys",
-				SampleValues: []cadenceValue{
-					{sampleEmptyPublicKeys},
-					{sampleOnePublicKey},
-					{sampleThreePublicKeys},
-				},
+				Type:         "String",
+				Name:         "machineAccountKey",
+				Label:        "Machine Account Public Key",
+				SampleValues: []cadenceValue{sampleKey},
+			},
+			{
+				Type:         "UInt8",
+				Name:         "machineAccountKeySignatureAlgorithm",
+				Label:        "Raw Value for Machine Account Signature Algorithm Enum",
+				SampleValues: []cadenceValue{sampleSigAlgoEnumRawValue},
+			},
+			{
+				Type:         "UInt8",
+				Name:         "machineAccountKeyHashAlgorithm",
+				Label:        "Raw Value for Machine Account Hash Algorithm Enum",
+				SampleValues: []cadenceValue{sampleHashAlgoEnumRawValue},
 			},
 		},
 	))
