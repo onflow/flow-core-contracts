@@ -15,6 +15,13 @@ access(all) contract FlowServiceAccount {
 
     access(all) event IsAccountCreationRestrictedUpdated(isRestricted: Bool)
 
+    /// A service event which is emitted to indicate that the Protocol State version is being upgraded.
+    /// This acts as a signal to begin using the upgraded Protocol State 
+    /// version when this service event is sealed and processed.
+    /// Nodes running a software version which does not support `newProtocolVersion`
+    /// will stop processing new blocks until they are upgraded.
+    pub event ProtocolStateVersionUpgrade(newProtocolVersion: UInt)
+
     /// A fixed-rate fee charged to execute a transaction
     access(all) var transactionFee: UFix64
 
