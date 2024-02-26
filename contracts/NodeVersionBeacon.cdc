@@ -134,15 +134,23 @@ pub contract NodeVersionBeacon {
         )
     }
 
-    /// Event emitted when the version table is updated.
-    /// It contains the current version and all the upcoming versions
-    /// sorted by block height.
+    /// A service event emitted when the version table is updated.
+    /// The version is the software version which must be used for executing a height range of blocks.
+    /// The version pertains to Execution and Verification Nodes.
+    /// The table contains the current version and all the upcoming versions sorted by block height.
     /// The sequence increases by one each time an event is emitted. 
     /// It can be used to verify no events were missed.
     pub event VersionBeacon(
         versionBoundaries: [VersionBoundary],
         sequence: UInt64
     )
+
+    /// A service event which is emitted to indicate that the Protocol State version is being upgraded.
+    /// This acts as a signal to begin using the upgraded Protocol State version 
+    /// after this service event is sealed, and after view `activeView` is entered.
+    /// Nodes running a software version which does not support `newProtocolVersion`
+    /// will stop processing new blocks when they reach view `activeAtView`.
+    pub event ProtocolStateVersionUpgrade(newProtocolVersion: UInt64, activeView: UInt64)
 
     /// Event emitted any time the version boundary freeze period is updated.
     /// freeze period is measured in blocks (from the current block).
