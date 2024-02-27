@@ -1,4 +1,4 @@
-import FlowStakingCollection from 0xSTAKINGCOLLECTIONADDRESS
+import FlowStakingCollection from "FlowStakingCollection"
 import FlowIDTableStaking from "FlowIDTableStaking"
 
 /// Commits rewarded tokens to stake for all nodes and delegators in a collection

@@ -1,4 +1,4 @@
-import LockedTokens from 0xLOCKEDTOKENADDRESS
+import LockedTokens from "LockedTokens"
 import FlowToken from "FlowToken"
 import FungibleToken from "FungibleToken"
 

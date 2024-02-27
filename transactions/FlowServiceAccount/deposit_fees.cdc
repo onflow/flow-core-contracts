@@ -1,6 +1,6 @@
 import FungibleToken from "FungibleToken"
 import FlowToken from "FlowToken"
-import FlowFees from 0xFLOWFEESADDRESS
+import FlowFees from "FlowFees"
 
 // Deposit tokens to the FlowFees Vault
 // only for testing

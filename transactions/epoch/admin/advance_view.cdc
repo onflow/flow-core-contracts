@@ -1,4 +1,4 @@
-import FlowEpoch from 0xEPOCHADDRESS
+import FlowEpoch from "FlowEpoch"
 import FlowIDTableStaking from "FlowIDTableStaking"
 
 transaction(phase: String) {

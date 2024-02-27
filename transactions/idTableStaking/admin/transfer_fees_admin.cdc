@@ -1,4 +1,4 @@
-import FlowFees from 0xFLOWFEESADDRESS
+import FlowFees from "FlowFees"
 
 transaction {
 

@@ -1,4 +1,4 @@
-import FlowStakingCollection from 0xSTAKINGCOLLECTIONADDRESS
+import FlowStakingCollection from "FlowStakingCollection"
 
 /// Request to withdraw rewarded tokens for the specified node or delegator in the staking collection
 /// The tokens are automatically deposited to the unlocked account vault first,

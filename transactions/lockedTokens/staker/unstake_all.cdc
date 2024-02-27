@@ -1,5 +1,4 @@
-import LockedTokens from 0xLOCKEDTOKENADDRESS
-import StakingProxy from 0xSTAKINGPROXYADDRESS
+import LockedTokens from "LockedTokens"
 import FungibleToken from "FungibleToken"
 
 transaction() {

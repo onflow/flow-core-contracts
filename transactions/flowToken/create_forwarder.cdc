@@ -25,7 +25,7 @@ Steps to set up accounts with token forwarder:
 
 import FungibleToken from "FungibleToken"
 import FlowToken from "FlowToken"
-import TokenForwarding from 0xFORWARDINGADDRESS
+import TokenForwarding from "TokenForwarding"
 
 transaction(receiver: Address) {
 
