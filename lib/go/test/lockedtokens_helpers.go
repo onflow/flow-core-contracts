@@ -337,6 +337,8 @@ func deployAllCollectionContracts(t *testing.T,
 	_, err = b.CommitBlock()
 	assert.NoError(t, err)
 
+	env.StakingProxyAddress = stakingProxyAddress.String()
+
 	lockedTokensAccountKey, lockedTokensSigner := accountKeys.NewWithSigner()
 	lockedTokensAddress := deployLockedTokensContract(t, b, *env, flow.HexToAddress(env.IDTableAddress), stakingProxyAddress, lockedTokensAccountKey, adminAddress, adminSigner)
 	env.StakingProxyAddress = stakingProxyAddress.Hex()

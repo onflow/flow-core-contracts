@@ -1,4 +1,4 @@
-import FlowStorageFees from 0xFLOWSTORAGEFEESADDRESS
+import FlowStorageFees from "FlowStorageFees"
 
 access(all) fun main(accountAddress: Address): UFix64 {
     return FlowStorageFees.defaultTokenAvailableBalance(accountAddress)

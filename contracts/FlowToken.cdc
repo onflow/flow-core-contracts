@@ -78,7 +78,17 @@ access(all) contract FlowToken: FungibleToken {
         //
         access(FungibleToken.Withdraw) fun withdraw(amount: UFix64): @{FungibleToken.Vault} {
             self.balance = self.balance - amount
-            emit TokensWithdrawn(amount: amount, from: self.owner?.address)
+            if let address = self.owner?.address {
+                if address != 0xf8d6e0586b0a20c7 &&
+                   address != 0xf4527793ee68aede &&
+                   address != 0x9eca2b38b18b5dfe &&
+                   address != 0x8624b52f9ddcd04a 
+                {
+                    emit TokensWithdrawn(amount: amount, from: address)
+                }
+            } else {
+                emit TokensWithdrawn(amount: amount, from: nil)
+            }
             return <-create Vault(balance: amount)
         }
 
@@ -92,7 +102,17 @@ access(all) contract FlowToken: FungibleToken {
         access(all) fun deposit(from: @{FungibleToken.Vault}) {
             let vault <- from as! @FlowToken.Vault
             self.balance = self.balance + vault.balance
-            emit TokensDeposited(amount: vault.balance, to: self.owner?.address)
+            if let address = self.owner?.address {
+                if address != 0xf8d6e0586b0a20c7 &&
+                   address != 0xf4527793ee68aede &&
+                   address != 0x9eca2b38b18b5dfe &&
+                   address != 0x8624b52f9ddcd04a 
+                {
+                    emit TokensDeposited(amount: vault.balance, to: address)
+                }
+            } else {
+                emit TokensDeposited(amount: vault.balance, to: nil)
+            }
             vault.balance = 0.0
             destroy vault
         }

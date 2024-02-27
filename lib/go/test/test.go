@@ -69,6 +69,8 @@ func newTestSetup(t *testing.T) (emulator.Emulator, *adapters.SDKAdapter, *test.
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
 		FlowTokenAddress:     emulatorFlowTokenAddress,
+		BurnerAddress:        emulatorServiceAccount,
+		StorageFeesAddress:   emulatorServiceAccount,
 	}
 
 	return b, adapter, accountKeys, env

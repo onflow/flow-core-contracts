@@ -37,6 +37,8 @@ func TestIDTableManyNodes(t *testing.T) {
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
 		FlowTokenAddress:     emulatorFlowTokenAddress,
+		BurnerAddress:        emulatorServiceAccount,
+		StorageFeesAddress:   emulatorServiceAccount,
 	}
 
 	accountKeys := test.AccountKeyGenerator()
@@ -369,6 +371,8 @@ func TestIDTableUnstakeAllManyDelegators(t *testing.T) {
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
 		FlowTokenAddress:     emulatorFlowTokenAddress,
+		BurnerAddress:        emulatorServiceAccount,
+		StorageFeesAddress:   emulatorServiceAccount,
 	}
 
 	accountKeys := test.AccountKeyGenerator()

@@ -1,4 +1,4 @@
-import FlowStorageFees from 0xFLOWSTORAGEFEESADDRESS
+import FlowStorageFees from "FlowStorageFees"
 
 // This transaction changes the flow storage fees parameters
 transaction(storageBytesPerReservedFLOW: UFix64?, minimumStorageReservation: UFix64?) {

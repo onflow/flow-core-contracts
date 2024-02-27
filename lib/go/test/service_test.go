@@ -31,6 +31,8 @@ func TestContracts(t *testing.T) {
 		FlowTokenAddress:      emulatorFlowTokenAddress,
 		FlowFeesAddress:       emulatorFlowFeesAddress,
 		ServiceAccountAddress: b.ServiceKey().Address.Hex(),
+		BurnerAddress:         emulatorServiceAccount,
+		StorageFeesAddress:    emulatorServiceAccount,
 	}
 
 	accountKeys := test.AccountKeyGenerator()
