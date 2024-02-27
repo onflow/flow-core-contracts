@@ -85,7 +85,7 @@ func deployStakingContract(
 	cadencePublicKeys := cadence.NewArray(publicKeys)
 
 	// Get the code byte-array for the fees contract
-	FeesCode := contracts.TestFlowFees(env)
+	FeesCode := contracts.TestFlowFees(env.FungibleTokenAddress, env.FlowTokenAddress, env.StorageFeesAddress)
 
 	logger := zerolog.Nop()
 	adapter := adapters.NewSDKAdapter(&logger, b)
@@ -106,7 +106,7 @@ func deployStakingContract(
 	env.FlowFeesAddress = feesAddr.Hex()
 
 	// Get the code byte-array for the staking contract
-	IDTableCode, _ := cadence.NewString(string(contracts.FlowIDTableStaking(env))[:])
+	IDTableCode, _ := cadence.NewString(string(contracts.FlowIDTableStaking(*env))[:])
 
 	// Create the deployment transaction that transfers a FlowToken minter
 	// to the new account and deploys the IDTableStaking contract
