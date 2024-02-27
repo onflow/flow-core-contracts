@@ -1,4 +1,4 @@
-import FlowEpoch from 0xEPOCHADDRESS
+import FlowEpoch from "FlowEpoch"
 
 transaction(newNumClusters: UInt16) {
     prepare(signer: auth(BorrowValue) &Account) {

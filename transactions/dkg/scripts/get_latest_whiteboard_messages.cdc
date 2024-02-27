@@ -1,4 +1,4 @@
-import FlowDKG from 0xDKGADDRESS
+import FlowDKG from "FlowDKG"
 
 access(all) fun main(fromIndex: Int): [FlowDKG.Message] {
     let messages = FlowDKG.getWhiteBoardMessages()

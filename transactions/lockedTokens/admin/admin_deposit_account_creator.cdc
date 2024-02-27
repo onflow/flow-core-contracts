@@ -1,4 +1,4 @@
-import LockedTokens from 0xLOCKEDTOKENADDRESS
+import LockedTokens from "LockedTokens"
 
 /// token admin signs this transaction to deposit a capability
 /// into a custody provider's account that allows them to add

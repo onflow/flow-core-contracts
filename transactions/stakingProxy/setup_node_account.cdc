@@ -1,4 +1,4 @@
-import StakingProxy from 0xSTAKINGPROXYADDRESS
+import StakingProxy from "StakingProxy"
 
 transaction() {
 

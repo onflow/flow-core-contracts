@@ -15,30 +15,34 @@ import (
 
 const (
 	placeholderFungibleTokenAddress       = "\"FungibleToken\""
-	OLD_placeholderFungibleTokenAddress   = "0xFUNGIBLETOKENADDRESS"
+	placeholderViewResolverAddress        = "\"ViewResolver\""
+	placeholderFungibleTokenMVAddress     = "\"FungibleTokenMetadataViews\""
+	placeholderMetadataViewsAddress       = "\"MetadataViews\""
+	placeholderBurnerAddress              = "\"Burner\""
 	placeholderFlowTokenAddress           = "\"FlowToken\""
-	OLD_placeholderFlowTokenAddress       = "0xFLOWTOKENADDRESS"
 	placeholderIDTableAddress             = "\"FlowIDTableStaking\""
 	placeholderLockedTokensAddress        = "\"LockedTokens\""
-	OLD_placeholderLockedTokensAddress    = "0xLOCKEDTOKENADDRESS"
-	placeholderStakingProxyAddress        = "0xSTAKINGPROXYADDRESS"
-	placeholderQuorumCertificateAddress   = "0xQCADDRESS"
-	placeholderFlowFeesAddress            = "0xFLOWFEESADDRESS"
-	placeholderStorageFeesAddress         = "0xFLOWSTORAGEFEESADDRESS"
-	placeholderServiceAccountAddress      = "0xFLOWSERVICEADDRESS"
-	placeholderDKGAddress                 = "0xDKGADDRESS"
-	placeholderEpochAddress               = "0xEPOCHADDRESS"
-	placeholderStakingCollectionAddress   = "0xSTAKINGCOLLECTIONADDRESS"
-	placeholderNodeVersionBeaconAddress   = "0xNODEVERSIONBEACONADDRESS"
-	placeholderRandomBeaconHistoryAddress = "0xRANDOMBEACONHISTORYADDRESS"
+	placeholderStakingProxyAddress        = "\"StakingProxy\""
+	placeholderQuorumCertificateAddress   = "\"FlowClusterQC\""
+	placeholderFlowFeesAddress            = "\"FlowFees\""
+	placeholderStorageFeesAddress         = "\"FlowStorageFees\""
+	placeholderServiceAccountAddress      = "\"FlowServiceAccount\""
+	placeholderDKGAddress                 = "\"FlowDKG\""
+	placeholderEpochAddress               = "\"FlowEpoch\""
+	placeholderStakingCollectionAddress   = "\"FlowStakingCollection\""
+	placeholderNodeVersionBeaconAddress   = "\"NodeVersionBeacon\""
+	placeholderRandomBeaconHistoryAddress = "\"RandomBeaconHistory\""
 )
 
 type Environment struct {
 	Network                           string
+	ViewResolverAddress               string
+	BurnerAddress                     string
 	FungibleTokenAddress              string
 	NonFungibleTokenAddress           string
 	MetadataViewsAddress              string
 	FungibleTokenMetadataViewsAddress string
+	FungibleTokenSwitchboardAddress   string
 	FlowTokenAddress                  string
 	IDTableAddress                    string
 	LockedTokensAddress               string
@@ -48,6 +52,7 @@ type Environment struct {
 	EpochAddress                      string
 	StorageFeesAddress                string
 	FlowFeesAddress                   string
+	StakingCollectionAddress          string
 	ServiceAccountAddress             string
 	NodeVersionBeaconAddress          string
 	RandomBeaconHistoryAddress        string
@@ -69,20 +74,26 @@ func ReplaceAddresses(code string, env Environment) string {
 
 	code = strings.ReplaceAll(
 		code,
-		OLD_placeholderFungibleTokenAddress,
-		withHexPrefix(env.FungibleTokenAddress),
+		placeholderFungibleTokenMVAddress,
+		withHexPrefix(env.FungibleTokenMetadataViewsAddress),
 	)
 
 	code = strings.ReplaceAll(
 		code,
-		OLD_placeholderFlowTokenAddress,
-		withHexPrefix(env.FlowTokenAddress),
+		placeholderMetadataViewsAddress,
+		withHexPrefix(env.MetadataViewsAddress),
 	)
 
 	code = strings.ReplaceAll(
 		code,
-		OLD_placeholderLockedTokensAddress,
-		withHexPrefix(env.LockedTokensAddress),
+		placeholderBurnerAddress,
+		withHexPrefix(env.BurnerAddress),
+	)
+
+	code = strings.ReplaceAll(
+		code,
+		placeholderViewResolverAddress,
+		withHexPrefix(env.ViewResolverAddress),
 	)
 
 	code = strings.ReplaceAll(

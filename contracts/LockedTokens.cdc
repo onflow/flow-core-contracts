@@ -271,8 +271,19 @@ access(all) contract LockedTokens {
 
     access(all) entitlement TokenOperations
 
+    /// This interfaces allows anybody to read information about the locked account.
+    /// Kept for backwards compatibility
+    access(all) resource interface LockedAccountInfo {
+        access(all) fun getLockedAccountAddress(): Address
+        access(all) view fun getLockedAccountBalance(): UFix64
+        access(all) fun getUnlockLimit(): UFix64
+        access(all) view fun getNodeID(): String?
+        access(all) view fun getDelegatorID(): UInt32?
+        access(all) view fun getDelegatorNodeID(): String?
+    }
+
     /// Stored in Holder unlocked account
-    access(all) resource TokenHolder: FungibleToken.Receiver, FungibleToken.Provider {
+    access(all) resource TokenHolder: FungibleToken.Receiver, FungibleToken.Provider, LockedAccountInfo {
 
         /// The address of the shared (locked) account.
         access(all) var address: Address

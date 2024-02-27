@@ -1,4 +1,4 @@
-import StakingProxy from 0xSTAKINGPROXYADDRESS
+import StakingProxy from "StakingProxy"
 
 transaction(id: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String) {
 

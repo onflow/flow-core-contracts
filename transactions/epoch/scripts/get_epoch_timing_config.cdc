@@ -1,4 +1,4 @@
-import FlowEpoch from 0xEPOCHADDRESS
+import FlowEpoch from "FlowEpoch"
 
 access(all) fun main(): FlowEpoch.EpochTimingConfig {
     return FlowEpoch.getEpochTimingConfig()

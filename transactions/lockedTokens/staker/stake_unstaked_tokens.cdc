@@ -1,5 +1,5 @@
-import LockedTokens from 0xLOCKEDTOKENADDRESS
-import StakingProxy from 0xSTAKINGPROXYADDRESS
+import LockedTokens from "LockedTokens"
+import StakingProxy from "StakingProxy"
 import FungibleToken from "FungibleToken"
 
 transaction(amount: UFix64) {

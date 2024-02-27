@@ -1,4 +1,4 @@
-import FlowStakingCollection from 0xSTAKINGCOLLECTIONADDRESS
+import FlowStakingCollection from "FlowStakingCollection"
 
 /// Commits new tokens to stake for the specified node or delegator in the staking collection
 /// The tokens from the locked vault are used first, if it exists

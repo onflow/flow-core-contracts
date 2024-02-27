@@ -1,4 +1,4 @@
-import LockedTokens from 0xLOCKEDTOKENADDRESS
+import LockedTokens from "LockedTokens"
 
 access(all) fun main(accounts: [Address]): [UFix64] {
 

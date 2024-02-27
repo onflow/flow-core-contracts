@@ -1,4 +1,4 @@
-import FlowFees from 0xFLOWFEESADDRESS
+import FlowFees from "FlowFees"
 
 // This transaction sets the FlowFees parameters
 transaction(surgeFactor: UFix64, inclusionEffortCost: UFix64, executionEffortCost: UFix64) {

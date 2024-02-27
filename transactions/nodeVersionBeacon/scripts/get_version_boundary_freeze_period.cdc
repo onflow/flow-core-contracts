@@ -1,4 +1,4 @@
-import NodeVersionBeacon from 0xNODEVERSIONBEACONADDRESS
+import NodeVersionBeacon from "NodeVersionBeacon"
 
 /// Returns the versionBoundaryFreezePeriod which defines the minimum number of blocks
 /// that must pass between updating a version and its defined block height

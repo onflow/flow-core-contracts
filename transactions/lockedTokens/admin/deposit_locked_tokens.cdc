@@ -1,7 +1,7 @@
 import FungibleToken from "FungibleToken"
 import FlowToken from "FlowToken"
 
-import LockedTokens from 0xLOCKEDTOKENADDRESS
+import LockedTokens from "LockedTokens"
 
 transaction(to: Address, amount: UFix64) {
 

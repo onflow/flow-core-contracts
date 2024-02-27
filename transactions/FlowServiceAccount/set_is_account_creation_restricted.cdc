@@ -1,4 +1,4 @@
-import FlowServiceAccount from 0xFLOWSERVICEADDRESS
+import FlowServiceAccount from "FlowServiceAccount"
 
 // This transaction changes `is account ceration restricted` value
 transaction(restricted: Bool) {
