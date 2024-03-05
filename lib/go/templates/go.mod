@@ -5,9 +5,9 @@ go 1.18
 require (
 	github.com/kevinburke/go-bindata v3.24.0+incompatible
 	github.com/onflow/cadence v1.0.0-M3
-	github.com/onflow/flow-ft/lib/go/templates v0.7.1-0.20240213220156-959b70719876
+	github.com/onflow/flow-ft/lib/go/templates v0.7.1-0.20240305212555-29d91e18f0c1
 	github.com/onflow/flow-go-sdk v1.0.0-M1
-	github.com/onflow/flow-nft/lib/go/templates v0.0.0-20240214230837-cd2c42e54b4a
+	github.com/onflow/flow-nft/lib/go/templates v0.0.0-20240305213046-9026973838d7
 	github.com/psiemens/sconfig v0.1.0
 	github.com/spf13/cobra v1.5.0
 )
