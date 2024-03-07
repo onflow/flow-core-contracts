@@ -27,9 +27,8 @@ so they can build a basic understanding of the programming language.
 
 | Network                      | Contract Address     |
 | ---------------------------- | -------------------- |
-| Emulator          | `0x0ae53cb6e3f42a79` |
-| Previewnet        | `0x4445e7ad11568276` |
-| Testnet/Crescendo | `0x7e60df042a9c0868` |
+| Emulator                     | `0x0ae53cb6e3f42a79` |
+| Testnet/Previewnet/Crescendo | `0x7e60df042a9c0868` |
 | Sandboxnet                   | `0x0661ab7d6696a460` |
 | Mainnet                      | `0x1654653399040a61` |
 
@@ -47,9 +46,8 @@ You can find transactions for using the Flow Token in the `transactions/flowToke
 
 | Network                      | Contract Address     |
 | ---------------------------- | -------------------- |
-| Emulator          | `0xe5a8b7f23e8b548f` |
-| Previewnet        | `0xab086ce9cc29fc80` |
-| Testnet/Crescendo | `0x912d5440f7e3769e` |
+| Emulator                     | `0xe5a8b7f23e8b548f` |
+| Testnet/Previewnet/Crescendo | `0x912d5440f7e3769e` |
 | Sandboxnet                   | `0xe92c2039bbe9da96` |
 | Mainnet                      | `0xf919ee77447b7497` |
 
@@ -61,9 +59,8 @@ This contract defines fees that are spent for executing transactions and creatin
 
 | Network                      | Contract Address     |
 | ---------------------------- | -------------------- |
-| Emulator          | `0xf8d6e0586b0a20c7` |
-| Previewnet        | `0xb6763b4399a888c8` |
-| Testnet/Crescendo | `0x8c5303eaa26202d6` |
+| Emulator/Canary              | `0xf8d6e0586b0a20c7` |
+| Testnet/Previewnet/Crescendo | `0x8c5303eaa26202d6` |
 | Sandboxnet                   | `0xf4527793ee68aede` |
 | Mainnet                      | `0xe467b9dd11fa00df` |
 
@@ -78,9 +75,8 @@ You can see [more docs about storage capacity and fees here.](https://docs.onflo
 
 | Network                      | Contract Address     |
 | ---------------------------- | -------------------- |
-| Emulator          | `0xf8d6e0586b0a20c7` |
-| Previewnet        | `0xb6763b4399a888c8` |
-| Testnet/Crescendo | `0x8c5303eaa26202d6` |
+| Emulator/Canary              | `0xf8d6e0586b0a20c7` |
+| Testnet/Previewnet/Crescendo | `0x8c5303eaa26202d6` |
 | Sandboxnet                   | `0xf4527793ee68aede` |
 | Mainnet                      | `0xe467b9dd11fa00df` |
 
@@ -96,9 +92,8 @@ You can find transactions for interacting with the service account contract in t
 
 | Network                      | Contract Address     |
 | ---------------------------- | -------------------- |
-| Emulator             | `0xf8d6e0586b0a20c7` |
-| Previewnet        | `0xb6763b4399a888c8` |
-| Testnet/Crescendo | `0x8c5303eaa26202d6` |
+| Emulator/Canary              | `0xf8d6e0586b0a20c7` |
+| Testnet/Previewnet/Crescendo | `0x8c5303eaa26202d6` |
 | Sandboxnet                   | `0xf4527793ee68aede` |
 | Mainnet                      | `0xe467b9dd11fa00df` |
 
@@ -114,13 +109,12 @@ You can find transactions for interacting with the random beacon
 
 `contracts/NodeVersionBeacon.cdc`
 
-| Network           | Contract Address     |
-| ----------------- | -------------------- |
-| Emulator          | `0xf8d6e0586b0a20c7` |
-| Previewnet        | `0xb6763b4399a888c8` |
-| Testnet/Crescendo | `0x8c5303eaa26202d6` |
-| Sandboxnet        | `0xf4527793ee68aede` |
-| Mainnet           | `0xe467b9dd11fa00df` |
+| Network                      | Contract Address     |
+| ---------------------------- | -------------------- |
+| Emulator/Canary              | `0xf8d6e0586b0a20c7` |
+| Testnet/Previewnet/Crescendo | `0x8c5303eaa26202d6` |
+| Sandboxnet                   | `0xf4527793ee68aede` |
+| Mainnet                      | `0xe467b9dd11fa00df` |
 
 The `NodeVersionBeacon` contract holds the past
 and future protocol versions that should be used
@@ -134,13 +128,12 @@ history contract in the `transactions/nodeVersionBeacon` directory.
 `contracts/FlowIDTableStaking.cdc`
 `contracts/epochs/FlowEpoch.cdc`
 
-| Network             | Contract Address     |
-| ------------------- | -------------------- |
-| Emulator            | `0xf8d6e0586b0a20c7` |
-| Previewnet          | `0xb6763b4399a888c8` |
-| Testnet/Crescendo   | `0x9eca2b38b18b5dfe` |
-| Sandboxnet          | `0xf4527793ee68aede` |
-| Mainnet             | `0x8624b52f9ddcd04a` |
+| Network                      | Contract Address     |
+| ---------------------------- | -------------------- |
+| Emulator/Canary              | `0xf8d6e0586b0a20c7` |
+| Testnet/Previewnet/Crescendo | `0x9eca2b38b18b5dfe` |
+| Sandboxnet                   | `0xf4527793ee68aede` |
+| Mainnet                      | `0x8624b52f9ddcd04a` |
 
 These contract manages the list of identities that correspond to node operators in the Flow network
 as well as the process for adding and removing nodes from the network via Epochs.
@@ -168,8 +161,7 @@ These scripts are documented in the [staking scripts section of the docs](https:
 
 | Network         | Contract Address     |
 | --------------- | -------------------- |
-| Emulator        | `0xf8d6e0586b0a20c7` |
-| Previewnet      | `0xb6763b4399a888c8` |
+| Emulator/Canary | `0xf8d6e0586b0a20c7` |
 | Testnet         | `0x95e019a17d0e23d7` |
 | Sandboxnet      | `0xf4527793ee68aede` |
 | Mainnet         | `0x8d0e87b65159ae63` |
