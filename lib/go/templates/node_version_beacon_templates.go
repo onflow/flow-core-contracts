@@ -1,8 +1,6 @@
 package templates
 
 import (
-	_ "embed"
-
 	"github.com/onflow/flow-core-contracts/lib/go/templates/internal/assets"
 )
 

@@ -1,8 +1,10 @@
 import NodeVersionBeacon from 0xNODEVERSIONBEACONADDRESS
 
 /// Transaction that allows NodeVersionAdmin to specify a new protocol state version.
-/// The new version will become active at view `activeView`.
-/// If `activeView` is in the past, or 0, it will become active immediately.
+/// The new version will become active at view `activeView` if the service event
+/// is processed and applied to the protocol state within a block `B` such that
+/// `B.view + ∆ < activeView`, for a protocol-defined safety threshold ∆.
+/// Service events not meeting this threshold are discarded.
 
 transaction(newProtocolVersion: UInt64, activeView: UInt64) {
 
@@ -17,9 +19,4 @@ transaction(newProtocolVersion: UInt64, activeView: UInt64) {
   execute {
     self.adminRef.setPendingProtocolStateVersionUpgrade(newProtocolVersion: newProtocolVersion, activeView: activeView)
   }
-
-//   post {
-//     NodeVersionBeacon.peekPendingProtocolStateVersionUpgrade().version! == newProtocolVersion : "version not updated"
-//     NodeVersionBeacon.peekPendingProtocolStateVersionUpgrade().activeView! == activeView : "active view not updated"
-//   }
 }
