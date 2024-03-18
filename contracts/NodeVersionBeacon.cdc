@@ -18,6 +18,10 @@
 /// The contract itself can be used to query the current version and the next upcoming version.
 pub contract NodeVersionBeacon {
 
+    /// =========================
+    /// Execution State Versioning
+    /// =========================
+
     /// Struct representing software version as Semantic Version
     /// along with helper functions
     /// For reference, see https://semver.org/
@@ -134,9 +138,10 @@ pub contract NodeVersionBeacon {
         )
     }
 
-    /// Event emitted when the version table is updated.
-    /// It contains the current version and all the upcoming versions
-    /// sorted by block height.
+    /// A service event emitted when the version table is updated.
+    /// The version is the software version which must be used for executing a height range of blocks.
+    /// The version pertains to Execution and Verification Nodes.
+    /// The table contains the current version and all the upcoming versions sorted by block height.
     /// The sequence increases by one each time an event is emitted. 
     /// It can be used to verify no events were missed.
     pub event VersionBeacon(
@@ -280,6 +285,13 @@ pub contract NodeVersionBeacon {
             
             emit NodeVersionBoundaryFreezePeriodChanged(freezePeriod: newFreezePeriod)
         }
+
+        /// Adds a pending protocol state version upgrade, which will be emitted
+        /// as a service event during the next heartbeat.
+        pub fun setPendingProtocolStateVersionUpgrade(newProtocolVersion: UInt64, activeView: UInt64) {
+            let pendingUpgrade = NodeVersionBeacon.ViewActivatedVersion(version: newProtocolVersion, activeView: activeView)
+            NodeVersionBeacon.storePendingProtocolStateVersionUpgrade(upgrade: pendingUpgrade)
+        }
     }
 
     /// Heartbeat resource that emits the version beacon event and keeps track of upcoming versions.
@@ -290,6 +302,8 @@ pub contract NodeVersionBeacon {
         // heartbeat is called during the system transaction every block.
         pub fun heartbeat() {
             self.checkFirstUpcomingBoundary()
+
+            self.emitProtocolStateVersionUpgradeEventIfNeeded()
 
             if (!NodeVersionBeacon.emitEventOnNextHeartbeat) {
                 return
@@ -335,6 +349,17 @@ pub contract NodeVersionBeacon {
 
             // If we passed a boundary re-emit the VersionBeacon event
             NodeVersionBeacon.emitEventOnNextHeartbeat = true
+        }
+
+        /// Emit a ProtocolStateVersionUpgrade event, if a pending upgrade is in storage.
+        access(self) fun emitProtocolStateVersionUpgradeEventIfNeeded() {
+            let pendingUpgrade = NodeVersionBeacon.popPendingProtocolStateVersionUpgrade()
+            if pendingUpgrade == nil {
+                return
+            }
+            emit NodeVersionBeacon.ProtocolStateVersionUpgrade(
+                newProtocolVersion: pendingUpgrade!.version,
+                activeView: pendingUpgrade!.activeView)
         }
     }
 
@@ -493,6 +518,47 @@ pub contract NodeVersionBeacon {
         }
         // Return zero version if nothing found
         return self.versionBoundaryBlockList[0]
+    }
+
+    /// =========================
+    /// Protocol State Versioning
+    /// =========================
+
+    /// ViewActivatedVersion stores a version and a view. It indicates a version upgrade
+    /// so that `version` will become active at view `activeView`.
+    pub struct ViewActivatedVersion {
+        pub let version: UInt64
+        pub let activeView: UInt64
+
+        init(version: UInt64, activeView: UInt64) {
+            self.version = version
+            self.activeView = activeView
+        }
+    }
+
+    /// A service event which is emitted to indicate that the Protocol State version is being upgraded.
+    /// This acts as a signal to begin using the upgraded Protocol State version 
+    /// after this service event is sealed, and after view `activeView` is entered.
+    /// Nodes running a software version which does not support `newProtocolVersion`
+    /// will stop processing new blocks when they reach view `activeAtView`.
+    pub event ProtocolStateVersionUpgrade(newProtocolVersion: UInt64, activeView: UInt64)
+
+    /// Removes the pending ProtocolStateVersionUpgrade from storage and returns it.
+    /// If no ProtocolStateVersionUpgrade was in storage, returns nil.
+    access(contract) fun popPendingProtocolStateVersionUpgrade(): ViewActivatedVersion? {
+        return self.account.load<ViewActivatedVersion>(from: /storage/PendingProtocolStateVersionUpgrade)
+    }
+
+    /// Reads the pending ProtocolStateVersionUpgrade from storage, without removing it, and returns it.
+    /// If no ProtocolStateVersionUpgrade was in storage, returns nil.
+    pub fun peekPendingProtocolStateVersionUpgrade(): ViewActivatedVersion? {
+        return self.account.copy<ViewActivatedVersion>(from: /storage/PendingProtocolStateVersionUpgrade)
+    }
+
+    /// Stores the pending ProtocolStateVersionUpgrade to storage.
+    /// No ProtocolStateVersionUpgrade may already be stored, otherwise the transaction will revert.
+    access(contract) fun storePendingProtocolStateVersionUpgrade(upgrade: ViewActivatedVersion) {
+        self.account.save<ViewActivatedVersion>(upgrade, to: /storage/PendingProtocolStateVersionUpgrade)
     }
 
     init(versionUpdateFreezePeriod: UInt64) {
