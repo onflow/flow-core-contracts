@@ -210,23 +210,8 @@ access(all) contract FlowEpoch {
             self.dkgKeys = dkgKeys
         }
 
-        access(account) fun copyRef(): EpochMetadata {
-            var copy = EpochMetadata(
-                counter: self.counter,
-                seed: self.seed,
-                startView: self.startView,
-                endView: self.endView,
-                stakingEndView: self.stakingEndView,
-                totalRewards: self.totalRewards,
-                collectorClusters: self.collectorClusters,
-                clusterQCs: self.clusterQCs,
-                dkgKeys: self.dkgKeys,
-            )
-
-            copy.rewardAmounts = self.rewardAmounts
-            copy.rewardsPaid = self.rewardsPaid
-
-            return copy
+        access(account) fun copy(): EpochMetadata {
+            return self
         }
 
         access(account) fun setTotalRewards(_ newRewards: UFix64) {
@@ -341,7 +326,7 @@ access(all) contract FlowEpoch {
     access(all) fun getEpochMetadata(_ epochCounter: UInt64): EpochMetadata? {
         if let metadataDictionary = self.account.storage.borrow<&{UInt64: EpochMetadata}>(from: self.metadataStoragePath) {
             if let metadataRef = metadataDictionary[epochCounter] {
-                return metadataRef.copyRef()
+                return metadataRef.copy()
             }
         }
         return nil
