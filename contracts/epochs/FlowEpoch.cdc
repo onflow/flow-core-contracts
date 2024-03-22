@@ -60,7 +60,7 @@ access(all) contract FlowEpoch {
     /// The Epoch Start service event is emitted when the contract transitions
     /// to a new epoch in the staking auction phase.
     access(all) event EpochStart (
-        
+
         /// The counter for the current epoch that is beginning
         counter: UInt64,
 
@@ -210,6 +210,10 @@ access(all) contract FlowEpoch {
             self.dkgKeys = dkgKeys
         }
 
+        access(account) fun copy(): EpochMetadata {
+            return self
+        }
+
         access(account) fun setTotalRewards(_ newRewards: UFix64) {
             self.totalRewards = newRewards
         }
@@ -278,9 +282,9 @@ access(all) contract FlowEpoch {
         }
     }
 
-    /// Configuration for epoch timing. 
-    /// Each epoch is assigned a target end time when it is setup (within the EpochSetup event). 
-    /// The configuration defines a reference epoch counter and timestamp, which defines 
+    /// Configuration for epoch timing.
+    /// Each epoch is assigned a target end time when it is setup (within the EpochSetup event).
+    /// The configuration defines a reference epoch counter and timestamp, which defines
     /// all future target end times. If `targetEpochCounter` is an upcoming epoch, then
     /// its target end time is given by:
     ///
@@ -320,11 +324,10 @@ access(all) contract FlowEpoch {
     /// Epoch Metadata is stored in account storage so the growing dictionary
     /// does not have to be loaded every time the contract is loaded
     access(all) fun getEpochMetadata(_ epochCounter: UInt64): EpochMetadata? {
-        // TODO: Make this `borrow`, when Cadence supports dereferencing.
-        // So the overhead of copying the entire dictionary would be avoided.
-        // Instead borrow, and get a dereference-copy of the element.
-        if let metadataDictionary = self.account.storage.copy<{UInt64: EpochMetadata}>(from: self.metadataStoragePath) {
-            return metadataDictionary[epochCounter]
+        if let metadataDictionary = self.account.storage.borrow<&{UInt64: EpochMetadata}>(from: self.metadataStoragePath) {
+            if let metadataRef = metadataDictionary[epochCounter] {
+                return metadataRef.copy()
+            }
         }
         return nil
     }
@@ -542,7 +545,7 @@ access(all) contract FlowEpoch {
             assert (
                 randomSource.length == 32,
                 message: "Random source must be a hex string of 32 characters"
-            ) 
+            )
 
             FlowEpoch.startEpochSetup(proposedNodeIDs: proposedNodeIDs, randomSource: randomSource)
         }
