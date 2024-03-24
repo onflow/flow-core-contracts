@@ -44,7 +44,7 @@ fun testGetRandomSourceHistoryPageWithoutLowestHeightSet() {
 
 access(all)
 fun testGetSourceOfRandomnessWithoutLowestHeightSet() {
-    let atBlockHeight: UInt64 = 101
+    let atBlockHeight: UInt64 = getCurrentBlockHeight() + 10
     let scriptResult = executeScript(
         "../transactions/randomBeaconHistory/scripts/get_source_of_randomness.cdc",
         [atBlockHeight]
@@ -80,7 +80,9 @@ fun testRecordRandomSource() {
 
 access(all)
 fun testGetSourceOfRandomnessForMissingBlockHeight() {
-    let atBlockHeight: UInt64 = 101
+    // random source entry of the current block height must be only available
+    // starting from the next block height
+    let atBlockHeight: UInt64 = getCurrentBlockHeight()
     let scriptResult = executeScript(
         "../transactions/randomBeaconHistory/scripts/get_source_of_randomness.cdc",
         [atBlockHeight]
@@ -113,8 +115,15 @@ fun testGetSourceOfRandomnessPrecedingRecordedHistory() {
 
 access(all)
 fun testGetSourceOfRandomnessFromPreviousBlockHeight() {
-    // Commit current block and advance to the next one
-    Test.commitBlock()
+    // record a new random source and advance to the next block,
+    // this way the previous block's entry becomes available
+    let value: [UInt8] = [0, 1, 1, 2, 3, 5, 8] 
+    let txResult = executeTransaction(
+        "transactions/record_random_source.cdc",
+        [value],
+        admin
+    )
+    Test.expect(txResult, Test.beSucceeded())
 
     let atBlockHeight: UInt64 = getCurrentBlockHeight() - 1
     let scriptResult = executeScript(
@@ -124,7 +133,6 @@ fun testGetSourceOfRandomnessFromPreviousBlockHeight() {
     Test.expect(scriptResult, Test.beSucceeded())
 
     let randomSource = scriptResult.returnValue! as! RandomBeaconHistory.RandomSource
-    let value: [UInt8] = [0, 1, 1, 2, 3, 5, 8]
     Test.assertEqual(atBlockHeight, randomSource.blockHeight)
     Test.assertEqual(value, randomSource.value)
 }
@@ -157,4 +165,83 @@ fun testGetRandomSourceHistoryPageExceedingLastPage() {
 
     let history = (scriptResult.returnValue as! RandomBeaconHistory.RandomSourceHistoryPage?)!
     Test.expect(history.values, Test.beEmpty())
+}
+
+access(all)
+fun testGetMissingSourceFromGap() {
+    // advance blocks without recording a random source, hence creating a gap
+    // in the history array.
+    // So far only two entry were recorded
+    let gapLength = UInt64(90)
+    var i = UInt64(0)
+    while i < gapLength {   
+        Test.commitBlock()
+        i = i + 1
+    }
+
+    // sources in the gap are non recorded and must be backfilled later
+    let gapStartIndex = RandomBeaconHistory.getLowestHeight() + 2 // skip the 2 recorded entries
+
+    i = 0
+    while i < gapLength-1 {
+        let atBlockHeight = gapStartIndex + i 
+        let scriptResult = executeScript(
+            "../transactions/randomBeaconHistory/scripts/get_source_of_randomness.cdc",
+            [atBlockHeight]
+        )
+        Test.expect(scriptResult, Test.beFailed())
+        Test.assertError(
+            scriptResult,
+            errorMessage: "Source of randomness is currenlty not available but will be available in the future"
+        )
+        i = i + 1
+    }
+}
+
+
+access(all)
+fun testGetBackfilledSource() {
+    let gapLength = UInt64(90)  // matching the length from the previous test
+
+    // record a new random source, which would trigger backfilling the gap 
+    // (when the gap size is less than 100, since the contracts backfills up to 100 entries at a time)
+    var value: [UInt8] = [0, 1, 1, 2, 3, 5, 8] 
+    let txResult = executeTransaction(
+        "transactions/record_random_source.cdc",
+        [value],
+        admin
+    )
+    Test.expect(txResult, Test.beSucceeded())
+
+    // make sure latest source got recorded as exptected
+    Test.commitBlock()
+    let atBlockHeight: UInt64 = getCurrentBlockHeight() - 1
+    let scriptResult = executeScript(
+        "../transactions/randomBeaconHistory/scripts/get_source_of_randomness.cdc",
+        [atBlockHeight]
+    )
+    Test.expect(scriptResult, Test.beSucceeded())
+
+    let randomSource = scriptResult.returnValue! as! RandomBeaconHistory.RandomSource
+    Test.assertEqual(atBlockHeight, randomSource.blockHeight)
+    Test.assertEqual(value, randomSource.value)
+
+    // check the gap and makes sure it got backfilled
+    let gapStartIndex = RandomBeaconHistory.getLowestHeight() + 2 // skip the 2 recorded entries
+    var i = UInt64(0)
+    while i < gapLength {
+        let atBlockHeight = gapStartIndex + i
+        let scriptResult = executeScript(
+            "../transactions/randomBeaconHistory/scripts/get_source_of_randomness.cdc",
+            [atBlockHeight]
+        )
+        Test.expect(scriptResult, Test.beSucceeded())
+
+        let randomSource = scriptResult.returnValue! as! RandomBeaconHistory.RandomSource
+        Test.assertEqual(atBlockHeight, randomSource.blockHeight)
+        // compare against the expected backfilled value
+        value = HashAlgorithm.SHA3_256.hash(value)
+        Test.assertEqual(value, randomSource.value)
+        i = i + 1
+    }
 }
