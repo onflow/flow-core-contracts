@@ -210,10 +210,6 @@ access(all) contract FlowEpoch {
             self.dkgKeys = dkgKeys
         }
 
-        access(account) fun copy(): EpochMetadata {
-            return self
-        }
-
         access(account) fun setTotalRewards(_ newRewards: UFix64) {
             self.totalRewards = newRewards
         }
@@ -324,10 +320,8 @@ access(all) contract FlowEpoch {
     /// Epoch Metadata is stored in account storage so the growing dictionary
     /// does not have to be loaded every time the contract is loaded
     access(all) fun getEpochMetadata(_ epochCounter: UInt64): EpochMetadata? {
-        if let metadataDictionary = self.account.storage.borrow<&{UInt64: EpochMetadata}>(from: self.metadataStoragePath) {
-            if let metadataRef = metadataDictionary[epochCounter] {
-                return metadataRef.copy()
-            }
+        if let metadata = self.account.storage.borrow<&{UInt64: EpochMetadata}>(from: self.metadataStoragePath) {
+            return metadata[epochCounter]
         }
         return nil
     }
