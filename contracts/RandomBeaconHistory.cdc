@@ -23,7 +23,7 @@ access(all) contract RandomBeaconHistory {
     /// Sequence of random sources recorded by the Heartbeat, stored as an array over a mapping to reduce storage
     access(contract) let randomSourceHistory: [[UInt8]]
     /// Start index of the first gap in the `randomSourceHistory` array where random sources were not recorded, because
-    /// of a hartbeat failure.
+    /// of a heartbeat failure.
     /// There may be non contiguous gaps in the history, `gapStartIndex` is the start index of the lowest-height
     /// gap.
     /// If no gap exists, `gapStartIndex` is equal to the `randomSourceHistory` array length.
@@ -84,7 +84,11 @@ access(all) contract RandomBeaconHistory {
         ///
         /// @param randomSourceHistory The random source to record
         ///
-        access(all) fun heartbeat(randomSourceHistory: [UInt8]) {
+        /// The Flow protocol makes sure to call this function once per block as a system call. The transaction 
+        /// comes at the end of each block so that the current block's entry becomes available only in the child 
+        /// block.
+        ///
+        access(all) fun heartbeat(randomSourceHistory: [UInt8]) { 
 
             let currentBlockHeight = getCurrentBlock().height
             if RandomBeaconHistory.lowestHeight == nil {
@@ -184,12 +188,12 @@ access(all) contract RandomBeaconHistory {
         )
         assert(
             index < UInt64(self.randomSourceHistory.length) && self.randomSourceHistory[index] != [],
-            message: "Source of randomness is currenlty not available but will be available in the future"
+            message: "Source of randomness is currently not available but will be available soon"
         )
         return RandomSource(blockHeight: blockHeight, value: self.randomSourceHistory[index])
     }
 
-    /// Retrieves a page from the history of random sources, ordered chronologically
+    /// Retrieves a page from the history of random sources recorded so far, ordered chronologically
     ///
     /// @param page: The page number to retrieve, 0-indexed
     /// @param perPage: The number of random sources to include per page
@@ -197,7 +201,6 @@ access(all) contract RandomBeaconHistory {
     /// @return A RandomSourceHistoryPage containing RandomSource values in choronological order according to
     /// associated block height
     ///
-    /// TODO: check if update is needed
     access(all) view fun getRandomSourceHistoryPage(_ page: UInt64, perPage: UInt64): RandomSourceHistoryPage {
         pre {
             self.lowestHeight != nil: "History has not yet been initialized"
@@ -213,6 +216,7 @@ access(all) contract RandomBeaconHistory {
         if endIndex > totalLength {
             endIndex = totalLength
         }
+
         // Return empty page if request exceeds last page
         if startIndex == endIndex {
             return RandomSourceHistoryPage(page: page, perPage: perPage, totalLength: totalLength, values: values)
@@ -220,11 +224,15 @@ access(all) contract RandomBeaconHistory {
 
         // Iterate over history and construct page RandomSource values
         let lowestHeight = self.lowestHeight!
-        for i, block in self.randomSourceHistory.slice(from: Int(startIndex), upTo: Int(endIndex)) {
+        for i, value in self.randomSourceHistory.slice(from: Int(startIndex), upTo: Int(endIndex)) {
+            assert(
+                value != [],
+                message: "Source of randomness is currently not available but will be available soon"
+            )
             values.append(
                 RandomSource(
                     blockHeight: lowestHeight + startIndex + UInt64(i),
-                    value: self.randomSourceHistory[startIndex + UInt64(i)]
+                    value: value
                 )
             )
         }
