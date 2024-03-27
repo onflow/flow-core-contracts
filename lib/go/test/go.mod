@@ -112,8 +112,8 @@ require (
 	github.com/multiformats/go-varint v0.0.7 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/onflow/atree v0.6.1-0.20230711151834-86040b30171f // indirect
-	github.com/onflow/flow-ft/lib/go/contracts v0.7.1-0.20240305212555-29d91e18f0c1 // indirect
-	github.com/onflow/flow-ft/lib/go/templates v0.7.1-0.20240305212555-29d91e18f0c1 // indirect
+	github.com/onflow/flow-ft/lib/go/contracts v0.7.1-0.20240327162334-bd133114f87a // indirect
+	github.com/onflow/flow-ft/lib/go/templates v0.7.1-0.20240327162334-bd133114f87a // indirect
 	github.com/onflow/flow-nft/lib/go/contracts v1.1.1-0.20240326155818-c01c72c091c0 // indirect
 	github.com/onflow/flow-nft/lib/go/templates v0.0.0-20240326155818-c01c72c091c0 // indirect
 	github.com/onflow/flow/protobuf/go/flow v0.3.7 // indirect
