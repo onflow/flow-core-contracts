@@ -22,9 +22,57 @@ access(all) contract RandomBeaconHistory {
     access(contract) var lowestHeight: UInt64?
     /// Sequence of random sources recorded by the Heartbeat, stored as an array over a mapping to reduce storage
     access(contract) let randomSourceHistory: [[UInt8]]
+    /// Start index of the first gap in the `randomSourceHistory` array where random sources were not recorded, because
+    /// of a heartbeat failure.
+    /// There may be non contiguous gaps in the history, `gapStartIndex` is the start index of the lowest-height
+    /// gap.
+    /// If no gap exists, `gapStartIndex` is equal to the `randomSourceHistory` array length.
+    access(contract) var gapStartIndex: UInt64
 
     /// The path of the Heartbeat resource in the deployment account
     access(all) let HeartbeatStoragePath: StoragePath
+
+
+    /// back fills entries in the history array starting from the stored `gapStartIndex`,
+    /// using `randomSource` as a seed for all entries.
+    //
+    /// all entries would use the same entropy. Each entry is extracted from `randomSource` using
+    /// successive hashing. This makes sure the entries are all distinct although they provide
+    /// the same entropy.
+    //
+    /// gaps only occur in the rare event of a system transaction failure. In this case, entries are still
+    /// filled using a source not known at the time of block execution, which guaranteed unpredicatability.
+    access(contract) fun backFill(randomSource: [UInt8]) {
+        // maximum number of entries to back fill per transaction to limit the computation cost.
+        let maxEntries = 100
+        let arrayLength = UInt64(self.randomSourceHistory.length)
+
+        var newEntry = randomSource
+        var index = self.gapStartIndex
+        var count = 0
+        while count < maxEntries {
+            // move to the next empty entry
+            while index < arrayLength && self.randomSourceHistory[index] != [] {
+                index = index + 1
+            }
+            // if we reach the end of the array then all existing gaps got filled
+            if index == arrayLength {
+                break
+            }
+            // back fill the empty entry
+            newEntry = HashAlgorithm.SHA3_256.hash(newEntry)
+            self.randomSourceHistory[index] = newEntry
+            index = index + 1
+            count = count + 1
+        }
+        
+        // no more backfilling is possible but we need to update `gapStartIndex`
+        // to the next empty index if any still exists
+        while index < arrayLength && self.randomSourceHistory[index] != [] {
+            index = index + 1
+        }
+        self.gapStartIndex = index
+    }
 
     /* --- Hearbeat --- */
     //
@@ -36,14 +84,52 @@ access(all) contract RandomBeaconHistory {
         ///
         /// @param randomSourceHistory The random source to record
         ///
-        access(all) fun heartbeat(randomSourceHistory: [UInt8]) {
+        /// The Flow protocol makes sure to call this function once per block as a system call. The transaction 
+        /// comes at the end of each block so that the current block's entry becomes available only in the child 
+        /// block.
+        ///
+        access(all) fun heartbeat(randomSourceHistory: [UInt8]) { 
 
             let currentBlockHeight = getCurrentBlock().height
             if RandomBeaconHistory.lowestHeight == nil {
                 RandomBeaconHistory.lowestHeight = currentBlockHeight
             }
 
+            // next index to fill with the new random source
+            // so that evetually randomSourceHistory[nextIndex] = inputRandom
+            let nextIndex = currentBlockHeight - RandomBeaconHistory.lowestHeight!
+
+            // find out if `gapStartIndex` needs to be updated
+            if RandomBeaconHistory.gapStartIndex == UInt64(RandomBeaconHistory.randomSourceHistory.length) {
+                // enter only if no gap already exists in the past history.
+                // If a gap already exists, `gapStartIndex` should not be overwritten.
+                if nextIndex > UInt64(RandomBeaconHistory.randomSourceHistory.length) {
+                    // enter if a new gap is detected in the current transaction,
+                    // i.e some past height entries were not recorded.
+                    // In this case, update `gapStartIndex`
+                    RandomBeaconHistory.gapStartIndex = UInt64(RandomBeaconHistory.randomSourceHistory.length)
+                }
+            }
+
+            // regardless of whether `gapStartIndex` got updated or not,
+            // if a new gap is detected in the current transaction, fill the gap with empty entries.
+            while nextIndex > UInt64(RandomBeaconHistory.randomSourceHistory.length) {
+                // this happens in the rare case when a new gap occurs due to a system chunk failure
+                RandomBeaconHistory.randomSourceHistory.append([])
+            }
+
+            // we are now at the correct index to record the source of randomness
+            // created by the protocol for the current block
             RandomBeaconHistory.randomSourceHistory.append(randomSourceHistory)
+
+            // check for any existing gap and backfill using the input random source if needed.
+            // If there are no gaps, `gapStartIndex` is equal to `RandomBeaconHistory`'s length.
+            if RandomBeaconHistory.gapStartIndex < UInt64(RandomBeaconHistory.randomSourceHistory.length) {
+                // backfilling happens in the rare case when a gap occurs due to a system chunk failure.
+                // backFilling is limited to a max entries only to limit the computation cost.
+                // This means a large gap may need a few transactions to get fully backfilled.
+                RandomBeaconHistory.backFill(randomSource: randomSourceHistory)
+            }
         }
     }
 
@@ -97,13 +183,17 @@ access(all) contract RandomBeaconHistory {
         }
         let index = blockHeight - self.lowestHeight!
         assert(
-            index >= 0 && index < UInt64(self.randomSourceHistory.length),
+            index >= 0,
             message: "Problem finding random source history index"
+        )
+        assert(
+            index < UInt64(self.randomSourceHistory.length) && self.randomSourceHistory[index] != [],
+            message: "Source of randomness is currently not available but will be available soon"
         )
         return RandomSource(blockHeight: blockHeight, value: self.randomSourceHistory[index])
     }
 
-    /// Retrieves a page from the history of random sources, ordered chronologically
+    /// Retrieves a page from the history of random sources recorded so far, ordered chronologically
     ///
     /// @param page: The page number to retrieve, 0-indexed
     /// @param perPage: The number of random sources to include per page
@@ -126,6 +216,7 @@ access(all) contract RandomBeaconHistory {
         if endIndex > totalLength {
             endIndex = totalLength
         }
+
         // Return empty page if request exceeds last page
         if startIndex == endIndex {
             return RandomSourceHistoryPage(page: page, perPage: perPage, totalLength: totalLength, values: values)
@@ -133,11 +224,15 @@ access(all) contract RandomBeaconHistory {
 
         // Iterate over history and construct page RandomSource values
         let lowestHeight = self.lowestHeight!
-        for i, block in self.randomSourceHistory.slice(from: Int(startIndex), upTo: Int(endIndex)) {
+        for i, value in self.randomSourceHistory.slice(from: Int(startIndex), upTo: Int(endIndex)) {
+            assert(
+                value != [],
+                message: "Source of randomness is currently not available but will be available soon"
+            )
             values.append(
                 RandomSource(
                     blockHeight: lowestHeight + startIndex + UInt64(i),
-                    value: self.randomSourceHistory[startIndex + UInt64(i)]
+                    value: value
                 )
             )
         }
@@ -161,6 +256,7 @@ access(all) contract RandomBeaconHistory {
     init() {
         self.lowestHeight = nil
         self.randomSourceHistory = []
+        self.gapStartIndex = 0
         self.HeartbeatStoragePath = /storage/FlowRandomBeaconHistoryHeartbeat
 
         self.account.save(<-create Heartbeat(), to: self.HeartbeatStoragePath)
