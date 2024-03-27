@@ -1,20 +1,19 @@
-import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
+import FlowIDTableStaking from "FlowIDTableStaking"
 
 transaction {
-  prepare(owner: AuthAccount, receiver: AuthAccount) {
+  prepare(owner: auth(Capabilities) &Account, receiver: auth(Storage) &Account) {
 
-    // Link the staking admin capability to a private place
-    owner.link<&FlowIDTableStaking.Admin>(/private/flowStakingAdmin, target: FlowIDTableStaking.StakingAdminStoragePath)
-    let flowStakingAdmin = owner.getCapability<&FlowIDTableStaking.Admin>(/private/flowStakingAdmin)
+    // Get a staking admin capability
+    let flowStakingAdmin = owner.capabilities.storage.issue<&FlowIDTableStaking.Admin>(FlowIDTableStaking.StakingAdminStoragePath)
 
-    let capability <- receiver.load<@FlowIDTableStaking.Admin>(from: FlowIDTableStaking.StakingAdminStoragePath)
+    let capability <- receiver.storage.load<@FlowIDTableStaking.Admin>(from: FlowIDTableStaking.StakingAdminStoragePath)
 
     log(capability.getType())
 
     destroy capability
 
     // Save the capability to the receiver's account storage
-    receiver.save(flowStakingAdmin, to: FlowIDTableStaking.StakingAdminStoragePath)
+    receiver.storage.save(flowStakingAdmin, to: FlowIDTableStaking.StakingAdminStoragePath)
   }
 }
  

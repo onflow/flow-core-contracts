@@ -1,5 +1,5 @@
-import FlowEpoch from 0xEPOCHADDRESS
+import FlowEpoch from "FlowEpoch"
 
-pub fun main(): FlowEpoch.EpochTimingConfig {
+access(all) fun main(): FlowEpoch.EpochTimingConfig {
     return FlowEpoch.getEpochTimingConfig()
 }

@@ -1,7 +1,7 @@
-import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
+import FlowIDTableStaking from "FlowIDTableStaking"
 
 // This script returns the slot limits for node roles
 
-pub fun main(): {UInt8: UInt16} {
+access(all) fun main(): {UInt8: UInt16} {
     return FlowIDTableStaking.getCurrentRoleNodeCounts()
 }

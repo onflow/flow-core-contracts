@@ -1,6 +1,6 @@
-import FlowStorageFees from 0xFLOWSTORAGEFEESADDRESS
+import FlowStorageFees from "FlowStorageFees"
 
-pub fun main(accountAddresses: [Address], payer: Address, maxTxFees: UFix64): [UFix64] {
+access(all) fun main(accountAddresses: [Address], payer: Address, maxTxFees: UFix64): [UFix64] {
     return FlowStorageFees.getAccountsCapacityForTransactionStorageCheck(
         accountAddresses: accountAddresses, 
         payer: payer, 

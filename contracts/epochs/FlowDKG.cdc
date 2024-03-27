@@ -21,30 +21,30 @@
 *  process of transitioning between epochs in Flow.
 */
 
-pub contract FlowDKG {
+access(all) contract FlowDKG {
 
     // ===================================================================
     // DKG EVENTS
     // ===================================================================
 
     /// Emitted when the admin enables the DKG
-    pub event StartDKG()
+    access(all) event StartDKG()
 
     /// Emitted when the admin ends the DKG after enough submissions have been recorded
-    pub event EndDKG(finalSubmission: [String?]?)
+    access(all) event EndDKG(finalSubmission: [String?]?)
 
     /// Emitted when a consensus node has posted a message to the DKG whiteboard
-    pub event BroadcastMessage(nodeID: String, content: String)
+    access(all) event BroadcastMessage(nodeID: String, content: String)
 
     // ================================================================================
     // CONTRACT VARIABLES
     // ================================================================================
 
     /// The length of keys that have to be submitted as a final submission
-    pub let submissionKeyLength: Int
+    access(all) let submissionKeyLength: Int
 
     /// Indicates if the DKG is enabled or not
-    pub var dkgEnabled: Bool
+    access(all) var dkgEnabled: Bool
 
     /// Indicates if a Participant resource has already been claimed by a node ID
     /// from the identity table contract
@@ -80,19 +80,19 @@ pub contract FlowDKG {
     // ================================================================================
 
     // Canonical paths for admin and participant resources
-    pub let AdminStoragePath: StoragePath
-    pub let ParticipantStoragePath: StoragePath
-    pub let ParticipantPublicPath: PublicPath
+    access(all) let AdminStoragePath: StoragePath
+    access(all) let ParticipantStoragePath: StoragePath
+    access(all) let ParticipantPublicPath: PublicPath
 
     /// Struct to represent a single whiteboard message
-    pub struct Message {
+    access(all) struct Message {
 
         /// The ID of the node who submitted the message
-        pub let nodeID: String
+        access(all) let nodeID: String
 
         /// The content of the message
         /// We make no assumptions or assertions about the content of the message
-        pub let content: String
+        access(all) let content: String
 
         init(nodeID: String, content: String) {
             self.nodeID = nodeID
@@ -103,10 +103,10 @@ pub contract FlowDKG {
     /// The Participant resource is generated for each consensus node when they register.
     /// Each resource instance is good for all future potential epochs, but will
     /// only be valid if the node operator has been confirmed as a consensus node for the next epoch.
-    pub resource Participant {
+    access(all) resource Participant {
 
         /// The node ID of the participant
-        pub let nodeID: String
+        access(all) let nodeID: String
 
         init(nodeID: String) {
             pre {
@@ -117,14 +117,8 @@ pub contract FlowDKG {
             FlowDKG.nodeClaimed[nodeID] = true
         }
 
-        /// If the Participant resource is destroyed,
-        /// It could potentially be claimed again
-        destroy () {
-            FlowDKG.nodeClaimed[self.nodeID] = false
-        }
-
         /// Posts a whiteboard message to the contract
-        pub fun postMessage(_ content: String) {
+        access(all) fun postMessage(_ content: String) {
             pre {
                 FlowDKG.participantIsRegistered(self.nodeID):
                     "Cannot send whiteboard message if not registered for the current epoch"
@@ -145,7 +139,7 @@ pub contract FlowDKG {
         /// Sends the final key vector submission. 
         /// Can only be called by consensus nodes that are registered
         /// and can only be called once per consensus node per epoch
-        pub fun sendFinalSubmission(_ submission: [String?]) {
+        access(all) fun sendFinalSubmission(_ submission: [String?]) {
             pre {
                 FlowDKG.participantIsRegistered(self.nodeID):
                     "Cannot send final submission if not registered for the current epoch"
@@ -202,35 +196,35 @@ pub contract FlowDKG {
     /// Interface that only contains operations that are part
     /// of the regular automated functioning of the epoch process
     /// These are accessed by the `FlowEpoch` contract through a capability
-    pub resource interface EpochOperations {
-        pub fun createParticipant(nodeID: String): @Participant
-        pub fun startDKG(nodeIDs: [String])
-        pub fun endDKG()
-        pub fun forceEndDKG()
+    access(all) resource interface EpochOperations {
+        access(all) fun createParticipant(nodeID: String): @Participant
+        access(all) fun startDKG(nodeIDs: [String])
+        access(all) fun endDKG()
+        access(all) fun forceEndDKG()
     }
 
     /// The Admin resource provides the ability to begin and end voting for an epoch
-    pub resource Admin: EpochOperations {
+    access(all) resource Admin: EpochOperations {
 
         /// Sets the optional safe DKG success threshold
         /// Set the threshold to nil if it isn't needed
-        pub fun setSafeSuccessThreshold(newThresholdPercentage: UFix64?) {
+        access(all) fun setSafeSuccessThreshold(newThresholdPercentage: UFix64?) {
             pre {
                 !FlowDKG.dkgEnabled: "Cannot set the dkg success threshold while the DKG is enabled"
                 newThresholdPercentage == nil ||  newThresholdPercentage! < 1.0: "The threshold percentage must be in [0,1)"
             }
 
-            FlowDKG.account.load<UFix64>(from: /storage/flowDKGSafeThreshold)
+            FlowDKG.account.storage.load<UFix64>(from: /storage/flowDKGSafeThreshold)
 
             // If newThresholdPercentage is nil, we exit here. Since we loaded from
             // storage previously, this results in /storage/flowDKGSafeThreshold being empty
             if let percentage = newThresholdPercentage {
-                FlowDKG.account.save<UFix64>(percentage, to: /storage/flowDKGSafeThreshold)
+                FlowDKG.account.storage.save<UFix64>(percentage, to: /storage/flowDKGSafeThreshold)
             }
         }
 
         /// Creates a new Participant resource for a consensus node
-        pub fun createParticipant(nodeID: String): @Participant {
+        access(all) fun createParticipant(nodeID: String): @Participant {
             let participant <-create Participant(nodeID: nodeID)
             FlowDKG.nodeClaimed[nodeID] = true
             return <-participant
@@ -238,7 +232,7 @@ pub contract FlowDKG {
 
         /// Resets all the fields for tracking the current DKG process
         /// and sets the given node IDs as registered
-        pub fun startDKG(nodeIDs: [String]) {
+        access(all) fun startDKG(nodeIDs: [String]) {
             pre {
                 FlowDKG.dkgEnabled == false: "Cannot start the DKG when it is already running"
             }
@@ -260,11 +254,15 @@ pub contract FlowDKG {
 
         /// Disables the DKG and closes the opportunity for messages and submissions
         /// until the next time the DKG is enabled
-        pub fun endDKG() {
+        access(all) fun endDKG() {
             pre { 
                 FlowDKG.dkgEnabled == true: "Cannot end the DKG when it is already disabled"
-                FlowDKG.dkgCompleted() != nil: "Cannot end the DKG until enough final arrays have been submitted"
             }
+            let finalSubmissions = FlowDKG.dkgCompleted()
+            assert(
+                finalSubmissions != nil,
+                message: "Cannot end the DKG until enough final arrays have been submitted"
+            )
 
             FlowDKG.dkgEnabled = false
 
@@ -274,7 +272,7 @@ pub contract FlowDKG {
         /// Ends the DKG without checking if it is completed
         /// Should only be used if something goes wrong with the DKG,
         /// the protocol halts, or needs to be reset for some reason
-        pub fun forceEndDKG() {
+        access(all) fun forceEndDKG() {
             FlowDKG.dkgEnabled = false
 
             emit EndDKG(finalSubmission: FlowDKG.dkgCompleted())
@@ -309,24 +307,24 @@ pub contract FlowDKG {
     }
 
     /// Returns true if a node is registered as a consensus node for the proposed epoch
-    pub fun participantIsRegistered(_ nodeID: String): Bool {
+    access(all) view fun participantIsRegistered(_ nodeID: String): Bool {
         return FlowDKG.finalSubmissionByNodeID[nodeID] != nil
     }
 
     /// Returns true if a consensus node has claimed their Participant resource
     /// which is valid for all future epochs where the node is registered
-    pub fun participantIsClaimed(_ nodeID: String): Bool? {
+    access(all) view fun participantIsClaimed(_ nodeID: String): Bool? {
         return FlowDKG.nodeClaimed[nodeID]
     }
 
     /// Gets an array of all the whiteboard messages
     /// that have been submitted by all nodes in the DKG
-    pub fun getWhiteBoardMessages(): [Message] {
+    access(all) view fun getWhiteBoardMessages(): [Message] {
         return self.whiteboardMessages
     }
 
     /// Returns whether this node has successfully submitted a final submission for this epoch.
-    pub fun nodeHasSubmitted(_ nodeID: String): Bool {
+    access(all) view fun nodeHasSubmitted(_ nodeID: String): Bool {
         if let submission = self.finalSubmissionByNodeID[nodeID] {
             return submission.length > 0
         } else {
@@ -336,7 +334,7 @@ pub contract FlowDKG {
 
     /// Gets the specific final submission for a node ID
     /// If the node hasn't submitted or registered, this returns `nil`
-    pub fun getNodeFinalSubmission(_ nodeID: String): [String?]? {
+    access(all) view fun getNodeFinalSubmission(_ nodeID: String): [String?]? {
         if let submission = self.finalSubmissionByNodeID[nodeID] {
             if submission.length > 0 {
                 return submission
@@ -349,17 +347,17 @@ pub contract FlowDKG {
     }
 
     /// Get the list of all the consensus node IDs participating
-    pub fun getConsensusNodeIDs(): [String] {
+    access(all) view fun getConsensusNodeIDs(): [String] {
         return self.finalSubmissionByNodeID.keys
     }
 
     /// Get the array of all the unique final submissions
-    pub fun getFinalSubmissions(): [[String?]] {
+    access(all) view fun getFinalSubmissions(): [[String?]] {
         return self.uniqueFinalSubmissions
     }
 
     /// Get the count of the final submissions array
-    pub fun getFinalSubmissionCount(): {Int: UInt64} {
+    access(all) fun getFinalSubmissionCount(): {Int: UInt64} {
         return self.uniqueFinalSubmissionCount
     }
 
@@ -371,7 +369,7 @@ pub contract FlowDKG {
     /// We have 10 DKG nodes (n=10)
     /// The threshold value is t=floor(10-1)/2) (t=4)
     /// There must be AT LEAST 5 honest nodes for the DKG to succeed
-    pub fun getNativeSuccessThreshold(): UInt64 {
+    access(all) view fun getNativeSuccessThreshold(): UInt64 {
         return UInt64((self.getConsensusNodeIDs().length-1)/2)
     }
 
@@ -380,7 +378,7 @@ pub contract FlowDKG {
     /// 
     /// This function returns the NON-INCLUSIVE lower bound of honest participants. If this function 
     /// returns threshold t, there must be AT LEAST t+1 honest nodes for the DKG to succeed.
-    pub fun getSafeSuccessThreshold(): UInt64 {
+    access(all) fun getSafeSuccessThreshold(): UInt64 {
         var threshold = self.getNativeSuccessThreshold()
 
         // Get the safety rate percentage
@@ -400,14 +398,14 @@ pub contract FlowDKG {
     /// This safe threshold is used to artificially increase the DKG participation requirements to 
     /// ensure a lower-bound number of Random Beacon Committee members (beyond the bare minimum required
     /// by the DKG protocol).
-    pub fun getSafeThresholdPercentage(): UFix64? {
-        let safetyRate = self.account.copy<UFix64>(from: /storage/flowDKGSafeThreshold)
+    access(all) fun getSafeThresholdPercentage(): UFix64? {
+        let safetyRate = self.account.storage.copy<UFix64>(from: /storage/flowDKGSafeThreshold)
         return safetyRate
     }
 
     /// Returns the final set of keys if any one set of keys has strictly more than (nodes-1)/2 submissions
     /// Returns nil if not found (incomplete)
-    pub fun dkgCompleted(): [String?]? {
+    access(all) fun dkgCompleted(): [String?]? {
         if !self.dkgEnabled { return nil }
 
         var index = 0
@@ -446,7 +444,7 @@ pub contract FlowDKG {
         self.nodeClaimed = {}
         self.whiteboardMessages = []
 
-        self.account.save(<-create Admin(), to: self.AdminStoragePath)
+        self.account.storage.save(<-create Admin(), to: self.AdminStoragePath)
     }
 }
  

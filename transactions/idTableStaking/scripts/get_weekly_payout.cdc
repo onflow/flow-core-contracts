@@ -1,7 +1,7 @@
-import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
+import FlowIDTableStaking from "FlowIDTableStaking"
 
 // This script returns the balance of staked tokens of a node
 
-pub fun main(): UFix64 {
+access(all) fun main(): UFix64 {
     return FlowIDTableStaking.getEpochTokenPayout()
 }

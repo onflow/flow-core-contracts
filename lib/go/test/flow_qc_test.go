@@ -64,6 +64,8 @@ func TestQuorumCertificate(t *testing.T) {
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
 		FlowTokenAddress:     emulatorFlowTokenAddress,
+		BurnerAddress:        emulatorServiceAccount,
+		StorageFeesAddress:   emulatorServiceAccount,
 	}
 
 	accountKeys := test.AccountKeyGenerator()
@@ -461,6 +463,8 @@ func TestQuorumCertificateMoreNodes(t *testing.T) {
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
 		FlowTokenAddress:     emulatorFlowTokenAddress,
+		BurnerAddress:        emulatorServiceAccount,
+		StorageFeesAddress:   emulatorServiceAccount,
 	}
 
 	accountKeys := test.AccountKeyGenerator()
@@ -729,6 +733,8 @@ func TestQuorumCertificateNotSubmittedVote(t *testing.T) {
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
 		FlowTokenAddress:     emulatorFlowTokenAddress,
+		BurnerAddress:        emulatorServiceAccount,
+		StorageFeesAddress:   emulatorServiceAccount,
 	}
 
 	accountKeys := test.AccountKeyGenerator()

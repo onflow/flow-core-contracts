@@ -1,9 +1,9 @@
-import FlowDKG from 0xDKGADDRESS
+import FlowDKG from "FlowDKG"
 
-pub struct Thresholds {
-    pub let native: UInt64
-    pub let safe: UInt64
-    pub let safePercentage: UFix64
+access(all) struct Thresholds {
+    access(all) let native: UInt64
+    access(all) let safe: UInt64
+    access(all) let safePercentage: UFix64
 
     init() {
         self.native = FlowDKG.getNativeSuccessThreshold()
@@ -12,6 +12,6 @@ pub struct Thresholds {
     }
 }
 
-pub fun main(): Thresholds {
+access(all) fun main(): Thresholds {
     return Thresholds()
 }

@@ -25,19 +25,25 @@ const (
 )
 
 const (
-	testnetFungibleTokenAddress = "9a0766d93b6608b7"
-	testnetFlowTokenAddress     = "7e60df042a9c0868"
-	testnetIDTableAddress       = "9eca2b38b18b5dfe"
-	testnetStakingProxyAddress  = "7aad92e5a0715d21"
-	testnetLockedTokensAddress  = "95e019a17d0e23d7"
+	testnetFungibleTokenAddress              = "9a0766d93b6608b7"
+	testnetFungibleTokenMetadataViewsAddress = "9a0766d93b6608b7"
+	testnetNFTAddress                        = "631e88ae7f1d7c20"
+	testnetMetadataViewsAddress              = "631e88ae7f1d7c20"
+	testnetFlowTokenAddress                  = "7e60df042a9c0868"
+	testnetIDTableAddress                    = "9eca2b38b18b5dfe"
+	testnetStakingProxyAddress               = "7aad92e5a0715d21"
+	testnetLockedTokensAddress               = "95e019a17d0e23d7"
 )
 
 const (
-	mainnetFungibleTokenAddress = "f233dcee88fe0abe"
-	mainnetFlowTokenAddress     = "1654653399040a61"
-	mainnetIDTableAddress       = "8624b52f9ddcd04a"
-	mainnetStakingProxyAddress  = "62430cf28c26d095"
-	mainnetLockedTokensAddress  = "8d0e87b65159ae63"
+	mainnetFungibleTokenAddress              = "f233dcee88fe0abe"
+	mainnetFungibleTokenMetadataViewsAddress = "f233dcee88fe0abe"
+	mainnetNFTAddress                        = "1d7e57aa55817448"
+	mainnetMetadataViewsAddress              = "1d7e57aa55817448"
+	mainnetFlowTokenAddress                  = "1654653399040a61"
+	mainnetIDTableAddress                    = "8624b52f9ddcd04a"
+	mainnetStakingProxyAddress               = "62430cf28c26d095"
+	mainnetLockedTokensAddress               = "8d0e87b65159ae63"
 )
 
 var conf Config
@@ -72,23 +78,29 @@ func getEnv(conf Config) (templates.Environment, error) {
 
 	if conf.Network == testnet {
 		return templates.Environment{
-			Network:              testnet,
-			FungibleTokenAddress: testnetFungibleTokenAddress,
-			FlowTokenAddress:     testnetFlowTokenAddress,
-			IDTableAddress:       testnetIDTableAddress,
-			StakingProxyAddress:  testnetStakingProxyAddress,
-			LockedTokensAddress:  testnetLockedTokensAddress,
+			Network:                           testnet,
+			FungibleTokenAddress:              testnetFungibleTokenAddress,
+			NonFungibleTokenAddress:           testnetNFTAddress,
+			MetadataViewsAddress:              testnetMetadataViewsAddress,
+			FungibleTokenMetadataViewsAddress: testnetFungibleTokenMetadataViewsAddress,
+			FlowTokenAddress:                  testnetFlowTokenAddress,
+			IDTableAddress:                    testnetIDTableAddress,
+			StakingProxyAddress:               testnetStakingProxyAddress,
+			LockedTokensAddress:               testnetLockedTokensAddress,
 		}, nil
 	}
 
 	if conf.Network == mainnet {
 		return templates.Environment{
-			Network:              mainnet,
-			FungibleTokenAddress: mainnetFungibleTokenAddress,
-			FlowTokenAddress:     mainnetFlowTokenAddress,
-			IDTableAddress:       mainnetIDTableAddress,
-			StakingProxyAddress:  mainnetStakingProxyAddress,
-			LockedTokensAddress:  mainnetLockedTokensAddress,
+			Network:                           mainnet,
+			FungibleTokenAddress:              mainnetFungibleTokenAddress,
+			NonFungibleTokenAddress:           mainnetNFTAddress,
+			MetadataViewsAddress:              mainnetMetadataViewsAddress,
+			FungibleTokenMetadataViewsAddress: mainnetFungibleTokenMetadataViewsAddress,
+			FlowTokenAddress:                  mainnetFlowTokenAddress,
+			IDTableAddress:                    mainnetIDTableAddress,
+			StakingProxyAddress:               mainnetStakingProxyAddress,
+			LockedTokensAddress:               mainnetLockedTokensAddress,
 		}, nil
 	}
 

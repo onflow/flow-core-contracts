@@ -1,8 +1,8 @@
 import "RandomBeaconHistory"
 
 transaction(randomSource: [UInt8]) {
-    prepare(acct: AuthAccount) {
-        let heartbeat = acct.borrow<&RandomBeaconHistory.Heartbeat>(
+    prepare(acct: auth(BorrowValue) &Account) {
+        let heartbeat = acct.storage.borrow<&RandomBeaconHistory.Heartbeat>(
             from: RandomBeaconHistory.HeartbeatStoragePath
         ) ?? panic("Could not borrow heartbeat resource")
 

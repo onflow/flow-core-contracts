@@ -1,5 +1,5 @@
-import FlowFees from 0xFLOWFEESADDRESS
+import FlowFees from "FlowFees"
 
-pub fun main(): FlowFees.FeeParameters {
+access(all) fun main(): FlowFees.FeeParameters {
     return FlowFees.getFeeParameters()
 }

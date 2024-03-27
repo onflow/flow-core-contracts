@@ -1,7 +1,7 @@
-import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
+import FlowIDTableStaking from "FlowIDTableStaking"
 
 // This script returns the current identity table length
 
-pub fun main(): [String] {
+access(all) fun main(): [String] {
     return FlowIDTableStaking.getProposedNodeIDs()
 }

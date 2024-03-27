@@ -1,5 +1,5 @@
 import Crypto
-import FlowStakingCollection from 0xSTAKINGCOLLECTIONADDRESS
+import FlowStakingCollection from "FlowStakingCollection"
 
 /// Registers multiple nodes in the staking collection resource
 /// for the specified node information
@@ -12,10 +12,10 @@ transaction(ids: [String],
             amounts: [UFix64],
             publicKeys: [[Crypto.KeyListEntry]?]) {
     
-    let stakingCollectionRef: &FlowStakingCollection.StakingCollection
+    let stakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) &FlowStakingCollection.StakingCollection
 
-    prepare(account: AuthAccount) {
-        self.stakingCollectionRef = account.borrow<&FlowStakingCollection.StakingCollection>(from: FlowStakingCollection.StakingCollectionStoragePath)
+    prepare(account: auth(BorrowValue) &Account) {
+        self.stakingCollectionRef = account.storage.borrow<auth(FlowStakingCollection.CollectionOwner) &FlowStakingCollection.StakingCollection>(from: FlowStakingCollection.StakingCollectionStoragePath)
             ?? panic("Could not borrow ref to StakingCollection")
 
         var i = 0

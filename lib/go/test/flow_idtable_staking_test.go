@@ -52,6 +52,8 @@ func TestIDTableDeployment(t *testing.T) {
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
 		FlowTokenAddress:     emulatorFlowTokenAddress,
+		BurnerAddress:        emulatorServiceAccount,
+		StorageFeesAddress:   emulatorServiceAccount,
 	}
 
 	accountKeys := test.AccountKeyGenerator()
@@ -224,7 +226,7 @@ func TestIDTableDeployment(t *testing.T) {
 	})
 }
 
-func TestStakingTransferAdmin(t *testing.T) {
+func TestIDTableTransferAdmin(t *testing.T) {
 
 	t.Parallel()
 
@@ -233,6 +235,8 @@ func TestStakingTransferAdmin(t *testing.T) {
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
 		FlowTokenAddress:     emulatorFlowTokenAddress,
+		BurnerAddress:        emulatorServiceAccount,
+		StorageFeesAddress:   emulatorServiceAccount,
 	}
 
 	accountKeys := test.AccountKeyGenerator()
@@ -751,6 +755,8 @@ func TestIDTableApprovals(t *testing.T) {
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
 		FlowTokenAddress:     emulatorFlowTokenAddress,
+		BurnerAddress:        emulatorServiceAccount,
+		StorageFeesAddress:   emulatorServiceAccount,
 	}
 
 	accountKeys := test.AccountKeyGenerator()
@@ -791,7 +797,7 @@ func TestIDTableApprovals(t *testing.T) {
 	nodeIDs[0] = accessID
 	nodeIDs[1] = adminID
 	nodeIDDict := generateCadenceNodeDictionary(nodeIDs)
-	initialNodeIDs := cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(accessID)}).WithType(cadence.NewVariableSizedArrayType(cadence.NewStringType()))
+	initialNodeIDs := cadence.NewArray([]cadence.Value{CadenceString(adminID), CadenceString(accessID)}).WithType(cadence.NewVariableSizedArrayType(cadence.StringType))
 
 	// Update the access node minimum to zero
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateChangeMinimumsScript(env), idTableAddress)
@@ -900,7 +906,7 @@ func TestIDTableApprovals(t *testing.T) {
 			false,
 		)
 
-		expected := cadence.NewArray([]cadence.Value{CadenceString(accessID)}).WithType(cadence.NewVariableSizedArrayType(cadence.NewStringType()))
+		expected := cadence.NewArray([]cadence.Value{CadenceString(accessID)}).WithType(cadence.NewVariableSizedArrayType(cadence.StringType))
 		assertApprovedListEquals(t, b, env, expected)
 	})
 
@@ -1040,6 +1046,8 @@ func TestIDTableStaking(t *testing.T) {
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
 		FlowTokenAddress:     emulatorFlowTokenAddress,
+		BurnerAddress:        emulatorServiceAccount,
+		StorageFeesAddress:   emulatorServiceAccount,
 	}
 
 	accountKeys := test.AccountKeyGenerator()
@@ -1270,7 +1278,7 @@ func TestIDTableStaking(t *testing.T) {
 	nodeIDs[0] = joshID
 	nodeIDs[1] = maxID
 	nodeIDDict := generateCadenceNodeDictionary(nodeIDs)
-	initialNodeIDs := cadence.NewArray([]cadence.Value{CadenceString(maxID), CadenceString(joshID)}).WithType(cadence.NewVariableSizedArrayType(cadence.NewStringType()))
+	initialNodeIDs := cadence.NewArray([]cadence.Value{CadenceString(maxID), CadenceString(joshID)}).WithType(cadence.NewVariableSizedArrayType(cadence.StringType))
 
 	t.Run("Should be able to add nodes to approved node list", func(t *testing.T) {
 
@@ -1320,7 +1328,7 @@ func TestIDTableStaking(t *testing.T) {
 				false,
 			)
 
-			expected := cadence.NewArray([]cadence.Value{CadenceString(maxID), CadenceString(adminID), CadenceString(joshID)}).WithType(cadence.NewVariableSizedArrayType(cadence.NewStringType()))
+			expected := cadence.NewArray([]cadence.Value{CadenceString(maxID), CadenceString(adminID), CadenceString(joshID)}).WithType(cadence.NewVariableSizedArrayType(cadence.StringType))
 			assertApprovedListEquals(t, b, env, expected)
 		})
 	})
@@ -1355,7 +1363,7 @@ func TestIDTableStaking(t *testing.T) {
 				false,
 			)
 
-			expected := cadence.NewArray([]cadence.Value{CadenceString(maxID), CadenceString(joshID)}).WithType(cadence.NewVariableSizedArrayType(cadence.NewStringType()))
+			expected := cadence.NewArray([]cadence.Value{CadenceString(maxID), CadenceString(joshID)}).WithType(cadence.NewVariableSizedArrayType(cadence.StringType))
 			assertApprovedListEquals(t, b, env, expected)
 		})
 	})
@@ -3340,6 +3348,8 @@ func TestIDTableRewardsWitholding(t *testing.T) {
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
 		FlowTokenAddress:     emulatorFlowTokenAddress,
+		BurnerAddress:        emulatorServiceAccount,
+		StorageFeesAddress:   emulatorServiceAccount,
 	}
 
 	accountKeys := test.AccountKeyGenerator()

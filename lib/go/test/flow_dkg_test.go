@@ -29,6 +29,8 @@ func TestDKG(t *testing.T) {
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
 		FlowTokenAddress:     emulatorFlowTokenAddress,
+		BurnerAddress:        emulatorServiceAccount,
+		StorageFeesAddress:   emulatorServiceAccount,
 	}
 
 	accountKeys := test.AccountKeyGenerator()
@@ -119,7 +121,7 @@ func TestDKG(t *testing.T) {
 	dkgNodeIDStrings := make([]cadence.Value, 1)
 	dkgNodeIDStrings[0], _ = cadence.NewString(adminID)
 
-	dkgNodeIDsCadenceArray := cadence.Array{Values: []cadence.Value{cadence.String(adminID)}}.WithType(cadence.NewVariableSizedArrayType(cadence.NewStringType()))
+	dkgNodeIDsCadenceArray := cadence.Array{Values: []cadence.Value{cadence.String(adminID)}}.WithType(cadence.NewVariableSizedArrayType(cadence.StringType))
 
 	t.Run("Should start dkg with the admin", func(t *testing.T) {
 
@@ -370,9 +372,9 @@ func TestDKG(t *testing.T) {
 
 	})
 
-	finalSubmissionKeysArray := cadence.Array{Values: []cadence.Value{finalSubmissionKeys[0], finalSubmissionKeys[1]}}.WithType(cadence.NewVariableSizedArrayType(cadence.NewOptionalType(cadence.NewStringType())))
+	finalSubmissionKeysArray := cadence.Array{Values: []cadence.Value{finalSubmissionKeys[0], finalSubmissionKeys[1]}}.WithType(cadence.NewVariableSizedArrayType(cadence.NewOptionalType(cadence.StringType)))
 
-	finalSubmissionsArray := cadence.Array{Values: []cadence.Value{finalSubmissionKeysArray}}.WithType(cadence.NewVariableSizedArrayType(cadence.NewVariableSizedArrayType(cadence.NewOptionalType(cadence.NewStringType()))))
+	finalSubmissionsArray := cadence.Array{Values: []cadence.Value{finalSubmissionKeysArray}}.WithType(cadence.NewVariableSizedArrayType(cadence.NewVariableSizedArrayType(cadence.NewOptionalType(cadence.StringType))))
 
 	t.Run("Admin should be able to stop the dkg", func(t *testing.T) {
 
@@ -443,7 +445,7 @@ func TestDKG(t *testing.T) {
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetConsensusNodesScript(env), nil)
 
-		assert.Equal(t, cadence.NewArray(epoch2dkgNodeIDStrings).WithType(cadence.NewVariableSizedArrayType(cadence.NewStringType())), result)
+		assert.Equal(t, cadence.NewArray(epoch2dkgNodeIDStrings).WithType(cadence.NewVariableSizedArrayType(cadence.StringType)), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGFinalSubmissionsScript(env), nil)
 

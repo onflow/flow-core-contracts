@@ -1,6 +1,6 @@
-import NodeVersionBeacon from 0xNODEVERSIONBEACONADDRESS
+import NodeVersionBeacon from "NodeVersionBeacon"
 
 /// Returns the versionBoundaries page for the given page and perPage.
-pub fun main(page: Int, perPage: Int): NodeVersionBeacon.VersionBoundaryPage {
+access(all) fun main(page: Int, perPage: Int): NodeVersionBeacon.VersionBoundaryPage {
     return NodeVersionBeacon.getVersionBoundariesPage(page: page, perPage: perPage)
 }

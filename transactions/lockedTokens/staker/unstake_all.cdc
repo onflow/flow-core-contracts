@@ -1,12 +1,12 @@
-import LockedTokens from 0xLOCKEDTOKENADDRESS
-import StakingProxy from 0xSTAKINGPROXYADDRESS
+import LockedTokens from "LockedTokens"
+import FungibleToken from "FungibleToken"
 
 transaction() {
 
-    let holderRef: &LockedTokens.TokenHolder
+    let holderRef: auth(LockedTokens.TokenOperations, FungibleToken.Withdraw) &LockedTokens.TokenHolder
 
-    prepare(account: AuthAccount) {
-        self.holderRef = account.borrow<&LockedTokens.TokenHolder>(from: LockedTokens.TokenHolderStoragePath)
+    prepare(account: auth(BorrowValue) &Account) {
+        self.holderRef = account.storage.borrow<auth(LockedTokens.TokenOperations, FungibleToken.Withdraw) &LockedTokens.TokenHolder>(from: LockedTokens.TokenHolderStoragePath)
             ?? panic("Could not borrow reference to TokenHolder")
     }
 

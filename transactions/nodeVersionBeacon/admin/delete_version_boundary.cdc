@@ -1,4 +1,4 @@
-import NodeVersionBeacon from 0xNODEVERSIONBEACONADDRESS
+import NodeVersionBeacon from "NodeVersionBeacon"
 
 /// Transaction that allows NodeVersionAdmin to delete the
 /// version boundary mapping in the versionTable at the specified
@@ -8,9 +8,9 @@ transaction(blockHeightBoundaryToDelete: UInt64) {
 
   let NodeVersionBeaconAdminRef: &NodeVersionBeacon.Admin
 
-  prepare(acct: AuthAccount) {
+  prepare(acct: auth(BorrowValue) &Account) {
     // Borrow a reference to the NodeVersionAdmin resource
-    self.NodeVersionBeaconAdminRef = acct.borrow<&NodeVersionBeacon.Admin>
+    self.NodeVersionBeaconAdminRef = acct.storage.borrow<&NodeVersionBeacon.Admin>
       (from: NodeVersionBeacon.AdminStoragePath)
       ?? panic("Couldn't borrow NodeVersionBeaconAdmin Resource")
   }

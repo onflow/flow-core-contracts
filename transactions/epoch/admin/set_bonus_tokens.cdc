@@ -8,8 +8,8 @@
 /// Eventually, all bonus tokens will be burned and the amount will be zero
 
 transaction(bonusTokenAmount: UFix64) {
-    prepare(signer: AuthAccount) {
-        signer.load<UFix64>(from: /storage/FlowBonusTokenAmount)
-        signer.save(bonusTokenAmount, to: /storage/FlowBonusTokenAmount)
+    prepare(signer: auth(Storage) &Account) {
+        signer.storage.load<UFix64>(from: /storage/FlowBonusTokenAmount)
+        signer.storage.save(bonusTokenAmount, to: /storage/FlowBonusTokenAmount)
     }
 }

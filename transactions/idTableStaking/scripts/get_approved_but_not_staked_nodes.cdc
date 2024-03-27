@@ -1,7 +1,7 @@
-import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
+import FlowIDTableStaking from "FlowIDTableStaking"
 
 // This script returns the list of nodes that are on the approved list but do not currently have tokens staked above the minimum requirement.
-pub fun main(): [String] {
+access(all) fun main(): [String] {
     let approvedIDs = FlowIDTableStaking.getApprovedList()
     let stakedIDs = FlowIDTableStaking.getStakedNodeIDs()
 

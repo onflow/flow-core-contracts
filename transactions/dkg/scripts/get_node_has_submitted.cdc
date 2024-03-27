@@ -1,5 +1,5 @@
-import FlowDKG from 0xDKGADDRESS
+import FlowDKG from "FlowDKG"
 
-pub fun main(nodeID: String): Bool {
+access(all) fun main(nodeID: String): Bool {
     return FlowDKG.nodeHasSubmitted(nodeID)
 }

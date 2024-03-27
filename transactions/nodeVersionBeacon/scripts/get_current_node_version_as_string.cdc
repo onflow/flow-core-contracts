@@ -1,8 +1,8 @@
-import NodeVersionBeacon from 0xNODEVERSIONBEACONADDRESS
+import NodeVersionBeacon from "NodeVersionBeacon"
 
 /// Gets the current version defined in the versionTable
 /// as a String.
-pub fun main(): String {
+access(all) fun main(): String {
     let boundary = NodeVersionBeacon.getCurrentVersionBoundary()
     return boundary.version.toString()
 }

@@ -1,9 +1,9 @@
-import StakingProxy from 0xSTAKINGPROXYADDRESS
+import StakingProxy from "StakingProxy"
 
 transaction(nodeID: String) {
 
-    prepare(account: AuthAccount) {
-        let proxyHolder = account.borrow<&StakingProxy.NodeStakerProxyHolder>(from: paStakingProxy.NodeOperatorCapabilityStoragePathth)
+    prepare(account: auth(BorrowValue) &Account) {
+        let proxyHolder = account.storage.borrow<&StakingProxy.NodeStakerProxyHolder>(from: paStakingProxy.NodeOperatorCapabilityStoragePathth)
 
         proxyHolder.removeStakingProxy(nodeID: nodeID)
     }

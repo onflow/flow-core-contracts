@@ -1,20 +1,21 @@
-import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
-import FlowToken from 0xFLOWTOKENADDRESS
+import FlowIDTableStaking from "FlowIDTableStaking"
+import FlowToken from "FlowToken"
+import FungibleToken from "FungibleToken"
 
 transaction(nodeID: String, amount: UFix64) {
 
-    prepare(acct: AuthAccount) {
+    prepare(acct: auth(Storage, Capabilities) &Account) {
 
-        let flowTokenRef = acct.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)
+        let flowTokenRef = acct.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault)
             ?? panic("Could not borrow reference to FLOW Vault")
 
         // Create a new delegator object for the node
         let newDelegator <- FlowIDTableStaking.registerNewDelegator(nodeID: nodeID, tokensCommitted: <-flowTokenRef.withdraw(amount: amount))
 
         // Store the delegator object
-        acct.save(<-newDelegator, to: FlowIDTableStaking.DelegatorStoragePath)
+        acct.storage.save(<-newDelegator, to: FlowIDTableStaking.DelegatorStoragePath)
 
-        acct.link<&{FlowIDTableStaking.NodeDelegatorPublic}>(/public/flowStakingDelegator, target: FlowIDTableStaking.DelegatorStoragePath)
+        let delegatorCap = acct.capabilities.storage.issue<&{FlowIDTableStaking.NodeDelegatorPublic}>(FlowIDTableStaking.DelegatorStoragePath)
+        acct.capabilities.publish(delegatorCap, at: /public/flowStakingDelegator)
     }
-
 }

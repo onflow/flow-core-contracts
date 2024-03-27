@@ -1,9 +1,9 @@
-import FlowEpoch from 0xEPOCHADDRESS
+import FlowEpoch from "FlowEpoch"
 
 transaction(newNumClusters: UInt16) {
-    prepare(signer: AuthAccount) {
+    prepare(signer: auth(BorrowValue) &Account) {
 
-        let epochAdmin = signer.borrow<&FlowEpoch.Admin>(from: FlowEpoch.adminStoragePath)
+        let epochAdmin = signer.storage.borrow<&FlowEpoch.Admin>(from: FlowEpoch.adminStoragePath)
             ?? panic("Could not borrow admin from storage path")
 
         epochAdmin.updateNumCollectorClusters(newNumClusters)

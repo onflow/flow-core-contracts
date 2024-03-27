@@ -3,9 +3,10 @@ package test
 import (
 	"context"
 	"fmt"
+	"testing"
+
 	"github.com/onflow/flow-emulator/convert"
 	sdktemplates "github.com/onflow/flow-go-sdk/templates"
-	"testing"
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
@@ -616,7 +617,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 	machineAccounts := make(map[cadence.String]flow.Address)
 
-	t.Run("Should not be able to register a consensus node without a machine account public key", func(t *testing.T) {
+	t.Run("Should not be able to register a consensus node without a real machine account public key", func(t *testing.T) {
 
 		_, maxStakingKey, _, maxNetworkingKey := generateKeysForNodeRegistration(t)
 
@@ -627,7 +628,9 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		_ = tx.AddArgument(CadenceString(maxNetworkingKey))
 		_ = tx.AddArgument(CadenceString(maxStakingKey))
 		_ = tx.AddArgument(CadenceUFix64("500000.0"))
-		_ = tx.AddArgument(cadence.NewOptional(nil))
+		_ = tx.AddArgument(CadenceString(""))
+		_ = tx.AddArgument(cadence.NewUInt8(2))
+		_ = tx.AddArgument(cadence.NewUInt8(2))
 
 		signAndSubmit(
 			t, b, tx,
@@ -636,13 +639,6 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 			true,
 		)
 	})
-
-	publicKeys := make([]cadence.Value, 1)
-	machineAccountKey, _ := accountKeys.NewWithSigner()
-	publicKey, err := sdktemplates.AccountKeyToCadenceCryptoKey(machineAccountKey)
-	require.NoError(t, err)
-	publicKeys[0] = publicKey
-	cadencePublicKeys := cadence.NewArray(publicKeys)
 
 	t.Run("Should be able to register a second node and delegator in the staking collection", func(t *testing.T) {
 
@@ -655,7 +651,9 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		_ = tx.AddArgument(CadenceString(maxNetworkingKey))
 		_ = tx.AddArgument(CadenceString(maxStakingKey))
 		_ = tx.AddArgument(CadenceUFix64("500000.0"))
-		_ = tx.AddArgument(cadence.NewOptional(cadencePublicKeys))
+		_ = tx.AddArgument(CadenceString("7d5305c22cb7da418396f32c474c6d84b0bb87ca311d6aa6edfd70a1120ded9dc11427ac31261c24e4e7a6c2affea28ff3da7b00fe285029877fb0b5970dc110"))
+		_ = tx.AddArgument(cadence.NewUInt8(1))
+		_ = tx.AddArgument(cadence.NewUInt8(1))
 
 		result := signAndSubmit(
 			t, b, tx,
@@ -701,7 +699,9 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		_ = tx.AddArgument(CadenceString(bastianNetworkingKey))
 		_ = tx.AddArgument(CadenceString(bastianStakingKey))
 		_ = tx.AddArgument(CadenceUFix64("250000.0"))
-		_ = tx.AddArgument(cadence.NewOptional(cadencePublicKeys))
+		_ = tx.AddArgument(CadenceString("7d5305c22cb7da418396f32c474c6d84b0bb87ca311d6aa6edfd70a1120ded9dc11427ac31261c24e4e7a6c2affea28ff3da7b00fe285029877fb0b5970dc110"))
+		_ = tx.AddArgument(cadence.NewUInt8(1))
+		_ = tx.AddArgument(cadence.NewUInt8(1))
 
 		result := signAndSubmit(
 			t, b, tx,
@@ -779,7 +779,9 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		_ = tx.AddArgument(CadenceString(executionNetworkingKey))
 		_ = tx.AddArgument(CadenceString(executionStakingKey))
 		_ = tx.AddArgument(CadenceUFix64("1250000.0"))
-		_ = tx.AddArgument(cadence.NewOptional(nil))
+		_ = tx.AddArgument(CadenceString(""))
+		_ = tx.AddArgument(cadence.NewUInt8(1))
+		_ = tx.AddArgument(cadence.NewUInt8(1))
 
 		signAndSubmit(
 			t, b, tx,
@@ -809,7 +811,9 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		_ = tx.AddArgument(CadenceString(verificationNetworkingKey))
 		_ = tx.AddArgument(CadenceString(verificationStakingKey))
 		_ = tx.AddArgument(CadenceUFix64("150000.0"))
-		_ = tx.AddArgument(cadence.NewOptional(nil))
+		_ = tx.AddArgument(CadenceString(""))
+		_ = tx.AddArgument(cadence.NewUInt8(1))
+		_ = tx.AddArgument(cadence.NewUInt8(1))
 
 		signAndSubmit(
 			t, b, tx,
@@ -910,13 +914,6 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 		false,
 	)
 
-	publicKeys := make([]cadence.Value, 1)
-	machineAccountKey, _ := accountKeys.NewWithSigner()
-	cdcPublicKey, err := sdktemplates.AccountKeyToCadenceCryptoKey(machineAccountKey)
-	require.NoError(t, err)
-	publicKeys[0] = cdcPublicKey
-	cadencePublicKeys := cadence.NewArray(publicKeys)
-
 	t.Run("Should be able to set up staking collection, which moves the node and delegator to the collection", func(t *testing.T) {
 
 		// setup the staking collection which should put the normal node and delegator in the collection
@@ -942,7 +939,9 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionCreateMachineAccountForNodeScript(env), userAddresses[0])
 		_ = tx.AddArgument(CadenceString(adminID))
-		_ = tx.AddArgument(cadencePublicKeys)
+		_ = tx.AddArgument(CadenceString("7d5305c22cb7da418396f32c474c6d84b0bb87ca311d6aa6edfd70a1120ded9dc11427ac31261c24e4e7a6c2affea28ff3da7b00fe285029877fb0b5970dc110"))
+		_ = tx.AddArgument(cadence.NewUInt8(1))
+		_ = tx.AddArgument(cadence.NewUInt8(1))
 
 		result := signAndSubmit(
 			t, b, tx,
@@ -1021,7 +1020,9 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionCreateMachineAccountForNodeScript(env), joshAddress)
 		_ = tx.AddArgument(CadenceString(joshID))
-		_ = tx.AddArgument(cadencePublicKeys)
+		_ = tx.AddArgument(CadenceString("7d5305c22cb7da418396f32c474c6d84b0bb87ca311d6aa6edfd70a1120ded9dc11427ac31261c24e4e7a6c2affea28ff3da7b00fe285029877fb0b5970dc110"))
+		_ = tx.AddArgument(cadence.NewUInt8(1))
+		_ = tx.AddArgument(cadence.NewUInt8(1))
 
 		result := signAndSubmit(
 			t, b, tx,
@@ -2862,7 +2863,7 @@ func TestStakingCollectionCreateNewTokenHolder(t *testing.T) {
 		require.NoError(t, result.Error)
 
 		// Search emitted events from the transaction result
-		// to find the address of the locked tokens contract
+		// to find the address of the new locked account
 		var newAccountAddr flow.Address
 
 		for _, event := range result.Events {

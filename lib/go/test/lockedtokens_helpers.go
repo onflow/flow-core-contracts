@@ -4,9 +4,10 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	"testing"
+
 	"github.com/onflow/flow-emulator/adapters"
 	"github.com/onflow/flow-emulator/convert"
-	"testing"
 
 	"github.com/onflow/flow-emulator/types"
 
@@ -72,13 +73,8 @@ func deployLockedTokensContract(
 
 	// Get the code of the locked tokens contract
 	// with the import addresses replaced
-	lockedTokensCode := contracts.FlowLockedTokens(
-		emulatorFTAddress,
-		emulatorFlowTokenAddress,
-		IDTableAddr.Hex(),
-		proxyAddr.Hex(),
-		b.ServiceKey().Address.String(),
-	)
+	lockedTokensCode := contracts.FlowLockedTokens(env)
+
 	// Encode the contract as a Cadence string
 	cadenceCode := CadenceString(hex.EncodeToString(lockedTokensCode))
 
@@ -341,6 +337,8 @@ func deployAllCollectionContracts(t *testing.T,
 	_, err = b.CommitBlock()
 	assert.NoError(t, err)
 
+	env.StakingProxyAddress = stakingProxyAddress.String()
+
 	lockedTokensAccountKey, lockedTokensSigner := accountKeys.NewWithSigner()
 	lockedTokensAddress := deployLockedTokensContract(t, b, *env, flow.HexToAddress(env.IDTableAddress), stakingProxyAddress, lockedTokensAccountKey, adminAddress, adminSigner)
 	env.StakingProxyAddress = stakingProxyAddress.Hex()
@@ -381,13 +379,6 @@ func registerStakingCollectionNodesAndDelegators(
 	userNodeID2 := "0000000000000000000000000000000000000000000000000000000000000002"
 
 	_, nodeOneStakingKey, _, nodeOneNetworkingKey := generateKeysForNodeRegistration(t)
-
-	publicKeys := make([]cadence.Value, 1)
-	machineAccountKey, _ := accountKeys.NewWithSigner()
-	publicKey, err := sdktemplates.AccountKeyToCadenceCryptoKey(machineAccountKey)
-	require.NoError(t, err)
-	publicKeys[0] = publicKey
-	cadencePublicKeys := cadence.NewArray(publicKeys)
 
 	// Register a node in the locked account
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), newUserAddress)
@@ -437,7 +428,9 @@ func registerStakingCollectionNodesAndDelegators(
 	_ = tx.AddArgument(CadenceString(nodeTwoNetworkingKey))
 	_ = tx.AddArgument(CadenceString(nodeTwoStakingKey))
 	_ = tx.AddArgument(CadenceUFix64("500000.0"))
-	_ = tx.AddArgument(cadence.NewOptional(cadencePublicKeys))
+	_ = tx.AddArgument(CadenceString("7d5305c22cb7da418396f32c474c6d84b0bb87ca311d6aa6edfd70a1120ded9dc11427ac31261c24e4e7a6c2affea28ff3da7b00fe285029877fb0b5970dc110"))
+	_ = tx.AddArgument(cadence.NewUInt8(1))
+	_ = tx.AddArgument(cadence.NewUInt8(1))
 
 	signAndSubmit(
 		t, b, tx,
