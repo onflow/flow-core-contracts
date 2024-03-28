@@ -90,6 +90,12 @@ access(all) contract RandomBeaconHistory {
         ///
         access(all) fun heartbeat(randomSourceHistory: [UInt8]) { 
 
+            assert (
+                // random source must be at least 128 bits
+                randomSourceHistory.length >= 128 / 8,
+                message: "Random source must be at least 128 bits"
+            )
+
             let currentBlockHeight = getCurrentBlock().height
             if RandomBeaconHistory.lowestHeight == nil {
                 RandomBeaconHistory.lowestHeight = currentBlockHeight

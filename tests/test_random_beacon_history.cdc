@@ -61,7 +61,7 @@ fun testGetSourceOfRandomnessWithoutLowestHeightSet() {
 // At this point the history array is empty
 access(all)
 fun testRecordRandomSource() {
-    let randomSource: [UInt8] = [0, 1, 1, 2, 3, 5, 8]
+    let randomSource: [UInt8] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 3, 5, 8]
     // executeTransaction advances the block height then executes the transaction! 
     let txResult = executeTransaction(   
         "transactions/record_random_source.cdc",
@@ -124,7 +124,7 @@ fun testGetRecordedSourceOfRandomnessPage() {
     Test.assertEqual(perPage, history.perPage)
     Test.assertEqual(UInt64(1), history.totalLength)
     Test.assertEqual(1, history.values.length)
-    let value: [UInt8] = [0, 1, 1, 2, 3, 5, 8]
+    let value: [UInt8] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 3, 5, 8]
     Test.assertEqual(value, history.values[0]!.value)
 }
 
@@ -133,7 +133,7 @@ access(all)
 fun testGetRecordedSourceOfRandomness() {
     // record a new random source and advance to the next block,
     // this way the previous block's entry becomes available
-    let value: [UInt8] = [0, 1, 1, 2, 3, 5, 8]
+    let value: [UInt8] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 3, 5, 8]
     let txResult = executeTransaction(
         "transactions/record_random_source.cdc",
         [value],
@@ -164,7 +164,7 @@ fun testGetLatestSourceOfRandomness() {
 
     let randomSource = scriptResult.returnValue! as! RandomBeaconHistory.RandomSource
     let atBlockHeight: UInt64 = getCurrentBlockHeight() - 1
-    let value: [UInt8] = [0, 1, 1, 2, 3, 5, 8]
+    let value: [UInt8] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 3, 5, 8]
     Test.assertEqual(atBlockHeight, randomSource.blockHeight)
     Test.assertEqual(value, randomSource.value)
 }
@@ -237,7 +237,7 @@ fun testGetPageFromGap() {
     Test.assertEqual(perPage, history.perPage)
     Test.assertEqual(UInt64(recordedSources), history.totalLength)
     Test.assertEqual(recordedSources, history.values.length)
-    let value: [UInt8] = [0, 1, 1, 2, 3, 5, 8]
+    let value: [UInt8] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 3, 5, 8]
     Test.assertEqual(value, history.values[0]!.value)
 }
 
@@ -250,7 +250,7 @@ fun testGetBackfilledSource() {
     // record a new random source, which would trigger fully backfilling the gap 
     // (when the gap size is less than 100, since the contracts backfills up to 100 entries at a time)
     assert(gapLength <= 100)
-    var value: [UInt8] = [0, 1, 1, 2, 3, 5, 8] 
+    var value: [UInt8] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 3, 5, 8] 
     let txResult = executeTransaction(
         "transactions/record_random_source.cdc",
         [value],
@@ -335,7 +335,7 @@ fun testNonContiguousGap() {
 
     // record a new random source, which would trigger partially backfilling the gap 
     // (when the gap size is more than 100, since the contracts backfills up to 100 entries at a time)
-    var value: [UInt8] = [0, 1, 1, 2, 3, 5, 8] 
+    var value: [UInt8] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 3, 5, 8] 
     var txResult = executeTransaction(
         "transactions/record_random_source.cdc",
         [value],
@@ -440,4 +440,25 @@ fun testNonContiguousGap() {
     Test.assertEqual(perPage, history.perPage)
     Test.assertEqual(totalSources, history.totalLength)
     Test.assertEqual(perPage, UInt64(history.values.length))
+}
+
+
+access(all)
+fun testRecordInvalidRandomSource() {
+    // reset the blockchain state back to the lowest height (1 SoR entry)
+    Test.reset(to: RandomBeaconHistory.getLowestHeight())
+
+    let invalidRandomSource: [UInt8] = [0, 1, 1, 2, 3, 5, 8]
+    assert (invalidRandomSource.length < (128/8))
+    // short sources should be rejected
+    let txResult = executeTransaction(   
+        "transactions/record_random_source.cdc",
+        [invalidRandomSource],
+        admin
+    )
+    Test.expect(txResult, Test.beFailed())
+    Test.assertError(
+        txResult,
+        errorMessage: "Random source must be at least 128 bits"
+    )
 }
