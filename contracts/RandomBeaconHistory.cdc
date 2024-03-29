@@ -26,6 +26,19 @@ access(all) contract RandomBeaconHistory {
     /// The path of the Heartbeat resource in the deployment account
     access(all) let HeartbeatStoragePath: StoragePath
 
+    // Event emitted when missing SoRs from past heartbeats are detected and will be backfilled:
+    //  - `blockHeight` is the height where the gap is detected
+    //  - `gapStartHeight` is the height of the first missing entry detected
+    access(all) event RandomHistoryMissing(blockHeight: UInt64, gapStartHeight: UInt64)
+
+    // Event emitted when missing SoRs are backfilled on the current heartbeat:
+    //  - `blockHeight` is the height where the backfill happened, it also defines the SoR used to backfill
+    //  - `gapStartHeight` is the height of the first backfilled entry
+    //  - `count` is the number of backfilled entries
+    // Note that in very rare cases, the backfilled gap may not be contiguous. This event does not
+    // fully define the backfilled entries in this case.
+    access(all) event RandomHistoryBackfilled(blockHeight: UInt64, gapStartHeight: UInt64, count: Int)
+
     /* --- Hearbeat --- */
     //
     /// The Heartbeat resource containing each block's source of randomness in sequence
@@ -62,6 +75,12 @@ access(all) contract RandomBeaconHistory {
             // next index to fill with the new random source
             // so that evetually randomSourceHistory[nextIndex] = inputRandom
             let nextIndex = currentBlockHeight - RandomBeaconHistory.lowestHeight!
+
+            // if a gap is detected, emit an event
+            if nextIndex > UInt64(RandomBeaconHistory.randomSourceHistory.length) {
+                let gapStartHeight = RandomBeaconHistory.lowestHeight! + UInt64(RandomBeaconHistory.randomSourceHistory.length)
+                emit RandomHistoryMissing(blockHeight: currentBlockHeight, gapStartHeight: gapStartHeight)
+            }
 
             // If a new gap is detected in the current transaction, fill the gap with empty entries.
             // This happens in the rare case where a new gap occurs because of a system transaction failure.
@@ -135,6 +154,12 @@ access(all) contract RandomBeaconHistory {
                 RandomBeaconHistory.randomSourceHistory[index] = newEntry
                 index = index + 1
                 count = count + 1
+            }
+
+            // emit an event about backfilled entries
+            if count > 0 {
+                let gapStartHeight = RandomBeaconHistory.lowestHeight! + self.gapStartIndex
+                emit RandomHistoryBackfilled(blockHeight: getCurrentBlock().height, gapStartHeight: gapStartHeight, count: count)
             }
             
             // no more backfilling is possible but we need to update `gapStartIndex`
