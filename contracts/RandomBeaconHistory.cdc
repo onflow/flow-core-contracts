@@ -63,22 +63,9 @@ access(all) contract RandomBeaconHistory {
             // so that evetually randomSourceHistory[nextIndex] = inputRandom
             let nextIndex = currentBlockHeight - RandomBeaconHistory.lowestHeight!
 
-            // find out if `gapStartIndex` needs to be updated
-            if backfiller.getGapStartIndex() == UInt64(RandomBeaconHistory.randomSourceHistory.length) {
-                // enter only if no gap already exists in the past history.
-                // If a gap already exists, `gapStartIndex` should not be overwritten.
-                if nextIndex > UInt64(RandomBeaconHistory.randomSourceHistory.length) {
-                    // enter if a new gap is detected in the current transaction,
-                    // i.e some past height entries were not recorded.
-                    // In this case, update `gapStartIndex`
-                    backfiller.setGapStartIndex(UInt64(RandomBeaconHistory.randomSourceHistory.length))
-                }
-            }
-
-            // regardless of whether `gapStartIndex` got updated or not,
-            // if a new gap is detected in the current transaction, fill the gap with empty entries.
+            // If a new gap is detected in the current transaction, fill the gap with empty entries.
+            // This happens in the rare case where a new gap occurs because of a system transaction failure.
             while nextIndex > UInt64(RandomBeaconHistory.randomSourceHistory.length) {
-                // this happens in the rare case when a new gap occurs due to a system chunk failure
                 RandomBeaconHistory.randomSourceHistory.append([])
             }
 
@@ -87,13 +74,7 @@ access(all) contract RandomBeaconHistory {
             RandomBeaconHistory.randomSourceHistory.append(randomSourceHistory)
 
             // check for any existing gap and backfill using the input random source if needed.
-            // If there are no gaps, `gapStartIndex` is equal to `RandomBeaconHistory`'s length.
-            if backfiller.getGapStartIndex() < UInt64(RandomBeaconHistory.randomSourceHistory.length) {
-                // backfilling happens in the rare case when a gap occurs due to a system chunk failure.
-                // backFilling is limited to a max entries only to limit the computation cost.
-                // This means a large gap may need a few transactions to get fully backfilled.
-                backfiller.backfill(randomSource: randomSourceHistory)
-            }
+            backfiller.backfill(randomSource: randomSourceHistory)
         }
     }
 
@@ -103,40 +84,39 @@ access(all) contract RandomBeaconHistory {
     /// to a system transaction failure.
     ///
     access(all) resource Backfiller {
-        /// Start index of the first gap in the `randomSourceHistory` array where random sources were not recorded, because
-        /// of a heartbeat failure.
+        /// Start index of the first gap in the `randomSourceHistory` array where random sources were not recorded, 
+        /// because of a heartbeat failure.
         /// There may be non contiguous gaps in the history, `gapStartIndex` is the start index of the lowest-height
         /// gap.
-        /// If no gap exists, `gapStartIndex` is equal to the `randomSourceHistory` array length.
+        /// If no gaps exist, `gapStartIndex` is equal to the `randomSourceHistory` array length.
         access(contract) var gapStartIndex: UInt64
 
         init() {
             self.gapStartIndex = 0
         }
 
-        /// Retrieves the current `gapStartIndex`
-        access(all) view fun getGapStartIndex(): UInt64 {
-            return self.gapStartIndex
-        }
-
-        /// Sets the `gapStartIndex` to the provided value
-        access(contract) fun setGapStartIndex(_ gapStartIndex: UInt64) {
-            self.gapStartIndex = gapStartIndex
-        }
-
-        /// backfills entries in the history array starting from the stored `gapStartIndex`,
+        /// Backfills possible empty entries (gaps) in the history array starting from the stored `gapStartIndex`,
         /// using `randomSource` as a seed for all entries.
+        /// If there are no gaps, `gapStartIndex` is just updated to `RandomBeaconHistory`'s length.
         //
-        /// all entries would use the same entropy. Each entry is extracted from `randomSource` using
+        /// When backfilling, all entries use the same entropy. Each entry is extracted from `randomSource` using
         /// successive hashing. This makes sure the entries are all distinct although they provide
         /// the same entropy.
         //
         /// gaps only occur in the rare event of a system transaction failure. In this case, entries are still
-        /// filled using a source not known at the time of block execution, which guaranteed unpredicatability.
+        /// filled using a source not known at the time of block execution, which guarantees unpredicatability.
         access(contract) fun backfill(randomSource: [UInt8]) {
-            // maximum number of entries to back fill per transaction to limit the computation cost.
-            let maxEntries = 100
             let arrayLength = UInt64(RandomBeaconHistory.randomSourceHistory.length)
+            // optional optimization for the happy common path: if no gaps are detected, 
+            // backfilling isn't needed, return early
+            if self.gapStartIndex + 1 == arrayLength {
+                self.gapStartIndex = arrayLength
+                return
+            }
+
+            // backFilling is limited to a max entries only to limit the computation cost.
+            // This means a large gap may need a few transactions to get fully backfilled.
+            let maxEntries = 100
 
             var newEntry = randomSource
             var index = self.gapStartIndex
@@ -158,7 +138,9 @@ access(all) contract RandomBeaconHistory {
             }
             
             // no more backfilling is possible but we need to update `gapStartIndex`
-            // to the next empty index if any still exists
+            // to:
+            //  - the next empty index if gaps still exist
+            //  - the length of the array if there are no gaps
             while index < arrayLength && RandomBeaconHistory.randomSourceHistory[index] != [] {
                 index = index + 1
             }
