@@ -92,7 +92,7 @@ access(all) contract RandomBeaconHistory {
         access(contract) var gapStartIndex: UInt64
 
         init() {
-            self.gapStartIndex = 0
+            self.gapStartIndex = UInt64(RandomBeaconHistory.randomSourceHistory.length)
         }
 
         /// Backfills possible empty entries (gaps) in the history array starting from the stored `gapStartIndex`,
