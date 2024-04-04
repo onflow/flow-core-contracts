@@ -37,7 +37,7 @@ access(all) contract RandomBeaconHistory {
     //  - `count` is the number of backfilled entries
     // Note that in very rare cases, the backfilled gap may not be contiguous. This event does not
     // fully define the backfilled entries in this case.
-    access(all) event RandomHistoryBackfilled(blockHeight: UInt64, gapStartHeight: UInt64, count: Int)
+    access(all) event RandomHistoryBackfilled(blockHeight: UInt64, gapStartHeight: UInt64, count: UInt64)
 
     /* --- Hearbeat --- */
     //
@@ -109,9 +109,13 @@ access(all) contract RandomBeaconHistory {
         /// gap.
         /// If no gaps exist, `gapStartIndex` is equal to the `randomSourceHistory` array length.
         access(contract) var gapStartIndex: UInt64
+        /// BackFilling is limited to a maximum number of entries per call to limit the computation cost.
+        /// This means a large gap may need a few calls to get fully backfilled.
+        access(contract) var maxEntriesPerCall: UInt64
 
         init() {
             self.gapStartIndex = UInt64(RandomBeaconHistory.randomSourceHistory.length)
+            self.maxEntriesPerCall = 100
         }
 
         /// Backfills possible empty entries (gaps) in the history array starting from the stored `gapStartIndex`,
@@ -133,14 +137,10 @@ access(all) contract RandomBeaconHistory {
                 return
             }
 
-            // backFilling is limited to a max entries only to limit the computation cost.
-            // This means a large gap may need a few transactions to get fully backfilled.
-            let maxEntries = 100
-
             var newEntry = randomSource
             var index = self.gapStartIndex
-            var count = 0
-            while count < maxEntries {
+            var count = UInt64(0)
+            while count < self.maxEntriesPerCall {
                 // move to the next empty entry
                 while index < arrayLength && RandomBeaconHistory.randomSourceHistory[index] != [] {
                     index = index + 1
@@ -170,6 +170,18 @@ access(all) contract RandomBeaconHistory {
                 index = index + 1
             }
             self.gapStartIndex = index
+        }
+
+        access(all) fun setMaxEntriesPerCall(max: UInt64) {
+            assert (
+                max > 0,
+                message : "the maximum entry per call must be strictly positive"
+            )
+            self.maxEntriesPerCall = max
+        }
+
+        access(all) fun getMaxEntriesPerCall() : UInt64 {
+            return self.maxEntriesPerCall
         }
     }
 
@@ -294,7 +306,7 @@ access(all) contract RandomBeaconHistory {
     }
 
     /// Getter for the contract's Backfiller resource
-    access(self) fun borrowBackfiller(): &Backfiller? {
+    access(all) fun borrowBackfiller(): &Backfiller? {
         return self.account.borrow<&Backfiller>(from: /storage/randomBeaconHistoryBackfiller)
     }
 
