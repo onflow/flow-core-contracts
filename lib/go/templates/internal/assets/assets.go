@@ -240,9 +240,11 @@
 // quorumCertificate/scripts/get_voter_is_registered.cdc (198B)
 // quorumCertificate/scripts/get_voting_completed.cdc (187B)
 // quorumCertificate/submit_vote.cdc (584B)
+// randomBeaconHistory/scripts/get_backfiller_max_entries.cdc (211B)
 // randomBeaconHistory/scripts/get_latest_source_of_randomness.cdc (200B)
 // randomBeaconHistory/scripts/get_source_of_randomness.cdc (305B)
 // randomBeaconHistory/scripts/get_source_of_randomness_page.cdc (326B)
+// randomBeaconHistory/transactions/set_backfiller_max_entries.cdc (356B)
 // stakingCollection/close_stake.cdc (758B)
 // stakingCollection/create_machine_account.cdc (1.152kB)
 // stakingCollection/create_new_tokenholder_acct.cdc (2.95kB)
@@ -5163,6 +5165,26 @@ func quorumcertificateSubmit_voteCdc() (*asset, error) {
 	return a, nil
 }
 
+var _randombeaconhistoryScriptsGet_backfiller_max_entriesCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\xcd\xc1\x8a\xc2\x30\x10\xc6\xf1\x7b\x9e\x62\xc8\x29\xb9\xf4\xb4\xec\x61\x61\x29\x74\x59\xd0\x83\x50\x04\x1f\x60\x1a\xa7\x25\x38\x99\x94\x49\x8a\x8a\xf8\xee\x82\x82\xf4\xe0\xf5\xe3\xcf\xef\x8b\x69\xce\x5a\xc1\xee\x51\x8e\x39\x75\x84\x21\xcb\x26\x96\x9a\xf5\x6a\x8d\xc1\x10\xa8\x14\x87\xcc\x1e\xc6\x45\x20\x61\x14\xe7\x7f\xe0\xb0\x95\xfa\xfd\x05\x37\x03\x00\xc0\x54\x61\xc0\x70\x1a\x23\x33\x29\xfc\xc2\x07\xab\x19\xb2\x6a\x3e\x77\xef\xcc\x79\x68\x5b\x98\x51\x62\x70\xb6\xd7\x3c\x30\x25\x78\x45\x51\xa6\x95\x67\xfd\xf3\x44\xa9\x2e\x2a\xab\xbd\x99\xa8\xee\xf0\xf2\x2f\x55\x23\x95\x9e\xf4\x0f\x99\x9d\x37\x77\xf3\x08\x00\x00\xff\xff\x71\x3e\xfc\x0b\xd3\x00\x00\x00"
+
+func randombeaconhistoryScriptsGet_backfiller_max_entriesCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_randombeaconhistoryScriptsGet_backfiller_max_entriesCdc,
+		"randomBeaconHistory/scripts/get_backfiller_max_entries.cdc",
+	)
+}
+
+func randombeaconhistoryScriptsGet_backfiller_max_entriesCdc() (*asset, error) {
+	bytes, err := randombeaconhistoryScriptsGet_backfiller_max_entriesCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "randomBeaconHistory/scripts/get_backfiller_max_entries.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xab, 0x59, 0x4e, 0x66, 0x58, 0x7f, 0x61, 0xe2, 0xac, 0x64, 0x2, 0x2a, 0x1c, 0x6e, 0x88, 0xa9, 0x89, 0xe6, 0x5b, 0xaf, 0x65, 0x91, 0xaf, 0x10, 0x76, 0xe4, 0x7a, 0x92, 0x15, 0xf1, 0xb3, 0x4}}
+	return a, nil
+}
+
 var _randombeaconhistoryScriptsGet_latest_source_of_randomnessCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x8d\xb1\xae\x83\x30\x0c\x45\xf7\x7c\xc5\x15\x13\x19\x1e\xd2\x5b\x19\xe9\xc2\x56\xa9\xfd\x82\x28\x35\x10\x15\xec\xca\x71\x86\xaa\xea\xbf\x57\x84\x15\x8f\xf7\x9c\x23\xa7\xed\x25\x6a\x68\x6e\x81\x1f\xb2\x0d\x14\xa2\xf0\x98\xb2\x89\xbe\x1b\xe7\x42\x8c\x94\x73\x1b\xd6\xd5\x63\x2a\x8c\x2d\x24\x6e\x7d\x8f\x13\xbb\x3b\xb6\xbb\x14\x8d\x84\x8f\x03\x00\x25\x2b\xca\xa7\x76\xae\xde\x75\x3a\x18\xef\x5f\x6a\xb2\x5f\xb0\x61\x95\xf8\x1c\x29\xcd\x8b\xf5\x98\xc9\x2e\x45\x95\xf8\x98\x5b\xdf\x2d\x95\xe0\x0f\xff\xb5\xf1\xee\xeb\x7e\x01\x00\x00\xff\xff\xf0\x98\xc8\x29\xc8\x00\x00\x00"
 
 func randombeaconhistoryScriptsGet_latest_source_of_randomnessCdcBytes() ([]byte, error) {
@@ -5220,6 +5242,26 @@ func randombeaconhistoryScriptsGet_source_of_randomness_pageCdc() (*asset, error
 
 	info := bindataFileInfo{name: "randomBeaconHistory/scripts/get_source_of_randomness_page.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x56, 0xbb, 0xca, 0xd1, 0xca, 0xd5, 0xe, 0xe7, 0x65, 0x55, 0x6f, 0xbe, 0x6a, 0xc9, 0xb8, 0xc5, 0x74, 0x73, 0x5c, 0x48, 0xf8, 0xbe, 0xf8, 0x38, 0xf2, 0xa7, 0xc4, 0x61, 0x34, 0x67, 0xc0, 0x61}}
+	return a, nil
+}
+
+var _randombeaconhistoryTransactionsSet_backfiller_max_entriesCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x90\xc1\x4a\x03\x41\x10\x44\xef\xf3\x15\xc5\x1e\x64\xf7\x92\x5c\xc4\xc3\xa2\x86\x24\x08\x7a\x10\x44\xf0\x03\x3a\x93\x8e\x0e\xce\x4e\x2f\x3d\xbd\xa8\x48\xfe\x5d\xc6\xe0\xac\xa0\x75\x7e\xaf\xab\xa9\x30\x8c\xa2\x86\xe6\x91\xd2\x5e\x86\x0d\x93\x97\x74\x1b\xb2\x89\x7e\x34\xce\x99\x52\xca\xe4\x2d\x48\x6a\x07\x7a\xbf\x49\xa6\x81\x73\x8f\xa7\xbb\x64\x17\xe7\x1d\x3e\x1d\x00\x8c\xca\x23\x29\xb7\xe4\xbd\xf5\x58\x4f\xf6\xb2\xf6\x5e\xa6\x64\x3f\x40\x49\x64\xc3\x8e\xfc\xeb\x21\xc4\xc8\x8a\x2b\x14\x7a\xb1\x13\x55\x79\xbb\x3c\xfb\xa7\x7e\xb1\xa9\xf4\x75\x5b\xcf\x94\x1c\x54\x86\x1e\xcb\x42\xd1\x33\x2f\xf5\xaf\x3b\xab\x55\xec\xb0\x5a\x61\xa4\x14\x7c\xdb\x6c\x65\x8a\x7b\x24\x31\x9c\xfa\x7f\x3f\xa6\x9c\x65\x52\xcf\x4d\xf7\xad\x56\x7f\x46\x16\x99\xed\xbe\x8e\xf1\xc0\xba\xa5\x18\xcb\x3c\x3d\xe6\x8d\xba\x93\x79\x84\x3b\xba\xaf\x00\x00\x00\xff\xff\xc6\xa9\x1e\xdb\x64\x01\x00\x00"
+
+func randombeaconhistoryTransactionsSet_backfiller_max_entriesCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_randombeaconhistoryTransactionsSet_backfiller_max_entriesCdc,
+		"randomBeaconHistory/transactions/set_backfiller_max_entries.cdc",
+	)
+}
+
+func randombeaconhistoryTransactionsSet_backfiller_max_entriesCdc() (*asset, error) {
+	bytes, err := randombeaconhistoryTransactionsSet_backfiller_max_entriesCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "randomBeaconHistory/transactions/set_backfiller_max_entries.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x25, 0xe9, 0x54, 0x5f, 0x52, 0xc7, 0xdd, 0xf5, 0x86, 0x1, 0xa7, 0x3a, 0xc7, 0x64, 0x11, 0x66, 0xea, 0x37, 0xb, 0xc1, 0x14, 0x60, 0xf3, 0x46, 0x7b, 0x3a, 0x44, 0x81, 0x31, 0xb2, 0x58, 0xa7}}
 	return a, nil
 }
 
@@ -6574,9 +6616,11 @@ var _bindata = map[string]func() (*asset, error){
 	"quorumCertificate/scripts/get_voter_is_registered.cdc":                       quorumcertificateScriptsGet_voter_is_registeredCdc,
 	"quorumCertificate/scripts/get_voting_completed.cdc":                          quorumcertificateScriptsGet_voting_completedCdc,
 	"quorumCertificate/submit_vote.cdc":                                           quorumcertificateSubmit_voteCdc,
+	"randomBeaconHistory/scripts/get_backfiller_max_entries.cdc":                  randombeaconhistoryScriptsGet_backfiller_max_entriesCdc,
 	"randomBeaconHistory/scripts/get_latest_source_of_randomness.cdc":             randombeaconhistoryScriptsGet_latest_source_of_randomnessCdc,
 	"randomBeaconHistory/scripts/get_source_of_randomness.cdc":                    randombeaconhistoryScriptsGet_source_of_randomnessCdc,
 	"randomBeaconHistory/scripts/get_source_of_randomness_page.cdc":               randombeaconhistoryScriptsGet_source_of_randomness_pageCdc,
+	"randomBeaconHistory/transactions/set_backfiller_max_entries.cdc":             randombeaconhistoryTransactionsSet_backfiller_max_entriesCdc,
 	"stakingCollection/close_stake.cdc":                                           stakingcollectionClose_stakeCdc,
 	"stakingCollection/create_machine_account.cdc":                                stakingcollectionCreate_machine_accountCdc,
 	"stakingCollection/create_new_tokenholder_acct.cdc":                           stakingcollectionCreate_new_tokenholder_acctCdc,
@@ -6970,9 +7014,13 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	}},
 	"randomBeaconHistory": {nil, map[string]*bintree{
 		"scripts": {nil, map[string]*bintree{
+			"get_backfiller_max_entries.cdc": {randombeaconhistoryScriptsGet_backfiller_max_entriesCdc, map[string]*bintree{}},
 			"get_latest_source_of_randomness.cdc": {randombeaconhistoryScriptsGet_latest_source_of_randomnessCdc, map[string]*bintree{}},
 			"get_source_of_randomness.cdc": {randombeaconhistoryScriptsGet_source_of_randomnessCdc, map[string]*bintree{}},
 			"get_source_of_randomness_page.cdc": {randombeaconhistoryScriptsGet_source_of_randomness_pageCdc, map[string]*bintree{}},
+		}},
+		"transactions": {nil, map[string]*bintree{
+			"set_backfiller_max_entries.cdc": {randombeaconhistoryTransactionsSet_backfiller_max_entriesCdc, map[string]*bintree{}},
 		}},
 	}},
 	"stakingCollection": {nil, map[string]*bintree{

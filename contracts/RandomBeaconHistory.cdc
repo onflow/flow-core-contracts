@@ -73,7 +73,7 @@ access(all) contract RandomBeaconHistory {
             let backfiller = RandomBeaconHistory.borrowBackfiller() ?? panic("Problem borrowing backfiller")
 
             // next index to fill with the new random source
-            // so that evetually randomSourceHistory[nextIndex] = inputRandom
+            // so that eventually randomSourceHistory[nextIndex] = inputRandom
             let nextIndex = currentBlockHeight - RandomBeaconHistory.lowestHeight!
 
             // cash the array length in a local variable to avoid multiple calls to `length`
