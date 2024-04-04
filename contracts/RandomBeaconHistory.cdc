@@ -150,6 +150,8 @@ access(all) contract RandomBeaconHistory {
                     break
                 }
                 // back fill the empty entry
+                // It is guaranteed that sha3 output (256 bits) is larger than the minimum
+                // required size of an SoR (128 bits)
                 newEntry = HashAlgorithm.SHA3_256.hash(newEntry)
                 RandomBeaconHistory.randomSourceHistory[index] = newEntry
                 index = index + 1
