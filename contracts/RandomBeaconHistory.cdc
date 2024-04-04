@@ -76,24 +76,30 @@ access(all) contract RandomBeaconHistory {
             // so that evetually randomSourceHistory[nextIndex] = inputRandom
             let nextIndex = currentBlockHeight - RandomBeaconHistory.lowestHeight!
 
+            // cash the array length in a local variable to avoid multiple calls to `length`
+            // when the array is too large
+            var arrayLength = UInt64(RandomBeaconHistory.randomSourceHistory.length)
+
             // if a gap is detected, emit an event
-            if nextIndex > UInt64(RandomBeaconHistory.randomSourceHistory.length) {
-                let gapStartHeight = RandomBeaconHistory.lowestHeight! + UInt64(RandomBeaconHistory.randomSourceHistory.length)
+            if nextIndex > arrayLength {
+                let gapStartHeight = RandomBeaconHistory.lowestHeight! + arrayLength
                 emit RandomHistoryMissing(blockHeight: currentBlockHeight, gapStartHeight: gapStartHeight)
             }
 
             // If a new gap is detected in the current transaction, fill the gap with empty entries.
             // This happens in the rare case where a new gap occurs because of a system transaction failure.
-            while nextIndex > UInt64(RandomBeaconHistory.randomSourceHistory.length) {
+            while nextIndex > arrayLength {
                 RandomBeaconHistory.randomSourceHistory.append([])
+                arrayLength = arrayLength + 1
             }
 
             // we are now at the correct index to record the source of randomness
             // created by the protocol for the current block
             RandomBeaconHistory.randomSourceHistory.append(randomSourceHistory)
+            arrayLength = arrayLength + 1
 
             // check for any existing gap and backfill using the input random source if needed.
-            backfiller.backfill(randomSource: randomSourceHistory)
+            backfiller.backfill(randomSource: randomSourceHistory, arrayLength: arrayLength)
         }
     }
 
@@ -128,8 +134,7 @@ access(all) contract RandomBeaconHistory {
         //
         /// gaps only occur in the rare event of a system transaction failure. In this case, entries are still
         /// filled using a source not known at the time of block execution, which guarantees unpredicatability.
-        access(contract) fun backfill(randomSource: [UInt8]) {
-            let arrayLength = UInt64(RandomBeaconHistory.randomSourceHistory.length)
+        access(contract) fun backfill(randomSource: [UInt8], arrayLength: UInt64) {
             // optional optimization for the happy common path: if no gaps are detected, 
             // backfilling isn't needed, return early
             if self.gapStartIndex + 1 == arrayLength {
