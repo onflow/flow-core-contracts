@@ -258,7 +258,7 @@ fun testGetBackfilledSource() {
     )
     Test.expect(txResult, Test.beSucceeded())
 
-    // make sure latest source got recorded as exptected
+    // make sure latest source got recorded as expected
     Test.commitBlock()
     let atBlockHeight: UInt64 = getCurrentBlockHeight() - 1
     let scriptResult = executeScript(
@@ -266,10 +266,12 @@ fun testGetBackfilledSource() {
         [atBlockHeight]
     )
     Test.expect(scriptResult, Test.beSucceeded())
+        
 
     let randomSource = scriptResult.returnValue! as! RandomBeaconHistory.RandomSource
     Test.assertEqual(atBlockHeight, randomSource.blockHeight)
     Test.assertEqual(value, randomSource.value)
+     
 
     // check the gap and make sure it got backfilled
     let gapStartHeight = RandomBeaconHistory.getLowestHeight() + 2 // skip the 2 recorded entries
