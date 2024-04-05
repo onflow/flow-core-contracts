@@ -72,22 +72,8 @@ access(all) contract RandomBeaconHistory {
             }
             let backfiller = RandomBeaconHistory.borrowBackfiller() ?? panic("Problem borrowing backfiller")
 
-            // correct index to fill with the new random source
-            // so that eventually randomSourceHistory[correctIndex] = inputRandom
-            let correctIndex = currentBlockHeight - RandomBeaconHistory.lowestHeight!
-
-            // cache the array length in a local variable to avoid multiple calls to `length`
-            // when the array is too large
-            var arrayLength = UInt64(RandomBeaconHistory.randomSourceHistory.length)
-
-            // if a new gap is detected, emit an event
-            if correctIndex > arrayLength {
-                let gapStartHeight = RandomBeaconHistory.lowestHeight! + arrayLength
-                emit RandomHistoryMissing(blockHeight: currentBlockHeight, gapStartHeight: gapStartHeight)
-            }
-
             // check for any existing gap and backfill using the input random source if needed.
-            backfiller.backfill(randomSource: randomSourceHistory, currentArrayLength: arrayLength, correctIndex: correctIndex)
+            backfiller.backfill(randomSource: randomSourceHistory)
 
             // we are now at the correct index to record the source of randomness
             // created by the protocol for the current block
@@ -116,6 +102,40 @@ access(all) contract RandomBeaconHistory {
             self.maxEntriesPerCall = 100
         }
 
+        access(all) view fun getMaxEntriesPerCall() : UInt64 {
+            return self.maxEntriesPerCall
+        }
+
+        access(all) fun setMaxEntriesPerCall(max: UInt64) {
+            assert (
+                max > 0,
+                message : "the maximum entry per call must be strictly positive"
+            )
+            self.maxEntriesPerCall = max
+        }
+
+        /// Finds the correct index to fill with the new random source. If a gap is detected, emits the 
+        /// RandomHistoryMissing event.
+        ///
+        access(contract) view fun findGapAndReturnCorrectIndex(): UInt64 {
+
+            let currentBlockHeight = getCurrentBlock().height
+            // correct index to fill with the new random source
+            // so that eventually randomSourceHistory[correctIndex] = inputRandom
+            let correctIndex = currentBlockHeight - RandomBeaconHistory.lowestHeight!
+
+            // cache the array length in a local variable to avoid multiple calls to `length`
+            // when the array is too large
+            var arrayLength = UInt64(RandomBeaconHistory.randomSourceHistory.length)
+
+            // if a new gap is detected, emit an event
+            if correctIndex > arrayLength {
+                let gapStartHeight = RandomBeaconHistory.lowestHeight! + arrayLength
+                emit RandomHistoryMissing(blockHeight: currentBlockHeight, gapStartHeight: gapStartHeight)
+            }
+            return correctIndex
+        }
+
         /// Backfills possible empty entries (gaps) in the history array starting from the stored `gapStartIndex`,
         /// using `randomSource` as a seed for all entries.
         /// If there are no gaps, `gapStartIndex` is just updated to `RandomBeaconHistory`'s length.
@@ -126,17 +146,18 @@ access(all) contract RandomBeaconHistory {
         //
         /// gaps only occur in the rare event of a system transaction failure. In this case, entries are still
         /// filled using a source not known at the time of block execution, which guarantees unpredicatability.
-        access(contract) fun backfill(randomSource: [UInt8], currentArrayLength: UInt64, correctIndex: UInt64) {
+        access(contract) fun backfill(randomSource: [UInt8]) {
+
+            let correctIndex = self.findGapAndReturnCorrectIndex()
+            var arrayLength = UInt64(RandomBeaconHistory.randomSourceHistory.length)
             // optional optimization for the happy common path: if no gaps are detected, 
             // backfilling isn't needed, return early
             if correctIndex == self.gapStartIndex  {
-                self.gapStartIndex = currentArrayLength + 1
-                return
+                self.gapStartIndex = arrayLength + 1
             }
 
             // If a new gap is detected in the current transaction, fill the gap with empty entries.
             // This happens in the rare case where a new gap occurs because of a system transaction failure.
-            var arrayLength = currentArrayLength
             while correctIndex > arrayLength {
                 RandomBeaconHistory.randomSourceHistory.append([])
                 arrayLength = arrayLength + 1
@@ -144,14 +165,14 @@ access(all) contract RandomBeaconHistory {
 
             var newEntry = randomSource
             var index = self.gapStartIndex
-            var count = UInt64(0)
+            var count = 0 as UInt64
             while count < self.maxEntriesPerCall {
                 // move to the next empty entry
                 while index < arrayLength && RandomBeaconHistory.randomSourceHistory[index] != [] {
                     index = index + 1
                 }
                 // if we reach the end of the array then all existing gaps got filled
-                if index == arrayLength {
+                if index >= arrayLength {
                     break
                 }
                 // back fill the empty entry
@@ -180,18 +201,6 @@ access(all) contract RandomBeaconHistory {
                 index = index + 1   // take into account the upcoming append of the SoR at the correct index
             }
             self.gapStartIndex = index
-        }
-
-        access(all) fun setMaxEntriesPerCall(max: UInt64) {
-            assert (
-                max > 0,
-                message : "the maximum entry per call must be strictly positive"
-            )
-            self.maxEntriesPerCall = max
-        }
-
-        access(all) fun getMaxEntriesPerCall() : UInt64 {
-            return self.maxEntriesPerCall
         }
     }
 
