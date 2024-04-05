@@ -154,6 +154,7 @@ access(all) contract RandomBeaconHistory {
             // backfilling isn't needed, return early
             if correctIndex == self.gapStartIndex  {
                 self.gapStartIndex = arrayLength + 1
+                return
             }
 
             // If a new gap is detected in the current transaction, fill the gap with empty entries.
@@ -172,7 +173,7 @@ access(all) contract RandomBeaconHistory {
                     index = index + 1
                 }
                 // if we reach the end of the array then all existing gaps got filled
-                if index >= arrayLength {
+                if index == arrayLength {
                     break
                 }
                 // back fill the empty entry
