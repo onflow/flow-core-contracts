@@ -288,7 +288,7 @@ access(all) contract NodeVersionBeacon {
 
         /// Adds a pending protocol state version upgrade, which will be emitted
         /// as a service event during the next heartbeat.
-        pub fun setPendingProtocolStateVersionUpgrade(newProtocolVersion: UInt64, activeView: UInt64) {
+        access(all) fun setPendingProtocolStateVersionUpgrade(newProtocolVersion: UInt64, activeView: UInt64) {
             let pendingUpgrade = NodeVersionBeacon.ViewActivatedVersion(version: newProtocolVersion, activeView: activeView)
             NodeVersionBeacon.storePendingProtocolStateVersionUpgrade(upgrade: pendingUpgrade)
         }
@@ -526,9 +526,9 @@ access(all) contract NodeVersionBeacon {
 
     /// ViewActivatedVersion stores a version and a view. It indicates a version upgrade
     /// so that `version` will become active at view `activeView`.
-    pub struct ViewActivatedVersion {
-        pub let version: UInt64
-        pub let activeView: UInt64
+    access(all) struct ViewActivatedVersion {
+        access(all) let version: UInt64
+        access(all) let activeView: UInt64
 
         init(version: UInt64, activeView: UInt64) {
             self.version = version
@@ -541,24 +541,24 @@ access(all) contract NodeVersionBeacon {
     /// after this service event is sealed, and after view `activeView` is entered.
     /// Nodes running a software version which does not support `newProtocolVersion`
     /// will stop processing new blocks when they reach view `activeAtView`.
-    pub event ProtocolStateVersionUpgrade(newProtocolVersion: UInt64, activeView: UInt64)
+    access(all) event ProtocolStateVersionUpgrade(newProtocolVersion: UInt64, activeView: UInt64)
 
     /// Removes the pending ProtocolStateVersionUpgrade from storage and returns it.
     /// If no ProtocolStateVersionUpgrade was in storage, returns nil.
     access(contract) fun popPendingProtocolStateVersionUpgrade(): ViewActivatedVersion? {
-        return self.account.load<ViewActivatedVersion>(from: /storage/PendingProtocolStateVersionUpgrade)
+        return self.account.storage.load<ViewActivatedVersion>(from: /storage/PendingProtocolStateVersionUpgrade)
     }
 
     /// Reads the pending ProtocolStateVersionUpgrade from storage, without removing it, and returns it.
     /// If no ProtocolStateVersionUpgrade was in storage, returns nil.
-    pub fun peekPendingProtocolStateVersionUpgrade(): ViewActivatedVersion? {
-        return self.account.copy<ViewActivatedVersion>(from: /storage/PendingProtocolStateVersionUpgrade)
+    access(all) fun peekPendingProtocolStateVersionUpgrade(): ViewActivatedVersion? {
+        return self.account.storage.copy<ViewActivatedVersion>(from: /storage/PendingProtocolStateVersionUpgrade)
     }
 
     /// Stores the pending ProtocolStateVersionUpgrade to storage.
     /// No ProtocolStateVersionUpgrade may already be stored, otherwise the transaction will revert.
     access(contract) fun storePendingProtocolStateVersionUpgrade(upgrade: ViewActivatedVersion) {
-        self.account.save<ViewActivatedVersion>(upgrade, to: /storage/PendingProtocolStateVersionUpgrade)
+        self.account.storage.save<ViewActivatedVersion>(upgrade, to: /storage/PendingProtocolStateVersionUpgrade)
     }
 
     init(versionUpdateFreezePeriod: UInt64) {
