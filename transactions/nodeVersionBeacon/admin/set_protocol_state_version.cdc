@@ -1,4 +1,4 @@
-import NodeVersionBeacon from 0xNODEVERSIONBEACONADDRESS
+import NodeVersionBeacon from "NodeVersionBeacon"
 
 /// Transaction that allows NodeVersionAdmin to specify a new protocol state version.
 /// The new version will become active at view `activeView` if the service event
@@ -10,9 +10,9 @@ transaction(newProtocolVersion: UInt64, activeView: UInt64) {
 
   let adminRef: &NodeVersionBeacon.Admin
 
-  prepare(acct: AuthAccount) {
+  prepare(acct: auth(BorrowValue) &Account) {
     // Borrow a reference to the NodeVersionAdmin implementing resource
-    self.adminRef = acct.borrow<&NodeVersionBeacon.Admin>(from: NodeVersionBeacon.AdminStoragePath)
+    self.adminRef = acct.storage.borrow<&NodeVersionBeacon.Admin>(from: NodeVersionBeacon.AdminStoragePath)
       ?? panic("Couldn't borrow NodeVersionBeacon.Admin Resource")
   }
 
