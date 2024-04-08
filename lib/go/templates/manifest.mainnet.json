@@ -4,7 +4,7 @@
     {
       "id": "FA.01",
       "name": "Create Account",
-      "source": "import Crypto\n\ntransaction(key: String, signatureAlgorithm: UInt8, hashAlgorithm: UInt8, weight: UFix64) {\n\tprepare(signer: auth(BorrowValue, Storage) \u0026Account) {\n\t\tpre {\n\t\t\tsignatureAlgorithm \u003e= 1 \u0026\u0026 signatureAlgorithm \u003c= 3: \"Must provide a signature algoritm raw value that is 1, 2, or 3\"\n\t\t\thashAlgorithm \u003e= 1 \u0026\u0026 hashAlgorithm \u003c= 6: \"Must provide a hash algoritm raw value that is between 1 and 6\"\n\t\t\tweight \u003c= 1000.0: \"The key weight must be between 0 and 1000\"\n\t\t}\n\n\t\tlet publicKey = PublicKey(\n\t\t\tpublicKey: key.decodeHex(),\n\t\t\tsignatureAlgorithm: SignatureAlgorithm(rawValue: signatureAlgorithm)!\n\t\t)\n\n\t\tlet account = Account(payer: signer)\n\n\t\taccount.keys.add(publicKey: publicKey, hashAlgorithm: HashAlgorithm(rawValue: hashAlgorithm)!, weight: weight)\n\t}\n}",
+      "source": "import Crypto\n\ntransaction(key: String, signatureAlgorithm: UInt8, hashAlgorithm: UInt8, weight: UFix64) {\n\tprepare(signer: auth(BorrowValue, Storage) \u0026Account) {\n\t\tpre {\n\t\t\tsignatureAlgorithm \u003e= 1 \u0026\u0026 signatureAlgorithm \u003c= 3: \"Must provide a signature algorithm raw value that is 1, 2, or 3\"\n\t\t\thashAlgorithm \u003e= 1 \u0026\u0026 hashAlgorithm \u003c= 6: \"Must provide a hash algorithm raw value that is between 1 and 6\"\n\t\t\tweight \u003c= 1000.0: \"The key weight must be between 0 and 1000\"\n\t\t}\n\n\t\tlet publicKey = PublicKey(\n\t\t\tpublicKey: key.decodeHex(),\n\t\t\tsignatureAlgorithm: SignatureAlgorithm(rawValue: signatureAlgorithm)!\n\t\t)\n\n\t\tlet account = Account(payer: signer)\n\n\t\taccount.keys.add(publicKey: publicKey, hashAlgorithm: HashAlgorithm(rawValue: hashAlgorithm)!, weight: weight)\n\t}\n}",
       "arguments": [
         {
           "type": "String",
@@ -52,12 +52,12 @@
         }
       ],
       "network": "mainnet",
-      "hash": "63d8b6a045bf8e6196198184db685c2cf22932503ccb2dcb85c7d2dc04c882ba"
+      "hash": "c4a7efd8708396e8c7a3611f72a9f89f675bf6d5c9336dd389e5839cba78443c"
     },
     {
       "id": "FA.02",
       "name": "Add Key",
-      "source": "import Crypto\n\ntransaction(key: String, signatureAlgorithm: UInt8, hashAlgorithm: UInt8, weight: UFix64) {\n\n\tprepare(signer: auth(AddKey) \u0026Account) {\n\t\tpre {\n\t\t\tsignatureAlgorithm \u003e= 1 \u0026\u0026 signatureAlgorithm \u003c= 3: \"Must provide a signature algoritm raw value that is 1, 2, or 3\"\n\t\t\thashAlgorithm \u003e= 1 \u0026\u0026 hashAlgorithm \u003c= 6: \"Must provide a hash algoritm raw value that is between 1 and 6\"\n\t\t\tweight \u003c= 1000.0: \"The key weight must be between 0 and 1000\"\n\t\t}\n\t\tlet publicKey = PublicKey(\n\t\t\tpublicKey: key.decodeHex(),\n\t\t\tsignatureAlgorithm: SignatureAlgorithm(rawValue: signatureAlgorithm)!\n\t\t)\n\n\t\tsigner.keys.add(publicKey: publicKey, hashAlgorithm: HashAlgorithm(rawValue: hashAlgorithm)!, weight: weight)\n\t}\n}",
+      "source": "import Crypto\n\ntransaction(key: String, signatureAlgorithm: UInt8, hashAlgorithm: UInt8, weight: UFix64) {\n\n\tprepare(signer: auth(AddKey) \u0026Account) {\n\t\tpre {\n\t\t\tsignatureAlgorithm \u003e= 1 \u0026\u0026 signatureAlgorithm \u003c= 3: \"Must provide a signature algorithm raw value that is 1, 2, or 3\"\n\t\t\thashAlgorithm \u003e= 1 \u0026\u0026 hashAlgorithm \u003c= 6: \"Must provide a hash algorithm raw value that is between 1 and 6\"\n\t\t\tweight \u003c= 1000.0: \"The key weight must be between 0 and 1000\"\n\t\t}\n\t\tlet publicKey = PublicKey(\n\t\t\tpublicKey: key.decodeHex(),\n\t\t\tsignatureAlgorithm: SignatureAlgorithm(rawValue: signatureAlgorithm)!\n\t\t)\n\n\t\tsigner.keys.add(publicKey: publicKey, hashAlgorithm: HashAlgorithm(rawValue: hashAlgorithm)!, weight: weight)\n\t}\n}",
       "arguments": [
         {
           "type": "String",
@@ -105,7 +105,7 @@
         }
       ],
       "network": "mainnet",
-      "hash": "21d4e87df171ccbe015efe69dc2ffd24814c5fc0f2e364daf5c80515ce4a8bd9"
+      "hash": "1c9d1210f2bf129b86803b153e137420c9117e8a2409a1e2ef6f916a4e8d611f"
     },
     {
       "id": "FA.03",
