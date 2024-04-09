@@ -124,11 +124,8 @@ access(all) contract RandomBeaconHistory {
             // so that eventually randomSourceHistory[correctIndex] = inputRandom
             let correctIndex = currentBlockHeight - RandomBeaconHistory.lowestHeight!
 
-            // cache the array length in a local variable to avoid multiple calls to `length`
-            // when the array is too large
-            var arrayLength = UInt64(RandomBeaconHistory.randomSourceHistory.length)
-
             // if a new gap is detected, emit an event
+            var arrayLength = UInt64(RandomBeaconHistory.randomSourceHistory.length)
             if correctIndex > arrayLength {
                 let gapStartHeight = RandomBeaconHistory.lowestHeight! + arrayLength
                 emit RandomHistoryMissing(blockHeight: currentBlockHeight, gapStartHeight: gapStartHeight)
@@ -326,7 +323,7 @@ access(all) contract RandomBeaconHistory {
     }
 
     /// Getter for the contract's Backfiller resource
-    access(all) fun borrowBackfiller(): &Backfiller? {
+    access(contract) fun borrowBackfiller(): &Backfiller? {
         return self.account.borrow<&Backfiller>(from: /storage/randomBeaconHistoryBackfiller)
     }
 

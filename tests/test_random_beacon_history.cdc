@@ -3,6 +3,7 @@ import BlockchainHelpers
 import "RandomBeaconHistory"
 
 access(all) let admin = Test.getAccount(0x0000000000000007)
+access(all) let defaultBackfillerMax = UInt64(100)
 
 access(all)
 fun setup() {
@@ -69,6 +70,15 @@ fun testRecordRandomSource() {
         admin
     )
     Test.expect(txResult, Test.beSucceeded())
+    // get backfiller max entries 
+    let scriptResult = executeScript(
+        "../transactions/randomBeaconHistory/scripts/get_backfiller_max_entries.cdc",
+        [admin.address]
+    )
+    Test.expect(scriptResult, Test.beSucceeded())
+    let resultBackfillerMax = scriptResult.returnValue! as! UInt64
+    Test.assertEqual(defaultBackfillerMax, resultBackfillerMax)
+
 }
 
 // At this point the history array has 1 entry
@@ -291,6 +301,20 @@ fun testGetBackfilledSource() {
         Test.assertEqual(value, randomSource.value)
         i = i + 1
     }
+
+    // Confirm event values
+    let missingEvents = Test.eventsOfType(Type<RandomBeaconHistory.RandomHistoryMissing>())
+    Test.assertEqual(1, missingEvents.length)
+    let missingEvent = missingEvents[0] as! RandomBeaconHistory.RandomHistoryMissing
+    Test.assertEqual(atBlockHeight, missingEvent.blockHeight)
+    Test.assertEqual(gapStartHeight, missingEvent.gapStartHeight)
+
+    let backfilledEvents = Test.eventsOfType(Type<RandomBeaconHistory.RandomHistoryBackfilled>())
+    Test.assertEqual(1, backfilledEvents.length)
+    let backfilledEvent = backfilledEvents[0] as! RandomBeaconHistory.RandomHistoryBackfilled
+    Test.assertEqual(atBlockHeight, backfilledEvent.blockHeight)
+    Test.assertEqual(gapStartHeight, backfilledEvent.gapStartHeight)
+    Test.assertEqual(UInt64(90), backfilledEvent.count)
 }
 
 // At this point the history array has 2+90+1 = 93 entries and no gaps
@@ -470,8 +494,14 @@ access(all)
 fun testBackfillerMaxEntryPerCall() {
     // reset the blockchain state back to the lowest height (1 SoR entry)
     Test.reset(to: RandomBeaconHistory.getLowestHeight())
-    let backfiller = RandomBeaconHistory.borrowBackfiller()
-    Test.assertEqual(backfiller, nil)
+    // get backfiller max entries 
+    var scriptResult = executeScript(
+        "../transactions/randomBeaconHistory/scripts/get_backfiller_max_entries.cdc",
+        [admin.address]
+    )
+    Test.expect(scriptResult, Test.beSucceeded())
+    var resultBackfillerMax = scriptResult.returnValue! as! UInt64
+    Test.assertEqual(defaultBackfillerMax, resultBackfillerMax)
 
     let randomSource: [UInt8] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 3, 5, 8] 
     // this creates a backfiller
@@ -490,13 +520,13 @@ fun testBackfillerMaxEntryPerCall() {
     )
     Test.expect(txResult, Test.beSucceeded())
     // get backfiller max entries 
-    let scriptResult = executeScript(
+    scriptResult = executeScript(
         "../transactions/randomBeaconHistory/scripts/get_backfiller_max_entries.cdc",
-        []
+        [admin.address]
     )
     Test.expect(scriptResult, Test.beSucceeded())
-    let resultBackfillerMax = scriptResult.returnValue! as! UInt64
-    Test.assertEqual(resultBackfillerMax, newBackfillerMax)
+    resultBackfillerMax = scriptResult.returnValue! as! UInt64
+    Test.assertEqual(resultBackfillerMax!, newBackfillerMax)
     // invalid backfiller max entries
     txResult = executeTransaction(   
         "../transactions/randomBeaconHistory/transactions/set_backfiller_max_entries.cdc",
