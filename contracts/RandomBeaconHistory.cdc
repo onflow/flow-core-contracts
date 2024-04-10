@@ -55,7 +55,7 @@ access(all) contract RandomBeaconHistory {
         ///
         access(all) fun heartbeat(randomSourceHistory: [UInt8]) {
 
-            assert (
+            assert(
                 // random source must be at least 128 bits
                 randomSourceHistory.length >= 128 / 8,
                 message: "Random source must be at least 128 bits"
@@ -107,9 +107,9 @@ access(all) contract RandomBeaconHistory {
         }
 
         access(all) fun setMaxEntriesPerCall(max: UInt64) {
-            assert (
+            assert(
                 max > 0,
-                message : "the maximum entry per call must be strictly positive"
+                message: "the maximum entry per call must be strictly positive"
             )
             self.maxEntriesPerCall = max
         }
@@ -122,12 +122,13 @@ access(all) contract RandomBeaconHistory {
             let currentBlockHeight = getCurrentBlock().height
             // correct index to fill with the new random source
             // so that eventually randomSourceHistory[correctIndex] = inputRandom
-            let correctIndex = currentBlockHeight - RandomBeaconHistory.lowestHeight!
+            let lowestHeight = RandomBeaconHistory.lowestHeight!
+            let correctIndex = currentBlockHeight - lowestHeight
 
             // if a new gap is detected, emit an event
             var arrayLength = UInt64(RandomBeaconHistory.randomSourceHistory.length)
             if correctIndex > arrayLength {
-                let gapStartHeight = RandomBeaconHistory.lowestHeight! + arrayLength
+                let gapStartHeight = lowestHeight + arrayLength
                 emit RandomHistoryMissing(blockHeight: currentBlockHeight, gapStartHeight: gapStartHeight)
             }
             return correctIndex
@@ -166,7 +167,7 @@ access(all) contract RandomBeaconHistory {
             var count = 0 as UInt64
             while count < self.maxEntriesPerCall {
                 // move to the next empty entry
-                while index < arrayLength && RandomBeaconHistory.randomSourceHistory[index] != [] {
+                while index < arrayLength && RandomBeaconHistory.randomSourceHistory[index].length > 0 {
                     index = index + 1
                 }
                 // if we reach the end of the array then all existing gaps got filled
@@ -185,14 +186,18 @@ access(all) contract RandomBeaconHistory {
             // emit an event about backfilled entries
             if count > 0 {
                 let gapStartHeight = RandomBeaconHistory.lowestHeight! + self.gapStartIndex
-                emit RandomHistoryBackfilled(blockHeight: getCurrentBlock().height, gapStartHeight: gapStartHeight, count: count)
+                emit RandomHistoryBackfilled(
+                    blockHeight: getCurrentBlock().height,
+                    gapStartHeight: gapStartHeight,
+                    count: count
+                )
             }
 
             // no more backfilling is possible but we need to update `gapStartIndex`
             // to:
             //  - the next empty index if gaps still exist
             //  - the length of the array at the end of the transaction if there are no gaps
-            while index < arrayLength && RandomBeaconHistory.randomSourceHistory[index] != [] {
+            while index < arrayLength && RandomBeaconHistory.randomSourceHistory[index].length > 0 {
                 index = index + 1
             }
             if index == arrayLength {
@@ -256,7 +261,7 @@ access(all) contract RandomBeaconHistory {
             message: "Problem finding random source history index"
         )
         assert(
-            index < UInt64(self.randomSourceHistory.length) && self.randomSourceHistory[index] != [],
+            index < UInt64(self.randomSourceHistory.length) && self.randomSourceHistory[index].length > 0,
             message: "Source of randomness is currently not available but will be available soon"
         )
         return RandomSource(blockHeight: blockHeight, value: self.randomSourceHistory[index])
@@ -295,7 +300,7 @@ access(all) contract RandomBeaconHistory {
         let lowestHeight = self.lowestHeight!
         for i, value in self.randomSourceHistory.slice(from: Int(startIndex), upTo: Int(endIndex)) {
             assert(
-                value != [],
+                value.length > 0,
                 message: "Source of randomness is currently not available but will be available soon"
             )
             values.append(
