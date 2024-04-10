@@ -78,7 +78,6 @@ fun testRecordRandomSource() {
     Test.expect(scriptResult, Test.beSucceeded())
     let resultBackfillerMax = scriptResult.returnValue! as! UInt64
     Test.assertEqual(defaultBackfillerMax, resultBackfillerMax)
-
 }
 
 // At this point the history array has 1 entry
@@ -259,7 +258,7 @@ fun testGetBackfilledSource() {
 
     // record a new random source, which would trigger fully backfilling the gap 
     // (when the gap size is less than 100, since the contracts backfills up to 100 entries at a time)
-    assert(gapLength <= 100)
+    assert(gapLength <= defaultBackfillerMax)
     var value: [UInt8] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 3, 5, 8] 
     let txResult = executeTransaction(
         "transactions/record_random_source.cdc",
@@ -314,7 +313,7 @@ fun testGetBackfilledSource() {
     let backfilledEvent = backfilledEvents[0] as! RandomBeaconHistory.RandomHistoryBackfilled
     Test.assertEqual(atBlockHeight, backfilledEvent.blockHeight)
     Test.assertEqual(gapStartHeight, backfilledEvent.gapStartHeight)
-    Test.assertEqual(UInt64(90), backfilledEvent.count)
+    Test.assertEqual(gapLength, backfilledEvent.count)
 }
 
 // At this point the history array has 2+90+1 = 93 entries and no gaps
@@ -345,14 +344,14 @@ fun testGetPageAfterBackfilling() {
 // The next section tests an edge case where a gap is not contiguous. This happens
 // when an initial large gap doesn't get fully backfilled before another gap occurs.
 access(all)
-fun testNonContiguousGap() {
+fun testNonContiguousGaps() {
     Test.reset(to: RandomBeaconHistory.getLowestHeight())
 
     // advance blocks without recording a random source, hence creating a gap
     // in the history array. The gap is long enough so that it can't be backfilled
     // in one transaction only (gap is larger than 100)
     var gapLength = UInt64(120)
-    assert (gapLength > 100)
+    assert (gapLength > defaultBackfillerMax)
     var i = UInt64(0)
     while i < gapLength {   
         Test.commitBlock()
@@ -368,12 +367,13 @@ fun testNonContiguousGap() {
         admin
     )
     Test.expect(txResult, Test.beSucceeded())
+    var backfillingHeight = getCurrentBlockHeight()
 
     // the gap is partially backfilled
     // for `gapStartHeight` skip the 1 recorded entry and backfilled entries
-    var gapStartHeight = RandomBeaconHistory.getLowestHeight() + 100 + 1 
+    var gapStartHeight = RandomBeaconHistory.getLowestHeight() + defaultBackfillerMax + 1
     // the remaining gap after backfilling
-    gapLength = gapLength - 100
+    gapLength = gapLength - defaultBackfillerMax
 
     // check that the gap isn't fully backfilled
     // (check that the gap got backfilled was covered by an earlier test)
@@ -395,7 +395,7 @@ fun testNonContiguousGap() {
     // check that getting pages also fails in this case
     // because some entries are missing from the page
     var page: UInt64 = 0
-    var perPage: UInt64 = 100 + 5 // 5 entries are empty on the SoR array
+    var perPage: UInt64 = defaultBackfillerMax + 5 // 5 entries are empty on the SoR array
     var scriptResult = executeScript(
         "../transactions/randomBeaconHistory/scripts/get_source_of_randomness_page.cdc",
         [page, perPage]
@@ -406,9 +406,24 @@ fun testNonContiguousGap() {
         errorMessage: "Source of randomness is currently not available but will be available soon"
     )
 
-    // insert a new gap and make sure it can be all backfilled in the next transction
+    // Confirm event values
+    // There should be one event of each type
+    var missingEvents = Test.eventsOfType(Type<RandomBeaconHistory.RandomHistoryMissing>())
+    Test.assertEqual(1, missingEvents.length)
+    var missingEvent = missingEvents[0] as! RandomBeaconHistory.RandomHistoryMissing
+    Test.assertEqual(backfillingHeight, missingEvent.blockHeight)
+    Test.assertEqual(gapStartHeight - defaultBackfillerMax, missingEvent.gapStartHeight)
+
+    var backfilledEvents = Test.eventsOfType(Type<RandomBeaconHistory.RandomHistoryBackfilled>())
+    Test.assertEqual(1, backfilledEvents.length)
+    var backfilledEvent = backfilledEvents[0] as! RandomBeaconHistory.RandomHistoryBackfilled
+    Test.assertEqual(backfillingHeight, backfilledEvent.blockHeight)
+    Test.assertEqual(gapStartHeight- defaultBackfillerMax, backfilledEvent.gapStartHeight)
+    Test.assertEqual(defaultBackfillerMax, backfilledEvent.count)
+
+    // insert a new gap and make sure it can be all backfilled in the next transaction
     var newGapLength = UInt64(20)
-    assert (gapLength + newGapLength < 100)
+    assert (gapLength + newGapLength < defaultBackfillerMax)
 
     i = UInt64(0)
     while i < newGapLength {   
@@ -425,8 +440,9 @@ fun testNonContiguousGap() {
         admin
     )
     Test.expect(txResult, Test.beSucceeded())
+    backfillingHeight = getCurrentBlockHeight()
 
-    // check that both first and second gaps are not backfilled
+    // check that both first and second gap are backfilled
     i = 0
     while i < gapLength {
         let atBlockHeight = gapStartHeight + i
@@ -466,6 +482,23 @@ fun testNonContiguousGap() {
     Test.assertEqual(perPage, history.perPage)
     Test.assertEqual(totalSources, history.totalLength)
     Test.assertEqual(perPage, UInt64(history.values.length))
+
+    // Confirm event values
+
+    // There should be two events of each type
+    // the first events were already checked above - focus only on the second event of each type
+    missingEvents = Test.eventsOfType(Type<RandomBeaconHistory.RandomHistoryMissing>())
+    Test.assertEqual(2, missingEvents.length)
+    missingEvent = missingEvents[1] as! RandomBeaconHistory.RandomHistoryMissing
+    Test.assertEqual(backfillingHeight, missingEvent.blockHeight)
+    Test.assertEqual(gapStartHeight, missingEvent.gapStartHeight)
+    
+    backfilledEvents = Test.eventsOfType(Type<RandomBeaconHistory.RandomHistoryBackfilled>())
+    Test.assertEqual(2, backfilledEvents.length)
+    backfilledEvent = backfilledEvents[1] as! RandomBeaconHistory.RandomHistoryBackfilled
+    Test.assertEqual(backfillingHeight, backfilledEvent.blockHeight)
+    Test.assertEqual(gapStartHeight - gapLength - 1, backfilledEvent.gapStartHeight)
+    Test.assertEqual(gapLength + newGapLength, backfilledEvent.count)
 }
 
 // independent test from the rest (it resets the blockchain state)
