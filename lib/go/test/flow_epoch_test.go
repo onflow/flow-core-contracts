@@ -1361,3 +1361,137 @@ func TestEpochReset(t *testing.T) {
 		assertEqual(t, CadenceUFix64("249999.99300000"), result)
 	})
 }
+
+func TestEpochRecover(t *testing.T) {
+	b, _, accountKeys, env := newTestSetup(t)
+
+	// Create new keys for the epoch account
+	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
+
+	// Deploys the staking contract, qc, dkg, and epoch lifecycle contract
+	// staking contract is deployed with default values (1.25M rewards, 8% cut)
+	idTableAddress, _ := initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
+		startEpochCounter, // start epoch counter
+		numEpochViews,     // num views per epoch
+		numStakingViews,   // num views for staking auction
+		numDKGViews,       // num views for DKG phase
+		numClusters,       // num collector clusters
+		randomSource,      // random source
+		rewardIncreaseFactor)
+
+	// create new user accounts, mint tokens for them, and register them for staking
+	addresses, _, signers := registerAndMintManyAccounts(t, b, env, accountKeys, numEpochAccounts)
+	ids, _, _ := generateNodeIDs(numEpochAccounts)
+	// stakingPrivateKeys
+	_, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
+	registerNodesForStaking(t, b, env,
+		addresses,
+		signers,
+		stakingPublicKeys,
+		networkingPublicKeys,
+		ids)
+
+	// Set the approved node list
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
+
+	approvedNodeIDs := generateCadenceNodeDictionary(ids)
+	err := tx.AddArgument(approvedNodeIDs)
+	require.NoError(t, err)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]sdkcrypto.Signer{IDTableSigner},
+		false,
+	)
+
+	// Advance to epoch Setup and make sure that the epoch cannot be ended
+	advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHSETUP", false)
+
+	// Register a QC voter
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochRegisterQCVoterScript(env), addresses[0])
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{addresses[0]},
+		[]sdkcrypto.Signer{signers[0]},
+		false,
+	)
+
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochRegisterQCVoterScript(env), addresses[5])
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{addresses[5]},
+		[]sdkcrypto.Signer{signers[5]},
+		false,
+	)
+
+	// Register a DKG Participant
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochRegisterDKGParticipantScript(env), addresses[1])
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{addresses[1]},
+		[]sdkcrypto.Signer{signers[1]},
+		false,
+	)
+
+	clusterQCs := make([][]string, numClusters)
+	clusterQCs[0] = make([]string, 1)
+	clusterQCs[1] = make([]string, 1)
+
+	// collectorVoteHasher := crypto.NewExpandMsgXOFKMAC128(collectorVoteTag)
+
+	t.Run("Can recover the epoch and have everything return to normal", func(t *testing.T) {
+
+		var startView uint64 = 100
+		var stakingEndView uint64 = 120
+		var endView uint64 = 160
+
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateRecoverEpochScript(env), idTableAddress)
+		tx.AddArgument(CadenceString("stillSoRandom"))
+		tx.AddArgument(cadence.NewUInt64(startView))
+		tx.AddArgument(cadence.NewUInt64(stakingEndView))
+		tx.AddArgument(cadence.NewUInt64(endView))
+		tx.AddArgument(cadence.NewArray([]cadence.Value{})) // collectorClusters
+		tx.AddArgument(cadence.NewArray([]cadence.Value{})) // clusterQCVoteData
+
+		dkgPubKeys := []string{"pubkey_1"}
+		dkgPubKeysCdc := make([]cadence.Value, len(dkgPubKeys))
+		for i, key := range dkgPubKeys {
+			dkgPubKeysCdc[i], _ = cadence.NewString(key)
+		}
+		tx.AddArgument(cadence.NewArray(dkgPubKeysCdc))
+
+		nodeIDs := make([]cadence.Value, len(ids))
+		for i, id := range ids {
+			nodeIDs[i], _ = cadence.NewString(id)
+		}
+		tx.AddArgument(cadence.NewArray(nodeIDs))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]sdkcrypto.Signer{IDTableSigner},
+			false,
+		)
+
+		verifyEpochMetadata(t, b, env,
+			EpochMetadata{
+				counter:               startEpochCounter + 1,
+				seed:                  "stillSoRandom",
+				startView:             startView,
+				endView:               endView,
+				stakingEndView:        stakingEndView,
+				totalRewards:          "0.0",
+				rewardsBreakdownArray: 0,
+				rewardsPaid:           false,
+				collectorClusters:     nil,
+				clusterQCs:            nil,
+				dkgKeys:               dkgPubKeys})
+
+		// result := executeScriptAndCheck(t, b, templates.GenerateGetDKGEnabledScript(env), nil)
+		// assert.Equal(t, cadence.NewBool(false), result)
+
+		// result = executeScriptAndCheck(t, b, templates.GenerateGetQCEnabledScript(env), nil)
+		// assert.Equal(t, cadence.NewBool(false), result)
+	})
+}
