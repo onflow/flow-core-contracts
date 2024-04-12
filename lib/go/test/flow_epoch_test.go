@@ -1488,10 +1488,10 @@ func TestEpochRecover(t *testing.T) {
 				clusterQCs:            nil,
 				dkgKeys:               dkgPubKeys})
 
-		// result := executeScriptAndCheck(t, b, templates.GenerateGetDKGEnabledScript(env), nil)
-		// assert.Equal(t, cadence.NewBool(false), result)
+		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGEnabledScript(env), nil)
+		assert.Equal(t, cadence.NewBool(false), result)
 
-		// result = executeScriptAndCheck(t, b, templates.GenerateGetQCEnabledScript(env), nil)
-		// assert.Equal(t, cadence.NewBool(false), result)
+		result = executeScriptAndCheck(t, b, templates.GenerateGetQCEnabledScript(env), nil)
+		assert.Equal(t, cadence.NewBool(false), result)
 	})
 }
