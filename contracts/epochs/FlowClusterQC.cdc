@@ -258,6 +258,21 @@ access(all) contract FlowClusterQC {
         }
     }
 
+    /// Represents the quorum certificate vote data for a signer 
+    /// of the certificate.
+    pub struct ClusterQCVoteData {
+        /// The vote signatures from all the nodes in the cluster
+        pub var voteSignatures: [String]
+
+        /// The node IDs that correspond to each vote
+        pub var voterIDs: [String]
+
+        init(signatures: [String], message: String, voterIDs: [String]) {
+            self.voteSignatures = signatures
+            self.voterIDs = voterIDs
+        }
+    }
+
     /// The Voter resource is generated for each collection node after they register.
     /// Each resource instance is good for all future potential epochs, but will
     /// only be valid if the node operator has been confirmed as a collector node for the next epoch.
