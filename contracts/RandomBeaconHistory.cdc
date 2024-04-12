@@ -66,11 +66,13 @@ access(all) contract RandomBeaconHistory {
             if RandomBeaconHistory.lowestHeight == nil {
                 RandomBeaconHistory.lowestHeight = currentBlockHeight
             }
+            var maybeBackfiller = RandomBeaconHistory.borrowBackfiller()
             // Create & save Backfiller if it is not saved yet
-            if RandomBeaconHistory.borrowBackfiller() == nil {
+            if maybeBackfiller == nil {
                 RandomBeaconHistory.account.save(<-create Backfiller(), to: /storage/randomBeaconHistoryBackfiller)
+                maybeBackfiller = RandomBeaconHistory.borrowBackfiller()
             }
-            let backfiller = RandomBeaconHistory.borrowBackfiller() ?? panic("Problem borrowing backfiller")
+            let backfiller = maybeBackfiller ?? panic("Problem borrowing backfiller")
 
             // check for any existing gap and backfill using the input random source if needed.
             backfiller.backfill(randomSource: randomSourceHistory)
