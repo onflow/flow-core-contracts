@@ -159,11 +159,11 @@ access(all) contract RandomBeaconHistory {
 
             // If a new gap is detected in the current transaction, fill the gap with empty entries.
             // This happens in the rare case where a new gap occurs because of a system transaction failure.
-            while correctIndex > arrayLength {
+            while correctIndex > UInt64(RandomBeaconHistory.randomSourceHistory.length) {
                 RandomBeaconHistory.randomSourceHistory.append([])
-                arrayLength = arrayLength + 1
             }
 
+            arrayLength = UInt64(RandomBeaconHistory.randomSourceHistory.length)
             var newEntry = randomSource
             var index = self.gapStartIndex
             var count = 0 as UInt64
