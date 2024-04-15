@@ -260,12 +260,12 @@ access(all) contract FlowClusterQC {
 
     /// Represents the quorum certificate vote data for a signer 
     /// of the certificate.
-    pub struct ClusterQCVoteData {
+    access(all) struct ClusterQCVoteData {
         /// The vote signatures from all the nodes in the cluster
-        pub var voteSignatures: [String]
+        access(all) let voteSignatures: [String]
 
         /// The node IDs that correspond to each vote
-        pub var voterIDs: [String]
+        access(all) let voterIDs: [String]
 
         init(signatures: [String], message: String, voterIDs: [String]) {
             self.voteSignatures = signatures

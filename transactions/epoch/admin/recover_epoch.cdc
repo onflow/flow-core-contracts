@@ -1,6 +1,7 @@
-import FlowEpoch from 0xEPOCHADDRESS
-import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
-import FlowClusterQC from 0xQCADDRESS
+import FlowEpoch from "FlowEpoch"
+import FlowIDTableStaking from "FlowIDTableStaking"
+import FlowClusterQC from "FlowClusterQC"
+
 // The recoverEpoch transaction creates and starts a new epoch in the FlowEpoch smart contract
 // to which will force the network exit EFM. The recoverEpoch service event will be emitted 
 // and processed by all protocol participants and each participant will update their protocol 
@@ -16,8 +17,8 @@ transaction(randomSource: String,
             dkgPubKeys: [String],
             nodeIDs: [String]) {
 
-    prepare(signer: AuthAccount) {
-        let epochAdmin = signer.borrow<&FlowEpoch.Admin>(from: FlowEpoch.adminStoragePath)
+    prepare(signer: auth(BorrowValue) &Account) {
+        let epochAdmin = signer.storage.borrow<&FlowEpoch.Admin>(from: FlowEpoch.adminStoragePath)
             ?? panic("Could not borrow epoch admin from storage path")
 
         epochAdmin.recoverEpoch(randomSource: randomSource,

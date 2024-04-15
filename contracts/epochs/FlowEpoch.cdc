@@ -117,9 +117,9 @@ access(all) contract FlowEpoch {
         /// EpochSetup phase. Deadlines are specified in terms of a consensus view number.
         /// When a DKG participant observes a finalized and sealed block with view greater
         /// than the given deadline, it can safely transition to the next phase.
-        DKGPhase1FinalView: UInt64,
-        DKGPhase2FinalView: UInt64,
-        DKGPhase3FinalView: UInt64,
+        dkgPhase1FinalView: UInt64,
+        dkgPhase2FinalView: UInt64,
+        dkgPhase3FinalView: UInt64,
 
         /// The target duration for the upcoming epoch, in seconds
         targetDuration: UInt64,
@@ -151,7 +151,7 @@ access(all) contract FlowEpoch {
     /// gets into an EFM state the recoverEpoch transaction is used to override the current epoch and recover the network without 
     /// sporking. This service event is processed by protocol participants to update their local protocol state with the new recover
     /// epoch data.
-    pub event EpochRecover (
+    access(all) event EpochRecover (
         /// The counter for the RecoveryEpoch.
         counter: UInt64,
 
@@ -179,9 +179,9 @@ access(all) contract FlowEpoch {
         /// EpochSetup phase. Deadlines are specified in terms of a consensus view number. 
         /// When a DKG participant observes a finalized and sealed block with view greater 
         /// than the given deadline, it can safely transition to the next phase. 
-        DKGPhase1FinalView: UInt64,
-        DKGPhase2FinalView: UInt64,
-        DKGPhase3FinalView: UInt64,
+        dkgPhase1FinalView: UInt64,
+        dkgPhase2FinalView: UInt64,
+        dkgPhase3FinalView: UInt64,
 
         /// The target duration for the upcoming epoch, in seconds
         targetDuration: UInt64,
@@ -202,56 +202,54 @@ access(all) contract FlowEpoch {
     /// This struct is a 1:1 copy of the event EpochRecover event and is
     /// is used to populate all the fields of the event when the heartbeat 
     /// detects a new RecoverEpochMetadata stored.
-    pub struct RecoverEpochMetadata {
+    access(all) struct RecoverEpochMetadata {
         /// The counter for the RecoveryEpoch.
-        pub let counter: UInt64
+        access(all) let counter: UInt64
 
-        /// Identity table for the upcoming epoch with all node information.
-        /// including nodeID, staking key, networking key, networking address, role,
-        /// staking information, weight, and more.
-        pub let nodeInfo: [FlowIDTableStaking.NodeInfo]
+        /// List of ids for all identitities in the identity table for the upcoming epoch.
+        access(all) let nodeIDs: [String]
 
         /// The first view (inclusive) of the RecoveryEpoch.
-        pub let firstView: UInt64
+        access(all) let firstView: UInt64
 
         /// The last view (inclusive) of the RecoveryEpoch.
-        pub let finalView: UInt64
+        access(all) let finalView: UInt64
 
         /// The last view (inclusive) of the staking phase.
-        pub let stakingEndView: UInt64
+        access(all) let stakingEndView: UInt64
 
         /// The cluster assignment for the RecoveryEpoch. Each element in the list
         /// represents one cluster and contains all the node IDs assigned to that
         /// cluster, with their weights and votes
-        pub let collectorClusters: [[String]]
+        access(all) let collectorClusters: [[String]]
 
         /// The source of randomness to seed the leader selection algorithm with 
         /// for the upcoming epoch.
-        pub let randomSource: String
+        access(all) let randomSource: String
 
         /// The deadlines of each phase in the DKG protocol to be completed in the upcoming
         /// EpochSetup phase. Deadlines are specified in terms of a consensus view number. 
         /// When a DKG participant observes a finalized and sealed block with view greater 
         /// than the given deadline, it can safely transition to the next phase. 
-        pub let DKGPhase1FinalView: UInt64
-        pub let DKGPhase2FinalView: UInt64
-        pub let DKGPhase3FinalView: UInt64
+        access(all) let dkgPhase1FinalView: UInt64
+        access(all) let dkgPhase2FinalView: UInt64
+        access(all) let dkgPhase3FinalView: UInt64
 
         /// The target duration for the upcoming epoch, in seconds
-        pub let targetDuration: UInt64
+        access(all) let targetDuration: UInt64
         /// The target end time for the upcoming epoch, specified in second-precision Unix time
-        pub let targetEndTime: UInt64
+        access(all) let targetEndTime: UInt64
 
         /// The cluster QCs passed in the recoverEpoch transaction. These are generated out-of-band
         /// using the same procedure as during a spork.
-        pub let clusterQCVoteData: [FlowClusterQC.ClusterQCVoteData]
+        access(all) let clusterQCVoteData: [FlowClusterQC.ClusterQCVoteData]
 
         /// The DKG public keys passed in the recoverEpoch transaction. These are re-used from the
         /// last successful DKG.
-        pub let dkgPubKeys: [String]
+        access(all) let dkgPubKeys: [String]
 
         init(counter: UInt64,
-            nodeInfo: [FlowIDTableStaking.NodeInfo],
+            nodeIDs: [String],
             firstView: UInt64,
             finalView: UInt64,
             stakingEndView: UInt64,
@@ -266,15 +264,15 @@ access(all) contract FlowEpoch {
             dkgPubKeys: [String]) {
 
             self.counter = counter
-            self.nodeInfo = nodeInfo
+            self.nodeIDs = nodeIDs
             self.firstView = firstView
             self.finalView = finalView
             self.stakingEndView = stakingEndView
             self.collectorClusters = collectorClusters
             self.randomSource = randomSource
-            self.DKGPhase1FinalView = dkgPhase1FinalView
-            self.DKGPhase2FinalView = dkgPhase2FinalView
-            self.DKGPhase3FinalView = dkgPhase3FinalView
+            self.dkgPhase1FinalView = dkgPhase1FinalView
+            self.dkgPhase2FinalView = dkgPhase2FinalView
+            self.dkgPhase3FinalView = dkgPhase3FinalView
             self.targetDuration = targetDuration
             self.targetEndTime = targetEndTime
             self.clusterQCVoteData = clusterQCVoteData
@@ -572,7 +570,7 @@ access(all) contract FlowEpoch {
         /// This function saves the recovery epoch metadata in storage containing the full specification for the new epoch.
         /// This meta data will be emitted in the EpochRecover service event in the next heart beat interval.
         /// This function is used within sporks to recover the network from Epoch Fallback Mode (EFM).
-        pub fun recoverEpoch(
+        access(all) fun recoverEpoch(
             randomSource: String,
             startView: UInt64,
             stakingEndView: UInt64,
@@ -586,6 +584,14 @@ access(all) contract FlowEpoch {
                 FlowEpoch.isValidPhaseConfiguration(stakingEndView-startView+1, FlowEpoch.configurableMetadata.numViewsInDKGPhase, endView-startView+1):
                     "Invalid startView, stakingEndView, and endView configuration"
             }
+ 
+            /// sanity check all nodes should have a weight > 0
+            for nodeID in nodeIDs {
+                assert(
+                    FlowIDTableStaking.NodeInfo(nodeID: nodeID).initialWeight > 0, 
+                    message: "all nodes in node ids list for recovery epoch must have a weight > 0"
+                )
+            }
 
             if FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION {
                 // Since we are resetting the epoch, we do not need to
@@ -597,15 +603,6 @@ access(all) contract FlowEpoch {
                 FlowEpoch.borrowDKGAdmin().forceEndDKG()
             }
 
-            // Construct the identity table for the recovery epoch
-            let nodes: [FlowIDTableStaking.NodeInfo] = []
-            
-            for nodeID in nodeIDs {
-                /// @TODO: if node is SN ensure weight > 0
-                /// throw exception, or add with 0 weight
-                nodes.append(FlowIDTableStaking.NodeInfo(nodeID))
-            }
-
             // Compute the target end time for the next epoch
             let timingConfig = FlowEpoch.getEpochTimingConfig()
             let proposedTargetDuration = timingConfig.duration
@@ -614,7 +611,7 @@ access(all) contract FlowEpoch {
             // Create new Epoch metadata for the next epoch
             // with the new values
             let newEpochMetadata = EpochMetadata(
-                counter: FlowEpoch.currentEpochCounter + 1,
+                counter: FlowEpoch.proposedEpochCounter(),
                 seed: randomSource,
                 startView: startView,
                 endView: endView,
@@ -634,15 +631,15 @@ access(all) contract FlowEpoch {
             // Emit the service event, which notifies the protocol state about the RecoveryEpoch
             let recoverEpochMetadata = FlowEpoch.RecoverEpochMetadata(
                 counter: FlowEpoch.currentEpochCounter,
-                nodeInfo: nodes,
+                nodeIDs: nodeIDs,
                 firstView: startView,
                 finalView: endView,
                 stakingEndView: stakingEndView,
                 collectorClusters: collectorClusters,
                 randomSource: randomSource,
-                DKGPhase1FinalView: startView + FlowEpoch.configurableMetadata.numViewsInStakingAuction + FlowEpoch.configurableMetadata.numViewsInDKGPhase - 1 as UInt64,
-                DKGPhase2FinalView: startView + FlowEpoch.configurableMetadata.numViewsInStakingAuction + (2 as UInt64 * FlowEpoch.configurableMetadata.numViewsInDKGPhase) - 1 as UInt64,
-                DKGPhase3FinalView: startView + FlowEpoch.configurableMetadata.numViewsInStakingAuction + (3 as UInt64 * FlowEpoch.configurableMetadata.numViewsInDKGPhase) - 1 as UInt64,
+                dkgPhase1FinalView: startView + FlowEpoch.configurableMetadata.numViewsInStakingAuction + FlowEpoch.configurableMetadata.numViewsInDKGPhase - 1 as UInt64,
+                dkgPhase2FinalView: startView + FlowEpoch.configurableMetadata.numViewsInStakingAuction + (2 as UInt64 * FlowEpoch.configurableMetadata.numViewsInDKGPhase) - 1 as UInt64,
+                dkgPhase3FinalView: startView + FlowEpoch.configurableMetadata.numViewsInStakingAuction + (3 as UInt64 * FlowEpoch.configurableMetadata.numViewsInDKGPhase) - 1 as UInt64,
                 targetDuration: proposedTargetDuration,
                 targetEndTime: proposedTargetEndTime,
                 clusterQCVoteData: clusterQCVoteData,
@@ -651,7 +648,7 @@ access(all) contract FlowEpoch {
 
             /// save the recovery epoch metadata this will be emitted in the EpochRecover service event
             /// during the next heart beat interval.
-            FlowEpoch.account.save(recoverEpochMetadata, to: /storage/recoverEpochMetadataStoragePath)
+            FlowEpoch.account.storage.save(recoverEpochMetadata, to: /storage/recoverEpochMetadataStoragePath)
         }
 
         /// Ends the currently active epoch and starts a new one with the provided configuration.
@@ -719,18 +716,23 @@ access(all) contract FlowEpoch {
         access(all) fun advanceBlock() {
              /// check if we have recover epoch metadata stored, this indicates the network is in EFM and the heartbeat
             /// will emit the EpochRecover event containing information for the recovery epoch.
-            let recoverEpochMetadata = FlowEpoch.account.load<RecoverEpochMetadata>(from: /storage/recoverEpochMetadataStoragePath)
+            let recoverEpochMetadata = FlowEpoch.account.storage.load<RecoverEpochMetadata>(from: /storage/recoverEpochMetadataStoragePath)
             if recoverEpochMetadata != nil {
+                // Construct the identity table for the recovery epoch
+                let nodes: [FlowIDTableStaking.NodeInfo] = []
+                for nodeID in recoverEpochMetadata!.nodeIDs {
+                    nodes.append(FlowIDTableStaking.NodeInfo(nodeID: nodeID))
+                }
                 emit EpochRecover(
                     counter: recoverEpochMetadata!.counter,
-                    nodeInfo: recoverEpochMetadata!.nodeInfo,
+                    nodeInfo: nodes,
                     firstView: recoverEpochMetadata!.firstView,
                     finalView: recoverEpochMetadata!.finalView,
                     collectorClusters: recoverEpochMetadata!.collectorClusters,
                     randomSource: recoverEpochMetadata!.randomSource,
-                    DKGPhase1FinalView: recoverEpochMetadata!.DKGPhase1FinalView,
-                    DKGPhase2FinalView: recoverEpochMetadata!.DKGPhase2FinalView,
-                    DKGPhase3FinalView: recoverEpochMetadata!.DKGPhase3FinalView,
+                    dkgPhase1FinalView: recoverEpochMetadata!.dkgPhase1FinalView,
+                    dkgPhase2FinalView: recoverEpochMetadata!.dkgPhase2FinalView,
+                    dkgPhase3FinalView: recoverEpochMetadata!.dkgPhase3FinalView,
                     targetDuration: recoverEpochMetadata!.targetDuration,
                     targetEndTime: recoverEpochMetadata!.targetEndTime,
                     clusterQCVoteData: recoverEpochMetadata!.clusterQCVoteData,
@@ -983,9 +985,9 @@ access(all) contract FlowEpoch {
                         finalView: proposedEpochMetadata.endView,
                         collectorClusters: collectorClusters,
                         randomSource: randomSource,
-                        DKGPhase1FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + self.configurableMetadata.numViewsInDKGPhase - 1 as UInt64,
-                        DKGPhase2FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + (2 as UInt64 * self.configurableMetadata.numViewsInDKGPhase) - 1 as UInt64,
-                        DKGPhase3FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + (3 as UInt64 * self.configurableMetadata.numViewsInDKGPhase) - 1 as UInt64,
+                        dkgPhase1FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + self.configurableMetadata.numViewsInDKGPhase - 1 as UInt64,
+                        dkgPhase2FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + (2 as UInt64 * self.configurableMetadata.numViewsInDKGPhase) - 1 as UInt64,
+                        dkgPhase3FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + (3 as UInt64 * self.configurableMetadata.numViewsInDKGPhase) - 1 as UInt64,
                         targetDuration: proposedTargetDuration,
                         targetEndTime: proposedTargetEndTime)
     }

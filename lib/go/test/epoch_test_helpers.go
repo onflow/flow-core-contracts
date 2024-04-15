@@ -130,6 +130,81 @@ type EpochCommit struct {
 	dkgPubKeys []string
 }
 
+// EpochRecover used to verify EpochRecover event fields in tests.
+type EpochRecover struct {
+	counter                 uint64
+	nodeInfoLength          int
+	firstView               uint64
+	finalView               uint64
+	collectorClusters       []cadence.Value
+	randomSource            string
+	dkgPhase1FinalView      uint64
+	dkgPhase2FinalView      uint64
+	dkgPhase3FinalView      uint64
+	targetDuration          uint64
+	targetEndTime           uint64
+	clusterQCVoteDataLength int
+	dkgPubKeys              []string
+}
+
+type EpochRecoverEvent flow.Event
+
+// Counter returns counter field in EpochRecover event.
+func (evt EpochRecoverEvent) Counter() cadence.UInt64 {
+	return evt.Value.Fields[0].(cadence.UInt64)
+}
+
+// NodeInfo returns nodeInfo field in EpochRecover event.
+func (evt EpochRecoverEvent) NodeInfo() cadence.Array {
+	return evt.Value.Fields[1].(cadence.Array)
+}
+
+// FirstView returns firstView field in EpochRecover event.
+func (evt EpochRecoverEvent) FirstView() cadence.UInt64 {
+	return evt.Value.Fields[2].(cadence.UInt64)
+}
+
+// FinalView returns finalView field in EpochRecover event.
+func (evt EpochRecoverEvent) FinalView() cadence.UInt64 {
+	return evt.Value.Fields[3].(cadence.UInt64)
+}
+
+// CollectorClusters returns collectorClusters field in EpochRecover event.
+func (evt EpochRecoverEvent) CollectorClusters() cadence.Array {
+	return evt.Value.Fields[4].(cadence.Array)
+}
+
+// RandomSource returns randomSource field in EpochRecover event.
+func (evt EpochRecoverEvent) RandomSource() cadence.String {
+	return evt.Value.Fields[5].(cadence.String)
+}
+
+// DKGFinalViews returns dkgFinalViews field in EpochRecover event.
+func (evt EpochRecoverEvent) DKGFinalViews() (cadence.UInt64, cadence.UInt64, cadence.UInt64) {
+	fields := evt.Value.Fields
+	return fields[6].(cadence.UInt64), fields[7].(cadence.UInt64), fields[8].(cadence.UInt64)
+}
+
+// TargetDuration returns targetDuration field in EpochRecover event.
+func (evt EpochRecoverEvent) TargetDuration() cadence.UInt64 {
+	return evt.Value.Fields[9].(cadence.UInt64)
+}
+
+// TargetEndTime returns targetEndTime field in EpochRecover event.
+func (evt EpochRecoverEvent) TargetEndTime() cadence.UInt64 {
+	return evt.Value.Fields[10].(cadence.UInt64)
+}
+
+// ClusterQCVoteData returns clusterQCVoteData field in EpochRecover event.
+func (evt EpochRecoverEvent) ClusterQCVoteData() cadence.Array {
+	return evt.Value.Fields[11].(cadence.Array)
+}
+
+// DKGPubKeys returns dkgPubKeys field in EpochRecover event.
+func (evt EpochRecoverEvent) DKGPubKeys() cadence.Array {
+	return evt.Value.Fields[12].(cadence.Array)
+}
+
 // Go event definitions for the epoch events
 // Can be used with the SDK to retreive and parse epoch events
 
@@ -712,6 +787,55 @@ func verifyEpochCommit(
 	// quorum certificates
 	verifyClusterQCs(t, expectedCommitted.clusterQCs, emittedEvent.clusterQCs().Values)
 
+}
+
+// verifyEpochRecover verifies that the EpochRecover event values are equal to the provided expected values
+func verifyEpochRecover(
+	t *testing.T,
+	adapter *adapters.SDKAdapter,
+	epochAddress flow.Address,
+	expectedRecover EpochRecover) {
+	var emittedEvent EpochRecoverEvent
+	evtTypeStr := fmt.Sprintf("A.%s.FlowEpoch.EpochRecover", epochAddress.String())
+	var i uint64
+	i = 0
+	for i < 1000 {
+		results, _ := adapter.GetEventsForHeightRange(context.Background(), evtTypeStr, i, i)
+
+		for _, result := range results {
+			for _, event := range result.Events {
+				if event.Type == evtTypeStr {
+					emittedEvent = EpochRecoverEvent(event)
+				}
+			}
+		}
+
+		i = i + 1
+	}
+
+	assertEqual(t, cadence.NewUInt64(expectedRecover.counter), emittedEvent.Counter())
+	assertEqual(t, expectedRecover.nodeInfoLength, len(emittedEvent.NodeInfo().Values))
+	assertEqual(t, cadence.NewUInt64(expectedRecover.firstView), emittedEvent.FirstView())
+	assertEqual(t, cadence.NewUInt64(expectedRecover.finalView), emittedEvent.FinalView())
+	verifyCollectorClusters(t, expectedRecover.collectorClusters, emittedEvent.CollectorClusters().Values)
+	assertEqual(t, cadence.String(expectedRecover.randomSource), emittedEvent.RandomSource())
+	dkgPhase1FinalView, dkgPhase2FinalView, dkgPhase3FinalView := emittedEvent.DKGFinalViews()
+	assertEqual(t, cadence.NewUInt64(expectedRecover.dkgPhase1FinalView), dkgPhase1FinalView)
+	assertEqual(t, cadence.NewUInt64(expectedRecover.dkgPhase2FinalView), dkgPhase2FinalView)
+	assertEqual(t, cadence.NewUInt64(expectedRecover.dkgPhase3FinalView), dkgPhase3FinalView)
+	assertEqual(t, cadence.NewUInt64(expectedRecover.targetDuration), emittedEvent.TargetDuration())
+	assertEqual(t, cadence.NewUInt64(expectedRecover.targetEndTime), emittedEvent.TargetEndTime())
+	assertEqual(t, expectedRecover.clusterQCVoteDataLength, len(emittedEvent.ClusterQCVoteData().Values))
+	assertEqual(t, len(expectedRecover.dkgPubKeys), len(emittedEvent.DKGPubKeys().Values))
+}
+
+// verifyCollectorClusters verifies both collector clusters are equal.
+func verifyCollectorClusters(t *testing.T, expected, got []cadence.Value) {
+	for i, cluster := range got {
+		for j, node := range cluster.(cadence.Array).Values {
+			assertEqual(t, expected[i].(cadence.Array).Values[j], node)
+		}
+	}
 }
 
 // expectedTargetEndTime returns the expected `targetEndTime` for the given target epoch,

@@ -21,7 +21,7 @@ transaction(currentEpochCounter: UInt64,
 
     prepare(signer: auth(BorrowValue) &Account) {
         let epochAdmin = signer.storage.borrow<&FlowEpoch.Admin>(from: FlowEpoch.adminStoragePath)
-            ?? panic("Could not borrow heartbeat from storage path")
+            ?? panic("Could not borrow epoch admin from storage path")
 
         epochAdmin.resetEpoch(currentEpochCounter: currentEpochCounter,
                             randomSource: randomSource,
