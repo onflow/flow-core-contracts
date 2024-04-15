@@ -1,6 +1,6 @@
 import FlowStakingCollection from "FlowStakingCollection"
 
-// Transfers a NodeStaker object from an authorizers accoount
+// Transfers a NodeStaker object from an authorizers account
 // and adds the NodeStaker to another accounts Staking Collection
 // identified by the to Address.
 

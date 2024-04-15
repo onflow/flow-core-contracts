@@ -23,9 +23,9 @@ Steps to set up accounts with token forwarder:
     getting the Receiver from the account that is the recipient.
 */
 
-import FungibleToken from "FungibleToken"
-import FlowToken from "FlowToken"
-import TokenForwarding from "TokenForwarding"
+import "FungibleToken"
+import "FlowToken"
+import "TokenForwarding"
 
 transaction(receiver: Address) {
 
