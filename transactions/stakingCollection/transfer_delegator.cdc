@@ -1,6 +1,6 @@
 import FlowStakingCollection from "FlowStakingCollection"
 
-// Transfers a NodeDelegator object from an authorizers accoount
+// Transfers a NodeDelegator object from an authorizers account
 // and adds the NodeDelegator to another accounts Staking Collection
 // identified by the to Address.
 
