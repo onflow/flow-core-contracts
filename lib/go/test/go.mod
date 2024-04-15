@@ -114,8 +114,8 @@ require (
 	github.com/onflow/atree v0.6.1-0.20230711151834-86040b30171f // indirect
 	github.com/onflow/flow-ft/lib/go/contracts v0.7.1-0.20240402160548-a9c331660956 // indirect
 	github.com/onflow/flow-ft/lib/go/templates v0.7.1-0.20240402160548-a9c331660956 // indirect
-	github.com/onflow/flow-nft/lib/go/contracts v1.1.1-0.20240409211504-f122847cbd9b // indirect
-	github.com/onflow/flow-nft/lib/go/templates v0.0.0-20240409211504-f122847cbd9b // indirect
+	github.com/onflow/flow-nft/lib/go/contracts v1.1.1-0.20240415194841-39036acfcfb5 // indirect
+	github.com/onflow/flow-nft/lib/go/templates v0.0.0-20240415194841-39036acfcfb5 // indirect
 	github.com/onflow/flow/protobuf/go/flow v0.3.7 // indirect
 	github.com/onflow/sdks v0.5.1-0.20230912225508-b35402f12bba // indirect
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
