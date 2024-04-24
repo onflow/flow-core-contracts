@@ -661,14 +661,16 @@ access(all) contract LockedTokens {
         }
     }
 
+     access(all) entitlement AccountCreator
+
     access(all) resource interface AddAccount {
-        access(all) fun addAccount(
+        access(AccountCreator) fun addAccount(
             sharedAccountAddress: Address,
             unlockedAccountAddress: Address,
             tokenAdmin: Capability<auth(FungibleToken.Withdraw) &LockedTokenManager>)
     }
 
-    /// Resource that the Dapper Labs token admin
+    /// Resource that the Flow token admin
     /// stores in their account to manage the vesting schedule
     /// for all the token holders
     access(all) resource TokenAdminCollection: AddAccount {
@@ -682,7 +684,7 @@ access(all) contract LockedTokens {
 
         /// Add a new account's locked token manager capability
         /// to the record
-        access(all) fun addAccount(
+        access(AccountCreator) fun addAccount(
             sharedAccountAddress: Address,
             unlockedAccountAddress: Address,
             tokenAdmin: Capability<auth(FungibleToken.Withdraw) &LockedTokenManager>)
@@ -703,27 +705,27 @@ access(all) contract LockedTokens {
     }
 
     access(all) resource interface LockedAccountCreatorPublic {
-        access(all) fun addCapability(cap: Capability<&TokenAdminCollection>)
+        access(all) fun addCapability(cap: Capability<auth(LockedTokens.AccountCreator) &TokenAdminCollection>)
     }
 
     // account creators store this resource in their account
     // in order to be able to register accounts who have locked tokens
     access(all) resource LockedAccountCreator: LockedAccountCreatorPublic, AddAccount {
 
-        access(self) var addAccountCapability: Capability<&TokenAdminCollection>?
+        access(self) var addAccountCapability: Capability<auth(LockedTokens.AccountCreator) &TokenAdminCollection>?
 
         init() {
             self.addAccountCapability = nil
         }
 
-        access(all) fun addCapability(cap: Capability<&TokenAdminCollection>) {
+        access(all) fun addCapability(cap: Capability<auth(LockedTokens.AccountCreator) &TokenAdminCollection>) {
             pre {
                 cap.borrow() != nil: "Invalid token admin collection capability"
             }
             self.addAccountCapability = cap
         }
 
-        access(all) fun addAccount(sharedAccountAddress: Address,
+        access(AccountCreator) fun addAccount(sharedAccountAddress: Address,
                            unlockedAccountAddress: Address,
                            tokenAdmin: Capability<auth(FungibleToken.Withdraw) &LockedTokenManager>) {
 
