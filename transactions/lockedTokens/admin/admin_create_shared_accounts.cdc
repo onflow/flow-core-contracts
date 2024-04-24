@@ -53,7 +53,7 @@ transaction(
         userAccount.capabilities.publish(infoCap, at: LockedTokens.LockedAccountInfoPublicPath)
 
         let tokenAdminCollection = admin.storage
-            .borrow<&LockedTokens.TokenAdminCollection>(
+            .borrow<auth(LockedTokens.AccountCreator) &LockedTokens.TokenAdminCollection>(
                 from: LockedTokens.LockedTokenAdminCollectionStoragePath
             )
             ?? panic("Could not borrow reference to admin collection")

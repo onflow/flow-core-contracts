@@ -49,7 +49,7 @@ transaction(
             )
 
         let lockedAccountCreator = custodyProvider.storage
-            .borrow<&LockedTokens.LockedAccountCreator>(from: LockedTokens.LockedAccountCreatorStoragePath)
+            .borrow<auth(LockedTokens.AccountCreator) &LockedTokens.LockedAccountCreator>(from: LockedTokens.LockedAccountCreatorStoragePath)
             ?? panic("Could not borrow locked account creator")
 
         lockedAccountCreator.addAccount(

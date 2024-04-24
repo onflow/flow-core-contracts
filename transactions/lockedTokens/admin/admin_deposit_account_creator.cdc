@@ -14,7 +14,7 @@ transaction(custodyProviderAddress: Address) {
             )
             ?? panic("Could not borrow capability receiver reference")
 
-        let tokenAdminCollection = admin.capabilities.storage.issue<&LockedTokens.TokenAdminCollection>(
+        let tokenAdminCollection = admin.capabilities.storage.issue<auth(LockedTokens.AccountCreator) &LockedTokens.TokenAdminCollection>(
             LockedTokens.LockedTokenAdminCollectionStoragePath
         )!
 
