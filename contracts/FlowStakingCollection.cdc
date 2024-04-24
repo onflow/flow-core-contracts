@@ -1144,7 +1144,7 @@ access(all) contract FlowStakingCollection {
         let account = getAccount(address)
         return account.capabilities
             .get<&StakingCollection>(self.StakingCollectionPublicPath)
-            ?.check() ?? false
+            .check() ?? false
     }
 
     /// Creates a brand new empty staking collection resource and returns it to the caller
