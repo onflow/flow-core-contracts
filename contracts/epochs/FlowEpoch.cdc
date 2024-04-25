@@ -200,7 +200,7 @@ access(all) contract FlowEpoch {
     /// Contains metadata about the recovery epoch, this data 
     /// is stored at the storage path /storage/recoverEpochMetadata.
     /// This struct is a 1:1 copy of the event EpochRecover event and is
-    /// is used to populate all the fields of the event when the heartbeat 
+    /// used to populate all the fields of the event when the heartbeat 
     /// detects a new RecoverEpochMetadata stored.
     access(all) struct RecoverEpochMetadata {
         /// The counter for the RecoveryEpoch.
