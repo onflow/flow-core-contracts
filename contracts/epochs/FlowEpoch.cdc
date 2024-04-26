@@ -599,12 +599,6 @@ access(all) contract FlowEpoch {
                 FlowEpoch.borrowDKGAdmin().forceEndDKG()
             }
 
-            /// Calculate rewards for the current epoch
-            /// and set the payout for the next epoch
-            FlowEpoch.calculateAndSetRewards()
-            /// Start a new Epoch, which increments the current epoch counter
-            FlowEpoch.startNewEpoch()
-
             /// Create the recovery epoch metadata, this struct is used to hold 
             /// EpochRecover service event data.
             let recoverEpochMetadata = FlowEpoch.RecoverEpochMetadata(
@@ -645,6 +639,12 @@ access(all) contract FlowEpoch {
             /// Save the new epoch meta data, it will be referenced as 
             /// the epoch progresses through each phase.
             FlowEpoch.saveEpochMetadata(newEpochMetadata)
+
+            /// Calculate rewards for the current epoch
+            /// and set the payout for the next epoch
+            FlowEpoch.calculateAndSetRewards()
+            /// Start a new Epoch, which increments the current epoch counter
+            FlowEpoch.startNewEpoch()
         }
 
         /// Ends the currently active epoch and starts a new one with the provided configuration.
