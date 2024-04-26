@@ -590,18 +590,19 @@ access(all) contract FlowEpoch {
             }
 
             if FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION {
-                // Since we are resetting the epoch, we do not need to
-                // start epoch setup also. We only need to end the staking auction
+                /// Since we are resetting the epoch, we do not need to
+                /// start epoch setup also. We only need to end the staking auction
                 FlowEpoch.borrowStakingAdmin().endStakingAuction()
             } else {
-                // force reset the QC and DKG
+                /// force reset the QC and DKG
                 FlowEpoch.borrowClusterQCAdmin().forceStopVoting()
                 FlowEpoch.borrowDKGAdmin().forceEndDKG()
             }
 
-            // Create new Epoch metadata for the next epoch
-            // with the new values
+            /// Create new Epoch metadata for the next epoch
+            /// with the new values
             let newEpochMetadata = EpochMetadata(
+                //
                 counter: FlowEpoch.proposedEpochCounter(),
                 seed: randomSource,
                 startView: startView,
