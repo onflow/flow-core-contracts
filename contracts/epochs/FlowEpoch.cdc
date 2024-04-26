@@ -599,14 +599,16 @@ access(all) contract FlowEpoch {
                 FlowEpoch.borrowDKGAdmin().forceEndDKG()
             }
 
-            // Calculate rewards for the current epoch
-            // and set the payout for the next epoch
+            /// Calculate rewards for the current epoch
+            /// and set the payout for the next epoch
             FlowEpoch.calculateAndSetRewards()
-            // Start a new Epoch, which increments the current epoch counter
+            /// Start a new Epoch, which increments the current epoch counter
             FlowEpoch.startNewEpoch()
-            // Emit the service event, which notifies the protocol state about the RecoveryEpoch
+
+            /// Create the recovery epoch metadata, this struct is used to hold 
+            /// EpochRecover service event data.
             let recoverEpochMetadata = FlowEpoch.RecoverEpochMetadata(
-                counter: FlowEpoch.currentEpochCounter,
+                counter: FlowEpoch.proposedEpochCounter(),
                 nodeIDs: nodeIDs,
                 firstView: startView,
                 finalView: endView,
@@ -621,11 +623,11 @@ access(all) contract FlowEpoch {
                 dkgPubKeys: dkgPubKeys,
             )
 
-            /// save the recovery epoch metadata this will be emitted in the EpochRecover service event
+            /// Save the recovery epoch metadata to storage, this will be emitted in the EpochRecover service event
             /// during the next heart beat interval.
             FlowEpoch.account.storage.save(recoverEpochMetadata, to: /storage/recoverEpochMetadataStoragePath)
 
-            /// Create new metadata for the recovery epoch with the new values
+            /// Create new EpochMetadata for the recovery epoch with the new values
             let newEpochMetadata = EpochMetadata(
                 /// When the network enters EFM the epoch counter will not be incremented 
                 /// so it's safe to use current_epoch_counter + 1 
