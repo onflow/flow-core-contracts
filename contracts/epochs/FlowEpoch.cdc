@@ -215,9 +215,6 @@ access(all) contract FlowEpoch {
         /// The last view (inclusive) of the RecoveryEpoch.
         access(all) let finalView: UInt64
 
-        /// The last view (inclusive) of the staking phase.
-        access(all) let stakingEndView: UInt64
-
         /// The cluster assignment for the RecoveryEpoch. Each element in the list
         /// represents one cluster and contains all the node IDs assigned to that
         /// cluster, with their weights and votes
@@ -230,7 +227,7 @@ access(all) contract FlowEpoch {
         /// The deadlines of each phase in the DKG protocol to be completed in the upcoming
         /// EpochSetup phase. Deadlines are specified in terms of a consensus view number. 
         /// When a DKG participant observes a finalized and sealed block with view greater 
-        /// than the given deadline, it can safely transition to the next phase. 
+        /// than the given deadline, it can safely transition to the next phase.
         access(all) let dkgPhase1FinalView: UInt64
         access(all) let dkgPhase2FinalView: UInt64
         access(all) let dkgPhase3FinalView: UInt64
@@ -466,7 +463,6 @@ access(all) contract FlowEpoch {
     }
 
     /// Saves a modified EpochMetadata struct to the metadata in account storage
-    ///
     access(contract) fun saveEpochMetadata(_ newMetadata: EpochMetadata) {
         pre {
             self.currentEpochCounter == 0 ||
@@ -634,7 +630,6 @@ access(all) contract FlowEpoch {
                 nodeIDs: nodeIDs,
                 firstView: startView,
                 finalView: endView,
-                stakingEndView: stakingEndView,
                 collectorClusters: collectorClusters,
                 randomSource: randomSource,
                 dkgPhase1FinalView: startView + FlowEpoch.configurableMetadata.numViewsInStakingAuction + FlowEpoch.configurableMetadata.numViewsInDKGPhase - 1 as UInt64,
