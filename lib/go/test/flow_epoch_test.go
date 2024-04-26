@@ -94,7 +94,7 @@ func TestEpochClusters(t *testing.T) {
 
 	// Deploys the staking contract, qc, dkg, and epoch lifecycle contract
 	// staking contract is deployed with default values (1.25M rewards, 8% cut)
-	initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
+	_, _ = initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
 		startEpochCounter, // start epoch counter
 		numEpochViews,     // num views per epoch
 		numStakingViews,   // num views for staking auction
@@ -113,7 +113,6 @@ func TestEpochClusters(t *testing.T) {
 		result := executeScriptAndCheck(t, b, templates.GenerateGetRandomizeScript(env), [][]byte{jsoncdc.MustEncode(idArray)})
 		assertEqual(t, 4, len(result.(cadence.Array).Values))
 
-		// TODO: Make sure that the ids in the array all match the provided IDs and are in a different order
 	})
 
 	// create new user accounts, mint tokens for them, and register them for staking
@@ -136,7 +135,6 @@ func TestEpochClusters(t *testing.T) {
 		result := executeScriptAndCheck(t, b, templates.GenerateGetCreateClustersScript(env), [][]byte{jsoncdc.MustEncode(idArray)})
 		assertEqual(t, 2, len(result.(cadence.Array).Values))
 
-		// TODO: Make sure that the clusters are correct and are in a different order than the original array
 	})
 
 }
@@ -644,7 +642,7 @@ func TestEpochAdvance(t *testing.T) {
 		assert.Equal(t, cadence.NewBool(true), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetConsensusNodesScript(env), nil)
-		assert.Equal(t, cadence.NewArray(dkgIDs).WithType(cadence.NewVariableSizedArrayType(cadence.NewStringType())), result)
+		assert.Equal(t, cadence.NewArray(dkgIDs).WithType(cadence.NewVariableSizedArrayType(cadence.StringType)), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGFinalSubmissionsScript(env), nil)
 		assert.Equal(t, 0, len(result.(cadence.Array).Values))
@@ -1520,8 +1518,7 @@ func TestEpochReset(t *testing.T) {
 }
 
 func TestEpochRecover(t *testing.T) {
-	b, _, accountKeys, env := newTestSetup(t)
-
+	b, adapter, accountKeys, env := newTestSetup(t)
 	// Create new keys for the epoch account
 	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
 
@@ -1591,25 +1588,30 @@ func TestEpochRecover(t *testing.T) {
 		false,
 	)
 
-	clusterQCs := make([][]string, numClusters)
-	clusterQCs[0] = make([]string, 1)
-	clusterQCs[1] = make([]string, 1)
-
-	// collectorVoteHasher := crypto.NewExpandMsgXOFKMAC128(collectorVoteTag)
-
 	t.Run("Can recover the epoch and have everything return to normal", func(t *testing.T) {
+		epochTimingConfigResult := executeScriptAndCheck(t, b, templates.GenerateGetEpochTimingConfigScript(env), nil)
 
-		var startView uint64 = 100
-		var stakingEndView uint64 = 120
-		var endView uint64 = 160
+		var (
+			startView      uint64 = 100
+			stakingEndView uint64 = 120
+			endView        uint64 = 160
+			targetDuration uint64 = numEpochViews
+			targetEndTime  uint64 = expectedTargetEndTime(epochTimingConfigResult, startEpochCounter+1)
+		)
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateRecoverEpochScript(env), idTableAddress)
 		tx.AddArgument(CadenceString("stillSoRandom"))
 		tx.AddArgument(cadence.NewUInt64(startView))
 		tx.AddArgument(cadence.NewUInt64(stakingEndView))
 		tx.AddArgument(cadence.NewUInt64(endView))
-		tx.AddArgument(cadence.NewArray([]cadence.Value{})) // collectorClusters
-		tx.AddArgument(cadence.NewArray([]cadence.Value{})) // clusterQCVoteData
+		tx.AddArgument(cadence.NewUInt64(targetDuration))
+		tx.AddArgument(cadence.NewUInt64(targetEndTime))
+		collectorClusters := make([]cadence.Value, 3)
+		collectorClusters[0] = cadence.NewArray([]cadence.Value{CadenceString("node_1"), CadenceString("node_2"), CadenceString("node_3")})
+		collectorClusters[1] = cadence.NewArray([]cadence.Value{CadenceString("node_4"), CadenceString("node_5"), CadenceString("node_6")})
+		collectorClusters[2] = cadence.NewArray([]cadence.Value{CadenceString("node_7"), CadenceString("node_8"), CadenceString("node_9")})
+		tx.AddArgument(cadence.NewArray(collectorClusters))        // collectorClusters
+		tx.AddArgument(cadence.NewArray(make([]cadence.Value, 0))) // clusterQCVoteData
 
 		dkgPubKeys := []string{"pubkey_1"}
 		dkgPubKeysCdc := make([]cadence.Value, len(dkgPubKeys))
@@ -1631,6 +1633,8 @@ func TestEpochRecover(t *testing.T) {
 			false,
 		)
 
+		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "BLOCK", false)
+
 		verifyEpochMetadata(t, b, env,
 			EpochMetadata{
 				counter:               startEpochCounter + 1,
@@ -1645,10 +1649,27 @@ func TestEpochRecover(t *testing.T) {
 				clusterQCs:            nil,
 				dkgKeys:               dkgPubKeys})
 
-		// result := executeScriptAndCheck(t, b, templates.GenerateGetDKGEnabledScript(env), nil)
-		// assert.Equal(t, cadence.NewBool(false), result)
+		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGEnabledScript(env), nil)
+		assert.Equal(t, cadence.NewBool(false), result)
 
-		// result = executeScriptAndCheck(t, b, templates.GenerateGetQCEnabledScript(env), nil)
-		// assert.Equal(t, cadence.NewBool(false), result)
+		result = executeScriptAndCheck(t, b, templates.GenerateGetQCEnabledScript(env), nil)
+		assert.Equal(t, cadence.NewBool(false), result)
+
+		expectedRecoverEvent := EpochRecover{
+			counter:                 startEpochCounter + 1,
+			nodeInfoLength:          len(nodeIDs),
+			firstView:               startView,
+			finalView:               endView,
+			collectorClusters:       collectorClusters,
+			randomSource:            "stillSoRandom",
+			dkgPhase1FinalView:      startView + numStakingViews + numDKGViews - 1,
+			dkgPhase2FinalView:      startView + numStakingViews + (2 * numDKGViews) - 1,
+			dkgPhase3FinalView:      startView + numStakingViews + (3 * numDKGViews) - 1,
+			targetDuration:          targetDuration,
+			targetEndTime:           targetEndTime,
+			clusterQCVoteDataLength: 0,
+			dkgPubKeys:              dkgPubKeys,
+		}
+		verifyEpochRecover(t, adapter, idTableAddress, expectedRecoverEvent)
 	})
 }

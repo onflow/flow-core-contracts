@@ -12,6 +12,8 @@ transaction(randomSource: String,
             startView: UInt64,
             stakingEndView: UInt64,
             endView: UInt64,
+            targetDuration: UInt64,
+            targetEndTime: UInt64,
             collectorClusters: [[String]],
             clusterQCVoteData: [FlowClusterQC.ClusterQCVoteData],
             dkgPubKeys: [String],
@@ -22,12 +24,14 @@ transaction(randomSource: String,
             ?? panic("Could not borrow epoch admin from storage path")
 
         epochAdmin.recoverEpoch(randomSource: randomSource,
-                             startView: startView,
-                             stakingEndView: stakingEndView,
-                             endView: endView,
-                             collectorClusters: collectorClusters,
-                             clusterQCVoteData: clusterQCVoteData,
-                             dkgPubKeys: dkgPubKeys,
-                             nodeIDs: nodeIDs)
+                            startView: startView,
+                            stakingEndView: stakingEndView,
+                            endView: endView,
+                            targetDuration: targetDuration,
+                            targetEndTime: targetEndTime,
+                            collectorClusters: collectorClusters,
+                            clusterQCVoteData: clusterQCVoteData,
+                            dkgPubKeys: dkgPubKeys,
+                            nodeIDs: nodeIDs)
     }
 }

@@ -227,7 +227,7 @@ access(all) contract FlowEpoch {
         /// The deadlines of each phase in the DKG protocol to be completed in the upcoming
         /// EpochSetup phase. Deadlines are specified in terms of a consensus view number. 
         /// When a DKG participant observes a finalized and sealed block with view greater 
-        /// than the given deadline, it can safely transition to the next phase.
+        /// than the given deadline, it can safely transition to the next phase. 
         access(all) let dkgPhase1FinalView: UInt64
         access(all) let dkgPhase2FinalView: UInt64
         access(all) let dkgPhase3FinalView: UInt64
@@ -249,7 +249,6 @@ access(all) contract FlowEpoch {
             nodeIDs: [String],
             firstView: UInt64,
             finalView: UInt64,
-            stakingEndView: UInt64,
             collectorClusters: [[String]],
             randomSource: String,
             dkgPhase1FinalView: UInt64,
@@ -264,7 +263,6 @@ access(all) contract FlowEpoch {
             self.nodeIDs = nodeIDs
             self.firstView = firstView
             self.finalView = finalView
-            self.stakingEndView = stakingEndView
             self.collectorClusters = collectorClusters
             self.randomSource = randomSource
             self.dkgPhase1FinalView = dkgPhase1FinalView
@@ -364,7 +362,7 @@ access(all) contract FlowEpoch {
             self.dkgKeys = keys
         }
     }
-
+  
     /// Metadata that is managed and can be changed by the Admin///
     access(all) struct Config {
         /// The number of views in an entire epoch
@@ -571,6 +569,8 @@ access(all) contract FlowEpoch {
             startView: UInt64,
             stakingEndView: UInt64,
             endView: UInt64,
+            targetDuration: UInt64,
+            targetEndTime: UInt64,
             collectorClusters: [[String]],
             clusterQCVoteData: [FlowClusterQC.ClusterQCVoteData],
             dkgPubKeys: [String],
@@ -598,11 +598,6 @@ access(all) contract FlowEpoch {
                 FlowEpoch.borrowClusterQCAdmin().forceStopVoting()
                 FlowEpoch.borrowDKGAdmin().forceEndDKG()
             }
-
-            // Compute the target end time for the next epoch
-            let timingConfig = FlowEpoch.getEpochTimingConfig()
-            let proposedTargetDuration = timingConfig.duration
-            let proposedTargetEndTime = timingConfig.getTargetEndTimeForEpoch(FlowEpoch.proposedEpochCounter())
 
             // Create new Epoch metadata for the next epoch
             // with the new values
@@ -635,8 +630,8 @@ access(all) contract FlowEpoch {
                 dkgPhase1FinalView: startView + FlowEpoch.configurableMetadata.numViewsInStakingAuction + FlowEpoch.configurableMetadata.numViewsInDKGPhase - 1 as UInt64,
                 dkgPhase2FinalView: startView + FlowEpoch.configurableMetadata.numViewsInStakingAuction + (2 as UInt64 * FlowEpoch.configurableMetadata.numViewsInDKGPhase) - 1 as UInt64,
                 dkgPhase3FinalView: startView + FlowEpoch.configurableMetadata.numViewsInStakingAuction + (3 as UInt64 * FlowEpoch.configurableMetadata.numViewsInDKGPhase) - 1 as UInt64,
-                targetDuration: proposedTargetDuration,
-                targetEndTime: proposedTargetEndTime,
+                targetDuration: targetDuration,
+                targetEndTime: targetEndTime,
                 clusterQCVoteData: clusterQCVoteData,
                 dkgPubKeys: dkgPubKeys,
             )
