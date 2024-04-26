@@ -599,22 +599,6 @@ access(all) contract FlowEpoch {
                 FlowEpoch.borrowDKGAdmin().forceEndDKG()
             }
 
-            /// Create new Epoch metadata for the next epoch
-            /// with the new values
-            let newEpochMetadata = EpochMetadata(
-                //
-                counter: FlowEpoch.proposedEpochCounter(),
-                seed: randomSource,
-                startView: startView,
-                endView: endView,
-                stakingEndView: stakingEndView,
-                // This will be overwritten in `calculateAndSetRewards` below
-                totalRewards: UFix64(0.0),
-                collectorClusters: [],
-                clusterQCs: [],
-                dkgKeys: dkgPubKeys)
-
-            FlowEpoch.saveEpochMetadata(newEpochMetadata)
             // Calculate rewards for the current epoch
             // and set the payout for the next epoch
             FlowEpoch.calculateAndSetRewards()
@@ -640,6 +624,25 @@ access(all) contract FlowEpoch {
             /// save the recovery epoch metadata this will be emitted in the EpochRecover service event
             /// during the next heart beat interval.
             FlowEpoch.account.storage.save(recoverEpochMetadata, to: /storage/recoverEpochMetadataStoragePath)
+
+            /// Create new metadata for the recovery epoch with the new values
+            let newEpochMetadata = EpochMetadata(
+                /// When the network enters EFM the epoch counter will not be incremented 
+                /// so it's safe to use current_epoch_counter + 1 
+                counter: FlowEpoch.proposedEpochCounter(),
+                seed: randomSource,
+                startView: startView,
+                endView: endView,
+                stakingEndView: stakingEndView,
+                // This will be overwritten in `calculateAndSetRewards` below
+                totalRewards: UFix64(0.0),
+                collectorClusters: [],
+                clusterQCs: [],
+                dkgKeys: dkgPubKeys)
+
+            /// Save the new epoch meta data, it will be referenced as 
+            /// the epoch progresses through each phase.
+            FlowEpoch.saveEpochMetadata(newEpochMetadata)
         }
 
         /// Ends the currently active epoch and starts a new one with the provided configuration.
