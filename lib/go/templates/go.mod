@@ -7,7 +7,7 @@ require (
 	github.com/onflow/cadence v1.0.0-M3
 	github.com/onflow/flow-ft/lib/go/templates v0.7.1-0.20240424211859-3ff4c0fe2a1e
 	github.com/onflow/flow-go-sdk v1.0.0-M1
-	github.com/onflow/flow-nft/lib/go/templates v0.0.0-20240424144730-4a6f42d2a372
+	github.com/onflow/flow-nft/lib/go/templates v0.0.0-20240429184308-40c3de711140
 	github.com/psiemens/sconfig v0.1.0
 	github.com/spf13/cobra v1.5.0
 )

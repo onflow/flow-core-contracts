@@ -6,7 +6,7 @@ require (
 	github.com/kevinburke/go-bindata v3.24.0+incompatible
 	github.com/onflow/flow-core-contracts/lib/go/templates v0.15.2-0.20240215153337-0be5cb4b4bc9
 	github.com/onflow/flow-ft/lib/go/contracts v0.7.1-0.20240424211859-3ff4c0fe2a1e
-	github.com/onflow/flow-nft/lib/go/contracts v1.1.1-0.20240424144730-4a6f42d2a372
+	github.com/onflow/flow-nft/lib/go/contracts v1.1.1-0.20240429184308-40c3de711140
 	github.com/stretchr/testify v1.8.4
 )
 
