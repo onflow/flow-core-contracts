@@ -10,7 +10,7 @@
 
  */
 
-import FungibleToken from 0xFUNGIBLETOKENADDRESS
+import FungibleToken from "FungibleToken"
 import FlowToken from 0xFLOWTOKENADDRESS
 import FlowIDTableStaking from 0xFLOWIDTABLESTAKINGADDRESS
 import LockedTokens from 0xLOCKEDTOKENSADDRESS
@@ -568,9 +568,7 @@ pub contract FlowStakingCollection {
             
             let tokens <- self.getTokens(amount: amount)
 
-            let nodeDelegator <- FlowIDTableStaking.registerNewDelegator(nodeID: nodeID)
-
-            nodeDelegator.delegateNewTokens(from: <- tokens)
+            let nodeDelegator <- FlowIDTableStaking.registerNewDelegator(nodeID: nodeID, tokensCommitted: <-tokens)
 
             emit DelegatorAddedToStakingCollection(nodeID: nodeDelegator.nodeID, delegatorID: nodeDelegator.id, amountCommitted: amount, address: self.owner?.address)
 

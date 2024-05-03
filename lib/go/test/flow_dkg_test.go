@@ -1,12 +1,13 @@
 package test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
-	emulator "github.com/onflow/flow-emulator"
+	emulator "github.com/onflow/flow-emulator/emulator"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 	sdktemplates "github.com/onflow/flow-go-sdk/templates"
@@ -23,7 +24,7 @@ const (
 )
 
 func TestDKG(t *testing.T) {
-	b := newBlockchain()
+	b, adapter := newBlockchain()
 
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
@@ -36,7 +37,7 @@ func TestDKG(t *testing.T) {
 	DKGAccountKey, DKGSigner := accountKeys.NewWithSigner()
 	DKGCode := contracts.FlowDKG()
 
-	DKGAddress, err := b.CreateAccount([]*flow.AccountKey{DKGAccountKey}, []sdktemplates.Contract{
+	DKGAddress, err := adapter.CreateAccount(context.Background(), []*flow.AccountKey{DKGAccountKey}, []sdktemplates.Contract{
 		{
 			Name:   "FlowDKG",
 			Source: string(DKGCode),
@@ -48,10 +49,10 @@ func TestDKG(t *testing.T) {
 
 	// Create new user accounts
 	joshAccountKey, joshSigner := accountKeys.NewWithSigner()
-	joshAddress, _ := b.CreateAccount([]*flow.AccountKey{joshAccountKey}, nil)
+	joshAddress, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{joshAccountKey}, nil)
 
 	jordanAccountKey, jordanSigner := accountKeys.NewWithSigner()
-	jordanAddress, _ := b.CreateAccount([]*flow.AccountKey{jordanAccountKey}, nil)
+	jordanAddress, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{jordanAccountKey}, nil)
 
 	t.Run("Should be able to set up the admin account", func(t *testing.T) {
 
@@ -408,11 +409,11 @@ func TestDKG(t *testing.T) {
 
 	// Create a new user account
 	maxAccountKey, maxSigner := accountKeys.NewWithSigner()
-	maxAddress, _ := b.CreateAccount([]*flow.AccountKey{maxAccountKey}, nil)
+	maxAddress, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{maxAccountKey}, nil)
 
 	// Create a new user account
 	bastianAccountKey, bastianSigner := accountKeys.NewWithSigner()
-	bastianAddress, _ := b.CreateAccount([]*flow.AccountKey{bastianAccountKey}, nil)
+	bastianAddress, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{bastianAccountKey}, nil)
 
 	epoch2dkgNodeIDStrings := make([]cadence.Value, 2)
 
@@ -697,7 +698,7 @@ func TestDKG(t *testing.T) {
 // is set to a given value.
 func checkDKGSafeThresholdPercent(
 	t *testing.T,
-	b *emulator.Blockchain,
+	b emulator.Emulator,
 	env templates.Environment,
 	expected cadence.Value, // UFix64
 ) {
@@ -710,7 +711,7 @@ func checkDKGSafeThresholdPercent(
 // value. This is the max of safetyPercent*n and floor((n-1)/2) (native threshold)
 func checkDKGSafeThreshold(
 	t *testing.T,
-	b *emulator.Blockchain,
+	b emulator.Emulator,
 	env templates.Environment,
 	expected cadence.Value, // UInt64
 ) {
@@ -721,7 +722,7 @@ func checkDKGSafeThreshold(
 
 // Tests the DKG with submissions consisting of nil keys
 func TestDKGNil(t *testing.T) {
-	b := newBlockchain()
+	b, adapter := newBlockchain()
 
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
@@ -734,7 +735,7 @@ func TestDKGNil(t *testing.T) {
 	DKGAccountKey, DKGSigner := accountKeys.NewWithSigner()
 	DKGCode := contracts.FlowDKG()
 
-	DKGAddress, err := b.CreateAccount([]*flow.AccountKey{DKGAccountKey}, []sdktemplates.Contract{
+	DKGAddress, err := adapter.CreateAccount(context.Background(), []*flow.AccountKey{DKGAccountKey}, []sdktemplates.Contract{
 		{
 			Name:   "FlowDKG",
 			Source: string(DKGCode),
@@ -745,7 +746,7 @@ func TestDKGNil(t *testing.T) {
 	env.DkgAddress = DKGAddress.Hex()
 
 	jordanAccountKey, jordanSigner := accountKeys.NewWithSigner()
-	jordanAddress, _ := b.CreateAccount([]*flow.AccountKey{jordanAccountKey}, nil)
+	jordanAddress, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{jordanAccountKey}, nil)
 
 	// set up the admin account
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GeneratePublishDKGParticipantScript(env), DKGAddress)

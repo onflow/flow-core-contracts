@@ -17,22 +17,15 @@ transaction(ids: [String]) {
     }
 
     execute {
-	let nodeIDs = FlowIDTableStaking.getApprovedList()
+		let nodeIDs = FlowIDTableStaking.getApprovedList()
+            ?? panic("Could not read approve list from storage")
 
-	// create a map for existing node IDs to avoid double-adding
-	let nodeIDsMap: {String: Bool} = {}	
-	for nodeID in nodeIDs {
-		nodeIDsMap[nodeID] = true
-	}
-
-	// add any new node ID which doesn't already exist
-	for newNodeID in ids {
-		if nodeIDsMap[newNodeID] == nil {
-			nodeIDs.append(newNodeID)
+		// add any new node ID which doesn't already exist
+		for newNodeID in ids {
+			nodeIDs[newNodeID] = true
 		}
-	}
 
-	// set the approved list to the union of existing and new node IDs
+		// set the approved list to the union of existing and new node IDs
         self.adminRef.setApprovedList(nodeIDs)
     }
 }

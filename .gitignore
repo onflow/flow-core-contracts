@@ -12,3 +12,7 @@ node_modules
 .idea
 .vscode
 git
+
+coverage.json
+coverage.lcov
+flow.json

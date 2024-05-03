@@ -1,12 +1,12 @@
 package test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
-	ft_templates "github.com/onflow/flow-ft/lib/go/templates"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 	sdktemplates "github.com/onflow/flow-go-sdk/templates"
@@ -22,7 +22,7 @@ func TestStakingProxy(t *testing.T) {
 
 	t.Parallel()
 
-	b := newBlockchain()
+	b, adapter := newBlockchain()
 
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
@@ -33,7 +33,7 @@ func TestStakingProxy(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, _ := accountKeys.NewWithSigner()
-	IDTableCode := contracts.TESTFlowIDTableStaking(emulatorFTAddress, emulatorFlowTokenAddress)
+	IDTableCode, _ := cadence.NewString(string(contracts.TESTFlowIDTableStaking(emulatorFTAddress, emulatorFlowTokenAddress))[:])
 
 	publicKeys := make([]cadence.Value, 1)
 
@@ -42,16 +42,26 @@ func TestStakingProxy(t *testing.T) {
 	publicKeys[0] = publicKey
 
 	cadencePublicKeys := cadence.NewArray(publicKeys)
-	cadenceCode := bytesToCadenceArray(IDTableCode)
 
 	// Deploy the IDTableStaking contract
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateTransferMinterAndDeployScript(env), b.ServiceKey().Address).
 		AddRawArgument(jsoncdc.MustEncode(cadencePublicKeys)).
-		AddRawArgument(jsoncdc.MustEncode(CadenceString("FlowIDTableStaking"))).
-		AddRawArgument(jsoncdc.MustEncode(cadenceCode))
+		AddRawArgument(jsoncdc.MustEncode(CadenceString("FlowIDTableStaking")))
+
+	_ = tx.AddArgument(IDTableCode)
 
 	_ = tx.AddArgument(CadenceUFix64("1250000.0"))
 	_ = tx.AddArgument(CadenceUFix64("0.03"))
+
+	// Construct Array
+	var candidateNodeLimits []uint64 = []uint64{10, 10, 10, 10, 10}
+	candidateLimitsArrayValues := make([]cadence.Value, 5)
+	for i, limit := range candidateNodeLimits {
+		candidateLimitsArrayValues[i] = cadence.NewUInt64(limit)
+	}
+	cadenceLimitArray := cadence.NewArray(candidateLimitsArrayValues).WithType(cadence.NewVariableSizedArrayType(cadence.NewUInt64Type()))
+
+	_ = tx.AddArgument(cadenceLimitArray)
 
 	signAndSubmit(
 		t, b, tx,
@@ -65,11 +75,13 @@ func TestStakingProxy(t *testing.T) {
 	var i uint64
 	i = 0
 	for i < 1000 {
-		results, _ := b.GetEventsByHeight(i, "flow.AccountCreated")
+		results, _ := adapter.GetEventsForHeightRange(context.Background(), "flow.AccountCreated", i, i)
 
-		for _, event := range results {
-			if event.Type == flow.EventAccountCreated {
-				idTableAddress = flow.Address(event.Value.Fields[0].(cadence.Address))
+		for _, result := range results {
+			for _, event := range result.Events {
+				if event.Type == flow.EventAccountCreated {
+					idTableAddress = flow.Address(event.Value.Fields[0].(cadence.Address))
+				}
 			}
 		}
 
@@ -80,7 +92,7 @@ func TestStakingProxy(t *testing.T) {
 
 	// Deploy the StakingProxy contract
 	stakingProxyCode := contracts.FlowStakingProxy()
-	stakingProxyAddress, err := b.CreateAccount(nil, []sdktemplates.Contract{
+	stakingProxyAddress, err := adapter.CreateAccount(context.Background(), nil, []sdktemplates.Contract{
 		{
 			Name:   "StakingProxy",
 			Source: string(stakingProxyCode),
@@ -96,20 +108,16 @@ func TestStakingProxy(t *testing.T) {
 	env.StakingProxyAddress = stakingProxyAddress.Hex()
 
 	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
-	adminAddress, _ := b.CreateAccount([]*flow.AccountKey{adminAccountKey}, nil)
+	adminAddress, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{adminAccountKey}, nil)
 
 	lockedTokensAccountKey, _ := accountKeys.NewWithSigner()
-	lockedTokensAddress := deployLockedTokensContract(t, b, idTableAddress, stakingProxyAddress, lockedTokensAccountKey, adminAddress, adminSigner)
+	lockedTokensAddress := deployLockedTokensContract(t, b, env, idTableAddress, stakingProxyAddress, lockedTokensAccountKey, adminAddress, adminSigner)
 
 	env.LockedTokensAddress = lockedTokensAddress.Hex()
 
 	t.Run("Should be able to set up the admin account", func(t *testing.T) {
 
-		tx = createTxWithTemplateAndAuthorizer(b, ft_templates.GenerateMintTokensScript(
-			flow.HexToAddress(emulatorFTAddress),
-			flow.HexToAddress(emulatorFlowTokenAddress),
-			"FlowToken",
-		), b.ServiceKey().Address)
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateMintFlowScript(env), b.ServiceKey().Address)
 
 		_ = tx.AddArgument(cadence.NewAddress(lockedTokensAddress))
 		_ = tx.AddArgument(CadenceUFix64("1000000000.0"))
@@ -124,7 +132,7 @@ func TestStakingProxy(t *testing.T) {
 
 	// Create a new node operator account for staking helper
 	nodeAccountKey, nodeSigner := accountKeys.NewWithSigner()
-	nodeAddress, _ := b.CreateAccount([]*flow.AccountKey{nodeAccountKey}, nil)
+	nodeAddress, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{nodeAccountKey}, nil)
 
 	t.Run("Should be able to set up the node account for staking helper", func(t *testing.T) {
 
@@ -164,7 +172,7 @@ func TestStakingProxy(t *testing.T) {
 	var joshSharedAddress flow.Address
 	var joshAddress flow.Address
 
-	tx = createTxWithTemplateAndAuthorizer(b, ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"), b.ServiceKey().Address)
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateMintFlowScript(env), b.ServiceKey().Address)
 	_ = tx.AddArgument(cadence.NewAddress(adminAddress))
 	_ = tx.AddArgument(CadenceUFix64("1000000000.0"))
 
@@ -189,7 +197,7 @@ func TestStakingProxy(t *testing.T) {
 			false,
 		)
 
-		createAccountsTxResult, err := b.GetTransactionResult(tx.ID())
+		createAccountsTxResult, err := adapter.GetTransactionResult(context.Background(), tx.ID())
 		assert.NoError(t, err)
 		assertEqual(t, flow.TransactionStatusSealed, createAccountsTxResult.Status)
 

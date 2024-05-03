@@ -1,4 +1,5 @@
 import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
+import FlowToken from 0xFLOWTOKENADDRESS
 
 transaction(nodeIDs: [String], paths: [StoragePath]) {
 
@@ -8,7 +9,7 @@ transaction(nodeIDs: [String], paths: [StoragePath]) {
 
         for path in paths {
             // Create a new delegator object for the node
-            let newDelegator <- FlowIDTableStaking.registerNewDelegator(nodeID: nodeIDs[i])
+            let newDelegator <- FlowIDTableStaking.registerNewDelegator(nodeID: nodeIDs[i], tokensCommitted: <-FlowToken.createEmptyVault())
 
             // Store the delegator object
             acct.save(<-newDelegator, to: path)

@@ -13,12 +13,12 @@ const (
 )
 
 func TestFlowTokenContract(t *testing.T) {
-	contract := contracts.FlowToken(fakeAddr)
+	contract := contracts.FlowToken(fakeAddr, fakeAddr, fakeAddr)
 	assert.NotNil(t, contract)
 }
 
 func TestFlowFeesContract(t *testing.T) {
-	contract := contracts.FlowFees(fakeAddr, fakeAddr)
+	contract := contracts.FlowFees(fakeAddr, fakeAddr, fakeAddr)
 	assert.NotNil(t, contract)
 }
 
@@ -47,7 +47,7 @@ func TestStakingCollection(t *testing.T) {
 	assert.NotNil(t, contract)
 }
 
-func TestFlowContractAudits(t *testing.T) {
-	contract := contracts.FlowContractAudits()
+func TestNodeVersionBeacon(t *testing.T) {
+	contract := contracts.NodeVersionBeacon()
 	assert.NotNil(t, contract)
 }

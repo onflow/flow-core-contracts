@@ -8,8 +8,9 @@ import (
 
 	_ "github.com/kevinburke/go-bindata"
 	ftcontracts "github.com/onflow/flow-ft/lib/go/contracts"
+	nftcontracts "github.com/onflow/flow-nft/lib/go/contracts"
 
-	_ "github.com/kevinburke/go-bindata"
+	"github.com/onflow/flow-go-sdk"
 
 	"github.com/onflow/flow-core-contracts/lib/go/contracts/internal/assets"
 )
@@ -25,19 +26,20 @@ import (
 ///
 
 const (
-	flowFeesFilename                   = "FlowFees.cdc"
-	storageFeesFilename                = "FlowStorageFees.cdc"
-	flowServiceAccountFilename         = "FlowServiceAccount.cdc"
-	flowTokenFilename                  = "FlowToken.cdc"
-	flowIdentityTableFilename          = "FlowIDTableStaking.cdc"
-	flowQCFilename                     = "epochs/FlowClusterQC.cdc"
-	flowDKGFilename                    = "epochs/FlowDKG.cdc"
-	flowEpochFilename                  = "epochs/FlowEpoch.cdc"
-	flowLockedTokensFilename           = "LockedTokens.cdc"
-	flowStakingProxyFilename           = "StakingProxy.cdc"
-	flowStakingCollectionFilename      = "FlowStakingCollection.cdc"
-	flowContractAuditsFilename         = "FlowContractAudits.cdc"
-	executionNodeVersionBeaconFilename = "ExecutionNodeVersionBeacon.cdc"
+	flowFeesFilename                = "FlowFees.cdc"
+	storageFeesFilename             = "FlowStorageFees.cdc"
+	flowServiceAccountFilename      = "FlowServiceAccount.cdc"
+	flowTokenFilename               = "FlowToken.cdc"
+	flowIdentityTableFilename       = "FlowIDTableStaking.cdc"
+	flowQCFilename                  = "epochs/FlowClusterQC.cdc"
+	flowDKGFilename                 = "epochs/FlowDKG.cdc"
+	flowEpochFilename               = "epochs/FlowEpoch.cdc"
+	flowLockedTokensFilename        = "LockedTokens.cdc"
+	flowStakingProxyFilename        = "StakingProxy.cdc"
+	flowStakingCollectionFilename   = "FlowStakingCollection.cdc"
+	flowContractAuditsFilename      = "FlowContractAudits.cdc"
+	flowNodeVersionBeaconFilename   = "NodeVersionBeacon.cdc"
+	flowRandomBeaconHistoryFilename = "RandomBeaconHistory.cdc"
 
 	// Test contracts
 	// only used for testing
@@ -45,18 +47,21 @@ const (
 
 	// Each contract has placeholder addresses that need to be replaced
 	// depending on which network they are being used with
-	placeholderFungibleTokenAddress              = "0xFUNGIBLETOKENADDRESS"
-	placeholderFlowTokenAddress                  = "0xFLOWTOKENADDRESS"
-	placeholderIDTableAddress                    = "0xFLOWIDTABLESTAKINGADDRESS"
-	placeholderStakingProxyAddress               = "0xSTAKINGPROXYADDRESS"
-	placeholderQCAddr                            = "0xQCADDRESS"
-	placeholderDKGAddr                           = "0xDKGADDRESS"
-	placeholderEpochAddr                         = "0xEPOCHADDRESS"
-	placeholderFlowFeesAddress                   = "0xFLOWFEESADDRESS"
-	placeholderStorageFeesAddress                = "0xFLOWSTORAGEFEESADDRESS"
-	placeholderLockedTokensAddress               = "0xLOCKEDTOKENSADDRESS"
-	placeholderStakingCollectionAddress          = "0xFLOWSTAKINGCOLLECTIONADDRESS"
-	placeholderExecutionNodeVersionBeaconAddress = "0xEXECUTIONNODEVERSIONBEACONADDRESS"
+	placeholderFungibleTokenAddress     = "\"FungibleToken\""
+	placeholderFungibleTokenMVAddress   = "\"FungibleTokenMetadataViews\""
+	placeholderMetadataViewsAddress     = "\"MetadataViews\""
+	placeholderViewResolverAddress      = "\"ViewResolver\""
+	placeholderFlowTokenAddress         = "0xFLOWTOKENADDRESS"
+	placeholderIDTableAddress           = "0xFLOWIDTABLESTAKINGADDRESS"
+	placeholderStakingProxyAddress      = "0xSTAKINGPROXYADDRESS"
+	placeholderQCAddr                   = "0xQCADDRESS"
+	placeholderDKGAddr                  = "0xDKGADDRESS"
+	placeholderEpochAddr                = "0xEPOCHADDRESS"
+	placeholderFlowFeesAddress          = "0xFLOWFEESADDRESS"
+	placeholderStorageFeesAddress       = "0xFLOWSTORAGEFEESADDRESS"
+	placeholderLockedTokensAddress      = "0xLOCKEDTOKENSADDRESS"
+	placeholderStakingCollectionAddress = "0xFLOWSTAKINGCOLLECTIONADDRESS"
+	placeholderNodeVersionBeaconAddress = "0xNODEVERSIONBEACONADDRESS"
 )
 
 // Adds a `0x` prefix to the provided address string
@@ -77,10 +82,28 @@ func FungibleToken() []byte {
 	return ftcontracts.FungibleToken()
 }
 
+// FungibleTokenMetadataViews returns the FungibleTokenMetadataViews contract interface.
+func FungibleTokenMetadataViews(fungibleTokenAddr, metadataViewsAddr string) []byte {
+	return ftcontracts.FungibleTokenMetadataViews(fungibleTokenAddr, metadataViewsAddr)
+}
+
+func NonFungibleToken() []byte {
+	return nftcontracts.NonFungibleToken()
+}
+
+func ViewResolver() []byte {
+	return nftcontracts.Resolver()
+}
+
+// MetadataViews returns the MetadataViews contract interface.
+func MetadataViews(fungibleTokenAddr, nonFungibleTokenAddr string) []byte {
+	return nftcontracts.MetadataViews(flow.HexToAddress(fungibleTokenAddr), flow.HexToAddress(nonFungibleTokenAddr))
+}
+
 // FlowToken returns the FlowToken contract.
 //
 // The returned contract will import the FungibleToken contract from the specified address.
-func FlowToken(fungibleTokenAddress string) []byte {
+func FlowToken(fungibleTokenAddress, metadataViewsAddress, viewResolverAddress string) []byte {
 	code := assets.MustAssetString(flowTokenFilename)
 
 	// Replace the fungible token placeholder address
@@ -91,6 +114,38 @@ func FlowToken(fungibleTokenAddress string) []byte {
 		withHexPrefix(fungibleTokenAddress),
 	)
 
+	code = strings.ReplaceAll(
+		code,
+		placeholderFungibleTokenMVAddress,
+		withHexPrefix(fungibleTokenAddress),
+	)
+
+	code = strings.ReplaceAll(
+		code,
+		placeholderMetadataViewsAddress,
+		withHexPrefix(metadataViewsAddress),
+	)
+
+	code = strings.ReplaceAll(
+		code,
+		placeholderViewResolverAddress,
+		withHexPrefix(viewResolverAddress),
+	)
+
+	// Replace the init method storage operations
+	code = strings.ReplaceAll(
+		code,
+		"self.account.",
+		"adminAccount.",
+	)
+
+	// Replace the init method admin account parameter
+	code = strings.ReplaceAll(
+		code,
+		"init()",
+		"init(adminAccount: AuthAccount)",
+	)
+
 	return []byte(code)
 }
 
@@ -98,7 +153,7 @@ func FlowToken(fungibleTokenAddress string) []byte {
 //
 // The returned contract will import the FungibleToken and FlowToken
 // contracts from the specified addresses.
-func FlowFees(fungibleTokenAddress, flowTokenAddress string) []byte {
+func FlowFees(fungibleTokenAddress, flowTokenAddress, storageFees string) []byte {
 	code := assets.MustAssetString(flowFeesFilename)
 
 	code = strings.ReplaceAll(
@@ -111,6 +166,12 @@ func FlowFees(fungibleTokenAddress, flowTokenAddress string) []byte {
 		code,
 		placeholderFlowTokenAddress,
 		withHexPrefix(flowTokenAddress),
+	)
+
+	code = strings.ReplaceAll(
+		code,
+		placeholderStorageFeesAddress,
+		withHexPrefix(storageFees),
 	)
 
 	return []byte(code)
@@ -178,11 +239,7 @@ func FlowServiceAccount(fungibleTokenAddress, flowTokenAddress, flowFeesAddress,
 func FlowIDTableStaking(fungibleTokenAddress, flowTokenAddress, flowFeesAddress string, latest bool) []byte {
 	var code string
 
-	if latest {
-		code = assets.MustAssetString(flowIdentityTableFilename)
-	} else {
-		code = assets.MustAssetString("FlowIDTableStaking_old.cdc")
-	}
+	code = assets.MustAssetString(flowIdentityTableFilename)
 
 	code = strings.ReplaceAll(code, placeholderFungibleTokenAddress, withHexPrefix(fungibleTokenAddress))
 	code = strings.ReplaceAll(code, placeholderFlowTokenAddress, withHexPrefix(flowTokenAddress))
@@ -279,7 +336,21 @@ func FlowEpoch(fungibleTokenAddress,
 	return []byte(code)
 }
 
-// FlowContractAudits returns the FlowContractAudits contract.
+// NodeVersionBeacon returns the NodeVersionBeacon contract content.
+func NodeVersionBeacon() []byte {
+	code := assets.MustAssetString(flowNodeVersionBeaconFilename)
+
+	return []byte(code)
+}
+
+func RandomBeaconHistory() []byte {
+	code := assets.MustAssetString(flowRandomBeaconHistoryFilename)
+
+	return []byte(code)
+}
+
+// FlowContractAudits returns the deprecated FlowContractAudits contract.
+// This contract is no longer used on any network
 func FlowContractAudits() []byte {
 	code := assets.MustAssetString(flowContractAuditsFilename)
 
@@ -327,7 +398,7 @@ func TESTFlowStakingCollection(
 	return []byte(code)
 }
 
-func TestFlowFees(fungibleTokenAddress, flowTokenAddress string) []byte {
+func TestFlowFees(fungibleTokenAddress, flowTokenAddress, storageFeesAddress string) []byte {
 	code := assets.MustAssetString(flowFeesFilename)
 
 	code = strings.ReplaceAll(
@@ -340,6 +411,12 @@ func TestFlowFees(fungibleTokenAddress, flowTokenAddress string) []byte {
 		code,
 		placeholderFlowTokenAddress,
 		withHexPrefix(flowTokenAddress),
+	)
+
+	code = strings.ReplaceAll(
+		code,
+		placeholderStorageFeesAddress,
+		withHexPrefix(storageFeesAddress),
 	)
 
 	code = strings.ReplaceAll(

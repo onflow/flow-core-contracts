@@ -12,6 +12,7 @@ const (
 	updateStakingViewsFilename       = "epoch/admin/update_staking_views.cdc"
 	updateDKGViewsFilename           = "epoch/admin/update_dkg_phase_views.cdc"
 	updateEpochConfigFilename        = "epoch/admin/update_epoch_config.cdc"
+	updateEpochTimingConfigFilename  = "epoch/admin/update_epoch_timing_config.cdc"
 	updateNumClustersFilename        = "epoch/admin/update_clusters.cdc"
 	updateRewardPercentageFilename   = "epoch/admin/update_reward.cdc"
 	advanceViewFilename              = "epoch/admin/advance_view.cdc"
@@ -19,6 +20,7 @@ const (
 	epochCalculateSetRewardsFilename = "epoch/admin/calculate_rewards.cdc"
 	epochPayRewardsFilename          = "epoch/admin/pay_rewards.cdc"
 	epochSetAutoRewardsFilename      = "epoch/admin/set_automatic_rewards.cdc"
+	setBonusTokensFilename           = "epoch/admin/set_bonus_tokens.cdc"
 
 	// Node Transactions
 	epochRegisterNodeFilename           = "epoch/node/register_node.cdc"
@@ -26,13 +28,16 @@ const (
 	epochRegisterDKGParticipantFilename = "epoch/node/register_dkg_participant.cdc"
 
 	// Scripts
-	getCurrentEpochCounterFilename  = "epoch/scripts/get_epoch_counter.cdc"
-	getProposedEpochCounterFilename = "epoch/scripts/get_proposed_counter.cdc"
-	getEpochMetadataFilename        = "epoch/scripts/get_epoch_metadata.cdc"
-	getConfigMetadataFilename       = "epoch/scripts/get_config_metadata.cdc"
-	getEpochPhaseFilename           = "epoch/scripts/get_epoch_phase.cdc"
-	getCurrentViewFilename          = "epoch/scripts/get_current_view.cdc"
-	getFlowTotalSupplyFilename      = "flowToken/scripts/get_supply.cdc"
+	getCurrentEpochCounterFilename   = "epoch/scripts/get_epoch_counter.cdc"
+	getProposedEpochCounterFilename  = "epoch/scripts/get_proposed_counter.cdc"
+	getEpochMetadataFilename         = "epoch/scripts/get_epoch_metadata.cdc"
+	getConfigMetadataFilename        = "epoch/scripts/get_config_metadata.cdc"
+	getTimingConfigFilename          = "epoch/scripts/get_epoch_timing_config.cdc"
+	getTargetEndTimeForEpochFilename = "epoch/scripts/get_target_end_time_for_epoch.cdc"
+	getEpochPhaseFilename            = "epoch/scripts/get_epoch_phase.cdc"
+	getCurrentViewFilename           = "epoch/scripts/get_current_view.cdc"
+	getFlowTotalSupplyFilename       = "flowToken/scripts/get_supply.cdc"
+	getFlowBonusTokensFilename       = "epoch/scripts/get_bonus_tokens.cdc"
 
 	// test scripts
 	getRandomizeFilename      = "epoch/scripts/get_randomize.cdc"
@@ -79,6 +84,12 @@ func GenerateUpdateEpochConfigScript(env Environment) []byte {
 	return []byte(ReplaceAddresses(code, env))
 }
 
+func GenerateUpdateEpochTimingConfigScript(env Environment) []byte {
+	code := assets.MustAssetString(updateEpochTimingConfigFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
 func GenerateUpdateNumClustersScript(env Environment) []byte {
 	code := assets.MustAssetString(updateNumClustersFilename)
 
@@ -117,6 +128,12 @@ func GenerateEpochPayRewardsScript(env Environment) []byte {
 
 func GenerateEpochSetAutomaticRewardsScript(env Environment) []byte {
 	code := assets.MustAssetString(epochSetAutoRewardsFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateEpochSetBonusTokensScript(env Environment) []byte {
+	code := assets.MustAssetString(setBonusTokensFilename)
 
 	return []byte(ReplaceAddresses(code, env))
 }
@@ -167,6 +184,18 @@ func GenerateGetEpochConfigMetadataScript(env Environment) []byte {
 	return []byte(ReplaceAddresses(code, env))
 }
 
+func GenerateGetEpochTimingConfigScript(env Environment) []byte {
+	code := assets.MustAssetString(getTimingConfigFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateGetTargetEndTimeForEpochScript(env Environment) []byte {
+	code := assets.MustAssetString(getTargetEndTimeForEpochFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
 func GenerateGetEpochPhaseScript(env Environment) []byte {
 	code := assets.MustAssetString(getEpochPhaseFilename)
 
@@ -193,6 +222,12 @@ func GenerateGetCurrentViewScript(env Environment) []byte {
 
 func GenerateGetFlowTotalSupplyScript(env Environment) []byte {
 	code := assets.MustAssetString(getFlowTotalSupplyFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateGetBonusTokensScript(env Environment) []byte {
+	code := assets.MustAssetString(getFlowBonusTokensFilename)
 
 	return []byte(ReplaceAddresses(code, env))
 }

@@ -199,8 +199,18 @@ pub contract FlowDKG {
         }
     }
 
+    /// Interface that only contains operations that are part
+    /// of the regular automated functioning of the epoch process
+    /// These are accessed by the `FlowEpoch` contract through a capability
+    pub resource interface EpochOperations {
+        pub fun createParticipant(nodeID: String): @Participant
+        pub fun startDKG(nodeIDs: [String])
+        pub fun endDKG()
+        pub fun forceEndDKG()
+    }
+
     /// The Admin resource provides the ability to begin and end voting for an epoch
-    pub resource Admin {
+    pub resource Admin: EpochOperations {
 
         /// Sets the optional safe DKG success threshold
         /// Set the threshold to nil if it isn't needed
@@ -346,6 +356,11 @@ pub contract FlowDKG {
     /// Get the array of all the unique final submissions
     pub fun getFinalSubmissions(): [[String?]] {
         return self.uniqueFinalSubmissions
+    }
+
+    /// Get the count of the final submissions array
+    pub fun getFinalSubmissionCount(): {Int: UInt64} {
+        return self.uniqueFinalSubmissionCount
     }
 
     /// Gets the native threshold that the submission count needs to exceed to be considered complete [t=floor((n-1)/2)]

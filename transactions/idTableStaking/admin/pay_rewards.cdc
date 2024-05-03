@@ -15,6 +15,6 @@ transaction {
 
     execute {
         let summary = self.adminRef.calculateRewards()
-        self.adminRef.payRewards(summary)
+        self.adminRef.payRewards(forEpochCounter: 1, rewardsSummary: summary)
     }
 }

@@ -12,8 +12,8 @@
           "label": "Amount",
           "sampleValues": [
             {
-              "type": "UFix64",
-              "value": "92233720368.54775808"
+              "value": "92233720368.54775808",
+              "type": "UFix64"
             }
           ]
         }
@@ -32,8 +32,8 @@
           "label": "Amount",
           "sampleValues": [
             {
-              "type": "UFix64",
-              "value": "92233720368.54775808"
+              "value": "92233720368.54775808",
+              "type": "UFix64"
             }
           ]
         }
@@ -52,8 +52,8 @@
           "label": "Node ID",
           "sampleValues": [
             {
-              "type": "String",
-              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"
+              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6",
+              "type": "String"
             }
           ]
         },
@@ -63,8 +63,8 @@
           "label": "Node Role",
           "sampleValues": [
             {
-              "type": "UInt8",
-              "value": "1"
+              "value": "1",
+              "type": "UInt8"
             }
           ]
         },
@@ -74,8 +74,8 @@
           "label": "Networking Address",
           "sampleValues": [
             {
-              "type": "String",
-              "value": "flow-node.test:3569"
+              "value": "flow-node.test:3569",
+              "type": "String"
             }
           ]
         },
@@ -85,8 +85,8 @@
           "label": "Networking Key",
           "sampleValues": [
             {
-              "type": "String",
-              "value": "1348307bc77c688e80049de9d081aa09755da33e6997605fa059db2144fc85e560cbe6f7da8d74b453f5916618cb8fd392c2db856f3e78221dc68db1b1d914e4"
+              "value": "1348307bc77c688e80049de9d081aa09755da33e6997605fa059db2144fc85e560cbe6f7da8d74b453f5916618cb8fd392c2db856f3e78221dc68db1b1d914e4",
+              "type": "String"
             }
           ]
         },
@@ -96,8 +96,8 @@
           "label": "Staking Key",
           "sampleValues": [
             {
-              "type": "String",
-              "value": "8dec36ed8a91e3e5d737b06434d94a8a561c7889495d6c7081cd5e123a42124415b9391c9b9aa165c2f71994bf9607cb0ea262ad162fec74146d1ebc482a33b9dad203d16a83bbfda89b3f6e1cd1d8fb2e704a162d259a0ac9f26bc8635d74f6"
+              "value": "8dec36ed8a91e3e5d737b06434d94a8a561c7889495d6c7081cd5e123a42124415b9391c9b9aa165c2f71994bf9607cb0ea262ad162fec74146d1ebc482a33b9dad203d16a83bbfda89b3f6e1cd1d8fb2e704a162d259a0ac9f26bc8635d74f6",
+              "type": "String"
             }
           ]
         },
@@ -107,8 +107,8 @@
           "label": "Staking Key PoP",
           "sampleValues": [
             {
-              "type": "String",
-              "value": "828a68a2be392804044d85888100462702a422901da3269fb6512defabad07250aad24f232671e4ac8ae531f54e062fc"
+              "value": "828a68a2be392804044d85888100462702a422901da3269fb6512defabad07250aad24f232671e4ac8ae531f54e062fc",
+              "type": "String"
             }
           ]
         },
@@ -118,8 +118,8 @@
           "label": "Amount",
           "sampleValues": [
             {
-              "type": "UFix64",
-              "value": "92233720368.54775808"
+              "value": "92233720368.54775808",
+              "type": "UFix64"
             }
           ]
         }
@@ -138,8 +138,8 @@
           "label": "Amount",
           "sampleValues": [
             {
-              "type": "UFix64",
-              "value": "92233720368.54775808"
+              "value": "92233720368.54775808",
+              "type": "UFix64"
             }
           ]
         }
@@ -158,8 +158,8 @@
           "label": "Amount",
           "sampleValues": [
             {
-              "type": "UFix64",
-              "value": "92233720368.54775808"
+              "value": "92233720368.54775808",
+              "type": "UFix64"
             }
           ]
         }
@@ -178,8 +178,8 @@
           "label": "Amount",
           "sampleValues": [
             {
-              "type": "UFix64",
-              "value": "92233720368.54775808"
+              "value": "92233720368.54775808",
+              "type": "UFix64"
             }
           ]
         }
@@ -198,8 +198,8 @@
           "label": "Amount",
           "sampleValues": [
             {
-              "type": "UFix64",
-              "value": "92233720368.54775808"
+              "value": "92233720368.54775808",
+              "type": "UFix64"
             }
           ]
         }
@@ -226,8 +226,8 @@
           "label": "Amount",
           "sampleValues": [
             {
-              "type": "UFix64",
-              "value": "92233720368.54775808"
+              "value": "92233720368.54775808",
+              "type": "UFix64"
             }
           ]
         }
@@ -246,8 +246,8 @@
           "label": "Amount",
           "sampleValues": [
             {
-              "type": "UFix64",
-              "value": "92233720368.54775808"
+              "value": "92233720368.54775808",
+              "type": "UFix64"
             }
           ]
         }
@@ -266,8 +266,8 @@
           "label": "Operator Address",
           "sampleValues": [
             {
-              "type": "Address",
-              "value": "0xe467b9dd11fa00df"
+              "value": "0xe467b9dd11fa00df",
+              "type": "Address"
             }
           ]
         },
@@ -277,8 +277,8 @@
           "label": "Node ID",
           "sampleValues": [
             {
-              "type": "String",
-              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"
+              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6",
+              "type": "String"
             }
           ]
         },
@@ -288,8 +288,8 @@
           "label": "Staking Key PoP",
           "sampleValues": [
             {
-              "type": "String",
-              "value": "828a68a2be392804044d85888100462702a422901da3269fb6512defabad07250aad24f232671e4ac8ae531f54e062fc"
+              "value": "828a68a2be392804044d85888100462702a422901da3269fb6512defabad07250aad24f232671e4ac8ae531f54e062fc",
+              "type": "String"
             }
           ]
         },
@@ -299,8 +299,8 @@
           "label": "Amount",
           "sampleValues": [
             {
-              "type": "UFix64",
-              "value": "92233720368.54775808"
+              "value": "92233720368.54775808",
+              "type": "UFix64"
             }
           ]
         }
@@ -311,7 +311,7 @@
     {
       "id": "TH.17",
       "name": "Register Delegator",
-      "source": "import FlowToken from 0x1654653399040a61\nimport LockedTokens from 0x8d0e87b65159ae63\n\ntransaction(id: String, amount: UFix64) {\n\n    let holderRef: \u0026LockedTokens.TokenHolder\n\n    let vaultRef: \u0026FlowToken.Vault\n\n    prepare(account: AuthAccount) {\n        self.holderRef = account.borrow\u003c\u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath) \n            ?? panic(\"TokenHolder is not saved at specified path\")\n\n        self.vaultRef = account.borrow\u003c\u0026FlowToken.Vault\u003e(from: /storage/flowTokenVault)\n            ?? panic(\"Could not borrow flow token vault reference\")\n    }\n\n    execute {\n        self.holderRef.createNodeDelegator(nodeID: id)\n\n        let delegatorProxy = self.holderRef.borrowDelegator()\n\n        let lockedBalance = self.holderRef.getLockedAccountBalance()\n\n        if amount \u003c= lockedBalance {\n\n            delegatorProxy.delegateNewTokens(amount: amount)\n\n        } else if ((amount - lockedBalance) \u003c= self.vaultRef.balance) {\n\n            self.holderRef.deposit(from: \u003c-self.vaultRef.withdraw(amount: amount - lockedBalance))\n\n            delegatorProxy.delegateNewTokens(amount: amount)\n\n        } else {\n            panic(\"Not enough tokens to stake!\")\n        }\n    }\n}\n",
+      "source": "import FlowToken from 0x1654653399040a61\nimport LockedTokens from 0x8d0e87b65159ae63\nimport FlowIDTableStaking from 0x8624b52f9ddcd04a\n\ntransaction(id: String, amount: UFix64) {\n\n    let holderRef: \u0026LockedTokens.TokenHolder\n\n    let vaultRef: \u0026FlowToken.Vault\n\n    prepare(account: AuthAccount) {\n        self.holderRef = account.borrow\u003c\u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath) \n            ?? panic(\"TokenHolder is not saved at specified path\")\n\n        self.vaultRef = account.borrow\u003c\u0026FlowToken.Vault\u003e(from: /storage/flowTokenVault)\n            ?? panic(\"Could not borrow flow token vault reference\")\n    }\n\n    execute {\n        let lockedBalance = self.holderRef.getLockedAccountBalance()\n\n        if amount \u003c= lockedBalance {\n\n            self.holderRef.createNodeDelegator(nodeID: id)\n\n            let stakerProxy = self.holderRef.borrowDelegator()\n\n            stakerProxy.delegateNewTokens(amount: amount - FlowIDTableStaking.getDelegatorMinimumStakeRequirement())\n\n        } else if ((amount - lockedBalance) \u003c= self.vaultRef.balance) {\n\n            self.holderRef.deposit(from: \u003c-self.vaultRef.withdraw(amount: amount - lockedBalance))\n\n            self.holderRef.createNodeDelegator(nodeID: id)\n\n            let stakerProxy = self.holderRef.borrowDelegator()\n\n            stakerProxy.delegateNewTokens(amount: amount - FlowIDTableStaking.getDelegatorMinimumStakeRequirement())\n\n        } else {\n            panic(\"Not enough tokens to stake!\")\n        }\n    }\n}\n",
       "arguments": [
         {
           "type": "String",
@@ -319,8 +319,8 @@
           "label": "Node ID",
           "sampleValues": [
             {
-              "type": "String",
-              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"
+              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6",
+              "type": "String"
             }
           ]
         },
@@ -330,14 +330,14 @@
           "label": "Amount",
           "sampleValues": [
             {
-              "type": "UFix64",
-              "value": "92233720368.54775808"
+              "value": "92233720368.54775808",
+              "type": "UFix64"
             }
           ]
         }
       ],
       "network": "mainnet",
-      "hash": "3cb357a97a57d9abbe5c68f0df342ee96ba97ade2013753fd2ddf47695a8c08a"
+      "hash": "35bd380710b471bc5efb41b2f1e8538aec2985f3e2bf196d5b2846a7d2db89ec"
     },
     {
       "id": "TH.19",
@@ -350,8 +350,8 @@
           "label": "Amount",
           "sampleValues": [
             {
-              "type": "UFix64",
-              "value": "92233720368.54775808"
+              "value": "92233720368.54775808",
+              "type": "UFix64"
             }
           ]
         }
@@ -370,8 +370,8 @@
           "label": "Amount",
           "sampleValues": [
             {
-              "type": "UFix64",
-              "value": "92233720368.54775808"
+              "value": "92233720368.54775808",
+              "type": "UFix64"
             }
           ]
         }
@@ -390,8 +390,8 @@
           "label": "Amount",
           "sampleValues": [
             {
-              "type": "UFix64",
-              "value": "92233720368.54775808"
+              "value": "92233720368.54775808",
+              "type": "UFix64"
             }
           ]
         }
@@ -410,8 +410,8 @@
           "label": "Amount",
           "sampleValues": [
             {
-              "type": "UFix64",
-              "value": "92233720368.54775808"
+              "value": "92233720368.54775808",
+              "type": "UFix64"
             }
           ]
         }
@@ -430,8 +430,8 @@
           "label": "Amount",
           "sampleValues": [
             {
-              "type": "UFix64",
-              "value": "92233720368.54775808"
+              "value": "92233720368.54775808",
+              "type": "UFix64"
             }
           ]
         }
@@ -450,8 +450,8 @@
           "label": "Amount",
           "sampleValues": [
             {
-              "type": "UFix64",
-              "value": "92233720368.54775808"
+              "value": "92233720368.54775808",
+              "type": "UFix64"
             }
           ]
         }
@@ -462,7 +462,7 @@
     {
       "id": "TH.25",
       "name": "Update Networking Address",
-      "source": "import FlowIDTableStaking from 0x8624b52f9ddcd04a\n\ntransaction(newAddress: String) {\n\n    // Local variable for a reference to the node object\n    let stakerRef: \u0026FlowIDTableStaking.NodeStaker\n\n    prepare(acct: AuthAccount) {\n        // borrow a reference to the node object\n        self.stakerRef = acct.borrow\u003c\u0026FlowIDTableStaking.NodeStaker\u003e(from: FlowIDTableStaking.NodeStakerStoragePath)\n            ?? panic(\"Could not borrow reference to staking admin\")\n    }\n\n    execute {\n\n        self.stakerRef.updateNetworkingAddress(newAddress)\n\n    }\n}",
+      "source": "import FlowIDTableStaking from 0x8624b52f9ddcd04a\n\ntransaction(newAddress: String) {\n\n    // Local variable for a reference to the node object\n    let stakerRef: \u0026FlowIDTableStaking.NodeStaker\n\n    prepare(acct: AuthAccount) {\n        // borrow a reference to the node object\n        self.stakerRef = acct.borrow\u003c\u0026FlowIDTableStaking.NodeStaker\u003e(from: FlowIDTableStaking.NodeStakerStoragePath)\n            ?? panic(\"Could not borrow reference to the node object\")\n    }\n\n    execute {\n\n        self.stakerRef.updateNetworkingAddress(newAddress)\n\n    }\n}",
       "arguments": [
         {
           "type": "String",
@@ -470,14 +470,14 @@
           "label": "Address",
           "sampleValues": [
             {
-              "type": "String",
-              "value": "flow-node.test:3569"
+              "value": "flow-node.test:3569",
+              "type": "String"
             }
           ]
         }
       ],
       "network": "mainnet",
-      "hash": "e79cb076f2f7da7a3039b5061916e081a823087f1560bdf3caea773992892873"
+      "hash": "23bd3120d6d4c48190a21675760203e42e6fb1e825859a70526f41237e5511a1"
     },
     {
       "id": "SCO.01",
@@ -498,8 +498,8 @@
           "label": "Node ID",
           "sampleValues": [
             {
-              "type": "String",
-              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"
+              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6",
+              "type": "String"
             }
           ]
         },
@@ -509,8 +509,8 @@
           "label": "Amount",
           "sampleValues": [
             {
-              "type": "UFix64",
-              "value": "92233720368.54775808"
+              "value": "92233720368.54775808",
+              "type": "UFix64"
             }
           ]
         }
@@ -529,8 +529,8 @@
           "label": "Node ID",
           "sampleValues": [
             {
-              "type": "String",
-              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"
+              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6",
+              "type": "String"
             }
           ]
         },
@@ -540,8 +540,8 @@
           "label": "Node Role",
           "sampleValues": [
             {
-              "type": "UInt8",
-              "value": "1"
+              "value": "1",
+              "type": "UInt8"
             }
           ]
         },
@@ -551,8 +551,8 @@
           "label": "Networking Address",
           "sampleValues": [
             {
-              "type": "String",
-              "value": "flow-node.test:3569"
+              "value": "flow-node.test:3569",
+              "type": "String"
             }
           ]
         },
@@ -562,8 +562,8 @@
           "label": "Networking Key",
           "sampleValues": [
             {
-              "type": "String",
-              "value": "1348307bc77c688e80049de9d081aa09755da33e6997605fa059db2144fc85e560cbe6f7da8d74b453f5916618cb8fd392c2db856f3e78221dc68db1b1d914e4"
+              "value": "1348307bc77c688e80049de9d081aa09755da33e6997605fa059db2144fc85e560cbe6f7da8d74b453f5916618cb8fd392c2db856f3e78221dc68db1b1d914e4",
+              "type": "String"
             }
           ]
         },
@@ -573,8 +573,8 @@
           "label": "Staking Key",
           "sampleValues": [
             {
-              "type": "String",
-              "value": "8dec36ed8a91e3e5d737b06434d94a8a561c7889495d6c7081cd5e123a42124415b9391c9b9aa165c2f71994bf9607cb0ea262ad162fec74146d1ebc482a33b9dad203d16a83bbfda89b3f6e1cd1d8fb2e704a162d259a0ac9f26bc8635d74f6"
+              "value": "8dec36ed8a91e3e5d737b06434d94a8a561c7889495d6c7081cd5e123a42124415b9391c9b9aa165c2f71994bf9607cb0ea262ad162fec74146d1ebc482a33b9dad203d16a83bbfda89b3f6e1cd1d8fb2e704a162d259a0ac9f26bc8635d74f6",
+              "type": "String"
             }
           ]
         },
@@ -584,8 +584,8 @@
           "label": "Staking Key PoP",
           "sampleValues": [
             {
-              "type": "String",
-              "value": "828a68a2be392804044d85888100462702a422901da3269fb6512defabad07250aad24f232671e4ac8ae531f54e062fc"
+              "value": "828a68a2be392804044d85888100462702a422901da3269fb6512defabad07250aad24f232671e4ac8ae531f54e062fc",
+              "type": "String"
             }
           ]
         },
@@ -595,8 +595,8 @@
           "label": "Amount",
           "sampleValues": [
             {
-              "type": "UFix64",
-              "value": "92233720368.54775808"
+              "value": "92233720368.54775808",
+              "type": "UFix64"
             }
           ]
         },
@@ -606,47 +606,47 @@
           "label": "Public Keys",
           "sampleValues": [
             {
-              "type": "Optional",
-              "value": null
+              "value": null,
+              "type": "Optional"
             },
             {
-              "type": "Optional",
               "value": {
-                "type": "Array",
-                "value": []
-              }
+                "value": [],
+                "type": "Array"
+              },
+              "type": "Optional"
             },
             {
-              "type": "Optional",
               "value": {
-                "type": "Array",
                 "value": [
                   {
-                    "type": "String",
-                    "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+                    "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164",
+                    "type": "String"
                   }
-                ]
-              }
+                ],
+                "type": "Array"
+              },
+              "type": "Optional"
             },
             {
-              "type": "Optional",
               "value": {
-                "type": "Array",
                 "value": [
                   {
-                    "type": "String",
-                    "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+                    "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164",
+                    "type": "String"
                   },
                   {
-                    "type": "String",
-                    "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+                    "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164",
+                    "type": "String"
                   },
                   {
-                    "type": "String",
-                    "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+                    "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164",
+                    "type": "String"
                   }
-                ]
-              }
+                ],
+                "type": "Array"
+              },
+              "type": "Optional"
             }
           ]
         }
@@ -665,8 +665,8 @@
           "label": "Node ID",
           "sampleValues": [
             {
-              "type": "String",
-              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"
+              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6",
+              "type": "String"
             }
           ]
         },
@@ -676,34 +676,34 @@
           "label": "Public Keys",
           "sampleValues": [
             {
-              "type": "Array",
-              "value": []
+              "value": [],
+              "type": "Array"
             },
             {
-              "type": "Array",
               "value": [
                 {
-                  "type": "String",
-                  "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+                  "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164",
+                  "type": "String"
                 }
-              ]
+              ],
+              "type": "Array"
             },
             {
-              "type": "Array",
               "value": [
                 {
-                  "type": "String",
-                  "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+                  "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164",
+                  "type": "String"
                 },
                 {
-                  "type": "String",
-                  "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+                  "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164",
+                  "type": "String"
                 },
                 {
-                  "type": "String",
-                  "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+                  "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164",
+                  "type": "String"
                 }
-              ]
+              ],
+              "type": "Array"
             }
           ]
         }
@@ -722,8 +722,8 @@
           "label": "Node ID",
           "sampleValues": [
             {
-              "type": "String",
-              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"
+              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6",
+              "type": "String"
             }
           ]
         },
@@ -733,15 +733,15 @@
           "label": "Delegator ID",
           "sampleValues": [
             {
-              "type": "Optional",
-              "value": null
+              "value": null,
+              "type": "Optional"
             },
             {
-              "type": "Optional",
               "value": {
-                "type": "UInt32",
-                "value": "42"
-              }
+                "value": "42",
+                "type": "UInt32"
+              },
+              "type": "Optional"
             }
           ]
         },
@@ -751,8 +751,8 @@
           "label": "Amount",
           "sampleValues": [
             {
-              "type": "UFix64",
-              "value": "92233720368.54775808"
+              "value": "92233720368.54775808",
+              "type": "UFix64"
             }
           ]
         }
@@ -771,8 +771,8 @@
           "label": "Node ID",
           "sampleValues": [
             {
-              "type": "String",
-              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"
+              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6",
+              "type": "String"
             }
           ]
         },
@@ -782,15 +782,15 @@
           "label": "Delegator ID",
           "sampleValues": [
             {
-              "type": "Optional",
-              "value": null
+              "value": null,
+              "type": "Optional"
             },
             {
-              "type": "Optional",
               "value": {
-                "type": "UInt32",
-                "value": "42"
-              }
+                "value": "42",
+                "type": "UInt32"
+              },
+              "type": "Optional"
             }
           ]
         },
@@ -800,8 +800,8 @@
           "label": "Amount",
           "sampleValues": [
             {
-              "type": "UFix64",
-              "value": "92233720368.54775808"
+              "value": "92233720368.54775808",
+              "type": "UFix64"
             }
           ]
         }
@@ -820,8 +820,8 @@
           "label": "Node ID",
           "sampleValues": [
             {
-              "type": "String",
-              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"
+              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6",
+              "type": "String"
             }
           ]
         },
@@ -831,15 +831,15 @@
           "label": "Delegator ID",
           "sampleValues": [
             {
-              "type": "Optional",
-              "value": null
+              "value": null,
+              "type": "Optional"
             },
             {
-              "type": "Optional",
               "value": {
-                "type": "UInt32",
-                "value": "42"
-              }
+                "value": "42",
+                "type": "UInt32"
+              },
+              "type": "Optional"
             }
           ]
         },
@@ -849,8 +849,8 @@
           "label": "Amount",
           "sampleValues": [
             {
-              "type": "UFix64",
-              "value": "92233720368.54775808"
+              "value": "92233720368.54775808",
+              "type": "UFix64"
             }
           ]
         }
@@ -869,8 +869,8 @@
           "label": "Node ID",
           "sampleValues": [
             {
-              "type": "String",
-              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"
+              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6",
+              "type": "String"
             }
           ]
         },
@@ -880,15 +880,15 @@
           "label": "Delegator ID",
           "sampleValues": [
             {
-              "type": "Optional",
-              "value": null
+              "value": null,
+              "type": "Optional"
             },
             {
-              "type": "Optional",
               "value": {
-                "type": "UInt32",
-                "value": "42"
-              }
+                "value": "42",
+                "type": "UInt32"
+              },
+              "type": "Optional"
             }
           ]
         },
@@ -898,8 +898,8 @@
           "label": "Amount",
           "sampleValues": [
             {
-              "type": "UFix64",
-              "value": "92233720368.54775808"
+              "value": "92233720368.54775808",
+              "type": "UFix64"
             }
           ]
         }
@@ -918,8 +918,8 @@
           "label": "Node ID",
           "sampleValues": [
             {
-              "type": "String",
-              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"
+              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6",
+              "type": "String"
             }
           ]
         }
@@ -938,8 +938,8 @@
           "label": "Node ID",
           "sampleValues": [
             {
-              "type": "String",
-              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"
+              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6",
+              "type": "String"
             }
           ]
         },
@@ -949,15 +949,15 @@
           "label": "Delegator ID",
           "sampleValues": [
             {
-              "type": "Optional",
               "value": {
-                "type": "UInt32",
-                "value": "42"
-              }
+                "value": "42",
+                "type": "UInt32"
+              },
+              "type": "Optional"
             },
             {
-              "type": "Optional",
-              "value": null
+              "value": null,
+              "type": "Optional"
             }
           ]
         },
@@ -967,8 +967,8 @@
           "label": "Amount",
           "sampleValues": [
             {
-              "type": "UFix64",
-              "value": "92233720368.54775808"
+              "value": "92233720368.54775808",
+              "type": "UFix64"
             }
           ]
         }
@@ -987,8 +987,8 @@
           "label": "Node ID",
           "sampleValues": [
             {
-              "type": "String",
-              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"
+              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6",
+              "type": "String"
             }
           ]
         },
@@ -998,15 +998,15 @@
           "label": "Delegator ID",
           "sampleValues": [
             {
-              "type": "Optional",
-              "value": null
+              "value": null,
+              "type": "Optional"
             },
             {
-              "type": "Optional",
               "value": {
-                "type": "UInt32",
-                "value": "42"
-              }
+                "value": "42",
+                "type": "UInt32"
+              },
+              "type": "Optional"
             }
           ]
         },
@@ -1016,8 +1016,8 @@
           "label": "Amount",
           "sampleValues": [
             {
-              "type": "UFix64",
-              "value": "92233720368.54775808"
+              "value": "92233720368.54775808",
+              "type": "UFix64"
             }
           ]
         }
@@ -1036,8 +1036,8 @@
           "label": "Node ID",
           "sampleValues": [
             {
-              "type": "String",
-              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"
+              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6",
+              "type": "String"
             }
           ]
         },
@@ -1047,15 +1047,15 @@
           "label": "Delegator ID",
           "sampleValues": [
             {
-              "type": "Optional",
               "value": {
-                "type": "UInt32",
-                "value": "42"
-              }
+                "value": "42",
+                "type": "UInt32"
+              },
+              "type": "Optional"
             },
             {
-              "type": "Optional",
-              "value": null
+              "value": null,
+              "type": "Optional"
             }
           ]
         }
@@ -1074,8 +1074,8 @@
           "label": "Node ID",
           "sampleValues": [
             {
-              "type": "String",
-              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"
+              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6",
+              "type": "String"
             }
           ]
         },
@@ -1085,8 +1085,8 @@
           "label": "Address",
           "sampleValues": [
             {
-              "type": "Address",
-              "value": "0xe467b9dd11fa00df"
+              "value": "0xe467b9dd11fa00df",
+              "type": "Address"
             }
           ]
         }
@@ -1105,8 +1105,8 @@
           "label": "Node ID",
           "sampleValues": [
             {
-              "type": "String",
-              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"
+              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6",
+              "type": "String"
             }
           ]
         },
@@ -1116,8 +1116,8 @@
           "label": "Delegator ID",
           "sampleValues": [
             {
-              "type": "UInt32",
-              "value": "42"
+              "value": "42",
+              "type": "UInt32"
             }
           ]
         },
@@ -1127,8 +1127,8 @@
           "label": "Address",
           "sampleValues": [
             {
-              "type": "Address",
-              "value": "0xe467b9dd11fa00df"
+              "value": "0xe467b9dd11fa00df",
+              "type": "Address"
             }
           ]
         }
@@ -1147,8 +1147,8 @@
           "label": "Node ID",
           "sampleValues": [
             {
-              "type": "String",
-              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"
+              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6",
+              "type": "String"
             }
           ]
         },
@@ -1158,8 +1158,8 @@
           "label": "Amount",
           "sampleValues": [
             {
-              "type": "UFix64",
-              "value": "92233720368.54775808"
+              "value": "92233720368.54775808",
+              "type": "UFix64"
             }
           ]
         }
@@ -1178,8 +1178,8 @@
           "label": "Node ID",
           "sampleValues": [
             {
-              "type": "String",
-              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"
+              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6",
+              "type": "String"
             }
           ]
         },
@@ -1189,8 +1189,8 @@
           "label": "Address",
           "sampleValues": [
             {
-              "type": "String",
-              "value": "flow-node.test:3569"
+              "value": "flow-node.test:3569",
+              "type": "String"
             }
           ]
         }

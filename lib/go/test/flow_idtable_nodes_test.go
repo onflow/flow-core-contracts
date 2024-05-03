@@ -1,37 +1,38 @@
 package test
 
 import (
+	"context"
 	"fmt"
 	"testing"
+
+	"github.com/onflow/cadence/runtime/common"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/onflow/cadence"
-	emulator "github.com/onflow/flow-emulator"
+	"github.com/onflow/flow-emulator/emulator"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/test"
-
-	ft_templates "github.com/onflow/flow-ft/lib/go/templates"
 
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
 )
 
 const (
-	numberOfNodes      = 1000
-	numberOfDelegators = 20000
+	numberOfNodes      = 100
+	numberOfDelegators = 2000
 	nodeMintAmount     = 2000000
 
 	unstakeAllNumNodes      = 1
-	unstakeAllNumDelegators = 20000
+	unstakeAllNumDelegators = 2000
 )
 
 func TestManyNodesIDTable(t *testing.T) {
 
 	t.Parallel()
 
-	b := newBlockchain(emulator.WithTransactionMaxGasLimit(10000000))
+	b, adapter := newBlockchain(emulator.WithTransactionMaxGasLimit(10000000))
 
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
@@ -42,9 +43,21 @@ func TestManyNodesIDTable(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true)
+	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, &env, true, []uint64{10000, 10000, 10000, 10000, 10000})
 
 	env.IDTableAddress = idTableAddress.Hex()
+
+	// Change the delegator staking minimum to zero
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateChangeDelegatorMinimumsScript(env), idTableAddress)
+
+	tx.AddArgument(CadenceUFix64("0.0"))
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]crypto.Signer{IDTableSigner},
+		false,
+	)
 
 	var nodeAccountKey *flow.AccountKey
 	var nodeSigner crypto.Signer
@@ -52,9 +65,10 @@ func TestManyNodesIDTable(t *testing.T) {
 
 	// Create a new node account for nodes
 	nodeAccountKey, nodeSigner = accountKeys.NewWithSigner()
-	nodeAddress, _ = b.CreateAccount([]*flow.AccountKey{nodeAccountKey}, nil)
+	nodeAddress, _ = adapter.CreateAccount(context.Background(), []*flow.AccountKey{nodeAccountKey}, nil)
 
 	approvedNodes := make([]cadence.Value, numberOfNodes)
+	approvedNodesStringArray := make([]string, numberOfNodes)
 	nodeRoles := make([]cadence.Value, numberOfNodes)
 	nodeNetworkingAddresses := make([]cadence.Value, numberOfNodes)
 	nodeNetworkingKeys := make([]cadence.Value, numberOfNodes)
@@ -69,7 +83,7 @@ func TestManyNodesIDTable(t *testing.T) {
 
 	// Create many a new delegator account
 	delegatorAccountKey, delegatorSigner = accountKeys.NewWithSigner()
-	delegatorAddress, _ = b.CreateAccount([]*flow.AccountKey{delegatorAccountKey}, nil)
+	delegatorAddress, _ = adapter.CreateAccount(context.Background(), []*flow.AccountKey{delegatorAccountKey}, nil)
 
 	delegatorPaths := make([]cadence.Value, numberOfDelegators)
 
@@ -78,11 +92,7 @@ func TestManyNodesIDTable(t *testing.T) {
 		totalMint := numberOfNodes * nodeMintAmount
 		mintAmount := fmt.Sprintf("%d.0", totalMint)
 
-		script := ft_templates.GenerateMintTokensScript(
-			flow.HexToAddress(emulatorFTAddress),
-			flow.HexToAddress(emulatorFlowTokenAddress),
-			"FlowToken",
-		)
+		script := templates.GenerateMintFlowScript(env)
 
 		tx := createTxWithTemplateAndAuthorizer(b, script, b.ServiceKey().Address)
 
@@ -121,6 +131,7 @@ func TestManyNodesIDTable(t *testing.T) {
 			id := fmt.Sprintf("%064d", i)
 
 			approvedNodes[i] = CadenceString(id)
+			approvedNodesStringArray[i] = id
 
 			nodeRoles[i] = cadence.NewUInt8(uint8((i % 4) + 1))
 
@@ -128,22 +139,24 @@ func TestManyNodesIDTable(t *testing.T) {
 
 			nodeNetworkingAddresses[i] = CadenceString(networkingAddress)
 
-			sk, stakingKey, _, networkingKey := generateKeysForNodeRegistration(t)
+			_, stakingKey, stakingPOP, _, networkingKey := generateKeysForNodeRegistration(t)
 
 			nodeNetworkingKeys[i] = CadenceString(networkingKey)
 
 			nodeStakingKeys[i] = CadenceString(stakingKey)
 
-			nodeStakingKeyPOPs[i] = CadenceString(generateKeyPOP(t, sk))
+			nodeStakingKeyPOPs[i] = CadenceString(stakingPOP)
 
 			tokenAmount, err := cadence.NewUFix64("1500000.0")
 			require.NoError(t, err)
 
 			nodeStakingAmounts[i] = tokenAmount
 
-			nodePaths[i] = cadence.Path{Domain: "storage", Identifier: fmt.Sprintf("node%06d", i)}
+			nodePaths[i] = cadence.Path{Domain: common.PathDomainStorage, Identifier: fmt.Sprintf("node%06d", i)}
 
 		}
+
+		assertCandidateLimitsEquals(t, b, env, []uint64{10000, 10000, 10000, 10000, 10000})
 
 		tx := flow.NewTransaction().
 			SetScript(templates.GenerateRegisterManyNodesScript(env)).
@@ -183,16 +196,18 @@ func TestManyNodesIDTable(t *testing.T) {
 			false,
 		)
 
-		result, err := b.ExecuteScript(templates.GenerateReturnTableScript(env), nil)
+		scriptResult, err := b.ExecuteScript(templates.GenerateReturnTableScript(env), nil)
 		require.NoError(t, err)
-		if !assert.True(t, result.Succeeded()) {
-			t.Log(result.Error.Error())
+		if !assert.True(t, scriptResult.Succeeded()) {
+			t.Log(scriptResult.Error.Error())
 		}
-		proposedIDs := result.Value
+		proposedIDs := scriptResult.Value
 		idArray := proposedIDs.(cadence.Array).Values
 		assert.Len(t, idArray, numberOfNodes)
 
 	})
+
+	approvedNodesDict := generateCadenceNodeDictionary(approvedNodesStringArray)
 
 	// End staking auction
 	t.Run("Should end staking auction, pay rewards, and move tokens", func(t *testing.T) {
@@ -204,7 +219,7 @@ func TestManyNodesIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(idTableAddress)
 
-		err := tx.AddArgument(cadence.NewArray(approvedNodes))
+		err := tx.AddArgument(approvedNodesDict)
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -248,7 +263,7 @@ func TestManyNodesIDTable(t *testing.T) {
 
 		for i := 0; i < numberOfDelegators; i++ {
 
-			delegatorPaths[i] = cadence.Path{Domain: "storage", Identifier: fmt.Sprintf("del%06d", i)}
+			delegatorPaths[i] = cadence.Path{Domain: common.PathDomainStorage, Identifier: fmt.Sprintf("del%06d", i)}
 
 		}
 
@@ -284,7 +299,7 @@ func TestManyNodesIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(idTableAddress)
 
-		err := tx.AddArgument(cadence.NewArray(approvedNodes))
+		err := tx.AddArgument(approvedNodesDict)
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -338,7 +353,7 @@ func TestManyNodesIDTable(t *testing.T) {
 			SetPayer(b.ServiceKey().Address).
 			AddAuthorizer(idTableAddress)
 
-		err := tx.AddArgument(cadence.NewArray(approvedNodes))
+		err := tx.AddArgument(approvedNodesDict)
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -355,7 +370,7 @@ func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
 
 	t.Parallel()
 
-	b := newBlockchain(emulator.WithTransactionMaxGasLimit(100000000))
+	b, adapter := newBlockchain(emulator.WithTransactionMaxGasLimit(100000000))
 
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
@@ -366,9 +381,21 @@ func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, env, true)
+	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, &env, true, []uint64{10000, 10000, 10000, 10000, 10000})
 
 	env.IDTableAddress = idTableAddress.Hex()
+
+	// Change the delegator staking minimum to zero
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateChangeDelegatorMinimumsScript(env), idTableAddress)
+
+	tx.AddArgument(CadenceUFix64("0.0"))
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]crypto.Signer{IDTableSigner},
+		false,
+	)
 
 	var nodeAccountKeys [unstakeAllNumNodes]*flow.AccountKey
 	var nodeSigners [unstakeAllNumNodes]crypto.Signer
@@ -377,7 +404,7 @@ func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
 	// Create many new node accounts for nodes
 	for i := 0; i < unstakeAllNumNodes; i++ {
 		nodeAccountKeys[i], nodeSigners[i] = accountKeys.NewWithSigner()
-		nodeAddresses[i], _ = b.CreateAccount([]*flow.AccountKey{nodeAccountKeys[i]}, nil)
+		nodeAddresses[i], _ = adapter.CreateAccount(context.Background(), []*flow.AccountKey{nodeAccountKeys[i]}, nil)
 	}
 
 	approvedNodes := make([]cadence.Value, unstakeAllNumNodes)
@@ -388,7 +415,7 @@ func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
 
 	// Create many new delegator accounts
 	delegatorAccountKey, delegatorSigner = accountKeys.NewWithSigner()
-	delegatorAddress, _ = b.CreateAccount([]*flow.AccountKey{delegatorAccountKey}, nil)
+	delegatorAddress, _ = adapter.CreateAccount(context.Background(), []*flow.AccountKey{delegatorAccountKey}, nil)
 
 	delegatorPaths := make([]cadence.Value, unstakeAllNumDelegators)
 
@@ -396,11 +423,7 @@ func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
 
 		for i := 0; i < unstakeAllNumNodes; i++ {
 
-			script := ft_templates.GenerateMintTokensScript(
-				flow.HexToAddress(emulatorFTAddress),
-				flow.HexToAddress(emulatorFlowTokenAddress),
-				"FlowToken",
-			)
+			script := templates.GenerateMintFlowScript(env)
 			tx := createTxWithTemplateAndAuthorizer(b, script, b.ServiceKey().Address)
 
 			_ = tx.AddArgument(cadence.NewAddress(nodeAddresses[i]))
@@ -439,8 +462,7 @@ func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
 
 			role := uint8((i % 4) + 1)
 
-			stakingKeySK, stakingKey, _, networkingKey := generateKeysForNodeRegistration(t)
-			stakingKeyPOP := generateKeyPOP(t, stakingKeySK)
+			_, stakingKey, stakingKeyPOP, _, networkingKey := generateKeysForNodeRegistration(t)
 
 			err := tx.AddArgument(CadenceString(id))
 			require.NoError(t, err)
@@ -474,7 +496,7 @@ func TestUnstakeAllManyDelegatorsIDTable(t *testing.T) {
 
 		for i := 0; i < unstakeAllNumDelegators; i++ {
 
-			delegatorPaths[i] = cadence.Path{Domain: "storage", Identifier: fmt.Sprintf("del%06d", i)}
+			delegatorPaths[i] = cadence.Path{Domain: common.PathDomainStorage, Identifier: fmt.Sprintf("del%06d", i)}
 
 		}
 

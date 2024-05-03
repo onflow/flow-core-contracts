@@ -1,20 +1,20 @@
 package test
 
 import (
+	"context"
 	"encoding/hex"
 	"fmt"
 	"testing"
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
+	"github.com/onflow/crypto"
 	"github.com/onflow/flow-go-sdk"
-	"github.com/onflow/flow-go-sdk/crypto"
+	sdkcrypto "github.com/onflow/flow-go-sdk/crypto"
 	sdktemplates "github.com/onflow/flow-go-sdk/templates"
 	"github.com/onflow/flow-go-sdk/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	flow_crypto "github.com/onflow/flow-go/crypto"
 
 	"github.com/onflow/flow-core-contracts/lib/go/contracts"
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
@@ -59,7 +59,7 @@ func initClusters(clusterNodeIDStrings [][]string, numberOfClusters, numberOfNod
 }
 
 func TestQuorumCertificate(t *testing.T) {
-	b := newBlockchain()
+	b, adapter := newBlockchain()
 
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
@@ -72,7 +72,7 @@ func TestQuorumCertificate(t *testing.T) {
 	QCAccountKey, QCSigner := accountKeys.NewWithSigner()
 	QCCode := contracts.FlowQC()
 
-	QCAddress, err := b.CreateAccount([]*flow.AccountKey{QCAccountKey}, []sdktemplates.Contract{
+	QCAddress, err := adapter.CreateAccount(context.Background(), []*flow.AccountKey{QCAccountKey}, []sdktemplates.Contract{
 		{
 			Name:   "FlowClusterQC",
 			Source: string(QCCode),
@@ -86,15 +86,15 @@ func TestQuorumCertificate(t *testing.T) {
 
 	// Create new user accounts
 	joshAccountKey, joshSigner := accountKeys.NewWithSigner()
-	joshAddress, _ := b.CreateAccount([]*flow.AccountKey{joshAccountKey}, nil)
-	joshPrivateStakingKey, joshPublicStakingKey, _, _ := generateKeysForNodeRegistration(t)
+	joshAddress, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{joshAccountKey}, nil)
+	joshPrivateStakingKey, joshPublicStakingKey, _, _, _ := generateKeysForNodeRegistration(t)
 
 	// Create a new user account
 	maxAccountKey, maxSigner := accountKeys.NewWithSigner()
-	maxAddress, _ := b.CreateAccount([]*flow.AccountKey{maxAccountKey}, nil)
-	maxPrivateStakingKey, maxPublicStakingKey, _, _ := generateKeysForNodeRegistration(t)
+	maxAddress, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{maxAccountKey}, nil)
+	maxPrivateStakingKey, maxPublicStakingKey, _, _, _ := generateKeysForNodeRegistration(t)
 
-	collectorVoteHasher := flow_crypto.NewExpandMsgXOFKMAC128(collectorVoteTag)
+	collectorVoteHasher := crypto.NewExpandMsgXOFKMAC128(collectorVoteTag)
 
 	t.Run("Should be able to set up the admin account", func(t *testing.T) {
 
@@ -103,7 +103,7 @@ func TestQuorumCertificate(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{QCAddress},
-			[]crypto.Signer{QCSigner},
+			[]sdkcrypto.Signer{QCSigner},
 			false,
 		)
 	})
@@ -119,12 +119,12 @@ func TestQuorumCertificate(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{maxAddress},
-			[]crypto.Signer{maxSigner},
+			[]sdkcrypto.Signer{maxSigner},
 			false,
 		)
 	})
 
-	////////////////////////// FIRST EPOCH ///////////////////////////////////
+	// //////////////////////// FIRST EPOCH ///////////////////////////////////
 
 	numberOfClusters := 1
 	numberOfNodesPerCluster := 1
@@ -149,7 +149,7 @@ func TestQuorumCertificate(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{QCAddress},
-			[]crypto.Signer{QCSigner},
+			[]sdkcrypto.Signer{QCSigner},
 			false,
 		)
 
@@ -189,7 +189,7 @@ func TestQuorumCertificate(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{QCAddress},
-			[]crypto.Signer{QCSigner},
+			[]sdkcrypto.Signer{QCSigner},
 			false,
 		)
 
@@ -205,7 +205,7 @@ func TestQuorumCertificate(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{QCAddress},
-			[]crypto.Signer{QCSigner},
+			[]sdkcrypto.Signer{QCSigner},
 			true,
 		)
 	})
@@ -221,7 +221,7 @@ func TestQuorumCertificate(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{joshAddress},
-			[]crypto.Signer{joshSigner},
+			[]sdkcrypto.Signer{joshSigner},
 			true,
 		)
 	})
@@ -236,7 +236,7 @@ func TestQuorumCertificate(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{QCAddress},
-			[]crypto.Signer{QCSigner},
+			[]sdkcrypto.Signer{QCSigner},
 			true,
 		)
 
@@ -255,7 +255,7 @@ func TestQuorumCertificate(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{QCAddress},
-			[]crypto.Signer{QCSigner},
+			[]sdkcrypto.Signer{QCSigner},
 			true,
 		)
 
@@ -280,7 +280,7 @@ func TestQuorumCertificate(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{QCAddress},
-			[]crypto.Signer{QCSigner},
+			[]sdkcrypto.Signer{QCSigner},
 			true,
 		)
 
@@ -289,7 +289,7 @@ func TestQuorumCertificate(t *testing.T) {
 		assert.Equal(t, cadence.NewBool(false), result)
 
 		// construct with the wrong tag
-		wrongHasher := flow_crypto.NewExpandMsgXOFKMAC128("wrong_tag")
+		wrongHasher := crypto.NewExpandMsgXOFKMAC128("wrong_tag")
 
 		msg, _ = hex.DecodeString("deadbeef")
 		invalidSignature, err = maxPrivateStakingKey.Sign(msg, wrongHasher)
@@ -304,7 +304,7 @@ func TestQuorumCertificate(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{QCAddress},
-			[]crypto.Signer{QCSigner},
+			[]sdkcrypto.Signer{QCSigner},
 			true,
 		)
 
@@ -326,7 +326,7 @@ func TestQuorumCertificate(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{QCAddress},
-			[]crypto.Signer{QCSigner},
+			[]sdkcrypto.Signer{QCSigner},
 			true,
 		)
 
@@ -351,7 +351,7 @@ func TestQuorumCertificate(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{QCAddress},
-			[]crypto.Signer{QCSigner},
+			[]sdkcrypto.Signer{QCSigner},
 			false,
 		)
 
@@ -385,7 +385,7 @@ func TestQuorumCertificate(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{QCAddress},
-			[]crypto.Signer{QCSigner},
+			[]sdkcrypto.Signer{QCSigner},
 			true,
 		)
 
@@ -401,12 +401,12 @@ func TestQuorumCertificate(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{QCAddress},
-			[]crypto.Signer{QCSigner},
+			[]sdkcrypto.Signer{QCSigner},
 			false,
 		)
 	})
 
-	///////////////////////////// Epoch 2 ////////////////////////////////////
+	// /////////////////////////// Epoch 2 ////////////////////////////////////
 
 	numberOfClusters = 2
 	numberOfNodesPerCluster = 3
@@ -431,7 +431,7 @@ func TestQuorumCertificate(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{QCAddress},
-			[]crypto.Signer{QCSigner},
+			[]sdkcrypto.Signer{QCSigner},
 			false,
 		)
 
@@ -448,7 +448,7 @@ func TestQuorumCertificate(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{joshAddress},
-			[]crypto.Signer{joshSigner},
+			[]sdkcrypto.Signer{joshSigner},
 			true,
 		)
 
@@ -456,7 +456,7 @@ func TestQuorumCertificate(t *testing.T) {
 }
 
 func TestQuorumCertificateMoreNodes(t *testing.T) {
-	b := newBlockchain()
+	b, adapter := newBlockchain()
 
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
@@ -469,7 +469,7 @@ func TestQuorumCertificateMoreNodes(t *testing.T) {
 	QCAccountKey, QCSigner := accountKeys.NewWithSigner()
 	QCCode := contracts.FlowQC()
 
-	QCAddress, err := b.CreateAccount([]*flow.AccountKey{QCAccountKey}, []sdktemplates.Contract{
+	QCAddress, err := adapter.CreateAccount(context.Background(), []*flow.AccountKey{QCAccountKey}, []sdktemplates.Contract{
 		{
 			Name:   "FlowClusterQC",
 			Source: string(QCCode),
@@ -481,7 +481,7 @@ func TestQuorumCertificateMoreNodes(t *testing.T) {
 
 	env.QuorumCertificateAddress = QCAddress.Hex()
 
-	collectorVoteHasher := flow_crypto.NewExpandMsgXOFKMAC128(collectorVoteTag)
+	collectorVoteHasher := crypto.NewExpandMsgXOFKMAC128(collectorVoteTag)
 
 	t.Run("Should be able to set up the admin account", func(t *testing.T) {
 
@@ -490,7 +490,7 @@ func TestQuorumCertificateMoreNodes(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{QCAddress},
-			[]crypto.Signer{QCSigner},
+			[]sdkcrypto.Signer{QCSigner},
 			false,
 		)
 	})
@@ -499,7 +499,7 @@ func TestQuorumCertificateMoreNodes(t *testing.T) {
 	numberOfNodesPerCluster := 4
 
 	// Create new user accounts
-	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numberOfClusters*numberOfNodesPerCluster)
+	addresses, _, signers := registerAndMintManyAccounts(t, b, env, accountKeys, numberOfClusters*numberOfNodesPerCluster)
 
 	clusterNodeIDStrings := make([][]string, numberOfClusters*numberOfNodesPerCluster)
 
@@ -525,7 +525,7 @@ func TestQuorumCertificateMoreNodes(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{QCAddress},
-			[]crypto.Signer{QCSigner},
+			[]sdkcrypto.Signer{QCSigner},
 			false,
 		)
 
@@ -544,7 +544,7 @@ func TestQuorumCertificateMoreNodes(t *testing.T) {
 			signAndSubmit(
 				t, b, tx,
 				[]flow.Address{addresses[i]},
-				[]crypto.Signer{signers[i]},
+				[]sdkcrypto.Signer{signers[i]},
 				false,
 			)
 		}
@@ -569,7 +569,7 @@ func TestQuorumCertificateMoreNodes(t *testing.T) {
 			signAndSubmit(
 				t, b, tx,
 				[]flow.Address{addresses[i]},
-				[]crypto.Signer{signers[i]},
+				[]sdkcrypto.Signer{signers[i]},
 				false,
 			)
 		}
@@ -604,7 +604,7 @@ func TestQuorumCertificateMoreNodes(t *testing.T) {
 			signAndSubmit(
 				t, b, tx,
 				[]flow.Address{addresses[i]},
-				[]crypto.Signer{signers[i]},
+				[]sdkcrypto.Signer{signers[i]},
 				false,
 			)
 
@@ -631,7 +631,7 @@ func TestQuorumCertificateMoreNodes(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{addresses[numberOfNodesPerCluster*2-2]},
-			[]crypto.Signer{signers[numberOfNodesPerCluster*2-2]},
+			[]sdkcrypto.Signer{signers[numberOfNodesPerCluster*2-2]},
 			false,
 		)
 
@@ -653,7 +653,7 @@ func TestQuorumCertificateMoreNodes(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{addresses[numberOfNodesPerCluster*2-1]},
-			[]crypto.Signer{signers[numberOfNodesPerCluster*2-1]},
+			[]sdkcrypto.Signer{signers[numberOfNodesPerCluster*2-1]},
 			false,
 		)
 
@@ -685,7 +685,7 @@ func TestQuorumCertificateMoreNodes(t *testing.T) {
 			signAndSubmit(
 				t, b, tx,
 				[]flow.Address{addresses[i]},
-				[]crypto.Signer{signers[i]},
+				[]sdkcrypto.Signer{signers[i]},
 				false,
 			)
 		}
@@ -712,7 +712,7 @@ func TestQuorumCertificateMoreNodes(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{addresses[numberOfNodesPerCluster*3-1]},
-			[]crypto.Signer{signers[numberOfNodesPerCluster*3-1]},
+			[]sdkcrypto.Signer{signers[numberOfNodesPerCluster*3-1]},
 			false,
 		)
 
@@ -724,7 +724,7 @@ func TestQuorumCertificateMoreNodes(t *testing.T) {
 }
 
 func TestQuorumCertificateNotSubmittedVote(t *testing.T) {
-	b := newBlockchain()
+	b, adapter := newBlockchain()
 
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
@@ -737,7 +737,7 @@ func TestQuorumCertificateNotSubmittedVote(t *testing.T) {
 	QCAccountKey, QCSigner := accountKeys.NewWithSigner()
 	QCCode := contracts.FlowQC()
 
-	QCAddress, err := b.CreateAccount([]*flow.AccountKey{QCAccountKey}, []sdktemplates.Contract{
+	QCAddress, err := adapter.CreateAccount(context.Background(), []*flow.AccountKey{QCAccountKey}, []sdktemplates.Contract{
 		{
 			Name:   "FlowClusterQC",
 			Source: string(QCCode),
@@ -749,14 +749,14 @@ func TestQuorumCertificateNotSubmittedVote(t *testing.T) {
 
 	env.QuorumCertificateAddress = QCAddress.Hex()
 
-	collectorVoteHasher := flow_crypto.NewExpandMsgXOFKMAC128(collectorVoteTag)
+	collectorVoteHasher := crypto.NewExpandMsgXOFKMAC128(collectorVoteTag)
 
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GeneratePublishVoterScript(env), QCAddress)
 
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{QCAddress},
-		[]crypto.Signer{QCSigner},
+		[]sdkcrypto.Signer{QCSigner},
 		false,
 	)
 
@@ -764,7 +764,7 @@ func TestQuorumCertificateNotSubmittedVote(t *testing.T) {
 	numberOfNodesPerCluster := 4
 
 	// Create new user accounts
-	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numberOfClusters*numberOfNodesPerCluster)
+	addresses, _, signers := registerAndMintManyAccounts(t, b, env, accountKeys, numberOfClusters*numberOfNodesPerCluster)
 
 	clusterNodeIDStrings := make([][]string, numberOfClusters*numberOfNodesPerCluster)
 
@@ -788,7 +788,7 @@ func TestQuorumCertificateNotSubmittedVote(t *testing.T) {
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{QCAddress},
-		[]crypto.Signer{QCSigner},
+		[]sdkcrypto.Signer{QCSigner},
 		false,
 	)
 
@@ -804,7 +804,7 @@ func TestQuorumCertificateNotSubmittedVote(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{addresses[i]},
-			[]crypto.Signer{signers[i]},
+			[]sdkcrypto.Signer{signers[i]},
 			false,
 		)
 	}
@@ -827,7 +827,7 @@ func TestQuorumCertificateNotSubmittedVote(t *testing.T) {
 			signAndSubmit(
 				t, b, tx,
 				[]flow.Address{addresses[i]},
-				[]crypto.Signer{signers[i]},
+				[]sdkcrypto.Signer{signers[i]},
 				false,
 			)
 		}

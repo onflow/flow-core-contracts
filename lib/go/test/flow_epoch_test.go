@@ -3,17 +3,19 @@ package test
 import (
 	"encoding/hex"
 	"fmt"
+	"math/rand"
 	"testing"
+	"time"
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
-	flow_crypto "github.com/onflow/flow-go/crypto"
+	"github.com/onflow/crypto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
 	"github.com/onflow/flow-go-sdk"
-	"github.com/onflow/flow-go-sdk/crypto"
+	sdkcrypto "github.com/onflow/flow-go-sdk/crypto"
 )
 
 const (
@@ -32,7 +34,7 @@ const (
 )
 
 func TestEpochDeployment(t *testing.T) {
-	b, accountKeys, env := newTestSetup(t)
+	b, _, accountKeys, env := newTestSetup(t)
 
 	// Create new keys for the epoch account
 	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
@@ -60,6 +62,13 @@ func TestEpochDeployment(t *testing.T) {
 			numCollectorClusters:     numClusters,
 			rewardPercentage:         rewardIncreaseFactor})
 
+	verifyEpochTimingConfig(t, b, env,
+		EpochTimingConfig{
+			duration:     numEpochViews,
+			refCounter:   startEpochCounter,
+			refTimestamp: uint64(time.Now().Unix()) + numEpochViews,
+		})
+
 	// Verify that the current epoch was initialized correctly
 	verifyEpochMetadata(t, b, env,
 		EpochMetadata{
@@ -78,7 +87,7 @@ func TestEpochDeployment(t *testing.T) {
 }
 
 func TestEpochClusters(t *testing.T) {
-	b, accountKeys, env := newTestSetup(t)
+	b, _, accountKeys, env := newTestSetup(t)
 
 	// Create new keys for the epoch account
 	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
@@ -108,7 +117,7 @@ func TestEpochClusters(t *testing.T) {
 	})
 
 	// create new user accounts, mint tokens for them, and register them for staking
-	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
+	addresses, _, signers := registerAndMintManyAccounts(t, b, env, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
 	stakingSKs, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
 	stakingKeyPOPs := generateManyKeyPOPs(t, stakingSKs)
@@ -136,7 +145,7 @@ func TestEpochClusters(t *testing.T) {
 }
 
 func TestEpochPhaseMetadataChange(t *testing.T) {
-	b, accountKeys, env := newTestSetup(t)
+	b, _, accountKeys, env := newTestSetup(t)
 
 	// Create new keys for the epoch account
 	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
@@ -161,7 +170,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			true,
 		)
 
@@ -173,7 +182,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			false,
 		)
 
@@ -185,7 +194,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			false,
 		)
 
@@ -195,7 +204,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			true,
 		)
 
@@ -205,7 +214,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			false,
 		)
 
@@ -215,7 +224,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			true,
 		)
 
@@ -225,7 +234,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			false,
 		)
 
@@ -235,7 +244,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			true,
 		)
 
@@ -245,7 +254,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			false,
 		)
 
@@ -255,7 +264,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			false,
 		)
 
@@ -265,7 +274,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			true,
 		)
 
@@ -275,7 +284,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			false,
 		)
 
@@ -292,8 +301,45 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 				rewardPercentage:         "0.04"})
 	})
 
+	t.Run("should be able to update timing config when staking enabled (Staking phase)", func(t *testing.T) {
+		timingConfig := EpochTimingConfig{
+			duration:     rand.Uint64() % 100_000,
+			refCounter:   0,
+			refTimestamp: uint64(time.Now().Unix()),
+		}
+
+		t.Run("invalid EpochTimingConfig", func(t *testing.T) {
+			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateEpochTimingConfigScript(env), idTableAddress)
+			_ = tx.AddArgument(CadenceUInt64(timingConfig.duration))
+			// Use a reference counter in the future, which validates the precondition
+			_ = tx.AddArgument(CadenceUInt64(timingConfig.refCounter + 100))
+			_ = tx.AddArgument(CadenceUInt64(timingConfig.refTimestamp))
+			signAndSubmit(
+				t, b, tx,
+				[]flow.Address{idTableAddress},
+				[]sdkcrypto.Signer{IDTableSigner},
+				true,
+			)
+		})
+
+		t.Run("valid EpochTimingConfig", func(t *testing.T) {
+			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateEpochTimingConfigScript(env), idTableAddress)
+			_ = tx.AddArgument(CadenceUInt64(timingConfig.duration))
+			_ = tx.AddArgument(CadenceUInt64(timingConfig.refCounter))
+			_ = tx.AddArgument(CadenceUInt64(timingConfig.refTimestamp))
+			signAndSubmit(
+				t, b, tx,
+				[]flow.Address{idTableAddress},
+				[]sdkcrypto.Signer{IDTableSigner},
+				false,
+			)
+			// timing config should be updated
+			verifyEpochTimingConfig(t, b, env, timingConfig)
+		})
+	})
+
 	// create new user accounts, mint tokens for them, and register them for staking
-	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
+	addresses, _, signers := registerAndMintManyAccounts(t, b, env, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
 	stakingSKs, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
 	stakingKeyPOPs := generateManyKeyPOPs(t, stakingSKs)
@@ -309,18 +355,14 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 	// Set the approved node list
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
 
-	approvedNodeIDs := make([]cadence.Value, numEpochAccounts)
-	for i := 0; i < numEpochAccounts; i++ {
-		id, _ := cadence.NewString(ids[i])
-		approvedNodeIDs[i] = id
-	}
-	err := tx.AddArgument(cadence.NewArray(approvedNodeIDs))
+	approvedNodeIDs := generateCadenceNodeDictionary(ids)
+	err := tx.AddArgument(approvedNodeIDs)
 	require.NoError(t, err)
 
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{idTableAddress},
-		[]crypto.Signer{IDTableSigner},
+		[]sdkcrypto.Signer{IDTableSigner},
 		false,
 	)
 
@@ -335,7 +377,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			true,
 		)
 
@@ -345,7 +387,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			true,
 		)
 
@@ -355,7 +397,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			true,
 		)
 
@@ -365,7 +407,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			true,
 		)
 
@@ -375,7 +417,7 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			true,
 		)
 
@@ -390,12 +432,97 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 				numViewsInDKGPhase:       2,
 				numCollectorClusters:     2,
 				rewardPercentage:         "0.04"})
+	})
 
+	t.Run("should be able to update timing config when staking disabled (Setup/Commit phases)", func(t *testing.T) {
+		timingConfig := EpochTimingConfig{
+			duration:     rand.Uint64() % 100_000,
+			refCounter:   0,
+			refTimestamp: uint64(time.Now().Unix()),
+		}
+
+		t.Run("invalid EpochTimingConfig", func(t *testing.T) {
+			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateEpochTimingConfigScript(env), idTableAddress)
+			_ = tx.AddArgument(CadenceUInt64(timingConfig.duration))
+			// Use a reference counter in the future, which validates the precondition
+			_ = tx.AddArgument(CadenceUInt64(timingConfig.refCounter + 100))
+			_ = tx.AddArgument(CadenceUInt64(timingConfig.refTimestamp))
+			signAndSubmit(
+				t, b, tx,
+				[]flow.Address{idTableAddress},
+				[]sdkcrypto.Signer{IDTableSigner},
+				true,
+			)
+		})
+
+		t.Run("valid EpochTimingConfig", func(t *testing.T) {
+			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateEpochTimingConfigScript(env), idTableAddress)
+			_ = tx.AddArgument(CadenceUInt64(timingConfig.duration))
+			_ = tx.AddArgument(CadenceUInt64(timingConfig.refCounter))
+			_ = tx.AddArgument(CadenceUInt64(timingConfig.refTimestamp))
+			signAndSubmit(
+				t, b, tx,
+				[]flow.Address{idTableAddress},
+				[]sdkcrypto.Signer{IDTableSigner},
+				false,
+			)
+			// timing config should be updated
+			verifyEpochTimingConfig(t, b, env, timingConfig)
+		})
+	})
+}
+
+func TestEpochTiming(t *testing.T) {
+	b, _, accountKeys, env := newTestSetup(t)
+
+	// Create new keys for the epoch account
+	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
+
+	// Deploys the staking contract, qc, dkg, and epoch lifecycle contract
+	// staking contract is deployed with default values (1.25M rewards, 8% cut)
+	initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
+		startEpochCounter, // start epoch counter
+		numEpochViews,     // num views per epoch
+		numStakingViews,   // num views for staking auction
+		numDKGViews,       // num views for DKG phase
+		numClusters,       // num collector clusters
+		randomSource,      // random source
+		rewardIncreaseFactor)
+
+	epochTimingConfigResult := executeScriptAndCheck(t, b, templates.GenerateGetEpochTimingConfigScript(env), nil)
+
+	t.Run("should be able to observe end times for current epoch", func(t *testing.T) {
+		gotEndTimeCdc := executeScriptAndCheck(t, b, templates.GenerateGetTargetEndTimeForEpochScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt64(startEpochCounter))})
+		gotEndTime := gotEndTimeCdc.ToGoValue().(uint64)
+		expectedEndTime := expectedTargetEndTime(epochTimingConfigResult, startEpochCounter)
+		assert.Equal(t, expectedEndTime, gotEndTime)
+
+		// sanity check: should be within 10 minutes of the current time
+		gotEndTimeParsed := time.Unix(int64(gotEndTime), 0)
+		assert.InDelta(t, time.Now().Unix(), gotEndTimeParsed.Unix(), float64(10*time.Minute))
+		gotEndTimeParsed.Sub(time.Now())
+	})
+
+	t.Run("should be able to observe end times for future epochs", func(t *testing.T) {
+		var lastEndTime uint64
+		for _, epoch := range []uint64{1, 2, 3, 10, 100, 1000, 10_000} {
+			gotEndTimeCdc := executeScriptAndCheck(t, b, templates.GenerateGetTargetEndTimeForEpochScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt64(epoch))})
+			gotEndTime := gotEndTimeCdc.ToGoValue().(uint64)
+			expectedEndTime := expectedTargetEndTime(epochTimingConfigResult, epoch)
+			assert.Equal(t, expectedEndTime, gotEndTime)
+
+			// sanity check: target end time should be strictly increasing
+			if lastEndTime > 0 {
+				assert.Greater(t, gotEndTime, lastEndTime)
+			}
+
+			lastEndTime = gotEndTime
+		}
 	})
 }
 
 func TestEpochAdvance(t *testing.T) {
-	b, accountKeys, env := newTestSetup(t)
+	b, adapter, accountKeys, env := newTestSetup(t)
 
 	// Create new keys for the epoch account
 	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
@@ -422,7 +549,7 @@ func TestEpochAdvance(t *testing.T) {
 	})
 
 	// create new user accounts, mint tokens for them, and register them for staking
-	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
+	addresses, _, signers := registerAndMintManyAccounts(t, b, env, accountKeys, numEpochAccounts)
 	ids, _, dkgIDs := generateNodeIDs(numEpochAccounts)
 	stakingSKs, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
 	stakingKeyPOPs := generateManyKeyPOPs(t, stakingSKs)
@@ -438,22 +565,20 @@ func TestEpochAdvance(t *testing.T) {
 	// Set the approved node list
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
 
-	approvedNodeIDs := make([]cadence.Value, numEpochAccounts)
-	for i := 0; i < numEpochAccounts; i++ {
-		id, _ := cadence.NewString(ids[i])
-		approvedNodeIDs[i] = id
-	}
-	err := tx.AddArgument(cadence.NewArray(approvedNodeIDs))
+	approvedNodeIDs := generateCadenceNodeDictionary(ids)
+	err := tx.AddArgument(approvedNodeIDs)
 	require.NoError(t, err)
 
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{idTableAddress},
-		[]crypto.Signer{IDTableSigner},
+		[]sdkcrypto.Signer{IDTableSigner},
 		false,
 	)
 
 	t.Run("Proposed metadata, QC, and DKG should have been created properly for epoch setup", func(t *testing.T) {
+
+		epochTimingConfigResult := executeScriptAndCheck(t, b, templates.GenerateGetEpochTimingConfigScript(env), nil)
 
 		// Advance to epoch Setup and make sure that the epoch cannot be ended
 		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHSETUP", false)
@@ -487,7 +612,14 @@ func TestEpochAdvance(t *testing.T) {
 				clusterQCs:            nil,
 				dkgKeys:               nil})
 
-		verifyEpochSetup(t, b, idTableAddress,
+		verifyEpochTimingConfig(t, b, env,
+			EpochTimingConfig{
+				duration:     numEpochViews,
+				refCounter:   startEpochCounter,
+				refTimestamp: uint64(time.Now().Unix()) + numEpochViews,
+			})
+
+		verifyEpochSetup(t, b, adapter, idTableAddress,
 			EpochSetup{
 				counter:            startEpochCounter + 1,
 				nodeInfoLength:     numEpochAccounts,
@@ -497,7 +629,10 @@ func TestEpochAdvance(t *testing.T) {
 				randomSource:       "",
 				dkgPhase1FinalView: startView + numEpochViews + numStakingViews + numDKGViews - 1,
 				dkgPhase2FinalView: startView + numEpochViews + numStakingViews + 2*numDKGViews - 1,
-				dkgPhase3FinalView: startView + numEpochViews + numStakingViews + 3*numDKGViews - 1})
+				dkgPhase3FinalView: startView + numEpochViews + numStakingViews + 3*numDKGViews - 1,
+				targetDuration:     numEpochViews,
+				targetEndTime:      expectedTargetEndTime(epochTimingConfigResult, startEpochCounter+1),
+			})
 
 		// QC Contract Checks
 		result := executeScriptAndCheck(t, b, templates.GenerateGetClusterWeightScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt16(uint16(0)))})
@@ -552,7 +687,7 @@ func TestEpochAdvance(t *testing.T) {
 }
 
 func TestEpochQCDKGNodeRegistration(t *testing.T) {
-	b, accountKeys, env := newTestSetup(t)
+	b, _, accountKeys, env := newTestSetup(t)
 
 	// Create new keys for the epoch account
 	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
@@ -569,7 +704,7 @@ func TestEpochQCDKGNodeRegistration(t *testing.T) {
 		rewardIncreaseFactor)
 
 	// create new user accounts, mint tokens for them, and register them for staking
-	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
+	addresses, _, signers := registerAndMintManyAccounts(t, b, env, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
 	stakingSKs, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
 	stakingKeyPOPs := generateManyKeyPOPs(t, stakingSKs)
@@ -585,18 +720,14 @@ func TestEpochQCDKGNodeRegistration(t *testing.T) {
 	// Set the approved node list
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
 
-	approvedNodeIDs := make([]cadence.Value, numEpochAccounts)
-	for i := 0; i < numEpochAccounts; i++ {
-		id, _ := cadence.NewString(ids[i])
-		approvedNodeIDs[i] = id
-	}
-	err := tx.AddArgument(cadence.NewArray(approvedNodeIDs))
+	approvedNodeIDs := generateCadenceNodeDictionary(ids)
+	err := tx.AddArgument(approvedNodeIDs)
 	require.NoError(t, err)
 
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{idTableAddress},
-		[]crypto.Signer{IDTableSigner},
+		[]sdkcrypto.Signer{IDTableSigner},
 		false,
 	)
 
@@ -611,7 +742,7 @@ func TestEpochQCDKGNodeRegistration(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{addresses[1]},
-			[]crypto.Signer{signers[1]},
+			[]sdkcrypto.Signer{signers[1]},
 			true,
 		)
 
@@ -621,7 +752,7 @@ func TestEpochQCDKGNodeRegistration(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{addresses[0]},
-			[]crypto.Signer{signers[0]},
+			[]sdkcrypto.Signer{signers[0]},
 			true,
 		)
 	})
@@ -634,7 +765,7 @@ func TestEpochQCDKGNodeRegistration(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{addresses[0]},
-			[]crypto.Signer{signers[0]},
+			[]sdkcrypto.Signer{signers[0]},
 			false,
 		)
 
@@ -644,14 +775,14 @@ func TestEpochQCDKGNodeRegistration(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{addresses[1]},
-			[]crypto.Signer{signers[1]},
+			[]sdkcrypto.Signer{signers[1]},
 			false,
 		)
 	})
 }
 
 func TestEpochFullNodeRegistration(t *testing.T) {
-	b, accountKeys, env := newTestSetup(t)
+	b, _, accountKeys, env := newTestSetup(t)
 
 	// Create new keys for the epoch account
 	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
@@ -668,7 +799,7 @@ func TestEpochFullNodeRegistration(t *testing.T) {
 		rewardIncreaseFactor)
 
 	// create new user accounts, mint tokens for them, and register them for staking
-	addresses, publicKeys, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
+	addresses, publicKeys, signers := registerAndMintManyAccounts(t, b, env, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
 	stakingSKs, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
 	stakingKeyPOPs := generateManyKeyPOPs(t, stakingSKs)
@@ -685,7 +816,7 @@ func TestEpochFullNodeRegistration(t *testing.T) {
 }
 
 func TestEpochQCDKG(t *testing.T) {
-	b, accountKeys, env := newTestSetup(t)
+	b, adapter, accountKeys, env := newTestSetup(t)
 
 	// Create new keys for the epoch account
 	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
@@ -702,7 +833,7 @@ func TestEpochQCDKG(t *testing.T) {
 		rewardIncreaseFactor)
 
 	// create new user accounts, mint tokens for them, and register them for staking
-	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
+	addresses, _, signers := registerAndMintManyAccounts(t, b, env, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
 	stakingPrivateKeys, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
 	stakingKeyPOPs := generateManyKeyPOPs(t, stakingPrivateKeys)
@@ -718,18 +849,14 @@ func TestEpochQCDKG(t *testing.T) {
 	// Set the approved node list
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
 
-	approvedNodeIDs := make([]cadence.Value, numEpochAccounts)
-	for i := 0; i < numEpochAccounts; i++ {
-		id, _ := cadence.NewString(ids[i])
-		approvedNodeIDs[i] = id
-	}
-	err := tx.AddArgument(cadence.NewArray(approvedNodeIDs))
+	approvedNodeIDs := generateCadenceNodeDictionary(ids)
+	err := tx.AddArgument(approvedNodeIDs)
 	require.NoError(t, err)
 
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{idTableAddress},
-		[]crypto.Signer{IDTableSigner},
+		[]sdkcrypto.Signer{IDTableSigner},
 		false,
 	)
 
@@ -741,7 +868,7 @@ func TestEpochQCDKG(t *testing.T) {
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{addresses[0]},
-		[]crypto.Signer{signers[0]},
+		[]sdkcrypto.Signer{signers[0]},
 		false,
 	)
 
@@ -749,7 +876,7 @@ func TestEpochQCDKG(t *testing.T) {
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{addresses[5]},
-		[]crypto.Signer{signers[5]},
+		[]sdkcrypto.Signer{signers[5]},
 		false,
 	)
 
@@ -758,7 +885,7 @@ func TestEpochQCDKG(t *testing.T) {
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{addresses[1]},
-		[]crypto.Signer{signers[1]},
+		[]sdkcrypto.Signer{signers[1]},
 		false,
 	)
 
@@ -779,7 +906,7 @@ func TestEpochQCDKG(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{addresses[1]},
-			[]crypto.Signer{signers[1]},
+			[]sdkcrypto.Signer{signers[1]},
 			false,
 		)
 
@@ -794,7 +921,7 @@ func TestEpochQCDKG(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{addresses[1]},
-			[]crypto.Signer{signers[1]},
+			[]sdkcrypto.Signer{signers[1]},
 			false,
 		)
 
@@ -822,7 +949,7 @@ func TestEpochQCDKG(t *testing.T) {
 	clusterQCs[0] = make([]string, 2)
 	clusterQCs[1] = make([]string, 2)
 
-	collectorVoteHasher := flow_crypto.NewExpandMsgXOFKMAC128(collectorVoteTag)
+	collectorVoteHasher := crypto.NewExpandMsgXOFKMAC128(collectorVoteTag)
 
 	t.Run("Can perform QC actions during Epoch Setup and advance to EpochCommit", func(t *testing.T) {
 
@@ -841,7 +968,7 @@ func TestEpochQCDKG(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{addresses[0]},
-			[]crypto.Signer{signers[0]},
+			[]sdkcrypto.Signer{signers[0]},
 			false,
 		)
 
@@ -860,7 +987,7 @@ func TestEpochQCDKG(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{addresses[5]},
-			[]crypto.Signer{signers[5]},
+			[]sdkcrypto.Signer{signers[5]},
 			false,
 		)
 
@@ -884,7 +1011,7 @@ func TestEpochQCDKG(t *testing.T) {
 				numCollectorClusters:     2,
 				rewardPercentage:         rewardIncreaseFactor})
 
-		verifyEpochCommit(t, b, idTableAddress,
+		verifyEpochCommit(t, b, adapter, idTableAddress,
 			EpochCommit{
 				counter:    startEpochCounter + 1,
 				dkgPubKeys: finalKeyStrings,
@@ -896,6 +1023,24 @@ func TestEpochQCDKG(t *testing.T) {
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetQCEnabledScript(env), nil)
 		assert.Equal(t, cadence.NewBool(true), result)
+
+	})
+
+	t.Run("Can set bonus token amount to modify rewards calculation", func(t *testing.T) {
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochSetBonusTokensScript(env), idTableAddress)
+
+		_ = tx.AddArgument(CadenceUFix64("1000000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]sdkcrypto.Signer{IDTableSigner},
+			false,
+		)
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetBonusTokensScript(env), nil)
+		assertEqual(t, CadenceUFix64("1000000.0"), result)
 
 	})
 
@@ -911,7 +1056,7 @@ func TestEpochQCDKG(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			false,
 		)
 
@@ -920,26 +1065,37 @@ func TestEpochQCDKG(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			false,
 		)
 
 		// Advance to new epoch
 		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "ENDEPOCH", false)
 
+		verifyEpochStart(t, b, adapter, idTableAddress,
+			EpochStart{
+				counter:        startEpochCounter + 1,
+				firstView:      startView + numEpochViews,
+				stakingEndView: startView + numEpochViews + numStakingViews - 1,
+				finalView:      startView + 2*numEpochViews - 1,
+				totalStaked:    "6750000.0",
+				totalSupply:    "7000000000.0",
+				rewards:        "6571204.6775",
+			})
+
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochPayRewardsScript(env), idTableAddress)
 
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			false,
 		)
 
 		// Verifies that the rewards from the previous epoch does not include the new epoch's amount
 		verifyEpochTotalRewardsPaid(t, b, idTableAddress,
 			EpochTotalRewardsPaid{
-				total:      "1250000.0000",
+				total:      "0.0000",
 				fromFees:   "0.0",
 				minted:     "0.0000",
 				feesBurned: "0.0000"})
@@ -960,12 +1116,15 @@ func TestEpochQCDKG(t *testing.T) {
 
 		verifyEpochMetadata(t, b, env,
 			EpochMetadata{
-				counter:               startEpochCounter + 1,
-				seed:                  "",
-				startView:             startView + numEpochViews,
-				endView:               startView + 2*numEpochViews - 1,
-				stakingEndView:        startView + numEpochViews + numStakingViews - 1,
-				totalRewards:          "6572143.3875",
+				counter:        startEpochCounter + 1,
+				seed:           "",
+				startView:      startView + numEpochViews,
+				endView:        startView + 2*numEpochViews - 1,
+				stakingEndView: startView + numEpochViews + numStakingViews - 1,
+				// The calculation of the total rewards should have been reduced because of the bonus tokens
+				// (total supply + current payount amount - bonus tokens) * reward increase factor
+				// (7000000000 + 1250000 - 1000000) * 0.00093871 = 6,571,204.6775
+				totalRewards:          "6571204.6775",
 				rewardsBreakdownArray: 0,
 				rewardsPaid:           false,
 				collectorClusters:     clusters,
@@ -974,7 +1133,7 @@ func TestEpochQCDKG(t *testing.T) {
 
 		// Make sure the payout is the same as the total rewards in the epoch metadata
 		result = executeScriptAndCheck(t, b, templates.GenerateGetWeeklyPayoutScript(env), nil)
-		assertEqual(t, CadenceUFix64("6572143.3875"), result)
+		assertEqual(t, CadenceUFix64("6571204.6775"), result)
 
 		// DKG and QC are disabled at the end of the epoch
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGEnabledScript(env), nil)
@@ -983,13 +1142,7 @@ func TestEpochQCDKG(t *testing.T) {
 		result = executeScriptAndCheck(t, b, templates.GenerateGetQCEnabledScript(env), nil)
 		assert.Equal(t, cadence.NewBool(false), result)
 
-		// DKG and QC are disabled at the end of the epoch
-		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGEnabledScript(env), nil)
-		assert.Equal(t, cadence.NewBool(false), result)
-
-		result = executeScriptAndCheck(t, b, templates.GenerateGetQCEnabledScript(env), nil)
-		assert.Equal(t, cadence.NewBool(false), result)
-
+		// The total supply did not increase because nobody was staked
 		result = executeScriptAndCheck(t, b, templates.GenerateGetFlowTotalSupplyScript(env), nil)
 		assertEqual(t, CadenceUFix64("7000000000.0"), result)
 
@@ -997,7 +1150,7 @@ func TestEpochQCDKG(t *testing.T) {
 
 	t.Run("Can set the rewards with high fee amount, which should not increase the supply at all", func(t *testing.T) {
 
-		mintTokensForAccount(t, b, idTableAddress, "6572144.3875")
+		mintTokensForAccount(t, b, env, idTableAddress, "6572144.3875")
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateDepositFeesScript(env), idTableAddress)
 
@@ -1006,7 +1159,7 @@ func TestEpochQCDKG(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			false,
 		)
 
@@ -1021,7 +1174,7 @@ func TestEpochQCDKG(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			false,
 		)
 
@@ -1030,12 +1183,15 @@ func TestEpochQCDKG(t *testing.T) {
 
 		verifyEpochMetadata(t, b, env,
 			EpochMetadata{
-				counter:               startEpochCounter + 2,
-				seed:                  "",
-				startView:             startView + 2*numEpochViews,
-				endView:               startView + 3*numEpochViews - 1,
-				stakingEndView:        startView + 2*numEpochViews + numStakingViews - 1,
-				totalRewards:          "6577139.33765799",
+				counter:        startEpochCounter + 2,
+				seed:           "",
+				startView:      startView + 2*numEpochViews,
+				endView:        startView + 3*numEpochViews - 1,
+				stakingEndView: startView + 2*numEpochViews + numStakingViews - 1,
+				// This calculation does not add the rewards for the epoch because
+				// they are not minted since they all come from fees
+				// (7006572144.3875 - 1000000) * 0.00093871 = 6,576,200.62765799
+				totalRewards:          "6576200.62765799",
 				rewardsBreakdownArray: 0,
 				rewardsPaid:           false,
 				collectorClusters:     clusters,
@@ -1044,13 +1200,13 @@ func TestEpochQCDKG(t *testing.T) {
 
 		// Make sure the payout is the same as the total rewards in the epoch metadata
 		result = executeScriptAndCheck(t, b, templates.GenerateGetWeeklyPayoutScript(env), nil)
-		assertEqual(t, CadenceUFix64("6577139.33765799"), result)
+		assertEqual(t, CadenceUFix64("6576200.62765799"), result)
 
 	})
 }
 
 func TestEpochReset(t *testing.T) {
-	b, accountKeys, env := newTestSetup(t)
+	b, _, accountKeys, env := newTestSetup(t)
 
 	// Create new keys for the epoch account
 	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
@@ -1067,7 +1223,7 @@ func TestEpochReset(t *testing.T) {
 		rewardIncreaseFactor)
 
 	// create new user accounts, mint tokens for them, and register them for staking
-	addresses, _, signers := registerAndMintManyAccounts(t, b, accountKeys, numEpochAccounts)
+	addresses, _, signers := registerAndMintManyAccounts(t, b, env, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
 	stakingPrivateKeys, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
 	stakingKeyPOPs := generateManyKeyPOPs(t, stakingPrivateKeys)
@@ -1082,17 +1238,14 @@ func TestEpochReset(t *testing.T) {
 	// Set the approved node list
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
 
-	approvedNodeIDs := make([]cadence.Value, numEpochAccounts)
-	for i := 0; i < numEpochAccounts; i++ {
-		approvedNodeIDs[i] = CadenceString(ids[i])
-	}
-	err := tx.AddArgument(cadence.NewArray(approvedNodeIDs))
+	approvedNodeIDs := generateCadenceNodeDictionary(ids)
+	err := tx.AddArgument(approvedNodeIDs)
 	require.NoError(t, err)
 
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{idTableAddress},
-		[]crypto.Signer{IDTableSigner},
+		[]sdkcrypto.Signer{IDTableSigner},
 		false,
 	)
 
@@ -1104,7 +1257,7 @@ func TestEpochReset(t *testing.T) {
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{addresses[0]},
-		[]crypto.Signer{signers[0]},
+		[]sdkcrypto.Signer{signers[0]},
 		false,
 	)
 
@@ -1112,7 +1265,7 @@ func TestEpochReset(t *testing.T) {
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{addresses[5]},
-		[]crypto.Signer{signers[5]},
+		[]sdkcrypto.Signer{signers[5]},
 		false,
 	)
 
@@ -1121,7 +1274,7 @@ func TestEpochReset(t *testing.T) {
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{addresses[1]},
-		[]crypto.Signer{signers[1]},
+		[]sdkcrypto.Signer{signers[1]},
 		false,
 	)
 
@@ -1129,7 +1282,7 @@ func TestEpochReset(t *testing.T) {
 	clusterQCs[0] = make([]string, 1)
 	clusterQCs[1] = make([]string, 1)
 
-	collectorVoteHasher := flow_crypto.NewExpandMsgXOFKMAC128(collectorVoteTag)
+	collectorVoteHasher := crypto.NewExpandMsgXOFKMAC128(collectorVoteTag)
 
 	t.Run("Can perform QC actions during Epoch Setup but cannot advance to EpochCommit if DKG isn't complete", func(t *testing.T) {
 
@@ -1147,7 +1300,7 @@ func TestEpochReset(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{addresses[0]},
-			[]crypto.Signer{signers[0]},
+			[]sdkcrypto.Signer{signers[0]},
 			false,
 		)
 
@@ -1165,7 +1318,7 @@ func TestEpochReset(t *testing.T) {
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{addresses[5]},
-			[]crypto.Signer{signers[5]},
+			[]sdkcrypto.Signer{signers[5]},
 			false,
 		)
 
@@ -1198,17 +1351,16 @@ func TestEpochReset(t *testing.T) {
 		var endView uint64 = 200
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateResetEpochScript(env), idTableAddress)
-		_ = tx.AddArgument(cadence.NewUInt64(startEpochCounter + 1))
-		_ = tx.AddArgument(CadenceString("stillSoRandom"))
-		_ = tx.AddArgument(CadenceUFix64("1300000.0"))
-		_ = tx.AddArgument(cadence.NewUInt64(startView))
-		_ = tx.AddArgument(cadence.NewUInt64(stakingEndView))
-		_ = tx.AddArgument(cadence.NewUInt64(endView))
+		tx.AddArgument(cadence.NewUInt64(startEpochCounter + 1))
+		tx.AddArgument(CadenceString("stillSoRandom"))
+		tx.AddArgument(cadence.NewUInt64(startView))
+		tx.AddArgument(cadence.NewUInt64(stakingEndView))
+		tx.AddArgument(cadence.NewUInt64(endView))
 
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			true,
 		)
 	})
@@ -1220,17 +1372,16 @@ func TestEpochReset(t *testing.T) {
 		var endView uint64 = 200
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateResetEpochScript(env), idTableAddress)
-		_ = tx.AddArgument(cadence.NewUInt64(startEpochCounter))
-		_ = tx.AddArgument(CadenceString("stillSoRandom"))
-		_ = tx.AddArgument(CadenceUFix64("1300000.0"))
-		_ = tx.AddArgument(cadence.NewUInt64(startView))
-		_ = tx.AddArgument(cadence.NewUInt64(stakingEndView))
-		_ = tx.AddArgument(cadence.NewUInt64(endView))
+		tx.AddArgument(cadence.NewUInt64(startEpochCounter))
+		tx.AddArgument(CadenceString("stillSoRandom"))
+		tx.AddArgument(cadence.NewUInt64(startView))
+		tx.AddArgument(cadence.NewUInt64(stakingEndView))
+		tx.AddArgument(cadence.NewUInt64(endView))
 
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			true,
 		)
 	})
@@ -1242,17 +1393,16 @@ func TestEpochReset(t *testing.T) {
 		var endView uint64 = 200
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateResetEpochScript(env), idTableAddress)
-		_ = tx.AddArgument(cadence.NewUInt64(startEpochCounter))
-		_ = tx.AddArgument(CadenceString("stillSoRandom"))
-		_ = tx.AddArgument(CadenceUFix64("1300000.0"))
-		_ = tx.AddArgument(cadence.NewUInt64(startView))
-		_ = tx.AddArgument(cadence.NewUInt64(stakingEndView))
-		_ = tx.AddArgument(cadence.NewUInt64(endView))
+		tx.AddArgument(cadence.NewUInt64(startEpochCounter))
+		tx.AddArgument(CadenceString("stillSoRandom"))
+		tx.AddArgument(cadence.NewUInt64(startView))
+		tx.AddArgument(cadence.NewUInt64(stakingEndView))
+		tx.AddArgument(cadence.NewUInt64(endView))
 
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			true,
 		)
 	})
@@ -1264,17 +1414,16 @@ func TestEpochReset(t *testing.T) {
 		var endView uint64 = 160
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateResetEpochScript(env), idTableAddress)
-		_ = tx.AddArgument(cadence.NewUInt64(startEpochCounter))
-		_ = tx.AddArgument(CadenceString("stillSoRandom"))
-		_ = tx.AddArgument(CadenceUFix64("1300000.0"))
-		_ = tx.AddArgument(cadence.NewUInt64(startView))
-		_ = tx.AddArgument(cadence.NewUInt64(stakingEndView))
-		_ = tx.AddArgument(cadence.NewUInt64(endView))
+		tx.AddArgument(cadence.NewUInt64(startEpochCounter))
+		tx.AddArgument(CadenceString("stillSoRandom"))
+		tx.AddArgument(cadence.NewUInt64(startView))
+		tx.AddArgument(cadence.NewUInt64(stakingEndView))
+		tx.AddArgument(cadence.NewUInt64(endView))
 
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{idTableAddress},
-			[]crypto.Signer{IDTableSigner},
+			[]sdkcrypto.Signer{IDTableSigner},
 			false,
 		)
 
@@ -1285,7 +1434,7 @@ func TestEpochReset(t *testing.T) {
 				startView:             startView,
 				endView:               endView,
 				stakingEndView:        stakingEndView,
-				totalRewards:          "1250000.0",
+				totalRewards:          "0.0",
 				rewardsBreakdownArray: 0,
 				rewardsPaid:           false,
 				collectorClusters:     nil,
@@ -1297,5 +1446,94 @@ func TestEpochReset(t *testing.T) {
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetQCEnabledScript(env), nil)
 		assert.Equal(t, cadence.NewBool(false), result)
+	})
+
+	result := executeScriptAndCheck(t, b, templates.GenerateGetFlowTotalSupplyScript(env), nil)
+	assertEqual(t, CadenceUFix64("7000000000.0"), result)
+
+	t.Run("Can reset the epoch during the staking auction with automatic rewards enabled", func(t *testing.T) {
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochSetAutomaticRewardsScript(env), idTableAddress)
+
+		tx.AddArgument(cadence.NewBool(true))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]sdkcrypto.Signer{IDTableSigner},
+			false,
+		)
+
+		var startView uint64 = 100
+		var stakingEndView uint64 = 120
+		var endView uint64 = 160
+
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateResetEpochScript(env), idTableAddress)
+		tx.AddArgument(cadence.NewUInt64(startEpochCounter + 1))
+		tx.AddArgument(CadenceString("stillSoRandom"))
+		tx.AddArgument(cadence.NewUInt64(startView))
+		tx.AddArgument(cadence.NewUInt64(stakingEndView))
+		tx.AddArgument(cadence.NewUInt64(endView))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]sdkcrypto.Signer{IDTableSigner},
+			false,
+		)
+
+		// Verify the current epoch's metadata to make sure rewards were calculated
+		// properly after the reset and that they haven't been paid yet
+		verifyEpochMetadata(t, b, env,
+			EpochMetadata{
+				counter:        startEpochCounter + 2,
+				seed:           "stillSoRandom",
+				startView:      startView,
+				endView:        endView,
+				stakingEndView: stakingEndView,
+				// The calculation of the total rewards should have happened
+				// because automatic rewards are enabled
+				// (total supply + current payount amount - bonus tokens) * reward increase factor
+				// (7000000000 + 1250000 - 0) * 0.00093871 = 6,571,204.6775
+				totalRewards:          "6572143.3875",
+				rewardsBreakdownArray: 0,
+				rewardsPaid:           false,
+				collectorClusters:     nil,
+				clusterQCs:            nil,
+				dkgKeys:               nil})
+
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochPayRewardsScript(env), idTableAddress)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]sdkcrypto.Signer{IDTableSigner},
+			false,
+		)
+
+		// Verifies that the rewards from the previous epoch does not include the new epoch's amount
+		verifyEpochTotalRewardsPaid(t, b, idTableAddress,
+			EpochTotalRewardsPaid{
+				total:      "1250000.00000000",
+				fromFees:   "0.0",
+				minted:     "1250000.00000000",
+				feesBurned: "0.035"})
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(ids[0]))})
+		assertEqual(t, CadenceUFix64("249999.99300000"), result)
+
+		// Rewards have already been paid, so this should not do anything
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochPayRewardsScript(env), idTableAddress)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]sdkcrypto.Signer{IDTableSigner},
+			false,
+		)
+
+		// The nodes rewards should not have increased
+		result = executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(ids[0]))})
+		assertEqual(t, CadenceUFix64("249999.99300000"), result)
 	})
 }

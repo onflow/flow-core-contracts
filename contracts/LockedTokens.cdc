@@ -26,7 +26,7 @@
  */
 
 import FlowToken from 0xFLOWTOKENADDRESS
-import FungibleToken from 0xFUNGIBLETOKENADDRESS
+import FungibleToken from "FungibleToken"
 import FlowIDTableStaking from 0xFLOWIDTABLESTAKINGADDRESS
 import FlowStorageFees from 0xFLOWSTORAGEFEESADDRESS
 import StakingProxy from 0xSTAKINGPROXYADDRESS
@@ -206,7 +206,7 @@ pub contract LockedTokens {
         /// Registers a new Delegator with the Flow Staking contract
         /// the caller has to specify the ID of the node operator
         /// they are delegating to
-        pub fun registerDelegator(nodeID: String) {
+        pub fun registerDelegator(nodeID: String, amount: UFix64) {
             if let delegator <- self.nodeDelegator <- nil {
                 let delegatorInfo = FlowIDTableStaking.DelegatorInfo(nodeID: delegator.nodeID, delegatorID: delegator.id)
 
@@ -218,7 +218,16 @@ pub contract LockedTokens {
                 destroy delegator
             }
 
-            let delegator <- self.nodeDelegator <- FlowIDTableStaking.registerNewDelegator(nodeID: nodeID)
+            let vaultRef = self.vault.borrow()!
+
+            assert(
+                vaultRef.balance >= FlowIDTableStaking.getDelegatorMinimumStakeRequirement(),
+                message: "Must have the delegation minimum FLOW requirement in the locked vault to register a node"
+            )
+
+            let tokens <- vaultRef.withdraw(amount: amount)
+
+            let delegator <- self.nodeDelegator <- FlowIDTableStaking.registerNewDelegator(nodeID: nodeID, tokensCommitted: <-tokens)
 
             destroy delegator
 
@@ -309,7 +318,13 @@ pub contract LockedTokens {
         /// Subtracts the minimum storage reservation from the value because that portion
         /// of the locked balance is not available to use
         pub fun getLockedAccountBalance(): UFix64 {
-            return self.borrowTokenManager().getBalance() - FlowStorageFees.minimumStorageReservation
+
+            let balance=self.borrowTokenManager().getBalance()
+
+            if balance < FlowStorageFees.minimumStorageReservation {
+                return 0.0
+            }
+            return balance - FlowStorageFees.minimumStorageReservation
         }
 
         // Returns the unlocked limit for this token holder.
@@ -345,7 +360,7 @@ pub contract LockedTokens {
         /// They have to provide the node ID for the node they want to delegate to
         pub fun createNodeDelegator(nodeID: String) {
 
-            self.borrowTokenManager().registerDelegator(nodeID: nodeID)
+            self.borrowTokenManager().registerDelegator(nodeID: nodeID, amount: FlowIDTableStaking.getDelegatorMinimumStakeRequirement())
 
             // create a new delegator proxy that can be accessed in transactions
             self.nodeDelegatorProxy = LockedNodeDelegatorProxy(tokenManager: self.tokenManager)

@@ -6,7 +6,7 @@ import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
 // which ends the staking auction, which refunds nodes with insufficient stake
 // and moves tokens between buckets
 
-transaction(ids: [String], newPayout: UFix64) {
+transaction(ids: {String: Bool}, newPayout: UFix64) {
 
     // Local variable for a reference to the ID Table Admin object
     let adminRef: &FlowIDTableStaking.Admin
@@ -25,6 +25,6 @@ transaction(ids: [String], newPayout: UFix64) {
 
         self.adminRef.endStakingAuction()
 
-        self.adminRef.moveTokens()
+        self.adminRef.moveTokens(newEpochCounter: 2)
     }
 }

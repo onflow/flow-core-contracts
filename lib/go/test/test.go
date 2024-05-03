@@ -1,26 +1,35 @@
 package test
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"testing"
 
+	"github.com/btcsuite/btcd/chaincfg/chainhash"
+	"github.com/onflow/flow-emulator/adapters"
+	"github.com/onflow/flow-emulator/convert"
+	"github.com/rs/zerolog"
+
 	"github.com/onflow/flow-emulator/types"
 
 	"github.com/onflow/cadence"
-	emulator "github.com/onflow/flow-emulator"
-	ft_templates "github.com/onflow/flow-ft/lib/go/templates"
+	"github.com/onflow/crypto"
+	"github.com/onflow/flow-emulator/emulator"
 	"github.com/onflow/flow-go-sdk"
-	"github.com/onflow/flow-go-sdk/crypto"
+	sdkcrypto "github.com/onflow/flow-go-sdk/crypto"
 	"github.com/onflow/flow-go-sdk/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	flow_crypto "github.com/onflow/flow-go/crypto"
-
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
 )
+
+// this is added to resolve the issue with chainhash ambiguous import,
+// the code is not used, but it's needed to force go.mod specify and retain chainhash version
+// workaround for issue: https://github.com/golang/go/issues/27899
+var _ = chainhash.Hash{}
 
 /***********************************************
 *
@@ -41,16 +50,16 @@ const (
 	emulatorFTAddress        = "ee82856bf20e2aa6"
 	emulatorFlowTokenAddress = "0ae53cb6e3f42a79"
 	emulatorFlowFeesAddress  = "e5a8b7f23e8b548f"
+	emulatorStorageFees      = "f8d6e0586b0a20c7"
 )
 
 // Sets up testing and emulator objects and initialize the emulator default addresses
-//
-func newTestSetup(t *testing.T) (*emulator.Blockchain, *test.AccountKeys, templates.Environment) {
+func newTestSetup(t *testing.T) (emulator.Emulator, *adapters.SDKAdapter, *test.AccountKeys, templates.Environment) {
 	// Set for parallel processing
 	t.Parallel()
 
 	// Create a new emulator instance
-	b := newBlockchain()
+	b, adapter := newBlockchain()
 
 	// Create a new account key generator object to generate keys
 	// for test accounts
@@ -62,12 +71,12 @@ func newTestSetup(t *testing.T) (*emulator.Blockchain, *test.AccountKeys, templa
 		FlowTokenAddress:     emulatorFlowTokenAddress,
 	}
 
-	return b, accountKeys, env
+	return b, adapter, accountKeys, env
 }
 
 // newBlockchain returns an emulator blockchain for testing.
-func newBlockchain(opts ...emulator.Option) *emulator.Blockchain {
-	b, err := emulator.NewBlockchain(
+func newBlockchain(opts ...emulator.Option) (emulator.Emulator, *adapters.SDKAdapter) {
+	b, err := emulator.New(
 		append(
 			[]emulator.Option{
 				// No storage limit
@@ -79,14 +88,20 @@ func newBlockchain(opts ...emulator.Option) *emulator.Blockchain {
 	if err != nil {
 		panic(err)
 	}
-	return b
+
+	logger := zerolog.Nop()
+	adapter := adapters.NewSDKAdapter(&logger, b)
+
+	return b, adapter
 }
 
 // Create a new, empty account for testing
 // and return the address, public keys, and signer objects
-func newAccountWithAddress(b *emulator.Blockchain, accountKeys *test.AccountKeys) (flow.Address, *flow.AccountKey, crypto.Signer) {
+func newAccountWithAddress(b emulator.Emulator, accountKeys *test.AccountKeys) (flow.Address, *flow.AccountKey, sdkcrypto.Signer) {
 	newAccountKey, newSigner := accountKeys.NewWithSigner()
-	newAddress, _ := b.CreateAccount([]*flow.AccountKey{newAccountKey}, nil)
+	logger := zerolog.Nop()
+	adapter := adapters.NewSDKAdapter(&logger, b)
+	newAddress, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{newAccountKey}, nil)
 
 	return newAddress, newAccountKey, newSigner
 }
@@ -98,7 +113,7 @@ func newAccountWithAddress(b *emulator.Blockchain, accountKeys *test.AccountKeys
 // Whoever authorizes here also needs to sign the envelope and payload when submitting the transaction
 // returns the tx object so arguments can be added to it and it can be signed
 func createTxWithTemplateAndAuthorizer(
-	b *emulator.Blockchain,
+	b emulator.Emulator,
 	script []byte,
 	authorizerAddress flow.Address,
 ) *flow.Transaction {
@@ -123,10 +138,10 @@ func createTxWithTemplateAndAuthorizer(
 // This function asserts the correct result and commits the block if it passed.
 func signAndSubmit(
 	t *testing.T,
-	b *emulator.Blockchain,
+	b emulator.Emulator,
 	tx *flow.Transaction,
 	signerAddresses []flow.Address,
-	signers []crypto.Signer,
+	signers []sdkcrypto.Signer,
 	shouldRevert bool,
 ) *types.TransactionResult {
 	// sign transaction with each signer
@@ -149,12 +164,13 @@ func signAndSubmit(
 // Submit submits a transaction and checks if it fails or not, based on shouldRevert specification
 func Submit(
 	t *testing.T,
-	b *emulator.Blockchain,
+	b emulator.Emulator,
 	tx *flow.Transaction,
 	shouldRevert bool,
 ) *types.TransactionResult {
 	// submit the signed transaction
-	err := b.AddTransaction(*tx)
+	flowTx := convert.SDKTransactionToFlow(*tx)
+	err := b.AddTransaction(*flowTx)
 	require.NoError(t, err)
 
 	// use the emulator to execute it
@@ -177,7 +193,7 @@ func Submit(
 }
 
 // executeScriptAndCheck executes a script and checks to make sure that it succeeded.
-func executeScriptAndCheck(t *testing.T, b *emulator.Blockchain, script []byte, arguments [][]byte) cadence.Value {
+func executeScriptAndCheck(t *testing.T, b emulator.Emulator, script []byte, arguments [][]byte) cadence.Value {
 	result, err := b.ExecuteScript(script, arguments)
 	require.NoError(t, err)
 	if !assert.True(t, result.Succeeded()) {
@@ -207,6 +223,16 @@ func CadenceUFix64(value string) cadence.Value {
 	return newValue
 }
 
+// CadenceUInt64 returns a UInt64 value from a uint64
+func CadenceUInt64(value uint64) cadence.Value {
+	return cadence.NewUInt64(value)
+}
+
+// CadenceUInt8 returns a UInt8 value from a uint8
+func CadenceUInt8(value uint8) cadence.Value {
+	return cadence.NewUInt8(value)
+}
+
 // CadenceString returns a string value from a string representation
 func CadenceString(value string) cadence.Value {
 	newValue, err := cadence.NewString(value)
@@ -216,6 +242,11 @@ func CadenceString(value string) cadence.Value {
 	}
 
 	return newValue
+}
+
+// CadenceBool returns a bool value from a bool
+func CadenceBool(value bool) cadence.Bool {
+	return cadence.NewBool(value)
 }
 
 // Converts a byte array to a Cadence array of UInt8
@@ -231,12 +262,11 @@ func bytesToCadenceArray(b []byte) cadence.Array {
 
 // assertEqual asserts that two objects are equal.
 //
-//    assertEqual(t, 123, 123)
+//	assertEqual(t, 123, 123)
 //
 // Pointer variable equality is determined based on the equality of the
 // referenced values (as opposed to the memory addresses). Function equality
 // cannot be determined and will always fail.
-//
 func assertEqual(t *testing.T, expected, actual interface{}) bool {
 
 	if assert.ObjectsAreEqual(expected, actual) {
@@ -255,11 +285,11 @@ func assertEqual(t *testing.T, expected, actual interface{}) bool {
 // Mints the specified amount of FLOW tokens for the specified account address
 // Using the mint tokens template from the onflow/flow-ft repo
 // signed by the service account
-func mintTokensForAccount(t *testing.T, b *emulator.Blockchain, recipient flow.Address, amount string) {
+func mintTokensForAccount(t *testing.T, b emulator.Emulator, env templates.Environment, recipient flow.Address, amount string) {
 
 	// Create a new mint FLOW transaction template authorized by the service account
 	tx := createTxWithTemplateAndAuthorizer(b,
-		ft_templates.GenerateMintTokensScript(flow.HexToAddress(emulatorFTAddress), flow.HexToAddress(emulatorFlowTokenAddress), "FlowToken"),
+		templates.GenerateMintFlowScript(env),
 		b.ServiceKey().Address)
 
 	// Add the recipient and amount as arguments
@@ -269,7 +299,7 @@ func mintTokensForAccount(t *testing.T, b *emulator.Blockchain, recipient flow.A
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{},
-		[]crypto.Signer{},
+		[]sdkcrypto.Signer{},
 		false,
 	)
 }
@@ -278,32 +308,33 @@ func mintTokensForAccount(t *testing.T, b *emulator.Blockchain, recipient flow.A
 // Returns the addresses, keys, and signers for each account in matching arrays
 func registerAndMintManyAccounts(
 	t *testing.T,
-	b *emulator.Blockchain,
+	b emulator.Emulator,
+	env templates.Environment,
 	accountKeys *test.AccountKeys,
-	numAccounts int) ([]flow.Address, []*flow.AccountKey, []crypto.Signer) {
+	numAccounts int) ([]flow.Address, []*flow.AccountKey, []sdkcrypto.Signer) {
 
 	// make new addresses, keys, and signers
 	var userAddresses = make([]flow.Address, numAccounts)
 	var userPublicKeys = make([]*flow.AccountKey, numAccounts)
-	var userSigners = make([]crypto.Signer, numAccounts)
+	var userSigners = make([]sdkcrypto.Signer, numAccounts)
 
 	// Create each new account and mint 1B tokens for it
 	for i := 0; i < numAccounts; i++ {
 		userAddresses[i], userPublicKeys[i], userSigners[i] = newAccountWithAddress(b, accountKeys)
-		mintTokensForAccount(t, b, userAddresses[i], "1000000000.0")
+		mintTokensForAccount(t, b, env, userAddresses[i], "1000000000.0")
 	}
 
 	return userAddresses, userPublicKeys, userSigners
 }
 
 // Generates a new private/public key pair
-func generateKeys(t *testing.T, algorithmName flow_crypto.SigningAlgorithm) (crypto.PrivateKey, crypto.PublicKey) {
+func generateKeys(t *testing.T, algorithmName crypto.SigningAlgorithm) (crypto.PrivateKey, crypto.PublicKey) {
 	seedMinLength := 48
 	seed := make([]byte, seedMinLength)
 	n, err := rand.Read(seed)
 	require.Equal(t, n, seedMinLength)
 	require.NoError(t, err)
-	sk, err := flow_crypto.GeneratePrivateKey(algorithmName, seed)
+	sk, err := crypto.GeneratePrivateKey(algorithmName, seed)
 	require.NoError(t, err)
 
 	publicKey := sk.PublicKey()
