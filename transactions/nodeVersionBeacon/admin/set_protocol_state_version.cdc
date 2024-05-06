@@ -1,10 +1,11 @@
 import NodeVersionBeacon from "NodeVersionBeacon"
 
 /// Transaction that allows NodeVersionAdmin to specify a new protocol state version.
-/// The new version will become active at view `activeView` if the service event
-/// is processed and applied to the protocol state within a block `B` such that
-/// `B.view + ∆ < activeView`, for a protocol-defined safety threshold ∆.
-/// Service events not meeting this threshold are discarded.
+/// The new version will become active at view `activeView` if:
+///  - newProtocolVersion is one greater than the current protocol version
+///  - the service event is processed and applied to the protocol state within a block `B` 
+///    such that `B.view + ∆ < activeView`, for a protocol-defined safety threshold ∆.
+/// Service events not meeting these conditions are discarded.
 
 transaction(newProtocolVersion: UInt64, activeView: UInt64) {
 
@@ -17,6 +18,6 @@ transaction(newProtocolVersion: UInt64, activeView: UInt64) {
   }
 
   execute {
-    self.adminRef.setPendingProtocolStateVersionUpgrade(newProtocolVersion: newProtocolVersion, activeView: activeView)
+    self.adminRef.emitProtocolStateVersionUpgrade(newProtocolVersion: newProtocolVersion, activeView: activeView)
   }
 }
