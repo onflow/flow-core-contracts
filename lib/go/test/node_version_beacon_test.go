@@ -3,11 +3,12 @@ package test
 import (
 	"context"
 	"fmt"
+	"testing"
+
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/flow-emulator/convert"
 	"github.com/onflow/flow-emulator/emulator"
 	flowgo "github.com/onflow/flow-go/model/flow"
-	"testing"
 
 	"github.com/coreos/go-semver/semver"
 	"github.com/onflow/cadence"
@@ -198,26 +199,12 @@ func TestNodeVersionBeacon(t *testing.T) {
 			[]crypto.Signer{versionBeaconSigner},
 			false,
 		)
-		// no events just yet
-		assert.Len(t, txChangeResults.Events, 0)
-
-		checkTx := createTxWithTemplateAndAuthorizer(b,
-			templates.GenerateHeartbeatScript(env),
-			versionBeaconAddress)
-
-		txCheckResults := signAndSubmit(t, b, checkTx,
-			[]flow.Address{versionBeaconAddress},
-			[]crypto.Signer{versionBeaconSigner},
-			false,
-		)
-
-		require.Empty(t, txCheckResults.Error)
-		require.Len(t, txCheckResults.Events, 1)
-
-		event := ProtocolStateVersionUpgradeEvent(txCheckResults.Events[0])
+		// The service event is immediately emitted within the governance transaction
+		assert.Len(t, txChangeResults.Events, 1)
+		assert.Empty(t, txChangeResults.Error)
+		event := ProtocolStateVersionUpgradeEvent(txChangeResults.Events[0])
 		assert.Equal(t, newProtocolVersion, event.NewProtocolVersion())
 		assert.Equal(t, activeView, event.ActiveView())
-
 	})
 }
 
