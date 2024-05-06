@@ -192,7 +192,7 @@ access(all) contract LockedTokens {
 
         /// Registers a new node operator with the Flow Staking contract
         /// and commits an initial amount of locked tokens to stake
-        access(all) fun registerNode(nodeInfo: StakingProxy.NodeInfo, amount: UFix64) {
+        access(all) fun registerNode(nodeInfo: StakingProxy.NodeInfo, stakingKeyPoP: String, amount: UFix64) {
             if let nodeStaker <- self.nodeStaker <- nil {
                 let stakingInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeStaker.id)
 
@@ -208,7 +208,7 @@ access(all) contract LockedTokens {
 
             let tokens <- vaultRef.withdraw(amount: amount)
 
-            let nodeStaker <- self.nodeStaker <- FlowIDTableStaking.addNodeRecord(id: nodeInfo.id, role: nodeInfo.role, networkingAddress: nodeInfo.networkingAddress, networkingKey: nodeInfo.networkingKey, stakingKey: nodeInfo.stakingKey, tokensCommitted: <-tokens)
+            let nodeStaker <- self.nodeStaker <- FlowIDTableStaking.addNodeRecord(id: nodeInfo.id, role: nodeInfo.role, networkingAddress: nodeInfo.networkingAddress, networkingKey: nodeInfo.networkingKey, stakingKey: nodeInfo.stakingKey, stakingKeyPoP: stakingKeyPoP, tokensCommitted: <-tokens)
 
             destroy nodeStaker
 
@@ -376,9 +376,9 @@ access(all) contract LockedTokens {
 
         /// The user calls this function if they want to register as a node operator
         /// They have to provide all the info for their node
-        access(TokenOperations) fun createNodeStaker(nodeInfo: StakingProxy.NodeInfo, amount: UFix64) {
+        access(TokenOperations) fun createNodeStaker(nodeInfo: StakingProxy.NodeInfo, stakingKeyPoP: String, amount: UFix64) {
 
-            self.borrowTokenManager().registerNode(nodeInfo: nodeInfo, amount: amount)
+            self.borrowTokenManager().registerNode(nodeInfo: nodeInfo, stakingKeyPoP: stakingKeyPoP, amount: amount)
 
             // Create a new staker proxy that can be accessed in transactions
             self.nodeStakerProxy = LockedNodeStakerProxy(tokenManager: self.tokenManager)
