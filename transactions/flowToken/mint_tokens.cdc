@@ -1,5 +1,5 @@
-import FungibleToken from "FungibleToken"
-import FlowToken from "FlowToken"
+import "FungibleToken"
+import "FlowToken"
 
 /// This transaction mints tokens using the account that stores the Flow Token Admin resource
 /// This is the service account

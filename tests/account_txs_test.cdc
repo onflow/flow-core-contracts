@@ -20,7 +20,7 @@ fun testCreateAccount() {
     Test.expect(txResult, Test.beFailed())
     Test.assertError(
         txResult,
-        errorMessage: "Must provide a signature algoritm raw value that is 1, 2, or 3"
+        errorMessage: "Must provide a signature algorithm raw value that is 1, 2, or 3"
     )
 
     // Should fail
@@ -32,7 +32,7 @@ fun testCreateAccount() {
     Test.expect(txResult, Test.beFailed())
     Test.assertError(
         txResult,
-        errorMessage: "Must provide a signature algoritm raw value that is 1, 2, or 3"
+        errorMessage: "Must provide a signature algorithm raw value that is 1, 2, or 3"
     )
 
     // Should fail
@@ -44,7 +44,7 @@ fun testCreateAccount() {
     Test.expect(txResult, Test.beFailed())
     Test.assertError(
         txResult,
-        errorMessage: "Must provide a hash algoritm raw value that is between 1 and 6"
+        errorMessage: "Must provide a hash algorithm raw value that is between 1 and 6"
     )
 
     // Should fail
@@ -56,7 +56,7 @@ fun testCreateAccount() {
     Test.expect(txResult, Test.beFailed())
     Test.assertError(
         txResult,
-        errorMessage: "Must provide a hash algoritm raw value that is between 1 and 6"
+        errorMessage: "Must provide a hash algorithm raw value that is between 1 and 6"
     )
 
     // Should fail
@@ -93,7 +93,7 @@ fun testAddKey() {
     Test.expect(txResult, Test.beFailed())
     Test.assertError(
         txResult,
-        errorMessage: "Must provide a signature algoritm raw value that is 1, 2, or 3"
+        errorMessage: "Must provide a signature algorithm raw value that is 1, 2, or 3"
     )
 
     // Should fail
@@ -105,7 +105,7 @@ fun testAddKey() {
     Test.expect(txResult, Test.beFailed())
     Test.assertError(
         txResult,
-        errorMessage: "Must provide a signature algoritm raw value that is 1, 2, or 3"
+        errorMessage: "Must provide a signature algorithm raw value that is 1, 2, or 3"
     )
 
     // Should fail
@@ -117,7 +117,7 @@ fun testAddKey() {
     Test.expect(txResult, Test.beFailed())
     Test.assertError(
         txResult,
-        errorMessage: "Must provide a hash algoritm raw value that is between 1 and 6"
+        errorMessage: "Must provide a hash algorithm raw value that is between 1 and 6"
     )
 
     // Should fail
@@ -129,7 +129,7 @@ fun testAddKey() {
     Test.expect(txResult, Test.beFailed())
     Test.assertError(
         txResult,
-        errorMessage: "Must provide a hash algoritm raw value that is between 1 and 6"
+        errorMessage: "Must provide a hash algorithm raw value that is between 1 and 6"
     )
 
     // Should fail

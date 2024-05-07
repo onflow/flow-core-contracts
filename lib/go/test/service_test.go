@@ -284,10 +284,10 @@ func TestContracts(t *testing.T) {
 		)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetFeeParametersScript(env), [][]byte{})
-		fields := result.(cadence.Struct).Fields
-		assertEqual(t, CadenceUFix64("1.0"), fields[0])
-		assertEqual(t, CadenceUFix64("2.0"), fields[1])
-		assertEqual(t, CadenceUFix64("3.0"), fields[2])
+		fields := cadence.FieldsMappedByName(result.(cadence.Struct))
+		assertEqual(t, CadenceUFix64("1.0"), fields["surgeFactor"])
+		assertEqual(t, CadenceUFix64("2.0"), fields["inclusionEffortCost"])
+		assertEqual(t, CadenceUFix64("3.0"), fields["executionEffortCost"])
 	})
 
 	t.Run("Should set and get execution effort weights", func(t *testing.T) {

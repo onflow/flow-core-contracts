@@ -4,8 +4,8 @@
 //
 // The burning amount would be a parameter to the transaction
 
-import FungibleToken from "FungibleToken"
-import FlowToken from "FlowToken"
+import "FungibleToken"
+import "FlowToken"
 
 transaction(amount: UFix64) {
 

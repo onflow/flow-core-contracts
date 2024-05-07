@@ -1,7 +1,7 @@
 // This script reads the balance field of an account's FlowToken Balance
 
-import FungibleToken from "FungibleToken"
-import FlowToken from "FlowToken"
+import "FungibleToken"
+import "FlowToken"
 
 access(all) fun main(account: Address): UFix64 {
 

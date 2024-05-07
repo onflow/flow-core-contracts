@@ -1,7 +1,6 @@
 import FungibleToken from "FungibleToken"
 import MetadataViews from "MetadataViews"
 import FungibleTokenMetadataViews from "FungibleTokenMetadataViews"
-import Burner from "Burner"
 
 access(all) contract FlowToken: FungibleToken {
 

@@ -211,7 +211,7 @@ func TestNodeVersionBeacon(t *testing.T) {
 type VersionBeaconEvent flow.Event
 
 func (v VersionBeaconEvent) Sequence() uint64 {
-	return v.Value.Fields[1].(cadence.UInt64).ToGoValue().(uint64)
+	return uint64(cadence.SearchFieldByName(v.Value, "sequence").(cadence.UInt64))
 }
 
 func (v VersionBeaconEvent) VersionTable() (ret []struct {
@@ -219,11 +219,14 @@ func (v VersionBeaconEvent) VersionTable() (ret []struct {
 	version string
 }) {
 
-	for _, cadenceVal := range v.Value.Fields[0].(cadence.Array).Values {
-		height := cadenceVal.(cadence.Struct).Fields[0].(cadence.UInt64).ToGoValue().(uint64)
-		versionFields := cadenceVal.(cadence.Struct).Fields[1].(cadence.Struct).Fields
+	array := cadence.SearchFieldByName(v.Value, "versionBoundaries").(cadence.Array).Values
 
-		version := fmt.Sprintf("%s.%s.%s", versionFields[0].String(), versionFields[1].String(), versionFields[2].String())
+	for _, cadenceVal := range array {
+		fields := cadence.FieldsMappedByName(cadenceVal.(cadence.Struct))
+		height := uint64(fields["blockHeight"].(cadence.UInt64))
+		versionFields := cadence.FieldsMappedByName(fields["version"].(cadence.Struct))
+
+		version := fmt.Sprintf("%s.%s.%s", versionFields["major"].String(), versionFields["minor"].String(), versionFields["patch"].String())
 
 		ret = append(ret, struct {
 			height  uint64
@@ -237,9 +240,11 @@ func (v VersionBeaconEvent) VersionTable() (ret []struct {
 type ProtocolStateVersionUpgradeEvent flow.Event
 
 func (event ProtocolStateVersionUpgradeEvent) NewProtocolVersion() uint64 {
-	return event.Value.Fields[0].(cadence.UInt64).ToGoValue().(uint64)
+	newProtocolVersion := cadence.SearchFieldByName(event.Value, "newProtocolVersion").(cadence.UInt64)
+	return uint64(newProtocolVersion)
 }
 
 func (event ProtocolStateVersionUpgradeEvent) ActiveView() uint64 {
-	return event.Value.Fields[1].(cadence.UInt64).ToGoValue().(uint64)
+	activeView := cadence.SearchFieldByName(event.Value, "activeView").(cadence.UInt64)
+	return uint64(activeView)
 }

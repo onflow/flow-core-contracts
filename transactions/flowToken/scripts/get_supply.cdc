@@ -1,7 +1,7 @@
 // This script reads the total supply field
 // of the FlowToken smart contract
 
-import FlowToken from "FlowToken"
+import "FlowToken"
 
 access(all) fun main(): UFix64 {
 
