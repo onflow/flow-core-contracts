@@ -81,31 +81,31 @@ type EpochStart struct {
 type EpochStartEvent flow.Event
 
 func (evt EpochStartEvent) Counter() cadence.UInt64 {
-	return evt.Value.Fields[0].(cadence.UInt64)
+	return cadence.SearchFieldByName(evt.Value, "counter").(cadence.UInt64)
 }
 
 func (evt EpochStartEvent) firstView() cadence.UInt64 {
-	return evt.Value.Fields[1].(cadence.UInt64)
+	return cadence.SearchFieldByName(evt.Value, "firstView").(cadence.UInt64)
 }
 
 func (evt EpochStartEvent) stakingEndView() cadence.UInt64 {
-	return evt.Value.Fields[2].(cadence.UInt64)
+	return cadence.SearchFieldByName(evt.Value, "stakingAuctionEndView").(cadence.UInt64)
 }
 
 func (evt EpochStartEvent) finalView() cadence.UInt64 {
-	return evt.Value.Fields[3].(cadence.UInt64)
+	return cadence.SearchFieldByName(evt.Value, "finalView").(cadence.UInt64)
 }
 
 func (evt EpochStartEvent) totalStaked() cadence.UFix64 {
-	return evt.Value.Fields[4].(cadence.UFix64)
+	return cadence.SearchFieldByName(evt.Value, "totalStaked").(cadence.UFix64)
 }
 
 func (evt EpochStartEvent) totalSupply() cadence.UFix64 {
-	return evt.Value.Fields[5].(cadence.UFix64)
+	return cadence.SearchFieldByName(evt.Value, "totalFlowSupply").(cadence.UFix64)
 }
 
 func (evt EpochStartEvent) rewards() cadence.UFix64 {
-	return evt.Value.Fields[6].(cadence.UFix64)
+	return cadence.SearchFieldByName(evt.Value, "totalRewards").(cadence.UFix64)
 }
 
 // / Used to verify the EpochSetup event fields in tests
@@ -136,54 +136,54 @@ type EpochCommit struct {
 type EpochSetupEvent flow.Event
 
 func (evt EpochSetupEvent) Counter() cadence.UInt64 {
-	return evt.Value.Fields[0].(cadence.UInt64)
+	return cadence.SearchFieldByName(evt.Value, "counter").(cadence.UInt64)
 }
 
 func (evt EpochSetupEvent) NodeInfo() cadence.Array {
-	return evt.Value.Fields[1].(cadence.Array)
+	return cadence.SearchFieldByName(evt.Value, "nodeInfo").(cadence.Array)
 }
 
 func (evt EpochSetupEvent) firstView() cadence.UInt64 {
-	return evt.Value.Fields[2].(cadence.UInt64)
+	return cadence.SearchFieldByName(evt.Value, "firstView").(cadence.UInt64)
 }
 
 func (evt EpochSetupEvent) finalView() cadence.UInt64 {
-	return evt.Value.Fields[3].(cadence.UInt64)
+	return cadence.SearchFieldByName(evt.Value, "finalView").(cadence.UInt64)
 }
 
 func (evt EpochSetupEvent) collectorClusters() cadence.Array {
-	return evt.Value.Fields[4].(cadence.Array)
+	return cadence.SearchFieldByName(evt.Value, "collectorClusters").(cadence.Array)
 }
 
 func (evt EpochSetupEvent) randomSource() cadence.String {
-	return evt.Value.Fields[5].(cadence.String)
+	return cadence.SearchFieldByName(evt.Value, "randomSource").(cadence.String)
 }
 
 func (evt EpochSetupEvent) dkgFinalViews() (cadence.UInt64, cadence.UInt64, cadence.UInt64) {
-	fields := evt.Value.Fields
-	return fields[6].(cadence.UInt64), fields[7].(cadence.UInt64), fields[8].(cadence.UInt64)
+	fields := cadence.FieldsMappedByName(evt.Value)
+	return fields["DKGPhase1FinalView"].(cadence.UInt64), fields["DKGPhase2FinalView"].(cadence.UInt64), fields["DKGPhase3FinalView"].(cadence.UInt64)
 }
 
 func (evt EpochSetupEvent) targetDuration() cadence.UInt64 {
-	return evt.Value.Fields[9].(cadence.UInt64)
+	return cadence.SearchFieldByName(evt.Value, "targetDuration").(cadence.UInt64)
 }
 
 func (evt EpochSetupEvent) targetEndTime() cadence.UInt64 {
-	return evt.Value.Fields[10].(cadence.UInt64)
+	return cadence.SearchFieldByName(evt.Value, "targetEndTime").(cadence.UInt64)
 }
 
 type EpochCommitEvent flow.Event
 
 func (evt EpochCommitEvent) Counter() cadence.UInt64 {
-	return evt.Value.Fields[0].(cadence.UInt64)
+	return cadence.SearchFieldByName(evt.Value, "counter").(cadence.UInt64)
 }
 
 func (evt EpochCommitEvent) clusterQCs() cadence.Array {
-	return evt.Value.Fields[1].(cadence.Array)
+	return cadence.SearchFieldByName(evt.Value, "clusterQCs").(cadence.Array)
 }
 
 func (evt EpochCommitEvent) dkgPubKeys() cadence.Array {
-	return evt.Value.Fields[2].(cadence.Array)
+	return cadence.SearchFieldByName(evt.Value, "dkgPubKeys").(cadence.Array)
 }
 
 // / Deploys the Quroum Certificate and Distributed Key Generation contracts to the provided account
@@ -427,13 +427,14 @@ func verifyClusters(
 		found := false
 
 		for _, actualCluster := range actualClusters {
-			cluster := actualCluster.(cadence.Struct).Fields
+			cluster := actualCluster.(cadence.Struct)
+			clusterFields := cadence.FieldsMappedByName(cluster)
 
-			totalWeight := cluster[2]
+			totalWeight := clusterFields["totalWeight"]
 			if cadence.NewUInt64(expectedCluster.totalWeight) == totalWeight {
 				found = true
 				assertEqual(t, cadence.NewUInt64(expectedCluster.totalWeight), totalWeight)
-				size := len(cluster[1].(cadence.Dictionary).Pairs)
+				size := len(clusterFields["nodeWeights"].(cadence.Dictionary).Pairs)
 				assertEqual(t, cadence.NewUInt16(expectedCluster.size), cadence.NewUInt16(uint16(size)))
 			}
 		}
@@ -458,9 +459,10 @@ func verifyClusterQCs(
 		i := 0
 		for _, qc := range actualQCs {
 			found := false
-			qcStructSignatures := qc.(cadence.Struct).Fields[1].(cadence.Array).Values
-			qcStructMessage := qc.(cadence.Struct).Fields[2].(cadence.String)
-			qcVoterIDs := qc.(cadence.Struct).Fields[3].(cadence.Array).Values
+			qcStructFields := cadence.FieldsMappedByName(qc.(cadence.Struct))
+			qcStructSignatures := qcStructFields["voteSignatures"].(cadence.Array).Values
+			qcStructMessage := qcStructFields["voteMessage"].(cadence.String)
+			qcVoterIDs := qcStructFields["voterIDs"].(cadence.Array).Values
 
 			assertEqual(t, len(qcVoterIDs), len(qcStructSignatures))
 
@@ -494,47 +496,47 @@ func verifyEpochMetadata(
 	expectedMetadata EpochMetadata) {
 
 	result := executeScriptAndCheck(t, b, templates.GenerateGetEpochMetadataScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt64(expectedMetadata.counter))})
-	metadataFields := result.(cadence.Struct).Fields
+	metadataFields := cadence.FieldsMappedByName(result.(cadence.Struct))
 
-	counter := metadataFields[0]
+	counter := metadataFields["counter"]
 	assertEqual(t, cadence.NewUInt64(expectedMetadata.counter), counter)
 
 	if len(expectedMetadata.seed) != 0 {
-		seed := metadataFields[1]
+		seed := metadataFields["seed"]
 		cadenceSeed, _ := cadence.NewString(expectedMetadata.seed)
 		assertEqual(t, cadenceSeed, seed)
 	}
 
-	startView := metadataFields[2]
+	startView := metadataFields["startView"]
 	assertEqual(t, cadence.NewUInt64(expectedMetadata.startView), startView)
 
-	endView := metadataFields[3]
+	endView := metadataFields["endView"]
 	assertEqual(t, cadence.NewUInt64(expectedMetadata.endView), endView)
 
-	stakingEndView := metadataFields[4]
+	stakingEndView := metadataFields["stakingEndView"]
 	assertEqual(t, cadence.NewUInt64(expectedMetadata.stakingEndView), stakingEndView)
 
-	totalRewards := metadataFields[5]
+	totalRewards := metadataFields["totalRewards"]
 	assertEqual(t, CadenceUFix64(expectedMetadata.totalRewards), totalRewards)
 
-	rewardsArray := metadataFields[6].(cadence.Array).Values
+	rewardsArray := metadataFields["rewardAmounts"].(cadence.Array).Values
 	if expectedMetadata.rewardsBreakdownArray == 0 {
 		assertEqual(t, len(rewardsArray), 0)
 	}
 
-	rewardsPaid := metadataFields[7]
+	rewardsPaid := metadataFields["rewardsPaid"]
 	assertEqual(t, cadence.NewBool(expectedMetadata.rewardsPaid), rewardsPaid)
 
 	if expectedMetadata.collectorClusters != nil {
-		clusters := metadataFields[8].(cadence.Array).Values
+		clusters := metadataFields["collectorClusters"].(cadence.Array).Values
 
 		verifyClusters(t, expectedMetadata.collectorClusters, clusters)
 	}
 
-	clusterQCs := metadataFields[9].(cadence.Array).Values
+	clusterQCs := metadataFields["clusterQCs"].(cadence.Array).Values
 	verifyClusterQCs(t, expectedMetadata.clusterQCs, clusterQCs)
 
-	dkgKeys := metadataFields[10].(cadence.Array).Values
+	dkgKeys := metadataFields["dkgKeys"].(cadence.Array).Values
 	if expectedMetadata.dkgKeys == nil {
 		assert.Empty(t, dkgKeys)
 	} else {
@@ -558,12 +560,12 @@ func verifyEpochTimingConfig(
 ) {
 
 	result := executeScriptAndCheck(t, b, templates.GenerateGetEpochTimingConfigScript(env), nil)
-	timingConfigFields := result.(cadence.Struct).Fields
+	timingConfigFields := cadence.FieldsMappedByName(result.(cadence.Struct))
 
 	// A default epoch timing config should be set in the constructor
-	assertEqual(t, cadence.NewUInt64(expectedConfig.duration), timingConfigFields[0])
-	assertEqual(t, cadence.NewUInt64(expectedConfig.refCounter), timingConfigFields[1])
-	assert.InDelta(t, expectedConfig.refTimestamp, timingConfigFields[2].ToGoValue().(uint64), 30)
+	assertEqual(t, cadence.NewUInt64(expectedConfig.duration), timingConfigFields["duration"])
+	assertEqual(t, cadence.NewUInt64(expectedConfig.refCounter), timingConfigFields["refCounter"])
+	assert.InDelta(t, expectedConfig.refTimestamp, uint64(timingConfigFields["refTimestamp"].(cadence.UInt64)), 30)
 }
 
 // / Verifies that the configurable epoch metadata is equal to the provided values
@@ -580,16 +582,16 @@ func verifyConfigMetadata(
 	assertEqual(t, cadence.NewUInt64(expectedMetadata.proposedEpochCounter), result)
 
 	result = executeScriptAndCheck(t, b, templates.GenerateGetEpochConfigMetadataScript(env), nil)
-	metadataFields := result.(cadence.Struct).Fields
+	metadataFields := cadence.FieldsMappedByName(result.(cadence.Struct))
 
-	assertEqual(t, cadence.NewUInt64(expectedMetadata.numViewsInEpoch), metadataFields[0])
-	assertEqual(t, cadence.NewUInt64(expectedMetadata.numViewsInStakingAuction), metadataFields[1])
-	assertEqual(t, cadence.NewUInt64(expectedMetadata.numViewsInDKGPhase), metadataFields[2])
+	assertEqual(t, cadence.NewUInt64(expectedMetadata.numViewsInEpoch), metadataFields["numViewsInEpoch"])
+	assertEqual(t, cadence.NewUInt64(expectedMetadata.numViewsInStakingAuction), metadataFields["numViewsInStakingAuction"])
+	assertEqual(t, cadence.NewUInt64(expectedMetadata.numViewsInDKGPhase), metadataFields["numViewsInDKGPhase"])
 
-	clusters := metadataFields[3]
+	clusters := metadataFields["numCollectorClusters"]
 	assertEqual(t, cadence.NewUInt16(expectedMetadata.numCollectorClusters), clusters)
 
-	apy := metadataFields[4]
+	apy := metadataFields["FLOWsupplyIncreasePercentage"]
 	assertEqual(t, CadenceUFix64(expectedMetadata.rewardPercentage), apy)
 
 	result = executeScriptAndCheck(t, b, templates.GenerateGetEpochPhaseScript(env), nil)
@@ -715,10 +717,10 @@ func verifyEpochCommit(
 // expectedTargetEndTime returns the expected `targetEndTime` for the given target epoch,
 // as a second-precision Unix time.
 func expectedTargetEndTime(timingConfig cadence.Value, targetEpoch uint64) uint64 {
-	fields := timingConfig.(cadence.Struct).Fields
-	duration := fields[0].ToGoValue().(uint64)
-	refCounter := fields[1].ToGoValue().(uint64)
-	refTimestamp := fields[2].ToGoValue().(uint64)
+	fields := cadence.FieldsMappedByName(timingConfig.(cadence.Struct))
+	duration := uint64(fields["duration"].(cadence.UInt64))
+	refCounter := uint64(fields["refCounter"].(cadence.UInt64))
+	refTimestamp := uint64(fields["refTimestamp"].(cadence.UInt64))
 
 	return refTimestamp + duration*(targetEpoch-refCounter)
 }

@@ -76,7 +76,7 @@ func TestLockedTokensStaker(t *testing.T) {
 		for _, result := range results {
 			for _, event := range result.Events {
 				if event.Type == flow.EventAccountCreated {
-					idTableAddress = flow.Address(event.Value.Fields[0].(cadence.Address))
+					idTableAddress = flow.Address(cadence.SearchFieldByName(event.Value, "address").(cadence.Address))
 				}
 			}
 		}
@@ -690,7 +690,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 		for _, result := range results {
 			for _, event := range result.Events {
 				if event.Type == flow.EventAccountCreated {
-					idTableAddress = flow.Address(event.Value.Fields[0].(cadence.Address))
+					idTableAddress = flow.Address(cadence.SearchFieldByName(event.Value, "address").(cadence.Address))
 				}
 			}
 		}
@@ -1157,7 +1157,7 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 		for _, result := range results {
 			for _, event := range result.Events {
 				if event.Type == flow.EventAccountCreated {
-					idTableAddress = flow.Address(event.Value.Fields[0].(cadence.Address))
+					idTableAddress = flow.Address(cadence.SearchFieldByName(event.Value, "address").(cadence.Address))
 				}
 			}
 		}

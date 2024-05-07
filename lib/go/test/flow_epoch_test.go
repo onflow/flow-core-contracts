@@ -485,7 +485,7 @@ func TestEpochTiming(t *testing.T) {
 
 	t.Run("should be able to observe end times for current epoch", func(t *testing.T) {
 		gotEndTimeCdc := executeScriptAndCheck(t, b, templates.GenerateGetTargetEndTimeForEpochScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt64(startEpochCounter))})
-		gotEndTime := gotEndTimeCdc.ToGoValue().(uint64)
+		gotEndTime := uint64(gotEndTimeCdc.(cadence.UInt64))
 		expectedEndTime := expectedTargetEndTime(epochTimingConfigResult, startEpochCounter)
 		assert.Equal(t, expectedEndTime, gotEndTime)
 
@@ -499,7 +499,7 @@ func TestEpochTiming(t *testing.T) {
 		var lastEndTime uint64
 		for _, epoch := range []uint64{1, 2, 3, 10, 100, 1000, 10_000} {
 			gotEndTimeCdc := executeScriptAndCheck(t, b, templates.GenerateGetTargetEndTimeForEpochScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt64(epoch))})
-			gotEndTime := gotEndTimeCdc.ToGoValue().(uint64)
+			gotEndTime := uint64(gotEndTimeCdc.(cadence.UInt64))
 			expectedEndTime := expectedTargetEndTime(epochTimingConfigResult, epoch)
 			assert.Equal(t, expectedEndTime, gotEndTime)
 

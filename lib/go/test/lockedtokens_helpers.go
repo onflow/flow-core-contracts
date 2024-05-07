@@ -43,7 +43,7 @@ var _ SharedAccountRegisteredEvent = (*sharedAccountRegisteredEvent)(nil)
 
 // Address returns the address of the newly-created account.
 func (evt sharedAccountRegisteredEvent) Address() flow.Address {
-	return flow.BytesToAddress(evt.Value.Fields[0].(cadence.Address).Bytes())
+	return flow.BytesToAddress(cadence.SearchFieldByName(evt.Value, "address").(cadence.Address).Bytes())
 }
 
 // Unlocked account Registered event
@@ -56,7 +56,7 @@ var _ UnlockedAccountRegisteredEvent = (*unlockedAccountRegisteredEvent)(nil)
 
 // Address returns the address of the newly-created account.
 func (evt unlockedAccountRegisteredEvent) Address() flow.Address {
-	return flow.BytesToAddress(evt.Value.Fields[0].(cadence.Address).Bytes())
+	return flow.BytesToAddress(cadence.SearchFieldByName(evt.Value, "address").(cadence.Address).Bytes())
 }
 
 // Deploy the locked tokens contract
@@ -262,17 +262,17 @@ var _ MachineAccountCreatedEvent = (*machineAccountCreatedEvent)(nil)
 
 // Address returns the address of the newly-created account.
 func (evt machineAccountCreatedEvent) NodeID() cadence.String {
-	return evt.Value.Fields[0].(cadence.String)
+	return cadence.SearchFieldByName(evt.Value, "nodeID").(cadence.String)
 }
 
 // Address returns the address of the newly-created account.
 func (evt machineAccountCreatedEvent) Role() cadence.UInt8 {
-	return evt.Value.Fields[1].(cadence.UInt8)
+	return cadence.SearchFieldByName(evt.Value, "role").(cadence.UInt8)
 }
 
 // Address returns the address of the newly-created account.
 func (evt machineAccountCreatedEvent) Address() flow.Address {
-	return flow.BytesToAddress(evt.Value.Fields[2].(cadence.Address).Bytes())
+	return flow.BytesToAddress(cadence.SearchFieldByName(evt.Value, "address").(cadence.Address).Bytes())
 }
 
 // Deploys the staking collection contract to the specified lockedTokensAddress
@@ -511,8 +511,9 @@ func verifyStakingCollectionInfo(
 	delegatorArray := result.(cadence.Array).Values
 	i = 0
 	for _, delegator := range expectedInfo.delegators {
-		nodeID := delegatorArray[i].(cadence.Struct).Fields[0]
-		delegatorID := delegatorArray[i].(cadence.Struct).Fields[1]
+		fields := cadence.FieldsMappedByName(delegatorArray[i].(cadence.Struct))
+		nodeID := fields["delegatorNodeID"]
+		delegatorID := fields["delegatorID"]
 		assertEqual(t, CadenceString(delegator.nodeID), nodeID)
 		assertEqual(t, cadence.NewUInt32(delegator.id), delegatorID)
 		i = i + 1
