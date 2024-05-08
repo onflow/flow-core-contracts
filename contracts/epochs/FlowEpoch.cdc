@@ -887,8 +887,7 @@ access(all) contract FlowEpoch {
         while i > 0
         {
             // Pick a random index from 0 to i
-            var randomNum = revertibleRandom<UInt64>()
-            var randomIndex = randomNum % UInt64(i + 1)
+            var randomIndex = revertibleRandom<UInt32>(modulo: UInt32(i + 1))
 
             // Swap arr[i] with the element at random index
             var temp = array[i]
