@@ -538,10 +538,7 @@ access(all) contract FlowEpoch {
             let proposedNodeIDs = FlowEpoch.endStakingAuction()
 
             /// random source must be a hex string of 32 characters (i.e 16 bytes or 128 bits)
-            /// `revertibleRandom` returns a UInt64 (8 bytes)
-            let randomLow = revertibleRandom<UInt64>().toBigEndianBytes()
-            let randomHigh = revertibleRandom<UInt64>().toBigEndianBytes()
-            var randomSource = String.encodeHex(randomHigh).concat(String.encodeHex(randomLow))
+            var randomSource = String.encodeHex(revertibleRandom<UInt128>().toBigEndianBytes())
             assert (
                 randomSource.length == 32,
                 message: "Random source must be a hex string of 32 characters"
