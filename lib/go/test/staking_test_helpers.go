@@ -38,19 +38,19 @@ type EpochTotalRewardsPaid struct {
 type EpochTotalRewardsPaidEvent flow.Event
 
 func (evt EpochTotalRewardsPaidEvent) Total() cadence.UFix64 {
-	return evt.Value.Fields[0].(cadence.UFix64)
+	return cadence.SearchFieldByName(evt.Value, "total").(cadence.UFix64)
 }
 
 func (evt EpochTotalRewardsPaidEvent) FromFees() cadence.UFix64 {
-	return evt.Value.Fields[1].(cadence.UFix64)
+	return cadence.SearchFieldByName(evt.Value, "fromFees").(cadence.UFix64)
 }
 
 func (evt EpochTotalRewardsPaidEvent) Minted() cadence.UFix64 {
-	return evt.Value.Fields[2].(cadence.UFix64)
+	return cadence.SearchFieldByName(evt.Value, "minted").(cadence.UFix64)
 }
 
 func (evt EpochTotalRewardsPaidEvent) FeesBurned() cadence.UFix64 {
-	return evt.Value.Fields[3].(cadence.UFix64)
+	return cadence.SearchFieldByName(evt.Value, "feesBurned").(cadence.UFix64)
 }
 
 func stubInterpreter() *interpreter.Interpreter {
@@ -149,7 +149,7 @@ func deployStakingContract(
 		for _, result := range results {
 			for _, event := range result.Events {
 				if event.Type == flow.EventAccountCreated {
-					idTableAddress = flow.Address(event.Value.Fields[0].(cadence.Address))
+					idTableAddress = flow.Address(cadence.SearchFieldByName(event.Value, "address").(cadence.Address))
 				}
 			}
 		}

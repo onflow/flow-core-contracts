@@ -46,7 +46,6 @@ const (
 	withdrawUnstakedTokensFilename  = "idTableStaking/node/withdraw_unstaked_tokens.cdc"
 	withdrawRewardedTokensFilename  = "idTableStaking/node/withdraw_rewarded_tokens.cdc"
 	updateNetworkingAddressFilename = "idTableStaking/node/update_networking_address.cdc"
-	addPublicNodeCapabilityFilename = "idTableStaking/node/node_add_capability.cdc"
 
 	registerManyNodesFilename = "idTableStaking/node/register_many_nodes.cdc"
 
@@ -339,12 +338,6 @@ func GenerateWithdrawRewardedTokensScript(env Environment) []byte {
 // for an existing node operator
 func GenerateUpdateNetworkingAddressScript(env Environment) []byte {
 	code := assets.MustAssetString(updateNetworkingAddressFilename)
-
-	return []byte(ReplaceAddresses(code, env))
-}
-
-func GenerateAddPublicNodeCapabilityScript(env Environment) []byte {
-	code := assets.MustAssetString(addPublicNodeCapabilityFilename)
 
 	return []byte(ReplaceAddresses(code, env))
 }

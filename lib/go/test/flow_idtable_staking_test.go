@@ -2881,30 +2881,6 @@ func TestIDTableStaking(t *testing.T) {
 
 	})
 
-	t.Run("Should be able to create public Capability for node", func(t *testing.T) {
-
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateAddPublicNodeCapabilityScript(env), joshAddress)
-
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{joshAddress},
-			[]crypto.Signer{joshSigner},
-			false,
-		)
-	})
-
-	t.Run("Should be able to create public Capability for delegator", func(t *testing.T) {
-
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateAddPublicDelegatorCapabilityScript(env), joshDelegatorOneAddress)
-
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{joshDelegatorOneAddress},
-			[]crypto.Signer{joshDelegatorOneSigner},
-			false,
-		)
-	})
-
 	t.Run("Should be able to remove unapproved nodes from the table without ending staking", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRemoveInvalidNodesScript(env), idTableAddress)
@@ -3198,9 +3174,8 @@ func TestIDTableSlotSelection(t *testing.T) {
 
 	// see which node was removed
 	for _, event := range slotResult.Events {
-		if event.Type == "A.179b6b1cb6755e31.FlowIDTableStaking.NodeRemovedAndRefunded" {
-			eventValue := event.Value
-			firstRemovedNodeID = eventValue.Fields[0]
+		if event.Type == "A."+idTableAddress.String()+".FlowIDTableStaking.NodeRemovedAndRefunded" {
+			firstRemovedNodeID = cadence.SearchFieldByName(event.Value, "nodeID").(cadence.String)
 		}
 	}
 
@@ -3258,9 +3233,8 @@ func TestIDTableSlotSelection(t *testing.T) {
 
 	// see which node was removed
 	for _, event := range slotResult.Events {
-		if event.Type == "A.179b6b1cb6755e31.FlowIDTableStaking.NodeRemovedAndRefunded" {
-			eventValue := event.Value
-			secondRemovedNodeID = eventValue.Fields[0]
+		if event.Type == "A."+idTableAddress.String()+".FlowIDTableStaking.NodeRemovedAndRefunded" {
+			secondRemovedNodeID = cadence.SearchFieldByName(event.Value, "nodeID")
 		}
 	}
 

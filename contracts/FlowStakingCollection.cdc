@@ -419,7 +419,7 @@ access(all) contract FlowStakingCollection {
                 networkingAddress: networkingAddress,
                 networkingKey: networkingKey,
                 stakingKey: stakingKey,
-                stakingKeyPoP: String,
+                stakingKeyPoP: stakingKeyPoP,
                 tokensCommitted: <-tokens
             )
 
