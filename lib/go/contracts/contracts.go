@@ -292,6 +292,7 @@ func TESTFlowStakingCollection(
 	code := assets.MustAssetString(flowStakingCollectionFilename)
 
 	code = strings.ReplaceAll(code, placeholderFungibleTokenAddress, withHexPrefix(fungibleTokenAddress))
+	code = strings.ReplaceAll(code, placeholderBurnerAddress, withHexPrefix(storageFeesAddress))
 	code = strings.ReplaceAll(code, placeholderFlowTokenAddress, withHexPrefix(flowTokenAddress))
 	code = strings.ReplaceAll(code, placeholderIDTableAddress, withHexPrefix(idTableAddress))
 	code = strings.ReplaceAll(code, placeholderStakingProxyAddress, withHexPrefix(stakingProxyAddress))

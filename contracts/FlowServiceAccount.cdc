@@ -43,7 +43,7 @@ access(all) contract FlowServiceAccount {
     /// Get the default token balance on an account
     ///
     /// Returns 0 if the account has no default balance
-    access(all) fun defaultTokenBalance(_ acct: &Account): UFix64 {
+    access(all) view fun defaultTokenBalance(_ acct: &Account): UFix64 {
         var balance = 0.0
         if let balanceRef = acct.capabilities.borrow<&{FungibleToken.Balance}>(/public/flowTokenBalance) {
             balance = balanceRef.balance
@@ -53,7 +53,7 @@ access(all) contract FlowServiceAccount {
     }
 
     /// Return a reference to the default token vault on an account
-    access(all) fun defaultTokenVault(_ acct: auth(BorrowValue) &Account): auth(FungibleToken.Withdraw) &FlowToken.Vault {
+    access(all) view fun defaultTokenVault(_ acct: auth(BorrowValue) &Account): auth(FungibleToken.Withdraw) &FlowToken.Vault {
         return acct.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault)
             ?? panic("Unable to borrow reference to the default token vault")
     }
@@ -107,7 +107,7 @@ access(all) contract FlowServiceAccount {
     }
 
     /// Returns true if the given address is permitted to create accounts, false otherwise
-    access(all) fun isAccountCreator(_ address: Address): Bool {
+    access(all) view fun isAccountCreator(_ address: Address): Bool {
         // If account creation is not restricted, then anyone can create an account
         if !self.isAccountCreationRestricted() {
             return true
@@ -116,30 +116,30 @@ access(all) contract FlowServiceAccount {
     }
 
     /// Is true if new acconts can only be created by approved accounts `self.accountCreators`
-    access(all) fun isAccountCreationRestricted(): Bool {
+    access(all) view fun isAccountCreationRestricted(): Bool {
         return self.account.storage.copy<Bool>(from: /storage/isAccountCreationRestricted) ?? false
     }
 
     // Authorization resource to change the fields of the contract
     /// Returns all addresses permitted to create accounts
-    access(all) fun getAccountCreators(): [Address] {
+    access(all) view fun getAccountCreators(): [Address] {
         return self.accountCreators.keys
     }
 
     // Gets Execution Effort Weights from the service account's storage 
-    access(all) fun getExecutionEffortWeights(): {UInt64: UInt64} {
+    access(all) view fun getExecutionEffortWeights(): {UInt64: UInt64} {
         return self.account.storage.copy<{UInt64: UInt64}>(from: /storage/executionEffortWeights)
             ?? panic("execution effort weights not set yet")
     }
 
     // Gets Execution Memory Weights from the service account's storage 
-    access(all) fun getExecutionMemoryWeights(): {UInt64: UInt64} {
+    access(all) view fun getExecutionMemoryWeights(): {UInt64: UInt64} {
         return self.account.storage.copy<{UInt64: UInt64}>(from: /storage/executionMemoryWeights)
             ?? panic("execution memory weights not set yet")
     }
 
     // Gets Execution Memory Limit from the service account's storage
-    access(all) fun getExecutionMemoryLimit(): UInt64 {
+    access(all) view fun getExecutionMemoryLimit(): UInt64 {
         return self.account.storage.copy<UInt64>(from: /storage/executionMemoryLimit)
             ?? panic("execution memory limit not set yet")
     }
