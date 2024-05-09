@@ -28,12 +28,12 @@ transaction(
 
         sharedAccount.storage.save(<-lockedTokenManager, to: LockedTokens.LockedTokenManagerStoragePath)
 
-        let tokenManagerUseCapability = sharedAccount.capabilities.storage
-            .issue<auth(FungibleToken.Withdraw, LockedTokens.UseTokens, LockedTokens.UnlockTokens) &LockedTokens.LockedTokenManager>(
+        let tokenManagerCapability = sharedAccount.capabilities.storage
+            .issue<auth(FungibleToken.Withdraw, LockedTokens.UnlockTokens) &LockedTokens.LockedTokenManager>(
                 LockedTokens.LockedTokenManagerStoragePath
             )
 
-        let tokenHolder <- LockedTokens.createTokenHolder(lockedAddress: sharedAccount.address, tokenManager: tokenManagerUseCapability)
+        let tokenHolder <- LockedTokens.createTokenHolder(lockedAddress: sharedAccount.address, tokenManager: tokenManagerCapability)
 
         userAccount.storage.save(
             <-tokenHolder,

@@ -23,7 +23,7 @@ transaction(publicKeys: [Crypto.KeyListEntry]) {
 
         // Get the TokenManager Capability from the locked account.
         let tokenManagerCapabilityController = signer.capabilities.storage.getControllers(forPath: LockedTokens.LockedTokenManagerStoragePath)[2]!
-        let tokenManagerCapability = tokenManagerCapabilityController.capability as! Capability<auth(FungibleToken.Withdraw, LockedTokens.UseTokens, LockedTokens.UnlockTokens) &LockedTokens.LockedTokenManager>
+        let tokenManagerCapability = tokenManagerCapabilityController.capability as! Capability<auth(FungibleToken.Withdraw, LockedTokens.UnlockTokens) &LockedTokens.LockedTokenManager>
 
         // Use the manager capability to create a new TokenHolder.
         let tokenHolder <- LockedTokens.createTokenHolder(
