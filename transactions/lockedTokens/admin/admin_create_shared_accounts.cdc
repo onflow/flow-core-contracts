@@ -33,13 +33,13 @@ transaction(
         let lockedTokenManager <- LockedTokens.createLockedTokenManager(vault: vaultCapability)
         sharedAccount.storage.save(<-lockedTokenManager, to: LockedTokens.LockedTokenManagerStoragePath)
 
-        let tokenManagerCapability = sharedAccount
-            .capabilities.storage.issue<auth(FungibleToken.Withdraw) &LockedTokens.LockedTokenManager>(
+        let tokenManagerUseCapability = sharedAccount
+            .capabilities.storage.issue<auth(FungibleToken.Withdraw, LockedTokens.UseTokens, LockedTokens.UnlockTokens) &LockedTokens.LockedTokenManager>(
                 LockedTokens.LockedTokenManagerStoragePath)
 
         let tokenHolder <- LockedTokens.createTokenHolder(
             lockedAddress: sharedAccount.address,
-            tokenManager: tokenManagerCapability
+            tokenManager: tokenManagerUseCapability
         )
 
         userAccount.storage.save(
@@ -58,10 +58,14 @@ transaction(
             )
             ?? panic("Could not borrow reference to admin collection")
 
+        let tokenManagerUnlockCapability = sharedAccount
+            .capabilities.storage.issue<auth(FungibleToken.Withdraw, LockedTokens.UnlockTokens) &LockedTokens.LockedTokenManager>(
+                LockedTokens.LockedTokenManagerStoragePath)
+
         tokenAdminCollection.addAccount(
             sharedAccountAddress: sharedAccount.address,
             unlockedAccountAddress: userAccount.address,
-            tokenAdmin: tokenManagerCapability
+            tokenAdmin: tokenManagerUnlockCapability
         )
 
         // Override the default FlowToken receiver

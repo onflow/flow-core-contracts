@@ -77,6 +77,14 @@ access(all) contract FlowToken: FungibleToken {
         //
         access(FungibleToken.Withdraw) fun withdraw(amount: UFix64): @{FungibleToken.Vault} {
             self.balance = self.balance - amount
+
+            // If the owner is the staking account, do not emit the contract defined events
+            // this is to help with the performance of the epoch transition operations
+            // Either way, event listeners should be paying attention to the 
+            // FungibleToken.Withdrawn events anyway because those contain
+            // much more comprehensive metadata
+            // Additionally, these events will eventually be removed from this contract completely
+            // in favor of the FungibleToken events
             if let address = self.owner?.address {
                 if address != 0xf8d6e0586b0a20c7 &&
                    address != 0xf4527793ee68aede &&
@@ -101,6 +109,14 @@ access(all) contract FlowToken: FungibleToken {
         access(all) fun deposit(from: @{FungibleToken.Vault}) {
             let vault <- from as! @FlowToken.Vault
             self.balance = self.balance + vault.balance
+
+            // If the owner is the staking account, do not emit the contract defined events
+            // this is to help with the performance of the epoch transition operations
+            // Either way, event listeners should be paying attention to the 
+            // FungibleToken.Deposited events anyway because those contain
+            // much more comprehensive metadata
+            // Additionally, these events will eventually be removed from this contract completely
+            // in favor of the FungibleToken events
             if let address = self.owner?.address {
                 if address != 0xf8d6e0586b0a20c7 &&
                    address != 0xf4527793ee68aede &&
@@ -249,7 +265,7 @@ access(all) contract FlowToken: FungibleToken {
     }
 
     /// Gets the Flow Logo XML URI from storage
-    access(all) fun getLogoURI(): String {
+    access(all) view fun getLogoURI(): String {
         return FlowToken.account.storage.copy<String>(from: /storage/flowTokenLogoURI) ?? ""
     }
 
