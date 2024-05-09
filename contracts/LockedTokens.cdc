@@ -83,7 +83,6 @@ access(all) contract LockedTokens {
     }
 
     access(all) entitlement UnlockTokens
-    access(all) entitlement UseTokens
 
     /// This token manager resource is stored in the shared account to manage access
     /// to the locked token vault and to the staking/delegating resources.
@@ -195,7 +194,7 @@ access(all) contract LockedTokens {
 
         /// Registers a new node operator with the Flow Staking contract
         /// and commits an initial amount of locked tokens to stake
-        access(UseTokens) fun registerNode(nodeInfo: StakingProxy.NodeInfo, amount: UFix64) {
+        access(account) fun registerNode(nodeInfo: StakingProxy.NodeInfo, amount: UFix64) {
             if let nodeStaker <- self.nodeStaker <- nil {
                 let stakingInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeStaker.id)
 
@@ -221,7 +220,7 @@ access(all) contract LockedTokens {
         /// Registers a new Delegator with the Flow Staking contract
         /// the caller has to specify the ID of the node operator
         /// they are delegating to
-        access(UseTokens) fun registerDelegator(nodeID: String, amount: UFix64) {
+        access(account) fun registerDelegator(nodeID: String, amount: UFix64) {
             if let delegator <- self.nodeDelegator <- nil {
                 let delegatorInfo = FlowIDTableStaking.DelegatorInfo(nodeID: delegator.nodeID, delegatorID: delegator.id)
 
@@ -249,23 +248,23 @@ access(all) contract LockedTokens {
             emit LockedAccountRegisteredAsDelegator(address: self.owner!.address, nodeID: nodeID)
         }
 
-        access(UseTokens) fun borrowNode(): auth(FlowIDTableStaking.NodeOperator) &FlowIDTableStaking.NodeStaker? {
+        access(account) fun borrowNode(): auth(FlowIDTableStaking.NodeOperator) &FlowIDTableStaking.NodeStaker? {
             let nodeRef = &self.nodeStaker as auth(FlowIDTableStaking.NodeOperator) &FlowIDTableStaking.NodeStaker?
             return nodeRef
         }
 
-        access(UseTokens) fun borrowDelegator(): auth(FlowIDTableStaking.DelegatorOwner) &FlowIDTableStaking.NodeDelegator? {
+        access(account) fun borrowDelegator(): auth(FlowIDTableStaking.DelegatorOwner) &FlowIDTableStaking.NodeDelegator? {
             let delegatorRef = &self.nodeDelegator as auth(FlowIDTableStaking.DelegatorOwner) &FlowIDTableStaking.NodeDelegator?
             return delegatorRef
         }
 
-        access(UseTokens) fun removeNode(): @FlowIDTableStaking.NodeStaker? {
+        access(UnlockTokens) fun removeNode(): @FlowIDTableStaking.NodeStaker? {
             let node <- self.nodeStaker <- nil
 
             return <-node
         }
 
-        access(UseTokens) fun removeDelegator(): @FlowIDTableStaking.NodeDelegator? {
+        access(UnlockTokens) fun removeDelegator(): @FlowIDTableStaking.NodeDelegator? {
             let del <- self.nodeDelegator <- nil
 
             return <-del
@@ -293,7 +292,7 @@ access(all) contract LockedTokens {
 
         /// Capability that is used to access the LockedTokenManager
         /// in the shared account
-        access(account) var tokenManager: Capability<auth(FungibleToken.Withdraw, LockedTokens.UseTokens, LockedTokens.UnlockTokens) &LockedTokenManager>
+        access(account) var tokenManager: Capability<auth(FungibleToken.Withdraw, LockedTokens.UnlockTokens) &LockedTokenManager>
 
         /// Used to perform staking actions if the user has signed up
         /// as a node operator
@@ -303,7 +302,7 @@ access(all) contract LockedTokens {
         /// as a delegator
         access(self) var nodeDelegatorProxy: LockedNodeDelegatorProxy?
 
-        init(lockedAddress: Address, tokenManager: Capability<auth(FungibleToken.Withdraw, LockedTokens.UseTokens, LockedTokens.UnlockTokens) &LockedTokenManager>) {
+        init(lockedAddress: Address, tokenManager: Capability<auth(FungibleToken.Withdraw, LockedTokens.UnlockTokens) &LockedTokenManager>) {
             pre {
                 tokenManager.borrow() != nil: "Must pass a LockedTokenManager capability"
             }
@@ -319,7 +318,7 @@ access(all) contract LockedTokens {
         }
 
         /// Utility function to borrow a reference to the LockedTokenManager object
-        access(account) view fun borrowTokenManager(): auth(FungibleToken.Withdraw, LockedTokens.UseTokens, LockedTokens.UnlockTokens) &LockedTokenManager {
+        access(account) view fun borrowTokenManager(): auth(FungibleToken.Withdraw, LockedTokens.UnlockTokens) &LockedTokenManager {
             return self.tokenManager.borrow()!
         }
 
@@ -440,9 +439,9 @@ access(all) contract LockedTokens {
     /// Used to perform staking actions
     access(all) struct LockedNodeStakerProxy: StakingProxy.NodeStakerProxy {
 
-        access(self) var tokenManager: Capability<auth(FungibleToken.Withdraw, LockedTokens.UseTokens, LockedTokens.UnlockTokens) &LockedTokenManager>
+        access(self) var tokenManager: Capability<auth(FungibleToken.Withdraw, LockedTokens.UnlockTokens) &LockedTokenManager>
 
-        init(tokenManager: Capability<auth(FungibleToken.Withdraw, LockedTokens.UseTokens, LockedTokens.UnlockTokens) &LockedTokenManager>) {
+        init(tokenManager: Capability<auth(FungibleToken.Withdraw, LockedTokens.UnlockTokens) &LockedTokenManager>) {
             pre {
                 tokenManager.borrow() != nil: "Invalid token manager capability"
             }
@@ -568,9 +567,9 @@ access(all) contract LockedTokens {
     /// Used to perform delegating actions in transactions
     access(all) struct LockedNodeDelegatorProxy: StakingProxy.NodeDelegatorProxy {
 
-        access(self) var tokenManager: Capability<auth(FungibleToken.Withdraw, LockedTokens.UseTokens, LockedTokens.UnlockTokens) &LockedTokenManager>
+        access(self) var tokenManager: Capability<auth(FungibleToken.Withdraw, LockedTokens.UnlockTokens) &LockedTokenManager>
 
-        init(tokenManager: Capability<auth(FungibleToken.Withdraw, LockedTokens.UseTokens, LockedTokens.UnlockTokens) &LockedTokenManager>) {
+        init(tokenManager: Capability<auth(FungibleToken.Withdraw, LockedTokens.UnlockTokens) &LockedTokenManager>) {
             pre {
                 tokenManager.borrow() != nil: "Invalid LockedTokenManager capability"
             }
@@ -755,7 +754,7 @@ access(all) contract LockedTokens {
 
     // Creates a new TokenHolder resource for this LockedTokenManager
     /// that the user can store in their unlocked account.
-    access(all) fun createTokenHolder(lockedAddress: Address, tokenManager: Capability<auth(FungibleToken.Withdraw, LockedTokens.UseTokens, LockedTokens.UnlockTokens) &LockedTokenManager>): @TokenHolder {
+    access(all) fun createTokenHolder(lockedAddress: Address, tokenManager: Capability<auth(FungibleToken.Withdraw, LockedTokens.UnlockTokens) &LockedTokenManager>): @TokenHolder {
         return <- create TokenHolder(lockedAddress: lockedAddress, tokenManager: tokenManager)
     }
 
