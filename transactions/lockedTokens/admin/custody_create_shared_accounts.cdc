@@ -30,14 +30,14 @@ transaction(
 
         sharedAccount.storage.save(<-lockedTokenManager, to: LockedTokens.LockedTokenManagerStoragePath)
 
-        let tokenManagerCapability = sharedAccount.capabilities.storage
-            .issue<auth(FungibleToken.Withdraw) &LockedTokens.LockedTokenManager>(
+        let tokenManagerUseCapability = sharedAccount.capabilities.storage
+            .issue<auth(FungibleToken.Withdraw, LockedTokens.UseTokens, LockedTokens.UnlockTokens) &LockedTokens.LockedTokenManager>(
                 LockedTokens.LockedTokenManagerStoragePath
             )
 
         let tokenHolder <- LockedTokens.createTokenHolder(
             lockedAddress: sharedAccount.address,
-            tokenManager: tokenManagerCapability
+            tokenManager: tokenManagerUseCapability
         )
 
         userAccount.storage.save(
@@ -49,7 +49,7 @@ transaction(
         userAccount.capabilities.publish(tokenHolderCap, at: LockedTokens.LockedAccountInfoPublicPath)
 
         let tokenAdminCapability = sharedAccount.capabilities.storage
-            .issue<auth(FungibleToken.Withdraw) &LockedTokens.LockedTokenManager>(
+            .issue<auth(FungibleToken.Withdraw, LockedTokens.UnlockTokens) &LockedTokens.LockedTokenManager>(
                 LockedTokens.LockedTokenManagerStoragePath
             )
 
