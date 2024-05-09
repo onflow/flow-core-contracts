@@ -179,6 +179,33 @@ func TestNodeVersionBeacon(t *testing.T) {
 		require.Equal(t, versionMinor, uint8(version.Minor))
 		require.Equal(t, versionPatch, uint8(version.Patch))
 	})
+
+	t.Run("Should be able to set new protocol state version", func(t *testing.T) {
+
+		changeTx := createTxWithTemplateAndAuthorizer(b,
+			templates.GenerateSetProtocolStateVersionScript(env),
+			versionBeaconAddress)
+
+		newProtocolVersion := uint64(2)
+		err = changeTx.AddArgument(CadenceUInt64(newProtocolVersion))
+		require.NoError(t, err)
+		activeView := uint64(1000)
+		err = changeTx.AddArgument(CadenceUInt64(activeView))
+		require.NoError(t, err)
+
+		txChangeResults := signAndSubmit(
+			t, b, changeTx,
+			[]flow.Address{versionBeaconAddress},
+			[]crypto.Signer{versionBeaconSigner},
+			false,
+		)
+		// The service event is immediately emitted within the governance transaction
+		assert.Len(t, txChangeResults.Events, 1)
+		assert.Empty(t, txChangeResults.Error)
+		event := ProtocolStateVersionUpgradeEvent(txChangeResults.Events[0])
+		assert.Equal(t, newProtocolVersion, event.NewProtocolVersion())
+		assert.Equal(t, activeView, event.ActiveView())
+	})
 }
 
 type VersionBeaconEvent flow.Event
@@ -208,4 +235,16 @@ func (v VersionBeaconEvent) VersionTable() (ret []struct {
 	}
 
 	return
+}
+
+type ProtocolStateVersionUpgradeEvent flow.Event
+
+func (event ProtocolStateVersionUpgradeEvent) NewProtocolVersion() uint64 {
+	newProtocolVersion := cadence.SearchFieldByName(event.Value, "newProtocolVersion").(cadence.UInt64)
+	return uint64(newProtocolVersion)
+}
+
+func (event ProtocolStateVersionUpgradeEvent) ActiveView() uint64 {
+	activeView := cadence.SearchFieldByName(event.Value, "activeView").(cadence.UInt64)
+	return uint64(activeView)
 }
