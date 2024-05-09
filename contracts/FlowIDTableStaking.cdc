@@ -1186,7 +1186,7 @@ access(all) contract FlowIDTableStaking {
                     
                     // Randomly select which indicies will be removed
                     while numNodesToRemove > 0 {
-                        let selection = UInt16(revertibleRandom<UInt64>() % UInt64(candidateNodesForRole.keys.length))
+                        let selection = revertibleRandom<UInt16>(modulo: UInt16(candidateNodesForRole.keys.length))
                         // If the index has already, been selected, try again
                         // if it has not, mark it to be removed
                         if deletionList[selection] == nil {
