@@ -189,6 +189,15 @@ access(all) contract FlowServiceAccount {
         }
     }
 
+    /// checkDependencies is called by the FVM in scripts and transactions at the end of a script/transaction
+    /// The program type is either "script" or "transaction"
+    /// The dependencies are all address locations that were imported during the execution of this script/transaction
+    /// The dependenciesNames and dependenciesAddresses have the same length. The import location `i` is  `A.{dependenciesAddresses[i]}.{dependenciesNames[i]}`.
+    /// Panicking in this function will fail the transaction/script.
+    /// The execution of this function does not count towards computation used.
+    access(all) fun checkDependencies(_ depedenciesAddresses: [Address], _ dependenciesNames: [String], _ programType: String) {
+    }
+
     init() {
         self.transactionFee = 0.0
         self.accountCreationFee = 0.0
