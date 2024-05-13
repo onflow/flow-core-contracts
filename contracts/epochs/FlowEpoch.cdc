@@ -167,9 +167,8 @@ access(all) contract FlowEpoch {
         finalView: UInt64,
 
         /// The cluster assignment for the RecoveryEpoch. Each element in the list
-        /// represents one cluster and contains all the node IDs assigned to that
-        /// cluster, with their weights and votes
-        collectorClusters: [[String]],
+        /// represents one cluster and contains all the node IDs assigned to that cluster.
+        clusterAssignments: [[String]],
 
         /// The source of randomness to seed the leader selection algorithm with 
         /// for the upcoming epoch.
@@ -192,8 +191,12 @@ access(all) contract FlowEpoch {
         /// using the same procedure as during a spork.
         clusterQCVoteData: [FlowClusterQC.ClusterQCVoteData],
 
-        /// The DKG public keys passed in the recoverEpoch transaction. These are re-used from the
-        /// last successful DKG.
+        /// The DKG public keys passed in the recoverEpoch transaction.
+        /// Currently, these are re-used from the last successful DKG. Note that this implies that 
+        /// RecoveryEpoch MUST have a consensus committee that is identical to the last successful
+        /// DKG committee.
+        /// Group public key is the first element, followed by the individual keys
+
         dkgPubKeys: [String],
     )
 
@@ -257,7 +260,8 @@ access(all) contract FlowEpoch {
             targetDuration: UInt64,
             targetEndTime: UInt64,
             clusterQCVoteData: [FlowClusterQC.ClusterQCVoteData],
-            dkgPubKeys: [String]) {
+            dkgPubKeys: [String]
+        ) {
 
             self.counter = counter
             self.nodeIDs = nodeIDs
@@ -362,7 +366,6 @@ access(all) contract FlowEpoch {
             self.dkgKeys = keys
         }
     }
-  
     /// Metadata that is managed and can be changed by the Admin///
     access(all) struct Config {
         /// The number of views in an entire epoch
@@ -601,6 +604,10 @@ access(all) contract FlowEpoch {
 
             /// Create the recovery epoch metadata, this struct is used to hold 
             /// EpochRecover service event data.
+            
+            let numViewsInStakingAuction = FlowEpoch.configurableMetadata.numViewsInStakingAuction
+            let numViewsInDKGPhase = FlowEpoch.configurableMetadata.numViewsInDKGPhase
+            
             let recoverEpochMetadata = FlowEpoch.RecoverEpochMetadata(
                 counter: FlowEpoch.proposedEpochCounter(),
                 nodeIDs: nodeIDs,
@@ -608,9 +615,9 @@ access(all) contract FlowEpoch {
                 finalView: endView,
                 collectorClusters: collectorClusters,
                 randomSource: randomSource,
-                dkgPhase1FinalView: startView + FlowEpoch.configurableMetadata.numViewsInStakingAuction + FlowEpoch.configurableMetadata.numViewsInDKGPhase - 1 as UInt64,
-                dkgPhase2FinalView: startView + FlowEpoch.configurableMetadata.numViewsInStakingAuction + (2 as UInt64 * FlowEpoch.configurableMetadata.numViewsInDKGPhase) - 1 as UInt64,
-                dkgPhase3FinalView: startView + FlowEpoch.configurableMetadata.numViewsInStakingAuction + (3 as UInt64 * FlowEpoch.configurableMetadata.numViewsInDKGPhase) - 1 as UInt64,
+                dkgPhase1FinalView: startView + numViewsInStakingAuction + numViewsInDKGPhase - 1,
+                dkgPhase2FinalView: startView + numViewsInStakingAuction + (2 * numViewsInDKGPhase) - 1,
+                dkgPhase3FinalView: startView + numViewsInStakingAuction + (3 * numViewsInDKGPhase) - 1,
                 targetDuration: targetDuration,
                 targetEndTime: targetEndTime,
                 clusterQCVoteData: clusterQCVoteData,
@@ -631,10 +638,11 @@ access(all) contract FlowEpoch {
                 endView: endView,
                 stakingEndView: stakingEndView,
                 // The following fields will be overwritten in `calculateAndSetRewards` below
-                totalRewards: UFix64(0.0),
+                totalRewards: 0.0,
                 collectorClusters: [],
                 clusterQCs: [],
-                dkgKeys: dkgPubKeys)
+                dkgKeys: dkgPubKeys
+            )
 
             /// Save the new epoch meta data, it will be referenced as 
             /// the epoch progresses through each phase.
@@ -712,8 +720,7 @@ access(all) contract FlowEpoch {
         access(all) fun advanceBlock() {
              /// check if we have recover epoch metadata stored, this indicates the network is in EFM and the heartbeat
             /// will emit the EpochRecover event containing information for the recovery epoch.
-            let recoverEpochMetadata = FlowEpoch.account.storage.load<RecoverEpochMetadata>(from: /storage/recoverEpochMetadataStoragePath)
-            if recoverEpochMetadata != nil {
+            if let recoverEpochMetadata = FlowEpoch.account.storage.load<RecoverEpochMetadata>(from: /storage/recoverEpochMetadataStoragePath) {
                 // Construct the identity table for the recovery epoch
                 let nodes: [FlowIDTableStaking.NodeInfo] = []
                 for nodeID in recoverEpochMetadata!.nodeIDs {
