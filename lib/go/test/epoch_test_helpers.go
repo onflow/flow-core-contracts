@@ -7,6 +7,7 @@ import (
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
+	"github.com/onflow/cadence/runtime/common"
 	"github.com/onflow/cadence/runtime/interpreter"
 	"github.com/onflow/flow-core-contracts/lib/go/contracts"
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
@@ -796,15 +797,17 @@ func verifyEpochRecover(
 	epochAddress flow.Address,
 	expectedRecover EpochRecover) {
 	var emittedEvent EpochRecoverEvent
-	evtTypeStr := fmt.Sprintf("A.%s.FlowEpoch.EpochRecover", epochAddress.String())
+	addrLocation := common.NewAddressLocation(nil, common.Address(epochAddress), "FlowEpoch")
+	evtTypeID := string(addrLocation.TypeID(nil, "FlowEpoch.EpochRecover"))
 	var i uint64
 	i = 0
 	for i < 1000 {
-		results, _ := adapter.GetEventsForHeightRange(context.Background(), evtTypeStr, i, i)
+		results, _ := adapter.GetEventsForHeightRange(context.Background(), evtTypeID, i, i)
 
 		for _, result := range results {
 			for _, event := range result.Events {
-				if event.Type == evtTypeStr {
+
+				if event.Type == evtTypeID {
 					emittedEvent = EpochRecoverEvent(event)
 				}
 			}
