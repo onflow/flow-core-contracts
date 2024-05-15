@@ -2,6 +2,7 @@ import FungibleToken from "FungibleToken"
 import FlowToken from 0xFLOWTOKENADDRESS
 import FlowFees from 0xFLOWFEESADDRESS
 import FlowStorageFees from 0xFLOWSTORAGEFEESADDRESS
+import DependencyAudit from "DependencyAudit"
 
 pub contract FlowServiceAccount {
 
@@ -78,7 +79,7 @@ pub contract FlowServiceAccount {
         if self.transactionFee > tokenVault.balance {
             feeAmount = tokenVault.balance
         }
-        
+
         let feeVault <- tokenVault.withdraw(amount: feeAmount)
         FlowFees.deposit(from: <-feeVault)
     }
@@ -128,21 +129,21 @@ pub contract FlowServiceAccount {
         return self.accountCreators.keys
     }
 
-    // Gets Execution Effort Weights from the service account's storage 
+    // Gets Execution Effort Weights from the service account's storage
     pub fun getExecutionEffortWeights(): {UInt64: UInt64} {
-        return self.account.copy<{UInt64: UInt64}>(from: /storage/executionEffortWeights) 
+        return self.account.copy<{UInt64: UInt64}>(from: /storage/executionEffortWeights)
             ?? panic("execution effort weights not set yet")
     }
 
-    // Gets Execution Memory Weights from the service account's storage 
+    // Gets Execution Memory Weights from the service account's storage
     pub fun getExecutionMemoryWeights(): {UInt64: UInt64} {
-        return self.account.copy<{UInt64: UInt64}>(from: /storage/executionMemoryWeights) 
+        return self.account.copy<{UInt64: UInt64}>(from: /storage/executionMemoryWeights)
             ?? panic("execution memory weights not set yet")
     }
 
     // Gets Execution Memory Limit from the service account's storage
     pub fun getExecutionMemoryLimit(): UInt64 {
-        return self.account.copy<UInt64>(from: /storage/executionMemoryLimit) 
+        return self.account.copy<UInt64>(from: /storage/executionMemoryLimit)
             ?? panic("execution memory limit not set yet")
     }
 
@@ -189,6 +190,16 @@ pub contract FlowServiceAccount {
                 emit IsAccountCreationRestrictedUpdated(isRestricted: enabled)
             }
         }
+    }
+
+    /// checkDependencies is called by the FVM at the end of the transaction execution
+    /// The `dependenciesAddresses` and `dependenciesNames` are the addresses and names of all the contracts that the transaction depends on.
+    /// The `authorizers` are the addresses of the accounts that authorized the transaction and the payer.
+    /// The FVM can call this even though it is private.
+    /// checkDependencies is not intended to be called by the user.
+    access(self) fun checkDependencies(_ dependenciesAddresses: [Address], _ dependenciesNames: [String], _ authorizers: [Address]) {
+        // forwad the call to the DependencyAudit, where the actual check is done.
+        DependencyAudit.checkDependencies(dependenciesAddresses, dependenciesNames, authorizers)
     }
 
     init() {
