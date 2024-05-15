@@ -117,9 +117,9 @@ access(all) contract FlowEpoch {
         /// EpochSetup phase. Deadlines are specified in terms of a consensus view number.
         /// When a DKG participant observes a finalized and sealed block with view greater
         /// than the given deadline, it can safely transition to the next phase.
-        dkgPhase1FinalView: UInt64,
-        dkgPhase2FinalView: UInt64,
-        dkgPhase3FinalView: UInt64,
+        DKGPhase1FinalView: UInt64,
+        DKGPhase2FinalView: UInt64,
+        DKGPhase3FinalView: UInt64,
 
         /// The target duration for the upcoming epoch, in seconds
         targetDuration: UInt64,
@@ -178,9 +178,9 @@ access(all) contract FlowEpoch {
         /// EpochSetup phase. Deadlines are specified in terms of a consensus view number. 
         /// When a DKG participant observes a finalized and sealed block with view greater 
         /// than the given deadline, it can safely transition to the next phase. 
-        dkgPhase1FinalView: UInt64,
-        dkgPhase2FinalView: UInt64,
-        dkgPhase3FinalView: UInt64,
+        DKGPhase1FinalView: UInt64,
+        DKGPhase2FinalView: UInt64,
+        DKGPhase3FinalView: UInt64,
 
         /// The target duration for the upcoming epoch, in seconds
         targetDuration: UInt64,
@@ -733,9 +733,9 @@ access(all) contract FlowEpoch {
                     finalView: recoverEpochMetadata!.finalView,
                     collectorClusters: recoverEpochMetadata!.collectorClusters,
                     randomSource: recoverEpochMetadata!.randomSource,
-                    dkgPhase1FinalView: recoverEpochMetadata!.dkgPhase1FinalView,
-                    dkgPhase2FinalView: recoverEpochMetadata!.dkgPhase2FinalView,
-                    dkgPhase3FinalView: recoverEpochMetadata!.dkgPhase3FinalView,
+                    DKGPhase1FinalView: recoverEpochMetadata!.dkgPhase1FinalView,
+                    DKGPhase2FinalView: recoverEpochMetadata!.dkgPhase2FinalView,
+                    DKGPhase3FinalView: recoverEpochMetadata!.dkgPhase3FinalView,
                     targetDuration: recoverEpochMetadata!.targetDuration,
                     targetEndTime: recoverEpochMetadata!.targetEndTime,
                     clusterQCVoteData: recoverEpochMetadata!.clusterQCVoteData,
@@ -988,9 +988,9 @@ access(all) contract FlowEpoch {
                         finalView: proposedEpochMetadata.endView,
                         collectorClusters: collectorClusters,
                         randomSource: randomSource,
-                        dkgPhase1FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + self.configurableMetadata.numViewsInDKGPhase - 1 as UInt64,
-                        dkgPhase2FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + (2 as UInt64 * self.configurableMetadata.numViewsInDKGPhase) - 1 as UInt64,
-                        dkgPhase3FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + (3 as UInt64 * self.configurableMetadata.numViewsInDKGPhase) - 1 as UInt64,
+                        DKGPhase1FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + self.configurableMetadata.numViewsInDKGPhase - 1 as UInt64,
+                        DKGPhase2FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + (2 as UInt64 * self.configurableMetadata.numViewsInDKGPhase) - 1 as UInt64,
+                        DKGPhase3FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + (3 as UInt64 * self.configurableMetadata.numViewsInDKGPhase) - 1 as UInt64,
                         targetDuration: proposedTargetDuration,
                         targetEndTime: proposedTargetEndTime)
     }
