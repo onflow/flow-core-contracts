@@ -423,9 +423,9 @@ access(all) contract FlowEpoch {
         access(all) fun updateEpochViews(_ newEpochViews: UInt64) {
             pre {
                 FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION: "Can only update fields during the staking auction"
-                FlowEpoch.isValidPhaseConfiguration(FlowEpoch.configurableMetadata.numViewsInStakingAuction,
-                    FlowEpoch.configurableMetadata.numViewsInDKGPhase,
-                    newEpochViews): "New Epoch Views must be greater than the sum of staking and DKG Phase views"
+                FlowEpoch.isValidPhaseConfiguration(auctionLen: FlowEpoch.configurableMetadata.numViewsInStakingAuction,
+                    dkgPhaseLen: FlowEpoch.configurableMetadata.numViewsInDKGPhase,
+                    epochLen: newEpochViews): "New Epoch Views must be greater than the sum of staking and DKG Phase views"
             }
 
             FlowEpoch.configurableMetadata.setNumViewsInEpoch(newEpochViews)
@@ -555,6 +555,11 @@ access(all) contract FlowEpoch {
             for nodeID in nodeIDs {
                 nodes.append(FlowIDTableStaking.NodeInfo(nodeID: nodeID))
             }
+
+            let dkgPhase1FinalView = startView + numViewsInStakingAuction + numViewsInDKGPhase - 1
+            let dkgPhase2FinalView = startView + numViewsInStakingAuction + (2 * numViewsInDKGPhase) - 1
+            let dkgPhase3FinalView = startView + numViewsInStakingAuction + (3 * numViewsInDKGPhase) - 1
+
             /// emit EpochRecover event
             emit EpochRecover(
                 counter: FlowEpoch.proposedEpochCounter(),
@@ -563,9 +568,9 @@ access(all) contract FlowEpoch {
                 finalView: endView,
                 clusterAssignments: clusterAssignments,
                 randomSource: randomSource,
-                DKGPhase1FinalView: startView + numViewsInStakingAuction + numViewsInDKGPhase - 1,
-                DKGPhase2FinalView: startView + numViewsInStakingAuction + (2 * numViewsInDKGPhase) - 1,
-                DKGPhase3FinalView: startView + numViewsInStakingAuction + (3 * numViewsInDKGPhase) - 1,
+                DKGPhase1FinalView: dkgPhase1FinalView,
+                DKGPhase2FinalView: dkgPhase2FinalView,
+                DKGPhase3FinalView: dkgPhase3FinalView,
                 targetDuration: targetDuration,
                 targetEndTime: targetEndTime,
                 clusterQCVoteData: clusterQCVoteData,
@@ -879,15 +884,18 @@ access(all) contract FlowEpoch {
 
         self.currentEpochPhase = EpochPhase.EPOCHSETUP
 
+        let dkgPhase1FinalView = proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + self.configurableMetadata.numViewsInDKGPhase - 1
+        let dkgPhase2FinalView = proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + (2  * self.configurableMetadata.numViewsInDKGPhase) - 1
+        let dkgPhase3FinalView = proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + (3  * self.configurableMetadata.numViewsInDKGPhase) - 1
         emit EpochSetup(counter: proposedEpochMetadata.counter,
                         nodeInfo: nodeInfoArray,
                         firstView: proposedEpochMetadata.startView,
                         finalView: proposedEpochMetadata.endView,
                         collectorClusters: collectorClusters,
                         randomSource: randomSource,
-                        DKGPhase1FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + self.configurableMetadata.numViewsInDKGPhase - 1 as UInt64,
-                        DKGPhase2FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + (2 as UInt64 * self.configurableMetadata.numViewsInDKGPhase) - 1 as UInt64,
-                        DKGPhase3FinalView: proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + (3 as UInt64 * self.configurableMetadata.numViewsInDKGPhase) - 1 as UInt64,
+                        DKGPhase1FinalView: dkgPhase1FinalView,
+                        DKGPhase2FinalView:  dkgPhase2FinalView,
+                        DKGPhase3FinalView:  dkgPhase3FinalView,
                         targetDuration: proposedTargetDuration,
                         targetEndTime: proposedTargetEndTime)
     }
@@ -1086,7 +1094,7 @@ access(all) contract FlowEpoch {
 
     /// The proposed Epoch counter is always the current counter plus 1
     access(all) view fun proposedEpochCounter(): UInt64 {
-        return self.currentEpochCounter + 1 as UInt64
+        return self.currentEpochCounter + 1 
     }
 
     access(all) fun automaticRewardsEnabled(): Bool {
