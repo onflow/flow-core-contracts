@@ -434,9 +434,9 @@ access(all) contract FlowEpoch {
         access(all) fun updateAuctionViews(_ newAuctionViews: UInt64) {
             pre {
                 FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION: "Can only update fields during the staking auction"
-                FlowEpoch.isValidPhaseConfiguration(newAuctionViews,
-                    FlowEpoch.configurableMetadata.numViewsInDKGPhase,
-                    FlowEpoch.configurableMetadata.numViewsInEpoch): "Epoch Views must be greater than the sum of new staking and DKG Phase views"
+                FlowEpoch.isValidPhaseConfiguration(auctionLen: newAuctionViews,
+                    dkgPhaseLen: FlowEpoch.configurableMetadata.numViewsInDKGPhase,
+                    epochLen: FlowEpoch.configurableMetadata.numViewsInEpoch): "Epoch Views must be greater than the sum of new staking and DKG Phase views"
             }
 
             FlowEpoch.configurableMetadata.setNumViewsInStakingAuction(newAuctionViews)
@@ -445,9 +445,9 @@ access(all) contract FlowEpoch {
         access(all) fun updateDKGPhaseViews(_ newPhaseViews: UInt64) {
             pre {
                 FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION: "Can only update fields during the staking auction"
-                FlowEpoch.isValidPhaseConfiguration(FlowEpoch.configurableMetadata.numViewsInStakingAuction,
-                    newPhaseViews,
-                    FlowEpoch.configurableMetadata.numViewsInEpoch): "Epoch Views must be greater than the sum of staking and new DKG Phase views"
+                FlowEpoch.isValidPhaseConfiguration(auctionLen: FlowEpoch.configurableMetadata.numViewsInStakingAuction,
+                    dkgPhaseLen: newPhaseViews,
+                    epochLen: FlowEpoch.configurableMetadata.numViewsInEpoch): "Epoch Views must be greater than the sum of staking and new DKG Phase views"
             }
 
             FlowEpoch.configurableMetadata.setNumViewsInDKGPhase(newPhaseViews)
@@ -501,10 +501,10 @@ access(all) contract FlowEpoch {
             nodeIDs: [String])
         {
             pre {
-                FlowEpoch.isValidPhaseConfiguration(stakingEndView-startView+1, FlowEpoch.configurableMetadata.numViewsInDKGPhase, endView-startView+1):
+                FlowEpoch.isValidPhaseConfiguration(auctionLen: stakingEndView-startView+1, dkgPhaseLen: FlowEpoch.configurableMetadata.numViewsInDKGPhase, epochLen: endView-startView+1):
                     "Invalid startView, stakingEndView, and endView configuration"
             }
- 
+
             /// sanity check all nodes should have a weight > 0
             for nodeID in nodeIDs {
                 assert(
@@ -594,7 +594,7 @@ access(all) contract FlowEpoch {
             pre {
                 currentEpochCounter == FlowEpoch.currentEpochCounter:
                     "Cannot submit a current Epoch counter that does not match the current counter stored in the smart contract"
-                FlowEpoch.isValidPhaseConfiguration(stakingEndView-startView+1, FlowEpoch.configurableMetadata.numViewsInDKGPhase, endView-startView+1):
+                FlowEpoch.isValidPhaseConfiguration(auctionLen: stakingEndView-startView+1, dkgPhaseLen: FlowEpoch.configurableMetadata.numViewsInDKGPhase, epochLen: endView-startView+1):
                     "Invalid startView, stakingEndView, and endView configuration"
             }
 
@@ -973,7 +973,7 @@ access(all) contract FlowEpoch {
 
     /// Makes sure the set of phase lengths (in views) are valid.
     /// Sub-phases cannot be greater than the full epoch length.
-    access(all) view fun isValidPhaseConfiguration(_ auctionLen: UInt64, _ dkgPhaseLen: UInt64, _ epochLen: UInt64): Bool {
+    access(all) view fun isValidPhaseConfiguration(auctionLen: UInt64, dkgPhaseLen: UInt64, epochLen: UInt64): Bool {
         return (auctionLen + (3*dkgPhaseLen)) < epochLen
     }
 
