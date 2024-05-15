@@ -1124,7 +1124,7 @@ access(all) contract FlowEpoch {
           clusterQCs: [FlowClusterQC.ClusterQC],
           dkgPubKeys: [String]) {
         pre {
-            FlowEpoch.isValidPhaseConfiguration(numViewsInStakingAuction, numViewsInDKGPhase, numViewsInEpoch):
+            FlowEpoch.isValidPhaseConfiguration(auctionLen: numViewsInStakingAuction, dkgPhaseLen: numViewsInDKGPhase, epochLen: numViewsInEpoch):
                 "Invalid startView and endView configuration"
         }
 
