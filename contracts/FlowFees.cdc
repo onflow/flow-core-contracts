@@ -162,7 +162,7 @@ access(all) contract FlowFees {
         emit FeesDeducted(amount: feeAmount, inclusionEffort: inclusionEffort, executionEffort: executionEffort)
     }
 
-    access(all) fun getFeeParameters(): FeeParameters {
+    access(all) view fun getFeeParameters(): FeeParameters {
         return self.account.storage.copy<FeeParameters>(from: /storage/FlowTxFeeParameters) ?? panic("Error getting tx fee parameters. They need to be initialized first!")
     }
 
@@ -175,7 +175,7 @@ access(all) contract FlowFees {
 
 
     // compute the transaction fees with the current fee parameters and the given inclusionEffort and executionEffort
-    access(all) fun computeFees(inclusionEffort: UFix64, executionEffort: UFix64): UFix64 {
+    access(all) view fun computeFees(inclusionEffort: UFix64, executionEffort: UFix64): UFix64 {
         let params = self.getFeeParameters()
 
         let totalFees = params.surgeFactor * ( inclusionEffort * params.inclusionEffortCost + executionEffort * params.executionEffortCost )
