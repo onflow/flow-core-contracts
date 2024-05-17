@@ -418,7 +418,7 @@ access(all) contract FlowIDTableStaking {
 
         /// Tells whether the node is a new node who currently is not participating with tokens staked
         /// and has enough committed for the next epoch for its role
-        access(self) fun isEligibleForCandidateNodeStatus(_ nodeRecord: &FlowIDTableStaking.NodeRecord): Bool {
+        access(self) view fun isEligibleForCandidateNodeStatus(_ nodeRecord: &FlowIDTableStaking.NodeRecord): Bool {
             let participantList = FlowIDTableStaking.account.storage.borrow<&{String: Bool}>(from: /storage/idTableCurrentList)!
             if participantList[nodeRecord.id] == true {
                 return false

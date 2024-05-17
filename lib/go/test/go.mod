@@ -113,7 +113,7 @@ require (
 	github.com/onflow/atree v0.7.0-rc.1 // indirect
 	github.com/onflow/flow-ft/lib/go/contracts v1.0.0 // indirect
 	github.com/onflow/flow-ft/lib/go/templates v1.0.0 // indirect
-	github.com/onflow/flow-nft/lib/go/contracts v1.2.0 // indirect
+	github.com/onflow/flow-nft/lib/go/contracts v1.2.1 // indirect
 	github.com/onflow/flow-nft/lib/go/templates v1.2.0 // indirect
 	github.com/onflow/flow/protobuf/go/flow v0.4.1-0.20240412170550-911321113030 // indirect
 	github.com/onflow/go-ethereum v1.13.4 // indirect
