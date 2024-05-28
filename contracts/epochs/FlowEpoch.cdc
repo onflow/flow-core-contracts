@@ -484,22 +484,58 @@ access(all) contract FlowEpoch {
             FlowEpoch.account.storage.save(enabled, to: /storage/flowAutomaticRewardsEnabled)
         }
         
-        /// Ends the currently active epoch and starts a new one with the provided configuration.
-        /// This function saves the recovery epoch metadata in storage containing the full specification for the new epoch.
-        /// This meta data will be emitted in the EpochRecover service event in the next heart beat interval.
-        /// This function is used within sporks to recover the network from Epoch Fallback Mode (EFM).
-        access(all) fun recoverEpoch(
-            randomSource: String,
+        access(all) fun emitEpochRecoverEvent(epochCounter: UInt64,
             startView: UInt64,
             stakingEndView: UInt64,
             endView: UInt64,
+            numViewsInStakingAuction: UInt64,
+            numViewsInDKGPhase: UInt64,
+            nodeIDs: [String],
+            clusterAssignments: [[String]],
+            randomSource: String,
             targetDuration: UInt64,
             targetEndTime: UInt64,
-            clusterAssignments: [[String]],
             clusterQCVoteData: [FlowClusterQC.ClusterQCVoteData],
             dkgPubKeys: [String],
-            nodeIDs: [String])
-        {
+            ) {
+                
+            /// Construct the identity table for the recovery epoch
+            let nodes: [FlowIDTableStaking.NodeInfo] = []
+            for nodeID in nodeIDs {
+                nodes.append(FlowIDTableStaking.NodeInfo(nodeID: nodeID))
+            }
+
+            let dkgPhase1FinalView = startView + numViewsInStakingAuction + numViewsInDKGPhase - 1
+            let dkgPhase2FinalView = startView + numViewsInStakingAuction + (2 * numViewsInDKGPhase) - 1
+            let dkgPhase3FinalView = startView + numViewsInStakingAuction + (3 * numViewsInDKGPhase) - 1
+
+            /// emit EpochRecover event
+            emit EpochRecover(
+                counter: epochCounter,
+                nodeInfo: nodes,
+                firstView: startView,
+                finalView: endView,
+                clusterAssignments: clusterAssignments,
+                randomSource: randomSource,
+                DKGPhase1FinalView: dkgPhase1FinalView,
+                DKGPhase2FinalView: dkgPhase2FinalView,
+                DKGPhase3FinalView: dkgPhase3FinalView,
+                targetDuration: targetDuration,
+                targetEndTime: targetEndTime,
+                clusterQCVoteData: clusterQCVoteData,
+                dkgPubKeys: dkgPubKeys,
+            )
+        }
+
+        /// Performs sanity checks for the provided epoch configuration. It will ensure the following;
+        /// - There is a valid phase configuration.
+        /// - All nodes in the node ids list have a weight > 0.
+        /// If the configuration is a valid configuration the the staking auction,
+        /// qc voting and dkg will be ended depending on the current epoch phase.
+        access(all) fun recoverEpochPreChecks(startView: UInt64,
+            stakingEndView: UInt64,
+            endView: UInt64,
+            nodeIDs: [String]) {
             pre {
                 FlowEpoch.isValidPhaseConfiguration(auctionLen: stakingEndView-startView+1, dkgPhaseLen: FlowEpoch.configurableMetadata.numViewsInDKGPhase, epochLen: endView-startView+1):
                     "Invalid startView, stakingEndView, and endView configuration"
@@ -522,27 +558,42 @@ access(all) contract FlowEpoch {
                 FlowEpoch.borrowClusterQCAdmin().forceStopVoting()
                 FlowEpoch.borrowDKGAdmin().forceEndDKG()
             }
+        }
+
+        /// Ends the currently active epoch and starts a new one with the provided configuration.
+        /// This meta data will be emitted in the EpochRecover service event.
+        /// This function is used within sporks to recover the network from Epoch Fallback Mode (EFM).
+        access(all) fun recoverNewEpoch(randomSource: String,
+            startView: UInt64,
+            stakingEndView: UInt64,
+            endView: UInt64,
+            targetDuration: UInt64,
+            targetEndTime: UInt64,
+            clusterAssignments: [[String]],
+            clusterQCVoteData: [FlowClusterQC.ClusterQCVoteData],
+            dkgPubKeys: [String],
+            nodeIDs: [String]) {
             
+            self.recoverEpochPreChecks(startView: startView, stakingEndView: stakingEndView, endView: endView, nodeIDs: nodeIDs)
+
             let numViewsInStakingAuction = FlowEpoch.configurableMetadata.numViewsInStakingAuction
             let numViewsInDKGPhase = FlowEpoch.configurableMetadata.numViewsInDKGPhase
-            
+
             /// Create new EpochMetadata for the recovery epoch with the new values
             let newEpochMetadata = EpochMetadata(
-                /// When the network enters EFM the epoch counter will not be incremented 
-                /// so it's safe to use current_epoch_counter + 1 
-                counter: FlowEpoch.proposedEpochCounter(),
-                seed: randomSource,
-                startView: startView,
-                endView: endView,
-                stakingEndView: stakingEndView,
-                // The following fields will be overwritten in `calculateAndSetRewards` below
-                totalRewards: 0.0,
-                collectorClusters: [],
-                clusterQCs: [],
-                dkgKeys: dkgPubKeys
-            )
+            /// Increment the epoch counter when recovering with a new epoch
+            counter: FlowEpoch.proposedEpochCounter(),
+            seed: randomSource,
+            startView: startView,
+            endView: endView,
+            stakingEndView: stakingEndView,
+            // The following fields will be overwritten in `calculateAndSetRewards` below
+            totalRewards: 0.0,
+            collectorClusters: [],
+            clusterQCs: [],
+            dkgKeys: dkgPubKeys)
 
-            /// Save the new epoch meta data, it will be referenced as 
+            /// Save the new epoch meta data, it will be referenced as             
             /// the epoch progresses through each phase.
             FlowEpoch.saveEpochMetadata(newEpochMetadata)
 
@@ -550,27 +601,16 @@ access(all) contract FlowEpoch {
             /// and set the payout for the next epoch
             FlowEpoch.calculateAndSetRewards()
 
-            /// Construct the identity table for the recovery epoch
-            let nodes: [FlowIDTableStaking.NodeInfo] = []
-            for nodeID in nodeIDs {
-                nodes.append(FlowIDTableStaking.NodeInfo(nodeID: nodeID))
-            }
-
-            let dkgPhase1FinalView = startView + numViewsInStakingAuction + numViewsInDKGPhase - 1
-            let dkgPhase2FinalView = startView + numViewsInStakingAuction + (2 * numViewsInDKGPhase) - 1
-            let dkgPhase3FinalView = startView + numViewsInStakingAuction + (3 * numViewsInDKGPhase) - 1
-
-            /// emit EpochRecover event
-            emit EpochRecover(
-                counter: FlowEpoch.proposedEpochCounter(),
-                nodeInfo: nodes,
-                firstView: startView,
-                finalView: endView,
+            /// emit the epoch recover event
+            self.emitEpochRecoverEvent(epochCounter: FlowEpoch.proposedEpochCounter(),
+                startView: startView,
+                stakingEndView: stakingEndView,
+                endView: endView,
+                numViewsInStakingAuction: numViewsInStakingAuction,
+                numViewsInDKGPhase: numViewsInDKGPhase,
+                nodeIDs: nodeIDs,
                 clusterAssignments: clusterAssignments,
                 randomSource: randomSource,
-                DKGPhase1FinalView: dkgPhase1FinalView,
-                DKGPhase2FinalView: dkgPhase2FinalView,
-                DKGPhase3FinalView: dkgPhase3FinalView,
                 targetDuration: targetDuration,
                 targetEndTime: targetEndTime,
                 clusterQCVoteData: clusterQCVoteData,
@@ -579,6 +619,61 @@ access(all) contract FlowEpoch {
 
             /// Start a new Epoch, which increments the current epoch counter
             FlowEpoch.startNewEpoch()
+        }
+
+        /// Ends the currently active epoch and restarts it with the provided configuration.
+        /// This function is intended to update the current epoch configuration when a recovery
+        /// transaction needs to be submitted more than once. This meta data will be emitted in the 
+        /// EpochRecover service event. This function is used within sporks to recover the network from Epoch Fallback Mode (EFM).
+        access(all) fun recoverCurrentEpoch(
+            randomSource: String,
+            startView: UInt64,
+            stakingEndView: UInt64,
+            endView: UInt64,
+            targetDuration: UInt64,
+            targetEndTime: UInt64,
+            clusterAssignments: [[String]],
+            clusterQCVoteData: [FlowClusterQC.ClusterQCVoteData],
+            dkgPubKeys: [String],
+            nodeIDs: [String]) {
+            self.recoverEpochPreChecks(startView: startView, stakingEndView: stakingEndView, endView: endView, nodeIDs: nodeIDs)
+
+            let numViewsInStakingAuction = FlowEpoch.configurableMetadata.numViewsInStakingAuction
+            let numViewsInDKGPhase = FlowEpoch.configurableMetadata.numViewsInDKGPhase
+            
+            /// Create new EpochMetadata for the recovery epoch with the new values. This epoch metadata will overwrite 
+            /// the epoch metadata of the current epoch.
+            let epochMetadata: FlowEpoch.EpochMetadata = EpochMetadata(
+                counter: FlowEpoch.currentEpochCounter,
+                seed: randomSource,
+                startView: startView,
+                endView: endView,
+                stakingEndView: stakingEndView,
+                // The following fields will be overwritten in `calculateAndSetRewards` below
+                totalRewards: 0.0,
+                collectorClusters: [],
+                clusterQCs: [],
+                dkgKeys: dkgPubKeys            )
+
+            /// Save the new epoch meta data, it will be referenced as             
+            /// the epoch progresses through each phase.
+            FlowEpoch.saveEpochMetadata(epochMetadata)
+
+            /// emit the epoch recover event
+            self.emitEpochRecoverEvent(epochCounter: FlowEpoch.currentEpochCounter,
+                startView: startView,
+                stakingEndView: stakingEndView,
+                endView: endView,
+                numViewsInStakingAuction: numViewsInStakingAuction,
+                numViewsInDKGPhase: numViewsInDKGPhase,
+                nodeIDs: nodeIDs,
+                clusterAssignments: clusterAssignments,
+                randomSource: randomSource,
+                targetDuration: targetDuration,
+                targetEndTime: targetEndTime,
+                clusterQCVoteData: clusterQCVoteData,
+                dkgPubKeys: dkgPubKeys,
+            )
         }
 
         /// Ends the currently active epoch and starts a new one with the provided configuration.

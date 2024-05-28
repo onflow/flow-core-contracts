@@ -17,21 +17,35 @@ transaction(randomSource: String,
             clusterAssignments: [[String]],
             clusterQCVoteData: [FlowClusterQC.ClusterQCVoteData],
             dkgPubKeys: [String],
-            nodeIDs: [String]) {
+            nodeIDs: [String],
+            initNewEpoch: Bool) {
 
     prepare(signer: auth(BorrowValue) &Account) {
         let epochAdmin = signer.storage.borrow<&FlowEpoch.Admin>(from: FlowEpoch.adminStoragePath)
             ?? panic("Could not borrow epoch admin from storage path")
 
-        epochAdmin.recoverEpoch(randomSource: randomSource,
-                            startView: startView,
-                            stakingEndView: stakingEndView,
-                            endView: endView,
-                            targetDuration: targetDuration,
-                            targetEndTime: targetEndTime,
-                            clusterAssignments: clusterAssignments  ,
-                            clusterQCVoteData: clusterQCVoteData,
-                            dkgPubKeys: dkgPubKeys,
-                            nodeIDs: nodeIDs)
+        if initNewEpoch {
+            epochAdmin.recoverNewEpoch(randomSource: randomSource,
+                    startView: startView,
+                    stakingEndView: stakingEndView,
+                    endView: endView,
+                    targetDuration: targetDuration,
+                    targetEndTime: targetEndTime,
+                    clusterAssignments: clusterAssignments  ,
+                    clusterQCVoteData: clusterQCVoteData,
+                    dkgPubKeys: dkgPubKeys,
+                    nodeIDs: nodeIDs)
+        } else {
+            epochAdmin.recoverCurrentEpoch(randomSource: randomSource,
+                    startView: startView,
+                    stakingEndView: stakingEndView,
+                    endView: endView,
+                    targetDuration: targetDuration,
+                    targetEndTime: targetEndTime,
+                    clusterAssignments: clusterAssignments  ,
+                    clusterQCVoteData: clusterQCVoteData,
+                    dkgPubKeys: dkgPubKeys,
+                    nodeIDs: nodeIDs)
+        }
     }
 }

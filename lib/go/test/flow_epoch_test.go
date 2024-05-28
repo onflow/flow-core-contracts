@@ -1588,6 +1588,7 @@ func TestEpochRecover(t *testing.T) {
 		false,
 	)
 
+	// Perform epoch recovery with a new epoch and epoch recover overwriting the current epoch.
 	t.Run("Can recover the epoch and have everything return to normal", func(t *testing.T) {
 		epochTimingConfigResult := executeScriptAndCheck(t, b, templates.GenerateGetEpochTimingConfigScript(env), nil)
 
@@ -1599,32 +1600,40 @@ func TestEpochRecover(t *testing.T) {
 			targetEndTime  uint64 = expectedTargetEndTime(epochTimingConfigResult, startEpochCounter+1)
 		)
 
-		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateRecoverEpochScript(env), idTableAddress)
-		tx.AddArgument(CadenceString("stillSoRandom"))
-		tx.AddArgument(cadence.NewUInt64(startView))
-		tx.AddArgument(cadence.NewUInt64(stakingEndView))
-		tx.AddArgument(cadence.NewUInt64(endView))
-		tx.AddArgument(cadence.NewUInt64(targetDuration))
-		tx.AddArgument(cadence.NewUInt64(targetEndTime))
 		collectorClusters := make([]cadence.Value, 3)
 		collectorClusters[0] = cadence.NewArray([]cadence.Value{CadenceString("node_1"), CadenceString("node_2"), CadenceString("node_3")})
 		collectorClusters[1] = cadence.NewArray([]cadence.Value{CadenceString("node_4"), CadenceString("node_5"), CadenceString("node_6")})
 		collectorClusters[2] = cadence.NewArray([]cadence.Value{CadenceString("node_7"), CadenceString("node_8"), CadenceString("node_9")})
-		tx.AddArgument(cadence.NewArray(collectorClusters))        // collectorClusters
-		tx.AddArgument(cadence.NewArray(make([]cadence.Value, 0))) // clusterQCVoteData
 
 		dkgPubKeys := []string{"pubkey_1"}
 		dkgPubKeysCdc := make([]cadence.Value, len(dkgPubKeys))
 		for i, key := range dkgPubKeys {
 			dkgPubKeysCdc[i], _ = cadence.NewString(key)
 		}
-		tx.AddArgument(cadence.NewArray(dkgPubKeysCdc))
 
 		nodeIDs := make([]cadence.Value, len(ids))
 		for i, id := range ids {
 			nodeIDs[i], _ = cadence.NewString(id)
 		}
-		tx.AddArgument(cadence.NewArray(nodeIDs))
+
+		args := []cadence.Value{
+			CadenceString("stillSoRandom"),
+			cadence.NewUInt64(startView),
+			cadence.NewUInt64(stakingEndView),
+			cadence.NewUInt64(endView),
+			cadence.NewUInt64(targetDuration),
+			cadence.NewUInt64(targetEndTime),
+			cadence.NewArray(collectorClusters),        // collectorClusters
+			cadence.NewArray(make([]cadence.Value, 0)), // clusterQCVoteData
+			cadence.NewArray(dkgPubKeysCdc),
+			cadence.NewArray(nodeIDs),
+			cadence.NewBool(true), // recover EFM with a new epoch
+		}
+
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateRecoverEpochScript(env), idTableAddress)
+		for _, arg := range args {
+			tx.AddArgument(arg)
+		}
 
 		signAndSubmit(
 			t, b, tx,
@@ -1670,6 +1679,27 @@ func TestEpochRecover(t *testing.T) {
 			clusterQCVoteDataLength: 0,
 			dkgPubKeys:              dkgPubKeys,
 		}
+		verifyEpochRecover(t, adapter, idTableAddress, expectedRecoverEvent)
+
+		// If epoch recover was rejected by the protocol state we can update the configuration
+		// for the epoch without creating a new one.
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateRecoverEpochScript(env), idTableAddress)
+		// change random source
+		args[0] = CadenceString("somuchmorerandom")
+		// avoid initializing a new epoch
+		args[10] = cadence.NewBool(false)
+		for _, arg := range args {
+			tx.AddArgument(arg)
+		}
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]sdkcrypto.Signer{IDTableSigner},
+			false,
+		)
+
+		expectedRecoverEvent.randomSource = "somuchmorerandom"
 		verifyEpochRecover(t, adapter, idTableAddress, expectedRecoverEvent)
 	})
 }
