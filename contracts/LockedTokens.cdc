@@ -248,12 +248,12 @@ access(all) contract LockedTokens {
             emit LockedAccountRegisteredAsDelegator(address: self.owner!.address, nodeID: nodeID)
         }
 
-        access(account) fun borrowNode(): auth(FlowIDTableStaking.NodeOperator) &FlowIDTableStaking.NodeStaker? {
+        access(account) view fun borrowNode(): auth(FlowIDTableStaking.NodeOperator) &FlowIDTableStaking.NodeStaker? {
             let nodeRef = &self.nodeStaker as auth(FlowIDTableStaking.NodeOperator) &FlowIDTableStaking.NodeStaker?
             return nodeRef
         }
 
-        access(account) fun borrowDelegator(): auth(FlowIDTableStaking.DelegatorOwner) &FlowIDTableStaking.NodeDelegator? {
+        access(account) view fun borrowDelegator(): auth(FlowIDTableStaking.DelegatorOwner) &FlowIDTableStaking.NodeDelegator? {
             let delegatorRef = &self.nodeDelegator as auth(FlowIDTableStaking.DelegatorOwner) &FlowIDTableStaking.NodeDelegator?
             return delegatorRef
         }
@@ -663,7 +663,7 @@ access(all) contract LockedTokens {
         }
     }
 
-     access(all) entitlement AccountCreator
+    access(all) entitlement AccountCreator
 
     access(all) resource interface AddAccount {
         access(AccountCreator) fun addAccount(

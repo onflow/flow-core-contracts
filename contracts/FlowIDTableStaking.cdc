@@ -1903,7 +1903,7 @@ access(all) contract FlowIDTableStaking {
     }
 
     /// Returns the list of node IDs whose rewards will be reduced in the next payment
-    access(all) fun getNonOperationalNodesList(): {String: UFix64} {
+    access(all) view fun getNonOperationalNodesList(): {String: UFix64} {
         return self.account.storage.copy<{String: UFix64}>(from: /storage/idTableNonOperationalNodesList)
             ?? panic("could not get non-operational node list")
     }
@@ -1914,7 +1914,7 @@ access(all) contract FlowIDTableStaking {
     }
 
     /// Gets the minimum stake requirement for delegators
-    access(all) fun getDelegatorMinimumStakeRequirement(): UFix64 {
+    access(all) view fun getDelegatorMinimumStakeRequirement(): UFix64 {
         return self.account.storage.copy<UFix64>(from: /storage/delegatorStakingMinimum)
             ?? 0.0
     }
