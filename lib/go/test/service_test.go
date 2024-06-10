@@ -399,6 +399,21 @@ func TestContracts(t *testing.T) {
 
 	})
 
+	t.Run("Should check if payer has sufficient balance to execute tx", func(t *testing.T) {
+		// TODO: Is it better to set up a mock tx and test against it?
+
+		// TODO: What account should I use here?
+		account := cadence.NewAddress(flow.HexToAddress(env.FlowFeesAddress))
+		inclusionEffort := cadence.UFix64(1)
+		gasLimit := cadence.UFix64(99)
+
+		args := [][]byte{jsoncdc.MustEncode(account), jsoncdc.MustEncode(inclusionEffort), jsoncdc.MustEncode(gasLimit)}
+
+		result = executeScriptAndCheck(t, b, templates.GenerateCheckIfPayerHasSufficientBalance(env), args)
+		require.NotNil(t, result)
+		require.True(t, result.(cadence.Bool).ToGoValue().(bool))
+	})
+
 	// deploy the ServiceAccount contract
 	serviceAccountCode := contracts.FlowServiceAccount(
 		emulatorFTAddress,

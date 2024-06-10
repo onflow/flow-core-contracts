@@ -3,6 +3,7 @@
 // FlowServiceAccount/add_account_creator.cdc (565B)
 // FlowServiceAccount/deposit_fees.cdc (838B)
 // FlowServiceAccount/remove_account_creator.cdc (567B)
+// FlowServiceAccount/scripts/check_if_payer_has_sufficient_balance.cdc (365B)
 // FlowServiceAccount/scripts/get_account_creators.cdc (133B)
 // FlowServiceAccount/scripts/get_account_fee.cdc (128B)
 // FlowServiceAccount/scripts/get_execution_effort_weights.cdc (147B)
@@ -422,6 +423,26 @@ func flowserviceaccountRemove_account_creatorCdc() (*asset, error) {
 
 	info := bindataFileInfo{name: "FlowServiceAccount/remove_account_creator.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x45, 0x93, 0x3, 0xb, 0x31, 0xee, 0xf4, 0x0, 0x1, 0xd1, 0x23, 0xca, 0x29, 0xed, 0xf8, 0x8b, 0xd1, 0xa6, 0x66, 0x57, 0xe8, 0xf9, 0xf3, 0xf3, 0xfe, 0x91, 0xbc, 0xbb, 0x2f, 0x35, 0x84, 0x3}}
+	return a, nil
+}
+
+var _flowserviceaccountScriptsCheck_if_payer_has_sufficient_balanceCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x8f\xc1\x4a\xf4\x30\x14\x85\xf7\x7d\x8a\xb3\x9c\x42\x19\xfe\xc5\x8f\x8b\x82\x8b\x0e\x93\xac\x04\xc5\x2a\xae\x63\xe6\x46\x03\x69\x52\x6e\x6e\xb4\x83\xf8\xee\xd2\xea\x38\x62\xcd\x2e\x27\x87\xf3\x7d\xf1\xc3\x98\x58\xa0\x43\x7a\xd5\x44\x19\x8e\xd3\x80\x7f\x93\xbe\xba\x7e\xd0\x4a\xf5\xdd\x7e\x7f\xab\xfa\xbe\xaa\xc6\xf2\x08\x57\x22\x06\xe3\xe3\x66\x34\x47\xe2\xce\x5a\x69\xd1\x1d\x0e\x4c\x39\x37\xf0\xd1\x86\x92\x7d\x8a\xca\xb9\xc4\xd2\xe2\x5e\xfb\xe9\xe2\x7f\x83\xc1\x4c\x6a\x22\x5b\x64\xf5\x56\xb7\xd8\xa5\x14\xf0\x56\x01\x40\x20\x81\x29\xf2\x3c\xef\xe2\x12\x4f\x24\xdd\xe7\x2d\x95\x28\x67\x64\xbd\x94\x99\xa4\x70\xfc\xd6\xde\xbe\x10\x7b\x77\xbc\x99\x4b\x79\x67\x82\x89\x96\x74\xe2\x3b\x36\x31\x1b\xbb\x90\x4f\x0a\x9b\x13\xa3\x59\x86\xe6\xb3\x52\xff\x15\x9c\x9b\x7f\xfd\x65\x9d\xd5\x5b\x6b\xbe\x80\xf4\x43\xa1\x7a\xff\x08\x00\x00\xff\xff\x9c\x72\xaf\x4b\x6d\x01\x00\x00"
+
+func flowserviceaccountScriptsCheck_if_payer_has_sufficient_balanceCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_flowserviceaccountScriptsCheck_if_payer_has_sufficient_balanceCdc,
+		"FlowServiceAccount/scripts/check_if_payer_has_sufficient_balance.cdc",
+	)
+}
+
+func flowserviceaccountScriptsCheck_if_payer_has_sufficient_balanceCdc() (*asset, error) {
+	bytes, err := flowserviceaccountScriptsCheck_if_payer_has_sufficient_balanceCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "FlowServiceAccount/scripts/check_if_payer_has_sufficient_balance.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x35, 0x10, 0x91, 0xc5, 0x3, 0x62, 0x38, 0x50, 0x45, 0x25, 0x76, 0xc7, 0xf6, 0xc0, 0x41, 0xd9, 0xc2, 0x6f, 0xca, 0xa0, 0x43, 0xcd, 0x4, 0x1a, 0x14, 0xb5, 0x73, 0x28, 0x8f, 0x2e, 0x97, 0x7f}}
 	return a, nil
 }
 
@@ -6379,6 +6400,7 @@ var _bindata = map[string]func() (*asset, error){
 	"FlowServiceAccount/add_account_creator.cdc":                                  flowserviceaccountAdd_account_creatorCdc,
 	"FlowServiceAccount/deposit_fees.cdc":                                         flowserviceaccountDeposit_feesCdc,
 	"FlowServiceAccount/remove_account_creator.cdc":                               flowserviceaccountRemove_account_creatorCdc,
+	"FlowServiceAccount/scripts/check_if_payer_has_sufficient_balance.cdc":        flowserviceaccountScriptsCheck_if_payer_has_sufficient_balanceCdc,
 	"FlowServiceAccount/scripts/get_account_creators.cdc":                         flowserviceaccountScriptsGet_account_creatorsCdc,
 	"FlowServiceAccount/scripts/get_account_fee.cdc":                              flowserviceaccountScriptsGet_account_feeCdc,
 	"FlowServiceAccount/scripts/get_execution_effort_weights.cdc":                 flowserviceaccountScriptsGet_execution_effort_weightsCdc,
@@ -6723,6 +6745,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"deposit_fees.cdc": {flowserviceaccountDeposit_feesCdc, map[string]*bintree{}},
 		"remove_account_creator.cdc": {flowserviceaccountRemove_account_creatorCdc, map[string]*bintree{}},
 		"scripts": {nil, map[string]*bintree{
+			"check_if_payer_has_sufficient_balance.cdc": {flowserviceaccountScriptsCheck_if_payer_has_sufficient_balanceCdc, map[string]*bintree{}},
 			"get_account_creators.cdc": {flowserviceaccountScriptsGet_account_creatorsCdc, map[string]*bintree{}},
 			"get_account_fee.cdc": {flowserviceaccountScriptsGet_account_feeCdc, map[string]*bintree{}},
 			"get_execution_effort_weights.cdc": {flowserviceaccountScriptsGet_execution_effort_weightsCdc, map[string]*bintree{}},
