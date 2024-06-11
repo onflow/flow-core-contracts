@@ -3,7 +3,6 @@
 // FlowServiceAccount/add_account_creator.cdc (565B)
 // FlowServiceAccount/deposit_fees.cdc (838B)
 // FlowServiceAccount/remove_account_creator.cdc (567B)
-// FlowServiceAccount/scripts/check_if_payer_has_sufficient_balance.cdc (365B)
 // FlowServiceAccount/scripts/get_account_creators.cdc (133B)
 // FlowServiceAccount/scripts/get_account_fee.cdc (128B)
 // FlowServiceAccount/scripts/get_execution_effort_weights.cdc (147B)
@@ -13,6 +12,7 @@
 // FlowServiceAccount/scripts/get_is_account_creation_restricted.cdc (137B)
 // FlowServiceAccount/scripts/get_is_account_creator.cdc (149B)
 // FlowServiceAccount/scripts/get_tx_fee_parameters.cdc (121B)
+// FlowServiceAccount/scripts/verify_payer_balance_for_tx_execution.cdc (364B)
 // FlowServiceAccount/set_execution_effort_weights.cdc (1.636kB)
 // FlowServiceAccount/set_execution_memory_limit.cdc (260B)
 // FlowServiceAccount/set_execution_memory_weights.cdc (288B)
@@ -426,26 +426,6 @@ func flowserviceaccountRemove_account_creatorCdc() (*asset, error) {
 	return a, nil
 }
 
-var _flowserviceaccountScriptsCheck_if_payer_has_sufficient_balanceCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x8f\xc1\x4a\xf4\x30\x14\x85\xf7\x7d\x8a\xb3\x9c\x42\x19\xfe\xc5\x8f\x8b\x82\x8b\x0e\x93\xac\x04\xc5\x2a\xae\x63\xe6\x46\x03\x69\x52\x6e\x6e\xb4\x83\xf8\xee\xd2\xea\x38\x62\xcd\x2e\x27\x87\xf3\x7d\xf1\xc3\x98\x58\xa0\x43\x7a\xd5\x44\x19\x8e\xd3\x80\x7f\x93\xbe\xba\x7e\xd0\x4a\xf5\xdd\x7e\x7f\xab\xfa\xbe\xaa\xc6\xf2\x08\x57\x22\x06\xe3\xe3\x66\x34\x47\xe2\xce\x5a\x69\xd1\x1d\x0e\x4c\x39\x37\xf0\xd1\x86\x92\x7d\x8a\xca\xb9\xc4\xd2\xe2\x5e\xfb\xe9\xe2\x7f\x83\xc1\x4c\x6a\x22\x5b\x64\xf5\x56\xb7\xd8\xa5\x14\xf0\x56\x01\x40\x20\x81\x29\xf2\x3c\xef\xe2\x12\x4f\x24\xdd\xe7\x2d\x95\x28\x67\x64\xbd\x94\x99\xa4\x70\xfc\xd6\xde\xbe\x10\x7b\x77\xbc\x99\x4b\x79\x67\x82\x89\x96\x74\xe2\x3b\x36\x31\x1b\xbb\x90\x4f\x0a\x9b\x13\xa3\x59\x86\xe6\xb3\x52\xff\x15\x9c\x9b\x7f\xfd\x65\x9d\xd5\x5b\x6b\xbe\x80\xf4\x43\xa1\x7a\xff\x08\x00\x00\xff\xff\x9c\x72\xaf\x4b\x6d\x01\x00\x00"
-
-func flowserviceaccountScriptsCheck_if_payer_has_sufficient_balanceCdcBytes() ([]byte, error) {
-	return bindataRead(
-		_flowserviceaccountScriptsCheck_if_payer_has_sufficient_balanceCdc,
-		"FlowServiceAccount/scripts/check_if_payer_has_sufficient_balance.cdc",
-	)
-}
-
-func flowserviceaccountScriptsCheck_if_payer_has_sufficient_balanceCdc() (*asset, error) {
-	bytes, err := flowserviceaccountScriptsCheck_if_payer_has_sufficient_balanceCdcBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	info := bindataFileInfo{name: "FlowServiceAccount/scripts/check_if_payer_has_sufficient_balance.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x35, 0x10, 0x91, 0xc5, 0x3, 0x62, 0x38, 0x50, 0x45, 0x25, 0x76, 0xc7, 0xf6, 0xc0, 0x41, 0xd9, 0xc2, 0x6f, 0xca, 0xa0, 0x43, 0xcd, 0x4, 0x1a, 0x14, 0xb5, 0x73, 0x28, 0x8f, 0x2e, 0x97, 0x7f}}
-	return a, nil
-}
-
 var _flowserviceaccountScriptsGet_account_creatorsCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xca\xcc\x2d\xc8\x2f\x2a\x51\x70\xcb\xc9\x2f\x0f\x4e\x2d\x2a\xcb\x4c\x4e\x75\x4c\x4e\xce\x2f\xcd\x2b\x51\x48\x2b\xca\xcf\x55\x30\xa8\x70\xf3\xf1\x0f\x0f\x76\x0d\x0a\xf3\x74\x76\x75\x74\x71\x09\x72\x0d\x0e\xe6\xe2\x2a\x28\x4d\x52\x48\x2b\xcd\x53\xc8\x4d\xcc\xcc\xd3\xd0\xb4\x52\x88\x76\x4c\x49\x29\x4a\x2d\x2e\x8e\x55\xa8\xe6\x52\x50\x50\x50\x28\x4a\x2d\x29\x2d\xca\xc3\x62\xa8\x5e\x7a\x6a\x09\x94\xe9\x5c\x94\x9a\x58\x92\x5f\x54\xac\xa1\xc9\x55\x0b\x08\x00\x00\xff\xff\x3a\x18\x2d\x67\x85\x00\x00\x00"
 
 func flowserviceaccountScriptsGet_account_creatorsCdcBytes() ([]byte, error) {
@@ -623,6 +603,26 @@ func flowserviceaccountScriptsGet_tx_fee_parametersCdc() (*asset, error) {
 
 	info := bindataFileInfo{name: "FlowServiceAccount/scripts/get_tx_fee_parameters.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xea, 0xaf, 0xc1, 0xff, 0x1a, 0x34, 0x69, 0x68, 0xb, 0xd, 0xc9, 0xba, 0xb4, 0xdb, 0x81, 0x8a, 0x41, 0x8, 0x38, 0xf6, 0x85, 0x75, 0xef, 0x4e, 0x8a, 0x6e, 0xb0, 0x6a, 0x22, 0xc1, 0x97, 0x1a}}
+	return a, nil
+}
+
+var _flowserviceaccountScriptsVerify_payer_balance_for_tx_executionCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x8f\x4d\x4b\xf4\x30\x14\x85\xf7\xfd\x15\x67\x39\x85\xf2\xf2\x2e\xc4\x45\xc1\x45\x65\x92\x95\xa0\x4c\xfd\x58\xc7\xcc\x8d\x06\xd2\xa4\xdc\xdc\x68\x07\xf1\xbf\x4b\xab\x63\xc1\x99\xec\x72\x12\x9e\xe7\x1c\x3f\x8c\x89\x05\x3a\xa4\x77\x4d\x94\xe1\x38\x0d\xf8\x3f\xe9\x9b\xdb\x27\xad\x54\xdf\x6d\xb7\x3b\xd5\xf7\x55\x35\x96\x67\xb8\x12\x31\x18\x1f\x37\xa3\x39\x10\x77\xd6\x4a\x8b\x6e\xbf\x67\xca\xb9\x81\x8f\x36\x94\xec\x53\x54\xce\x25\x96\x16\x0f\xda\x4f\x97\x17\x0d\x06\x33\xa9\x89\x6c\x91\x93\xb7\xba\xfd\xf5\xfe\x7b\x24\xf6\xee\x70\x37\x83\xaf\x4d\x30\xd1\xd2\x8e\x72\x09\x82\x8f\x0a\x00\x02\x09\x4c\x91\xd7\x59\x8a\x2b\xbc\x90\x74\xdf\xb7\x54\xa2\xac\x7d\xea\xe5\x33\x93\x14\x8e\x2b\xfb\x6d\x65\xe7\x1f\xb8\x4e\x7c\xcf\x26\x66\x63\x97\x5a\xc7\x7e\x9b\xa3\xe3\xcc\x9e\x3f\x41\xb3\xa8\xe6\x73\x6e\xe0\x69\x56\x57\x9f\x5f\x01\x00\x00\xff\xff\x84\x34\xe6\x41\x6c\x01\x00\x00"
+
+func flowserviceaccountScriptsVerify_payer_balance_for_tx_executionCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_flowserviceaccountScriptsVerify_payer_balance_for_tx_executionCdc,
+		"FlowServiceAccount/scripts/verify_payer_balance_for_tx_execution.cdc",
+	)
+}
+
+func flowserviceaccountScriptsVerify_payer_balance_for_tx_executionCdc() (*asset, error) {
+	bytes, err := flowserviceaccountScriptsVerify_payer_balance_for_tx_executionCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "FlowServiceAccount/scripts/verify_payer_balance_for_tx_execution.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xd7, 0x8, 0x1f, 0x86, 0x15, 0x31, 0x41, 0xb4, 0x3, 0xf0, 0x3, 0x18, 0x37, 0xf1, 0xe6, 0xe3, 0xc5, 0xc4, 0xac, 0xcb, 0x53, 0xc0, 0x41, 0x2d, 0xb1, 0x45, 0xc8, 0x22, 0xe, 0x5c, 0xe4, 0x25}}
 	return a, nil
 }
 
@@ -6400,7 +6400,6 @@ var _bindata = map[string]func() (*asset, error){
 	"FlowServiceAccount/add_account_creator.cdc":                                  flowserviceaccountAdd_account_creatorCdc,
 	"FlowServiceAccount/deposit_fees.cdc":                                         flowserviceaccountDeposit_feesCdc,
 	"FlowServiceAccount/remove_account_creator.cdc":                               flowserviceaccountRemove_account_creatorCdc,
-	"FlowServiceAccount/scripts/check_if_payer_has_sufficient_balance.cdc":        flowserviceaccountScriptsCheck_if_payer_has_sufficient_balanceCdc,
 	"FlowServiceAccount/scripts/get_account_creators.cdc":                         flowserviceaccountScriptsGet_account_creatorsCdc,
 	"FlowServiceAccount/scripts/get_account_fee.cdc":                              flowserviceaccountScriptsGet_account_feeCdc,
 	"FlowServiceAccount/scripts/get_execution_effort_weights.cdc":                 flowserviceaccountScriptsGet_execution_effort_weightsCdc,
@@ -6410,6 +6409,7 @@ var _bindata = map[string]func() (*asset, error){
 	"FlowServiceAccount/scripts/get_is_account_creation_restricted.cdc":           flowserviceaccountScriptsGet_is_account_creation_restrictedCdc,
 	"FlowServiceAccount/scripts/get_is_account_creator.cdc":                       flowserviceaccountScriptsGet_is_account_creatorCdc,
 	"FlowServiceAccount/scripts/get_tx_fee_parameters.cdc":                        flowserviceaccountScriptsGet_tx_fee_parametersCdc,
+	"FlowServiceAccount/scripts/verify_payer_balance_for_tx_execution.cdc":        flowserviceaccountScriptsVerify_payer_balance_for_tx_executionCdc,
 	"FlowServiceAccount/set_execution_effort_weights.cdc":                         flowserviceaccountSet_execution_effort_weightsCdc,
 	"FlowServiceAccount/set_execution_memory_limit.cdc":                           flowserviceaccountSet_execution_memory_limitCdc,
 	"FlowServiceAccount/set_execution_memory_weights.cdc":                         flowserviceaccountSet_execution_memory_weightsCdc,
@@ -6745,7 +6745,6 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"deposit_fees.cdc": {flowserviceaccountDeposit_feesCdc, map[string]*bintree{}},
 		"remove_account_creator.cdc": {flowserviceaccountRemove_account_creatorCdc, map[string]*bintree{}},
 		"scripts": {nil, map[string]*bintree{
-			"check_if_payer_has_sufficient_balance.cdc": {flowserviceaccountScriptsCheck_if_payer_has_sufficient_balanceCdc, map[string]*bintree{}},
 			"get_account_creators.cdc": {flowserviceaccountScriptsGet_account_creatorsCdc, map[string]*bintree{}},
 			"get_account_fee.cdc": {flowserviceaccountScriptsGet_account_feeCdc, map[string]*bintree{}},
 			"get_execution_effort_weights.cdc": {flowserviceaccountScriptsGet_execution_effort_weightsCdc, map[string]*bintree{}},
@@ -6755,6 +6754,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 			"get_is_account_creation_restricted.cdc": {flowserviceaccountScriptsGet_is_account_creation_restrictedCdc, map[string]*bintree{}},
 			"get_is_account_creator.cdc": {flowserviceaccountScriptsGet_is_account_creatorCdc, map[string]*bintree{}},
 			"get_tx_fee_parameters.cdc": {flowserviceaccountScriptsGet_tx_fee_parametersCdc, map[string]*bintree{}},
+			"verify_payer_balance_for_tx_execution.cdc": {flowserviceaccountScriptsVerify_payer_balance_for_tx_executionCdc, map[string]*bintree{}},
 		}},
 		"set_execution_effort_weights.cdc": {flowserviceaccountSet_execution_effort_weightsCdc, map[string]*bintree{}},
 		"set_execution_memory_limit.cdc": {flowserviceaccountSet_execution_memory_limitCdc, map[string]*bintree{}},

@@ -39,7 +39,7 @@ const (
 	getExecutionMemoryLimit   = "FlowServiceAccount/scripts/get_execution_memory_limit.cdc"
 	setExecutionMemoryLimit   = "FlowServiceAccount/set_execution_memory_limit.cdc"
 
-	checkIfPayerHasSufficientBalance = "FlowServiceAccount/scripts/check_if_payer_has_sufficient_balance.cdc"
+	verifyPayerBalanceForTxExecution = "FlowServiceAccount/scripts/verify_payer_balance_for_tx_execution.cdc"
 )
 
 // FlowToken Templates
@@ -195,8 +195,8 @@ func GenerateGetExecutionMemoryLimit(env Environment) []byte {
 	return []byte(ReplaceAddresses(code, env))
 }
 
-func GenerateCheckIfPayerHasSufficientBalance(env Environment) []byte {
-	code := assets.MustAssetString(checkIfPayerHasSufficientBalance)
+func GenerateVerifyPayerBalanceForTxExecution(env Environment) []byte {
+	code := assets.MustAssetString(verifyPayerBalanceForTxExecution)
 
 	return []byte(ReplaceAddresses(code, env))
 }
