@@ -1,14 +1,14 @@
-import FlowServiceAccount from 0xFLOWSERVICEADDRESS
+import FlowServiceAccount from "FlowServiceAccount"
 
 // This transaction removes an account creator
 transaction(accountCreator: Address) {
 
 	let serviceAccountAdmin: &FlowServiceAccount.Administrator
 
-	prepare(signer: AuthAccount) {
+	prepare(signer: auth(BorrowValue) &Account) {
 		// Borrow reference to FlowServiceAccount Administrator resource.
 		//
-		self.serviceAccountAdmin = signer.borrow<&FlowServiceAccount.Administrator>(from: /storage/flowServiceAdmin)
+		self.serviceAccountAdmin = signer.storage.borrow<&FlowServiceAccount.Administrator>(from: /storage/flowServiceAdmin)
 			?? panic("Unable to borrow reference to administrator resource")
 	}
 	execute {

@@ -1,7 +1,7 @@
-import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
+import FlowIDTableStaking from "FlowIDTableStaking"
 
 // This script returns the list of candidate nodes
 // for the upcoming epoch
-pub fun main(): {UInt8: {String: Bool}} {
+access(all) fun main(): {UInt8: {String: Bool}} {
     return FlowIDTableStaking.getCandidateNodeList()
 }

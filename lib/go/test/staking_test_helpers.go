@@ -38,29 +38,24 @@ type EpochTotalRewardsPaid struct {
 type EpochTotalRewardsPaidEvent flow.Event
 
 func (evt EpochTotalRewardsPaidEvent) Total() cadence.UFix64 {
-	return evt.Value.Fields[0].(cadence.UFix64)
+	return cadence.SearchFieldByName(evt.Value, "total").(cadence.UFix64)
 }
 
 func (evt EpochTotalRewardsPaidEvent) FromFees() cadence.UFix64 {
-	return evt.Value.Fields[1].(cadence.UFix64)
+	return cadence.SearchFieldByName(evt.Value, "fromFees").(cadence.UFix64)
 }
 
 func (evt EpochTotalRewardsPaidEvent) Minted() cadence.UFix64 {
-	return evt.Value.Fields[2].(cadence.UFix64)
+	return cadence.SearchFieldByName(evt.Value, "minted").(cadence.UFix64)
 }
 
 func (evt EpochTotalRewardsPaidEvent) FeesBurned() cadence.UFix64 {
-	return evt.Value.Fields[3].(cadence.UFix64)
+	return cadence.SearchFieldByName(evt.Value, "feesBurned").(cadence.UFix64)
 }
 
 func stubInterpreter() *interpreter.Interpreter {
-	interp, _ := interpreter.NewInterpreter(
-		nil,
-		nil,
-		&interpreter.Config{},
-	)
-
-	return interp
+	inter, _ := interpreter.NewInterpreter(nil, nil, &interpreter.Config{})
+	return inter
 }
 
 // Defines utility functions that are used for testing the staking contract
@@ -89,7 +84,7 @@ func deployStakingContract(
 	cadencePublicKeys := cadence.NewArray(publicKeys)
 
 	// Get the code byte-array for the fees contract
-	FeesCode := contracts.TestFlowFees(emulatorFTAddress, emulatorFlowTokenAddress, emulatorStorageFees)
+	FeesCode := contracts.TestFlowFees(env.FungibleTokenAddress, env.FlowTokenAddress, env.StorageFeesAddress)
 
 	logger := zerolog.Nop()
 	adapter := adapters.NewSDKAdapter(&logger, b)
@@ -110,7 +105,7 @@ func deployStakingContract(
 	env.FlowFeesAddress = feesAddr.Hex()
 
 	// Get the code byte-array for the staking contract
-	IDTableCode, _ := cadence.NewString(string(contracts.FlowIDTableStaking(emulatorFTAddress, emulatorFlowTokenAddress, feesAddr.String(), latest))[:])
+	IDTableCode, _ := cadence.NewString(string(contracts.FlowIDTableStaking(*env))[:])
 
 	// Create the deployment transaction that transfers a FlowToken minter
 	// to the new account and deploys the IDTableStaking contract
@@ -132,7 +127,7 @@ func deployStakingContract(
 	for i, limit := range candidateNodeLimits {
 		candidateLimitsArrayValues[i] = cadence.NewUInt64(limit)
 	}
-	cadenceLimitArray := cadence.NewArray(candidateLimitsArrayValues).WithType(cadence.NewVariableSizedArrayType(cadence.NewUInt64Type()))
+	cadenceLimitArray := cadence.NewArray(candidateLimitsArrayValues).WithType(cadence.NewVariableSizedArrayType(cadence.UInt64Type))
 
 	_ = tx.AddArgument(cadenceLimitArray)
 
@@ -154,7 +149,7 @@ func deployStakingContract(
 		for _, result := range results {
 			for _, event := range result.Events {
 				if event.Type == flow.EventAccountCreated {
-					idTableAddress = flow.Address(event.Value.Fields[0].(cadence.Address))
+					idTableAddress = flow.Address(cadence.SearchFieldByName(event.Value, "address").(cadence.Address))
 				}
 			}
 		}
@@ -732,7 +727,7 @@ func generateCadenceNodeDictionary(nodeIDs []string) cadence.Value {
 		keyValuePairArray[i] = pair
 	}
 
-	return cadence.NewDictionary(keyValuePairArray).WithType(cadence.NewDictionaryType(cadence.NewStringType(), cadence.NewBoolType()))
+	return cadence.NewDictionary(keyValuePairArray).WithType(cadence.NewDictionaryType(cadence.StringType, cadence.BoolType))
 }
 
 // assertApprovedListEquals asserts the FlowIDTableStaking approved list matches

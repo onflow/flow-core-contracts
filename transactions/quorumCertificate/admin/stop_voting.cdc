@@ -1,11 +1,11 @@
-import FlowClusterQC from 0xQCADDRESS
+import FlowClusterQC from "FlowClusterQC"
 
 // Test transaction for the QC contract to stop the voting period
 
 transaction {
 
-    prepare(signer: AuthAccount) {
-        let adminRef = signer.borrow<&FlowClusterQC.Admin>(from: FlowClusterQC.AdminStoragePath)
+    prepare(signer: auth(BorrowValue) &Account) {
+        let adminRef = signer.storage.borrow<&FlowClusterQC.Admin>(from: FlowClusterQC.AdminStoragePath)
             ?? panic("Could not borrow reference to qc admin")
 
         adminRef.stopVoting()

@@ -25,6 +25,8 @@ func TestLockedTokensStaker(t *testing.T) {
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
 		FlowTokenAddress:     emulatorFlowTokenAddress,
+		BurnerAddress:        emulatorServiceAccount,
+		StorageFeesAddress:   emulatorServiceAccount,
 	}
 
 	accountKeys := test.AccountKeyGenerator()
@@ -54,7 +56,7 @@ func TestLockedTokensStaker(t *testing.T) {
 	for i, limit := range candidateNodeLimits {
 		candidateLimitsArrayValues[i] = cadence.NewUInt64(limit)
 	}
-	cadenceLimitArray := cadence.NewArray(candidateLimitsArrayValues).WithType(cadence.NewVariableSizedArrayType(cadence.NewUInt64Type()))
+	cadenceLimitArray := cadence.NewArray(candidateLimitsArrayValues).WithType(cadence.NewVariableSizedArrayType(cadence.UInt64Type))
 
 	_ = tx.AddArgument(cadenceLimitArray)
 
@@ -74,7 +76,7 @@ func TestLockedTokensStaker(t *testing.T) {
 		for _, result := range results {
 			for _, event := range result.Events {
 				if event.Type == flow.EventAccountCreated {
-					idTableAddress = flow.Address(event.Value.Fields[0].(cadence.Address))
+					idTableAddress = flow.Address(cadence.SearchFieldByName(event.Value, "address").(cadence.Address))
 				}
 			}
 		}
@@ -98,12 +100,13 @@ func TestLockedTokensStaker(t *testing.T) {
 	_, err = b.CommitBlock()
 	assert.NoError(t, err)
 
+	env.StakingProxyAddress = stakingProxyAddress.String()
+
 	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
 	adminAddress, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{adminAccountKey}, nil)
 
 	lockedTokensAccountKey, _ := accountKeys.NewWithSigner()
 	lockedTokensAddress := deployLockedTokensContract(t, b, env, idTableAddress, stakingProxyAddress, lockedTokensAccountKey, adminAddress, adminSigner)
-	env.StakingProxyAddress = stakingProxyAddress.Hex()
 	env.LockedTokensAddress = lockedTokensAddress.Hex()
 
 	// Create new keys for the user account
@@ -635,6 +638,8 @@ func TestLockedTokensDelegator(t *testing.T) {
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
 		FlowTokenAddress:     emulatorFlowTokenAddress,
+		BurnerAddress:        emulatorServiceAccount,
+		StorageFeesAddress:   emulatorServiceAccount,
 	}
 
 	accountKeys := test.AccountKeyGenerator()
@@ -664,7 +669,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 	for i, limit := range candidateNodeLimits {
 		candidateLimitsArrayValues[i] = cadence.NewUInt64(limit)
 	}
-	cadenceLimitArray := cadence.NewArray(candidateLimitsArrayValues).WithType(cadence.NewVariableSizedArrayType(cadence.NewUInt64Type()))
+	cadenceLimitArray := cadence.NewArray(candidateLimitsArrayValues).WithType(cadence.NewVariableSizedArrayType(cadence.UInt64Type))
 
 	_ = tx.AddArgument(cadenceLimitArray)
 
@@ -685,7 +690,7 @@ func TestLockedTokensDelegator(t *testing.T) {
 		for _, result := range results {
 			for _, event := range result.Events {
 				if event.Type == flow.EventAccountCreated {
-					idTableAddress = flow.Address(event.Value.Fields[0].(cadence.Address))
+					idTableAddress = flow.Address(cadence.SearchFieldByName(event.Value, "address").(cadence.Address))
 				}
 			}
 		}
@@ -1100,6 +1105,8 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
 		FlowTokenAddress:     emulatorFlowTokenAddress,
+		BurnerAddress:        emulatorServiceAccount,
+		StorageFeesAddress:   emulatorServiceAccount,
 	}
 
 	accountKeys := test.AccountKeyGenerator()
@@ -1129,7 +1136,7 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 	for i, limit := range candidateNodeLimits {
 		candidateLimitsArrayValues[i] = cadence.NewUInt64(limit)
 	}
-	cadenceLimitArray := cadence.NewArray(candidateLimitsArrayValues).WithType(cadence.NewVariableSizedArrayType(cadence.NewUInt64Type()))
+	cadenceLimitArray := cadence.NewArray(candidateLimitsArrayValues).WithType(cadence.NewVariableSizedArrayType(cadence.UInt64Type))
 
 	_ = tx.AddArgument(cadenceLimitArray)
 
@@ -1150,7 +1157,7 @@ func TestCustodyProviderAccountCreation(t *testing.T) {
 		for _, result := range results {
 			for _, event := range result.Events {
 				if event.Type == flow.EventAccountCreated {
-					idTableAddress = flow.Address(event.Value.Fields[0].(cadence.Address))
+					idTableAddress = flow.Address(cadence.SearchFieldByName(event.Value, "address").(cadence.Address))
 				}
 			}
 		}
@@ -1456,6 +1463,8 @@ func TestLockedTokensRealStaking(t *testing.T) {
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
 		FlowTokenAddress:     emulatorFlowTokenAddress,
+		BurnerAddress:        emulatorServiceAccount,
+		StorageFeesAddress:   emulatorServiceAccount,
 	}
 
 	accountKeys := test.AccountKeyGenerator()
@@ -1479,6 +1488,8 @@ func TestLockedTokensRealStaking(t *testing.T) {
 	}
 	_, err = b.CommitBlock()
 	assert.NoError(t, err)
+
+	env.StakingProxyAddress = stakingProxyAddress.String()
 
 	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
 	adminAddress, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{adminAccountKey}, nil)
@@ -1788,6 +1799,8 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
 		FlowTokenAddress:     emulatorFlowTokenAddress,
+		BurnerAddress:        emulatorServiceAccount,
+		StorageFeesAddress:   emulatorServiceAccount,
 	}
 
 	accountKeys := test.AccountKeyGenerator()
@@ -2077,184 +2090,4 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 		result := executeScriptAndCheck(t, b, templates.GenerateGetTotalBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
 		assertEqual(t, CadenceUFix64("1000000.0"), result)
 	})
-}
-
-func TestLockedTokensUnlockMultipleAccounts(t *testing.T) {
-
-	b, adapter, accountKeys, env := newTestSetup(t)
-	// Create new keys for the epoch account
-	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-
-	_, _ = initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
-		startEpochCounter, // start epoch counter
-		numEpochViews,     // num views per epoch
-		numStakingViews,   // num views for staking auction
-		numDKGViews,       // num views for DKG phase
-		numClusters,       // num collector clusters
-		randomSource,      // random source
-		rewardIncreaseFactor)
-
-	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
-	adminAddress, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{adminAccountKey}, nil)
-
-	deployAllCollectionContracts(t, b, adapter, accountKeys, &env, adminAddress, adminSigner)
-
-	numAccounts := 40
-
-	accountAddresses := make([]flow.Address, numAccounts)
-	sharedAccountAddresses := make([]flow.Address, numAccounts)
-	accountSigners := make([]crypto.Signer, numAccounts)
-
-	firstUnlockInfo := make([]cadence.KeyValuePair, (numAccounts/2)+1)
-	secondUnlockInfo := make([]cadence.KeyValuePair, (numAccounts/2)+1)
-
-	// Create regular accounts that cannot be unlocked
-	nonLockedAccountKey, _ := accountKeys.NewWithSigner()
-	nonLockedAddress, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{nonLockedAccountKey}, nil)
-
-	nonLocked2AccountKey, _ := accountKeys.NewWithSigner()
-	nonLocked2Address, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{nonLocked2AccountKey}, nil)
-
-	// initialize a bunch of locked accounts with 100M FLOW in each locked account
-	for i := 0; i < numAccounts; i++ {
-
-		accountAddresses[i], sharedAccountAddresses[i], accountSigners[i] = createLockedAccountPairWithBalances(
-			t, b, adapter,
-			accountKeys,
-			env,
-			"1000000000.0",
-			"0.0", "100000000.0",
-			adminAccountKey, adminAddress, adminSigner)
-
-		if i < numAccounts/2 {
-			// Create Dictionary Key Pairs with the unlocked account addresses as the keys
-			// and the amounts to unlock as the values
-			// Unlock 10k per account
-			firstUnlockInfo[i] = cadence.KeyValuePair{
-				Key:   cadence.NewAddress(accountAddresses[i]),
-				Value: CadenceUFix64("10000.0"),
-			}
-		} else {
-			secondUnlockInfo[i%(numAccounts/2)] = cadence.KeyValuePair{
-				Key:   cadence.NewAddress(accountAddresses[i]),
-				Value: CadenceUFix64("10000.0"),
-			}
-		}
-
-		// Check unlock limit of the shared accounts
-		result := executeScriptAndCheck(t, b,
-			templates.GenerateGetUnlockLimitScript(env),
-			[][]byte{
-				jsoncdc.MustEncode(cadence.Address(accountAddresses[i])),
-			},
-		)
-		assertEqual(t, CadenceUFix64("0.0"), result)
-	}
-
-	// Set the bad accounts' info in the dictionary
-	firstUnlockInfo[numAccounts/2] = cadence.KeyValuePair{
-		Key:   cadence.NewAddress(nonLockedAddress),
-		Value: CadenceUFix64("20000.0"),
-	}
-
-	secondUnlockInfo[numAccounts/2] = cadence.KeyValuePair{
-		Key:   cadence.NewAddress(nonLocked2Address),
-		Value: CadenceUFix64("30000.0"),
-	}
-
-	// Deposit 0.001 FLOW into the shared account to increase its unlock limit
-	mintTokensForAccount(t, b, env, sharedAccountAddresses[0], "0.001")
-
-	// Make sure the unlock limit has increased by 0.001
-	result := executeScriptAndCheck(t, b,
-		templates.GenerateGetUnlockLimitScript(env),
-		[][]byte{
-			jsoncdc.MustEncode(cadence.Address(accountAddresses[0])),
-		},
-	)
-	assertEqual(t, CadenceUFix64("0.001"), result)
-
-	t.Run("Should be able to increase the unlock limit for many accounts", func(t *testing.T) {
-
-		// Use the dictionary we created to increase all accounts' unlock limits
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateIncreaseUnlockLimitForMultipleAccountsScript(env), adminAddress)
-		_ = tx.AddArgument(cadence.NewDictionary(firstUnlockInfo))
-
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{adminAddress},
-			[]crypto.Signer{adminSigner},
-			false,
-		)
-
-		// Make sure they have all been increased to 10k
-		// Account which had an increased limit should not be greater than 10k
-		for i := 0; i < numAccounts; i++ {
-
-			result := executeScriptAndCheck(t, b,
-				templates.GenerateGetUnlockLimitScript(env),
-				[][]byte{
-					jsoncdc.MustEncode(cadence.Address(accountAddresses[i])),
-				},
-			)
-			if i == 0 {
-				assertEqual(t, CadenceUFix64("10000.001"), result)
-			} else if i < numAccounts/2 {
-				assertEqual(t, CadenceUFix64("10000.0"), result)
-			} else {
-				assertEqual(t, CadenceUFix64("0.0"), result)
-			}
-		}
-
-		result := executeScriptAndCheck(t, b,
-			templates.GenerateGetBadAccountsScript(env),
-			[][]byte{jsoncdc.MustEncode(cadence.Address(adminAddress))},
-		).(cadence.Dictionary).Pairs
-		assertEqual(t, 1, len(result))
-		assertEqual(t, nonLockedAddress.String(), result[0].Key.String()[2:])
-		assertEqual(t, CadenceUFix64("20000.0"), result[0].Value)
-
-	})
-
-	t.Run("Should be able to increase the unlock limit for more accounts but not overwrite first bad accounts", func(t *testing.T) {
-
-		// Use the dictionary we created to increase all accounts' unlock limits
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateIncreaseUnlockLimitForMultipleAccountsScript(env), adminAddress)
-		_ = tx.AddArgument(cadence.NewDictionary(secondUnlockInfo))
-
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{adminAddress},
-			[]crypto.Signer{adminSigner},
-			false,
-		)
-
-		// Make sure they have all been increased to 10k
-		// Account which had an increased limit should not be greater than 10k
-		for i := 0; i < numAccounts; i++ {
-
-			result := executeScriptAndCheck(t, b,
-				templates.GenerateGetUnlockLimitScript(env),
-				[][]byte{
-					jsoncdc.MustEncode(cadence.Address(accountAddresses[i])),
-				},
-			)
-			if i == 0 {
-				assertEqual(t, CadenceUFix64("10000.001"), result)
-			} else {
-				assertEqual(t, CadenceUFix64("10000.0"), result)
-			}
-		}
-
-		result := executeScriptAndCheck(t, b,
-			templates.GenerateGetBadAccountsScript(env),
-			[][]byte{jsoncdc.MustEncode(cadence.Address(adminAddress))},
-		).(cadence.Dictionary).Pairs
-		assertEqual(t, 2, len(result))
-		assertEqual(t, nonLockedAddress.String(), result[0].Key.String()[2:])
-		assertEqual(t, CadenceUFix64("20000.0"), result[0].Value)
-		assertEqual(t, nonLocked2Address.String(), result[1].Key.String()[2:])
-		assertEqual(t, CadenceUFix64("30000.0"), result[1].Value)
-	})
-
 }

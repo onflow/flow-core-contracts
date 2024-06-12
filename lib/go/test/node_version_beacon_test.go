@@ -3,11 +3,12 @@ package test
 import (
 	"context"
 	"fmt"
+	"testing"
+
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/flow-emulator/convert"
 	"github.com/onflow/flow-emulator/emulator"
 	flowgo "github.com/onflow/flow-go/model/flow"
-	"testing"
 
 	"github.com/coreos/go-semver/semver"
 	"github.com/onflow/cadence"
@@ -25,7 +26,7 @@ func deployContract(b emulator.Emulator, address flow.Address, signer crypto.Sig
 
 	addAccountContractTemplate := `
 	transaction(name: String, code: String %s) {
-		prepare(signer: AuthAccount) {
+		prepare(signer: auth(AddContract) &Account) {
 			signer.contracts.add(name: name, code: code.decodeHex() %s)
 		}
 	}`
@@ -183,7 +184,7 @@ func TestNodeVersionBeacon(t *testing.T) {
 type VersionBeaconEvent flow.Event
 
 func (v VersionBeaconEvent) Sequence() uint64 {
-	return v.Value.Fields[1].(cadence.UInt64).ToGoValue().(uint64)
+	return uint64(cadence.SearchFieldByName(v.Value, "sequence").(cadence.UInt64))
 }
 
 func (v VersionBeaconEvent) VersionTable() (ret []struct {
@@ -191,11 +192,14 @@ func (v VersionBeaconEvent) VersionTable() (ret []struct {
 	version string
 }) {
 
-	for _, cadenceVal := range v.Value.Fields[0].(cadence.Array).Values {
-		height := cadenceVal.(cadence.Struct).Fields[0].(cadence.UInt64).ToGoValue().(uint64)
-		versionFields := cadenceVal.(cadence.Struct).Fields[1].(cadence.Struct).Fields
+	array := cadence.SearchFieldByName(v.Value, "versionBoundaries").(cadence.Array).Values
 
-		version := fmt.Sprintf("%s.%s.%s", versionFields[0].String(), versionFields[1].String(), versionFields[2].String())
+	for _, cadenceVal := range array {
+		fields := cadence.FieldsMappedByName(cadenceVal.(cadence.Struct))
+		height := uint64(fields["blockHeight"].(cadence.UInt64))
+		versionFields := cadence.FieldsMappedByName(fields["version"].(cadence.Struct))
+
+		version := fmt.Sprintf("%s.%s.%s", versionFields["major"].String(), versionFields["minor"].String(), versionFields["patch"].String())
 
 		ret = append(ret, struct {
 			height  uint64

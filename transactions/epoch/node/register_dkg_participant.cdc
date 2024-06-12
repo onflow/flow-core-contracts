@@ -1,17 +1,17 @@
-import FlowEpoch from 0xEPOCHADDRESS
-import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
-import FlowDKG from 0xDKGADDRESS
+import FlowEpoch from "FlowEpoch"
+import FlowIDTableStaking from "FlowIDTableStaking"
+import FlowDKG from "FlowDKG"
 
 transaction() {
 
-    prepare(signer: AuthAccount) {
+    prepare(signer: auth(Storage) &Account) {
 
-        let nodeRef = signer.borrow<&FlowIDTableStaking.NodeStaker>(from: FlowIDTableStaking.NodeStakerStoragePath)
+        let nodeRef = signer.storage.borrow<&FlowIDTableStaking.NodeStaker>(from: FlowIDTableStaking.NodeStakerStoragePath)
             ?? panic("Could not borrow node reference from storage path")
 
         let dkgParticipant <- FlowEpoch.getDKGParticipant(nodeStaker: nodeRef)
 
-        signer.save(<-dkgParticipant, to: FlowDKG.ParticipantStoragePath)
+        signer.storage.save(<-dkgParticipant, to: FlowDKG.ParticipantStoragePath)
 
     }
 }

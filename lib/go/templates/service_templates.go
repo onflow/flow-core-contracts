@@ -2,6 +2,8 @@ package templates
 
 import (
 	"github.com/onflow/flow-core-contracts/lib/go/templates/internal/assets"
+	ft_templates "github.com/onflow/flow-ft/lib/go/templates"
+	nft_templates "github.com/onflow/flow-nft/lib/go/templates"
 )
 
 const (
@@ -38,7 +40,56 @@ const (
 	setExecutionMemoryWeighs  = "FlowServiceAccount/set_execution_memory_weights.cdc"
 	getExecutionMemoryLimit   = "FlowServiceAccount/scripts/get_execution_memory_limit.cdc"
 	setExecutionMemoryLimit   = "FlowServiceAccount/set_execution_memory_limit.cdc"
+
+	// Account templates
+	createAccountFilename = "accounts/create_new_account.cdc"
+	addKeyFilename        = "accounts/add_key.cdc"
+	revokeKeyFilename     = "accounts/revoke_key.cdc"
 )
+
+// account templates
+func GenerateCreateAccountScript(env Environment) []byte {
+	code := assets.MustAssetString(createAccountFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateAddKeyScript(env Environment) []byte {
+	code := assets.MustAssetString(addKeyFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateRevokeKeyScript(env Environment) []byte {
+	code := assets.MustAssetString(revokeKeyFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+// FT and NFT templates
+func GenerateSetupFTAccountFromAddressScript(env Environment) []byte {
+	return ft_templates.GenerateSetupAccountFromAddressScript(env.FungibleTokenAddress, env.FungibleTokenMetadataViewsAddress)
+}
+
+func GenerateTransferGenericVaultWithPathsScript(env Environment) []byte {
+	return ft_templates.GenerateTransferGenericVaultWithPathsScript(env.FungibleTokenAddress)
+}
+
+func GenerateTransferGenericVaultWithAddressScript(env Environment) []byte {
+	return ft_templates.GenerateTransferGenericVaultWithAddressScript(env.FungibleTokenAddress, env.FungibleTokenMetadataViewsAddress)
+}
+
+func GenerateSetupNFTAccountFromAddressScript(env Environment) []byte {
+	return nft_templates.GenerateSetupAccountFromAddressScript(env.NonFungibleTokenAddress, env.MetadataViewsAddress)
+}
+
+func GenerateTransferGenericNFTWithPathsScript(env Environment) []byte {
+	return nft_templates.GenerateTransferGenericNFTWithPathsScript(env.NonFungibleTokenAddress)
+}
+
+func GenerateTransferGenericNFTWithAddressScript(env Environment) []byte {
+	return nft_templates.GenerateTransferGenericNFTWithAddressScript(env.NonFungibleTokenAddress, env.MetadataViewsAddress)
+}
 
 // FlowToken Templates
 func GenerateMintFlowScript(env Environment) []byte {

@@ -1,5 +1,5 @@
-import FlowServiceAccount from 0xFLOWSERVICEADDRESS
+import FlowServiceAccount from "FlowServiceAccount"
 
-pub fun main(): UFix64 {
+access(all) fun main(): UFix64 {
     return FlowServiceAccount.accountCreationFee
 }

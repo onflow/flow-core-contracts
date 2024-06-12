@@ -14,37 +14,48 @@ import (
 )
 
 const (
-	placeholderFungibleTokenAddress       = "0xFUNGIBLETOKENADDRESS"
-	placeholderFlowTokenAddress           = "0xFLOWTOKENADDRESS"
-	placeholderIDTableAddress             = "0xIDENTITYTABLEADDRESS"
-	placeholderLockedTokensAddress        = "0xLOCKEDTOKENADDRESS"
-	placeholderStakingProxyAddress        = "0xSTAKINGPROXYADDRESS"
-	placeholderQuorumCertificateAddress   = "0xQCADDRESS"
-	placeholderFlowFeesAddress            = "0xFLOWFEESADDRESS"
-	placeholderStorageFeesAddress         = "0xFLOWSTORAGEFEESADDRESS"
-	placeholderServiceAccountAddress      = "0xFLOWSERVICEADDRESS"
-	placeholderDKGAddress                 = "0xDKGADDRESS"
-	placeholderEpochAddress               = "0xEPOCHADDRESS"
-	placeholderStakingCollectionAddress   = "0xSTAKINGCOLLECTIONADDRESS"
-	placeholderNodeVersionBeaconAddress   = "0xNODEVERSIONBEACONADDRESS"
-	placeholderRandomBeaconHistoryAddress = "0xRANDOMBEACONHISTORYADDRESS"
+	placeholderFungibleTokenAddress       = "\"FungibleToken\""
+	placeholderViewResolverAddress        = "\"ViewResolver\""
+	placeholderFungibleTokenMVAddress     = "\"FungibleTokenMetadataViews\""
+	placeholderMetadataViewsAddress       = "\"MetadataViews\""
+	placeholderBurnerAddress              = "\"Burner\""
+	placeholderFlowTokenAddress           = "\"FlowToken\""
+	placeholderIDTableAddress             = "\"FlowIDTableStaking\""
+	placeholderLockedTokensAddress        = "\"LockedTokens\""
+	placeholderStakingProxyAddress        = "\"StakingProxy\""
+	placeholderQuorumCertificateAddress   = "\"FlowClusterQC\""
+	placeholderFlowFeesAddress            = "\"FlowFees\""
+	placeholderStorageFeesAddress         = "\"FlowStorageFees\""
+	placeholderServiceAccountAddress      = "\"FlowServiceAccount\""
+	placeholderDKGAddress                 = "\"FlowDKG\""
+	placeholderEpochAddress               = "\"FlowEpoch\""
+	placeholderStakingCollectionAddress   = "\"FlowStakingCollection\""
+	placeholderNodeVersionBeaconAddress   = "\"NodeVersionBeacon\""
+	placeholderRandomBeaconHistoryAddress = "\"RandomBeaconHistory\""
 )
 
 type Environment struct {
-	Network                    string
-	FungibleTokenAddress       string
-	FlowTokenAddress           string
-	IDTableAddress             string
-	LockedTokensAddress        string
-	StakingProxyAddress        string
-	QuorumCertificateAddress   string
-	DkgAddress                 string
-	EpochAddress               string
-	StorageFeesAddress         string
-	FlowFeesAddress            string
-	ServiceAccountAddress      string
-	NodeVersionBeaconAddress   string
-	RandomBeaconHistoryAddress string
+	Network                           string
+	ViewResolverAddress               string
+	BurnerAddress                     string
+	FungibleTokenAddress              string
+	NonFungibleTokenAddress           string
+	MetadataViewsAddress              string
+	FungibleTokenMetadataViewsAddress string
+	FungibleTokenSwitchboardAddress   string
+	FlowTokenAddress                  string
+	IDTableAddress                    string
+	LockedTokensAddress               string
+	StakingProxyAddress               string
+	QuorumCertificateAddress          string
+	DkgAddress                        string
+	EpochAddress                      string
+	StorageFeesAddress                string
+	FlowFeesAddress                   string
+	StakingCollectionAddress          string
+	ServiceAccountAddress             string
+	NodeVersionBeaconAddress          string
+	RandomBeaconHistoryAddress        string
 }
 
 func withHexPrefix(address string) string {
@@ -60,6 +71,30 @@ func withHexPrefix(address string) string {
 }
 
 func ReplaceAddresses(code string, env Environment) string {
+
+	code = strings.ReplaceAll(
+		code,
+		placeholderFungibleTokenMVAddress,
+		withHexPrefix(env.FungibleTokenMetadataViewsAddress),
+	)
+
+	code = strings.ReplaceAll(
+		code,
+		placeholderMetadataViewsAddress,
+		withHexPrefix(env.MetadataViewsAddress),
+	)
+
+	code = strings.ReplaceAll(
+		code,
+		placeholderBurnerAddress,
+		withHexPrefix(env.BurnerAddress),
+	)
+
+	code = strings.ReplaceAll(
+		code,
+		placeholderViewResolverAddress,
+		withHexPrefix(env.ViewResolverAddress),
+	)
 
 	code = strings.ReplaceAll(
 		code,

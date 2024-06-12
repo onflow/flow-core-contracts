@@ -1,9 +1,9 @@
-import StakingProxy from 0xSTAKINGPROXYADDRESS
+import StakingProxy from "StakingProxy"
 
 transaction(nodeID: String) {
 
-    prepare(account: AuthAccount) {
-        let proxyHolder = account.borrow<&StakingProxy.NodeStakerProxyHolder>(from: StakingProxy.NodeOperatorCapabilityStoragePath)
+    prepare(account: auth(BorrowValue) &Account) {
+        let proxyHolder = account.storage.borrow<&StakingProxy.NodeStakerProxyHolder>(from: StakingProxy.NodeOperatorCapabilityStoragePath)
             ?? panic("Could not borrow reference to staking proxy holder")
 
         let stakingProxy = proxyHolder.borrowStakingProxy(nodeID: nodeID)!

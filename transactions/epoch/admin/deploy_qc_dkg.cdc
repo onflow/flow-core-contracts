@@ -2,7 +2,7 @@
  
 transaction(qcName: String, qcCode: [UInt8], dkgName: String, dkgCode: [UInt8]) {
 
-  prepare(signer: AuthAccount) {
+  prepare(signer: auth(AddContract) &Account) {
 
     signer.contracts.add(name: qcName, code: qcCode)
 

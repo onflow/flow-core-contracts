@@ -1,7 +1,7 @@
-import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
+import FlowIDTableStaking from "FlowIDTableStaking"
 
 // This script gets all the info about a node and returns it
 
-pub fun main(nodeID: String): FlowIDTableStaking.NodeInfo {
+access(all) fun main(nodeID: String): FlowIDTableStaking.NodeInfo {
     return FlowIDTableStaking.NodeInfo(nodeID: nodeID)
 }

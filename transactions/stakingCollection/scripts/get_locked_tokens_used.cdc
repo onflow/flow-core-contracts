@@ -1,8 +1,8 @@
-import FlowStakingCollection from 0xSTAKINGCOLLECTIONADDRESS
+import FlowStakingCollection from "FlowStakingCollection"
 
 /// Tells how many locked tokens the account is using
 /// For there staking collection nodes and delegators
 
-pub fun main(account: Address): UFix64 {
+access(all) fun main(account: Address): UFix64 {
     return FlowStakingCollection.getLockedTokensUsed(address: account)
 }

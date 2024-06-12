@@ -1,4 +1,4 @@
-import LockedTokens from 0xLOCKEDTOKENADDRESS
+import LockedTokens from "LockedTokens"
 
 /// token admin signs this transaction to deposit a capability
 /// into a custody provider's account that allows them to add
@@ -6,18 +6,17 @@ import LockedTokens from 0xLOCKEDTOKENADDRESS
 
 transaction(custodyProviderAddress: Address) {
 
-    prepare(admin: AuthAccount) {
+    prepare(admin: auth(BorrowValue, Capabilities) &Account) {
 
         let capabilityReceiver = getAccount(custodyProviderAddress)
-            .getCapability<&LockedTokens.LockedAccountCreator{LockedTokens.LockedAccountCreatorPublic}>(
+            .capabilities.borrow<&LockedTokens.LockedAccountCreator>(
                 LockedTokens.LockedAccountCreatorPublicPath
             )
-            .borrow()
             ?? panic("Could not borrow capability receiver reference")
 
-        let tokenAdminCollection = admin.getCapability<&LockedTokens.TokenAdminCollection>(
-            LockedTokens.LockedTokenAdminPrivatePath
-        )
+        let tokenAdminCollection = admin.capabilities.storage.issue<auth(LockedTokens.AccountCreator) &LockedTokens.TokenAdminCollection>(
+            LockedTokens.LockedTokenAdminCollectionStoragePath
+        )!
 
         capabilityReceiver.addCapability(cap: tokenAdminCollection)
     }

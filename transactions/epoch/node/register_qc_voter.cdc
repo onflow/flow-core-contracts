@@ -1,17 +1,17 @@
-import FlowEpoch from 0xEPOCHADDRESS
-import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
-import FlowClusterQC from 0xQCADDRESS
+import FlowEpoch from "FlowEpoch"
+import FlowIDTableStaking from "FlowIDTableStaking"
+import FlowClusterQC from "FlowClusterQC"
 
 transaction() {
 
-    prepare(signer: AuthAccount) {
+    prepare(signer: auth(Storage) &Account) {
 
-        let nodeRef = signer.borrow<&FlowIDTableStaking.NodeStaker>(from: FlowIDTableStaking.NodeStakerStoragePath)
+        let nodeRef = signer.storage.borrow<&FlowIDTableStaking.NodeStaker>(from: FlowIDTableStaking.NodeStakerStoragePath)
             ?? panic("Could not borrow node reference from storage path")
 
         let qcVoter <- FlowEpoch.getClusterQCVoter(nodeStaker: nodeRef)
 
-        signer.save(<-qcVoter, to: FlowClusterQC.VoterStoragePath)
+        signer.storage.save(<-qcVoter, to: FlowClusterQC.VoterStoragePath)
 
     }
 }

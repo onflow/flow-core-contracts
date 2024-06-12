@@ -1,5 +1,5 @@
-import FlowEpoch from 0xEPOCHADDRESS
+import FlowEpoch from "FlowEpoch"
 
-pub fun main(): FlowEpoch.Config {
+access(all) fun main(): FlowEpoch.Config {
     return FlowEpoch.getConfigMetadata()
 }

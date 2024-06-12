@@ -31,6 +31,8 @@ func TestContracts(t *testing.T) {
 		FlowTokenAddress:      emulatorFlowTokenAddress,
 		FlowFeesAddress:       emulatorFlowFeesAddress,
 		ServiceAccountAddress: b.ServiceKey().Address.Hex(),
+		BurnerAddress:         emulatorServiceAccount,
+		StorageFeesAddress:    emulatorServiceAccount,
 	}
 
 	accountKeys := test.AccountKeyGenerator()
@@ -38,7 +40,7 @@ func TestContracts(t *testing.T) {
 	storageFeesAccountKey, storageFeesSigner := accountKeys.NewWithSigner()
 
 	// deploy the FlowStorageFees contract
-	storageFeesCode := contracts.FlowStorageFees(emulatorFTAddress, emulatorFlowTokenAddress)
+	storageFeesCode := contracts.FlowStorageFees(env)
 	storageFeesAddress, err := adapter.CreateAccount(context.Background(), []*flow.AccountKey{storageFeesAccountKey}, []sdktemplates.Contract{
 		{
 			Name:   "FlowStorageFees",
@@ -282,10 +284,10 @@ func TestContracts(t *testing.T) {
 		)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetFeeParametersScript(env), [][]byte{})
-		fields := result.(cadence.Struct).Fields
-		assertEqual(t, CadenceUFix64("1.0"), fields[0])
-		assertEqual(t, CadenceUFix64("2.0"), fields[1])
-		assertEqual(t, CadenceUFix64("3.0"), fields[2])
+		fields := cadence.FieldsMappedByName(result.(cadence.Struct))
+		assertEqual(t, CadenceUFix64("1.0"), fields["surgeFactor"])
+		assertEqual(t, CadenceUFix64("2.0"), fields["inclusionEffortCost"])
+		assertEqual(t, CadenceUFix64("3.0"), fields["executionEffortCost"])
 	})
 
 	t.Run("Should set and get execution effort weights", func(t *testing.T) {
@@ -401,10 +403,7 @@ func TestContracts(t *testing.T) {
 
 	// deploy the ServiceAccount contract
 	serviceAccountCode := contracts.FlowServiceAccount(
-		emulatorFTAddress,
-		emulatorFlowTokenAddress,
-		"0xe5a8b7f23e8b548f",
-		storageFeesAddress.String(),
+		env,
 	)
 	_, err = adapter.CreateAccount(context.Background(), nil, []sdktemplates.Contract{
 		{

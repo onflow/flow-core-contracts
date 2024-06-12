@@ -3,7 +3,7 @@
 
 transaction(contractName: String, code: String) {
     
-    prepare(admin: AuthAccount) {
+    prepare(admin: auth(AddContract) &Account) {
         admin.contracts.add(name: contractName, code: code.decodeHex())
     }
 }

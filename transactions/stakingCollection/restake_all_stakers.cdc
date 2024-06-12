@@ -1,14 +1,14 @@
-import FlowStakingCollection from 0xSTAKINGCOLLECTIONADDRESS
-import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
+import FlowStakingCollection from "FlowStakingCollection"
+import FlowIDTableStaking from "FlowIDTableStaking"
 
 /// Commits rewarded tokens to stake for all nodes and delegators in a collection
 
 transaction {
     
-    let stakingCollectionRef: &FlowStakingCollection.StakingCollection
+    let stakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) &FlowStakingCollection.StakingCollection
 
-    prepare(account: AuthAccount) {
-        self.stakingCollectionRef = account.borrow<&FlowStakingCollection.StakingCollection>(from: FlowStakingCollection.StakingCollectionStoragePath)
+    prepare(account: auth(BorrowValue) &Account) {
+        self.stakingCollectionRef = account.storage.borrow<auth(FlowStakingCollection.CollectionOwner) &FlowStakingCollection.StakingCollection>(from: FlowStakingCollection.StakingCollectionStoragePath)
             ?? panic("Could not borrow ref to StakingCollection")
     }
 

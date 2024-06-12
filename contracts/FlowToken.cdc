@@ -1,33 +1,26 @@
 import FungibleToken from "FungibleToken"
 import MetadataViews from "MetadataViews"
 import FungibleTokenMetadataViews from "FungibleTokenMetadataViews"
-import ViewResolver from "ViewResolver"
 
-pub contract FlowToken: FungibleToken, ViewResolver {
+access(all) contract FlowToken: FungibleToken {
 
     // Total supply of Flow tokens in existence
-    pub var totalSupply: UFix64
-
-    // Event that is emitted when the contract is created
-    pub event TokensInitialized(initialSupply: UFix64)
+    access(all) var totalSupply: UFix64
 
     // Event that is emitted when tokens are withdrawn from a Vault
-    pub event TokensWithdrawn(amount: UFix64, from: Address?)
+    access(all) event TokensWithdrawn(amount: UFix64, from: Address?)
 
     // Event that is emitted when tokens are deposited to a Vault
-    pub event TokensDeposited(amount: UFix64, to: Address?)
+    access(all) event TokensDeposited(amount: UFix64, to: Address?)
 
     // Event that is emitted when new tokens are minted
-    pub event TokensMinted(amount: UFix64)
-
-    // Event that is emitted when tokens are destroyed
-    pub event TokensBurned(amount: UFix64)
+    access(all) event TokensMinted(amount: UFix64)
 
     // Event that is emitted when a new minter resource is created
-    pub event MinterCreated(allowedAmount: UFix64)
+    access(all) event MinterCreated(allowedAmount: UFix64)
 
     // Event that is emitted when a new burner resource is created
-    pub event BurnerCreated()
+    access(all) event BurnerCreated()
 
     // Vault
     //
@@ -41,14 +34,36 @@ pub contract FlowToken: FungibleToken, ViewResolver {
     // out of thin air. A special Minter resource needs to be defined to mint
     // new tokens.
     //
-    pub resource Vault: FungibleToken.Provider, FungibleToken.Receiver, FungibleToken.Balance, MetadataViews.Resolver {
+    access(all) resource Vault: FungibleToken.Vault {
 
         // holds the balance of a users tokens
-        pub var balance: UFix64
+        access(all) var balance: UFix64
 
         // initialize the balance at resource creation time
         init(balance: UFix64) {
             self.balance = balance
+        }
+
+        /// Called when a fungible token is burned via the `Burner.burn()` method
+        access(contract) fun burnCallback() {
+            if self.balance > 0.0 {
+                FlowToken.totalSupply = FlowToken.totalSupply - self.balance
+            }
+            self.balance = 0.0
+        }
+
+        /// getSupportedVaultTypes optionally returns a list of vault types that this receiver accepts
+        access(all) view fun getSupportedVaultTypes(): {Type: Bool} {
+            return {self.getType(): true}
+        }
+
+        access(all) view fun isSupportedVaultType(type: Type): Bool {
+            if (type == self.getType()) { return true } else { return false }
+        }
+
+        /// Asks if the amount can be withdrawn from this vault
+        access(all) view fun isAvailableToWithdraw(amount: UFix64): Bool {
+            return amount <= self.balance
         }
 
         // withdraw
@@ -60,9 +75,27 @@ pub contract FlowToken: FungibleToken, ViewResolver {
         // created Vault to the context that called so it can be deposited
         // elsewhere.
         //
-        pub fun withdraw(amount: UFix64): @FungibleToken.Vault {
+        access(FungibleToken.Withdraw) fun withdraw(amount: UFix64): @{FungibleToken.Vault} {
             self.balance = self.balance - amount
-            emit TokensWithdrawn(amount: amount, from: self.owner?.address)
+
+            // If the owner is the staking account, do not emit the contract defined events
+            // this is to help with the performance of the epoch transition operations
+            // Either way, event listeners should be paying attention to the 
+            // FungibleToken.Withdrawn events anyway because those contain
+            // much more comprehensive metadata
+            // Additionally, these events will eventually be removed from this contract completely
+            // in favor of the FungibleToken events
+            if let address = self.owner?.address {
+                if address != 0xf8d6e0586b0a20c7 &&
+                   address != 0xf4527793ee68aede &&
+                   address != 0x9eca2b38b18b5dfe &&
+                   address != 0x8624b52f9ddcd04a 
+                {
+                    emit TokensWithdrawn(amount: amount, from: address)
+                }
+            } else {
+                emit TokensWithdrawn(amount: amount, from: nil)
+            }
             return <-create Vault(balance: amount)
         }
 
@@ -73,18 +106,30 @@ pub contract FlowToken: FungibleToken, ViewResolver {
         // It is allowed to destroy the sent Vault because the Vault
         // was a temporary holder of the tokens. The Vault's balance has
         // been consumed and therefore can be destroyed.
-        pub fun deposit(from: @FungibleToken.Vault) {
+        access(all) fun deposit(from: @{FungibleToken.Vault}) {
             let vault <- from as! @FlowToken.Vault
             self.balance = self.balance + vault.balance
-            emit TokensDeposited(amount: vault.balance, to: self.owner?.address)
+
+            // If the owner is the staking account, do not emit the contract defined events
+            // this is to help with the performance of the epoch transition operations
+            // Either way, event listeners should be paying attention to the 
+            // FungibleToken.Deposited events anyway because those contain
+            // much more comprehensive metadata
+            // Additionally, these events will eventually be removed from this contract completely
+            // in favor of the FungibleToken events
+            if let address = self.owner?.address {
+                if address != 0xf8d6e0586b0a20c7 &&
+                   address != 0xf4527793ee68aede &&
+                   address != 0x9eca2b38b18b5dfe &&
+                   address != 0x8624b52f9ddcd04a 
+                {
+                    emit TokensDeposited(amount: vault.balance, to: address)
+                }
+            } else {
+                emit TokensDeposited(amount: vault.balance, to: nil)
+            }
             vault.balance = 0.0
             destroy vault
-        }
-
-        destroy() {
-            if self.balance > 0.0 {
-                FlowToken.totalSupply = FlowToken.totalSupply - self.balance
-            }
         }
 
         /// Get all the Metadata Views implemented by FlowToken
@@ -92,8 +137,8 @@ pub contract FlowToken: FungibleToken, ViewResolver {
         /// @return An array of Types defining the implemented views. This value will be used by
         ///         developers to know which parameter to pass to the resolveView() method.
         ///
-        pub fun getViews(): [Type]{
-            return FlowToken.getViews()
+        access(all) view fun getViews(): [Type]{
+            return FlowToken.getContractViews(resourceType: nil)
         }
 
         /// Get a Metadata View from FlowToken
@@ -101,8 +146,12 @@ pub contract FlowToken: FungibleToken, ViewResolver {
         /// @param view: The Type of the desired view.
         /// @return A structure representing the requested view.
         ///
-        pub fun resolveView(_ view: Type): AnyStruct? {
-            return FlowToken.resolveView(view)
+        access(all) fun resolveView(_ view: Type): AnyStruct? {
+            return FlowToken.resolveContractView(resourceType: nil, viewType: view)
+        }
+
+        access(all) fun createEmptyVault(): @{FungibleToken.Vault} {
+            return <-create Vault(balance: 0.0)
         }
     }
 
@@ -113,11 +162,12 @@ pub contract FlowToken: FungibleToken, ViewResolver {
     // and store the returned Vault in their storage in order to allow their
     // account to be able to receive deposits of this token type.
     //
-    pub fun createEmptyVault(): @FungibleToken.Vault {
+    access(all) fun createEmptyVault(vaultType: Type): @FlowToken.Vault {
         return <-create Vault(balance: 0.0)
     }
 
-    pub fun getViews(): [Type] {
+    /// Gets a list of the metadata views that this contract supports
+    access(all) view fun getContractViews(resourceType: Type?): [Type] {
         return [Type<FungibleTokenMetadataViews.FTView>(),
                 Type<FungibleTokenMetadataViews.FTDisplay>(),
                 Type<FungibleTokenMetadataViews.FTVaultData>(),
@@ -129,12 +179,12 @@ pub contract FlowToken: FungibleToken, ViewResolver {
     /// @param view: The Type of the desired view.
     /// @return A structure representing the requested view.
     ///
-    pub fun resolveView(_ view: Type): AnyStruct? {
-        switch view {
+    access(all) fun resolveContractView(resourceType: Type?, viewType: Type): AnyStruct? {
+        switch viewType {
             case Type<FungibleTokenMetadataViews.FTView>():
                 return FungibleTokenMetadataViews.FTView(
-                    ftDisplay: self.resolveView(Type<FungibleTokenMetadataViews.FTDisplay>()) as! FungibleTokenMetadataViews.FTDisplay?,
-                    ftVaultData: self.resolveView(Type<FungibleTokenMetadataViews.FTVaultData>()) as! FungibleTokenMetadataViews.FTVaultData?
+                    ftDisplay: self.resolveContractView(resourceType: nil, viewType: Type<FungibleTokenMetadataViews.FTDisplay>()) as! FungibleTokenMetadataViews.FTDisplay?,
+                    ftVaultData: self.resolveContractView(resourceType: nil, viewType: Type<FungibleTokenMetadataViews.FTVaultData>()) as! FungibleTokenMetadataViews.FTVaultData?
                 )
             case Type<FungibleTokenMetadataViews.FTDisplay>():
                 let media = MetadataViews.Media(
@@ -155,16 +205,16 @@ pub contract FlowToken: FungibleToken, ViewResolver {
                     }
                 )
             case Type<FungibleTokenMetadataViews.FTVaultData>():
+                let vaultRef = FlowToken.account.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault)
+			        ?? panic("Could not borrow reference to the contract's Vault!")
                 return FungibleTokenMetadataViews.FTVaultData(
                     storagePath: /storage/flowTokenVault,
                     receiverPath: /public/flowTokenReceiver,
                     metadataPath: /public/flowTokenBalance,
-                    providerPath: /private/flowTokenVault,
-                    receiverLinkedType: Type<&FlowToken.Vault{FungibleToken.Receiver, FungibleToken.Balance, MetadataViews.Resolver}>(),
-                    metadataLinkedType: Type<&FlowToken.Vault{FungibleToken.Balance, MetadataViews.Resolver}>(),
-                    providerLinkedType: Type<&FlowToken.Vault{FungibleToken.Provider}>(),
-                    createEmptyVaultFunction: (fun (): @FungibleToken.Vault {
-                        return <-FlowToken.createEmptyVault()
+                    receiverLinkedType: Type<&{FungibleToken.Receiver, FungibleToken.Vault}>(),
+                    metadataLinkedType: Type<&{FungibleToken.Balance, FungibleToken.Vault}>(),
+                    createEmptyVaultFunction: (fun (): @{FungibleToken.Vault} {
+                        return <-vaultRef.createEmptyVault()
                     })
                 )
             case Type<FungibleTokenMetadataViews.TotalSupply>():
@@ -173,23 +223,14 @@ pub contract FlowToken: FungibleToken, ViewResolver {
         return nil
     }
 
-    pub resource Administrator {
+    access(all) resource Administrator {
         // createNewMinter
         //
         // Function that creates and returns a new minter resource
         //
-        pub fun createNewMinter(allowedAmount: UFix64): @Minter {
+        access(all) fun createNewMinter(allowedAmount: UFix64): @Minter {
             emit MinterCreated(allowedAmount: allowedAmount)
             return <-create Minter(allowedAmount: allowedAmount)
-        }
-
-        // createNewBurner
-        //
-        // Function that creates and returns a new burner resource
-        //
-        pub fun createNewBurner(): @Burner {
-            emit BurnerCreated()
-            return <-create Burner()
         }
     }
 
@@ -197,17 +238,17 @@ pub contract FlowToken: FungibleToken, ViewResolver {
     //
     // Resource object that token admin accounts can hold to mint new tokens.
     //
-    pub resource Minter {
+    access(all) resource Minter {
 
         // the amount of tokens that the minter is allowed to mint
-        pub var allowedAmount: UFix64
+        access(all) var allowedAmount: UFix64
 
         // mintTokens
         //
         // Function that mints new tokens, adds them to the total supply,
         // and returns them to the calling context.
         //
-        pub fun mintTokens(amount: UFix64): @FlowToken.Vault {
+        access(all) fun mintTokens(amount: UFix64): @FlowToken.Vault {
             pre {
                 amount > UFix64(0): "Amount minted must be greater than zero"
                 amount <= self.allowedAmount: "Amount minted must be less than the allowed amount"
@@ -223,30 +264,9 @@ pub contract FlowToken: FungibleToken, ViewResolver {
         }
     }
 
-    // Burner
-    //
-    // Resource object that token admin accounts can hold to burn tokens.
-    //
-    pub resource Burner {
-
-        // burnTokens
-        //
-        // Function that destroys a Vault instance, effectively burning the tokens.
-        //
-        // Note: the burned tokens are automatically subtracted from the
-        // total supply in the Vault destructor.
-        //
-        pub fun burnTokens(from: @FungibleToken.Vault) {
-            let vault <- from as! @FlowToken.Vault
-            let amount = vault.balance
-            destroy vault
-            emit TokensBurned(amount: amount)
-        }
-    }
-
     /// Gets the Flow Logo XML URI from storage
-    pub fun getLogoURI(): String {
-        return FlowToken.account.copy<String>(from: /storage/flowTokenLogoURI) ?? ""
+    access(all) view fun getLogoURI(): String {
+        return FlowToken.account.storage.copy<String>(from: /storage/flowTokenLogoURI) ?? ""
     }
 
     init() {
@@ -256,31 +276,22 @@ pub contract FlowToken: FungibleToken, ViewResolver {
         //
         let vault <- create Vault(balance: self.totalSupply)
 
-        // Example of how to resolve a metadata view for a Vault
-        let ftView = vault.resolveView(Type<FungibleTokenMetadataViews.FTView>())
-
-        self.account.save(<-vault, to: /storage/flowTokenVault)
+        self.account.storage.save(<-vault, to: /storage/flowTokenVault)
 
         // Create a public capability to the stored Vault that only exposes
         // the `deposit` method through the `Receiver` interface
         //
-        self.account.link<&FlowToken.Vault{FungibleToken.Receiver, FungibleToken.Balance, MetadataViews.Resolver}>(
-            /public/flowTokenReceiver,
-            target: /storage/flowTokenVault
-        )
+        let receiverCapability = self.account.capabilities.storage.issue<&FlowToken.Vault>(/storage/flowTokenVault)
+        self.account.capabilities.publish(receiverCapability, at: /public/flowTokenReceiver)
 
         // Create a public capability to the stored Vault that only exposes
         // the `balance` field through the `Balance` interface
         //
-        self.account.link<&FlowToken.Vault{FungibleToken.Balance, MetadataViews.Resolver}>(
-            /public/flowTokenBalance,
-            target: /storage/flowTokenVault
-        )
+        let balanceCapability = self.account.capabilities.storage.issue<&FlowToken.Vault>(/storage/flowTokenVault)
+        self.account.capabilities.publish(balanceCapability, at: /public/flowTokenBalance)
 
         let admin <- create Administrator()
-        self.account.save(<-admin, to: /storage/flowTokenAdmin)
+        self.account.storage.save(<-admin, to: /storage/flowTokenAdmin)
 
-        // Emit an event that shows that the contract was initialized
-        emit TokensInitialized(initialSupply: self.totalSupply)
     }
 }

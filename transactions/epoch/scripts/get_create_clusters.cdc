@@ -1,8 +1,6 @@
-import FlowEpoch from 0xEPOCHADDRESS
-import FlowClusterQC from 0xQCADDRESS
+import FlowEpoch from "FlowEpoch"
+import FlowClusterQC from "FlowClusterQC"
 
-pub fun main(array: [String]): [FlowClusterQC.Cluster] {
-
+access(all) fun main(array: [String]): [FlowClusterQC.Cluster] {
     return FlowEpoch.createCollectorClusters(nodeIDs: array)
-
 }

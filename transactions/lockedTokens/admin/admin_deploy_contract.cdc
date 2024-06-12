@@ -2,8 +2,8 @@ import Crypto
 
 transaction(contractName: String, code: String, publicKeys: [Crypto.KeyListEntry]) {
     
-    prepare(admin: AuthAccount) {
-        let lockedTokens = AuthAccount(payer: admin)
+    prepare(admin: auth(Storage, BorrowValue) &Account) {
+        let lockedTokens = Account(payer: admin)
         lockedTokens.contracts.add(name: contractName, code: code.decodeHex(), admin)
 
         for key in publicKeys {

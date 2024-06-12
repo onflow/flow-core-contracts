@@ -1,8 +1,8 @@
-import FlowClusterQC from 0xQCADDRESS
+import FlowClusterQC from "FlowClusterQC"
 
 // Gets the status of a cluster's QC generation
 
-pub fun main(clusterIndex: UInt16): Bool {
+access(all) fun main(clusterIndex: UInt16): Bool {
 
     let clusters = FlowClusterQC.getClusters()
 

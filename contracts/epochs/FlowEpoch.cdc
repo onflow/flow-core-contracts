@@ -1,13 +1,13 @@
 import FungibleToken from "FungibleToken"
-import FlowToken from 0xFLOWTOKENADDRESS
-import FlowIDTableStaking from 0xFLOWIDTABLESTAKINGADDRESS
-import FlowClusterQC from 0xQCADDRESS
-import FlowDKG from 0xDKGADDRESS
-import FlowFees from 0xFLOWFEESADDRESS
+import FlowToken from "FlowToken"
+import FlowIDTableStaking from "FlowIDTableStaking"
+import FlowClusterQC from "FlowClusterQC"
+import FlowDKG from "FlowDKG"
+import FlowFees from "FlowFees"
 
 // The top-level smart contract managing the lifecycle of epochs. In Flow,
-// epochs are the smallest unit of time where the identity table (the set of 
-// network operators) is static. Operators may only leave or join the network 
+// epochs are the smallest unit of time where the identity table (the set of
+// network operators) is static. Operators may only leave or join the network
 // at epoch boundaries. Operators may be ejected during an epoch for various
 // misdemeanours, but they remain in the identity table until the epoch ends.
 //
@@ -19,10 +19,10 @@ import FlowFees from 0xFLOWFEESADDRESS
 //
 // 1)  STAKING PHASE
 // Node operators are able to submit staking requests for the NEXT epoch during
-// this phase. At the end of this phase, the Epoch smart contract resolves the 
-// outstanding staking requests and determines the identity table for the next 
-// epoch. The Epoch smart contract emits the EpochSetup service event containing 
-// the identity table for the next epoch, which initiates the transition to the 
+// this phase. At the end of this phase, the Epoch smart contract resolves the
+// outstanding staking requests and determines the identity table for the next
+// epoch. The Epoch smart contract emits the EpochSetup service event containing
+// the identity table for the next epoch, which initiates the transition to the
 // Epoch Setup Phase.
 //
 // 2) SETUP PHASE
@@ -40,27 +40,27 @@ import FlowFees from 0xFLOWFEESADDRESS
 // indicates that the participants in the next epoch failed to complete the set up
 // procedure, which is a critical failure and will cause the chain to halt.
 
-pub contract FlowEpoch {
+access(all) contract FlowEpoch {
 
-    pub enum EpochPhase: UInt8 {
-        pub case STAKINGAUCTION
-        pub case EPOCHSETUP
-        pub case EPOCHCOMMIT
+    access(all) enum EpochPhase: UInt8 {
+        access(all) case STAKINGAUCTION
+        access(all) case EPOCHSETUP
+        access(all) case EPOCHCOMMIT
     }
 
-    pub enum NodeRole: UInt8 {
-        pub case NONE
-        pub case Collector
-        pub case Consensus
-        pub case Execution
-        pub case Verification
-        pub case Access
+    access(all) enum NodeRole: UInt8 {
+        access(all) case NONE
+        access(all) case Collector
+        access(all) case Consensus
+        access(all) case Execution
+        access(all) case Verification
+        access(all) case Access
     }
 
     /// The Epoch Start service event is emitted when the contract transitions
     /// to a new epoch in the staking auction phase.
-    pub event EpochStart (
-        
+    access(all) event EpochStart (
+
         /// The counter for the current epoch that is beginning
         counter: UInt64,
 
@@ -86,8 +86,8 @@ pub contract FlowEpoch {
 
     /// The Epoch Setup service event is emitted when we transition to the Epoch Setup
     /// phase. It contains the finalized identity table for the upcoming epoch.
-    pub event EpochSetup (
-        
+    access(all) event EpochSetup(
+
         /// The counter for the upcoming epoch. Must be one greater than the
         /// counter for the current epoch.
         counter: UInt64,
@@ -109,14 +109,14 @@ pub contract FlowEpoch {
         /// cluster, with their weights and votes
         collectorClusters: [FlowClusterQC.Cluster],
 
-        /// The source of randomness to seed the leader selection algorithm with 
+        /// The source of randomness to seed the leader selection algorithm with
         /// for the upcoming epoch.
         randomSource: String,
 
         /// The deadlines of each phase in the DKG protocol to be completed in the upcoming
-        /// EpochSetup phase. Deadlines are specified in terms of a consensus view number. 
-        /// When a DKG participant observes a finalized and sealed block with view greater 
-        /// than the given deadline, it can safely transition to the next phase. 
+        /// EpochSetup phase. Deadlines are specified in terms of a consensus view number.
+        /// When a DKG participant observes a finalized and sealed block with view greater
+        /// than the given deadline, it can safely transition to the next phase.
         DKGPhase1FinalView: UInt64,
         DKGPhase2FinalView: UInt64,
         DKGPhase3FinalView: UInt64,
@@ -130,13 +130,13 @@ pub contract FlowEpoch {
     /// The EpochCommit service event is emitted when we transition from the Epoch
     /// Committed phase. It is emitted only when all preparation for the upcoming epoch
     /// has been completed
-    pub event EpochCommit (
+    access(all) event EpochCommit (
 
         /// The counter for the upcoming epoch. Must be equal to the counter in the
         /// previous EpochSetup event.
         counter: UInt64,
 
-        /// The result of the QC aggregation process. Each element contains 
+        /// The result of the QC aggregation process. Each element contains
         /// all the nodes and votes received for a particular cluster
         /// QC stands for quorum certificate that each cluster generates.
         clusterQCs: [FlowClusterQC.ClusterQC],
@@ -144,48 +144,48 @@ pub contract FlowEpoch {
         /// The resulting public keys from the DKG process, encoded as by the flow-go
         /// crypto library, then hex-encoded.
         /// Group public key is the first element, followed by the individual keys
-        dkgPubKeys: [String],
+        dkgPubKeys: [String]
     )
 
     /// Contains specific metadata about a particular epoch
     /// All historical epoch metadata is stored permanently
-    pub struct EpochMetadata {
+    access(all) struct EpochMetadata {
 
         /// The identifier for the epoch
-        pub let counter: UInt64
+        access(all) let counter: UInt64
 
         /// The seed used for generating the epoch setup
-        pub let seed: String
+        access(all) let seed: String
 
         /// The first view of this epoch
-        pub let startView: UInt64
+        access(all) let startView: UInt64
 
         /// The last view of this epoch
-        pub let endView: UInt64
+        access(all) let endView: UInt64
 
         /// The last view of the staking auction
-        pub let stakingEndView: UInt64
+        access(all) let stakingEndView: UInt64
 
         /// The total rewards that are paid out for the epoch
-        pub var totalRewards: UFix64
+        access(all) var totalRewards: UFix64
 
         /// The reward amounts that are paid to each individual node and its delegators
-        pub var rewardAmounts: [FlowIDTableStaking.RewardsBreakdown]
+        access(all) var rewardAmounts: [FlowIDTableStaking.RewardsBreakdown]
 
         /// Tracks if rewards have been paid for this epoch
-        pub var rewardsPaid: Bool
+        access(all) var rewardsPaid: Bool
 
         /// The organization of collector node IDs into clusters
         /// determined by a round robin sorting algorithm
-        pub let collectorClusters: [FlowClusterQC.Cluster]
+        access(all) let collectorClusters: [FlowClusterQC.Cluster]
 
         /// The Quorum Certificates from the ClusterQC contract
-        pub var clusterQCs: [FlowClusterQC.ClusterQC]
+        access(all) var clusterQCs: [FlowClusterQC.ClusterQC]
 
         /// The public keys associated with the Distributed Key Generation
         /// process that consensus nodes participate in
         /// Group key is the last element at index: length - 1
-        pub var dkgKeys: [String]
+        access(all) var dkgKeys: [String]
 
         init(counter: UInt64,
              seed: String,
@@ -210,6 +210,10 @@ pub contract FlowEpoch {
             self.dkgKeys = dkgKeys
         }
 
+        access(account) fun copy(): EpochMetadata {
+            return self
+        }
+
         access(account) fun setTotalRewards(_ newRewards: UFix64) {
             self.totalRewards = newRewards
         }
@@ -220,7 +224,7 @@ pub contract FlowEpoch {
 
         access(account) fun setRewardsPaid(_ rewardsPaid: Bool) {
             self.rewardsPaid = rewardsPaid
-        } 
+        }
 
         access(account) fun setClusterQCs(qcs: [FlowClusterQC.ClusterQC]) {
             self.clusterQCs = qcs
@@ -231,23 +235,43 @@ pub contract FlowEpoch {
         }
     }
 
-    /// Metadata that is managed and can be changed by the Admin
-    pub struct Config {
+    /// Metadata that is managed and can be changed by the Admin///
+    access(all) struct Config {
         /// The number of views in an entire epoch
-        pub(set) var numViewsInEpoch: UInt64
+        access(all) var numViewsInEpoch: UInt64
+
+        access(all) fun setNumViewsInEpoch(_ views: UInt64) {
+            self.numViewsInEpoch = views
+        }
 
         /// The number of views in the staking auction
-        pub(set) var numViewsInStakingAuction: UInt64
-        
+        access(all) var numViewsInStakingAuction: UInt64
+
+        access(all) fun setNumViewsInStakingAuction(_ views: UInt64) {
+            self.numViewsInStakingAuction = views
+        }
+
         /// The number of views in each dkg phase
-        pub(set) var numViewsInDKGPhase: UInt64
+        access(all) var numViewsInDKGPhase: UInt64
+
+        access(all) fun setNumViewsInDKGPhase(_ views: UInt64) {
+            self.numViewsInDKGPhase = views
+        }
 
         /// The number of collector clusters in each epoch
-        pub(set) var numCollectorClusters: UInt16
+        access(all) var numCollectorClusters: UInt16
+
+        access(all) fun setNumCollectorClusters(_ numClusters: UInt16) {
+            self.numCollectorClusters = numClusters
+        }
 
         /// Tracks the rate at which the rewards payout increases every epoch
         /// This value is multiplied by the FLOW total supply to get the next payout
-        pub(set) var FLOWsupplyIncreasePercentage: UFix64
+        access(all) var FLOWsupplyIncreasePercentage: UFix64
+
+        access(all) fun setFLOWsupplyIncreasePercentage(_ percentage: UFix64) {
+            self.FLOWsupplyIncreasePercentage = percentage
+        }
 
         init(numViewsInEpoch: UInt64, numViewsInStakingAuction: UInt64, numViewsInDKGPhase: UInt64, numCollectorClusters: UInt16, FLOWsupplyIncreasePercentage: UFix64) {
             self.numViewsInEpoch = numViewsInEpoch
@@ -258,24 +282,24 @@ pub contract FlowEpoch {
         }
     }
 
-    /// Configuration for epoch timing. 
-    /// Each epoch is assigned a target end time when it is setup (within the EpochSetup event). 
-    /// The configuration defines a reference epoch counter and timestamp, which defines 
+    /// Configuration for epoch timing.
+    /// Each epoch is assigned a target end time when it is setup (within the EpochSetup event).
+    /// The configuration defines a reference epoch counter and timestamp, which defines
     /// all future target end times. If `targetEpochCounter` is an upcoming epoch, then
     /// its target end time is given by:
     ///
     ///   targetEndTime = refTimestamp + duration * (targetEpochCounter-refCounter)
     ///
-    pub struct EpochTimingConfig {
+    access(all) struct EpochTimingConfig {
         /// The duration of each epoch, in seconds
-        pub let duration: UInt64
+        access(all) let duration: UInt64
         /// The counter of the reference epoch
-        pub let refCounter: UInt64
+        access(all) let refCounter: UInt64
         /// The end time of the reference epoch, specified in second-precision Unix time
-        pub let refTimestamp: UInt64
+        access(all) let refTimestamp: UInt64
 
         /// Compute target switchover time based on offset from reference counter/switchover.
-        pub fun getTargetEndTimeForEpoch(_ targetEpochCounter: UInt64): UInt64 {
+        access(all) fun getTargetEndTimeForEpoch(_ targetEpochCounter: UInt64): UInt64 {
             return self.refTimestamp + self.duration * (targetEpochCounter-self.refCounter)
         }
 
@@ -299,23 +323,25 @@ pub contract FlowEpoch {
     /// or nil if it isn't found
     /// Epoch Metadata is stored in account storage so the growing dictionary
     /// does not have to be loaded every time the contract is loaded
-    pub fun getEpochMetadata(_ epochCounter: UInt64): EpochMetadata? {
-        if let metadataDictionary = self.account.borrow<&{UInt64: EpochMetadata}>(from: self.metadataStoragePath) {
-            return metadataDictionary[epochCounter]
+    access(all) fun getEpochMetadata(_ epochCounter: UInt64): EpochMetadata? {
+        if let metadataDictionary = self.account.storage.borrow<&{UInt64: EpochMetadata}>(from: self.metadataStoragePath) {
+            if let metadataRef = metadataDictionary[epochCounter] {
+                return metadataRef.copy()
+            }
         }
         return nil
     }
 
     /// Saves a modified EpochMetadata struct to the metadata in account storage
-    /// 
+    ///
     access(contract) fun saveEpochMetadata(_ newMetadata: EpochMetadata) {
         pre {
-            self.currentEpochCounter == (0 as UInt64) ||
-            (newMetadata.counter >= self.currentEpochCounter - (1 as UInt64) &&
+            self.currentEpochCounter == 0 ||
+            (newMetadata.counter >= self.currentEpochCounter - 1 &&
             newMetadata.counter <= self.proposedEpochCounter()):
                 "Cannot modify epoch metadata from epochs after the proposed epoch or before the previous epoch"
         }
-        if let metadataDictionary = self.account.borrow<&{UInt64: EpochMetadata}>(from: self.metadataStoragePath) {
+        if let metadataDictionary = self.account.storage.borrow<auth(Mutate) &{UInt64: EpochMetadata}>(from: self.metadataStoragePath) {
             if let metadata = metadataDictionary[newMetadata.counter] {
                 assert (
                     metadata.counter == newMetadata.counter,
@@ -327,23 +353,23 @@ pub contract FlowEpoch {
     }
 
     /// The counter, or ID, of the current epoch
-    pub var currentEpochCounter: UInt64
+    access(all) var currentEpochCounter: UInt64
 
     /// The current phase that the epoch is in
-    pub var currentEpochPhase: EpochPhase
+    access(all) var currentEpochPhase: EpochPhase
 
     /// Path where the `FlowEpoch.Admin` resource is stored
-    pub let adminStoragePath: StoragePath
+    access(all) let adminStoragePath: StoragePath
 
     /// Path where the `FlowEpoch.Heartbeat` resource is stored
-    pub let heartbeatStoragePath: StoragePath
+    access(all) let heartbeatStoragePath: StoragePath
 
     /// Path where the `{UInt64: EpochMetadata}` dictionary is stored
-    pub let metadataStoragePath: StoragePath
+    access(all) let metadataStoragePath: StoragePath
 
     /// Resource that can update some of the contract fields
-    pub resource Admin {
-        pub fun updateEpochViews(_ newEpochViews: UInt64) {
+    access(all) resource Admin {
+        access(all) fun updateEpochViews(_ newEpochViews: UInt64) {
             pre {
                 FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION: "Can only update fields during the staking auction"
                 FlowEpoch.isValidPhaseConfiguration(FlowEpoch.configurableMetadata.numViewsInStakingAuction,
@@ -351,10 +377,10 @@ pub contract FlowEpoch {
                     newEpochViews): "New Epoch Views must be greater than the sum of staking and DKG Phase views"
             }
 
-            FlowEpoch.configurableMetadata.numViewsInEpoch = newEpochViews
+            FlowEpoch.configurableMetadata.setNumViewsInEpoch(newEpochViews)
         }
 
-        pub fun updateAuctionViews(_ newAuctionViews: UInt64) {
+        access(all) fun updateAuctionViews(_ newAuctionViews: UInt64) {
             pre {
                 FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION: "Can only update fields during the staking auction"
                 FlowEpoch.isValidPhaseConfiguration(newAuctionViews,
@@ -362,10 +388,10 @@ pub contract FlowEpoch {
                     FlowEpoch.configurableMetadata.numViewsInEpoch): "Epoch Views must be greater than the sum of new staking and DKG Phase views"
             }
 
-            FlowEpoch.configurableMetadata.numViewsInStakingAuction = newAuctionViews
+            FlowEpoch.configurableMetadata.setNumViewsInStakingAuction(newAuctionViews)
         }
 
-        pub fun updateDKGPhaseViews(_ newPhaseViews: UInt64) {
+        access(all) fun updateDKGPhaseViews(_ newPhaseViews: UInt64) {
             pre {
                 FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION: "Can only update fields during the staking auction"
                 FlowEpoch.isValidPhaseConfiguration(FlowEpoch.configurableMetadata.numViewsInStakingAuction,
@@ -373,38 +399,38 @@ pub contract FlowEpoch {
                     FlowEpoch.configurableMetadata.numViewsInEpoch): "Epoch Views must be greater than the sum of staking and new DKG Phase views"
             }
 
-            FlowEpoch.configurableMetadata.numViewsInDKGPhase = newPhaseViews
+            FlowEpoch.configurableMetadata.setNumViewsInDKGPhase(newPhaseViews)
         }
 
-        pub fun updateEpochTimingConfig(_ newConfig: EpochTimingConfig) {
+        access(all) fun updateEpochTimingConfig(_ newConfig: EpochTimingConfig) {
             pre {
                 FlowEpoch.currentEpochCounter >= newConfig.refCounter: "Reference epoch must be before next epoch"
             }
-            FlowEpoch.account.load<EpochTimingConfig>(from: /storage/flowEpochTimingConfig)
-            FlowEpoch.account.save(newConfig, to: /storage/flowEpochTimingConfig)
+            FlowEpoch.account.storage.load<EpochTimingConfig>(from: /storage/flowEpochTimingConfig)
+            FlowEpoch.account.storage.save(newConfig, to: /storage/flowEpochTimingConfig)
         }
 
-        pub fun updateNumCollectorClusters(_ newNumClusters: UInt16) {
+        access(all) fun updateNumCollectorClusters(_ newNumClusters: UInt16) {
             pre {
                 FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION: "Can only update fields during the staking auction"
             }
 
-            FlowEpoch.configurableMetadata.numCollectorClusters = newNumClusters
+            FlowEpoch.configurableMetadata.setNumCollectorClusters(newNumClusters)
         }
 
-        pub fun updateFLOWSupplyIncreasePercentage(_ newPercentage: UFix64) {
+        access(all) fun updateFLOWSupplyIncreasePercentage(_ newPercentage: UFix64) {
             pre {
                 FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION: "Can only update fields during the staking auction"
-                newPercentage <= 1.0 as UFix64: "New value must be between zero and one"
+                newPercentage <= 1.0: "New value must be between zero and one"
             }
 
-            FlowEpoch.configurableMetadata.FLOWsupplyIncreasePercentage = newPercentage
+            FlowEpoch.configurableMetadata.setFLOWsupplyIncreasePercentage(newPercentage)
         }
 
         // Enable or disable automatic rewards calculations and payments
-        pub fun updateAutomaticRewardsEnabled(_ enabled: Bool) {
-            FlowEpoch.account.load<Bool>(from: /storage/flowAutomaticRewardsEnabled)
-            FlowEpoch.account.save(enabled, to: /storage/flowAutomaticRewardsEnabled)
+        access(all) fun updateAutomaticRewardsEnabled(_ enabled: Bool) {
+            FlowEpoch.account.storage.load<Bool>(from: /storage/flowAutomaticRewardsEnabled)
+            FlowEpoch.account.storage.save(enabled, to: /storage/flowAutomaticRewardsEnabled)
         }
 
         /// Ends the currently active epoch and starts a new one with the provided configuration.
@@ -412,7 +438,7 @@ pub contract FlowEpoch {
         /// This function is used during sporks - since the consensus view is reset, and the protocol is
         /// bootstrapped with a new initial state snapshot, this initializes FlowEpoch with the first epoch
         /// of the new spork, as defined in that snapshot.
-        pub fun resetEpoch(
+        access(all) fun resetEpoch(
             currentEpochCounter: UInt64,
             randomSource: String,
             startView: UInt64,
@@ -466,12 +492,12 @@ pub contract FlowEpoch {
 
     /// Resource that is controlled by the protocol and is used
     /// to change the current phase of the epoch or reset the epoch if needed
-    /// 
-    pub resource Heartbeat {
+    ///
+    access(all) resource Heartbeat {
 
         /// Function that is called every block to advance the epoch
         /// and change phase if the required conditions have been met
-        pub fun advanceBlock() {
+        access(all) fun advanceBlock() {
 
             switch FlowEpoch.currentEpochPhase {
                 case EpochPhase.STAKINGAUCTION:
@@ -504,7 +530,7 @@ pub contract FlowEpoch {
 
         /// Calls `FlowEpoch` functions to end the staking auction phase
         /// and start the Epoch Setup phase
-        pub fun endStakingAuction() {
+        access(all) fun endStakingAuction() {
             pre {
                 FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION: "Can only end staking auction during the staking auction"
             }
@@ -512,21 +538,18 @@ pub contract FlowEpoch {
             let proposedNodeIDs = FlowEpoch.endStakingAuction()
 
             /// random source must be a hex string of 32 characters (i.e 16 bytes or 128 bits)
-            /// `revertibleRandom` returns a UInt64 (8 bytes)
-            let randomLow = revertibleRandom().toBigEndianBytes()
-            let randomHigh = revertibleRandom().toBigEndianBytes()
-            var randomSource = String.encodeHex(randomHigh).concat(String.encodeHex(randomLow))
+            var randomSource = String.encodeHex(revertibleRandom<UInt128>().toBigEndianBytes())
             assert (
                 randomSource.length == 32,
                 message: "Random source must be a hex string of 32 characters"
-            ) 
+            )
 
             FlowEpoch.startEpochSetup(proposedNodeIDs: proposedNodeIDs, randomSource: randomSource)
         }
 
         /// Calls `FlowEpoch` functions to end the Epoch Setup phase
         /// and start the Epoch Setup Phase
-        pub fun startEpochCommit() {
+        access(all) fun startEpochCommit() {
             pre {
                 FlowEpoch.currentEpochPhase == EpochPhase.EPOCHSETUP: "Can only end Epoch Setup during Epoch Setup"
             }
@@ -536,7 +559,7 @@ pub contract FlowEpoch {
 
         /// Calls `FlowEpoch` functions to end the Epoch Commit phase
         /// and start the Staking Auction phase of a new epoch
-        pub fun endEpoch() {
+        access(all) fun endEpoch() {
             pre {
                 FlowEpoch.currentEpochPhase == EpochPhase.EPOCHCOMMIT: "Can only end epoch during Epoch Commit"
             }
@@ -546,11 +569,11 @@ pub contract FlowEpoch {
 
         /// Needs to be called before the epoch is over
         /// Calculates rewards for the current epoch and stores them in epoch metadata
-        pub fun calculateAndSetRewards() {
+        access(all) fun calculateAndSetRewards() {
             FlowEpoch.calculateAndSetRewards()
         }
 
-        pub fun payRewardsForPreviousEpoch() {
+        access(all) fun payRewardsForPreviousEpoch() {
             FlowEpoch.payRewardsForPreviousEpoch()
         }
     }
@@ -603,7 +626,7 @@ pub contract FlowEpoch {
 
     /// Pays rewards to the nodes and delegators of the previous epoch
     access(account) fun payRewardsForPreviousEpoch() {
-        if let previousEpochMetadata = self.getEpochMetadata(self.currentEpochCounter - (1 as UInt64)) {
+        if let previousEpochMetadata = self.getEpochMetadata(self.currentEpochCounter - 1) {
             if !previousEpochMetadata.rewardsPaid {
                 let summary = FlowIDTableStaking.EpochRewardsSummary(totalRewards: previousEpochMetadata.totalRewards, breakdown: previousEpochMetadata.rewardAmounts)
                 self.borrowStakingAdmin().payRewards(forEpochCounter: previousEpochMetadata.counter, rewardsSummary: summary)
@@ -680,7 +703,7 @@ pub contract FlowEpoch {
                 consensusNodeIDs.append(nodeInfo.id)
             }
         }
-        
+
         // Organize the collector nodes into clusters
         let collectorClusters = self.createCollectorClusters(nodeIDs: collectorNodeIDs)
 
@@ -699,7 +722,7 @@ pub contract FlowEpoch {
                                                 startView: currentEpochMetadata.endView + UInt64(1),
                                                 endView: currentEpochMetadata.endView + self.configurableMetadata.numViewsInEpoch,
                                                 stakingEndView: currentEpochMetadata.endView + self.configurableMetadata.numViewsInStakingAuction,
-                                                totalRewards: 0.0 as UFix64,
+                                                totalRewards: 0.0,
                                                 collectorClusters: collectorClusters,
                                                 clusterQCs: [],
                                                 dkgKeys: [])
@@ -714,7 +737,7 @@ pub contract FlowEpoch {
         self.currentEpochPhase = EpochPhase.EPOCHSETUP
 
         emit EpochSetup(counter: proposedEpochMetadata.counter,
-                        nodeInfo: nodeInfoArray, 
+                        nodeInfo: nodeInfoArray,
                         firstView: proposedEpochMetadata.startView,
                         finalView: proposedEpochMetadata.endView,
                         collectorClusters: collectorClusters,
@@ -770,36 +793,36 @@ pub contract FlowEpoch {
     }
 
     /// Borrow a reference to the FlowIDTableStaking Admin resource
-    access(contract) fun borrowStakingAdmin(): &FlowIDTableStaking.Admin{FlowIDTableStaking.EpochOperations} {
-        let adminCapability = self.account.copy<Capability>(from: /storage/flowStakingAdminEpochOperations)
+    access(contract) view fun borrowStakingAdmin(): &FlowIDTableStaking.Admin {
+        let adminCapability = self.account.storage.copy<Capability>(from: /storage/flowStakingAdminEpochOperations)
             ?? panic("Could not get capability from account storage")
 
         // borrow a reference to the staking admin object
-        let adminRef = adminCapability.borrow<&FlowIDTableStaking.Admin{FlowIDTableStaking.EpochOperations}>()
+        let adminRef = adminCapability.borrow<&FlowIDTableStaking.Admin>()
             ?? panic("Could not borrow reference to staking admin")
 
         return adminRef
     }
 
     /// Borrow a reference to the ClusterQCs Admin resource
-    access(contract) fun borrowClusterQCAdmin(): &FlowClusterQC.Admin{FlowClusterQC.EpochOperations} {
-        let adminCapability = self.account.copy<Capability>(from: /storage/flowQCAdminEpochOperations)
+    access(contract) fun borrowClusterQCAdmin(): &FlowClusterQC.Admin {
+        let adminCapability = self.account.storage.copy<Capability>(from: /storage/flowQCAdminEpochOperations)
             ?? panic("Could not get capability from account storage")
 
         // borrow a reference to the QC admin object
-        let adminRef = adminCapability.borrow<&FlowClusterQC.Admin{FlowClusterQC.EpochOperations}>()
+        let adminRef = adminCapability.borrow<&FlowClusterQC.Admin>()
             ?? panic("Could not borrow reference to QC admin")
 
         return adminRef
     }
 
     /// Borrow a reference to the DKG Admin resource
-    access(contract) fun borrowDKGAdmin(): &FlowDKG.Admin{FlowDKG.EpochOperations} {
-        let adminCapability = self.account.copy<Capability>(from: /storage/flowDKGAdminEpochOperations)
+    access(contract) fun borrowDKGAdmin(): &FlowDKG.Admin {
+        let adminCapability = self.account.storage.copy<Capability>(from: /storage/flowDKGAdminEpochOperations)
             ?? panic("Could not get capability from account storage")
 
         // borrow a reference to the dkg admin object
-        let adminRef = adminCapability.borrow<&FlowDKG.Admin{FlowDKG.EpochOperations}>()
+        let adminRef = adminCapability.borrow<&FlowDKG.Admin>()
             ?? panic("Could not borrow reference to dkg admin")
 
         return adminRef
@@ -807,13 +830,13 @@ pub contract FlowEpoch {
 
     /// Makes sure the set of phase lengths (in views) are valid.
     /// Sub-phases cannot be greater than the full epoch length.
-    pub fun isValidPhaseConfiguration(_ auctionLen: UInt64, _ dkgPhaseLen: UInt64, _ epochLen: UInt64): Bool {
-        return (auctionLen + ((3 as UInt64)*dkgPhaseLen)) < epochLen
+    access(all) view fun isValidPhaseConfiguration(_ auctionLen: UInt64, _ dkgPhaseLen: UInt64, _ epochLen: UInt64): Bool {
+        return (auctionLen + (3*dkgPhaseLen)) < epochLen
     }
 
     /// Randomizes the list of collector node ID and uses a round robin algorithm
     /// to assign all collector nodes to equal sized clusters
-    pub fun createCollectorClusters(nodeIDs: [String]): [FlowClusterQC.Cluster] {
+    access(all) fun createCollectorClusters(nodeIDs: [String]): [FlowClusterQC.Cluster] {
         pre {
             UInt16(nodeIDs.length) >= self.configurableMetadata.numCollectorClusters: "Cannot have less collector nodes than clusters"
         }
@@ -825,7 +848,7 @@ pub contract FlowEpoch {
         let nodeWeightsDictionary: [{String: UInt64}] = []
         while clusterIndex < self.configurableMetadata.numCollectorClusters {
             nodeWeightsDictionary.append({})
-            clusterIndex = clusterIndex + 1 as UInt16
+            clusterIndex = clusterIndex + 1
         }
         clusterIndex = 0
 
@@ -834,9 +857,9 @@ pub contract FlowEpoch {
             let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: id)
 
             nodeWeightsDictionary[clusterIndex][id] = nodeInfo.initialWeight
-            
+
             // Advance to the next cluster, or back to the first if we have gotten to the last one
-            clusterIndex = clusterIndex + 1 as UInt16
+            clusterIndex = clusterIndex + 1
             if clusterIndex == self.configurableMetadata.numCollectorClusters {
                 clusterIndex = 0
             }
@@ -847,27 +870,26 @@ pub contract FlowEpoch {
         clusterIndex = 0
         while clusterIndex < self.configurableMetadata.numCollectorClusters {
             clusters.append(FlowClusterQC.Cluster(index: clusterIndex, nodeWeights: nodeWeightsDictionary[clusterIndex]!))
-            clusterIndex = clusterIndex + 1 as UInt16
+            clusterIndex = clusterIndex + 1
         }
 
         return clusters
     }
-  
-    /// A function to generate a random permutation of arr[] 
+
+    /// A function to generate a random permutation of arr[]
     /// using the fisher yates shuffling algorithm
-    pub fun randomize(_ array: [String]): [String] {  
+    access(all) fun randomize(_ array: [String]): [String] {
 
         var i = array.length - 1
 
-        // Start from the last element and swap one by one. We don't 
-        // need to run for the first element that's why i > 0 
+        // Start from the last element and swap one by one. We don't
+        // need to run for the first element that's why i > 0
         while i > 0
-        { 
-            // Pick a random index from 0 to i 
-            var randomNum = unsafeRandom()
-            var randomIndex = randomNum % UInt64(i + 1)
-    
-            // Swap arr[i] with the element at random index 
+        {
+            // Pick a random index from 0 to i
+            var randomIndex = revertibleRandom<UInt32>(modulo: UInt32(i + 1))
+
+            // Swap arr[i] with the element at random index
             var temp = array[i]
             array[i] = array[randomIndex]
             array[randomIndex] = temp
@@ -880,7 +902,7 @@ pub contract FlowEpoch {
 
     /// Collector nodes call this function to get their QC Voter resource
     /// in order to participate the the QC generation for their cluster
-    pub fun getClusterQCVoter(nodeStaker: &FlowIDTableStaking.NodeStaker): @FlowClusterQC.Voter {
+    access(all) fun getClusterQCVoter(nodeStaker: &FlowIDTableStaking.NodeStaker): @FlowClusterQC.Voter {
         let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeStaker.id)
 
         assert (
@@ -894,7 +916,7 @@ pub contract FlowEpoch {
 
     /// Consensus nodes call this function to get their DKG Participant resource
     /// in order to participate in the DKG for the next epoch
-    pub fun getDKGParticipant(nodeStaker: &FlowIDTableStaking.NodeStaker): @FlowDKG.Participant {
+    access(all) fun getDKGParticipant(nodeStaker: &FlowIDTableStaking.NodeStaker): @FlowDKG.Participant {
         let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeStaker.id)
 
         assert (
@@ -907,24 +929,24 @@ pub contract FlowEpoch {
     }
 
     /// Returns the metadata that is able to be configured by the admin
-    pub fun getConfigMetadata(): Config {
+    access(all) view fun getConfigMetadata(): Config {
         return self.configurableMetadata
     }
 
     /// Returns the config for epoch timing, which can be configured by the admin.
     /// Conceptually, this should be part of `Config`, however it was added later in an
     /// upgrade which requires new fields be specified separately from existing structs.
-    pub fun getEpochTimingConfig(): EpochTimingConfig {
-        return self.account.copy<EpochTimingConfig>(from: /storage/flowEpochTimingConfig)!
+    access(all) fun getEpochTimingConfig(): EpochTimingConfig {
+        return self.account.storage.copy<EpochTimingConfig>(from: /storage/flowEpochTimingConfig)!
     }
 
     /// The proposed Epoch counter is always the current counter plus 1
-    pub fun proposedEpochCounter(): UInt64 {
+    access(all) view fun proposedEpochCounter(): UInt64 {
         return self.currentEpochCounter + 1 as UInt64
     }
 
-    pub fun automaticRewardsEnabled(): Bool {
-        return self.account.copy<Bool>(from: /storage/flowAutomaticRewardsEnabled) ?? false
+    access(all) fun automaticRewardsEnabled(): Bool {
+        return self.account.storage.copy<Bool>(from: /storage/flowAutomaticRewardsEnabled) ?? false
     }
 
     /// Gets the current amount of bonus tokens left to be destroyed
@@ -934,15 +956,15 @@ pub contract FlowEpoch {
     /// so they are not included in that calculation
     /// Eventually, all the bonus tokens will be destroyed and
     /// this will not be needed anymore
-    pub fun getBonusTokens(): UFix64 {
-        return self.account.copy<UFix64>(from: /storage/FlowBonusTokenAmount)
+    access(all) fun getBonusTokens(): UFix64 {
+        return self.account.storage.copy<UFix64>(from: /storage/FlowBonusTokenAmount)
                 ?? 0.0
     }
 
     init (currentEpochCounter: UInt64,
-          numViewsInEpoch: UInt64, 
-          numViewsInStakingAuction: UInt64, 
-          numViewsInDKGPhase: UInt64, 
+          numViewsInEpoch: UInt64,
+          numViewsInStakingAuction: UInt64,
+          numViewsInDKGPhase: UInt64,
           numCollectorClusters: UInt16,
           FLOWsupplyIncreasePercentage: UFix64,
           randomSource: String,
@@ -965,7 +987,7 @@ pub contract FlowEpoch {
             duration: numViewsInEpoch,
             refCounter: currentEpochCounter,
             refTimestamp: UInt64(getCurrentBlock().timestamp)+numViewsInEpoch)
-        FlowEpoch.account.save(defaultEpochTimingConfig, to: /storage/flowEpochTimingConfig)
+        FlowEpoch.account.storage.save(defaultEpochTimingConfig, to: /storage/flowEpochTimingConfig)
 
         self.currentEpochCounter = currentEpochCounter
         self.currentEpochPhase = EpochPhase.STAKINGAUCTION
@@ -975,40 +997,28 @@ pub contract FlowEpoch {
 
         let epochMetadata: {UInt64: EpochMetadata} = {}
 
-        self.account.save(epochMetadata, to: self.metadataStoragePath)
+        self.account.storage.save(epochMetadata, to: self.metadataStoragePath)
 
-        self.account.save(<-create Admin(), to: self.adminStoragePath)
-        self.account.save(<-create Heartbeat(), to: self.heartbeatStoragePath)
+        self.account.storage.save(<-create Admin(), to: self.adminStoragePath)
+        self.account.storage.save(<-create Heartbeat(), to: self.heartbeatStoragePath)
 
         // Create a private capability to the staking admin and store it in a different path
         // On Mainnet and Testnet, the Admin resources are stored in the service account, rather than here.
         // As a default, we store both the admin resources, and the capabilities linking to those resources, in the same account.
         // This ensures that this constructor produces a state which is compatible with the system chunk
         // so that newly created networks are functional without additional resource manipulation.
-        let stakingAdminCapability = self.account.link<&FlowIDTableStaking.Admin{FlowIDTableStaking.EpochOperations}>(
-                /private/flowStakingAdminEpochOperations,
-                target: FlowIDTableStaking.StakingAdminStoragePath
-            ) ?? panic("Could not link Flow staking admin capability")
-
-        self.account.save<Capability<&FlowIDTableStaking.Admin{FlowIDTableStaking.EpochOperations}>>(stakingAdminCapability, to: /storage/flowStakingAdminEpochOperations)
+        let stakingAdminCapability = self.account.capabilities.storage.issue<&FlowIDTableStaking.Admin>(FlowIDTableStaking.StakingAdminStoragePath)
+        self.account.storage.save<Capability<&FlowIDTableStaking.Admin>>(stakingAdminCapability, to: /storage/flowStakingAdminEpochOperations)
 
         // Create a private capability to the qc admin
         // and store it in a different path
-        let qcAdminCapability = self.account.link<&FlowClusterQC.Admin{FlowClusterQC.EpochOperations}>(
-                /private/flowQCAdminEpochOperations,
-                target: FlowClusterQC.AdminStoragePath
-            ) ?? panic("Could not link Flow QC admin capability")
-
-        self.account.save<Capability<&FlowClusterQC.Admin{FlowClusterQC.EpochOperations}>>(qcAdminCapability, to: /storage/flowQCAdminEpochOperations)
+        let qcAdminCapability = self.account.capabilities.storage.issue<&FlowClusterQC.Admin>(FlowClusterQC.AdminStoragePath)
+        self.account.storage.save<Capability<&FlowClusterQC.Admin>>(qcAdminCapability, to: /storage/flowQCAdminEpochOperations)
 
         // Create a private capability to the dkg admin
         // and store it in a different path
-        let dkgAdminCapability = self.account.link<&FlowDKG.Admin{FlowDKG.EpochOperations}>(
-                /private/flowDKGAdminEpochOperations,
-                target: FlowDKG.AdminStoragePath
-            ) ?? panic("Could not link Flow DKG admin capability")
-
-        self.account.save<Capability<&FlowDKG.Admin{FlowDKG.EpochOperations}>>(dkgAdminCapability, to: /storage/flowDKGAdminEpochOperations)
+        let dkgAdminCapability = self.account.capabilities.storage.issue<&FlowDKG.Admin>(FlowDKG.AdminStoragePath)
+        self.account.storage.save<Capability<&FlowDKG.Admin>>(dkgAdminCapability, to: /storage/flowDKGAdminEpochOperations)
 
         self.borrowStakingAdmin().startStakingAuction()
 
@@ -1017,8 +1027,8 @@ pub contract FlowEpoch {
         let firstEpochMetadata = EpochMetadata(counter: self.currentEpochCounter,
                     seed: randomSource,
                     startView: currentBlock.view,
-                    endView: currentBlock.view + self.configurableMetadata.numViewsInEpoch - (1 as UInt64),
-                    stakingEndView: currentBlock.view + self.configurableMetadata.numViewsInStakingAuction - (1 as UInt64),
+                    endView: currentBlock.view + self.configurableMetadata.numViewsInEpoch - 1,
+                    stakingEndView: currentBlock.view + self.configurableMetadata.numViewsInStakingAuction - 1,
                     totalRewards: FlowIDTableStaking.getEpochTokenPayout(),
                     collectorClusters: collectorClusters,
                     clusterQCs: clusterQCs,
@@ -1027,4 +1037,3 @@ pub contract FlowEpoch {
         self.saveEpochMetadata(firstEpochMetadata)
     }
 }
- 

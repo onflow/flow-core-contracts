@@ -1,7 +1,7 @@
-import NodeVersionBeacon from 0xNODEVERSIONBEACONADDRESS
+import NodeVersionBeacon from "NodeVersionBeacon"
 
 /// Retrieves the next version boundary or nil
 /// if there is no upcoming version boundary defined
-pub fun main(): NodeVersionBeacon.VersionBoundary? {
+access(all) fun main(): NodeVersionBeacon.VersionBoundary? {
     return NodeVersionBeacon.getNextVersionBoundary()
 }

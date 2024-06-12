@@ -1,6 +1,6 @@
-import FlowEpoch from 0xEPOCHADDRESS
+import FlowEpoch from "FlowEpoch"
 
-pub fun main(targetEpoch: UInt64): UInt64 {
+access(all) fun main(targetEpoch: UInt64): UInt64 {
     pre {
         targetEpoch >= FlowEpoch.currentEpochCounter
     }

@@ -1,10 +1,10 @@
-import LockedTokens from 0xLOCKEDTOKENADDRESS
+import LockedTokens from "LockedTokens"
 
 transaction(targetAccount: Address, delta: UFix64) {
 
-    prepare(admin: AuthAccount) {
+    prepare(admin: auth(BorrowValue) &Account) {
 
-        let adminRef = admin.borrow<&LockedTokens.TokenAdminCollection>(from: LockedTokens.LockedTokenAdminCollectionStoragePath)
+        let adminRef = admin.storage.borrow<&LockedTokens.TokenAdminCollection>(from: LockedTokens.LockedTokenAdminCollectionStoragePath)
             ?? panic("Could not borrow a reference to the admin collection")
 
         let tokenManagerRef = adminRef.getAccount(address: targetAccount)!.borrow()

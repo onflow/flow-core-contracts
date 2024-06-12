@@ -1,8 +1,8 @@
-import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
+import FlowIDTableStaking from "FlowIDTableStaking"
 
 // This script returns the current approved list
 
-pub fun main(): [String] {
+access(all) fun main(): [String] {
     let approveList = FlowIDTableStaking.getApprovedList()
         ?? panic("Could not read approved list from storage")
 

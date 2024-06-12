@@ -1,5 +1,5 @@
-import FlowEpoch from 0xEPOCHADDRESS
+import FlowEpoch from "FlowEpoch"
 
-pub fun main(epochCounter: UInt64): FlowEpoch.EpochMetadata {
+access(all) fun main(epochCounter: UInt64): FlowEpoch.EpochMetadata {
     return FlowEpoch.getEpochMetadata(epochCounter)!
 }

@@ -29,6 +29,8 @@ func TestDKG(t *testing.T) {
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
 		FlowTokenAddress:     emulatorFlowTokenAddress,
+		BurnerAddress:        emulatorServiceAccount,
+		StorageFeesAddress:   emulatorServiceAccount,
 	}
 
 	accountKeys := test.AccountKeyGenerator()
@@ -119,7 +121,7 @@ func TestDKG(t *testing.T) {
 	dkgNodeIDStrings := make([]cadence.Value, 1)
 	dkgNodeIDStrings[0], _ = cadence.NewString(adminID)
 
-	dkgNodeIDsCadenceArray := cadence.Array{Values: []cadence.Value{cadence.String(adminID)}}.WithType(cadence.NewVariableSizedArrayType(cadence.NewStringType()))
+	dkgNodeIDsCadenceArray := cadence.Array{Values: []cadence.Value{cadence.String(adminID)}}.WithType(cadence.NewVariableSizedArrayType(cadence.StringType))
 
 	t.Run("Should start dkg with the admin", func(t *testing.T) {
 
@@ -370,9 +372,9 @@ func TestDKG(t *testing.T) {
 
 	})
 
-	finalSubmissionKeysArray := cadence.Array{Values: []cadence.Value{finalSubmissionKeys[0], finalSubmissionKeys[1]}}.WithType(cadence.NewVariableSizedArrayType(cadence.NewOptionalType(cadence.NewStringType())))
+	finalSubmissionKeysArray := cadence.Array{Values: []cadence.Value{finalSubmissionKeys[0], finalSubmissionKeys[1]}}.WithType(cadence.NewVariableSizedArrayType(cadence.NewOptionalType(cadence.StringType)))
 
-	finalSubmissionsArray := cadence.Array{Values: []cadence.Value{finalSubmissionKeysArray}}.WithType(cadence.NewVariableSizedArrayType(cadence.NewVariableSizedArrayType(cadence.NewOptionalType(cadence.NewStringType()))))
+	finalSubmissionsArray := cadence.Array{Values: []cadence.Value{finalSubmissionKeysArray}}.WithType(cadence.NewVariableSizedArrayType(cadence.NewVariableSizedArrayType(cadence.NewOptionalType(cadence.StringType))))
 
 	t.Run("Admin should be able to stop the dkg", func(t *testing.T) {
 
@@ -443,7 +445,7 @@ func TestDKG(t *testing.T) {
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetConsensusNodesScript(env), nil)
 
-		assert.Equal(t, cadence.NewArray(epoch2dkgNodeIDStrings).WithType(cadence.NewVariableSizedArrayType(cadence.NewStringType())), result)
+		assert.Equal(t, cadence.NewArray(epoch2dkgNodeIDStrings).WithType(cadence.NewVariableSizedArrayType(cadence.StringType)), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGFinalSubmissionsScript(env), nil)
 
@@ -532,11 +534,14 @@ func TestDKG(t *testing.T) {
 		message0 := messageValues[0].(cadence.Struct)
 		message1 := messageValues[1].(cadence.Struct)
 
-		message0IDField := message0.Fields[0]
-		message0ContentField := message0.Fields[1]
+		message0Fields := cadence.FieldsMappedByName(message0)
+		message1Fields := cadence.FieldsMappedByName(message1)
 
-		message1IDField := message1.Fields[0]
-		message1ContentField := message1.Fields[1]
+		message0IDField := message0Fields["nodeID"]
+		message0ContentField := message0Fields["content"]
+
+		message1IDField := message1Fields["nodeID"]
+		message1ContentField := message1Fields["content"]
 
 		stringArg, _ = cadence.NewString(maxID)
 		assert.Equal(t, stringArg, message0IDField)
@@ -666,9 +671,10 @@ func TestDKG(t *testing.T) {
 		// There are two consensus nodes, so the thresholds should both be zero
 		// since the native percentage is floor((n-1)/2) and the safe percentage has not been set yet
 		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGThresholdsScript(env), nil).(cadence.Struct)
-		nativeThreshold := result.Fields[0]
-		safeThreshold := result.Fields[1]
-		safePercentage := result.Fields[2]
+		thresholdsFields := cadence.FieldsMappedByName(result)
+		nativeThreshold := thresholdsFields["native"]
+		safeThreshold := thresholdsFields["safe"]
+		safePercentage := thresholdsFields["safePercentage"]
 
 		assert.Equal(t, cadence.NewUInt64(0), nativeThreshold)
 		assert.Equal(t, cadence.NewUInt64(0), safeThreshold)
@@ -703,7 +709,7 @@ func checkDKGSafeThresholdPercent(
 	expected cadence.Value, // UFix64
 ) {
 	result := executeScriptAndCheck(t, b, templates.GenerateGetDKGThresholdsScript(env), nil).(cadence.Struct)
-	safePercentage := result.Fields[2]
+	safePercentage := cadence.SearchFieldByName(result, "safePercentage")
 	assertEqual(t, expected, safePercentage)
 }
 
@@ -716,7 +722,7 @@ func checkDKGSafeThreshold(
 	expected cadence.Value, // UInt64
 ) {
 	result := executeScriptAndCheck(t, b, templates.GenerateGetDKGThresholdsScript(env), nil).(cadence.Struct)
-	safeThreshold := result.Fields[1]
+	safeThreshold := cadence.SearchFieldByName(result, "safe")
 	assertEqual(t, expected, safeThreshold)
 }
 

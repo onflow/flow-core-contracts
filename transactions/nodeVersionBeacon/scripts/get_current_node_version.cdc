@@ -1,6 +1,6 @@
-import NodeVersionBeacon from 0xNODEVERSIONBEACONADDRESS
+import NodeVersionBeacon from "NodeVersionBeacon"
 
 /// Gets the current version defined in the contract's versionTable
-pub fun main(): NodeVersionBeacon.Semver {
+access(all) fun main(): NodeVersionBeacon.Semver {
     return NodeVersionBeacon.getCurrentVersionBoundary().version
 }
