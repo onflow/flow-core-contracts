@@ -402,11 +402,64 @@ func TestContracts(t *testing.T) {
 	})
 
 	t.Run("Should check if payer has sufficient balance to execute tx", func(t *testing.T) {
-		account := cadence.NewAddress(flow.HexToAddress(env.FlowFeesAddress))
-		inclusionEffort := cadence.UFix64(999999999999999999)
-		gasLimit := cadence.UFix64(999999999999999999)
+		//TODO: it doesn't work, does it?
+		tx := createTxWithTemplateAndAuthorizer(b,
+			templates.GenerateChangeStorageFeeParametersScript(env),
+			storageFeesAddress)
 
-		args := [][]byte{jsoncdc.MustEncode(account), jsoncdc.MustEncode(inclusionEffort), jsoncdc.MustEncode(gasLimit)}
+		err = tx.AddArgument(CadenceUFix64("1.0"))
+		require.NoError(t, err)
+		err = tx.AddArgument(CadenceUFix64("4.0"))
+		require.NoError(t, err)
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{storageFeesAddress},
+			[]crypto.Signer{storageFeesSigner},
+			false,
+		)
+
+		assert.NoError(t, err)
+		_, err = b.CommitBlock()
+		assert.NoError(t, err)
+
+		// create SmallBalanceContract contract
+		code := []byte(`
+			access(all) contract SmallBalanceContract {
+    			access(all) let value: Int32
+
+    			init() {
+        			self.value = 42
+    			}
+			}
+    	`)
+		keys := test.AccountKeyGenerator()
+		key, _ := keys.NewWithSigner()
+		address, err := adapter.CreateAccount(context.Background(), []*flow.AccountKey{key}, []sdktemplates.Contract{
+			{
+				Name:   "SmallBalanceContract",
+				Source: string(code),
+			},
+		})
+
+		assert.NoError(t, err)
+		_, err = b.CommitBlock()
+		assert.NoError(t, err)
+
+		// mint some flows to the account
+		mintTokensForAccount(t, b, env, address, "15.0")
+
+		//TODO: remove this. this is for debug only
+		acc, err := adapter.GetAccount(context.Background(), address)
+		require.NotNil(t, acc)
+		require.NoError(t, err)
+
+		// set up args
+		cadenceAddress := cadence.NewAddress(address)
+		inclusionEffort := cadence.UFix64(500)
+		gasLimit := cadence.UFix64(1)
+
+		args := [][]byte{jsoncdc.MustEncode(cadenceAddress), jsoncdc.MustEncode(inclusionEffort), jsoncdc.MustEncode(gasLimit)}
 
 		result = executeScriptAndCheck(t, b, templates.GenerateVerifyPayerBalanceForTxExecution(env), args)
 		require.NotNil(t, result)
