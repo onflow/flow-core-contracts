@@ -1,21 +1,21 @@
-import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
-import LockedTokens from 0xLOCKEDTOKENADDRESS
+import FlowIDTableStaking from "FlowIDTableStaking"
+import LockedTokens from "LockedTokens"
 
 // Returns an array of DelegatorInfo objects that the account controls
 // in its normal account and shared account
 
-pub fun main(account: Address): [FlowIDTableStaking.DelegatorInfo] {
+access(all) fun main(account: Address): [FlowIDTableStaking.DelegatorInfo] {
 
     let delegatorInfoArray: [FlowIDTableStaking.DelegatorInfo] = []
 
     let pubAccount = getAccount(account)
 
-    let delegatorCap = pubAccount
-        .getCapability<&{FlowIDTableStaking.NodeDelegatorPublic}>(
+    let optionalDelegatorRef = pubAccount
+        .capabilities.borrow<&{FlowIDTableStaking.NodeDelegatorPublic}>(
             /public/flowStakingDelegator
         )
 
-    if let delegatorRef = delegatorCap.borrow() {
+    if let delegatorRef = optionalDelegatorRef {
         let info = FlowIDTableStaking.DelegatorInfo(
             nodeID: delegatorRef.nodeID,
             delegatorID: delegatorRef.id
@@ -23,12 +23,12 @@ pub fun main(account: Address): [FlowIDTableStaking.DelegatorInfo] {
         delegatorInfoArray.append(info)
     }
 
-    let lockedAccountInfoCap = pubAccount
-        .getCapability<&LockedTokens.TokenHolder{LockedTokens.LockedAccountInfo}>(
+    let optionalLockedAccountInfoRef = pubAccount
+        .capabilities.borrow<&LockedTokens.TokenHolder>(
             LockedTokens.LockedAccountInfoPublicPath
         )
 
-    if let lockedAccountInfoRef = lockedAccountInfoCap.borrow() {
+    if let lockedAccountInfoRef = optionalLockedAccountInfoRef {
         let nodeID = lockedAccountInfoRef.getDelegatorNodeID()
         let delegatorID = lockedAccountInfoRef.getDelegatorID()
 

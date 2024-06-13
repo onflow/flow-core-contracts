@@ -94,7 +94,7 @@ func TestEpochClusters(t *testing.T) {
 
 	// Deploys the staking contract, qc, dkg, and epoch lifecycle contract
 	// staking contract is deployed with default values (1.25M rewards, 8% cut)
-	initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
+	_, _ = initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
 		startEpochCounter, // start epoch counter
 		numEpochViews,     // num views per epoch
 		numStakingViews,   // num views for staking auction
@@ -113,7 +113,6 @@ func TestEpochClusters(t *testing.T) {
 		result := executeScriptAndCheck(t, b, templates.GenerateGetRandomizeScript(env), [][]byte{jsoncdc.MustEncode(idArray)})
 		assertEqual(t, 4, len(result.(cadence.Array).Values))
 
-		// TODO: Make sure that the ids in the array all match the provided IDs and are in a different order
 	})
 
 	// create new user accounts, mint tokens for them, and register them for staking
@@ -136,7 +135,6 @@ func TestEpochClusters(t *testing.T) {
 		result := executeScriptAndCheck(t, b, templates.GenerateGetCreateClustersScript(env), [][]byte{jsoncdc.MustEncode(idArray)})
 		assertEqual(t, 2, len(result.(cadence.Array).Values))
 
-		// TODO: Make sure that the clusters are correct and are in a different order than the original array
 	})
 
 }
@@ -487,7 +485,7 @@ func TestEpochTiming(t *testing.T) {
 
 	t.Run("should be able to observe end times for current epoch", func(t *testing.T) {
 		gotEndTimeCdc := executeScriptAndCheck(t, b, templates.GenerateGetTargetEndTimeForEpochScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt64(startEpochCounter))})
-		gotEndTime := gotEndTimeCdc.ToGoValue().(uint64)
+		gotEndTime := uint64(gotEndTimeCdc.(cadence.UInt64))
 		expectedEndTime := expectedTargetEndTime(epochTimingConfigResult, startEpochCounter)
 		assert.Equal(t, expectedEndTime, gotEndTime)
 
@@ -501,7 +499,7 @@ func TestEpochTiming(t *testing.T) {
 		var lastEndTime uint64
 		for _, epoch := range []uint64{1, 2, 3, 10, 100, 1000, 10_000} {
 			gotEndTimeCdc := executeScriptAndCheck(t, b, templates.GenerateGetTargetEndTimeForEpochScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt64(epoch))})
-			gotEndTime := gotEndTimeCdc.ToGoValue().(uint64)
+			gotEndTime := uint64(gotEndTimeCdc.(cadence.UInt64))
 			expectedEndTime := expectedTargetEndTime(epochTimingConfigResult, epoch)
 			assert.Equal(t, expectedEndTime, gotEndTime)
 
@@ -644,7 +642,7 @@ func TestEpochAdvance(t *testing.T) {
 		assert.Equal(t, cadence.NewBool(true), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetConsensusNodesScript(env), nil)
-		assert.Equal(t, cadence.NewArray(dkgIDs).WithType(cadence.NewVariableSizedArrayType(cadence.NewStringType())), result)
+		assert.Equal(t, cadence.NewArray(dkgIDs).WithType(cadence.NewVariableSizedArrayType(cadence.StringType)), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGFinalSubmissionsScript(env), nil)
 		assert.Equal(t, 0, len(result.(cadence.Array).Values))

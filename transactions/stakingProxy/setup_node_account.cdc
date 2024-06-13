@@ -1,15 +1,19 @@
-import StakingProxy from 0xSTAKINGPROXYADDRESS
+import StakingProxy from "StakingProxy"
 
 transaction() {
 
-    prepare(nodeOperator: AuthAccount) {
+    prepare(nodeOperator: auth(SaveValue, Capabilities) &Account) {
         let proxyHolder <- StakingProxy.createProxyHolder()
 
-        nodeOperator.save(<-proxyHolder, to: StakingProxy.NodeOperatorCapabilityStoragePath)
+        nodeOperator.storage.save(<-proxyHolder, to: StakingProxy.NodeOperatorCapabilityStoragePath)
 
-        nodeOperator.link<&StakingProxy.NodeStakerProxyHolder{StakingProxy.NodeStakerProxyHolderPublic}>(
-            StakingProxy.NodeOperatorCapabilityPublicPath,
-            target: StakingProxy.NodeOperatorCapabilityStoragePath
+        let nodeOperatorCap = nodeOperator.capabilities.storage.issue<&StakingProxy.NodeStakerProxyHolder>(
+            StakingProxy.NodeOperatorCapabilityStoragePath
+        )
+
+        nodeOperator.capabilities.publish(
+            nodeOperatorCap,
+            at: StakingProxy.NodeOperatorCapabilityPublicPath
         )
     }
 }

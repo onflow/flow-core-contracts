@@ -1,8 +1,8 @@
-import FlowStakingCollection from 0xSTAKINGCOLLECTIONADDRESS
+import FlowStakingCollection from "FlowStakingCollection"
 
 /// Gets all the machine account addresses for nodes
 /// in the account's staking collection
 
-pub fun main(account: Address): {String: FlowStakingCollection.MachineAccountInfo} {
+access(all) fun main(account: Address): {String: FlowStakingCollection.MachineAccountInfo} {
     return FlowStakingCollection.getMachineAccounts(address: account)
 }

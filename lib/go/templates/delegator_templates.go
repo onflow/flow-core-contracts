@@ -5,8 +5,7 @@ import (
 )
 
 const (
-	createDelegationFilename       = "idTableStaking/delegation/del_create_delegation.cdc"
-	delegatorAddCapabilityFilename = "idTableStaking/delegation/delegator_add_capability.cdc"
+	createDelegationFilename = "idTableStaking/delegation/del_create_delegation.cdc"
 
 	delegatorRegisterFilename         = "idTableStaking/delegation/register_delegator.cdc"
 	delegatorStakeNewFilename         = "idTableStaking/delegation/del_stake_new_tokens.cdc"
@@ -73,12 +72,6 @@ func GenerateDelegatorWithdrawUnstakedScript(env Environment) []byte {
 
 func GenerateDelegatorWithdrawRewardsScript(env Environment) []byte {
 	code := assets.MustAssetString(delegatorWithdrawRewardsFilename)
-
-	return []byte(ReplaceAddresses(code, env))
-}
-
-func GenerateAddPublicDelegatorCapabilityScript(env Environment) []byte {
-	code := assets.MustAssetString(delegatorAddCapabilityFilename)
 
 	return []byte(ReplaceAddresses(code, env))
 }

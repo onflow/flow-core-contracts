@@ -1,7 +1,7 @@
-import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
+import FlowIDTableStaking from "FlowIDTableStaking"
 
 // This script returns the list of non-operational nodes
 
-pub fun main(): [String] {
+access(all) fun main(): [String] {
     return FlowIDTableStaking.getNonOperationalNodesList().keys
 }

@@ -1,7 +1,7 @@
-import FlowStakingCollection from 0xSTAKINGCOLLECTIONADDRESS
+import FlowStakingCollection from "FlowStakingCollection"
 
 /// Returns an array of all the node IDs stored in the staking collection
 
-pub fun main(address: Address): [String] {
+access(all) fun main(address: Address): [String] {
     return FlowStakingCollection.getNodeIDs(address: address)
 }

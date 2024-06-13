@@ -10,7 +10,7 @@ import (
 	ftcontracts "github.com/onflow/flow-ft/lib/go/contracts"
 	nftcontracts "github.com/onflow/flow-nft/lib/go/contracts"
 
-	"github.com/onflow/flow-go-sdk"
+	"github.com/onflow/flow-core-contracts/lib/go/templates"
 
 	"github.com/onflow/flow-core-contracts/lib/go/contracts/internal/assets"
 )
@@ -22,7 +22,7 @@ import (
 ///
 /// Example
 ///
-/// flowTokenCode := contracts.FlowToken(fungibleTokenAddr)
+/// flowTokenCode := contracts.FlowToken(env)
 ///
 
 const (
@@ -50,18 +50,18 @@ const (
 	placeholderFungibleTokenAddress     = "\"FungibleToken\""
 	placeholderFungibleTokenMVAddress   = "\"FungibleTokenMetadataViews\""
 	placeholderMetadataViewsAddress     = "\"MetadataViews\""
-	placeholderViewResolverAddress      = "\"ViewResolver\""
-	placeholderFlowTokenAddress         = "0xFLOWTOKENADDRESS"
-	placeholderIDTableAddress           = "0xFLOWIDTABLESTAKINGADDRESS"
-	placeholderStakingProxyAddress      = "0xSTAKINGPROXYADDRESS"
-	placeholderQCAddr                   = "0xQCADDRESS"
-	placeholderDKGAddr                  = "0xDKGADDRESS"
-	placeholderEpochAddr                = "0xEPOCHADDRESS"
-	placeholderFlowFeesAddress          = "0xFLOWFEESADDRESS"
-	placeholderStorageFeesAddress       = "0xFLOWSTORAGEFEESADDRESS"
-	placeholderLockedTokensAddress      = "0xLOCKEDTOKENSADDRESS"
-	placeholderStakingCollectionAddress = "0xFLOWSTAKINGCOLLECTIONADDRESS"
-	placeholderNodeVersionBeaconAddress = "0xNODEVERSIONBEACONADDRESS"
+	placeholderFlowTokenAddress         = "\"FlowToken\""
+	placeholderIDTableAddress           = "\"FlowIDTableStaking\""
+	placeholderBurnerAddress            = "\"Burner\""
+	placeholderStakingProxyAddress      = "\"StakingProxy\""
+	placeholderQCAddr                   = "\"FlowClusterQC\""
+	placeholderDKGAddr                  = "\"FlowDKG\""
+	placeholderEpochAddr                = "\"FlowEpoch\""
+	placeholderFlowFeesAddress          = "\"FlowFees\""
+	placeholderStorageFeesAddress       = "\"FlowStorageFees\""
+	placeholderLockedTokensAddress      = "\"LockedTokens\""
+	placeholderStakingCollectionAddress = "\"FlowStakingCollection\""
+	placeholderNodeVersionBeaconAddress = "\"NodeVersionBeacon\""
 )
 
 // Adds a `0x` prefix to the provided address string
@@ -78,59 +78,44 @@ func withHexPrefix(address string) string {
 }
 
 // FungibleToken returns the FungibleToken contract interface.
-func FungibleToken() []byte {
-	return ftcontracts.FungibleToken()
+func FungibleToken(env templates.Environment) []byte {
+	return ftcontracts.FungibleToken(env.ViewResolverAddress, env.BurnerAddress)
 }
 
 // FungibleTokenMetadataViews returns the FungibleTokenMetadataViews contract interface.
-func FungibleTokenMetadataViews(fungibleTokenAddr, metadataViewsAddr string) []byte {
-	return ftcontracts.FungibleTokenMetadataViews(fungibleTokenAddr, metadataViewsAddr)
+func FungibleTokenMetadataViews(env templates.Environment) []byte {
+	return ftcontracts.FungibleTokenMetadataViews(env.FungibleTokenAddress, env.MetadataViewsAddress, env.ViewResolverAddress)
 }
 
-func NonFungibleToken() []byte {
-	return nftcontracts.NonFungibleToken()
+// FungibleTokenSwitchboard returns the FungibleTokenSwitchboard contract interface.
+func FungibleTokenSwitchboard(env templates.Environment) []byte {
+	return ftcontracts.FungibleTokenSwitchboard(env.FungibleTokenAddress)
+}
+
+func NonFungibleToken(env templates.Environment) []byte {
+	return nftcontracts.NonFungibleToken(env.ViewResolverAddress)
 }
 
 func ViewResolver() []byte {
-	return nftcontracts.Resolver()
+	return nftcontracts.ViewResolver()
+}
+
+func Burner() []byte {
+	return ftcontracts.Burner()
 }
 
 // MetadataViews returns the MetadataViews contract interface.
-func MetadataViews(fungibleTokenAddr, nonFungibleTokenAddr string) []byte {
-	return nftcontracts.MetadataViews(flow.HexToAddress(fungibleTokenAddr), flow.HexToAddress(nonFungibleTokenAddr))
+func MetadataViews(env templates.Environment) []byte {
+	return nftcontracts.MetadataViews(env.FungibleTokenAddress, env.NonFungibleTokenAddress, env.ViewResolverAddress)
 }
 
 // FlowToken returns the FlowToken contract.
 //
 // The returned contract will import the FungibleToken contract from the specified address.
-func FlowToken(fungibleTokenAddress, metadataViewsAddress, viewResolverAddress string) []byte {
+func FlowToken(env templates.Environment) []byte {
 	code := assets.MustAssetString(flowTokenFilename)
 
-	// Replace the fungible token placeholder address
-	// with the provided address
-	code = strings.ReplaceAll(
-		code,
-		placeholderFungibleTokenAddress,
-		withHexPrefix(fungibleTokenAddress),
-	)
-
-	code = strings.ReplaceAll(
-		code,
-		placeholderFungibleTokenMVAddress,
-		withHexPrefix(fungibleTokenAddress),
-	)
-
-	code = strings.ReplaceAll(
-		code,
-		placeholderMetadataViewsAddress,
-		withHexPrefix(metadataViewsAddress),
-	)
-
-	code = strings.ReplaceAll(
-		code,
-		placeholderViewResolverAddress,
-		withHexPrefix(viewResolverAddress),
-	)
+	code = templates.ReplaceAddresses(code, env)
 
 	// Replace the init method storage operations
 	code = strings.ReplaceAll(
@@ -143,7 +128,7 @@ func FlowToken(fungibleTokenAddress, metadataViewsAddress, viewResolverAddress s
 	code = strings.ReplaceAll(
 		code,
 		"init()",
-		"init(adminAccount: AuthAccount)",
+		"init(adminAccount: auth(Storage, Capabilities) &Account)",
 	)
 
 	return []byte(code)
@@ -153,25 +138,23 @@ func FlowToken(fungibleTokenAddress, metadataViewsAddress, viewResolverAddress s
 //
 // The returned contract will import the FungibleToken and FlowToken
 // contracts from the specified addresses.
-func FlowFees(fungibleTokenAddress, flowTokenAddress, storageFees string) []byte {
+func FlowFees(env templates.Environment) []byte {
 	code := assets.MustAssetString(flowFeesFilename)
 
+	code = templates.ReplaceAddresses(code, env)
+
+	// Replace the init method storage operations
 	code = strings.ReplaceAll(
 		code,
-		placeholderFungibleTokenAddress,
-		withHexPrefix(fungibleTokenAddress),
+		"self.account.storage.save(<-admin, to: /storage/flowFeesAdmin)",
+		"adminAccount.storage.save(<-admin, to: /storage/flowFeesAdmin)",
 	)
 
+	// Replace the init method admin account parameter
 	code = strings.ReplaceAll(
 		code,
-		placeholderFlowTokenAddress,
-		withHexPrefix(flowTokenAddress),
-	)
-
-	code = strings.ReplaceAll(
-		code,
-		placeholderStorageFeesAddress,
-		withHexPrefix(storageFees),
+		"init()",
+		"init(adminAccount: auth(SaveValue) &Account)",
 	)
 
 	return []byte(code)
@@ -179,20 +162,10 @@ func FlowFees(fungibleTokenAddress, flowTokenAddress, storageFees string) []byte
 
 // FlowStorageFees returns the FlowStorageFees contract
 // which imports the fungible token and flow token contracts
-func FlowStorageFees(fungibleTokenAddress, flowTokenAddress string) []byte {
+func FlowStorageFees(env templates.Environment) []byte {
 	code := assets.MustAssetString(storageFeesFilename)
 
-	code = strings.ReplaceAll(
-		code,
-		placeholderFungibleTokenAddress,
-		withHexPrefix(fungibleTokenAddress),
-	)
-
-	code = strings.ReplaceAll(
-		code,
-		placeholderFlowTokenAddress,
-		withHexPrefix(flowTokenAddress),
-	)
+	code = templates.ReplaceAddresses(code, env)
 
 	return []byte(code)
 }
@@ -201,49 +174,19 @@ func FlowStorageFees(fungibleTokenAddress, flowTokenAddress string) []byte {
 //
 // The returned contract will import the FungibleToken, FlowToken, FlowFees, and FlowStorageFees
 // contracts from the specified addresses.
-func FlowServiceAccount(fungibleTokenAddress, flowTokenAddress, flowFeesAddress, storageFeesAddress string) []byte {
+func FlowServiceAccount(env templates.Environment) []byte {
 	code := assets.MustAssetString(flowServiceAccountFilename)
 
-	code = strings.ReplaceAll(
-		code,
-		placeholderFungibleTokenAddress,
-		withHexPrefix(fungibleTokenAddress),
-	)
-
-	code = strings.ReplaceAll(
-		code,
-		placeholderFlowTokenAddress,
-		withHexPrefix(flowTokenAddress),
-	)
-
-	code = strings.ReplaceAll(
-		code,
-		placeholderFlowFeesAddress,
-		withHexPrefix(flowFeesAddress),
-	)
-
-	code = strings.ReplaceAll(
-		code,
-		placeholderStorageFeesAddress,
-		withHexPrefix(storageFeesAddress),
-	)
+	code = templates.ReplaceAddresses(code, env)
 
 	return []byte(code)
 }
 
 // FlowIDTableStaking returns the FlowIDTableStaking contract
-//
-// # The staking contract imports the FungibleToken and FlowToken contracts
-//
-// Parameter: latest: indicates if the contract is the latest version, or an old version. Used to test upgrades
-func FlowIDTableStaking(fungibleTokenAddress, flowTokenAddress, flowFeesAddress string, latest bool) []byte {
-	var code string
+func FlowIDTableStaking(env templates.Environment) []byte {
+	code := assets.MustAssetString(flowIdentityTableFilename)
 
-	code = assets.MustAssetString(flowIdentityTableFilename)
-
-	code = strings.ReplaceAll(code, placeholderFungibleTokenAddress, withHexPrefix(fungibleTokenAddress))
-	code = strings.ReplaceAll(code, placeholderFlowTokenAddress, withHexPrefix(flowTokenAddress))
-	code = strings.ReplaceAll(code, placeholderFlowFeesAddress, withHexPrefix(flowFeesAddress))
+	code = templates.ReplaceAddresses(code, env)
 
 	return []byte(code)
 }
@@ -256,27 +199,11 @@ func FlowStakingProxy() []byte {
 
 // FlowStakingCollection returns the StakingCollection contract.
 func FlowStakingCollection(
-	fungibleTokenAddress,
-	flowTokenAddress,
-	idTableAddress,
-	stakingProxyAddress,
-	lockedTokensAddress,
-	storageFeesAddress,
-	qcAddress,
-	dkgAddress,
-	epochAddress string,
+	env templates.Environment,
 ) []byte {
 	code := assets.MustAssetString(flowStakingCollectionFilename)
 
-	code = strings.ReplaceAll(code, placeholderFungibleTokenAddress, withHexPrefix(fungibleTokenAddress))
-	code = strings.ReplaceAll(code, placeholderFlowTokenAddress, withHexPrefix(flowTokenAddress))
-	code = strings.ReplaceAll(code, placeholderIDTableAddress, withHexPrefix(idTableAddress))
-	code = strings.ReplaceAll(code, placeholderStakingProxyAddress, withHexPrefix(stakingProxyAddress))
-	code = strings.ReplaceAll(code, placeholderLockedTokensAddress, withHexPrefix(lockedTokensAddress))
-	code = strings.ReplaceAll(code, placeholderStorageFeesAddress, withHexPrefix(storageFeesAddress))
-	code = strings.ReplaceAll(code, placeholderQCAddr, withHexPrefix(qcAddress))
-	code = strings.ReplaceAll(code, placeholderDKGAddr, withHexPrefix(dkgAddress))
-	code = strings.ReplaceAll(code, placeholderEpochAddr, withHexPrefix(epochAddress))
+	code = templates.ReplaceAddresses(code, env)
 
 	return []byte(code)
 }
@@ -285,19 +212,11 @@ func FlowStakingCollection(
 //
 // Locked Tokens imports FungibleToken, FlowToken, FlowIDTableStaking, StakingProxy, and FlowStorageFees
 func FlowLockedTokens(
-	fungibleTokenAddress,
-	flowTokenAddress,
-	idTableAddress,
-	stakingProxyAddress,
-	storageFeesAddress string,
+	env templates.Environment,
 ) []byte {
 	code := assets.MustAssetString(flowLockedTokensFilename)
 
-	code = strings.ReplaceAll(code, placeholderFungibleTokenAddress, withHexPrefix(fungibleTokenAddress))
-	code = strings.ReplaceAll(code, placeholderFlowTokenAddress, withHexPrefix(flowTokenAddress))
-	code = strings.ReplaceAll(code, placeholderIDTableAddress, withHexPrefix(idTableAddress))
-	code = strings.ReplaceAll(code, placeholderStakingProxyAddress, withHexPrefix(stakingProxyAddress))
-	code = strings.ReplaceAll(code, placeholderStorageFeesAddress, withHexPrefix(storageFeesAddress))
+	code = templates.ReplaceAddresses(code, env)
 
 	return []byte(code)
 }
@@ -317,21 +236,10 @@ func FlowDKG() []byte {
 }
 
 // FlowEpoch returns the FlowEpoch contract.
-func FlowEpoch(fungibleTokenAddress,
-	flowTokenAddress,
-	idTableAddress,
-	qcAddress,
-	dkgAddress string,
-	flowFeesAddress string,
-) []byte {
+func FlowEpoch(env templates.Environment) []byte {
 	code := assets.MustAssetString(flowEpochFilename)
 
-	code = strings.ReplaceAll(code, placeholderFungibleTokenAddress, withHexPrefix(fungibleTokenAddress))
-	code = strings.ReplaceAll(code, placeholderFlowTokenAddress, withHexPrefix(flowTokenAddress))
-	code = strings.ReplaceAll(code, placeholderIDTableAddress, withHexPrefix(idTableAddress))
-	code = strings.ReplaceAll(code, placeholderQCAddr, withHexPrefix(qcAddress))
-	code = strings.ReplaceAll(code, placeholderDKGAddr, withHexPrefix(dkgAddress))
-	code = strings.ReplaceAll(code, placeholderFlowFeesAddress, withHexPrefix(flowFeesAddress))
+	code = templates.ReplaceAddresses(code, env)
 
 	return []byte(code)
 }
@@ -384,6 +292,7 @@ func TESTFlowStakingCollection(
 	code := assets.MustAssetString(flowStakingCollectionFilename)
 
 	code = strings.ReplaceAll(code, placeholderFungibleTokenAddress, withHexPrefix(fungibleTokenAddress))
+	code = strings.ReplaceAll(code, placeholderBurnerAddress, withHexPrefix(storageFeesAddress))
 	code = strings.ReplaceAll(code, placeholderFlowTokenAddress, withHexPrefix(flowTokenAddress))
 	code = strings.ReplaceAll(code, placeholderIDTableAddress, withHexPrefix(idTableAddress))
 	code = strings.ReplaceAll(code, placeholderStakingProxyAddress, withHexPrefix(stakingProxyAddress))
@@ -393,7 +302,8 @@ func TESTFlowStakingCollection(
 	code = strings.ReplaceAll(code, placeholderDKGAddr, withHexPrefix(dkgAddress))
 	code = strings.ReplaceAll(code, placeholderEpochAddr, withHexPrefix(epochAddress))
 
-	code = strings.ReplaceAll(code, "access(self)", "pub")
+	code = strings.ReplaceAll(code, "access(self) fun getTokens", "access(all) fun getTokens")
+	code = strings.ReplaceAll(code, "access(self) fun depositTokens", "access(all) fun depositTokens")
 
 	return []byte(code)
 }
@@ -417,18 +327,6 @@ func TestFlowFees(fungibleTokenAddress, flowTokenAddress, storageFeesAddress str
 		code,
 		placeholderStorageFeesAddress,
 		withHexPrefix(storageFeesAddress),
-	)
-
-	code = strings.ReplaceAll(
-		code,
-		"init(adminAccount: AuthAccount)",
-		"init()",
-	)
-
-	code = strings.ReplaceAll(
-		code,
-		"adminAccount.save(<-admin, to: /storage/flowFeesAdmin)",
-		"self.account.save(<-admin, to: /storage/flowFeesAdmin)",
 	)
 
 	return []byte(code)

@@ -1,4 +1,4 @@
-import FlowClusterQC from 0xQCADDRESS
+import FlowClusterQC from "FlowClusterQC"
 
 transaction(name: String, 
             code: [UInt8],
@@ -13,7 +13,7 @@ transaction(name: String,
             clusterQCs: [FlowClusterQC.ClusterQC],
             dkgPubKeys: [String]) {
 
-  prepare(signer: AuthAccount) {
+  prepare(signer: auth(AddContract) &Account) {
 
     signer.contracts.add(name: name, 
             code: code,

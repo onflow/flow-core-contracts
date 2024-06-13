@@ -27,6 +27,8 @@ func TestStakingProxy(t *testing.T) {
 	env := templates.Environment{
 		FungibleTokenAddress: emulatorFTAddress,
 		FlowTokenAddress:     emulatorFlowTokenAddress,
+		BurnerAddress:        emulatorServiceAccount,
+		StorageFeesAddress:   emulatorServiceAccount,
 	}
 
 	accountKeys := test.AccountKeyGenerator()
@@ -59,7 +61,7 @@ func TestStakingProxy(t *testing.T) {
 	for i, limit := range candidateNodeLimits {
 		candidateLimitsArrayValues[i] = cadence.NewUInt64(limit)
 	}
-	cadenceLimitArray := cadence.NewArray(candidateLimitsArrayValues).WithType(cadence.NewVariableSizedArrayType(cadence.NewUInt64Type()))
+	cadenceLimitArray := cadence.NewArray(candidateLimitsArrayValues).WithType(cadence.NewVariableSizedArrayType(cadence.UInt64Type))
 
 	_ = tx.AddArgument(cadenceLimitArray)
 
@@ -80,7 +82,7 @@ func TestStakingProxy(t *testing.T) {
 		for _, result := range results {
 			for _, event := range result.Events {
 				if event.Type == flow.EventAccountCreated {
-					idTableAddress = flow.Address(event.Value.Fields[0].(cadence.Address))
+					idTableAddress = flow.Address(cadence.SearchFieldByName(event.Value, "address").(cadence.Address))
 				}
 			}
 		}

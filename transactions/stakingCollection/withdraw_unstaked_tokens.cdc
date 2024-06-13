@@ -1,4 +1,4 @@
-import FlowStakingCollection from 0xSTAKINGCOLLECTIONADDRESS
+import FlowStakingCollection from "FlowStakingCollection"
 
 /// Request to withdraw unstaked tokens for the specified node or delegator in the staking collection
 /// The tokens are automatically deposited to the unlocked account vault first,
@@ -6,11 +6,11 @@ import FlowStakingCollection from 0xSTAKINGCOLLECTIONADDRESS
 
 transaction(nodeID: String, delegatorID: UInt32?, amount: UFix64) {
     
-    let stakingCollectionRef: &FlowStakingCollection.StakingCollection
+    let stakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) &FlowStakingCollection.StakingCollection
 
-    prepare(account: AuthAccount) {
-        self.stakingCollectionRef = account.borrow<&FlowStakingCollection.StakingCollection>(from: FlowStakingCollection.StakingCollectionStoragePath)
-            ?? panic("Could not borrow ref to StakingCollection")
+    prepare(account: auth(BorrowValue) &Account) {
+        self.stakingCollectionRef = account.storage.borrow<auth(FlowStakingCollection.CollectionOwner) &FlowStakingCollection.StakingCollection>(from: FlowStakingCollection.StakingCollectionStoragePath)
+            ?? panic("Could not borrow a reference to a StakingCollection in the primary user's account")
     }
 
     execute {

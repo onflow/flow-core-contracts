@@ -1,4 +1,4 @@
-import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
+import FlowIDTableStaking from "FlowIDTableStaking"
 
 // This transaction uses a staking admin capability
 // to pay rewards, end the staking auction, and end the epoch.
@@ -13,8 +13,8 @@ transaction(ids: {String: Bool}, newPayout: UFix64) {
     // Local variable for a reference to the ID Table Admin object
     let adminRef: &FlowIDTableStaking.Admin
 
-    prepare(acct: AuthAccount) {
-        let adminCapability = acct.copy<Capability>(from: FlowIDTableStaking.StakingAdminStoragePath)
+    prepare(acct: auth(CopyValue) &Account) {
+        let adminCapability = acct.storage.copy<Capability>(from: FlowIDTableStaking.StakingAdminStoragePath)
             ?? panic("Could not get capability from account storage")
 
         // borrow a reference to the admin object

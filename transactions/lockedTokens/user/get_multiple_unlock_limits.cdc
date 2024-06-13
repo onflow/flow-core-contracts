@@ -1,15 +1,14 @@
-import LockedTokens from 0xLOCKEDTOKENADDRESS
+import LockedTokens from "LockedTokens"
 
-pub fun main(accounts: [Address]): [UFix64] {
+access(all) fun main(accounts: [Address]): [UFix64] {
 
     var limits: [UFix64] = []
 
     for account in accounts {
         let lockedAccountInfoRef = getAccount(account)
-            .getCapability<&LockedTokens.TokenHolder{LockedTokens.LockedAccountInfo}>(
+            .capabilities.borrow<&LockedTokens.TokenHolder>(
                 LockedTokens.LockedAccountInfoPublicPath
             )
-            .borrow()
             ?? panic("Could not borrow a reference to public LockedAccountInfo")
 
         limits.append(lockedAccountInfoRef.getUnlockLimit())
