@@ -412,8 +412,9 @@ func TestContracts(t *testing.T) {
 		require.NotNil(t, result)
 
 		// parse VerifyPayerBalanceResult.canExecuteTransaction
-		resultStructValues := result.(cadence.Struct).GetFieldValues()
-		canExecuteTransaction := resultStructValues[0].ToGoValue().(bool)
+		resultStruct := result.(cadence.Struct)
+		fields := cadence.FieldsMappedByName(resultStruct)
+		canExecuteTransaction := bool(fields["canExecuteTransaction"].(cadence.Bool))
 		require.True(t, canExecuteTransaction)
 	})
 
