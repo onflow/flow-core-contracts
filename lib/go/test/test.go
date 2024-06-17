@@ -82,7 +82,10 @@ func newBlockchain(opts ...emulator.Option) (emulator.Emulator, *adapters.SDKAda
 		append(
 			[]emulator.Option{
 				// No storage limit
-				emulator.WithStorageLimitEnabled(false),
+				emulator.WithStorageLimitEnabled(true),
+				emulator.WithTransactionFeesEnabled(true),
+				emulator.WithStorageLimitEnabled(true),
+				emulator.WithMinimumStorageReservation(cadence.UFix64(15000)),
 			},
 			opts...,
 		)...,

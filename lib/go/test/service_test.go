@@ -2,6 +2,7 @@ package test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/onflow/cadence"
@@ -47,9 +48,12 @@ func TestContracts(t *testing.T) {
 			Source: string(storageFeesCode),
 		},
 	})
+	//mintTokensForAccount(t, b, env, storageFeesAddress, "0.00000001")
 	assert.NoError(t, err)
 	_, err = b.CommitBlock()
 	assert.NoError(t, err)
+
+	mintTokensForAccount(t, b, env, storageFeesAddress, "10.0")
 
 	env.StorageFeesAddress = storageFeesAddress.String()
 
@@ -402,40 +406,23 @@ func TestContracts(t *testing.T) {
 	})
 
 	t.Run("Should check if payer has sufficient balance to execute tx", func(t *testing.T) {
-		//TODO: it doesn't work, does it?
-		tx := createTxWithTemplateAndAuthorizer(b,
-			templates.GenerateChangeStorageFeeParametersScript(env),
-			storageFeesAddress)
-
-		err = tx.AddArgument(CadenceUFix64("1.0"))
-		require.NoError(t, err)
-		err = tx.AddArgument(CadenceUFix64("4.0"))
-		require.NoError(t, err)
-
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{storageFeesAddress},
-			[]crypto.Signer{storageFeesSigner},
-			false,
-		)
-
-		assert.NoError(t, err)
-		_, err = b.CommitBlock()
-		assert.NoError(t, err)
-
 		// create SmallBalanceContract contract
 		code := []byte(`
 			access(all) contract SmallBalanceContract {
-    			access(all) let value: Int32
+    			access(all) var value: Int32
 
     			init() {
         			self.value = 42
     			}
+
+				access(all) fun SetValue(new_value: Int32) { 
+					self.value = new_value
+				}
 			}
     	`)
 		keys := test.AccountKeyGenerator()
-		key, _ := keys.NewWithSigner()
-		address, err := adapter.CreateAccount(context.Background(), []*flow.AccountKey{key}, []sdktemplates.Contract{
+		accKey, accSigner := keys.NewWithSigner()
+		accAddress, err := adapter.CreateAccount(context.Background(), []*flow.AccountKey{accKey}, []sdktemplates.Contract{
 			{
 				Name:   "SmallBalanceContract",
 				Source: string(code),
@@ -446,19 +433,53 @@ func TestContracts(t *testing.T) {
 		_, err = b.CommitBlock()
 		assert.NoError(t, err)
 
+		// we want to execute some tx so that the payer has less balance than default
+		txCode := []byte(fmt.Sprintf(`
+			import SmallBalanceContract from 0x%s
+			
+			transaction(value: Int32) {
+			  prepare(signer: auth(Storage) &Account) {}
+			
+			  execute {
+			   if value > SmallBalanceContract.value {
+				  SmallBalanceContract.SetValue(new_value: value + 1)
+			   } else {
+				  SmallBalanceContract.SetValue(new_value: value - 1)
+			   }
+			  }
+			}
+		`, accAddress))
+
+		tx := flow.NewTransaction().
+			SetScript(txCode).
+			SetGasLimit(9999).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(accAddress).
+			AddAuthorizer(accAddress)
+
+		err = tx.AddArgument(cadence.Int32(15))
+		require.NoError(t, err)
+
+		txRes := signAndSubmit(
+			t, b, tx,
+			[]flow.Address{accAddress},
+			[]crypto.Signer{accSigner},
+			false,
+		)
+		require.True(t, txRes.Succeeded())
+
 		// mint some flows to the account
-		mintTokensForAccount(t, b, env, address, "15.0")
+		//mintTokensForAccount(t, b, env, accAddress, "15.0")
 
 		//TODO: remove this. this is for debug only
-		acc, err := adapter.GetAccount(context.Background(), address)
+		acc, err := adapter.GetAccount(context.Background(), accAddress)
 		require.NotNil(t, acc)
 		require.NoError(t, err)
 
 		// set up args
-		cadenceAddress := cadence.NewAddress(address)
-		inclusionEffort := cadence.UFix64(500)
-		gasLimit := cadence.UFix64(1)
-
+		cadenceAddress := cadence.NewAddress(accAddress)
+		inclusionEffort := cadence.UFix64(20)
+		gasLimit := cadence.UFix64(9999)
 		args := [][]byte{jsoncdc.MustEncode(cadenceAddress), jsoncdc.MustEncode(inclusionEffort), jsoncdc.MustEncode(gasLimit)}
 
 		result = executeScriptAndCheck(t, b, templates.GenerateVerifyPayerBalanceForTxExecution(env), args)
@@ -468,6 +489,12 @@ func TestContracts(t *testing.T) {
 		resultStruct := result.(cadence.Struct)
 		fields := cadence.FieldsMappedByName(resultStruct)
 		canExecuteTransaction := bool(fields["canExecuteTransaction"].(cadence.Bool))
+
+		//TODO: remove this. this is for debug only
+		requiredBalance := uint64(fields["requiredBalance"].(cadence.UFix64))
+		actualBalance := acc.Balance
+		println("req, act:", requiredBalance, actualBalance)
+
 		require.True(t, canExecuteTransaction)
 	})
 
