@@ -403,6 +403,20 @@ access(all) contract FlowEpoch {
         }
     }
 
+    access(contract) fun generateRandomSource(): String {
+        /// random source must be a hex string of 32 characters (i.e 16 bytes or 128 bits)
+        /// `revertibleRandom` returns a UInt64 (8 bytes)
+        let randomLow = revertibleRandom<UInt64>().toBigEndianBytes()
+        let randomHigh = revertibleRandom<UInt64>().toBigEndianBytes()
+        var randomSource = String.encodeHex(randomHigh).concat(String.encodeHex(randomLow))
+        assert (
+            randomSource.length == 32,
+            message: "Random source must be a hex string of 32 characters"
+        )
+
+        return randomSource
+    }
+
     /// The counter, or ID, of the current epoch
     access(all) var currentEpochCounter: UInt64
 
@@ -561,10 +575,10 @@ access(all) contract FlowEpoch {
         }
 
         /// Ends the currently active epoch and starts a new one with the provided configuration.
-        /// This meta data will be emitted in the EpochRecover service event.
+        /// This meta data will be emitted in the EpochRecover service event. This function differs 
+        /// from recoverCurrentEpoch because it increments the epoch counter and will calculate rewards. 
         /// This function is used within sporks to recover the network from Epoch Fallback Mode (EFM).
-        access(all) fun recoverNewEpoch(randomSource: String,
-            startView: UInt64,
+        access(all) fun recoverNewEpoch(startView: UInt64,
             stakingEndView: UInt64,
             endView: UInt64,
             targetDuration: UInt64,
@@ -575,6 +589,7 @@ access(all) contract FlowEpoch {
             nodeIDs: [String]) {
             
             self.recoverEpochPreChecks(startView: startView, stakingEndView: stakingEndView, endView: endView, nodeIDs: nodeIDs)
+            let randomSource = FlowEpoch.generateRandomSource()
 
             let numViewsInStakingAuction = FlowEpoch.configurableMetadata.numViewsInStakingAuction
             let numViewsInDKGPhase = FlowEpoch.configurableMetadata.numViewsInDKGPhase
@@ -623,11 +638,12 @@ access(all) contract FlowEpoch {
 
         /// Ends the currently active epoch and restarts it with the provided configuration.
         /// This function is intended to update the current epoch configuration when a recovery
-        /// transaction needs to be submitted more than once. This meta data will be emitted in the 
-        /// EpochRecover service event. This function is used within sporks to recover the network from Epoch Fallback Mode (EFM).
-        access(all) fun recoverCurrentEpoch(
-            randomSource: String,
-            startView: UInt64,
+        /// transaction needs to be submitted more than once. This function differs 
+        /// from recoverNewEpoch because it does not increment the epoch counter. It also 
+        /// does not calculate and set rewards avoiding double paying rewards for the same epoch.
+        /// This meta data will be emitted in the EpochRecover service event. This function is used 
+        /// within sporks to recover the network from Epoch Fallback Mode (EFM).
+        access(all) fun recoverCurrentEpoch(startView: UInt64,
             stakingEndView: UInt64,
             endView: UInt64,
             targetDuration: UInt64,
@@ -637,23 +653,22 @@ access(all) contract FlowEpoch {
             dkgPubKeys: [String],
             nodeIDs: [String]) {
             self.recoverEpochPreChecks(startView: startView, stakingEndView: stakingEndView, endView: endView, nodeIDs: nodeIDs)
-
             let numViewsInStakingAuction = FlowEpoch.configurableMetadata.numViewsInStakingAuction
             let numViewsInDKGPhase = FlowEpoch.configurableMetadata.numViewsInDKGPhase
             
+            let currentEpochMetadata = FlowEpoch.getEpochMetadata(FlowEpoch.currentEpochCounter)
             /// Create new EpochMetadata for the recovery epoch with the new values. This epoch metadata will overwrite 
             /// the epoch metadata of the current epoch.
             let epochMetadata: FlowEpoch.EpochMetadata = EpochMetadata(
                 counter: FlowEpoch.currentEpochCounter,
-                seed: randomSource,
+                seed: currentEpochMetadata!.seed,
                 startView: startView,
                 endView: endView,
                 stakingEndView: stakingEndView,
-                // The following fields will be overwritten in `calculateAndSetRewards` below
                 totalRewards: 0.0,
                 collectorClusters: [],
                 clusterQCs: [],
-                dkgKeys: dkgPubKeys            )
+                dkgKeys: dkgPubKeys)
 
             /// Save the new epoch meta data, it will be referenced as             
             /// the epoch progresses through each phase.
@@ -668,7 +683,7 @@ access(all) contract FlowEpoch {
                 numViewsInDKGPhase: numViewsInDKGPhase,
                 nodeIDs: nodeIDs,
                 clusterAssignments: clusterAssignments,
-                randomSource: randomSource,
+                randomSource: currentEpochMetadata!.seed,
                 targetDuration: targetDuration,
                 targetEndTime: targetEndTime,
                 clusterQCVoteData: clusterQCVoteData,
@@ -778,15 +793,7 @@ access(all) contract FlowEpoch {
             let proposedNodeIDs = FlowEpoch.endStakingAuction()
 
             /// random source must be a hex string of 32 characters (i.e 16 bytes or 128 bits)
-            /// `revertibleRandom` returns a UInt64 (8 bytes)
-            let randomLow = revertibleRandom<UInt64>().toBigEndianBytes()
-            let randomHigh = revertibleRandom<UInt64>().toBigEndianBytes()
-            var randomSource = String.encodeHex(randomHigh).concat(String.encodeHex(randomLow))
-            assert (
-                randomSource.length == 32,
-                message: "Random source must be a hex string of 32 characters"
-            )
-
+            let randomSource = FlowEpoch.generateRandomSource()
             FlowEpoch.startEpochSetup(proposedNodeIDs: proposedNodeIDs, randomSource: randomSource)
         }
 

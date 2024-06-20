@@ -575,6 +575,7 @@ func verifyEpochMetadata(
 	metadataFields := cadence.FieldsMappedByName(result.(cadence.Struct))
 
 	counter := metadataFields["counter"]
+
 	assertEqual(t, cadence.NewUInt64(expectedMetadata.counter), counter)
 
 	if len(expectedMetadata.seed) != 0 {
@@ -672,6 +673,15 @@ func verifyConfigMetadata(
 
 	result = executeScriptAndCheck(t, b, templates.GenerateGetEpochPhaseScript(env), nil)
 	assertEqual(t, cadence.NewUInt8(expectedMetadata.currentEpochPhase), result)
+}
+
+func getEpochMetadata(
+	t *testing.T,
+	b emulator.Emulator,
+	env templates.Environment,
+	counter cadence.Value) []cadence.Value {
+	result := executeScriptAndCheck(t, b, templates.GenerateGetEpochMetadataScript(env), [][]byte{jsoncdc.MustEncode(counter)})
+	return result.(cadence.Struct).Fields
 }
 
 // Verifies that the epoch start event values are equal to the provided expected values

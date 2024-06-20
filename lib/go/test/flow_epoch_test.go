@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/rand"
+	"strings"
 	"testing"
 	"time"
 
@@ -1617,7 +1618,6 @@ func TestEpochRecover(t *testing.T) {
 		}
 
 		args := []cadence.Value{
-			CadenceString("stillSoRandom"),
 			cadence.NewUInt64(startView),
 			cadence.NewUInt64(stakingEndView),
 			cadence.NewUInt64(endView),
@@ -1644,19 +1644,23 @@ func TestEpochRecover(t *testing.T) {
 
 		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "BLOCK", false)
 
-		verifyEpochMetadata(t, b, env,
-			EpochMetadata{
-				counter:               startEpochCounter + 1,
-				seed:                  "stillSoRandom",
-				startView:             startView,
-				endView:               endView,
-				stakingEndView:        stakingEndView,
-				totalRewards:          "0.0",
-				rewardsBreakdownArray: 0,
-				rewardsPaid:           false,
-				collectorClusters:     nil,
-				clusterQCs:            nil,
-				dkgKeys:               dkgPubKeys})
+		// seed is not manually set when recovering the epoch, it is randomly generated
+		metadataFields := getEpochMetadata(t, b, env, cadence.NewUInt64(startEpochCounter+1))
+		seed := strings.ReplaceAll(metadataFields[1].String(), `"`, "")
+		expectedMetadata := EpochMetadata{
+			counter:               startEpochCounter + 1,
+			seed:                  seed,
+			startView:             startView,
+			endView:               endView,
+			stakingEndView:        stakingEndView,
+			totalRewards:          "0.0",
+			rewardsBreakdownArray: 0,
+			rewardsPaid:           false,
+			collectorClusters:     nil,
+			clusterQCs:            nil,
+			dkgKeys:               dkgPubKeys,
+		}
+		verifyEpochMetadata(t, b, env, expectedMetadata)
 
 		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGEnabledScript(env), nil)
 		assert.Equal(t, cadence.NewBool(false), result)
@@ -1670,7 +1674,7 @@ func TestEpochRecover(t *testing.T) {
 			firstView:               startView,
 			finalView:               endView,
 			collectorClusters:       collectorClusters,
-			randomSource:            "stillSoRandom",
+			randomSource:            seed,
 			dkgPhase1FinalView:      startView + numStakingViews + numDKGViews - 1,
 			dkgPhase2FinalView:      startView + numStakingViews + (2 * numDKGViews) - 1,
 			dkgPhase3FinalView:      startView + numStakingViews + (3 * numDKGViews) - 1,
@@ -1684,10 +1688,16 @@ func TestEpochRecover(t *testing.T) {
 		// If epoch recover was rejected by the protocol state we can update the configuration
 		// for the epoch without creating a new one.
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateRecoverEpochScript(env), idTableAddress)
-		// change random source
-		args[0] = CadenceString("somuchmorerandom")
+
+		// change startView and endView
+		newStartView := startView + 1
+		args[0] = CadenceUInt64(newStartView)
+
+		newEndView := endView + 1
+		args[2] = CadenceUInt64(newEndView)
+
 		// avoid initializing a new epoch
-		args[10] = cadence.NewBool(false)
+		args[9] = cadence.NewBool(false)
 		for _, arg := range args {
 			tx.AddArgument(arg)
 		}
@@ -1699,7 +1709,11 @@ func TestEpochRecover(t *testing.T) {
 			false,
 		)
 
-		expectedRecoverEvent.randomSource = "somuchmorerandom"
+		expectedRecoverEvent.firstView = newStartView
+		expectedRecoverEvent.finalView = newEndView
+		expectedRecoverEvent.dkgPhase1FinalView = newStartView + numStakingViews + numDKGViews - 1
+		expectedRecoverEvent.dkgPhase2FinalView = newStartView + numStakingViews + (2 * numDKGViews) - 1
+		expectedRecoverEvent.dkgPhase3FinalView = newStartView + numStakingViews + (3 * numDKGViews) - 1
 		verifyEpochRecover(t, adapter, idTableAddress, expectedRecoverEvent)
 	})
 }
