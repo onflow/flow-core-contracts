@@ -571,9 +571,7 @@ func verifyEpochMetadata(
 	env templates.Environment,
 	expectedMetadata EpochMetadata) {
 
-	result := executeScriptAndCheck(t, b, templates.GenerateGetEpochMetadataScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt64(expectedMetadata.counter))})
-	metadataFields := cadence.FieldsMappedByName(result.(cadence.Struct))
-
+	metadataFields := getEpochMetadata(t, b, env, cadence.UInt64(expectedMetadata.counter))
 	counter := metadataFields["counter"]
 
 	assertEqual(t, cadence.NewUInt64(expectedMetadata.counter), counter)

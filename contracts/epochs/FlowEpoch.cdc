@@ -795,6 +795,7 @@ access(all) contract FlowEpoch {
 
             /// random source must be a hex string of 32 characters (i.e 16 bytes or 128 bits)
             let randomSource = FlowEpoch.generateRandomSource()
+
             FlowEpoch.startEpochSetup(proposedNodeIDs: proposedNodeIDs, randomSource: randomSource)
         }
 
