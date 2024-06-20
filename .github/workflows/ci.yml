@@ -20,4 +20,3 @@ jobs:
         run: echo "/root/.local/bin" >> $GITHUB_PATH
       - name: Run tests
         run: export GOPATH=$HOME/go && make ci
-        
