@@ -170,14 +170,14 @@ access(all) contract FlowEpoch {
         /// represents one cluster and contains all the node IDs assigned to that cluster.
         clusterAssignments: [[String]],
 
-        /// The source of randomness to seed the leader selection algorithm with 
+        /// The source of randomness to seed the leader selection algorithm with
         /// for the upcoming epoch.
         randomSource: String,
 
         /// The deadlines of each phase in the DKG protocol to be completed in the upcoming
-        /// EpochSetup phase. Deadlines are specified in terms of a consensus view number. 
-        /// When a DKG participant observes a finalized and sealed block with view greater 
-        /// than the given deadline, it can safely transition to the next phase. 
+        /// EpochSetup phase. Deadlines are specified in terms of a consensus view number.
+        /// When a DKG participant observes a finalized and sealed block with view greater
+        /// than the given deadline, it can safely transition to the next phase.
         DKGPhase1FinalView: UInt64,
         DKGPhase2FinalView: UInt64,
         DKGPhase3FinalView: UInt64,
@@ -287,6 +287,7 @@ access(all) contract FlowEpoch {
             self.dkgKeys = keys
         }
     }
+
     /// Metadata that is managed and can be changed by the Admin///
     access(all) struct Config {
         /// The number of views in an entire epoch
@@ -1083,7 +1084,7 @@ access(all) contract FlowEpoch {
 
     /// Makes sure the set of phase lengths (in views) are valid.
     /// Sub-phases cannot be greater than the full epoch length.
-    access(all) view fun isValidPhaseConfiguration(auctionLen: UInt64, dkgPhaseLen: UInt64, epochLen: UInt64): Bool {
+    access(all) view fun isValidPhaseConfiguration(_ auctionLen: UInt64, _ dkgPhaseLen: UInt64, _ epochLen: UInt64): Bool {
         return (auctionLen + (3*dkgPhaseLen)) < epochLen
     }
 
@@ -1196,7 +1197,7 @@ access(all) contract FlowEpoch {
 
     /// The proposed Epoch counter is always the current counter plus 1
     access(all) view fun proposedEpochCounter(): UInt64 {
-        return self.currentEpochCounter + 1 
+        return self.currentEpochCounter + 1 as UInt64
     }
 
     access(all) fun automaticRewardsEnabled(): Bool {
