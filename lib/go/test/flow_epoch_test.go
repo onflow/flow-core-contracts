@@ -1646,7 +1646,7 @@ func TestEpochRecover(t *testing.T) {
 
 		// seed is not manually set when recovering the epoch, it is randomly generated
 		metadataFields := getEpochMetadata(t, b, env, cadence.NewUInt64(startEpochCounter+1))
-		seed := strings.ReplaceAll(metadataFields[1].String(), `"`, "")
+		seed := strings.ReplaceAll(metadataFields["seed"].String(), `"`, "")
 		expectedMetadata := EpochMetadata{
 			counter:               startEpochCounter + 1,
 			seed:                  seed,

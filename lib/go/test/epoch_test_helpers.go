@@ -152,58 +152,59 @@ type EpochRecoverEvent flow.Event
 
 // Counter returns counter field in EpochRecover event.
 func (evt EpochRecoverEvent) Counter() cadence.UInt64 {
-	return evt.Value.Fields[0].(cadence.UInt64)
+	return cadence.SearchFieldByName(evt.Value, "counter").(cadence.UInt64)
 }
 
 // NodeInfo returns nodeInfo field in EpochRecover event.
 func (evt EpochRecoverEvent) NodeInfo() cadence.Array {
-	return evt.Value.Fields[1].(cadence.Array)
+	return cadence.SearchFieldByName(evt.Value, "nodeInfo").(cadence.Array)
 }
 
 // FirstView returns firstView field in EpochRecover event.
 func (evt EpochRecoverEvent) FirstView() cadence.UInt64 {
-	return evt.Value.Fields[2].(cadence.UInt64)
+	return cadence.SearchFieldByName(evt.Value, "firstView").(cadence.UInt64)
 }
 
 // FinalView returns finalView field in EpochRecover event.
 func (evt EpochRecoverEvent) FinalView() cadence.UInt64 {
-	return evt.Value.Fields[3].(cadence.UInt64)
+	return cadence.SearchFieldByName(evt.Value, "finalView").(cadence.UInt64)
 }
 
-// CollectorClusters returns collectorClusters field in EpochRecover event.
+// CollectorClusters returns clusterAssignments field in EpochRecover event.
 func (evt EpochRecoverEvent) CollectorClusters() cadence.Array {
-	return evt.Value.Fields[4].(cadence.Array)
+	return cadence.SearchFieldByName(evt.Value, "clusterAssignments").(cadence.Array)
 }
 
 // RandomSource returns randomSource field in EpochRecover event.
 func (evt EpochRecoverEvent) RandomSource() cadence.String {
-	return evt.Value.Fields[5].(cadence.String)
+	return cadence.SearchFieldByName(evt.Value, "randomSource").(cadence.String)
 }
 
 // DKGFinalViews returns dkgFinalViews field in EpochRecover event.
 func (evt EpochRecoverEvent) DKGFinalViews() (cadence.UInt64, cadence.UInt64, cadence.UInt64) {
-	fields := evt.Value.Fields
-	return fields[6].(cadence.UInt64), fields[7].(cadence.UInt64), fields[8].(cadence.UInt64)
+	return cadence.SearchFieldByName(evt.Value, "DKGPhase1FinalView").(cadence.UInt64),
+		cadence.SearchFieldByName(evt.Value, "DKGPhase2FinalView").(cadence.UInt64),
+		cadence.SearchFieldByName(evt.Value, "DKGPhase3FinalView").(cadence.UInt64)
 }
 
 // TargetDuration returns targetDuration field in EpochRecover event.
 func (evt EpochRecoverEvent) TargetDuration() cadence.UInt64 {
-	return evt.Value.Fields[9].(cadence.UInt64)
+	return cadence.SearchFieldByName(evt.Value, "targetDuration").(cadence.UInt64)
 }
 
 // TargetEndTime returns targetEndTime field in EpochRecover event.
 func (evt EpochRecoverEvent) TargetEndTime() cadence.UInt64 {
-	return evt.Value.Fields[10].(cadence.UInt64)
+	return cadence.SearchFieldByName(evt.Value, "targetEndTime").(cadence.UInt64)
 }
 
 // ClusterQCVoteData returns clusterQCVoteData field in EpochRecover event.
 func (evt EpochRecoverEvent) ClusterQCVoteData() cadence.Array {
-	return evt.Value.Fields[11].(cadence.Array)
+	return cadence.SearchFieldByName(evt.Value, "clusterQCVoteData").(cadence.Array)
 }
 
 // DKGPubKeys returns dkgPubKeys field in EpochRecover event.
 func (evt EpochRecoverEvent) DKGPubKeys() cadence.Array {
-	return evt.Value.Fields[12].(cadence.Array)
+	return cadence.SearchFieldByName(evt.Value, "dkgPubKeys").(cadence.Array)
 }
 
 // Go event definitions for the epoch events
@@ -673,15 +674,6 @@ func verifyConfigMetadata(
 	assertEqual(t, cadence.NewUInt8(expectedMetadata.currentEpochPhase), result)
 }
 
-func getEpochMetadata(
-	t *testing.T,
-	b emulator.Emulator,
-	env templates.Environment,
-	counter cadence.Value) []cadence.Value {
-	result := executeScriptAndCheck(t, b, templates.GenerateGetEpochMetadataScript(env), [][]byte{jsoncdc.MustEncode(counter)})
-	return result.(cadence.Struct).Fields
-}
-
 // Verifies that the epoch start event values are equal to the provided expected values
 func verifyEpochStart(
 	t *testing.T,
@@ -798,6 +790,26 @@ func verifyEpochCommit(
 
 }
 
+// verifyCollectorClusters verifies both collector clusters are equal.
+func verifyCollectorClusters(t *testing.T, expected, got []cadence.Value) {
+	for i, cluster := range got {
+		for j, node := range cluster.(cadence.Array).Values {
+			assertEqual(t, expected[i].(cadence.Array).Values[j], node)
+		}
+	}
+}
+
+// expectedTargetEndTime returns the expected `targetEndTime` for the given target epoch,
+// as a second-precision Unix time.
+func expectedTargetEndTime(timingConfig cadence.Value, targetEpoch uint64) uint64 {
+	fields := cadence.FieldsMappedByName(timingConfig.(cadence.Struct))
+	duration := uint64(fields["duration"].(cadence.UInt64))
+	refCounter := uint64(fields["refCounter"].(cadence.UInt64))
+	refTimestamp := uint64(fields["refTimestamp"].(cadence.UInt64))
+
+	return refTimestamp + duration*(targetEpoch-refCounter)
+}
+
 // verifyEpochRecover verifies that the EpochRecover event values are equal to the provided expected values
 func verifyEpochRecover(
 	t *testing.T,
@@ -840,22 +852,7 @@ func verifyEpochRecover(
 	assertEqual(t, len(expectedRecover.dkgPubKeys), len(emittedEvent.DKGPubKeys().Values))
 }
 
-// verifyCollectorClusters verifies both collector clusters are equal.
-func verifyCollectorClusters(t *testing.T, expected, got []cadence.Value) {
-	for i, cluster := range got {
-		for j, node := range cluster.(cadence.Array).Values {
-			assertEqual(t, expected[i].(cadence.Array).Values[j], node)
-		}
-	}
-}
-
-// expectedTargetEndTime returns the expected `targetEndTime` for the given target epoch,
-// as a second-precision Unix time.
-func expectedTargetEndTime(timingConfig cadence.Value, targetEpoch uint64) uint64 {
-	fields := cadence.FieldsMappedByName(timingConfig.(cadence.Struct))
-	duration := uint64(fields["duration"].(cadence.UInt64))
-	refCounter := uint64(fields["refCounter"].(cadence.UInt64))
-	refTimestamp := uint64(fields["refTimestamp"].(cadence.UInt64))
-
-	return refTimestamp + duration*(targetEpoch-refCounter)
+func getEpochMetadata(t *testing.T, b emulator.Emulator, env templates.Environment, counter cadence.Value) map[string]cadence.Value {
+	result := executeScriptAndCheck(t, b, templates.GenerateGetEpochMetadataScript(env), [][]byte{jsoncdc.MustEncode(counter)})
+	return cadence.FieldsMappedByName(result.(cadence.Struct))
 }
