@@ -1075,7 +1075,7 @@ access(all) contract FlowStakingCollection {
     // Getter functions for accounts StakingCollection information
 
     /// Function to get see if a node or delegator exists in an accounts staking collection
-    access(all) view fun doesStakeExist(address: Address, nodeID: String, delegatorID: UInt32?): Bool {
+    access(all) fun doesStakeExist(address: Address, nodeID: String, delegatorID: UInt32?): Bool {
         let account = getAccount(address)
 
         let stakingCollectionRef = account.capabilities.borrow<&StakingCollection>(self.StakingCollectionPublicPath)
@@ -1085,7 +1085,7 @@ access(all) contract FlowStakingCollection {
     }
 
     /// Function to get the unlocked tokens used amount for an account
-    access(all) view fun getUnlockedTokensUsed(address: Address): UFix64 {
+    access(all) fun getUnlockedTokensUsed(address: Address): UFix64 {
         let account = getAccount(address)
 
         let stakingCollectionRef = account.capabilities.borrow<&StakingCollection>(self.StakingCollectionPublicPath)
@@ -1095,7 +1095,7 @@ access(all) contract FlowStakingCollection {
     }
 
     /// Function to get the locked tokens used amount for an account
-    access(all) view fun getLockedTokensUsed(address: Address): UFix64 {
+    access(all) fun getLockedTokensUsed(address: Address): UFix64 {
         let account = getAccount(address)
 
         let stakingCollectionRef = account.capabilities.borrow<&StakingCollection>(self.StakingCollectionPublicPath)
@@ -1155,7 +1155,7 @@ access(all) contract FlowStakingCollection {
     }
 
     /// Determines if an account is set up with a Staking Collection
-    access(all) view fun doesAccountHaveStakingCollection(address: Address): Bool {
+    access(all) fun doesAccountHaveStakingCollection(address: Address): Bool {
         let account = getAccount(address)
         return account.capabilities
             .get<&StakingCollection>(self.StakingCollectionPublicPath)

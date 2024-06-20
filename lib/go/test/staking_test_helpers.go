@@ -14,12 +14,11 @@ import (
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/cadence/runtime/interpreter"
+	"github.com/onflow/crypto"
 	"github.com/onflow/flow-emulator/emulator"
 	"github.com/onflow/flow-go-sdk"
-	"github.com/onflow/flow-go-sdk/crypto"
+	sdkcrypto "github.com/onflow/flow-go-sdk/crypto"
 	sdktemplates "github.com/onflow/flow-go-sdk/templates"
-
-	flow_crypto "github.com/onflow/flow-go/crypto"
 
 	"github.com/onflow/flow-core-contracts/lib/go/contracts"
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
@@ -72,7 +71,7 @@ func deployStakingContract(
 	t *testing.T,
 	b emulator.Emulator,
 	IDTableAccountKey *flow.AccountKey,
-	IDTableSigner crypto.Signer,
+	IDTableSigner sdkcrypto.Signer,
 	env *templates.Environment,
 	latest bool,
 	candidateNodeLimits []uint64,
@@ -136,7 +135,7 @@ func deployStakingContract(
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{},
-		[]crypto.Signer{},
+		[]sdkcrypto.Signer{},
 		false,
 	)
 
@@ -171,7 +170,7 @@ func deployStakingContract(
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{feesAddr, idTableAddress},
-		[]crypto.Signer{IDTableSigner, IDTableSigner},
+		[]sdkcrypto.Signer{IDTableSigner, IDTableSigner},
 		false,
 	)
 
@@ -286,13 +285,13 @@ func generateNodeIDs(numNodes int) ([]string, []cadence.Value, []cadence.Value) 
 	return ids, collectorIDs, consensusIDs
 }
 
-// / Generates a key pair for staking, which uses the BLSBLS12381 signing algorithm
+// / Generates a key pair for staking, which uses the BLS_BLS12381 signing algorithm
 // / Also generates a key pair for networking, which uses the ECDSA_P256 signing algorithm
 func generateKeysForNodeRegistration(t *testing.T) (crypto.PrivateKey, string, crypto.PrivateKey, string) {
-	stakingPrivateKey, publicKey := generateKeys(t, flow_crypto.BLSBLS12381)
+	stakingPrivateKey, publicKey := generateKeys(t, crypto.BLSBLS12381)
 	stakingPublicKey := publicKey.String()
 	stakingPublicKey = stakingPublicKey[2:]
-	networkingPrivateKey, publicKey := generateKeys(t, flow_crypto.ECDSAP256)
+	networkingPrivateKey, publicKey := generateKeys(t, crypto.ECDSAP256)
 	networkingPublicKey := publicKey.String()
 	networkingPublicKey = networkingPublicKey[2:]
 
@@ -365,7 +364,7 @@ func registerNode(t *testing.T,
 	b emulator.Emulator,
 	env templates.Environment,
 	authorizer flow.Address,
-	signer crypto.Signer,
+	signer sdkcrypto.Signer,
 	nodeID, networkingAddress, networkingKey, stakingKey string,
 	amount, tokensCommitted interpreter.UFix64Value,
 	role uint8,
@@ -390,7 +389,7 @@ func registerNode(t *testing.T,
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{authorizer},
-		[]crypto.Signer{signer},
+		[]sdkcrypto.Signer{signer},
 		shouldFail,
 	)
 
@@ -409,7 +408,7 @@ func registerDelegator(t *testing.T,
 	b emulator.Emulator,
 	env templates.Environment,
 	authorizer flow.Address,
-	signer crypto.Signer,
+	signer sdkcrypto.Signer,
 	nodeID string,
 	shouldFail bool,
 ) {
@@ -425,7 +424,7 @@ func registerDelegator(t *testing.T,
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{authorizer},
-		[]crypto.Signer{signer},
+		[]sdkcrypto.Signer{signer},
 		shouldFail,
 	)
 }
@@ -435,7 +434,7 @@ func endStakingMoveTokens(t *testing.T,
 	b emulator.Emulator,
 	env templates.Environment,
 	authorizer flow.Address,
-	signer crypto.Signer,
+	signer sdkcrypto.Signer,
 	nodeIDs []string,
 ) {
 	// End staking auction and epoch
@@ -448,7 +447,7 @@ func endStakingMoveTokens(t *testing.T,
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{authorizer},
-		[]crypto.Signer{signer},
+		[]sdkcrypto.Signer{signer},
 		false,
 	)
 }
@@ -461,7 +460,7 @@ func registerNodesForStaking(
 	b emulator.Emulator,
 	env templates.Environment,
 	authorizers []flow.Address,
-	signers []crypto.Signer,
+	signers []sdkcrypto.Signer,
 	stakingKeys []string,
 	networkingkeys []string,
 	ids []string) {
@@ -505,7 +504,7 @@ func commitNewTokens(t *testing.T,
 	b emulator.Emulator,
 	env templates.Environment,
 	authorizer flow.Address,
-	signer crypto.Signer,
+	signer sdkcrypto.Signer,
 	amount, tokensCommitted interpreter.UFix64Value,
 	shouldFail bool,
 ) (
@@ -525,7 +524,7 @@ func commitNewTokens(t *testing.T,
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{authorizer},
-		[]crypto.Signer{signer},
+		[]sdkcrypto.Signer{signer},
 		shouldFail,
 	)
 
@@ -543,7 +542,7 @@ func commitUnstaked(t *testing.T,
 	b emulator.Emulator,
 	env templates.Environment,
 	authorizer flow.Address,
-	signer crypto.Signer,
+	signer sdkcrypto.Signer,
 	amount, tokensCommitted, tokensUnstaked interpreter.UFix64Value,
 	shouldFail bool,
 ) (
@@ -563,7 +562,7 @@ func commitUnstaked(t *testing.T,
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{authorizer},
-		[]crypto.Signer{signer},
+		[]sdkcrypto.Signer{signer},
 		shouldFail,
 	)
 
@@ -583,7 +582,7 @@ func commitRewarded(t *testing.T,
 	b emulator.Emulator,
 	env templates.Environment,
 	authorizer flow.Address,
-	signer crypto.Signer,
+	signer sdkcrypto.Signer,
 	amount, tokensCommitted, tokensRewarded interpreter.UFix64Value,
 	shouldFail bool,
 ) (
@@ -602,7 +601,7 @@ func commitRewarded(t *testing.T,
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{authorizer},
-		[]crypto.Signer{signer},
+		[]sdkcrypto.Signer{signer},
 		shouldFail,
 	)
 
@@ -622,7 +621,7 @@ func requestUnstaking(t *testing.T,
 	b emulator.Emulator,
 	env templates.Environment,
 	authorizer flow.Address,
-	signer crypto.Signer,
+	signer sdkcrypto.Signer,
 	amount, tokensCommitted, tokensUnstaked, request interpreter.UFix64Value,
 	shouldFail bool,
 ) (
@@ -641,7 +640,7 @@ func requestUnstaking(t *testing.T,
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{authorizer},
-		[]crypto.Signer{signer},
+		[]sdkcrypto.Signer{signer},
 		shouldFail,
 	)
 
@@ -879,7 +878,7 @@ func setNodeRoleOpenSlots(
 	b emulator.Emulator,
 	env templates.Environment,
 	idTableAddress flow.Address,
-	idTableSigner crypto.Signer,
+	idTableSigner sdkcrypto.Signer,
 	openSlots [5]uint16,
 ) {
 
@@ -891,7 +890,7 @@ func setNodeRoleOpenSlots(
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{idTableAddress},
-		[]crypto.Signer{idTableSigner},
+		[]sdkcrypto.Signer{idTableSigner},
 		false,
 	)
 }
@@ -902,7 +901,7 @@ func setNodeRoleSlotLimits(
 	b emulator.Emulator,
 	env templates.Environment,
 	idTableAddress flow.Address,
-	idTableSigner crypto.Signer,
+	idTableSigner sdkcrypto.Signer,
 	slotLimits [5]uint16,
 ) {
 	// set the slot limits
@@ -919,7 +918,7 @@ func setNodeRoleSlotLimits(
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{idTableAddress},
-		[]crypto.Signer{idTableSigner},
+		[]sdkcrypto.Signer{idTableSigner},
 		false,
 	)
 }
