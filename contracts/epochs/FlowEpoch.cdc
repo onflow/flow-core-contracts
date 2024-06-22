@@ -525,7 +525,7 @@ access(all) contract FlowEpoch {
             let dkgPhase3FinalView = startView + numViewsInStakingAuction + (3 * numViewsInDKGPhase) - 1
 
             /// emit EpochRecover event
-            emit EpochRecover(
+            emit FlowEpoch.EpochRecover(
                 counter: epochCounter,
                 nodeInfo: nodes,
                 firstView: startView,
