@@ -3,6 +3,7 @@ package test
 import (
 	"context"
 	"fmt"
+	"github.com/onflow/flow-emulator/emulator"
 	"testing"
 
 	"github.com/onflow/cadence"
@@ -48,12 +49,9 @@ func TestContracts(t *testing.T) {
 			Source: string(storageFeesCode),
 		},
 	})
-	//mintTokensForAccount(t, b, env, storageFeesAddress, "0.00000001")
 	assert.NoError(t, err)
 	_, err = b.CommitBlock()
 	assert.NoError(t, err)
-
-	mintTokensForAccount(t, b, env, storageFeesAddress, "10.0")
 
 	env.StorageFeesAddress = storageFeesAddress.String()
 
@@ -406,6 +404,13 @@ func TestContracts(t *testing.T) {
 	})
 
 	t.Run("Should check if payer has sufficient balance to execute tx", func(t *testing.T) {
+		// create blockchain with tx fees enabled
+		blockchain, adapter := newBlockchain(
+			emulator.WithStorageLimitEnabled(true),
+			emulator.WithTransactionFeesEnabled(true),
+			emulator.WithStorageLimitEnabled(true),
+			emulator.WithMinimumStorageReservation(cadence.UFix64(15000)))
+
 		// create SmallBalanceContract contract
 		code := []byte(`
 			access(all) contract SmallBalanceContract {
@@ -428,9 +433,8 @@ func TestContracts(t *testing.T) {
 				Source: string(code),
 			},
 		})
-
 		assert.NoError(t, err)
-		_, err = b.CommitBlock()
+		_, err = blockchain.CommitBlock()
 		assert.NoError(t, err)
 
 		// we want to execute some tx so that the payer has less balance than default
@@ -452,37 +456,30 @@ func TestContracts(t *testing.T) {
 
 		tx := flow.NewTransaction().
 			SetScript(txCode).
-			SetGasLimit(9999).
-			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetComputeLimit(9999).
+			SetProposalKey(accAddress, 0, 0).
 			SetPayer(accAddress).
 			AddAuthorizer(accAddress)
 
 		err = tx.AddArgument(cadence.Int32(15))
 		require.NoError(t, err)
 
-		txRes := signAndSubmit(
-			t, b, tx,
-			[]flow.Address{accAddress},
-			[]crypto.Signer{accSigner},
-			false,
-		)
-		require.True(t, txRes.Succeeded())
+		err = tx.SignEnvelope(accAddress, 0, accSigner)
+		assert.NoError(t, err)
 
-		// mint some flows to the account
-		//mintTokensForAccount(t, b, env, accAddress, "15.0")
-
-		//TODO: remove this. this is for debug only
-		acc, err := adapter.GetAccount(context.Background(), accAddress)
-		require.NotNil(t, acc)
-		require.NoError(t, err)
+		// this transaction should fail and be reverted, but the fees will still be paid
+		// which will push the balance below the minimum account balance
+		// calling VerifyPayerBalanceForTxExecution after this will return false.
+		txRes := Submit(t, blockchain, tx, true)
+		require.True(t, txRes.Reverted())
 
 		// set up args
 		cadenceAddress := cadence.NewAddress(accAddress)
-		inclusionEffort := cadence.UFix64(20)
+		inclusionEffort := cadence.UFix64(100_000_000)
 		gasLimit := cadence.UFix64(9999)
 		args := [][]byte{jsoncdc.MustEncode(cadenceAddress), jsoncdc.MustEncode(inclusionEffort), jsoncdc.MustEncode(gasLimit)}
 
-		result = executeScriptAndCheck(t, b, templates.GenerateVerifyPayerBalanceForTxExecution(env), args)
+		result = executeScriptAndCheck(t, blockchain, templates.GenerateVerifyPayerBalanceForTxExecution(env), args)
 		require.NotNil(t, result)
 
 		// parse VerifyPayerBalanceResult.canExecuteTransaction
@@ -490,12 +487,16 @@ func TestContracts(t *testing.T) {
 		fields := cadence.FieldsMappedByName(resultStruct)
 		canExecuteTransaction := bool(fields["canExecuteTransaction"].(cadence.Bool))
 
-		//TODO: remove this. this is for debug only
+		// actual balance should be less than required
 		requiredBalance := uint64(fields["requiredBalance"].(cadence.UFix64))
-		actualBalance := acc.Balance
-		println("req, act:", requiredBalance, actualBalance)
+		require.NotNil(t, requiredBalance)
 
-		require.True(t, canExecuteTransaction)
+		acc, err := adapter.GetAccount(context.Background(), accAddress)
+		require.NoError(t, err)
+		actualBalance := acc.Balance
+		require.Less(t, actualBalance, requiredBalance)
+
+		require.False(t, canExecuteTransaction)
 	})
 
 	// deploy the ServiceAccount contract
@@ -511,5 +512,4 @@ func TestContracts(t *testing.T) {
 	assert.NoError(t, err)
 	_, err = b.CommitBlock()
 	assert.NoError(t, err)
-
 }
