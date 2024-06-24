@@ -482,20 +482,23 @@ func TestContracts(t *testing.T) {
 		result = executeScriptAndCheck(t, blockchain, templates.GenerateVerifyPayerBalanceForTxExecution(env), args)
 		require.NotNil(t, result)
 
-		// parse VerifyPayerBalanceResult.canExecuteTransaction
+		// we want to get account balance later for comparison
+		acc, err := adapter.GetAccount(context.Background(), accAddress)
+		require.NoError(t, err)
+
+		// parse VerifyPayerBalanceResult
 		resultStruct := result.(cadence.Struct)
 		fields := cadence.FieldsMappedByName(resultStruct)
-		canExecuteTransaction := bool(fields["canExecuteTransaction"].(cadence.Bool))
 
 		// actual balance should be less than required
 		requiredBalance := uint64(fields["requiredBalance"].(cadence.UFix64))
 		require.NotNil(t, requiredBalance)
 
-		acc, err := adapter.GetAccount(context.Background(), accAddress)
-		require.NoError(t, err)
 		actualBalance := acc.Balance
 		require.Less(t, actualBalance, requiredBalance)
 
+		// user cannot execute tx as he does not have sufficient balance
+		canExecuteTransaction := bool(fields["canExecuteTransaction"].(cadence.Bool))
 		require.False(t, canExecuteTransaction)
 	})
 
