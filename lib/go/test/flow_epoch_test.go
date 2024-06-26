@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/rand"
+	"strings"
 	"testing"
 	"time"
 
@@ -1514,5 +1515,205 @@ func TestEpochReset(t *testing.T) {
 		// The nodes rewards should not have increased
 		result = executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(ids[0]))})
 		assertEqual(t, CadenceUFix64("249999.99300000"), result)
+	})
+}
+
+func TestEpochRecover(t *testing.T) {
+	b, adapter, accountKeys, env := newTestSetup(t)
+	// Create new keys for the epoch account
+	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
+
+	// Deploys the staking contract, qc, dkg, and epoch lifecycle contract
+	// staking contract is deployed with default values (1.25M rewards, 8% cut)
+	idTableAddress, _ := initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
+		startEpochCounter, // start epoch counter
+		numEpochViews,     // num views per epoch
+		numStakingViews,   // num views for staking auction
+		numDKGViews,       // num views for DKG phase
+		numClusters,       // num collector clusters
+		randomSource,      // random source
+		rewardIncreaseFactor)
+
+	// create new user accounts, mint tokens for them, and register them for staking
+	addresses, _, signers := registerAndMintManyAccounts(t, b, env, accountKeys, numEpochAccounts)
+	ids, _, _ := generateNodeIDs(numEpochAccounts)
+	// stakingPrivateKeys
+	_, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
+	registerNodesForStaking(t, b, env,
+		addresses,
+		signers,
+		stakingPublicKeys,
+		networkingPublicKeys,
+		ids)
+
+	// Set the approved node list
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
+
+	approvedNodeIDs := generateCadenceNodeDictionary(ids)
+	err := tx.AddArgument(approvedNodeIDs)
+	require.NoError(t, err)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]sdkcrypto.Signer{IDTableSigner},
+		false,
+	)
+
+	// Advance to epoch Setup and make sure that the epoch cannot be ended
+	advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHSETUP", false)
+
+	// Register a QC voter
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochRegisterQCVoterScript(env), addresses[0])
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{addresses[0]},
+		[]sdkcrypto.Signer{signers[0]},
+		false,
+	)
+
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochRegisterQCVoterScript(env), addresses[5])
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{addresses[5]},
+		[]sdkcrypto.Signer{signers[5]},
+		false,
+	)
+
+	// Register a DKG Participant
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochRegisterDKGParticipantScript(env), addresses[1])
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{addresses[1]},
+		[]sdkcrypto.Signer{signers[1]},
+		false,
+	)
+
+	// Perform epoch recovery with a new epoch and epoch recover overwriting the current epoch.
+	t.Run("Can recover the epoch and have everything return to normal", func(t *testing.T) {
+		epochTimingConfigResult := executeScriptAndCheck(t, b, templates.GenerateGetEpochTimingConfigScript(env), nil)
+
+		var (
+			startView      uint64 = 100
+			stakingEndView uint64 = 120
+			endView        uint64 = 160
+			targetDuration uint64 = numEpochViews
+			targetEndTime  uint64 = expectedTargetEndTime(epochTimingConfigResult, startEpochCounter+1)
+		)
+
+		collectorClusters := make([]cadence.Value, 3)
+		collectorClusters[0] = cadence.NewArray([]cadence.Value{CadenceString("node_1"), CadenceString("node_2"), CadenceString("node_3")})
+		collectorClusters[1] = cadence.NewArray([]cadence.Value{CadenceString("node_4"), CadenceString("node_5"), CadenceString("node_6")})
+		collectorClusters[2] = cadence.NewArray([]cadence.Value{CadenceString("node_7"), CadenceString("node_8"), CadenceString("node_9")})
+
+		dkgPubKeys := []string{"pubkey_1"}
+		dkgPubKeysCdc := make([]cadence.Value, len(dkgPubKeys))
+		for i, key := range dkgPubKeys {
+			dkgPubKeysCdc[i], _ = cadence.NewString(key)
+		}
+
+		nodeIDs := make([]cadence.Value, len(ids))
+		for i, id := range ids {
+			nodeIDs[i], _ = cadence.NewString(id)
+		}
+
+		args := []cadence.Value{
+			cadence.NewUInt64(startView),
+			cadence.NewUInt64(stakingEndView),
+			cadence.NewUInt64(endView),
+			cadence.NewUInt64(targetDuration),
+			cadence.NewUInt64(targetEndTime),
+			cadence.NewArray(collectorClusters),        // collectorClusters
+			cadence.NewArray(make([]cadence.Value, 0)), // clusterQCVoteData
+			cadence.NewArray(dkgPubKeysCdc),
+			cadence.NewArray(nodeIDs),
+			cadence.NewBool(true), // recover EFM with a new epoch
+		}
+
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateRecoverEpochScript(env), idTableAddress)
+		for _, arg := range args {
+			tx.AddArgument(arg)
+		}
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]sdkcrypto.Signer{IDTableSigner},
+			false,
+		)
+
+		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "BLOCK", false)
+
+		// seed is not manually set when recovering the epoch, it is randomly generated
+		metadataFields := getEpochMetadata(t, b, env, cadence.NewUInt64(startEpochCounter+1))
+		seed := strings.ReplaceAll(metadataFields["seed"].String(), `"`, "")
+		expectedMetadata := EpochMetadata{
+			counter:               startEpochCounter + 1,
+			seed:                  seed,
+			startView:             startView,
+			endView:               endView,
+			stakingEndView:        stakingEndView,
+			totalRewards:          "0.0",
+			rewardsBreakdownArray: 0,
+			rewardsPaid:           false,
+			collectorClusters:     nil,
+			clusterQCs:            nil,
+			dkgKeys:               dkgPubKeys,
+		}
+		verifyEpochMetadata(t, b, env, expectedMetadata)
+
+		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGEnabledScript(env), nil)
+		assert.Equal(t, cadence.NewBool(false), result)
+
+		result = executeScriptAndCheck(t, b, templates.GenerateGetQCEnabledScript(env), nil)
+		assert.Equal(t, cadence.NewBool(false), result)
+
+		expectedRecoverEvent := EpochRecover{
+			counter:                 startEpochCounter + 1,
+			nodeInfoLength:          len(nodeIDs),
+			firstView:               startView,
+			finalView:               endView,
+			collectorClusters:       collectorClusters,
+			randomSource:            seed,
+			dkgPhase1FinalView:      startView + numStakingViews + numDKGViews - 1,
+			dkgPhase2FinalView:      startView + numStakingViews + (2 * numDKGViews) - 1,
+			dkgPhase3FinalView:      startView + numStakingViews + (3 * numDKGViews) - 1,
+			targetDuration:          targetDuration,
+			targetEndTime:           targetEndTime,
+			clusterQCVoteDataLength: 0,
+			dkgPubKeys:              dkgPubKeys,
+		}
+		verifyEpochRecover(t, adapter, idTableAddress, expectedRecoverEvent)
+
+		// If epoch recover was rejected by the protocol state we can update the configuration
+		// for the epoch without creating a new one.
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateRecoverEpochScript(env), idTableAddress)
+
+		// change startView and endView
+		newStartView := startView + 1
+		args[0] = CadenceUInt64(newStartView)
+
+		newEndView := endView + 1
+		args[2] = CadenceUInt64(newEndView)
+
+		// avoid initializing a new epoch
+		args[9] = cadence.NewBool(false)
+		for _, arg := range args {
+			tx.AddArgument(arg)
+		}
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]sdkcrypto.Signer{IDTableSigner},
+			false,
+		)
+
+		expectedRecoverEvent.firstView = newStartView
+		expectedRecoverEvent.finalView = newEndView
+		expectedRecoverEvent.dkgPhase1FinalView = newStartView + numStakingViews + numDKGViews - 1
+		expectedRecoverEvent.dkgPhase2FinalView = newStartView + numStakingViews + (2 * numDKGViews) - 1
+		expectedRecoverEvent.dkgPhase3FinalView = newStartView + numStakingViews + (3 * numDKGViews) - 1
+		verifyEpochRecover(t, adapter, idTableAddress, expectedRecoverEvent)
 	})
 }

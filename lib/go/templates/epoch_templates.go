@@ -17,6 +17,7 @@ const (
 	updateRewardPercentageFilename   = "epoch/admin/update_reward.cdc"
 	advanceViewFilename              = "epoch/admin/advance_view.cdc"
 	resetEpochFilename               = "epoch/admin/reset_epoch.cdc"
+	recoverEpochFilename             = "epoch/admin/recover_epoch.cdc"
 	epochCalculateSetRewardsFilename = "epoch/admin/calculate_rewards.cdc"
 	epochPayRewardsFilename          = "epoch/admin/pay_rewards.cdc"
 	epochSetAutoRewardsFilename      = "epoch/admin/set_automatic_rewards.cdc"
@@ -110,6 +111,12 @@ func GenerateAdvanceViewScript(env Environment) []byte {
 
 func GenerateResetEpochScript(env Environment) []byte {
 	code := assets.MustAssetString(resetEpochFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateRecoverEpochScript(env Environment) []byte {
+	code := assets.MustAssetString(recoverEpochFilename)
 
 	return []byte(ReplaceAddresses(code, env))
 }
