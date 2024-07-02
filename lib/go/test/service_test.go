@@ -2,6 +2,8 @@ package test
 
 import (
 	"context"
+	"fmt"
+	"github.com/onflow/flow-emulator/emulator"
 	"testing"
 
 	"github.com/onflow/cadence"
@@ -401,6 +403,105 @@ func TestContracts(t *testing.T) {
 
 	})
 
+	t.Run("Should check if payer has sufficient balance to execute tx", func(t *testing.T) {
+		// create blockchain with tx fees enabled
+		blockchain, adapter := newBlockchain(
+			emulator.WithStorageLimitEnabled(true),
+			emulator.WithTransactionFeesEnabled(true),
+			emulator.WithStorageLimitEnabled(true),
+			emulator.WithMinimumStorageReservation(cadence.UFix64(15000)))
+
+		// create SmallBalanceContract contract
+		code := []byte(`
+			access(all) contract SmallBalanceContract {
+    			access(all) var value: Int32
+
+    			init() {
+        			self.value = 42
+    			}
+
+				access(all) fun SetValue(new_value: Int32) { 
+					self.value = new_value
+				}
+			}
+    	`)
+		keys := test.AccountKeyGenerator()
+		accKey, accSigner := keys.NewWithSigner()
+		accAddress, err := adapter.CreateAccount(context.Background(), []*flow.AccountKey{accKey}, []sdktemplates.Contract{
+			{
+				Name:   "SmallBalanceContract",
+				Source: string(code),
+			},
+		})
+		assert.NoError(t, err)
+		_, err = blockchain.CommitBlock()
+		assert.NoError(t, err)
+
+		// we want to execute some tx so that the payer has less balance than default
+		txCode := []byte(fmt.Sprintf(`
+			import SmallBalanceContract from 0x%s
+			
+			transaction(value: Int32) {
+			  prepare(signer: auth(Storage) &Account) {}
+			
+			  execute {
+			   if value > SmallBalanceContract.value {
+				  SmallBalanceContract.SetValue(new_value: value + 1)
+			   } else {
+				  SmallBalanceContract.SetValue(new_value: value - 1)
+			   }
+			  }
+			}
+		`, accAddress))
+
+		tx := flow.NewTransaction().
+			SetScript(txCode).
+			SetComputeLimit(9999).
+			SetProposalKey(accAddress, 0, 0).
+			SetPayer(accAddress).
+			AddAuthorizer(accAddress)
+
+		err = tx.AddArgument(cadence.Int32(15))
+		require.NoError(t, err)
+
+		err = tx.SignEnvelope(accAddress, 0, accSigner)
+		assert.NoError(t, err)
+
+		// this transaction should fail and be reverted, but the fees will still be paid
+		// which will push the balance below the minimum account balance
+		// calling VerifyPayerBalanceForTxExecution after this will return false.
+		txRes := Submit(t, blockchain, tx, true)
+		require.True(t, txRes.Reverted())
+
+		// set up args
+		cadenceAddress := cadence.NewAddress(accAddress)
+		inclusionEffort := cadence.UFix64(100_000_000)
+		gasLimit := cadence.UFix64(9999)
+		args := [][]byte{jsoncdc.MustEncode(cadenceAddress), jsoncdc.MustEncode(inclusionEffort), jsoncdc.MustEncode(gasLimit)}
+
+		result = executeScriptAndCheck(t, blockchain, templates.GenerateVerifyPayerBalanceForTxExecution(env), args)
+		require.NotNil(t, result)
+
+		// we want to get account balance later for comparison
+		acc, err := adapter.GetAccount(context.Background(), accAddress)
+		require.NoError(t, err)
+
+		// parse VerifyPayerBalanceResult
+		resultStruct := result.(cadence.Struct)
+		fields := cadence.FieldsMappedByName(resultStruct)
+
+		// actual balance should be less than required
+		requiredBalance := uint64(fields["requiredBalance"].(cadence.UFix64))
+		require.NotNil(t, requiredBalance)
+
+		actualBalance := acc.Balance
+		require.Less(t, actualBalance, requiredBalance)
+
+		// user cannot execute tx as he does not have sufficient balance
+		canExecuteTransaction := bool(fields["canExecuteTransaction"].(cadence.Bool))
+		require.False(t, canExecuteTransaction)
+	})
+
 	// deploy the ServiceAccount contract
 	serviceAccountCode := contracts.FlowServiceAccount(
 		env,
@@ -414,5 +515,4 @@ func TestContracts(t *testing.T) {
 	assert.NoError(t, err)
 	_, err = b.CommitBlock()
 	assert.NoError(t, err)
-
 }
