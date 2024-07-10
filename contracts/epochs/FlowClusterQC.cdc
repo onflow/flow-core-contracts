@@ -262,13 +262,13 @@ access(all) contract FlowClusterQC {
     /// of the certificate.
     access(all) struct ClusterQCVoteData {
         /// The aggregated signature, hex-encoded, encompasses all individual vote signatures contributed by nodes across the cluster
-        access(all) let voteSignatures: String
+        access(all) let aggregatedSignature: String
 
         /// The node IDs that correspond to each vote
         access(all) let voterIDs: [String]
 
-        init(voteSignatures: String, voterIDs: [String]) {
-            self.voteSignatures = voteSignatures
+        init(aggregatedSignature: String, voterIDs: [String]) {
+            self.aggregatedSignature = aggregatedSignature
             self.voterIDs = voterIDs
         }
     }
