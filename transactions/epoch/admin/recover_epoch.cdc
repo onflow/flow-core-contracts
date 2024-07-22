@@ -29,7 +29,7 @@ transaction(startView: UInt64,
                     endView: endView,
                     targetDuration: targetDuration,
                     targetEndTime: targetEndTime,
-                    clusterAssignments: clusterAssignments  ,
+                    clusterAssignments: clusterAssignments,
                     clusterQCVoteData: clusterQCVoteData,
                     dkgPubKeys: dkgPubKeys,
                     nodeIDs: nodeIDs)

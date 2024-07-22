@@ -810,18 +810,20 @@ func expectedTargetEndTime(timingConfig cadence.Value, targetEpoch uint64) uint6
 	return refTimestamp + duration*(targetEpoch-refCounter)
 }
 
-// verifyEpochRecover verifies that the EpochRecover event values are equal to the provided expected values
+// verifyEpochRecover verifies that an emitted EpochRecover event is equal to the provided `expectedRecover`.
+// Assumptions:
+//   - only one `EpochRecover` is emitted (otherwise, only the first is verified)
+//   - the `EpochRecover` is emitted within the first 1000 blocks
 func verifyEpochRecover(
 	t *testing.T,
 	adapter *adapters.SDKAdapter,
 	epochAddress flow.Address,
-	expectedRecover EpochRecover) {
+	expectedRecover EpochRecover,
+) {
 	var emittedEvent EpochRecoverEvent
 	addrLocation := common.NewAddressLocation(nil, common.Address(epochAddress), "FlowEpoch")
 	evtTypeID := string(addrLocation.TypeID(nil, "FlowEpoch.EpochRecover"))
-	var i uint64
-	i = 0
-	for i < 1000 {
+	for i := uint64(0); i < 1000; i++ {
 		results, _ := adapter.GetEventsForHeightRange(context.Background(), evtTypeID, i, i)
 
 		for _, result := range results {
@@ -832,8 +834,6 @@ func verifyEpochRecover(
 				}
 			}
 		}
-
-		i = i + 1
 	}
 
 	assertEqual(t, cadence.NewUInt64(expectedRecover.counter), emittedEvent.Counter())
