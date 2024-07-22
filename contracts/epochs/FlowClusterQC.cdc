@@ -264,7 +264,7 @@ access(all) contract FlowClusterQC {
         /// The aggregated signature, hex-encoded, encompasses all individual vote signatures contributed by nodes across the cluster
         access(all) let aggregatedSignature: String
 
-        /// The node IDs that correspond to each vote
+        /// The node IDs that contributed their vote to the aggregated signature
         access(all) let voterIDs: [String]
 
         init(aggregatedSignature: String, voterIDs: [String]) {
