@@ -12,6 +12,7 @@
 // FlowServiceAccount/scripts/get_is_account_creation_restricted.cdc (145B)
 // FlowServiceAccount/scripts/get_is_account_creator.cdc (157B)
 // FlowServiceAccount/scripts/get_tx_fee_parameters.cdc (122B)
+// FlowServiceAccount/scripts/verify_payer_balance_for_tx_execution.cdc (393B)
 // FlowServiceAccount/set_execution_effort_weights.cdc (1.663kB)
 // FlowServiceAccount/set_execution_memory_limit.cdc (287B)
 // FlowServiceAccount/set_execution_memory_weights.cdc (315B)
@@ -601,6 +602,26 @@ func flowserviceaccountScriptsGet_tx_fee_parametersCdc() (*asset, error) {
 
 	info := bindataFileInfo{name: "FlowServiceAccount/scripts/get_tx_fee_parameters.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xe2, 0xee, 0x8f, 0xb0, 0x94, 0x23, 0x9d, 0x6b, 0x38, 0x2f, 0x83, 0x12, 0xee, 0x19, 0x73, 0x3f, 0x9d, 0x78, 0x57, 0x4c, 0xb8, 0x2b, 0x65, 0xe9, 0xa3, 0x4, 0x2b, 0x93, 0xdf, 0xda, 0xb5, 0x9c}}
+	return a, nil
+}
+
+var _flowserviceaccountScriptsVerify_payer_balance_for_tx_executionCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x8f\x41\x4b\xc3\x40\x10\x85\xef\xf9\x15\x8f\x1e\x24\x0b\xc5\x93\x78\x08\x2a\xa4\xd0\x9c\x45\xb4\xf7\x61\x3b\xab\x0b\x9b\xdd\x32\x3b\x6b\x53\xc4\xff\x2e\x89\x8d\x01\xdb\xb9\xcd\x7b\xf0\xbe\xf7\x7c\x7f\x48\xa2\xe8\x42\x3a\x76\xcc\x19\x4e\x52\x8f\xd5\xfc\xae\xaa\x8a\xac\xe5\x9c\x6b\x0a\xc1\xc0\x95\x88\x9e\x7c\xac\x0f\x74\x62\x69\xad\xd5\x06\xed\x7e\x2f\x9c\xf3\x1a\x3e\xda\x50\xb2\x4f\x71\xeb\x5c\x12\x6d\xf0\xd6\xf9\xe1\xfe\x6e\x8d\x9e\x86\xed\xc0\xb6\xe8\x85\x67\x9a\x3f\xf0\xed\x8e\xc5\xbb\xd3\xf3\x18\xbc\xa1\x40\xd1\xf2\x0b\xe7\x12\x14\x5f\x15\x00\x04\x56\x50\xd1\x8f\x11\x8a\x47\xbc\xb3\xb6\xbf\x5f\x2a\x51\x1f\x46\xa7\xde\x24\x91\x74\xdc\x51\x28\x6c\x70\x73\xb6\x9e\x96\xae\x66\x0a\x12\xd6\x22\x71\xe1\x7e\x2e\xdc\x7c\x06\x77\x49\x5e\x85\x62\x26\x3b\x55\x9e\xbb\xd7\x33\xff\xca\xd6\x7f\xc2\x7a\x42\x8d\x77\x6d\xfc\xa5\x66\xaa\xef\x9f\x00\x00\x00\xff\xff\x99\x3a\x6b\x66\x89\x01\x00\x00"
+
+func flowserviceaccountScriptsVerify_payer_balance_for_tx_executionCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_flowserviceaccountScriptsVerify_payer_balance_for_tx_executionCdc,
+		"FlowServiceAccount/scripts/verify_payer_balance_for_tx_execution.cdc",
+	)
+}
+
+func flowserviceaccountScriptsVerify_payer_balance_for_tx_executionCdc() (*asset, error) {
+	bytes, err := flowserviceaccountScriptsVerify_payer_balance_for_tx_executionCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "FlowServiceAccount/scripts/verify_payer_balance_for_tx_execution.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xbd, 0x3e, 0xca, 0x17, 0x78, 0xbc, 0xd8, 0xa, 0x19, 0x68, 0x60, 0xdb, 0xf6, 0xc8, 0x38, 0x98, 0x62, 0xb3, 0x8c, 0x21, 0x7f, 0xd3, 0x97, 0xfe, 0x76, 0x42, 0x28, 0x6b, 0xc9, 0xcf, 0x6a, 0x44}}
 	return a, nil
 }
 
@@ -6387,6 +6408,7 @@ var _bindata = map[string]func() (*asset, error){
 	"FlowServiceAccount/scripts/get_is_account_creation_restricted.cdc":           flowserviceaccountScriptsGet_is_account_creation_restrictedCdc,
 	"FlowServiceAccount/scripts/get_is_account_creator.cdc":                       flowserviceaccountScriptsGet_is_account_creatorCdc,
 	"FlowServiceAccount/scripts/get_tx_fee_parameters.cdc":                        flowserviceaccountScriptsGet_tx_fee_parametersCdc,
+	"FlowServiceAccount/scripts/verify_payer_balance_for_tx_execution.cdc":        flowserviceaccountScriptsVerify_payer_balance_for_tx_executionCdc,
 	"FlowServiceAccount/set_execution_effort_weights.cdc":                         flowserviceaccountSet_execution_effort_weightsCdc,
 	"FlowServiceAccount/set_execution_memory_limit.cdc":                           flowserviceaccountSet_execution_memory_limitCdc,
 	"FlowServiceAccount/set_execution_memory_weights.cdc":                         flowserviceaccountSet_execution_memory_weightsCdc,
@@ -6733,6 +6755,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 			"get_is_account_creation_restricted.cdc": {flowserviceaccountScriptsGet_is_account_creation_restrictedCdc, map[string]*bintree{}},
 			"get_is_account_creator.cdc": {flowserviceaccountScriptsGet_is_account_creatorCdc, map[string]*bintree{}},
 			"get_tx_fee_parameters.cdc": {flowserviceaccountScriptsGet_tx_fee_parametersCdc, map[string]*bintree{}},
+			"verify_payer_balance_for_tx_execution.cdc": {flowserviceaccountScriptsVerify_payer_balance_for_tx_executionCdc, map[string]*bintree{}},
 		}},
 		"set_execution_effort_weights.cdc": {flowserviceaccountSet_execution_effort_weightsCdc, map[string]*bintree{}},
 		"set_execution_memory_limit.cdc": {flowserviceaccountSet_execution_memory_limitCdc, map[string]*bintree{}},
