@@ -41,6 +41,8 @@ const (
 	getExecutionMemoryLimit   = "FlowServiceAccount/scripts/get_execution_memory_limit.cdc"
 	setExecutionMemoryLimit   = "FlowServiceAccount/set_execution_memory_limit.cdc"
 
+	verifyPayerBalanceForTxExecution = "FlowServiceAccount/scripts/verify_payer_balance_for_tx_execution.cdc"
+
 	// Account templates
 	createAccountFilename = "accounts/create_new_account.cdc"
 	addKeyFilename        = "accounts/add_key.cdc"
@@ -240,6 +242,12 @@ func GenerateSetExecutionMemoryLimit(env Environment) []byte {
 
 func GenerateGetExecutionMemoryLimit(env Environment) []byte {
 	code := assets.MustAssetString(getExecutionMemoryLimit)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateVerifyPayerBalanceForTxExecution(env Environment) []byte {
+	code := assets.MustAssetString(verifyPayerBalanceForTxExecution)
 
 	return []byte(ReplaceAddresses(code, env))
 }
