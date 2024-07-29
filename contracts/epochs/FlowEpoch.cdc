@@ -550,7 +550,9 @@ access(all) contract FlowEpoch {
         access(all) fun recoverEpochPreChecks(startView: UInt64,
             stakingEndView: UInt64,
             endView: UInt64,
-            nodeIDs: [String]) {
+            nodeIDs: [String],
+            numOfClusterAssignments: Int,
+            numOfClusterQCVoteData: Int) {
             pre {
                 FlowEpoch.isValidPhaseConfiguration(stakingEndView-startView+1, FlowEpoch.configurableMetadata.numViewsInDKGPhase, endView-startView+1):
                     "Invalid startView, stakingEndView, and endView configuration"
@@ -563,6 +565,12 @@ access(all) contract FlowEpoch {
                     message: "all nodes in node ids list for recovery epoch must have a weight > 0"
                 )
             }
+
+            // sanity check we must receive qc vote data for each cluster
+            assert(
+                    numOfClusterAssignments == numOfClusterQCVoteData, 
+                    message: "number of cluster assignments does not match number of cluster qc vote data"
+            )
 
             if FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION {
                 /// Since we are resetting the epoch, we do not need to
@@ -588,8 +596,14 @@ access(all) contract FlowEpoch {
             clusterQCVoteData: [FlowClusterQC.ClusterQCVoteData],
             dkgPubKeys: [String],
             nodeIDs: [String]) {
-            
-            self.recoverEpochPreChecks(startView: startView, stakingEndView: stakingEndView, endView: endView, nodeIDs: nodeIDs)
+            self.recoverEpochPreChecks(
+                startView: startView, 
+                stakingEndView: stakingEndView, 
+                endView: endView, 
+                nodeIDs: nodeIDs,
+                numOfClusterAssignments: clusterAssignments.length,
+                numOfClusterQCVoteData: clusterQCVoteData.length,
+            )
             let randomSource = FlowEpoch.generateRandomSource()
 
             let numViewsInStakingAuction = FlowEpoch.configurableMetadata.numViewsInStakingAuction
@@ -653,7 +667,14 @@ access(all) contract FlowEpoch {
             clusterQCVoteData: [FlowClusterQC.ClusterQCVoteData],
             dkgPubKeys: [String],
             nodeIDs: [String]) {
-            self.recoverEpochPreChecks(startView: startView, stakingEndView: stakingEndView, endView: endView, nodeIDs: nodeIDs)
+            self.recoverEpochPreChecks(
+                startView: startView, 
+                stakingEndView: stakingEndView, 
+                endView: endView, 
+                nodeIDs: nodeIDs,
+                numOfClusterAssignments: clusterAssignments.length,
+                numOfClusterQCVoteData: clusterQCVoteData.length,
+            )         
             let numViewsInStakingAuction = FlowEpoch.configurableMetadata.numViewsInStakingAuction
             let numViewsInDKGPhase = FlowEpoch.configurableMetadata.numViewsInDKGPhase
             

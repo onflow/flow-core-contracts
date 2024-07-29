@@ -8,6 +8,7 @@ import (
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/cadence/runtime/common"
+	cdcCommon "github.com/onflow/cadence/runtime/common"
 	"github.com/onflow/cadence/runtime/interpreter"
 	"github.com/onflow/flow-core-contracts/lib/go/contracts"
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
@@ -855,4 +856,47 @@ func verifyEpochRecover(
 func getEpochMetadata(t *testing.T, b emulator.Emulator, env templates.Environment, counter cadence.Value) map[string]cadence.Value {
 	result := executeScriptAndCheck(t, b, templates.GenerateGetEpochMetadataScript(env), [][]byte{jsoncdc.MustEncode(counter)})
 	return cadence.FieldsMappedByName(result.(cadence.Struct))
+}
+
+// newClusterQCVoteDataCdcType returns the FlowClusterQC cadence struct type.
+func newClusterQCVoteDataCdcType(clusterQcAddress string) *cadence.StructType {
+
+	// FlowClusterQC.ClusterQCVoteData
+	address, _ := cdcCommon.HexToAddress(clusterQcAddress)
+	location := cdcCommon.NewAddressLocation(nil, address, "FlowClusterQC")
+
+	return &cadence.StructType{
+		Location:            location,
+		QualifiedIdentifier: "FlowClusterQC.ClusterQCVoteData",
+		Fields: []cadence.Field{
+			{
+				Identifier: "aggregatedSignature",
+				Type:       cadence.StringType,
+			},
+			{
+				Identifier: "voterIDs",
+				Type:       cadence.NewVariableSizedArrayType(cadence.StringType),
+			},
+		},
+	}
+}
+
+func convertClusterQcsCdc(env templates.Environment, clusters []cadence.Value) []cadence.Value {
+	voteDataType := newClusterQCVoteDataCdcType(env.QuorumCertificateAddress)
+	qcVoteData := make([]cadence.Value, len(clusters))
+	for i, cluster := range clusters {
+		clusterCdc := cluster.(cadence.Array)
+		cdcVoterIds := make([]cadence.Value, len(clusterCdc.Values))
+		for i, id := range clusterCdc.Values {
+			cdcVoterIds[i] = cadence.String(id.String())
+		}
+		qcVoteData[i] = cadence.NewStruct([]cadence.Value{
+			// aggregatedSignature
+			cadence.String(fmt.Sprintf("signature_%d", i)),
+			// Node IDs of signers
+			cadence.NewArray(cdcVoterIds).WithType(cadence.NewVariableSizedArrayType(cadence.StringType)),
+		}).WithType(voteDataType)
+	}
+
+	return qcVoteData
 }

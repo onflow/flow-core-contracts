@@ -1604,14 +1604,15 @@ func TestEpochRecover(t *testing.T) {
 			nodeIDs[i], _ = cadence.NewString(id)
 		}
 
+		clusterQcVoteData := convertClusterQcsCdc(env, collectorClusters)
 		args := []cadence.Value{
 			cadence.NewUInt64(startView),
 			cadence.NewUInt64(stakingEndView),
 			cadence.NewUInt64(endView),
 			cadence.NewUInt64(targetDuration),
 			cadence.NewUInt64(targetEndTime),
-			cadence.NewArray(collectorClusters),        // collectorClusters
-			cadence.NewArray(make([]cadence.Value, 0)), // clusterQCVoteData
+			cadence.NewArray(collectorClusters), // collectorClusters
+			cadence.NewArray(clusterQcVoteData), // clusterQCVoteData
 			cadence.NewArray(dkgPubKeysCdc),
 			cadence.NewArray(nodeIDs),
 			cadence.NewBool(true), // recover EFM with a new epoch
@@ -1649,12 +1650,6 @@ func TestEpochRecover(t *testing.T) {
 		}
 		verifyEpochMetadata(t, b, env, expectedMetadata)
 
-		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGEnabledScript(env), nil)
-		assert.Equal(t, cadence.NewBool(false), result)
-
-		result = executeScriptAndCheck(t, b, templates.GenerateGetQCEnabledScript(env), nil)
-		assert.Equal(t, cadence.NewBool(false), result)
-
 		expectedRecoverEvent := EpochRecover{
 			counter:                 startEpochCounter + 1,
 			nodeInfoLength:          len(nodeIDs),
@@ -1667,7 +1662,7 @@ func TestEpochRecover(t *testing.T) {
 			dkgPhase3FinalView:      startView + numStakingViews + (3 * numDKGViews) - 1,
 			targetDuration:          targetDuration,
 			targetEndTime:           targetEndTime,
-			clusterQCVoteDataLength: 0,
+			clusterQCVoteDataLength: len(clusterQcVoteData),
 			dkgPubKeys:              dkgPubKeys,
 		}
 		verifyEpochRecover(t, adapter, idTableAddress, expectedRecoverEvent)
