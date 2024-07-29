@@ -552,7 +552,8 @@ access(all) contract FlowEpoch {
             endView: UInt64,
             nodeIDs: [String],
             numOfClusterAssignments: Int,
-            numOfClusterQCVoteData: Int) {
+            numOfClusterQCVoteData: Int) 
+        {
             pre {
                 FlowEpoch.isValidPhaseConfiguration(stakingEndView-startView+1, FlowEpoch.configurableMetadata.numViewsInDKGPhase, endView-startView+1):
                     "Invalid startView, stakingEndView, and endView configuration"
@@ -596,7 +597,8 @@ access(all) contract FlowEpoch {
             clusterAssignments: [[String]],
             clusterQCVoteData: [FlowClusterQC.ClusterQCVoteData],
             dkgPubKeys: [String],
-            nodeIDs: [String]) {
+            nodeIDs: [String]) 
+        {
             self.recoverEpochPreChecks(
                 startView: startView, 
                 stakingEndView: stakingEndView, 
@@ -672,7 +674,8 @@ access(all) contract FlowEpoch {
             clusterAssignments: [[String]],
             clusterQCVoteData: [FlowClusterQC.ClusterQCVoteData],
             dkgPubKeys: [String],
-            nodeIDs: [String]) {
+            nodeIDs: [String]) 
+        {
             self.recoverEpochPreChecks(
                 startView: startView, 
                 stakingEndView: stakingEndView, 
