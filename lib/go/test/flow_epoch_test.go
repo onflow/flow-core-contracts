@@ -1567,15 +1567,6 @@ func TestEpochRecover(t *testing.T) {
 	// Advance to epoch Setup and make sure that the epoch cannot be ended
 	advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHSETUP", false)
 
-	// Register a QC voter
-	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochRegisterQCVoterScript(env), addresses[0])
-	signAndSubmit(
-		t, b, tx,
-		[]flow.Address{addresses[0]},
-		[]sdkcrypto.Signer{signers[0]},
-		false,
-	)
-
 	// Perform epoch recovery with a new epoch and epoch recover overwriting the current epoch.
 	t.Run("Can recover the epoch and have everything return to normal", func(t *testing.T) {
 		epochTimingConfigResult := executeScriptAndCheck(t, b, templates.GenerateGetEpochTimingConfigScript(env), nil)
