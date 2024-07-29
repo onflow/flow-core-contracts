@@ -195,6 +195,7 @@ access(all) contract FlowEpoch {
         /// Currently, these are re-used from the last successful DKG.
         /// Group public key is the first element, followed by the individual keys
 
+        // TODO(EFM, #6213): include id->index mapping
         dkgPubKeys: [String],
     )
 
