@@ -1649,8 +1649,7 @@ func TestEpochRecover(t *testing.T) {
 			dkgKeys:               dkgPubKeys,
 		}
 		verifyEpochMetadata(t, b, env, expectedMetadata)
-		currEpochCounter := getCurrentEpochCounter(t, b, env)
-		assertEqual(t, currEpochCounter, cadence.NewUInt64(startEpochCounter+1))
+		assertEqual(t, getCurrentEpochCounter(t, b, env), cadence.NewUInt64(startEpochCounter+1))
 
 		expectedRecoverEvent := EpochRecover{
 			counter:                 startEpochCounter + 1,
@@ -1698,6 +1697,10 @@ func TestEpochRecover(t *testing.T) {
 		expectedRecoverEvent.dkgPhase1FinalView = newStartView + numStakingViews + numDKGViews - 1
 		expectedRecoverEvent.dkgPhase2FinalView = newStartView + numStakingViews + (2 * numDKGViews) - 1
 		expectedRecoverEvent.dkgPhase3FinalView = newStartView + numStakingViews + (3 * numDKGViews) - 1
+		expectedMetadata.startView = newStartView
+		expectedMetadata.endView = newEndView
 		verifyEpochRecover(t, adapter, idTableAddress, expectedRecoverEvent)
+		verifyEpochMetadata(t, b, env, expectedMetadata)
+		assertEqual(t, getCurrentEpochCounter(t, b, env), cadence.NewUInt64(startEpochCounter+1))
 	})
 }
