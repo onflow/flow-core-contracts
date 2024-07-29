@@ -1606,6 +1606,7 @@ func TestEpochRecover(t *testing.T) {
 
 		clusterQcVoteData := convertClusterQcsCdc(env, collectorClusters)
 		args := []cadence.Value{
+			cadence.NewUInt64(startEpochCounter + 1),
 			cadence.NewUInt64(startView),
 			cadence.NewUInt64(stakingEndView),
 			cadence.NewUInt64(endView),
@@ -1674,13 +1675,13 @@ func TestEpochRecover(t *testing.T) {
 
 		// change startView and endView
 		newStartView := startView + 1
-		args[0] = CadenceUInt64(newStartView)
+		args[1] = CadenceUInt64(newStartView)
 
 		newEndView := endView + 1
-		args[2] = CadenceUInt64(newEndView)
+		args[3] = CadenceUInt64(newEndView)
 
 		// avoid initializing a new epoch
-		args[9] = cadence.NewBool(false)
+		args[10] = cadence.NewBool(false)
 		for _, arg := range args {
 			tx.AddArgument(arg)
 		}

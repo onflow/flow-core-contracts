@@ -568,8 +568,8 @@ access(all) contract FlowEpoch {
 
             // sanity check we must receive qc vote data for each cluster
             assert(
-                    numOfClusterAssignments == numOfClusterQCVoteData, 
-                    message: "number of cluster assignments does not match number of cluster qc vote data"
+                numOfClusterAssignments == numOfClusterQCVoteData, 
+                message: "number of cluster assignments does not match number of cluster qc vote data"
             )
 
             if FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION {
@@ -587,7 +587,8 @@ access(all) contract FlowEpoch {
         /// This meta data will be emitted in the EpochRecover service event. This function differs 
         /// from recoverCurrentEpoch because it increments the epoch counter and will calculate rewards. 
         /// This function is used within sporks to recover the network from Epoch Fallback Mode (EFM).
-        access(all) fun recoverNewEpoch(startView: UInt64,
+        access(all) fun recoverNewEpoch(recoveryEpochCounter: UInt64,
+            startView: UInt64,
             stakingEndView: UInt64,
             endView: UInt64,
             targetDuration: UInt64,
@@ -603,6 +604,11 @@ access(all) contract FlowEpoch {
                 nodeIDs: nodeIDs,
                 numOfClusterAssignments: clusterAssignments.length,
                 numOfClusterQCVoteData: clusterQCVoteData.length,
+            )
+             // sanity check recovery epoch counter 
+            assert(
+                recoveryEpochCounter == FlowEpoch.proposedEpochCounter(), 
+                message: "recovery epoch counter should equal current epoch counter + 1"
             )
             let randomSource = FlowEpoch.generateRandomSource()
 

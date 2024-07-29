@@ -8,7 +8,8 @@ import FlowClusterQC from "FlowClusterQC"
 // state with the new Epoch data.
 // This transaction should only be used with the output of the bootstrap utility:
 //   util epoch efm-recover-tx-args
-transaction(startView: UInt64,
+transaction(recoveryEpochCounter: UInt64,
+            startView: UInt64,
             stakingEndView: UInt64,
             endView: UInt64,
             targetDuration: UInt64,
@@ -17,14 +18,16 @@ transaction(startView: UInt64,
             clusterQCVoteData: [FlowClusterQC.ClusterQCVoteData],
             dkgPubKeys: [String],
             nodeIDs: [String],
-            initNewEpoch: Bool) {
+            unsafeAllowOverwrite: Bool) {
 
     prepare(signer: auth(BorrowValue) &Account) {
         let epochAdmin = signer.storage.borrow<&FlowEpoch.Admin>(from: FlowEpoch.adminStoragePath)
             ?? panic("Could not borrow epoch admin from storage path")
 
-        if initNewEpoch {
-            epochAdmin.recoverNewEpoch(startView: startView,
+        if unsafeAllowOverwrite {
+            epochAdmin.recoverNewEpoch(
+                    recoveryEpochCounter: recoveryEpochCounter,
+                    startView: startView,
                     stakingEndView: stakingEndView,
                     endView: endView,
                     targetDuration: targetDuration,
