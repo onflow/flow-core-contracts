@@ -1518,6 +1518,10 @@ func TestEpochReset(t *testing.T) {
 	})
 }
 
+// TestEpochRecover ensures that the epoch recover transaction recovers the epoch as expected.
+// Specifically, we execute an epoch recover transaction and confirm both scenarios are true;
+//   - epoch recover that specifies unsafeAllowOverwrite = false increments the epoch counter effectively starting a new epoch.
+//   - epoch recover that specifies unsafeAllowOverwrite = true overwrites the current epoch and does not increment the counter.
 func TestEpochRecover(t *testing.T) {
 	b, adapter, accountKeys, env := newTestSetup(t)
 	// Create new keys for the epoch account
