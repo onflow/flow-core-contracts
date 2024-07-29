@@ -192,11 +192,10 @@ access(all) contract FlowEpoch {
         clusterQCVoteData: [FlowClusterQC.ClusterQCVoteData],
 
         /// The DKG public keys passed in the recoverEpoch transaction.
-        /// Currently, these are re-used from the last successful DKG. Note that this implies that 
-        /// RecoveryEpoch MUST have a consensus committee that is identical to the last successful
-        /// DKG committee.
+        /// Currently, these are re-used from the last successful DKG.
         /// Group public key is the first element, followed by the individual keys
 
+        // TODO(EFM, #6213): include id->index mapping
         dkgPubKeys: [String],
     )
 
