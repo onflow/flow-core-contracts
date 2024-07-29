@@ -1576,23 +1576,6 @@ func TestEpochRecover(t *testing.T) {
 		false,
 	)
 
-	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochRegisterQCVoterScript(env), addresses[5])
-	signAndSubmit(
-		t, b, tx,
-		[]flow.Address{addresses[5]},
-		[]sdkcrypto.Signer{signers[5]},
-		false,
-	)
-
-	// Register a DKG Participant
-	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochRegisterDKGParticipantScript(env), addresses[1])
-	signAndSubmit(
-		t, b, tx,
-		[]flow.Address{addresses[1]},
-		[]sdkcrypto.Signer{signers[1]},
-		false,
-	)
-
 	// Perform epoch recovery with a new epoch and epoch recover overwriting the current epoch.
 	t.Run("Can recover the epoch and have everything return to normal", func(t *testing.T) {
 		epochTimingConfigResult := executeScriptAndCheck(t, b, templates.GenerateGetEpochTimingConfigScript(env), nil)
