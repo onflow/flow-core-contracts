@@ -498,7 +498,7 @@ access(all) contract FlowEpoch {
             FlowEpoch.account.storage.save(enabled, to: /storage/flowAutomaticRewardsEnabled)
         }
         
-        access(all) fun emitEpochRecoverEvent(epochCounter: UInt64,
+        access(self) fun emitEpochRecoverEvent(epochCounter: UInt64,
             startView: UInt64,
             stakingEndView: UInt64,
             endView: UInt64,
@@ -544,7 +544,7 @@ access(all) contract FlowEpoch {
         /// Performs sanity checks for the provided epoch configuration. It will ensure the following;
         /// - There is a valid phase configuration.
         /// - All nodes in the node ids list have a weight > 0.
-        access(all) fun recoverEpochPreChecks(startView: UInt64,
+        access(self) fun recoverEpochPreChecks(startView: UInt64,
             stakingEndView: UInt64,
             endView: UInt64,
             nodeIDs: [String],
@@ -573,7 +573,7 @@ access(all) contract FlowEpoch {
         
         /// Stops epoch components. If the configuration is a valid configuration the staking auction,
         /// qc voting and dkg will be ended depending on the current epoch phase.
-        access(all) fun stopEpochComponents() 
+        access(self) fun stopEpochComponents() 
         {
                 if FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION {
                 /// Since we are resetting the epoch, we do not need to
