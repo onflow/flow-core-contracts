@@ -544,8 +544,6 @@ access(all) contract FlowEpoch {
         /// Performs sanity checks for the provided epoch configuration. It will ensure the following;
         /// - There is a valid phase configuration.
         /// - All nodes in the node ids list have a weight > 0.
-        /// If the configuration is a valid configuration the the staking auction,
-        /// qc voting and dkg will be ended depending on the current epoch phase.
         access(all) fun recoverEpochPreChecks(startView: UInt64,
             stakingEndView: UInt64,
             endView: UInt64,
@@ -571,8 +569,13 @@ access(all) contract FlowEpoch {
                 numOfClusterAssignments == numOfClusterQCVoteData, 
                 message: "number of cluster assignments does not match number of cluster qc vote data"
             )
-
-            if FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION {
+        }
+        
+        /// Stops epoch components. If the configuration is a valid configuration the staking auction,
+        /// qc voting and dkg will be ended depending on the current epoch phase.
+        access(all) fun stopEpochComponents() 
+        {
+                if FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION {
                 /// Since we are resetting the epoch, we do not need to
                 /// start epoch setup also. We only need to end the staking auction
                 FlowEpoch.borrowStakingAdmin().endStakingAuction()
@@ -611,6 +614,7 @@ access(all) contract FlowEpoch {
                 recoveryEpochCounter == FlowEpoch.proposedEpochCounter(), 
                 message: "recovery epoch counter should equal current epoch counter + 1"
             )
+            self.stopEpochComponents()
             let randomSource = FlowEpoch.generateRandomSource()
 
             let numViewsInStakingAuction = FlowEpoch.configurableMetadata.numViewsInStakingAuction
@@ -683,6 +687,7 @@ access(all) contract FlowEpoch {
                 numOfClusterAssignments: clusterAssignments.length,
                 numOfClusterQCVoteData: clusterQCVoteData.length,
             )         
+            self.stopEpochComponents()
             let numViewsInStakingAuction = FlowEpoch.configurableMetadata.numViewsInStakingAuction
             let numViewsInDKGPhase = FlowEpoch.configurableMetadata.numViewsInDKGPhase
             
