@@ -1649,6 +1649,8 @@ func TestEpochRecover(t *testing.T) {
 			dkgKeys:               dkgPubKeys,
 		}
 		verifyEpochMetadata(t, b, env, expectedMetadata)
+		currEpochCounter := getCurrentEpochCounter(t, b, env)
+		assertEqual(t, currEpochCounter, cadence.NewUInt64(startEpochCounter+1))
 
 		expectedRecoverEvent := EpochRecover{
 			counter:                 startEpochCounter + 1,

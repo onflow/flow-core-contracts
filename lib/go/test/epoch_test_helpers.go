@@ -858,6 +858,11 @@ func getEpochMetadata(t *testing.T, b emulator.Emulator, env templates.Environme
 	return cadence.FieldsMappedByName(result.(cadence.Struct))
 }
 
+func getCurrentEpochCounter(t *testing.T, b emulator.Emulator, env templates.Environment) cadence.UInt64 {
+	result := executeScriptAndCheck(t, b, templates.GenerateGetCurrentEpochCounterScript(env), [][]byte{})
+	return result.(cadence.UInt64)
+}
+
 // newClusterQCVoteDataCdcType returns the FlowClusterQC cadence struct type.
 func newClusterQCVoteDataCdcType(clusterQcAddress string) *cadence.StructType {
 
