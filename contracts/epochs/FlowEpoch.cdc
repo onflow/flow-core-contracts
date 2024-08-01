@@ -698,7 +698,7 @@ access(all) contract FlowEpoch {
             let numViewsInStakingAuction = FlowEpoch.configurableMetadata.numViewsInStakingAuction
             let numViewsInDKGPhase = FlowEpoch.configurableMetadata.numViewsInDKGPhase
             
-            let currentEpochMetadata = FlowEpoch.getEpochMetadata(FlowEpoch.currentEpochCounter)
+            let currentEpochMetadata = FlowEpoch.getEpochMetadata(recoveryEpochCounter)
             /// Create new EpochMetadata for the recovery epoch with the new values. This epoch metadata will overwrite 
             /// the epoch metadata of the current epoch.
             let epochMetadata: FlowEpoch.EpochMetadata = EpochMetadata(
