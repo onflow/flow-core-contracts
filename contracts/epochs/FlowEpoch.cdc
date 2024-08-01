@@ -622,17 +622,18 @@ access(all) contract FlowEpoch {
 
             /// Create new EpochMetadata for the recovery epoch with the new values
             let newEpochMetadata = EpochMetadata(
-            /// Increment the epoch counter when recovering with a new epoch
-            counter: recoveryEpochCounter,
-            seed: randomSource,
-            startView: startView,
-            endView: endView,
-            stakingEndView: stakingEndView,
-            // The following fields will be overwritten in `calculateAndSetRewards` below
-            totalRewards: 0.0,
-            collectorClusters: [],
-            clusterQCs: [],
-            dkgKeys: dkgPubKeys)
+                /// Increment the epoch counter when recovering with a new epoch
+                counter: recoveryEpochCounter,
+                seed: randomSource,
+                startView: startView,
+                endView: endView,
+                stakingEndView: stakingEndView,
+                // The following fields will be overwritten in `calculateAndSetRewards` below
+                totalRewards: 0.0,
+                collectorClusters: [],
+                clusterQCs: [],
+                dkgKeys: dkgPubKeys
+            )
 
             /// Save the new epoch meta data, it will be referenced as             
             /// the epoch progresses through each phase.
@@ -709,7 +710,8 @@ access(all) contract FlowEpoch {
                 totalRewards: 0.0,
                 collectorClusters: [],
                 clusterQCs: [],
-                dkgKeys: dkgPubKeys)
+                dkgKeys: dkgPubKeys
+            )
 
             /// Save the new epoch meta data, it will be referenced as             
             /// the epoch progresses through each phase.
