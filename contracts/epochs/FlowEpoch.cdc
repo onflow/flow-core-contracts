@@ -609,7 +609,7 @@ access(all) contract FlowEpoch {
                 numOfClusterAssignments: clusterAssignments.length,
                 numOfClusterQCVoteData: clusterQCVoteData.length,
             )
-             // sanity check recovery epoch counter 
+            // sanity check recovery epoch counter should increment current epoch counter
             assert(
                 recoveryEpochCounter == FlowEpoch.proposedEpochCounter(), 
                 message: "recovery epoch counter should equal current epoch counter + 1"
@@ -623,7 +623,7 @@ access(all) contract FlowEpoch {
             /// Create new EpochMetadata for the recovery epoch with the new values
             let newEpochMetadata = EpochMetadata(
             /// Increment the epoch counter when recovering with a new epoch
-            counter: FlowEpoch.proposedEpochCounter(),
+            counter: recoveryEpochCounter,
             seed: randomSource,
             startView: startView,
             endView: endView,
@@ -643,7 +643,7 @@ access(all) contract FlowEpoch {
             FlowEpoch.calculateAndSetRewards()
 
             /// emit the epoch recover event
-            self.emitEpochRecoverEvent(epochCounter: FlowEpoch.proposedEpochCounter(),
+            self.emitEpochRecoverEvent(epochCounter: recoveryEpochCounter,
                 startView: startView,
                 stakingEndView: stakingEndView,
                 endView: endView,
@@ -669,7 +669,8 @@ access(all) contract FlowEpoch {
         /// does not calculate and set rewards avoiding double paying rewards for the same epoch.
         /// This meta data will be emitted in the EpochRecover service event. This function is used 
         /// within sporks to recover the network from Epoch Fallback Mode (EFM).
-        access(all) fun recoverCurrentEpoch(startView: UInt64,
+        access(all) fun recoverCurrentEpoch(recoveryEpochCounter: UInt64,
+            startView: UInt64,
             stakingEndView: UInt64,
             endView: UInt64,
             targetDuration: UInt64,
@@ -686,7 +687,12 @@ access(all) contract FlowEpoch {
                 nodeIDs: nodeIDs,
                 numOfClusterAssignments: clusterAssignments.length,
                 numOfClusterQCVoteData: clusterQCVoteData.length,
-            )         
+            )    
+            // sanity check recovery epoch counter should be the current epoch counter
+            assert(
+                recoveryEpochCounter == FlowEpoch.currentEpochCounter, 
+                message: "recovery epoch counter should equal current epoch counter"
+            )
             self.stopEpochComponents()
             let numViewsInStakingAuction = FlowEpoch.configurableMetadata.numViewsInStakingAuction
             let numViewsInDKGPhase = FlowEpoch.configurableMetadata.numViewsInDKGPhase
@@ -695,7 +701,7 @@ access(all) contract FlowEpoch {
             /// Create new EpochMetadata for the recovery epoch with the new values. This epoch metadata will overwrite 
             /// the epoch metadata of the current epoch.
             let epochMetadata: FlowEpoch.EpochMetadata = EpochMetadata(
-                counter: FlowEpoch.currentEpochCounter,
+                counter: recoveryEpochCounter,
                 seed: currentEpochMetadata!.seed,
                 startView: startView,
                 endView: endView,
@@ -710,7 +716,7 @@ access(all) contract FlowEpoch {
             FlowEpoch.saveEpochMetadata(epochMetadata)
 
             /// emit the epoch recover event
-            self.emitEpochRecoverEvent(epochCounter: FlowEpoch.currentEpochCounter,
+            self.emitEpochRecoverEvent(epochCounter: recoveryEpochCounter,
                 startView: startView,
                 stakingEndView: stakingEndView,
                 endView: endView,

@@ -25,27 +25,32 @@ transaction(recoveryEpochCounter: UInt64,
             ?? panic("Could not borrow epoch admin from storage path")
 
         if unsafeAllowOverwrite {
-            epochAdmin.recoverNewEpoch(
-                    recoveryEpochCounter: recoveryEpochCounter,
-                    startView: startView,
-                    stakingEndView: stakingEndView,
-                    endView: endView,
-                    targetDuration: targetDuration,
-                    targetEndTime: targetEndTime,
-                    clusterAssignments: clusterAssignments,
-                    clusterQCVoteData: clusterQCVoteData,
-                    dkgPubKeys: dkgPubKeys,
-                    nodeIDs: nodeIDs)
+            epochAdmin.recoverCurrentEpoch(
+                recoveryEpochCounter: recoveryEpochCounter,
+                startView: startView,
+                stakingEndView: stakingEndView,
+                endView: endView,
+                targetDuration: targetDuration,
+                targetEndTime: targetEndTime,
+                clusterAssignments: clusterAssignments  ,
+                clusterQCVoteData: clusterQCVoteData,
+                dkgPubKeys: dkgPubKeys,
+                nodeIDs: nodeIDs
+            )
+
         } else {
-            epochAdmin.recoverCurrentEpoch(startView: startView,
-                    stakingEndView: stakingEndView,
-                    endView: endView,
-                    targetDuration: targetDuration,
-                    targetEndTime: targetEndTime,
-                    clusterAssignments: clusterAssignments  ,
-                    clusterQCVoteData: clusterQCVoteData,
-                    dkgPubKeys: dkgPubKeys,
-                    nodeIDs: nodeIDs)
+            epochAdmin.recoverNewEpoch(
+                recoveryEpochCounter: recoveryEpochCounter,
+                startView: startView,
+                stakingEndView: stakingEndView,
+                endView: endView,
+                targetDuration: targetDuration,
+                targetEndTime: targetEndTime,
+                clusterAssignments: clusterAssignments,
+                clusterQCVoteData: clusterQCVoteData,
+                dkgPubKeys: dkgPubKeys,
+                nodeIDs: nodeIDs
+            )
         }
     }
 }

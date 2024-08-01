@@ -1607,7 +1607,7 @@ func TestEpochRecover(t *testing.T) {
 			cadence.NewArray(clusterQcVoteData), // clusterQCVoteData
 			cadence.NewArray(dkgPubKeysCdc),
 			cadence.NewArray(nodeIDs),
-			cadence.NewBool(true), // recover EFM with a new epoch
+			cadence.NewBool(false), // recover EFM with a new epoch, set unsafeAllowOverwrite to false
 		}
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateRecoverEpochScript(env), idTableAddress)
@@ -1671,8 +1671,8 @@ func TestEpochRecover(t *testing.T) {
 		newEndView := endView + 1
 		args[3] = CadenceUInt64(newEndView)
 
-		// avoid initializing a new epoch
-		args[10] = cadence.NewBool(false)
+		// avoid initializing a new epoch, set unsafeAllowOverwrite to true
+		args[10] = cadence.NewBool(true)
 		for _, arg := range args {
 			tx.AddArgument(arg)
 		}
