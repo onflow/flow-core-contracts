@@ -64,11 +64,13 @@ access(all) contract FlowDKG {
     /// If the value is `nil`, the node is not registered as a consensus node
     /// If the value is an empty array, the node has not submitted yet
     /// This mapping is reset at the beginning of every DKG phase (once per epoch)
+    // TODO(#6213): deprecate + replace with ResultSubmission
     access(account) var finalSubmissionByNodeID: {String: [String?]}
 
     /// Array of unique final submissions from nodes
     /// if a final submission is sent that matches one that already has been submitted
     /// this array will not change at all
+    // TODO(#6213): deprecate + replace with ResultSubmission
     access(account) var uniqueFinalSubmissions: [[String?]]
 
     /// Tracks how many submissions have been sent
@@ -100,6 +102,7 @@ access(all) contract FlowDKG {
         }
     }
 
+    // TODO(#6213): documentation
     access(all) struct ResultSubmission {
         access(all) let groupPubKey: String
         access(all) let pubKeys: [String]
@@ -151,7 +154,7 @@ access(all) contract FlowDKG {
         /// Sends the final key vector submission. 
         /// Can only be called by consensus nodes that are registered
         /// and can only be called once per consensus node per epoch
-        // TODO: include key mapping
+        // TODO(#6213): include key mapping
         access(all) fun sendFinalSubmission(_ submission: [String?]) {
             pre {
                 FlowDKG.participantIsRegistered(self.nodeID):
@@ -294,6 +297,7 @@ access(all) contract FlowDKG {
 
     /// Checks if two final submissions are equal by comparing each element
     /// Each element has to be exactly the same and in the same order
+    // TODO(#6213): use ResultSubmission
     access(account) fun submissionsEqual(_ existingSubmission: [String?], _ submission: [String?]): Bool {
 
         // If the submission length is different than the one being compared to, it is not equal
@@ -418,6 +422,7 @@ access(all) contract FlowDKG {
 
     /// Returns the final set of keys if any one set of keys has strictly more than (nodes-1)/2 submissions
     /// Returns nil if not found (incomplete)
+    // TODO(#6213): use ResultSubmission
     access(all) fun dkgCompleted(): [String?]? {
         if !self.dkgEnabled { return nil }
 
