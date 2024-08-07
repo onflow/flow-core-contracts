@@ -100,6 +100,18 @@ access(all) contract FlowDKG {
         }
     }
 
+    access(all) struct ResultSubmission {
+        access(all) let groupPubKey: String
+        access(all) let pubKeys: [String]
+        access(all) let idMapping: {String:Int}
+
+        init(groupPubKey: String, pubKeys: [String], idMapping: {String:Int}) {
+            self.groupPubKey = groupPubKey
+            self.pubKeys = pubKeys
+            self.idMapping = idMapping
+        }
+    }
+
     /// The Participant resource is generated for each consensus node when they register.
     /// Each resource instance is good for all future potential epochs, but will
     /// only be valid if the node operator has been confirmed as a consensus node for the next epoch.
@@ -139,6 +151,7 @@ access(all) contract FlowDKG {
         /// Sends the final key vector submission. 
         /// Can only be called by consensus nodes that are registered
         /// and can only be called once per consensus node per epoch
+        // TODO: include key mapping
         access(all) fun sendFinalSubmission(_ submission: [String?]) {
             pre {
                 FlowDKG.participantIsRegistered(self.nodeID):
