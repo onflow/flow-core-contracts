@@ -58,23 +58,13 @@ access(all) contract FlowDKG {
     /// This is reset at the beginning of every DKG phase (once per epoch)
     access(account) var whiteboardMessages: [Message]
 
-    /// Tracks a node's final submission for the current epoch
-    /// Key: node ID
-    /// Value: Set of public keys from the final submission
-    /// If the value is `nil`, the node is not registered as a consensus node
-    /// If the value is an empty array, the node has not submitted yet
-    /// This mapping is reset at the beginning of every DKG phase (once per epoch)
-    // TODO(#6213): deprecate + replace with ResultSubmission
+    /// Proposal(#6213): deprecate, replacing with SubmissionTracker.byNodeID
     access(account) var finalSubmissionByNodeID: {String: [String?]}
 
-    /// Array of unique final submissions from nodes
-    /// if a final submission is sent that matches one that already has been submitted
-    /// this array will not change at all
-    // TODO(#6213): deprecate + replace with ResultSubmission
+    /// Proposal(#6213): deprecate, replacing with SubmissionTracker.uniques
     access(account) var uniqueFinalSubmissions: [[String?]]
 
-    /// Tracks how many submissions have been sent
-    /// for each unique final submission
+    /// Proposal(#6213): deprecate, replacing with SubmissionTracker.counts
     access(account) var uniqueFinalSubmissionCount: {Int: UInt64}
 
     // ================================================================================
@@ -102,7 +92,9 @@ access(all) contract FlowDKG {
         }
     }
 
-    // TODO(#6213): documentation
+    // TODO(#6213): proper documentation
+    // Represents one DKG result submission, comprising a group public key and an ordered
+    // list of participant public keys. The idMapping field maps node IDs to indices in pubKeys.
     access(all) struct ResultSubmission {
         access(all) let groupPubKey: String
         access(all) let pubKeys: [String]
@@ -113,6 +105,66 @@ access(all) contract FlowDKG {
             self.pubKeys = pubKeys
             self.idMapping = idMapping
         }
+
+        access(all) fun equals(other: FlowDKG.ResultSubmission): Bool {
+            if self.groupPubKey != other.groupPubKey {
+                return false
+            }
+            // TODO: validate equality check on list is safe
+            if self.pubKeys != other.pubKeys {
+                return false
+            }
+            // TODO: validate equality check on dict is safe
+            if self.idMapping != other.idMapping {
+                return false
+            }
+            return true
+        }
+    }
+
+    // Tracks all state related to submissions.
+    // Because all fields are access(self), possible state changes are encapsulated and
+    // restricted within the type definition.
+    access(all) struct SubmissionTracker {
+        // set of authorized participants for this DKG instance
+        access(self) var authorized: {String: Bool}
+        // list of unique submissions, in submission order
+        access(self) var uniques: [FlowDKG.ResultSubmission]
+        // maps node ID to index within "uniques"
+        access(self) var byNodeID: {String: Int}
+        // maps index within "uniques" to count of submissions
+        access(self) var counts: {Int: UInt64}
+
+        init() {
+            self.authorized = {}
+            self.uniques = []
+            self.byNodeID = {}
+            self.counts = {}
+        }
+
+        // called each time DKG begins
+        // we could also re-instantiate a new SubmissionTracker, but it seems like reset makes storage management
+        // significantly simpler (you never load/save the tracker after construction (or upgrade))
+        access(all) fun reset(nodeIDs: [String]) {
+            self.authorized = {}
+            self.uniques = []
+            self.byNodeID = {}
+            self.counts = {}
+            for nodeID in nodeIDs {
+                self.authorized[nodeID] = true
+            }
+        }
+
+        // adds submission, maintaining consistency of SubmissionTracker
+        access(all) fun addSubmission(nodeID: String, submission: FlowDKG.ResultSubmission) {
+            pre {
+                self.authorized[nodeID] != nil: "Must be authorized for this DKG instance"
+            }
+
+            // TODO
+        }
+
+        // TODO getters
     }
 
     /// The Participant resource is generated for each consensus node when they register.
@@ -374,6 +426,7 @@ access(all) contract FlowDKG {
     }
 
     /// Get the count of the final submissions array
+    // TODO: Should this be a view function?
     access(all) fun getFinalSubmissionCount(): {Int: UInt64} {
         return self.uniqueFinalSubmissionCount
     }
@@ -420,6 +473,13 @@ access(all) contract FlowDKG {
         return safetyRate
     }
 
+    // TODO change access - using this for testing
+    access(all) fun borrowSubmissionTracker(): &FlowDKG.SubmissionTracker {
+        var tracker = self.account.storage.borrow<&SubmissionTracker>(from: /storage/flowDKGFinalSubmissionTracker)
+        // TODO deal with contract ugprade case where this hasn't been initialized in constructor
+        return tracker!
+    }
+
     /// Returns the final set of keys if any one set of keys has strictly more than (nodes-1)/2 submissions
     /// Returns nil if not found (incomplete)
     // TODO(#6213): use ResultSubmission
@@ -463,6 +523,7 @@ access(all) contract FlowDKG {
         self.whiteboardMessages = []
 
         self.account.storage.save(<-create Admin(), to: self.AdminStoragePath)
+        self.account.storage.save(SubmissionTracker(), to: /storage/flowDKGFinalSubmissionTracker)
     }
 }
  
