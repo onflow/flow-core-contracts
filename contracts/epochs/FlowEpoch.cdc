@@ -144,7 +144,11 @@ access(all) contract FlowEpoch {
         /// The resulting public keys from the DKG process, encoded as by the flow-go
         /// crypto library, then hex-encoded.
         /// Group public key is the first element, followed by the individual keys
-        dkgPubKeys: [String]
+        dkgPubKeys: [String],
+
+        dkgGroupKey: String,
+
+        dkgIdMapping: {String: Int},
     )
 
     /// Contains specific metadata about a particular epoch
