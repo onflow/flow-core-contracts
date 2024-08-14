@@ -147,12 +147,22 @@ access(all) contract FlowEpoch {
         dkgPubKeys: [String]
     )
 
-    /// The Epoch Recover service event is emitted when a recoverEpoch transaction is submitted to the network. When the network 
-    /// gets into an EFM state the recoverEpoch transaction is used to override the current epoch and recover the network without 
-    /// sporking. This service event is processed by protocol participants to update their local protocol state with the new recover
-    /// epoch data.
+    /// The EpochRecover service event is emitted via the recoverEpoch governance transaction to execute an epoch recovery.
+    /// The epoch recovery process is used if the Epoch Preparation Protocol fails for any reason.
+    /// When this happens, the network enters Epoch Fallback Mode [EFM], wherein the Protocol State
+    /// extends the current epoch until an epoch recovery can take place. In general, while in EFM, the
+    /// Protocol State and the FlowEpoch smart contract may have conflicting views about the current
+    /// valid epoch state (epoch counter and phase). The epoch recovery process resolves this inconsistency
+    /// by injecting a new common shared state to proceed forward from. 
+    /// Concretely, the epoch recovery process fully specifies the parameters for a new epoch to transition into
+    /// (essentially all fields of the EpochSetup and EpochCommit events), called the recovery epoch.
+    /// The FlowEpoch smart contracts inserts the recovery epoch, starts it, and emits the EpochRecover event,
+    /// which contains the same data. When the EpochRecover event is processed by the protocol state, 
+    /// the Protocol State is updated to include the recovery epoch as well.
     access(all) event EpochRecover (
         /// The counter for the RecoveryEpoch.
+        /// This must be 1 greater than the current epoch counter, as reported by the Protocol State,
+        /// otherwise the EpochRecover event will be rejected (recovery process will fail).
         counter: UInt64,
 
         /// Identity table for the upcoming epoch with all node information.
@@ -160,7 +170,9 @@ access(all) contract FlowEpoch {
         /// staking information, weight, and more.
         nodeInfo: [FlowIDTableStaking.NodeInfo],
 
-        /// The first view (inclusive) of the RecoveryEpoch.
+        /// The first view (inclusive) of the RecoveryEpoch. This must be 1 greater
+        /// than the current epoch's final view, as reported by the Protocol State,
+        /// otherwise the EpochRecover event will be rejected (recovery process will fail).
         firstView: UInt64,
 
         /// The last view (inclusive) of the RecoveryEpoch.
@@ -189,11 +201,17 @@ access(all) contract FlowEpoch {
 
         /// The cluster QCs passed in the recoverEpoch transaction. These are generated out-of-band
         /// using the same procedure as during a spork.
+        /// CAUTION: Validity of the QCs is not explicitly verified during the recovery process. An
+        /// invalid cluster QC will prevent the respective cluster from starting its local consensus
+        /// and hence prevent if from functioning for the entire epoch. If all cluster QCs are invalid,
+        /// the blockchain cannot ingest transactions, which can only be resolved through a spork!
         clusterQCVoteData: [FlowClusterQC.ClusterQCVoteData],
 
-        /// The DKG public keys passed in the recoverEpoch transaction.
-        /// Currently, these are re-used from the last successful DKG.
-        /// Group public key is the first element, followed by the individual keys
+        /// The DKG public keys for the recovery epoch. Currently, these are re-used from the last
+        /// successful DKG. Group public key is the first element, followed by the individual keys.
+        /// CAUTION: Validity of the key vector is not explicitly verified during the recovery process.
+        /// Invalid DKG information has the potential to prevent Flow's main consensus from continuing,
+        /// which would halt the chain for good and can only be resolved through a spork.
 
         // TODO(EFM, #6213): include id->index mapping
         dkgPubKeys: [String],
@@ -573,9 +591,8 @@ access(all) contract FlowEpoch {
         
         /// Stops epoch components. If the configuration is a valid configuration the staking auction,
         /// qc voting and dkg will be ended depending on the current epoch phase.
-        access(self) fun stopEpochComponents() 
-        {
-                if FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION {
+        access(self) fun stopEpochComponents() {
+            if FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION {
                 /// Since we are resetting the epoch, we do not need to
                 /// start epoch setup also. We only need to end the staking auction
                 FlowEpoch.borrowStakingAdmin().endStakingAuction()
@@ -667,7 +684,7 @@ access(all) contract FlowEpoch {
         /// This function is intended to update the current epoch configuration when a recovery
         /// transaction needs to be submitted more than once. This function differs 
         /// from recoverNewEpoch because it does not increment the epoch counter. It also 
-        /// does not calculate and set rewards avoiding double paying rewards for the same epoch.
+        /// does not calculate or distribute rewards avoiding double paying rewards for the same epoch.
         /// This meta data will be emitted in the EpochRecover service event. This function is used 
         /// within sporks to recover the network from Epoch Fallback Mode (EFM).
         access(all) fun recoverCurrentEpoch(recoveryEpochCounter: UInt64,
@@ -1031,8 +1048,8 @@ access(all) contract FlowEpoch {
         self.currentEpochPhase = EpochPhase.EPOCHSETUP
 
         let dkgPhase1FinalView = proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + self.configurableMetadata.numViewsInDKGPhase - 1
-        let dkgPhase2FinalView = proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + (2  * self.configurableMetadata.numViewsInDKGPhase) - 1
-        let dkgPhase3FinalView = proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + (3  * self.configurableMetadata.numViewsInDKGPhase) - 1
+let dkgPhase2FinalView = dkgPhase1FinalView + self.configurableMetadata.numViewsInDKGPhase
+let dkgPhase3FinalView = dkgPhase2FinalView + self.configurableMetadata.numViewsInDKGPhase
         emit EpochSetup(counter: proposedEpochMetadata.counter,
                         nodeInfo: nodeInfoArray,
                         firstView: proposedEpochMetadata.startView,
@@ -1184,6 +1201,7 @@ access(all) contract FlowEpoch {
         while i > 0
         {
             // Pick a random index from 0 to i
+            /// TODO: this naive implementation is unnecessarily costly at runtime -- update with revertibleRandom<UInt64>(i+1) when available
             var randomNum = revertibleRandom<UInt64>()
             var randomIndex = randomNum % UInt64(i + 1)
 
