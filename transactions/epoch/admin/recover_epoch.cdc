@@ -24,8 +24,10 @@ transaction(recoveryEpochCounter: UInt64,
         let epochAdmin = signer.storage.borrow<&FlowEpoch.Admin>(from: FlowEpoch.adminStoragePath)
             ?? panic("Could not borrow epoch admin from storage path")
 
-        if unsafeAllowOverwrite {
-            epochAdmin.recoverCurrentEpoch(
+        let proposedEpochCounter = FlowEpoch.proposedEpochCounter()
+        if recoveryEpochCounter == proposedEpochCounter {
+            // Typical path: RecoveryEpoch uses proposed epoch counter (+1 from current)
+            epochAdmin.recoverNewEpoch(
                 recoveryEpochCounter: recoveryEpochCounter,
                 startView: startView,
                 stakingEndView: stakingEndView,
@@ -37,9 +39,12 @@ transaction(recoveryEpochCounter: UInt64,
                 dkgPubKeys: dkgPubKeys,
                 nodeIDs: nodeIDs
             )
-
         } else {
-            epochAdmin.recoverNewEpoch(
+            // Atypical path: RecoveryEpoch is overwriting existing epoch. 
+            if !unsafeAllowOverwrite {
+                panic("cannot overwrite existing epoch with safety flag specified")
+            }
+            epochAdmin.recoverCurrentEpoch(
                 recoveryEpochCounter: recoveryEpochCounter,
                 startView: startView,
                 stakingEndView: stakingEndView,
