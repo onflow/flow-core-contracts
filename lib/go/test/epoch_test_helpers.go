@@ -575,7 +575,6 @@ func verifyEpochMetadata(
 
 	metadataFields := getEpochMetadata(t, b, env, cadence.UInt64(expectedMetadata.counter))
 	counter := metadataFields["counter"]
-
 	assertEqual(t, cadence.NewUInt64(expectedMetadata.counter), counter)
 
 	if len(expectedMetadata.seed) != 0 {
@@ -863,9 +862,8 @@ func getCurrentEpochCounter(t *testing.T, b emulator.Emulator, env templates.Env
 	return result.(cadence.UInt64)
 }
 
-// newClusterQCVoteDataCdcType returns the FlowClusterQC cadence struct type.
+// newClusterQCVoteDataCdcType returns a new (empty) FlowClusterQC cadence struct type.
 func newClusterQCVoteDataCdcType(clusterQcAddress string) *cadence.StructType {
-
 	// FlowClusterQC.ClusterQCVoteData
 	address, _ := cdcCommon.HexToAddress(clusterQcAddress)
 	location := cdcCommon.NewAddressLocation(nil, address, "FlowClusterQC")
