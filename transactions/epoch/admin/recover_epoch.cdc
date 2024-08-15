@@ -8,6 +8,9 @@ import FlowClusterQC from "FlowClusterQC"
 // state with the new Epoch data.
 // This transaction should only be used with the output of the bootstrap utility:
 //   util epoch efm-recover-tx-args
+// Note: setting unsafeAllowOverwrite to true will force the FlowEpoch contract to overwrite the current 
+// epoch with the new configuration. If you need to instantiate a brand new epoch with the new configuration 
+// this should be set to false.
 transaction(recoveryEpochCounter: UInt64,
             startView: UInt64,
             stakingEndView: UInt64,
