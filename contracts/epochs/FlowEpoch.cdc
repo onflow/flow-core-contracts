@@ -515,7 +515,8 @@ access(all) contract FlowEpoch {
             FlowEpoch.account.storage.load<Bool>(from: /storage/flowAutomaticRewardsEnabled)
             FlowEpoch.account.storage.save(enabled, to: /storage/flowAutomaticRewardsEnabled)
         }
-        
+        /// Emits the EpochRecover service event. Inputs for the recovery epoch will be validated before the recover event is emitted.
+        /// This func should only be used during the epoch recovery governance intervention.
         access(self) fun emitEpochRecoverEvent(epochCounter: UInt64,
             startView: UInt64,
             stakingEndView: UInt64,
@@ -530,7 +531,14 @@ access(all) contract FlowEpoch {
             clusterQCVoteData: [FlowClusterQC.ClusterQCVoteData],
             dkgPubKeys: [String],
             ) {
-                
+            self.recoverEpochPreChecks(
+                startView: startView, 
+                stakingEndView: stakingEndView, 
+                endView: endView, 
+                nodeIDs: nodeIDs,
+                numOfClusterAssignments: clusterAssignments.length,
+                numOfClusterQCVoteData: clusterQCVoteData.length,
+            )
             /// Construct the identity table for the recovery epoch
             let nodes: [FlowIDTableStaking.NodeInfo] = []
             for nodeID in nodeIDs {
@@ -618,14 +626,6 @@ access(all) contract FlowEpoch {
             dkgPubKeys: [String],
             nodeIDs: [String]) 
         {
-            self.recoverEpochPreChecks(
-                startView: startView, 
-                stakingEndView: stakingEndView, 
-                endView: endView, 
-                nodeIDs: nodeIDs,
-                numOfClusterAssignments: clusterAssignments.length,
-                numOfClusterQCVoteData: clusterQCVoteData.length,
-            )
             // sanity check recovery epoch counter should increment current epoch counter
             assert(
                 recoveryEpochCounter == FlowEpoch.proposedEpochCounter(), 
@@ -697,15 +697,7 @@ access(all) contract FlowEpoch {
             clusterQCVoteData: [FlowClusterQC.ClusterQCVoteData],
             dkgPubKeys: [String],
             nodeIDs: [String]) 
-        {
-            self.recoverEpochPreChecks(
-                startView: startView, 
-                stakingEndView: stakingEndView, 
-                endView: endView, 
-                nodeIDs: nodeIDs,
-                numOfClusterAssignments: clusterAssignments.length,
-                numOfClusterQCVoteData: clusterQCVoteData.length,
-            )    
+        { 
             // sanity check recovery epoch counter should be the current epoch counter
             assert(
                 recoveryEpochCounter == FlowEpoch.currentEpochCounter, 
