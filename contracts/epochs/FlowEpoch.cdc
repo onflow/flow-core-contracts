@@ -597,8 +597,8 @@ access(all) contract FlowEpoch {
             )
         }
         
-        /// Stops epoch components. If the configuration is a valid configuration the staking auction,
-        /// qc voting and dkg will be ended depending on the current epoch phase.
+        /// Stops epoch components. When we are in the StakingAuction phase the staking auction is stopped 
+        /// otherwise cluster qc voting and the dkg is stopped.
         access(self) fun stopEpochComponents() {
             if FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION {
                 /// Since we are resetting the epoch, we do not need to
