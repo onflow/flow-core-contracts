@@ -1644,19 +1644,19 @@ func TestEpochRecover(t *testing.T) {
 		verifyEpochMetadata(t, b, env, expectedMetadata)
 		assertEqual(t, getCurrentEpochCounter(t, b, env), cadence.NewUInt64(startEpochCounter+1))
 		expectedRecoverEvent := EpochRecover{
-			counter:                 startEpochCounter + 1,
-			nodeInfoLength:          len(nodeIDs),
-			firstView:               startView,
-			finalView:               endView,
-			collectorClusters:       collectorClusters,
-			randomSource:            seed,
-			dkgPhase1FinalView:      startView + numStakingViews + numDKGViews - 1,
-			dkgPhase2FinalView:      startView + numStakingViews + (2 * numDKGViews) - 1,
-			dkgPhase3FinalView:      startView + numStakingViews + (3 * numDKGViews) - 1,
-			targetDuration:          targetDuration,
-			targetEndTime:           targetEndTime,
-			clusterQCVoteDataLength: len(clusterQcVoteData),
-			dkgPubKeys:              dkgPubKeys,
+			counter:            startEpochCounter + 1,
+			nodeInfoLength:     len(nodeIDs),
+			firstView:          startView,
+			finalView:          endView,
+			collectorClusters:  collectorClusters,
+			randomSource:       seed,
+			dkgPhase1FinalView: startView + numStakingViews + numDKGViews - 1,
+			dkgPhase2FinalView: startView + numStakingViews + (2 * numDKGViews) - 1,
+			dkgPhase3FinalView: startView + numStakingViews + (3 * numDKGViews) - 1,
+			targetDuration:     targetDuration,
+			targetEndTime:      targetEndTime,
+			numberClusterQCs:   len(clusterQcVoteData),
+			dkgPubKeys:         dkgPubKeys,
 		}
 		verifyEpochRecover(t, adapter, idTableAddress, expectedRecoverEvent)
 

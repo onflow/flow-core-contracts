@@ -134,19 +134,19 @@ type EpochCommit struct {
 
 // EpochRecover used to verify EpochRecover event fields in tests.
 type EpochRecover struct {
-	counter                 uint64
-	nodeInfoLength          int
-	firstView               uint64
-	finalView               uint64
-	collectorClusters       []cadence.Value
-	randomSource            string
-	dkgPhase1FinalView      uint64
-	dkgPhase2FinalView      uint64
-	dkgPhase3FinalView      uint64
-	targetDuration          uint64
-	targetEndTime           uint64
-	clusterQCVoteDataLength int
-	dkgPubKeys              []string
+	counter            uint64
+	nodeInfoLength     int
+	firstView          uint64
+	finalView          uint64
+	collectorClusters  []cadence.Value
+	randomSource       string
+	dkgPhase1FinalView uint64
+	dkgPhase2FinalView uint64
+	dkgPhase3FinalView uint64
+	targetDuration     uint64
+	targetEndTime      uint64
+	numberClusterQCs   int
+	dkgPubKeys         []string
 }
 
 type EpochRecoverEvent flow.Event
@@ -848,7 +848,7 @@ func verifyEpochRecover(
 	assertEqual(t, cadence.NewUInt64(expectedRecover.dkgPhase3FinalView), dkgPhase3FinalView)
 	assertEqual(t, cadence.NewUInt64(expectedRecover.targetDuration), emittedEvent.TargetDuration())
 	assertEqual(t, cadence.NewUInt64(expectedRecover.targetEndTime), emittedEvent.TargetEndTime())
-	assertEqual(t, expectedRecover.clusterQCVoteDataLength, len(emittedEvent.ClusterQCVoteData().Values))
+	assertEqual(t, expectedRecover.numberClusterQCs, len(emittedEvent.ClusterQCVoteData().Values))
 	assertEqual(t, len(expectedRecover.dkgPubKeys), len(emittedEvent.DKGPubKeys().Values))
 }
 
@@ -884,6 +884,18 @@ func newClusterQCVoteDataCdcType(clusterQcAddress string) *cadence.StructType {
 	}
 }
 
+// convertClusterQcsCdc expects a list of collection clusters where each entry in the list is a
+// list of collector cluster voter ids. This func will create a full collection cluster fixture
+// for each of the clusters in the list, creating a aggregate signature fixture for each of the
+// clusters.
+// Args:
+//
+//	env: templates environment
+//	clusters: list of collection clusters, each cluster being a list of voter ids i.e: cadence.NewArray([]cadence.Value{CadenceString("node_1"), CadenceString("node_2"), CadenceString("node_3")})
+//
+// Returns:
+//
+//	[]cadence.Value: array of cluster qc vote data fixtures for each collection cluster.
 func convertClusterQcsCdc(env templates.Environment, clusters []cadence.Value) []cadence.Value {
 	voteDataType := newClusterQCVoteDataCdcType(env.QuorumCertificateAddress)
 	qcVoteData := make([]cadence.Value, len(clusters))
