@@ -1572,11 +1572,12 @@ func TestEpochRecover(t *testing.T) {
 		epochTimingConfigResult := executeScriptAndCheck(t, b, templates.GenerateGetEpochTimingConfigScript(env), nil)
 
 		var (
-			startView      uint64 = 100
-			stakingEndView uint64 = 120
-			endView        uint64 = 160
-			targetDuration uint64 = numEpochViews
-			targetEndTime  uint64 = expectedTargetEndTime(epochTimingConfigResult, startEpochCounter+1)
+			startView       uint64 = 100
+			stakingEndView  uint64 = 120
+			endView         uint64 = 160
+			numStakingViews uint64 = stakingEndView - startView
+			targetDuration  uint64 = numEpochViews
+			targetEndTime   uint64 = expectedTargetEndTime(epochTimingConfigResult, startEpochCounter+1)
 		)
 
 		collectorClusters := make([]cadence.Value, 3)
@@ -1642,7 +1643,6 @@ func TestEpochRecover(t *testing.T) {
 		}
 		verifyEpochMetadata(t, b, env, expectedMetadata)
 		assertEqual(t, getCurrentEpochCounter(t, b, env), cadence.NewUInt64(startEpochCounter+1))
-
 		expectedRecoverEvent := EpochRecover{
 			counter:                 startEpochCounter + 1,
 			nodeInfoLength:          len(nodeIDs),
@@ -1686,6 +1686,7 @@ func TestEpochRecover(t *testing.T) {
 
 		expectedRecoverEvent.firstView = newStartView
 		expectedRecoverEvent.finalView = newEndView
+		numStakingViews = stakingEndView - newStartView
 		expectedRecoverEvent.dkgPhase1FinalView = newStartView + numStakingViews + numDKGViews - 1
 		expectedRecoverEvent.dkgPhase2FinalView = newStartView + numStakingViews + (2 * numDKGViews) - 1
 		expectedRecoverEvent.dkgPhase3FinalView = newStartView + numStakingViews + (3 * numDKGViews) - 1

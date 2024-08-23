@@ -519,8 +519,6 @@ access(all) contract FlowEpoch {
             startView: UInt64,
             stakingEndView: UInt64,
             endView: UInt64,
-            numViewsInStakingAuction: UInt64,
-            numViewsInDKGPhase: UInt64,
             nodeIDs: [String],
             clusterAssignments: [[String]],
             randomSource: String,
@@ -542,7 +540,9 @@ access(all) contract FlowEpoch {
             for nodeID in nodeIDs {
                 nodes.append(FlowIDTableStaking.NodeInfo(nodeID: nodeID))
             }
-
+            
+            let numViewsInStakingAuction = stakingEndView - startView
+            let numViewsInDKGPhase = FlowEpoch.configurableMetadata.numViewsInDKGPhase
             let dkgPhase1FinalView = startView + numViewsInStakingAuction + numViewsInDKGPhase - 1
             let dkgPhase2FinalView = startView + numViewsInStakingAuction + (2 * numViewsInDKGPhase) - 1
             let dkgPhase3FinalView = startView + numViewsInStakingAuction + (3 * numViewsInDKGPhase) - 1
@@ -632,9 +632,6 @@ access(all) contract FlowEpoch {
             self.stopEpochComponents()
             let randomSource = FlowEpoch.generateRandomSource()
 
-            let numViewsInStakingAuction = FlowEpoch.configurableMetadata.numViewsInStakingAuction
-            let numViewsInDKGPhase = FlowEpoch.configurableMetadata.numViewsInDKGPhase
-
             /// Create new EpochMetadata for the recovery epoch with the new values
             let newEpochMetadata = EpochMetadata(
                 /// Increment the epoch counter when recovering with a new epoch
@@ -663,8 +660,6 @@ access(all) contract FlowEpoch {
                 startView: startView,
                 stakingEndView: stakingEndView,
                 endView: endView,
-                numViewsInStakingAuction: numViewsInStakingAuction,
-                numViewsInDKGPhase: numViewsInDKGPhase,
                 nodeIDs: nodeIDs,
                 clusterAssignments: clusterAssignments,
                 randomSource: randomSource,
@@ -702,8 +697,6 @@ access(all) contract FlowEpoch {
                 message: "recovery epoch counter should equal current epoch counter"
             )
             self.stopEpochComponents()
-            let numViewsInStakingAuction = FlowEpoch.configurableMetadata.numViewsInStakingAuction
-            let numViewsInDKGPhase = FlowEpoch.configurableMetadata.numViewsInDKGPhase
             
             let currentEpochMetadata = FlowEpoch.getEpochMetadata(recoveryEpochCounter)
             /// Create new EpochMetadata for the recovery epoch with the new values. This epoch metadata will overwrite 
@@ -729,8 +722,6 @@ access(all) contract FlowEpoch {
                 startView: startView,
                 stakingEndView: stakingEndView,
                 endView: endView,
-                numViewsInStakingAuction: numViewsInStakingAuction,
-                numViewsInDKGPhase: numViewsInDKGPhase,
                 nodeIDs: nodeIDs,
                 clusterAssignments: clusterAssignments,
                 randomSource: currentEpochMetadata!.seed,
