@@ -694,7 +694,7 @@ access(all) contract FlowEpoch {
             // sanity check recovery epoch counter should be the current epoch counter
             assert(
                 recoveryEpochCounter == FlowEpoch.currentEpochCounter, 
-                message: "recovery epoch counter should equal current epoch counter"
+                message: "recovery epoch counter does not equal current epoch counter"
             )
             self.stopEpochComponents()
             

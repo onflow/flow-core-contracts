@@ -162,12 +162,46 @@ func signAndSubmit(
 	return Submit(t, b, tx, shouldRevert)
 }
 
-// Submit submits a transaction and checks if it fails or not, based on shouldRevert specification
+// assertTransactionReverts signs a transaction with an array of signers and adds their signatures to the transaction
+// before submitting it to the emulator.
+//
+// If the private keys do not match up with the addresses, the transaction will not succeed.
+//
+// This function asserts the transaction result error includes all of the expectedErrs.
+func assertTransactionReverts(
+	t *testing.T,
+	b emulator.Emulator,
+	tx *flow.Transaction,
+	signerAddresses []flow.Address,
+	signers []sdkcrypto.Signer,
+	expectedErrs ...error,
+) *types.TransactionResult {
+	// sign transaction with each signer
+	for i := len(signerAddresses) - 1; i >= 0; i-- {
+		signerAddress := signerAddresses[i]
+		signer := signers[i]
+
+		err := tx.SignPayload(signerAddress, 0, signer)
+		assert.NoError(t, err)
+	}
+
+	serviceSigner, _ := b.ServiceKey().Signer()
+
+	err := tx.SignEnvelope(b.ServiceKey().Address, 0, serviceSigner)
+	assert.NoError(t, err)
+
+	return Submit(t, b, tx, true, expectedErrs...)
+}
+
+// Submit submits a transaction and checks if it fails or not, based on shouldRevert specification.
+// If shouldRevert is true this function will ensures that the transaction error contains each of
+// the expected errors.
 func Submit(
 	t *testing.T,
 	b emulator.Emulator,
 	tx *flow.Transaction,
 	shouldRevert bool,
+	expectedErrs ...error,
 ) *types.TransactionResult {
 	// submit the signed transaction
 	flowTx := convert.SDKTransactionToFlow(*tx)
@@ -181,6 +215,9 @@ func Submit(
 	// Check the status
 	if shouldRevert {
 		assert.True(t, result.Reverted())
+		for _, err := range expectedErrs {
+			assert.ErrorContains(t, result.Error, err.Error())
+		}
 	} else {
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())

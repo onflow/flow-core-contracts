@@ -16,6 +16,7 @@ import (
 	emulator "github.com/onflow/flow-emulator/emulator"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
+	sdkcrypto "github.com/onflow/flow-go-sdk/crypto"
 	sdktemplates "github.com/onflow/flow-go-sdk/templates"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -588,7 +589,6 @@ func verifyEpochMetadata(
 
 	endView := metadataFields["endView"]
 	assertEqual(t, cadence.NewUInt64(expectedMetadata.endView), endView)
-
 	stakingEndView := metadataFields["stakingEndView"]
 	assertEqual(t, cadence.NewUInt64(expectedMetadata.stakingEndView), stakingEndView)
 
@@ -914,4 +914,60 @@ func convertClusterQcsCdc(env templates.Environment, clusters []cadence.Value) [
 	}
 
 	return qcVoteData
+}
+
+type testEpochConfig struct {
+	startEpochCounter    uint64 // start epoch counter
+	numEpochViews        uint64 // num views per epoch
+	numStakingViews      uint64 // num views for staking auction
+	numDKGViews          uint64 // num views for DKG phase
+	numClusters          uint64 // num collector clusters
+	numEpochAccounts     int    // num collector clusters
+	randomSource         string // random source
+	rewardIncreaseFactor string // reward increase factor
+}
+
+func runWithDefaultContracts(t *testing.T, config *testEpochConfig, f func(b emulator.Emulator, env templates.Environment, ids []string, idTableAddress flow.Address, IDTableSigner sdkcrypto.Signer, adapter *adapters.SDKAdapter)) {
+	b, adapter, accountKeys, env := newTestSetup(t)
+	// Create new keys for the epoch account
+	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
+
+	// Deploys the staking contract, qc, dkg, and epoch lifecycle contract
+	// staking contract is deployed with default values (1.25M rewards, 8% cut)
+	idTableAddress, _ := initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
+		config.startEpochCounter, // start epoch counter
+		config.numEpochViews,     // num views per epoch
+		config.numStakingViews,   // num views for staking auction
+		config.numDKGViews,       // num views for DKG phase
+		config.numClusters,       // num collector clusters
+		config.randomSource,      // random source
+		config.rewardIncreaseFactor)
+
+	// create new user accounts, mint tokens for them, and register them for staking
+	addresses, _, signers := registerAndMintManyAccounts(t, b, env, accountKeys, config.numEpochAccounts)
+	ids, _, _ := generateNodeIDs(config.numEpochAccounts)
+	// stakingPrivateKeys
+	_, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, config.numEpochAccounts)
+	registerNodesForStaking(t, b, env,
+		addresses,
+		signers,
+		stakingPublicKeys,
+		networkingPublicKeys,
+		ids)
+
+	// Set the approved node list
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
+
+	approvedNodeIDs := generateCadenceNodeDictionary(ids)
+	err := tx.AddArgument(approvedNodeIDs)
+	require.NoError(t, err)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]sdkcrypto.Signer{IDTableSigner},
+		false,
+	)
+
+	f(b, env, ids, idTableAddress, IDTableSigner, adapter)
 }

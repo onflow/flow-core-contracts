@@ -15,6 +15,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
+	"github.com/onflow/flow-emulator/adapters"
+	emulator "github.com/onflow/flow-emulator/emulator"
 	"github.com/onflow/flow-go-sdk"
 	sdkcrypto "github.com/onflow/flow-go-sdk/crypto"
 )
@@ -1432,9 +1434,7 @@ func TestEpochReset(t *testing.T) {
 	assertEqual(t, CadenceUFix64("7000000000.0"), result)
 
 	t.Run("Can reset the epoch during the staking auction with automatic rewards enabled", func(t *testing.T) {
-
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochSetAutomaticRewardsScript(env), idTableAddress)
-
 		tx.AddArgument(cadence.NewBool(true))
 
 		signAndSubmit(
@@ -1523,177 +1523,549 @@ func TestEpochReset(t *testing.T) {
 //   - epoch recover that specifies unsafeAllowOverwrite = false increments the epoch counter effectively starting a new epoch.
 //   - epoch recover that specifies unsafeAllowOverwrite = true overwrites the current epoch and does not increment the counter.
 func TestEpochRecover(t *testing.T) {
-	b, adapter, accountKeys, env := newTestSetup(t)
-	// Create new keys for the epoch account
-	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-
-	// Deploys the staking contract, qc, dkg, and epoch lifecycle contract
-	// staking contract is deployed with default values (1.25M rewards, 8% cut)
-	idTableAddress, _ := initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
-		startEpochCounter, // start epoch counter
-		numEpochViews,     // num views per epoch
-		numStakingViews,   // num views for staking auction
-		numDKGViews,       // num views for DKG phase
-		numClusters,       // num collector clusters
-		randomSource,      // random source
-		rewardIncreaseFactor)
-
-	// create new user accounts, mint tokens for them, and register them for staking
-	addresses, _, signers := registerAndMintManyAccounts(t, b, env, accountKeys, numEpochAccounts)
-	ids, _, _ := generateNodeIDs(numEpochAccounts)
-	// stakingPrivateKeys
-	_, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
-	registerNodesForStaking(t, b, env,
-		addresses,
-		signers,
-		stakingPublicKeys,
-		networkingPublicKeys,
-		ids)
-
-	// Set the approved node list
-	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
-
-	approvedNodeIDs := generateCadenceNodeDictionary(ids)
-	err := tx.AddArgument(approvedNodeIDs)
-	require.NoError(t, err)
-
-	signAndSubmit(
-		t, b, tx,
-		[]flow.Address{idTableAddress},
-		[]sdkcrypto.Signer{IDTableSigner},
-		false,
-	)
-
-	// Advance to epoch Setup and make sure that the epoch cannot be ended
-	advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHSETUP", false)
 
 	// Perform epoch recovery with a new epoch and epoch recover overwriting the current epoch.
 	t.Run("Can recover the epoch and have everything return to normal", func(t *testing.T) {
-		epochTimingConfigResult := executeScriptAndCheck(t, b, templates.GenerateGetEpochTimingConfigScript(env), nil)
-
-		var (
-			startView       uint64 = 100
-			stakingEndView  uint64 = 120
-			endView         uint64 = 160
-			numStakingViews uint64 = stakingEndView - startView
-			targetDuration  uint64 = numEpochViews
-			targetEndTime   uint64 = expectedTargetEndTime(epochTimingConfigResult, startEpochCounter+1)
-		)
-
-		collectorClusters := make([]cadence.Value, 3)
-		collectorClusters[0] = cadence.NewArray([]cadence.Value{CadenceString("node_1"), CadenceString("node_2"), CadenceString("node_3")})
-		collectorClusters[1] = cadence.NewArray([]cadence.Value{CadenceString("node_4"), CadenceString("node_5"), CadenceString("node_6")})
-		collectorClusters[2] = cadence.NewArray([]cadence.Value{CadenceString("node_7"), CadenceString("node_8"), CadenceString("node_9")})
-
-		dkgPubKeys := []string{"pubkey_1"}
-		dkgPubKeysCdc := make([]cadence.Value, len(dkgPubKeys))
-		for i, key := range dkgPubKeys {
-			dkgPubKeysCdc[i], _ = cadence.NewString(key)
+		epochConfig := &testEpochConfig{
+			startEpochCounter:    startEpochCounter,
+			numEpochViews:        numEpochViews,
+			numStakingViews:      numStakingViews,
+			numDKGViews:          numDKGViews,
+			numClusters:          numClusters,
+			numEpochAccounts:     numEpochAccounts,
+			randomSource:         randomSource,
+			rewardIncreaseFactor: rewardIncreaseFactor,
 		}
+		runWithDefaultContracts(t, epochConfig, func(b emulator.Emulator, env templates.Environment, ids []string, idTableAddress flow.Address, IDTableSigner sdkcrypto.Signer, adapter *adapters.SDKAdapter) {
+			advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHSETUP", false)
+			epochTimingConfigResult := executeScriptAndCheck(t, b, templates.GenerateGetEpochTimingConfigScript(env), nil)
+			var (
+				startView      uint64 = 100
+				stakingEndView uint64 = 120
+				endView        uint64 = 160
+				targetDuration uint64 = numEpochViews
+				epochCounter   uint64 = startEpochCounter + 1
+				targetEndTime  uint64 = expectedTargetEndTime(epochTimingConfigResult, epochCounter)
+			)
+			args := getRecoveryTxArgs(env, ids, startView, stakingEndView, endView, targetDuration, targetEndTime, epochCounter)
 
-		nodeIDs := make([]cadence.Value, len(ids))
-		for i, id := range ids {
-			nodeIDs[i], _ = cadence.NewString(id)
-		}
+			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRecoverEpochScript(env), idTableAddress)
+			for _, arg := range args {
+				tx.AddArgument(arg)
+			}
 
-		clusterQcVoteData := convertClusterQcsCdc(env, collectorClusters)
-		args := []cadence.Value{
-			cadence.NewUInt64(startEpochCounter + 1),
-			cadence.NewUInt64(startView),
-			cadence.NewUInt64(stakingEndView),
-			cadence.NewUInt64(endView),
-			cadence.NewUInt64(targetDuration),
-			cadence.NewUInt64(targetEndTime),
-			cadence.NewArray(collectorClusters), // collectorClusters
-			cadence.NewArray(clusterQcVoteData), // clusterQCVoteData
-			cadence.NewArray(dkgPubKeysCdc),
-			cadence.NewArray(nodeIDs),
-			cadence.NewBool(false), // recover EFM with a new epoch, set unsafeAllowOverwrite to false
-		}
+			signAndSubmit(
+				t, b, tx,
+				[]flow.Address{idTableAddress},
+				[]sdkcrypto.Signer{IDTableSigner},
+				false,
+			)
 
-		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateRecoverEpochScript(env), idTableAddress)
-		for _, arg := range args {
-			tx.AddArgument(arg)
-		}
+			advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "BLOCK", false)
 
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{idTableAddress},
-			[]sdkcrypto.Signer{IDTableSigner},
-			false,
-		)
-
-		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "BLOCK", false)
-
-		// seed is not manually set when recovering the epoch, it is randomly generated
-		metadataFields := getEpochMetadata(t, b, env, cadence.NewUInt64(startEpochCounter+1))
-		seed := strings.ReplaceAll(metadataFields["seed"].String(), `"`, "")
-		expectedMetadata := EpochMetadata{
-			counter:               startEpochCounter + 1,
-			seed:                  seed,
-			startView:             startView,
-			endView:               endView,
-			stakingEndView:        stakingEndView,
-			totalRewards:          "0.0",
-			rewardsBreakdownArray: 0,
-			rewardsPaid:           false,
-			collectorClusters:     nil,
-			clusterQCs:            nil,
-			dkgKeys:               dkgPubKeys,
-		}
-		verifyEpochMetadata(t, b, env, expectedMetadata)
-		assertEqual(t, getCurrentEpochCounter(t, b, env), cadence.NewUInt64(startEpochCounter+1))
-		expectedRecoverEvent := EpochRecover{
-			counter:            startEpochCounter + 1,
-			nodeInfoLength:     len(nodeIDs),
-			firstView:          startView,
-			finalView:          endView,
-			collectorClusters:  collectorClusters,
-			randomSource:       seed,
-			dkgPhase1FinalView: startView + numStakingViews + numDKGViews - 1,
-			dkgPhase2FinalView: startView + numStakingViews + (2 * numDKGViews) - 1,
-			dkgPhase3FinalView: startView + numStakingViews + (3 * numDKGViews) - 1,
-			targetDuration:     targetDuration,
-			targetEndTime:      targetEndTime,
-			numberClusterQCs:   len(clusterQcVoteData),
-			dkgPubKeys:         dkgPubKeys,
-		}
-		verifyEpochRecover(t, adapter, idTableAddress, expectedRecoverEvent)
-
-		// If epoch recover was rejected by the protocol state we can update the configuration
-		// for the epoch without creating a new one.
-		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateRecoverEpochScript(env), idTableAddress)
-
-		// change startView and endView
-		newStartView := startView + 1
-		args[1] = CadenceUInt64(newStartView)
-
-		newEndView := endView + 1
-		args[3] = CadenceUInt64(newEndView)
-
-		// avoid initializing a new epoch, set unsafeAllowOverwrite to true
-		args[10] = cadence.NewBool(true)
-		for _, arg := range args {
-			tx.AddArgument(arg)
-		}
-
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{idTableAddress},
-			[]sdkcrypto.Signer{IDTableSigner},
-			false,
-		)
-
-		expectedRecoverEvent.firstView = newStartView
-		expectedRecoverEvent.finalView = newEndView
-		numStakingViews = stakingEndView - newStartView
-		expectedRecoverEvent.dkgPhase1FinalView = newStartView + numStakingViews + numDKGViews - 1
-		expectedRecoverEvent.dkgPhase2FinalView = newStartView + numStakingViews + (2 * numDKGViews) - 1
-		expectedRecoverEvent.dkgPhase3FinalView = newStartView + numStakingViews + (3 * numDKGViews) - 1
-		expectedMetadata.startView = newStartView
-		expectedMetadata.endView = newEndView
-		verifyEpochRecover(t, adapter, idTableAddress, expectedRecoverEvent)
-		verifyEpochMetadata(t, b, env, expectedMetadata)
-		assertEqual(t, getCurrentEpochCounter(t, b, env), cadence.NewUInt64(startEpochCounter+1))
+			verifyEpochRecoverGovernanceTx(t, b, env, ids,
+				startView,
+				stakingEndView,
+				endView,
+				targetDuration,
+				targetEndTime,
+				epochCounter,
+				"0.0",
+				idTableAddress,
+				adapter,
+				args,
+			)
+		})
 	})
+
+	t.Run("Can recover the current epoch and overwrite the current epoch metadata", func(t *testing.T) {
+		epochConfig := &testEpochConfig{
+			startEpochCounter:    startEpochCounter,
+			numEpochViews:        numEpochViews,
+			numStakingViews:      numStakingViews,
+			numDKGViews:          numDKGViews,
+			numClusters:          numClusters,
+			numEpochAccounts:     numEpochAccounts,
+			randomSource:         randomSource,
+			rewardIncreaseFactor: rewardIncreaseFactor,
+		}
+		runWithDefaultContracts(t, epochConfig, func(b emulator.Emulator, env templates.Environment, ids []string, idTableAddress flow.Address, IDTableSigner sdkcrypto.Signer, adapter *adapters.SDKAdapter) {
+			// Advance to epoch Setup and make sure that the epoch cannot be ended
+			advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHSETUP", false)
+			epochTimingConfigResult := executeScriptAndCheck(t, b, templates.GenerateGetEpochTimingConfigScript(env), nil)
+			var (
+				startView      uint64 = 100
+				stakingEndView uint64 = 120
+				endView        uint64 = 160
+				targetDuration uint64 = numEpochViews
+				targetEndTime  uint64 = expectedTargetEndTime(epochTimingConfigResult, startEpochCounter)
+			)
+			args := getRecoveryTxArgs(env, ids, startView, stakingEndView, endView, targetDuration, targetEndTime, startEpochCounter)
+			// overwrite the current epoch by setting unsafe overwrite to true
+			args[10] = cadence.NewBool(true)
+			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRecoverEpochScript(env), idTableAddress)
+			for _, arg := range args {
+				tx.AddArgument(arg)
+			}
+
+			signAndSubmit(
+				t, b, tx,
+				[]flow.Address{idTableAddress},
+				[]sdkcrypto.Signer{IDTableSigner},
+				false,
+			)
+
+			advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "BLOCK", false)
+
+			verifyEpochRecoverGovernanceTx(t, b, env, ids,
+				startView,
+				stakingEndView,
+				endView,
+				targetDuration,
+				targetEndTime,
+				startEpochCounter,
+				"0.0",
+				idTableAddress,
+				adapter,
+				args,
+			)
+		})
+	})
+
+	t.Run("Panics when recovering the current epoch and recover epoch counter is not equal to the current epoch counter", func(t *testing.T) {
+		epochConfig := &testEpochConfig{
+			startEpochCounter:    startEpochCounter,
+			numEpochViews:        numEpochViews,
+			numStakingViews:      numStakingViews,
+			numDKGViews:          numDKGViews,
+			numClusters:          numClusters,
+			numEpochAccounts:     numEpochAccounts,
+			randomSource:         randomSource,
+			rewardIncreaseFactor: rewardIncreaseFactor,
+		}
+		runWithDefaultContracts(t, epochConfig, func(b emulator.Emulator, env templates.Environment, ids []string, idTableAddress flow.Address, IDTableSigner sdkcrypto.Signer, adapter *adapters.SDKAdapter) {
+			epochTimingConfigResult := executeScriptAndCheck(t, b, templates.GenerateGetEpochTimingConfigScript(env), nil)
+			var (
+				startView      uint64 = 100
+				stakingEndView uint64 = 120
+				endView        uint64 = 160
+				targetDuration uint64 = numEpochViews
+				// invalid epoch counter when recovering the current epoch the counter should equal the current epoch counter
+				epochCounter  uint64 = startEpochCounter + 100
+				targetEndTime uint64 = expectedTargetEndTime(epochTimingConfigResult, epochCounter)
+			)
+			args := getRecoveryTxArgs(env, ids, startView, stakingEndView, endView, targetDuration, targetEndTime, epochCounter)
+			// set unsafe overwrite to true
+			args[len(args)-1] = cadence.NewBool(true)
+			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRecoverEpochScript(env), idTableAddress)
+			for _, arg := range args {
+				tx.AddArgument(arg)
+			}
+
+			expectedErr := fmt.Errorf("recovery epoch counter does not equal current epoch counter")
+			assertTransactionReverts(
+				t, b, tx,
+				[]flow.Address{idTableAddress},
+				[]sdkcrypto.Signer{IDTableSigner},
+				expectedErr,
+			)
+		})
+	})
+
+	t.Run("Panics when recovering a new epoch and recover epoch counter is not equal to the current epoch counter + 1", func(t *testing.T) {
+		epochConfig := &testEpochConfig{
+			startEpochCounter:    startEpochCounter,
+			numEpochViews:        numEpochViews,
+			numStakingViews:      numStakingViews,
+			numDKGViews:          numDKGViews,
+			numClusters:          numClusters,
+			numEpochAccounts:     numEpochAccounts,
+			randomSource:         randomSource,
+			rewardIncreaseFactor: rewardIncreaseFactor,
+		}
+		runWithDefaultContracts(t, epochConfig, func(b emulator.Emulator, env templates.Environment, ids []string, idTableAddress flow.Address, IDTableSigner sdkcrypto.Signer, adapter *adapters.SDKAdapter) {
+			epochTimingConfigResult := executeScriptAndCheck(t, b, templates.GenerateGetEpochTimingConfigScript(env), nil)
+			var (
+				startView      uint64 = 100
+				stakingEndView uint64 = 120
+				endView        uint64 = 160
+				targetDuration uint64 = numEpochViews
+				// invalid epoch counter when recovering the current epoch the counter should equal the current epoch counter
+				epochCounter  uint64 = startEpochCounter + 100
+				targetEndTime uint64 = expectedTargetEndTime(epochTimingConfigResult, epochCounter)
+			)
+			args := getRecoveryTxArgs(env, ids, startView, stakingEndView, endView, targetDuration, targetEndTime, epochCounter)
+			// avoid using the recover epoch transaction template which has sanity checks that would prevent submitting the invalid epoch counter
+			code := `
+				import FlowEpoch from "FlowEpoch"
+				import FlowIDTableStaking from "FlowIDTableStaking"
+				import FlowClusterQC from "FlowClusterQC"
+				transaction(recoveryEpochCounter: UInt64,
+							startView: UInt64,
+							stakingEndView: UInt64,
+							endView: UInt64,
+							targetDuration: UInt64,
+							targetEndTime: UInt64,
+							clusterAssignments: [[String]],
+							clusterQCVoteData: [FlowClusterQC.ClusterQCVoteData],
+							dkgPubKeys: [String],
+							nodeIDs: [String],
+							unsafeAllowOverwrite: Bool) {
+
+					prepare(signer: auth(BorrowValue) &Account) {
+						let epochAdmin = signer.storage.borrow<&FlowEpoch.Admin>(from: FlowEpoch.adminStoragePath)
+							?? panic("Could not borrow epoch admin from storage path")
+
+						epochAdmin.recoverNewEpoch(
+								recoveryEpochCounter: recoveryEpochCounter,
+								startView: startView,
+								stakingEndView: stakingEndView,
+								endView: endView,
+								targetDuration: targetDuration,
+								targetEndTime: targetEndTime,
+								clusterAssignments: clusterAssignments,
+								clusterQCVoteData: clusterQCVoteData,
+								dkgPubKeys: dkgPubKeys,
+								nodeIDs: nodeIDs
+							)
+					}
+				}
+			`
+			tx := createTxWithTemplateAndAuthorizer(b, []byte(templates.ReplaceAddresses(code, env)), idTableAddress)
+			for _, arg := range args {
+				tx.AddArgument(arg)
+			}
+
+			expectedErr := fmt.Errorf("recovery epoch counter should equal current epoch counter + 1")
+			assertTransactionReverts(
+				t, b, tx,
+				[]flow.Address{idTableAddress},
+				[]sdkcrypto.Signer{IDTableSigner},
+				expectedErr,
+			)
+		})
+	})
+
+	t.Run("Recover epoch transaction panics when recovery epoch counter is less than currentCounter and unsafeAllowOverwrite is false", func(t *testing.T) {
+		epochConfig := &testEpochConfig{
+			startEpochCounter:    1,
+			numEpochViews:        numEpochViews,
+			numStakingViews:      numStakingViews,
+			numDKGViews:          numDKGViews,
+			numClusters:          numClusters,
+			numEpochAccounts:     numEpochAccounts,
+			randomSource:         randomSource,
+			rewardIncreaseFactor: rewardIncreaseFactor,
+		}
+		runWithDefaultContracts(t, epochConfig, func(b emulator.Emulator, env templates.Environment, ids []string, idTableAddress flow.Address, IDTableSigner sdkcrypto.Signer, adapter *adapters.SDKAdapter) {
+			epochTimingConfigResult := executeScriptAndCheck(t, b, templates.GenerateGetEpochTimingConfigScript(env), nil)
+			var (
+				startView      uint64 = 100
+				stakingEndView uint64 = 120
+				endView        uint64 = 160
+				targetDuration uint64 = numEpochViews
+				// invalid epoch counter less than current epoch counter 1
+				epochCounter  uint64 = 0
+				targetEndTime uint64 = expectedTargetEndTime(epochTimingConfigResult, epochCounter)
+			)
+			args := getRecoveryTxArgs(env, ids, startView, stakingEndView, endView, targetDuration, targetEndTime, epochCounter)
+			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRecoverEpochScript(env), idTableAddress)
+			for _, arg := range args {
+				tx.AddArgument(arg)
+			}
+
+			expectedErr := fmt.Errorf("cannot overwrite existing epoch with safety flag specified")
+			assertTransactionReverts(
+				t, b, tx,
+				[]flow.Address{idTableAddress},
+				[]sdkcrypto.Signer{IDTableSigner},
+				expectedErr,
+			)
+		})
+	})
+
+	t.Run("Recover epoch transaction panics when recovery epoch counter greater than proposedCounter and unsafeAllowOverwrite is false", func(t *testing.T) {
+		epochConfig := &testEpochConfig{
+			startEpochCounter:    startEpochCounter,
+			numEpochViews:        numEpochViews,
+			numStakingViews:      numStakingViews,
+			numDKGViews:          numDKGViews,
+			numClusters:          numClusters,
+			numEpochAccounts:     numEpochAccounts,
+			randomSource:         randomSource,
+			rewardIncreaseFactor: rewardIncreaseFactor,
+		}
+		runWithDefaultContracts(t, epochConfig, func(b emulator.Emulator, env templates.Environment, ids []string, idTableAddress flow.Address, IDTableSigner sdkcrypto.Signer, adapter *adapters.SDKAdapter) {
+			epochTimingConfigResult := executeScriptAndCheck(t, b, templates.GenerateGetEpochTimingConfigScript(env), nil)
+			var (
+				startView      uint64 = 100
+				stakingEndView uint64 = 120
+				endView        uint64 = 160
+				targetDuration uint64 = numEpochViews
+				// invalid epoch counter greater than proposed epoch counter
+				epochCounter  uint64 = startEpochCounter + 2
+				targetEndTime uint64 = expectedTargetEndTime(epochTimingConfigResult, epochCounter)
+			)
+			args := getRecoveryTxArgs(env, ids, startView, stakingEndView, endView, targetDuration, targetEndTime, epochCounter)
+			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRecoverEpochScript(env), idTableAddress)
+			for _, arg := range args {
+				tx.AddArgument(arg)
+			}
+
+			expectedErr := fmt.Errorf("cannot overwrite existing epoch with safety flag specified")
+			assertTransactionReverts(
+				t, b, tx,
+				[]flow.Address{idTableAddress},
+				[]sdkcrypto.Signer{IDTableSigner},
+				expectedErr,
+			)
+		})
+	})
+
+	t.Run("Can recover the epoch during the staking auction with automatic rewards enabled", func(t *testing.T) {
+		epochConfig := &testEpochConfig{
+			startEpochCounter:    startEpochCounter,
+			numEpochViews:        numEpochViews,
+			numStakingViews:      numStakingViews,
+			numDKGViews:          numDKGViews,
+			numClusters:          numClusters,
+			numEpochAccounts:     numEpochAccounts,
+			randomSource:         randomSource,
+			rewardIncreaseFactor: rewardIncreaseFactor,
+		}
+		runWithDefaultContracts(t, epochConfig, func(b emulator.Emulator, env templates.Environment, ids []string, idTableAddress flow.Address, IDTableSigner sdkcrypto.Signer, adapter *adapters.SDKAdapter) {
+			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochSetAutomaticRewardsScript(env), idTableAddress)
+			tx.AddArgument(cadence.NewBool(true))
+			signAndSubmit(
+				t, b, tx,
+				[]flow.Address{idTableAddress},
+				[]sdkcrypto.Signer{IDTableSigner},
+				false,
+			)
+
+			advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHSETUP", false)
+			epochTimingConfigResult := executeScriptAndCheck(t, b, templates.GenerateGetEpochTimingConfigScript(env), nil)
+			var (
+				startView      uint64 = 100
+				stakingEndView uint64 = 120
+				endView        uint64 = 160
+				targetDuration uint64 = numEpochViews
+				epochCounter   uint64 = startEpochCounter + 1
+				targetEndTime  uint64 = expectedTargetEndTime(epochTimingConfigResult, epochCounter)
+			)
+			args := getRecoveryTxArgs(env, ids, startView, stakingEndView, endView, targetDuration, targetEndTime, epochCounter)
+
+			tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateRecoverEpochScript(env), idTableAddress)
+			for _, arg := range args {
+				tx.AddArgument(arg)
+			}
+
+			signAndSubmit(
+				t, b, tx,
+				[]flow.Address{idTableAddress},
+				[]sdkcrypto.Signer{IDTableSigner},
+				false,
+			)
+
+			advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "BLOCK", false)
+
+			verifyEpochRecoverGovernanceTx(t, b, env, ids,
+				startView,
+				stakingEndView,
+				endView,
+				targetDuration,
+				targetEndTime,
+				epochCounter,
+				// The calculation of the total rewards should have happened
+				// because automatic rewards are enabled
+				// (total supply + current payount amount - bonus tokens) * reward increase factor
+				// (7000000000 + 1250000 - 0) * 0.00093871 = 6,571,204.6775
+				"6572143.38750000",
+				idTableAddress,
+				adapter,
+				args,
+			)
+
+			args = getRecoveryTxArgs(env, ids, startView, stakingEndView, endView, targetDuration, targetEndTime, epochCounter+1)
+			tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateRecoverEpochScript(env), idTableAddress)
+			for _, arg := range args {
+				tx.AddArgument(arg)
+			}
+
+			signAndSubmit(
+				t, b, tx,
+				[]flow.Address{idTableAddress},
+				[]sdkcrypto.Signer{IDTableSigner},
+				false,
+			)
+
+			advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "BLOCK", false)
+
+			tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochPayRewardsScript(env), idTableAddress)
+
+			signAndSubmit(
+				t, b, tx,
+				[]flow.Address{idTableAddress},
+				[]sdkcrypto.Signer{IDTableSigner},
+				false,
+			)
+
+			// Verifies that the rewards from the previous epoch does not include the new epoch's amount
+			verifyEpochTotalRewardsPaid(t, b, idTableAddress,
+				EpochTotalRewardsPaid{
+					total:      "6572143.38750000",
+					fromFees:   "0.0",
+					minted:     "6572143.38750000",
+					feesBurned: "0.01500000"})
+
+			result := executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(ids[0]))})
+			assertEqual(t, CadenceUFix64("1314428.67450000"), result)
+
+			// Rewards have already been paid, so this should not do anything
+			tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochPayRewardsScript(env), idTableAddress)
+
+			signAndSubmit(
+				t, b, tx,
+				[]flow.Address{idTableAddress},
+				[]sdkcrypto.Signer{IDTableSigner},
+				false,
+			)
+
+			// The nodes rewards should not have increased
+			result = executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(ids[0]))})
+			assertEqual(t, CadenceUFix64("1314428.67450000"), result)
+
+			// overwrite current epoch with a recover transaction, rewards should not be paid out
+			args = getRecoveryTxArgs(env, ids, startView, stakingEndView, endView, targetDuration, targetEndTime, epochCounter+1)
+			// set unsafe overwrite to true
+			args[len(args)-1] = cadence.NewBool(true)
+			tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateRecoverEpochScript(env), idTableAddress)
+			for _, arg := range args {
+				tx.AddArgument(arg)
+			}
+
+			signAndSubmit(
+				t, b, tx,
+				[]flow.Address{idTableAddress},
+				[]sdkcrypto.Signer{IDTableSigner},
+				false,
+			)
+
+			advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "BLOCK", false)
+
+			tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochPayRewardsScript(env), idTableAddress)
+
+			signAndSubmit(
+				t, b, tx,
+				[]flow.Address{idTableAddress},
+				[]sdkcrypto.Signer{IDTableSigner},
+				false,
+			)
+
+			// The nodes rewards should not have increased
+			result = executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(ids[0]))})
+			assertEqual(t, CadenceUFix64("1314428.67450000"), result)
+		})
+	})
+}
+
+func getRecoveryTxArgs(
+	env templates.Environment,
+	nodeIds []string,
+	startView uint64,
+	stakingEndView uint64,
+	endView uint64,
+	targetDuration uint64,
+	targetEndTime uint64,
+	epochCounter uint64,
+) []cadence.Value {
+	collectorClusters := make([]cadence.Value, 3)
+	collectorClusters[0] = cadence.NewArray([]cadence.Value{CadenceString("node_1"), CadenceString("node_2"), CadenceString("node_3")})
+	collectorClusters[1] = cadence.NewArray([]cadence.Value{CadenceString("node_4"), CadenceString("node_5"), CadenceString("node_6")})
+	collectorClusters[2] = cadence.NewArray([]cadence.Value{CadenceString("node_7"), CadenceString("node_8"), CadenceString("node_9")})
+
+	dkgPubKeys := []string{"pubkey_1"}
+	dkgPubKeysCdc := make([]cadence.Value, len(dkgPubKeys))
+	for i, key := range dkgPubKeys {
+		dkgPubKeysCdc[i], _ = cadence.NewString(key)
+	}
+
+	nodeIDs := make([]cadence.Value, len(nodeIds))
+	for i, id := range nodeIds {
+		nodeIDs[i], _ = cadence.NewString(id)
+	}
+
+	clusterQcVoteData := convertClusterQcsCdc(env, collectorClusters)
+	return []cadence.Value{
+		cadence.NewUInt64(epochCounter),
+		cadence.NewUInt64(startView),
+		cadence.NewUInt64(stakingEndView),
+		cadence.NewUInt64(endView),
+		cadence.NewUInt64(targetDuration),
+		cadence.NewUInt64(targetEndTime),
+		cadence.NewArray(collectorClusters), // collectorClusters
+		cadence.NewArray(clusterQcVoteData), // clusterQCVoteData
+		cadence.NewArray(dkgPubKeysCdc),
+		cadence.NewArray(nodeIDs),
+		cadence.NewBool(false), // recover EFM with a new epoch, set unsafeAllowOverwrite to false
+	}
+}
+
+// verifyEpochRecoverGovernanceTx ensures that epoch metadata is updated with
+// the provided info and an corresponding epoch recover event was emitted with the same info.
+func verifyEpochRecoverGovernanceTx(
+	t *testing.T,
+	b emulator.Emulator,
+	env templates.Environment,
+	nodeIds []string,
+	startView uint64,
+	stakingEndView uint64,
+	endView uint64,
+	targetDuration uint64,
+	targetEndTime uint64,
+	epochCounter uint64,
+	totalRewards string,
+	idTableAddress flow.Address,
+	adapter *adapters.SDKAdapter,
+	args []cadence.Value,
+) {
+	dkgPubKeys := make([]string, len(args[8].(cadence.Array).Values))
+	for i, dkgKeyCdc := range args[8].(cadence.Array).Values {
+		dkgPubKeys[i] = strings.ReplaceAll(dkgKeyCdc.String(), `"`, "")
+	}
+	numStakingViews := stakingEndView - startView
+	// seed is not manually set when recovering the epoch, it is randomly generated
+	metadataFields := getEpochMetadata(t, b, env, cadence.NewUInt64(epochCounter))
+	seed := strings.ReplaceAll(metadataFields["seed"].String(), `"`, "")
+	expectedMetadata := EpochMetadata{
+		counter:               epochCounter,
+		seed:                  seed,
+		startView:             startView,
+		endView:               endView,
+		stakingEndView:        stakingEndView,
+		totalRewards:          totalRewards,
+		rewardsBreakdownArray: 0,
+		rewardsPaid:           false,
+		collectorClusters:     nil,
+		clusterQCs:            nil,
+		dkgKeys:               dkgPubKeys,
+	}
+	verifyEpochMetadata(t, b, env, expectedMetadata)
+	assertEqual(t, getCurrentEpochCounter(t, b, env), cadence.NewUInt64(epochCounter))
+	expectedRecoverEvent := EpochRecover{
+		counter:            epochCounter,
+		nodeInfoLength:     len(nodeIds),
+		firstView:          startView,
+		finalView:          endView,
+		collectorClusters:  args[6].(cadence.Array).Values,
+		randomSource:       seed,
+		dkgPhase1FinalView: startView + numStakingViews + numDKGViews - 1,
+		dkgPhase2FinalView: startView + numStakingViews + (2 * numDKGViews) - 1,
+		dkgPhase3FinalView: startView + numStakingViews + (3 * numDKGViews) - 1,
+		targetDuration:     targetDuration,
+		targetEndTime:      targetEndTime,
+		numberClusterQCs:   len(args[6].(cadence.Array).Values),
+		dkgPubKeys:         dkgPubKeys,
+	}
+	verifyEpochRecover(t, adapter, idTableAddress, expectedRecoverEvent)
 }
