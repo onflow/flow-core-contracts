@@ -5,7 +5,6 @@
       "aliases": {
         "testing": "0x0000000000000007",
         "emulator": "0xf8d6e0586b0a20c7",
-        "previewnet": "0xb6763b4399a888c8",
         "testnet": "0x9eca2b38b18b5dfe",
         "mainnet": "0x8624b52f9ddcd04a"
       }
@@ -15,7 +14,6 @@
       "aliases": {
         "testing": "0x0000000000000007",
         "emulator": "0xf8d6e0586b0a20c7",
-        "previewnet": "0xb6763b4399a888c8",
         "testnet": "0x9eca2b38b18b5dfe",
         "mainnet": "0x8624b52f9ddcd04a"
       }
@@ -25,7 +23,6 @@
       "aliases": {
         "testing": "0x0000000000000007",
         "emulator": "0xf8d6e0586b0a20c7",
-        "previewnet": "0xb6763b4399a888c8",
         "testnet": "0x9eca2b38b18b5dfe",
         "mainnet": "0x8624b52f9ddcd04a"
       }
@@ -35,7 +32,6 @@
       "aliases": {
         "testing": "0x0000000000000007",
         "emulator": "0xf8d6e0586b0a20c7",
-        "previewnet": "0xb6763b4399a888c8",
         "testnet": "0x9eca2b38b18b5dfe",
         "mainnet": "0x8624b52f9ddcd04a"
       }
@@ -45,7 +41,6 @@
       "aliases": {
         "testing": "0x0000000000000007",
         "emulator": "0xf8d6e0586b0a20c7",
-        "previewnet": "0xb6763b4399a888c8",
         "testnet": "0x8c5303eaa26202d6",
         "mainnet": "0xe467b9dd11fa00df"
       }
@@ -55,7 +50,6 @@
       "aliases": {
         "testing": "0x0000000000000007",
         "emulator": "0x0ae53cb6e3f42a79",
-        "previewnet": "0x4445e7ad11568276",
         "testnet": "0x7e60df042a9c0868",
         "mainnet": "0x1654653399040a61"
       }
@@ -65,7 +59,6 @@
       "aliases": {
         "testing": "0x0000000000000007",
         "emulator": "0xe5a8b7f23e8b548f",
-        "previewnet": "0xab086ce9cc29fc80",
         "testnet": "0x912d5440f7e3769e",
         "mainnet": "0xf919ee77447b7497"
       }
@@ -75,7 +68,6 @@
       "aliases": {
         "testing": "0x0000000000000007",
         "emulator": "0xf8d6e0586b0a20c7",
-        "previewnet": "0xab086ce9cc29fc80",
         "testnet": "0x8c5303eaa26202d6",
         "mainnet": "0xe467b9dd11fa00df"
       }
@@ -85,7 +77,6 @@
       "aliases": {
         "testing": "0x0000000000000007",
         "emulator": "0xf8d6e0586b0a20c7",
-        "previewnet": "0xb6763b4399a888c8",
         "testnet": "0x95e019a17d0e23d7",
         "mainnet": "0x8d0e87b65159ae63"
       }
@@ -95,7 +86,6 @@
       "aliases": {
         "testing": "0x0000000000000007",
         "emulator": "0xf8d6e0586b0a20c7",
-        "previewnet": "0xb6763b4399a888c8",
         "testnet": "0x95e019a17d0e23d7",
         "mainnet": "0x8d0e87b65159ae63"
       }
@@ -105,7 +95,6 @@
       "aliases": {
         "testing": "0x0000000000000007",
         "emulator": "0xf8d6e0586b0a20c7",
-        "previewnet": "0xb6763b4399a888c8",
         "testnet": "0x8c5303eaa26202d6",
         "mainnet": "0xe467b9dd11fa00df"
       }
@@ -115,7 +104,6 @@
       "aliases": {
         "testing": "0x0000000000000007",
         "emulator": "0xf8d6e0586b0a20c7",
-        "previewnet": "0xb6763b4399a888c8",
         "testnet": "0x8c5303eaa26202d6",
         "mainnet": "0xe467b9dd11fa00df"
       }
@@ -125,7 +113,6 @@
       "aliases": {
         "testing": "0x0000000000000007",
         "emulator": "0xf8d6e0586b0a20c7",
-        "previewnet": "0xb6763b4399a888c8",
         "testnet": "0x7aad92e5a0715d21",
         "mainnet": "0x62430cf28c26d095"
       }
@@ -134,7 +121,6 @@
   "networks": {
     "emulator": "127.0.0.1:3569",
     "testing": "127.0.0.1:3569",
-    "previewnet": "access.previewnet.nodes.onflow.org:9000",
     "mainnet": "access.mainnet.nodes.onflow.org:9000",
     "testnet": "access.devnet.nodes.onflow.org:9000"
   },
