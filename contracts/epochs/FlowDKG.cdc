@@ -92,12 +92,17 @@ access(all) contract FlowDKG {
         }
     }
 
-    // TODO(#6213): proper documentation
-    // Represents one DKG result submission, comprising a group public key and an ordered
-    // list of participant public keys. The idMapping field maps node IDs to indices in pubKeys.
+    // ResultSubmission represents a result submission from one DKG participant.
+    // Each submission includes a group public key and an ordered list of participant public keys. 
+    // All strings are lowercase hex-encoded representations of byte arrays.
     access(all) struct ResultSubmission {
+        // The group public key for the beacon committee resulting from the DKG.
         access(all) let groupPubKey: String
+        // An ordered list of individual public keys for the beacon committee resulting from the DKG.
         access(all) let pubKeys: [String]
+        // A mapping from node ID to DKG index.
+        // There must be exactly one key per authorized DKG participant.
+        // The set of values must form the set {0, 1, 2, ... n-1}, where n is the number of authorized DKG participants.
         access(all) let idMapping: {String:Int}
 
         init(groupPubKey: String, pubKeys: [String], idMapping: {String:Int}) {
@@ -106,15 +111,13 @@ access(all) contract FlowDKG {
             self.idMapping = idMapping
         }
 
-        access(all) fun equals(other: FlowDKG.ResultSubmission): Bool {
+        access(all) fun equals(_ other: FlowDKG.ResultSubmission): Bool {
             if self.groupPubKey != other.groupPubKey {
                 return false
             }
-            // TODO: validate equality check on list is safe
             if self.pubKeys != other.pubKeys {
                 return false
             }
-            // TODO: validate equality check on dict is safe
             if self.idMapping != other.idMapping {
                 return false
             }
