@@ -1156,7 +1156,7 @@ access(all) contract FlowIDTableStaking {
             let slotLimits: {UInt8: UInt16} = FlowIDTableStaking.getRoleSlotLimits()
 
             let openSlots = FlowIDTableStaking.getOpenNodeSlots()
-
+            
             let nodesToAdd: [String] = []
 
             // Load and reset the candidate node list
@@ -1167,6 +1167,7 @@ access(all) contract FlowIDTableStaking {
             for role in currentNodeCount.keys {
 
                 let candidateNodesForRole = candidateNodes[role]!
+                let nodesToRemoveFromCandidateNodes: [String] = []
 
                 if currentNodeCount[role]! >= slotLimits[role]! {
                     // if all slots are full, remove and refund all pending nodes
@@ -1199,7 +1200,7 @@ access(all) contract FlowIDTableStaking {
                     for nodeIndex in deletionList.keys {
                         let nodeID = candidateNodesForRole.keys[nodeIndex]
                         self.removeAndRefundNodeRecord(nodeID)
-                        candidateNodesForRole.remove(key: nodeID)
+                        nodesToRemoveFromCandidateNodes.append(nodeID)
                     }
 
                     // Set the current node count for the role to the limit for the role, since they were all filled
@@ -1210,6 +1211,11 @@ access(all) contract FlowIDTableStaking {
                     // does not exceed the slot limit
                     // No action is needed to mark the nodes as added because they are already included
                     currentNodeCount[role] = currentNodeCount[role]! + UInt16(candidateNodesForRole.keys.length)
+                }
+
+                // Remove the refunded nodes from the candidate nodes list
+                for node in nodesToRemoveFromCandidateNodes {
+                    candidateNodesForRole.remove(key: node)
                 }
 
                 nodesToAdd.appendAll(candidateNodesForRole.keys)
