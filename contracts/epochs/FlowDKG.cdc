@@ -125,17 +125,22 @@ access(all) contract FlowDKG {
         }
     }
 
-    // Tracks all state related to submissions.
-    // Because all fields are access(self), possible state changes are encapsulated and
-    // restricted within the type definition.
+    // SubmissionTracker tracks all state related to result submissions.
+    // It is intended strictly for internal use by the FlowDKG contract.
+    // Although methods have permissive access control, the single instance is stored in account storage and so is not available publicly.
+    // Future modifications MUST NOT make instances of SubmissionTracker publicly accessible.
+    // We use access(all) to enable testing this type in isolation.
+    //
+    // NOTE: there exists exactly one SubmissionTracker instance for a FlowDKG contract instance,
+    // which holds a subset of global contract state in an encapsulated manner.
     access(all) struct SubmissionTracker {
-        // set of authorized participants for this DKG instance
+        // Set of authorized participants for this DKG instance (the "DKG committee")
         access(self) var authorized: {String: Bool}
-        // list of unique submissions, in submission order
+        // List of unique submissions, in submission order
         access(self) var uniques: [FlowDKG.ResultSubmission]
-        // maps node ID to index within "uniques"
+        // Maps node ID to index within "uniques"
         access(self) var byNodeID: {String: Int}
-        // maps index within "uniques" to count of submissions
+        // Maps index within "uniques" to count of submissions
         access(self) var counts: {Int: UInt64}
 
         init() {
@@ -145,8 +150,8 @@ access(all) contract FlowDKG {
             self.counts = {}
         }
 
-        // called each time DKG begins
-        // we could also re-instantiate a new SubmissionTracker, but it seems like reset makes storage management
+        // Called each time a new DKG instance starts, to reset SubmissionTracker state.
+        // NOTE: we could also re-instantiate a new SubmissionTracker each time, but this pattern makes storage management
         // significantly simpler (you never load/save the tracker after construction (or upgrade))
         access(all) fun reset(nodeIDs: [String]) {
             self.authorized = {}
@@ -158,16 +163,34 @@ access(all) contract FlowDKG {
             }
         }
 
-        // adds submission, maintaining consistency of SubmissionTracker
+        // Adds the result submission for the DKG participant identified by nodeID.
+        // The DKG participant must be authorized for the current epoch, and each participant may submit only once.
+        //
+        // CAUTION: All callers of this method must be trusted, as nodeID is an unvalidated input and could be altered.
+        // In practice, we rely on the fact that only FlowDKG.Participant.sendFinalSubmission calls this function.
         access(all) fun addSubmission(nodeID: String, submission: FlowDKG.ResultSubmission) {
             pre {
                 self.authorized[nodeID] != nil: "Must be authorized for this DKG instance"
+                self.byNodeID[nodeID] == nil: "Must not have already submitted for this DKG instance"
             }
 
-            // TODO
-        }
+            // 1) Check whether this submission is equivalent to an existing submission (typical case)
+            var submissionIndex = 0
+            while submissionIndex < self.uniques.length {
+                if submission.equals(self.uniques[submissionIndex]) {
+                    self.byNodeID[nodeID] = submissionIndex
+                    self.counts[submissionIndex] = self.counts[submissionIndex]! + 1 
+                    return
+                }
+                submissionIndex = submissionIndex + 1
+            }
 
-        // TODO getters
+            // 2) This submission differs from all existing submissions (or is the first), so add a new unique submission.
+            // NOTE: at this point submissionIndex == self.uniques.length (the index of the submission we are adding)
+            self.uniques.append(submission)
+            self.byNodeID[nodeID] = submissionIndex
+            self.counts[submissionIndex] = 1
+        }
     }
 
     /// The Participant resource is generated for each consensus node when they register.
