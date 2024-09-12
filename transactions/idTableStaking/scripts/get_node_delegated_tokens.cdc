@@ -4,5 +4,5 @@ import FlowIDTableStaking from 0x8624b52f9ddcd04a
 
 pub fun main(nodeID: String): UFix64 {
     let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeID)
-    return nodeInfo.tokensStaked
+    return nodeInfo.totalStakedWithDelegators() - nodeInfo.tokensStaked
 }

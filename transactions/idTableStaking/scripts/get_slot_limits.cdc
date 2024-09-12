@@ -1,4 +1,7 @@
-import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
+// mainnet
+import FlowIDTableStaking from 0x8624b52f9ddcd04a
+// testnet
+//import FlowIDTableStaking from 0x9eca2b38b18b5dfe
 
 // This script returns the slot limits for node roles
 

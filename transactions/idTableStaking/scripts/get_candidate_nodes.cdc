@@ -1,4 +1,4 @@
-import FlowIDTableStaking from 0xIDENTITYTABLEADDRESS
+import FlowIDTableStaking from 0x8624b52f9ddcd04a
 
 // This script returns the list of candidate nodes
 // for the upcoming epoch
