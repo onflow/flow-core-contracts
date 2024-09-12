@@ -1,5 +1,6 @@
 import FlowDKG from "FlowDKG"
 
+// TODO: use ResultSubmission
 transaction(submission: [String?]) {
 
     let dkgParticipant: &FlowDKG.Participant
