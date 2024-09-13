@@ -65,22 +65,16 @@ access(all) fun idMappingFixture(n: Int): {String: Int} {
 /// ResultSubmission Tests
 ///
 
-
-/*
-TODO tests:
-- instantiation
- */
-
-access(all)
-fun testResultSubmissionInit_InvalidGroupKeyLength() {
+// Instantiation should fail with invalid group key length.
+access(all) fun testResultSubmissionInit_InvalidGroupKeyLength() {
     let groupKey = pubKeyFixture().concat(hexStringFixture(n: 1))
     Test.expectFailure(fun(): Void {
         let sub = FlowDKG.ResultSubmission(groupPubKey: groupKey, pubKeys: pubKeysFixture(n: 3), idMapping: idMappingFixture(n: 3))
     }, errorMessageSubstring: "invalid group key length")
 }
 
-access(all)
-fun testResultSubmissionInit_InvalidParticipantKeyLength() {
+// Instantiation should fail with invalid participant key length.
+access(all) fun testResultSubmissionInit_InvalidParticipantKeyLength() {
     let pubKeys = pubKeysFixture(n: 3)
     pubKeys[2] = pubKeys[2].concat(hexStringFixture(n: 1))
     Test.expectFailure(fun(): Void {
@@ -88,20 +82,19 @@ fun testResultSubmissionInit_InvalidParticipantKeyLength() {
     }, errorMessageSubstring: "invalid participant key length")
 }
 
-access(all)
-fun testResultSubmissionInit_InvalidIDMappingLength() {
+// Instantiation should fail with invalid ID mapping length.
+access(all) fun testResultSubmissionInit_InvalidIDMappingLength() {
     Test.expectFailure(fun(): Void {
         let sub = FlowDKG.ResultSubmission(groupPubKey: pubKeyFixture(), pubKeys: pubKeysFixture(n: 3), idMapping: idMappingFixture(n: 4))
     }, errorMessageSubstring: "invalid id mapping length")
 }
 
-access(all)
-fun testResultSubmissionInit_NilKeys() {
+// Nil keys are allowed; this is how the results of locally failed DKGs are submitted.
+access(all) fun testResultSubmissionInit_NilKeys() {
     let sub = FlowDKG.ResultSubmission(groupPubKey: nil, pubKeys: [nil, nil, nil], idMapping: idMappingFixture(n: 3))
 }
 
-access(all)
-fun testResultSubmissionEquals() {
+access(all) fun testResultSubmissionEquals() {
     let groupKey = pubKeyFixture()
     let pubKeys  = pubKeysFixture(n: 10)
     let idMapping = idMappingFixture(n: 10)
@@ -111,8 +104,7 @@ fun testResultSubmissionEquals() {
     Test.assert(sub1.equals(sub2))
 }
 
-access(all)
-fun testResultSubmissionEquals_differentGroupKey() {
+access(all) fun testResultSubmissionEquals_differentGroupKey() {
     let pubKeys  = pubKeysFixture(n: 10)
     let idMapping = idMappingFixture(n: 10)
 
@@ -121,8 +113,7 @@ fun testResultSubmissionEquals_differentGroupKey() {
     Test.assert(!sub1.equals(sub2))
 }
 
-access(all)
-fun testResultSubmissionEquals_differentPubKeys() {
+access(all) fun testResultSubmissionEquals_differentPubKeys() {
     let groupKey = pubKeyFixture()
     let idMapping = idMappingFixture(n: 10)
 
@@ -131,8 +122,8 @@ fun testResultSubmissionEquals_differentPubKeys() {
     Test.assert(!sub1.equals(sub2))
 }
 
-access(all)
-fun testResultSubmissionEquals_differentPubKeysOrder() {
+// The same participant public keys in a different order should fail equality check.
+access(all) fun testResultSubmissionEquals_differentPubKeysOrder() {
     let groupKey = pubKeyFixture()
     let pubKeys  = pubKeysFixture(n: 10)
     let idMapping = idMappingFixture(n: 10)
@@ -145,8 +136,7 @@ fun testResultSubmissionEquals_differentPubKeysOrder() {
 }
 
 
-access(all)
-fun testResultSubmissionEquals_differentIDMapping() {
+access(all) fun testResultSubmissionEquals_differentIDMapping() {
     let groupKey = pubKeyFixture()
     let pubKeys  = pubKeysFixture(n: 10)
 
@@ -155,8 +145,8 @@ fun testResultSubmissionEquals_differentIDMapping() {
     Test.assert(!sub1.equals(sub2))
 }
 
-access(all)
-fun testResultSubmissionEquals_differentIDMappingValues() {
+// An ID mapping with the same keys (node IDs) but different values should fail equality check.
+access(all) fun testResultSubmissionEquals_differentIDMappingValues() {
     let groupKey = pubKeyFixture()
     let pubKeys  = pubKeysFixture(n: 10)
     let idMapping = idMappingFixture(n: 10)
