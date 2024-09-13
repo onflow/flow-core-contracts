@@ -19,6 +19,8 @@ fun setup() {
 /// FIXTURES
 ///
 
+// Produce n random bytes and returns the corresponding hex-encoded representation.
+// Output strings have length 2n.
 access(all) fun hexStringFixture(n: Int): String {
     let bytes: [UInt8] = []
     for i in InclusiveRange(1, n) {
@@ -29,11 +31,11 @@ access(all) fun hexStringFixture(n: Int): String {
 }
 
 access(all) fun pubKeyFixture(): String {
-    return hexStringFixture(n: 96) // 96 bytes
+    return hexStringFixture(n: 96)
 }
 
 access(all) fun nodeIDFixture(): String {
-    return hexStringFixture(n: 32) // 32 bytes
+    return hexStringFixture(n: 32)
 }
 
 access(all) fun pubKeysFixture(n: Int): [String] {
@@ -47,18 +49,31 @@ access(all) fun pubKeysFixture(n: Int): [String] {
 access(all) fun nodeIDsFixture(n: Int): [String] {
     let ids: [String] = []
     for i in InclusiveRange(1, n) {
-        ids.append(pubKeyFixture())
+        ids.append(nodeIDFixture())
     }
     return ids
 }
 
+// Returns a node ID -> DKG index mapping (the idMapping field of ResultSubmission)
 access(all) fun idMappingFixture(n: Int): {String: Int} {
     let nodeIDs = nodeIDsFixture(n: n)
+    return idMappingFixtureWithNodeIDs(nodeIDs: nodeIDs)
+}
+
+access(all) fun idMappingFixtureWithNodeIDs(nodeIDs: [String]): {String: Int} {
     let map: {String: Int} = {}
-    for i in InclusiveRange(0, n-1) {
+    for i in InclusiveRange(0, nodeIDs.length-1) {
         map[nodeIDs[i]] = i
     }
     return map
+}
+
+access(all) fun resultSubmissionFixture(n: Int): FlowDKG.ResultSubmission {
+    return FlowDKG.ResultSubmission(groupPubKey: pubKeyFixture(), pubKeys: pubKeysFixture(n: n), idMapping: idMappingFixture(n: n))
+}
+
+access(all) fun resultSubmissionFixtureWithNodeIDs(nodeIDs: [String]): FlowDKG.ResultSubmission {
+    return FlowDKG.ResultSubmission(groupPubKey: pubKeyFixture(), pubKeys: pubKeysFixture(n: nodeIDs.length), idMapping: idMappingFixtureWithNodeIDs(nodeIDs: nodeIDs))
 }
 
 ///
@@ -175,9 +190,70 @@ access(all) fun testResultSubmissionEquals_differentIDMappingValues() {
 - test upgrade path (submission tracker is not in storage)
  */
 
-access(all)
-fun testSubmissionTracker() {
+// Should have non-nil empty fields after initialization.
+access(all) fun testSubmissionTracker_init() {
     let tracker = FlowDKG.SubmissionTracker()
-    Test.assert(true)
+    Test.assertEqual(0, tracker.authorized.length)
+    Test.assertEqual(0, tracker.uniques.length)
+    Test.assertEqual(0, tracker.byNodeID.length)
+    Test.assertEqual(0, tracker.counts.length)
 }
 
+access(all) fun testSubmissionTracker_reset() {
+    let tracker = FlowDKG.SubmissionTracker()
+    let nodeIDs = nodeIDsFixture(n: 10)
+    tracker.reset(nodeIDs: nodeIDs)
+    Test.assertEqual(0, tracker.uniques.length)
+    Test.assertEqual(0, tracker.byNodeID.length)
+    Test.assertEqual(0, tracker.counts.length)
+
+    Test.assertEqual(nodeIDs.length, tracker.authorized.length)
+    for nodeID in nodeIDs {
+        Test.assert(tracker.authorized[nodeID]!)
+    }
+}
+
+access(all) fun testSubmissionTracker_addSubmission() {
+    let tracker = FlowDKG.SubmissionTracker()
+    let nodeIDs = nodeIDsFixture(n: 10)
+    tracker.reset(nodeIDs: nodeIDs)
+
+    let submittor = nodeIDs[0]
+    let submission = resultSubmissionFixtureWithNodeIDs(nodeIDs: nodeIDs)
+    tracker.addSubmission(nodeID: submittor, submission: submission)
+    Test.assertEqual(tracker.byNodeID, {submittor: 0})
+    Test.assertEqual(tracker.counts, {0: 1})
+    Test.assertEqual(tracker.uniques, [submission])
+}
+
+access(all) fun testSubmissionTracker_addSubmissionAlreadySubmitted() {
+    let tracker = FlowDKG.SubmissionTracker()
+    let nodeIDs = nodeIDsFixture(n: 10)
+    tracker.reset(nodeIDs: nodeIDs)
+
+    let submittor = nodeIDs[0]
+    let submission = resultSubmissionFixtureWithNodeIDs(nodeIDs: nodeIDs)
+    tracker.addSubmission(nodeID: submittor, submission: submission)
+
+    // Resubmit the same result
+    Test.expectFailure(fun(): Void {
+        tracker.addSubmission(nodeID: submittor, submission: submission)
+    }, errorMessageSubstring: "must not have already submitted for this DKG instance")
+
+    // Submit a different result
+        Test.expectFailure(fun(): Void {
+        tracker.addSubmission(nodeID: submittor, submission: resultSubmissionFixtureWithNodeIDs(nodeIDs: nodeIDs))
+    }, errorMessageSubstring: "must not have already submitted for this DKG instance")
+}
+
+access(all) fun testSubmissionTracker_addSubmissionUnauthorized() {
+    let tracker = FlowDKG.SubmissionTracker()
+    let nodeIDs = nodeIDsFixture(n: 10)
+    tracker.reset(nodeIDs: nodeIDs)
+
+    let unauthorizedSubmittor = nodeIDFixture()
+    Test.expectFailure(fun(): Void {
+        let submission = resultSubmissionFixtureWithNodeIDs(nodeIDs: nodeIDs)
+        tracker.addSubmission(nodeID: unauthorizedSubmittor, submission: submission)
+    }, errorMessageSubstring: "must be authorized for this DKG instance")
+}

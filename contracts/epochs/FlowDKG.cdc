@@ -152,6 +152,20 @@ access(all) contract FlowDKG {
             }
             return true
         }
+
+        access(all) view fun isValidForCommittee(authorized: [String]): Bool {
+            // Must have one public key per DKG participant
+            if authorized.length != self.pubKeys.length {
+                return false
+            }
+            // Must have a DKG index mapped for each DKG participant
+            for nodeID in authorized {
+                if self.idMapping[nodeID] == nil {
+                    return false
+                }
+            }
+            return true
+        }
     }
 
     // SubmissionTracker tracks all state related to result submissions.
@@ -163,14 +177,16 @@ access(all) contract FlowDKG {
     // NOTE: there exists exactly one SubmissionTracker instance for a FlowDKG contract instance,
     // which holds a subset of global contract state in an encapsulated manner.
     access(all) struct SubmissionTracker {
+        // TODO: is it practical to give these more restricted access modifiers?
+
         // Set of authorized participants for this DKG instance (the "DKG committee")
-        access(self) var authorized: {String: Bool}
+        access(all) var authorized: {String: Bool}
         // List of unique submissions, in submission order
-        access(self) var uniques: [FlowDKG.ResultSubmission]
+        access(all) var uniques: [FlowDKG.ResultSubmission]
         // Maps node ID to index within "uniques"
-        access(self) var byNodeID: {String: Int}
+        access(all) var byNodeID: {String: Int}
         // Maps index within "uniques" to count of submissions
-        access(self) var counts: {Int: UInt64}
+        access(all) var counts: {Int: Int}
 
         init() {
             self.authorized = {}
@@ -199,8 +215,10 @@ access(all) contract FlowDKG {
         // In practice, we rely on the fact that only FlowDKG.Participant.sendFinalSubmission calls this function.
         access(all) fun addSubmission(nodeID: String, submission: FlowDKG.ResultSubmission) {
             pre {
-                self.authorized[nodeID] != nil: "Must be authorized for this DKG instance"
-                self.byNodeID[nodeID] == nil: "Must not have already submitted for this DKG instance"
+                self.authorized[nodeID] != nil: "must be authorized for this DKG instance"
+                self.byNodeID[nodeID] == nil: "must not have already submitted for this DKG instance"
+                submission.isValidForCommittee(authorized: self.authorized.keys): "submission must be valid for authorized committee"
+                self.authorized.length == submission.pubKeys.length: "must have one public key per DKG participant"
             }
 
             // 1) Check whether this submission is equivalent to an existing submission (typical case)
