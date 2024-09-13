@@ -184,8 +184,6 @@ access(all) contract FlowDKG {
     // NOTE: there exists exactly one SubmissionTracker instance for a FlowDKG contract instance,
     // which holds a subset of global contract state in an encapsulated manner.
     access(all) struct SubmissionTracker {
-        // TODO: is it practical to give these more restricted access modifiers?
-
         // Set of authorized participants for this DKG instance (the "DKG committee")
         access(all) var authorized: {String: Bool}
         // List of unique submissions, in submission order
@@ -246,6 +244,9 @@ access(all) contract FlowDKG {
             self.counts[submissionIndex] = 1
         }
 
+        // Returns the result which was submitted by at least threshold+1 DKG participants.
+        // If no result received enough submissions, returns nil.
+        // Callers must use a threshold that is greater than or equal to half the DKG committee size.
         access(all) fun submissionExceedsThreshold(_ threshold: UInt64): ResultSubmission? {
             var submissionIndex = 0
             while submissionIndex < self.uniques.length {
@@ -257,6 +258,8 @@ access(all) contract FlowDKG {
             return nil
         }
 
+        // Returns the result submitted by the node with the given ID.
+        // Returns nil if the node is not authorized or has not submitted for the current DKG.
         access(all) fun getSubmissionByNodeID(_ nodeID: String): ResultSubmission? {
             if let submissionIndex = self.byNodeID[nodeID] {
                 return self.uniques[submissionIndex]
