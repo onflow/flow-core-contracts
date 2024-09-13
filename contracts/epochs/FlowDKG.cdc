@@ -30,8 +30,10 @@ access(all) contract FlowDKG {
     /// Emitted when the admin enables the DKG
     access(all) event StartDKG()
 
-    /// Emitted when the admin ends the DKG after enough submissions have been recorded
-    access(all) event EndDKG(finalSubmission: [String?]?)
+    /// Emitted when the admin ends the DKG (one DKG instance).
+    /// The event includes the canonical result submission if the DKG succeeded,
+    /// or nil if the DKG failed or was stopped before completion.
+    access(all) event EndDKG(finalSubmission: ResultSubmission?)
 
     /// Emitted when a consensus node has posted a message to the DKG whiteboard
     access(all) event BroadcastMessage(nodeID: String, content: String)
@@ -117,7 +119,9 @@ access(all) contract FlowDKG {
     }
 
     // ResultSubmission represents a result submission from one DKG participant.
-    // Each submission includes a group public key and an ordered list of participant public keys. 
+    // Each submission includes a group public key and an ordered list of participant public keys.
+    // Keys may be nil - this is used to represent submissions for locally failed DKGs.
+    // TODO: enfoce either all nil or none nil
     // All strings are lowercase hex-encoded representations of byte arrays.
     access(all) struct ResultSubmission {
         // The group public key for the beacon committee resulting from the DKG.
@@ -140,6 +144,8 @@ access(all) contract FlowDKG {
             self.idMapping = idMapping
         }
 
+        // Checks whether the input is equivalent to this ResultSubmission.
+        // Submissions must have identical keys, in the same order, and identical key mappings.
         access(all) fun equals(_ other: FlowDKG.ResultSubmission): Bool {
             if self.groupPubKey != other.groupPubKey {
                 return false
@@ -153,6 +159,7 @@ access(all) contract FlowDKG {
             return true
         }
 
+        // Checks whether this ResultSubmission could be a valid submission for the given DKG committee.
         access(all) view fun isValidForCommittee(authorized: [String]): Bool {
             // Must have one public key per DKG participant
             if authorized.length != self.pubKeys.length {
@@ -186,7 +193,7 @@ access(all) contract FlowDKG {
         // Maps node ID to index within "uniques"
         access(all) var byNodeID: {String: Int}
         // Maps index within "uniques" to count of submissions
-        access(all) var counts: {Int: Int}
+        access(all) var counts: {Int: UInt64}
 
         init() {
             self.authorized = {}
@@ -213,7 +220,7 @@ access(all) contract FlowDKG {
         //
         // CAUTION: Callers of this method must be trusted, as nodeID is an unvalidated input and could be altered.
         // In practice, we rely on the fact that only FlowDKG.Participant.sendFinalSubmission calls this function.
-        access(all) fun addSubmission(nodeID: String, submission: FlowDKG.ResultSubmission) {
+        access(all) fun addSubmission(nodeID: String, submission: ResultSubmission) {
             pre {
                 self.authorized[nodeID] != nil: "must be authorized for this DKG instance"
                 self.byNodeID[nodeID] == nil: "must not have already submitted for this DKG instance"
@@ -238,6 +245,28 @@ access(all) contract FlowDKG {
             self.byNodeID[nodeID] = submissionIndex
             self.counts[submissionIndex] = 1
         }
+
+        access(all) fun submissionExceedsThreshold(_ threshold: UInt64): ResultSubmission? {
+            var submissionIndex = 0
+            while submissionIndex < self.uniques.length {
+                // TODO: do not include nil submissions
+                if self.counts[submissionIndex]! > threshold {
+                    return self.uniques[submissionIndex]
+                }
+            }
+            return nil
+        }
+
+        access(all) fun getSubmissionByNodeID(_ nodeID: String): ResultSubmission? {
+            if let submissionIndex = self.byNodeID[nodeID] {
+                return self.uniques[submissionIndex]
+            }
+            return nil
+        }
+
+        access(all) fun getUniqueSubmissions(): [ResultSubmission] {
+            return self.uniques
+        }
     }
 
     /// The Participant resource is generated for each consensus node when they register.
@@ -259,6 +288,7 @@ access(all) contract FlowDKG {
 
         /// Posts a whiteboard message to the contract
         access(all) fun postMessage(_ content: String) {
+            // TODO: DKG enabled?
             pre {
                 FlowDKG.participantIsRegistered(self.nodeID):
                     "Cannot send whiteboard message if not registered for the current epoch"
@@ -279,58 +309,9 @@ access(all) contract FlowDKG {
         /// Sends the final key vector submission. 
         /// Can only be called by consensus nodes that are registered
         /// and can only be called once per consensus node per epoch
-        // TODO(#6213): include key mapping
-        access(all) fun sendFinalSubmission(_ submission: [String?]) {
-            pre {
-                FlowDKG.participantIsRegistered(self.nodeID):
-                    "Cannot send final submission if not registered for the current epoch"
-                !FlowDKG.nodeHasSubmitted(self.nodeID):
-                    "Cannot submit a final submission twice"
-                submission.length == FlowDKG.getConsensusNodeIDs().length + 1:
-                    "Submission must have number of elements equal to the number of nodes participating in the DKG plus 1"
-            }
-
-            // iterate through each key in the vector
-            // and make sure all of them are the correct length
-            for key in submission {
-                // nil keys are a valid submission
-                if let keyValue = key {
-                    // If a key length is incorrect, it is an invalid submission
-                    if keyValue.length != FlowDKG.submissionKeyLength {
-                        panic("Submission key length is not correct!")
-                    }
-                }
-            }
-
-            var finalSubmissionIndex = 0
-
-            // iterate through all the existing unique submissions
-            // If this participant's submission matches one of the existing ones,
-            // add to the counter for that submission
-            // Otherwise, track the new submission and set its counter to 1
-            while finalSubmissionIndex <= FlowDKG.uniqueFinalSubmissions.length {
-                // If no matches were found, add this submission as a new unique one
-                // and emit an event
-                if finalSubmissionIndex == FlowDKG.uniqueFinalSubmissions.length {
-                    FlowDKG.uniqueFinalSubmissionCount[finalSubmissionIndex] = 1
-                    FlowDKG.uniqueFinalSubmissions.append(submission)
-                    break
-                }
-
-                let existingSubmission = FlowDKG.uniqueFinalSubmissions[finalSubmissionIndex]
-
-                // If the submissions are equal,
-                // update the counter for this submission and emit the event
-                if FlowDKG.submissionsEqual(existingSubmission, submission) {
-                    FlowDKG.uniqueFinalSubmissionCount[finalSubmissionIndex] = FlowDKG.uniqueFinalSubmissionCount[finalSubmissionIndex]! + (1 as UInt64)
-                    break
-                }
-
-                // update the index counter
-                finalSubmissionIndex = finalSubmissionIndex + 1
-            }
-
-            FlowDKG.finalSubmissionByNodeID[self.nodeID] = submission
+        access(all) fun sendFinalSubmission(_ submission: ResultSubmission) {
+            // TODO: DKG enabled?
+            FlowDKG.borrowSubmissionTracker().addSubmission(nodeID: self.nodeID, submission: submission)
         }
     }
 
@@ -420,38 +401,9 @@ access(all) contract FlowDKG {
         }
     }
 
-    /// Checks if two final submissions are equal by comparing each element
-    /// Each element has to be exactly the same and in the same order
-    // TODO(#6213): use ResultSubmission
-    access(account) fun submissionsEqual(_ existingSubmission: [String?], _ submission: [String?]): Bool {
-
-        // If the submission length is different than the one being compared to, it is not equal
-        if submission.length != existingSubmission.length {
-            return false
-        }
-
-        var index = 0
-
-        // Check each key in the submiission to make sure that it matches
-        // the existing one
-        for key in submission {
-
-            // if a key is different, stop checking this submission
-            // and return false
-            if key != existingSubmission[index] {
-                return false
-            }
-
-            index = index + 1
-        }
-
-        return true
-    }
-
     /// Returns true if a node is registered as a consensus node for the proposed epoch
-    // TODO: use SubmissionTracker
     access(all) view fun participantIsRegistered(_ nodeID: String): Bool {
-        return FlowDKG.finalSubmissionByNodeID[nodeID] != nil
+        return FlowDKG.mustBorrowSubmissionTracker().authorized[nodeID] != nil
     }
 
     /// Returns true if a consensus node has claimed their Participant resource
@@ -467,44 +419,30 @@ access(all) contract FlowDKG {
     }
 
     /// Returns whether this node has successfully submitted a final submission for this epoch.
-    // TODO: use SubmissionTracker
     access(all) view fun nodeHasSubmitted(_ nodeID: String): Bool {
-        if let submission = self.finalSubmissionByNodeID[nodeID] {
-            return submission.length > 0
-        } else {
-            return false
-        }
+        return self.mustBorrowSubmissionTracker().byNodeID[nodeID] != nil
     }
 
     /// Gets the specific final submission for a node ID
     /// If the node hasn't submitted or registered, this returns `nil`
-    // TODO: use SubmissionTracker
-    access(all) view fun getNodeFinalSubmission(_ nodeID: String): [String?]? {
-        if let submission = self.finalSubmissionByNodeID[nodeID] {
-            if submission.length > 0 {
-                return submission
-            } else {
-                return nil
-            }
-        } else {
-            return nil
-        }
+    // TODO: when view, there's an error on first return statement (what is impure about that operation?)
+    access(all) fun getNodeFinalSubmission(_ nodeID: String): ResultSubmission? {
+        return self.mustBorrowSubmissionTracker().getSubmissionByNodeID(nodeID)
     }
 
     /// Get the list of all the consensus node IDs participating
     access(all) view fun getConsensusNodeIDs(): [String] {
-        return self.finalSubmissionByNodeID.keys
+        return *self.mustBorrowSubmissionTracker().authorized.keys
     }
 
     /// Get the array of all the unique final submissions
-    access(all) view fun getFinalSubmissions(): [[String?]] {
-        return self.uniqueFinalSubmissions
+    access(all) fun getFinalSubmissions(): [ResultSubmission] {
+        return self.mustBorrowSubmissionTracker().getUniqueSubmissions()
     }
 
     /// Get the count of the final submissions array
-    // TODO: Should this be a view function?
-    access(all) fun getFinalSubmissionCount(): {Int: UInt64} {
-        return self.uniqueFinalSubmissionCount
+    access(all) view fun getFinalSubmissionCount(): {Int: UInt64} {
+        return *self.mustBorrowSubmissionTracker().counts
     }
 
     /// Gets the native threshold that the submission count needs to exceed to be considered complete [t=floor((n-1)/2)]
@@ -524,7 +462,7 @@ access(all) contract FlowDKG {
     /// 
     /// This function returns the NON-INCLUSIVE lower bound of honest participants. If this function 
     /// returns threshold t, there must be AT LEAST t+1 honest nodes for the DKG to succeed.
-    access(all) fun getSafeSuccessThreshold(): UInt64 {
+    access(all) view fun getSafeSuccessThreshold(): UInt64 {
         var threshold = self.getNativeSuccessThreshold()
 
         // Get the safety rate percentage
@@ -544,13 +482,13 @@ access(all) contract FlowDKG {
     /// This safe threshold is used to artificially increase the DKG participation requirements to 
     /// ensure a lower-bound number of Random Beacon Committee members (beyond the bare minimum required
     /// by the DKG protocol).
-    access(all) fun getSafeThresholdPercentage(): UFix64? {
+    access(all) view fun getSafeThresholdPercentage(): UFix64? {
         let safetyRate = self.account.storage.copy<UFix64>(from: /storage/flowDKGSafeThreshold)
         return safetyRate
     }
 
-    // TODO docs
-    access(self) fun borrowSubmissionTracker(): &FlowDKG.SubmissionTracker {
+    // Borrows the singleton SubmissionTracker from storage, creating it if none exists.
+    access(contract) fun borrowSubmissionTracker(): &FlowDKG.SubmissionTracker {
         // The singleton SubmissionTracker already exists in storage - return a reference to it.
         if let tracker = self.account.storage.borrow<&SubmissionTracker>(from: /storage/flowDKGFinalSubmissionTracker) {
             return tracker
@@ -558,37 +496,25 @@ access(all) contract FlowDKG {
         // The singleton SubmissionTracker has not been created yet - create it and return a reference.
         // This codepath should be executed at most once per FlowDKG instance and only if it was upgraded from an older version.
         self.account.storage.save(SubmissionTracker(), to: /storage/flowDKGFinalSubmissionTracker)
+        return self.mustBorrowSubmissionTracker()
+    }
+
+    // Borrows the singleton SubmissionTracker from storage; panics if none exists.
+    access(contract) view fun mustBorrowSubmissionTracker(): &FlowDKG.SubmissionTracker {
         return self.account.storage.borrow<&SubmissionTracker>(from: /storage/flowDKGFinalSubmissionTracker)!
     }
 
     /// Returns the final set of keys if any one set of keys has strictly more than (nodes-1)/2 submissions
     /// Returns nil if not found (incomplete)
-    // TODO(#6213): use ResultSubmission
-    access(all) fun dkgCompleted(): [String?]? {
+    access(all) fun dkgCompleted(): ResultSubmission? {
         if !self.dkgEnabled { return nil }
 
-        var index = 0
-
-        for submission in self.uniqueFinalSubmissions {
-            if self.uniqueFinalSubmissionCount[index]! > self.getSafeSuccessThreshold() {
-                var foundNil: Bool = false
-                for key in submission {
-                    if key == nil {
-                        foundNil = true
-                        break
-                    }
-                }
-                if foundNil { continue }
-                return submission
-            }
-            index = index + 1
-        }
-
-        return nil
+        let threshold = self.getSafeSuccessThreshold()
+        return self.borrowSubmissionTracker().submissionExceedsThreshold(threshold)
     }
 
     init() {
-        self.submissionKeyLength = 192
+        self.submissionKeyLength = 192 // 96 bytes, hex-encoded
 
         self.AdminStoragePath = /storage/flowEpochsDKGAdmin
         self.ParticipantStoragePath = /storage/flowEpochsDKGParticipant
@@ -596,9 +522,9 @@ access(all) contract FlowDKG {
 
         self.dkgEnabled = false
 
-        self.finalSubmissionByNodeID = {}
-        self.uniqueFinalSubmissionCount = {}
-        self.uniqueFinalSubmissions = []
+        self.finalSubmissionByNodeID = {}    // deprecated
+        self.uniqueFinalSubmissionCount = {} // deprecated
+        self.uniqueFinalSubmissions = []     // deprecated
         
         self.nodeClaimed = {}
         self.whiteboardMessages = []

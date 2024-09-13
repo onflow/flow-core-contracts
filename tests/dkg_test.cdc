@@ -222,7 +222,7 @@ access(all) fun testSubmissionTracker_addSubmission() {
     let submission = resultSubmissionFixtureWithNodeIDs(nodeIDs: nodeIDs)
     tracker.addSubmission(nodeID: submittor, submission: submission)
     Test.assertEqual(tracker.byNodeID, {submittor: 0})
-    Test.assertEqual(tracker.counts, {0: 1})
+    Test.assertEqual(tracker.counts, {0: 1} as {Int: UInt64})
     Test.assertEqual(tracker.uniques, [submission])
 }
 
