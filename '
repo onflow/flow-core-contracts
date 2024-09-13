@@ -1,0 +1,8 @@
+define result submission struct
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# On branch jord/6213-dkg-mapping
+# Changes to be committed:
+#	modified:   contracts/epochs/FlowDKG.cdc
+#

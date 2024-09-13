@@ -24,15 +24,16 @@ access(all) fun hexStringFixture(n: Int): String {
     for i in InclusiveRange(1, n) {
         bytes.append(revertibleRandom<UInt8>())
     }
-    return String.encodeHex(bytes)
+    let hex: String = String.encodeHex(bytes)
+    return hex
 }
 
 access(all) fun pubKeyFixture(): String {
-    return hexStringFixture(n: 32)
+    return hexStringFixture(n: 96) // 96 bytes
 }
 
 access(all) fun nodeIDFixture(): String {
-    return hexStringFixture(n: 32)
+    return hexStringFixture(n: 32) // 32 bytes
 }
 
 access(all) fun pubKeysFixture(n: Int): [String] {
@@ -64,16 +65,43 @@ access(all) fun idMappingFixture(n: Int): {String: Int} {
 /// ResultSubmission Tests
 ///
 
-access(all)
-fun testResultSubmissionEquals_empty() {
-    let sub1 = FlowDKG.ResultSubmission(groupPubKey: "", pubKeys: [], idMapping: {})
-    let sub2 = FlowDKG.ResultSubmission(groupPubKey: "", pubKeys: [], idMapping: {})
-    Test.assert(sub1.equals(sub2))
 
+/*
+TODO tests:
+- instantiation
+ */
+
+access(all)
+fun testResultSubmissionInit_InvalidGroupKeyLength() {
+    let groupKey = pubKeyFixture().concat(hexStringFixture(n: 1))
+    Test.expectFailure(fun(): Void {
+        let sub = FlowDKG.ResultSubmission(groupPubKey: groupKey, pubKeys: pubKeysFixture(n: 3), idMapping: idMappingFixture(n: 3))
+    }, errorMessageSubstring: "invalid group key length")
 }
 
 access(all)
-fun testResultSubmissionEquals_nonEmpty() {
+fun testResultSubmissionInit_InvalidParticipantKeyLength() {
+    let pubKeys = pubKeysFixture(n: 3)
+    pubKeys[2] = pubKeys[2].concat(hexStringFixture(n: 1))
+    Test.expectFailure(fun(): Void {
+        let sub = FlowDKG.ResultSubmission(groupPubKey: pubKeyFixture(), pubKeys: pubKeys, idMapping: idMappingFixture(n: 3))
+    }, errorMessageSubstring: "invalid participant key length")
+}
+
+access(all)
+fun testResultSubmissionInit_InvalidIDMappingLength() {
+    Test.expectFailure(fun(): Void {
+        let sub = FlowDKG.ResultSubmission(groupPubKey: pubKeyFixture(), pubKeys: pubKeysFixture(n: 3), idMapping: idMappingFixture(n: 4))
+    }, errorMessageSubstring: "invalid id mapping length")
+}
+
+access(all)
+fun testResultSubmissionInit_NilKeys() {
+    let sub = FlowDKG.ResultSubmission(groupPubKey: nil, pubKeys: [nil, nil, nil], idMapping: idMappingFixture(n: 3))
+}
+
+access(all)
+fun testResultSubmissionEquals() {
     let groupKey = pubKeyFixture()
     let pubKeys  = pubKeysFixture(n: 10)
     let idMapping = idMappingFixture(n: 10)
@@ -142,5 +170,24 @@ fun testResultSubmissionEquals_differentIDMappingValues() {
     let sub1 = FlowDKG.ResultSubmission(groupPubKey: groupKey, pubKeys: pubKeys, idMapping: idMapping)
     let sub2 = FlowDKG.ResultSubmission(groupPubKey: groupKey, pubKeys: pubKeys, idMapping: idMappingWithShuffledValues)
     Test.assert(!sub1.equals(sub2))
+}
+
+///
+/// SubmissionTracker Tests
+///
+
+/*
+- add first submission
+- add distinct submissions
+- add same submissions
+- add mix of distinct and same submissions
+
+- test upgrade path (submission tracker is not in storage)
+ */
+
+access(all)
+fun testSubmissionTracker() {
+    let tracker = FlowDKG.SubmissionTracker()
+    Test.assert(true)
 }
 

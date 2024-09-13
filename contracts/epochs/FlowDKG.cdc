@@ -23,9 +23,9 @@
 
 access(all) contract FlowDKG {
 
-    // ===================================================================
+    // ================================================================================
     // DKG EVENTS
-    // ===================================================================
+    // ================================================================================
 
     /// Emitted when the admin enables the DKG
     access(all) event StartDKG()
@@ -58,13 +58,13 @@ access(all) contract FlowDKG {
     /// This is reset at the beginning of every DKG phase (once per epoch)
     access(account) var whiteboardMessages: [Message]
 
-    /// Proposal(#6213): deprecate, replacing with SubmissionTracker.byNodeID
+    /// TODO(#6213): deprecate, replacing with SubmissionTracker.byNodeID
     access(account) var finalSubmissionByNodeID: {String: [String?]}
 
-    /// Proposal(#6213): deprecate, replacing with SubmissionTracker.uniques
+    /// TODo(#6213): deprecate, replacing with SubmissionTracker.uniques
     access(account) var uniqueFinalSubmissions: [[String?]]
 
-    /// Proposal(#6213): deprecate, replacing with SubmissionTracker.counts
+    /// TODO(#6213): deprecate, replacing with SubmissionTracker.counts
     access(account) var uniqueFinalSubmissionCount: {Int: UInt64}
 
     // ================================================================================
@@ -92,20 +92,49 @@ access(all) contract FlowDKG {
         }
     }
 
+    // Checks the group public key (part of a ResultSubmission) for validity.
+    // A valid public key in this context is either: (1) a hex-encoded 96 bytes, or (2) nil.
+    access(all) view fun isValidGroupKey(_ groupKey: String?): Bool {
+        if let unwrappedKey = groupKey {
+            return unwrappedKey.length == FlowDKG.submissionKeyLength
+        }
+        return true // accept nil keys
+    }
+
+    // Checks a list of participant public keys (part of a ResultSubmission) for validity.
+    // A valid public key in this context is either: (1) a hex-encoded 96 bytes, or (2) nil.
+    access(all) view fun isValidPubKeys(_ pubKeys: [String?]): Bool {
+        for key in pubKeys {
+            // nil keys are a valid submission
+            if let keyValue = key {
+                // non-nil keys must be exactly 96 bytes
+                if keyValue.length != FlowDKG.submissionKeyLength {
+                    return false
+                }
+            }
+        }
+        return true
+    }
+
     // ResultSubmission represents a result submission from one DKG participant.
     // Each submission includes a group public key and an ordered list of participant public keys. 
     // All strings are lowercase hex-encoded representations of byte arrays.
     access(all) struct ResultSubmission {
         // The group public key for the beacon committee resulting from the DKG.
-        access(all) let groupPubKey: String
+        access(all) let groupPubKey: String?
         // An ordered list of individual public keys for the beacon committee resulting from the DKG.
-        access(all) let pubKeys: [String]
+        access(all) let pubKeys: [String?]
         // A mapping from node ID to DKG index.
         // There must be exactly one key per authorized DKG participant.
         // The set of values must form the set {0, 1, 2, ... n-1}, where n is the number of authorized DKG participants.
         access(all) let idMapping: {String:Int}
 
-        init(groupPubKey: String, pubKeys: [String], idMapping: {String:Int}) {
+        init(groupPubKey: String?, pubKeys: [String?], idMapping: {String:Int}) {
+            pre {
+                FlowDKG.isValidGroupKey(groupPubKey): "invalid group key length"
+                FlowDKG.isValidPubKeys(pubKeys): "invalid participant key length"
+                pubKeys.length == idMapping.keys.length: "invalid id mapping length"
+            }
             self.groupPubKey = groupPubKey
             self.pubKeys = pubKeys
             self.idMapping = idMapping
@@ -166,7 +195,7 @@ access(all) contract FlowDKG {
         // Adds the result submission for the DKG participant identified by nodeID.
         // The DKG participant must be authorized for the current epoch, and each participant may submit only once.
         //
-        // CAUTION: All callers of this method must be trusted, as nodeID is an unvalidated input and could be altered.
+        // CAUTION: Callers of this method must be trusted, as nodeID is an unvalidated input and could be altered.
         // In practice, we rely on the fact that only FlowDKG.Participant.sendFinalSubmission calls this function.
         access(all) fun addSubmission(nodeID: String, submission: FlowDKG.ResultSubmission) {
             pre {
@@ -402,6 +431,7 @@ access(all) contract FlowDKG {
     }
 
     /// Returns true if a node is registered as a consensus node for the proposed epoch
+    // TODO: use SubmissionTracker
     access(all) view fun participantIsRegistered(_ nodeID: String): Bool {
         return FlowDKG.finalSubmissionByNodeID[nodeID] != nil
     }
@@ -419,6 +449,7 @@ access(all) contract FlowDKG {
     }
 
     /// Returns whether this node has successfully submitted a final submission for this epoch.
+    // TODO: use SubmissionTracker
     access(all) view fun nodeHasSubmitted(_ nodeID: String): Bool {
         if let submission = self.finalSubmissionByNodeID[nodeID] {
             return submission.length > 0
@@ -429,6 +460,7 @@ access(all) contract FlowDKG {
 
     /// Gets the specific final submission for a node ID
     /// If the node hasn't submitted or registered, this returns `nil`
+    // TODO: use SubmissionTracker
     access(all) view fun getNodeFinalSubmission(_ nodeID: String): [String?]? {
         if let submission = self.finalSubmissionByNodeID[nodeID] {
             if submission.length > 0 {
@@ -499,11 +531,16 @@ access(all) contract FlowDKG {
         return safetyRate
     }
 
-    // TODO change access - using this for testing
-    access(all) fun borrowSubmissionTracker(): &FlowDKG.SubmissionTracker {
-        var tracker = self.account.storage.borrow<&SubmissionTracker>(from: /storage/flowDKGFinalSubmissionTracker)
-        // TODO deal with contract ugprade case where this hasn't been initialized in constructor
-        return tracker!
+    // TODO docs
+    access(self) fun borrowSubmissionTracker(): &FlowDKG.SubmissionTracker {
+        // The singleton SubmissionTracker already exists in storage - return a reference to it.
+        if let tracker = self.account.storage.borrow<&SubmissionTracker>(from: /storage/flowDKGFinalSubmissionTracker) {
+            return tracker
+        }
+        // The singleton SubmissionTracker has not been created yet - create it and return a reference.
+        // This codepath should be executed at most once per FlowDKG instance and only if it was upgraded from an older version.
+        self.account.storage.save(SubmissionTracker(), to: /storage/flowDKGFinalSubmissionTracker)
+        return self.account.storage.borrow<&SubmissionTracker>(from: /storage/flowDKGFinalSubmissionTracker)!
     }
 
     /// Returns the final set of keys if any one set of keys has strictly more than (nodes-1)/2 submissions
