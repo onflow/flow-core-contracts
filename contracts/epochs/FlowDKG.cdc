@@ -57,17 +57,13 @@ access(all) contract FlowDKG {
     access(account) var nodeClaimed: {String: Bool}
 
     /// Record of whiteboard messages for the current epoch
-    /// This is reset at the beginning of every DKG phase (once per epoch)
+    /// This is reset at the beginning of every DKG instance (once per epoch)
     access(account) var whiteboardMessages: [Message]
 
-    /// TODO(#6213): deprecate, replacing with SubmissionTracker.byNodeID
-    access(account) var finalSubmissionByNodeID: {String: [String?]}
-
-    /// TODo(#6213): deprecate, replacing with SubmissionTracker.uniques
-    access(account) var uniqueFinalSubmissions: [[String?]]
-
-    /// TODO(#6213): deprecate, replacing with SubmissionTracker.counts
-    access(account) var uniqueFinalSubmissionCount: {Int: UInt64}
+    // DEPRECATED FIELDS (replaced by SubmissionTracker)
+    access(account) var finalSubmissionByNodeID: {String: [String?]} // deprecated and unused
+    access(account) var uniqueFinalSubmissions: [[String?]]          // deprecated and unused
+    access(account) var uniqueFinalSubmissionCount: {Int: UInt64}    // deprecated and unused
 
     // ================================================================================
     // CONTRACT CONSTANTS
@@ -363,15 +359,11 @@ access(all) contract FlowDKG {
                 FlowDKG.dkgEnabled == false: "Cannot start the DKG when it is already running"
             }
 
-            FlowDKG.finalSubmissionByNodeID = {}
-            for id in nodeIDs {
-                FlowDKG.finalSubmissionByNodeID[id] = []
-            }
-
-            // Clear all of the contract fields
+            // Clear all per-instance DKG state
             FlowDKG.whiteboardMessages = []
-            FlowDKG.uniqueFinalSubmissions = []
-            FlowDKG.uniqueFinalSubmissionCount = {}
+            FlowDKG.borrowSubmissionTracker().reset(nodeIDs: nodeIDs)
+            FlowDKG.uniqueFinalSubmissions = []     // deprecated and unused
+            FlowDKG.uniqueFinalSubmissionCount = {} // deprecated and unused
 
             FlowDKG.dkgEnabled = true
 
@@ -384,15 +376,15 @@ access(all) contract FlowDKG {
             pre { 
                 FlowDKG.dkgEnabled == true: "Cannot end the DKG when it is already disabled"
             }
-            let finalSubmissions = FlowDKG.dkgCompleted()
+            let dkgResult = FlowDKG.dkgCompleted()
             assert(
-                finalSubmissions != nil,
+                dkgResult != nil,
                 message: "Cannot end the DKG until enough final arrays have been submitted"
             )
 
             FlowDKG.dkgEnabled = false
 
-            emit EndDKG(finalSubmission: FlowDKG.dkgCompleted())
+            emit EndDKG(finalSubmission: dkgResult)
         }
 
         /// Ends the DKG without checking if it is completed
