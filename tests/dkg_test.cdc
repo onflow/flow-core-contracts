@@ -257,3 +257,32 @@ access(all) fun testSubmissionTracker_addSubmissionUnauthorized() {
         tracker.addSubmission(nodeID: unauthorizedSubmittor, submission: submission)
     }, errorMessageSubstring: "must be authorized for this DKG instance")
 }
+
+access(all) fun testSubmissionTracker_submissionExceedsThreshold() {
+    let tracker = FlowDKG.SubmissionTracker()
+    let nodeIDs = nodeIDsFixture(n: 10)
+    tracker.reset(nodeIDs: nodeIDs)
+    let threshold: UInt64 = 4
+
+    // Initially, should return nil
+    Test.assertEqual(nil, tracker.submissionExceedsThreshold(threshold))
+
+    let sub1 = resultSubmissionFixtureWithNodeIDs(nodeIDs: nodeIDs)
+    let sub2 = resultSubmissionFixtureWithNodeIDs(nodeIDs: nodeIDs)
+
+    // After inserting up to 4 submissions matching sub1, should return nil
+    for nodeID in nodeIDs.slice(from: 0, upTo: 4) {
+        tracker.addSubmission(nodeID: nodeID, submission: sub1)
+        Test.assertEqual(nil, tracker.submissionExceedsThreshold(threshold))
+    }
+
+    // After inserting up to 4 submissions matching sub2, should still return nil
+    for nodeID in nodeIDs.slice(from: 4, upTo: 8) {
+        tracker.addSubmission(nodeID: nodeID, submission: sub2)
+        Test.assertEqual(nil, tracker.submissionExceedsThreshold(threshold))
+    }
+
+    // After inserting the 5th matching submission (threshold+1), should return the winning submission
+    tracker.addSubmission(nodeID: nodeIDs[8], submission: sub1)
+    Test.assertEqual(sub1, tracker.submissionExceedsThreshold(threshold)!)
+}

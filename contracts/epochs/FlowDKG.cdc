@@ -254,6 +254,7 @@ access(all) contract FlowDKG {
                 if self.counts[submissionIndex]! > threshold {
                     return self.uniques[submissionIndex]
                 }
+                submissionIndex = submissionIndex + 1
             }
             return nil
         }
