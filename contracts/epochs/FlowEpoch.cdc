@@ -793,7 +793,9 @@ access(all) contract FlowEpoch {
 
         emit EpochCommit(counter: self.proposedEpochCounter(),
                             clusterQCs: clusterQCs,
-                            dkgPubKeys: unwrappedKeys)
+                            dkgPubKeys: unwrappedKeys,
+                            dkgGroupKey: "",
+                            dkgIdMapping: {})
     }
 
     /// Borrow a reference to the FlowIDTableStaking Admin resource
