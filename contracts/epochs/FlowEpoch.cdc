@@ -234,12 +234,14 @@ access(all) contract FlowEpoch {
             self.clusterQCs = qcs
         }
 
+        // TODO(6213): this setter is using a misleading name and cannot be updated to include the ID mapping.
+        // Should we just remove it / stop using it?
         access(account) fun setDKGGroupKey(keys: [String]) {
             self.dkgKeys = keys
         }
     }
 
-    /// Metadata that is managed and can be changed by the Admin///
+    /// Metadata that is managed and can be changed by the Admin
     access(all) struct Config {
         /// The number of views in an entire epoch
         access(all) var numViewsInEpoch: UInt64
@@ -773,19 +775,18 @@ access(all) contract FlowEpoch {
             clusterQCs.append(certificate)
         }
 
-        // Set cluster QCs in the proposed epoch metadata
-        // and stop QC voting
+        // Set cluster QCs in the proposed epoch metadata and stop QC voting
         let proposedEpochMetadata = self.getEpochMetadata(self.proposedEpochCounter())!
         proposedEpochMetadata.setClusterQCs(qcs: clusterQCs)
 
-        // Set DKG result keys in the proposed epoch metadata
-        // and stop DKG
-        let dkgKeys = FlowDKG.dkgCompleted()!
-        let unwrappedKeys: [String] = []
-        for key in dkgKeys {
-            unwrappedKeys.append(key!)
-        }
-        proposedEpochMetadata.setDKGGroupKey(keys: unwrappedKeys)
+        // Set DKG result in the proposed epoch metadata and stop DKG
+        let dkgResult = FlowDKG.dkgCompleted()!
+        // let unwrappedKeys: [String] = []
+        // for key in dkgKeys {
+        //     unwrappedKeys.append(key!)
+        // }
+        // TODO(6213): should we bother setting this, now that it cannot include the complete data?
+        // proposedEpochMetadata.setDKGGroupKey(keys: unwrappedKeys)
 
         self.saveEpochMetadata(proposedEpochMetadata)
 
@@ -793,9 +794,9 @@ access(all) contract FlowEpoch {
 
         emit EpochCommit(counter: self.proposedEpochCounter(),
                             clusterQCs: clusterQCs,
-                            dkgPubKeys: unwrappedKeys,
-                            dkgGroupKey: "",
-                            dkgIdMapping: {})
+                            dkgPubKeys: [], // TODO(6213): need to update
+                            dkgGroupKey: "", // TODO(6213): need to update
+                            dkgIdMapping: dkgResult.idMapping)
     }
 
     /// Borrow a reference to the FlowIDTableStaking Admin resource
