@@ -134,6 +134,17 @@ access(all) fun testResultSubmissionEquals() {
     Test.assert(sub1.equals(sub2))
 }
 
+access(all) fun testResultSubmissionEquals_Empty() {
+    // Two empty submissions should be considered equal (there is exactly one representation for empty submission)
+    let empty1 = FlowDKG.ResultSubmission(groupPubKey: nil, pubKeys: nil, idMapping: nil)
+    let empty2 = FlowDKG.ResultSubmission(groupPubKey: nil, pubKeys: nil, idMapping: nil)
+    Test.assert(empty1.equals(empty2))
+
+    // An empty submission should not be considered equal to any non-empty submission
+    let nonempty = FlowDKG.ResultSubmission(groupPubKey: pubKeyFixture(), pubKeys: pubKeysFixture(n: 10), idMapping: idMappingFixture(n: 10))
+    Test.assert(!empty1.equals(nonempty))
+}
+
 access(all) fun testResultSubmissionEquals_differentGroupKey() {
     let pubKeys  = pubKeysFixture(n: 10)
     let idMapping = idMappingFixture(n: 10)
