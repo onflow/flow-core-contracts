@@ -289,6 +289,7 @@ access(all) contract FlowDKG {
                     let submission = self.uniques[submissionIndex]
                     // exclude empty submissions, as these are ineligible for considering the DKG completed
                     if submission.isEmpty() {
+                        submissionIndex = submissionIndex + 1
                         continue
                     }
                     // return the non-empty submission submitted by >threshold DKG participants

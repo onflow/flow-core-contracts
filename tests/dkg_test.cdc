@@ -225,6 +225,7 @@ access(all) fun testSubmissionTracker_init() {
     Test.assertEqual(0, tracker.counts.length)
 }
 
+// Authorized list should be populated after reset
 access(all) fun testSubmissionTracker_reset() {
     let tracker = FlowDKG.SubmissionTracker()
     let nodeIDs = nodeIDsFixture(n: 10)
@@ -252,6 +253,7 @@ access(all) fun testSubmissionTracker_addSubmission() {
     Test.assertEqual(tracker.uniques, [submission])
 }
 
+// One node submitting more than one result should cause a panic
 access(all) fun testSubmissionTracker_addSubmissionAlreadySubmitted() {
     let tracker = FlowDKG.SubmissionTracker()
     let nodeIDs = nodeIDsFixture(n: 10)
@@ -272,6 +274,7 @@ access(all) fun testSubmissionTracker_addSubmissionAlreadySubmitted() {
     }, errorMessageSubstring: "must not have already submitted for this DKG instance")
 }
 
+// An unauthorized node attempting to submit should panic
 access(all) fun testSubmissionTracker_addSubmissionUnauthorized() {
     let tracker = FlowDKG.SubmissionTracker()
     let nodeIDs = nodeIDsFixture(n: 10)
@@ -311,4 +314,27 @@ access(all) fun testSubmissionTracker_submissionExceedsThreshold() {
     // After inserting the 5th matching submission (threshold+1), should return the winning submission
     tracker.addSubmission(nodeID: nodeIDs[8], submission: sub1)
     Test.assertEqual(sub1, tracker.submissionExceedsThreshold(threshold)!)
+}
+
+access(all) fun testSubmissionTracker_submissionExceedsThresholdEmpty() {
+    let tracker = FlowDKG.SubmissionTracker()
+    let nodeIDs = nodeIDsFixture(n: 10)
+    tracker.reset(nodeIDs: nodeIDs)
+    let threshold: UInt64 = 4
+
+    // Initially, should return nil
+    Test.assertEqual(nil, tracker.submissionExceedsThreshold(threshold))
+
+    let emptySubmission = FlowDKG.ResultSubmission(groupPubKey: nil, pubKeys: nil, idMapping: nil)
+
+    // After inserting up to 4 empty submissions, should return nil
+    for nodeID in nodeIDs.slice(from: 0, upTo: 4) {
+        tracker.addSubmission(nodeID: nodeID, submission: emptySubmission)
+        Test.assertEqual(nil, tracker.submissionExceedsThreshold(threshold))
+    }
+
+    // After inserting the 5th empty submission (threshold+1), should still return nil
+    // Empty submissions are excluded from considering DKG completion, as they indicate individual failures.
+    tracker.addSubmission(nodeID: nodeIDs[4], submission: emptySubmission)
+    Test.assertEqual(nil, tracker.submissionExceedsThreshold(threshold))
 }
