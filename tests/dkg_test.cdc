@@ -207,15 +207,6 @@ access(all) fun testResultSubmissionEquals_differentIDMappingValues() {
 /// SubmissionTracker Tests
 ///
 
-/*
-- add first submission
-- add distinct submissions
-- add same submissions
-- add mix of distinct and same submissions
-
-- test upgrade path (submission tracker is not in storage)
- */
-
 // Should have non-nil empty fields after initialization.
 access(all) fun testSubmissionTracker_init() {
     let tracker = FlowDKG.SubmissionTracker()

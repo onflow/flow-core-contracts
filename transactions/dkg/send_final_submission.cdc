@@ -1,7 +1,7 @@
 import FlowDKG from "FlowDKG"
 
 // TODO: way to submit nil/failure result
-transaction(groupKey: String, pubKeys: [String], idMapping: {String: Int}) {
+transaction(groupKey: String?, pubKeys: [String]?, idMapping: {String: Int}?) {
 
     let dkgParticipant: &FlowDKG.Participant
     let submission: FlowDKG.ResultSubmission

@@ -2,6 +2,8 @@ package test
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"testing"
 
@@ -723,4 +725,36 @@ func expectedTargetEndTime(timingConfig cadence.Value, targetEpoch uint64) uint6
 	refTimestamp := uint64(fields["refTimestamp"].(cadence.UInt64))
 
 	return refTimestamp + duration*(targetEpoch-refCounter)
+}
+
+func DKGPubKeyFixture() cadence.String {
+	key := make([]byte, 96)
+	_, err := rand.Read(key)
+	if err != nil {
+		panic(err)
+	}
+	str, err := cadence.NewString(hex.EncodeToString(key))
+	if err != nil {
+		panic(err)
+	}
+	return str
+}
+
+func DKGPubKeysFixture(n int) cadence.Array {
+	values := make([]cadence.Value, n)
+	for i := range values {
+		values[i] = DKGPubKeyFixture()
+	}
+	return cadence.NewArray(values)
+}
+
+func MakeDKGIDMappingCDC(idMapping map[string]int) cadence.Dictionary {
+	pairs := make([]cadence.KeyValuePair, 0, len(idMapping))
+	for nodeID, index := range idMapping {
+		pairs = append(pairs, cadence.KeyValuePair{
+			Key:   cadence.String(nodeID),
+			Value: cadence.NewInt(index),
+		})
+	}
+	return cadence.NewDictionary(pairs)
 }

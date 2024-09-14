@@ -324,15 +324,20 @@ func TestDKG(t *testing.T) {
 		)
 	})
 
+	// TODO: test empty submission
 	t.Run("Should be able to make a final submission", func(t *testing.T) {
 
-		stringArg, _ := cadence.NewString(dkgKey1)
-		finalSubmissionKeys[0] = cadence.NewOptional(stringArg)
-		finalSubmissionKeys[1] = cadence.NewOptional(stringArg)
+		groupKey := DKGPubKeyFixture()
+		pubKeys := DKGPubKeysFixture(1)
+		idMapping := MakeDKGIDMappingCDC(map[string]int{adminID: 0})
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGFinalSubmissionScript(env), DKGAddress)
 
-		err := tx.AddArgument(cadence.NewArray(finalSubmissionKeys))
+		err := tx.AddArgument(groupKey)
+		require.NoError(t, err)
+		err = tx.AddArgument(pubKeys)
+		require.NoError(t, err)
+		err = tx.AddArgument(idMapping)
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -354,13 +359,17 @@ func TestDKG(t *testing.T) {
 
 	t.Run("Should not be able to make a second final submission", func(t *testing.T) {
 
-		stringArg, _ := cadence.NewString(dkgKey1)
-		finalSubmissionKeys[0] = cadence.NewOptional(stringArg)
-		finalSubmissionKeys[1] = cadence.NewOptional(stringArg)
+		groupKey := DKGPubKeyFixture()
+		pubKeys := DKGPubKeysFixture(1)
+		idMapping := MakeDKGIDMappingCDC(map[string]int{adminID: 0})
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGFinalSubmissionScript(env), DKGAddress)
 
-		err := tx.AddArgument(cadence.NewArray(finalSubmissionKeys))
+		err := tx.AddArgument(groupKey)
+		require.NoError(t, err)
+		err = tx.AddArgument(pubKeys)
+		require.NoError(t, err)
+		err = tx.AddArgument(idMapping)
 		require.NoError(t, err)
 
 		signAndSubmit(
