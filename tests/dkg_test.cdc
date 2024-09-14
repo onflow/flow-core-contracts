@@ -104,9 +104,24 @@ access(all) fun testResultSubmissionInit_InvalidIDMappingLength() {
     }, errorMessageSubstring: "invalid id mapping length")
 }
 
-// Nil keys are allowed; this is how the results of locally failed DKGs are submitted.
-access(all) fun testResultSubmissionInit_NilKeys() {
-    let sub = FlowDKG.ResultSubmission(groupPubKey: nil, pubKeys: [nil, nil, nil], idMapping: idMappingFixture(n: 3))
+// Nil fields are allowed only when all fields are nil.
+access(all) fun testResultSubmissionInit_EmptySubmission() {
+    let sub = FlowDKG.ResultSubmission(groupPubKey: nil, pubKeys: nil, idMapping: nil)
+
+    // non-nil group key
+    Test.expectFailure(fun(): Void {
+        let sub = FlowDKG.ResultSubmission(groupPubKey: pubKeyFixture(), pubKeys: nil, idMapping: nil)
+    }, errorMessageSubstring: "invalid empty submission")
+
+    // non-nil participant keys
+    Test.expectFailure(fun(): Void {
+        let sub = FlowDKG.ResultSubmission(groupPubKey: nil, pubKeys: pubKeysFixture(n: 3), idMapping: nil)
+    }, errorMessageSubstring: "invalid empty submission")
+
+    // non-nil id mapping
+    Test.expectFailure(fun(): Void {
+        let sub = FlowDKG.ResultSubmission(groupPubKey: nil, pubKeys: nil, idMapping: idMappingFixture(n: 3))
+    }, errorMessageSubstring: "invalid empty submission")
 }
 
 access(all) fun testResultSubmissionEquals() {

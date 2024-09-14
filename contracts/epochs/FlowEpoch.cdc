@@ -794,9 +794,9 @@ access(all) contract FlowEpoch {
 
         emit EpochCommit(counter: self.proposedEpochCounter(),
                             clusterQCs: clusterQCs,
-                            dkgPubKeys: [], // TODO(6213): need to update
-                            dkgGroupKey: "", // TODO(6213): need to update
-                            dkgIdMapping: dkgResult.idMapping)
+                            dkgPubKeys: dkgResult.pubKeys!,
+                            dkgGroupKey: dkgResult.groupPubKey!,
+                            dkgIdMapping: dkgResult.idMapping!)
     }
 
     /// Borrow a reference to the FlowIDTableStaking Admin resource
