@@ -68,6 +68,7 @@ func GenerateSetSafeThresholdScript(env Environment) []byte {
 	return []byte(ReplaceAddresses(code, env))
 }
 
+// TODO rename
 func GeneratePublishDKGParticipantScript(env Environment) []byte {
 	code := assets.MustAssetString(publishParticipantFilename)
 

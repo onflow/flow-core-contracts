@@ -307,6 +307,7 @@ access(all) fun testSubmissionTracker_submissionExceedsThreshold() {
     Test.assertEqual(sub1, tracker.submissionExceedsThreshold(threshold)!)
 }
 
+// Empty submissions should not count toward DKG completion
 access(all) fun testSubmissionTracker_submissionExceedsThresholdEmpty() {
     let tracker = FlowDKG.SubmissionTracker()
     let nodeIDs = nodeIDsFixture(n: 10)
