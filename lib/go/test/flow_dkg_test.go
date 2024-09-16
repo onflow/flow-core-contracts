@@ -324,20 +324,22 @@ func TestDKG(t *testing.T) {
 		)
 	})
 
+	submission := ResultSubmission{
+		GroupPubKey: DKGPubKeyFixture(),
+		PubKeys:     DKGPubKeysFixture(1),
+		IDMapping:   map[string]int{adminID: 0},
+	}
+
 	// TODO: test empty submission
 	t.Run("Should be able to make a final submission", func(t *testing.T) {
 
-		groupKey := DKGPubKeyFixture()
-		pubKeys := DKGPubKeysFixture(1)
-		idMapping := MakeDKGIDMappingCDC(map[string]int{adminID: 0})
-
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGFinalSubmissionScript(env), DKGAddress)
 
-		err := tx.AddArgument(groupKey)
+		err := tx.AddArgument(submission.GroupPubKeyCDC())
 		require.NoError(t, err)
-		err = tx.AddArgument(pubKeys)
+		err = tx.AddArgument(submission.PubKeysCDC())
 		require.NoError(t, err)
-		err = tx.AddArgument(idMapping)
+		err = tx.AddArgument(submission.IDMappingCDC())
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -359,8 +361,8 @@ func TestDKG(t *testing.T) {
 
 	t.Run("Should not be able to make a second final submission", func(t *testing.T) {
 
-		groupKey := DKGPubKeyFixture()
-		pubKeys := DKGPubKeysFixture(1)
+		groupKey := DKGPubKeyFixtureCDC()
+		pubKeys := DKGPubKeysFixtureCDC(1)
 		idMapping := MakeDKGIDMappingCDC(map[string]int{adminID: 0})
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGFinalSubmissionScript(env), DKGAddress)
@@ -381,22 +383,17 @@ func TestDKG(t *testing.T) {
 
 	})
 
-	finalSubmissionKeysArray := cadence.Array{Values: []cadence.Value{finalSubmissionKeys[0], finalSubmissionKeys[1]}}.WithType(cadence.NewVariableSizedArrayType(cadence.NewOptionalType(cadence.StringType)))
-
-	finalSubmissionsArray := cadence.Array{Values: []cadence.Value{finalSubmissionKeysArray}}.WithType(cadence.NewVariableSizedArrayType(cadence.NewVariableSizedArrayType(cadence.NewOptionalType(cadence.StringType))))
-
 	t.Run("Admin should be able to stop the dkg", func(t *testing.T) {
 
 		result := executeScriptAndCheck(t, b, templates.GenerateGetConsensusNodesScript(env), nil)
-
 		assert.Equal(t, dkgNodeIDsCadenceArray, result)
 
-		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGFinalSubmissionsScript(env), nil)
-		assert.Equal(t, finalSubmissionsArray, result)
+		submissions := GetDKGFinalSubmissions(t, b, env)
+		assert.Equal(t, []ResultSubmission{submission}, submissions)
 
+		canonicalSubmission := GetDKGCanonicalFinalSubmission(t, b, env)
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGCanonicalFinalSubmissionScript(env), nil)
-		resultValue := result.(cadence.Optional).Value
-		assert.Equal(t, finalSubmissionKeysArray, resultValue)
+		assert.Equal(t, submission, canonicalSubmission)
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateStopDKGScript(env), DKGAddress)
 
@@ -408,11 +405,9 @@ func TestDKG(t *testing.T) {
 		)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGEnabledScript(env), nil)
-
 		assert.Equal(t, cadence.NewBool(false), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGCompletedScript(env), nil)
-
 		assert.Equal(t, cadence.NewBool(false), result)
 	})
 
@@ -426,12 +421,7 @@ func TestDKG(t *testing.T) {
 	bastianAccountKey, bastianSigner := accountKeys.NewWithSigner()
 	bastianAddress, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{bastianAccountKey}, nil)
 
-	epoch2dkgNodeIDStrings := make([]cadence.Value, 2)
-
-	stringArg, _ := cadence.NewString(maxID)
-	epoch2dkgNodeIDStrings[0] = stringArg
-	stringArg, _ = cadence.NewString(bastianID)
-	epoch2dkgNodeIDStrings[1] = stringArg
+	epoch2dkgNodeIDStrings := []cadence.Value{cadence.String(maxID), cadence.String(bastianID)}
 
 	t.Run("Should start dkg with the admin", func(t *testing.T) {
 

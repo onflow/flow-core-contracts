@@ -727,23 +727,35 @@ func expectedTargetEndTime(timingConfig cadence.Value, targetEpoch uint64) uint6
 	return refTimestamp + duration*(targetEpoch-refCounter)
 }
 
-func DKGPubKeyFixture() cadence.String {
+func DKGPubKeyFixture() string {
 	key := make([]byte, 96)
 	_, err := rand.Read(key)
 	if err != nil {
 		panic(err)
 	}
-	str, err := cadence.NewString(hex.EncodeToString(key))
+	return hex.EncodeToString(key)
+}
+
+func DKGPubKeysFixture(n int) []string {
+	keys := make([]string, n)
+	for i := range keys {
+		keys[i] = DKGPubKeyFixture()
+	}
+	return keys
+}
+
+func DKGPubKeyFixtureCDC() cadence.String {
+	str, err := cadence.NewString(DKGPubKeyFixture())
 	if err != nil {
 		panic(err)
 	}
 	return str
 }
 
-func DKGPubKeysFixture(n int) cadence.Array {
+func DKGPubKeysFixtureCDC(n int) cadence.Array {
 	values := make([]cadence.Value, n)
 	for i := range values {
-		values[i] = DKGPubKeyFixture()
+		values[i] = DKGPubKeyFixtureCDC()
 	}
 	return cadence.NewArray(values)
 }
@@ -757,4 +769,69 @@ func MakeDKGIDMappingCDC(idMapping map[string]int) cadence.Dictionary {
 		})
 	}
 	return cadence.NewDictionary(pairs)
+}
+
+type ResultSubmission struct {
+	GroupPubKey string
+	PubKeys     []string
+	IDMapping   map[string]int
+}
+
+func (rs *ResultSubmission) GroupPubKeyCDC() cadence.String {
+	cdc, err := cadence.NewString(rs.GroupPubKey)
+	if err != nil {
+		panic(err)
+	}
+	return cdc
+}
+
+func (rs *ResultSubmission) PubKeysCDC() cadence.Array {
+	values := make([]cadence.Value, len(rs.PubKeys))
+	for i := range values {
+		var err error
+		values[i], err = cadence.NewString(rs.PubKeys[i])
+		if err != nil {
+			panic(err)
+		}
+	}
+	return cadence.NewArray(values)
+}
+
+func (rs *ResultSubmission) IDMappingCDC() cadence.Dictionary {
+	return MakeDKGIDMappingCDC(rs.IDMapping)
+}
+
+func ResultSubmissionFromCadence(cdc cadence.Value) ResultSubmission {
+	rs := ResultSubmission{
+		IDMapping: make(map[string]int),
+	}
+	fields := cdc.(cadence.Struct).FieldsMappedByName()
+
+	rs.GroupPubKey = string(UnwrapOptional[cadence.String](fields["groupPubKey"]))
+	pubKeysCDC := UnwrapOptional[cadence.Array](fields["pubKeys"])
+	for _, pubKeyCDC := range pubKeysCDC.Values {
+		rs.PubKeys = append(rs.PubKeys, string(pubKeyCDC.(cadence.String)))
+	}
+	idMappingCDC := UnwrapOptional[cadence.Dictionary](fields["idMapping"])
+	for _, pair := range idMappingCDC.Pairs {
+		nodeID := string(pair.Key.(cadence.String))
+		index := pair.Value.(cadence.Int).Int()
+		rs.IDMapping[nodeID] = index
+	}
+	return rs
+}
+
+func GetDKGFinalSubmissions(t *testing.T, b emulator.Emulator, env templates.Environment) []ResultSubmission {
+	result := executeScriptAndCheck(t, b, templates.GenerateGetDKGFinalSubmissionsScript(env), nil)
+
+	var submissions []ResultSubmission
+	for _, submissionCDC := range result.(cadence.Array).Values {
+		submissions = append(submissions, ResultSubmissionFromCadence(submissionCDC))
+	}
+	return submissions
+}
+
+func GetDKGCanonicalFinalSubmission(t *testing.T, b emulator.Emulator, env templates.Environment) ResultSubmission {
+	result := executeScriptAndCheck(t, b, templates.GenerateGetDKGCanonicalFinalSubmissionScript(env), nil)
+	return ResultSubmissionFromCadence(UnwrapOptional[cadence.Struct](result))
 }

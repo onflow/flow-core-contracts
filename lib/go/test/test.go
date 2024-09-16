@@ -342,3 +342,7 @@ func generateKeys(t *testing.T, algorithmName crypto.SigningAlgorithm) (crypto.P
 
 	return sk, publicKey
 }
+
+func UnwrapOptional[T cadence.Value](optional cadence.Value) T {
+	return optional.(cadence.Optional).Value.(T)
+}
