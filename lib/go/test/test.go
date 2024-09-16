@@ -346,3 +346,27 @@ func generateKeys(t *testing.T, algorithmName crypto.SigningAlgorithm) (crypto.P
 func UnwrapOptional[T cadence.Value](optional cadence.Value) T {
 	return optional.(cadence.Optional).Value.(T)
 }
+
+func CadenceArrayTo[T any](arr cadence.Value, convert func(cadence.Value) T) []T {
+	out := make([]T, len(arr.(cadence.Array).Values))
+	for i := range out {
+		out[i] = convert(arr.(cadence.Array).Values[i])
+	}
+	return out
+}
+
+func CadenceArrayFrom[T any](slice []T, convert func(T) cadence.Value) cadence.Array {
+	values := make([]cadence.Value, len(slice))
+	for i := range values {
+		values[i] = convert(slice[i])
+	}
+	return cadence.NewArray(values)
+}
+
+func CDCToString(v cadence.Value) string {
+	return string(v.(cadence.String))
+}
+
+func StringToCDC(s string) cadence.Value {
+	return cadence.String(s)
+}

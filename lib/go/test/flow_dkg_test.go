@@ -421,13 +421,13 @@ func TestDKG(t *testing.T) {
 	bastianAccountKey, bastianSigner := accountKeys.NewWithSigner()
 	bastianAddress, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{bastianAccountKey}, nil)
 
-	epoch2dkgNodeIDStrings := []cadence.Value{cadence.String(maxID), cadence.String(bastianID)}
+	epoch2dkgNodeIDStrings := []string{maxID, bastianID}
+	epoch2DKGNodeIDStringsCDC := CadenceArrayFrom(epoch2dkgNodeIDStrings, StringToCDC)
 
 	t.Run("Should start dkg with the admin", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateStartDKGScript(env), DKGAddress)
-
-		err := tx.AddArgument(cadence.NewArray(epoch2dkgNodeIDStrings))
+		err := tx.AddArgument(epoch2DKGNodeIDStringsCDC)
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -439,23 +439,18 @@ func TestDKG(t *testing.T) {
 
 		// AdminID is registered for this epoch by the admin
 		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGNodeIsRegisteredScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
-
 		assert.Equal(t, cadence.NewBool(false), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetConsensusNodesScript(env), nil)
-
-		assert.Equal(t, cadence.NewArray(epoch2dkgNodeIDStrings).WithType(cadence.NewVariableSizedArrayType(cadence.StringType)), result)
+		assert.ElementsMatch(t, epoch2dkgNodeIDStrings, CadenceArrayTo(result, CDCToString))
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGFinalSubmissionsScript(env), nil)
-
 		assert.Equal(t, 0, len(result.(cadence.Array).Values))
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGEnabledScript(env), nil)
-
 		assert.Equal(t, cadence.NewBool(true), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGWhiteBoardMessagesScript(env), nil)
-
 		assert.Equal(t, 0, len(result.(cadence.Array).Values))
 	})
 
@@ -556,7 +551,7 @@ func TestDKG(t *testing.T) {
 	t.Run("Should not be able to make a final submission if not registered", func(t *testing.T) {
 
 		finalSubmissionKeysBadLength := make([]cadence.Value, 3)
-		stringArg, _ = cadence.NewString(dkgKey1)
+		stringArg, _ := cadence.NewString(dkgKey1)
 		finalSubmissionKeysBadLength[0] = cadence.NewOptional(stringArg)
 		finalSubmissionKeysBadLength[1] = cadence.NewOptional(stringArg)
 		finalSubmissionKeysBadLength[2] = cadence.NewOptional(stringArg)
