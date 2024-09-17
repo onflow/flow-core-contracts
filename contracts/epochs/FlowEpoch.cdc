@@ -781,12 +781,6 @@ access(all) contract FlowEpoch {
 
         // Set DKG result in the proposed epoch metadata and stop DKG
         let dkgResult = FlowDKG.dkgCompleted()!
-        // let unwrappedKeys: [String] = []
-        // for key in dkgKeys {
-        //     unwrappedKeys.append(key!)
-        // }
-        // TODO(6213): should we bother setting this, now that it cannot include the complete data?
-        // proposedEpochMetadata.setDKGGroupKey(keys: unwrappedKeys)
 
         self.saveEpochMetadata(proposedEpochMetadata)
 

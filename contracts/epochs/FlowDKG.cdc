@@ -137,7 +137,6 @@ access(all) contract FlowDKG {
         return pubKeys!.length == idMapping!.keys.length
     }
 
-
     // ResultSubmission represents a result submission from one DKG participant.
     // Each submission includes a group public key and an ordered list of participant public keys.
     // A submission may be empty, in which case all fields are nil - this is used to represent a local DKG failure.
@@ -145,9 +144,9 @@ access(all) contract FlowDKG {
     // By convention, all keys are encoded as lowercase hex strings, though it is not enforced here.
     //
     // INVARIANTS:
-    //  - either all fields are nil (empty submission) or no fields are nil
-    //  - all key strings are the expected length for BLS public keys
-    //  - all non-empty submissions have one participant key per node ID in idMapping
+    //  (1) either all fields are nil (empty submission) or no fields are nil
+    //  (2) all key strings are the expected length for BLS public keys
+    //  (3) all non-empty submissions have one participant key per node ID in idMapping
     access(all) struct ResultSubmission {
         // The group public key for the beacon committee resulting from the DKG.
         access(all) let groupPubKey: String?
@@ -172,12 +171,14 @@ access(all) contract FlowDKG {
         }
 
         // Returns true if this ResultSubmission instance represents an empty submission.
+        // Since the constructor enforces invariant (1), we only need to check one field.
         access(all) view fun isEmpty(): Bool {
             return self.groupPubKey == nil
         }
 
         // Checks whether the input is equivalent to this ResultSubmission.
         // Submissions must have identical keys, in the same order, and identical key mappings.
+        // Empty submissions are considered equal.
         access(all) fun equals(_ other: FlowDKG.ResultSubmission): Bool {
             if self.groupPubKey != other.groupPubKey {
                 return false
@@ -191,7 +192,7 @@ access(all) contract FlowDKG {
             return true
         }
 
-        // Checks whether this ResultSubmission could be a valid submission for the given DKG committee.
+        // Checks whether this ResultSubmission COULD BE a valid submission for the given DKG committee.
         access(all) view fun isValidForCommittee(authorized: [String]): Bool {
             if self.isEmpty() {
                 return true
@@ -212,19 +213,16 @@ access(all) contract FlowDKG {
     }
 
     // SubmissionTracker tracks all state related to result submissions.
-    // It is intended strictly for internal use by the FlowDKG contract.
-    // Although methods have permissive access control, the single instance is stored in account storage and so is not available publicly.
-    // Future modifications MUST NOT make instances of SubmissionTracker publicly accessible.
-    // We use access(all) to enable testing this type in isolation.
-    //
-    // NOTE: there exists exactly one SubmissionTracker instance for a FlowDKG contract instance,
-    // which holds a subset of global contract state in an encapsulated manner.
+    // It is intended for internal use by the FlowDKG contract as a private singleton.
+    // Future modifications MUST NOT make this singleton instance of SubmissionTracker publicly accessible.
     access(all) struct SubmissionTracker {
         // Set of authorized participants for this DKG instance (the "DKG committee")
+        // Keys are node IDs, as registered in the FlowIDTableStaking contract.
+        // NOTE: all values are true - this is structured as a map for O(1) lookup; conceptually it is a set.
         access(all) var authorized: {String: Bool}
         // List of unique submissions, in submission order
         access(all) var uniques: [FlowDKG.ResultSubmission]
-        // Maps node ID to index within "uniques"
+        // Maps node ID of authorized participants to an index within "uniques"
         access(all) var byNodeID: {String: Int}
         // Maps index within "uniques" to count of submissions
         access(all) var counts: {Int: UInt64}
@@ -237,8 +235,8 @@ access(all) contract FlowDKG {
         }
 
         // Called each time a new DKG instance starts, to reset SubmissionTracker state.
-        // NOTE: we could also re-instantiate a new SubmissionTracker each time, but this pattern makes storage management
-        // significantly simpler (you never load/save the tracker after construction (or upgrade))
+        // NOTE: we could also re-instantiate a new SubmissionTracker each time, but this pattern makes
+        // storage management simpler because you never load/save the tracker after construction or upgrade.
         access(all) fun reset(nodeIDs: [String]) {
             self.authorized = {}
             self.uniques = []
@@ -251,9 +249,7 @@ access(all) contract FlowDKG {
 
         // Adds the result submission for the DKG participant identified by nodeID.
         // The DKG participant must be authorized for the current epoch, and each participant may submit only once.
-        //
-        // CAUTION: Callers of this method must be trusted, as nodeID is an unvalidated input and could be altered.
-        // In practice, we rely on the fact that only FlowDKG.Participant.sendFinalSubmission calls this function.
+        // CAUTION: This method should only be called by Participant, which enforces that Participant.nodeID is passed in.
         access(all) fun addSubmission(nodeID: String, submission: ResultSubmission) {
             pre {
                 self.authorized[nodeID] != nil: "must be authorized for this DKG instance"
@@ -282,7 +278,10 @@ access(all) contract FlowDKG {
         // Returns the non-empty result which was submitted by at least threshold+1 DKG participants.
         // If no result received enough submissions, returns nil.
         // Callers should use a threshold that is greater than or equal to half the DKG committee size.
-        access(all) fun submissionExceedsThreshold(_ threshold: UInt64): ResultSubmission? {
+        access(all) view fun submissionExceedsThreshold(_ threshold: UInt64): ResultSubmission? {
+            post {
+                result == nil || !result!.isEmpty(): "if a submission is returned, must be non-empty"
+            }
             var submissionIndex = 0
             while submissionIndex < self.uniques.length {
                 if self.counts[submissionIndex]! > threshold {
@@ -302,14 +301,15 @@ access(all) contract FlowDKG {
 
         // Returns the result submitted by the node with the given ID.
         // Returns nil if the node is not authorized or has not submitted for the current DKG.
-        access(all) fun getSubmissionByNodeID(_ nodeID: String): ResultSubmission? {
+        access(all) view fun getSubmissionByNodeID(_ nodeID: String): ResultSubmission? {
             if let submissionIndex = self.byNodeID[nodeID] {
                 return self.uniques[submissionIndex]
             }
             return nil
         }
 
-        access(all) fun getUniqueSubmissions(): [ResultSubmission] {
+        // Returns all unique submissions for the current DKG instance.
+        access(all) view fun getUniqueSubmissions(): [ResultSubmission] {
             return self.uniques
         }
     }
@@ -466,7 +466,6 @@ access(all) contract FlowDKG {
 
     /// Gets the specific final submission for a node ID
     /// If the node hasn't submitted or registered, this returns `nil`
-    // TODO: when view, there's an error on first return statement (what is impure about that operation?)
     access(all) fun getNodeFinalSubmission(_ nodeID: String): ResultSubmission? {
         return self.mustBorrowSubmissionTracker().getSubmissionByNodeID(nodeID)
     }
