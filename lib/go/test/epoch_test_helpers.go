@@ -125,15 +125,17 @@ type EpochSetup struct {
 	targetEndTime      uint64
 }
 
-// / Used to verify the EpochCommit event fields in tests
+// Used to verify the EpochCommit event fields in tests
 type EpochCommit struct {
-	counter    uint64
-	clusterQCs [][]string
-	dkgPubKeys []string
+	counter        uint64
+	clusterQCs     [][]string
+	dkgGroupPubKey string
+	dkgPubKeys     []string
+	dkgIDMapping   map[string]int
 }
 
 // Go event definitions for the epoch events
-// Can be used with the SDK to retreive and parse epoch events
+// Can be used with the SDK to retrieve and parse epoch events
 
 type EpochSetupEvent flow.Event
 
@@ -184,8 +186,16 @@ func (evt EpochCommitEvent) clusterQCs() cadence.Array {
 	return cadence.SearchFieldByName(evt.Value, "clusterQCs").(cadence.Array)
 }
 
+func (evt EpochCommitEvent) dkgGroupPubKey() cadence.String {
+	return cadence.SearchFieldByName(evt.Value, "dkgGroupKey").(cadence.String)
+}
+
 func (evt EpochCommitEvent) dkgPubKeys() cadence.Array {
 	return cadence.SearchFieldByName(evt.Value, "dkgPubKeys").(cadence.Array)
+}
+
+func (evt EpochCommitEvent) dkgIDMapping() cadence.Dictionary {
+	return cadence.SearchFieldByName(evt.Value, "dkgIdMapping").(cadence.Dictionary)
 }
 
 // / Deploys the Quroum Certificate and Distributed Key Generation contracts to the provided account
@@ -709,7 +719,12 @@ func verifyEpochCommit(
 	assertEqual(t, cadence.NewUInt64(expectedCommitted.counter), emittedEvent.Counter())
 
 	// dkg result
-	assertEqual(t, len(expectedCommitted.dkgPubKeys), len(emittedEvent.dkgPubKeys().Values))
+	dkgGroupKey := CDCToString(emittedEvent.dkgGroupPubKey())
+	dkgPubKeys := CadenceArrayTo(emittedEvent.dkgPubKeys(), CDCToString)
+	dkgIDMapping := CDCToDKGIDMapping(emittedEvent.dkgIDMapping())
+	assertEqual(t, expectedCommitted.dkgGroupPubKey, dkgGroupKey)
+	assertEqual(t, expectedCommitted.dkgPubKeys, dkgPubKeys)
+	assertEqual(t, expectedCommitted.dkgIDMapping, dkgIDMapping)
 
 	// quorum certificates
 	verifyClusterQCs(t, expectedCommitted.clusterQCs, emittedEvent.clusterQCs().Values)
@@ -760,7 +775,7 @@ func DKGPubKeysFixtureCDC(n int) cadence.Array {
 	return cadence.NewArray(values)
 }
 
-func MakeDKGIDMappingCDC(idMapping map[string]int) cadence.Dictionary {
+func DKGIDMappingToCDC(idMapping map[string]int) cadence.Dictionary {
 	pairs := make([]cadence.KeyValuePair, 0, len(idMapping))
 	for nodeID, index := range idMapping {
 		pairs = append(pairs, cadence.KeyValuePair{
@@ -769,6 +784,17 @@ func MakeDKGIDMappingCDC(idMapping map[string]int) cadence.Dictionary {
 		})
 	}
 	return cadence.NewDictionary(pairs)
+}
+
+func CDCToDKGIDMapping(cdc cadence.Value) map[string]int {
+	idMappingCDC := cdc.(cadence.Dictionary)
+	idMapping := make(map[string]int, len(idMappingCDC.Pairs))
+	for _, pair := range idMappingCDC.Pairs {
+		nodeID := string(pair.Key.(cadence.String))
+		index := pair.Value.(cadence.Int).Int()
+		idMapping[nodeID] = index
+	}
+	return idMapping
 }
 
 type ResultSubmission struct {
@@ -798,25 +824,15 @@ func (rs *ResultSubmission) PubKeysCDC() cadence.Array {
 }
 
 func (rs *ResultSubmission) IDMappingCDC() cadence.Dictionary {
-	return MakeDKGIDMappingCDC(rs.IDMapping)
+	return DKGIDMappingToCDC(rs.IDMapping)
 }
 
 func ResultSubmissionFromCadence(cdc cadence.Value) ResultSubmission {
-	rs := ResultSubmission{
-		IDMapping: make(map[string]int),
-	}
 	fields := cdc.(cadence.Struct).FieldsMappedByName()
-
-	rs.GroupPubKey = string(UnwrapOptional[cadence.String](fields["groupPubKey"]))
-	pubKeysCDC := UnwrapOptional[cadence.Array](fields["pubKeys"])
-	for _, pubKeyCDC := range pubKeysCDC.Values {
-		rs.PubKeys = append(rs.PubKeys, string(pubKeyCDC.(cadence.String)))
-	}
-	idMappingCDC := UnwrapOptional[cadence.Dictionary](fields["idMapping"])
-	for _, pair := range idMappingCDC.Pairs {
-		nodeID := string(pair.Key.(cadence.String))
-		index := pair.Value.(cadence.Int).Int()
-		rs.IDMapping[nodeID] = index
+	rs := ResultSubmission{
+		GroupPubKey: string(UnwrapOptional[cadence.String](fields["groupPubKey"])),
+		PubKeys:     CadenceArrayTo(UnwrapOptional[cadence.Array](fields["pubKeys"]), CDCToString),
+		IDMapping:   CDCToDKGIDMapping(UnwrapOptional[cadence.Dictionary](fields["idMapping"])),
 	}
 	return rs
 }
