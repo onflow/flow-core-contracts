@@ -188,7 +188,10 @@ access(all) contract FlowEpoch {
 
         /// The public keys associated with the Distributed Key Generation
         /// process that consensus nodes participate in
-        /// Group key is the last element at index: length - 1
+        /// The first element is the group public key, followed by n participant public keys.
+        /// NOTE: This data structure was updated to include a mapping from node ID to DKG index.
+        /// Because structures cannot be updated in Cadence, we include the groupPubKey and pubKeys
+        /// fields here (idMapping field is omitted).
         access(all) var dkgKeys: [String]
 
         init(counter: UInt64,
@@ -234,9 +237,11 @@ access(all) contract FlowEpoch {
             self.clusterQCs = qcs
         }
 
-        // TODO(6213): this setter is using a misleading name and cannot be updated to include the ID mapping.
-        // Should we just remove it / stop using it?
-        access(account) fun setDKGGroupKey(keys: [String]) {
+        /// Sets the DKG group key (keys[0]) and participant keys (keys[1:]) from the DKG result.
+        /// NOTE: This data structure was updated to include a mapping from node ID to DKG index.
+        /// Because structures cannot be updated in Cadence, we include the groupPubKey and pubKeys
+        /// fields here (idMapping field is omitted).
+        access(account) fun setDKGKeys(keys: [String]) {
             self.dkgKeys = keys
         }
     }
@@ -781,7 +786,10 @@ access(all) contract FlowEpoch {
 
         // Set DKG result in the proposed epoch metadata and stop DKG
         let dkgResult = FlowDKG.dkgCompleted()!
-
+        // Construct a partial representation of the DKG result for storage in the epoch metadata.
+        // See setDKGKeys documentation for context on why the node ID mapping is omitted here.
+        let dkgPubKeys = [dkgResult.groupPubKey!].concat(dkgResult.pubKeys!)
+        proposedEpochMetadata.setDKGKeys(keys: dkgPubKeys)
         self.saveEpochMetadata(proposedEpochMetadata)
 
         self.currentEpochPhase = EpochPhase.EPOCHCOMMIT
