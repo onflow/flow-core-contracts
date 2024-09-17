@@ -686,7 +686,10 @@ func checkDKGSafeThreshold(
 	assertEqual(t, expected, safeThreshold)
 }
 
-// Tests the DKG with submissions consisting of nil keys
+// Tests the DKG with submissions consisting of nil keys.
+// With 2 participants, the threshold is floor((n-1)/2) = 0, so 1 valid submission is sufficient to end the DKG.
+// In the first subtest, we submit one empty submission and validate that this does not end the DKG.
+// In the second subtest, we submit one non-empty submission and validate that this does end the DKG.
 func TestDKGNil(t *testing.T) {
 	b, adapter := newBlockchain()
 
@@ -726,8 +729,7 @@ func TestDKGNil(t *testing.T) {
 	// register a node dkg participant
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateDKGParticipantScript(env), jordanAddress)
 	_ = tx.AddArgument(cadence.NewAddress(DKGAddress))
-	stringArg, _ := cadence.NewString(accessID)
-	_ = tx.AddArgument(stringArg)
+	_ = tx.AddArgument(cadence.String(accessID))
 
 	signAndSubmit(
 		t, b, tx,
@@ -736,12 +738,7 @@ func TestDKGNil(t *testing.T) {
 		false,
 	)
 
-	dkgNodeIDStrings := make([]cadence.Value, 2)
-
-	stringArg, _ = cadence.NewString(adminID)
-	dkgNodeIDStrings[0] = stringArg
-	stringArg, _ = cadence.NewString(accessID)
-	dkgNodeIDStrings[1] = stringArg
+	dkgNodeIDStrings := []cadence.Value{cadence.String(adminID), cadence.String(accessID)}
 
 	// Start the DKG
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateStartDKGScript(env), DKGAddress)
@@ -760,8 +757,7 @@ func TestDKGNil(t *testing.T) {
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateDKGParticipantScript(env), DKGAddress)
 
 	_ = tx.AddArgument(cadence.NewAddress(DKGAddress))
-	stringArg, _ = cadence.NewString(adminID)
-	_ = tx.AddArgument(stringArg)
+	_ = tx.AddArgument(cadence.String(adminID))
 
 	signAndSubmit(
 		t, b, tx,
@@ -770,18 +766,10 @@ func TestDKGNil(t *testing.T) {
 		false,
 	)
 
-	finalSubmissionKeys := make([]cadence.Value, 3)
+	// Although one submission exceeds the threshold (0), since it is empty it does not count toward completion.
+	t.Run("Should be able to make an empty final submission, but not count as completed", func(t *testing.T) {
 
-	t.Run("Should be able to make a final submission with nil keys, but not count as completed", func(t *testing.T) {
-
-		finalSubmissionKeys[0] = cadence.NewOptional(nil)
-		finalSubmissionKeys[1] = cadence.NewOptional(nil)
-		finalSubmissionKeys[2] = cadence.NewOptional(nil)
-
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGFinalSubmissionScript(env), DKGAddress)
-		err := tx.AddArgument(cadence.NewArray(finalSubmissionKeys))
-		require.NoError(t, err)
-
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSendEmptyDKGFinalSubmissionScript(env), DKGAddress)
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{DKGAddress},
@@ -794,22 +782,23 @@ func TestDKGNil(t *testing.T) {
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGCompletedScript(env), nil)
 		assert.Equal(t, cadence.NewBool(false), result)
-
 	})
 
-	dkgKey1 := fmt.Sprintf("%0192d", access)
-
-	t.Run("Should count as completed even if 50 of participants sent nil keys", func(t *testing.T) {
-
-		// NOTE: one participant submitted a nil key vector in the previous test case
-
-		stringArg, _ = cadence.NewString(dkgKey1)
-		finalSubmissionKeys[0] = cadence.NewOptional(stringArg)
-		finalSubmissionKeys[1] = cadence.NewOptional(stringArg)
-		finalSubmissionKeys[2] = cadence.NewOptional(stringArg)
+	// In the previous test case, 1/2 participants submitted an empty result.
+	// Now, when the second participant submits a non-empty result, the DKG should be considered complete.
+	t.Run("Should count as completed even if >threshold participants sent nil keys", func(t *testing.T) {
+		submission := ResultSubmission{
+			GroupPubKey: DKGPubKeyFixture(),
+			PubKeys:     DKGPubKeysFixture(2),
+			IDMapping:   map[string]int{accessID: 0, adminID: 1},
+		}
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGFinalSubmissionScript(env), jordanAddress)
-		err := tx.AddArgument(cadence.NewArray(finalSubmissionKeys))
+		err := tx.AddArgument(submission.GroupPubKeyCDC())
+		require.NoError(t, err)
+		err = tx.AddArgument(submission.PubKeysCDC())
+		require.NoError(t, err)
+		err = tx.AddArgument(submission.IDMappingCDC())
 		require.NoError(t, err)
 
 		signAndSubmit(

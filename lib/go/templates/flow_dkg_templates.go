@@ -17,9 +17,10 @@ const (
 
 	// Node Transactions
 
-	createParticipantFilename     = "dkg/create_participant.cdc"
-	sendWhiteBoardMessageFilename = "dkg/send_whiteboard_message.cdc"
-	sendFinalSubmissionFilename   = "dkg/send_final_submission.cdc"
+	createParticipantFilename        = "dkg/create_participant.cdc"
+	sendWhiteBoardMessageFilename    = "dkg/send_whiteboard_message.cdc"
+	sendFinalSubmissionFilename      = "dkg/send_final_submission.cdc"
+	sendEmptyFinalSubmissionFilename = "dkg/send_empty_final_submission.cdc"
 
 	// Scripts
 
@@ -94,6 +95,13 @@ func GenerateSendDKGWhiteboardMessageScript(env Environment) []byte {
 // GenerateSendDKGFinalSubmissionScript generates a script that sends a dkg final submission for a node
 func GenerateSendDKGFinalSubmissionScript(env Environment) []byte {
 	code := assets.MustAssetString(sendFinalSubmissionFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+// GenerateSendEmptyDKGFinalSubmissionScript generates a script that sends an empty dkg final submission for a node
+func GenerateSendEmptyDKGFinalSubmissionScript(env Environment) []byte {
+	code := assets.MustAssetString(sendEmptyFinalSubmissionFilename)
 
 	return []byte(ReplaceAddresses(code, env))
 }
