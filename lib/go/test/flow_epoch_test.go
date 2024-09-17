@@ -1109,8 +1109,7 @@ func TestEpochQCDKG(t *testing.T) {
 				rewardsPaid:           false,
 				collectorClusters:     clusters,
 				clusterQCs:            clusterQCs,
-				// TODO: remove?
-				//dkgKeys:               finalKeyStrings,
+				dkgKeys:               append([]string{dkgResult.GroupPubKey}, dkgResult.PubKeys...),
 			})
 
 		// Make sure the payout is the same as the total rewards in the epoch metadata
