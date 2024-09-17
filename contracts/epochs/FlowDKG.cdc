@@ -90,11 +90,11 @@ access(all) contract FlowDKG {
         }
     }
 
-    // Checks whether the ResultSubmission constructor arguments constitute a valid nil/empty submission.
-    // A valid nil submission has all fields nil, and is used when the submittor locally failed the DKG.
-    // All non-nil submissions must have all non-nil fields.
+    // Checks whether the ResultSubmission constructor arguments constitute a valid empty submission.
+    // A valid empty submission has all fields nil, and is used when the submittor locally failed the DKG.
+    // All non-empty submissions must have all non-nil fields.
     access(all) view fun isValidNilSubmission(groupPubKey: String?, pubKeys: [String]?, idMapping: {String:Int}?): Bool {
-        // If any fields are nil, then this represents a nil submission and all fields must be nil
+        // If any fields are nil, then this represents a empty submission and all fields must be nil
         if groupPubKey == nil && pubKeys == nil && idMapping == nil {
             return true
         }
