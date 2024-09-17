@@ -8,12 +8,12 @@ const (
 
 	// Admin Transactions
 
-	startDKGFilename           = "dkg/admin/start_dkg.cdc"
-	nextPhaseFilename          = "dkg/admin/next_phase.cdc"
-	stopDKGFilename            = "dkg/admin/stop_dkg.cdc"
-	forceStopDKGFilename       = "dkg/admin/force_stop_dkg.cdc"
-	setSafeThresholdFilename   = "dkg/admin/set_safe_threshold.cdc"
-	publishParticipantFilename = "dkg/admin/publish_participant.cdc"
+	startDKGFilename         = "dkg/admin/start_dkg.cdc"
+	nextPhaseFilename        = "dkg/admin/next_phase.cdc"
+	stopDKGFilename          = "dkg/admin/stop_dkg.cdc"
+	forceStopDKGFilename     = "dkg/admin/force_stop_dkg.cdc"
+	setSafeThresholdFilename = "dkg/admin/set_safe_threshold.cdc"
+	publishDKGAdminFilename  = "dkg/admin/publish_admin.cdc"
 
 	// Node Transactions
 
@@ -69,9 +69,8 @@ func GenerateSetSafeThresholdScript(env Environment) []byte {
 	return []byte(ReplaceAddresses(code, env))
 }
 
-// TODO rename
-func GeneratePublishDKGParticipantScript(env Environment) []byte {
-	code := assets.MustAssetString(publishParticipantFilename)
+func GeneratePublishDKGAdminScript(env Environment) []byte {
+	code := assets.MustAssetString(publishDKGAdminFilename)
 
 	return []byte(ReplaceAddresses(code, env))
 }

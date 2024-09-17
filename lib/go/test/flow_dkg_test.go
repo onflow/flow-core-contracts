@@ -54,7 +54,7 @@ func TestDKG(t *testing.T) {
 
 	t.Run("Should be able to set up the admin account", func(t *testing.T) {
 
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GeneratePublishDKGParticipantScript(env), DKGAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GeneratePublishDKGAdminScript(env), DKGAddress)
 
 		signAndSubmit(
 			t, b, tx,
@@ -718,7 +718,7 @@ func TestDKGNil(t *testing.T) {
 	jordanAddress, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{jordanAccountKey}, nil)
 
 	// set up the admin account
-	tx := createTxWithTemplateAndAuthorizer(b, templates.GeneratePublishDKGParticipantScript(env), DKGAddress)
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GeneratePublishDKGAdminScript(env), DKGAddress)
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{DKGAddress},

@@ -23,7 +23,7 @@
 // accounts/create_new_account.cdc (768B)
 // accounts/revoke_key.cdc (263B)
 // dkg/admin/force_stop_dkg.cdc (350B)
-// dkg/admin/publish_participant.cdc (353B)
+// dkg/admin/publish_admin.cdc (313B)
 // dkg/admin/set_safe_threshold.cdc (441B)
 // dkg/admin/start_dkg.cdc (382B)
 // dkg/admin/stop_dkg.cdc (345B)
@@ -825,23 +825,23 @@ func dkgAdminForce_stop_dkgCdc() (*asset, error) {
 	return a, nil
 }
 
-var _dkgAdminPublish_participantCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x8f\x41\x4b\xc3\x40\x10\x85\xef\xfb\x2b\x9e\x3d\x94\x04\x24\xb9\x07\x15\x4a\x8b\x1e\x3c\x54\xd0\xbb\x4c\xb7\x93\x64\x70\xb3\xbb\xec\x4e\x10\x29\xfd\xef\xd2\x24\x4a\x05\xf7\x36\xcb\xfb\xbe\xc7\x93\x21\x86\xa4\x78\x74\xe1\x73\xf7\xfc\x84\x36\x85\x01\xab\xe5\x5a\x19\x53\xd7\x78\xeb\x25\x43\x13\xf9\x4c\x56\x25\x78\x48\x46\xf0\xee\x0b\x6d\x48\x50\xce\x2a\xbe\xbb\x99\x93\xfb\xdd\xbe\x41\x62\x4f\x03\xa3\x15\xc7\xd0\x80\x38\x1e\x9c\xe4\xfe\x9d\x8e\x83\x78\x63\xae\x45\x27\x63\x00\x20\x26\x8e\x94\xb8\xc8\xd2\x79\x4e\x0d\x68\xd4\xbe\xd8\x52\xa4\x83\x38\x51\xe1\x5c\x62\xbd\xb1\x36\x8c\x5e\x4b\x9c\x26\xe4\xf2\x1c\x2b\x26\xe9\x96\x22\xee\x31\xd3\x95\xbd\xe2\xaa\xac\x21\x51\xc7\x95\xe4\x3c\xf2\xdd\x7a\x99\x55\x6d\x2e\xd4\x43\xf1\xe7\x7c\x9d\xa3\x2f\xa4\x7d\xf9\x5b\xf1\x9f\x73\xd9\x53\xfc\x54\xdf\x82\xb4\x41\x3d\x7d\xdb\xfa\xf8\xd1\x4d\xba\xd9\x71\x36\x67\xf3\x1d\x00\x00\xff\xff\x28\x87\x4a\x30\x61\x01\x00\x00"
+var _dkgAdminPublish_adminCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\x8e\x41\x4b\xc3\x40\x10\x85\xef\xfb\x2b\x9e\x3d\x94\x04\x24\xb9\x17\x15\x4a\x45\x0f\x5e\x04\xfd\x03\xd3\xed\x36\x19\xdc\xec\x2e\x33\x13\x44\x4a\xff\xbb\x34\xa9\x12\xc1\xbd\xbd\xe5\x7d\xdf\x1b\x1e\x4a\x16\xc3\x53\xcc\x9f\x8f\x2f\xcf\x38\x4a\x1e\xb0\xba\xa6\x95\x73\x6d\x8b\xf7\x9e\x15\x26\x94\x94\xbc\x71\x4e\x60\x45\x4e\xf1\x0b\xc7\x2c\xb0\xa0\xc6\xa9\xbb\x71\xcb\xc2\xc9\x39\x00\x28\x12\x0a\x49\xa8\x94\xbb\x14\x64\x03\x1a\xad\xaf\x76\x54\x68\xcf\x91\x8d\x83\xd6\x58\x6f\xbd\xcf\x63\xb2\x1a\xa7\x09\xb9\xbc\x18\x0c\x74\x18\x38\xed\xa8\xe0\x1e\x33\xdd\xf8\x05\xd7\xa8\x65\xa1\x2e\x34\xac\x3a\x86\xbb\xf5\xf5\xdc\x66\x7b\xa1\x1e\xaa\x3f\xf1\x6d\xae\xbe\x92\xf5\xf5\xef\xc4\x7f\xce\x32\xee\x23\x6b\x5f\xfd\x4c\xdf\x82\x6c\x83\x76\xfa\xf6\xed\xe1\xa3\x9b\x74\xb3\xe3\xec\xce\xee\x3b\x00\x00\xff\xff\xfc\x3f\x12\x42\x39\x01\x00\x00"
 
-func dkgAdminPublish_participantCdcBytes() ([]byte, error) {
+func dkgAdminPublish_adminCdcBytes() ([]byte, error) {
 	return bindataRead(
-		_dkgAdminPublish_participantCdc,
-		"dkg/admin/publish_participant.cdc",
+		_dkgAdminPublish_adminCdc,
+		"dkg/admin/publish_admin.cdc",
 	)
 }
 
-func dkgAdminPublish_participantCdc() (*asset, error) {
-	bytes, err := dkgAdminPublish_participantCdcBytes()
+func dkgAdminPublish_adminCdc() (*asset, error) {
+	bytes, err := dkgAdminPublish_adminCdcBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "dkg/admin/publish_participant.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x17, 0x1f, 0x15, 0xf8, 0x71, 0x1f, 0x15, 0xdd, 0x92, 0x4b, 0xc4, 0x3, 0xe3, 0x97, 0xcb, 0xfb, 0xca, 0x9, 0xfb, 0x5b, 0x3c, 0xab, 0xa9, 0x49, 0x46, 0xe5, 0x2c, 0x8, 0xf2, 0xcf, 0x62, 0x6d}}
+	info := bindataFileInfo{name: "dkg/admin/publish_admin.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x44, 0x54, 0x75, 0x9b, 0x64, 0xdf, 0xf2, 0x2e, 0x3e, 0x93, 0x15, 0xdf, 0x8a, 0xb4, 0x11, 0xf8, 0x75, 0x7d, 0xae, 0xe9, 0xea, 0xe9, 0x2e, 0xb4, 0xe8, 0x10, 0x59, 0xbb, 0x95, 0xd3, 0x3a, 0x50}}
 	return a, nil
 }
 
@@ -6419,7 +6419,7 @@ var _bindata = map[string]func() (*asset, error){
 	"accounts/create_new_account.cdc":                                             accountsCreate_new_accountCdc,
 	"accounts/revoke_key.cdc":                                                     accountsRevoke_keyCdc,
 	"dkg/admin/force_stop_dkg.cdc":                                                dkgAdminForce_stop_dkgCdc,
-	"dkg/admin/publish_participant.cdc":                                           dkgAdminPublish_participantCdc,
+	"dkg/admin/publish_admin.cdc":                                                 dkgAdminPublish_adminCdc,
 	"dkg/admin/set_safe_threshold.cdc":                                            dkgAdminSet_safe_thresholdCdc,
 	"dkg/admin/start_dkg.cdc":                                                     dkgAdminStart_dkgCdc,
 	"dkg/admin/stop_dkg.cdc":                                                      dkgAdminStop_dkgCdc,
@@ -6772,7 +6772,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	"dkg": {nil, map[string]*bintree{
 		"admin": {nil, map[string]*bintree{
 			"force_stop_dkg.cdc": {dkgAdminForce_stop_dkgCdc, map[string]*bintree{}},
-			"publish_participant.cdc": {dkgAdminPublish_participantCdc, map[string]*bintree{}},
+			"publish_admin.cdc": {dkgAdminPublish_adminCdc, map[string]*bintree{}},
 			"set_safe_threshold.cdc": {dkgAdminSet_safe_thresholdCdc, map[string]*bintree{}},
 			"start_dkg.cdc": {dkgAdminStart_dkgCdc, map[string]*bintree{}},
 			"stop_dkg.cdc": {dkgAdminStop_dkgCdc, map[string]*bintree{}},
