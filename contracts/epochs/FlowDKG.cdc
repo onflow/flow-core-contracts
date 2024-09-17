@@ -466,7 +466,7 @@ access(all) contract FlowDKG {
 
     /// Gets the specific final submission for a node ID
     /// If the node hasn't submitted or registered, this returns `nil`
-    access(all) fun getNodeFinalSubmission(_ nodeID: String): ResultSubmission? {
+    access(all) view fun getNodeFinalSubmission(_ nodeID: String): ResultSubmission? {
         return self.mustBorrowSubmissionTracker().getSubmissionByNodeID(nodeID)
     }
 
@@ -476,7 +476,7 @@ access(all) contract FlowDKG {
     }
 
     /// Get the array of all the unique final submissions
-    access(all) fun getFinalSubmissions(): [ResultSubmission] {
+    access(all) view fun getFinalSubmissions(): [ResultSubmission] {
         return self.mustBorrowSubmissionTracker().getUniqueSubmissions()
     }
 
