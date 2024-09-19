@@ -1172,24 +1172,6 @@ access(all) contract FlowStakingCollection {
         return <- create StakingCollection(unlockedVault: unlockedVault, tokenHolder: tokenHolder)
     }
 
-    /// Destroys the provided staking collection
-    /// This closes all the stakes before destroying everything
-    /// This uses the closeStake method, so it will panic if there are still tokens staked in any of the objects
-    access(all) fun destroyStakingCollection(_ collection: @StakingCollection) {
-        let nodeIDs = collection.getNodeIDs()
-        let delegatorIDs = collection.getDelegatorIDs()
-
-        for nodeID in nodeIDs {
-            collection.closeStake(nodeID: nodeID, delegatorID: nil)
-        }
-
-        for delegatorID in delegatorIDs {
-            collection.closeStake(nodeID: delegatorID.delegatorNodeID, delegatorID: delegatorID.delegatorID)
-        }
-
-        destroy collection
-    }
-
     init() {
         self.StakingCollectionStoragePath = /storage/stakingCollection
         self.StakingCollectionPrivatePath = /private/stakingCollection
