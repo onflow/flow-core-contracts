@@ -56,7 +56,11 @@ transaction(unlockInfo: {Address: UFix64}) {
 
         admin.storage.save<{Address: UFix64}>(badAccounts, to: /storage/unlockingBadAccounts)
 
-        let unlockingBadAccountCap = admin.capabilities.storage.issue<&{Address: UFix64}>(/storage/unlockingBadAccounts)
-        admin.capabilities.publish(unlockingBadAccountCap, at: /public/unlockingBadAccounts)
+        let unlockingBadAccountCap = admin.capabilities.get<&{Address: UFix64}>(/public/unlockingBadAccounts)
+        if !unlockingBadAccountCap.check() {
+            let unlockingBadAccountCap = admin.capabilities.storage.issue<&{Address: UFix64}>(/storage/unlockingBadAccounts)
+            admin.capabilities.unpublish(/public/unlockingBadAccounts)
+            admin.capabilities.publish(unlockingBadAccountCap, at: /public/unlockingBadAccounts)
+        }
     }
 }

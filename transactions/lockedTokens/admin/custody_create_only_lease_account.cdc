@@ -27,7 +27,7 @@ transaction(
         sharedAccount.storage.save(<-lockedTokenManager, to: LockedTokens.LockedTokenManagerStoragePath)
 
         let tokenManagerCapability = sharedAccount.capabilities.storage
-            .issue<auth(FungibleToken.Withdraw) &LockedTokens.LockedTokenManager>(
+            .issue<auth(FungibleToken.Withdraw, LockedTokens.UnlockTokens) &LockedTokens.LockedTokenManager>(
                 LockedTokens.LockedTokenManagerStoragePath
             )
 
@@ -45,7 +45,7 @@ transaction(
         userAccount.capabilities.publish(tokenHolderCap, at: LockedTokens.LockedAccountInfoPublicPath)
 
         let tokenAdminCapability = sharedAccount.capabilities.storage
-            .issue<auth(FungibleToken.Withdraw) &LockedTokens.LockedTokenManager>(
+            .issue<auth(FungibleToken.Withdraw, LockedTokens.UnlockTokens) &LockedTokens.LockedTokenManager>(
                 LockedTokens.LockedTokenManagerStoragePath
             )
 

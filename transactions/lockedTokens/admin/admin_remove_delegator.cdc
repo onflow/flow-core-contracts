@@ -5,7 +5,7 @@ transaction {
 
     prepare(signer: auth(BorrowValue) &Account) {
 
-        let managerRef = signer.storage.borrow<&LockedTokens.LockedTokenManager>(from: LockedTokens.LockedTokenManagerStoragePath)
+        let managerRef = signer.storage.borrow<auth(LockedTokens.UnlockTokens) &LockedTokens.LockedTokenManager>(from: LockedTokens.LockedTokenManagerStoragePath)
             ?? panic("Could not borrow a reference to the locked token manager")
 
         let delegator <- managerRef.removeDelegator()!

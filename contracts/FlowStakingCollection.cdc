@@ -18,6 +18,7 @@ import FlowStorageFees from "FlowStorageFees"
 import FlowClusterQC from "FlowClusterQC"
 import FlowDKG from "FlowDKG"
 import FlowEpoch from "FlowEpoch"
+import Burner from "Burner"
 
 access(all) contract FlowStakingCollection {
 
@@ -67,7 +68,7 @@ access(all) contract FlowStakingCollection {
         }
 
         // Gets the address of the machine account
-        access(all) fun getAddress(): Address {
+        access(all) view fun getAddress(): Address {
             return self.machineAccountVaultProvider.borrow()!.owner!.address
         }
     }
@@ -79,7 +80,6 @@ access(all) contract FlowStakingCollection {
         access(all) var unlockedTokensUsed: UFix64
         access(all) fun addNodeObject(_ node: @FlowIDTableStaking.NodeStaker, machineAccountInfo: MachineAccountInfo?)
         access(all) fun addDelegatorObject(_ delegator: @FlowIDTableStaking.NodeDelegator)
-        //access(all) fun depositToMachineAccount(nodeID: String, from: @FlowToken.Vault)
         access(all) view fun doesStakeExist(nodeID: String, delegatorID: UInt32?): Bool
         access(all) fun getNodeIDs(): [String]
         access(all) fun getDelegatorIDs(): [DelegatorIDs]
@@ -102,7 +102,7 @@ access(all) contract FlowStakingCollection {
     /// unstake all your tokens and withdraw
     /// your unstaked tokens and rewards first before destroying.
     /// Then use the `destroyStakingCollection` method to destroy it
-    access(all) resource StakingCollection: StakingCollectionPublic {
+    access(all) resource StakingCollection: StakingCollectionPublic, Burner.Burnable {
 
         /// unlocked vault
         access(self) var unlockedVault: Capability<auth(FungibleToken.Withdraw) &FlowToken.Vault>
@@ -160,6 +160,21 @@ access(all) contract FlowStakingCollection {
             }
 
             self.machineAccounts = {}
+        }
+
+        /// Called when the collection is destroyed via `Burner.burn()`
+        access(contract) fun burnCallback() {
+
+            let nodeIDs = self.getNodeIDs()
+            let delegatorIDs = self.getDelegatorIDs()
+
+            for nodeID in nodeIDs {
+                self.closeStake(nodeID: nodeID, delegatorID: nil)
+            }
+
+            for delegatorID in delegatorIDs {
+                self.closeStake(nodeID: delegatorID.delegatorNodeID, delegatorID: delegatorID.delegatorID)
+            }
         }
 
         /// Called when committing tokens for staking. Gets tokens from either or both vaults
