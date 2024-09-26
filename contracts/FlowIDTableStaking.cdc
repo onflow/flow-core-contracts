@@ -182,7 +182,10 @@ access(all) contract FlowIDTableStaking {
             // Verify the proof of possesion of the private staking key
             assert(
                 stakeKey.verifyPoP(stakingKeyPoP.decodeHex()),
-                message: "Invalid Proof of Possesion for staking key"
+                message: 
+                    "FlowIDTableStaking.NodeRecord.init: Cannot create node with ID "
+                    .concat(id).concat(". The Proof of Possession (").concat(stakingKeyPoP)
+                    .concat(") for the node's staking key (").concat(") is invalid")
             )
 
             let netKey = PublicKey(
