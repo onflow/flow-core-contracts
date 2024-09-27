@@ -215,6 +215,7 @@ access(all) contract FlowEpoch {
 
         // TODO(EFM, #6213): include id->index mapping
         dkgPubKeys: [String],
+        dkgIdMapping: {String: Int},
     )
 
     /// Contains specific metadata about a particular epoch
@@ -526,6 +527,7 @@ access(all) contract FlowEpoch {
             targetEndTime: UInt64,
             clusterQCVoteData: [FlowClusterQC.ClusterQCVoteData],
             dkgPubKeys: [String],
+            dkgIdMapping: {String: Int},
             ) {
             self.recoverEpochPreChecks(
                 startView: startView, 
@@ -562,6 +564,7 @@ access(all) contract FlowEpoch {
                 targetEndTime: targetEndTime,
                 clusterQCVoteData: clusterQCVoteData,
                 dkgPubKeys: dkgPubKeys,
+                dkgIdMapping: dkgIdMapping,
             )
         }
 
@@ -622,6 +625,7 @@ access(all) contract FlowEpoch {
             clusterAssignments: [[String]],
             clusterQCVoteData: [FlowClusterQC.ClusterQCVoteData],
             dkgPubKeys: [String],
+            dkgIdMapping: {String: Int},
             nodeIDs: [String]) 
         {
             // sanity check recovery epoch counter should increment current epoch counter
@@ -667,6 +671,7 @@ access(all) contract FlowEpoch {
                 targetEndTime: targetEndTime,
                 clusterQCVoteData: clusterQCVoteData,
                 dkgPubKeys: dkgPubKeys,
+                dkgIdMapping: dkgIdMapping,
             )
 
             /// Start a new Epoch, which increments the current epoch counter
@@ -689,6 +694,7 @@ access(all) contract FlowEpoch {
             clusterAssignments: [[String]],
             clusterQCVoteData: [FlowClusterQC.ClusterQCVoteData],
             dkgPubKeys: [String],
+            dkgIdMapping: {String: Int},
             nodeIDs: [String]) 
         { 
             // sanity check recovery epoch counter should be the current epoch counter
@@ -729,6 +735,7 @@ access(all) contract FlowEpoch {
                 targetEndTime: targetEndTime,
                 clusterQCVoteData: clusterQCVoteData,
                 dkgPubKeys: dkgPubKeys,
+                dkgIdMapping: dkgIdMapping,
             )
         }
 

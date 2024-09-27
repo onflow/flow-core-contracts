@@ -1602,7 +1602,7 @@ func TestEpochRecover(t *testing.T) {
 			)
 			args := getRecoveryTxArgs(env, ids, startView, stakingEndView, endView, targetDuration, targetEndTime, startEpochCounter)
 			// overwrite the current epoch by setting unsafe overwrite to true
-			args[10] = cadence.NewBool(true)
+			args[11] = cadence.NewBool(true)
 			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRecoverEpochScript(env), idTableAddress)
 			for _, arg := range args {
 				tx.AddArgument(arg)
@@ -1709,6 +1709,7 @@ func TestEpochRecover(t *testing.T) {
 							clusterAssignments: [[String]],
 							clusterQCVoteData: [FlowClusterQC.ClusterQCVoteData],
 							dkgPubKeys: [String],
+							dkgIdMapping: {String: Int},
 							nodeIDs: [String],
 							unsafeAllowOverwrite: Bool) {
 
@@ -1726,6 +1727,7 @@ func TestEpochRecover(t *testing.T) {
 								clusterAssignments: clusterAssignments,
 								clusterQCVoteData: clusterQCVoteData,
 								dkgPubKeys: dkgPubKeys,
+								dkgIdMapping: dkgIdMapping,
 								nodeIDs: nodeIDs
 							)
 					}
@@ -1994,7 +1996,6 @@ func getRecoveryTxArgs(
 	for i, id := range nodeIds {
 		nodeIDs[i], _ = cadence.NewString(id)
 	}
-
 	clusterQcVoteData := convertClusterQcsCdc(env, collectorClusters)
 	return []cadence.Value{
 		cadence.NewUInt64(epochCounter),
@@ -2006,6 +2007,10 @@ func getRecoveryTxArgs(
 		cadence.NewArray(collectorClusters), // collectorClusters
 		cadence.NewArray(clusterQcVoteData), // clusterQCVoteData
 		cadence.NewArray(dkgPubKeysCdc),
+		cadence.NewDictionary([]cadence.KeyValuePair{{
+			Key:   cadence.String(nodeIds[0]),
+			Value: cadence.NewInt(0),
+		}}),
 		cadence.NewArray(nodeIDs),
 		cadence.NewBool(false), // recover EFM with a new epoch, set unsafeAllowOverwrite to false
 	}
@@ -2030,6 +2035,13 @@ func verifyEpochRecoverGovernanceTx(
 	args []cadence.Value,
 ) {
 	dkgPubKeys := make([]string, len(args[8].(cadence.Array).Values))
+	dkgIdMappingKVP := make([]cadence.KeyValuePair, len(dkgPubKeys))
+	for i, _ := range dkgPubKeys {
+		dkgIdMappingKVP[i] = cadence.KeyValuePair{
+			Key:   cadence.String(fmt.Sprintf("node_%d", i)),
+			Value: cadence.NewInt(i),
+		}
+	}
 	for i, dkgKeyCdc := range args[8].(cadence.Array).Values {
 		dkgPubKeys[i] = strings.ReplaceAll(dkgKeyCdc.String(), `"`, "")
 	}
@@ -2066,6 +2078,7 @@ func verifyEpochRecoverGovernanceTx(
 		targetEndTime:      targetEndTime,
 		numberClusterQCs:   len(args[6].(cadence.Array).Values),
 		dkgPubKeys:         dkgPubKeys,
+		dkgIdMapping:       cadence.NewDictionary(dkgIdMappingKVP),
 	}
 	verifyEpochRecover(t, adapter, idTableAddress, expectedRecoverEvent)
 }

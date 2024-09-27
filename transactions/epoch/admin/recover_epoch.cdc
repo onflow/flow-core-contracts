@@ -20,6 +20,7 @@ transaction(recoveryEpochCounter: UInt64,
             clusterAssignments: [[String]],
             clusterQCVoteData: [FlowClusterQC.ClusterQCVoteData],
             dkgPubKeys: [String],
+            dkgIdMapping: {String: Int},
             nodeIDs: [String],
             unsafeAllowOverwrite: Bool) {
 
@@ -40,6 +41,7 @@ transaction(recoveryEpochCounter: UInt64,
                 clusterAssignments: clusterAssignments,
                 clusterQCVoteData: clusterQCVoteData,
                 dkgPubKeys: dkgPubKeys,
+                dkgIdMapping: dkgIdMapping,
                 nodeIDs: nodeIDs
             )
         } else {
@@ -57,6 +59,7 @@ transaction(recoveryEpochCounter: UInt64,
                 clusterAssignments: clusterAssignments,
                 clusterQCVoteData: clusterQCVoteData,
                 dkgPubKeys: dkgPubKeys,
+                dkgIdMapping: dkgIdMapping,
                 nodeIDs: nodeIDs
             )
         }

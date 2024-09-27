@@ -148,6 +148,7 @@ type EpochRecover struct {
 	targetEndTime      uint64
 	numberClusterQCs   int
 	dkgPubKeys         []string
+	dkgIdMapping       cadence.Dictionary
 }
 
 type EpochRecoverEvent flow.Event
@@ -850,6 +851,7 @@ func verifyEpochRecover(
 	assertEqual(t, cadence.NewUInt64(expectedRecover.targetEndTime), emittedEvent.TargetEndTime())
 	assertEqual(t, expectedRecover.numberClusterQCs, len(emittedEvent.ClusterQCVoteData().Values))
 	assertEqual(t, len(expectedRecover.dkgPubKeys), len(emittedEvent.DKGPubKeys().Values))
+	assertEqual(t, len(expectedRecover.dkgIdMapping.Pairs), len(emittedEvent.DKGPubKeys().Values))
 }
 
 func getEpochMetadata(t *testing.T, b emulator.Emulator, env templates.Environment, counter cadence.Value) map[string]cadence.Value {
