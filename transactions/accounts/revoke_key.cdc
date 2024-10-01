@@ -3,7 +3,9 @@ transaction(keyIndex: Int) {
 		if let key = signer.keys.get(keyIndex: keyIndex) {
 			signer.keys.revoke(keyIndex: keyIndex)
 		} else {
-			panic("No key with the given index exists on the authorizer's account")
+			panic("Cannot revoke key: No key with the index "
+                .concat(keyIndex.toString())
+                .concat(" exists on the authorizer's account."))
 		}
 	}
 }

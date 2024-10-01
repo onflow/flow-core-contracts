@@ -13,11 +13,15 @@ transaction(recipient: Address, amount: UFix64) {
 
         self.tokenAdmin = signer.storage
             .borrow<&FlowToken.Administrator>(from: /storage/flowTokenAdmin)
-            ?? panic("Signer is not the token admin")
+            ?? panic("Cannot mint: Signer does not store the FlowToken Admin Resource in their account"
+                .concat(" at the path /storage/flowTokenAdmin."))
 
         self.tokenReceiver = getAccount(recipient)
             .capabilities.borrow<&{FungibleToken.Receiver}>(/public/flowTokenReceiver)
-            ?? panic("Unable to borrow receiver reference")
+            ?? panic("Could not borrow a Receiver reference to the FlowToken Vault in account "
+                .concat(recipient.toString()).concat(" at path /public/flowTokenReceiver")
+                .concat(". Make sure you are sending to an address that has ")
+                .concat("a FlowToken Vault set up properly at the specified path."))
     }
 
     execute {
