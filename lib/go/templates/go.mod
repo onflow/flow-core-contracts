@@ -7,9 +7,9 @@ toolchain go1.22.4
 require (
 	github.com/kevinburke/go-bindata v3.24.0+incompatible
 	github.com/onflow/cadence v1.0.0-preview.51
-	github.com/onflow/flow-ft/lib/go/templates v1.0.0
+	github.com/onflow/flow-ft/lib/go/templates v1.0.1
 	github.com/onflow/flow-go-sdk v1.0.0-preview.54
-	github.com/onflow/flow-nft/lib/go/templates v1.2.0
+	github.com/onflow/flow-nft/lib/go/templates v1.2.1
 	github.com/psiemens/sconfig v0.1.0
 	github.com/spf13/cobra v1.5.0
 )
