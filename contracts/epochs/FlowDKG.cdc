@@ -90,10 +90,11 @@ access(all) contract FlowDKG {
         }
     }
 
-    // Checks whether the ResultSubmission constructor arguments constitute a valid empty submission.
+    // Checks whether the ResultSubmission constructor arguments satisfy Invariant (1):
+    //   (1) either all fields are nil (empty submission) or no fields are nil
     // A valid empty submission has all fields nil, and is used when the submittor locally failed the DKG.
     // All non-empty submissions must have all non-nil fields.
-    access(all) view fun isValidNilSubmission(groupPubKey: String?, pubKeys: [String]?, idMapping: {String:Int}?): Bool {
+    access(all) view fun checkEmptySubmissionInvariant(groupPubKey: String?, pubKeys: [String]?, idMapping: {String:Int}?): Bool {
         // If any fields are nil, then this represents a empty submission and all fields must be nil
         if groupPubKey == nil && pubKeys == nil && idMapping == nil {
             return true
@@ -106,7 +107,7 @@ access(all) contract FlowDKG {
     // A valid public key in this context is either: (1) a hex-encoded 96 bytes, or (2) nil.
     access(all) view fun isValidGroupKey(_ groupKey: String?): Bool {
          if groupKey == nil {
-            // This is a nil/empty submission (see isValidNilSubmission)
+            // By Invariant (1), This is a nil/empty submission (see checkEmptySubmissionInvariant)
             return true
         }
         return groupKey!.length == FlowDKG.submissionKeyLength
@@ -116,7 +117,7 @@ access(all) contract FlowDKG {
     // A valid public key in this context is either: (1) a hex-encoded 96 bytes, or (2) nil.
     access(all) view fun isValidPubKeys(_ pubKeys: [String]?): Bool {
         if pubKeys == nil {
-            // This is a nil/empty submission (see isValidNilSubmission)
+            // By Invariant (1), This is a nil/empty submission (see checkEmptySubmissionInvariant)
             return true
         }
         for key in pubKeys! {
@@ -131,7 +132,7 @@ access(all) contract FlowDKG {
     // Checks that an id mapping (part of ResultSubmission) contains one entry per public key.
     access(all) view fun isValidIDMapping(pubKeys: [String]?, idMapping: {String: Int}?): Bool {
         if pubKeys == nil {
-            // This is a nil/empty submission (see isValidNilSubmission)
+            // By Invariant (1), This is a nil/empty submission (see checkEmptySubmissionInvariant)
             return true
         }
         return pubKeys!.length == idMapping!.keys.length
@@ -160,7 +161,7 @@ access(all) contract FlowDKG {
 
         init(groupPubKey: String?, pubKeys: [String]?, idMapping: {String:Int}?) {
             pre {
-                FlowDKG.isValidNilSubmission(groupPubKey: groupPubKey, pubKeys: pubKeys, idMapping: idMapping): "invalid empty submission"
+                FlowDKG.checkEmptySubmissionInvariant(groupPubKey: groupPubKey, pubKeys: pubKeys, idMapping: idMapping): "invalid empty submission"
                 FlowDKG.isValidGroupKey(groupPubKey): "invalid group key length"
                 FlowDKG.isValidPubKeys(pubKeys): "invalid participant key length"
                 FlowDKG.isValidIDMapping(pubKeys: pubKeys, idMapping: idMapping): "invalid id mapping length"
