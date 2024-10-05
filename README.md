@@ -235,6 +235,6 @@ to the team and we would be happy to help!
 
 ## License 
 
-The works in these folders are under the [Unlicense](https://github.com/dapperlabs/flow-core-contracts/blob/master/LICENSE):
+The works in these folders are under the [Unlicense](https://github.com/onflow/flow-core-contracts/blob/master/LICENSE):
 
-- [src/contracts](https://github.com/dapperlabs/flow-core-contracts/tree/master/contracts)
+- [src/contracts](https://github.com/onflow/flow-core-contracts/tree/master/contracts)
