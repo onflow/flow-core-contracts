@@ -7,7 +7,7 @@ transaction(
   newMajor: UInt8,
   newMinor: UInt8,
   newPatch: UInt8,
-  newPreRelease: String?,
+  newPreRelease: String,
   blockHeight: UInt64
 ) {
 
