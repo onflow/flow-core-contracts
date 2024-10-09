@@ -40,17 +40,6 @@
           ]
         },
         {
-          "type": "String",
-          "name": "stakingKeyPoP",
-          "label": "Staking Key PoP",
-          "sampleValues": [
-            {
-              "value": "828a68a2be392804044d85888100462702a422901da3269fb6512defabad07250aad24f232671e4ac8ae531f54e062fc",
-              "type": "String"
-            }
-          ]
-        },
-        {
           "type": "UFix64",
           "name": "weight",
           "label": "Key Weight",

@@ -172,12 +172,6 @@ func generateManifest(env templates.Environment) *manifest {
 				SampleValues: []cadenceValue{sampleHashAlgoEnumRawValue},
 			},
 			{
-				Type:         "String",
-				Name:         "stakingKeyPoP",
-				Label:        "Staking Key PoP",
-				SampleValues: []cadenceValue{sampleStakingKeyPoP},
-			},
-			{
 				Type:         "UFix64",
 				Name:         "weight",
 				Label:        "Key Weight",
