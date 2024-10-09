@@ -15,4 +15,3 @@ For contributor use:
 - [ ] Code follows the [standards mentioned here](https://github.com/onflow/flow-core-contracts/blob/master/CONTRIBUTING.md#styleguides).
 - [ ] Updated relevant documentation 
 - [ ] Re-reviewed `Files changed` in the Github PR explorer
-- [ ] Added appropriate labels 

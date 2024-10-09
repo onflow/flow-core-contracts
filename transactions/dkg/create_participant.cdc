@@ -1,5 +1,7 @@
 import FlowDKG from "FlowDKG"
 
+// TODO: only used for testing
+
 transaction(address: Address, nodeID: String) {
 
     prepare(signer: auth(SaveValue) &Account) {

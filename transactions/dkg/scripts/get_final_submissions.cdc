@@ -1,5 +1,5 @@
 import FlowDKG from "FlowDKG"
 
-access(all) fun main(): [[String?]] {
+access(all) fun main(): [FlowDKG.ResultSubmission] {
     return FlowDKG.getFinalSubmissions()
 }

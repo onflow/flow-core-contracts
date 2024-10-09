@@ -19,10 +19,6 @@ import (
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
 )
 
-const (
-	dkgBadKey = "000020202"
-)
-
 func TestDKG(t *testing.T) {
 	b, adapter := newBlockchain()
 
@@ -58,7 +54,7 @@ func TestDKG(t *testing.T) {
 
 	t.Run("Should be able to set up the admin account", func(t *testing.T) {
 
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GeneratePublishDKGParticipantScript(env), DKGAddress)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GeneratePublishDKGAdminScript(env), DKGAddress)
 
 		signAndSubmit(
 			t, b, tx,
@@ -84,11 +80,9 @@ func TestDKG(t *testing.T) {
 		)
 
 		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGNodeIsRegisteredScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(accessID))})
-
 		assert.Equal(t, cadence.NewBool(false), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGNodeIsClaimedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(accessID))})
-
 		assert.Equal(t, cadence.NewBool(true), result)
 	})
 
@@ -104,29 +98,24 @@ func TestDKG(t *testing.T) {
 		)
 
 		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGEnabledScript(env), nil)
-
 		assert.Equal(t, cadence.NewBool(false), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGCompletedScript(env), nil)
-
 		assert.Equal(t, cadence.NewBool(false), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGWhiteBoardMessagesScript(env), nil)
-
 		assert.Equal(t, 0, len(result.(cadence.Array).Values))
 	})
 
 	////////////////////////// FIRST EPOCH ///////////////////////////////////
 
-	dkgNodeIDStrings := make([]cadence.Value, 1)
-	dkgNodeIDStrings[0], _ = cadence.NewString(adminID)
-
+	// In the first there is one DKG participant (nodeID=adminID)
+	dkgNodeIDStrings := []cadence.Value{cadence.String(adminID)}
 	dkgNodeIDsCadenceArray := cadence.Array{Values: []cadence.Value{cadence.String(adminID)}}.WithType(cadence.NewVariableSizedArrayType(cadence.StringType))
 
-	t.Run("Should start dkg with the admin", func(t *testing.T) {
+	t.Run("Should start dkg where the only participant is admin", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateStartDKGScript(env), DKGAddress)
-
 		err := tx.AddArgument(cadence.NewArray(dkgNodeIDStrings))
 		require.NoError(t, err)
 
@@ -138,26 +127,20 @@ func TestDKG(t *testing.T) {
 		)
 
 		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGEnabledScript(env), nil)
-
 		assert.Equal(t, cadence.NewBool(true), result)
 
 		// AdminID is registered for this epoch by the admin
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGNodeIsRegisteredScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
-
 		assert.Equal(t, cadence.NewBool(true), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetConsensusNodesScript(env), nil)
-
 		assert.Equal(t, dkgNodeIDsCadenceArray, result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGFinalSubmissionsScript(env), nil)
-
 		assert.Equal(t, 0, len(result.(cadence.Array).Values))
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGCompletedScript(env), nil)
-
 		assert.Equal(t, cadence.NewBool(false), result)
-
 	})
 
 	t.Run("Should not be able to start dkg when it is already running", func(t *testing.T) {
@@ -175,13 +158,10 @@ func TestDKG(t *testing.T) {
 		)
 
 		result := executeScriptAndCheck(t, b, templates.GenerateGetConsensusNodesScript(env), nil)
-
 		assert.Equal(t, dkgNodeIDsCadenceArray, result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGFinalSubmissionsScript(env), nil)
-
 		assert.Equal(t, 0, len(result.(cadence.Array).Values))
-
 	})
 
 	t.Run("Should be able to register a dkg participant", func(t *testing.T) {
@@ -200,11 +180,9 @@ func TestDKG(t *testing.T) {
 		)
 
 		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGNodeIsRegisteredScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
-
 		assert.Equal(t, cadence.NewBool(true), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGNodeIsClaimedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
-
 		assert.Equal(t, cadence.NewBool(true), result)
 	})
 
@@ -223,10 +201,8 @@ func TestDKG(t *testing.T) {
 	t.Run("Should not be able to register a dkg participant if the node has already been registered", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateDKGParticipantScript(env), joshAddress)
-
 		_ = tx.AddArgument(cadence.NewAddress(DKGAddress))
-		stringArg, _ := cadence.NewString(adminID)
-		_ = tx.AddArgument(stringArg)
+		_ = tx.AddArgument(cadence.String(adminID)) // same ID as registered above
 
 		signAndSubmit(
 			t, b, tx,
@@ -239,9 +215,7 @@ func TestDKG(t *testing.T) {
 	t.Run("Should not be able to post an empty message", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGWhiteboardMessageScript(env), DKGAddress)
-
-		stringArg, _ := cadence.NewString("")
-		_ = tx.AddArgument(stringArg)
+		_ = tx.AddArgument(cadence.String(""))
 
 		signAndSubmit(
 			t, b, tx,
@@ -250,17 +224,15 @@ func TestDKG(t *testing.T) {
 			true,
 		)
 
+		// TODO this should read messages, not submissions
 		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGNodeHasFinalSubmittedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
-
 		assert.Equal(t, cadence.NewBool(false), result)
 	})
 
 	t.Run("Should be able to post a message", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGWhiteboardMessageScript(env), DKGAddress)
-
-		stringArg, _ := cadence.NewString("hello world!")
-		_ = tx.AddArgument(stringArg)
+		_ = tx.AddArgument(cadence.String("hello world!"))
 
 		signAndSubmit(
 			t, b, tx,
@@ -268,8 +240,11 @@ func TestDKG(t *testing.T) {
 			[]crypto.Signer{DKGSigner},
 			false,
 		)
+
+		// TODO read messages and verify
 	})
 
+	// TODO: remove (dupe of "Admin should not be able to stop the dkg if not enough nodes have submitted")
 	t.Run("Admin should not be able to stop the dkg if not enough submissions are in", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateStopDKGScript(env), DKGAddress)
@@ -284,6 +259,7 @@ func TestDKG(t *testing.T) {
 
 	dkgKey1 := fmt.Sprintf("%0192d", admin)
 
+	// TODO: update to use ResultSubmission
 	t.Run("Should not be able to make a final submission with an invalid submission length", func(t *testing.T) {
 
 		finalSubmissionKeysBadLength := make([]cadence.Value, 1)
@@ -305,9 +281,10 @@ func TestDKG(t *testing.T) {
 
 	finalSubmissionKeys := make([]cadence.Value, 2)
 
+	// TODO: update to use ResultSubmission
 	t.Run("Should not be able to make a final submission with an invalid key length", func(t *testing.T) {
 
-		stringArg, _ := cadence.NewString(dkgBadKey)
+		stringArg, _ := cadence.NewString("000020202")
 		finalSubmissionKeys[0] = cadence.NewOptional(stringArg)
 		finalSubmissionKeys[1] = cadence.NewOptional(stringArg)
 
@@ -324,15 +301,20 @@ func TestDKG(t *testing.T) {
 		)
 	})
 
+	submission := ResultSubmission{
+		GroupPubKey: DKGPubKeyFixture(),
+		PubKeys:     DKGPubKeysFixture(1),
+		IDMapping:   map[string]int{adminID: 0},
+	}
+
 	t.Run("Should be able to make a final submission", func(t *testing.T) {
 
-		stringArg, _ := cadence.NewString(dkgKey1)
-		finalSubmissionKeys[0] = cadence.NewOptional(stringArg)
-		finalSubmissionKeys[1] = cadence.NewOptional(stringArg)
-
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGFinalSubmissionScript(env), DKGAddress)
-
-		err := tx.AddArgument(cadence.NewArray(finalSubmissionKeys))
+		err := tx.AddArgument(submission.GroupPubKeyCDC())
+		require.NoError(t, err)
+		err = tx.AddArgument(submission.PubKeysCDC())
+		require.NoError(t, err)
+		err = tx.AddArgument(submission.IDMappingCDC())
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -343,24 +325,22 @@ func TestDKG(t *testing.T) {
 		)
 
 		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGNodeHasFinalSubmittedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
-
 		assert.Equal(t, cadence.NewBool(true), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGCompletedScript(env), nil)
-
 		assert.Equal(t, cadence.NewBool(true), result)
 
 	})
 
+	// Re-submitting (even the same result) should revert
 	t.Run("Should not be able to make a second final submission", func(t *testing.T) {
 
-		stringArg, _ := cadence.NewString(dkgKey1)
-		finalSubmissionKeys[0] = cadence.NewOptional(stringArg)
-		finalSubmissionKeys[1] = cadence.NewOptional(stringArg)
-
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGFinalSubmissionScript(env), DKGAddress)
-
-		err := tx.AddArgument(cadence.NewArray(finalSubmissionKeys))
+		err := tx.AddArgument(submission.GroupPubKeyCDC())
+		require.NoError(t, err)
+		err = tx.AddArgument(submission.PubKeysCDC())
+		require.NoError(t, err)
+		err = tx.AddArgument(submission.IDMappingCDC())
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -372,22 +352,16 @@ func TestDKG(t *testing.T) {
 
 	})
 
-	finalSubmissionKeysArray := cadence.Array{Values: []cadence.Value{finalSubmissionKeys[0], finalSubmissionKeys[1]}}.WithType(cadence.NewVariableSizedArrayType(cadence.NewOptionalType(cadence.StringType)))
-
-	finalSubmissionsArray := cadence.Array{Values: []cadence.Value{finalSubmissionKeysArray}}.WithType(cadence.NewVariableSizedArrayType(cadence.NewVariableSizedArrayType(cadence.NewOptionalType(cadence.StringType))))
-
 	t.Run("Admin should be able to stop the dkg", func(t *testing.T) {
 
 		result := executeScriptAndCheck(t, b, templates.GenerateGetConsensusNodesScript(env), nil)
-
 		assert.Equal(t, dkgNodeIDsCadenceArray, result)
 
-		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGFinalSubmissionsScript(env), nil)
-		assert.Equal(t, finalSubmissionsArray, result)
+		submissions := GetDKGFinalSubmissions(t, b, env)
+		assert.Equal(t, []ResultSubmission{submission}, submissions)
 
-		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGCanonicalFinalSubmissionScript(env), nil)
-		resultValue := result.(cadence.Optional).Value
-		assert.Equal(t, finalSubmissionKeysArray, resultValue)
+		canonicalSubmission := GetDKGCanonicalFinalSubmission(t, b, env)
+		assert.Equal(t, submission, canonicalSubmission)
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateStopDKGScript(env), DKGAddress)
 
@@ -399,11 +373,9 @@ func TestDKG(t *testing.T) {
 		)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGEnabledScript(env), nil)
-
 		assert.Equal(t, cadence.NewBool(false), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGCompletedScript(env), nil)
-
 		assert.Equal(t, cadence.NewBool(false), result)
 	})
 
@@ -417,18 +389,13 @@ func TestDKG(t *testing.T) {
 	bastianAccountKey, bastianSigner := accountKeys.NewWithSigner()
 	bastianAddress, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{bastianAccountKey}, nil)
 
-	epoch2dkgNodeIDStrings := make([]cadence.Value, 2)
-
-	stringArg, _ := cadence.NewString(maxID)
-	epoch2dkgNodeIDStrings[0] = stringArg
-	stringArg, _ = cadence.NewString(bastianID)
-	epoch2dkgNodeIDStrings[1] = stringArg
+	epoch2dkgNodeIDStrings := []string{maxID, bastianID}
+	epoch2DKGNodeIDStringsCDC := CadenceArrayFrom(epoch2dkgNodeIDStrings, StringToCDC)
 
 	t.Run("Should start dkg with the admin", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateStartDKGScript(env), DKGAddress)
-
-		err := tx.AddArgument(cadence.NewArray(epoch2dkgNodeIDStrings))
+		err := tx.AddArgument(epoch2DKGNodeIDStringsCDC)
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -438,34 +405,27 @@ func TestDKG(t *testing.T) {
 			false,
 		)
 
-		// AdminID is registered for this epoch by the admin
+		// DKG participant from epoch 1 is NOT registered for this epoch
 		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGNodeIsRegisteredScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
-
 		assert.Equal(t, cadence.NewBool(false), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetConsensusNodesScript(env), nil)
-
-		assert.Equal(t, cadence.NewArray(epoch2dkgNodeIDStrings).WithType(cadence.NewVariableSizedArrayType(cadence.StringType)), result)
+		assert.ElementsMatch(t, epoch2dkgNodeIDStrings, CadenceArrayTo(result, CDCToString))
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGFinalSubmissionsScript(env), nil)
-
 		assert.Equal(t, 0, len(result.(cadence.Array).Values))
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGEnabledScript(env), nil)
-
 		assert.Equal(t, cadence.NewBool(true), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGWhiteBoardMessagesScript(env), nil)
-
 		assert.Equal(t, 0, len(result.(cadence.Array).Values))
 	})
 
 	t.Run("Should not be able to post a message from a node that wasn't included", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGWhiteboardMessageScript(env), DKGAddress)
-
-		stringArg, _ := cadence.NewString("am I still alive?")
-		_ = tx.AddArgument(stringArg)
+		_ = tx.AddArgument(cadence.String("am I still alive?"))
 
 		signAndSubmit(
 			t, b, tx,
@@ -478,7 +438,6 @@ func TestDKG(t *testing.T) {
 	t.Run("Should be able to register, post messages and read messages", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateDKGParticipantScript(env), maxAddress)
-
 		_ = tx.AddArgument(cadence.NewAddress(DKGAddress))
 		stringArg, _ := cadence.NewString(maxID)
 		_ = tx.AddArgument(stringArg)
@@ -491,7 +450,6 @@ func TestDKG(t *testing.T) {
 		)
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateDKGParticipantScript(env), bastianAddress)
-
 		_ = tx.AddArgument(cadence.NewAddress(DKGAddress))
 		stringArg, _ = cadence.NewString(bastianID)
 		_ = tx.AddArgument(stringArg)
@@ -504,7 +462,6 @@ func TestDKG(t *testing.T) {
 		)
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGWhiteboardMessageScript(env), maxAddress)
-
 		firstMessage, _ := cadence.NewString("I am the new ruler!")
 		_ = tx.AddArgument(firstMessage)
 
@@ -516,7 +473,6 @@ func TestDKG(t *testing.T) {
 		)
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGWhiteboardMessageScript(env), bastianAddress)
-
 		secondMessage, _ := cadence.NewString("No, I am!")
 		_ = tx.AddArgument(secondMessage)
 
@@ -552,12 +508,14 @@ func TestDKG(t *testing.T) {
 		assert.Equal(t, secondMessage, message1ContentField)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGLatestWhiteBoardMessagesScript(env), [][]byte{jsoncdc.MustEncode(cadence.NewInt(1))})
+		// TODO script result is not checked
 	})
 
 	t.Run("Should not be able to make a final submission if not registered", func(t *testing.T) {
 
+		// TODO: update to use ResultSubmission
 		finalSubmissionKeysBadLength := make([]cadence.Value, 3)
-		stringArg, _ = cadence.NewString(dkgKey1)
+		stringArg, _ := cadence.NewString(dkgKey1)
 		finalSubmissionKeysBadLength[0] = cadence.NewOptional(stringArg)
 		finalSubmissionKeysBadLength[1] = cadence.NewOptional(stringArg)
 		finalSubmissionKeysBadLength[2] = cadence.NewOptional(stringArg)
@@ -601,6 +559,8 @@ func TestDKG(t *testing.T) {
 			[]crypto.Signer{DKGSigner},
 			false,
 		)
+
+		// TODO assert that the DKG is stopped
 	})
 
 	// we allow the threshold percent value to be in the range [0,1.0)
@@ -726,7 +686,10 @@ func checkDKGSafeThreshold(
 	assertEqual(t, expected, safeThreshold)
 }
 
-// Tests the DKG with submissions consisting of nil keys
+// Tests the DKG with submissions consisting of nil keys.
+// With 2 participants, the threshold is floor((n-1)/2) = 0, so 1 valid submission is sufficient to end the DKG.
+// In the first subtest, we submit one empty submission and validate that this does not end the DKG.
+// In the second subtest, we submit one non-empty submission and validate that this does end the DKG.
 func TestDKGNil(t *testing.T) {
 	b, adapter := newBlockchain()
 
@@ -755,7 +718,7 @@ func TestDKGNil(t *testing.T) {
 	jordanAddress, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{jordanAccountKey}, nil)
 
 	// set up the admin account
-	tx := createTxWithTemplateAndAuthorizer(b, templates.GeneratePublishDKGParticipantScript(env), DKGAddress)
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GeneratePublishDKGAdminScript(env), DKGAddress)
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{DKGAddress},
@@ -766,8 +729,7 @@ func TestDKGNil(t *testing.T) {
 	// register a node dkg participant
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateDKGParticipantScript(env), jordanAddress)
 	_ = tx.AddArgument(cadence.NewAddress(DKGAddress))
-	stringArg, _ := cadence.NewString(accessID)
-	_ = tx.AddArgument(stringArg)
+	_ = tx.AddArgument(cadence.String(accessID))
 
 	signAndSubmit(
 		t, b, tx,
@@ -776,12 +738,7 @@ func TestDKGNil(t *testing.T) {
 		false,
 	)
 
-	dkgNodeIDStrings := make([]cadence.Value, 2)
-
-	stringArg, _ = cadence.NewString(adminID)
-	dkgNodeIDStrings[0] = stringArg
-	stringArg, _ = cadence.NewString(accessID)
-	dkgNodeIDStrings[1] = stringArg
+	dkgNodeIDStrings := []cadence.Value{cadence.String(adminID), cadence.String(accessID)}
 
 	// Start the DKG
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateStartDKGScript(env), DKGAddress)
@@ -800,8 +757,7 @@ func TestDKGNil(t *testing.T) {
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateDKGParticipantScript(env), DKGAddress)
 
 	_ = tx.AddArgument(cadence.NewAddress(DKGAddress))
-	stringArg, _ = cadence.NewString(adminID)
-	_ = tx.AddArgument(stringArg)
+	_ = tx.AddArgument(cadence.String(adminID))
 
 	signAndSubmit(
 		t, b, tx,
@@ -810,18 +766,10 @@ func TestDKGNil(t *testing.T) {
 		false,
 	)
 
-	finalSubmissionKeys := make([]cadence.Value, 3)
+	// Although one submission exceeds the threshold (0), since it is empty it does not count toward completion.
+	t.Run("Should be able to make an empty final submission, but not count as completed", func(t *testing.T) {
 
-	t.Run("Should be able to make a final submission with nil keys, but not count as completed", func(t *testing.T) {
-
-		finalSubmissionKeys[0] = cadence.NewOptional(nil)
-		finalSubmissionKeys[1] = cadence.NewOptional(nil)
-		finalSubmissionKeys[2] = cadence.NewOptional(nil)
-
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGFinalSubmissionScript(env), DKGAddress)
-		err := tx.AddArgument(cadence.NewArray(finalSubmissionKeys))
-		require.NoError(t, err)
-
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSendEmptyDKGFinalSubmissionScript(env), DKGAddress)
 		signAndSubmit(
 			t, b, tx,
 			[]flow.Address{DKGAddress},
@@ -830,28 +778,27 @@ func TestDKGNil(t *testing.T) {
 		)
 
 		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGNodeHasFinalSubmittedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
-
 		assert.Equal(t, cadence.NewBool(true), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGCompletedScript(env), nil)
-
 		assert.Equal(t, cadence.NewBool(false), result)
-
 	})
 
-	dkgKey1 := fmt.Sprintf("%0192d", access)
-
-	t.Run("Should count as completed even if 50 of participants sent nil keys", func(t *testing.T) {
-
-		// NOTE: one participant submitted a nil key vector in the previous test case
-
-		stringArg, _ = cadence.NewString(dkgKey1)
-		finalSubmissionKeys[0] = cadence.NewOptional(stringArg)
-		finalSubmissionKeys[1] = cadence.NewOptional(stringArg)
-		finalSubmissionKeys[2] = cadence.NewOptional(stringArg)
+	// In the previous test case, 1/2 participants submitted an empty result.
+	// Now, when the second participant submits a non-empty result, the DKG should be considered complete.
+	t.Run("Should count as completed even if >threshold participants sent nil keys", func(t *testing.T) {
+		submission := ResultSubmission{
+			GroupPubKey: DKGPubKeyFixture(),
+			PubKeys:     DKGPubKeysFixture(2),
+			IDMapping:   map[string]int{accessID: 0, adminID: 1},
+		}
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGFinalSubmissionScript(env), jordanAddress)
-		err := tx.AddArgument(cadence.NewArray(finalSubmissionKeys))
+		err := tx.AddArgument(submission.GroupPubKeyCDC())
+		require.NoError(t, err)
+		err = tx.AddArgument(submission.PubKeysCDC())
+		require.NoError(t, err)
+		err = tx.AddArgument(submission.IDMappingCDC())
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -862,11 +809,9 @@ func TestDKGNil(t *testing.T) {
 		)
 
 		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGNodeHasFinalSubmittedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(accessID))})
-
 		assert.Equal(t, cadence.NewBool(true), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGCompletedScript(env), nil)
-
 		assert.Equal(t, cadence.NewBool(true), result)
 
 	})
