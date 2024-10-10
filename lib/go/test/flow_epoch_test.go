@@ -2,7 +2,6 @@ package test
 
 import (
 	"encoding/hex"
-	"fmt"
 	"math/rand"
 	"testing"
 	"time"
@@ -870,18 +869,15 @@ func TestEpochQCDKG(t *testing.T) {
 		false,
 	)
 
-	dkgKey1 := fmt.Sprintf("%0192d", admin)
-	finalKeyStrings := make([]string, 2)
-	finalKeyStrings[0] = dkgKey1
-	finalKeyStrings[1] = dkgKey1
-	finalSubmissionKeys := make([]cadence.Value, 2)
-	finalSubmissionKeys[0], _ = cadence.NewString(dkgKey1)
-	finalSubmissionKeys[1], _ = cadence.NewString(dkgKey1)
+	dkgResult := ResultSubmission{
+		GroupPubKey: DKGPubKeyFixture(),
+		PubKeys:     DKGPubKeysFixture(1),
+		IDMapping:   map[string]int{ids[1]: 0},
+	}
 
 	t.Run("Can perform DKG actions during Epoch Setup but cannot advance until QC is complete", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGWhiteboardMessageScript(env), addresses[1])
-
 		_ = tx.AddArgument(CadenceString("hello world!"))
 
 		signAndSubmit(
@@ -891,12 +887,12 @@ func TestEpochQCDKG(t *testing.T) {
 			false,
 		)
 
-		finalSubmissionKeys[0] = cadence.NewOptional(CadenceString(dkgKey1))
-		finalSubmissionKeys[1] = cadence.NewOptional(CadenceString(dkgKey1))
-
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGFinalSubmissionScript(env), addresses[1])
-
-		err := tx.AddArgument(cadence.NewArray(finalSubmissionKeys))
+		err := tx.AddArgument(dkgResult.GroupPubKeyCDC())
+		require.NoError(t, err)
+		err = tx.AddArgument(dkgResult.PubKeysCDC())
+		require.NoError(t, err)
+		err = tx.AddArgument(dkgResult.IDMappingCDC())
 		require.NoError(t, err)
 
 		signAndSubmit(
@@ -910,14 +906,14 @@ func TestEpochQCDKG(t *testing.T) {
 		assert.Equal(t, cadence.NewBool(true), result)
 
 		// try to advance to the epoch commit phase
-		// will not panic, but no state has changed
+		// will not panic, but will not transition to committed phase, because only DKG (not QC voting) has completed.
 		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHCOMMIT", false)
 
 		verifyConfigMetadata(t, b, env,
 			ConfigMetadata{
 				currentEpochCounter:      startEpochCounter,
 				proposedEpochCounter:     startEpochCounter + 1,
-				currentEpochPhase:        1,
+				currentEpochPhase:        1, // still in setup phase
 				numViewsInEpoch:          numEpochViews,
 				numViewsInStakingAuction: numStakingViews,
 				numViewsInDKGPhase:       numDKGViews,
@@ -994,9 +990,12 @@ func TestEpochQCDKG(t *testing.T) {
 
 		verifyEpochCommit(t, b, adapter, idTableAddress,
 			EpochCommit{
-				counter:    startEpochCounter + 1,
-				dkgPubKeys: finalKeyStrings,
-				clusterQCs: clusterQCs})
+				counter:        startEpochCounter + 1,
+				clusterQCs:     clusterQCs,
+				dkgGroupPubKey: dkgResult.GroupPubKey,
+				dkgPubKeys:     dkgResult.PubKeys,
+				dkgIDMapping:   dkgResult.IDMapping,
+			})
 
 		// DKG and QC have not been disabled yet
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGEnabledScript(env), nil)
@@ -1110,7 +1109,8 @@ func TestEpochQCDKG(t *testing.T) {
 				rewardsPaid:           false,
 				collectorClusters:     clusters,
 				clusterQCs:            clusterQCs,
-				dkgKeys:               finalKeyStrings})
+				dkgKeys:               append([]string{dkgResult.GroupPubKey}, dkgResult.PubKeys...),
+			})
 
 		// Make sure the payout is the same as the total rewards in the epoch metadata
 		result = executeScriptAndCheck(t, b, templates.GenerateGetWeeklyPayoutScript(env), nil)
@@ -1177,7 +1177,9 @@ func TestEpochQCDKG(t *testing.T) {
 				rewardsPaid:           false,
 				collectorClusters:     clusters,
 				clusterQCs:            clusterQCs,
-				dkgKeys:               finalKeyStrings})
+				// TODO: remove?
+				//dkgKeys: finalKeyStrings,
+			})
 
 		// Make sure the payout is the same as the total rewards in the epoch metadata
 		result = executeScriptAndCheck(t, b, templates.GenerateGetWeeklyPayoutScript(env), nil)

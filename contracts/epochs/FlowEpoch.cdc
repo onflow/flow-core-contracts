@@ -144,7 +144,11 @@ access(all) contract FlowEpoch {
         /// The resulting public keys from the DKG process, encoded as by the flow-go
         /// crypto library, then hex-encoded.
         /// Group public key is the first element, followed by the individual keys
-        dkgPubKeys: [String]
+        dkgPubKeys: [String],
+
+        dkgGroupKey: String,
+
+        dkgIdMapping: {String: Int},
     )
 
     /// Contains specific metadata about a particular epoch
@@ -184,7 +188,10 @@ access(all) contract FlowEpoch {
 
         /// The public keys associated with the Distributed Key Generation
         /// process that consensus nodes participate in
-        /// Group key is the last element at index: length - 1
+        /// The first element is the group public key, followed by n participant public keys.
+        /// NOTE: This data structure was updated to include a mapping from node ID to DKG index.
+        /// Because structures cannot be updated in Cadence, we include the groupPubKey and pubKeys
+        /// fields here (idMapping field is omitted).
         access(all) var dkgKeys: [String]
 
         init(counter: UInt64,
@@ -230,12 +237,16 @@ access(all) contract FlowEpoch {
             self.clusterQCs = qcs
         }
 
-        access(account) fun setDKGGroupKey(keys: [String]) {
+        /// Sets the DKG group key (keys[0]) and participant keys (keys[1:]) from the DKG result.
+        /// NOTE: This data structure was updated to include a mapping from node ID to DKG index.
+        /// Because structures cannot be updated in Cadence, we include the groupPubKey and pubKeys
+        /// fields here (idMapping field is omitted).
+        access(account) fun setDKGKeys(keys: [String]) {
             self.dkgKeys = keys
         }
     }
 
-    /// Metadata that is managed and can be changed by the Admin///
+    /// Metadata that is managed and can be changed by the Admin
     access(all) struct Config {
         /// The number of views in an entire epoch
         access(all) var numViewsInEpoch: UInt64
@@ -769,27 +780,25 @@ access(all) contract FlowEpoch {
             clusterQCs.append(certificate)
         }
 
-        // Set cluster QCs in the proposed epoch metadata
-        // and stop QC voting
+        // Set cluster QCs in the proposed epoch metadata and stop QC voting
         let proposedEpochMetadata = self.getEpochMetadata(self.proposedEpochCounter())!
         proposedEpochMetadata.setClusterQCs(qcs: clusterQCs)
 
-        // Set DKG result keys in the proposed epoch metadata
-        // and stop DKG
-        let dkgKeys = FlowDKG.dkgCompleted()!
-        let unwrappedKeys: [String] = []
-        for key in dkgKeys {
-            unwrappedKeys.append(key!)
-        }
-        proposedEpochMetadata.setDKGGroupKey(keys: unwrappedKeys)
-
+        // Set DKG result in the proposed epoch metadata and stop DKG
+        let dkgResult = FlowDKG.dkgCompleted()!
+        // Construct a partial representation of the DKG result for storage in the epoch metadata.
+        // See setDKGKeys documentation for context on why the node ID mapping is omitted here.
+        let dkgPubKeys = [dkgResult.groupPubKey!].concat(dkgResult.pubKeys!)
+        proposedEpochMetadata.setDKGKeys(keys: dkgPubKeys)
         self.saveEpochMetadata(proposedEpochMetadata)
 
         self.currentEpochPhase = EpochPhase.EPOCHCOMMIT
 
         emit EpochCommit(counter: self.proposedEpochCounter(),
                             clusterQCs: clusterQCs,
-                            dkgPubKeys: unwrappedKeys)
+                            dkgPubKeys: dkgResult.pubKeys!,
+                            dkgGroupKey: dkgResult.groupPubKey!,
+                            dkgIdMapping: dkgResult.idMapping!)
     }
 
     /// Borrow a reference to the FlowIDTableStaking Admin resource
