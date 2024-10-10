@@ -182,7 +182,7 @@ access(all) contract FlowDKG {
         }
 
         // Checks whether the input is equivalent to this ResultSubmission.
-        // Submissions must have identical keys, in the same order, and identical key mappings.
+        // Submissions must have identical keys, in the same order, and identical index mappings.
         // Empty submissions are considered equal.
         access(all) fun equals(_ other: FlowDKG.ResultSubmission): Bool {
             if self.groupPubKey != other.groupPubKey {
