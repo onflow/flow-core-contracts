@@ -161,10 +161,14 @@ access(all) contract FlowDKG {
 
         init(groupPubKey: String?, pubKeys: [String]?, idMapping: {String:Int}?) {
             pre {
-                FlowDKG.checkEmptySubmissionInvariant(groupPubKey: groupPubKey, pubKeys: pubKeys, idMapping: idMapping): "invalid empty submission"
-                FlowDKG.isValidGroupKey(groupPubKey): "invalid group key length"
-                FlowDKG.isValidPubKeys(pubKeys): "invalid participant key length"
-                FlowDKG.isValidIDMapping(pubKeys: pubKeys, idMapping: idMapping): "invalid id mapping length"
+                FlowDKG.checkEmptySubmissionInvariant(groupPubKey: groupPubKey, pubKeys: pubKeys, idMapping: idMapping): 
+                    "FlowDKG.ResultSubmission.init: violates empty submission invariant - ResultSubmission fields must be all nil or all non-nil"
+                FlowDKG.isValidGroupKey(groupPubKey):
+                    "FlowDKG.ResultSubmission.init: invalid group key - must be nil or hex-encoded 96-byte string"
+                FlowDKG.isValidPubKeys(pubKeys):
+                    "FlowDKG.ResultSubmission.init: invalid participant key - must be nil or hex-encoded 96-byte string"
+                FlowDKG.isValidIDMapping(pubKeys: pubKeys, idMapping: idMapping):
+                    "FlowDKG.ResultSubmission.init: invalid ID mapping - must be same size as pubKeys"
             }
             self.groupPubKey = groupPubKey
             self.pubKeys = pubKeys
@@ -253,9 +257,12 @@ access(all) contract FlowDKG {
         // CAUTION: This method should only be called by Participant, which enforces that Participant.nodeID is passed in.
         access(all) fun addSubmission(nodeID: String, submission: ResultSubmission) {
             pre {
-                self.authorized[nodeID] != nil: "must be authorized for this DKG instance"
-                self.byNodeID[nodeID] == nil: "must not have already submitted for this DKG instance"
-                submission.isValidForCommittee(authorized: self.authorized.keys): "submission must be valid for authorized committee"
+                self.authorized[nodeID] != nil:
+                    "FlowDKG.SubmissionTracker.addSubmission: sender must be authorized for this DKG instance"
+                self.byNodeID[nodeID] == nil:
+                    "FlowDKG.SubmissionTracker.addSubmission: sender may only submit once and has already submitted"
+                submission.isValidForCommittee(authorized: self.authorized.keys):
+                    "FlowDKG.SubmissionTracker.addSubmission: submission must contain exactly one public key per authorized participant"
             }
 
             // 1) Check whether this submission is equivalent to an existing submission (typical case)
@@ -281,7 +288,8 @@ access(all) contract FlowDKG {
         // Callers should use a threshold that is greater than or equal to half the DKG committee size.
         access(all) view fun submissionExceedsThreshold(_ threshold: UInt64): ResultSubmission? {
             post {
-                result == nil || !result!.isEmpty(): "if a submission is returned, must be non-empty"
+                result == nil || !result!.isEmpty():
+                    "FlowDKG.SubmissionTracker.submissionExceedsThreshold: if a submission is returned, it must be non-empty"
             }
             var submissionIndex = 0
             while submissionIndex < self.uniques.length {
@@ -326,7 +334,7 @@ access(all) contract FlowDKG {
         init(nodeID: String) {
             pre {
                 FlowDKG.participantIsClaimed(nodeID) == nil:
-                    "Cannot create a Participant resource for a node ID that has already been claimed"
+                    "FlowDKG.Participant.init: cannot create a Participant resource for a node ID that has already been claimed"
             }
             self.nodeID = nodeID
             FlowDKG.nodeClaimed[nodeID] = true
@@ -337,9 +345,9 @@ access(all) contract FlowDKG {
             // TODO: DKG enabled?
             pre {
                 FlowDKG.participantIsRegistered(self.nodeID):
-                    "Cannot send whiteboard message if not registered for the current epoch"
+                    "FlowDKG.Participant.postMessage: cannot send whiteboard message if not registered for the current epoch"
                 content.length > 0:
-                    "Cannot post an empty message to the whiteboard"
+                    "FlowDKG.Participant.postMessage: cannot post an empty message to the whiteboard"
             }
 
             // create the message struct
@@ -378,8 +386,10 @@ access(all) contract FlowDKG {
         /// Set the threshold to nil if it isn't needed
         access(all) fun setSafeSuccessThreshold(newThresholdPercentage: UFix64?) {
             pre {
-                !FlowDKG.dkgEnabled: "Cannot set the dkg success threshold while the DKG is enabled"
-                newThresholdPercentage == nil ||  newThresholdPercentage! < 1.0: "The threshold percentage must be in [0,1)"
+                !FlowDKG.dkgEnabled:
+                    "FlowDKG.Admin.setSafeSuccessThreshold: cannot set the DKG success threshold while the DKG is enabled"
+                newThresholdPercentage == nil ||  newThresholdPercentage! < 1.0:
+                    "FlowDKG.Admin.setSafeSuccessThreshold: safe threshold percentage must be in [0,1)"
             }
 
             FlowDKG.account.storage.load<UFix64>(from: /storage/flowDKGSafeThreshold)
@@ -402,7 +412,8 @@ access(all) contract FlowDKG {
         /// and sets the given node IDs as registered
         access(all) fun startDKG(nodeIDs: [String]) {
             pre {
-                FlowDKG.dkgEnabled == false: "Cannot start the DKG when it is already running"
+                FlowDKG.dkgEnabled == false:
+                    "FlowDKG.Admin.startDKG: cannot start the DKG when it is already running"
             }
 
             // Clear all per-instance DKG state
@@ -420,12 +431,13 @@ access(all) contract FlowDKG {
         /// until the next time the DKG is enabled
         access(all) fun endDKG() {
             pre { 
-                FlowDKG.dkgEnabled == true: "Cannot end the DKG when it is already disabled"
+                FlowDKG.dkgEnabled == true:
+                    "FlowDKG.Admin.endDKG: cannot end the DKG when it is already disabled"
             }
             let dkgResult = FlowDKG.dkgCompleted()
             assert(
                 dkgResult != nil,
-                message: "Cannot end the DKG until enough final arrays have been submitted"
+                message: "FlowDKG.Admin.endDKG: cannot end the DKG without a canonical final result submission"
             )
 
             FlowDKG.dkgEnabled = false
