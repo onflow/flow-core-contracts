@@ -219,6 +219,7 @@ access(all) contract FlowEpoch {
 
         // TODO(EFM, #6213): include id->index mapping
         dkgPubKeys: [String],
+        dkgGroupKey: String,
         dkgIdMapping: {String: Int},
     )
 
@@ -538,6 +539,7 @@ access(all) contract FlowEpoch {
             targetEndTime: UInt64,
             clusterQCVoteData: [FlowClusterQC.ClusterQCVoteData],
             dkgPubKeys: [String],
+            dkgGroupKey: String,
             dkgIdMapping: {String: Int},
             ) {
             self.recoverEpochPreChecks(
@@ -575,6 +577,7 @@ access(all) contract FlowEpoch {
                 targetEndTime: targetEndTime,
                 clusterQCVoteData: clusterQCVoteData,
                 dkgPubKeys: dkgPubKeys,
+                dkgGroupKey: dkgGroupKey,
                 dkgIdMapping: dkgIdMapping,
             )
         }
@@ -636,6 +639,7 @@ access(all) contract FlowEpoch {
             clusterAssignments: [[String]],
             clusterQCVoteData: [FlowClusterQC.ClusterQCVoteData],
             dkgPubKeys: [String],
+            dkgGroupKey: String,
             dkgIdMapping: {String: Int},
             nodeIDs: [String]) 
         {
@@ -659,7 +663,7 @@ access(all) contract FlowEpoch {
                 totalRewards: 0.0,
                 collectorClusters: [],
                 clusterQCs: [],
-                dkgKeys: dkgPubKeys
+                dkgKeys: [dkgGroupKey].concat(dkgPubKeys)
             )
 
             /// Save the new epoch meta data, it will be referenced as             
@@ -682,6 +686,7 @@ access(all) contract FlowEpoch {
                 targetEndTime: targetEndTime,
                 clusterQCVoteData: clusterQCVoteData,
                 dkgPubKeys: dkgPubKeys,
+                dkgGroupKey: dkgGroupKey,
                 dkgIdMapping: dkgIdMapping,
             )
 
@@ -705,6 +710,7 @@ access(all) contract FlowEpoch {
             clusterAssignments: [[String]],
             clusterQCVoteData: [FlowClusterQC.ClusterQCVoteData],
             dkgPubKeys: [String],
+            dkgGroupKey: String,
             dkgIdMapping: {String: Int},
             nodeIDs: [String]) 
         { 
@@ -727,7 +733,7 @@ access(all) contract FlowEpoch {
                 totalRewards: 0.0,
                 collectorClusters: [],
                 clusterQCs: [],
-                dkgKeys: dkgPubKeys
+                dkgKeys: [dkgGroupKey].concat(dkgPubKeys)
             )
 
             /// Save the new epoch meta data, it will be referenced as             
@@ -746,6 +752,7 @@ access(all) contract FlowEpoch {
                 targetEndTime: targetEndTime,
                 clusterQCVoteData: clusterQCVoteData,
                 dkgPubKeys: dkgPubKeys,
+                dkgGroupKey: dkgGroupKey,
                 dkgIdMapping: dkgIdMapping,
             )
         }
