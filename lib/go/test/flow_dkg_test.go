@@ -249,19 +249,6 @@ func TestDKG(t *testing.T) {
 		assert.Equal(t, postedMessage, readMessageString)
 	})
 
-	// TODO: remove (dupe of "Admin should not be able to stop the dkg if not enough nodes have submitted")
-	t.Run("Admin should not be able to stop the dkg if not enough submissions are in", func(t *testing.T) {
-
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateStopDKGScript(env), DKGAddress)
-
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{DKGAddress},
-			[]crypto.Signer{DKGSigner},
-			true,
-		)
-	})
-
 	dkgKey1 := fmt.Sprintf("%0192d", admin)
 
 	// TODO: update to use ResultSubmission
