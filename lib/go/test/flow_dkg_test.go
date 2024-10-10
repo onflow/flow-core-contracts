@@ -225,8 +225,9 @@ func TestDKG(t *testing.T) {
 		)
 
 		// TODO this should read messages, not submissions
-		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGNodeHasFinalSubmittedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
-		assert.Equal(t, cadence.NewBool(false), result)
+		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGWhiteBoardMessagesScript(env), nil)
+
+		assert.Equal(t, 0, len(result.(cadence.Array).Values))
 	})
 
 	t.Run("Should be able to post a message", func(t *testing.T) {
