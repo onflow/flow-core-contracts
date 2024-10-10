@@ -224,16 +224,15 @@ func TestDKG(t *testing.T) {
 			true,
 		)
 
-		// TODO this should read messages, not submissions
 		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGWhiteBoardMessagesScript(env), nil)
-
 		assert.Equal(t, 0, len(result.(cadence.Array).Values))
 	})
 
 	t.Run("Should be able to post a message", func(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGWhiteboardMessageScript(env), DKGAddress)
-		_ = tx.AddArgument(cadence.String("hello world!"))
+		postedMessage := cadence.String("hello world!")
+		_ = tx.AddArgument(postedMessage)
 
 		signAndSubmit(
 			t, b, tx,
@@ -242,7 +241,12 @@ func TestDKG(t *testing.T) {
 			false,
 		)
 
-		// TODO read messages and verify
+		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGWhiteBoardMessagesScript(env), nil)
+		resultArr := result.(cadence.Array)
+		assert.Equal(t, 1, len(resultArr.Values))
+		readMessage := resultArr.Values[0].(cadence.Struct)
+		readMessageString := readMessage.SearchFieldByName("content")
+		assert.Equal(t, postedMessage, readMessageString)
 	})
 
 	// TODO: remove (dupe of "Admin should not be able to stop the dkg if not enough nodes have submitted")
