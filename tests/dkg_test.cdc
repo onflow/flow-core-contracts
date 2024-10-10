@@ -257,12 +257,12 @@ access(all) fun testSubmissionTracker_addSubmissionAlreadySubmitted() {
     // Resubmit the same result
     Test.expectFailure(fun(): Void {
         tracker.addSubmission(nodeID: submittor, submission: submission)
-    }, errorMessageSubstring: "sender may only submit once and has already submitted")
+    }, errorMessageSubstring: "may only submit once and has already submitted")
 
     // Submit a different result
         Test.expectFailure(fun(): Void {
         tracker.addSubmission(nodeID: submittor, submission: resultSubmissionFixtureWithNodeIDs(nodeIDs: nodeIDs))
-    }, errorMessageSubstring: "sender may only submit once and has already submitted")
+    }, errorMessageSubstring: "may only submit once and has already submitted")
 }
 
 // An unauthorized node attempting to submit should panic
@@ -275,7 +275,7 @@ access(all) fun testSubmissionTracker_addSubmissionUnauthorized() {
     Test.expectFailure(fun(): Void {
         let submission = resultSubmissionFixtureWithNodeIDs(nodeIDs: nodeIDs)
         tracker.addSubmission(nodeID: unauthorizedSubmittor, submission: submission)
-    }, errorMessageSubstring: "must be authorized for this DKG instance")
+    }, errorMessageSubstring: "not authorized for this DKG instance")
 }
 
 access(all) fun testSubmissionTracker_submissionExceedsThreshold() {
