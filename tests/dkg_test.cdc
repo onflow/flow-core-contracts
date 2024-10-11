@@ -85,7 +85,7 @@ access(all) fun testResultSubmissionInit_InvalidGroupKeyLength() {
     let groupKey = pubKeyFixture().concat(hexStringFixture(n: 1))
     Test.expectFailure(fun(): Void {
         let sub = FlowDKG.ResultSubmission(groupPubKey: groupKey, pubKeys: pubKeysFixture(n: 3), idMapping: idMappingFixture(n: 3))
-    }, errorMessageSubstring: "invalid group key length")
+    }, errorMessageSubstring: "invalid group key")
 }
 
 // Instantiation should fail with invalid participant key length.
@@ -94,14 +94,14 @@ access(all) fun testResultSubmissionInit_InvalidParticipantKeyLength() {
     pubKeys[2] = pubKeys[2].concat(hexStringFixture(n: 1))
     Test.expectFailure(fun(): Void {
         let sub = FlowDKG.ResultSubmission(groupPubKey: pubKeyFixture(), pubKeys: pubKeys, idMapping: idMappingFixture(n: 3))
-    }, errorMessageSubstring: "invalid participant key length")
+    }, errorMessageSubstring: "invalid participant key")
 }
 
 // Instantiation should fail with invalid ID mapping length.
 access(all) fun testResultSubmissionInit_InvalidIDMappingLength() {
     Test.expectFailure(fun(): Void {
         let sub = FlowDKG.ResultSubmission(groupPubKey: pubKeyFixture(), pubKeys: pubKeysFixture(n: 3), idMapping: idMappingFixture(n: 4))
-    }, errorMessageSubstring: "invalid id mapping length")
+    }, errorMessageSubstring: "invalid ID mapping")
 }
 
 // Nil fields are allowed only when all fields are nil.
@@ -111,17 +111,17 @@ access(all) fun testResultSubmissionInit_EmptySubmission() {
     // non-nil group key
     Test.expectFailure(fun(): Void {
         let sub = FlowDKG.ResultSubmission(groupPubKey: pubKeyFixture(), pubKeys: nil, idMapping: nil)
-    }, errorMessageSubstring: "invalid empty submission")
+    }, errorMessageSubstring: "empty submission invariant")
 
     // non-nil participant keys
     Test.expectFailure(fun(): Void {
         let sub = FlowDKG.ResultSubmission(groupPubKey: nil, pubKeys: pubKeysFixture(n: 3), idMapping: nil)
-    }, errorMessageSubstring: "invalid empty submission")
+    }, errorMessageSubstring: "empty submission invariant")
 
     // non-nil id mapping
     Test.expectFailure(fun(): Void {
         let sub = FlowDKG.ResultSubmission(groupPubKey: nil, pubKeys: nil, idMapping: idMappingFixture(n: 3))
-    }, errorMessageSubstring: "invalid empty submission")
+    }, errorMessageSubstring: "empty submission invariant")
 }
 
 access(all) fun testResultSubmissionEquals() {
@@ -257,12 +257,12 @@ access(all) fun testSubmissionTracker_addSubmissionAlreadySubmitted() {
     // Resubmit the same result
     Test.expectFailure(fun(): Void {
         tracker.addSubmission(nodeID: submittor, submission: submission)
-    }, errorMessageSubstring: "must not have already submitted for this DKG instance")
+    }, errorMessageSubstring: "may only submit once and has already submitted")
 
     // Submit a different result
         Test.expectFailure(fun(): Void {
         tracker.addSubmission(nodeID: submittor, submission: resultSubmissionFixtureWithNodeIDs(nodeIDs: nodeIDs))
-    }, errorMessageSubstring: "must not have already submitted for this DKG instance")
+    }, errorMessageSubstring: "may only submit once and has already submitted")
 }
 
 // An unauthorized node attempting to submit should panic
@@ -275,7 +275,7 @@ access(all) fun testSubmissionTracker_addSubmissionUnauthorized() {
     Test.expectFailure(fun(): Void {
         let submission = resultSubmissionFixtureWithNodeIDs(nodeIDs: nodeIDs)
         tracker.addSubmission(nodeID: unauthorizedSubmittor, submission: submission)
-    }, errorMessageSubstring: "must be authorized for this DKG instance")
+    }, errorMessageSubstring: "not authorized for this DKG instance")
 }
 
 access(all) fun testSubmissionTracker_submissionExceedsThreshold() {
