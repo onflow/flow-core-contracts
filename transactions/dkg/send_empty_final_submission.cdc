@@ -11,7 +11,7 @@ transaction() {
     prepare(signer: auth(BorrowValue) &Account) {
         self.dkgParticipant = signer.storage.borrow<&FlowDKG.Participant>(from: FlowDKG.ParticipantStoragePath)
             ?? panic("Cannot borrow DKG Participant reference from path "
-                    .concat(FlowDKG.ParticipantStoragePath)
+                    .concat(FlowDKG.ParticipantStoragePath.toString())
                     .concat(". The signer needs to ensure their account is initialized with the DKG Participant resource."))
         self.submission = FlowDKG.ResultSubmission(groupPubKey: nil, pubKeys: nil, idMapping: nil)
     }
