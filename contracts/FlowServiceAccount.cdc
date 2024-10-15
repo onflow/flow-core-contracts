@@ -45,7 +45,7 @@ access(all) contract FlowServiceAccount {
     /// Returns 0 if the account has no default balance
     access(all) view fun defaultTokenBalance(_ acct: &Account): UFix64 {
         var balance = 0.0
-        if let balanceRef = acct.capabilities.borrow<&{FungibleToken.Balance}>(/public/flowTokenBalance) {
+        if let balanceRef = acct.capabilities.borrow<&FlowToken.Vault>(/public/flowTokenBalance) {
             balance = balanceRef.balance
         }
 

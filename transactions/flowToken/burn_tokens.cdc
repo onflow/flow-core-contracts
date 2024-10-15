@@ -6,31 +6,26 @@
 
 import "FungibleToken"
 import "FlowToken"
+import "Burner"
 
 transaction(amount: UFix64) {
 
     // Vault resource that holds the tokens that are being burned
-    let vault: @FungibleToken.Vault
-
-    let admin: &FlowToken.Administrator
+    let vault: @{FungibleToken.Vault}
 
     prepare(signer: auth(BorrowValue) &Account) {
 
         // Withdraw tokens from the admin vault in storage
-        self.vault <- signer.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault)!
-            .withdraw(amount: amount)
+        let vaultRef = signer.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault)
+            ?? panic("The signer does not store a FlowToken Vault object at the path "
+                    .concat("/storage/flowTokenVault. ")
+                    .concat("The signer must initialize their account with this vault first!"))
 
-        // Create a reference to the admin admin resource in storage
-        self.admin = signer.storage.borrow<&FlowToken.Administrator>(from: /storage/flowTokenAdmin)
-            ?? panic("Could not borrow a reference to the admin resource")
+        self.vault <- vaultRef.withdraw(amount: amount)
     }
 
     execute {
-        let burner <- self.admin.createNewBurner()
-        
-        burner.burnTokens(from: <-self.vault)
-
-        destroy burner
+        Burner.burn(<-self.vault)
     }
 }
  

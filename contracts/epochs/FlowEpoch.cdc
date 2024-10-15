@@ -217,7 +217,6 @@ access(all) contract FlowEpoch {
         /// Invalid DKG information has the potential to prevent Flow's main consensus from continuing,
         /// which would halt the chain for good and can only be resolved through a spork.
 
-        // TODO(EFM, #6213): include id->index mapping
         dkgPubKeys: [String],
         dkgGroupKey: String,
         dkgIdMapping: {String: Int},
