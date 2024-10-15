@@ -343,10 +343,13 @@ func generateKeys(t *testing.T, algorithmName crypto.SigningAlgorithm) (crypto.P
 	return sk, publicKey
 }
 
+// UnwrapOptional unwraps a Cadence optional of type T?, and returns the underlying value of type T.
 func UnwrapOptional[T cadence.Value](optional cadence.Value) T {
 	return optional.(cadence.Optional).Value.(T)
 }
 
+// CadenceArrayTo converts a Cadence array to a Go slice, converting each individual
+// element with the convert function
 func CadenceArrayTo[T any](arr cadence.Value, convert func(cadence.Value) T) []T {
 	out := make([]T, len(arr.(cadence.Array).Values))
 	for i := range out {
@@ -355,6 +358,8 @@ func CadenceArrayTo[T any](arr cadence.Value, convert func(cadence.Value) T) []T
 	return out
 }
 
+// CadenceArrayFrom constructs a Cadence array from a Go slice, converting each individual
+// element with the convert function.
 func CadenceArrayFrom[T any](slice []T, convert func(T) cadence.Value) cadence.Array {
 	values := make([]cadence.Value, len(slice))
 	for i := range values {
@@ -363,10 +368,12 @@ func CadenceArrayFrom[T any](slice []T, convert func(T) cadence.Value) cadence.A
 	return cadence.NewArray(values)
 }
 
+// CDCToString converts a cadence.String to a Go string.
 func CDCToString(v cadence.Value) string {
 	return string(v.(cadence.String))
 }
 
+// StringToCDC converts a Go string to a cadence.String.
 func StringToCDC(s string) cadence.Value {
 	return cadence.String(s)
 }

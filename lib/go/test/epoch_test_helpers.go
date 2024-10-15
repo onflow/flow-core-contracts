@@ -742,6 +742,8 @@ func expectedTargetEndTime(timingConfig cadence.Value, targetEpoch uint64) uint6
 	return refTimestamp + duration*(targetEpoch-refCounter)
 }
 
+// DKGPubKeyFixture constructs a fixture for a DKG public key string as accepted by FlowDKG
+// (any hex-encoded 96-byte bytes).
 func DKGPubKeyFixture() string {
 	key := make([]byte, 96)
 	_, err := rand.Read(key)
@@ -751,6 +753,8 @@ func DKGPubKeyFixture() string {
 	return hex.EncodeToString(key)
 }
 
+// DKGPubKeysFixture constructs a fixture for a DKG public key string list as accepted by FlowDKG
+// (any list of hex-encoded 96-byte bytes).
 func DKGPubKeysFixture(n int) []string {
 	keys := make([]string, n)
 	for i := range keys {
@@ -759,14 +763,12 @@ func DKGPubKeysFixture(n int) []string {
 	return keys
 }
 
+// DKGPubKeyFixtureCDC returns a Cadence string-typed version of DKGPubKeyFixture.
 func DKGPubKeyFixtureCDC() cadence.String {
-	str, err := cadence.NewString(DKGPubKeyFixture())
-	if err != nil {
-		panic(err)
-	}
-	return str
+	return cadence.String(DKGPubKeyFixture())
 }
 
+// DKGPubKeysFixtureCDC returns a Cadence array-typed version of DKGPubKeysFixture.
 func DKGPubKeysFixtureCDC(n int) cadence.Array {
 	values := make([]cadence.Value, n)
 	for i := range values {
@@ -775,6 +777,8 @@ func DKGPubKeysFixtureCDC(n int) cadence.Array {
 	return cadence.NewArray(values)
 }
 
+// DKGIDMappingToCDC converts an ID mapping (map from node IDs to DKG indexes) from a Go
+// map representation to a Cadence dictionary representation.
 func DKGIDMappingToCDC(idMapping map[string]int) cadence.Dictionary {
 	pairs := make([]cadence.KeyValuePair, 0, len(idMapping))
 	for nodeID, index := range idMapping {
@@ -786,6 +790,8 @@ func DKGIDMappingToCDC(idMapping map[string]int) cadence.Dictionary {
 	return cadence.NewDictionary(pairs)
 }
 
+// CDCToDKGIDMapping converts an ID mapping (map from node IDs to DKG indexes) from a
+// Cadence dictionary representation to a Go map representation.
 func CDCToDKGIDMapping(cdc cadence.Value) map[string]int {
 	idMappingCDC := cdc.(cadence.Dictionary)
 	idMapping := make(map[string]int, len(idMappingCDC.Pairs))
@@ -797,12 +803,15 @@ func CDCToDKGIDMapping(cdc cadence.Value) map[string]int {
 	return idMapping
 }
 
+// ResultSubmission is a Go structure representation the FlowDKG.ResultSubmission Cadence data structure.
+// It is used to construct and operate on ResultSubmission objects from Cadence, in Go tests.
 type ResultSubmission struct {
 	GroupPubKey string
 	PubKeys     []string
 	IDMapping   map[string]int
 }
 
+// GroupPubKeyCDC returns the GroupPubKey field as a cadence String.
 func (rs *ResultSubmission) GroupPubKeyCDC() cadence.String {
 	cdc, err := cadence.NewString(rs.GroupPubKey)
 	if err != nil {
@@ -811,6 +820,7 @@ func (rs *ResultSubmission) GroupPubKeyCDC() cadence.String {
 	return cdc
 }
 
+// PubKeysCDC returns the PubKeys field as a cadence [String].
 func (rs *ResultSubmission) PubKeysCDC() cadence.Array {
 	values := make([]cadence.Value, len(rs.PubKeys))
 	for i := range values {
@@ -823,10 +833,12 @@ func (rs *ResultSubmission) PubKeysCDC() cadence.Array {
 	return cadence.NewArray(values)
 }
 
+// IDMappingCDC returns the IDMapping field as a cadence {String: Int}.
 func (rs *ResultSubmission) IDMappingCDC() cadence.Dictionary {
 	return DKGIDMappingToCDC(rs.IDMapping)
 }
 
+// ResultSubmissionFromCadence converts a Cadence-typed ResultSubmission to the Go representation.
 func ResultSubmissionFromCadence(cdc cadence.Value) ResultSubmission {
 	fields := cdc.(cadence.Struct).FieldsMappedByName()
 	rs := ResultSubmission{
@@ -837,6 +849,7 @@ func ResultSubmissionFromCadence(cdc cadence.Value) ResultSubmission {
 	return rs
 }
 
+// GetDKGFinalSubmissions executes a script to retrieve all unique final submissions.
 func GetDKGFinalSubmissions(t *testing.T, b emulator.Emulator, env templates.Environment) []ResultSubmission {
 	result := executeScriptAndCheck(t, b, templates.GenerateGetDKGFinalSubmissionsScript(env), nil)
 
@@ -847,6 +860,7 @@ func GetDKGFinalSubmissions(t *testing.T, b emulator.Emulator, env templates.Env
 	return submissions
 }
 
+// GetDKGCanonicalFinalSubmission executes a script to retrieve the canonical final submission, if any exists.
 func GetDKGCanonicalFinalSubmission(t *testing.T, b emulator.Emulator, env templates.Environment) ResultSubmission {
 	result := executeScriptAndCheck(t, b, templates.GenerateGetDKGCanonicalFinalSubmissionScript(env), nil)
 	return ResultSubmissionFromCadence(UnwrapOptional[cadence.Struct](result))
