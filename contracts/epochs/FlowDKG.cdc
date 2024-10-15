@@ -375,7 +375,7 @@ access(all) contract FlowDKG {
         access(all) fun sendFinalSubmission(_ submission: ResultSubmission) {
             pre {
                 FlowDKG.dkgEnabled:
-                    "FlowDKG.Participant.postMessage: Cannot post whiteboard message when DKG is disabled"
+                    "FlowDKG.Participant.postMessage: Cannot send final submission when DKG is disabled"
             }
             FlowDKG.borrowSubmissionTracker().addSubmission(nodeID: self.nodeID, submission: submission)
         }
