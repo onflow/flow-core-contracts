@@ -348,7 +348,6 @@ access(all) contract FlowDKG {
 
         /// Posts a whiteboard message to the contract
         access(all) fun postMessage(_ content: String) {
-            // TODO: DKG enabled?
             pre {
                 FlowDKG.participantIsRegistered(self.nodeID):
                     "FlowDKG.Participant.postMessage: Cannot post whiteboard message. Sender (node ID: "
@@ -356,6 +355,8 @@ access(all) contract FlowDKG {
                         .concat(") is not registered for the current DKG instance")
                 content.length > 0:
                     "FlowDKG.Participant.postMessage: Cannot post empty message to the whiteboard"
+                FlowDKG.dkgEnabled:
+                    "FlowDKG.Participant.postMessage: Cannot post whiteboard message when DKG is disabled"
             }
 
             // create the message struct
@@ -372,7 +373,10 @@ access(all) contract FlowDKG {
         /// Can only be called by consensus nodes that are registered
         /// and can only be called once per consensus node per epoch
         access(all) fun sendFinalSubmission(_ submission: ResultSubmission) {
-            // TODO: DKG enabled?
+            pre {
+                FlowDKG.dkgEnabled:
+                    "FlowDKG.Participant.postMessage: Cannot post whiteboard message when DKG is disabled"
+            }
             FlowDKG.borrowSubmissionTracker().addSubmission(nodeID: self.nodeID, submission: submission)
         }
     }
