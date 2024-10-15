@@ -576,3 +576,17 @@ func GenerateGetApprovedNodesScript(env Environment) []byte {
 
 	return []byte(ReplaceAddresses(code, env))
 }
+
+func GenerateEndStakingTestScript(env Environment) []byte {
+	code := `
+		import FlowIDTableStaking from "FlowIDTableStaking"
+		
+		access(all) fun main() {
+			let acct = getAuthAccount<auth(BorrowValue) &Account>("FlowIDTableStaking")
+			let adminRef = acct.storage.borrow<&FlowIDTableStaking.Admin>(from: FlowIDTableStaking.StakingAdminStoragePath)
+            	?? panic("Could not borrow reference to staking admin")
+
+        	adminRef.endStakingAuction()
+		}`
+	return []byte(ReplaceAddresses(code, env))
+}

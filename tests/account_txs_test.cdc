@@ -21,7 +21,10 @@ fun testCreateAccount() {
     Test.expect(txResult, Test.beFailed())
     Test.assertError(
         txResult,
-        errorMessage: "Must provide a signature algorithm raw value that is 1, 2, or 3"
+        errorMessage: "Cannot add Key: Must provide a signature algorithm raw value that corresponds to "
+                .concat("one of the available signature algorithms for Flow keys.")
+                .concat("You provided 0")
+                .concat(" but the options are either 1 (ECDSA_P256), 2 (ECDSA_secp256k1), or 3 (BLS_BLS12_381).")
     )
 
     // Should fail
@@ -33,7 +36,10 @@ fun testCreateAccount() {
     Test.expect(txResult, Test.beFailed())
     Test.assertError(
         txResult,
-        errorMessage: "Must provide a signature algorithm raw value that is 1, 2, or 3"
+        errorMessage: "Cannot add Key: Must provide a signature algorithm raw value that corresponds to "
+                .concat("one of the available signature algorithms for Flow keys.")
+                .concat("You provided 5")
+                .concat(" but the options are either 1 (ECDSA_P256), 2 (ECDSA_secp256k1), or 3 (BLS_BLS12_381).")
     )
 
     // Should fail
@@ -45,7 +51,11 @@ fun testCreateAccount() {
     Test.expect(txResult, Test.beFailed())
     Test.assertError(
         txResult,
-        errorMessage: "Must provide a hash algorithm raw value that is between 1 and 6"
+        errorMessage: "Cannot add Key: Must provide a hash algorithm raw value that corresponds to "
+                .concat("one of of the available hash algorithms for Flow keys.")
+                .concat("You provided 0")
+                .concat(" but the options are 1 (SHA2_256), 2 (SHA2_384), 3 (SHA3_256), ")
+                .concat("4 (SHA3_384), 5 (KMAC128_BLS_BLS12_381), or 6 (KECCAK_256).")
     )
 
     // Should fail
@@ -57,7 +67,11 @@ fun testCreateAccount() {
     Test.expect(txResult, Test.beFailed())
     Test.assertError(
         txResult,
-        errorMessage: "Must provide a hash algorithm raw value that is between 1 and 6"
+        errorMessage: "Cannot add Key: Must provide a hash algorithm raw value that corresponds to "
+                .concat("one of of the available hash algorithms for Flow keys.")
+                .concat("You provided 10")
+                .concat(" but the options are 1 (SHA2_256), 2 (SHA2_384), 3 (SHA3_256), ")
+                .concat("4 (SHA3_384), 5 (KMAC128_BLS_BLS12_381), or 6 (KECCAK_256).")
     )
 
     // Should fail
@@ -69,7 +83,8 @@ fun testCreateAccount() {
     Test.expect(txResult, Test.beFailed())
     Test.assertError(
         txResult,
-        errorMessage: "The key weight must be between 0 and 1000"
+        errorMessage: "Cannot add Key: The key weight must be between 0 and 1000."
+                .concat(" You provided 1222100.00000000 which is invalid.")
     )
 
     // Should succeed
@@ -94,7 +109,10 @@ fun testAddKey() {
     Test.expect(txResult, Test.beFailed())
     Test.assertError(
         txResult,
-        errorMessage: "Must provide a signature algorithm raw value that is 1, 2, or 3"
+        errorMessage: "Cannot add Key: Must provide a signature algorithm raw value that corresponds to "
+                .concat("one of the available signature algorithms for Flow keys.")
+                .concat("You provided 0")
+                .concat(" but the options are either 1 (ECDSA_P256), 2 (ECDSA_secp256k1), or 3 (BLS_BLS12_381).")
     )
 
     // Should fail
@@ -106,7 +124,10 @@ fun testAddKey() {
     Test.expect(txResult, Test.beFailed())
     Test.assertError(
         txResult,
-        errorMessage: "Must provide a signature algorithm raw value that is 1, 2, or 3"
+        errorMessage: "Cannot add Key: Must provide a signature algorithm raw value that corresponds to "
+                .concat("one of the available signature algorithms for Flow keys.")
+                .concat("You provided 5")
+                .concat(" but the options are either 1 (ECDSA_P256), 2 (ECDSA_secp256k1), or 3 (BLS_BLS12_381).")
     )
 
     // Should fail
@@ -118,7 +139,11 @@ fun testAddKey() {
     Test.expect(txResult, Test.beFailed())
     Test.assertError(
         txResult,
-        errorMessage: "Must provide a hash algorithm raw value that is between 1 and 6"
+        errorMessage: "Cannot add Key: Must provide a hash algorithm raw value that corresponds to "
+                .concat("one of of the available hash algorithms for Flow keys.")
+                .concat("You provided 0")
+                .concat(" but the options are 1 (SHA2_256), 2 (SHA2_384), 3 (SHA3_256), ")
+                .concat("4 (SHA3_384), 5 (KMAC128_BLS_BLS12_381), or 6 (KECCAK_256).")
     )
 
     // Should fail
@@ -130,7 +155,11 @@ fun testAddKey() {
     Test.expect(txResult, Test.beFailed())
     Test.assertError(
         txResult,
-        errorMessage: "Must provide a hash algorithm raw value that is between 1 and 6"
+        errorMessage: "Cannot add Key: Must provide a hash algorithm raw value that corresponds to "
+                .concat("one of of the available hash algorithms for Flow keys.")
+                .concat("You provided 10")
+                .concat(" but the options are 1 (SHA2_256), 2 (SHA2_384), 3 (SHA3_256), ")
+                .concat("4 (SHA3_384), 5 (KMAC128_BLS_BLS12_381), or 6 (KECCAK_256).")
     )
 
     // Should fail
@@ -142,7 +171,8 @@ fun testAddKey() {
     Test.expect(txResult, Test.beFailed())
     Test.assertError(
         txResult,
-        errorMessage: "The key weight must be between 0 and 1000"
+        errorMessage: "Cannot add Key: The key weight must be between 0 and 1000."
+                .concat(" You provided 1222100.00000000 which is invalid.")
     )
 
     // Should succeed
@@ -166,7 +196,8 @@ fun testRevokeKey() {
     Test.expect(txResult, Test.beFailed())
     Test.assertError(
         txResult,
-        errorMessage: "No key with the given index exists on the authorizer's account"
+        errorMessage: "Cannot revoke key: No key with the index 8"
+                .concat(" exists on the authorizer's account.")
     )
 
     // Should succeed
