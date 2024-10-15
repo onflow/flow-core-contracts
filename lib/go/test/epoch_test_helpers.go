@@ -2,6 +2,8 @@ package test
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"testing"
 
@@ -123,15 +125,17 @@ type EpochSetup struct {
 	targetEndTime      uint64
 }
 
-// / Used to verify the EpochCommit event fields in tests
+// Used to verify the EpochCommit event fields in tests
 type EpochCommit struct {
-	counter    uint64
-	clusterQCs [][]string
-	dkgPubKeys []string
+	counter        uint64
+	clusterQCs     [][]string
+	dkgGroupPubKey string
+	dkgPubKeys     []string
+	dkgIDMapping   map[string]int
 }
 
 // Go event definitions for the epoch events
-// Can be used with the SDK to retreive and parse epoch events
+// Can be used with the SDK to retrieve and parse epoch events
 
 type EpochSetupEvent flow.Event
 
@@ -182,8 +186,16 @@ func (evt EpochCommitEvent) clusterQCs() cadence.Array {
 	return cadence.SearchFieldByName(evt.Value, "clusterQCs").(cadence.Array)
 }
 
+func (evt EpochCommitEvent) dkgGroupPubKey() cadence.String {
+	return cadence.SearchFieldByName(evt.Value, "dkgGroupKey").(cadence.String)
+}
+
 func (evt EpochCommitEvent) dkgPubKeys() cadence.Array {
 	return cadence.SearchFieldByName(evt.Value, "dkgPubKeys").(cadence.Array)
+}
+
+func (evt EpochCommitEvent) dkgIDMapping() cadence.Dictionary {
+	return cadence.SearchFieldByName(evt.Value, "dkgIdMapping").(cadence.Dictionary)
 }
 
 // / Deploys the Quroum Certificate and Distributed Key Generation contracts to the provided account
@@ -707,7 +719,12 @@ func verifyEpochCommit(
 	assertEqual(t, cadence.NewUInt64(expectedCommitted.counter), emittedEvent.Counter())
 
 	// dkg result
-	assertEqual(t, len(expectedCommitted.dkgPubKeys), len(emittedEvent.dkgPubKeys().Values))
+	dkgGroupKey := CDCToString(emittedEvent.dkgGroupPubKey())
+	dkgPubKeys := CadenceArrayTo(emittedEvent.dkgPubKeys(), CDCToString)
+	dkgIDMapping := CDCToDKGIDMapping(emittedEvent.dkgIDMapping())
+	assertEqual(t, expectedCommitted.dkgGroupPubKey, dkgGroupKey)
+	assertEqual(t, expectedCommitted.dkgPubKeys, dkgPubKeys)
+	assertEqual(t, expectedCommitted.dkgIDMapping, dkgIDMapping)
 
 	// quorum certificates
 	verifyClusterQCs(t, expectedCommitted.clusterQCs, emittedEvent.clusterQCs().Values)
@@ -723,4 +740,128 @@ func expectedTargetEndTime(timingConfig cadence.Value, targetEpoch uint64) uint6
 	refTimestamp := uint64(fields["refTimestamp"].(cadence.UInt64))
 
 	return refTimestamp + duration*(targetEpoch-refCounter)
+}
+
+// DKGPubKeyFixture constructs a fixture for a DKG public key string as accepted by FlowDKG
+// (any hex-encoded 96-byte bytes).
+func DKGPubKeyFixture() string {
+	key := make([]byte, 96)
+	_, err := rand.Read(key)
+	if err != nil {
+		panic(err)
+	}
+	return hex.EncodeToString(key)
+}
+
+// DKGPubKeysFixture constructs a fixture for a DKG public key string list as accepted by FlowDKG
+// (any list of hex-encoded 96-byte bytes).
+func DKGPubKeysFixture(n int) []string {
+	keys := make([]string, n)
+	for i := range keys {
+		keys[i] = DKGPubKeyFixture()
+	}
+	return keys
+}
+
+// DKGPubKeyFixtureCDC returns a Cadence string-typed version of DKGPubKeyFixture.
+func DKGPubKeyFixtureCDC() cadence.String {
+	return cadence.String(DKGPubKeyFixture())
+}
+
+// DKGPubKeysFixtureCDC returns a Cadence array-typed version of DKGPubKeysFixture.
+func DKGPubKeysFixtureCDC(n int) cadence.Array {
+	values := make([]cadence.Value, n)
+	for i := range values {
+		values[i] = DKGPubKeyFixtureCDC()
+	}
+	return cadence.NewArray(values)
+}
+
+// DKGIDMappingToCDC converts an ID mapping (map from node IDs to DKG indexes) from a Go
+// map representation to a Cadence dictionary representation.
+func DKGIDMappingToCDC(idMapping map[string]int) cadence.Dictionary {
+	pairs := make([]cadence.KeyValuePair, 0, len(idMapping))
+	for nodeID, index := range idMapping {
+		pairs = append(pairs, cadence.KeyValuePair{
+			Key:   cadence.String(nodeID),
+			Value: cadence.NewInt(index),
+		})
+	}
+	return cadence.NewDictionary(pairs)
+}
+
+// CDCToDKGIDMapping converts an ID mapping (map from node IDs to DKG indexes) from a
+// Cadence dictionary representation to a Go map representation.
+func CDCToDKGIDMapping(cdc cadence.Value) map[string]int {
+	idMappingCDC := cdc.(cadence.Dictionary)
+	idMapping := make(map[string]int, len(idMappingCDC.Pairs))
+	for _, pair := range idMappingCDC.Pairs {
+		nodeID := string(pair.Key.(cadence.String))
+		index := pair.Value.(cadence.Int).Int()
+		idMapping[nodeID] = index
+	}
+	return idMapping
+}
+
+// ResultSubmission is a Go structure representation the FlowDKG.ResultSubmission Cadence data structure.
+// It is used to construct and operate on ResultSubmission objects from Cadence, in Go tests.
+type ResultSubmission struct {
+	GroupPubKey string
+	PubKeys     []string
+	IDMapping   map[string]int
+}
+
+// GroupPubKeyCDC returns the GroupPubKey field as a cadence String.
+func (rs *ResultSubmission) GroupPubKeyCDC() cadence.String {
+	cdc, err := cadence.NewString(rs.GroupPubKey)
+	if err != nil {
+		panic(err)
+	}
+	return cdc
+}
+
+// PubKeysCDC returns the PubKeys field as a cadence [String].
+func (rs *ResultSubmission) PubKeysCDC() cadence.Array {
+	values := make([]cadence.Value, len(rs.PubKeys))
+	for i := range values {
+		var err error
+		values[i], err = cadence.NewString(rs.PubKeys[i])
+		if err != nil {
+			panic(err)
+		}
+	}
+	return cadence.NewArray(values)
+}
+
+// IDMappingCDC returns the IDMapping field as a cadence {String: Int}.
+func (rs *ResultSubmission) IDMappingCDC() cadence.Dictionary {
+	return DKGIDMappingToCDC(rs.IDMapping)
+}
+
+// ResultSubmissionFromCadence converts a Cadence-typed ResultSubmission to the Go representation.
+func ResultSubmissionFromCadence(cdc cadence.Value) ResultSubmission {
+	fields := cdc.(cadence.Struct).FieldsMappedByName()
+	rs := ResultSubmission{
+		GroupPubKey: string(UnwrapOptional[cadence.String](fields["groupPubKey"])),
+		PubKeys:     CadenceArrayTo(UnwrapOptional[cadence.Array](fields["pubKeys"]), CDCToString),
+		IDMapping:   CDCToDKGIDMapping(UnwrapOptional[cadence.Dictionary](fields["idMapping"])),
+	}
+	return rs
+}
+
+// GetDKGFinalSubmissions executes a script to retrieve all unique final submissions.
+func GetDKGFinalSubmissions(t *testing.T, b emulator.Emulator, env templates.Environment) []ResultSubmission {
+	result := executeScriptAndCheck(t, b, templates.GenerateGetDKGFinalSubmissionsScript(env), nil)
+
+	var submissions []ResultSubmission
+	for _, submissionCDC := range result.(cadence.Array).Values {
+		submissions = append(submissions, ResultSubmissionFromCadence(submissionCDC))
+	}
+	return submissions
+}
+
+// GetDKGCanonicalFinalSubmission executes a script to retrieve the canonical final submission, if any exists.
+func GetDKGCanonicalFinalSubmission(t *testing.T, b emulator.Emulator, env templates.Environment) ResultSubmission {
+	result := executeScriptAndCheck(t, b, templates.GenerateGetDKGCanonicalFinalSubmissionScript(env), nil)
+	return ResultSubmissionFromCadence(UnwrapOptional[cadence.Struct](result))
 }
