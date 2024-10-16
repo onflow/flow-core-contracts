@@ -170,8 +170,13 @@ access(all) contract FlowStakingCollection {
         ///
         /// @param nodeID: The ID of the requested node
         /// @param delegatorID: The ID of the requested delegator
+        ///
+        /// @return String: The full error message to print
         access(all) view fun getStakerDoesntExistInCollectionError(funcName: String, nodeID: String, delegatorID: UInt32?): String {
+            // Construct the function name for the beginning of the error
             let errorBeginning = "FlowStakingCollection.StakingCollection.".concat(funcName).concat(": ")
+            
+            // The error message is different if it is a delegator vs a node
             if let delegator = delegatorID {
                 return errorBeginning.concat("The specified delegator with node ID ")
                     .concat(nodeID).concat(" and delegatorID ").concat(delegator.toString())
@@ -217,7 +222,7 @@ access(all) contract FlowStakingCollection {
                     message: "FlowStakingCollection.StakingCollection.getTokens: Cannot get tokens to stake! "
                             .concat("The amount of FLOW requested to use, ")
                             .concat(amount.toString()).concat(", is more than the sum of ")
-                            .concat(" locked and unlocked FLOW, ").concat((lockedBalance+unlockedBalance).toString())
+                            .concat("locked and unlocked FLOW, ").concat((lockedBalance+unlockedBalance).toString())
                             .concat(", in the owner's accounts.")
                 )
 
@@ -260,7 +265,7 @@ access(all) contract FlowStakingCollection {
                             .concat("The amount of FLOW requested to use, ")
                             .concat(amount.toString()).concat(", is more than the amount of FLOW, ")
                             .concat((unlockedBalance).toString())
-                            .concat(", in the owner's accounts.")
+                            .concat(", in the owner's account.")
                 )
 
                 self.unlockedTokensUsed = self.unlockedTokensUsed + amount
@@ -276,7 +281,8 @@ access(all) contract FlowStakingCollection {
                 // This error should never be triggered in production becasue the tokens used fields
                 // should be properly managed by all the other functions
                 from.balance <= self.unlockedTokensUsed + self.lockedTokensUsed:
-                    "FlowStakingCollection.StakingCollection.depositTokens: Cannot deposit more FLOW than is already used"
+                    "FlowStakingCollection.StakingCollection.depositTokens: "
+                    .concat(" Cannot return more FLOW to the account than is already in use for staking.")
             }
 
             let unlockedVault = self.unlockedVault.borrow()!
@@ -490,8 +496,8 @@ access(all) contract FlowStakingCollection {
             self.nodeStakers[id] <-! nodeStaker
 
             let nodeReference = self.borrowNode(id)
-                ?? panic("FlowStakingCollection.StakingCollection.removeDelegator: "
-                        .concat("Could not borrow a reference to the newly created node with ID")
+                ?? panic("FlowStakingCollection.StakingCollection.registerNode: "
+                        .concat("Could not borrow a reference to the newly created node with ID ")
                         .concat(id).concat("."))
 
             let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeReference.id)
@@ -649,7 +655,7 @@ access(all) contract FlowStakingCollection {
                 
                     let lockedNodeReference = lockedTokenManager.borrowNode()
                         ?? panic("FlowStakingCollection.StakingCollection.createMachineAccountForExistingNode: "
-                                .concat("Could not borrow a node reference from the locked account"))
+                                .concat("Could not borrow a node reference from the locked account."))
 
                     return self.registerMachineAccount(nodeReference: lockedNodeReference, payer: payer)
                 }
@@ -995,7 +1001,7 @@ access(all) contract FlowStakingCollection {
                 /// Set the machine account for this node to `nil` because it no longer exists
                 if let machineAccountInfo = self.machineAccounts[nodeID] {
                     let vaultRef = machineAccountInfo.machineAccountVaultProvider.borrow()
-                        ?? panic("FlowStakingCollection.StakingCollection.closeStake: Could not borrow vault ref from machine account")
+                        ?? panic("FlowStakingCollection.StakingCollection.closeStake: Could not borrow vault ref from machine account.")
 
                     let unlockedVault = self.unlockedVault!.borrow()!
                     var availableBalance: UFix64 = 0.0
@@ -1237,6 +1243,8 @@ access(all) contract FlowStakingCollection {
     ///
     /// @param account: The account address if talking about an account that is not the signer.
     ///                 If referring to the signer, leave this argument as `nil`.
+    ///
+    /// @return String: The full error message
     access(all) view fun getCollectionMissingError(_ account: Address?): String {
         if let address = account {
             return "The account ".concat(address.toString())
