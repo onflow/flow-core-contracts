@@ -11,9 +11,7 @@ transaction(nodeID: String, to: Address) {
     prepare(account: auth(BorrowValue) &Account) {
         // The account to transfer the NodeStaker object to must have a valid Staking Collection in order to receive the NodeStaker.
         if (!FlowStakingCollection.doesAccountHaveStakingCollection(address: to)) {
-            panic("The desination account does not store a Staking Collection object at the path "
-                .concat(FlowStakingCollection.StakingCollectionStoragePath.toString())
-                .concat(". The destination account must initialize their account with this object first!"))
+            panic(FlowStakingCollection.getCollectionMissingError(to))
         }
 
         // Get a reference to the authorizers StakingCollection
@@ -26,7 +24,7 @@ transaction(nodeID: String, to: Address) {
         // Borrow a capability to the public methods available on the receivers StakingCollection.
         self.toStakingCollectionCap = toAccount.capabilities
             .borrow<&FlowStakingCollection.StakingCollection>(FlowStakingCollection.StakingCollectionPublicPath)
-            ?? panic("Could not borrow a reference to a StakingCollection in the receiver's account")
+            ?? panic(FlowStakingCollection.getCollectionMissingError(to))
 
         let machineAccountInfo = self.fromStakingCollectionRef.getMachineAccounts()[nodeID]
             ?? panic("Could not get machine account info from the signer's account for the node ID "
