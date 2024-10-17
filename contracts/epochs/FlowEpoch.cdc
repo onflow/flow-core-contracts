@@ -667,22 +667,21 @@ access(all) contract FlowEpoch {
                 startView: startView,
                 endView: endView,
                 stakingEndView: stakingEndView,
-                // The following fields will be overwritten in `calculateAndSetRewards` below
-                totalRewards: 0.0,
-                collectorClusters: [],
-                clusterQCs: [],
+                totalRewards: 0.0,     // will be overwritten in `calculateAndSetRewards` below
+                collectorClusters: [], // will be overwritten in `calculateAndSetRewards` below
+                clusterQCs: [],        // will be overwritten in `calculateAndSetRewards` below
                 dkgKeys: [dkgGroupKey].concat(dkgPubKeys)
             )
 
-            /// Save the new epoch meta data, it will be referenced as             
-            /// the epoch progresses through each phase.
+            /// Save the new epoch meta data, it will be referenced as the epoch progresses
             FlowEpoch.saveEpochMetadata(newEpochMetadata)
 
-            /// Calculate rewards for the current epoch
-            /// and set the payout for the next epoch
+            /// Calculate rewards for the current epoch and set the payout for the next epoch
             FlowEpoch.calculateAndSetRewards()
 
-            /// emit the epoch recover event
+            /// Emit the EpochRecover service event.
+            /// This will be processed by the Protocol State, which will then exit EFM
+            /// and enter the recovery epoch at the specified start view.
             self.emitEpochRecoverEvent(epochCounter: recoveryEpochCounter,
                 startView: startView,
                 stakingEndView: stakingEndView,
@@ -741,9 +740,9 @@ access(all) contract FlowEpoch {
             self.stopEpochComponents()
             
             let currentEpochMetadata = FlowEpoch.getEpochMetadata(recoveryEpochCounter)
-            /// Create new EpochMetadata for the recovery epoch with the new values. This epoch metadata will overwrite 
-            /// the epoch metadata of the current epoch.
-            let epochMetadata: FlowEpoch.EpochMetadata = EpochMetadata(
+            /// Create new EpochMetadata for the recovery epoch with the new values.
+            /// This epoch metadata will overwrite the epoch metadata of the current epoch.
+            let recoveryEpochMetadata: FlowEpoch.EpochMetadata = EpochMetadata(
                 counter: recoveryEpochCounter,
                 seed: currentEpochMetadata!.seed,
                 startView: startView,
@@ -755,18 +754,21 @@ access(all) contract FlowEpoch {
                 dkgKeys: [dkgGroupKey].concat(dkgPubKeys)
             )
 
-            /// Save the new epoch meta data, it will be referenced as             
-            /// the epoch progresses through each phase.
-            FlowEpoch.saveEpochMetadata(epochMetadata)
+            /// Save EpochMetadata for the recovery epoch, it will be referenced as the epoch progresses.
+            /// CAUTION: This overwrites the EpochMetadata already stored for the current epoch.
+            FlowEpoch.saveEpochMetadata(recoveryEpochMetadata)
 
-            /// emit the epoch recover event
-            self.emitEpochRecoverEvent(epochCounter: recoveryEpochCounter,
+            /// Emit the EpochRecover service event.
+            /// This will be processed by the Protocol State, which will then exit EFM
+            /// and enter the recovery epoch at the specified start view.
+            self.emitEpochRecoverEvent( 
+                epochCounter: recoveryEpochCounter,
                 startView: startView,
                 stakingEndView: stakingEndView,
                 endView: endView,
                 nodeIDs: nodeIDs,
                 clusterAssignments: clusterAssignments,
-                randomSource: currentEpochMetadata!.seed,
+                randomSource: recoveryEpochMetadata.seed,
                 targetDuration: targetDuration,
                 targetEndTime: targetEndTime,
                 clusterQCVoteData: clusterQCVoteData,
