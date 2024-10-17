@@ -258,13 +258,12 @@ access(all) contract FlowClusterQC {
         }
     }
 
-    /// Represents the quorum certificate vote data for a signer 
-    /// of the certificate.
+    /// Represents the aggregated signature for a cluster quorum certificate.
     access(all) struct ClusterQCVoteData {
-        /// The aggregated signature, hex-encoded, encompasses all individual vote signatures contributed by nodes across the cluster
+        /// The aggregated signature, hex-encoded. Includes one vote for each node in `voterIDs`.
         access(all) let aggregatedSignature: String
 
-        /// The node IDs that contributed their vote to the aggregated signature
+        /// The node IDs that contributed their vote to the aggregated signature.
         access(all) let voterIDs: [String]
 
         init(aggregatedSignature: String, voterIDs: [String]) {
