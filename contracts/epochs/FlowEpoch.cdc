@@ -207,7 +207,7 @@ access(all) contract FlowEpoch {
         /// using the same procedure as during a spork.
         /// CAUTION: Validity of the QCs is not explicitly verified during the recovery process. An
         /// invalid cluster QC will prevent the respective cluster from starting its local consensus
-        /// and hence prevent if from functioning for the entire epoch. If all cluster QCs are invalid,
+        /// and hence prevent it from functioning for the entire epoch. If all cluster QCs are invalid,
         /// the blockchain cannot ingest transactions, which can only be resolved through a spork!
         clusterQCVoteData: [FlowClusterQC.ClusterQCVoteData],
 
@@ -433,15 +433,16 @@ access(all) contract FlowEpoch {
         }
     }
 
+    /// Generates 128 bits of randomness using system random (derived from Random Beacon).
     access(contract) fun generateRandomSource(): String {
-        /// random source must be a hex string of 32 characters (i.e 16 bytes or 128 bits)
-        /// `revertibleRandom` returns a UInt64 (8 bytes)
+        post {
+            result.length == 32:
+                "FlowEpoch.generateRandomSource: Critical invariant violated! "
+                    .concat("Expected hex random source with length 32 (128 bits) but got length ")
+                    .concat(result.length.toString())
+                    .concat(" instead.")
+        }
         var randomSource = String.encodeHex(revertibleRandom<UInt128>().toBigEndianBytes())
-        assert (
-            randomSource.length == 32,
-            message: "Random source must be a hex string of 32 characters"
-        )
-
         return randomSource
     }
 
