@@ -391,7 +391,8 @@ access(all) contract FlowStakingCollection {
                     self.getStakerDoesntExistInCollectionError(funcName: "removeNode", nodeID: nodeID, delegatorID: nil)
                 self.lockedTokensUsed == UFix64(0.0):
                     "FlowStakingCollection.StakingCollection.removeNode: Cannot remove a node from the collection "
-                    .concat("if the collection manages any locked tokens. This is to prevent locked tokens ")
+                    .concat("because the collection still manages ").concat(self.lockedTokensUsed.toString())
+                    .concat(" locked tokens. This is to prevent locked tokens ")
                     .concat("from being unlocked and withdrawn before their allotted unlocking time.")
             }
             
@@ -425,7 +426,8 @@ access(all) contract FlowStakingCollection {
                     self.getStakerDoesntExistInCollectionError(funcName: "removeDelegator", nodeID: nodeID, delegatorID: delegatorID)
                 self.lockedTokensUsed == UFix64(0.0):
                     "FlowStakingCollection.StakingCollection.removeDelegator: Cannot remove a delegator from the collection "
-                    .concat("if the collection manages any locked tokens. This is to prevent locked tokens ")
+                    .concat("because the collection still manages ").concat(self.lockedTokensUsed.toString())
+                    .concat(" locked tokens. This is to prevent locked tokens ")
                     .concat("from being unlocked and withdrawn before their allotted unlocking time.")
             }
             
@@ -599,7 +601,7 @@ access(all) contract FlowStakingCollection {
             if nodeInfo.role == FlowEpoch.NodeRole.Collector.rawValue {
                 let qcVoterRef = machineAccount.storage.borrow<&FlowClusterQC.Voter>(from: FlowClusterQC.VoterStoragePath)
                     ?? panic("FlowStakingCollection.StakingCollection.addMachineAccountRecord: "
-                            .concat("Could not access a QC Voter object from the provided machine account."))
+                            .concat("Could not access a QC Voter object from the provided machine account with address ").concat(machineAccount.address.toString()))
 
                 assert(
                     nodeID == qcVoterRef.nodeID,
@@ -610,7 +612,7 @@ access(all) contract FlowStakingCollection {
             } else if nodeInfo.role == FlowEpoch.NodeRole.Consensus.rawValue {
                 let dkgParticipantRef = machineAccount.storage.borrow<&FlowDKG.Participant>(from: FlowDKG.ParticipantStoragePath)
                     ?? panic("FlowStakingCollection.StakingCollection.addMachineAccountRecord: "
-                            .concat("Could not access a DKG Participant object from the provided machine account."))
+                            .concat("Could not access a DKG Participant object from the provided machine account with address ").concat(machineAccount.address.toString()))
 
                 assert(
                     nodeID == dkgParticipantRef.nodeID,
@@ -1248,7 +1250,7 @@ access(all) contract FlowStakingCollection {
     access(all) view fun getCollectionMissingError(_ account: Address?): String {
         if let address = account {
             return "The account ".concat(address.toString())
-                .concat("does not store a Staking Collection object at the path ")
+                .concat(" does not store a Staking Collection object at the path ")
                 .concat(FlowStakingCollection.StakingCollectionStoragePath.toString())
                 .concat(". They must initialize their account with this object first!")
         } else {
