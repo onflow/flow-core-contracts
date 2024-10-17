@@ -1526,8 +1526,8 @@ func TestEpochReset(t *testing.T) {
 //   - epoch recover that specifies unsafeAllowOverwrite = true overwrites the current epoch and does not increment the counter.
 func TestEpochRecover(t *testing.T) {
 
-	// Perform epoch recovery with a new epoch and epoch recover overwriting the current epoch.
-	t.Run("Can recover the epoch and have everything return to normal", func(t *testing.T) {
+	// Perform epoch recovery by transitioning into a new epoch (counter incremented by one)
+	t.Run("Can recover the epoch with a new epoch", func(t *testing.T) {
 		epochConfig := &testEpochConfig{
 			startEpochCounter:    startEpochCounter,
 			numEpochViews:        numEpochViews,
@@ -1653,7 +1653,7 @@ func TestEpochRecover(t *testing.T) {
 				endView        uint64 = 160
 				targetDuration uint64 = numEpochViews
 				// invalid epoch counter when recovering the current epoch the counter should equal the current epoch counter
-				epochCounter  uint64 = startEpochCounter + 100
+				epochCounter  uint64 = startEpochCounter + 1
 				targetEndTime uint64 = expectedTargetEndTime(epochTimingConfigResult, epochCounter)
 			)
 			args := getRecoveryTxArgs(env, ids, startView, stakingEndView, endView, targetDuration, targetEndTime, epochCounter)
@@ -1693,7 +1693,7 @@ func TestEpochRecover(t *testing.T) {
 				endView        uint64 = 160
 				targetDuration uint64 = numEpochViews
 				// invalid epoch counter when recovering the current epoch the counter should equal the current epoch counter
-				epochCounter  uint64 = startEpochCounter + 100
+				epochCounter  uint64 = startEpochCounter
 				targetEndTime uint64 = expectedTargetEndTime(epochTimingConfigResult, epochCounter)
 			)
 			args := getRecoveryTxArgs(env, ids, startView, stakingEndView, endView, targetDuration, targetEndTime, epochCounter)
@@ -2006,8 +2006,8 @@ func getRecoveryTxArgs(
 		cadence.NewUInt64(endView),
 		cadence.NewUInt64(targetDuration),
 		cadence.NewUInt64(targetEndTime),
-		cadence.NewArray(collectorClusters), // collectorClusters
-		cadence.NewArray(clusterQcVoteData), // clusterQCVoteData
+		cadence.NewArray(collectorClusters),
+		cadence.NewArray(clusterQcVoteData),
 		cadence.NewArray(dkgPubKeysCdc),
 		cadence.NewDictionary([]cadence.KeyValuePair{{
 			Key:   cadence.String(nodeIds[0]),
@@ -2045,9 +2045,9 @@ func verifyEpochRecoverGovernanceTx(
 		}
 	}
 	for i, dkgKeyCdc := range args[8].(cadence.Array).Values {
+		// strip `"` characters because the Cadence fmt.Stringer implementation adds them.
 		dkgPubKeys[i] = strings.ReplaceAll(dkgKeyCdc.String(), `"`, "")
 	}
-	numStakingViews := stakingEndView - startView
 	// seed is not manually set when recovering the epoch, it is randomly generated
 	metadataFields := getEpochMetadata(t, b, env, cadence.NewUInt64(epochCounter))
 	seed := strings.ReplaceAll(metadataFields["seed"].String(), `"`, "")
@@ -2073,9 +2073,9 @@ func verifyEpochRecoverGovernanceTx(
 		finalView:          endView,
 		collectorClusters:  args[6].(cadence.Array).Values,
 		randomSource:       seed,
-		dkgPhase1FinalView: startView + numStakingViews + numDKGViews - 1,
-		dkgPhase2FinalView: startView + numStakingViews + (2 * numDKGViews) - 1,
-		dkgPhase3FinalView: startView + numStakingViews + (3 * numDKGViews) - 1,
+		dkgPhase1FinalView: stakingEndView + numDKGViews,
+		dkgPhase2FinalView: stakingEndView + (2 * numDKGViews),
+		dkgPhase3FinalView: stakingEndView + (3 * numDKGViews),
 		targetDuration:     targetDuration,
 		targetEndTime:      targetEndTime,
 		numberClusterQCs:   len(args[6].(cadence.Array).Values),

@@ -555,11 +555,10 @@ access(all) contract FlowEpoch {
                 nodes.append(FlowIDTableStaking.NodeInfo(nodeID: nodeID))
             }
             
-            let numViewsInStakingAuction = stakingEndView - startView
             let numViewsInDKGPhase = FlowEpoch.configurableMetadata.numViewsInDKGPhase
-            let dkgPhase1FinalView = startView + numViewsInStakingAuction + numViewsInDKGPhase - 1
-            let dkgPhase2FinalView = startView + numViewsInStakingAuction + (2 * numViewsInDKGPhase) - 1
-            let dkgPhase3FinalView = startView + numViewsInStakingAuction + (3 * numViewsInDKGPhase) - 1
+            let dkgPhase1FinalView = stakingEndView + numViewsInDKGPhase
+            let dkgPhase2FinalView = dkgPhase1FinalView + numViewsInDKGPhase
+            let dkgPhase3FinalView = dkgPhase2FinalView + numViewsInDKGPhase
 
             /// emit EpochRecover event
             emit FlowEpoch.EpochRecover(
@@ -697,7 +696,8 @@ access(all) contract FlowEpoch {
         /// This function is intended to update the current epoch configuration when a recovery
         /// transaction needs to be submitted more than once. This function differs 
         /// from recoverNewEpoch because it does not increment the epoch counter. It also 
-        /// does not calculate or distribute rewards avoiding double paying rewards for the same epoch.
+        /// does not calculate or distribute rewards -- calling recoverCurrentEpoch multiple times does not cause multiple reward payouts.
+        /// Rewards for the recovery epoch will be calculated and paid out during the course of the epoch. 
         /// This meta data will be emitted in the EpochRecover service event. This function is used 
         /// within sporks to recover the network from Epoch Fallback Mode (EFM).
         access(all) fun recoverCurrentEpoch(recoveryEpochCounter: UInt64,
@@ -1052,7 +1052,7 @@ access(all) contract FlowEpoch {
 
         self.currentEpochPhase = EpochPhase.EPOCHSETUP
 
-        let dkgPhase1FinalView = proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + self.configurableMetadata.numViewsInDKGPhase - 1
+        let dkgPhase1FinalView = proposedEpochMetadata.stakingEndView + self.configurableMetadata.numViewsInDKGPhase
         let dkgPhase2FinalView = dkgPhase1FinalView + self.configurableMetadata.numViewsInDKGPhase
         let dkgPhase3FinalView = dkgPhase2FinalView + self.configurableMetadata.numViewsInDKGPhase
         emit EpochSetup(counter: proposedEpochMetadata.counter,

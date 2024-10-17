@@ -939,7 +939,7 @@ type testEpochConfig struct {
 	numStakingViews      uint64 // num views for staking auction
 	numDKGViews          uint64 // num views for DKG phase
 	numClusters          uint64 // num collector clusters
-	numEpochAccounts     int    // num collector clusters
+	numEpochAccounts     int    // num accounts to setup for staking
 	randomSource         string // random source
 	rewardIncreaseFactor string // reward increase factor
 }
