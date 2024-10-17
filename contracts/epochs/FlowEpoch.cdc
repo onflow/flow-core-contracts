@@ -1053,8 +1053,8 @@ access(all) contract FlowEpoch {
         self.currentEpochPhase = EpochPhase.EPOCHSETUP
 
         let dkgPhase1FinalView = proposedEpochMetadata.startView + self.configurableMetadata.numViewsInStakingAuction + self.configurableMetadata.numViewsInDKGPhase - 1
-let dkgPhase2FinalView = dkgPhase1FinalView + self.configurableMetadata.numViewsInDKGPhase
-let dkgPhase3FinalView = dkgPhase2FinalView + self.configurableMetadata.numViewsInDKGPhase
+        let dkgPhase2FinalView = dkgPhase1FinalView + self.configurableMetadata.numViewsInDKGPhase
+        let dkgPhase3FinalView = dkgPhase2FinalView + self.configurableMetadata.numViewsInDKGPhase
         emit EpochSetup(counter: proposedEpochMetadata.counter,
                         nodeInfo: nodeInfoArray,
                         firstView: proposedEpochMetadata.startView,
