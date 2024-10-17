@@ -714,7 +714,8 @@ access(all) contract FlowEpoch {
         /// CAUTION: This causes data loss by replacing the existing current epoch metadata with the inputs to this function.
         /// This function exists to recover from potential race conditions that caused a prior recoverCurrentEpoch transaction to fail;
         /// this allows operators to retry the recovery procedure, overwriting the prior failed attempt.
-        access(all) fun recoverCurrentEpoch(recoveryEpochCounter: UInt64,
+        access(all) fun recoverCurrentEpoch(
+            recoveryEpochCounter: UInt64,
             startView: UInt64,
             stakingEndView: UInt64,
             endView: UInt64,
@@ -727,11 +728,16 @@ access(all) contract FlowEpoch {
             dkgIdMapping: {String: Int},
             nodeIDs: [String]) 
         { 
-            // sanity check recovery epoch counter should be the current epoch counter
-            assert(
-                recoveryEpochCounter == FlowEpoch.currentEpochCounter, 
-                message: "recovery epoch counter does not equal current epoch counter"
-            )
+            pre {
+                recoveryEpochCounter == FlowEpoch.currentEpochCounter:
+                    "FlowEpoch.Admin.recoverCurrentEpoch: Recovery epoch counter must equal current epoch counter. "
+                        .concat("Got recovery epoch counter (")
+                        .concat(recoveryEpochCounter.toString())
+                        .concat(") with current epoch counter (")
+                        .concat(FlowEpoch.currentEpochCounter.toString())
+                        .concat(").")
+            }
+
             self.stopEpochComponents()
             
             let currentEpochMetadata = FlowEpoch.getEpochMetadata(recoveryEpochCounter)
