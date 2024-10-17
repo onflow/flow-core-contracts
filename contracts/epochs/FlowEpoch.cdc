@@ -748,6 +748,7 @@ access(all) contract FlowEpoch {
                 startView: startView,
                 endView: endView,
                 stakingEndView: stakingEndView,
+                // TODO: should we mark this as paid already or is setting rewards to 0 sufficient?
                 totalRewards: 0.0,
                 collectorClusters: [],
                 clusterQCs: [],
