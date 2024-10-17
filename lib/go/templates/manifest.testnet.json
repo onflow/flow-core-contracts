@@ -483,7 +483,7 @@
     {
       "id": "SCO.03",
       "name": "Register Node",
-      "source": "import Crypto\nimport FlowStakingCollection from 0x95e019a17d0e23d7\n\n/// Registers a delegator in the staking collection resource\n/// for the specified node information and the amount of tokens to commit\n\ntransaction(id: String,\n            role: UInt8,\n            networkingAddress: String,\n            networkingKey: String,\n            stakingKey: String,\n            amount: UFix64,\n            machineAccountKey: String, \n            machineAccountKeySignatureAlgorithm: UInt8, \n            machineAccountKeyHashAlgorithm: UInt8) {\n\n    let stakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.stakingCollectionRef = account.storage.borrow\u003cauth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow a reference to a StakingCollection in the primary user's account\")\n\n        if let machineAccount = self.stakingCollectionRef.registerNode(\n            id: id,\n            role: role,\n            networkingAddress: networkingAddress,\n            networkingKey: networkingKey,\n            stakingKey: stakingKey,\n            amount: amount,\n            payer: account\n        ) {\n            let sigAlgo = SignatureAlgorithm(rawValue: machineAccountKeySignatureAlgorithm)\n                ?? panic(\"Could not get a signature algorithm from the raw enum value provided\")\n\n            let hashAlgo = HashAlgorithm(rawValue: machineAccountKeyHashAlgorithm)\n                ?? panic(\"Could not get a hash algorithm from the raw enum value provided\")\n            \n            let publicKey = PublicKey(\n\t\t\t    publicKey: machineAccountKey.decodeHex(),\n\t\t\t    signatureAlgorithm: sigAlgo\n\t\t    )\n            machineAccount.keys.add(publicKey: publicKey, hashAlgorithm: hashAlgo, weight: 1000.0)\n        }\n    }\n}\n",
+      "source": "import Crypto\nimport FlowStakingCollection from 0x95e019a17d0e23d7\n\n/// Registers a delegator in the staking collection resource\n/// for the specified node information and the amount of tokens to commit\n\ntransaction(id: String,\n            role: UInt8,\n            networkingAddress: String,\n            networkingKey: String,\n            stakingKey: String,\n            stakingKeyPoP: String,\n            amount: UFix64,\n            machineAccountKey: String, \n            machineAccountKeySignatureAlgorithm: UInt8, \n            machineAccountKeyHashAlgorithm: UInt8) {\n\n    let stakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.stakingCollectionRef = account.storage.borrow\u003cauth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow a reference to a StakingCollection in the primary user's account\")\n\n        if let machineAccount = self.stakingCollectionRef.registerNode(\n            id: id,\n            role: role,\n            networkingAddress: networkingAddress,\n            networkingKey: networkingKey,\n            stakingKey: stakingKey,\n            stakingKeyPoP: stakingKeyPoP,\n            amount: amount,\n            payer: account\n        ) {\n            let sigAlgo = SignatureAlgorithm(rawValue: machineAccountKeySignatureAlgorithm)\n                ?? panic(\"Could not get a signature algorithm from the raw enum value provided\")\n\n            let hashAlgo = HashAlgorithm(rawValue: machineAccountKeyHashAlgorithm)\n                ?? panic(\"Could not get a hash algorithm from the raw enum value provided\")\n            \n            let publicKey = PublicKey(\n\t\t\t    publicKey: machineAccountKey.decodeHex(),\n\t\t\t    signatureAlgorithm: sigAlgo\n\t\t    )\n            machineAccount.keys.add(publicKey: publicKey, hashAlgorithm: hashAlgo, weight: 1000.0)\n        }\n    }\n}\n",
       "arguments": [
         {
           "type": "String",
@@ -535,7 +535,18 @@
           "label": "Staking Key",
           "sampleValues": [
             {
-              "value": "9e9ae0d645fd5fd9050792e0b0daa82cc1686d9133afa0f81a784b375c42ae48567d1545e7a9e1965f2c1a32f73cf8575ebb7a967f6e4d104d2df78eb8be409135d12da0499b8a00771f642c1b9c49397f22b440439f036c3bdee82f5309dab3",
+              "value": "8dec36ed8a91e3e5d737b06434d94a8a561c7889495d6c7081cd5e123a42124415b9391c9b9aa165c2f71994bf9607cb0ea262ad162fec74146d1ebc482a33b9dad203d16a83bbfda89b3f6e1cd1d8fb2e704a162d259a0ac9f26bc8635d74f6",
+              "type": "String"
+            }
+          ]
+        },
+        {
+          "type": "String",
+          "name": "stakingKeyPoP",
+          "label": "Staking Key PoP",
+          "sampleValues": [
+            {
+              "value": "828a68a2be392804044d85888100462702a422901da3269fb6512defabad07250aad24f232671e4ac8ae531f54e062fc",
               "type": "String"
             }
           ]
@@ -586,7 +597,7 @@
         }
       ],
       "network": "testnet",
-      "hash": "deb5f758f3eb3b125cd9b14a6528f18d535377709fcef41e743751eb82800921"
+      "hash": "82ddf501939f1bb2a99b0850babb1cd7dd46a8d62d50e78c04f4e3980f31befd"
     },
     {
       "id": "SCO.04",

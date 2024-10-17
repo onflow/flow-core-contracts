@@ -89,12 +89,12 @@ func TestQuorumCertificate(t *testing.T) {
 	// Create new user accounts
 	joshAccountKey, joshSigner := accountKeys.NewWithSigner()
 	joshAddress, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{joshAccountKey}, nil)
-	joshPrivateStakingKey, joshPublicStakingKey, _, _ := generateKeysForNodeRegistration(t)
+	joshPrivateStakingKey, joshPublicStakingKey, _, _, _ := generateKeysForNodeRegistration(t)
 
 	// Create a new user account
 	maxAccountKey, maxSigner := accountKeys.NewWithSigner()
 	maxAddress, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{maxAccountKey}, nil)
-	maxPrivateStakingKey, maxPublicStakingKey, _, _ := generateKeysForNodeRegistration(t)
+	maxPrivateStakingKey, maxPublicStakingKey, _, _, _ := generateKeysForNodeRegistration(t)
 
 	collectorVoteHasher := crypto.NewExpandMsgXOFKMAC128(collectorVoteTag)
 

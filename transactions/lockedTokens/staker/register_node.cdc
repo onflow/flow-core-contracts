@@ -3,7 +3,13 @@ import FungibleToken from "FungibleToken"
 import LockedTokens from "LockedTokens"
 import StakingProxy from "StakingProxy"
 
-transaction(id: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String, amount: UFix64) {
+transaction(id: String,
+            role: UInt8,
+            networkingAddress: String,
+            networkingKey: String,
+            stakingKey: String,
+            stakingKeyPoP: String,
+            amount: UFix64) {
 
     let holderRef: auth(LockedTokens.TokenOperations, FungibleToken.Withdraw) &LockedTokens.TokenHolder
 
@@ -30,13 +36,13 @@ transaction(id: String, role: UInt8, networkingAddress: String, networkingKey: S
 
         if amount <= lockedBalance {
 
-            self.holderRef.createNodeStaker(nodeInfo: nodeInfo, amount: amount)
+            self.holderRef.createNodeStaker(nodeInfo: nodeInfo, stakingKeyPoP: stakingKeyPoP, amount: amount)
 
         } else if ((amount - lockedBalance) <= self.vaultRef.balance) {
 
             self.holderRef.deposit(from: <-self.vaultRef.withdraw(amount: amount - lockedBalance))
 
-            self.holderRef.createNodeStaker(nodeInfo: nodeInfo, amount: amount)
+            self.holderRef.createNodeStaker(nodeInfo: nodeInfo, stakingKeyPoP: stakingKeyPoP, amount: amount)
 
         } else {
             panic("Not enough tokens to stake!")

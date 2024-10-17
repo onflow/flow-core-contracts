@@ -287,16 +287,24 @@ func generateNodeIDs(numNodes int) ([]string, []cadence.Value, []cadence.Value) 
 
 // / Generates a key pair for staking, which uses the BLS_BLS12381 signing algorithm
 // / Also generates a key pair for networking, which uses the ECDSA_P256 signing algorithm
-func generateKeysForNodeRegistration(t *testing.T) (crypto.PrivateKey, string, crypto.PrivateKey, string) {
+func generateKeysForNodeRegistration(t *testing.T) (crypto.PrivateKey, string, string, crypto.PrivateKey, string) {
 	stakingPrivateKey, publicKey := generateKeys(t, crypto.BLSBLS12381)
 	stakingPublicKey := publicKey.String()
 	stakingPublicKey = stakingPublicKey[2:]
 	networkingPrivateKey, publicKey := generateKeys(t, crypto.ECDSAP256)
 	networkingPublicKey := publicKey.String()
 	networkingPublicKey = networkingPublicKey[2:]
+	stakingPOP := generateKeyPOP(t, stakingPrivateKey)
 
-	return stakingPrivateKey, stakingPublicKey, networkingPrivateKey, networkingPublicKey
+	return stakingPrivateKey, stakingPublicKey, stakingPOP, networkingPrivateKey, networkingPublicKey
 
+}
+
+func generateKeyPOP(t *testing.T, sk crypto.PrivateKey) string {
+	pop, err := crypto.BLSGeneratePOP(sk)
+	require.NoError(t, err)
+	popString := fmt.Sprintf("%#x", []byte(pop))
+	return popString[2:]
 }
 
 // / Generates staking and networking key pairs for the specified number of nodes
@@ -307,7 +315,7 @@ func generateManyNodeKeys(t *testing.T, numNodes int) ([]crypto.PrivateKey, []st
 	networkingPublicKeys := make([]string, numNodes)
 
 	for i := 0; i < numNodes; i++ {
-		stakingPrivateKey, stakingPublicKey, networkingPrivateKey, networkingPublicKey := generateKeysForNodeRegistration(t)
+		stakingPrivateKey, stakingPublicKey, _, networkingPrivateKey, networkingPublicKey := generateKeysForNodeRegistration(t)
 		stakingPrivateKeys[i] = stakingPrivateKey
 		stakingPublicKeys[i] = stakingPublicKey
 		networkingPrivateKeys[i] = networkingPrivateKey
@@ -316,6 +324,14 @@ func generateManyNodeKeys(t *testing.T, numNodes int) ([]crypto.PrivateKey, []st
 
 	return stakingPrivateKeys, stakingPublicKeys, networkingPrivateKeys, networkingPublicKeys
 
+}
+
+func generateManyKeyPOPs(t *testing.T, sks []crypto.PrivateKey) []string {
+	POPs := make([]string, len(sks))
+	for i, sk := range sks {
+		POPs[i] = generateKeyPOP(t, sk)
+	}
+	return POPs
 }
 
 // / Verifies that the EpochTotalRewardsPaid event was emmitted correctly with correct values
@@ -365,7 +381,7 @@ func registerNode(t *testing.T,
 	env templates.Environment,
 	authorizer flow.Address,
 	signer sdkcrypto.Signer,
-	nodeID, networkingAddress, networkingKey, stakingKey string,
+	nodeID, networkingAddress, networkingKey, stakingKey, stakingKeyPOP string,
 	amount, tokensCommitted interpreter.UFix64Value,
 	role uint8,
 	shouldFail bool,
@@ -382,6 +398,7 @@ func registerNode(t *testing.T,
 	_ = tx.AddArgument(CadenceString(networkingAddress))
 	_ = tx.AddArgument(CadenceString(networkingKey))
 	_ = tx.AddArgument(CadenceString(stakingKey))
+	_ = tx.AddArgument(CadenceString(stakingKeyPOP))
 	tokenAmount, err := cadence.NewUFix64(amount.String())
 	require.NoError(t, err)
 	_ = tx.AddArgument(tokenAmount)
@@ -462,6 +479,7 @@ func registerNodesForStaking(
 	authorizers []flow.Address,
 	signers []sdkcrypto.Signer,
 	stakingKeys []string,
+	stakingKeysPOPs []string,
 	networkingkeys []string,
 	ids []string) {
 
@@ -469,6 +487,7 @@ func registerNodesForStaking(
 	if len(authorizers) != len(signers) ||
 		len(authorizers) != len(ids) ||
 		len(authorizers) != len(stakingKeys) ||
+		len(authorizers) != len(stakingKeysPOPs) ||
 		len(authorizers) != len(networkingkeys) {
 		t.Fail()
 	}
@@ -488,6 +507,7 @@ func registerNodesForStaking(
 			fmt.Sprintf("%0128d", i),
 			networkingkeys[i],
 			stakingKeys[i],
+			stakingKeysPOPs[i],
 			amountToCommit,
 			committed,
 			uint8((i%5)+1),

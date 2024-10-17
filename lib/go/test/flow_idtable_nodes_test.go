@@ -75,6 +75,7 @@ func TestIDTableManyNodes(t *testing.T) {
 	nodeNetworkingAddresses := make([]cadence.Value, numberOfNodes)
 	nodeNetworkingKeys := make([]cadence.Value, numberOfNodes)
 	nodeStakingKeys := make([]cadence.Value, numberOfNodes)
+	nodeStakingKeyPOPs := make([]cadence.Value, numberOfNodes)
 	nodeStakingAmounts := make([]cadence.Value, numberOfNodes)
 	nodePaths := make([]cadence.Value, numberOfNodes)
 
@@ -140,11 +141,13 @@ func TestIDTableManyNodes(t *testing.T) {
 
 			nodeNetworkingAddresses[i] = CadenceString(networkingAddress)
 
-			_, stakingKey, _, networkingKey := generateKeysForNodeRegistration(t)
+			_, stakingKey, stakingPOP, _, networkingKey := generateKeysForNodeRegistration(t)
 
 			nodeNetworkingKeys[i] = CadenceString(networkingKey)
 
 			nodeStakingKeys[i] = CadenceString(stakingKey)
+
+			nodeStakingKeyPOPs[i] = CadenceString(stakingPOP)
 
 			tokenAmount, err := cadence.NewUFix64("1500000.0")
 			require.NoError(t, err)
@@ -177,6 +180,9 @@ func TestIDTableManyNodes(t *testing.T) {
 		require.NoError(t, err)
 
 		err = tx.AddArgument(cadence.NewArray(nodeStakingKeys))
+		require.NoError(t, err)
+
+		err = tx.AddArgument(cadence.NewArray(nodeStakingKeyPOPs))
 		require.NoError(t, err)
 
 		err = tx.AddArgument(cadence.NewArray(nodeStakingAmounts))
@@ -362,6 +368,143 @@ func TestIDTableManyNodes(t *testing.T) {
 
 }
 
+func TestIDTableOutOfBoundsAccess(t *testing.T) {
+
+	t.Parallel()
+
+	b, adapter := newBlockchain(emulator.WithTransactionMaxGasLimit(10000000))
+
+	env := templates.Environment{
+		FungibleTokenAddress: emulatorFTAddress,
+		FlowTokenAddress:     emulatorFlowTokenAddress,
+		BurnerAddress:        emulatorServiceAccount,
+		StorageFeesAddress:   emulatorServiceAccount,
+	}
+
+	accountKeys := test.AccountKeyGenerator()
+
+	// Create new keys for the ID table account
+	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
+	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, &env, true, []uint64{10000, 10000, 10000, 10000, 10000})
+
+	env.IDTableAddress = idTableAddress.Hex()
+
+	var nodeAccountKey *flow.AccountKey
+	var nodeSigner crypto.Signer
+	var nodeAddress flow.Address
+
+	// Create a new node account for nodes
+	nodeAccountKey, nodeSigner = accountKeys.NewWithSigner()
+	nodeAddress, _ = adapter.CreateAccount(context.Background(), []*flow.AccountKey{nodeAccountKey}, nil)
+
+	approvedNodes := make([]cadence.Value, numberOfNodes)
+	approvedNodesStringArray := make([]string, numberOfNodes)
+	nodeRoles := make([]cadence.Value, numberOfNodes)
+	nodeNetworkingAddresses := make([]cadence.Value, numberOfNodes)
+	nodeNetworkingKeys := make([]cadence.Value, numberOfNodes)
+	nodeStakingKeys := make([]cadence.Value, numberOfNodes)
+	nodeStakingKeyPOPs := make([]cadence.Value, numberOfNodes)
+	nodeStakingAmounts := make([]cadence.Value, numberOfNodes)
+	nodePaths := make([]cadence.Value, numberOfNodes)
+
+	totalMint := numberOfNodes * nodeMintAmount
+	mintAmount := fmt.Sprintf("%d.0", totalMint)
+
+	script := templates.GenerateMintFlowScript(env)
+	tx := createTxWithTemplateAndAuthorizer(b, script, b.ServiceKey().Address)
+	_ = tx.AddArgument(cadence.NewAddress(nodeAddress))
+	_ = tx.AddArgument(CadenceUFix64(mintAmount))
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{},
+		[]crypto.Signer{},
+		false,
+	)
+
+	tx = flow.NewTransaction().
+		SetScript(templates.GenerateStartStakingScript(env)).
+		SetGasLimit(9999).
+		SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+		SetPayer(b.ServiceKey().Address).
+		AddAuthorizer(idTableAddress)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]crypto.Signer{IDTableSigner},
+		false,
+	)
+
+	t.Run("Should be able to create many valid Node structs", func(t *testing.T) {
+
+		for i := 0; i < numberOfNodes; i++ {
+
+			id := fmt.Sprintf("%064d", i)
+
+			approvedNodes[i] = CadenceString(id)
+			approvedNodesStringArray[i] = id
+
+			nodeRoles[i] = cadence.NewUInt8(uint8((i % 4) + 1))
+
+			networkingAddress := fmt.Sprintf("%0128d", i)
+
+			nodeNetworkingAddresses[i] = CadenceString(networkingAddress)
+
+			_, stakingKey, stakingKeyPOP, _, networkingKey := generateKeysForNodeRegistration(t)
+
+			nodeNetworkingKeys[i] = CadenceString(networkingKey)
+
+			nodeStakingKeys[i] = CadenceString(stakingKey)
+
+			nodeStakingKeyPOPs[i] = CadenceString(stakingKeyPOP)
+
+			tokenAmount, err := cadence.NewUFix64("1500000.0")
+			require.NoError(t, err)
+
+			nodeStakingAmounts[i] = tokenAmount
+			nodePaths[i] = cadence.Path{Domain: common.PathDomainStorage, Identifier: fmt.Sprintf("node%06d", i)}
+
+		}
+
+		assertCandidateLimitsEquals(t, b, env, []uint64{10000, 10000, 10000, 10000, 10000})
+
+		tx := flow.NewTransaction().
+			SetScript(templates.GenerateRegisterManyNodesScript(env)).
+			SetGasLimit(5000000).
+			SetProposalKey(b.ServiceKey().Address, b.ServiceKey().Index, b.ServiceKey().SequenceNumber).
+			SetPayer(b.ServiceKey().Address).
+			AddAuthorizer(nodeAddress)
+
+		tx.AddArgument(cadence.NewArray(approvedNodes))
+		tx.AddArgument(cadence.NewArray(nodeRoles))
+		tx.AddArgument(cadence.NewArray(nodeNetworkingAddresses))
+		tx.AddArgument(cadence.NewArray(nodeNetworkingKeys))
+		tx.AddArgument(cadence.NewArray(nodeStakingKeys))
+		tx.AddArgument(cadence.NewArray(nodeStakingKeyPOPs))
+		tx.AddArgument(cadence.NewArray(nodeStakingAmounts))
+		tx.AddArgument(cadence.NewArray(nodePaths))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{nodeAddress},
+			[]crypto.Signer{nodeSigner},
+			false,
+		)
+	})
+
+	t.Run("Should end staking auction with no approved nodes which should not fail because of out of bounds array access", func(t *testing.T) {
+
+		setNodeRoleSlotLimits(t, b, env, idTableAddress, IDTableSigner, [5]uint16{5, 5, 5, 5, 2})
+
+		scriptResult, err := b.ExecuteScript(templates.GenerateEndStakingTestScript(env), nil)
+		require.NoError(t, err)
+		if !assert.True(t, scriptResult.Succeeded()) {
+			t.Log(scriptResult.Error.Error())
+		}
+	})
+}
+
 func TestIDTableUnstakeAllManyDelegators(t *testing.T) {
 
 	t.Parallel()
@@ -460,7 +603,7 @@ func TestIDTableUnstakeAllManyDelegators(t *testing.T) {
 
 			role := uint8((i % 4) + 1)
 
-			_, stakingKey, _, networkingKey := generateKeysForNodeRegistration(t)
+			_, stakingKey, stakingKeyPOP, _, networkingKey := generateKeysForNodeRegistration(t)
 
 			err := tx.AddArgument(CadenceString(id))
 			require.NoError(t, err)
@@ -471,6 +614,8 @@ func TestIDTableUnstakeAllManyDelegators(t *testing.T) {
 			err = tx.AddArgument(CadenceString(networkingKey))
 			require.NoError(t, err)
 			err = tx.AddArgument(CadenceString(stakingKey))
+			require.NoError(t, err)
+			err = tx.AddArgument(CadenceString(stakingKeyPOP))
 			require.NoError(t, err)
 			tokenAmount, err := cadence.NewUFix64("1500000.0")
 			require.NoError(t, err)
