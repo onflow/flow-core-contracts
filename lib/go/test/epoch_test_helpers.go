@@ -9,6 +9,8 @@ import (
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
+	"github.com/onflow/cadence/runtime/common"
+	cdcCommon "github.com/onflow/cadence/runtime/common"
 	"github.com/onflow/cadence/runtime/interpreter"
 	"github.com/onflow/flow-core-contracts/lib/go/contracts"
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
@@ -16,6 +18,7 @@ import (
 	emulator "github.com/onflow/flow-emulator/emulator"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
+	sdkcrypto "github.com/onflow/flow-go-sdk/crypto"
 	sdktemplates "github.com/onflow/flow-go-sdk/templates"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -132,6 +135,83 @@ type EpochCommit struct {
 	dkgGroupPubKey string
 	dkgPubKeys     []string
 	dkgIDMapping   map[string]int
+}
+
+// EpochRecover used to verify EpochRecover event fields in tests.
+type EpochRecover struct {
+	counter            uint64
+	nodeInfoLength     int
+	firstView          uint64
+	finalView          uint64
+	collectorClusters  []cadence.Value
+	randomSource       string
+	dkgPhase1FinalView uint64
+	dkgPhase2FinalView uint64
+	dkgPhase3FinalView uint64
+	targetDuration     uint64
+	targetEndTime      uint64
+	numberClusterQCs   int
+	dkgPubKeys         []string
+	dkgIdMapping       cadence.Dictionary
+}
+
+type EpochRecoverEvent flow.Event
+
+// Counter returns counter field in EpochRecover event.
+func (evt EpochRecoverEvent) Counter() cadence.UInt64 {
+	return cadence.SearchFieldByName(evt.Value, "counter").(cadence.UInt64)
+}
+
+// NodeInfo returns nodeInfo field in EpochRecover event.
+func (evt EpochRecoverEvent) NodeInfo() cadence.Array {
+	return cadence.SearchFieldByName(evt.Value, "nodeInfo").(cadence.Array)
+}
+
+// FirstView returns firstView field in EpochRecover event.
+func (evt EpochRecoverEvent) FirstView() cadence.UInt64 {
+	return cadence.SearchFieldByName(evt.Value, "firstView").(cadence.UInt64)
+}
+
+// FinalView returns finalView field in EpochRecover event.
+func (evt EpochRecoverEvent) FinalView() cadence.UInt64 {
+	return cadence.SearchFieldByName(evt.Value, "finalView").(cadence.UInt64)
+}
+
+// CollectorClusters returns clusterAssignments field in EpochRecover event.
+func (evt EpochRecoverEvent) CollectorClusters() cadence.Array {
+	return cadence.SearchFieldByName(evt.Value, "clusterAssignments").(cadence.Array)
+}
+
+// RandomSource returns randomSource field in EpochRecover event.
+func (evt EpochRecoverEvent) RandomSource() cadence.String {
+	return cadence.SearchFieldByName(evt.Value, "randomSource").(cadence.String)
+}
+
+// DKGFinalViews returns dkgFinalViews field in EpochRecover event.
+func (evt EpochRecoverEvent) DKGFinalViews() (cadence.UInt64, cadence.UInt64, cadence.UInt64) {
+	return cadence.SearchFieldByName(evt.Value, "DKGPhase1FinalView").(cadence.UInt64),
+		cadence.SearchFieldByName(evt.Value, "DKGPhase2FinalView").(cadence.UInt64),
+		cadence.SearchFieldByName(evt.Value, "DKGPhase3FinalView").(cadence.UInt64)
+}
+
+// TargetDuration returns targetDuration field in EpochRecover event.
+func (evt EpochRecoverEvent) TargetDuration() cadence.UInt64 {
+	return cadence.SearchFieldByName(evt.Value, "targetDuration").(cadence.UInt64)
+}
+
+// TargetEndTime returns targetEndTime field in EpochRecover event.
+func (evt EpochRecoverEvent) TargetEndTime() cadence.UInt64 {
+	return cadence.SearchFieldByName(evt.Value, "targetEndTime").(cadence.UInt64)
+}
+
+// ClusterQCVoteData returns clusterQCVoteData field in EpochRecover event.
+func (evt EpochRecoverEvent) ClusterQCVoteData() cadence.Array {
+	return cadence.SearchFieldByName(evt.Value, "clusterQCVoteData").(cadence.Array)
+}
+
+// DKGPubKeys returns dkgPubKeys field in EpochRecover event.
+func (evt EpochRecoverEvent) DKGPubKeys() cadence.Array {
+	return cadence.SearchFieldByName(evt.Value, "dkgPubKeys").(cadence.Array)
 }
 
 // Go event definitions for the epoch events
@@ -507,9 +587,7 @@ func verifyEpochMetadata(
 	env templates.Environment,
 	expectedMetadata EpochMetadata) {
 
-	result := executeScriptAndCheck(t, b, templates.GenerateGetEpochMetadataScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt64(expectedMetadata.counter))})
-	metadataFields := cadence.FieldsMappedByName(result.(cadence.Struct))
-
+	metadataFields := getEpochMetadata(t, b, env, cadence.UInt64(expectedMetadata.counter))
 	counter := metadataFields["counter"]
 	assertEqual(t, cadence.NewUInt64(expectedMetadata.counter), counter)
 
@@ -524,7 +602,6 @@ func verifyEpochMetadata(
 
 	endView := metadataFields["endView"]
 	assertEqual(t, cadence.NewUInt64(expectedMetadata.endView), endView)
-
 	stakingEndView := metadataFields["stakingEndView"]
 	assertEqual(t, cadence.NewUInt64(expectedMetadata.stakingEndView), stakingEndView)
 
@@ -731,6 +808,15 @@ func verifyEpochCommit(
 
 }
 
+// verifyCollectorClusters verifies both collector clusters are equal.
+func verifyCollectorClusters(t *testing.T, expected, got []cadence.Value) {
+	for i, cluster := range got {
+		for j, node := range cluster.(cadence.Array).Values {
+			assertEqual(t, expected[i].(cadence.Array).Values[j], node)
+		}
+	}
+}
+
 // expectedTargetEndTime returns the expected `targetEndTime` for the given target epoch,
 // as a second-precision Unix time.
 func expectedTargetEndTime(timingConfig cadence.Value, targetEpoch uint64) uint64 {
@@ -740,6 +826,167 @@ func expectedTargetEndTime(timingConfig cadence.Value, targetEpoch uint64) uint6
 	refTimestamp := uint64(fields["refTimestamp"].(cadence.UInt64))
 
 	return refTimestamp + duration*(targetEpoch-refCounter)
+}
+
+// verifyEpochRecover verifies that an emitted EpochRecover event is equal to the provided `expectedRecover`.
+// Assumptions:
+//   - only one `EpochRecover` is emitted (otherwise, only the first is verified)
+//   - the `EpochRecover` is emitted within the first 1000 blocks
+func verifyEpochRecover(
+	t *testing.T,
+	adapter *adapters.SDKAdapter,
+	epochAddress flow.Address,
+	expectedRecover EpochRecover,
+) {
+	var emittedEvent EpochRecoverEvent
+	addrLocation := common.NewAddressLocation(nil, common.Address(epochAddress), "FlowEpoch")
+	evtTypeID := string(addrLocation.TypeID(nil, "FlowEpoch.EpochRecover"))
+	for i := uint64(0); i < 1000; i++ {
+		results, _ := adapter.GetEventsForHeightRange(context.Background(), evtTypeID, i, i)
+
+		for _, result := range results {
+			for _, event := range result.Events {
+
+				if event.Type == evtTypeID {
+					emittedEvent = EpochRecoverEvent(event)
+				}
+			}
+		}
+	}
+
+	assertEqual(t, cadence.NewUInt64(expectedRecover.counter), emittedEvent.Counter())
+	assertEqual(t, expectedRecover.nodeInfoLength, len(emittedEvent.NodeInfo().Values))
+	assertEqual(t, cadence.NewUInt64(expectedRecover.firstView), emittedEvent.FirstView())
+	assertEqual(t, cadence.NewUInt64(expectedRecover.finalView), emittedEvent.FinalView())
+	verifyCollectorClusters(t, expectedRecover.collectorClusters, emittedEvent.CollectorClusters().Values)
+	assertEqual(t, cadence.String(expectedRecover.randomSource), emittedEvent.RandomSource())
+	dkgPhase1FinalView, dkgPhase2FinalView, dkgPhase3FinalView := emittedEvent.DKGFinalViews()
+	assertEqual(t, cadence.NewUInt64(expectedRecover.dkgPhase1FinalView), dkgPhase1FinalView)
+	assertEqual(t, cadence.NewUInt64(expectedRecover.dkgPhase2FinalView), dkgPhase2FinalView)
+	assertEqual(t, cadence.NewUInt64(expectedRecover.dkgPhase3FinalView), dkgPhase3FinalView)
+	assertEqual(t, cadence.NewUInt64(expectedRecover.targetDuration), emittedEvent.TargetDuration())
+	assertEqual(t, cadence.NewUInt64(expectedRecover.targetEndTime), emittedEvent.TargetEndTime())
+	assertEqual(t, expectedRecover.numberClusterQCs, len(emittedEvent.ClusterQCVoteData().Values))
+	assertEqual(t, len(expectedRecover.dkgPubKeys), len(emittedEvent.DKGPubKeys().Values))
+	assertEqual(t, len(expectedRecover.dkgIdMapping.Pairs), len(emittedEvent.DKGPubKeys().Values))
+}
+
+func getEpochMetadata(t *testing.T, b emulator.Emulator, env templates.Environment, counter cadence.Value) map[string]cadence.Value {
+	result := executeScriptAndCheck(t, b, templates.GenerateGetEpochMetadataScript(env), [][]byte{jsoncdc.MustEncode(counter)})
+	return cadence.FieldsMappedByName(result.(cadence.Struct))
+}
+
+func getCurrentEpochCounter(t *testing.T, b emulator.Emulator, env templates.Environment) cadence.UInt64 {
+	result := executeScriptAndCheck(t, b, templates.GenerateGetCurrentEpochCounterScript(env), [][]byte{})
+	return result.(cadence.UInt64)
+}
+
+// newClusterQCVoteDataCdcType returns a new (empty) FlowClusterQC cadence struct type.
+func newClusterQCVoteDataCdcType(clusterQcAddress string) *cadence.StructType {
+	// FlowClusterQC.ClusterQCVoteData
+	address, _ := cdcCommon.HexToAddress(clusterQcAddress)
+	location := cdcCommon.NewAddressLocation(nil, address, "FlowClusterQC")
+
+	return cadence.NewStructType(location, "FlowClusterQC.ClusterQCVoteData",
+		[]cadence.Field{
+			{
+				Identifier: "aggregatedSignature",
+				Type:       cadence.StringType,
+			},
+			{
+				Identifier: "voterIDs",
+				Type:       cadence.NewVariableSizedArrayType(cadence.StringType),
+			},
+		},
+		nil)
+}
+
+// convertClusterQcsCdc expects a list of collection clusters where each entry in the list is a
+// list of collector cluster voter ids. This func will create a full collection cluster fixture
+// for each of the clusters in the list, creating a aggregate signature fixture for each of the
+// clusters.
+// Args:
+//
+//	env: templates environment
+//	clusters: list of collection clusters, each cluster being a list of voter ids i.e: cadence.NewArray([]cadence.Value{CadenceString("node_1"), CadenceString("node_2"), CadenceString("node_3")})
+//
+// Returns:
+//
+//	[]cadence.Value: array of cluster qc vote data fixtures for each collection cluster.
+func convertClusterQcsCdc(env templates.Environment, clusters []cadence.Value) []cadence.Value {
+	voteDataType := newClusterQCVoteDataCdcType(env.QuorumCertificateAddress)
+	qcVoteData := make([]cadence.Value, len(clusters))
+	for i, cluster := range clusters {
+		clusterCdc := cluster.(cadence.Array)
+		cdcVoterIds := make([]cadence.Value, len(clusterCdc.Values))
+		for i, id := range clusterCdc.Values {
+			cdcVoterIds[i] = cadence.String(id.String())
+		}
+		qcVoteData[i] = cadence.NewStruct([]cadence.Value{
+			// aggregatedSignature
+			cadence.String(fmt.Sprintf("signature_%d", i)),
+			// Node IDs of signers
+			cadence.NewArray(cdcVoterIds).WithType(cadence.NewVariableSizedArrayType(cadence.StringType)),
+		}).WithType(voteDataType)
+	}
+
+	return qcVoteData
+}
+
+type testEpochConfig struct {
+	startEpochCounter    uint64 // start epoch counter
+	numEpochViews        uint64 // num views per epoch
+	numStakingViews      uint64 // num views for staking auction
+	numDKGViews          uint64 // num views for DKG phase
+	numClusters          uint64 // num collector clusters
+	numEpochAccounts     int    // num accounts to setup for staking
+	randomSource         string // random source
+	rewardIncreaseFactor string // reward increase factor
+}
+
+func runWithDefaultContracts(t *testing.T, config *testEpochConfig, f func(b emulator.Emulator, env templates.Environment, ids []string, idTableAddress flow.Address, IDTableSigner sdkcrypto.Signer, adapter *adapters.SDKAdapter)) {
+	b, adapter, accountKeys, env := newTestSetup(t)
+	// Create new keys for the epoch account
+	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
+
+	// Deploys the staking contract, qc, dkg, and epoch lifecycle contract
+	// staking contract is deployed with default values (1.25M rewards, 8% cut)
+	idTableAddress, _ := initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
+		config.startEpochCounter, // start epoch counter
+		config.numEpochViews,     // num views per epoch
+		config.numStakingViews,   // num views for staking auction
+		config.numDKGViews,       // num views for DKG phase
+		config.numClusters,       // num collector clusters
+		config.randomSource,      // random source
+		config.rewardIncreaseFactor)
+
+	// create new user accounts, mint tokens for them, and register them for staking
+	addresses, _, signers := registerAndMintManyAccounts(t, b, env, accountKeys, config.numEpochAccounts)
+	ids, _, _ := generateNodeIDs(config.numEpochAccounts)
+	// stakingPrivateKeys
+	_, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, config.numEpochAccounts)
+	registerNodesForStaking(t, b, env,
+		addresses,
+		signers,
+		stakingPublicKeys,
+		networkingPublicKeys,
+		ids)
+
+	// Set the approved node list
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
+
+	approvedNodeIDs := generateCadenceNodeDictionary(ids)
+	err := tx.AddArgument(approvedNodeIDs)
+	require.NoError(t, err)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{idTableAddress},
+		[]sdkcrypto.Signer{IDTableSigner},
+		false,
+	)
+
+	f(b, env, ids, idTableAddress, IDTableSigner, adapter)
 }
 
 // DKGPubKeyFixture constructs a fixture for a DKG public key string as accepted by FlowDKG
