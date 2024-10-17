@@ -348,7 +348,6 @@ access(all) contract FlowDKG {
 
         /// Posts a whiteboard message to the contract
         access(all) fun postMessage(_ content: String) {
-            // TODO: DKG enabled?
             pre {
                 FlowDKG.participantIsRegistered(self.nodeID):
                     "FlowDKG.Participant.postMessage: Cannot post whiteboard message. Sender (node ID: "
