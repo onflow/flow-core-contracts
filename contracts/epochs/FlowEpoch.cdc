@@ -556,6 +556,7 @@ access(all) contract FlowEpoch {
                 nodes.append(FlowIDTableStaking.NodeInfo(nodeID: nodeID))
             }
             
+            // TODO: consolidate dkg phase calcs
             let numViewsInDKGPhase = FlowEpoch.configurableMetadata.numViewsInDKGPhase
             let dkgPhase1FinalView = stakingEndView + numViewsInDKGPhase
             let dkgPhase2FinalView = dkgPhase1FinalView + numViewsInDKGPhase
@@ -625,11 +626,14 @@ access(all) contract FlowEpoch {
             }
         }
 
-        /// Ends the currently active epoch and starts a new one with the provided configuration.
-        /// This meta data will be emitted in the EpochRecover service event. This function differs 
-        /// from recoverCurrentEpoch because it increments the epoch counter and will calculate rewards. 
-        /// This function is used within sporks to recover the network from Epoch Fallback Mode (EFM).
-        access(all) fun recoverNewEpoch(recoveryEpochCounter: UInt64,
+        /// Ends the currently active epoch and starts a new "recovery epoch" with the provided configuration.
+        /// This function is used to recover from Epoch Fallback Mode (EFM).
+        /// The "recovery epoch" config will be emitted in the EpochRecover service event.
+        /// The "recovery epoch must have a counter exactly one greater than the current epoch counter.
+        /// 
+        /// This function differs from recoverCurrentEpoch because it increments the epoch counter and will calculate rewards. 
+        access(all) fun recoverNewEpoch(
+            recoveryEpochCounter: UInt64,
             startView: UInt64,
             stakingEndView: UInt64,
             endView: UInt64,
@@ -642,11 +646,16 @@ access(all) contract FlowEpoch {
             dkgIdMapping: {String: Int},
             nodeIDs: [String]) 
         {
-            // sanity check recovery epoch counter should increment current epoch counter
-            assert(
-                recoveryEpochCounter == FlowEpoch.proposedEpochCounter(), 
-                message: "recovery epoch counter should equal current epoch counter + 1"
-            )
+            pre {
+                recoveryEpochCounter == FlowEpoch.proposedEpochCounter():
+                    "FlowEpoch.Admin.recoverNewEpoch: Recovery epoch counter must equal current epoch counter + 1. "
+                        .concat("Got recovery epoch counter (")
+                        .concat(recoveryEpochCounter.toString())
+                        .concat(") with current epoch counter (")
+                        .concat(FlowEpoch.currentEpochCounter.toString())
+                        .concat(").")
+            }
+
             self.stopEpochComponents()
             let randomSource = FlowEpoch.generateRandomSource()
 
@@ -693,14 +702,18 @@ access(all) contract FlowEpoch {
             FlowEpoch.startNewEpoch()
         }
 
-        /// Ends the currently active epoch and restarts it with the provided configuration.
-        /// This function is intended to update the current epoch configuration when a recovery
-        /// transaction needs to be submitted more than once. This function differs 
-        /// from recoverNewEpoch because it does not increment the epoch counter. It also 
-        /// does not calculate or distribute rewards -- calling recoverCurrentEpoch multiple times does not cause multiple reward payouts.
+        /// Replaces the currently active epoch with a new "recovery epoch" with the provided configuration.
+        /// This function is used to recover from Epoch Fallback Mode (EFM).
+        /// The "recovery epoch" config will be emitted in the EpochRecover service event.
+        /// The "recovery epoch must have a counter exactly equal to the current epoch counter.
+        /// 
+        /// This function differs from recoverNewEpoch because it replaces the currently active epoch instead of starting a new epoch.
+        /// This function does not calculate or distribute rewards
+        /// Calling recoverCurrentEpoch multiple times does not cause multiple reward payouts.
         /// Rewards for the recovery epoch will be calculated and paid out during the course of the epoch. 
-        /// This meta data will be emitted in the EpochRecover service event. This function is used 
-        /// within sporks to recover the network from Epoch Fallback Mode (EFM).
+        /// CAUTION: This causes data loss by replacing the existing current epoch metadata with the inputs to this function.
+        /// This function exists to recover from potential race conditions that caused a prior recoverCurrentEpoch transaction to fail;
+        /// this allows operators to retry the recovery procedure, overwriting the prior failed attempt.
         access(all) fun recoverCurrentEpoch(recoveryEpochCounter: UInt64,
             startView: UInt64,
             stakingEndView: UInt64,
@@ -779,6 +792,7 @@ access(all) contract FlowEpoch {
                     "Invalid startView, stakingEndView, and endView configuration"
             }
 
+            // TODO: replace with stopEpochComponents?
             if FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION {
                 // Since we are resetting the epoch, we do not need to
                 // start epoch setup also. We only need to end the staking auction
