@@ -75,6 +75,7 @@ func TestIDTableManyNodes(t *testing.T) {
 	nodeNetworkingAddresses := make([]cadence.Value, numberOfNodes)
 	nodeNetworkingKeys := make([]cadence.Value, numberOfNodes)
 	nodeStakingKeys := make([]cadence.Value, numberOfNodes)
+	nodeStakingKeyPOPs := make([]cadence.Value, numberOfNodes)
 	nodeStakingAmounts := make([]cadence.Value, numberOfNodes)
 	nodePaths := make([]cadence.Value, numberOfNodes)
 
@@ -140,11 +141,13 @@ func TestIDTableManyNodes(t *testing.T) {
 
 			nodeNetworkingAddresses[i] = CadenceString(networkingAddress)
 
-			_, stakingKey, _, networkingKey := generateKeysForNodeRegistration(t)
+			_, stakingKey, stakingPOP, _, networkingKey := generateKeysForNodeRegistration(t)
 
 			nodeNetworkingKeys[i] = CadenceString(networkingKey)
 
 			nodeStakingKeys[i] = CadenceString(stakingKey)
+
+			nodeStakingKeyPOPs[i] = CadenceString(stakingPOP)
 
 			tokenAmount, err := cadence.NewUFix64("1500000.0")
 			require.NoError(t, err)
@@ -177,6 +180,9 @@ func TestIDTableManyNodes(t *testing.T) {
 		require.NoError(t, err)
 
 		err = tx.AddArgument(cadence.NewArray(nodeStakingKeys))
+		require.NoError(t, err)
+
+		err = tx.AddArgument(cadence.NewArray(nodeStakingKeyPOPs))
 		require.NoError(t, err)
 
 		err = tx.AddArgument(cadence.NewArray(nodeStakingAmounts))
@@ -396,6 +402,7 @@ func TestIDTableOutOfBoundsAccess(t *testing.T) {
 	nodeNetworkingAddresses := make([]cadence.Value, numberOfNodes)
 	nodeNetworkingKeys := make([]cadence.Value, numberOfNodes)
 	nodeStakingKeys := make([]cadence.Value, numberOfNodes)
+	nodeStakingKeyPOPs := make([]cadence.Value, numberOfNodes)
 	nodeStakingAmounts := make([]cadence.Value, numberOfNodes)
 	nodePaths := make([]cadence.Value, numberOfNodes)
 
@@ -443,11 +450,13 @@ func TestIDTableOutOfBoundsAccess(t *testing.T) {
 
 			nodeNetworkingAddresses[i] = CadenceString(networkingAddress)
 
-			_, stakingKey, _, networkingKey := generateKeysForNodeRegistration(t)
+			_, stakingKey, stakingKeyPOP, _, networkingKey := generateKeysForNodeRegistration(t)
 
 			nodeNetworkingKeys[i] = CadenceString(networkingKey)
 
 			nodeStakingKeys[i] = CadenceString(stakingKey)
+
+			nodeStakingKeyPOPs[i] = CadenceString(stakingKeyPOP)
 
 			tokenAmount, err := cadence.NewUFix64("1500000.0")
 			require.NoError(t, err)
@@ -471,6 +480,7 @@ func TestIDTableOutOfBoundsAccess(t *testing.T) {
 		tx.AddArgument(cadence.NewArray(nodeNetworkingAddresses))
 		tx.AddArgument(cadence.NewArray(nodeNetworkingKeys))
 		tx.AddArgument(cadence.NewArray(nodeStakingKeys))
+		tx.AddArgument(cadence.NewArray(nodeStakingKeyPOPs))
 		tx.AddArgument(cadence.NewArray(nodeStakingAmounts))
 		tx.AddArgument(cadence.NewArray(nodePaths))
 
@@ -592,7 +602,7 @@ func TestIDTableUnstakeAllManyDelegators(t *testing.T) {
 
 			role := uint8((i % 4) + 1)
 
-			_, stakingKey, _, networkingKey := generateKeysForNodeRegistration(t)
+			_, stakingKey, stakingKeyPOP, _, networkingKey := generateKeysForNodeRegistration(t)
 
 			err := tx.AddArgument(CadenceString(id))
 			require.NoError(t, err)
@@ -603,6 +613,8 @@ func TestIDTableUnstakeAllManyDelegators(t *testing.T) {
 			err = tx.AddArgument(CadenceString(networkingKey))
 			require.NoError(t, err)
 			err = tx.AddArgument(CadenceString(stakingKey))
+			require.NoError(t, err)
+			err = tx.AddArgument(CadenceString(stakingKeyPOP))
 			require.NoError(t, err)
 			tokenAmount, err := cadence.NewUFix64("1500000.0")
 			require.NoError(t, err)
