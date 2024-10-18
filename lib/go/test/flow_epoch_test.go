@@ -1671,6 +1671,7 @@ func TestEpochRecover_NewEpoch_Failure(t *testing.T) {
 					targetEndTime uint64 = expectedTargetEndTime(epochTimingConfigResult, epochCounter)
 				)
 				args := getRecoveryTxArgs(env, ids, startView, stakingEndView, endView, targetDuration, targetEndTime, epochCounter)
+				args.SetUnsafeAllowOverwrite(false)
 
 				code := static.RecoverNewEpochUnchecked
 				tx := createTxWithTemplateAndAuthorizer(b, []byte(templates.ReplaceAddresses(code, env)), idTableAddress)
@@ -1690,83 +1691,7 @@ func TestEpochRecover_NewEpoch_Failure(t *testing.T) {
 	}
 }
 
-func TestEpoch_asdfasdf(t *testing.T) {
-	t.Run("Epoch recovery panics when recovery epoch counter is less than currentCounter and unsafeAllowOverwrite is false", func(t *testing.T) {
-		epochConfig := &testEpochConfig{
-			startEpochCounter:    1,
-			numEpochViews:        numEpochViews,
-			numStakingViews:      numStakingViews,
-			numDKGViews:          numDKGViews,
-			numClusters:          numClusters,
-			numEpochAccounts:     numEpochAccounts,
-			randomSource:         randomSource,
-			rewardIncreaseFactor: rewardIncreaseFactor,
-		}
-		runWithDefaultContracts(t, epochConfig, func(b emulator.Emulator, env templates.Environment, ids []string, idTableAddress flow.Address, IDTableSigner sdkcrypto.Signer, adapter *adapters.SDKAdapter) {
-			epochTimingConfigResult := executeScriptAndCheck(t, b, templates.GenerateGetEpochTimingConfigScript(env), nil)
-			var (
-				startView      uint64 = 100
-				stakingEndView uint64 = 120
-				endView        uint64 = 160
-				targetDuration uint64 = numEpochViews
-				// invalid epoch counter less than current epoch counter 1
-				epochCounter  uint64 = 0
-				targetEndTime uint64 = expectedTargetEndTime(epochTimingConfigResult, epochCounter)
-			)
-			args := getRecoveryTxArgs(env, ids, startView, stakingEndView, endView, targetDuration, targetEndTime, epochCounter)
-			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRecoverEpochScript(env), idTableAddress)
-			for _, arg := range args {
-				tx.AddArgument(arg)
-			}
-
-			expectedErr := fmt.Errorf("Cannot overwrite existing epoch without unsafeAllowOverwrite set to true")
-			assertTransactionReverts(
-				t, b, tx,
-				[]flow.Address{idTableAddress},
-				[]sdkcrypto.Signer{IDTableSigner},
-				expectedErr,
-			)
-		})
-	})
-
-	t.Run("Epoch recovery panics when recovery epoch counter greater than proposedCounter and unsafeAllowOverwrite is false", func(t *testing.T) {
-		epochConfig := &testEpochConfig{
-			startEpochCounter:    startEpochCounter,
-			numEpochViews:        numEpochViews,
-			numStakingViews:      numStakingViews,
-			numDKGViews:          numDKGViews,
-			numClusters:          numClusters,
-			numEpochAccounts:     numEpochAccounts,
-			randomSource:         randomSource,
-			rewardIncreaseFactor: rewardIncreaseFactor,
-		}
-		runWithDefaultContracts(t, epochConfig, func(b emulator.Emulator, env templates.Environment, ids []string, idTableAddress flow.Address, IDTableSigner sdkcrypto.Signer, adapter *adapters.SDKAdapter) {
-			epochTimingConfigResult := executeScriptAndCheck(t, b, templates.GenerateGetEpochTimingConfigScript(env), nil)
-			var (
-				startView      uint64 = 100
-				stakingEndView uint64 = 120
-				endView        uint64 = 160
-				targetDuration uint64 = numEpochViews
-				// invalid epoch counter greater than proposed epoch counter
-				epochCounter  uint64 = startEpochCounter + 2
-				targetEndTime uint64 = expectedTargetEndTime(epochTimingConfigResult, epochCounter)
-			)
-			args := getRecoveryTxArgs(env, ids, startView, stakingEndView, endView, targetDuration, targetEndTime, epochCounter)
-			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRecoverEpochScript(env), idTableAddress)
-			for _, arg := range args {
-				tx.AddArgument(arg)
-			}
-
-			expectedErr := fmt.Errorf("Cannot overwrite existing epoch without unsafeAllowOverwrite set to true")
-			assertTransactionReverts(
-				t, b, tx,
-				[]flow.Address{idTableAddress},
-				[]sdkcrypto.Signer{IDTableSigner},
-				expectedErr,
-			)
-		})
-	})
-
+func TestEpoch_others(t *testing.T) {
 	t.Run("Can recover the epoch during the staking auction with automatic rewards enabled", func(t *testing.T) {
 		epochConfig := &testEpochConfig{
 			startEpochCounter:    startEpochCounter,
