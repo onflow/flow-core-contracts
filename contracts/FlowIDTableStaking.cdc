@@ -122,8 +122,6 @@ access(all) contract FlowIDTableStaking {
         access(all) var networkingKey: String
         access(all) var stakingKey: String
 
-        /// TODO: Proof of Possession (PoP) of the staking private key
-
         /// The total tokens that only this node currently has staked, not including delegators
         /// This value must always be above the minimum requirement to stay staked or accept delegators
         access(mapping Identity) var tokensStaked: @FlowToken.Vault
