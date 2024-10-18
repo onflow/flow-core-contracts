@@ -46,7 +46,7 @@ type EpochMetadata struct {
 	endView               uint64
 	stakingEndView        uint64
 	totalRewards          string
-	rewardsBreakdownArray int
+	rewardsBreakdownArray int // TODO length?
 	rewardsPaid           bool
 	collectorClusters     []Cluster
 	clusterQCs            [][]string
@@ -580,7 +580,8 @@ func verifyClusterQCs(
 	}
 }
 
-// / Verifies that the epoch metadata is equal to the provided expected values
+// verifyEpochMetadata verifies that the epoch metadata stored in the FlowEpoch smart contract
+// is equal to the input expectedMetadata.
 func verifyEpochMetadata(
 	t *testing.T,
 	b emulator.Emulator,
@@ -608,6 +609,7 @@ func verifyEpochMetadata(
 	totalRewards := metadataFields["totalRewards"]
 	assertEqual(t, CadenceUFix64(expectedMetadata.totalRewards), totalRewards)
 
+	// TODO(jord): document what is going on here - only validating amount when no rewards paid?
 	rewardsArray := metadataFields["rewardAmounts"].(cadence.Array).Values
 	if expectedMetadata.rewardsBreakdownArray == 0 {
 		assertEqual(t, len(rewardsArray), 0)
@@ -625,16 +627,16 @@ func verifyEpochMetadata(
 	clusterQCs := metadataFields["clusterQCs"].(cadence.Array).Values
 	verifyClusterQCs(t, expectedMetadata.clusterQCs, clusterQCs)
 
+	// TODO: check group key
+
 	dkgKeys := metadataFields["dkgKeys"].(cadence.Array).Values
 	if expectedMetadata.dkgKeys == nil {
 		assert.Empty(t, dkgKeys)
 	} else {
-		i := 0
-		for _, key := range dkgKeys {
+		for i, key := range dkgKeys {
 			cadenceKey, _ := cadence.NewString(expectedMetadata.dkgKeys[i])
 			// Verify that each key is correct
 			assertEqual(t, cadenceKey, key)
-			i = i + 1
 		}
 	}
 }
@@ -871,11 +873,15 @@ func verifyEpochRecover(
 	assertEqual(t, len(expectedRecover.dkgIdMapping.Pairs), len(emittedEvent.DKGPubKeys().Values))
 }
 
+// getEpochMetadata executes a script against the emulator and returns the
+// EpochMetadata stored in the FlowEpoch contract for the given epoch counter.
 func getEpochMetadata(t *testing.T, b emulator.Emulator, env templates.Environment, counter cadence.Value) map[string]cadence.Value {
 	result := executeScriptAndCheck(t, b, templates.GenerateGetEpochMetadataScript(env), [][]byte{jsoncdc.MustEncode(counter)})
 	return cadence.FieldsMappedByName(result.(cadence.Struct))
 }
 
+// getCurrentEpochCounter executes a script against the emulator and returns the
+// current epoch counter field of the FlowEpoch contract.
 func getCurrentEpochCounter(t *testing.T, b emulator.Emulator, env templates.Environment) cadence.UInt64 {
 	result := executeScriptAndCheck(t, b, templates.GenerateGetCurrentEpochCounterScript(env), [][]byte{})
 	return result.(cadence.UInt64)

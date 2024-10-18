@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/rand"
-	"strings"
 	"testing"
 	"time"
 
@@ -2020,7 +2019,7 @@ func getRecoveryTxArgs(
 }
 
 // verifyEpochRecoverGovernanceTx ensures that epoch metadata is updated with
-// the provided info and an corresponding epoch recover event was emitted with the same info.
+// the provided info and a corresponding EpochRecover event was emitted with the same info.
 func verifyEpochRecoverGovernanceTx(
 	t *testing.T,
 	b emulator.Emulator,
@@ -2046,12 +2045,11 @@ func verifyEpochRecoverGovernanceTx(
 		}
 	}
 	for i, dkgKeyCdc := range args[8].(cadence.Array).Values {
-		// strip `"` characters because the Cadence fmt.Stringer implementation adds them.
-		dkgPubKeys[i] = strings.ReplaceAll(dkgKeyCdc.String(), `"`, "")
+		dkgPubKeys[i] = CDCToString(dkgKeyCdc)
 	}
 	// seed is not manually set when recovering the epoch, it is randomly generated
 	metadataFields := getEpochMetadata(t, b, env, cadence.NewUInt64(epochCounter))
-	seed := strings.ReplaceAll(metadataFields["seed"].String(), `"`, "")
+	seed := CDCToString(metadataFields["seed"])
 	expectedMetadata := EpochMetadata{
 		counter:               epochCounter,
 		seed:                  seed,
