@@ -677,6 +677,7 @@ access(all) contract FlowEpoch {
             FlowEpoch.saveEpochMetadata(newEpochMetadata)
 
             /// Calculate rewards for the current epoch and set the payout for the next epoch
+            // TODO(jord): do we need this? L862 we calculate rewards on enter EpochSetup phase
             FlowEpoch.calculateAndSetRewards()
 
             /// Emit the EpochRecover service event.
@@ -830,6 +831,7 @@ access(all) contract FlowEpoch {
 
             // Calculate rewards for the current epoch
             // and set the payout for the next epoch
+            // TODO(jord): do we need this? L862 we calculate rewards on enter EpochSetup phase
             FlowEpoch.calculateAndSetRewards()
 
             // Start a new Epoch, which increments the current epoch counter
