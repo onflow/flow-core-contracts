@@ -318,7 +318,7 @@ func generateManyNodeKeys(t *testing.T, numNodes int) ([]crypto.PrivateKey, []st
 
 }
 
-// / Verifies that the EpochTotalRewardsPaid event was emmitted correctly with correct values
+// Verifies that the EpochTotalRewardsPaid event was emitted correctly with correct values
 func verifyEpochTotalRewardsPaid(
 	t *testing.T,
 	b emulator.Emulator,
@@ -327,13 +327,10 @@ func verifyEpochTotalRewardsPaid(
 
 	var emittedEvent EpochTotalRewardsPaidEvent
 
-	var i uint64
-	i = 0
-
 	logger := zerolog.Nop()
 	adapter := adapters.NewSDKAdapter(&logger, b)
 
-	for i < 1000 {
+	for i := uint64(0); i < 1000; i++ {
 		results, _ := adapter.GetEventsForHeightRange(context.Background(), "A."+idTableAddress.String()+".FlowIDTableStaking.EpochTotalRewardsPaid", i, i)
 
 		for _, result := range results {
@@ -343,16 +340,11 @@ func verifyEpochTotalRewardsPaid(
 				}
 			}
 		}
-
-		i = i + 1
 	}
 
 	assertEqual(t, CadenceUFix64(expectedRewards.total), emittedEvent.Total())
-
 	assertEqual(t, CadenceUFix64(expectedRewards.fromFees), emittedEvent.FromFees())
-
 	assertEqual(t, CadenceUFix64(expectedRewards.minted), emittedEvent.Minted())
-
 	assertEqual(t, CadenceUFix64(expectedRewards.feesBurned), emittedEvent.FeesBurned())
 }
 
