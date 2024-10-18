@@ -10,6 +10,7 @@ import (
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/crypto"
+	"github.com/onflow/flow-core-contracts/lib/go/test/static"
 	"github.com/onflow/flow-go/module/signature"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -1634,47 +1635,7 @@ func TestEpochRecover(t *testing.T) {
 		})
 	})
 
-	t.Run("Panics when recovering the current epoch and recover epoch counter is not equal to the current epoch counter", func(t *testing.T) {
-		epochConfig := &testEpochConfig{
-			startEpochCounter:    startEpochCounter,
-			numEpochViews:        numEpochViews,
-			numStakingViews:      numStakingViews,
-			numDKGViews:          numDKGViews,
-			numClusters:          numClusters,
-			numEpochAccounts:     numEpochAccounts,
-			randomSource:         randomSource,
-			rewardIncreaseFactor: rewardIncreaseFactor,
-		}
-		runWithDefaultContracts(t, epochConfig, func(b emulator.Emulator, env templates.Environment, ids []string, idTableAddress flow.Address, IDTableSigner sdkcrypto.Signer, adapter *adapters.SDKAdapter) {
-			epochTimingConfigResult := executeScriptAndCheck(t, b, templates.GenerateGetEpochTimingConfigScript(env), nil)
-			var (
-				startView      uint64 = 100
-				stakingEndView uint64 = 120
-				endView        uint64 = 160
-				targetDuration uint64 = numEpochViews
-				// invalid epoch counter when recovering the current epoch the counter should equal the current epoch counter
-				epochCounter  uint64 = startEpochCounter + 1
-				targetEndTime uint64 = expectedTargetEndTime(epochTimingConfigResult, epochCounter)
-			)
-			args := getRecoveryTxArgs(env, ids, startView, stakingEndView, endView, targetDuration, targetEndTime, epochCounter)
-			// set unsafe overwrite to true
-			args[len(args)-1] = cadence.NewBool(true)
-			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRecoverEpochScript(env), idTableAddress)
-			for _, arg := range args {
-				tx.AddArgument(arg)
-			}
-
-			expectedErr := fmt.Errorf("recovery epoch counter does not equal current epoch counter")
-			assertTransactionReverts(
-				t, b, tx,
-				[]flow.Address{idTableAddress},
-				[]sdkcrypto.Signer{IDTableSigner},
-				expectedErr,
-			)
-		})
-	})
-
-	t.Run("Panics when recovering a new epoch and recover epoch counter is not equal to the current epoch counter + 1", func(t *testing.T) {
+	t.Run("Epoch recovery panics when recovery epoch counter is not equal to the current epoch counter + 1", func(t *testing.T) {
 		epochConfig := &testEpochConfig{
 			startEpochCounter:    startEpochCounter,
 			numEpochViews:        numEpochViews,
@@ -1697,50 +1658,14 @@ func TestEpochRecover(t *testing.T) {
 				targetEndTime uint64 = expectedTargetEndTime(epochTimingConfigResult, epochCounter)
 			)
 			args := getRecoveryTxArgs(env, ids, startView, stakingEndView, endView, targetDuration, targetEndTime, epochCounter)
-			// avoid using the recover epoch transaction template which has sanity checks that would prevent submitting the invalid epoch counter
-			code := `
-				import FlowEpoch from "FlowEpoch"
-				import FlowIDTableStaking from "FlowIDTableStaking"
-				import FlowClusterQC from "FlowClusterQC"
-				transaction(recoveryEpochCounter: UInt64,
-							startView: UInt64,
-							stakingEndView: UInt64,
-							endView: UInt64,
-							targetDuration: UInt64,
-							targetEndTime: UInt64,
-							clusterAssignments: [[String]],
-							clusterQCVoteData: [FlowClusterQC.ClusterQCVoteData],
-							dkgPubKeys: [String],
-							dkgIdMapping: {String: Int},
-							nodeIDs: [String],
-							unsafeAllowOverwrite: Bool) {
 
-					prepare(signer: auth(BorrowValue) &Account) {
-						let epochAdmin = signer.storage.borrow<&FlowEpoch.Admin>(from: FlowEpoch.adminStoragePath)
-							?? panic("Could not borrow epoch admin from storage path")
-
-						epochAdmin.recoverNewEpoch(
-								recoveryEpochCounter: recoveryEpochCounter,
-								startView: startView,
-								stakingEndView: stakingEndView,
-								endView: endView,
-								targetDuration: targetDuration,
-								targetEndTime: targetEndTime,
-								clusterAssignments: clusterAssignments,
-								clusterQCVoteData: clusterQCVoteData,
-								dkgPubKeys: dkgPubKeys,
-								dkgIdMapping: dkgIdMapping,
-								nodeIDs: nodeIDs
-							)
-					}
-				}
-			`
+			code := static.RecoverNewEpochUnchecked
 			tx := createTxWithTemplateAndAuthorizer(b, []byte(templates.ReplaceAddresses(code, env)), idTableAddress)
 			for _, arg := range args {
 				tx.AddArgument(arg)
 			}
 
-			expectedErr := fmt.Errorf("recovery epoch counter should equal current epoch counter + 1")
+			expectedErr := fmt.Errorf("Recovery epoch counter must equal current epoch counter + 1")
 			assertTransactionReverts(
 				t, b, tx,
 				[]flow.Address{idTableAddress},
@@ -1750,7 +1675,7 @@ func TestEpochRecover(t *testing.T) {
 		})
 	})
 
-	t.Run("Recover epoch transaction panics when recovery epoch counter is less than currentCounter and unsafeAllowOverwrite is false", func(t *testing.T) {
+	t.Run("Epoch recovery panics when recovery epoch counter is less than currentCounter and unsafeAllowOverwrite is false", func(t *testing.T) {
 		epochConfig := &testEpochConfig{
 			startEpochCounter:    1,
 			numEpochViews:        numEpochViews,
@@ -1778,7 +1703,7 @@ func TestEpochRecover(t *testing.T) {
 				tx.AddArgument(arg)
 			}
 
-			expectedErr := fmt.Errorf("cannot overwrite existing epoch with safety flag specified")
+			expectedErr := fmt.Errorf("Cannot overwrite existing epoch without unsafeAllowOverwrite set to true")
 			assertTransactionReverts(
 				t, b, tx,
 				[]flow.Address{idTableAddress},
@@ -1788,7 +1713,7 @@ func TestEpochRecover(t *testing.T) {
 		})
 	})
 
-	t.Run("Recover epoch transaction panics when recovery epoch counter greater than proposedCounter and unsafeAllowOverwrite is false", func(t *testing.T) {
+	t.Run("Epoch recovery panics when recovery epoch counter greater than proposedCounter and unsafeAllowOverwrite is false", func(t *testing.T) {
 		epochConfig := &testEpochConfig{
 			startEpochCounter:    startEpochCounter,
 			numEpochViews:        numEpochViews,
@@ -1816,7 +1741,7 @@ func TestEpochRecover(t *testing.T) {
 				tx.AddArgument(arg)
 			}
 
-			expectedErr := fmt.Errorf("cannot overwrite existing epoch with safety flag specified")
+			expectedErr := fmt.Errorf("Cannot overwrite existing epoch without unsafeAllowOverwrite set to true")
 			assertTransactionReverts(
 				t, b, tx,
 				[]flow.Address{idTableAddress},
@@ -1976,6 +1901,20 @@ func TestEpochRecover(t *testing.T) {
 // EpochRecoveryTxArgs holds the list of arguments for an epoch recovery transaction.
 type EpochRecoveryTxArgs []cadence.Value
 
+func (args EpochRecoveryTxArgs) GetDKGPubKeys() []string {
+	pubKeysCDC := args[8]
+	return CadenceArrayTo(pubKeysCDC, CDCToString)
+}
+
+func (args EpochRecoveryTxArgs) GetDKGGroupKey() string {
+	groupKeyCDC := args[9]
+	return CDCToString(groupKeyCDC)
+}
+
+func (args EpochRecoveryTxArgs) GetDKGIDMapping() cadence.Dictionary {
+	return args[10].(cadence.Dictionary)
+}
+
 func (args EpochRecoveryTxArgs) SetUnsafeAllowOverwrite(val bool) {
 	args[12] = cadence.NewBool(val)
 }
@@ -1997,7 +1936,7 @@ func getRecoveryTxArgs(
 	collectorClusters[2] = cadence.NewArray([]cadence.Value{CadenceString("node_7"), CadenceString("node_8"), CadenceString("node_9")})
 
 	dkgGroupKeyCDC := DKGPubKeyFixtureCDC()
-	dkgPubKeysCDC := DKGPubKeysFixtureCDC(5)
+	dkgPubKeysCDC := DKGPubKeysFixtureCDC(2)
 	// TODO(jord): pass SN IDs through to here and populate this accurately
 	dkgIDMappingCDC := DKGIDMappingToCDC(map[string]int{"tmp1": 0, "tmp2": 1})
 
@@ -2036,19 +1975,12 @@ func verifyEpochRecoverGovernanceTx(
 	totalRewards string,
 	idTableAddress flow.Address,
 	adapter *adapters.SDKAdapter,
-	args []cadence.Value,
+	args EpochRecoveryTxArgs,
 ) {
-	dkgPubKeys := make([]string, len(args[8].(cadence.Array).Values))
-	dkgIdMappingKVP := make([]cadence.KeyValuePair, len(dkgPubKeys))
-	for i, _ := range dkgPubKeys {
-		dkgIdMappingKVP[i] = cadence.KeyValuePair{
-			Key:   cadence.String(fmt.Sprintf("node_%d", i)),
-			Value: cadence.NewInt(i),
-		}
-	}
-	for i, dkgKeyCdc := range args[8].(cadence.Array).Values {
-		dkgPubKeys[i] = CDCToString(dkgKeyCdc)
-	}
+	dkgPubKeys := args.GetDKGPubKeys()
+	dkgGroupKey := args.GetDKGGroupKey()
+	dkgIDMapping := args.GetDKGIDMapping()
+
 	// seed is not manually set when recovering the epoch, it is randomly generated
 	metadataFields := getEpochMetadata(t, b, env, cadence.NewUInt64(epochCounter))
 	seed := CDCToString(metadataFields["seed"])
@@ -2063,10 +1995,12 @@ func verifyEpochRecoverGovernanceTx(
 		rewardsPaid:           false,
 		collectorClusters:     nil,
 		clusterQCs:            nil,
-		dkgKeys:               dkgPubKeys,
+		// TODO(jord): document
+		dkgKeys: append([]string{dkgGroupKey}, dkgPubKeys...),
 	}
 	verifyEpochMetadata(t, b, env, expectedMetadata)
 	assertEqual(t, getCurrentEpochCounter(t, b, env), cadence.NewUInt64(epochCounter))
+
 	expectedRecoverEvent := EpochRecover{
 		counter:            epochCounter,
 		nodeInfoLength:     len(nodeIds),
@@ -2081,7 +2015,8 @@ func verifyEpochRecoverGovernanceTx(
 		targetEndTime:      targetEndTime,
 		numberClusterQCs:   len(args[6].(cadence.Array).Values),
 		dkgPubKeys:         dkgPubKeys,
-		dkgIdMapping:       cadence.NewDictionary(dkgIdMappingKVP),
+		dkgGroupKey:        dkgGroupKey,
+		dkgIdMapping:       dkgIDMapping,
 	}
 	verifyEpochRecover(t, adapter, idTableAddress, expectedRecoverEvent)
 }

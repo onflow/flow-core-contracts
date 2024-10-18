@@ -152,6 +152,7 @@ type EpochRecover struct {
 	targetEndTime      uint64
 	numberClusterQCs   int
 	dkgPubKeys         []string
+	dkgGroupKey        string
 	dkgIdMapping       cadence.Dictionary
 }
 
@@ -212,6 +213,11 @@ func (evt EpochRecoverEvent) ClusterQCVoteData() cadence.Array {
 // DKGPubKeys returns dkgPubKeys field in EpochRecover event.
 func (evt EpochRecoverEvent) DKGPubKeys() cadence.Array {
 	return cadence.SearchFieldByName(evt.Value, "dkgPubKeys").(cadence.Array)
+}
+
+// DKGGroupKey returns dkgGroupKey field in EpochRecover event.
+func (evt EpochRecoverEvent) DKGGroupKey() cadence.Array {
+	return cadence.SearchFieldByName(evt.Value, "dkgGroupKey").(cadence.Array)
 }
 
 // Go event definitions for the epoch events
@@ -627,8 +633,6 @@ func verifyEpochMetadata(
 	clusterQCs := metadataFields["clusterQCs"].(cadence.Array).Values
 	verifyClusterQCs(t, expectedMetadata.clusterQCs, clusterQCs)
 
-	// TODO: check group key
-
 	dkgKeys := metadataFields["dkgKeys"].(cadence.Array).Values
 	if expectedMetadata.dkgKeys == nil {
 		assert.Empty(t, dkgKeys)
@@ -636,7 +640,6 @@ func verifyEpochMetadata(
 		for i, key := range dkgKeys {
 			cadenceKey, _ := cadence.NewString(expectedMetadata.dkgKeys[i])
 			// Verify that each key is correct
-			// TODO: this assertion fails because group key is prepended to stored metadata (separate field in event)
 			assertEqual(t, cadenceKey, key)
 		}
 	}
