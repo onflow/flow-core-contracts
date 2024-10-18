@@ -446,7 +446,7 @@ func generateManifest(env templates.Environment) *manifest {
 	m.addTemplate(generateTemplate(
 		"SCO.03", "Register Node",
 		env,
-		templates.GenerateCollectionRegisterNode,
+		templates.GenerateCollectionRegisterNodeOld,
 		[]argument{
 			{
 				Type:         "String",
@@ -477,12 +477,6 @@ func generateManifest(env templates.Environment) *manifest {
 				Name:         "stakingKey",
 				Label:        "Staking Key",
 				SampleValues: []cadenceValue{sampleStakingKey},
-			},
-			{
-				Type:         "String",
-				Name:         "stakingKeyPoP",
-				Label:        "Staking Key PoP",
-				SampleValues: []cadenceValue{sampleStakingKeyPoP},
 			},
 			{
 				Type:         "UFix64",
@@ -836,6 +830,74 @@ func generateManifest(env templates.Environment) *manifest {
 				Name:         "address",
 				Label:        "Address",
 				SampleValues: []cadenceValue{sampleNetworkingAddress},
+			},
+		},
+	))
+
+	m.addTemplate(generateTemplate(
+		"SCO.17", "Register Node with PoP",
+		env,
+		templates.GenerateCollectionRegisterNode,
+		[]argument{
+			{
+				Type:         "String",
+				Name:         "id",
+				Label:        "Node ID",
+				SampleValues: []cadenceValue{sampleNodeID},
+			},
+			{
+				Type:         "UInt8",
+				Name:         "role",
+				Label:        "Node Role",
+				SampleValues: []cadenceValue{sampleNodeRole},
+			},
+			{
+				Type:         "String",
+				Name:         "networkingAddress",
+				Label:        "Networking Address",
+				SampleValues: []cadenceValue{sampleNetworkingAddress},
+			},
+			{
+				Type:         "String",
+				Name:         "networkingKey",
+				Label:        "Networking Key",
+				SampleValues: []cadenceValue{sampleNetworkingKey},
+			},
+			{
+				Type:         "String",
+				Name:         "stakingKey",
+				Label:        "Staking Key",
+				SampleValues: []cadenceValue{sampleStakingKey},
+			},
+			{
+				Type:         "String",
+				Name:         "stakingKeyPoP",
+				Label:        "Staking Key PoP",
+				SampleValues: []cadenceValue{sampleStakingKeyPoP},
+			},
+			{
+				Type:         "UFix64",
+				Name:         "amount",
+				Label:        "Amount",
+				SampleValues: []cadenceValue{sampleAmount},
+			},
+			{
+				Type:         "String",
+				Name:         "machineAccountKey",
+				Label:        "Machine Account Public Key",
+				SampleValues: []cadenceValue{sampleKey},
+			},
+			{
+				Type:         "UInt8",
+				Name:         "machineAccountKeySignatureAlgorithm",
+				Label:        "Raw Value for Machine Account Signature Algorithm Enum",
+				SampleValues: []cadenceValue{sampleSigAlgoEnumRawValue},
+			},
+			{
+				Type:         "UInt8",
+				Name:         "machineAccountKeyHashAlgorithm",
+				Label:        "Raw Value for Machine Account Hash Algorithm Enum",
+				SampleValues: []cadenceValue{sampleHashAlgoEnumRawValue},
 			},
 		},
 	))
