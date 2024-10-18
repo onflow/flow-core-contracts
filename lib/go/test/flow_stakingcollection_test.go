@@ -2956,7 +2956,6 @@ func TestStakingCollectionRegisterMultipleNodes(t *testing.T) {
 
 	// Create arrays for the node account information
 	nodeStakingKeys := make([]cadence.Value, numNodes)
-	nodeStakingKeyPOPs := make([]cadence.Value, numNodes)
 	nodeNetworkingKeys := make([]cadence.Value, numNodes)
 	nodeStakingKeyPOPs := make([]cadence.Value, numNodes)
 	nodeNetworkingAddresses := make([]cadence.Value, numNodes)

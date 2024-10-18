@@ -795,7 +795,7 @@ func TestIDTableApprovals(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	_, adminStakingKey, adminStakingPoP, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
+	_, adminStakingKey, adminStakingPOP, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
 	idTableAddress, feesAddr := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, &env, true, []uint64{3, 3, 3, 3, 3})
 	mintTokensForAccount(t, b, env, idTableAddress, "1000000000.0")
 
@@ -820,7 +820,7 @@ func TestIDTableApprovals(t *testing.T) {
 		fmt.Sprintf("%0128d", admin),
 		adminNetworkingKey,
 		adminStakingKey,
-		adminStakingPoP,
+		adminStakingPOP,
 		amountToCommit,
 		committed[adminID],
 		1,

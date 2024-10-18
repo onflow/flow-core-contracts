@@ -554,8 +554,13 @@ func TestEpochAdvance(t *testing.T) {
 
 	registerNodesForStaking(t, b, env,
 		addresses,
+		signers,
+		stakingPublicKeys,
+		stakingKeyPOPs,
+		networkingPublicKeys,
 		ids)
 
+	// Set the approved node list
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
 
 	approvedNodeIDs := generateCadenceNodeDictionary(ids)
@@ -709,8 +714,13 @@ func TestEpochQCDKGNodeRegistration(t *testing.T) {
 		stakingKeyPOPs,
 		networkingPublicKeys,
 		ids)
+
+	// Set the approved node list
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
+
 	approvedNodeIDs := generateCadenceNodeDictionary(ids)
 	err := tx.AddArgument(approvedNodeIDs)
+	require.NoError(t, err)
 
 	signAndSubmit(
 		t, b, tx,
