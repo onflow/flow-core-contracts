@@ -2,6 +2,7 @@ package test
 
 import (
 	"encoding/hex"
+	"fmt"
 	"math/rand"
 	"strings"
 	"testing"
@@ -10,6 +11,7 @@ import (
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/crypto"
+	"github.com/onflow/flow-go/module/signature"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -30,10 +32,9 @@ const (
 	randomSource         = "lolsoRandom"
 	totalRewards         = "1250000.0"
 	rewardIncreaseFactor = "0.00093871"
-	// TODO: import the constant from the flow-go/module/signature package
-	// once flow-go is updated.
-	collectorVoteTag = "FLOW-Collector_Vote-V00-CS00-with-"
 )
+
+var collectorVoteTag = signature.CollectorVoteTag
 
 func TestEpochDeployment(t *testing.T) {
 	b, _, accountKeys, env := newTestSetup(t)
