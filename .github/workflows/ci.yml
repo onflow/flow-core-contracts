@@ -18,5 +18,11 @@ jobs:
         run: flow version
       - name: Update PATH
         run: echo "/root/.local/bin" >> $GITHUB_PATH
-      - name: Run tests
+      - name: Run Go-based tests
         run: export GOPATH=$HOME/go && make ci
+
+      - name: Install Flow CLI
+        run: sh -ci "$(curl -fsSL https://raw.githubusercontent.com/onflow/flow-cli/master/install.sh)"
+
+      - name: Run Cadence-based tests
+        run: cd contracts && flow test --cover --covercode="contracts" Crypto_test.cdc

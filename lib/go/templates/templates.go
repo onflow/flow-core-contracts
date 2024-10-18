@@ -19,6 +19,7 @@ const (
 	placeholderFungibleTokenMVAddress     = "\"FungibleTokenMetadataViews\""
 	placeholderMetadataViewsAddress       = "\"MetadataViews\""
 	placeholderBurnerAddress              = "\"Burner\""
+	placeholderCryptoAddress              = "\"Crypto\""
 	placeholderFlowTokenAddress           = "\"FlowToken\""
 	placeholderIDTableAddress             = "\"FlowIDTableStaking\""
 	placeholderLockedTokensAddress        = "\"LockedTokens\""
@@ -38,6 +39,7 @@ type Environment struct {
 	Network                           string
 	ViewResolverAddress               string
 	BurnerAddress                     string
+	CryptoAddress                     string
 	FungibleTokenAddress              string
 	NonFungibleTokenAddress           string
 	MetadataViewsAddress              string
@@ -88,6 +90,12 @@ func ReplaceAddresses(code string, env Environment) string {
 		code,
 		placeholderBurnerAddress,
 		withHexPrefix(env.BurnerAddress),
+	)
+
+	code = strings.ReplaceAll(
+		code,
+		placeholderCryptoAddress,
+		withHexPrefix(env.CryptoAddress),
 	)
 
 	code = strings.ReplaceAll(
