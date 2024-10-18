@@ -313,17 +313,14 @@ func TestIDTableRegistration(t *testing.T) {
 	_, joshStakingKey, joshStakingPOP, _, joshNetworkingKey := generateKeysForNodeRegistration(t)
 	mintTokensForAccount(t, b, env, joshAddress, "1000000000.0")
 
-	// Create a new user account
 	maxAddress, _, maxSigner := newAccountWithAddress(b, accountKeys)
 	_, maxStakingKey, maxStakingPOP, _, maxNetworkingKey := generateKeysForNodeRegistration(t)
 	mintTokensForAccount(t, b, env, maxAddress, "1000000000.0")
 
-	// Create a new user account
 	bastianAddress, _, bastianSigner := newAccountWithAddress(b, accountKeys)
 	_, bastianStakingKey, bastianStakingPOP, _, bastianNetworkingKey := generateKeysForNodeRegistration(t)
 	mintTokensForAccount(t, b, env, bastianAddress, "1000000000.0")
 
-	// Create a new user account for access node
 	accessAddress, _, accessSigner := newAccountWithAddress(b, accountKeys)
 	_, accessStakingKey, accessStakingPOP, _, accessNetworkingKey := generateKeysForNodeRegistration(t)
 	mintTokensForAccount(t, b, env, accessAddress, "1000000000.0")
