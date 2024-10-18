@@ -9,6 +9,7 @@ transaction(ids: [String],
             networkingAddresses: [String],
             networkingKeys: [String],
             stakingKeys: [String],
+            stakingKeyPoPs: [String],
             amounts: [UFix64],
             publicKeys: [[Crypto.KeyListEntry]?]) {
     
@@ -27,6 +28,7 @@ transaction(ids: [String],
                 networkingAddress: networkingAddresses[i],
                 networkingKey: networkingKeys[i],
                 stakingKey: stakingKeys[i],
+                stakingKeyPoP: stakingKeyPoPs[i],
                 amount: amounts[i],
                 payer: account) 
             {
