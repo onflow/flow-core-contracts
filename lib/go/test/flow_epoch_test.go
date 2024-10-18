@@ -1525,156 +1525,172 @@ func TestEpochReset(t *testing.T) {
 // Specifically, we execute an epoch recover transaction and confirm both scenarios are true;
 //   - epoch recover that specifies unsafeAllowOverwrite = false increments the epoch counter effectively starting a new epoch.
 //   - epoch recover that specifies unsafeAllowOverwrite = true overwrites the current epoch and does not increment the counter.
-func TestEpochRecover(t *testing.T) {
 
-	// Perform epoch recovery by transitioning into a new epoch (counter incremented by one)
-	t.Run("Can recover the epoch with a new epoch", func(t *testing.T) {
-		epochConfig := &testEpochConfig{
-			startEpochCounter:    startEpochCounter,
-			numEpochViews:        numEpochViews,
-			numStakingViews:      numStakingViews,
-			numDKGViews:          numDKGViews,
-			numClusters:          numClusters,
-			numEpochAccounts:     numEpochAccounts,
-			randomSource:         randomSource,
-			rewardIncreaseFactor: rewardIncreaseFactor,
+// TestEpochRecover_NewEpoch tests epoch recovery by transitioning into a new epoch (counter incremented by one).
+// This is the standard procedure for epoch recovery.
+func TestEpochRecover_NewEpoch(t *testing.T) {
+	epochConfig := &testEpochConfig{
+		startEpochCounter:    startEpochCounter,
+		numEpochViews:        numEpochViews,
+		numStakingViews:      numStakingViews,
+		numDKGViews:          numDKGViews,
+		numClusters:          numClusters,
+		numEpochAccounts:     numEpochAccounts,
+		randomSource:         randomSource,
+		rewardIncreaseFactor: rewardIncreaseFactor,
+	}
+
+	runWithDefaultContracts(t, epochConfig, func(b emulator.Emulator, env templates.Environment, ids []string, idTableAddress flow.Address, IDTableSigner sdkcrypto.Signer, adapter *adapters.SDKAdapter) {
+		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHSETUP", false)
+		epochTimingConfigResult := executeScriptAndCheck(t, b, templates.GenerateGetEpochTimingConfigScript(env), nil)
+		var (
+			startView      uint64 = 100
+			stakingEndView uint64 = 120
+			endView        uint64 = 160
+			targetDuration uint64 = numEpochViews
+			epochCounter   uint64 = startEpochCounter + 1
+			targetEndTime  uint64 = expectedTargetEndTime(epochTimingConfigResult, epochCounter)
+		)
+		args := getRecoveryTxArgs(env, ids, startView, stakingEndView, endView, targetDuration, targetEndTime, epochCounter)
+
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRecoverEpochScript(env), idTableAddress)
+		for _, arg := range args {
+			tx.AddArgument(arg)
 		}
-		runWithDefaultContracts(t, epochConfig, func(b emulator.Emulator, env templates.Environment, ids []string, idTableAddress flow.Address, IDTableSigner sdkcrypto.Signer, adapter *adapters.SDKAdapter) {
-			advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHSETUP", false)
-			epochTimingConfigResult := executeScriptAndCheck(t, b, templates.GenerateGetEpochTimingConfigScript(env), nil)
-			var (
-				startView      uint64 = 100
-				stakingEndView uint64 = 120
-				endView        uint64 = 160
-				targetDuration uint64 = numEpochViews
-				epochCounter   uint64 = startEpochCounter + 1
-				targetEndTime  uint64 = expectedTargetEndTime(epochTimingConfigResult, epochCounter)
-			)
-			args := getRecoveryTxArgs(env, ids, startView, stakingEndView, endView, targetDuration, targetEndTime, epochCounter)
 
-			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRecoverEpochScript(env), idTableAddress)
-			for _, arg := range args {
-				tx.AddArgument(arg)
-			}
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]sdkcrypto.Signer{IDTableSigner},
+			false,
+		)
 
-			signAndSubmit(
-				t, b, tx,
-				[]flow.Address{idTableAddress},
-				[]sdkcrypto.Signer{IDTableSigner},
-				false,
-			)
+		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "BLOCK", false)
 
-			advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "BLOCK", false)
-
-			verifyEpochRecoverGovernanceTx(t, b, env, ids,
-				startView,
-				stakingEndView,
-				endView,
-				targetDuration,
-				targetEndTime,
-				epochCounter,
-				"0.0",
-				idTableAddress,
-				adapter,
-				args,
-			)
-		})
+		verifyEpochRecoverGovernanceTx(t, b, env, ids,
+			startView,
+			stakingEndView,
+			endView,
+			targetDuration,
+			targetEndTime,
+			epochCounter,
+			"0.0",
+			idTableAddress,
+			adapter,
+			args,
+		)
 	})
+}
 
-	t.Run("Can recover the current epoch and overwrite the current epoch metadata", func(t *testing.T) {
-		epochConfig := &testEpochConfig{
-			startEpochCounter:    startEpochCounter,
-			numEpochViews:        numEpochViews,
-			numStakingViews:      numStakingViews,
-			numDKGViews:          numDKGViews,
-			numClusters:          numClusters,
-			numEpochAccounts:     numEpochAccounts,
-			randomSource:         randomSource,
-			rewardIncreaseFactor: rewardIncreaseFactor,
+// TestEpochRecover_OverwriteEpoch tests epoch recovery by overwriting current epoch metadata (counter unchanged)
+// This atypical path exists to "retry" EFM recovery if a prior attempt failed for any reason.
+func TestEpochRecover_OverwriteEpoch(t *testing.T) {
+	epochConfig := &testEpochConfig{
+		startEpochCounter:    startEpochCounter,
+		numEpochViews:        numEpochViews,
+		numStakingViews:      numStakingViews,
+		numDKGViews:          numDKGViews,
+		numClusters:          numClusters,
+		numEpochAccounts:     numEpochAccounts,
+		randomSource:         randomSource,
+		rewardIncreaseFactor: rewardIncreaseFactor,
+	}
+	runWithDefaultContracts(t, epochConfig, func(b emulator.Emulator, env templates.Environment, ids []string, idTableAddress flow.Address, IDTableSigner sdkcrypto.Signer, adapter *adapters.SDKAdapter) {
+		// Advance to epoch Setup and make sure that the epoch cannot be ended
+		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHSETUP", false)
+		epochTimingConfigResult := executeScriptAndCheck(t, b, templates.GenerateGetEpochTimingConfigScript(env), nil)
+		var (
+			startView      uint64 = 100
+			stakingEndView uint64 = 120
+			endView        uint64 = 160
+			targetDuration uint64 = numEpochViews
+			targetEndTime  uint64 = expectedTargetEndTime(epochTimingConfigResult, startEpochCounter)
+		)
+		args := getRecoveryTxArgs(env, ids, startView, stakingEndView, endView, targetDuration, targetEndTime, startEpochCounter)
+		// overwrite the current epoch by setting unsafe overwrite to true
+		args.SetUnsafeAllowOverwrite(true)
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRecoverEpochScript(env), idTableAddress)
+		for _, arg := range args {
+			tx.AddArgument(arg)
 		}
-		runWithDefaultContracts(t, epochConfig, func(b emulator.Emulator, env templates.Environment, ids []string, idTableAddress flow.Address, IDTableSigner sdkcrypto.Signer, adapter *adapters.SDKAdapter) {
-			// Advance to epoch Setup and make sure that the epoch cannot be ended
-			advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHSETUP", false)
-			epochTimingConfigResult := executeScriptAndCheck(t, b, templates.GenerateGetEpochTimingConfigScript(env), nil)
-			var (
-				startView      uint64 = 100
-				stakingEndView uint64 = 120
-				endView        uint64 = 160
-				targetDuration uint64 = numEpochViews
-				targetEndTime  uint64 = expectedTargetEndTime(epochTimingConfigResult, startEpochCounter)
-			)
-			args := getRecoveryTxArgs(env, ids, startView, stakingEndView, endView, targetDuration, targetEndTime, startEpochCounter)
-			// overwrite the current epoch by setting unsafe overwrite to true
-			args.SetUnsafeAllowOverwrite(true)
-			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRecoverEpochScript(env), idTableAddress)
-			for _, arg := range args {
-				tx.AddArgument(arg)
-			}
 
-			signAndSubmit(
-				t, b, tx,
-				[]flow.Address{idTableAddress},
-				[]sdkcrypto.Signer{IDTableSigner},
-				false,
-			)
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]sdkcrypto.Signer{IDTableSigner},
+			false,
+		)
 
-			advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "BLOCK", false)
+		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "BLOCK", false)
 
-			verifyEpochRecoverGovernanceTx(t, b, env, ids,
-				startView,
-				stakingEndView,
-				endView,
-				targetDuration,
-				targetEndTime,
-				startEpochCounter,
-				"0.0",
-				idTableAddress,
-				adapter,
-				args,
-			)
-		})
+		verifyEpochRecoverGovernanceTx(t, b, env, ids,
+			startView,
+			stakingEndView,
+			endView,
+			targetDuration,
+			targetEndTime,
+			startEpochCounter,
+			"0.0",
+			idTableAddress,
+			adapter,
+			args,
+		)
 	})
+}
 
-	t.Run("Epoch recovery panics when recovery epoch counter is not equal to the current epoch counter + 1", func(t *testing.T) {
-		epochConfig := &testEpochConfig{
-			startEpochCounter:    startEpochCounter,
-			numEpochViews:        numEpochViews,
-			numStakingViews:      numStakingViews,
-			numDKGViews:          numDKGViews,
-			numClusters:          numClusters,
-			numEpochAccounts:     numEpochAccounts,
-			randomSource:         randomSource,
-			rewardIncreaseFactor: rewardIncreaseFactor,
-		}
-		runWithDefaultContracts(t, epochConfig, func(b emulator.Emulator, env templates.Environment, ids []string, idTableAddress flow.Address, IDTableSigner sdkcrypto.Signer, adapter *adapters.SDKAdapter) {
-			epochTimingConfigResult := executeScriptAndCheck(t, b, templates.GenerateGetEpochTimingConfigScript(env), nil)
-			var (
-				startView      uint64 = 100
-				stakingEndView uint64 = 120
-				endView        uint64 = 160
-				targetDuration uint64 = numEpochViews
-				// invalid epoch counter when recovering the current epoch the counter should equal the current epoch counter
-				epochCounter  uint64 = startEpochCounter
-				targetEndTime uint64 = expectedTargetEndTime(epochTimingConfigResult, epochCounter)
-			)
-			args := getRecoveryTxArgs(env, ids, startView, stakingEndView, endView, targetDuration, targetEndTime, epochCounter)
+// TestEpochRecover_NewEpoch_Failure tests EFM recovery safety checks when unsafeAllowOverwrite=false.
+// It attempts to submit EFM recovery transactions for a collection of invalid epoch counters and
+// asserts that these attempts panic with an expected error.
+func TestEpochRecover_NewEpoch_Failure(t *testing.T) {
+	epochConfig := &testEpochConfig{
+		startEpochCounter:    1,
+		numEpochViews:        numEpochViews,
+		numStakingViews:      numStakingViews,
+		numDKGViews:          numDKGViews,
+		numClusters:          numClusters,
+		numEpochAccounts:     numEpochAccounts,
+		randomSource:         randomSource,
+		rewardIncreaseFactor: rewardIncreaseFactor,
+	}
 
-			code := static.RecoverNewEpochUnchecked
-			tx := createTxWithTemplateAndAuthorizer(b, []byte(templates.ReplaceAddresses(code, env)), idTableAddress)
-			for _, arg := range args {
-				tx.AddArgument(arg)
-			}
+	// Define the set of recovery epoch test values we expect to fail.
+	// If the current epoch counter is C, the test set is {C-1, C, C+2} (C+1 is the only valid input)
+	recoveryEpochCounterTestValues := []uint64{epochConfig.startEpochCounter - 1, epochConfig.startEpochCounter, epochConfig.startEpochCounter + 2}
 
-			expectedErr := fmt.Errorf("Recovery epoch counter must equal current epoch counter + 1")
-			assertTransactionReverts(
-				t, b, tx,
-				[]flow.Address{idTableAddress},
-				[]sdkcrypto.Signer{IDTableSigner},
-				expectedErr,
-			)
+	for _, recoveryEpochCounter := range recoveryEpochCounterTestValues {
+		t.Run(fmt.Sprintf("currentEpochCounter=%d, recoveryEpochCounter=%d", epochConfig.startEpochCounter, recoveryEpochCounter), func(t *testing.T) {
+			runWithDefaultContracts(t, epochConfig, func(b emulator.Emulator, env templates.Environment, ids []string, idTableAddress flow.Address, IDTableSigner sdkcrypto.Signer, adapter *adapters.SDKAdapter) {
+				epochTimingConfigResult := executeScriptAndCheck(t, b, templates.GenerateGetEpochTimingConfigScript(env), nil)
+				var (
+					startView      uint64 = 100
+					stakingEndView uint64 = 120
+					endView        uint64 = 160
+					targetDuration uint64 = numEpochViews
+					// invalid epoch counter when recovering the current epoch the counter should equal the current epoch counter
+					epochCounter  uint64 = epochConfig.startEpochCounter
+					targetEndTime uint64 = expectedTargetEndTime(epochTimingConfigResult, epochCounter)
+				)
+				args := getRecoveryTxArgs(env, ids, startView, stakingEndView, endView, targetDuration, targetEndTime, epochCounter)
+
+				code := static.RecoverNewEpochUnchecked
+				tx := createTxWithTemplateAndAuthorizer(b, []byte(templates.ReplaceAddresses(code, env)), idTableAddress)
+				for _, arg := range args {
+					tx.AddArgument(arg)
+				}
+
+				expectedErr := fmt.Errorf("Recovery epoch counter must equal current epoch counter + 1")
+				assertTransactionReverts(
+					t, b, tx,
+					[]flow.Address{idTableAddress},
+					[]sdkcrypto.Signer{IDTableSigner},
+					expectedErr,
+				)
+			})
 		})
-	})
+	}
+}
 
+func TestEpoch_asdfasdf(t *testing.T) {
 	t.Run("Epoch recovery panics when recovery epoch counter is less than currentCounter and unsafeAllowOverwrite is false", func(t *testing.T) {
 		epochConfig := &testEpochConfig{
 			startEpochCounter:    1,

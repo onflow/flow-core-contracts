@@ -954,6 +954,8 @@ type testEpochConfig struct {
 	rewardIncreaseFactor string // reward increase factor
 }
 
+// runWithDefaultContracts sets up a test environment using the input config, deploys all default contracts,
+// then executes the test case defined by input functor f.
 func runWithDefaultContracts(t *testing.T, config *testEpochConfig, f func(b emulator.Emulator, env templates.Environment, ids []string, idTableAddress flow.Address, IDTableSigner sdkcrypto.Signer, adapter *adapters.SDKAdapter)) {
 	b, adapter, accountKeys, env := newTestSetup(t)
 	// Create new keys for the epoch account
