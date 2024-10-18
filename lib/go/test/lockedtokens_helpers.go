@@ -378,7 +378,7 @@ func registerStakingCollectionNodesAndDelegators(
 	userNodeID1 := "0000000000000000000000000000000000000000000000000000000000000001"
 	userNodeID2 := "0000000000000000000000000000000000000000000000000000000000000002"
 
-	_, nodeOneStakingKey, _, nodeOneNetworkingKey := generateKeysForNodeRegistration(t)
+	_, nodeOneStakingKey, nodeOneStakingKeyPOP, _, nodeOneNetworkingKey := generateKeysForNodeRegistration(t)
 
 	// Register a node in the locked account
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), newUserAddress)
@@ -387,6 +387,7 @@ func registerStakingCollectionNodesAndDelegators(
 	_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", 1)))
 	_ = tx.AddArgument(CadenceString(nodeOneNetworkingKey))
 	_ = tx.AddArgument(CadenceString(nodeOneStakingKey))
+	_ = tx.AddArgument(CadenceString(nodeOneStakingKeyPOP))
 	_ = tx.AddArgument(CadenceUFix64("320000.0"))
 
 	signAndSubmit(
@@ -418,7 +419,7 @@ func registerStakingCollectionNodesAndDelegators(
 		false,
 	)
 
-	_, nodeTwoStakingKey, _, nodeTwoNetworkingKey := generateKeysForNodeRegistration(t)
+	_, nodeTwoStakingKey, nodeTwoStakingKeyPOP, _, nodeTwoNetworkingKey := generateKeysForNodeRegistration(t)
 
 	// Register a node with the staking collection
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterNode(env), newUserAddress)
@@ -427,6 +428,7 @@ func registerStakingCollectionNodesAndDelegators(
 	_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", 2)))
 	_ = tx.AddArgument(CadenceString(nodeTwoNetworkingKey))
 	_ = tx.AddArgument(CadenceString(nodeTwoStakingKey))
+	_ = tx.AddArgument(CadenceString(nodeTwoStakingKeyPOP))
 	_ = tx.AddArgument(CadenceUFix64("500000.0"))
 	_ = tx.AddArgument(CadenceString("7d5305c22cb7da418396f32c474c6d84b0bb87ca311d6aa6edfd70a1120ded9dc11427ac31261c24e4e7a6c2affea28ff3da7b00fe285029877fb0b5970dc110"))
 	_ = tx.AddArgument(cadence.NewUInt8(1))

@@ -1,7 +1,7 @@
 import LockedTokens from "LockedTokens"
 import StakingProxy from "StakingProxy"
 
-transaction(address: Address, id: String, amount: UFix64) {
+transaction(address: Address, id: String, stakingKeyPoP: String, amount: UFix64) {
 
     let holderRef: auth(LockedTokens.TokenOperations) &LockedTokens.TokenHolder
 
@@ -20,7 +20,7 @@ transaction(address: Address, id: String, amount: UFix64) {
         let nodeInfo = nodeOperatorRef.getNodeInfo(nodeID: id)
             ?? panic("Couldn't get info for nodeID=".concat(id))
 
-        self.holderRef.createNodeStaker(nodeInfo: nodeInfo, amount: amount)
+        self.holderRef.createNodeStaker(nodeInfo: nodeInfo, stakingKeyPoP: stakingKeyPoP, amount: amount)
 
         let nodeStakerProxy = self.holderRef.borrowStaker()
 
