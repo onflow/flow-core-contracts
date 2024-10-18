@@ -24,7 +24,7 @@ import (
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
 )
 
-// / Used to verify the EpochSetup event fields in tests
+// Used to verify the EpochSetup event fields in tests
 type EpochTotalRewardsPaid struct {
 	total      string
 	fromFees   string
@@ -177,7 +177,7 @@ func deployStakingContract(
 	return idTableAddress, feesAddr
 }
 
-// / Used to verify staking info in tests
+// Used to verify staking info in tests
 type StakingInfo struct {
 	nodeID      string
 	delegatorID uint32
@@ -318,7 +318,8 @@ func generateManyNodeKeys(t *testing.T, numNodes int) ([]crypto.PrivateKey, []st
 
 }
 
-// Verifies that the EpochTotalRewardsPaid event was emitted correctly with correct values
+// Verifies that an EpochTotalRewardsPaid event was emitted with the expected values.
+// CAUTION: Assumes that only one such event was emitted, and that it was emitted in the first 1000 blocks.
 func verifyEpochTotalRewardsPaid(
 	t *testing.T,
 	b emulator.Emulator,
@@ -444,9 +445,9 @@ func endStakingMoveTokens(t *testing.T,
 	)
 }
 
-// / Registers the specified number of nodes for staking with the specified IDs
-// / Does an even distrubution of node roles across the array of IDs in this order, repeating:
-// / collection, consensus, execution, verification, access
+// Registers the specified number of nodes for staking with the specified IDs
+// Does an even distrubution of node roles across the array of IDs in this order, repeating:
+// collection, consensus, execution, verification, access
 func registerNodesForStaking(
 	t *testing.T,
 	b emulator.Emulator,

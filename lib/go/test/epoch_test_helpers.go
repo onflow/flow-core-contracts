@@ -31,14 +31,14 @@ import (
 *
  */
 
-// / Used to verify the values of the clusters in the smart contract
+// Used to verify the values of the clusters in the smart contract
 type Cluster struct {
 	index       uint16
 	totalWeight uint64
 	size        uint16
 }
 
-// / Used to verify epoch metadata in tests
+// Used to verify epoch metadata in tests
 type EpochMetadata struct {
 	counter               uint64
 	seed                  string
@@ -53,7 +53,7 @@ type EpochMetadata struct {
 	dkgKeys               []string
 }
 
-// / Used to verify the configurable Epoch metadata in tests
+// Used to verify the configurable Epoch metadata in tests
 type ConfigMetadata struct {
 	currentEpochCounter      uint64
 	proposedEpochCounter     uint64
@@ -72,7 +72,7 @@ type EpochTimingConfig struct {
 	refTimestamp uint64
 }
 
-// / Used to verify the EpochStart event fields in tests
+// Used to verify the EpochStart event fields in tests
 type EpochStart struct {
 	counter        uint64
 	firstView      uint64
@@ -113,7 +113,7 @@ func (evt EpochStartEvent) rewards() cadence.UFix64 {
 	return cadence.SearchFieldByName(evt.Value, "totalRewards").(cadence.UFix64)
 }
 
-// / Used to verify the EpochSetup event fields in tests
+// Used to verify the EpochSetup event fields in tests
 type EpochSetup struct {
 	counter            uint64
 	nodeInfoLength     int
@@ -510,8 +510,7 @@ func registerNodesForEpochs(
 	}
 }
 
-// / Verifies that the clusters provided are the same as the expected clusters
-// /
+// Verifies that the clusters provided are the same as the expected clusters
 func verifyClusters(
 	t *testing.T,
 	expectedClusters []Cluster,
@@ -544,8 +543,7 @@ func verifyClusters(
 
 }
 
-// / Verifies that the cluster quorum certificates are equal to the provided expected values
-// /
+// Verifies that the cluster quorum certificates are equal to the provided expected values
 func verifyClusterQCs(
 	t *testing.T,
 	expectedQCs [][]string,
@@ -663,7 +661,7 @@ func verifyEpochTimingConfig(
 	assert.InDelta(t, expectedConfig.refTimestamp, uint64(timingConfigFields["refTimestamp"].(cadence.UInt64)), 30)
 }
 
-// / Verifies that the configurable epoch metadata is equal to the provided values
+// Verifies that the configurable epoch metadata is equal to the provided values
 func verifyConfigMetadata(
 	t *testing.T,
 	b emulator.Emulator,
@@ -728,7 +726,7 @@ func verifyEpochStart(
 
 }
 
-// / Verifies that the epoch setup event values are equal to the provided expected values
+// Verifies that the epoch setup event values are equal to the provided expected values
 func verifyEpochSetup(
 	t *testing.T,
 	b emulator.Emulator,
@@ -773,8 +771,7 @@ func verifyEpochSetup(
 	assertEqual(t, cadence.NewUInt64(expectedSetup.targetEndTime), emittedEvent.targetEndTime())
 }
 
-// / Verifies that the EpochCommit event values are equal to the provided expected values
-// /
+// Verifies that the EpochCommit event values are equal to the provided expected values
 func verifyEpochCommit(
 	t *testing.T,
 	b emulator.Emulator,
@@ -835,9 +832,7 @@ func expectedTargetEndTime(timingConfig cadence.Value, targetEpoch uint64) uint6
 }
 
 // verifyEpochRecover verifies that an emitted EpochRecover event is equal to the provided `expectedRecover`.
-// Assumptions:
-//   - only one `EpochRecover` is emitted (otherwise, only the first is verified)
-//   - the `EpochRecover` is emitted within the first 1000 blocks
+// CAUTION: Assumes that only one such event was emitted, and that it was emitted in the first 1000 blocks.
 func verifyEpochRecover(
 	t *testing.T,
 	adapter *adapters.SDKAdapter,

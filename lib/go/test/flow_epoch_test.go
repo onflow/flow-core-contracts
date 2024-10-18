@@ -1744,151 +1744,151 @@ func TestEpochRecover_OverwriteEpoch_Failure(t *testing.T) {
 	}
 }
 
-func TestEpoch_others(t *testing.T) {
-	t.Run("Can recover the epoch during the staking auction with automatic rewards enabled", func(t *testing.T) {
-		epochConfig := &testEpochConfig{
-			startEpochCounter:    startEpochCounter,
-			numEpochViews:        numEpochViews,
-			numStakingViews:      numStakingViews,
-			numDKGViews:          numDKGViews,
-			numClusters:          numClusters,
-			numEpochAccounts:     numEpochAccounts,
-			randomSource:         randomSource,
-			rewardIncreaseFactor: rewardIncreaseFactor,
+// TestEpochRecover_StakingPhase tests EFM recovery during the staking phase with automatic rewards enabled.
+func TestEpochRecover_StakingPhase(t *testing.T) {
+	epochConfig := &testEpochConfig{
+		startEpochCounter:    startEpochCounter,
+		numEpochViews:        numEpochViews,
+		numStakingViews:      numStakingViews,
+		numDKGViews:          numDKGViews,
+		numClusters:          numClusters,
+		numEpochAccounts:     numEpochAccounts,
+		randomSource:         randomSource,
+		rewardIncreaseFactor: rewardIncreaseFactor,
+	}
+	runWithDefaultContracts(t, epochConfig, func(b emulator.Emulator, env templates.Environment, ids []string, idTableAddress flow.Address, IDTableSigner sdkcrypto.Signer, adapter *adapters.SDKAdapter) {
+		// Enable automatic rewards
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochSetAutomaticRewardsScript(env), idTableAddress)
+		tx.AddArgument(cadence.NewBool(true))
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]sdkcrypto.Signer{IDTableSigner},
+			false,
+		)
+
+		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHSETUP", false)
+		epochTimingConfigResult := executeScriptAndCheck(t, b, templates.GenerateGetEpochTimingConfigScript(env), nil)
+		var (
+			startView      uint64 = 100
+			stakingEndView uint64 = 120
+			endView        uint64 = 160
+			targetDuration uint64 = numEpochViews
+			epochCounter   uint64 = startEpochCounter + 1
+			targetEndTime  uint64 = expectedTargetEndTime(epochTimingConfigResult, epochCounter)
+		)
+		args := getRecoveryTxArgs(env, ids, startView, stakingEndView, endView, targetDuration, targetEndTime, epochCounter)
+
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateRecoverEpochScript(env), idTableAddress)
+		for _, arg := range args {
+			tx.AddArgument(arg)
 		}
-		runWithDefaultContracts(t, epochConfig, func(b emulator.Emulator, env templates.Environment, ids []string, idTableAddress flow.Address, IDTableSigner sdkcrypto.Signer, adapter *adapters.SDKAdapter) {
-			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochSetAutomaticRewardsScript(env), idTableAddress)
-			tx.AddArgument(cadence.NewBool(true))
-			signAndSubmit(
-				t, b, tx,
-				[]flow.Address{idTableAddress},
-				[]sdkcrypto.Signer{IDTableSigner},
-				false,
-			)
 
-			advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHSETUP", false)
-			epochTimingConfigResult := executeScriptAndCheck(t, b, templates.GenerateGetEpochTimingConfigScript(env), nil)
-			var (
-				startView      uint64 = 100
-				stakingEndView uint64 = 120
-				endView        uint64 = 160
-				targetDuration uint64 = numEpochViews
-				epochCounter   uint64 = startEpochCounter + 1
-				targetEndTime  uint64 = expectedTargetEndTime(epochTimingConfigResult, epochCounter)
-			)
-			args := getRecoveryTxArgs(env, ids, startView, stakingEndView, endView, targetDuration, targetEndTime, epochCounter)
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]sdkcrypto.Signer{IDTableSigner},
+			false,
+		)
 
-			tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateRecoverEpochScript(env), idTableAddress)
-			for _, arg := range args {
-				tx.AddArgument(arg)
-			}
+		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "BLOCK", false)
 
-			signAndSubmit(
-				t, b, tx,
-				[]flow.Address{idTableAddress},
-				[]sdkcrypto.Signer{IDTableSigner},
-				false,
-			)
+		verifyEpochRecoverGovernanceTx(t, b, env, ids,
+			startView,
+			stakingEndView,
+			endView,
+			targetDuration,
+			targetEndTime,
+			epochCounter,
+			// The calculation of the total rewards should have happened
+			// because automatic rewards are enabled
+			// (total supply + current payount amount - bonus tokens) * reward increase factor
+			// (7000000000 + 1250000 - 0) * 0.00093871 = 6,571,204.6775
+			"6572143.38750000",
+			idTableAddress,
+			adapter,
+			args,
+		)
 
-			advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "BLOCK", false)
+		args = getRecoveryTxArgs(env, ids, startView, stakingEndView, endView, targetDuration, targetEndTime, epochCounter+1)
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateRecoverEpochScript(env), idTableAddress)
+		for _, arg := range args {
+			tx.AddArgument(arg)
+		}
 
-			verifyEpochRecoverGovernanceTx(t, b, env, ids,
-				startView,
-				stakingEndView,
-				endView,
-				targetDuration,
-				targetEndTime,
-				epochCounter,
-				// The calculation of the total rewards should have happened
-				// because automatic rewards are enabled
-				// (total supply + current payount amount - bonus tokens) * reward increase factor
-				// (7000000000 + 1250000 - 0) * 0.00093871 = 6,571,204.6775
-				"6572143.38750000",
-				idTableAddress,
-				adapter,
-				args,
-			)
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]sdkcrypto.Signer{IDTableSigner},
+			false,
+		)
 
-			args = getRecoveryTxArgs(env, ids, startView, stakingEndView, endView, targetDuration, targetEndTime, epochCounter+1)
-			tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateRecoverEpochScript(env), idTableAddress)
-			for _, arg := range args {
-				tx.AddArgument(arg)
-			}
+		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "BLOCK", false)
 
-			signAndSubmit(
-				t, b, tx,
-				[]flow.Address{idTableAddress},
-				[]sdkcrypto.Signer{IDTableSigner},
-				false,
-			)
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochPayRewardsScript(env), idTableAddress)
 
-			advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "BLOCK", false)
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]sdkcrypto.Signer{IDTableSigner},
+			false,
+		)
 
-			tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochPayRewardsScript(env), idTableAddress)
+		// Verifies that the rewards from the previous epoch does not include the new epoch's amount
+		verifyEpochTotalRewardsPaid(t, b, idTableAddress,
+			EpochTotalRewardsPaid{
+				total:      "6572143.38750000",
+				fromFees:   "0.0",
+				minted:     "6572143.38750000",
+				feesBurned: "0.01500000"})
 
-			signAndSubmit(
-				t, b, tx,
-				[]flow.Address{idTableAddress},
-				[]sdkcrypto.Signer{IDTableSigner},
-				false,
-			)
+		result := executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(ids[0]))})
+		assertEqual(t, CadenceUFix64("1314428.67450000"), result)
 
-			// Verifies that the rewards from the previous epoch does not include the new epoch's amount
-			verifyEpochTotalRewardsPaid(t, b, idTableAddress,
-				EpochTotalRewardsPaid{
-					total:      "6572143.38750000",
-					fromFees:   "0.0",
-					minted:     "6572143.38750000",
-					feesBurned: "0.01500000"})
+		// Rewards have already been paid, so this should not do anything
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochPayRewardsScript(env), idTableAddress)
 
-			result := executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(ids[0]))})
-			assertEqual(t, CadenceUFix64("1314428.67450000"), result)
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]sdkcrypto.Signer{IDTableSigner},
+			false,
+		)
 
-			// Rewards have already been paid, so this should not do anything
-			tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochPayRewardsScript(env), idTableAddress)
+		// The nodes rewards should not have increased
+		result = executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(ids[0]))})
+		assertEqual(t, CadenceUFix64("1314428.67450000"), result)
 
-			signAndSubmit(
-				t, b, tx,
-				[]flow.Address{idTableAddress},
-				[]sdkcrypto.Signer{IDTableSigner},
-				false,
-			)
+		// overwrite current epoch with a recover transaction, rewards should not be paid out
+		args = getRecoveryTxArgs(env, ids, startView, stakingEndView, endView, targetDuration, targetEndTime, epochCounter+1)
+		// set unsafe overwrite to true
+		args[len(args)-1] = cadence.NewBool(true)
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateRecoverEpochScript(env), idTableAddress)
+		for _, arg := range args {
+			tx.AddArgument(arg)
+		}
 
-			// The nodes rewards should not have increased
-			result = executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(ids[0]))})
-			assertEqual(t, CadenceUFix64("1314428.67450000"), result)
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]sdkcrypto.Signer{IDTableSigner},
+			false,
+		)
 
-			// overwrite current epoch with a recover transaction, rewards should not be paid out
-			args = getRecoveryTxArgs(env, ids, startView, stakingEndView, endView, targetDuration, targetEndTime, epochCounter+1)
-			// set unsafe overwrite to true
-			args[len(args)-1] = cadence.NewBool(true)
-			tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateRecoverEpochScript(env), idTableAddress)
-			for _, arg := range args {
-				tx.AddArgument(arg)
-			}
+		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "BLOCK", false)
 
-			signAndSubmit(
-				t, b, tx,
-				[]flow.Address{idTableAddress},
-				[]sdkcrypto.Signer{IDTableSigner},
-				false,
-			)
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochPayRewardsScript(env), idTableAddress)
 
-			advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "BLOCK", false)
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]sdkcrypto.Signer{IDTableSigner},
+			false,
+		)
 
-			tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochPayRewardsScript(env), idTableAddress)
-
-			signAndSubmit(
-				t, b, tx,
-				[]flow.Address{idTableAddress},
-				[]sdkcrypto.Signer{IDTableSigner},
-				false,
-			)
-
-			// The nodes rewards should not have increased
-			result = executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(ids[0]))})
-			assertEqual(t, CadenceUFix64("1314428.67450000"), result)
-		})
+		// The nodes rewards should not have increased
+		result = executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(ids[0]))})
+		assertEqual(t, CadenceUFix64("1314428.67450000"), result)
 	})
 }
 
