@@ -8,7 +8,7 @@
   },
   "contracts": {
     "Crypto": {
-      "source": "crypto.cdc",
+      "source": "Crypto.cdc",
       "aliases": {
         "testing": "0x0000000000000007"
       }
