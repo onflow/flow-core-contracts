@@ -636,6 +636,7 @@ func verifyEpochMetadata(
 		for i, key := range dkgKeys {
 			cadenceKey, _ := cadence.NewString(expectedMetadata.dkgKeys[i])
 			// Verify that each key is correct
+			// TODO: this assertion fails because group key is prepended to stored metadata (separate field in event)
 			assertEqual(t, cadenceKey, key)
 		}
 	}

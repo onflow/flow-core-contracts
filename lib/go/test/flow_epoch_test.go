@@ -1604,7 +1604,7 @@ func TestEpochRecover(t *testing.T) {
 			)
 			args := getRecoveryTxArgs(env, ids, startView, stakingEndView, endView, targetDuration, targetEndTime, startEpochCounter)
 			// overwrite the current epoch by setting unsafe overwrite to true
-			args[11] = cadence.NewBool(true)
+			args.SetUnsafeAllowOverwrite(true)
 			tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRecoverEpochScript(env), idTableAddress)
 			for _, arg := range args {
 				tx.AddArgument(arg)
@@ -1973,6 +1973,13 @@ func TestEpochRecover(t *testing.T) {
 	})
 }
 
+// EpochRecoveryTxArgs holds the list of arguments for an epoch recovery transaction.
+type EpochRecoveryTxArgs []cadence.Value
+
+func (args EpochRecoveryTxArgs) SetUnsafeAllowOverwrite(val bool) {
+	args[12] = cadence.NewBool(val)
+}
+
 func getRecoveryTxArgs(
 	env templates.Environment,
 	nodeIds []string,
@@ -1982,22 +1989,19 @@ func getRecoveryTxArgs(
 	targetDuration uint64,
 	targetEndTime uint64,
 	epochCounter uint64,
-) []cadence.Value {
+) EpochRecoveryTxArgs {
+	// TODO(jord): values here are disconnected from registered IDs...
 	collectorClusters := make([]cadence.Value, 3)
 	collectorClusters[0] = cadence.NewArray([]cadence.Value{CadenceString("node_1"), CadenceString("node_2"), CadenceString("node_3")})
 	collectorClusters[1] = cadence.NewArray([]cadence.Value{CadenceString("node_4"), CadenceString("node_5"), CadenceString("node_6")})
 	collectorClusters[2] = cadence.NewArray([]cadence.Value{CadenceString("node_7"), CadenceString("node_8"), CadenceString("node_9")})
 
-	dkgPubKeys := []string{"pubkey_1"}
-	dkgPubKeysCdc := make([]cadence.Value, len(dkgPubKeys))
-	for i, key := range dkgPubKeys {
-		dkgPubKeysCdc[i], _ = cadence.NewString(key)
-	}
+	dkgGroupKeyCDC := DKGPubKeyFixtureCDC()
+	dkgPubKeysCDC := DKGPubKeysFixtureCDC(5)
+	// TODO(jord): pass SN IDs through to here and populate this accurately
+	dkgIDMappingCDC := DKGIDMappingToCDC(map[string]int{"tmp1": 0, "tmp2": 1})
 
-	nodeIDs := make([]cadence.Value, len(nodeIds))
-	for i, id := range nodeIds {
-		nodeIDs[i], _ = cadence.NewString(id)
-	}
+	nodeIDsCDC := CadenceArrayFrom(nodeIds, StringToCDC)
 	clusterQcVoteData := convertClusterQcsCdc(env, collectorClusters)
 	return []cadence.Value{
 		cadence.NewUInt64(epochCounter),
@@ -2008,12 +2012,10 @@ func getRecoveryTxArgs(
 		cadence.NewUInt64(targetEndTime),
 		cadence.NewArray(collectorClusters),
 		cadence.NewArray(clusterQcVoteData),
-		cadence.NewArray(dkgPubKeysCdc),
-		cadence.NewDictionary([]cadence.KeyValuePair{{
-			Key:   cadence.String(nodeIds[0]),
-			Value: cadence.NewInt(0),
-		}}),
-		cadence.NewArray(nodeIDs),
+		dkgPubKeysCDC,
+		dkgGroupKeyCDC,
+		dkgIDMappingCDC,
+		nodeIDsCDC,
 		cadence.NewBool(false), // recover EFM with a new epoch, set unsafeAllowOverwrite to false
 	}
 }

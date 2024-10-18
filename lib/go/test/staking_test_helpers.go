@@ -262,7 +262,7 @@ func verifyStakingInfo(t *testing.T,
 // returns: []string array of nodeIDs
 //
 //	[]cadence.Value array of only the collector node IDs, which are the first of every five IDs created
-//	[]cadence.Vaule array of only the consensus node IDs, which are the second of every five IDs created
+//	[]cadence.Value array of only the consensus node IDs, which are the second of every five IDs created
 //	execution, verification, and access would be the next three, in that order, but their IDs aren't especially needed
 func generateNodeIDs(numNodes int) ([]string, []cadence.Value, []cadence.Value) {
 	// initialize the slices for all the IDs
