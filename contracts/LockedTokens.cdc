@@ -194,7 +194,10 @@ access(all) contract LockedTokens {
 
         /// Registers a new node operator with the Flow Staking contract
         /// and commits an initial amount of locked tokens to stake
-        access(account) fun registerNode(nodeInfo: StakingProxy.NodeInfo, stakingKeyPoP: String, amount: UFix64) {
+        access(account) fun registerNode(nodeInfo: StakingProxy.NodeInfo,
+                                         stakingKeyPoP: String,
+                                         amount: UFix64
+        ) {
             if let nodeStaker <- self.nodeStaker <- nil {
                 let stakingInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeStaker.id)
 
@@ -210,7 +213,13 @@ access(all) contract LockedTokens {
 
             let tokens <- vaultRef.withdraw(amount: amount)
 
-            let nodeStaker <- self.nodeStaker <- FlowIDTableStaking.addNodeRecord(id: nodeInfo.id, role: nodeInfo.role, networkingAddress: nodeInfo.networkingAddress, networkingKey: nodeInfo.networkingKey, stakingKey: nodeInfo.stakingKey, stakingKeyPoP: stakingKeyPoP, tokensCommitted: <-tokens)
+            let nodeStaker <- self.nodeStaker <- FlowIDTableStaking.addNodeRecord(id: nodeInfo.id,
+                                                    role: nodeInfo.role,
+                                                    networkingAddress: nodeInfo.networkingAddress,
+                                                    networkingKey: nodeInfo.networkingKey,
+                                                    stakingKey: nodeInfo.stakingKey,
+                                                    stakingKeyPoP: stakingKeyPoP,
+                                                    tokensCommitted: <-tokens)
 
             destroy nodeStaker
 

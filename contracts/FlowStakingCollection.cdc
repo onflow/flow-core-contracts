@@ -60,7 +60,8 @@ access(all) contract FlowStakingCollection {
 
         init(nodeID: String, role: UInt8, machineAccountVaultProvider: Capability<auth(FungibleToken.Withdraw) &FlowToken.Vault>) {
             pre {
-                machineAccountVaultProvider.check(): "Invalid Flow Token Vault Provider"
+                machineAccountVaultProvider.check():
+                    "FlowStakingCollection.MachineAccountInfo.init: Invalid Flow Token Vault Provider."
             }
             self.nodeID = nodeID
             self.role = role
@@ -135,7 +136,9 @@ access(all) contract FlowStakingCollection {
             tokenHolder: Capability<auth(FungibleToken.Withdraw, LockedTokens.TokenOperations) &LockedTokens.TokenHolder>?
         ) {
             pre {
-                unlockedVault.check(): "Invalid FlowToken.Vault capability"
+                unlockedVault.check():
+                    "FlowStakingCollection.StakingCollection.init: Cannot Initialize a Staking Collection! "
+                    .concat("The provided FlowToken Vault capability with withdraw entitlements is invalid.")
             }
             self.unlockedVault = unlockedVault
 
@@ -160,6 +163,30 @@ access(all) contract FlowStakingCollection {
             }
 
             self.machineAccounts = {}
+        }
+
+        /// Gets a standard error message to show when the requested staker
+        /// is not controlled by the staking collection
+        ///
+        /// @param nodeID: The ID of the requested node
+        /// @param delegatorID: The ID of the requested delegator
+        ///
+        /// @return String: The full error message to print
+        access(all) view fun getStakerDoesntExistInCollectionError(funcName: String, nodeID: String, delegatorID: UInt32?): String {
+            // Construct the function name for the beginning of the error
+            let errorBeginning = "FlowStakingCollection.StakingCollection.".concat(funcName).concat(": ")
+            
+            // The error message is different if it is a delegator vs a node
+            if let delegator = delegatorID {
+                return errorBeginning.concat("The specified delegator with node ID ")
+                    .concat(nodeID).concat(" and delegatorID ").concat(delegator.toString())
+                    .concat(" does not exist in the owner's collection. ")
+                    .concat("Make sure that the IDs you entered correspond to a delegator that is controlled by this staking collection.")
+            } else {
+                return errorBeginning.concat("The specified node with ID ")
+                    .concat(nodeID).concat(" does not exist in the owner's collection. ")
+                    .concat("Make sure that the ID you entered corresponds to a node that is controlled by this staking collection.")
+            }
         }
 
         /// Called when the collection is destroyed via `Burner.burn()`
@@ -192,7 +219,11 @@ access(all) contract FlowStakingCollection {
 
                 assert(
                     amount <= lockedBalance + unlockedBalance,
-                    message: "Insufficient total available Flow balance"
+                    message: "FlowStakingCollection.StakingCollection.getTokens: Cannot get tokens to stake! "
+                            .concat("The amount of FLOW requested to use, ")
+                            .concat(amount.toString()).concat(", is more than the sum of ")
+                            .concat("locked and unlocked FLOW, ").concat((lockedBalance+unlockedBalance).toString())
+                            .concat(", in the owner's accounts.")
                 )
 
                 // If all the tokens can be removed from locked, withdraw and return them
@@ -230,7 +261,11 @@ access(all) contract FlowStakingCollection {
 
                 assert(
                     amount <= unlockedBalance,
-                    message: "Insufficient total Flow balance"
+                    message: "FlowStakingCollection.StakingCollection.getTokens: Cannot get tokens to stake! "
+                            .concat("The amount of FLOW requested to use, ")
+                            .concat(amount.toString()).concat(", is more than the amount of FLOW, ")
+                            .concat((unlockedBalance).toString())
+                            .concat(", in the owner's account.")
                 )
 
                 self.unlockedTokensUsed = self.unlockedTokensUsed + amount
@@ -245,7 +280,9 @@ access(all) contract FlowStakingCollection {
             pre {
                 // This error should never be triggered in production becasue the tokens used fields
                 // should be properly managed by all the other functions
-                from.balance <= self.unlockedTokensUsed + self.lockedTokensUsed: "Cannot deposit more than is already used"
+                from.balance <= self.unlockedTokensUsed + self.lockedTokensUsed:
+                    "FlowStakingCollection.StakingCollection.depositTokens: "
+                    .concat(" Cannot return more FLOW to the account than is already in use for staking.")
             }
 
             let unlockedVault = self.unlockedVault.borrow()!
@@ -350,8 +387,13 @@ access(all) contract FlowStakingCollection {
         /// because the operator may want to keep it the same
         access(CollectionOwner) fun removeNode(nodeID: String): @FlowIDTableStaking.NodeStaker? {
             pre {
-                self.doesStakeExist(nodeID: nodeID, delegatorID: nil): "Specified node does not exist in this collection"
-                self.lockedTokensUsed == UFix64(0.0): "Cannot remove node if locked tokens are used"
+                self.doesStakeExist(nodeID: nodeID, delegatorID: nil):
+                    self.getStakerDoesntExistInCollectionError(funcName: "removeNode", nodeID: nodeID, delegatorID: nil)
+                self.lockedTokensUsed == UFix64(0.0):
+                    "FlowStakingCollection.StakingCollection.removeNode: Cannot remove a node from the collection "
+                    .concat("because the collection still manages ").concat(self.lockedTokensUsed.toString())
+                    .concat(" locked tokens. This is to prevent locked tokens ")
+                    .concat("from being unlocked and withdrawn before their allotted unlocking time.")
             }
             
             if self.nodeStakers[nodeID] != nil {
@@ -380,8 +422,13 @@ access(all) contract FlowStakingCollection {
         /// If the user has used any locked tokens, removing NodeDelegator objects is not allowed.
         access(CollectionOwner) fun removeDelegator(nodeID: String, delegatorID: UInt32): @FlowIDTableStaking.NodeDelegator? {
             pre {
-                self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID): "Specified delegator does not exist in this collection"
-                self.lockedTokensUsed == UFix64(0.0): "Cannot remove delegator if locked tokens are used"
+                self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID):
+                    self.getStakerDoesntExistInCollectionError(funcName: "removeDelegator", nodeID: nodeID, delegatorID: delegatorID)
+                self.lockedTokensUsed == UFix64(0.0):
+                    "FlowStakingCollection.StakingCollection.removeDelegator: Cannot remove a delegator from the collection "
+                    .concat("because the collection still manages ").concat(self.lockedTokensUsed.toString())
+                    .concat(" locked tokens. This is to prevent locked tokens ")
+                    .concat("from being unlocked and withdrawn before their allotted unlocking time.")
             }
             
             if self.nodeDelegators[nodeID] != nil {
@@ -404,11 +451,16 @@ access(all) contract FlowStakingCollection {
 
                     return <- nodeDelegator
                 } else { 
-                    panic("Expected delegatorID does not correspond to the delegator in the Staking Collection.")
+                    panic("FlowStakingCollection.StakingCollection.removeDelegator: "
+                            .concat("Expected delegatorID ").concat(delegatorID.toString())
+                            .concat(" does not correspond to the Staking Collection's delegator ID ")
+                            .concat(delegatorRef.id.toString()))
                 }
             } else {
                 // The function does not allow for removing a NodeDelegator stored in the locked account, if one exists.
-                panic("Cannot remove delegator stored in locked account.")
+                panic("FlowStakingCollection.StakingCollection.removeDelegator: "
+                    .concat("Cannot remove a delegator with ID ").concat(delegatorID.toString())
+                    .concat(" because it is stored in the locked account."))
             }
         }
 
@@ -448,7 +500,9 @@ access(all) contract FlowStakingCollection {
             self.nodeStakers[id] <-! nodeStaker
 
             let nodeReference = self.borrowNode(id)
-                ?? panic("Could not borrow node reference")
+                ?? panic("FlowStakingCollection.StakingCollection.registerNode: "
+                        .concat("Could not borrow a reference to the newly created node with ID ")
+                        .concat(id).concat("."))
 
             let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeReference.id)
 
@@ -538,7 +592,8 @@ access(all) contract FlowStakingCollection {
         ) {
 
             pre {
-                self.doesStakeExist(nodeID: nodeID, delegatorID: nil): "Cannot add a machine account record for a node that you do not own"
+                self.doesStakeExist(nodeID: nodeID, delegatorID: nil):
+                    self.getStakerDoesntExistInCollectionError(funcName: "addMachineAccountRecord", nodeID: nodeID, delegatorID: nil)
             }
 
             let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeID)
@@ -547,19 +602,25 @@ access(all) contract FlowStakingCollection {
 
             if nodeInfo.role == FlowEpoch.NodeRole.Collector.rawValue {
                 let qcVoterRef = machineAccount.storage.borrow<&FlowClusterQC.Voter>(from: FlowClusterQC.VoterStoragePath)
-                    ?? panic("Could not access QC Voter object from the provided machine account")
+                    ?? panic("FlowStakingCollection.StakingCollection.addMachineAccountRecord: "
+                            .concat("Could not access a QC Voter object from the provided machine account with address ").concat(machineAccount.address.toString()))
 
                 assert(
                     nodeID == qcVoterRef.nodeID,
-                    message: "QC Voter Object in machine account does not match machine node ID"
+                    message: "FlowStakingCollection.StakingCollection.addMachineAccountRecord: "
+                            .concat("The QC Voter Object in the machine account with node ID ").concat(qcVoterRef.nodeID)
+                            .concat(" does not match the Staking Collection's specified node ID ").concat(nodeID)
                 )
             } else if nodeInfo.role == FlowEpoch.NodeRole.Consensus.rawValue {
                 let dkgParticipantRef = machineAccount.storage.borrow<&FlowDKG.Participant>(from: FlowDKG.ParticipantStoragePath)
-                    ?? panic("Could not access DKG Participant object from the provided machine account")
+                    ?? panic("FlowStakingCollection.StakingCollection.addMachineAccountRecord: "
+                            .concat("Could not access a DKG Participant object from the provided machine account with address ").concat(machineAccount.address.toString()))
 
                 assert(
                     nodeID == dkgParticipantRef.nodeID,
-                    message: "DKG Participant Object in machine account does not match machine node ID"
+                    message: "FlowStakingCollection.StakingCollection.addMachineAccountRecord: "
+                            .concat("The DKG Participant Object in the machine account with node ID ").concat(dkgParticipantRef.nodeID)
+                            .concat(" does not match the Staking Collection's specified node ID ").concat(nodeID)
                 )
             }
 
@@ -581,7 +642,8 @@ access(all) contract FlowStakingCollection {
         /// to create their machine account with their node 
         access(CollectionOwner) fun createMachineAccountForExistingNode(nodeID: String, payer: auth(BorrowValue) &Account): auth(Storage, Capabilities, Contracts, Keys, Inbox) &Account? {
             pre {
-                self.doesStakeExist(nodeID: nodeID, delegatorID: nil)
+                self.doesStakeExist(nodeID: nodeID, delegatorID: nil):
+                    self.getStakerDoesntExistInCollectionError(funcName: "createMachineAccountForExistingNode", nodeID: nodeID, delegatorID: nil)
             }
 
             let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeID)
@@ -596,7 +658,8 @@ access(all) contract FlowStakingCollection {
                     let lockedTokenManager = tokenHolderObj.borrow()!.borrowTokenManager()
                 
                     let lockedNodeReference = lockedTokenManager.borrowNode()
-                        ?? panic("Could not borrow a node reference from the locked account")
+                        ?? panic("FlowStakingCollection.StakingCollection.createMachineAccountForExistingNode: "
+                                .concat("Could not borrow a node reference from the locked account."))
 
                     return self.registerMachineAccount(nodeReference: lockedNodeReference, payer: payer)
                 }
@@ -608,11 +671,13 @@ access(all) contract FlowStakingCollection {
         /// Allows the owner to withdraw any available FLOW from their machine account
         access(CollectionOwner) fun withdrawFromMachineAccount(nodeID: String, amount: UFix64) {
             pre {
-                self.doesStakeExist(nodeID: nodeID, delegatorID: nil): "Specified stake does not exist in this collection"
+                self.doesStakeExist(nodeID: nodeID, delegatorID: nil):
+                    self.getStakerDoesntExistInCollectionError(funcName: "withdrawFromMachineAccount", nodeID: nodeID, delegatorID: nil)
             }
             if let machineAccountInfo = self.machineAccounts[nodeID] {
                 let vaultRef = machineAccountInfo.machineAccountVaultProvider.borrow()
-                    ?? panic("Could not borrow reference to machine account vault")
+                    ?? panic("FlowStakingCollection.StakingCollection.withdrawFromMachineAccount: "
+                            .concat("Could not borrow reference to machine account vault."))
 
                 let tokens <- vaultRef.withdraw(amount: amount)
 
@@ -620,7 +685,9 @@ access(all) contract FlowStakingCollection {
                 unlockedVault.deposit(from: <-tokens)
 
             } else {
-                panic("Could not find a machine account for the specified node ID")
+                panic("FlowStakingCollection.StakingCollection.withdrawFromMachineAccount: "
+                    .concat("Could not find a machine account for the specified node ID ")
+                    .concat(nodeID).concat("."))
             }
         }
 
@@ -629,7 +696,9 @@ access(all) contract FlowStakingCollection {
             let delegatorIDs = self.getDelegatorIDs()
             for idInfo in delegatorIDs {
                 if idInfo.delegatorNodeID == nodeID { 
-                    panic("Cannot register a delegator for a node that is already being delegated to")
+                    panic("FlowStakingCollection.StakingCollection.registerDelegator: "
+                        .concat("Cannot register a delegator for node ").concat(nodeID)
+                        .concat(" because that node is already being delegated to from this Staking Collection."))
                 }
             }
             
@@ -676,7 +745,8 @@ access(all) contract FlowStakingCollection {
         /// Updates the stored networking address for the specified node
         access(CollectionOwner) fun updateNetworkingAddress(nodeID: String, newAddress: String) {
             pre {
-                self.doesStakeExist(nodeID: nodeID, delegatorID: nil): "Specified stake does not exist in this collection"
+                self.doesStakeExist(nodeID: nodeID, delegatorID: nil):
+                    self.getStakerDoesntExistInCollectionError(funcName: "updateNetworkingAddress", nodeID: nodeID, delegatorID: nil)
             }
 
             // If the node is stored in the collection, borrow it 
@@ -692,7 +762,8 @@ access(all) contract FlowStakingCollection {
         /// Function to stake new tokens for an existing Stake or Delegation record in the StakingCollection
         access(CollectionOwner) fun stakeNewTokens(nodeID: String, delegatorID: UInt32?, amount: UFix64) {
             pre {
-                self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID): "Specified stake does not exist in this collection"
+                self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID): 
+                    self.getStakerDoesntExistInCollectionError(funcName: "stakeNewTokens", nodeID: nodeID, delegatorID: delegatorID)
             }
 
             // If staking as a delegator, use the delegate functionality
@@ -735,7 +806,8 @@ access(all) contract FlowStakingCollection {
         /// Function to stake unstaked tokens for an existing Stake or Delegation record in the StakingCollection
         access(CollectionOwner) fun stakeUnstakedTokens(nodeID: String, delegatorID: UInt32?, amount: UFix64) {
             pre {
-                self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID): "Specified stake does not exist in this collection"
+                self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID):
+                    self.getStakerDoesntExistInCollectionError(funcName: "stakeUnstakedTokens", nodeID: nodeID, delegatorID: delegatorID)
             }
 
             if let delegatorID = delegatorID {
@@ -757,7 +829,8 @@ access(all) contract FlowStakingCollection {
         /// Function to stake rewarded tokens for an existing Stake or Delegation record in the StakingCollection
         access(CollectionOwner) fun stakeRewardedTokens(nodeID: String, delegatorID: UInt32?, amount: UFix64) {
             pre {
-                self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID): "Specified stake does not exist in this collection"
+                self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID):
+                    self.getStakerDoesntExistInCollectionError(funcName: "stakeRewardedTokens", nodeID: nodeID, delegatorID: delegatorID)
             }
 
             if let delegatorID = delegatorID {
@@ -784,7 +857,8 @@ access(all) contract FlowStakingCollection {
         /// Function to request tokens to be unstaked for an existing Stake or Delegation record in the StakingCollection
         access(CollectionOwner) fun requestUnstaking(nodeID: String, delegatorID: UInt32?, amount: UFix64) { 
             pre {
-                self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID): "Specified stake does not exist in this collection"
+                self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID):
+                    self.getStakerDoesntExistInCollectionError(funcName: "requestUnstaking", nodeID: nodeID, delegatorID: delegatorID)
             }
 
             if let delegatorID = delegatorID {
@@ -807,7 +881,8 @@ access(all) contract FlowStakingCollection {
         /// Only available for node operators
         access(CollectionOwner) fun unstakeAll(nodeID: String) {
             pre {
-                self.doesStakeExist(nodeID: nodeID, delegatorID: nil): "Specified stake does not exist in this collection"
+                self.doesStakeExist(nodeID: nodeID, delegatorID: nil):
+                    self.getStakerDoesntExistInCollectionError(funcName: "unstakeAll", nodeID: nodeID, delegatorID: nil)
             }
     
             if let node = self.borrowNode(nodeID) {
@@ -821,7 +896,8 @@ access(all) contract FlowStakingCollection {
         /// Function to withdraw unstaked tokens for an existing Stake or Delegation record in the StakingCollection
         access(CollectionOwner) fun withdrawUnstakedTokens(nodeID: String, delegatorID: UInt32?, amount: UFix64) { 
             pre {
-                self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID): "Specified stake does not exist in this collection"
+                self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID):
+                    self.getStakerDoesntExistInCollectionError(funcName: "withdrawUnstakedTokens", nodeID: nodeID, delegatorID: delegatorID)
             }
 
             if let delegatorID = delegatorID {
@@ -844,7 +920,8 @@ access(all) contract FlowStakingCollection {
         /// Function to withdraw rewarded tokens for an existing Stake or Delegation record in the StakingCollection
         access(CollectionOwner) fun withdrawRewardedTokens(nodeID: String, delegatorID: UInt32?, amount: UFix64) {
             pre {
-                self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID): "Specified stake does not exist in this collection"
+                self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID):
+                    self.getStakerDoesntExistInCollectionError(funcName: "withdrawRewardedTokens", nodeID: nodeID, delegatorID: delegatorID)
             }
 
             if let delegatorID = delegatorID {
@@ -888,7 +965,8 @@ access(all) contract FlowStakingCollection {
         /// or delegator object from the StakingCollection.
         access(CollectionOwner) fun closeStake(nodeID: String, delegatorID: UInt32?) {
             pre {
-                self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID): "Specified stake does not exist in this collection"
+                self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID):
+                    self.getStakerDoesntExistInCollectionError(funcName: "closeStake", nodeID: nodeID, delegatorID: delegatorID)
             }
 
             if let delegatorID = delegatorID {
@@ -896,7 +974,8 @@ access(all) contract FlowStakingCollection {
 
                 assert(
                     delegatorInfo.tokensStaked + delegatorInfo.tokensCommitted + delegatorInfo.tokensUnstaking == 0.0,
-                    message: "Cannot close a delegation until all tokens have been withdrawn, or moved to a withdrawable state."
+                    message: "FlowStakingCollection.StakingCollection.closeStake: "
+                            .concat("Cannot close a delegation until all tokens have been withdrawn, or moved to a withdrawable state.")
                 )
 
                 if delegatorInfo.tokensUnstaked > 0.0 {
@@ -915,7 +994,7 @@ access(all) contract FlowStakingCollection {
                     let delegator <- tokenManager.removeDelegator()
                     destroy delegator
                 } else {
-                    panic("Token Holder capability needed and not found.")
+                    panic("FlowStakingCollection.StakingCollection.closeStake: Token Holder capability needed and not found.")
                 }
 
                 emit DelegatorRemovedFromStakingCollection(nodeID: nodeID, delegatorID: delegatorID, address: self.owner?.address)
@@ -926,7 +1005,7 @@ access(all) contract FlowStakingCollection {
                 /// Set the machine account for this node to `nil` because it no longer exists
                 if let machineAccountInfo = self.machineAccounts[nodeID] {
                     let vaultRef = machineAccountInfo.machineAccountVaultProvider.borrow()
-                        ?? panic("Could not borrow vault ref from machine account")
+                        ?? panic("FlowStakingCollection.StakingCollection.closeStake: Could not borrow vault ref from machine account.")
 
                     let unlockedVault = self.unlockedVault!.borrow()!
                     var availableBalance: UFix64 = 0.0
@@ -942,7 +1021,7 @@ access(all) contract FlowStakingCollection {
 
                 assert(
                     stakeInfo.tokensStaked + stakeInfo.tokensCommitted + stakeInfo.tokensUnstaking == 0.0,
-                    message: "Cannot close a stake until all tokens have been withdrawn, or moved to a withdrawable state."
+                    message: "FlowStakingCollection.StakingCollection.closeStake: Cannot close a stake until all tokens have been withdrawn, or moved to a withdrawable state."
                 )
 
                 if stakeInfo.tokensUnstaked > 0.0 {
@@ -961,7 +1040,7 @@ access(all) contract FlowStakingCollection {
                     let staker <- tokenManager.removeNode()
                     destroy staker
                 } else {
-                    panic("Token Holder capability needed and not found.")
+                    panic("FlowStakingCollection.StakingCollection.closeStake: Token Holder capability needed and not found.")
                 }
 
                 emit NodeRemovedFromStakingCollection(nodeID: nodeID, role: stakeInfo.role, address: self.owner?.address)
@@ -1077,31 +1156,31 @@ access(all) contract FlowStakingCollection {
     // Getter functions for accounts StakingCollection information
 
     /// Function to get see if a node or delegator exists in an accounts staking collection
-    access(all) fun doesStakeExist(address: Address, nodeID: String, delegatorID: UInt32?): Bool {
+    access(all) view fun doesStakeExist(address: Address, nodeID: String, delegatorID: UInt32?): Bool {
         let account = getAccount(address)
 
         let stakingCollectionRef = account.capabilities.borrow<&StakingCollection>(self.StakingCollectionPublicPath)
-            ?? panic("Could not borrow ref to StakingCollection")
+            ?? panic(self.getCollectionMissingError(address))
 
         return stakingCollectionRef.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID)
     }
 
     /// Function to get the unlocked tokens used amount for an account
-    access(all) fun getUnlockedTokensUsed(address: Address): UFix64 {
+    access(all) view fun getUnlockedTokensUsed(address: Address): UFix64 {
         let account = getAccount(address)
 
         let stakingCollectionRef = account.capabilities.borrow<&StakingCollection>(self.StakingCollectionPublicPath)
-            ?? panic("Could not borrow ref to StakingCollection")
+            ?? panic(self.getCollectionMissingError(address))
 
         return stakingCollectionRef.unlockedTokensUsed
     }
 
     /// Function to get the locked tokens used amount for an account
-    access(all) fun getLockedTokensUsed(address: Address): UFix64 {
+    access(all) view fun getLockedTokensUsed(address: Address): UFix64 {
         let account = getAccount(address)
 
         let stakingCollectionRef = account.capabilities.borrow<&StakingCollection>(self.StakingCollectionPublicPath)
-            ?? panic("Could not borrow ref to StakingCollection")
+            ?? panic(self.getCollectionMissingError(address))
 
         return stakingCollectionRef.lockedTokensUsed
     }
@@ -1111,7 +1190,7 @@ access(all) contract FlowStakingCollection {
         let account = getAccount(address)
 
         let stakingCollectionRef = account.capabilities.borrow<&StakingCollection>(self.StakingCollectionPublicPath)
-            ?? panic("Could not borrow ref to StakingCollection")
+            ?? panic(self.getCollectionMissingError(address))
 
         return stakingCollectionRef.getNodeIDs()
     }
@@ -1121,7 +1200,7 @@ access(all) contract FlowStakingCollection {
         let account = getAccount(address)
 
         let stakingCollectionRef = account.capabilities.borrow<&StakingCollection>(self.StakingCollectionPublicPath)
-            ?? panic("Could not borrow ref to StakingCollection")
+            ?? panic(self.getCollectionMissingError(address))
 
         return stakingCollectionRef.getDelegatorIDs()
     }
@@ -1131,7 +1210,7 @@ access(all) contract FlowStakingCollection {
         let account = getAccount(address)
 
         let stakingCollectionRef = account.capabilities.borrow<&StakingCollection>(self.StakingCollectionPublicPath)
-            ?? panic("Could not borrow ref to StakingCollection")
+            ?? panic(self.getCollectionMissingError(address))
 
         return stakingCollectionRef.getAllNodeInfo()
     }
@@ -1141,7 +1220,7 @@ access(all) contract FlowStakingCollection {
         let account = getAccount(address)
 
         let stakingCollectionRef = account.capabilities.borrow<&StakingCollection>(self.StakingCollectionPublicPath)
-            ?? panic("Could not borrow ref to StakingCollection")
+            ?? panic(self.getCollectionMissingError(address))
 
         return stakingCollectionRef.getAllDelegatorInfo()
     }
@@ -1151,17 +1230,36 @@ access(all) contract FlowStakingCollection {
         let account = getAccount(address)
 
         let stakingCollectionRef = account.capabilities.borrow<&StakingCollection>(self.StakingCollectionPublicPath)
-            ?? panic("Could not borrow ref to StakingCollection")
+            ?? panic(self.getCollectionMissingError(address))
 
         return stakingCollectionRef.getMachineAccounts()
     }
 
     /// Determines if an account is set up with a Staking Collection
-    access(all) fun doesAccountHaveStakingCollection(address: Address): Bool {
+    access(all) view fun doesAccountHaveStakingCollection(address: Address): Bool {
         let account = getAccount(address)
         return account.capabilities
             .get<&StakingCollection>(self.StakingCollectionPublicPath)
             .check()
+    }
+
+    /// Gets a standard error message for when a signer does not store a staking collection
+    ///
+    /// @param account: The account address if talking about an account that is not the signer.
+    ///                 If referring to the signer, leave this argument as `nil`.
+    ///
+    /// @return String: The full error message
+    access(all) view fun getCollectionMissingError(_ account: Address?): String {
+        if let address = account {
+            return "The account ".concat(address.toString())
+                .concat(" does not store a Staking Collection object at the path ")
+                .concat(FlowStakingCollection.StakingCollectionStoragePath.toString())
+                .concat(". They must initialize their account with this object first!")
+        } else {
+            return "The signer does not store a Staking Collection object at the path "
+                .concat(FlowStakingCollection.StakingCollectionStoragePath.toString())
+                .concat(". The signer must initialize their account with this object first!")
+        }
     }
 
     /// Creates a brand new empty staking collection resource and returns it to the caller

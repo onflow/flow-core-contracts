@@ -464,7 +464,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 	// Create regular accounts
 	userAddresses, _, userSigners := registerAndMintManyAccounts(t, b, env, accountKeys, 4)
-	_, adminStakingKey, adminStakingKeyPOP, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
+	_, adminStakingKey, adminStakingPOP, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
 
 	var amountToCommit interpreter.UFix64Value = 48000000000000
 
@@ -476,7 +476,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		fmt.Sprintf("%0128d", admin),
 		adminNetworkingKey,
 		adminStakingKey,
-		adminStakingKeyPOP,
+		adminStakingPOP,
 		amountToCommit,
 		amountToCommit,
 		1,
@@ -2958,6 +2958,7 @@ func TestStakingCollectionRegisterMultipleNodes(t *testing.T) {
 	nodeStakingKeys := make([]cadence.Value, numNodes)
 	nodeStakingKeyPOPs := make([]cadence.Value, numNodes)
 	nodeNetworkingKeys := make([]cadence.Value, numNodes)
+	nodeStakingKeyPOPs := make([]cadence.Value, numNodes)
 	nodeNetworkingAddresses := make([]cadence.Value, numNodes)
 	ids, _, _ := generateNodeIDs(numNodes)
 	roles := make([]int, numNodes)

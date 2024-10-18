@@ -334,7 +334,7 @@ func generateManyKeyPOPs(t *testing.T, sks []crypto.PrivateKey) []string {
 	return POPs
 }
 
-// / Verifies that the EpochTotalRewardsPaid event was emitted correctly with correct values
+// / Verifies that the EpochTotalRewardsPaid event was emmitted correctly with correct values
 func verifyEpochTotalRewardsPaid(
 	t *testing.T,
 	b emulator.Emulator,

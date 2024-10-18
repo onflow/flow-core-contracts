@@ -9,7 +9,7 @@ transaction(id: String, amount: UFix64) {
 
     prepare(account: auth(BorrowValue) &Account) {
         self.stakingCollectionRef = account.storage.borrow<auth(FlowStakingCollection.CollectionOwner) &FlowStakingCollection.StakingCollection>(from: FlowStakingCollection.StakingCollectionStoragePath)
-            ?? panic("Could not borrow a reference to a StakingCollection in the primary user's account")
+            ?? panic(FlowStakingCollection.getCollectionMissingError(nil))
     }
 
     execute {

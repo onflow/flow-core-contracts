@@ -431,7 +431,6 @@ func TestIDTableRegistration(t *testing.T) {
 			committed[adminID],
 			1,
 			true)
-
 	})
 
 	t.Run("Should be able to create a valid Node struct and not create duplicates", func(t *testing.T) {

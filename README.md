@@ -212,6 +212,10 @@ To run the tests in the repo, use `make test`.
 
 These tests need to utilize the transaction templates that are contained in `transactions/`.
 
+# Audit
+
+Flow Core Contracts were audited by Quantstamp in July 2021: [final report](https://certificate.quantstamp.com/full/epoch-functionality-contracts.pdf).
+
 # Getting Transaction Templates
 
 If you need to use the contracts and transaction templates we have provided in an app, you don't necessarily 
@@ -231,6 +235,6 @@ to the team and we would be happy to help!
 
 ## License 
 
-The works in these folders are under the [Unlicense](https://github.com/dapperlabs/flow-core-contracts/blob/master/LICENSE):
+The works in these folders are under the [Unlicense](https://github.com/onflow/flow-core-contracts/blob/master/LICENSE):
 
-- [src/contracts](https://github.com/dapperlabs/flow-core-contracts/tree/master/contracts)
+- [src/contracts](https://github.com/onflow/flow-core-contracts/tree/master/contracts)

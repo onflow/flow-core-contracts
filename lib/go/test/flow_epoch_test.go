@@ -118,8 +118,8 @@ func TestEpochClusters(t *testing.T) {
 	// create new user accounts, mint tokens for them, and register them for staking
 	addresses, _, signers := registerAndMintManyAccounts(t, b, env, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
-	stakingSKs, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
-	stakingKeyPOPs := generateManyKeyPOPs(t, stakingSKs)
+	stakingPrivateKeys, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
+	stakingKeyPOPs := generateManyKeyPOPs(t, stakingPrivateKeys)
 
 	registerNodesForStaking(t, b, env,
 		addresses,
@@ -339,8 +339,8 @@ func TestEpochPhaseMetadataChange(t *testing.T) {
 	// create new user accounts, mint tokens for them, and register them for staking
 	addresses, _, signers := registerAndMintManyAccounts(t, b, env, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
-	stakingSKs, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
-	stakingKeyPOPs := generateManyKeyPOPs(t, stakingSKs)
+	stakingPrivateKeys, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
+	stakingKeyPOPs := generateManyKeyPOPs(t, stakingPrivateKeys)
 
 	registerNodesForStaking(t, b, env,
 		addresses,
@@ -549,18 +549,13 @@ func TestEpochAdvance(t *testing.T) {
 	// create new user accounts, mint tokens for them, and register them for staking
 	addresses, _, signers := registerAndMintManyAccounts(t, b, env, accountKeys, numEpochAccounts)
 	ids, _, dkgIDs := generateNodeIDs(numEpochAccounts)
-	stakingSKs, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
-	stakingKeyPOPs := generateManyKeyPOPs(t, stakingSKs)
+	stakingPrivateKeys, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
+	stakingKeyPOPs := generateManyKeyPOPs(t, stakingPrivateKeys)
 
 	registerNodesForStaking(t, b, env,
 		addresses,
-		signers,
-		stakingPublicKeys,
-		stakingKeyPOPs,
-		networkingPublicKeys,
 		ids)
 
-	// Set the approved node list
 	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
 
 	approvedNodeIDs := generateCadenceNodeDictionary(ids)
@@ -704,8 +699,8 @@ func TestEpochQCDKGNodeRegistration(t *testing.T) {
 	// create new user accounts, mint tokens for them, and register them for staking
 	addresses, _, signers := registerAndMintManyAccounts(t, b, env, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
-	stakingSKs, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
-	stakingKeyPOPs := generateManyKeyPOPs(t, stakingSKs)
+	stakingPrivateKeys, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
+	stakingKeyPOPs := generateManyKeyPOPs(t, stakingPrivateKeys)
 
 	registerNodesForStaking(t, b, env,
 		addresses,
@@ -714,13 +709,8 @@ func TestEpochQCDKGNodeRegistration(t *testing.T) {
 		stakingKeyPOPs,
 		networkingPublicKeys,
 		ids)
-
-	// Set the approved node list
-	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetApprovedNodesScript(env), idTableAddress)
-
 	approvedNodeIDs := generateCadenceNodeDictionary(ids)
 	err := tx.AddArgument(approvedNodeIDs)
-	require.NoError(t, err)
 
 	signAndSubmit(
 		t, b, tx,
@@ -799,8 +789,9 @@ func TestEpochFullNodeRegistration(t *testing.T) {
 	// create new user accounts, mint tokens for them, and register them for staking
 	addresses, publicKeys, signers := registerAndMintManyAccounts(t, b, env, accountKeys, numEpochAccounts)
 	ids, _, _ := generateNodeIDs(numEpochAccounts)
-	stakingSKs, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
-	stakingKeyPOPs := generateManyKeyPOPs(t, stakingSKs)
+	stakingPrivateKeys, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numEpochAccounts)
+	stakingKeyPOPs := generateManyKeyPOPs(t, stakingPrivateKeys)
+
 	registerNodesForEpochs(t, b, env,
 		addresses,
 		signers,
