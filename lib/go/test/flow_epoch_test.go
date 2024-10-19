@@ -1521,14 +1521,11 @@ func TestEpochReset(t *testing.T) {
 	})
 }
 
-// TestEpochRecover ensures that the epoch recover transaction recovers the epoch as expected.
-// Specifically, we execute an epoch recover transaction and confirm both scenarios are true;
-//   - epoch recover that specifies unsafeAllowOverwrite = false increments the epoch counter effectively starting a new epoch.
-//   - epoch recover that specifies unsafeAllowOverwrite = true overwrites the current epoch and does not increment the counter.
-
-// TestEpochRecover_NewEpoch tests epoch recovery by transitioning into a new epoch (counter incremented by one).
-// This is the standard procedure for epoch recovery.
-func TestEpochRecover_NewEpoch(t *testing.T) {
+// testEpochRecoverSuccess performs an epoch recovery with the expectation of success.
+// The boolean parameters determine the specifics of the test case:
+//   - enterEpochSetupPhase - if true, recovery occurs after entering EpochSetup phase; otherwise occurs in EpochStaking phase
+//   - overrideCurrentEpoch - if true, recovery overrides current epoch; otherwise constructs a new epoch (counter increments)
+func testEpochRecoverSuccess(t *testing.T, enterEpochSetupPhase bool, overrideCurrentEpoch bool) {
 	epochConfig := &testEpochConfig{
 		startEpochCounter:    startEpochCounter,
 		numEpochViews:        numEpochViews,
@@ -1541,17 +1538,30 @@ func TestEpochRecover_NewEpoch(t *testing.T) {
 	}
 
 	runWithDefaultContracts(t, epochConfig, func(b emulator.Emulator, env templates.Environment, ids []string, idTableAddress flow.Address, IDTableSigner sdkcrypto.Signer, adapter *adapters.SDKAdapter) {
-		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHSETUP", false)
+		// Depending on test case configuration, perform recovery either in Staking phase or Setup phase
+		if enterEpochSetupPhase {
+			advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHSETUP", false)
+		}
+
+		// Depending on test case configuration, recovery epoch can override current epoch
+		var recoveryEpochCounter uint64
+		if overrideCurrentEpoch {
+			recoveryEpochCounter = epochConfig.startEpochCounter
+		} else {
+			recoveryEpochCounter = epochConfig.startEpochCounter + 1
+		}
+
 		epochTimingConfigResult := executeScriptAndCheck(t, b, templates.GenerateGetEpochTimingConfigScript(env), nil)
 		var (
 			startView      uint64 = 100
 			stakingEndView uint64 = 120
 			endView        uint64 = 160
 			targetDuration uint64 = numEpochViews
-			epochCounter   uint64 = startEpochCounter + 1
-			targetEndTime  uint64 = expectedTargetEndTime(epochTimingConfigResult, epochCounter)
+			targetEndTime  uint64 = expectedTargetEndTime(epochTimingConfigResult, recoveryEpochCounter)
 		)
-		args := getRecoveryTxArgs(env, ids, startView, stakingEndView, endView, targetDuration, targetEndTime, epochCounter)
+		args := getRecoveryTxArgs(env, ids, startView, stakingEndView, endView, targetDuration, targetEndTime, recoveryEpochCounter)
+		// If test case configuration specifies overriding the current epoch, set argument accordingly
+		args.SetUnsafeAllowOverwrite(overrideCurrentEpoch)
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRecoverEpochScript(env), idTableAddress)
 		for _, arg := range args {
@@ -1573,7 +1583,7 @@ func TestEpochRecover_NewEpoch(t *testing.T) {
 			endView,
 			targetDuration,
 			targetEndTime,
-			epochCounter,
+			recoveryEpochCounter,
 			"0.0",
 			idTableAddress,
 			adapter,
@@ -1582,59 +1592,31 @@ func TestEpochRecover_NewEpoch(t *testing.T) {
 	})
 }
 
-// TestEpochRecover_OverwriteEpoch tests epoch recovery by overwriting current epoch metadata (counter unchanged)
-// This atypical path exists to "retry" EFM recovery if a prior attempt failed for any reason.
-func TestEpochRecover_OverwriteEpoch(t *testing.T) {
-	epochConfig := &testEpochConfig{
-		startEpochCounter:    startEpochCounter,
-		numEpochViews:        numEpochViews,
-		numStakingViews:      numStakingViews,
-		numDKGViews:          numDKGViews,
-		numClusters:          numClusters,
-		numEpochAccounts:     numEpochAccounts,
-		randomSource:         randomSource,
-		rewardIncreaseFactor: rewardIncreaseFactor,
-	}
-	runWithDefaultContracts(t, epochConfig, func(b emulator.Emulator, env templates.Environment, ids []string, idTableAddress flow.Address, IDTableSigner sdkcrypto.Signer, adapter *adapters.SDKAdapter) {
-		// Advance to epoch Setup and make sure that the epoch cannot be ended
-		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHSETUP", false)
-		epochTimingConfigResult := executeScriptAndCheck(t, b, templates.GenerateGetEpochTimingConfigScript(env), nil)
-		var (
-			startView      uint64 = 100
-			stakingEndView uint64 = 120
-			endView        uint64 = 160
-			targetDuration uint64 = numEpochViews
-			targetEndTime  uint64 = expectedTargetEndTime(epochTimingConfigResult, startEpochCounter)
-		)
-		args := getRecoveryTxArgs(env, ids, startView, stakingEndView, endView, targetDuration, targetEndTime, startEpochCounter)
-		// overwrite the current epoch by setting unsafe overwrite to true
-		args.SetUnsafeAllowOverwrite(true)
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRecoverEpochScript(env), idTableAddress)
-		for _, arg := range args {
-			tx.AddArgument(arg)
-		}
-
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{idTableAddress},
-			[]sdkcrypto.Signer{IDTableSigner},
-			false,
-		)
-
-		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "BLOCK", false)
-
-		verifyEpochRecoverGovernanceTx(t, b, env, ids,
-			startView,
-			stakingEndView,
-			endView,
-			targetDuration,
-			targetEndTime,
-			startEpochCounter,
-			"0.0",
-			idTableAddress,
-			adapter,
-			args,
-		)
+// TestEpochRecover tests the EFM recovery process under several circumstances we expect to succeed.
+// In particular we test performing recovery while in the staking or setup phases, and test both
+// the standard "create new epoch" process and the backup "override current epoch" process.
+func TestEpochRecover(t *testing.T) {
+	t.Run("recover epoch", func(t *testing.T) {
+		t.Run("in staking phase", func(t *testing.T) {
+			// Increments counter and creates new epoch - this is the standard procedure for epoch recovery.
+			t.Run("creating new epoch", func(t *testing.T) {
+				testEpochRecoverSuccess(t, false, false)
+			})
+			// Overwrites current epoch - this atypical path exists to "retry" EFM recovery if a prior attempt failed for any reason.
+			t.Run("overriding current epoch", func(t *testing.T) {
+				testEpochRecoverSuccess(t, false, true)
+			})
+		})
+		t.Run("in setup phase", func(t *testing.T) {
+			// Increments counter and creates new epoch - this is the standard procedure for epoch recovery.
+			t.Run("creating new epoch", func(t *testing.T) {
+				testEpochRecoverSuccess(t, true, false)
+			})
+			// Overwrites current epoch - this atypical path exists to "retry" EFM recovery if a prior attempt failed for any reason.
+			t.Run("overriding current epoch", func(t *testing.T) {
+				testEpochRecoverSuccess(t, true, true)
+			})
+		})
 	})
 }
 
