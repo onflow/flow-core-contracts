@@ -1726,8 +1726,11 @@ func TestEpochRecover_OverwriteEpoch_Failure(t *testing.T) {
 	}
 }
 
-// TestEpochRecover_StakingPhase tests EFM recovery during the staking phase with automatic rewards enabled.
-func TestEpochRecover_StakingPhase(t *testing.T) {
+// TestEpochRecover_Rewards tests EFM recovery with automatic rewards enabled.
+// Reward payouts for EFM recovery should be similar to the epoch reset process.
+//   - When we start a new recovery epoch, rewards are paid out for the prior epoch.
+//   - If we overwrite an existing recovery epoch ("backup method"), no rewards should be paid out.
+func TestEpochRecover_Rewards(t *testing.T) {
 	epochConfig := &testEpochConfig{
 		startEpochCounter:    startEpochCounter,
 		numEpochViews:        numEpochViews,
