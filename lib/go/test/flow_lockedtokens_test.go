@@ -627,6 +627,27 @@ func TestLockedTokensStaker(t *testing.T) {
 		result = executeScriptAndCheck(t, b, templates.GenerateGetUnlockLimitScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshAddress))})
 		assertEqual(t, CadenceUFix64("8500.0"), result)
 	})
+
+	t.Run("Should be able to claim leased tokens as the admin", func(t *testing.T) {
+
+		script := templates.GenerateRecoverLeaseTokensScript(env)
+
+		tx := createTxWithTemplateAndAuthorizer(b, script, joshSharedAddress)
+
+		_ = tx.AddArgument(CadenceUFix64("10.0"))
+		_ = tx.AddArgument(cadence.NewAddress(adminAddress))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{joshSharedAddress},
+			[]crypto.Signer{adminSigner},
+			false,
+		)
+
+		// Check balance of locked account
+		result := executeScriptAndCheck(t, b, templates.GenerateGetFlowBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshSharedAddress))})
+		assertEqual(t, CadenceUFix64("0.0001"), result)
+	})
 }
 
 func TestLockedTokensDelegator(t *testing.T) {
