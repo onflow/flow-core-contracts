@@ -25,4 +25,4 @@ jobs:
         run: sh -ci "$(curl -fsSL https://raw.githubusercontent.com/onflow/flow-cli/master/install.sh)"
 
       - name: Run Cadence-based tests
-        run: cd contracts && flow test --cover --covercode="contracts" Crypto_test.cdc
+        run: flow test --cover --covercode="contracts" contracts/Crypto_test.cdc
