@@ -647,6 +647,10 @@ func TestLockedTokensStaker(t *testing.T) {
 		// Check balance of locked account
 		result := executeScriptAndCheck(t, b, templates.GenerateGetFlowBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(joshSharedAddress))})
 		assertEqual(t, CadenceUFix64("0.0001"), result)
+
+		// Check balance of admin account
+		result = executeScriptAndCheck(t, b, templates.GenerateGetFlowBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.Address(adminAddress))})
+		assertEqual(t, CadenceUFix64("998999010.00000000"), result)
 	})
 }
 
