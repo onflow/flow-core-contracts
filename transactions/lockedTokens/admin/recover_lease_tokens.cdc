@@ -2,7 +2,7 @@ import "FungibleToken"
 import "FlowToken"
 import "LockedTokens"
 
-transaction(amount: UFix64, to: Address) {
+transaction(delegator: Bool, amount: UFix64, to: Address) {
 
     // The Vault resource that holds the tokens that are being transferred
     let sentVault: @{FungibleToken.Vault}
@@ -14,14 +14,25 @@ transaction(amount: UFix64, to: Address) {
             ?? panic("The signer does not store a LockedTokenManager object at the path "
                     .concat(LockedTokens.LockedTokenManagerStoragePath.toString()))
 
-        let nodeRef = tokenManagerRef.borrowNodeForLease()
-            ?? panic("Could not borrow a reference to a node in the LockedTokenManager of the signer's account")
+        if !delegator {
+            let nodeRef = tokenManagerRef.borrowNodeForLease()
+                ?? panic("Could not borrow a reference to a node in the LockedTokenManager of the signer's account")
 
-        // Withdraw enough tokens to pay for fees, assuming there are some rewards in the rewards bucket
-        tokenManagerRef.deposit(from: <-nodeRef.withdrawRewardedTokens(amount: 0.0001)!)
+            // Withdraw enough tokens to pay for fees, assuming there are some rewards in the rewards bucket
+            tokenManagerRef.deposit(from: <-nodeRef.withdrawRewardedTokens(amount: 0.0001)!)
 
-        // Withdraw tokens from the signer's stored vault
-        self.sentVault <- nodeRef.withdrawUnstakedTokens(amount: amount)!
+            // Withdraw tokens from the signer's stored vault
+            self.sentVault <- nodeRef.withdrawUnstakedTokens(amount: amount)!
+        } else {
+            let delegatorRef = tokenManagerRef.borrowDelegatorForLease()
+                ?? panic("Could not borrow a reference to a delegator in the LockedTokenManager of the signer's account")
+
+            // Withdraw enough tokens to pay for fees, assuming there are some rewards in the rewards bucket
+            tokenManagerRef.deposit(from: <-delegatorRef.withdrawRewardedTokens(amount: 0.0001)!)
+
+            // Withdraw tokens from the signer's stored vault
+            self.sentVault <- delegatorRef.withdrawUnstakedTokens(amount: amount)!
+        }
     }
 
     execute {
