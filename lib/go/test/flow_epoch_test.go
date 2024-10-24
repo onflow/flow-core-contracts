@@ -10,16 +10,18 @@ import (
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
 	"github.com/onflow/crypto"
-	"github.com/onflow/flow-core-contracts/lib/go/test/static"
 	"github.com/onflow/flow-go/module/signature"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/onflow/flow-core-contracts/lib/go/templates"
+	"github.com/onflow/flow-core-contracts/lib/go/test/static"
+
 	"github.com/onflow/flow-emulator/adapters"
 	emulator "github.com/onflow/flow-emulator/emulator"
 	"github.com/onflow/flow-go-sdk"
 	sdkcrypto "github.com/onflow/flow-go-sdk/crypto"
+
+	"github.com/onflow/flow-core-contracts/lib/go/templates"
 )
 
 const (
@@ -1589,6 +1591,12 @@ func testEpochRecoverSuccess(t *testing.T, enterEpochSetupPhase bool, overrideCu
 			adapter,
 			args,
 		)
+
+		// Post-recovery we should be in the epoch staking phase with current counter = recovery counter
+		epochCounterRes := executeScriptAndCheck(t, b, templates.GenerateGetCurrentEpochCounterScript(env), nil)
+		assert.Equal(t, recoveryEpochCounter, uint64(epochCounterRes.(cadence.UInt64)))
+		epochPhaseRes := executeScriptAndCheck(t, b, templates.GenerateGetEpochPhaseScript(env), nil)
+		assert.Equal(t, uint8(0), uint8(epochPhaseRes.(cadence.UInt8)))
 	})
 }
 
