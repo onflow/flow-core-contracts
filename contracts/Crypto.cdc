@@ -1,6 +1,5 @@
 
-access(all)
-contract Crypto {
+access(all) contract Crypto {
 
     access(all)
     fun hash(_ data: [UInt8], algorithm: HashAlgorithm): [UInt8] {
