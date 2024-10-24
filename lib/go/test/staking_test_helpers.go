@@ -483,7 +483,7 @@ func registerNodesForStaking(
 			stakingKeys[i],
 			amountToCommit,
 			committed,
-			uint8((i%5)+1),
+			uint8((i%5)+1), // round-robin roles
 			false)
 
 		i++

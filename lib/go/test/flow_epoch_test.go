@@ -77,17 +77,17 @@ func TestEpochDeployment(t *testing.T) {
 	// Verify that the current epoch was initialized correctly
 	verifyEpochMetadata(t, b, env,
 		EpochMetadata{
-			counter:               startEpochCounter,
-			seed:                  "lolsoRandom",
-			startView:             startView,
-			endView:               startView + numEpochViews - 1,
-			stakingEndView:        startView + numStakingViews - 1,
-			totalRewards:          totalRewards,
-			rewardsBreakdownArray: 0,
-			rewardsPaid:           false,
-			collectorClusters:     nil,
-			clusterQCs:            nil,
-			dkgKeys:               nil})
+			counter:                  startEpochCounter,
+			seed:                     "lolsoRandom",
+			startView:                startView,
+			endView:                  startView + numEpochViews - 1,
+			stakingEndView:           startView + numStakingViews - 1,
+			totalRewards:             totalRewards,
+			rewardsBreakdownArrayLen: 0,
+			rewardsPaid:              false,
+			collectorClusters:        nil,
+			clusterQCs:               nil,
+			dkgKeys:                  nil})
 
 }
 
@@ -594,17 +594,17 @@ func TestEpochAdvance(t *testing.T) {
 
 		verifyEpochMetadata(t, b, env,
 			EpochMetadata{
-				counter:               startEpochCounter + 1,
-				seed:                  "",
-				startView:             startView + numEpochViews,
-				endView:               startView + 2*numEpochViews - 1,
-				stakingEndView:        startView + numEpochViews + numStakingViews - 1,
-				totalRewards:          "0.0",
-				rewardsBreakdownArray: 0,
-				rewardsPaid:           false,
-				collectorClusters:     clusters,
-				clusterQCs:            nil,
-				dkgKeys:               nil})
+				counter:                  startEpochCounter + 1,
+				seed:                     "",
+				startView:                startView + numEpochViews,
+				endView:                  startView + 2*numEpochViews - 1,
+				stakingEndView:           startView + numEpochViews + numStakingViews - 1,
+				totalRewards:             "0.0",
+				rewardsBreakdownArrayLen: 0,
+				rewardsPaid:              false,
+				collectorClusters:        clusters,
+				clusterQCs:               nil,
+				dkgKeys:                  nil})
 
 		verifyEpochTimingConfig(t, b, env,
 			EpochTimingConfig{
@@ -1110,12 +1110,12 @@ func TestEpochQCDKG(t *testing.T) {
 				// The calculation of the total rewards should have been reduced because of the bonus tokens
 				// (total supply + current payount amount - bonus tokens) * reward increase factor
 				// (7000000000 + 1250000 - 1000000) * 0.00093871 = 6,571,204.6775
-				totalRewards:          "6571204.6775",
-				rewardsBreakdownArray: 0,
-				rewardsPaid:           false,
-				collectorClusters:     clusters,
-				clusterQCs:            clusterQCs,
-				dkgKeys:               append([]string{dkgResult.GroupPubKey}, dkgResult.PubKeys...),
+				totalRewards:             "6571204.6775",
+				rewardsBreakdownArrayLen: 0,
+				rewardsPaid:              false,
+				collectorClusters:        clusters,
+				clusterQCs:               clusterQCs,
+				dkgKeys:                  append([]string{dkgResult.GroupPubKey}, dkgResult.PubKeys...),
 			})
 
 		// Make sure the payout is the same as the total rewards in the epoch metadata
@@ -1178,13 +1178,11 @@ func TestEpochQCDKG(t *testing.T) {
 				// This calculation does not add the rewards for the epoch because
 				// they are not minted since they all come from fees
 				// (7006572144.3875 - 1000000) * 0.00093871 = 6,576,200.62765799
-				totalRewards:          "6576200.62765799",
-				rewardsBreakdownArray: 0,
-				rewardsPaid:           false,
-				collectorClusters:     clusters,
-				clusterQCs:            clusterQCs,
-				// TODO: remove?
-				//dkgKeys: finalKeyStrings,
+				totalRewards:             "6576200.62765799",
+				rewardsBreakdownArrayLen: 0,
+				rewardsPaid:              false,
+				collectorClusters:        clusters,
+				clusterQCs:               clusterQCs,
 			})
 
 		// Make sure the payout is the same as the total rewards in the epoch metadata
@@ -1416,17 +1414,17 @@ func TestEpochReset(t *testing.T) {
 
 		verifyEpochMetadata(t, b, env,
 			EpochMetadata{
-				counter:               startEpochCounter + 1,
-				seed:                  "stillSoRandom",
-				startView:             startView,
-				endView:               endView,
-				stakingEndView:        stakingEndView,
-				totalRewards:          "0.0",
-				rewardsBreakdownArray: 0,
-				rewardsPaid:           false,
-				collectorClusters:     nil,
-				clusterQCs:            nil,
-				dkgKeys:               nil})
+				counter:                  startEpochCounter + 1,
+				seed:                     "stillSoRandom",
+				startView:                startView,
+				endView:                  endView,
+				stakingEndView:           stakingEndView,
+				totalRewards:             "0.0",
+				rewardsBreakdownArrayLen: 0,
+				rewardsPaid:              false,
+				collectorClusters:        nil,
+				clusterQCs:               nil,
+				dkgKeys:                  nil})
 
 		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGEnabledScript(env), nil)
 		assert.Equal(t, cadence.NewBool(false), result)
@@ -1480,12 +1478,12 @@ func TestEpochReset(t *testing.T) {
 				// because automatic rewards are enabled
 				// (total supply + current payount amount - bonus tokens) * reward increase factor
 				// (7000000000 + 1250000 - 0) * 0.00093871 = 6,571,204.6775
-				totalRewards:          "6572143.3875",
-				rewardsBreakdownArray: 0,
-				rewardsPaid:           false,
-				collectorClusters:     nil,
-				clusterQCs:            nil,
-				dkgKeys:               nil})
+				totalRewards:             "6572143.3875",
+				rewardsBreakdownArrayLen: 0,
+				rewardsPaid:              false,
+				collectorClusters:        nil,
+				clusterQCs:               nil,
+				dkgKeys:                  nil})
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochPayRewardsScript(env), idTableAddress)
 
@@ -1916,7 +1914,8 @@ func getRecoveryTxArgs(
 	targetEndTime uint64,
 	epochCounter uint64,
 ) EpochRecoveryTxArgs {
-	// TODO(jord): values here are disconnected from registered IDs...
+	// TODO: values here are disconnected from registered IDs - it would be better if test
+	//       fixtures were consistent in which roles and IDs were used throughout the tests
 	collectorClusters := make([]cadence.Value, 3)
 	collectorClusters[0] = cadence.NewArray([]cadence.Value{CadenceString("node_1"), CadenceString("node_2"), CadenceString("node_3")})
 	collectorClusters[1] = cadence.NewArray([]cadence.Value{CadenceString("node_4"), CadenceString("node_5"), CadenceString("node_6")})
@@ -1924,7 +1923,6 @@ func getRecoveryTxArgs(
 
 	dkgGroupKeyCDC := DKGPubKeyFixtureCDC()
 	dkgPubKeysCDC := DKGPubKeysFixtureCDC(2)
-	// TODO(jord): pass SN IDs through to here and populate this accurately
 	dkgIDMappingCDC := DKGIDMappingToCDC(map[string]int{"tmp1": 0, "tmp2": 1})
 
 	nodeIDsCDC := CadenceArrayFrom(nodeIds, StringToCDC)
@@ -1972,17 +1970,20 @@ func verifyEpochRecoverGovernanceTx(
 	metadataFields := getEpochMetadata(t, b, env, cadence.NewUInt64(epochCounter))
 	seed := CDCToString(metadataFields["seed"])
 	expectedMetadata := EpochMetadata{
-		counter:               epochCounter,
-		seed:                  seed,
-		startView:             startView,
-		endView:               endView,
-		stakingEndView:        stakingEndView,
-		totalRewards:          totalRewards,
-		rewardsBreakdownArray: 0,
-		rewardsPaid:           false,
-		collectorClusters:     nil,
-		clusterQCs:            nil,
-		// TODO(jord): document
+		counter:                  epochCounter,
+		seed:                     seed,
+		startView:                startView,
+		endView:                  endView,
+		stakingEndView:           stakingEndView,
+		totalRewards:             totalRewards,
+		rewardsBreakdownArrayLen: 0,
+		rewardsPaid:              false,
+		collectorClusters:        nil,
+		clusterQCs:               nil,
+		// In Q42024, the DKG data model was updated to include a DKG ID mapping and separate
+		// the group key and participant keys into separate fields. Since Cadence structs can't
+		// be updated, the EpochMetadata retains the old structure of one key vector with the
+		// group key as the first element, followed by participant keys in order.
 		dkgKeys: append([]string{dkgGroupKey}, dkgPubKeys...),
 	}
 	verifyEpochMetadata(t, b, env, expectedMetadata)

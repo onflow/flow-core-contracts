@@ -12,8 +12,6 @@ import (
 	"github.com/onflow/cadence/runtime/common"
 	cdcCommon "github.com/onflow/cadence/runtime/common"
 	"github.com/onflow/cadence/runtime/interpreter"
-	"github.com/onflow/flow-core-contracts/lib/go/contracts"
-	"github.com/onflow/flow-core-contracts/lib/go/templates"
 	"github.com/onflow/flow-emulator/adapters"
 	emulator "github.com/onflow/flow-emulator/emulator"
 	"github.com/onflow/flow-go-sdk"
@@ -22,6 +20,9 @@ import (
 	sdktemplates "github.com/onflow/flow-go-sdk/templates"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/onflow/flow-core-contracts/lib/go/contracts"
+	"github.com/onflow/flow-core-contracts/lib/go/templates"
 )
 
 /*
@@ -40,17 +41,17 @@ type Cluster struct {
 
 // Used to verify epoch metadata in tests
 type EpochMetadata struct {
-	counter               uint64
-	seed                  string
-	startView             uint64
-	endView               uint64
-	stakingEndView        uint64
-	totalRewards          string
-	rewardsBreakdownArray int // TODO length?
-	rewardsPaid           bool
-	collectorClusters     []Cluster
-	clusterQCs            [][]string
-	dkgKeys               []string
+	counter                  uint64
+	seed                     string
+	startView                uint64
+	endView                  uint64
+	stakingEndView           uint64
+	totalRewards             string
+	rewardsBreakdownArrayLen int
+	rewardsPaid              bool
+	collectorClusters        []Cluster
+	clusterQCs               [][]string
+	dkgKeys                  []string
 }
 
 // Used to verify the configurable Epoch metadata in tests
@@ -613,9 +614,10 @@ func verifyEpochMetadata(
 	totalRewards := metadataFields["totalRewards"]
 	assertEqual(t, CadenceUFix64(expectedMetadata.totalRewards), totalRewards)
 
-	// TODO(jord): document what is going on here - only validating amount when no rewards paid?
+	// NOTE: this only validates if the rewardAmounts array is empty.
+	// Non-empty rewardAmounts arrays are not checked at all!
 	rewardsArray := metadataFields["rewardAmounts"].(cadence.Array).Values
-	if expectedMetadata.rewardsBreakdownArray == 0 {
+	if expectedMetadata.rewardsBreakdownArrayLen == 0 {
 		assertEqual(t, len(rewardsArray), 0)
 	}
 
