@@ -182,7 +182,7 @@ access(all) contract FlowEpoch {
         /// The last view (inclusive) of the RecoveryEpoch.
         finalView: UInt64,
 
-        /// The cluster assignment for the RecoveryEpoch. Each element in the list
+        /// The collector node cluster assignment for the RecoveryEpoch. Each element in the list
         /// represents one cluster and contains all the node IDs assigned to that cluster.
         clusterAssignments: [[String]],
 
@@ -211,8 +211,8 @@ access(all) contract FlowEpoch {
         /// the blockchain cannot ingest transactions, which can only be resolved through a spork!
         clusterQCVoteData: [FlowClusterQC.ClusterQCVoteData],
 
-        /// The DKG public keys for the recovery epoch. Currently, these are re-used from the last
-        /// successful DKG. Group public key is the first element, followed by the individual keys.
+        /// The DKG public keys and ID mapping for the recovery epoch. 
+        /// Currently, these are re-used from the last successful DKG.
         /// CAUTION: Validity of the key vector is not explicitly verified during the recovery process.
         /// Invalid DKG information has the potential to prevent Flow's main consensus from continuing,
         /// which would halt the chain for good and can only be resolved through a spork.
@@ -600,14 +600,17 @@ access(all) contract FlowEpoch {
             for nodeID in nodeIDs {
                 assert(
                     FlowIDTableStaking.NodeInfo(nodeID: nodeID).initialWeight > 0, 
-                    message: "all nodes in node ids list for recovery epoch must have a weight > 0"
+                    message: "FlowEpoch.Admin.recoverEpochPreChecks: All nodes in node ids list for recovery epoch must have a weight > 0. The node "
+                    .concat(nodeID).concat(" has a weight of 0.")
                 )
             }
 
             // sanity check we must receive qc vote data for each cluster
             assert(
                 numOfClusterAssignments == numOfClusterQCVoteData, 
-                message: "number of cluster assignments does not match number of cluster qc vote data"
+                message: "FlowEpoch.Admin.recoverEpochPreChecks: The number of cluster assignments "
+                .concat(numOfClusterAssignments.toString()).concat(" does not match the number of cluster qc vote data ")
+                .concat(numOfClusterQCVoteData.toString())
             )
         }
         
@@ -628,7 +631,7 @@ access(all) contract FlowEpoch {
         /// Ends the currently active epoch and starts a new "recovery epoch" with the provided configuration.
         /// This function is used to recover from Epoch Fallback Mode (EFM).
         /// The "recovery epoch" config will be emitted in the EpochRecover service event.
-        /// The "recovery epoch must have a counter exactly one greater than the current epoch counter.
+        /// The "recovery epoch" must have a counter exactly one greater than the current epoch counter.
         /// 
         /// This function differs from recoverCurrentEpoch because it increments the epoch counter and will calculate rewards. 
         access(all) fun recoverNewEpoch(
@@ -820,7 +823,6 @@ access(all) contract FlowEpoch {
 
             // Calculate rewards for the current epoch
             // and set the payout for the next epoch
-            // TODO(jord): do we need this? L862 we calculate rewards on enter EpochSetup phase
             FlowEpoch.calculateAndSetRewards()
 
             // Start a new Epoch, which increments the current epoch counter
