@@ -276,6 +276,10 @@ access(all) contract LockedTokens {
             return self.borrowNode()
         }
 
+        access(RecoverLease) view fun borrowDelegatorForLease(): auth(FlowIDTableStaking.DelegatorOwner) &FlowIDTableStaking.NodeDelegator? {
+            return self.borrowDelegator()
+        }
+
         access(UnlockTokens) fun removeNode(): @FlowIDTableStaking.NodeStaker? {
             let node <- self.nodeStaker <- nil
 
