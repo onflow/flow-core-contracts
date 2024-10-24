@@ -38,17 +38,6 @@
               "type": "UInt8"
             }
           ]
-        },
-        {
-          "type": "UFix64",
-          "name": "weight",
-          "label": "Key Weight",
-          "sampleValues": [
-            {
-              "value": "1000.00000000",
-              "type": "UFix64"
-            }
-          ]
         }
       ],
       "network": "mainnet",

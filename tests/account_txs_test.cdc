@@ -9,8 +9,8 @@ fun setup() {
 
 access(all)
 fun testCreateAccount() { 
-     let key = "7d5305c22cb7da418396f32c474c6d84b0bb87ca311d6aa6edfd70a1120ded9dc11427ac31261c24e4e7a6c2affea28ff3da7b00fe285029877fb0b5970dc110"
-
+    let key = "7d5305c22cb7da418396f32c474c6d84b0bb87ca311d6aa6edfd70a1120ded9dc11427ac31261c24e4e7a6c2affea28ff3da7b00fe285029877fb0b5970dc110"
+    
     // Should fail
     var txResult = executeTransaction(
         "../transactions/accounts/create_new_account.cdc",
