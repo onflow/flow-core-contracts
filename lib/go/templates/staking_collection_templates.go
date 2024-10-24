@@ -18,6 +18,7 @@ const (
 	collectionCreateMachineAccountForNodeFilename = "stakingCollection/create_machine_account.cdc"
 	collectionRegisterDelegatorFilename           = "stakingCollection/register_delegator.cdc"
 	collectionRegisterNodeFilename                = "stakingCollection/register_node.cdc"
+	collectionRegisterNodeOldFilename             = "stakingCollection/register_node_old.cdc"
 	collectionRequestUnstakingFilename            = "stakingCollection/request_unstaking.cdc"
 	collectionStakeNewTokensFilename              = "stakingCollection/stake_new_tokens.cdc"
 	collectionStakeRewardedTokensFilename         = "stakingCollection/stake_rewarded_tokens.cdc"
@@ -84,6 +85,12 @@ func GenerateCollectionRegisterDelegator(env Environment) []byte {
 
 func GenerateCollectionRegisterNode(env Environment) []byte {
 	code := assets.MustAssetString(collectionRegisterNodeFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateCollectionRegisterNodeOld(env Environment) []byte {
+	code := assets.MustAssetString(collectionRegisterNodeOldFilename)
 
 	return []byte(ReplaceAddresses(code, env))
 }
