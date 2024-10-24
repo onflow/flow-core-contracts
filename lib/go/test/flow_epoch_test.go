@@ -1577,6 +1577,14 @@ func testEpochRecoverSuccess(t *testing.T, enterEpochSetupPhase bool, overrideCu
 
 		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "BLOCK", false)
 
+		// When recovering into a new epoch, we expect 0 rewards (because auto-reward is disabled in this test)
+		expectedEpochRewards := "0.0"
+		// When overriding current epoch, we expect the rewards to be the same as was already set for the epoch
+		// In this test, we are overriding the initial epoch, so the expected rewards are 1250000.00000000
+		if overrideCurrentEpoch {
+			expectedEpochRewards = "1250000.00000000"
+		}
+
 		verifyEpochRecoverGovernanceTx(t, b, env, ids,
 			startView,
 			stakingEndView,
@@ -1584,7 +1592,7 @@ func testEpochRecoverSuccess(t *testing.T, enterEpochSetupPhase bool, overrideCu
 			targetDuration,
 			targetEndTime,
 			recoveryEpochCounter,
-			"0.0",
+			expectedEpochRewards,
 			idTableAddress,
 			adapter,
 			args,
@@ -1599,7 +1607,7 @@ func testEpochRecoverSuccess(t *testing.T, enterEpochSetupPhase bool, overrideCu
 }
 
 // TestEpochRecover tests the EFM recovery process under several circumstances we expect to succeed.
-// In particular we test performing recovery while in the staking or setup phases, and test both
+// In particular, we test performing recovery while in the staking or setup phases, and test both
 // the standard "create new epoch" process and the backup "override current epoch" process.
 func TestEpochRecover(t *testing.T) {
 	t.Run("recover epoch", func(t *testing.T) {
