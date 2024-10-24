@@ -751,8 +751,7 @@ access(all) contract FlowEpoch {
                 startView: startView,
                 endView: endView,
                 stakingEndView: stakingEndView,
-                // TODO: should we mark this as paid already or is setting rewards to 0 sufficient?
-                totalRewards: 0.0,
+                totalRewards: currentEpochMetadata!.totalRewards,
                 collectorClusters: [],
                 clusterQCs: [],
                 dkgKeys: [dkgGroupKey].concat(dkgPubKeys)
@@ -814,8 +813,7 @@ access(all) contract FlowEpoch {
                     startView: startView,
                     endView: endView,
                     stakingEndView: stakingEndView,
-                    // This will be overwritten in `calculateAndSetRewards` below
-                    totalRewards: UFix64(0.0),
+                    totalRewards: 0.0, // will be overwritten in calculateAndSetRewards below
                     collectorClusters: collectorClusters,
                     clusterQCs: clusterQCs,
                     dkgKeys: dkgPubKeys)
