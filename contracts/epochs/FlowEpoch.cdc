@@ -740,6 +740,7 @@ access(all) contract FlowEpoch {
             }
 
             self.stopEpochComponents()
+            FlowEpoch.currentEpochPhase = EpochPhase.STAKINGAUCTION
             
             let currentEpochMetadata = FlowEpoch.getEpochMetadata(recoveryEpochCounter)
             /// Create new EpochMetadata for the recovery epoch with the new values.
