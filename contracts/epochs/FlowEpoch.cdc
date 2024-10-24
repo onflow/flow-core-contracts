@@ -556,7 +556,6 @@ access(all) contract FlowEpoch {
                 nodes.append(FlowIDTableStaking.NodeInfo(nodeID: nodeID))
             }
             
-            // TODO: consolidate dkg phase calcs
             let numViewsInDKGPhase = FlowEpoch.configurableMetadata.numViewsInDKGPhase
             let dkgPhase1FinalView = stakingEndView + numViewsInDKGPhase
             let dkgPhase2FinalView = dkgPhase1FinalView + numViewsInDKGPhase
@@ -668,8 +667,8 @@ access(all) contract FlowEpoch {
                 endView: endView,
                 stakingEndView: stakingEndView,
                 totalRewards: 0.0,     // will be overwritten in `calculateAndSetRewards` below
-                collectorClusters: [], // will be overwritten in `calculateAndSetRewards` below
-                clusterQCs: [],        // will be overwritten in `calculateAndSetRewards` below
+                collectorClusters: [],
+                clusterQCs: [],
                 dkgKeys: [dkgGroupKey].concat(dkgPubKeys)
             )
 
@@ -677,7 +676,6 @@ access(all) contract FlowEpoch {
             FlowEpoch.saveEpochMetadata(newEpochMetadata)
 
             /// Calculate rewards for the current epoch and set the payout for the next epoch
-            // TODO(jord): do we need this? L862 we calculate rewards on enter EpochSetup phase
             FlowEpoch.calculateAndSetRewards()
 
             /// Emit the EpochRecover service event.
