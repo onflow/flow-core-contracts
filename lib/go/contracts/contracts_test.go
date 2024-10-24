@@ -89,3 +89,9 @@ func TestNodeVersionBeacon(t *testing.T) {
 	contract := contracts.NodeVersionBeacon()
 	assert.NotNil(t, contract)
 }
+
+func TestCrypto(t *testing.T) {
+	contract := contracts.Crypto()
+
+	assert.NotNil(t, contract)
+}

@@ -82,7 +82,16 @@ access(all) contract LockedTokens {
         access(UnlockTokens) fun increaseUnlockLimit(delta: UFix64)
     }
 
+    /// Entitlement for the token admin to unlock tokens from
+    /// the token sale and various grants
     access(all) entitlement UnlockTokens
+
+    /// Entitlement for the token admin to use to recover leased tokens
+    /// directly from accounts who have leased tokens to operate nodes
+    /// Since there are no existing capabilities with this entitlement,
+    /// it is only used when authorizing a transaction that already
+    /// has access to the account
+    access(all) entitlement RecoverLease
 
     /// This token manager resource is stored in the shared account to manage access
     /// to the locked token vault and to the staking/delegating resources.
@@ -265,6 +274,15 @@ access(all) contract LockedTokens {
         access(account) view fun borrowDelegator(): auth(FlowIDTableStaking.DelegatorOwner) &FlowIDTableStaking.NodeDelegator? {
             let delegatorRef = &self.nodeDelegator as auth(FlowIDTableStaking.DelegatorOwner) &FlowIDTableStaking.NodeDelegator?
             return delegatorRef
+        }
+
+        /// The following two functions are late additions to replicate functionality
+        /// that was lost with the Crescendo upgrade
+        /// They allow the account that owns the TokenManager to borrow a reference to
+        /// the node or delegator directly from its storage
+        /// This is only used by the Flow Foundation to recover leases that it has given to node operators
+        access(RecoverLease) view fun borrowNodeForLease(): auth(FlowIDTableStaking.NodeOperator) &FlowIDTableStaking.NodeStaker? {
+            return self.borrowNode()
         }
 
         access(UnlockTokens) fun removeNode(): @FlowIDTableStaking.NodeStaker? {

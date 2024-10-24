@@ -116,6 +116,12 @@
         "testnet": "0x7aad92e5a0715d21",
         "mainnet": "0x62430cf28c26d095"
       }
+    },
+    "Crypto": {
+      "source": "./contracts/Crypto.cdc",
+      "aliases": {
+        "testing": "0x0000000000000007"
+      }
     }
   },
   "networks": {

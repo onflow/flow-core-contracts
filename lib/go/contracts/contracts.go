@@ -1,6 +1,6 @@
 package contracts
 
-//go:generate go run github.com/kevinburke/go-bindata/go-bindata -prefix ../../../contracts -o internal/assets/assets.go -pkg assets -nometadata -nomemcopy ../../../contracts/...
+//go:generate go run github.com/kevinburke/go-bindata/go-bindata -ignore=.*_test\.cdc -ignore=.*.json -prefix ../../../contracts -o internal/assets/assets.go -pkg assets -nometadata -nomemcopy ../../../contracts/...
 
 import (
 	"fmt"
@@ -40,6 +40,7 @@ const (
 	flowContractAuditsFilename      = "FlowContractAudits.cdc"
 	flowNodeVersionBeaconFilename   = "NodeVersionBeacon.cdc"
 	flowRandomBeaconHistoryFilename = "RandomBeaconHistory.cdc"
+	cryptoFilename                  = "Crypto.cdc"
 
 	// Test contracts
 	// only used for testing
@@ -193,8 +194,7 @@ func FlowIDTableStaking(env templates.Environment) []byte {
 
 // FlowStakingProxy returns the StakingProxy contract.
 func FlowStakingProxy() []byte {
-	code := assets.MustAssetString(flowStakingProxyFilename)
-	return []byte(code)
+	return assets.MustAsset(flowStakingProxyFilename)
 }
 
 // FlowStakingCollection returns the StakingCollection contract.
@@ -223,16 +223,12 @@ func FlowLockedTokens(
 
 // FlowQC returns the FlowClusterQCs contract.
 func FlowQC() []byte {
-	code := assets.MustAssetString(flowQCFilename)
-
-	return []byte(code)
+	return assets.MustAsset(flowQCFilename)
 }
 
 // FlowDKG returns the FlowDKG contract.
 func FlowDKG() []byte {
-	code := assets.MustAssetString(flowDKGFilename)
-
-	return []byte(code)
+	return assets.MustAsset(flowDKGFilename)
 }
 
 // FlowEpoch returns the FlowEpoch contract.
@@ -246,23 +242,17 @@ func FlowEpoch(env templates.Environment) []byte {
 
 // NodeVersionBeacon returns the NodeVersionBeacon contract content.
 func NodeVersionBeacon() []byte {
-	code := assets.MustAssetString(flowNodeVersionBeaconFilename)
-
-	return []byte(code)
+	return assets.MustAsset(flowNodeVersionBeaconFilename)
 }
 
 func RandomBeaconHistory() []byte {
-	code := assets.MustAssetString(flowRandomBeaconHistoryFilename)
-
-	return []byte(code)
+	return assets.MustAsset(flowRandomBeaconHistoryFilename)
 }
 
 // FlowContractAudits returns the deprecated FlowContractAudits contract.
 // This contract is no longer used on any network
 func FlowContractAudits() []byte {
-	code := assets.MustAssetString(flowContractAuditsFilename)
-
-	return []byte(code)
+	return assets.MustAsset(flowContractAuditsFilename)
 }
 
 /******************** Test contracts *********************/
@@ -330,4 +320,8 @@ func TestFlowFees(fungibleTokenAddress, flowTokenAddress, storageFeesAddress str
 	)
 
 	return []byte(code)
+}
+
+func Crypto() []byte {
+	return assets.MustAsset(cryptoFilename)
 }
