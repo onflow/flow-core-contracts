@@ -5,7 +5,7 @@ access(all)
 fun setup() {
     let err = Test.deployContract(
         name: "Crypto",
-        path: "Crypto.cdc",
+        path: "../contracts/Crypto.cdc",
         arguments: []
     )
 
