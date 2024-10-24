@@ -802,16 +802,7 @@ access(all) contract FlowEpoch {
                     "Invalid startView, stakingEndView, and endView configuration"
             }
 
-            // TODO: replace with stopEpochComponents?
-            if FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION {
-                // Since we are resetting the epoch, we do not need to
-                // start epoch setup also. We only need to end the staking auction
-                FlowEpoch.borrowStakingAdmin().endStakingAuction()
-            } else {
-                // force reset the QC and DKG
-                FlowEpoch.borrowClusterQCAdmin().forceStopVoting()
-                FlowEpoch.borrowDKGAdmin().forceEndDKG()
-            }
+            self.stopEpochComponents()
 
             // Create new Epoch metadata for the next epoch
             // with the new values
