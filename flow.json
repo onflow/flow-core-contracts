@@ -154,41 +154,6 @@
 		"emulator-account": {
 			"address": "f8d6e0586b0a20c7",
 			"key": "7677f7c9410f8773b482737c778b5d7c6acfdbbae718d61e4727a07667f66004"
-		},
-		"mainnet-locked-tokens": {
-			"address": "8d0e87b65159ae63",
-			"key": {
-				"type": "google-kms",
-				"hashAlgorithm": "SHA2_256",
-				"resourceID": "projects/dl-flow/locations/global/keyRings/mainnet/cryptoKeys/service-account/cryptoKeyVersions/1"
-			}
-		},
-		"testnet-locked-tokens": {
-			"address": "95e019a17d0e23d7",
-			"key": {
-				"type": "file",
-				"location": "./testnet-service.pkey"
-			}
-		},
-		"testnet-service": {
-			"address": "8c5303eaa26202d6",
-			"key": {
-				"type": "file",
-				"signatureAlgorithm": "ECDSA_secp256k1",
-				"hashAlgorithm": "SHA2_256",
-				"location": "./testnet-service.pkey"
-			}
-		}
-	},
-	"deployments": {
-		"testnet": {
-			"testnet-locked-tokens": [
-				"LockedTokens",
-				"FlowStakingCollection"
-			],
-			"testnet-service": [
-				"Crypto"
-			]
 		}
 	}
 }
