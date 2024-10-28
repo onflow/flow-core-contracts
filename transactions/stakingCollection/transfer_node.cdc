@@ -11,12 +11,12 @@ transaction(nodeID: String, to: Address) {
     prepare(account: auth(BorrowValue) &Account) {
         // The account to transfer the NodeStaker object to must have a valid Staking Collection in order to receive the NodeStaker.
         if (!FlowStakingCollection.doesAccountHaveStakingCollection(address: to)) {
-            panic("Destination account must have a Staking Collection set up.")
+            panic(FlowStakingCollection.getCollectionMissingError(to))
         }
 
         // Get a reference to the authorizers StakingCollection
         self.fromStakingCollectionRef = account.storage.borrow<auth(FlowStakingCollection.CollectionOwner) &FlowStakingCollection.StakingCollection>(from: FlowStakingCollection.StakingCollectionStoragePath)
-            ?? panic("Could not borrow a reference to a StakingCollection in the primary user's account")
+            ?? panic(FlowStakingCollection.getCollectionMissingError(nil))
 
         // Get the PublicAccount of the account to transfer the NodeStaker to. 
         let toAccount = getAccount(to)
@@ -24,10 +24,12 @@ transaction(nodeID: String, to: Address) {
         // Borrow a capability to the public methods available on the receivers StakingCollection.
         self.toStakingCollectionCap = toAccount.capabilities
             .borrow<&FlowStakingCollection.StakingCollection>(FlowStakingCollection.StakingCollectionPublicPath)
-            ?? panic("Could not borrow a reference to a StakingCollection in the receiver's account")
+            ?? panic(FlowStakingCollection.getCollectionMissingError(to))
 
         let machineAccountInfo = self.fromStakingCollectionRef.getMachineAccounts()[nodeID]
-            ?? panic("Could not get machine account info for the specified node ID")
+            ?? panic("Could not get machine account info from the signer's account for the node ID "
+                    .concat(nodeID).concat(". Make sure that the node has configured a machine account ")
+                    .concat("and has it registered in the staking collection."))
 
         // Remove the NodeStaker from the authorizers StakingCollection.
         let nodeStaker <- self.fromStakingCollectionRef.removeNode(nodeID: nodeID)

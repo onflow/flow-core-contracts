@@ -167,12 +167,6 @@ func generateManifest(env templates.Environment) *manifest {
 				Label:        "Raw Value for Hash Algorithm Enum",
 				SampleValues: []cadenceValue{sampleHashAlgoEnumRawValue},
 			},
-			{
-				Type:         "UFix64",
-				Name:         "weight",
-				Label:        "Key Weight",
-				SampleValues: []cadenceValue{sampleKeyWeight},
-			},
 		},
 	))
 
