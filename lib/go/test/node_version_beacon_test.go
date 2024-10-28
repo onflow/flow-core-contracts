@@ -12,14 +12,15 @@ import (
 
 	"github.com/coreos/go-semver/semver"
 	"github.com/onflow/cadence"
-	"github.com/onflow/flow-core-contracts/lib/go/contracts"
-	"github.com/onflow/flow-core-contracts/lib/go/templates"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 	sdktemplates "github.com/onflow/flow-go-sdk/templates"
 	"github.com/onflow/flow-go-sdk/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/onflow/flow-core-contracts/lib/go/contracts"
+	"github.com/onflow/flow-core-contracts/lib/go/templates"
 )
 
 func deployContract(b emulator.Emulator, address flow.Address, signer crypto.Signer, contract sdktemplates.Contract, args []cadence.Value) error {
@@ -240,9 +241,9 @@ func (v VersionBeaconEvent) VersionTable() (ret []struct {
 type ProtocolStateVersionUpgradeEvent flow.Event
 
 func (event ProtocolStateVersionUpgradeEvent) NewProtocolVersion() uint64 {
-	return event.Value.Fields[0].(cadence.UInt64).ToGoValue().(uint64)
+	return uint64(event.Value.SearchFieldByName("newProtocolVersion").(cadence.UInt64))
 }
 
 func (event ProtocolStateVersionUpgradeEvent) ActiveView() uint64 {
-	return event.Value.Fields[1].(cadence.UInt64).ToGoValue().(uint64)
+	return uint64(event.Value.SearchFieldByName("activeView").(cadence.UInt64))
 }
