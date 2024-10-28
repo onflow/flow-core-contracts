@@ -286,9 +286,14 @@ access(all) contract NodeVersionBeacon {
             emit NodeVersionBoundaryFreezePeriodChanged(freezePeriod: newFreezePeriod)
         }
 
-        /// Emits the given protocol state version upgrade event. If the version and active are
-        /// valid, this will cause the Protocol State to upgrade its model version when the
-        /// event is incorporated.
+        /// Emits the given protocol state version upgrade event.
+        /// If the version and active view are valid, this will cause the Protocol State
+        /// to upgrade its model version when the event is incorporated.
+        /// If either the version or active view are invalid, the service event will be
+        /// ignored and will have no effect. All validation is performed when the service
+        /// event is incorporated by the Protocol State.
+        /// It is safe to emit the same ProtocolStateVersionUpgrade event multiple times,
+        /// as only version upgrade will occur.
         access(all) fun emitProtocolStateVersionUpgrade(newProtocolVersion: UInt64, activeView: UInt64) {
             emit ProtocolStateVersionUpgrade(newProtocolVersion: newProtocolVersion, activeView: activeView)
         }
