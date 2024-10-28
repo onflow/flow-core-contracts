@@ -16,6 +16,7 @@ const (
 	depositAccountCreatorCapabilityFilename        = "lockedTokens/admin/admin_deposit_account_creator.cdc"
 	removeDelegatorFilename                        = "lockedTokens/admin/admin_remove_delegator.cdc"
 	getBadAccountsFilename                         = "lockedTokens/admin/get_unlocking_bad_accounts.cdc"
+	recoverLeaseTokensFilename                     = "lockedTokens/admin/recover_lease_tokens.cdc"
 
 	// Custody Provider / Wallet provider Account creation templates
 	setupCustodyAccountFilename                  = "lockedTokens/admin/custody_setup_account_creator.cdc"
@@ -116,6 +117,12 @@ func GenerateRemoveDelegatorScript(env Environment) []byte {
 
 func GenerateGetBadAccountsScript(env Environment) []byte {
 	code := assets.MustAssetString(getBadAccountsFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateRecoverLeaseTokensScript(env Environment) []byte {
+	code := assets.MustAssetString(recoverLeaseTokensFilename)
 
 	return []byte(ReplaceAddresses(code, env))
 }
