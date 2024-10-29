@@ -162,12 +162,46 @@ func signAndSubmit(
 	return Submit(t, b, tx, shouldRevert)
 }
 
-// Submit submits a transaction and checks if it fails or not, based on shouldRevert specification
+// assertTransactionReverts signs a transaction with an array of signers and adds their signatures to the transaction
+// before submitting it to the emulator.
+//
+// If the private keys do not match up with the addresses, the transaction will not succeed.
+//
+// This function asserts the transaction result error includes all of the expectedErrs.
+func assertTransactionReverts(
+	t *testing.T,
+	b emulator.Emulator,
+	tx *flow.Transaction,
+	signerAddresses []flow.Address,
+	signers []sdkcrypto.Signer,
+	expectedErrs ...error,
+) *types.TransactionResult {
+	// sign transaction with each signer
+	for i := len(signerAddresses) - 1; i >= 0; i-- {
+		signerAddress := signerAddresses[i]
+		signer := signers[i]
+
+		err := tx.SignPayload(signerAddress, 0, signer)
+		assert.NoError(t, err)
+	}
+
+	serviceSigner, _ := b.ServiceKey().Signer()
+
+	err := tx.SignEnvelope(b.ServiceKey().Address, 0, serviceSigner)
+	assert.NoError(t, err)
+
+	return Submit(t, b, tx, true, expectedErrs...)
+}
+
+// Submit submits a transaction and checks if it fails or not, based on shouldRevert specification.
+// If shouldRevert is true this function will ensures that the transaction error contains each of
+// the expected errors.
 func Submit(
 	t *testing.T,
 	b emulator.Emulator,
 	tx *flow.Transaction,
 	shouldRevert bool,
+	expectedErrs ...error,
 ) *types.TransactionResult {
 	// submit the signed transaction
 	flowTx := convert.SDKTransactionToFlow(*tx)
@@ -181,6 +215,9 @@ func Submit(
 	// Check the status
 	if shouldRevert {
 		assert.True(t, result.Reverted())
+		for _, err := range expectedErrs {
+			assert.ErrorContains(t, result.Error, err.Error())
+		}
 	} else {
 		if !assert.True(t, result.Succeeded()) {
 			t.Log(result.Error.Error())
@@ -341,4 +378,39 @@ func generateKeys(t *testing.T, algorithmName crypto.SigningAlgorithm) (crypto.P
 	publicKey := sk.PublicKey()
 
 	return sk, publicKey
+}
+
+// UnwrapOptional unwraps a Cadence optional of type T?, and returns the underlying value of type T.
+func UnwrapOptional[T cadence.Value](optional cadence.Value) T {
+	return optional.(cadence.Optional).Value.(T)
+}
+
+// CadenceArrayTo converts a Cadence array to a Go slice, converting each individual
+// element with the convert function
+func CadenceArrayTo[T any](arr cadence.Value, convert func(cadence.Value) T) []T {
+	out := make([]T, len(arr.(cadence.Array).Values))
+	for i := range out {
+		out[i] = convert(arr.(cadence.Array).Values[i])
+	}
+	return out
+}
+
+// CadenceArrayFrom constructs a Cadence array from a Go slice, converting each individual
+// element with the convert function.
+func CadenceArrayFrom[T any](slice []T, convert func(T) cadence.Value) cadence.Array {
+	values := make([]cadence.Value, len(slice))
+	for i := range values {
+		values[i] = convert(slice[i])
+	}
+	return cadence.NewArray(values)
+}
+
+// CDCToString converts a cadence.String to a Go string.
+func CDCToString(v cadence.Value) string {
+	return string(v.(cadence.String))
+}
+
+// StringToCDC converts a Go string to a cadence.String.
+func StringToCDC(s string) cadence.Value {
+	return cadence.String(s)
 }

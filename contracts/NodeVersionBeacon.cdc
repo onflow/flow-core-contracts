@@ -18,6 +18,10 @@
 /// The contract itself can be used to query the current version and the next upcoming version.
 access(all) contract NodeVersionBeacon {
 
+    /// =========================
+    /// Execution State Versioning
+    /// =========================
+
     /// Struct representing software version as Semantic Version
     /// along with helper functions
     /// For reference, see https://semver.org/
@@ -134,10 +138,11 @@ access(all) contract NodeVersionBeacon {
         )
     }
 
-    /// Event emitted when the version table is updated.
-    /// It contains the current version and all the upcoming versions
-    /// sorted by block height.
-    /// The sequence increases by one each time an event is emitted.
+    /// A service event emitted when the version table is updated.
+    /// The version is the software version which must be used for executing a height range of blocks.
+    /// The version pertains to Execution and Verification Nodes.
+    /// The table contains the current version and all the upcoming versions sorted by block height.
+    /// The sequence increases by one each time an event is emitted. 
     /// It can be used to verify no events were missed.
     access(all) event VersionBeacon(
         versionBoundaries: [VersionBoundary],
@@ -279,6 +284,18 @@ access(all) contract NodeVersionBeacon {
             NodeVersionBeacon.versionBoundaryFreezePeriod = newFreezePeriod
 
             emit NodeVersionBoundaryFreezePeriodChanged(freezePeriod: newFreezePeriod)
+        }
+
+        /// Emits the given protocol state version upgrade event.
+        /// If the version and active view are valid, this will cause the Protocol State
+        /// to upgrade its model version when the event is incorporated.
+        /// If either the version or active view are invalid, the service event will be
+        /// ignored and will have no effect. All validation is performed when the service
+        /// event is incorporated by the Protocol State.
+        /// It is safe to emit the same ProtocolStateVersionUpgrade event multiple times,
+        /// as only version upgrade will occur.
+        access(all) fun emitProtocolStateVersionUpgrade(newProtocolVersion: UInt64, activeView: UInt64) {
+            emit ProtocolStateVersionUpgrade(newProtocolVersion: newProtocolVersion, activeView: activeView)
         }
     }
 
@@ -494,6 +511,17 @@ access(all) contract NodeVersionBeacon {
         // Return zero version if nothing found
         return self.versionBoundaryBlockList[0]
     }
+
+    /// =========================
+    /// Protocol State Versioning
+    /// =========================
+
+    /// A service event which is emitted to indicate that the Protocol State version is being upgraded.
+    /// This acts as a signal to begin using the upgraded Protocol State version 
+    /// after this service event is sealed, and after view `activeView` is entered.
+    /// Nodes running a software version which does not support `newProtocolVersion`
+    /// will stop processing new blocks when they reach view `activeAtView`.
+    access(all) event ProtocolStateVersionUpgrade(newProtocolVersion: UInt64, activeView: UInt64)
 
     init(versionUpdateFreezePeriod: UInt64) {
         self.AdminStoragePath = /storage/NodeVersionBeaconAdmin
