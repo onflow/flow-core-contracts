@@ -8,7 +8,7 @@ import "FlowToken"
 
 transaction {
 
-    prepare(signer: auth(Storage) &Account) {
+    prepare(signer: auth(Capabilities, Storage) &Account) {
 
         if signer.storage.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault) == nil {
             // Create a new flowToken Vault and put it in storage
