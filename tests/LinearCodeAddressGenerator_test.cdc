@@ -55,7 +55,7 @@ access(all)
 fun testMainnet() {
     checkAddresses(
         count: 10,
-        chainCodeWord: LinearCodeAddressGenerator.codeWordMainnet,
+        chainCodeWord: LinearCodeAddressGenerator.codeWords["mainnet"]!,
         expected: [
             0xe467b9dd11fa00df,
             0xf233dcee88fe0abe,
@@ -75,7 +75,7 @@ access(all)
 fun testTestnet() {
     checkAddresses(
         count: 10,
-        chainCodeWord: LinearCodeAddressGenerator.codeWordTestnet,
+        chainCodeWord: LinearCodeAddressGenerator.codeWords["testnet"]!,
         expected: [
             0x8c5303eaa26202d6,
             0x9a0766d93b6608b7,
@@ -95,7 +95,7 @@ access(all)
 fun testTransient() {
     checkAddresses(
         count: 10,
-        chainCodeWord: LinearCodeAddressGenerator.codeWordTransient,
+        chainCodeWord: LinearCodeAddressGenerator.codeWords["transient"]!,
         expected: [
             0xf8d6e0586b0a20c7,
             0xee82856bf20e2aa6,

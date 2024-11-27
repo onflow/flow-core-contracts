@@ -3,17 +3,8 @@
 access(all)
 contract LinearCodeAddressGenerator {
 
-    /// The code word for addresses on Flow Mainnet.
     access(all)
-    let codeWordMainnet: UInt64
-
-    /// The code word for addresses on Flow Testnet.
-    access(all)
-    let codeWordTestnet: UInt64
-
-    /// The code word for addresses on transient networks, like the Flow Emulator.
-    access(all)
-    let codeWordTransient: UInt64
+    let codeWords: {String: UInt64}
 
     /// Rows of the generator matrix G of the [64,45]-code used for Flow addresses.
     /// G is a (k x n) matrix with coefficients in GF(2), each row is converted into
@@ -30,9 +21,11 @@ contract LinearCodeAddressGenerator {
     let parityCheckMatrixColumns: [UInt64; 64]
 
     init() {
-        self.codeWordMainnet = 0
-        self.codeWordTestnet = 0x6834ba37b3980209
-        self.codeWordTransient = 0x1cb159857af02018
+        self.codeWords = {
+            "mainnet": 0,
+            "testnet": 0x6834ba37b3980209,
+            "transient": 0x1cb159857af02018
+        }
 
         self.generatorMatrixRows = [
             0xe467b9dd11fa00df, 0xf233dcee88fe0abe, 0xf919ee77447b7497, 0xfc8cf73ba23a260d,
