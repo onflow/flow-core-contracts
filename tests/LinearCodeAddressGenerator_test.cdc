@@ -14,13 +14,13 @@ fun setup() {
 access(all)
 fun generateAddresses(
     count: UInt64,
-    chainCodeWord: UInt64
+    chain: LinearCodeAddressGenerator.Chain
 ): [Address] {
     let addresses: [Address] = []
     for index in InclusiveRange<UInt64>(1, count) {
         let address = LinearCodeAddressGenerator.address(
             at: index,
-            chainCodeWord: chainCodeWord
+            chain: chain
         )
         addresses.append(address)
     }
@@ -31,12 +31,12 @@ fun generateAddresses(
 access(all)
 fun checkAddresses(
     count: UInt64,
-    chainCodeWord: UInt64,
+    chain: LinearCodeAddressGenerator.Chain,
     expected: [Address]
 ) {
      let actual = generateAddresses(
         count: 10,
-        chainCodeWord: chainCodeWord
+        chain: chain
     )
 
     Test.assertEqual(expected, actual)
@@ -45,19 +45,23 @@ fun checkAddresses(
         Test.assert(
             LinearCodeAddressGenerator.isValidAddress(
                 address,
-                chainCodeWord: chainCodeWord
+                chain: chain
             )
         )
 
-        for otherChainCodeWord in LinearCodeAddressGenerator.codeWords.values {
-            if otherChainCodeWord == chainCodeWord {
+        for otherChain in [
+            LinearCodeAddressGenerator.Chain.Mainnet,
+            LinearCodeAddressGenerator.Chain.Testnet,
+            LinearCodeAddressGenerator.Chain.Transient
+        ] {
+            if otherChain == chain {
                 continue
             }
 
             Test.assert(
                 !LinearCodeAddressGenerator.isValidAddress(
                     address,
-                    chainCodeWord: otherChainCodeWord
+                    chain: otherChain
                 )
             )
         }
@@ -68,7 +72,7 @@ access(all)
 fun testMainnet() {
     checkAddresses(
         count: 10,
-        chainCodeWord: LinearCodeAddressGenerator.codeWords["mainnet"]!,
+        chain: LinearCodeAddressGenerator.Chain.Mainnet,
         expected: [
             0xe467b9dd11fa00df,
             0xf233dcee88fe0abe,
@@ -88,7 +92,7 @@ access(all)
 fun testTestnet() {
     checkAddresses(
         count: 10,
-        chainCodeWord: LinearCodeAddressGenerator.codeWords["testnet"]!,
+        chain: LinearCodeAddressGenerator.Chain.Testnet,
         expected: [
             0x8c5303eaa26202d6,
             0x9a0766d93b6608b7,
@@ -108,7 +112,7 @@ access(all)
 fun testTransient() {
     checkAddresses(
         count: 10,
-        chainCodeWord: LinearCodeAddressGenerator.codeWords["transient"]!,
+        chain: LinearCodeAddressGenerator.Chain.Transient,
         expected: [
             0xf8d6e0586b0a20c7,
             0xee82856bf20e2aa6,

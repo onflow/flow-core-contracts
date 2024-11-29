@@ -4,29 +4,32 @@ access(all)
 contract LinearCodeAddressGenerator {
 
     access(all)
-    let codeWords: {String: UInt64}
+    enum Chain: UInt8 {
+        access(all)
+	    case Mainnet
+
+        access(all)
+        case Testnet
+
+        access(all)
+        case Transient
+    }
 
     /// Rows of the generator matrix G of the [64,45]-code used for Flow addresses.
     /// G is a (k x n) matrix with coefficients in GF(2), each row is converted into
     /// a big endian integer representation of the GF(2) raw vector.
     /// G is used to generate the account addresses
-    access(all)
+    access(self)
     let generatorMatrixRows: [UInt64; 45]
 
     /// Columns of the parity-check matrix H of the [64,45]-code used for Flow addresses.
     /// H is a (n x p) matrix with coefficients in GF(2), each column is converted into
     /// a big endian integer representation of the GF(2) column vector.
     /// H is used to verify a code word is a valid account address.
-    access(all)
+    access(self)
     let parityCheckMatrixColumns: [UInt64; 64]
 
     init() {
-        self.codeWords = {
-            "mainnet": 0,
-            "testnet": 0x6834ba37b3980209,
-            "transient": 0x1cb159857af02018
-        }
-
         self.generatorMatrixRows = [
             0xe467b9dd11fa00df, 0xf233dcee88fe0abe, 0xf919ee77447b7497, 0xfc8cf73ba23a260d,
             0xfe467b9dd11ee2a1, 0xff233dcee888d807, 0xff919ee774476ce6, 0x7fc8cf73ba231d10,
@@ -54,7 +57,21 @@ contract LinearCodeAddressGenerator {
         ]
     }
 
-    access(all)
+    access(self)
+    fun codeWord(forChain chain: Chain): UInt64 {
+    	switch chain {
+        case Chain.Mainnet:
+            return 0
+        case Chain.Testnet:
+            return 0x6834ba37b3980209
+        case Chain.Transient:
+            return 0x1cb159857af02018
+        default:
+            panic("unsupported chain")
+        }
+    }
+
+    access(self)
     fun encodeWord(_ word: UInt64): UInt64 {
 
     	// Multiply the index GF(2) vector by the code generator matrix
@@ -74,16 +91,16 @@ contract LinearCodeAddressGenerator {
 
     /// Returns the address at the given index, for the given chain code word.
     access(all)
-    fun address(at index: UInt64, chainCodeWord: UInt64): Address {
-        return Address(self.encodeWord(index) ^ chainCodeWord)
+    fun address(at index: UInt64, chain: Chain): Address {
+        return Address(self.encodeWord(index) ^ self.codeWord(forChain: chain))
     }
 
     /// Returns true if the given address is valid, for the given chain code word.
     access(all)
-    fun isValidAddress(_ address: Address, chainCodeWord: UInt64): Bool {
+    fun isValidAddress(_ address: Address, chain: Chain): Bool {
 
         let address = UInt64.fromBigEndianBytes(address.toBytes())!
-        var codeWord = chainCodeWord ^ address
+        var codeWord = self.codeWord(forChain: chain) ^ address
 
         if codeWord == 0 {
             return false
