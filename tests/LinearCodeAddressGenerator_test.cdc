@@ -48,6 +48,19 @@ fun checkAddresses(
                 chainCodeWord: chainCodeWord
             )
         )
+
+        for otherChainCodeWord in LinearCodeAddressGenerator.codeWords.values {
+            if otherChainCodeWord == chainCodeWord {
+                continue
+            }
+
+            Test.assert(
+                !LinearCodeAddressGenerator.isValidAddress(
+                    address,
+                    chainCodeWord: otherChainCodeWord
+                )
+            )
+        }
     }
 }
 
