@@ -58,7 +58,7 @@ contract LinearCodeAddressGenerator {
     }
 
     access(self)
-    fun codeWord(forChain chain: Chain): UInt64 {
+    fun invalidCodeWord(forChain chain: Chain): UInt64 {
         switch chain {
         case Chain.Mainnet:
             return 0
@@ -92,7 +92,7 @@ contract LinearCodeAddressGenerator {
     /// Returns the address at the given index, for the given chain.
     access(all)
     fun address(at index: UInt64, chain: Chain): Address {
-        return Address(self.encodeWord(index) ^ self.codeWord(forChain: chain))
+        return Address(self.encodeWord(index) ^ self.invalidCodeWord(forChain: chain))
     }
 
     /// Returns true if the given address is valid, for the given chain code word.
@@ -100,7 +100,7 @@ contract LinearCodeAddressGenerator {
     fun isValidAddress(_ address: Address, chain: Chain): Bool {
 
         let address = UInt64.fromBigEndianBytes(address.toBytes())!
-        var codeWord = self.codeWord(forChain: chain) ^ address
+        var codeWord = self.invalidCodeWord(forChain: chain) ^ address
 
         if codeWord == 0 {
             return false
