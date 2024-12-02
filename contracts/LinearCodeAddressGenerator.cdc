@@ -59,7 +59,7 @@ contract LinearCodeAddressGenerator {
 
     access(self)
     fun codeWord(forChain chain: Chain): UInt64 {
-    	switch chain {
+        switch chain {
         case Chain.Mainnet:
             return 0
         case Chain.Testnet:
@@ -74,7 +74,7 @@ contract LinearCodeAddressGenerator {
     access(self)
     fun encodeWord(_ word: UInt64): UInt64 {
 
-    	// Multiply the index GF(2) vector by the code generator matrix
+        // Multiply the index GF(2) vector by the code generator matrix
 
         var codeWord: UInt64 = 0
         var word = word
@@ -106,7 +106,7 @@ contract LinearCodeAddressGenerator {
             return false
         }
 
-    	// Multiply the code word GF(2)-vector by the parity-check matrix
+        // Multiply the code word GF(2)-vector by the parity-check matrix
 
         var parity: UInt64 = 0
 
