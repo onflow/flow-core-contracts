@@ -93,8 +93,7 @@ contract LinearCodeAddressGenerator {
     access(all)
     fun address(at index: UInt64, chain: Chain): Address? {
         // The index must be in the range [1 .. 2^45 - 1]
-        // TODO: Use Cadence exponentiation operator, once available
-        if index < 1 || index > 35184372088831 {
+        if index < 1 || index > (2 << 44) - 1 {
             return nil
         }
         return Address(self.encodeWord(index) ^ self.invalidCodeWord(forChain: chain))
