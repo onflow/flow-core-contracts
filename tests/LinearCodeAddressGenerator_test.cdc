@@ -22,7 +22,7 @@ fun generateAddresses(
             at: index,
             chain: chain
         )
-        addresses.append(address)
+        addresses.append(address!)
     }
 
     return addresses
@@ -126,4 +126,41 @@ fun testTransient() {
             0x120e725050340cab
         ]
     )
+}
+
+access(all)
+fun testAddressAtIndex() {
+
+    let minIndex: UInt64 = 1
+    let maxIndex: UInt64 = 35184372088831
+
+    for chain in [
+        LinearCodeAddressGenerator.Chain.Mainnet,
+        LinearCodeAddressGenerator.Chain.Testnet,
+        LinearCodeAddressGenerator.Chain.Transient
+    ] {
+        let lessThanMinAddress = LinearCodeAddressGenerator.address(
+            at: minIndex - 1,
+            chain: chain
+        )
+        Test.assert(lessThanMinAddress == nil)
+
+        let minAddress = LinearCodeAddressGenerator.address(
+            at: minIndex,
+            chain: chain
+        )
+        Test.assert(minAddress != nil)
+
+        let maxAddress = LinearCodeAddressGenerator.address(
+            at: maxIndex,
+            chain: chain
+        )
+        Test.assert(maxAddress != nil)
+
+        let greaterThanMaxAddress = LinearCodeAddressGenerator.address(
+            at: 35184372088832,
+            chain: chain
+        )
+        Test.assert(greaterThanMaxAddress == nil)
+    }
 }
