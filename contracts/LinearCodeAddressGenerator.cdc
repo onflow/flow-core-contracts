@@ -6,7 +6,7 @@ contract LinearCodeAddressGenerator {
     access(all)
     enum Chain: UInt8 {
         access(all)
-	    case Mainnet
+        case Mainnet
 
         access(all)
         case Testnet
@@ -89,7 +89,7 @@ contract LinearCodeAddressGenerator {
         return codeWord
     }
 
-    /// Returns the address at the given index, for the given chain code word.
+    /// Returns the address at the given index, for the given chain.
     access(all)
     fun address(at index: UInt64, chain: Chain): Address {
         return Address(self.encodeWord(index) ^ self.codeWord(forChain: chain))
