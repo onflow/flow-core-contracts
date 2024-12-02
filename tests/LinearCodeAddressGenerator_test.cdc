@@ -158,7 +158,7 @@ fun testAddressAtIndex() {
         Test.assert(maxAddress != nil)
 
         let greaterThanMaxAddress = LinearCodeAddressGenerator.address(
-            at: 35184372088832,
+            at: maxIndex + 1,
             chain: chain
         )
         Test.assert(greaterThanMaxAddress == nil)
