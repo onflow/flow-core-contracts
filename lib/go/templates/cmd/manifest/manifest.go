@@ -829,7 +829,7 @@ func generateManifest(env templates.Environment) *manifest {
 	))
 
 	m.addTemplate(generateTemplate(
-		"SCO.17", "Register Node with PoP",
+		"SCO.17", "Register Node",
 		env,
 		templates.GenerateCollectionRegisterNode,
 		[]argument{
