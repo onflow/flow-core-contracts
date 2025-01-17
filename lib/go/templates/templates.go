@@ -27,6 +27,7 @@ const (
 	placeholderQuorumCertificateAddress   = "\"FlowClusterQC\""
 	placeholderFlowFeesAddress            = "\"FlowFees\""
 	placeholderStorageFeesAddress         = "\"FlowStorageFees\""
+	placeholderExecutionParametersAddress = "\"FlowExecutionParameters\""
 	placeholderServiceAccountAddress      = "\"FlowServiceAccount\""
 	placeholderDKGAddress                 = "\"FlowDKG\""
 	placeholderEpochAddress               = "\"FlowEpoch\""
@@ -55,6 +56,7 @@ type Environment struct {
 	StorageFeesAddress                string
 	FlowFeesAddress                   string
 	StakingCollectionAddress          string
+	FlowExecutionParametersAddress    string
 	ServiceAccountAddress             string
 	NodeVersionBeaconAddress          string
 	RandomBeaconHistoryAddress        string
@@ -168,6 +170,12 @@ func ReplaceAddresses(code string, env Environment) string {
 		code,
 		placeholderStakingCollectionAddress,
 		withHexPrefix(env.LockedTokensAddress),
+	)
+
+	code = strings.ReplaceAll(
+		code,
+		placeholderExecutionParametersAddress,
+		withHexPrefix(env.FlowExecutionParametersAddress),
 	)
 
 	code = strings.ReplaceAll(

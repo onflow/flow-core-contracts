@@ -28,6 +28,7 @@ import (
 const (
 	flowFeesFilename                = "FlowFees.cdc"
 	storageFeesFilename             = "FlowStorageFees.cdc"
+	executionParametersFilename     = "FlowExecutionParameters.cdc"
 	flowServiceAccountFilename      = "FlowServiceAccount.cdc"
 	flowTokenFilename               = "FlowToken.cdc"
 	flowIdentityTableFilename       = "FlowIDTableStaking.cdc"
@@ -165,6 +166,15 @@ func FlowFees(env templates.Environment) []byte {
 // which imports the fungible token and flow token contracts
 func FlowStorageFees(env templates.Environment) []byte {
 	code := assets.MustAssetString(storageFeesFilename)
+
+	code = templates.ReplaceAddresses(code, env)
+
+	return []byte(code)
+}
+
+// FlowExecutionParameters returns the FlowExecutionParameters contract
+func FlowExecutionParameters(env templates.Environment) []byte {
+	code := assets.MustAssetString(executionParametersFilename)
 
 	code = templates.ReplaceAddresses(code, env)
 
