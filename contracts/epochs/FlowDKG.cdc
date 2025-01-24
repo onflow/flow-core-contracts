@@ -521,9 +521,9 @@ access(all) contract FlowDKG {
     access(all) view fun getNativeSuccessThreshold(): UInt64 {
         let n = self.getConsensusNodeIDs().length
         // avoid initializing the threshold to 0 when n=2
-	    if n == 2 {
-		    return 1
-	    }
+        if n == 2 {
+            return 1
+        }
         return UInt64((n-1)/2)
     }
 
