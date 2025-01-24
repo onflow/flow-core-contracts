@@ -662,8 +662,8 @@ func TestDKG(t *testing.T) {
 		safeThreshold := thresholdsFields["safe"]
 		safePercentage := thresholdsFields["safePercentage"]
 
-		assert.Equal(t, cadence.NewUInt64(0), nativeThreshold)
-		assert.Equal(t, cadence.NewUInt64(0), safeThreshold)
+		assert.Equal(t, cadence.NewUInt64(1), nativeThreshold)
+		assert.Equal(t, cadence.NewUInt64(1), safeThreshold)
 		assertEqual(t, CadenceUFix64("0.0"), safePercentage)
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetSafeThresholdScript(env), DKGAddress)
