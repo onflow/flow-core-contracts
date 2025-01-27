@@ -662,8 +662,8 @@ func TestDKG(t *testing.T) {
 		safeThreshold := thresholdsFields["safe"]
 		safePercentage := thresholdsFields["safePercentage"]
 
-		assert.Equal(t, cadence.NewUInt64(0), nativeThreshold)
-		assert.Equal(t, cadence.NewUInt64(0), safeThreshold)
+		assert.Equal(t, cadence.NewUInt64(1), nativeThreshold)
+		assert.Equal(t, cadence.NewUInt64(1), safeThreshold)
 		assertEqual(t, CadenceUFix64("0.0"), safePercentage)
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSetSafeThresholdScript(env), DKGAddress)
@@ -713,10 +713,9 @@ func checkDKGSafeThreshold(
 }
 
 // Tests the DKG with submissions consisting of nil keys.
-// With 2 participants, the threshold is floor((n-1)/2) = 0, so 1 valid submission is sufficient to end the DKG.
-// In the first subtest, we submit one empty submission and validate that this does not end the DKG.
-// In the second subtest, we submit one non-empty submission and validate that this does end the DKG.
-func TestDKGNil(t *testing.T) {
+// With 2 participants, the threshold is 1, so 2 valid submission are needed to end the DKG.
+// This test ensures that 2 nil submissions do not cause the DKG to be considered complete.
+func TestDKGEmptySubmission(t *testing.T) {
 	b, adapter := newBlockchain()
 
 	env := templates.Environment{
@@ -752,11 +751,10 @@ func TestDKGNil(t *testing.T) {
 		false,
 	)
 
-	// register a node dkg participant
+	// Register DKG participant 1
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateDKGParticipantScript(env), jordanAddress)
 	_ = tx.AddArgument(cadence.NewAddress(DKGAddress))
 	_ = tx.AddArgument(cadence.String(accessID))
-
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{jordanAddress},
@@ -764,14 +762,23 @@ func TestDKGNil(t *testing.T) {
 		false,
 	)
 
+	// Register DKG participant 2
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateDKGParticipantScript(env), DKGAddress)
+	_ = tx.AddArgument(cadence.NewAddress(DKGAddress))
+	_ = tx.AddArgument(cadence.String(adminID))
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{DKGAddress},
+		[]crypto.Signer{DKGSigner},
+		false,
+	)
+
 	dkgNodeIDStrings := []cadence.Value{cadence.String(adminID), cadence.String(accessID)}
 
 	// Start the DKG
 	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateStartDKGScript(env), DKGAddress)
-
 	err = tx.AddArgument(cadence.NewArray(dkgNodeIDStrings))
 	require.NoError(t, err)
-
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{DKGAddress},
@@ -779,12 +786,8 @@ func TestDKGNil(t *testing.T) {
 		false,
 	)
 
-	// Register another DKG participant
-	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCreateDKGParticipantScript(env), DKGAddress)
-
-	_ = tx.AddArgument(cadence.NewAddress(DKGAddress))
-	_ = tx.AddArgument(cadence.String(adminID))
-
+	// Send 1/2 empty submission
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateSendEmptyDKGFinalSubmissionScript(env), DKGAddress)
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{DKGAddress},
@@ -792,53 +795,24 @@ func TestDKGNil(t *testing.T) {
 		false,
 	)
 
-	// Although one submission exceeds the threshold (0), since it is empty it does not count toward completion.
-	t.Run("Should be able to make an empty final submission, but not count as completed", func(t *testing.T) {
+	// DKG should not be complete
+	result := executeScriptAndCheck(t, b, templates.GenerateGetDKGNodeHasFinalSubmittedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
+	assert.Equal(t, cadence.NewBool(true), result)
+	result = executeScriptAndCheck(t, b, templates.GenerateGetDKGCompletedScript(env), nil)
+	assert.Equal(t, cadence.NewBool(false), result)
 
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSendEmptyDKGFinalSubmissionScript(env), DKGAddress)
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{DKGAddress},
-			[]crypto.Signer{DKGSigner},
-			false,
-		)
+	// Send 2/2 empty submission
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateSendEmptyDKGFinalSubmissionScript(env), jordanAddress)
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{jordanAddress},
+		[]crypto.Signer{jordanSigner},
+		false,
+	)
 
-		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGNodeHasFinalSubmittedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
-		assert.Equal(t, cadence.NewBool(true), result)
-
-		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGCompletedScript(env), nil)
-		assert.Equal(t, cadence.NewBool(false), result)
-	})
-
-	// In the previous test case, 1/2 participants submitted an empty result.
-	// Now, when the second participant submits a non-empty result, the DKG should be considered complete.
-	t.Run("Should count as completed even if >threshold participants sent nil keys", func(t *testing.T) {
-		submission := ResultSubmission{
-			GroupPubKey: DKGPubKeyFixture(),
-			PubKeys:     DKGPubKeysFixture(2),
-			IDMapping:   map[string]int{accessID: 0, adminID: 1},
-		}
-
-		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateSendDKGFinalSubmissionScript(env), jordanAddress)
-		err := tx.AddArgument(submission.GroupPubKeyCDC())
-		require.NoError(t, err)
-		err = tx.AddArgument(submission.PubKeysCDC())
-		require.NoError(t, err)
-		err = tx.AddArgument(submission.IDMappingCDC())
-		require.NoError(t, err)
-
-		signAndSubmit(
-			t, b, tx,
-			[]flow.Address{jordanAddress},
-			[]crypto.Signer{jordanSigner},
-			false,
-		)
-
-		result := executeScriptAndCheck(t, b, templates.GenerateGetDKGNodeHasFinalSubmittedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(accessID))})
-		assert.Equal(t, cadence.NewBool(true), result)
-
-		result = executeScriptAndCheck(t, b, templates.GenerateGetDKGCompletedScript(env), nil)
-		assert.Equal(t, cadence.NewBool(true), result)
-
-	})
+	// DKG should not be complete
+	result = executeScriptAndCheck(t, b, templates.GenerateGetDKGNodeHasFinalSubmittedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(accessID))})
+	assert.Equal(t, cadence.NewBool(true), result)
+	result = executeScriptAndCheck(t, b, templates.GenerateGetDKGCompletedScript(env), nil)
+	assert.Equal(t, cadence.NewBool(false), result)
 }

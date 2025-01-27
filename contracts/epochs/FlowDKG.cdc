@@ -518,8 +518,14 @@ access(all) contract FlowDKG {
     /// We have 10 DKG nodes (n=10)
     /// The threshold value is t=floor(10-1)/2) (t=4)
     /// There must be AT LEAST 5 honest nodes for the DKG to succeed
+    /// The function must match the threshold computation on the protocol side: https://github.com/onflow/flow-go/blob/master/module/signature/threshold.go#L7
     access(all) view fun getNativeSuccessThreshold(): UInt64 {
-        return UInt64((self.getConsensusNodeIDs().length-1)/2)
+        let n = self.getConsensusNodeIDs().length
+        // avoid initializing the threshold to 0 when n=2
+        if n == 2 {
+            return 1
+        }
+        return UInt64((n-1)/2)
     }
 
     /// Gets the safe threshold that the submission count needs to exceed to be considered complete.
