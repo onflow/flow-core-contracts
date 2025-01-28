@@ -18,7 +18,7 @@ transaction(id: String,
 
     prepare(account: auth(BorrowValue) &Account) {
         self.stakingCollectionRef = account.storage.borrow<auth(FlowStakingCollection.CollectionOwner) &FlowStakingCollection.StakingCollection>(from: FlowStakingCollection.StakingCollectionStoragePath)
-            ?? panic(FlowStakingCollection.getCollectionMissingError(nil))
+            ?? panic("Could not borrow a reference to a StakingCollection in the primary user's account")
 
         if let machineAccount = self.stakingCollectionRef.registerNode(
             id: id,
@@ -30,17 +30,10 @@ transaction(id: String,
             payer: account
         ) {
             let sigAlgo = SignatureAlgorithm(rawValue: machineAccountKeySignatureAlgorithm)
-                ?? panic("Cannot register node with provided machine account key: Must provide a signature algorithm raw value that corresponds to "
-                .concat("one of the available signature algorithms for Flow keys.")
-                .concat("You provided ").concat(machineAccountKeySignatureAlgorithm.toString())
-                .concat(" but the options are either 1 (ECDSA_P256), 2 (ECDSA_secp256k1), or 3 (BLS_BLS12_381)."))
+                ?? panic("Could not get a signature algorithm from the raw enum value provided")
 
             let hashAlgo = HashAlgorithm(rawValue: machineAccountKeyHashAlgorithm)
-                ?? panic("Cannot register node with the provided machine account key: Must provide a hash algorithm raw value that corresponds to "
-                .concat("one of of the available hash algorithms for Flow keys.")
-                .concat("You provided ").concat(machineAccountKeyHashAlgorithm.toString())
-                .concat(" but the options are 1 (SHA2_256), 2 (SHA2_384), 3 (SHA3_256), ")
-                .concat("4 (SHA3_384), 5 (KMAC128_BLS_BLS12_381), or 6 (KECCAK_256)."))
+                ?? panic("Could not get a hash algorithm from the raw enum value provided")
             
             let publicKey = PublicKey(
 			    publicKey: machineAccountKey.decodeHex(),
