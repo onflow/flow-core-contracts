@@ -3,8 +3,9 @@ package test
 import (
 	"context"
 	"fmt"
-	"github.com/onflow/flow-emulator/emulator"
 	"testing"
+
+	"github.com/onflow/flow-emulator/emulator"
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
@@ -501,6 +502,21 @@ func TestContracts(t *testing.T) {
 		canExecuteTransaction := bool(fields["canExecuteTransaction"].(cadence.Bool))
 		require.False(t, canExecuteTransaction)
 	})
+
+	executionParametersCode := contracts.FlowExecutionParameters(
+		env,
+	)
+	executionParametersAddress, err := adapter.CreateAccount(context.Background(), nil, []sdktemplates.Contract{
+		{
+			Name:   "FlowExecutionParameters",
+			Source: string(executionParametersCode),
+		},
+	})
+	assert.NoError(t, err)
+	_, err = b.CommitBlock()
+	assert.NoError(t, err)
+
+	env.FlowExecutionParametersAddress = executionParametersAddress.String()
 
 	// deploy the ServiceAccount contract
 	serviceAccountCode := contracts.FlowServiceAccount(

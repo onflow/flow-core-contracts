@@ -28,6 +28,7 @@ import (
 const (
 	flowFeesFilename                = "FlowFees.cdc"
 	storageFeesFilename             = "FlowStorageFees.cdc"
+	executionParametersFilename     = "FlowExecutionParameters.cdc"
 	flowServiceAccountFilename      = "FlowServiceAccount.cdc"
 	flowTokenFilename               = "FlowToken.cdc"
 	flowIdentityTableFilename       = "FlowIDTableStaking.cdc"
@@ -171,12 +172,50 @@ func FlowStorageFees(env templates.Environment) []byte {
 	return []byte(code)
 }
 
+// FlowExecutionParameters returns the FlowExecutionParameters contract
+func FlowExecutionParameters(env templates.Environment) []byte {
+	code := assets.MustAssetString(executionParametersFilename)
+
+	code = templates.ReplaceAddresses(code, env)
+
+	return []byte(code)
+}
+
 // FlowServiceAccount returns the FlowServiceAccount contract.
 //
 // The returned contract will import the FungibleToken, FlowToken, FlowFees, and FlowStorageFees
 // contracts from the specified addresses.
 func FlowServiceAccount(env templates.Environment) []byte {
 	code := assets.MustAssetString(flowServiceAccountFilename)
+
+	if env.FlowExecutionParametersAddress == "" {
+
+		// Remove the import of FlowExecutionParameters
+		code = strings.ReplaceAll(
+			code,
+			"import FlowExecutionParameters from \"FlowExecutionParameters\"",
+			"//import FlowExecutionParameters from \"FlowExecutionParameters\"",
+		)
+
+		// Replace the metering getter functions
+		code = strings.ReplaceAll(
+			code,
+			"return FlowExecutionParameters.getExecutionEffortWeights()",
+			"return self.account.storage.copy<{UInt64: UInt64}>(from: /storage/executionEffortWeights) ?? panic(\"execution effort weights not set yet\")",
+		)
+
+		code = strings.ReplaceAll(
+			code,
+			"return FlowExecutionParameters.getExecutionMemoryWeights()",
+			"return self.account.storage.copy<{UInt64: UInt64}>(from: /storage/executionMemoryWeights) ?? panic(\"execution memory weights not set yet\")",
+		)
+
+		code = strings.ReplaceAll(
+			code,
+			"return FlowExecutionParameters.getExecutionMemoryLimit()",
+			"return self.account.storage.copy<UInt64>(from: /storage/executionMemoryLimit) ?? panic(\"execution memory limit not set yet\")",
+		)
+	}
 
 	code = templates.ReplaceAddresses(code, env)
 
