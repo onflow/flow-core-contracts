@@ -1,5 +1,5 @@
 import FlowDKG from "FlowDKG"
 
-pub fun main():  {Int: UInt64} {
+access(all) fun main():  {Int: UInt64} {
     return FlowDKG.getFinalSubmissionCount()
 }

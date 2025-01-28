@@ -1,6 +1,7 @@
 import Test
 import BlockchainHelpers
 
+// Account 7 is where new contracts are deployed by default
 access(all) let admin = Test.getAccount(0x0000000000000007)
 
 access(all)
