@@ -122,8 +122,6 @@ access(all) contract FlowIDTableStaking {
         access(all) var networkingKey: String
         access(all) var stakingKey: String
 
-        /// TODO: Proof of Possession (PoP) of the staking private key
-
         /// The total tokens that only this node currently has staked, not including delegators
         /// This value must always be above the minimum requirement to stay staked or accept delegators
         access(mapping Identity) var tokensStaked: @FlowToken.Vault
@@ -160,6 +158,7 @@ access(all) contract FlowIDTableStaking {
             networkingAddress: String,
             networkingKey: String,
             stakingKey: String,
+            stakingKeyPoP: String,
             tokensCommitted: @{FungibleToken.Vault}
         ) {
             pre {
@@ -180,12 +179,19 @@ access(all) contract FlowIDTableStaking {
                 signatureAlgorithm: SignatureAlgorithm.BLS_BLS12_381
             )
 
+            // Verify the proof of possesion of the private staking key
+            assert(
+                stakeKey.verifyPoP(stakingKeyPoP.decodeHex()),
+                message: 
+                    "FlowIDTableStaking.NodeRecord.init: Cannot create node with ID "
+                    .concat(id).concat(". The Proof of Possession (").concat(stakingKeyPoP)
+                    .concat(") for the node's staking key (").concat(") is invalid")
+            )
+
             let netKey = PublicKey(
                 publicKey: networkingKey.decodeHex(),
                 signatureAlgorithm: SignatureAlgorithm.ECDSA_P256
             )
-
-            // TODO: Verify the provided Proof of Possession of the staking private key
 
             self.id = id
             self.role = role
@@ -1554,6 +1560,7 @@ access(all) contract FlowIDTableStaking {
                           networkingAddress: String,
                           networkingKey: String,
                           stakingKey: String,
+                          stakingKeyPoP: String,
                           tokensCommitted: @{FungibleToken.Vault}): @NodeStaker
     {
         assert (
@@ -1566,6 +1573,7 @@ access(all) contract FlowIDTableStaking {
                                          networkingAddress: networkingAddress,
                                          networkingKey: networkingKey,
                                          stakingKey: stakingKey,
+                                         stakingKeyPoP: stakingKeyPoP,
                                          tokensCommitted: <-FlowToken.createEmptyVault(vaultType: Type<@FlowToken.Vault>()))
 
         let minimum = self.minimumStakeRequired[role]!

@@ -128,7 +128,11 @@ func generateManifest(env templates.Environment) *manifest {
 	}
 
 	sampleStakingKey := cadenceValue{
-		cadence.String("9e9ae0d645fd5fd9050792e0b0daa82cc1686d9133afa0f81a784b375c42ae48567d1545e7a9e1965f2c1a32f73cf8575ebb7a967f6e4d104d2df78eb8be409135d12da0499b8a00771f642c1b9c49397f22b440439f036c3bdee82f5309dab3"),
+		cadence.String("8dec36ed8a91e3e5d737b06434d94a8a561c7889495d6c7081cd5e123a42124415b9391c9b9aa165c2f71994bf9607cb0ea262ad162fec74146d1ebc482a33b9dad203d16a83bbfda89b3f6e1cd1d8fb2e704a162d259a0ac9f26bc8635d74f6"),
+	}
+
+	sampleStakingKeyPoP := cadenceValue{
+		cadence.String("828a68a2be392804044d85888100462702a422901da3269fb6512defabad07250aad24f232671e4ac8ae531f54e062fc"),
 	}
 
 	sampleNullOptional := cadenceValue{
@@ -442,7 +446,7 @@ func generateManifest(env templates.Environment) *manifest {
 	m.addTemplate(generateTemplate(
 		"SCO.03", "Register Node",
 		env,
-		templates.GenerateCollectionRegisterNode,
+		templates.GenerateCollectionRegisterNodeOld,
 		[]argument{
 			{
 				Type:         "String",
@@ -826,6 +830,74 @@ func generateManifest(env templates.Environment) *manifest {
 				Name:         "address",
 				Label:        "Address",
 				SampleValues: []cadenceValue{sampleNetworkingAddress},
+			},
+		},
+	))
+
+	m.addTemplate(generateTemplate(
+		"SCO.17", "Register Node",
+		env,
+		templates.GenerateCollectionRegisterNode,
+		[]argument{
+			{
+				Type:         "String",
+				Name:         "id",
+				Label:        "Node ID",
+				SampleValues: []cadenceValue{sampleNodeID},
+			},
+			{
+				Type:         "UInt8",
+				Name:         "role",
+				Label:        "Node Role",
+				SampleValues: []cadenceValue{sampleNodeRole},
+			},
+			{
+				Type:         "String",
+				Name:         "networkingAddress",
+				Label:        "Networking Address",
+				SampleValues: []cadenceValue{sampleNetworkingAddress},
+			},
+			{
+				Type:         "String",
+				Name:         "networkingKey",
+				Label:        "Networking Key",
+				SampleValues: []cadenceValue{sampleNetworkingKey},
+			},
+			{
+				Type:         "String",
+				Name:         "stakingKey",
+				Label:        "Staking Key",
+				SampleValues: []cadenceValue{sampleStakingKey},
+			},
+			{
+				Type:         "String",
+				Name:         "stakingKeyPoP",
+				Label:        "Staking Key PoP",
+				SampleValues: []cadenceValue{sampleStakingKeyPoP},
+			},
+			{
+				Type:         "UFix64",
+				Name:         "amount",
+				Label:        "Amount",
+				SampleValues: []cadenceValue{sampleAmount},
+			},
+			{
+				Type:         "String",
+				Name:         "machineAccountKey",
+				Label:        "Machine Account Public Key",
+				SampleValues: []cadenceValue{sampleKey},
+			},
+			{
+				Type:         "UInt8",
+				Name:         "machineAccountKeySignatureAlgorithm",
+				Label:        "Raw Value for Machine Account Signature Algorithm Enum",
+				SampleValues: []cadenceValue{sampleSigAlgoEnumRawValue},
+			},
+			{
+				Type:         "UInt8",
+				Name:         "machineAccountKeyHashAlgorithm",
+				Label:        "Raw Value for Machine Account Hash Algorithm Enum",
+				SampleValues: []cadenceValue{sampleHashAlgoEnumRawValue},
 			},
 		},
 	))

@@ -16,3 +16,4 @@ git
 coverage.json
 coverage.lcov
 flow.json
+lcov.info

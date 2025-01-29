@@ -421,6 +421,7 @@ access(all) contract FlowStakingCollection {
             networkingAddress: String,
             networkingKey: String,
             stakingKey: String,
+            stakingKeyPoP: String,
             amount: UFix64,
             payer: auth(BorrowValue) &Account
         ): auth(Storage, Capabilities, Contracts, Keys, Inbox) &Account? {
@@ -433,6 +434,7 @@ access(all) contract FlowStakingCollection {
                 networkingAddress: networkingAddress,
                 networkingKey: networkingKey,
                 stakingKey: stakingKey,
+                stakingKeyPoP: stakingKeyPoP,
                 tokensCommitted: <-tokens
             )
 

@@ -300,7 +300,7 @@ func TestIDTableRegistration(t *testing.T) {
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
 	idTableAddress, feesAddr := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, &env, true, []uint64{1, 1, 1, 1, 1})
-	_, adminStakingKey, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
+	_, adminStakingKey, adminStakingPOP, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
 	mintTokensForAccount(t, b, env, idTableAddress, "1000000000.0")
 
 	setNodeRoleSlotLimits(t, b, env, idTableAddress, IDTableSigner, [5]uint16{1, 1, 1, 1, 1})
@@ -310,19 +310,19 @@ func TestIDTableRegistration(t *testing.T) {
 
 	// Create new user accounts
 	joshAddress, _, joshSigner := newAccountWithAddress(b, accountKeys)
-	_, joshStakingKey, _, joshNetworkingKey := generateKeysForNodeRegistration(t)
+	_, joshStakingKey, joshStakingPOP, _, joshNetworkingKey := generateKeysForNodeRegistration(t)
 	mintTokensForAccount(t, b, env, joshAddress, "1000000000.0")
 
 	maxAddress, _, maxSigner := newAccountWithAddress(b, accountKeys)
-	_, maxStakingKey, _, maxNetworkingKey := generateKeysForNodeRegistration(t)
+	_, maxStakingKey, maxStakingPOP, _, maxNetworkingKey := generateKeysForNodeRegistration(t)
 	mintTokensForAccount(t, b, env, maxAddress, "1000000000.0")
 
 	bastianAddress, _, bastianSigner := newAccountWithAddress(b, accountKeys)
-	_, bastianStakingKey, _, bastianNetworkingKey := generateKeysForNodeRegistration(t)
+	_, bastianStakingKey, bastianStakingPOP, _, bastianNetworkingKey := generateKeysForNodeRegistration(t)
 	mintTokensForAccount(t, b, env, bastianAddress, "1000000000.0")
 
 	accessAddress, _, accessSigner := newAccountWithAddress(b, accountKeys)
-	_, accessStakingKey, _, accessNetworkingKey := generateKeysForNodeRegistration(t)
+	_, accessStakingKey, accessStakingPOP, _, accessNetworkingKey := generateKeysForNodeRegistration(t)
 	mintTokensForAccount(t, b, env, accessAddress, "1000000000.0")
 
 	committed := make(map[string]interpreter.UFix64Value)
@@ -339,6 +339,7 @@ func TestIDTableRegistration(t *testing.T) {
 			fmt.Sprintf("%0128d", admin),
 			adminNetworkingKey,
 			adminStakingKey,
+			adminStakingPOP,
 			amountToCommit,
 			committed[adminID],
 			1,
@@ -351,6 +352,7 @@ func TestIDTableRegistration(t *testing.T) {
 			fmt.Sprintf("%0128d", admin),
 			adminNetworkingKey,
 			adminStakingKey,
+			adminStakingPOP,
 			amountToCommit,
 			committed[adminID],
 			// Invalid Role: Greater than 5
@@ -364,6 +366,7 @@ func TestIDTableRegistration(t *testing.T) {
 			fmt.Sprintf("%0128d", admin),
 			adminNetworkingKey,
 			adminStakingKey,
+			adminStakingPOP,
 			amountToCommit,
 			committed[adminID],
 			// Invalid Role: Less than 1
@@ -378,6 +381,7 @@ func TestIDTableRegistration(t *testing.T) {
 			"",
 			adminNetworkingKey,
 			adminStakingKey,
+			adminStakingPOP,
 			amountToCommit,
 			committed[adminID],
 			1,
@@ -391,6 +395,7 @@ func TestIDTableRegistration(t *testing.T) {
 			// Invalid Networking Key: Length is correct, but not a valid ECDSA Key
 			fmt.Sprintf("%0128d", admin),
 			adminStakingKey,
+			adminStakingPOP,
 			amountToCommit,
 			committed[adminID],
 			1,
@@ -404,11 +409,25 @@ func TestIDTableRegistration(t *testing.T) {
 			adminNetworkingKey,
 			// Invalid Staking Key: Length is correct, but not a valid BLS Key
 			fmt.Sprintf("%0192d", admin),
+			adminStakingPOP,
 			amountToCommit,
 			committed[adminID],
 			1,
 			true)
 
+		registerNode(t, b, env,
+			idTableAddress,
+			IDTableSigner,
+			adminID,
+			fmt.Sprintf("%0128d", admin),
+			adminNetworkingKey,
+			adminStakingKey,
+			// Invalid Staking Key POP: Length is correct, but not a valid POP
+			fmt.Sprintf("%096d", admin),
+			amountToCommit,
+			committed[adminID],
+			1,
+			true)
 	})
 
 	t.Run("Should be able to create a valid Node struct and not create duplicates", func(t *testing.T) {
@@ -422,6 +441,7 @@ func TestIDTableRegistration(t *testing.T) {
 			fmt.Sprintf("%0128d", admin),
 			adminNetworkingKey,
 			adminStakingKey,
+			adminStakingPOP,
 			amountToCommit,
 			committed[adminID],
 			1,
@@ -461,6 +481,7 @@ func TestIDTableRegistration(t *testing.T) {
 			fmt.Sprintf("%0128d", josh),
 			joshNetworkingKey,
 			joshStakingKey,
+			joshStakingPOP,
 			amountToCommit,
 			committed[adminID],
 			1,
@@ -474,6 +495,7 @@ func TestIDTableRegistration(t *testing.T) {
 			fmt.Sprintf("%0128d", admin),
 			joshNetworkingKey,
 			joshStakingKey,
+			joshStakingPOP,
 			amountToCommit,
 			committed[adminID],
 			1,
@@ -487,6 +509,7 @@ func TestIDTableRegistration(t *testing.T) {
 			// Invalid: first admin networking key is already in use
 			adminNetworkingKey,
 			joshStakingKey,
+			joshStakingPOP,
 			amountToCommit,
 			committed[adminID],
 			1,
@@ -500,6 +523,7 @@ func TestIDTableRegistration(t *testing.T) {
 			joshNetworkingKey,
 			// Invalid: first admin stake key is already in use
 			adminStakingKey,
+			joshStakingPOP,
 			amountToCommit,
 			committed[adminID],
 			1,
@@ -599,6 +623,7 @@ func TestIDTableRegistration(t *testing.T) {
 			fmt.Sprintf("%0128d", josh),
 			joshNetworkingKey,
 			joshStakingKey,
+			joshStakingPOP,
 			amountToCommit,
 			committed[joshID],
 			2,
@@ -616,6 +641,7 @@ func TestIDTableRegistration(t *testing.T) {
 			fmt.Sprintf("%0128d", max),
 			maxNetworkingKey,
 			maxStakingKey,
+			maxStakingPOP,
 			amountToCommit,
 			committed[maxID],
 			3,
@@ -630,6 +656,7 @@ func TestIDTableRegistration(t *testing.T) {
 			fmt.Sprintf("%0128d", access),
 			accessNetworkingKey,
 			accessStakingKey,
+			accessStakingPOP,
 			amountToCommit,
 			committed[accessID],
 			5,
@@ -652,6 +679,7 @@ func TestIDTableRegistration(t *testing.T) {
 			fmt.Sprintf("%0128d", bastian),
 			bastianNetworkingKey,
 			bastianStakingKey,
+			bastianStakingPOP,
 			amountToCommit,
 			committed[bastianID],
 			5,
@@ -689,6 +717,7 @@ func TestIDTableRegistration(t *testing.T) {
 			fmt.Sprintf("%0128d", bastian),
 			bastianNetworkingKey,
 			bastianStakingKey,
+			bastianStakingPOP,
 			amountToCommit,
 			committed[bastianID],
 			5,
@@ -763,16 +792,16 @@ func TestIDTableApprovals(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	_, adminStakingKey, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
+	_, adminStakingKey, adminStakingPOP, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
 	idTableAddress, feesAddr := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, &env, true, []uint64{3, 3, 3, 3, 3})
 	mintTokensForAccount(t, b, env, idTableAddress, "1000000000.0")
 
 	accessAddress, _, accessSigner := newAccountWithAddress(b, accountKeys)
-	_, accessStakingKey, _, accessNetworkingKey := generateKeysForNodeRegistration(t)
+	_, accessStakingKey, accessStakingPOP, _, accessNetworkingKey := generateKeysForNodeRegistration(t)
 	mintTokensForAccount(t, b, env, accessAddress, "1000000000.0")
 
 	joshAddress, _, joshSigner := newAccountWithAddress(b, accountKeys)
-	_, joshStakingKey, _, joshNetworkingKey := generateKeysForNodeRegistration(t)
+	_, joshStakingKey, joshStakingPOP, _, joshNetworkingKey := generateKeysForNodeRegistration(t)
 	mintTokensForAccount(t, b, env, joshAddress, "1000000000.0")
 
 	env.IDTableAddress = idTableAddress.Hex()
@@ -788,6 +817,7 @@ func TestIDTableApprovals(t *testing.T) {
 		fmt.Sprintf("%0128d", admin),
 		adminNetworkingKey,
 		adminStakingKey,
+		adminStakingPOP,
 		amountToCommit,
 		committed[adminID],
 		1,
@@ -820,6 +850,7 @@ func TestIDTableApprovals(t *testing.T) {
 		fmt.Sprintf("%0128d", access),
 		accessNetworkingKey,
 		accessStakingKey,
+		accessStakingPOP,
 		amountToCommit,
 		committed[accessID],
 		5,
@@ -833,6 +864,7 @@ func TestIDTableApprovals(t *testing.T) {
 		fmt.Sprintf("%0128d", josh),
 		joshNetworkingKey,
 		joshStakingKey,
+		joshStakingPOP,
 		amountToCommit,
 		committed[joshID],
 		5,
@@ -1057,7 +1089,7 @@ func TestIDTableStaking(t *testing.T) {
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
-	_, adminStakingKey, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
+	_, adminStakingKey, adminStakingPOP, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
 	idTableAddress, feesAddr := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, &env, true, []uint64{3, 3, 3, 3, 3})
 	mintTokensForAccount(t, b, env, idTableAddress, "1000000000.0")
 
@@ -1075,19 +1107,19 @@ func TestIDTableStaking(t *testing.T) {
 
 	// Create new user accounts
 	joshAddress, _, joshSigner := newAccountWithAddress(b, accountKeys)
-	_, joshStakingKey, _, joshNetworkingKey := generateKeysForNodeRegistration(t)
+	_, joshStakingKey, joshStakingPOP, _, joshNetworkingKey := generateKeysForNodeRegistration(t)
 	mintTokensForAccount(t, b, env, joshAddress, "1000000000.0")
 
 	maxAddress, _, maxSigner := newAccountWithAddress(b, accountKeys)
-	_, maxStakingKey, _, maxNetworkingKey := generateKeysForNodeRegistration(t)
+	_, maxStakingKey, maxStakingPOP, _, maxNetworkingKey := generateKeysForNodeRegistration(t)
 	mintTokensForAccount(t, b, env, maxAddress, "1000000000.0")
 
 	bastianAddress, _, bastianSigner := newAccountWithAddress(b, accountKeys)
-	_, bastianStakingKey, _, bastianNetworkingKey := generateKeysForNodeRegistration(t)
+	_, bastianStakingKey, bastianStakingPOP, _, bastianNetworkingKey := generateKeysForNodeRegistration(t)
 	mintTokensForAccount(t, b, env, bastianAddress, "1000000000.0")
 
 	accessAddress, _, accessSigner := newAccountWithAddress(b, accountKeys)
-	_, accessStakingKey, _, accessNetworkingKey := generateKeysForNodeRegistration(t)
+	_, accessStakingKey, accessStakingPOP, _, accessNetworkingKey := generateKeysForNodeRegistration(t)
 	mintTokensForAccount(t, b, env, accessAddress, "1000000000.0")
 
 	// Create new delegator user accounts
@@ -1112,6 +1144,7 @@ func TestIDTableStaking(t *testing.T) {
 		fmt.Sprintf("%0128d", admin),
 		adminNetworkingKey,
 		adminStakingKey,
+		adminStakingPOP,
 		amountToCommit,
 		committed[adminID],
 		1,
@@ -1138,6 +1171,7 @@ func TestIDTableStaking(t *testing.T) {
 		fmt.Sprintf("%0128d", josh),
 		joshNetworkingKey,
 		joshStakingKey,
+		joshStakingPOP,
 		amountToCommit,
 		committed[joshID],
 		2,
@@ -1152,6 +1186,7 @@ func TestIDTableStaking(t *testing.T) {
 		fmt.Sprintf("%0128d", max),
 		maxNetworkingKey,
 		maxStakingKey,
+		maxStakingPOP,
 		amountToCommit,
 		committed[maxID],
 		3,
@@ -1166,6 +1201,7 @@ func TestIDTableStaking(t *testing.T) {
 		fmt.Sprintf("%0128d", access),
 		accessNetworkingKey,
 		accessStakingKey,
+		accessStakingPOP,
 		amountToCommit,
 		committed[accessID],
 		5,
@@ -2180,6 +2216,7 @@ func TestIDTableStaking(t *testing.T) {
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", bastian)))
 		_ = tx.AddArgument(CadenceString(bastianNetworkingKey))
 		_ = tx.AddArgument(CadenceString(bastianStakingKey))
+		_ = tx.AddArgument(CadenceString(bastianStakingPOP))
 		_ = tx.AddArgument(CadenceUFix64("1400000.0"))
 
 		signAndSubmit(
@@ -2863,7 +2900,7 @@ func TestIDTableDelegatorMinimums(t *testing.T) {
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
 	idTableAddress, _ := deployStakingContract(t, b, IDTableAccountKey, IDTableSigner, &env, true, []uint64{10, 10, 10, 10, 3})
-	_, adminStakingKey, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
+	_, adminStakingKey, adminStakingPOP, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
 	mintTokensForAccount(t, b, env, idTableAddress, "1000000.0")
 
 	// Create new user accounts and generate staking info
@@ -2882,6 +2919,7 @@ func TestIDTableDelegatorMinimums(t *testing.T) {
 		fmt.Sprintf("%0128d", admin),
 		adminNetworkingKey,
 		adminStakingKey,
+		adminStakingPOP,
 		amountToCommit,
 		amountToCommit,
 		1,
@@ -3038,19 +3076,19 @@ func TestIDTableSlotSelection(t *testing.T) {
 	// Create new user accounts and generate staking info
 	access1Address, _, access1Signer := newAccountWithAddress(b, accountKeys)
 	mintTokensForAccount(t, b, env, access1Address, "1000000.0")
-	_, access1StakingKey, _, access1NetworkingKey := generateKeysForNodeRegistration(t)
+	_, access1StakingKey, access1StakingPOP, _, access1NetworkingKey := generateKeysForNodeRegistration(t)
 
 	access2Address, _, access2Signer := newAccountWithAddress(b, accountKeys)
 	mintTokensForAccount(t, b, env, access2Address, "1000000.0")
-	_, access2StakingKey, _, access2NetworkingKey := generateKeysForNodeRegistration(t)
+	_, access2StakingKey, access2StakingPOP, _, access2NetworkingKey := generateKeysForNodeRegistration(t)
 
 	access3Address, _, access3Signer := newAccountWithAddress(b, accountKeys)
 	mintTokensForAccount(t, b, env, access3Address, "1000000.0")
-	_, access3StakingKey, _, access3NetworkingKey := generateKeysForNodeRegistration(t)
+	_, access3StakingKey, access3StakingPOP, _, access3NetworkingKey := generateKeysForNodeRegistration(t)
 
 	access4Address, _, access4Signer := newAccountWithAddress(b, accountKeys)
 	mintTokensForAccount(t, b, env, access4Address, "1000000.0")
-	_, access4StakingKey, _, access4NetworkingKey := generateKeysForNodeRegistration(t)
+	_, access4StakingKey, access4StakingPOP, _, access4NetworkingKey := generateKeysForNodeRegistration(t)
 
 	t.Run("Should be able to set new slot limits", func(t *testing.T) {
 		// Set the Slot Limits to 2 for access nodes
@@ -3078,6 +3116,7 @@ func TestIDTableSlotSelection(t *testing.T) {
 		fmt.Sprintf("%0128d", admin),
 		access1NetworkingKey,
 		access1StakingKey,
+		access1StakingPOP,
 		amountToCommit,
 		amountToCommit,
 		5,
@@ -3091,6 +3130,7 @@ func TestIDTableSlotSelection(t *testing.T) {
 		fmt.Sprintf("%0128d", josh),
 		access2NetworkingKey,
 		access2StakingKey,
+		access2StakingPOP,
 		amountToCommit,
 		amountToCommit,
 		5,
@@ -3104,6 +3144,7 @@ func TestIDTableSlotSelection(t *testing.T) {
 		fmt.Sprintf("%0128d", max),
 		access3NetworkingKey,
 		access3StakingKey,
+		access3StakingPOP,
 		amountToCommit,
 		amountToCommit,
 		5,
@@ -3162,6 +3203,7 @@ func TestIDTableSlotSelection(t *testing.T) {
 		fmt.Sprintf("%0128d", bastian),
 		access4NetworkingKey,
 		access4StakingKey,
+		access4StakingPOP,
 		amountToCommit,
 		amountToCommit,
 		5,
@@ -3350,6 +3392,7 @@ func TestIDTableRewardsWitholding(t *testing.T) {
 	nodeSigners := make([]crypto.Signer, numNodes)
 	nodeAddresses := make([]flow.Address, numNodes)
 	nodeStakingKeys := make([]string, numNodes)
+	nodeStakingKeyPOPs := make([]string, numNodes)
 	nodeNetworkingKeys := make([]string, numNodes)
 	ids, _, _ := generateNodeIDs(numNodes)
 
@@ -3357,7 +3400,7 @@ func TestIDTableRewardsWitholding(t *testing.T) {
 	for i := 0; i < numNodes; i++ {
 		nodeKeys[i], nodeSigners[i] = accountKeys.NewWithSigner()
 		nodeAddresses[i], _ = adapter.CreateAccount(context.Background(), []*flow.AccountKey{nodeKeys[i]}, nil)
-		_, nodeStakingKeys[i], _, nodeNetworkingKeys[i] = generateKeysForNodeRegistration(t)
+		_, nodeStakingKeys[i], nodeStakingKeyPOPs[i], _, nodeNetworkingKeys[i] = generateKeysForNodeRegistration(t)
 	}
 
 	// Create arrays for the delegator account information
@@ -3388,6 +3431,7 @@ func TestIDTableRewardsWitholding(t *testing.T) {
 			fmt.Sprintf("%0128s", ids[i]),
 			nodeNetworkingKeys[i],
 			nodeStakingKeys[i],
+			nodeStakingKeyPOPs[i],
 			amountToCommit,
 			committed[ids[i]],
 			1,
