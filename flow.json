@@ -107,6 +107,12 @@
 				"testnet": "9a0766d93b6608b7"
 			}
 		},
+		"LinearCodeAddressGenerator": {
+			"source": "./contracts/LinearCodeAddressGenerator.cdc",
+			"aliases": {
+				"testing": "0x0000000000000007"
+			}
+		},
 		"LockedTokens": {
 			"source": "./contracts/LockedTokens.cdc",
 			"aliases": {
