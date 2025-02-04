@@ -7,7 +7,7 @@ import (
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
-	"github.com/onflow/cadence/runtime/interpreter"
+	"github.com/onflow/cadence/interpreter"
 	"github.com/onflow/flow-core-contracts/lib/go/contracts"
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
 	"github.com/onflow/flow-emulator/adapters"
