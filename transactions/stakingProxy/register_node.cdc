@@ -1,5 +1,5 @@
-import LockedTokens from "LockedTokens"
-import StakingProxy from "StakingProxy"
+import "LockedTokens"
+import "StakingProxy"
 
 transaction(address: Address, id: String, amount: UFix64) {
 

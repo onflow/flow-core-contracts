@@ -1,5 +1,5 @@
 import Crypto
-import FlowStakingCollection from "FlowStakingCollection"
+import "FlowStakingCollection"
 
 /// Creates a machine account for a node that is already in the staking collection
 /// and adds public keys to the new account

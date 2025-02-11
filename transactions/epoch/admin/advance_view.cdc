@@ -1,5 +1,4 @@
-import FlowEpoch from "FlowEpoch"
-import FlowIDTableStaking from "FlowIDTableStaking"
+import "FlowEpoch"
 
 transaction(phase: String) {
     prepare(signer: auth(BorrowValue) &Account) {

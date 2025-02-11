@@ -1,4 +1,4 @@
-import FlowDKG from "FlowDKG"
+import "FlowDKG"
 
 // Used by DKG participants to submit their final submission for the current DKG instance.
 // This transaction is used when the participant locally passed the DKG process.

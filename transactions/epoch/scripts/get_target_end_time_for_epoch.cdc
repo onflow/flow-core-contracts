@@ -1,4 +1,4 @@
-import FlowEpoch from "FlowEpoch"
+import "FlowEpoch"
 
 access(all) fun main(targetEpoch: UInt64): UInt64 {
     pre {

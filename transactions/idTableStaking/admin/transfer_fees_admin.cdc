@@ -1,4 +1,4 @@
-import FlowFees from "FlowFees"
+import "FlowFees"
 
 transaction {
 

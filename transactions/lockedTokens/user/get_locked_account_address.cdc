@@ -1,4 +1,4 @@
-import LockedTokens from "LockedTokens"
+import "LockedTokens"
 
 access(all) fun main(account: Address): Address {
 

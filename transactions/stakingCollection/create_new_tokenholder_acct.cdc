@@ -1,8 +1,8 @@
 import Crypto
-import FlowToken from "FlowToken"
-import FungibleToken from "FungibleToken"
-import LockedTokens from "LockedTokens"
-import FlowStakingCollection from "FlowStakingCollection"
+import "FlowToken"
+import "FungibleToken"
+import "LockedTokens"
+import "FlowStakingCollection"
 
 // This transaction allows the controller of the locked account
 // to create a new LockedTokens.TokenHolder object and store it in a new account
