@@ -1,4 +1,4 @@
-import NodeVersionBeacon from "NodeVersionBeacon"
+import "NodeVersionBeacon"
 
 /// Transaction that allows NodeVersionAdmin to change
 /// the defined versionUpdateBuffer

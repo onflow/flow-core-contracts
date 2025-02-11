@@ -1,4 +1,4 @@
-import FlowIDTableStaking from "FlowIDTableStaking"
+import "FlowIDTableStaking"
 
 /// This transaction changes the limit of new nodes that can be candidates
 /// for the next epoch

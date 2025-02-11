@@ -1,4 +1,4 @@
-import NodeVersionBeacon from "NodeVersionBeacon"
+import "NodeVersionBeacon"
 
 /// Gets the current version defined in the versionTable
 /// as a String.

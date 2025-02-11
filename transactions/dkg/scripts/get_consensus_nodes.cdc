@@ -1,4 +1,4 @@
-import FlowDKG from "FlowDKG"
+import "FlowDKG"
 
 access(all) fun main(): [String] {
     return FlowDKG.getConsensusNodeIDs()

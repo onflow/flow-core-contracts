@@ -16,11 +16,18 @@ const (
 
 func TestFlowTokenContract(t *testing.T) {
 	env := templates.Environment{
-		FungibleTokenAddress: fakeAddr,
-		ViewResolverAddress:  fakeAddr,
-		BurnerAddress:        fakeAddr,
+		FungibleTokenAddress:              fakeAddr,
+		FungibleTokenMetadataViewsAddress: fakeAddr,
+		MetadataViewsAddress:              fakeAddr,
+		ViewResolverAddress:               fakeAddr,
+		BurnerAddress:                     fakeAddr,
 	}
 	contract := contracts.FlowToken(env)
+	assert.NotContains(t, string(contract), "import \"")
+	assert.NotContains(t, string(contract), "import 0x")
+	assert.Contains(t, string(contract), "import FungibleToken from 0x")
+	assert.Contains(t, string(contract), "import FungibleTokenMetadataViews from 0x")
+	assert.Contains(t, string(contract), "import MetadataViews from 0x")
 	assert.NotNil(t, contract)
 }
 

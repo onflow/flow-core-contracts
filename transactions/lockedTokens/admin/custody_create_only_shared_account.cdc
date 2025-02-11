@@ -1,7 +1,7 @@
 import Crypto
-import FlowToken from "FlowToken"
-import FungibleToken from "FungibleToken"
-import LockedTokens from "LockedTokens"
+import "FlowToken"
+import "FungibleToken"
+import "LockedTokens"
 
 /// Transaction that a custody provider would sign
 /// to create a shared account for a user who already

@@ -1,4 +1,4 @@
-import StakingProxy from "StakingProxy"
+import "StakingProxy"
 
 transaction(nodeID: String, amount: UFix64) {
 

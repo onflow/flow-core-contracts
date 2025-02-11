@@ -1,4 +1,4 @@
-import FlowIDTableStaking from "FlowIDTableStaking"
+import "FlowIDTableStaking"
 
 access(all) fun main(): UFix64 {
     let stakedTokens = FlowIDTableStaking.getTotalTokensStakedByNodeType()

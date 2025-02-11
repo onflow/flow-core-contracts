@@ -1,6 +1,6 @@
-import LockedTokens from "LockedTokens"
-import StakingProxy from "StakingProxy"
-import FungibleToken from "FungibleToken"
+import "LockedTokens"
+import "StakingProxy"
+import "FungibleToken"
 
 transaction(amount: UFix64) {
 

@@ -1,4 +1,4 @@
-import FlowDKG from "FlowDKG"
+import "FlowDKG"
 
 transaction(address: Address, nodeID: String) {
 

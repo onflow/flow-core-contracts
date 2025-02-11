@@ -1,4 +1,4 @@
-import FlowIDTableStaking from "FlowIDTableStaking"
+import "FlowIDTableStaking"
 
 // This transaction moves tokens between buckets
 

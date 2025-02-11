@@ -78,11 +78,13 @@ func withHexPrefix(address string) string {
 }
 
 func ReplaceAddress(code, placeholder, replacement string) string {
+	placeholderWithoutQuotes := placeholder[1 : len(placeholder)-1]
+
 	if len(replacement) > 0 {
 		code = strings.ReplaceAll(
 			code,
 			placeholder,
-			withHexPrefix(replacement),
+			placeholderWithoutQuotes+" from "+withHexPrefix(replacement),
 		)
 	}
 	return code
