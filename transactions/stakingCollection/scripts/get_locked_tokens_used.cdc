@@ -1,4 +1,4 @@
-import FlowStakingCollection from "FlowStakingCollection"
+import "FlowStakingCollection"
 
 /// Tells how many locked tokens the account is using
 /// For there staking collection nodes and delegators

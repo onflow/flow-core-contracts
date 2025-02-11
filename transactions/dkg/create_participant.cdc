@@ -1,4 +1,4 @@
-import FlowDKG from "FlowDKG"
+import "FlowDKG"
 
 // TODO: only used for testing
 

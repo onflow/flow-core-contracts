@@ -1,5 +1,5 @@
-import FlowEpoch from "FlowEpoch"
-import FlowIDTableStaking from "FlowIDTableStaking"
+import "FlowEpoch"
+import "FlowIDTableStaking"
 
 // The resetEpoch transaction ends the current epoch in the FlowEpoch smart contract
 // and begins a new epoch with the given configuration. The new epoch always has

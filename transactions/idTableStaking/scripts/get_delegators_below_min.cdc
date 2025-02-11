@@ -1,4 +1,4 @@
-import FlowIDTableStaking from "FlowIDTableStaking"
+import "FlowIDTableStaking"
 
 // This script finds all of a node's delegators who are staked above zero
 // but below the minimum of 50 FLOW and returns information about them

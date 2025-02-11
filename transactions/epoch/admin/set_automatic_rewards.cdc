@@ -1,4 +1,4 @@
-import FlowEpoch from "FlowEpoch"
+import "FlowEpoch"
 
 transaction(automaticRewardsEnabled: Bool) {
     prepare(signer: auth(BorrowValue) &Account) {
