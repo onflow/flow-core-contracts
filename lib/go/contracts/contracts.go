@@ -294,6 +294,10 @@ func FlowContractAudits() []byte {
 	return assets.MustAsset(flowContractAuditsFilename)
 }
 
+func Crypto() []byte {
+	return assets.MustAsset(cryptoFilename)
+}
+
 /******************** Test contracts *********************/
 
 // TESTFlowIDTableStaking returns the TestFlowIDTableStaking contract
@@ -359,8 +363,4 @@ func TestFlowFees(fungibleTokenAddress, flowTokenAddress, storageFeesAddress str
 	)
 
 	return []byte(code)
-}
-
-func Crypto() []byte {
-	return assets.MustAsset(cryptoFilename)
 }
