@@ -1,4 +1,4 @@
-import FlowIDTableStaking from "FlowIDTableStaking"
+import "FlowIDTableStaking"
 
 // This transaction uses a staking admin capability
 // to pay rewards, end the staking auction, and end the epoch.

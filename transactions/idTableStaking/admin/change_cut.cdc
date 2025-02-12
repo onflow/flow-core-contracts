@@ -1,4 +1,4 @@
-import FlowIDTableStaking from "FlowIDTableStaking"
+import "FlowIDTableStaking"
 
 // This transaction changes the flow token reward cut that nodes take from delegators
 

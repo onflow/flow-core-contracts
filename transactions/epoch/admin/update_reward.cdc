@@ -1,4 +1,4 @@
-import FlowEpoch from "FlowEpoch"
+import "FlowEpoch"
 
 transaction(newRewardAPY: UFix64) {
     prepare(signer: auth(BorrowValue) &Account) {

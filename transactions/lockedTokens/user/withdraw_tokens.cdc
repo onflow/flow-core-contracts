@@ -1,6 +1,6 @@
-import FungibleToken from "FungibleToken"
-import FlowToken from "FlowToken"
-import LockedTokens from "LockedTokens"
+import "FungibleToken"
+import "FlowToken"
+import "LockedTokens"
 
 transaction(amount: UFix64) {
 

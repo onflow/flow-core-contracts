@@ -1,4 +1,4 @@
-import FlowEpoch from "FlowEpoch"
+import "FlowEpoch"
 
 transaction(newStakingViews: UInt64) {
     prepare(signer: auth(BorrowValue) &Account) {

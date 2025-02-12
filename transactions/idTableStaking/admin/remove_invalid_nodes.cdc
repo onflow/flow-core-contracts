@@ -1,4 +1,4 @@
-import FlowIDTableStaking from "FlowIDTableStaking"
+import "FlowIDTableStaking"
 
 // This transaction ends the staking auction, which refunds nodes 
 // with insufficient stake

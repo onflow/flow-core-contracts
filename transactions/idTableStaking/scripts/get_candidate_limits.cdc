@@ -1,4 +1,4 @@
-import FlowIDTableStaking from "FlowIDTableStaking"
+import "FlowIDTableStaking"
 
 // This script returns the limits for candidate nodes for each role
 access(all) fun main(): {UInt8: UInt64} {

@@ -7,8 +7,8 @@
 
  */
 
-import FungibleToken from "FungibleToken"
-import FlowToken from "FlowToken"
+import "FungibleToken"
+import "FlowToken"
 // import Burner from "Burner"
 
 access(all) contract FlowIDTableStaking {

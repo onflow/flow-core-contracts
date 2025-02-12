@@ -1,4 +1,4 @@
-import FlowDKG from "FlowDKG"
+import "FlowDKG"
 
 access(all) struct Thresholds {
     access(all) let native: UInt64

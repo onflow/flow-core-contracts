@@ -1,6 +1,6 @@
-import FlowIDTableStaking from "FlowIDTableStaking"
-import FlowToken from "FlowToken"
-import FungibleToken from "FungibleToken"
+import "FlowIDTableStaking"
+import "FlowToken"
+import "FungibleToken"
 
 // This transaction creates a new node struct object
 // and updates the proposed Identity Table

@@ -1,4 +1,4 @@
-import FlowClusterQC from "FlowClusterQC"
+import "FlowClusterQC"
 
 // Test Transaction for a node to request a QC Voter Object from the contract
 // Will be updated to use the epoch contract when that is completed

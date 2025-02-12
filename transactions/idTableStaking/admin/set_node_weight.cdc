@@ -1,4 +1,4 @@
-import FlowIDTableStaking from "FlowIDTableStaking"
+import "FlowIDTableStaking"
 
 // This transaction sets the initialWeight of an existing node
 transaction(id: String, weight: UInt64) {

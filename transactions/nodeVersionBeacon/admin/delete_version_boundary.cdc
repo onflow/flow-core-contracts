@@ -1,4 +1,4 @@
-import NodeVersionBeacon from "NodeVersionBeacon"
+import "NodeVersionBeacon"
 
 /// Transaction that allows NodeVersionAdmin to delete the
 /// version boundary mapping in the versionTable at the specified

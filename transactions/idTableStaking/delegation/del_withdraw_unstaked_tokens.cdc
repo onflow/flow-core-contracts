@@ -1,5 +1,5 @@
-import FlowIDTableStaking from "FlowIDTableStaking"
-import FlowToken from "FlowToken"
+import "FlowIDTableStaking"
+import "FlowToken"
 
 
 transaction(amount: UFix64) {

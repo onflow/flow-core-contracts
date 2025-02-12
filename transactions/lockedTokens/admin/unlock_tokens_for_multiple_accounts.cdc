@@ -1,4 +1,4 @@
-import LockedTokens from "LockedTokens"
+import "LockedTokens"
 
 // This transaction uses the locked tokens admin
 // to set the unlock limit for multiple accounts

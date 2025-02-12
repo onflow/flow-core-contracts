@@ -111,6 +111,10 @@ func MetadataViews(env templates.Environment) []byte {
 	return nftcontracts.MetadataViews(env.FungibleTokenAddress, env.NonFungibleTokenAddress, env.ViewResolverAddress)
 }
 
+func CrossVMMetadataViews(env templates.Environment) []byte {
+	return nftcontracts.CrossVMMetadataViews(env.ViewResolverAddress, env.EVMAddress)
+}
+
 // FlowToken returns the FlowToken contract.
 //
 // The returned contract will import the FungibleToken contract from the specified address.
@@ -294,6 +298,10 @@ func FlowContractAudits() []byte {
 	return assets.MustAsset(flowContractAuditsFilename)
 }
 
+func Crypto() []byte {
+	return assets.MustAsset(cryptoFilename)
+}
+
 /******************** Test contracts *********************/
 
 // TESTFlowIDTableStaking returns the TestFlowIDTableStaking contract
@@ -359,8 +367,4 @@ func TestFlowFees(fungibleTokenAddress, flowTokenAddress, storageFeesAddress str
 	)
 
 	return []byte(code)
-}
-
-func Crypto() []byte {
-	return assets.MustAsset(cryptoFilename)
 }

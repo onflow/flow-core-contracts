@@ -10,15 +10,15 @@
 
  */
 
-import FungibleToken from "FungibleToken"
-import FlowToken from "FlowToken"
-import FlowIDTableStaking from "FlowIDTableStaking"
-import LockedTokens from "LockedTokens"
-import FlowStorageFees from "FlowStorageFees"
-import FlowClusterQC from "FlowClusterQC"
-import FlowDKG from "FlowDKG"
-import FlowEpoch from "FlowEpoch"
-import Burner from "Burner"
+import "FungibleToken"
+import "FlowToken"
+import "FlowIDTableStaking"
+import "LockedTokens"
+import "FlowStorageFees"
+import "FlowClusterQC"
+import "FlowDKG"
+import "FlowEpoch"
+import "Burner"
 
 access(all) contract FlowStakingCollection {
 

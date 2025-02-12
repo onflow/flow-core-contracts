@@ -1,4 +1,4 @@
-import StakingProxy from "StakingProxy"
+import "StakingProxy"
 
 access(all) fun main(account: Address, nodeID: String): StakingProxy.NodeInfo {
 

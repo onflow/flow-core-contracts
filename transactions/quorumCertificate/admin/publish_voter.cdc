@@ -1,4 +1,4 @@
-import FlowClusterQC from "FlowClusterQC"
+import "FlowClusterQC"
 
 // Test transaction for the QC admin to publish a reference
 // that allows accounts to register for QC voting

@@ -1,4 +1,4 @@
-import FlowEpoch from "FlowEpoch"
+import "FlowEpoch"
 
 transaction(dkgPhaseLen: UInt64, stakingLen: UInt64, epochLen: UInt64) {
     prepare(signer: auth(BorrowValue) &Account) {

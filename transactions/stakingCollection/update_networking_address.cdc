@@ -1,4 +1,4 @@
-import FlowStakingCollection from "FlowStakingCollection"
+import "FlowStakingCollection"
 
 /// Changes the networking address for the specified node
 

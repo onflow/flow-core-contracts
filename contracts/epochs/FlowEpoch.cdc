@@ -1,9 +1,9 @@
-import FungibleToken from "FungibleToken"
-import FlowToken from "FlowToken"
-import FlowIDTableStaking from "FlowIDTableStaking"
-import FlowClusterQC from "FlowClusterQC"
-import FlowDKG from "FlowDKG"
-import FlowFees from "FlowFees"
+import "FungibleToken"
+import "FlowToken"
+import "FlowIDTableStaking"
+import "FlowClusterQC"
+import "FlowDKG"
+import "FlowFees"
 
 // The top-level smart contract managing the lifecycle of epochs. In Flow,
 // epochs are the smallest unit of time where the identity table (the set of

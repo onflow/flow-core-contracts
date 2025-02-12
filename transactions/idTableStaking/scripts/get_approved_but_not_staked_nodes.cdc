@@ -1,4 +1,4 @@
-import FlowIDTableStaking from "FlowIDTableStaking"
+import "FlowIDTableStaking"
 
 // This script returns the list of nodes that are on the approved list but do not currently have tokens staked above the minimum requirement.
 access(all) fun main(): [String] {

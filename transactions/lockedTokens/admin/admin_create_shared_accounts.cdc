@@ -1,7 +1,7 @@
 import Crypto
-import FlowToken from "FlowToken"
-import FungibleToken from "FungibleToken"
-import LockedTokens from "LockedTokens"
+import "FlowToken"
+import "FungibleToken"
+import "LockedTokens"
 
 /// Transaction that the main token admin would sign
 /// to create a shared account and an unlocked

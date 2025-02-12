@@ -1,6 +1,6 @@
-import FlowEpoch from "FlowEpoch"
-import FlowIDTableStaking from "FlowIDTableStaking"
-import FlowDKG from "FlowDKG"
+import "FlowEpoch"
+import "FlowIDTableStaking"
+import "FlowDKG"
 
 transaction() {
 

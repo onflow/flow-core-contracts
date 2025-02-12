@@ -1,4 +1,4 @@
-import FlowServiceAccount from "FlowServiceAccount"
+import "FlowServiceAccount"
 
 access(all) fun main(): {UInt64: UInt64} {
     return FlowServiceAccount.getExecutionMemoryWeights()

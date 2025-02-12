@@ -1,4 +1,4 @@
-import NodeVersionBeacon from "NodeVersionBeacon"
+import "NodeVersionBeacon"
 
 /// Gets the current version defined in the contract's versionTable
 access(all) fun main(): NodeVersionBeacon.Semver {

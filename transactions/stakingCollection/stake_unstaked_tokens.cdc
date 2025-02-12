@@ -1,4 +1,4 @@
-import FlowStakingCollection from "FlowStakingCollection"
+import "FlowStakingCollection"
 
 /// Commits unstaked tokens to stake for the specified node or delegator in the staking collection
 

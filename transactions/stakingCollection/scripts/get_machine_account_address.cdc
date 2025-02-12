@@ -1,4 +1,4 @@
-import FlowStakingCollection from "FlowStakingCollection"
+import "FlowStakingCollection"
 
 /// Gets the machine account address for a specific node
 /// in an account's staking collection

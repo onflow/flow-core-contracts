@@ -1,4 +1,4 @@
-import FlowStakingCollection from "FlowStakingCollection"
+import "FlowStakingCollection"
 
 // Transfers a NodeDelegator object from an authorizers account
 // and adds the NodeDelegator to another accounts Staking Collection

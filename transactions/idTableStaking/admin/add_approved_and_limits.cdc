@@ -1,4 +1,4 @@
-import FlowIDTableStaking from "FlowIDTableStaking"
+import "FlowIDTableStaking"
 
 /// This transaction adds node IDs to the list of approved nodes in
 /// the ID table. 

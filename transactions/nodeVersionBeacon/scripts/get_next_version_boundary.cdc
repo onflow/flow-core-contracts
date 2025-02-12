@@ -1,4 +1,4 @@
-import NodeVersionBeacon from "NodeVersionBeacon"
+import "NodeVersionBeacon"
 
 /// Retrieves the next version boundary or nil
 /// if there is no upcoming version boundary defined

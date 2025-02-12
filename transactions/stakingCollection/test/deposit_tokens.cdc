@@ -1,7 +1,7 @@
-import FlowStakingCollection from "FlowStakingCollection"
-import FlowToken from "FlowToken"
-import FungibleToken from "FungibleToken"
-import LockedTokens from "LockedTokens"
+import "FlowStakingCollection"
+import "FlowToken"
+import "FungibleToken"
+import "LockedTokens"
 
 // Used only for test purposes to test the deposit token function in the staking collection
 

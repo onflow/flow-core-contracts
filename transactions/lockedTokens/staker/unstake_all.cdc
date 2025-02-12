@@ -1,5 +1,5 @@
-import LockedTokens from "LockedTokens"
-import FungibleToken from "FungibleToken"
+import "LockedTokens"
+import "FungibleToken"
 
 transaction() {
 

@@ -129,7 +129,7 @@ require (
 	github.com/onflow/bridged-usdc/lib/go/contracts v1.0.0 // indirect
 	github.com/onflow/flow-ft/lib/go/contracts v1.0.1 // indirect
 	github.com/onflow/flow-ft/lib/go/templates v1.0.1 // indirect
-	github.com/onflow/flow-nft/lib/go/contracts v1.2.2 // indirect
+	github.com/onflow/flow-nft/lib/go/contracts v1.2.3 // indirect
 	github.com/onflow/flow-nft/lib/go/templates v1.2.1 // indirect
 	github.com/onflow/flow/protobuf/go/flow v0.4.7 // indirect
 	github.com/onflow/go-ethereum v1.14.7 // indirect
@@ -213,7 +213,7 @@ require (
 	// replaced by module version in this repo - disregard pinned version
 	github.com/onflow/flow-core-contracts/lib/go/contracts v1.4.0
 	// replaced by module version in this repo - disregard pinned version
-	github.com/onflow/flow-core-contracts/lib/go/templates v1.4.1-0.20250121150329-3add9787ef8b
+	github.com/onflow/flow-core-contracts/lib/go/templates v1.5.1-0.20250211211929-30b3506dd97c
 )
 
 replace github.com/onflow/flow-core-contracts/lib/go/contracts => ../contracts
