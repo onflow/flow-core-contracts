@@ -111,6 +111,10 @@ func MetadataViews(env templates.Environment) []byte {
 	return nftcontracts.MetadataViews(env.FungibleTokenAddress, env.NonFungibleTokenAddress, env.ViewResolverAddress)
 }
 
+func CrossVMMetadataViews(env templates.Environment) []byte {
+	return nftcontracts.CrossVMMetadataViews(env.ViewResolverAddress, env.EVMAddress)
+}
+
 // FlowToken returns the FlowToken contract.
 //
 // The returned contract will import the FungibleToken contract from the specified address.
