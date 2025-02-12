@@ -129,7 +129,7 @@ require (
 	github.com/onflow/bridged-usdc/lib/go/contracts v1.0.0 // indirect
 	github.com/onflow/flow-ft/lib/go/contracts v1.0.1 // indirect
 	github.com/onflow/flow-ft/lib/go/templates v1.0.1 // indirect
-	github.com/onflow/flow-nft/lib/go/contracts v1.2.2 // indirect
+	github.com/onflow/flow-nft/lib/go/contracts v1.2.3-0.20250212001645-6970cef66408 // indirect
 	github.com/onflow/flow-nft/lib/go/templates v1.2.1 // indirect
 	github.com/onflow/flow/protobuf/go/flow v0.4.7 // indirect
 	github.com/onflow/go-ethereum v1.14.7 // indirect
