@@ -8,10 +8,9 @@ import (
 	"testing"
 
 	"github.com/onflow/cadence"
+	"github.com/onflow/cadence/common"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
-	"github.com/onflow/cadence/runtime/common"
-	cdcCommon "github.com/onflow/cadence/runtime/common"
-	"github.com/onflow/cadence/runtime/interpreter"
+	"github.com/onflow/cadence/interpreter"
 	"github.com/onflow/flow-emulator/adapters"
 	emulator "github.com/onflow/flow-emulator/emulator"
 	"github.com/onflow/flow-go-sdk"
@@ -891,8 +890,8 @@ func getCurrentEpochCounter(t *testing.T, b emulator.Emulator, env templates.Env
 // newClusterQCVoteDataCdcType returns a new (empty) FlowClusterQC cadence struct type.
 func newClusterQCVoteDataCdcType(clusterQcAddress string) *cadence.StructType {
 	// FlowClusterQC.ClusterQCVoteData
-	address, _ := cdcCommon.HexToAddress(clusterQcAddress)
-	location := cdcCommon.NewAddressLocation(nil, address, "FlowClusterQC")
+	address, _ := common.HexToAddress(clusterQcAddress)
+	location := common.NewAddressLocation(nil, address, "FlowClusterQC")
 
 	return cadence.NewStructType(location, "FlowClusterQC.ClusterQCVoteData",
 		[]cadence.Field{
