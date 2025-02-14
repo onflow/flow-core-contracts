@@ -81,11 +81,19 @@ func ReplaceAddress(code, placeholder, replacement string) string {
 	placeholderWithoutQuotes := placeholder[1 : len(placeholder)-1]
 
 	if len(replacement) > 0 {
-		code = strings.ReplaceAll(
-			code,
-			placeholder,
-			placeholderWithoutQuotes+" from "+withHexPrefix(replacement),
-		)
+		if strings.Contains(code, placeholderWithoutQuotes+" from "+placeholder) {
+			code = strings.ReplaceAll(
+				code,
+				placeholder,
+				withHexPrefix(replacement),
+			)
+		} else {
+			code = strings.ReplaceAll(
+				code,
+				placeholder,
+				placeholderWithoutQuotes+" from "+withHexPrefix(replacement),
+			)
+		}
 	}
 	return code
 }

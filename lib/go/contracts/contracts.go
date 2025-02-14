@@ -193,12 +193,11 @@ func FlowServiceAccount(env templates.Environment) []byte {
 	code := assets.MustAssetString(flowServiceAccountFilename)
 
 	if env.FlowExecutionParametersAddress == "" {
-
 		// Remove the import of FlowExecutionParameters
 		code = strings.ReplaceAll(
 			code,
-			"import FlowExecutionParameters from \"FlowExecutionParameters\"",
-			"//import FlowExecutionParameters from \"FlowExecutionParameters\"",
+			"import \"FlowExecutionParameters\"",
+			"//import \"FlowExecutionParameters\"",
 		)
 
 		// Replace the metering getter functions
@@ -328,16 +327,20 @@ func TESTFlowStakingCollection(
 ) []byte {
 	code := assets.MustAssetString(flowStakingCollectionFilename)
 
-	code = strings.ReplaceAll(code, placeholderFungibleTokenAddress, withHexPrefix(fungibleTokenAddress))
-	code = strings.ReplaceAll(code, placeholderBurnerAddress, withHexPrefix(storageFeesAddress))
-	code = strings.ReplaceAll(code, placeholderFlowTokenAddress, withHexPrefix(flowTokenAddress))
-	code = strings.ReplaceAll(code, placeholderIDTableAddress, withHexPrefix(idTableAddress))
-	code = strings.ReplaceAll(code, placeholderStakingProxyAddress, withHexPrefix(stakingProxyAddress))
-	code = strings.ReplaceAll(code, placeholderLockedTokensAddress, withHexPrefix(lockedTokensAddress))
-	code = strings.ReplaceAll(code, placeholderStorageFeesAddress, withHexPrefix(storageFeesAddress))
-	code = strings.ReplaceAll(code, placeholderQCAddr, withHexPrefix(qcAddress))
-	code = strings.ReplaceAll(code, placeholderDKGAddr, withHexPrefix(dkgAddress))
-	code = strings.ReplaceAll(code, placeholderEpochAddr, withHexPrefix(epochAddress))
+	env := templates.Environment{
+		FungibleTokenAddress:     fungibleTokenAddress,
+		FlowTokenAddress:         flowTokenAddress,
+		IDTableAddress:           idTableAddress,
+		StakingProxyAddress:      stakingProxyAddress,
+		LockedTokensAddress:      lockedTokensAddress,
+		StorageFeesAddress:       storageFeesAddress,
+		QuorumCertificateAddress: qcAddress,
+		DkgAddress:               dkgAddress,
+		EpochAddress:             epochAddress,
+		BurnerAddress:            storageFeesAddress,
+	}
+
+	code = templates.ReplaceAddresses(code, env)
 
 	code = strings.ReplaceAll(code, "access(self) fun getTokens", "access(all) fun getTokens")
 	code = strings.ReplaceAll(code, "access(self) fun depositTokens", "access(all) fun depositTokens")
@@ -348,23 +351,13 @@ func TESTFlowStakingCollection(
 func TestFlowFees(fungibleTokenAddress, flowTokenAddress, storageFeesAddress string) []byte {
 	code := assets.MustAssetString(flowFeesFilename)
 
-	code = strings.ReplaceAll(
-		code,
-		placeholderFungibleTokenAddress,
-		withHexPrefix(fungibleTokenAddress),
-	)
+	env := templates.Environment{
+		FungibleTokenAddress: fungibleTokenAddress,
+		FlowTokenAddress:     flowTokenAddress,
+		StorageFeesAddress:   storageFeesAddress,
+	}
 
-	code = strings.ReplaceAll(
-		code,
-		placeholderFlowTokenAddress,
-		withHexPrefix(flowTokenAddress),
-	)
-
-	code = strings.ReplaceAll(
-		code,
-		placeholderStorageFeesAddress,
-		withHexPrefix(storageFeesAddress),
-	)
+	code = templates.ReplaceAddresses(code, env)
 
 	return []byte(code)
 }
