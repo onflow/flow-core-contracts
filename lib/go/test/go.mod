@@ -211,9 +211,9 @@ require (
 
 require (
 	// replaced by module version in this repo - disregard pinned version
-	github.com/onflow/flow-core-contracts/lib/go/contracts v1.4.0
+	github.com/onflow/flow-core-contracts/lib/go/contracts v1.5.1-preview
 	// replaced by module version in this repo - disregard pinned version
-	github.com/onflow/flow-core-contracts/lib/go/templates v1.5.1-0.20250211211929-30b3506dd97c
+	github.com/onflow/flow-core-contracts/lib/go/templates v1.5.1-preview
 )
 
 replace github.com/onflow/flow-core-contracts/lib/go/contracts => ../contracts
