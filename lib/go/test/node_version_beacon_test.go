@@ -12,14 +12,15 @@ import (
 
 	"github.com/coreos/go-semver/semver"
 	"github.com/onflow/cadence"
-	"github.com/onflow/flow-core-contracts/lib/go/contracts"
-	"github.com/onflow/flow-core-contracts/lib/go/templates"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
 	sdktemplates "github.com/onflow/flow-go-sdk/templates"
 	"github.com/onflow/flow-go-sdk/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/onflow/flow-core-contracts/lib/go/contracts"
+	"github.com/onflow/flow-core-contracts/lib/go/templates"
 )
 
 func deployContract(b emulator.Emulator, address flow.Address, signer crypto.Signer, contract sdktemplates.Contract, args []cadence.Value) error {
@@ -179,6 +180,33 @@ func TestNodeVersionBeacon(t *testing.T) {
 		require.Equal(t, versionMinor, uint8(version.Minor))
 		require.Equal(t, versionPatch, uint8(version.Patch))
 	})
+
+	t.Run("Should be able to set new protocol state version", func(t *testing.T) {
+
+		changeTx := createTxWithTemplateAndAuthorizer(b,
+			templates.GenerateSetProtocolStateVersionScript(env),
+			versionBeaconAddress)
+
+		newProtocolVersion := uint64(2)
+		err = changeTx.AddArgument(CadenceUInt64(newProtocolVersion))
+		require.NoError(t, err)
+		activeView := uint64(1000)
+		err = changeTx.AddArgument(CadenceUInt64(activeView))
+		require.NoError(t, err)
+
+		txChangeResults := signAndSubmit(
+			t, b, changeTx,
+			[]flow.Address{versionBeaconAddress},
+			[]crypto.Signer{versionBeaconSigner},
+			false,
+		)
+		// The service event is immediately emitted within the governance transaction
+		assert.Len(t, txChangeResults.Events, 1)
+		assert.Empty(t, txChangeResults.Error)
+		event := ProtocolStateVersionUpgradeEvent(txChangeResults.Events[0])
+		assert.Equal(t, newProtocolVersion, event.NewProtocolVersion())
+		assert.Equal(t, activeView, event.ActiveView())
+	})
 }
 
 type VersionBeaconEvent flow.Event
@@ -208,4 +236,14 @@ func (v VersionBeaconEvent) VersionTable() (ret []struct {
 	}
 
 	return
+}
+
+type ProtocolStateVersionUpgradeEvent flow.Event
+
+func (event ProtocolStateVersionUpgradeEvent) NewProtocolVersion() uint64 {
+	return uint64(event.Value.SearchFieldByName("newProtocolVersion").(cadence.UInt64))
+}
+
+func (event ProtocolStateVersionUpgradeEvent) ActiveView() uint64 {
+	return uint64(event.Value.SearchFieldByName("activeView").(cadence.UInt64))
 }
