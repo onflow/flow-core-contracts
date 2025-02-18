@@ -1,4 +1,4 @@
-import NodeVersionBeacon from "NodeVersionBeacon"
+import "NodeVersionBeacon"
 
 /// Transaction that allows NodeVersionAdmin to specify a new protocol state version.
 /// The new version will become active at view `activeView` if:

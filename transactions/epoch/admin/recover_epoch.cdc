@@ -1,6 +1,6 @@
-import FlowEpoch from "FlowEpoch"
-import FlowIDTableStaking from "FlowIDTableStaking"
-import FlowClusterQC from "FlowClusterQC"
+import "FlowEpoch"
+import "FlowIDTableStaking"
+import "FlowClusterQC"
 
 // The recoverEpoch transaction creates and starts a new epoch in the FlowEpoch smart contract
 // which will cause the network exit Epoch Fallback Mode [EFM]. The RecoverEpoch service event
