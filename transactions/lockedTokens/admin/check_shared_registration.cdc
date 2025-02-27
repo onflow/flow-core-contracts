@@ -1,7 +1,7 @@
-import FungibleToken from "FungibleToken"
-import FlowToken from "FlowToken"
+import "FungibleToken"
+import "FlowToken"
 
-import LockedTokens from "LockedTokens"
+import "LockedTokens"
 
 transaction(lockedAccount: Address) {
 

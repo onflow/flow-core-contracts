@@ -1,4 +1,4 @@
-import FlowIDTableStaking from "FlowIDTableStaking"
+import "FlowIDTableStaking"
 
 /// This transaction sets the open node slots for access nodes
 /// Open node slots are the number of slots that are open

@@ -8,18 +8,19 @@ const (
 
 	// Admin Transactions
 
-	startDKGFilename           = "dkg/admin/start_dkg.cdc"
-	nextPhaseFilename          = "dkg/admin/next_phase.cdc"
-	stopDKGFilename            = "dkg/admin/stop_dkg.cdc"
-	forceStopDKGFilename       = "dkg/admin/force_stop_dkg.cdc"
-	setSafeThresholdFilename   = "dkg/admin/set_safe_threshold.cdc"
-	publishParticipantFilename = "dkg/admin/publish_participant.cdc"
+	startDKGFilename         = "dkg/admin/start_dkg.cdc"
+	nextPhaseFilename        = "dkg/admin/next_phase.cdc"
+	stopDKGFilename          = "dkg/admin/stop_dkg.cdc"
+	forceStopDKGFilename     = "dkg/admin/force_stop_dkg.cdc"
+	setSafeThresholdFilename = "dkg/admin/set_safe_threshold.cdc"
+	publishDKGAdminFilename  = "dkg/admin/publish_admin.cdc"
 
 	// Node Transactions
 
-	createParticipantFilename     = "dkg/create_participant.cdc"
-	sendWhiteBoardMessageFilename = "dkg/send_whiteboard_message.cdc"
-	sendFinalSubmissionFilename   = "dkg/send_final_submission.cdc"
+	createParticipantFilename        = "dkg/create_participant.cdc"
+	sendWhiteBoardMessageFilename    = "dkg/send_whiteboard_message.cdc"
+	sendFinalSubmissionFilename      = "dkg/send_final_submission.cdc"
+	sendEmptyFinalSubmissionFilename = "dkg/send_empty_final_submission.cdc"
 
 	// Scripts
 
@@ -68,8 +69,8 @@ func GenerateSetSafeThresholdScript(env Environment) []byte {
 	return []byte(ReplaceAddresses(code, env))
 }
 
-func GeneratePublishDKGParticipantScript(env Environment) []byte {
-	code := assets.MustAssetString(publishParticipantFilename)
+func GeneratePublishDKGAdminScript(env Environment) []byte {
+	code := assets.MustAssetString(publishDKGAdminFilename)
 
 	return []byte(ReplaceAddresses(code, env))
 }
@@ -93,6 +94,13 @@ func GenerateSendDKGWhiteboardMessageScript(env Environment) []byte {
 // GenerateSendDKGFinalSubmissionScript generates a script that sends a dkg final submission for a node
 func GenerateSendDKGFinalSubmissionScript(env Environment) []byte {
 	code := assets.MustAssetString(sendFinalSubmissionFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+// GenerateSendEmptyDKGFinalSubmissionScript generates a script that sends an empty dkg final submission for a node
+func GenerateSendEmptyDKGFinalSubmissionScript(env Environment) []byte {
+	code := assets.MustAssetString(sendEmptyFinalSubmissionFilename)
 
 	return []byte(ReplaceAddresses(code, env))
 }

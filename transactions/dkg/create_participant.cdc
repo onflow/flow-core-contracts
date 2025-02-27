@@ -1,4 +1,6 @@
-import FlowDKG from "FlowDKG"
+import "FlowDKG"
+
+// TODO: only used for testing
 
 transaction(address: Address, nodeID: String) {
 

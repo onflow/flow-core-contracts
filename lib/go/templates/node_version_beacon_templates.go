@@ -7,6 +7,7 @@ import (
 const (
 	// Admin Transactions
 	setVersionBoundaryFilename        = "nodeVersionBeacon/admin/set_version_boundary.cdc"
+	setProtocolStateVersionFilename   = "nodeVersionBeacon/admin/set_protocol_state_version.cdc"
 	deleteVersionBoundaryFilename     = "nodeVersionBeacon/admin/delete_version_boundary.cdc"
 	heartbeatFilename                 = "nodeVersionBeacon/admin/heartbeat.cdc"
 	changeVersionFreezePeriodFilename = "nodeVersionBeacon/admin/change_version_freeze_period.cdc"
@@ -22,6 +23,12 @@ const (
 
 func GenerateSetVersionBoundaryScript(env Environment) []byte {
 	code := assets.MustAssetString(setVersionBoundaryFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateSetProtocolStateVersionScript(env Environment) []byte {
+	code := assets.MustAssetString(setProtocolStateVersionFilename)
 
 	return []byte(ReplaceAddresses(code, env))
 }

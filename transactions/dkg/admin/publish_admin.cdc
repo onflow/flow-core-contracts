@@ -1,7 +1,6 @@
-import FlowDKG from "FlowDKG"
+import "FlowDKG"
 
 // This transaction is only for testing!
-
 transaction {
 
     prepare(signer: auth(Capabilities) &Account) {

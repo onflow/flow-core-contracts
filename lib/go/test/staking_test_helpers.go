@@ -13,7 +13,7 @@ import (
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
-	"github.com/onflow/cadence/runtime/interpreter"
+	"github.com/onflow/cadence/interpreter"
 	"github.com/onflow/crypto"
 	"github.com/onflow/flow-emulator/emulator"
 	"github.com/onflow/flow-go-sdk"
@@ -24,7 +24,7 @@ import (
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
 )
 
-// / Used to verify the EpochSetup event fields in tests
+// Used to verify the EpochSetup event fields in tests
 type EpochTotalRewardsPaid struct {
 	total      string
 	fromFees   string
@@ -177,7 +177,7 @@ func deployStakingContract(
 	return idTableAddress, feesAddr
 }
 
-// / Used to verify staking info in tests
+// Used to verify staking info in tests
 type StakingInfo struct {
 	nodeID      string
 	delegatorID uint32
@@ -262,7 +262,7 @@ func verifyStakingInfo(t *testing.T,
 // returns: []string array of nodeIDs
 //
 //	[]cadence.Value array of only the collector node IDs, which are the first of every five IDs created
-//	[]cadence.Vaule array of only the consensus node IDs, which are the second of every five IDs created
+//	[]cadence.Value array of only the consensus node IDs, which are the second of every five IDs created
 //	execution, verification, and access would be the next three, in that order, but their IDs aren't especially needed
 func generateNodeIDs(numNodes int) ([]string, []cadence.Value, []cadence.Value) {
 	// initialize the slices for all the IDs
@@ -318,7 +318,8 @@ func generateManyNodeKeys(t *testing.T, numNodes int) ([]crypto.PrivateKey, []st
 
 }
 
-// / Verifies that the EpochTotalRewardsPaid event was emmitted correctly with correct values
+// Verifies that an EpochTotalRewardsPaid event was emitted with the expected values.
+// CAUTION: Assumes that only one such event was emitted, and that it was emitted in the first 1000 blocks.
 func verifyEpochTotalRewardsPaid(
 	t *testing.T,
 	b emulator.Emulator,
@@ -327,13 +328,10 @@ func verifyEpochTotalRewardsPaid(
 
 	var emittedEvent EpochTotalRewardsPaidEvent
 
-	var i uint64
-	i = 0
-
 	logger := zerolog.Nop()
 	adapter := adapters.NewSDKAdapter(&logger, b)
 
-	for i < 1000 {
+	for i := uint64(0); i < 1000; i++ {
 		results, _ := adapter.GetEventsForHeightRange(context.Background(), "A."+idTableAddress.String()+".FlowIDTableStaking.EpochTotalRewardsPaid", i, i)
 
 		for _, result := range results {
@@ -343,16 +341,11 @@ func verifyEpochTotalRewardsPaid(
 				}
 			}
 		}
-
-		i = i + 1
 	}
 
 	assertEqual(t, CadenceUFix64(expectedRewards.total), emittedEvent.Total())
-
 	assertEqual(t, CadenceUFix64(expectedRewards.fromFees), emittedEvent.FromFees())
-
 	assertEqual(t, CadenceUFix64(expectedRewards.minted), emittedEvent.Minted())
-
 	assertEqual(t, CadenceUFix64(expectedRewards.feesBurned), emittedEvent.FeesBurned())
 }
 
@@ -452,9 +445,9 @@ func endStakingMoveTokens(t *testing.T,
 	)
 }
 
-// / Registers the specified number of nodes for staking with the specified IDs
-// / Does an even distrubution of node roles across the array of IDs in this order, repeating:
-// / collection, consensus, execution, verification, access
+// Registers the specified number of nodes for staking with the specified IDs
+// Does an even distrubution of node roles across the array of IDs in this order, repeating:
+// collection, consensus, execution, verification, access
 func registerNodesForStaking(
 	t *testing.T,
 	b emulator.Emulator,
@@ -490,7 +483,7 @@ func registerNodesForStaking(
 			stakingKeys[i],
 			amountToCommit,
 			committed,
-			uint8((i%5)+1),
+			uint8((i%5)+1), // round-robin roles
 			false)
 
 		i++

@@ -62,6 +62,15 @@
 				"testnet": "9eca2b38b18b5dfe"
 			}
 		},
+        "FlowExecutionParameters": {
+			"source": "./contracts/FlowExecutionParameters.cdc",
+			"aliases": {
+				"emulator": "f8d6e0586b0a20c7",
+				"mainnet": "f426ff57ee8f6110",
+				"testing": "0000000000000007",
+				"testnet": "6997a2f2cf57b73a"
+			}
+		},
 		"FlowServiceAccount": {
 			"source": "./contracts/FlowServiceAccount.cdc",
 			"aliases": {
