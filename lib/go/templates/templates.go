@@ -14,29 +14,30 @@ import (
 )
 
 const (
-	placeholderFungibleTokenAddress        = "\"FungibleToken\""
-	placeholderNonFungibleTokenAddress     = "\"NonFungibleToken\""
-	placeholderEVMAddress                  = "\"EVM\""
-	placeholderViewResolverAddress         = "\"ViewResolver\""
-	placeholderFungibleTokenMVAddress      = "\"FungibleTokenMetadataViews\""
-	placeholderMetadataViewsAddress        = "\"MetadataViews\""
-	placeholderCrossVMMetadataViewsAddress = "\"CrossVMMetadataViews\""
-	placeholderBurnerAddress               = "\"Burner\""
-	placeholderCryptoAddress               = "\"Crypto\""
-	placeholderFlowTokenAddress            = "\"FlowToken\""
-	placeholderIDTableAddress              = "\"FlowIDTableStaking\""
-	placeholderLockedTokensAddress         = "\"LockedTokens\""
-	placeholderStakingProxyAddress         = "\"StakingProxy\""
-	placeholderQuorumCertificateAddress    = "\"FlowClusterQC\""
-	placeholderFlowFeesAddress             = "\"FlowFees\""
-	placeholderStorageFeesAddress          = "\"FlowStorageFees\""
-	placeholderExecutionParametersAddress  = "\"FlowExecutionParameters\""
-	placeholderServiceAccountAddress       = "\"FlowServiceAccount\""
-	placeholderDKGAddress                  = "\"FlowDKG\""
-	placeholderEpochAddress                = "\"FlowEpoch\""
-	placeholderStakingCollectionAddress    = "\"FlowStakingCollection\""
-	placeholderNodeVersionBeaconAddress    = "\"NodeVersionBeacon\""
-	placeholderRandomBeaconHistoryAddress  = "\"RandomBeaconHistory\""
+	placeholderFungibleTokenAddress              = "\"FungibleToken\""
+	placeholderNonFungibleTokenAddress           = "\"NonFungibleToken\""
+	placeholderEVMAddress                        = "\"EVM\""
+	placeholderViewResolverAddress               = "\"ViewResolver\""
+	placeholderFungibleTokenMVAddress            = "\"FungibleTokenMetadataViews\""
+	placeholderMetadataViewsAddress              = "\"MetadataViews\""
+	placeholderCrossVMMetadataViewsAddress       = "\"CrossVMMetadataViews\""
+	placeholderBurnerAddress                     = "\"Burner\""
+	placeholderCryptoAddress                     = "\"Crypto\""
+	placeholderFlowTokenAddress                  = "\"FlowToken\""
+	placeholderIDTableAddress                    = "\"FlowIDTableStaking\""
+	placeholderLockedTokensAddress               = "\"LockedTokens\""
+	placeholderStakingProxyAddress               = "\"StakingProxy\""
+	placeholderQuorumCertificateAddress          = "\"FlowClusterQC\""
+	placeholderFlowFeesAddress                   = "\"FlowFees\""
+	placeholderStorageFeesAddress                = "\"FlowStorageFees\""
+	placeholderExecutionParametersAddress        = "\"FlowExecutionParameters\""
+	placeholderServiceAccountAddress             = "\"FlowServiceAccount\""
+	placeholderDKGAddress                        = "\"FlowDKG\""
+	placeholderEpochAddress                      = "\"FlowEpoch\""
+	placeholderStakingCollectionAddress          = "\"FlowStakingCollection\""
+	placeholderNodeVersionBeaconAddress          = "\"NodeVersionBeacon\""
+	placeholderRandomBeaconHistoryAddress        = "\"RandomBeaconHistory\""
+	placeholderLinearCodeAddressGeneratorAddress = "\"LinearCodeAddressGenerator\""
 )
 
 type Environment struct {
@@ -65,6 +66,7 @@ type Environment struct {
 	ServiceAccountAddress             string
 	NodeVersionBeaconAddress          string
 	RandomBeaconHistoryAddress        string
+	LinearCodeAddressGeneratorAddress string
 }
 
 func withHexPrefix(address string) string {
@@ -238,6 +240,12 @@ func ReplaceAddresses(code string, env Environment) string {
 		code,
 		placeholderRandomBeaconHistoryAddress,
 		env.RandomBeaconHistoryAddress,
+	)
+
+	code = ReplaceAddress(
+		code,
+		placeholderLinearCodeAddressGeneratorAddress,
+		env.LinearCodeAddressGeneratorAddress,
 	)
 
 	return code

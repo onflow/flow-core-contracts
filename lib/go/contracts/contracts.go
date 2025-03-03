@@ -27,22 +27,23 @@ import (
 ///
 
 const (
-	flowFeesFilename                = "FlowFees.cdc"
-	storageFeesFilename             = "FlowStorageFees.cdc"
-	executionParametersFilename     = "FlowExecutionParameters.cdc"
-	flowServiceAccountFilename      = "FlowServiceAccount.cdc"
-	flowTokenFilename               = "FlowToken.cdc"
-	flowIdentityTableFilename       = "FlowIDTableStaking.cdc"
-	flowQCFilename                  = "epochs/FlowClusterQC.cdc"
-	flowDKGFilename                 = "epochs/FlowDKG.cdc"
-	flowEpochFilename               = "epochs/FlowEpoch.cdc"
-	flowLockedTokensFilename        = "LockedTokens.cdc"
-	flowStakingProxyFilename        = "StakingProxy.cdc"
-	flowStakingCollectionFilename   = "FlowStakingCollection.cdc"
-	flowContractAuditsFilename      = "FlowContractAudits.cdc"
-	flowNodeVersionBeaconFilename   = "NodeVersionBeacon.cdc"
-	flowRandomBeaconHistoryFilename = "RandomBeaconHistory.cdc"
-	cryptoFilename                  = "Crypto.cdc"
+	flowFeesFilename                   = "FlowFees.cdc"
+	storageFeesFilename                = "FlowStorageFees.cdc"
+	executionParametersFilename        = "FlowExecutionParameters.cdc"
+	flowServiceAccountFilename         = "FlowServiceAccount.cdc"
+	flowTokenFilename                  = "FlowToken.cdc"
+	flowIdentityTableFilename          = "FlowIDTableStaking.cdc"
+	flowQCFilename                     = "epochs/FlowClusterQC.cdc"
+	flowDKGFilename                    = "epochs/FlowDKG.cdc"
+	flowEpochFilename                  = "epochs/FlowEpoch.cdc"
+	flowLockedTokensFilename           = "LockedTokens.cdc"
+	flowStakingProxyFilename           = "StakingProxy.cdc"
+	flowStakingCollectionFilename      = "FlowStakingCollection.cdc"
+	flowContractAuditsFilename         = "FlowContractAudits.cdc"
+	flowNodeVersionBeaconFilename      = "NodeVersionBeacon.cdc"
+	flowRandomBeaconHistoryFilename    = "RandomBeaconHistory.cdc"
+	cryptoFilename                     = "Crypto.cdc"
+	linearCodeAddressGeneratorFilename = "LinearCodeAddressGenerator.cdc"
 
 	// Test contracts
 	// only used for testing
@@ -300,6 +301,10 @@ func FlowContractAudits() []byte {
 
 func Crypto() []byte {
 	return assets.MustAsset(cryptoFilename)
+}
+
+func LinearCodeAddressGenerator() []byte {
+	return assets.MustAsset(linearCodeAddressGeneratorFilename)
 }
 
 /******************** Test contracts *********************/
