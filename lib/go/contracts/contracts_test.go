@@ -174,6 +174,11 @@ func TestCrypto(t *testing.T) {
 	GetCadenceContractShouldSucceed(t, contract)
 }
 
+func TestLinearCodeAddressGenerator(t *testing.T) {
+	contract := string(contracts.LinearCodeAddressGenerator())
+	GetCadenceContractShouldSucceed(t, contract)
+}
+
 func TestFlowExecutionParameters(t *testing.T) {
 	env := templates.Environment{}
 	SetAllAddresses(&env)

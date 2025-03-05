@@ -8,6 +8,7 @@ import (
 
 	_ "github.com/kevinburke/go-bindata"
 	ftcontracts "github.com/onflow/flow-ft/lib/go/contracts"
+	"github.com/onflow/flow-go-sdk"
 	nftcontracts "github.com/onflow/flow-nft/lib/go/contracts"
 
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
@@ -26,22 +27,23 @@ import (
 ///
 
 const (
-	flowFeesFilename                = "FlowFees.cdc"
-	storageFeesFilename             = "FlowStorageFees.cdc"
-	executionParametersFilename     = "FlowExecutionParameters.cdc"
-	flowServiceAccountFilename      = "FlowServiceAccount.cdc"
-	flowTokenFilename               = "FlowToken.cdc"
-	flowIdentityTableFilename       = "FlowIDTableStaking.cdc"
-	flowQCFilename                  = "epochs/FlowClusterQC.cdc"
-	flowDKGFilename                 = "epochs/FlowDKG.cdc"
-	flowEpochFilename               = "epochs/FlowEpoch.cdc"
-	flowLockedTokensFilename        = "LockedTokens.cdc"
-	flowStakingProxyFilename        = "StakingProxy.cdc"
-	flowStakingCollectionFilename   = "FlowStakingCollection.cdc"
-	flowContractAuditsFilename      = "FlowContractAudits.cdc"
-	flowNodeVersionBeaconFilename   = "NodeVersionBeacon.cdc"
-	flowRandomBeaconHistoryFilename = "RandomBeaconHistory.cdc"
-	cryptoFilename                  = "Crypto.cdc"
+	flowFeesFilename                   = "FlowFees.cdc"
+	storageFeesFilename                = "FlowStorageFees.cdc"
+	executionParametersFilename        = "FlowExecutionParameters.cdc"
+	flowServiceAccountFilename         = "FlowServiceAccount.cdc"
+	flowTokenFilename                  = "FlowToken.cdc"
+	flowIdentityTableFilename          = "FlowIDTableStaking.cdc"
+	flowQCFilename                     = "epochs/FlowClusterQC.cdc"
+	flowDKGFilename                    = "epochs/FlowDKG.cdc"
+	flowEpochFilename                  = "epochs/FlowEpoch.cdc"
+	flowLockedTokensFilename           = "LockedTokens.cdc"
+	flowStakingProxyFilename           = "StakingProxy.cdc"
+	flowStakingCollectionFilename      = "FlowStakingCollection.cdc"
+	flowContractAuditsFilename         = "FlowContractAudits.cdc"
+	flowNodeVersionBeaconFilename      = "NodeVersionBeacon.cdc"
+	flowRandomBeaconHistoryFilename    = "RandomBeaconHistory.cdc"
+	cryptoFilename                     = "Crypto.cdc"
+	linearCodeAddressGeneratorFilename = "LinearCodeAddressGenerator.cdc"
 
 	// Test contracts
 	// only used for testing
@@ -301,6 +303,10 @@ func Crypto() []byte {
 	return assets.MustAsset(cryptoFilename)
 }
 
+func LinearCodeAddressGenerator() []byte {
+	return assets.MustAsset(linearCodeAddressGeneratorFilename)
+}
+
 /******************** Test contracts *********************/
 
 // TESTFlowIDTableStaking returns the TestFlowIDTableStaking contract
@@ -360,4 +366,12 @@ func TestFlowFees(fungibleTokenAddress, flowTokenAddress, storageFeesAddress str
 	code = templates.ReplaceAddresses(code, env)
 
 	return []byte(code)
+}
+
+func ExampleToken(env templates.Environment) []byte {
+	return ftcontracts.ExampleToken(env.FungibleTokenAddress, env.MetadataViewsAddress, env.FungibleTokenMetadataViewsAddress)
+}
+
+func ExampleNFT(env templates.Environment) []byte {
+	return nftcontracts.ExampleNFTWithCrossVMPointers(flow.HexToAddress(env.NonFungibleTokenAddress), flow.HexToAddress(env.MetadataViewsAddress), flow.HexToAddress(env.ViewResolverAddress), flow.HexToAddress(env.EVMAddress), flow.HexToAddress(env.CrossVMMetadataViewsAddress))
 }
