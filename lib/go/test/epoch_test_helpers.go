@@ -15,7 +15,6 @@ import (
 	emulator "github.com/onflow/flow-emulator/emulator"
 	"github.com/onflow/flow-go-sdk"
 	"github.com/onflow/flow-go-sdk/crypto"
-	sdkcrypto "github.com/onflow/flow-go-sdk/crypto"
 	sdktemplates "github.com/onflow/flow-go-sdk/templates"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -952,7 +951,7 @@ type testEpochConfig struct {
 
 // runWithDefaultContracts sets up a test environment using the input config, deploys all default contracts,
 // then executes the test case defined by input functor f.
-func runWithDefaultContracts(t *testing.T, config *testEpochConfig, f func(b emulator.Emulator, env templates.Environment, ids []string, idTableAddress flow.Address, IDTableSigner sdkcrypto.Signer, adapter *adapters.SDKAdapter)) {
+func runWithDefaultContracts(t *testing.T, config *testEpochConfig, f func(b emulator.Emulator, env templates.Environment, ids []string, idTableAddress flow.Address, IDTableSigner crypto.Signer, adapter *adapters.SDKAdapter)) {
 	b, adapter, accountKeys, env := newTestSetup(t)
 	// Create new keys for the epoch account
 	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
@@ -990,7 +989,7 @@ func runWithDefaultContracts(t *testing.T, config *testEpochConfig, f func(b emu
 	signAndSubmit(
 		t, b, tx,
 		[]flow.Address{idTableAddress},
-		[]sdkcrypto.Signer{IDTableSigner},
+		[]crypto.Signer{IDTableSigner},
 		false,
 	)
 
