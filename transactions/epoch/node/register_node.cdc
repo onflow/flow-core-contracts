@@ -16,6 +16,7 @@ transaction(
     networkingAddress: String,
     networkingKey: String,
     stakingKey: String,
+    stakingKeyPoP: String,
     amount: UFix64,
     publicKeys: [Crypto.KeyListEntry]
 ) {
@@ -36,6 +37,7 @@ transaction(
                 networkingAddress: networkingAddress,
                 networkingKey: networkingKey,
                 stakingKey: stakingKey,
+                stakingKeyPoP: stakingKeyPoP,
                 tokensCommitted: <-self.flowTokenRef.withdraw(amount: amount)
             )
 

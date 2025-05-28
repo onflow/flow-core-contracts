@@ -370,6 +370,7 @@ func TestLockedTokensStaker(t *testing.T) {
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0192d", josh)))
+		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%096d", josh)))
 		_ = tx.AddArgument(CadenceUFix64("250000.0"))
 
 		signAndSubmit(
@@ -558,6 +559,7 @@ func TestLockedTokensStaker(t *testing.T) {
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0192d", josh)))
+		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%096d", josh)))
 		_ = tx.AddArgument(CadenceUFix64("745000.0"))
 
 		signAndSubmit(
@@ -1641,7 +1643,7 @@ func TestLockedTokensRealStaking(t *testing.T) {
 		)
 	})
 
-	_, joshStakingKey, _, joshNetworkingKey := generateKeysForNodeRegistration(t)
+	_, joshStakingKey, joshStakingPOP, _, joshNetworkingKey := generateKeysForNodeRegistration(t)
 
 	t.Run("Should be able to register josh as a node operator", func(t *testing.T) {
 
@@ -1651,6 +1653,7 @@ func TestLockedTokensRealStaking(t *testing.T) {
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
 		_ = tx.AddArgument(CadenceString(joshNetworkingKey))
 		_ = tx.AddArgument(CadenceString(joshStakingKey))
+		_ = tx.AddArgument(CadenceString(joshStakingPOP))
 		_ = tx.AddArgument(CadenceUFix64("250000.0"))
 
 		signAndSubmit(
@@ -1737,6 +1740,7 @@ func TestLockedTokensRealStaking(t *testing.T) {
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
 		_ = tx.AddArgument(CadenceString(joshNetworkingKey))
 		_ = tx.AddArgument(CadenceString(joshStakingKey))
+		_ = tx.AddArgument(CadenceString(joshStakingPOP))
 		_ = tx.AddArgument(CadenceUFix64("250000.0"))
 
 		signAndSubmit(
@@ -1781,6 +1785,7 @@ func TestLockedTokensRealStaking(t *testing.T) {
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
 		_ = tx.AddArgument(CadenceString(joshNetworkingKey))
 		_ = tx.AddArgument(CadenceString(joshStakingKey))
+		_ = tx.AddArgument(CadenceString(joshStakingPOP))
 		_ = tx.AddArgument(CadenceUFix64("250000.0"))
 
 		signAndSubmit(
@@ -1823,7 +1828,7 @@ func TestLockedTokensRealStaking(t *testing.T) {
 			false,
 		)
 
-		_, maxStakingKey, _, maxNetworkingKey := generateKeysForNodeRegistration(t)
+		_, maxStakingKey, maxStakingPOP, _, maxNetworkingKey := generateKeysForNodeRegistration(t)
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), joshAddress)
 		_ = tx.AddArgument(CadenceString(maxID))
@@ -1831,6 +1836,7 @@ func TestLockedTokensRealStaking(t *testing.T) {
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", max)))
 		_ = tx.AddArgument(CadenceString(maxNetworkingKey))
 		_ = tx.AddArgument(CadenceString(maxStakingKey))
+		_ = tx.AddArgument(CadenceString(maxStakingPOP))
 		_ = tx.AddArgument(CadenceUFix64("500000.0"))
 
 		signAndSubmit(
@@ -1972,7 +1978,7 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 
 	t.Run("Should be able to register as a node operator", func(t *testing.T) {
 
-		_, joshStakingKey, _, joshNetworkingKey := generateKeysForNodeRegistration(t)
+		_, joshStakingKey, joshStakingPOP, _, joshNetworkingKey := generateKeysForNodeRegistration(t)
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), joshAddress)
 		_ = tx.AddArgument(CadenceString(joshID))
@@ -1980,6 +1986,7 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
 		_ = tx.AddArgument(CadenceString(joshNetworkingKey))
 		_ = tx.AddArgument(CadenceString(joshStakingKey))
+		_ = tx.AddArgument(CadenceString(joshStakingPOP))
 		_ = tx.AddArgument(CadenceUFix64("320000.0"))
 
 		signAndSubmit(
