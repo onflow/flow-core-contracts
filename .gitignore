@@ -15,4 +15,9 @@ git
 
 coverage.json
 coverage.lcov
+lcov.info
 *.pkey
+
+# Private flow.jsons
+
+private.flow.json

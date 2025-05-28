@@ -1,5 +1,5 @@
-import FlowDKG from "FlowDKG"
+import "FlowDKG"
 
-access(all) fun main(nodeID: String): [String?] {
+access(all) fun main(nodeID: String): FlowDKG.ResultSubmission {
     return FlowDKG.getNodeFinalSubmission(nodeID)!
 }

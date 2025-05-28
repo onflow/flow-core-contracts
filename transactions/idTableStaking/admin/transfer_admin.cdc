@@ -1,4 +1,4 @@
-import FlowIDTableStaking from "FlowIDTableStaking"
+import "FlowIDTableStaking"
 
 transaction {
   prepare(owner: auth(Capabilities) &Account, receiver: auth(Storage) &Account) {

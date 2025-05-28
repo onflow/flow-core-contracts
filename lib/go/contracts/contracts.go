@@ -8,6 +8,7 @@ import (
 
 	_ "github.com/kevinburke/go-bindata"
 	ftcontracts "github.com/onflow/flow-ft/lib/go/contracts"
+	"github.com/onflow/flow-go-sdk"
 	nftcontracts "github.com/onflow/flow-nft/lib/go/contracts"
 
 	"github.com/onflow/flow-core-contracts/lib/go/templates"
@@ -26,21 +27,23 @@ import (
 ///
 
 const (
-	flowFeesFilename                = "FlowFees.cdc"
-	storageFeesFilename             = "FlowStorageFees.cdc"
-	flowServiceAccountFilename      = "FlowServiceAccount.cdc"
-	flowTokenFilename               = "FlowToken.cdc"
-	flowIdentityTableFilename       = "FlowIDTableStaking.cdc"
-	flowQCFilename                  = "epochs/FlowClusterQC.cdc"
-	flowDKGFilename                 = "epochs/FlowDKG.cdc"
-	flowEpochFilename               = "epochs/FlowEpoch.cdc"
-	flowLockedTokensFilename        = "LockedTokens.cdc"
-	flowStakingProxyFilename        = "StakingProxy.cdc"
-	flowStakingCollectionFilename   = "FlowStakingCollection.cdc"
-	flowContractAuditsFilename      = "FlowContractAudits.cdc"
-	flowNodeVersionBeaconFilename   = "NodeVersionBeacon.cdc"
-	flowRandomBeaconHistoryFilename = "RandomBeaconHistory.cdc"
-	cryptoFilename                  = "Crypto.cdc"
+	flowFeesFilename                   = "FlowFees.cdc"
+	storageFeesFilename                = "FlowStorageFees.cdc"
+	executionParametersFilename        = "FlowExecutionParameters.cdc"
+	flowServiceAccountFilename         = "FlowServiceAccount.cdc"
+	flowTokenFilename                  = "FlowToken.cdc"
+	flowIdentityTableFilename          = "FlowIDTableStaking.cdc"
+	flowQCFilename                     = "epochs/FlowClusterQC.cdc"
+	flowDKGFilename                    = "epochs/FlowDKG.cdc"
+	flowEpochFilename                  = "epochs/FlowEpoch.cdc"
+	flowLockedTokensFilename           = "LockedTokens.cdc"
+	flowStakingProxyFilename           = "StakingProxy.cdc"
+	flowStakingCollectionFilename      = "FlowStakingCollection.cdc"
+	flowContractAuditsFilename         = "FlowContractAudits.cdc"
+	flowNodeVersionBeaconFilename      = "NodeVersionBeacon.cdc"
+	flowRandomBeaconHistoryFilename    = "RandomBeaconHistory.cdc"
+	cryptoFilename                     = "Crypto.cdc"
+	linearCodeAddressGeneratorFilename = "LinearCodeAddressGenerator.cdc"
 
 	// Test contracts
 	// only used for testing
@@ -110,6 +113,10 @@ func MetadataViews(env templates.Environment) []byte {
 	return nftcontracts.MetadataViews(env.FungibleTokenAddress, env.NonFungibleTokenAddress, env.ViewResolverAddress)
 }
 
+func CrossVMMetadataViews(env templates.Environment) []byte {
+	return nftcontracts.CrossVMMetadataViews(env.ViewResolverAddress, env.EVMAddress)
+}
+
 // FlowToken returns the FlowToken contract.
 //
 // The returned contract will import the FungibleToken contract from the specified address.
@@ -171,12 +178,49 @@ func FlowStorageFees(env templates.Environment) []byte {
 	return []byte(code)
 }
 
+// FlowExecutionParameters returns the FlowExecutionParameters contract
+func FlowExecutionParameters(env templates.Environment) []byte {
+	code := assets.MustAssetString(executionParametersFilename)
+
+	code = templates.ReplaceAddresses(code, env)
+
+	return []byte(code)
+}
+
 // FlowServiceAccount returns the FlowServiceAccount contract.
 //
 // The returned contract will import the FungibleToken, FlowToken, FlowFees, and FlowStorageFees
 // contracts from the specified addresses.
 func FlowServiceAccount(env templates.Environment) []byte {
 	code := assets.MustAssetString(flowServiceAccountFilename)
+
+	if env.FlowExecutionParametersAddress == "" {
+		// Remove the import of FlowExecutionParameters
+		code = strings.ReplaceAll(
+			code,
+			"import \"FlowExecutionParameters\"",
+			"//import \"FlowExecutionParameters\"",
+		)
+
+		// Replace the metering getter functions
+		code = strings.ReplaceAll(
+			code,
+			"return FlowExecutionParameters.getExecutionEffortWeights()",
+			"return self.account.storage.copy<{UInt64: UInt64}>(from: /storage/executionEffortWeights) ?? panic(\"execution effort weights not set yet\")",
+		)
+
+		code = strings.ReplaceAll(
+			code,
+			"return FlowExecutionParameters.getExecutionMemoryWeights()",
+			"return self.account.storage.copy<{UInt64: UInt64}>(from: /storage/executionMemoryWeights) ?? panic(\"execution memory weights not set yet\")",
+		)
+
+		code = strings.ReplaceAll(
+			code,
+			"return FlowExecutionParameters.getExecutionMemoryLimit()",
+			"return self.account.storage.copy<UInt64>(from: /storage/executionMemoryLimit) ?? panic(\"execution memory limit not set yet\")",
+		)
+	}
 
 	code = templates.ReplaceAddresses(code, env)
 
@@ -255,6 +299,14 @@ func FlowContractAudits() []byte {
 	return assets.MustAsset(flowContractAuditsFilename)
 }
 
+func Crypto() []byte {
+	return assets.MustAsset(cryptoFilename)
+}
+
+func LinearCodeAddressGenerator() []byte {
+	return assets.MustAsset(linearCodeAddressGeneratorFilename)
+}
+
 /******************** Test contracts *********************/
 
 // TESTFlowIDTableStaking returns the TestFlowIDTableStaking contract
@@ -281,16 +333,20 @@ func TESTFlowStakingCollection(
 ) []byte {
 	code := assets.MustAssetString(flowStakingCollectionFilename)
 
-	code = strings.ReplaceAll(code, placeholderFungibleTokenAddress, withHexPrefix(fungibleTokenAddress))
-	code = strings.ReplaceAll(code, placeholderBurnerAddress, withHexPrefix(storageFeesAddress))
-	code = strings.ReplaceAll(code, placeholderFlowTokenAddress, withHexPrefix(flowTokenAddress))
-	code = strings.ReplaceAll(code, placeholderIDTableAddress, withHexPrefix(idTableAddress))
-	code = strings.ReplaceAll(code, placeholderStakingProxyAddress, withHexPrefix(stakingProxyAddress))
-	code = strings.ReplaceAll(code, placeholderLockedTokensAddress, withHexPrefix(lockedTokensAddress))
-	code = strings.ReplaceAll(code, placeholderStorageFeesAddress, withHexPrefix(storageFeesAddress))
-	code = strings.ReplaceAll(code, placeholderQCAddr, withHexPrefix(qcAddress))
-	code = strings.ReplaceAll(code, placeholderDKGAddr, withHexPrefix(dkgAddress))
-	code = strings.ReplaceAll(code, placeholderEpochAddr, withHexPrefix(epochAddress))
+	env := templates.Environment{
+		FungibleTokenAddress:     fungibleTokenAddress,
+		FlowTokenAddress:         flowTokenAddress,
+		IDTableAddress:           idTableAddress,
+		StakingProxyAddress:      stakingProxyAddress,
+		LockedTokensAddress:      lockedTokensAddress,
+		StorageFeesAddress:       storageFeesAddress,
+		QuorumCertificateAddress: qcAddress,
+		DkgAddress:               dkgAddress,
+		EpochAddress:             epochAddress,
+		BurnerAddress:            storageFeesAddress,
+	}
+
+	code = templates.ReplaceAddresses(code, env)
 
 	code = strings.ReplaceAll(code, "access(self) fun getTokens", "access(all) fun getTokens")
 	code = strings.ReplaceAll(code, "access(self) fun depositTokens", "access(all) fun depositTokens")
@@ -301,27 +357,21 @@ func TESTFlowStakingCollection(
 func TestFlowFees(fungibleTokenAddress, flowTokenAddress, storageFeesAddress string) []byte {
 	code := assets.MustAssetString(flowFeesFilename)
 
-	code = strings.ReplaceAll(
-		code,
-		placeholderFungibleTokenAddress,
-		withHexPrefix(fungibleTokenAddress),
-	)
+	env := templates.Environment{
+		FungibleTokenAddress: fungibleTokenAddress,
+		FlowTokenAddress:     flowTokenAddress,
+		StorageFeesAddress:   storageFeesAddress,
+	}
 
-	code = strings.ReplaceAll(
-		code,
-		placeholderFlowTokenAddress,
-		withHexPrefix(flowTokenAddress),
-	)
-
-	code = strings.ReplaceAll(
-		code,
-		placeholderStorageFeesAddress,
-		withHexPrefix(storageFeesAddress),
-	)
+	code = templates.ReplaceAddresses(code, env)
 
 	return []byte(code)
 }
 
-func Crypto() []byte {
-	return assets.MustAsset(cryptoFilename)
+func ExampleToken(env templates.Environment) []byte {
+	return ftcontracts.ExampleToken(env.FungibleTokenAddress, env.MetadataViewsAddress, env.FungibleTokenMetadataViewsAddress)
+}
+
+func ExampleNFT(env templates.Environment) []byte {
+	return nftcontracts.ExampleNFTWithCrossVMPointers(flow.HexToAddress(env.NonFungibleTokenAddress), flow.HexToAddress(env.MetadataViewsAddress), flow.HexToAddress(env.ViewResolverAddress), flow.HexToAddress(env.EVMAddress), flow.HexToAddress(env.CrossVMMetadataViewsAddress))
 }

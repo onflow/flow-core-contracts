@@ -25,11 +25,11 @@
 
  */
 
-import FlowToken from "FlowToken"
-import FungibleToken from "FungibleToken"
-import FlowIDTableStaking from "FlowIDTableStaking"
-import FlowStorageFees from "FlowStorageFees"
-import StakingProxy from "StakingProxy"
+import "FlowToken"
+import "FungibleToken"
+import "FlowIDTableStaking"
+import "FlowStorageFees"
+import "StakingProxy"
 
 access(all) contract LockedTokens {
 
@@ -283,6 +283,10 @@ access(all) contract LockedTokens {
         /// This is only used by the Flow Foundation to recover leases that it has given to node operators
         access(RecoverLease) view fun borrowNodeForLease(): auth(FlowIDTableStaking.NodeOperator) &FlowIDTableStaking.NodeStaker? {
             return self.borrowNode()
+        }
+
+        access(RecoverLease) view fun borrowDelegatorForLease(): auth(FlowIDTableStaking.DelegatorOwner) &FlowIDTableStaking.NodeDelegator? {
+            return self.borrowDelegator()
         }
 
         access(UnlockTokens) fun removeNode(): @FlowIDTableStaking.NodeStaker? {

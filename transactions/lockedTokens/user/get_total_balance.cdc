@@ -1,7 +1,7 @@
-import FungibleToken from "FungibleToken"
-import FlowToken from "FlowToken"
-import FlowIDTableStaking from "FlowIDTableStaking"
-import LockedTokens from "LockedTokens"
+import "FungibleToken"
+import "FlowToken"
+import "FlowIDTableStaking"
+import "LockedTokens"
 
 // This script gets the TOTAL number of FLOW an account owns, across unlocked, locked, and staking.
 

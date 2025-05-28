@@ -27,10 +27,10 @@
 
  */
 
-import FungibleToken from "FungibleToken"
-import FlowToken from "FlowToken"
-import Burner from "Burner"
-import FlowFees from "FlowFees"
+import "FungibleToken"
+import "FlowToken"
+import "Burner"
+import "FlowFees"
 import Crypto
 
 access(all) contract FlowIDTableStaking {

@@ -1,4 +1,4 @@
-import FlowClusterQC from "FlowClusterQC"
+import "FlowClusterQC"
 
 // Gets the status of a cluster's QC generation
 

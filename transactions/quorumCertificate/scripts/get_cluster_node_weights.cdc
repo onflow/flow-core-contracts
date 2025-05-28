@@ -1,4 +1,4 @@
-import FlowClusterQC from "FlowClusterQC"
+import "FlowClusterQC"
 
 access(all) fun main(clusterIndex: UInt16): {String: UInt64} {
 

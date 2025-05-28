@@ -14,25 +14,30 @@ import (
 )
 
 const (
-	placeholderFungibleTokenAddress       = "\"FungibleToken\""
-	placeholderViewResolverAddress        = "\"ViewResolver\""
-	placeholderFungibleTokenMVAddress     = "\"FungibleTokenMetadataViews\""
-	placeholderMetadataViewsAddress       = "\"MetadataViews\""
-	placeholderBurnerAddress              = "\"Burner\""
-	placeholderCryptoAddress              = "\"Crypto\""
-	placeholderFlowTokenAddress           = "\"FlowToken\""
-	placeholderIDTableAddress             = "\"FlowIDTableStaking\""
-	placeholderLockedTokensAddress        = "\"LockedTokens\""
-	placeholderStakingProxyAddress        = "\"StakingProxy\""
-	placeholderQuorumCertificateAddress   = "\"FlowClusterQC\""
-	placeholderFlowFeesAddress            = "\"FlowFees\""
-	placeholderStorageFeesAddress         = "\"FlowStorageFees\""
-	placeholderServiceAccountAddress      = "\"FlowServiceAccount\""
-	placeholderDKGAddress                 = "\"FlowDKG\""
-	placeholderEpochAddress               = "\"FlowEpoch\""
-	placeholderStakingCollectionAddress   = "\"FlowStakingCollection\""
-	placeholderNodeVersionBeaconAddress   = "\"NodeVersionBeacon\""
-	placeholderRandomBeaconHistoryAddress = "\"RandomBeaconHistory\""
+	placeholderFungibleTokenAddress              = "\"FungibleToken\""
+	placeholderNonFungibleTokenAddress           = "\"NonFungibleToken\""
+	placeholderEVMAddress                        = "\"EVM\""
+	placeholderViewResolverAddress               = "\"ViewResolver\""
+	placeholderFungibleTokenMVAddress            = "\"FungibleTokenMetadataViews\""
+	placeholderMetadataViewsAddress              = "\"MetadataViews\""
+	placeholderCrossVMMetadataViewsAddress       = "\"CrossVMMetadataViews\""
+	placeholderBurnerAddress                     = "\"Burner\""
+	placeholderCryptoAddress                     = "\"Crypto\""
+	placeholderFlowTokenAddress                  = "\"FlowToken\""
+	placeholderIDTableAddress                    = "\"FlowIDTableStaking\""
+	placeholderLockedTokensAddress               = "\"LockedTokens\""
+	placeholderStakingProxyAddress               = "\"StakingProxy\""
+	placeholderQuorumCertificateAddress          = "\"FlowClusterQC\""
+	placeholderFlowFeesAddress                   = "\"FlowFees\""
+	placeholderStorageFeesAddress                = "\"FlowStorageFees\""
+	placeholderExecutionParametersAddress        = "\"FlowExecutionParameters\""
+	placeholderServiceAccountAddress             = "\"FlowServiceAccount\""
+	placeholderDKGAddress                        = "\"FlowDKG\""
+	placeholderEpochAddress                      = "\"FlowEpoch\""
+	placeholderStakingCollectionAddress          = "\"FlowStakingCollection\""
+	placeholderNodeVersionBeaconAddress          = "\"NodeVersionBeacon\""
+	placeholderRandomBeaconHistoryAddress        = "\"RandomBeaconHistory\""
+	placeholderLinearCodeAddressGeneratorAddress = "\"LinearCodeAddressGenerator\""
 )
 
 type Environment struct {
@@ -42,7 +47,9 @@ type Environment struct {
 	CryptoAddress                     string
 	FungibleTokenAddress              string
 	NonFungibleTokenAddress           string
+	EVMAddress                        string
 	MetadataViewsAddress              string
+	CrossVMMetadataViewsAddress       string
 	FungibleTokenMetadataViewsAddress string
 	FungibleTokenSwitchboardAddress   string
 	FlowTokenAddress                  string
@@ -55,9 +62,11 @@ type Environment struct {
 	StorageFeesAddress                string
 	FlowFeesAddress                   string
 	StakingCollectionAddress          string
+	FlowExecutionParametersAddress    string
 	ServiceAccountAddress             string
 	NodeVersionBeaconAddress          string
 	RandomBeaconHistoryAddress        string
+	LinearCodeAddressGeneratorAddress string
 }
 
 func withHexPrefix(address string) string {
@@ -72,120 +81,171 @@ func withHexPrefix(address string) string {
 	return fmt.Sprintf("0x%s", address)
 }
 
+func ReplaceAddress(code, placeholder, replacement string) string {
+	placeholderWithoutQuotes := placeholder[1 : len(placeholder)-1]
+
+	if len(replacement) > 0 {
+		if strings.Contains(code, placeholderWithoutQuotes+" from "+placeholder) {
+			code = strings.ReplaceAll(
+				code,
+				placeholder,
+				withHexPrefix(replacement),
+			)
+		} else {
+			code = strings.ReplaceAll(
+				code,
+				placeholder,
+				placeholderWithoutQuotes+" from "+withHexPrefix(replacement),
+			)
+		}
+	}
+	return code
+}
+
 func ReplaceAddresses(code string, env Environment) string {
 
-	code = strings.ReplaceAll(
+	code = ReplaceAddress(
 		code,
 		placeholderFungibleTokenMVAddress,
-		withHexPrefix(env.FungibleTokenMetadataViewsAddress),
+		env.FungibleTokenMetadataViewsAddress,
 	)
 
-	code = strings.ReplaceAll(
+	code = ReplaceAddress(
 		code,
 		placeholderMetadataViewsAddress,
-		withHexPrefix(env.MetadataViewsAddress),
+		env.MetadataViewsAddress,
 	)
 
-	code = strings.ReplaceAll(
+	code = ReplaceAddress(
+		code,
+		placeholderCrossVMMetadataViewsAddress,
+		env.CrossVMMetadataViewsAddress,
+	)
+
+	code = ReplaceAddress(
 		code,
 		placeholderBurnerAddress,
-		withHexPrefix(env.BurnerAddress),
+		env.BurnerAddress,
 	)
 
-	code = strings.ReplaceAll(
+	code = ReplaceAddress(
 		code,
 		placeholderCryptoAddress,
-		withHexPrefix(env.CryptoAddress),
+		env.CryptoAddress,
 	)
 
-	code = strings.ReplaceAll(
+	code = ReplaceAddress(
 		code,
 		placeholderViewResolverAddress,
-		withHexPrefix(env.ViewResolverAddress),
+		env.ViewResolverAddress,
 	)
 
-	code = strings.ReplaceAll(
+	code = ReplaceAddress(
 		code,
 		placeholderFungibleTokenAddress,
-		withHexPrefix(env.FungibleTokenAddress),
+		env.FungibleTokenAddress,
 	)
 
-	code = strings.ReplaceAll(
+	code = ReplaceAddress(
+		code,
+		placeholderNonFungibleTokenAddress,
+		env.NonFungibleTokenAddress,
+	)
+
+	code = ReplaceAddress(
+		code,
+		placeholderEVMAddress,
+		env.EVMAddress,
+	)
+
+	code = ReplaceAddress(
 		code,
 		placeholderFlowTokenAddress,
-		withHexPrefix(env.FlowTokenAddress),
+		env.FlowTokenAddress,
 	)
 
-	code = strings.ReplaceAll(
+	code = ReplaceAddress(
 		code,
 		placeholderIDTableAddress,
-		withHexPrefix(env.IDTableAddress),
+		env.IDTableAddress,
 	)
 
-	code = strings.ReplaceAll(
+	code = ReplaceAddress(
 		code,
 		placeholderLockedTokensAddress,
-		withHexPrefix(env.LockedTokensAddress),
+		env.LockedTokensAddress,
 	)
 
-	code = strings.ReplaceAll(
+	code = ReplaceAddress(
 		code,
 		placeholderStakingProxyAddress,
-		withHexPrefix(env.StakingProxyAddress),
+		env.StakingProxyAddress,
 	)
 
-	code = strings.ReplaceAll(
+	code = ReplaceAddress(
 		code,
 		placeholderQuorumCertificateAddress,
-		withHexPrefix(env.QuorumCertificateAddress),
+		env.QuorumCertificateAddress,
 	)
 
-	code = strings.ReplaceAll(
+	code = ReplaceAddress(
 		code,
 		placeholderDKGAddress,
-		withHexPrefix(env.DkgAddress),
+		env.DkgAddress,
 	)
 
-	code = strings.ReplaceAll(
+	code = ReplaceAddress(
 		code,
 		placeholderEpochAddress,
-		withHexPrefix(env.EpochAddress),
+		env.EpochAddress,
 	)
 
-	code = strings.ReplaceAll(
+	code = ReplaceAddress(
 		code,
 		placeholderStorageFeesAddress,
-		withHexPrefix(env.StorageFeesAddress),
+		env.StorageFeesAddress,
 	)
 
-	code = strings.ReplaceAll(
+	code = ReplaceAddress(
 		code,
 		placeholderFlowFeesAddress,
-		withHexPrefix(env.FlowFeesAddress),
+		env.FlowFeesAddress,
 	)
 
-	code = strings.ReplaceAll(
+	code = ReplaceAddress(
 		code,
 		placeholderStakingCollectionAddress,
-		withHexPrefix(env.LockedTokensAddress),
+		env.LockedTokensAddress,
 	)
 
-	code = strings.ReplaceAll(
+	code = ReplaceAddress(
+		code,
+		placeholderExecutionParametersAddress,
+		env.FlowExecutionParametersAddress,
+	)
+
+	code = ReplaceAddress(
 		code,
 		placeholderServiceAccountAddress,
-		withHexPrefix(env.ServiceAccountAddress),
+		env.ServiceAccountAddress,
 	)
 
-	code = strings.ReplaceAll(
+	code = ReplaceAddress(
 		code,
 		placeholderNodeVersionBeaconAddress,
-		withHexPrefix(env.NodeVersionBeaconAddress),
+		env.NodeVersionBeaconAddress,
 	)
 
-	code = strings.ReplaceAll(
+	code = ReplaceAddress(
 		code,
 		placeholderRandomBeaconHistoryAddress,
-		withHexPrefix(env.RandomBeaconHistoryAddress),
+		env.RandomBeaconHistoryAddress,
+	)
+
+	code = ReplaceAddress(
+		code,
+		placeholderLinearCodeAddressGeneratorAddress,
+		env.LinearCodeAddressGeneratorAddress,
 	)
 
 	return code

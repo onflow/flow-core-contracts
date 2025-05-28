@@ -1,4 +1,4 @@
-import FlowStakingCollection from "FlowStakingCollection"
+import "FlowStakingCollection"
 
 /// Registers multiple delegators in the staking collection resource
 /// for the specified nodeIDs and amount of tokens to commit
