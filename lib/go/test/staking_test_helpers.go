@@ -326,7 +326,6 @@ func generateManyNodeKeys(t *testing.T, numNodes int) ([]crypto.PrivateKey, []st
 
 }
 
-<<<<<<< HEAD
 func generateManyKeyPOPs(t *testing.T, sks []crypto.PrivateKey) []string {
 	POPs := make([]string, len(sks))
 	for i, sk := range sks {
@@ -336,10 +335,8 @@ func generateManyKeyPOPs(t *testing.T, sks []crypto.PrivateKey) []string {
 }
 
 // / Verifies that the EpochTotalRewardsPaid event was emmitted correctly with correct values
-=======
 // Verifies that an EpochTotalRewardsPaid event was emitted with the expected values.
 // CAUTION: Assumes that only one such event was emitted, and that it was emitted in the first 1000 blocks.
->>>>>>> master
 func verifyEpochTotalRewardsPaid(
 	t *testing.T,
 	b emulator.Emulator,
