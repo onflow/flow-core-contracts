@@ -976,11 +976,13 @@ func runWithDefaultContracts(t *testing.T, config *testEpochConfig, f func(b emu
 	addresses, _, signers := registerAndMintManyAccounts(t, b, env, accountKeys, config.numEpochAccounts)
 	ids, _, _ := generateNodeIDs(config.numEpochAccounts)
 	// stakingPrivateKeys
-	_, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, config.numEpochAccounts)
+	stakingPrivateKeys, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, config.numEpochAccounts)
+	stakingKeyPOPs := generateManyKeyPOPs(t, stakingPrivateKeys)
 	registerNodesForStaking(t, b, env,
 		addresses,
 		signers,
 		stakingPublicKeys,
+		stakingKeyPOPs,
 		networkingPublicKeys,
 		ids)
 
