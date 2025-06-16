@@ -1828,7 +1828,7 @@ access(all) contract FlowIDTableStaking {
     /// 1. Must not be an IP address
     /// 2. Must contain a port number after a colon
     /// 3. Must be a valid domain name format
-    access(contract) fun isValidNetworkingAddress(address: String): Bool {
+    access(contract) view fun isValidNetworkingAddress(address: String): Bool {
         // Split the address into domain and port
         let parts = address.split(separator: ":")
         if parts.length != 2 {
@@ -1866,8 +1866,17 @@ access(all) contract FlowIDTableStaking {
         }
 
         // Check for valid domain name characters (letters, numbers, dots, hyphens)
-        for char in domain {
-            if !char.isASCII() || (!char.isLetter() && !char.isNumber() && char != "." && char != "-") {
+        for char in domain.utf8 {
+            // Check if character is:
+            // - a letter (a-z, A-Z)
+            // - a number (0-9)
+            // - a dot (.)
+            // - a hyphen (-)
+            if !((char >= 48 && char <= 57) || // numbers
+                (char >= 65 && char <= 90) ||  // uppercase letters
+                (char >= 97 && char <= 122) || // lowercase letters
+                char == 46 ||                   // dot
+                char == 45) {                   // hyphen
                 return false
             }
         }
