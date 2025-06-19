@@ -151,8 +151,8 @@ func TestStakingProxy(t *testing.T) {
 
 		_ = tx.AddArgument(CadenceString(joshID))
 		_ = tx.AddArgument(cadence.NewUInt8(1))
-		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
-		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
+		_ = tx.AddArgument(CadenceString(getNetworkingAddress(josh)))
+		_ = tx.AddArgument(CadenceString(getNetworkingAddress(josh)))
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0192d", josh)))
 
 		signAndSubmit(

@@ -137,7 +137,7 @@ func TestIDTableManyNodes(t *testing.T) {
 
 			nodeRoles[i] = cadence.NewUInt8(uint8((i % 4) + 1))
 
-			networkingAddress := fmt.Sprintf("%0128d", i)
+			networkingAddress := getNetworkingAddress(i)
 
 			nodeNetworkingAddresses[i] = CadenceString(networkingAddress)
 
@@ -446,7 +446,7 @@ func TestIDTableOutOfBoundsAccess(t *testing.T) {
 
 			nodeRoles[i] = cadence.NewUInt8(uint8((i % 4) + 1))
 
-			networkingAddress := fmt.Sprintf("%0128d", i)
+			networkingAddress := getNetworkingAddress(i)
 
 			nodeNetworkingAddresses[i] = CadenceString(networkingAddress)
 
@@ -608,7 +608,7 @@ func TestIDTableUnstakeAllManyDelegators(t *testing.T) {
 			require.NoError(t, err)
 			err = tx.AddArgument(cadence.NewUInt8(role))
 			require.NoError(t, err)
-			err = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", i)))
+			err = tx.AddArgument(CadenceString(getNetworkingAddress(i)))
 			require.NoError(t, err)
 			err = tx.AddArgument(CadenceString(networkingKey))
 			require.NoError(t, err)
