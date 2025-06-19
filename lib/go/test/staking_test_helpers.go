@@ -285,6 +285,23 @@ func generateNodeIDs(numNodes int) ([]string, []cadence.Value, []cadence.Value) 
 	return ids, collectorIDs, consensusIDs
 }
 
+// Generate an array of networking addresses.
+//
+// parameter: numNodes: The number of nodes to generate networking addresses for
+//
+// returns: []string array of networking addresses
+func generateNetworkingAddresses(numNodes int) []string {
+	// initialize the slices for all the IDs
+	addresses := make([]string, numNodes)
+
+	// Create a new network address for each node
+	for i := 0; i < numNodes; i++ {
+		addresses[i] = getNetworkingAddress(i)
+	}
+
+	return addresses
+}
+
 // / Generates a key pair for staking, which uses the BLS_BLS12381 signing algorithm
 // / Also generates a key pair for networking, which uses the ECDSA_P256 signing algorithm
 func generateKeysForNodeRegistration(t *testing.T) (crypto.PrivateKey, string, string, crypto.PrivateKey, string) {
@@ -498,7 +515,7 @@ func registerNodesForStaking(
 			authorizer,
 			signers[i],
 			ids[i],
-			fmt.Sprintf("%0128d", i),
+			getNetworkingAddress(i),
 			networkingkeys[i],
 			stakingKeys[i],
 			stakingKeysPOPs[i],
@@ -991,4 +1008,9 @@ func assertCadenceNodeArrayElementsEqual(t *testing.T, expected, actual []cadenc
 		}
 	}
 	return true
+}
+
+// Helper function to generate a valid networking address for a node number
+func getNetworkingAddress(nodeNum int) string {
+	return fmt.Sprintf("node-%d.mynode.com:3569", nodeNum)
 }
