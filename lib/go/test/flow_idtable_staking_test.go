@@ -391,6 +391,34 @@ func TestIDTableRegistration(t *testing.T) {
 			idTableAddress,
 			IDTableSigner,
 			adminID,
+			// Invalid Networking Address: IP address instead of domain name
+			"123.234.56.23:3569",
+			adminNetworkingKey,
+			adminStakingKey,
+			adminStakingPOP,
+			amountToCommit,
+			committed[adminID],
+			1,
+			true)
+
+		registerNode(t, b, env,
+			idTableAddress,
+			IDTableSigner,
+			adminID,
+			// Invalid Networking Address: missing port
+			"abcd.xyz.com",
+			adminNetworkingKey,
+			adminStakingKey,
+			adminStakingPOP,
+			amountToCommit,
+			committed[adminID],
+			1,
+			true)
+
+		registerNode(t, b, env,
+			idTableAddress,
+			IDTableSigner,
+			adminID,
 			getNetworkingAddress(admin),
 			// Invalid Networking Key: Length is correct, but not a valid ECDSA Key
 			fmt.Sprintf("%0128d", admin),
