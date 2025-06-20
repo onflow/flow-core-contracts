@@ -1844,41 +1844,61 @@ access(all) contract FlowIDTableStaking {
             return false
         }
 
-        // Check if domain is an IP address (contains only numbers and dots)
-        let domainParts = domain.split(separator: ".")
-        if domainParts.length == 4 {
-            var isIP = true
-            for part in domainParts {
-                let num = UInt8.fromString(part)
-                if num == nil || num! > 255 {
-                    isIP = false
-                    break
-                }
-            }
-            if isIP {
-                return false
-            }
-        }
-
         // Check if domain has at least one dot and valid characters
         if !domain.contains(".") {
             return false
         }
 
-        // Check for valid domain name characters (letters, numbers, dots, hyphens)
+        // Check if domain contains only letters, digits and hyphens
+        let validChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.-".utf8
         for char in domain.utf8 {
-            // Check if character is:
-            // - a letter (a-z, A-Z)
-            // - a number (0-9)
-            // - a dot (.)
-            // - a hyphen (-)
-            if !((char >= 48 && char <= 57) || // numbers
-                (char >= 65 && char <= 90) ||  // uppercase letters
-                (char >= 97 && char <= 122) || // lowercase letters
-                char == 46 ||                   // dot
-                char == 45) {                   // hyphen
+            if !validChars.contains(char) {
                 return false
             }
+        }
+
+        let hyphen = "-".utf8[0]
+        let labels = domain.split(separator: ".")
+        for label in labels {
+            // Label should not be empty
+            if label.length == 0 {
+                return false
+            }
+
+            // Label should not start or ends with a hyphen
+            var labelChars = label.utf8
+            if labelChars[0] == hyphen || labelChars[labelChars.length - 1] == hyphen {
+                    return false
+            }
+        }
+
+        let tld = labels[labels.length - 1]
+
+        // TLD must be atleast 2 characters long
+        if tld.length < 2 {
+            return false
+        }
+
+        // TLD must not be all digits
+        var hasLetter = false
+        for c in tld.utf8 {
+
+            // TLD must not contain a hyphen
+            if c == hyphen {
+                return false
+            }
+
+            // TLD must not be all digits
+            let isUpper = c >= 65 && c <= 90   // 'A'-'Z'
+            let isLower = c >= 97 && c <= 122  // 'a'-'z'
+            if isUpper || isLower {
+                hasLetter = true
+                break
+            }
+        }
+
+        if !hasLetter {
+            return false
         }
 
         return true
