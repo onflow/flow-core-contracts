@@ -2,7 +2,6 @@ package test
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/onflow/flow-emulator/convert"
@@ -699,7 +698,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterNode(env), joshAddress)
 		_ = tx.AddArgument(CadenceString(bastianID))
 		_ = tx.AddArgument(cadence.NewUInt8(1))
-		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", bastian)))
+		_ = tx.AddArgument(CadenceString(getNetworkingAddress(bastian)))
 		_ = tx.AddArgument(CadenceString(bastianNetworkingKey))
 		_ = tx.AddArgument(CadenceString(bastianStakingKey))
 		_ = tx.AddArgument(CadenceString(bastianStakingPOP))
@@ -780,7 +779,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterNode(env), joshAddress)
 		_ = tx.AddArgument(CadenceString(executionID))
 		_ = tx.AddArgument(cadence.NewUInt8(3))
-		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", execution)))
+		_ = tx.AddArgument(CadenceString(getNetworkingAddress(execution)))
 		_ = tx.AddArgument(CadenceString(executionNetworkingKey))
 		_ = tx.AddArgument(CadenceString(executionStakingKey))
 		_ = tx.AddArgument(CadenceString(executionStakingPOP))
@@ -813,7 +812,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionRegisterNode(env), joshAddress)
 		_ = tx.AddArgument(CadenceString(verificationID))
 		_ = tx.AddArgument(cadence.NewUInt8(4))
-		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", verification)))
+		_ = tx.AddArgument(CadenceString(getNetworkingAddress(verification)))
 		_ = tx.AddArgument(CadenceString(verificationNetworkingKey))
 		_ = tx.AddArgument(CadenceString(verificationStakingKey))
 		_ = tx.AddArgument(CadenceString(verificationStakingPOP))
@@ -846,7 +845,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionUpdateNetworkingAddressScript(env), joshAddress)
 		_ = tx.AddArgument(CadenceString(executionID))
-		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", newAddress)))
+		_ = tx.AddArgument(CadenceString(getNetworkingAddress(newAddress)))
 
 		signAndSubmit(
 			t, b, tx,
@@ -856,7 +855,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 		)
 
 		result := executeScriptAndCheck(t, b, templates.GenerateGetNetworkingAddressScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(executionID))})
-		assertEqual(t, CadenceString(fmt.Sprintf("%0128d", newAddress)), result)
+		assertEqual(t, CadenceString(getNetworkingAddress(newAddress)), result)
 	})
 }
 
