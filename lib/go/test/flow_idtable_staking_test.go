@@ -601,6 +601,18 @@ func TestIDTableRegistration(t *testing.T) {
 			true,
 		)
 
+		// Should fail because the networking address is not a domain name
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateNetworkingAddressScript(env), idTableAddress)
+
+		tx.AddArgument(CadenceString("198.234.124.123:3569"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
+			true,
+		)
+
 		// Should fail because the networking address is already claimed
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateNetworkingAddressScript(env), idTableAddress)
 

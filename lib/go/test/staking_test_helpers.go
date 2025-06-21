@@ -481,7 +481,7 @@ func endStakingMoveTokens(t *testing.T,
 }
 
 // Registers the specified number of nodes for staking with the specified IDs
-// Does an even distrubution of node roles across the array of IDs in this order, repeating:
+// Does an even distribution of node roles across the array of IDs in this order, repeating:
 // collection, consensus, execution, verification, access
 func registerNodesForStaking(
 	t *testing.T,
