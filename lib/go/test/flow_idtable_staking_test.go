@@ -377,118 +377,6 @@ func TestIDTableRegistration(t *testing.T) {
 			idTableAddress,
 			IDTableSigner,
 			adminID,
-			// Invalid Networking Address: Length cannot be zero
-			"",
-			adminNetworkingKey,
-			adminStakingKey,
-			adminStakingPOP,
-			amountToCommit,
-			committed[adminID],
-			1,
-			true)
-
-		registerNode(t, b, env,
-			idTableAddress,
-			IDTableSigner,
-			adminID,
-			// Invalid Networking Address: incorrect port
-			"host.com:65536",
-			adminNetworkingKey,
-			adminStakingKey,
-			adminStakingPOP,
-			amountToCommit,
-			committed[adminID],
-			1,
-			true)
-
-		registerNode(t, b, env,
-			idTableAddress,
-			IDTableSigner,
-			adminID,
-			// Invalid Networking Address: invalid domain name, missing dot separator
-			"no-dot-in-hostname:3569",
-			adminNetworkingKey,
-			adminStakingKey,
-			adminStakingPOP,
-			amountToCommit,
-			committed[adminID],
-			1,
-			true)
-
-		registerNode(t, b, env,
-			idTableAddress,
-			IDTableSigner,
-			adminID,
-			// Invalid Networking Address: IPv4 address instead of domain name
-			"123.234.56.23:3569",
-			adminNetworkingKey,
-			adminStakingKey,
-			adminStakingPOP,
-			amountToCommit,
-			committed[adminID],
-			1,
-			true)
-
-		registerNode(t, b, env,
-			idTableAddress,
-			IDTableSigner,
-			adminID,
-			// Invalid Networking Address: IPv6 address instead of domain name
-			"2001:0db8:85a3:0000:0000:8a2e:0370:7334:3569",
-			adminNetworkingKey,
-			adminStakingKey,
-			adminStakingPOP,
-			amountToCommit,
-			committed[adminID],
-			1,
-			true)
-
-		registerNode(t, b, env,
-			idTableAddress,
-			IDTableSigner,
-			adminID,
-			// Invalid Networking Address: invalid label starting with hyphen
-			"acd.-def.com:3569",
-			adminNetworkingKey,
-			adminStakingKey,
-			adminStakingPOP,
-			amountToCommit,
-			committed[adminID],
-			1,
-			true)
-
-		registerNode(t, b, env,
-			idTableAddress,
-			IDTableSigner,
-			adminID,
-			// Invalid Networking Address: hyphen in the TLD
-			"host.example-site:3569",
-			adminNetworkingKey,
-			adminStakingKey,
-			adminStakingPOP,
-			amountToCommit,
-			committed[adminID],
-			1,
-			true)
-
-		registerNode(t, b, env,
-			idTableAddress,
-			IDTableSigner,
-			adminID,
-			// Invalid Networking Address: missing port
-			"abcd.xyz.com",
-			adminNetworkingKey,
-			adminStakingKey,
-			adminStakingPOP,
-			amountToCommit,
-			committed[adminID],
-			1,
-			true)
-
-		registerNode(t, b, env,
-			idTableAddress,
-			IDTableSigner,
-			adminID,
 			getNetworkingAddress(admin),
 			// Invalid Networking Key: Length is correct, but not a valid ECDSA Key
 			fmt.Sprintf("%0128d", admin),
@@ -526,6 +414,40 @@ func TestIDTableRegistration(t *testing.T) {
 			committed[adminID],
 			1,
 			true)
+	})
+
+	t.Run("Shouldn't be able to create Node struct with an invalid networking address", func(t *testing.T) {
+
+		var amountToCommit interpreter.UFix64Value = 25000000000000
+
+		invalidNetworkingAddresses := []string{
+			"",                        // empty address
+			"host.com:65536",          // incorrect port
+			"no-dot-in-hostname:3569", // missing dot separator in domain name
+			"123.234.56.23:3569",      // IPv4 address instead of domain name
+			"2001:0db8:85a3:0000:0000:8a2e:0370:7334:3569", // IPv6 address instead of domain name
+			"acd.-def.com:3569",                            // invalid label starting with hyphen
+			"host.example-site:3569",                       // hyphen in the TLD
+			"host.example-site:ab",                         //  TLD too short
+			"abcd.xyz.com",                                 // missing port
+		}
+
+		for _, networkingAddress := range invalidNetworkingAddresses {
+			registerNode(t, b, env,
+				idTableAddress,
+				IDTableSigner,
+				// Invalid ID: Too short
+				"3039",
+				networkingAddress,
+				adminNetworkingKey,
+				adminStakingKey,
+				adminStakingPOP,
+				amountToCommit,
+				committed[adminID],
+				1,
+				true)
+		}
+
 	})
 
 	t.Run("Should be able to create a valid Node struct and not create duplicates", func(t *testing.T) {
