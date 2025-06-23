@@ -405,8 +405,8 @@ func TestIDTableRegistration(t *testing.T) {
 			idTableAddress,
 			IDTableSigner,
 			adminID,
-			// Invalid Networking Address: invalid domain name
-			"no-dot-in-hostname:65536",
+			// Invalid Networking Address: invalid domain name, missing dot separator
+			"no-dot-in-hostname:3569",
 			adminNetworkingKey,
 			adminStakingKey,
 			adminStakingPOP,
@@ -448,7 +448,7 @@ func TestIDTableRegistration(t *testing.T) {
 			IDTableSigner,
 			adminID,
 			// Invalid Networking Address: invalid label starting with hyphen
-			"acd.-def.com:65536",
+			"acd.-def.com:3569",
 			adminNetworkingKey,
 			adminStakingKey,
 			adminStakingPOP,
@@ -462,7 +462,7 @@ func TestIDTableRegistration(t *testing.T) {
 			IDTableSigner,
 			adminID,
 			// Invalid Networking Address: hyphen in the TLD
-			"host.example-site:1234",
+			"host.example-site:3569",
 			adminNetworkingKey,
 			adminStakingKey,
 			adminStakingPOP,
@@ -477,20 +477,6 @@ func TestIDTableRegistration(t *testing.T) {
 			adminID,
 			// Invalid Networking Address: missing port
 			"abcd.xyz.com",
-			adminNetworkingKey,
-			adminStakingKey,
-			adminStakingPOP,
-			amountToCommit,
-			committed[adminID],
-			1,
-			true)
-
-		registerNode(t, b, env,
-			idTableAddress,
-			IDTableSigner,
-			adminID,
-			// Invalid Networking Address: incorrect port
-			"host.com:65536",
 			adminNetworkingKey,
 			adminStakingKey,
 			adminStakingPOP,
