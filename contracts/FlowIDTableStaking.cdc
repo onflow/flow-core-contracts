@@ -1861,7 +1861,8 @@ access(all) contract FlowIDTableStaking {
             }
         }
 
-        let hyphen = "-".utf8[0]
+        let hyphen = "-"
+        let hyphenUTF8 = hyphen.utf8[0]
         let labels = domain.split(separator: ".")
         for label in labels {
             // Label should not be empty
@@ -1871,27 +1872,25 @@ access(all) contract FlowIDTableStaking {
 
             // Label should not start or ends with a hyphen
             var labelChars = label.utf8
-            if labelChars[0] == hyphen || labelChars[labelChars.length - 1] == hyphen {
+            if labelChars[0] == hyphenUTF8 || labelChars[labelChars.length - 1] == hyphenUTF8 {
                     return false
             }
         }
 
         let tld = labels[labels.length - 1]
 
-        // TLD must be atleast 2 characters long
+        // TLD must be at least 2 characters long
         if tld.length < 2 {
             return false
         }
 
-        // TLD must not be all digits
+        // TLD must not contain a hyphen
+        if tld.contains(hyphen) {
+            return false
+        }
+
         var hasLetter = false
         for c in tld.utf8 {
-
-            // TLD must not contain a hyphen
-            if c == hyphen {
-                return false
-            }
-
             // TLD must not be all digits
             let isUpper = c >= 65 && c <= 90   // 'A'-'Z'
             let isLower = c >= 97 && c <= 122  // 'a'-'z'
