@@ -436,8 +436,7 @@ func TestIDTableRegistration(t *testing.T) {
 			registerNode(t, b, env,
 				idTableAddress,
 				IDTableSigner,
-				// Invalid ID: Too short
-				"3039",
+				adminID,
 				networkingAddress,
 				adminNetworkingKey,
 				adminStakingKey,
