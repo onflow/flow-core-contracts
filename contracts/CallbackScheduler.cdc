@@ -71,7 +71,7 @@ access(all) contract CallbackScheduler {
         ): EstimatedCallback?
 
         // Get status of a scheduled callback.
-        access(mayReadCallbackStatus) fun getStatus(ID: UInt64): Status
+        access(mayReadCallbackStatus) fun getStatus(ID: UInt64): Status?
 
         // Cancel a scheduled callback before execution. A partial refund is returned as a Vault resource.
         access(mayCancelCallback) fun cancel(ID: UInt64): @FlowToken.Vault
@@ -106,7 +106,7 @@ access(all) contract CallbackScheduler {
         access(all) let ID: UInt64
         access(all) let timestamp: UFix64?
 
-        access(all) fun status(): Status {
+        access(all) fun status(): Status? {
             return self.scheduler.borrow()!.getStatus(ID: self.ID)
         }
 
@@ -210,7 +210,7 @@ access(all) contract CallbackScheduler {
             }
 
             let amount = self.fees.balance * multiplier
-            return <- self.fees.withdraw(amount: amount)
+            return <- self.fees.withdraw(amount: amount) as! @FlowToken.Vault
         }
 
         access(contract) fun toString(): String {
@@ -594,7 +594,7 @@ access(all) contract CallbackScheduler {
             
             self.finalizeCallback(callback: callback, status: Status.Canceled)
             
-            return callback.withdrawFees(multiplier: self.refundMultiplier)
+            return <- callback.withdrawFees(multiplier: self.refundMultiplier)
         }
 
         // execute callback is a system function that is called by FVM to execute a callback by ID.
@@ -692,7 +692,7 @@ access(all) contract CallbackScheduler {
             )
     }
 
-    access(all) fun getStatus(ID: UInt64): Status {
+    access(all) fun getStatus(ID: UInt64): Status? {
         return self.sharedScheduler.borrow()!.getStatus(ID: ID)
     }
 
