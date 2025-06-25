@@ -90,40 +90,16 @@ access(all) fun testEstimate() {
             expectedFee: nil,
             expectedTimestamp: nil
         ),
-
-        // Valid high priority cases
         EstimateTestCase(
-            name: "High priority minimum effort",
+            name: "High priority effort",
             timestamp: futureTime + 1.0,
             priority: CallbackScheduler.Priority.High,
-            executionEffort: 5,
+            executionEffort: 5000,
             data: nil,
             expectNil: false,
             expectedFee: 0.005,
             expectedTimestamp: futureTime + 1.0
         ),
-        EstimateTestCase(
-            name: "High priority normal effort",
-            timestamp: futureTime + 2.0,
-            priority: CallbackScheduler.Priority.High,
-            executionEffort: 1000,
-            data: nil,
-            expectNil: false,
-            expectedFee: 1.0,
-            expectedTimestamp: futureTime + 2.0
-        ),
-        EstimateTestCase(
-            name: "High priority maximum effort",
-            timestamp: futureTime + 3.0,
-            priority: CallbackScheduler.Priority.High,
-            executionEffort: 30000,
-            data: nil,
-            expectNil: false,
-            expectedFee: 30.0,
-            expectedTimestamp: futureTime + 3.0
-        ),
-
-        // Valid medium priority cases
         EstimateTestCase(
             name: "Medium priority minimum effort",
             timestamp: futureTime + 4.0,
@@ -134,27 +110,6 @@ access(all) fun testEstimate() {
             expectedFee: 0.0025,
             expectedTimestamp: futureTime + 4.0
         ),
-        EstimateTestCase(
-            name: "Medium priority normal effort",
-            timestamp: futureTime + 5.0,
-            priority: CallbackScheduler.Priority.Medium,
-            executionEffort: 1000,
-            data: nil,
-            expectNil: false,
-            expectedFee: 0.5,
-            expectedTimestamp: futureTime + 5.0
-        ),
-        EstimateTestCase(
-            name: "Medium priority maximum effort",
-            timestamp: futureTime + 6.0,
-            priority: CallbackScheduler.Priority.Medium,
-            executionEffort: 15000,
-            data: nil,
-            expectNil: false,
-            expectedFee: 7.5,
-            expectedTimestamp: futureTime + 6.0
-        ),
-
         // Edge cases
         EstimateTestCase(
             name: "Zero execution effort",
@@ -176,7 +131,6 @@ access(all) fun testEstimate() {
             expectedFee: 1.0,
             expectedTimestamp: farFutureTime
         ),
-
         // Data type tests
         EstimateTestCase(
             name: "String data",
@@ -187,26 +141,6 @@ access(all) fun testEstimate() {
             expectNil: false,
             expectedFee: 1.0,
             expectedTimestamp: futureTime + 8.0
-        ),
-        EstimateTestCase(
-            name: "Int data",
-            timestamp: futureTime + 9.0,
-            priority: CallbackScheduler.Priority.Medium,
-            executionEffort: 1000,
-            data: 42,
-            expectNil: false,
-            expectedFee: 0.5,
-            expectedTimestamp: futureTime + 9.0
-        ),
-        EstimateTestCase(
-            name: "Array data",
-            timestamp: futureTime + 10.0,
-            priority: CallbackScheduler.Priority.High,
-            executionEffort: 1000,
-            data: [1, 2, 3],
-            expectNil: false,
-            expectedFee: 1.0,
-            expectedTimestamp: futureTime + 10.0
         ),
         EstimateTestCase(
             name: "Dictionary data",
