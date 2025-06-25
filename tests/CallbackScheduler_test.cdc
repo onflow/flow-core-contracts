@@ -160,8 +160,6 @@ access(all) fun testEstimate() {
 }
 
 access(all) fun runEstimateTestCase(testCase: EstimateTestCase) {
-    Test.log("Running test: ".concat(testCase.name))
-    
     let result = CallbackScheduler.estimate(
         data: testCase.data,
         timestamp: testCase.timestamp,
@@ -172,7 +170,7 @@ access(all) fun runEstimateTestCase(testCase: EstimateTestCase) {
     if testCase.expectNil {
         Test.expect(result, Test.beNil())
     } else {
-        Test.expect(result, Test.beNotNil())
+        Test.expect(result, Test.not(Test.beNil()))
         
         if let estimate = result {
             if let expectedFee = testCase.expectedFee {
