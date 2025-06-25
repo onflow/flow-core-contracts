@@ -606,6 +606,7 @@ access(all) contract CallbackScheduler {
             }
 
             // garbage collect historic statuses that are older than the limit
+            // todo: maybe not do this every time, but only each X blocks to save compute
             let historicStatuses = self.historicStatuses.keys
             for ID in historicStatuses {
                 let historic = self.historicStatuses[ID]
