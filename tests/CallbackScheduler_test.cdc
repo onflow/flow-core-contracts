@@ -168,17 +168,17 @@ access(all) fun runEstimateTestCase(testCase: EstimateTestCase) {
     )
     
     if testCase.expectNil {
-        Test.expect(result, Test.beNil())
+        Test.assert(result == nil, message: "expected nil for test case: ".concat(testCase.name))
     } else {
-        Test.expect(result, Test.not(Test.beNil()))
+        Test.assert(result != nil, message: "expected non-nil for test case: ".concat(testCase.name))
         
         if let estimate = result {
             if let expectedFee = testCase.expectedFee {
-                Test.assertEqual(expectedFee, estimate.flowFee)
+                Test.assert(expectedFee == estimate.flowFee, message: "fee missmatch for test case: ".concat(testCase.name))
             }
             
             if let expectedTimestamp = testCase.expectedTimestamp {
-                Test.assertEqual(expectedTimestamp, estimate.timestamp)
+                Test.assert(expectedTimestamp == estimate.timestamp, message: "timestamp missmatch for test case: ".concat(testCase.name))
             }
         }
     }
