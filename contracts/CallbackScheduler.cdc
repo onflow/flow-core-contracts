@@ -127,12 +127,14 @@ access(all) contract CallbackScheduler {
 
     // Estimated callback contains data for estimating callback scheduling.
     access(all) struct EstimatedCallback {
-        access(all) let flowFee: UFix64
-        access(all) let timestamp: UFix64
+        access(all) let flowFee: UFix64?
+        access(all) let timestamp: UFix64?
+        access(all) let error: String?
 
-        access(contract) init(flowFee: UFix64, timestamp: UFix64) {
+        access(contract) init(flowFee: UFix64?, timestamp: UFix64?, error: String?) {
             self.flowFee = flowFee
             self.timestamp = timestamp
+            self.error = error
         }
     }
 
@@ -249,8 +251,7 @@ access(all) contract CallbackScheduler {
         // priority effort reserve is the amount of effort that is 
         // reserved exclusively for each priority
         access(self) var priorityEffortReserve: {Priority: UInt64}
-        // priority effort limit is the maximum effort that can be 
-        // used for each priority in each timeslot
+        // priority effort limit is the maximum effort per priority in a timeslot
         access(self) var priorityEffortLimit: {Priority: UInt64}
         // minimum execution effort is the minimum effort that can be 
         // used for any priority
@@ -524,12 +525,19 @@ access(all) contract CallbackScheduler {
         ): EstimatedCallback? {
             // low priority callbacks are not supported
             if priority == Priority.Low {
-                return nil
+                return EstimatedCallback(flowFee: nil, timestamp: nil, error: "Invalid priority: low priority callbacks estimation not supported")
             }
 
-            // timestamp is in the past
             if timestamp <= getCurrentBlock().timestamp {
-                return nil
+                return EstimatedCallback(flowFee: nil, timestamp: nil, error: "Invalid timestamp: timestamp is in the past")
+            }
+
+            if executionEffort > self.priorityEffortLimit[priority]! {
+                return EstimatedCallback(flowFee: nil, timestamp: nil, error: "Invalid execution effort: greater than available effort for priority")
+            }
+
+            if executionEffort < self.minimumExecutionEffort {
+                return EstimatedCallback(flowFee: nil, timestamp: nil, error: "Invalid execution effort: less than minimum execution effort")
             }
 
             let fee = self.calculateFee(executionEffort: executionEffort, priority: priority)
@@ -542,7 +550,7 @@ access(all) contract CallbackScheduler {
                 return nil
             }
 
-            return EstimatedCallback(flowFee: fee, timestamp: scheduledTimestamp!)
+            return EstimatedCallback(flowFee: fee, timestamp: scheduledTimestamp, error: nil)
         }
 
         // get status of the scheduled callback, if the callback is not found nil is returned.
