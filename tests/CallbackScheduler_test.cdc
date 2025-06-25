@@ -30,6 +30,7 @@ access(all) struct EstimateTestCase {
     access(all) let expectNil: Bool
     access(all) let expectedFee: UFix64?
     access(all) let expectedTimestamp: UFix64?
+    access(all) let expectedError: String?
 
     access(all) init(
         name: String,
@@ -39,7 +40,8 @@ access(all) struct EstimateTestCase {
         data: AnyStruct?,
         expectNil: Bool,
         expectedFee: UFix64?,
-        expectedTimestamp: UFix64?
+        expectedTimestamp: UFix64?,
+        expectedError: String?
     ) {
         self.name = name
         self.timestamp = timestamp
@@ -49,6 +51,7 @@ access(all) struct EstimateTestCase {
         self.expectNil = expectNil
         self.expectedFee = expectedFee
         self.expectedTimestamp = expectedTimestamp
+        self.expectedError = expectedError
     }
 }
 
@@ -59,37 +62,75 @@ access(all) fun testEstimate() {
     let farFutureTime = currentTime + 10000.0
 
     let estimateTestCases: [EstimateTestCase] = [
-        // Nil cases
+        // Error cases - should return EstimatedCallback with error
         EstimateTestCase(
-            name: "Low priority returns nil",
+            name: "Low priority returns error",
             timestamp: futureTime,
             priority: CallbackScheduler.Priority.Low,
             executionEffort: 1000,
             data: nil,
-            expectNil: true,
+            expectNil: false,
             expectedFee: nil,
-            expectedTimestamp: nil
+            expectedTimestamp: nil,
+            expectedError: "Invalid priority: low priority callbacks estimation not supported"
         ),
         EstimateTestCase(
-            name: "Past timestamp returns nil",
+            name: "Past timestamp returns error",
             timestamp: pastTime,
             priority: CallbackScheduler.Priority.High,
             executionEffort: 1000,
             data: nil,
-            expectNil: true,
+            expectNil: false,
             expectedFee: nil,
-            expectedTimestamp: nil
+            expectedTimestamp: nil,
+            expectedError: "Invalid timestamp: timestamp is in the past"
         ),
         EstimateTestCase(
-            name: "Current timestamp returns nil",
+            name: "Current timestamp returns error",
             timestamp: currentTime,
             priority: CallbackScheduler.Priority.Medium,
             executionEffort: 1000,
             data: nil,
-            expectNil: true,
+            expectNil: false,
             expectedFee: nil,
-            expectedTimestamp: nil
+            expectedTimestamp: nil,
+            expectedError: "Invalid timestamp: timestamp is in the past"
         ),
+        EstimateTestCase(
+            name: "Zero execution effort returns error",
+            timestamp: futureTime + 7.0,
+            priority: CallbackScheduler.Priority.High,
+            executionEffort: 0,
+            data: nil,
+            expectNil: false,
+            expectedFee: nil,
+            expectedTimestamp: nil,
+            expectedError: "Invalid execution effort: less than minimum execution effort"
+        ),
+        EstimateTestCase(
+            name: "Excessive high priority effort returns error",
+            timestamp: futureTime + 8.0,
+            priority: CallbackScheduler.Priority.High,
+            executionEffort: 50000,
+            data: nil,
+            expectNil: false,
+            expectedFee: nil,
+            expectedTimestamp: nil,
+            expectedError: "Invalid execution effort: greater than available effort for priority"
+        ),
+        EstimateTestCase(
+            name: "Excessive medium priority effort returns error",
+            timestamp: futureTime + 9.0,
+            priority: CallbackScheduler.Priority.Medium,
+            executionEffort: 20000,
+            data: nil,
+            expectNil: false,
+            expectedFee: nil,
+            expectedTimestamp: nil,
+            expectedError: "Invalid execution effort: greater than available effort for priority"
+        ),
+
+        // Valid cases - should return EstimatedCallback with no error
         EstimateTestCase(
             name: "High priority effort",
             timestamp: futureTime + 1.0,
@@ -97,8 +138,9 @@ access(all) fun testEstimate() {
             executionEffort: 5000,
             data: nil,
             expectNil: false,
-            expectedFee: 0.005,
-            expectedTimestamp: futureTime + 1.0
+            expectedFee: 5.0,
+            expectedTimestamp: futureTime + 1.0,
+            expectedError: nil
         ),
         EstimateTestCase(
             name: "Medium priority minimum effort",
@@ -108,18 +150,8 @@ access(all) fun testEstimate() {
             data: nil,
             expectNil: false,
             expectedFee: 0.0025,
-            expectedTimestamp: futureTime + 4.0
-        ),
-        // Edge cases
-        EstimateTestCase(
-            name: "Zero execution effort",
-            timestamp: futureTime + 7.0,
-            priority: CallbackScheduler.Priority.High,
-            executionEffort: 0,
-            data: nil,
-            expectNil: true,
-            expectedFee: nil,
-            expectedTimestamp: nil
+            expectedTimestamp: futureTime + 4.0,
+            expectedError: nil
         ),
         EstimateTestCase(
             name: "Far future timestamp",
@@ -129,18 +161,19 @@ access(all) fun testEstimate() {
             data: nil,
             expectNil: false,
             expectedFee: 1.0,
-            expectedTimestamp: farFutureTime
+            expectedTimestamp: farFutureTime,
+            expectedError: nil
         ),
-        // Data type tests
         EstimateTestCase(
             name: "String data",
-            timestamp: futureTime + 8.0,
+            timestamp: futureTime + 10.0,
             priority: CallbackScheduler.Priority.High,
             executionEffort: 1000,
             data: "string data",
             expectNil: false,
             expectedFee: 1.0,
-            expectedTimestamp: futureTime + 8.0
+            expectedTimestamp: futureTime + 10.0,
+            expectedError: nil
         ),
         EstimateTestCase(
             name: "Dictionary data",
@@ -150,7 +183,8 @@ access(all) fun testEstimate() {
             data: {"key": "value"},
             expectNil: false,
             expectedFee: 0.5,
-            expectedTimestamp: futureTime + 11.0
+            expectedTimestamp: futureTime + 11.0,
+            expectedError: nil
         )
     ]
 
@@ -173,12 +207,25 @@ access(all) fun runEstimateTestCase(testCase: EstimateTestCase) {
         Test.assert(result != nil, message: "expected non-nil for test case: ".concat(testCase.name))
         
         if let estimate = result {
+            // Check fee
             if let expectedFee = testCase.expectedFee {
-                Test.assert(expectedFee == estimate.flowFee, message: "fee missmatch for test case: ".concat(testCase.name))
+                Test.assert(expectedFee == estimate.flowFee, message: "fee mismatch for test case: ".concat(testCase.name))
+            } else {
+                Test.assert(estimate.flowFee == nil, message: "expected nil fee for test case: ".concat(testCase.name))
             }
             
+            // Check timestamp
             if let expectedTimestamp = testCase.expectedTimestamp {
-                Test.assert(expectedTimestamp == estimate.timestamp, message: "timestamp missmatch for test case: ".concat(testCase.name))
+                Test.assert(expectedTimestamp == estimate.timestamp, message: "timestamp mismatch for test case: ".concat(testCase.name))
+            } else {
+                Test.assert(estimate.timestamp == nil, message: "expected nil timestamp for test case: ".concat(testCase.name))
+            }
+            
+            // Check error
+            if let expectedError = testCase.expectedError {
+                Test.assert(expectedError == estimate.error, message: "error mismatch for test case: ".concat(testCase.name))
+            } else {
+                Test.assert(estimate.error == nil, message: "expected nil error for test case: ".concat(testCase.name))
             }
         }
     }
