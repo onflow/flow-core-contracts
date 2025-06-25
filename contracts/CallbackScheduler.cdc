@@ -261,9 +261,12 @@ access(all) contract CallbackScheduler {
         access(self) var priorityFeeMultipliers: {Priority: UFix64}
         // refund multiplier is the portion of the fees that are refunded when a callback is cancelled
         access(self) var refundMultiplier: UFix64
+        // historic status limit is the maximum age of a historic status we keep before getting pruned
+        access(self) var historicStatusLimit: UFix64
         // low priority callbacks don't get assigned a timestamp, 
         // so we use this special value
         access(self) let lowPriorityScheduledTimestamp: UFix64
+        
 
         access(all) init() {
             self.nextID = 1
@@ -322,6 +325,7 @@ access(all) contract CallbackScheduler {
             }
             
             self.refundMultiplier = 0.5
+            self.historicStatusLimit = 30.0 * 24.0 * 60.0 * 60.0 // 30 days
         }
 
         // getNextID returns the next ID and increments the ID counter
@@ -571,10 +575,20 @@ access(all) contract CallbackScheduler {
         // It iterates over all the timestamps in the queue and processes the callbacks that are 
         // eligible for execution. It also emits an event for each callback that is processed.
         access(all) fun process() {
+            
+            // todo: minimum priority callbacks should be processed as well if space
+
+            let lowPriorityTimestamp = self.lowPriorityScheduledTimestamp
             let currentTimestamp = getCurrentBlock().timestamp
+            
             // find all timestamps that are in the past
-            let pastTimestamp = view fun (element: UFix64): Bool {
-                return element <= currentTimestamp
+            let pastTimestamp = view fun (timestamp: UFix64): Bool {
+                // don't add low priority timestamp to the past timestamps
+                if timestamp == lowPriorityTimestamp { 
+                    return false
+                }
+
+                return timestamp <= currentTimestamp 
             }
             let pastTimestamps = self.slotQueue.keys.filter(pastTimestamp)
 
@@ -591,8 +605,14 @@ access(all) contract CallbackScheduler {
                 }
             }
 
-            // garbage collect historic statuses
-         
+            // garbage collect historic statuses that are older than the limit
+            let historicStatuses = self.historicStatuses.keys
+            for ID in historicStatuses {
+                let historic = self.historicStatuses[ID]
+                if historic!.timestamp < currentTimestamp - self.historicStatusLimit {
+                    self.historicStatuses.remove(key: ID)
+                }
+            }
         }
 
         // cancel scheduled callback and return a portion of the fees that were paid.
