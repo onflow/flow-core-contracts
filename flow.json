@@ -157,6 +157,12 @@
 				"testing": "0000000000000007",
 				"testnet": "7aad92e5a0715d21"
 			}
+		},
+		"CallbackScheduler": {
+			"source": "./contracts/CallbackScheduler.cdc",
+			"aliases": {
+				"emulator": "f8d6e0586b0a20c7"
+			}
 		}
 	},
 	"networks": {
