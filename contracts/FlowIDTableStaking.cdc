@@ -1827,7 +1827,7 @@ access(all) contract FlowIDTableStaking {
     /// 1. Must not be an IP address
     /// 2. Must contain a port number after a colon
     /// 3. Must be a valid domain name format
-    access(contract) view fun isValidNetworkingAddress(address: String): Bool {
+    access(all) view fun isValidNetworkingAddress(address: String): Bool {
         // Check length
        if  address.length == 0 && address.length > 510 {
             return false
