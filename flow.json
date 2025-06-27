@@ -9,6 +9,13 @@
 				"testnet": "9a0766d93b6608b7"
 			}
 		},
+		"CallbackScheduler": {
+			"source": "./contracts/CallbackScheduler.cdc",
+			"aliases": {
+				"emulator": "f8d6e0586b0a20c7",
+				"testing": "0000000000000007"
+			}
+		},
 		"Crypto": {
 			"source": "./contracts/Crypto.cdc",
 			"aliases": {
@@ -44,6 +51,15 @@
 				"testnet": "9eca2b38b18b5dfe"
 			}
 		},
+		"FlowExecutionParameters": {
+			"source": "./contracts/FlowExecutionParameters.cdc",
+			"aliases": {
+				"emulator": "f8d6e0586b0a20c7",
+				"mainnet": "f426ff57ee8f6110",
+				"testing": "0000000000000007",
+				"testnet": "6997a2f2cf57b73a"
+			}
+		},
 		"FlowFees": {
 			"source": "./contracts/FlowFees.cdc",
 			"aliases": {
@@ -60,15 +76,6 @@
 				"mainnet": "8624b52f9ddcd04a",
 				"testing": "0000000000000007",
 				"testnet": "9eca2b38b18b5dfe"
-			}
-		},
-        "FlowExecutionParameters": {
-			"source": "./contracts/FlowExecutionParameters.cdc",
-			"aliases": {
-				"emulator": "f8d6e0586b0a20c7",
-				"mainnet": "f426ff57ee8f6110",
-				"testing": "0000000000000007",
-				"testnet": "6997a2f2cf57b73a"
 			}
 		},
 		"FlowServiceAccount": {
@@ -119,7 +126,7 @@
 		"LinearCodeAddressGenerator": {
 			"source": "./contracts/LinearCodeAddressGenerator.cdc",
 			"aliases": {
-				"testing": "0x0000000000000007"
+				"testing": "0000000000000007"
 			}
 		},
 		"LockedTokens": {
@@ -129,6 +136,12 @@
 				"mainnet": "8d0e87b65159ae63",
 				"testing": "0000000000000007",
 				"testnet": "95e019a17d0e23d7"
+			}
+		},
+		"MinimalTestContract": {
+			"source": "./contracts/testContracts/MinimalTestContract.cdc",
+			"aliases": {
+				"testing": "0000000000000007"
 			}
 		},
 		"NodeVersionBeacon": {
@@ -158,10 +171,9 @@
 				"testnet": "7aad92e5a0715d21"
 			}
 		},
-		"CallbackScheduler": {
-			"source": "./contracts/CallbackScheduler.cdc",
+		"TestCallbackHandler": {
+			"source": "./contracts/testContracts/TestCallbackHandler.cdc",
 			"aliases": {
-				"emulator": "f8d6e0586b0a20c7",
 				"testing": "0000000000000007"
 			}
 		}
@@ -176,6 +188,13 @@
 		"emulator-account": {
 			"address": "f8d6e0586b0a20c7",
 			"key": "7677f7c9410f8773b482737c778b5d7c6acfdbbae718d61e4727a07667f66004"
+		}
+	},
+	"deployments": {
+		"emulator": {
+			"emulator-account": [
+				"MinimalTestContract"
+			]
 		}
 	}
 }

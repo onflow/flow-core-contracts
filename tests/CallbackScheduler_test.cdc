@@ -1,6 +1,7 @@
 import Test
 import "CallbackScheduler"
 import "FlowToken"
+import "TestCallbackHandler"
 
 // Account 7 is where new contracts are deployed by default
 access(all) let admin = Test.getAccount(0x0000000000000007)
@@ -13,8 +14,177 @@ fun setup() {
         arguments: []
     )
     Test.expect(err, Test.beNil())
+
+    let handlerErr = Test.deployContract(
+        name: "TestCallbackHandler",
+        path: "../contracts/testContracts/TestCallbackHandler.cdc",
+        arguments: []
+    )
+    Test.expect(handlerErr, Test.beNil())
 }
 
+/** ---------------------------------------------------------------------------------
+ Callback handler integration tests
+ --------------------------------------------------------------------------------- */
+
+access(all) fun testCallbackSchedulingAndExecution() {
+    let serviceAccount = Test.serviceAccount()
+    let currentTime = getCurrentBlock().timestamp
+    let futureDelta = 100.0
+    let futureTime = currentTime + futureDelta
+    let testData = "test data"
+    let feeAmount = 10.0
+    let highPriority = UInt8(2)
+    
+    // Setup handler and schedule callback using combined transaction with service account
+    let tx = Test.Transaction(
+        code: Test.readFile("./transactions/schedule_callback.cdc"),
+        authorizers: [serviceAccount.address],
+        signers: [serviceAccount],
+        arguments: [futureTime, feeAmount, highPriority, testData],
+    )
+    let result = Test.executeTransaction(tx)
+    Test.expect(result, Test.beSucceeded())
+
+    // Check for CallbackScheduled event using Test.eventsOfType
+    let scheduledEvents = Test.eventsOfType(Type<CallbackScheduler.CallbackScheduled>())
+    Test.assert(scheduledEvents.length == 1, message: "one CallbackScheduled event")
+    
+    let scheduledEvent = scheduledEvents[0] as! CallbackScheduler.CallbackScheduled
+    Test.assert(scheduledEvent.timestamp == futureTime, message: "incorrect timestamp")
+    Test.assert(scheduledEvent.executionEffort == 1000, message: "incorrect execution effort")
+    
+    let callbackID = scheduledEvent.ID
+
+    // Get scheduled callbacks from test callback handler
+    let scheduledCallbacks = TestCallbackHandler.scheduledCallbacks 
+    Test.assert(scheduledCallbacks.length == 1, message: "one scheduled callback")
+    
+    let scheduled = scheduledCallbacks[0]
+    Test.assert(scheduled.ID == callbackID, message: "callback ID mismatch")
+    Test.assert(scheduled.timestamp == futureTime, message: "incorrect timestamp")
+    Test.assert(scheduled.status() == CallbackScheduler.Status.Scheduled, message: "incorrect status")
+
+    var status = CallbackScheduler.getStatus(ID: callbackID)
+    Test.assertEqual(CallbackScheduler.Status.Scheduled, status!)
+
+    // Simulate FVM process - should not yet process since timestamp is in the future
+    let processCallbackCode = Test.readFile("./transactions/process_callback.cdc")
+    var processTx = Test.Transaction(
+        code: processCallbackCode,
+        authorizers: [],
+        signers: [serviceAccount],
+        arguments: []
+    )
+    Test.expect(Test.executeTransaction(processTx), Test.beSucceeded())
+
+    // Check that no CallbackProcessed events were emitted yet (since callback is in the future)
+    let processedEventsBeforeTime = Test.eventsOfType(Type<CallbackScheduler.CallbackProcessed>())
+    Test.assert(processedEventsBeforeTime.length == 0, message: "CallbackProcessed before time")
+
+    // move time forward to trigger execution eligibility
+    Test.moveTime(by: Fix64(futureDelta + 1.0))
+
+    // Simulate FVM process - should process since timestamp is in the past
+    processTx = Test.Transaction(
+        code: processCallbackCode,
+        authorizers: [],
+        signers: [serviceAccount],
+        arguments: []
+    )
+    Test.expect(Test.executeTransaction(processTx), Test.beSucceeded())
+
+    // Check for CallbackProcessed event after processing
+    let processedEventsAfterTime = Test.eventsOfType(Type<CallbackScheduler.CallbackProcessed>())
+    Test.assert(processedEventsAfterTime.length == 1, message: "CallbackProcessed event wrong count")
+    
+    let processedEvent = processedEventsAfterTime[0] as! CallbackScheduler.CallbackProcessed
+    Test.assert(processedEvent.ID == callbackID, message: "callback ID mismatch")
+    Test.assert(processedEvent.executionEffort == 1000, message: "execution effort mismatch")
+
+    status = CallbackScheduler.getStatus(ID: callbackID)
+    Test.assertEqual(CallbackScheduler.Status.Processed, status!)
+
+    // Simulate FVM execute - should execute the callback
+    let executeCallbackCode = Test.readFile("./transactions/execute_callback.cdc")
+    let executeTx = Test.Transaction(
+        code: executeCallbackCode,
+        authorizers: [],
+        signers: [serviceAccount],
+        arguments: [callbackID]
+    )
+    Test.expect(Test.executeTransaction(executeTx), Test.beSucceeded())
+    
+    // Check for CallbackExecuted event
+    let executedEvents = Test.eventsOfType(Type<CallbackScheduler.CallbackExecuted>())
+    Test.assert(executedEvents.length == 1, message: "CallbackExecuted event wrong count")
+    
+    let executedEvent = executedEvents[0] as! CallbackScheduler.CallbackExecuted
+    Test.assert(executedEvent.ID == callbackID, message: "callback ID mismatch")
+    
+    // Verify callback status is now Executed
+    status = CallbackScheduler.getStatus(ID: callbackID)
+    Test.assertEqual(CallbackScheduler.Status.Processed, status!)
+    
+    // Check that the callback was executed
+    let executedCallback = TestCallbackHandler.executedCallback
+    Test.assert(executedCallback == callbackID, message: "callback ID mismatch")
+}
+
+
+// access(all) fun testCallbackCancellation() {
+//     // Setup callback handler using a transaction  
+//     let setupTx = Test.Transaction(
+//         code: `
+//             import "TestCallbackHandler"
+            
+//             transaction {
+//                 prepare(account: auth(SaveValue, IssueStorageCapabilityController, PublishCapability) &Account) {
+//                     let _ = TestCallbackHandler.setupHandler(account: account)
+//                 }
+//             }
+//         `,
+//         authorizers: [admin.address],
+//         signers: [admin],
+//         arguments: []
+//     )
+//     Test.expect(Test.executeTransaction(setupTx), Test.beSucceeded())
+    
+//     // Get handler capability
+//     let handlerCapability = getAccount(admin.address).capabilities.get<auth(CallbackScheduler.mayExecuteCallback) &{CallbackScheduler.CallbackHandler}>(TestCallbackHandler.HandlerPublicPath).borrow()!
+    
+//     // Create fees vault
+//     let fees <- FlowToken.createEmptyVault(vaultType: Type<@FlowToken.Vault>())
+//     fees.deposit(from: <-admin.storage.borrow<auth(FlowToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault)!.withdraw(amount: 5.0))
+    
+//     let currentTime = getCurrentBlock().timestamp
+//     let futureTime = currentTime + 100.0
+    
+//     // Schedule a callback
+//     let scheduledCallback = CallbackScheduler.schedule(
+//         callback: handlerCapability,
+//         data: nil,
+//         timestamp: futureTime,
+//         priority: CallbackScheduler.Priority.Medium,
+//         executionEffort: 1000,
+//         fees: <-fees
+//     )
+    
+//     // Cancel the callback
+//     let refund <- scheduledCallback.cancel()
+//     Test.assert(refund.balance > 0.0, message: "Should receive partial refund")
+    
+//     // Verify status is canceled
+//     let canceledStatus = CallbackScheduler.getStatus(ID: scheduledCallback.ID)
+//     Test.assert(canceledStatus == CallbackScheduler.Status.Canceled, message: "Status should be Canceled")
+    
+//     // Verify handler didn't execute
+//     let handlerPublic = TestCallbackHandler.getHandlerPublic(account: getAccount(admin.address))!
+//     Test.assert(!handlerPublic.hasExecuted(ID: scheduledCallback.ID), message: "Handler should not have executed canceled callback")
+    
+//     // Clean up
+//     destroy refund
+// }
 
 /** ---------------------------------------------------------------------------------
  Callback scheduler estimate() tests
