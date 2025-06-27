@@ -575,7 +575,6 @@ access(all) contract CallbackScheduler {
         // It iterates over all the timestamps in the queue and processes the callbacks that are 
         // eligible for execution. It also emits an event for each callback that is processed.
         access(all) fun process() {
-            
             // todo: minimum priority callbacks should be processed as well if space
 
             let lowPriorityTimestamp = self.lowPriorityScheduledTimestamp
@@ -591,7 +590,7 @@ access(all) contract CallbackScheduler {
                 return timestamp <= currentTimestamp 
             }
             let pastTimestamps = self.slotQueue.keys.filter(pastTimestamp)
-
+            
             // process all callbacks from timestamps in the past
             for timestamp in pastTimestamps {
                 let callbackIDs = self.slotQueue[timestamp] ?? []
@@ -634,6 +633,7 @@ access(all) contract CallbackScheduler {
             let handlerRef = callback.handler.borrow() ?? 
                 panic("Invalid handler: cannot borrow callback handler")
 
+            
             handlerRef.executeCallback(ID: ID, data: callback.data)
             self.finalizeCallback(callback: callback, status: Status.Executed)
         }
@@ -657,14 +657,16 @@ access(all) contract CallbackScheduler {
             let historic = HistoricStatus(timestamp: callback.scheduledTimestamp, status: status)
             self.historicStatuses[callback.ID] = historic
 
+            let callbackID = callback.ID
+            let slot = callback.scheduledTimestamp
+
             // remove callback resource
-            let callbackRes <- self.callbacks.remove(key: callback.ID)
+            let callbackRes <- self.callbacks.remove(key: callbackID)
             destroy callbackRes
 
             // garbage collect slots 
-            let slot = callback.scheduledTimestamp
             if let slotQueue = self.slotQueue[slot] {
-                let trimmedQueue = slotQueue.filter(view fun(id: UInt64): Bool { return id != callback.ID })
+                let trimmedQueue = slotQueue.filter(view fun(id: UInt64): Bool { return id != callbackID })
                 self.slotQueue[slot] = trimmedQueue
 
                 // if the slot is now empty remove it from the maps
