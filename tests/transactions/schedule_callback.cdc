@@ -1,25 +1,25 @@
-import "CallbackScheduler"
-import "TestCallbackHandler"
+import "FlowCallbackScheduler"
+import "TestFlowCallbackHandler"
 import "FlowToken"
 import "FungibleToken"
 
 transaction(timestamp: UFix64, feeAmount: UFix64, priority: UInt8, testData: String) {
 
     prepare(account: auth(BorrowValue, SaveValue, IssueStorageCapabilityController, PublishCapability) &Account) {
-        let handler <- TestCallbackHandler.createHandler()
+        let handler <- TestFlowCallbackHandler.createHandler()
         
-        account.storage.save(<-handler, to: TestCallbackHandler.HandlerStoragePath)
-        let callbackCap = account.capabilities.storage.issue<auth(CallbackScheduler.mayExecuteCallback) &{CallbackScheduler.CallbackHandler}>(TestCallbackHandler.HandlerStoragePath)
+        account.storage.save(<-handler, to: TestFlowCallbackHandler.HandlerStoragePath)
+        let callbackCap = account.capabilities.storage.issue<auth(FlowCallbackScheduler.ExecuteCallback) &{FlowCallbackScheduler.CallbackHandler}>(TestFlowCallbackHandler.HandlerStoragePath)
         
         let vault = account.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault)
         ?? panic("Could not borrow FlowToken vault")
         
         let fees <- vault.withdraw(amount: feeAmount) as! @FlowToken.Vault
-        let priorityEnum = priority == 0 ? CallbackScheduler.Priority.Low : 
-                          priority == 1 ? CallbackScheduler.Priority.Medium : 
-                          CallbackScheduler.Priority.High
+        let priorityEnum = priority == 0 ? FlowCallbackScheduler.Priority.Low : 
+                          priority == 1 ? FlowCallbackScheduler.Priority.Medium : 
+                          FlowCallbackScheduler.Priority.High
 
-        let scheduledCallback = CallbackScheduler.schedule(
+        let scheduledCallback = FlowCallbackScheduler.schedule(
             callback: callbackCap,
             data: testData,
             timestamp: timestamp,
@@ -28,6 +28,6 @@ transaction(timestamp: UFix64, feeAmount: UFix64, priority: UInt8, testData: Str
             fees: <-fees
         )
 
-        TestCallbackHandler.addScheduledCallback(callback: scheduledCallback)
+        TestFlowCallbackHandler.addScheduledCallback(callback: scheduledCallback)
     }
 } 

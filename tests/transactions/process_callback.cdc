@@ -1,8 +1,8 @@
-import "CallbackScheduler"
+import "FlowCallbackScheduler"
 
 // transaction to process callbacks
 transaction {
     execute {
-        CallbackScheduler.process()
+        FlowCallbackScheduler.process()
     }
 }
