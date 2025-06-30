@@ -1,7 +1,7 @@
-import "CallbackScheduler"
+import "FlowCallbackScheduler"
 
 transaction(ID: UInt64) {
     execute {
-        CallbackScheduler.executeCallback(ID: ID)
+        FlowCallbackScheduler.executeCallback(id: ID)
     }
 }
