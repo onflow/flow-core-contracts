@@ -132,6 +132,16 @@ access(all) fun testCallbackSchedulingAndExecution() {
 }
 
 
+/*
+TODO test cases:
+- fix above schedule test to correctly track status updates and make sure we can query status after execution
+- test schedule and then cancel and make sure it is canceled and we can get the status after being canceled
+- schedule multiple callbacks at different times and make sure they are correctly executed 
+- test filling all slot room with high and medium priority and make sure the ones that are scheduled are exceuted
+- test filling all slot room with high and medimum and see that low priority only gets executed after high and medium are
+- test filling all slot room with high and medimum and then add more medium priority which should be executed in next available slot
+ */
+
 
 /** ---------------------------------------------------------------------------------
  Callback scheduler estimate() tests
