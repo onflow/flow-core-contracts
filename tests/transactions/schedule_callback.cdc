@@ -15,9 +15,8 @@ transaction(timestamp: UFix64, feeAmount: UFix64, priority: UInt8, testData: Str
         ?? panic("Could not borrow FlowToken vault")
         
         let fees <- vault.withdraw(amount: feeAmount) as! @FlowToken.Vault
-        let priorityEnum = priority == 0 ? FlowCallbackScheduler.Priority.Low : 
-                          priority == 1 ? FlowCallbackScheduler.Priority.Medium : 
-                          FlowCallbackScheduler.Priority.High
+        let priorityEnum = FlowCallbackScheduler.Priority(rawValue: priority)
+            ?? FlowCallbackScheduler.Priority.High
 
         let scheduledCallback = FlowCallbackScheduler.schedule(
             callback: callbackCap,

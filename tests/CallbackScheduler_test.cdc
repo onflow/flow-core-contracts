@@ -329,30 +329,30 @@ access(all) fun runEstimateTestCase(testCase: EstimateTestCase) {
     )
     
     if testCase.expectNil {
-        Test.assert(result == nil, message: "expected nil for test case: ".concat(testCase.name))
+        Test.assert(result == nil, message: "expected nil for test case: \(testCase.name)")
     } else {
-        Test.assert(result != nil, message: "expected non-nil for test case: ".concat(testCase.name))
+        Test.assert(result != nil, message: "expected non-nil for test case: \(testCase.name)")
         
         if let estimate = result {
             // Check fee
             if let expectedFee = testCase.expectedFee {
-                Test.assert(expectedFee == estimate.flowFee, message: "fee mismatch for test case: ".concat(testCase.name))
+                Test.assert(expectedFee == estimate.flowFee, message: "fee mismatch for test case: \(testCase.name)")
             } else {
-                Test.assert(estimate.flowFee == nil, message: "expected nil fee for test case: ".concat(testCase.name))
+                Test.assert(estimate.flowFee == nil, message: "expected nil fee for test case: \(testCase.name)")
             }
             
             // Check timestamp
             if let expectedTimestamp = testCase.expectedTimestamp {
-                Test.assert(expectedTimestamp == estimate.timestamp, message: "timestamp mismatch for test case: ".concat(testCase.name))
+                Test.assert(expectedTimestamp == estimate.timestamp, message: "timestamp mismatch for test case: \(testCase.name)")
             } else {
-                Test.assert(estimate.timestamp == nil, message: "expected nil timestamp for test case: ".concat(testCase.name))
+                Test.assert(estimate.timestamp == nil, message: "expected nil timestamp for test case: \(testCase.name)")
             }
             
             // Check error
             if let expectedError = testCase.expectedError {
-                Test.assert(expectedError == estimate.error, message: "error mismatch for test case: ".concat(testCase.name))
+                Test.assert(expectedError == estimate.error, message: "error mismatch for test case: \(testCase.name)")
             } else {
-                Test.assert(estimate.error == nil, message: "expected nil error for test case: ".concat(testCase.name))
+                Test.assert(estimate.error == nil, message: "expected nil error for test case: \(testCase.name)")
             }
         }
     }
