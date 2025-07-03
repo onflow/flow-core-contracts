@@ -1,20 +1,21 @@
 import "FlowToken"
+import "FlowFees"
 
-// FlowCallbackScheduler 
+/// FlowCallbackScheduler 
 access(all) contract FlowCallbackScheduler {
 
-    // Entitlements
+    /// Entitlements
     access(all) entitlement ExecuteCallback
     access(all) entitlement CancelCallback
     access(all) entitlement ReadCallbackStatus
 
-    // Events
+    /// Events
     access(all) event CallbackScheduled(id: UInt64, timestamp: UFix64?, priority: UInt8, executionEffort: UInt64)
     access(all) event CallbackProcessed(id: UInt64, executionEffort: UInt64)
     access(all) event CallbackExecuted(id: UInt64)
     access(all) event CallbackCanceled(id: UInt64)
 
-    // Enums
+    /// Enums
     access(all) enum Priority: UInt8 {
         access(all) case High
         access(all) case Medium
@@ -22,30 +23,30 @@ access(all) contract FlowCallbackScheduler {
     }
 
     access(all) enum Status: UInt8 {
-        // mutable statuses
+        /// mutable statuses
         access(all) case Scheduled
         access(all) case Processed
-        // finalized statuses
+        /// finalized statuses
         access(all) case Executed
         access(all) case Canceled
     }
 
-    // Interfaces
+    /// Interfaces
 
-    // The callback handler is an interface that defines a single method executeCallback that 
-    // must be implemented by the contract or resource that would like to schedule the callback. 
-    // The callback gets executed by the scheduler contract by calling the handler provided to 
-    // schedule function with Callback entitlement. The arguments are:
-    // - ID of the scheduled callback (this can be useful for any internal tracking)
-    // - The data that was passed in during the schedule call
+    /// The callback handler is an interface that defines a single method executeCallback that 
+    /// must be implemented by the contract or resource that would like to schedule the callback. 
+    /// The callback gets executed by the scheduler contract by calling the handler provided to 
+    /// schedule function with Callback entitlement. The arguments are:
+    /// - ID of the scheduled callback (this can be useful for any internal tracking)
+    /// - The data that was passed in during the schedule call
     access(all) struct interface CallbackHandler {
         access(ExecuteCallback) fun executeCallback(id: UInt64, data: AnyStruct?)
     }
 
-    // Structs
+    /// Structs
 
-    // Scheduled callback contains methods to cancel the callback and obtain the status. 
-    // It can only be created by the scheduler contract to prevent spoofing.
+    /// Scheduled callback contains methods to cancel the callback and obtain the status. 
+    /// It can only be created by the scheduler contract to prevent spoofing.
     access(all) struct ScheduledCallback {
         access(self) let scheduler: Capability<auth(CancelCallback, ReadCallbackStatus) &SharedScheduler>
         access(all) let id: UInt64
@@ -70,13 +71,13 @@ access(all) contract FlowCallbackScheduler {
         }
     }
 
-    // Estimated callback contains data for estimating callback scheduling.
+    /// Estimated callback contains data for estimating callback scheduling.
     access(all) struct EstimatedCallback {
-        // flowFee is the estimated fee in Flow for the callback to be scheduled
+        /// flowFee is the estimated fee in Flow for the callback to be scheduled
         access(all) let flowFee: UFix64?
-        // timestamp is estimated scheduled timestamp for the callback at which it will be execute
+        /// timestamp is estimated scheduled timestamp for the callback at which it will be execute
         access(all) let timestamp: UFix64?
-        // error is an optional error message if the callback cannot be scheduled
+        /// error is an optional error message if the callback cannot be scheduled
         access(all) let error: String?
 
         access(contract) view init(flowFee: UFix64?, timestamp: UFix64?, error: String?) {
@@ -86,8 +87,8 @@ access(all) contract FlowCallbackScheduler {
         }
     }
 
-    // Callback data is internal representation of a scheduled callback which contains all the functionality 
-    // to schedule, process and execute each callback. 
+    /// Callback data is internal representation of a scheduled callback which contains all the functionality 
+    /// to schedule, process and execute each callback. 
     access(all) resource CallbackData {
         access(contract) let handler: Capability<auth(ExecuteCallback) &{CallbackHandler}>
         access(contract) let data: AnyStruct?
@@ -120,8 +121,8 @@ access(all) contract FlowCallbackScheduler {
             self.scheduledTimestamp = scheduledTimestamp
         }
 
-        // setStatus updates the status of the callback.
-        // It panics if the callback status is already finalized.
+        /// setStatus updates the status of the callback.
+        /// It panics if the callback status is already finalized.
         access(all) fun setStatus(newStatus: Status) {
             if self.status == Status.Executed || self.status == Status.Canceled {
                 panic("Invalid status: Callback with id \(self.id) is already finalized")
@@ -138,8 +139,8 @@ access(all) contract FlowCallbackScheduler {
             self.status = newStatus
         }
 
-        // withdrawFees withdraws fees from the callback based on the refund multiplier.
-        // This action is only allowed for canceled callbacks, otherwise it panics.
+        /// withdrawFees withdraws fees from the callback based on the refund multiplier.
+        /// This action is only allowed for canceled callbacks, otherwise it panics.
         access(all) fun withdrawFees(multiplier: UFix64): @FlowToken.Vault {
             if self.status != Status.Canceled {
                 panic("Invalid status: Can only withdraw fees for canceled callbacks")
@@ -154,8 +155,8 @@ access(all) contract FlowCallbackScheduler {
         }
     }
 
-    // Historic status is an internal representation of status and timestamp 
-    // which is used to keep record of past finalised statuses beyond garbage collection.
+    /// Historic status is an internal representation of status and timestamp 
+    /// which is used to keep record of past finalised statuses beyond garbage collection.
     access(all) struct HistoricStatus {
         access(contract) let timestamp: UFix64
         access(contract) let status: Status
@@ -166,49 +167,61 @@ access(all) contract FlowCallbackScheduler {
         }
     }
 
-    // Resources
+    /// Resources
 
 
-    // Shared scheduler is a resource that is used as a singleton in the scheduler contract and contains 
-    // all the functionality to schedule, process and execute callbacks as well as the internal state. 
+    /// Shared scheduler is a resource that is used as a singleton in the scheduler contract and contains 
+    /// all the functionality to schedule, process and execute callbacks as well as the internal state. 
     access(all) resource SharedScheduler {
-        // nextID contains the next callback ID to be assigned
+        /// nextID contains the next callback ID to be assigned
         access(self) var nextID: UInt64
-        // callbacks is a map of callback IDs to callback data
+
+        /// callbacks is a map of callback IDs to callback data
         access(self) var callbacks: @{UInt64: CallbackData}
-        // callback status maps historic callback IDs to their finalized statuses
+
+        /// callback status maps historic callback IDs to their finalized statuses
         access(self) var historicStatuses: {UInt64: HistoricStatus}
-        // slot queue is a map of timestamps to callback IDs
+
+        /// slot queue is a map of timestamps to callback IDs
         access(self) var slotQueue: {UFix64: [UInt64]}
-        // slot used effort is a map of timestamps map of priorities and 
-        // efforts that has been used for the timeslot
+
+        /// slot used effort is a map of timestamps map of priorities and 
+        /// efforts that has been used for the timeslot
         access(self) var slotUsedEffort: {UFix64: {Priority: UInt64}}
-        // slot total effort limit is the maximum effort that can be 
-        // allocated to one timeslot by all priorities
+
+        /// slot total effort limit is the maximum effort that can be 
+        /// allocated to one timeslot by all priorities
         access(self) var slotTotalEffortLimit: UInt64
-        // slot shared effort limit is the maximum effort 
-        // that can be allocated to high and medium priority 
-        // callbacks in addition to the effort reserved for each priority
+
+        /// slot shared effort limit is the maximum effort 
+        /// that can be allocated to high and medium priority 
+        /// callbacks in addition to the effort reserved for each priority
         access(self) var slotSharedEffortLimit: UInt64
-        // priority effort reserve is the amount of effort that is 
-        // reserved exclusively for each priority
+
+        /// priority effort reserve is the amount of effort that is 
+        /// reserved exclusively for each priority
         access(self) var priorityEffortReserve: {Priority: UInt64}
-        // priority effort limit is the maximum effort per priority in a timeslot
+
+        /// priority effort limit is the maximum effort per priority in a timeslot
         access(self) var priorityEffortLimit: {Priority: UInt64}
-        // minimum execution effort is the minimum effort that can be 
-        // used for any priority
+
+        /// minimum execution effort is the minimum effort that can be 
+        /// used for any priority
         access(self) var minimumExecutionEffort: UInt64
-        // priority fee multipliers are values we use to calculate the added 
-        // processing fee for each priority
+
+        /// priority fee multipliers are values we use to calculate the added 
+        /// processing fee for each priority
         access(self) var priorityFeeMultipliers: {Priority: UFix64}
-        // refund multiplier is the portion of the fees that are refunded when a callback is cancelled
+
+        /// refund multiplier is the portion of the fees that are refunded when a callback is cancelled
         access(self) var refundMultiplier: UFix64
-        // historic status limit is the maximum age of a historic status we keep before getting pruned
+
+        /// historic status limit is the maximum age of a historic status we keep before getting pruned
         access(self) var historicStatusLimit: UFix64
-        // low priority callbacks don't get assigned a timestamp, 
-        // so we use this special value
+
+        /// low priority callbacks don't get assigned a timestamp, 
+        /// so we use this special value
         access(self) let lowPriorityScheduledTimestamp: UFix64
-        
 
         access(all) init() {
             self.nextID = 1
@@ -218,7 +231,7 @@ access(all) contract FlowCallbackScheduler {
             self.slotUsedEffort = {}
             self.lowPriorityScheduledTimestamp = 0.0
             
-            // todo: check if I need to create setters for timeslots
+            /// todo: check if I need to create setters for timeslots
             
             /* slot efforts and limits look like this:
 
@@ -270,27 +283,46 @@ access(all) contract FlowCallbackScheduler {
             self.historicStatusLimit = 30.0 * 24.0 * 60.0 * 60.0 // 30 days
         }
 
-        // getNextID returns the next ID and increments the ID counter
+        /// getNextID returns the next ID and increments the ID counter
         access(self) fun getNextID(): UInt64 {
             let nextID = self.nextID
             self.nextID = self.nextID + 1
             return nextID
         }
 
-        // schedule is the primary entry point for scheduling a new callback within the scheduler contract. 
-        // If scheduling the callback is not possible either due to invalid arguments or due to 
-        // unavailable slots, the function panics. 
+        /// checkScheduleArgs validates that the arguments to the schedule() and estimate() functions are correct
+        access(self) view fun checkScheduleArgs(
+            timestamp: UFix64,
+            priority: Priority,
+            executionEffort: UInt64
+        ) {
+            if timestamp <= getCurrentBlock().timestamp {
+                panic("Invalid timestamp: \(timestamp) is in the past, current timestamp: \(getCurrentBlock().timestamp)")
+            }
+
+            if executionEffort > self.priorityEffortLimit[priority]! {
+                panic("Invalid execution effort: \(executionEffort) is greater than available effort for priority: \(self.priorityEffortLimit[priority]!)")
+            }
+
+            if executionEffort < self.minimumExecutionEffort {
+                panic("Invalid execution effort: \(executionEffort) is less than minimum execution effort: \(self.minimumExecutionEffort)")
+            }
+        }
+
+        /// schedule is the primary entry point for scheduling a new callback within the scheduler contract. 
+        /// If scheduling the callback is not possible either due to invalid arguments or due to 
+        /// unavailable slots, the function panics. 
         //
-        // The schedule function accepts the following arguments:
-        // - callback: A capability to an object (struct or resource) in storage that implements the callback handler 
-        //    interface. This handler will be invoked at execution time and will receive the specified data payload.
-        // - timestamp: Specifies the earliest block timestamp at which the callback is eligible for execution 
-        //    (fractional seconds values are ignored). It must be set in the future.
-        // - priority: An enum value (`high`, `medium`, or `low`) that influences the scheduling behavior and determines 
-        //    how soon after the timestamp the callback will be executed.
-        // - executionEffort: Defines the maximum computational resources allocated to the callback. This also determines 
-        //    the fee charged. Unused execution effort is not refunded.
-        // - fees: A Vault resource containing sufficient funds to cover the required execution effort.
+        /// The schedule function accepts the following arguments:
+        /// @param: callback: A capability to an object (struct or resource) in storage that implements the callback handler 
+        ///    interface. This handler will be invoked at execution time and will receive the specified data payload.
+        /// @param: timestamp: Specifies the earliest block timestamp at which the callback is eligible for execution 
+        ///    (fractional seconds values are ignored). It must be set in the future.
+        /// @param: priority: An enum value (`high`, `medium`, or `low`) that influences the scheduling behavior and determines 
+        ///    how soon after the timestamp the callback will be executed.
+        /// @param: executionEffort: Defines the maximum computational resources allocated to the callback. This also determines 
+        ///    the fee charged. Unused execution effort is not refunded.
+        /// @param: fees: A Vault resource containing sufficient funds to cover the required execution effort.
         access(all) fun schedule(
             callback: Capability<auth(ExecuteCallback) &{CallbackHandler}>,
             data: AnyStruct?,
@@ -299,27 +331,15 @@ access(all) contract FlowCallbackScheduler {
             executionEffort: UInt64,
             fees: @FlowToken.Vault
         ): ScheduledCallback {
-            if timestamp <= getCurrentBlock().timestamp {
-                panic("Invalid timestamp: ".concat(timestamp.toString())
-                    .concat(" is in the past, current timestamp: "
-                    .concat(getCurrentBlock().timestamp.toString())))
-            }
 
-            if executionEffort > self.priorityEffortLimit[priority]! {
-                panic("Invalid execution effort: greater than available effort for priority")
-            }
-
-            if executionEffort < self.minimumExecutionEffort {
-                panic("Invalid execution effort: less than minimum execution effort")
-            }
-
+            self.checkScheduleArgs(timestamp: timestamp, priority: priority, executionEffort: executionEffort)
+            
             let requiredFee = self.calculateFee(executionEffort: executionEffort, priority: priority)
             if fees.balance < requiredFee {
-                panic("Insufficient fees: required ".concat(requiredFee.toString())
-                    .concat(" but only ".concat(fees.balance.toString()).concat(" provided")))
+                panic("Insufficient fees: required \(requiredFee) but only \(fees.balance) provided")
             }
 
-            var scheduledTimestamp: UFix64? = self.calculateScheduledTimestamp(
+            var scheduledTimestamp = self.calculateScheduledTimestamp(
                 timestamp: timestamp, 
                 priority: priority, 
                 executionEffort: executionEffort
@@ -348,36 +368,26 @@ access(all) contract FlowCallbackScheduler {
             )
         }
 
-        // The estimate function calculates the required fee in Flow and expected execution time for 
-        // a callback based on timestamp, priority, and execution effort. 
+        /// The estimate function calculates the required fee in Flow and expected execution time for 
+        /// a callback based on timestamp, priority, and execution effort. 
         //
-        // If the provided arguments are invalid or the callback cannot be scheduled (e.g., due to 
-        // insufficient computation effort or unavailable time slots) the estimate function returns `nil`.
-        //        
-        // This helps developers ensure sufficient funding and preview the expected scheduling window, 
-        // reducing the risk of unnecessary cancellations.
+        /// If the provided arguments are invalid or the callback cannot be scheduled (e.g., due to 
+        /// insufficient computation effort or unavailable time slots) the estimate function returns `nil`.
+        ///        
+        /// This helps developers ensure sufficient funding and preview the expected scheduling window, 
+        /// reducing the risk of unnecessary cancellations.
         access(all) view fun estimate(
             data: AnyStruct?,
             timestamp: UFix64,
             priority: Priority,
             executionEffort: UInt64
         ): EstimatedCallback? {
-            // low priority callbacks are not supported
+            /// low priority callbacks are not supported
             if priority == Priority.Low {
                 return EstimatedCallback(flowFee: nil, timestamp: nil, error: "Invalid priority: low priority callbacks estimation not supported")
             }
 
-            if timestamp <= getCurrentBlock().timestamp {
-                return EstimatedCallback(flowFee: nil, timestamp: nil, error: "Invalid timestamp: timestamp is in the past")
-            }
-
-            if executionEffort > self.priorityEffortLimit[priority]! {
-                return EstimatedCallback(flowFee: nil, timestamp: nil, error: "Invalid execution effort: greater than available effort for priority")
-            }
-
-            if executionEffort < self.minimumExecutionEffort {
-                return EstimatedCallback(flowFee: nil, timestamp: nil, error: "Invalid execution effort: less than minimum execution effort")
-            }
+            self.checkScheduleArgs(timestamp: timestamp, priority: priority, executionEffort: executionEffort)
 
             let fee = self.calculateFee(executionEffort: executionEffort, priority: priority)
             let scheduledTimestamp = self.calculateScheduledTimestamp(
@@ -392,7 +402,7 @@ access(all) contract FlowCallbackScheduler {
             return EstimatedCallback(flowFee: fee, timestamp: scheduledTimestamp, error: nil)
         }
 
-        // get status of the scheduled callback, if the callback is not found nil is returned.
+        /// get status of the scheduled callback, if the callback is not found nil is returned.
         access(ReadCallbackStatus) view fun getStatus(id: UInt64): Status? {
             // todo optimize this by not storing executed ids, only store cancelled ones and assume other are executed
             // since ids are in order you can also know which ones are valid - check latest id
@@ -409,15 +419,15 @@ access(all) contract FlowCallbackScheduler {
             return nil
         }
 
-        // calculateScheduledTimestamp calculates the timestamp at which a callback 
-        // can be scheduled. It takes into account the priority of the callback and 
-        // the execution effort.
-        // - If the callback is low priority, it returns the lowPriorityScheduledTimestamp 
-        //    as a special value.
-        // - If the callback is high priority, it returns the timestamp if there is enough 
-        //    space or nil if there is no space left.
-        // - If the callback is medium priority and there is no space left it finds next 
-        //    available timestamp.
+        /// calculateScheduledTimestamp calculates the timestamp at which a callback 
+        /// can be scheduled. It takes into account the priority of the callback and 
+        /// the execution effort.
+        /// - If the callback is low priority, it returns the lowPriorityScheduledTimestamp 
+        ///    as a special value.
+        /// - If the callback is high priority, it returns the timestamp if there is enough 
+        ///    space or nil if there is no space left.
+        /// - If the callback is medium priority and there is no space left it finds next 
+        ///    available timestamp.
         access(self) view fun calculateScheduledTimestamp(
             timestamp: UFix64, 
             priority: Priority, 
@@ -451,20 +461,21 @@ access(all) contract FlowCallbackScheduler {
             )
         }
 
-        // slot available effort returns the amount of effort that is available for a given timestamp and priority.
+        /// slot available effort returns the amount of effort that is available for a given timestamp and priority.
         access(self) view fun slotAvailableEffort(timestamp: UFix64, priority: Priority): UInt64 {
-            let slotPriority: {FlowCallbackScheduler.Priority: UInt64}? = self.slotUsedEffort[timestamp]
             let priorityLimit = self.priorityEffortLimit[priority]!
-
-            if slotPriority == nil {
+            
+            if !self.slotUsedEffort.containsKey(timestamp) {
                 return priorityLimit
             }
+
+            let slotPriority = self.slotUsedEffort[timestamp]!
 
             let highReserve = self.priorityEffortReserve[Priority.High]!
             let mediumReserve = self.priorityEffortReserve[Priority.Medium]!
 
-            let highUsed = slotPriority![Priority.High] ?? 0
-            let mediumUsed = slotPriority![Priority.Medium] ?? 0
+            let highUsed = slotPriority[Priority.High] ?? 0
+            let mediumUsed = slotPriority[Priority.Medium] ?? 0
             
             let highSharedUsed = self.minZero(highUsed - highReserve)
             let mediumSharedUsed = self.minZero(mediumUsed - mediumReserve)
@@ -475,7 +486,7 @@ access(all) contract FlowCallbackScheduler {
             // we calculate available by calculating available shared effort and 
             // adding any unused reserves for that priority
             let reserve = self.priorityEffortReserve[priority]!
-            let used = slotPriority![priority] ?? 0
+            let used = slotPriority[priority] ?? 0
             let unusedReserve = self.minZero(reserve - used)
             let available = sharedAvailable + unusedReserve
             
@@ -486,7 +497,7 @@ access(all) contract FlowCallbackScheduler {
             return val < 0 ? 0 : val
         }
 
-        // calculate fee by converting execution effort to a fee in Flow tokens.
+        /// calculate fee by converting execution effort to a fee in Flow tokens.
         access(self) view fun calculateFee(executionEffort: UInt64, priority: Priority): UFix64 {
             // todo: change to match the actual fee calculation
             let baseFee = UFix64(executionEffort) / 10000.0
@@ -494,7 +505,7 @@ access(all) contract FlowCallbackScheduler {
             return baseFee * self.priorityFeeMultipliers[priority]!
         }
 
-        // add callback to the queue and updates all the internal state as well as emit an event
+        /// add callback to the queue and updates all the internal state as well as emit an event
         access(self) fun addCallback(slot: UFix64, callback: @CallbackData) {
             if self.slotQueue[slot] == nil {
                 self.slotQueue[slot] = []
@@ -521,9 +532,9 @@ access(all) contract FlowCallbackScheduler {
             self.callbacks[callback.id] <-! callback
         }
   
-        // process scheduled callbacks and prepare them for execution. 
-        // It iterates over all the timestamps in the queue and processes the callbacks that are 
-        // eligible for execution. It also emits an event for each callback that is processed.
+        /// process scheduled callbacks and prepare them for execution. 
+        /// It iterates over all the timestamps in the queue and processes the callbacks that are 
+        /// eligible for execution. It also emits an event for each callback that is processed.
         access(all) fun process() {
             // todo: minimum priority callbacks should be processed as well if space
 
@@ -565,7 +576,7 @@ access(all) contract FlowCallbackScheduler {
             }
         }
 
-        // cancel scheduled callback and return a portion of the fees that were paid.
+        /// cancel scheduled callback and return a portion of the fees that were paid.
         access(CancelCallback) fun cancel(id: UInt64): @FlowToken.Vault {
             let callback = &self.callbacks[id] as &CallbackData? ?? 
                 panic("Invalid ID: \(id) callback not found")
@@ -575,8 +586,8 @@ access(all) contract FlowCallbackScheduler {
             return <- callback.withdrawFees(multiplier: self.refundMultiplier)
         }
 
-        // execute callback is a system function that is called by FVM to execute a callback by ID.
-        // The callback must be found and in correct state or the function panics and this is a fatal error
+        /// execute callback is a system function that is called by FVM to execute a callback by ID.
+        /// The callback must be found and in correct state or the function panics and this is a fatal error
         access(all) fun executeCallback(id: UInt64) {
             let callback = &self.callbacks[id] as &CallbackData? ?? 
                 panic("Invalid ID: \(id) callback not found")
@@ -586,9 +597,9 @@ access(all) contract FlowCallbackScheduler {
             self.finalizeCallback(callback: callback, status: Status.Executed)
         }
 
-        // finalizes the callback by setting the status to executed or canceled and emitting the appropriate event.
-        // It also does garbage collection of the callback resource and the slot map if it is empty.
-        // The callback must be found and in correct state or the function panics. 
+        /// finalizes the callback by setting the status to executed or canceled and emitting the appropriate event.
+        /// It also does garbage collection of the callback resource and the slot map if it is empty.
+        /// The callback must be found and in correct state or the function panics. 
         access(all) fun finalizeCallback(callback: &CallbackData, status: Status) {
             switch status {
                 case Status.Executed:
@@ -626,7 +637,7 @@ access(all) contract FlowCallbackScheduler {
         }
     }
 
-    // singleton instance to be used
+    /// singleton instance to be used
     access(self) var sharedScheduler: Capability<auth(CancelCallback, ReadCallbackStatus) &SharedScheduler>
 
     access(all) init() {
