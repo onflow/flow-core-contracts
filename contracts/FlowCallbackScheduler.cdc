@@ -147,7 +147,9 @@ access(all) contract FlowCallbackScheduler {
             }
 
             let amount = self.fees.balance * multiplier
-            return <- self.fees.withdraw(amount: amount) as! @FlowToken.Vault
+            let feesToReturn <- self.fees.withdraw(amount: amount) as! @FlowToken.Vault
+            FlowFees.deposit(from: <-self.fees.withdraw(amount: self.fees.balance))
+            return <-feesToReturn
         }
 
         access(contract) view fun toString(): String {
@@ -290,25 +292,6 @@ access(all) contract FlowCallbackScheduler {
             return nextID
         }
 
-        /// checkScheduleArgs validates that the arguments to the schedule() and estimate() functions are correct
-        access(self) view fun checkScheduleArgs(
-            timestamp: UFix64,
-            priority: Priority,
-            executionEffort: UInt64
-        ) {
-            if timestamp <= getCurrentBlock().timestamp {
-                panic("Invalid timestamp: \(timestamp) is in the past, current timestamp: \(getCurrentBlock().timestamp)")
-            }
-
-            if executionEffort > self.priorityEffortLimit[priority]! {
-                panic("Invalid execution effort: \(executionEffort) is greater than available effort for priority: \(self.priorityEffortLimit[priority]!)")
-            }
-
-            if executionEffort < self.minimumExecutionEffort {
-                panic("Invalid execution effort: \(executionEffort) is less than minimum execution effort: \(self.minimumExecutionEffort)")
-            }
-        }
-
         /// schedule is the primary entry point for scheduling a new callback within the scheduler contract. 
         /// If scheduling the callback is not possible either due to invalid arguments or due to 
         /// unavailable slots, the function panics. 
@@ -332,7 +315,17 @@ access(all) contract FlowCallbackScheduler {
             fees: @FlowToken.Vault
         ): ScheduledCallback {
 
-            self.checkScheduleArgs(timestamp: timestamp, priority: priority, executionEffort: executionEffort)
+            if timestamp <= getCurrentBlock().timestamp {
+                panic("Invalid timestamp: \(timestamp) is in the past, current timestamp: \(getCurrentBlock().timestamp)")
+            }
+
+            if executionEffort > self.priorityEffortLimit[priority]! {
+                panic("Invalid execution effort: \(executionEffort) is greater than available effort for priority: \(self.priorityEffortLimit[priority]!)")
+            }
+
+            if executionEffort < self.minimumExecutionEffort {
+                panic("Invalid execution effort: \(executionEffort) is less than minimum execution effort: \(self.minimumExecutionEffort)")
+            }
             
             let requiredFee = self.calculateFee(executionEffort: executionEffort, priority: priority)
             if fees.balance < requiredFee {
@@ -387,7 +380,17 @@ access(all) contract FlowCallbackScheduler {
                 return EstimatedCallback(flowFee: nil, timestamp: nil, error: "Invalid priority: low priority callbacks estimation not supported")
             }
 
-            self.checkScheduleArgs(timestamp: timestamp, priority: priority, executionEffort: executionEffort)
+            if timestamp <= getCurrentBlock().timestamp {
+                return EstimatedCallback(flowFee: nil, timestamp: nil, error: "Invalid timestamp: timestamp is in the past")
+            }
+
+            if executionEffort > self.priorityEffortLimit[priority]! {
+                return EstimatedCallback(flowFee: nil, timestamp: nil, error: "Invalid execution effort: greater than available effort for priority")
+            }
+
+            if executionEffort < self.minimumExecutionEffort {
+                return EstimatedCallback(flowFee: nil, timestamp: nil, error: "Invalid execution effort: less than minimum execution effort")
+            }
 
             let fee = self.calculateFee(executionEffort: executionEffort, priority: priority)
             let scheduledTimestamp = self.calculateScheduledTimestamp(

@@ -65,7 +65,7 @@
 			"aliases": {
 				"emulator": "e5a8b7f23e8b548f",
 				"mainnet": "f919ee77447b7497",
-				"testing": "0000000000000007",
+				"testing": "0000000000000004",
 				"testnet": "912d5440f7e3769e"
 			}
 		},
