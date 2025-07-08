@@ -39,7 +39,7 @@ access(all) fun testCallbackSchedulingAndExecution() {
     
     // Setup handler and schedule callback using combined transaction with service account
     let tx = Test.Transaction(
-        code: Test.readFile("./transactions/schedule_callback.cdc"),
+        code: Test.readFile("../transactions/callbackScheduler/schedule_callback.cdc"),
         authorizers: [serviceAccount.address],
         signers: [serviceAccount],
         arguments: [futureTime, feeAmount, highPriority, testData],
