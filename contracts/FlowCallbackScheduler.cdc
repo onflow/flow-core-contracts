@@ -124,16 +124,13 @@ access(all) contract FlowCallbackScheduler {
         /// setStatus updates the status of the callback.
         /// It panics if the callback status is already finalized.
         access(all) fun setStatus(newStatus: Status) {
-            if self.status == Status.Executed || self.status == Status.Canceled {
-                panic("Invalid status: Callback with id \(self.id) is already finalized")
-            }
-
-            if newStatus == Status.Executed && self.status != Status.Processed {
-                panic("Invalid status: Callback with id \(self.id) cannot be marked as Processed until after it is Scheduled")
-            }
-
-            if newStatus == Status.Processed && self.status != Status.Scheduled {
-                panic("Invalid status: Callback with id \(self.id) cannot be marked as Processed until after it is Scheduled")
+            pre {
+                self.status != Status.Executed && self.status != Status.Canceled:
+                    "Invalid status: Callback with id \(self.id) is already finalized"
+                newStatus == Status.Executed ? self.status == Status.Processed : true:
+                    "Invalid status: Callback with id \(self.id) cannot be marked as Executed until after it is Processed"
+                newStatus == Status.Processed ? self.status == Status.Scheduled : true:
+                    "Invalid status: Callback with id \(self.id) cannot be marked as Processed until after it is Scheduled"
             }
 
             self.status = newStatus
@@ -141,9 +138,10 @@ access(all) contract FlowCallbackScheduler {
 
         /// withdrawFees withdraws fees from the callback based on the refund multiplier.
         /// This action is only allowed for canceled callbacks, otherwise it panics.
+        /// It deposits any leftover fees to the FlowFees vault to be used to pay node operator rewards
         access(all) fun withdrawFees(multiplier: UFix64): @FlowToken.Vault {
-            if self.status != Status.Canceled {
-                panic("Invalid status: Can only withdraw fees for canceled callbacks")
+            pre {
+                self.status == Status.Canceled: "Invalid status: Can only withdraw fees for canceled callbacks"
             }
 
             let amount = self.fees.balance * multiplier
@@ -152,7 +150,7 @@ access(all) contract FlowCallbackScheduler {
             return <-feesToReturn
         }
 
-        access(contract) view fun toString(): String {
+        access(all) view fun toString(): String {
             return "callback (id: \(self.id), status: \(self.status.rawValue), timestamp: \(self.scheduledTimestamp), priority: \(self.priority.rawValue), executionEffort: \(self.executionEffort))"
         }
     }
@@ -170,7 +168,6 @@ access(all) contract FlowCallbackScheduler {
     }
 
     /// Resources
-
 
     /// Shared scheduler is a resource that is used as a singleton in the scheduler contract and contains 
     /// all the functionality to schedule, process and execute callbacks as well as the internal state. 
@@ -192,12 +189,12 @@ access(all) contract FlowCallbackScheduler {
         access(self) var slotUsedEffort: {UFix64: {Priority: UInt64}}
 
         /// slot total effort limit is the maximum effort that can be 
-        /// allocated to one timeslot by all priorities
+        /// cumulatively allocated to one timeslot by all priorities
         access(self) var slotTotalEffortLimit: UInt64
 
         /// slot shared effort limit is the maximum effort 
         /// that can be allocated to high and medium priority 
-        /// callbacks in addition to the effort reserved for each priority
+        /// callbacks combined after their exclusive effort reserves have been filled
         access(self) var slotSharedEffortLimit: UInt64
 
         /// priority effort reserve is the amount of effort that is 
@@ -314,32 +311,22 @@ access(all) contract FlowCallbackScheduler {
             executionEffort: UInt64,
             fees: @FlowToken.Vault
         ): ScheduledCallback {
-
-            if timestamp <= getCurrentBlock().timestamp {
-                panic("Invalid timestamp: \(timestamp) is in the past, current timestamp: \(getCurrentBlock().timestamp)")
-            }
-
-            if executionEffort > self.priorityEffortLimit[priority]! {
-                panic("Invalid execution effort: \(executionEffort) is greater than available effort for priority: \(self.priorityEffortLimit[priority]!)")
-            }
-
-            if executionEffort < self.minimumExecutionEffort {
-                panic("Invalid execution effort: \(executionEffort) is less than minimum execution effort: \(self.minimumExecutionEffort)")
-            }
-            
-            let requiredFee = self.calculateFee(executionEffort: executionEffort, priority: priority)
-            if fees.balance < requiredFee {
-                panic("Insufficient fees: required \(requiredFee) but only \(fees.balance) provided")
-            }
-
-            var scheduledTimestamp = self.calculateScheduledTimestamp(
-                timestamp: timestamp, 
-                priority: priority, 
+            // Use the estimate function to validate inputs
+            let estimate = self.estimate(
+                data: data,
+                timestamp: timestamp,
+                priority: priority,
                 executionEffort: executionEffort
-            )
-            if scheduledTimestamp == nil {
-                panic("Unavailable timestamp: not possible to schedule callback for priority")
+            ) ?? panic("Unavailable timestamp: not possible to schedule callback for priority")
+
+            if estimate.error != nil {
+                panic(estimate.error!)
             }
+
+            assert (
+                fees.balance >= estimate.flowFee!,
+                message: "Insufficient fees: The Fee balance of \(fees.balance) is not sufficient to pay the required amount of \(estimate.flowFee!) for execution of the callback."
+            )
 
             let callbackID = self.getNextID()
             let callback <- create CallbackData(
@@ -350,14 +337,14 @@ access(all) contract FlowCallbackScheduler {
                 priority: priority,
                 executionEffort: executionEffort,
                 fees: <- fees,
-                scheduledTimestamp: scheduledTimestamp!
+                scheduledTimestamp: estimate.timestamp!
             )
-            self.addCallback(slot: scheduledTimestamp!, callback: <-callback)
+            self.addCallback(slot: estimate.timestamp!, callback: <-callback)
             
             return ScheduledCallback(
                 scheduler: FlowCallbackScheduler.sharedScheduler, 
                 id: callbackID, 
-                timestamp: scheduledTimestamp
+                timestamp: estimate.timestamp!
             )
         }
 
@@ -375,24 +362,21 @@ access(all) contract FlowCallbackScheduler {
             priority: Priority,
             executionEffort: UInt64
         ): EstimatedCallback? {
-            /// low priority callbacks are not supported
-            if priority == Priority.Low {
-                return EstimatedCallback(flowFee: nil, timestamp: nil, error: "Invalid priority: low priority callbacks estimation not supported")
-            }
 
             if timestamp <= getCurrentBlock().timestamp {
-                return EstimatedCallback(flowFee: nil, timestamp: nil, error: "Invalid timestamp: timestamp is in the past")
+                return EstimatedCallback(flowFee: nil, timestamp: nil, error: "Invalid timestamp: \(timestamp) is in the past, current timestamp: \(getCurrentBlock().timestamp)")
             }
 
             if executionEffort > self.priorityEffortLimit[priority]! {
-                return EstimatedCallback(flowFee: nil, timestamp: nil, error: "Invalid execution effort: greater than available effort for priority")
+                return EstimatedCallback(flowFee: nil, timestamp: nil, error: "Invalid execution effort: \(executionEffort) is greater than the priority's available effort of \(self.priorityEffortLimit[priority]!)")
             }
 
             if executionEffort < self.minimumExecutionEffort {
-                return EstimatedCallback(flowFee: nil, timestamp: nil, error: "Invalid execution effort: less than minimum execution effort")
+                return EstimatedCallback(flowFee: nil, timestamp: nil, error: "Invalid execution effort: \(executionEffort) is less than the minimum execution effort of \(self.minimumExecutionEffort)")
             }
 
             let fee = self.calculateFee(executionEffort: executionEffort, priority: priority)
+
             let scheduledTimestamp = self.calculateScheduledTimestamp(
                 timestamp: timestamp, 
                 priority: priority, 
@@ -465,7 +449,7 @@ access(all) contract FlowCallbackScheduler {
         }
 
         /// slot available effort returns the amount of effort that is available for a given timestamp and priority.
-        access(self) view fun slotAvailableEffort(timestamp: UFix64, priority: Priority): UInt64 {
+        access(all) view fun slotAvailableEffort(timestamp: UFix64, priority: Priority): UInt64 {
             let priorityLimit = self.priorityEffortLimit[priority]!
             
             if !self.slotUsedEffort.containsKey(timestamp) {
@@ -480,8 +464,8 @@ access(all) contract FlowCallbackScheduler {
             let highUsed = slotPriority[Priority.High] ?? 0
             let mediumUsed = slotPriority[Priority.Medium] ?? 0
             
-            let highSharedUsed = self.minZero(highUsed - highReserve)
-            let mediumSharedUsed = self.minZero(mediumUsed - mediumReserve)
+            let highSharedUsed: UInt64 = highReserve >= highUsed ? 0 : highUsed - highReserve
+            let mediumSharedUsed: UInt64 = mediumReserve >= mediumUsed ? 0 : mediumUsed - mediumReserve
 
             let totalShared = self.slotTotalEffortLimit - highReserve - mediumReserve
             let sharedAvailable = totalShared - highSharedUsed - mediumSharedUsed            
@@ -490,38 +474,39 @@ access(all) contract FlowCallbackScheduler {
             // adding any unused reserves for that priority
             let reserve = self.priorityEffortReserve[priority]!
             let used = slotPriority[priority] ?? 0
-            let unusedReserve = self.minZero(reserve - used)
+            let unusedReserve: UInt64 = used >= reserve ? 0 : reserve - used
             let available = sharedAvailable + unusedReserve
             
             return available
         }
 
-        access(self) view fun minZero(_ val: UInt64): UInt64 {
-            return val < 0 ? 0 : val
-        }
-
         /// calculate fee by converting execution effort to a fee in Flow tokens.
-        access(self) view fun calculateFee(executionEffort: UInt64, priority: Priority): UFix64 {
-            // todo: change to match the actual fee calculation
-            let baseFee = UFix64(executionEffort) / 10000.0
+        access(all) view fun calculateFee(executionEffort: UInt64, priority: Priority): UFix64 {
+            // Use the official FlowFees calculation
+            let baseFee = FlowFees.computeFees(inclusionEffort: 1.0, executionEffort: UFix64(executionEffort))
             
             return baseFee * self.priorityFeeMultipliers[priority]!
         }
 
         /// add callback to the queue and updates all the internal state as well as emit an event
         access(self) fun addCallback(slot: UFix64, callback: @CallbackData) {
+
+            // If nothing is in the queue for this slot, initialize the slot
             if self.slotQueue[slot] == nil {
                 self.slotQueue[slot] = []
-            }
-            self.slotQueue[slot]!.append(callback.id)
-            
-            if self.slotUsedEffort[slot] == nil {
+
+                // This also means that the used effort record for this slot has not been initialized
                 self.slotUsedEffort[slot] = {
                     Priority.High: 0,
                     Priority.Medium: 0,
                     Priority.Low: 0
                 }
             }
+
+            // Add this callback id to the slot
+            self.slotQueue[slot]!.append(callback.id)
+            
+            // Add the execution effort for this callback to the total for the slot's priority
             let slotEfforts = self.slotUsedEffort[slot]!
             slotEfforts[callback.priority] = slotEfforts[callback.priority]! + callback.executionEffort
 
