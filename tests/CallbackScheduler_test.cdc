@@ -156,7 +156,6 @@ access(all) struct EstimateTestCase {
     access(all) let priority: FlowCallbackScheduler.Priority
     access(all) let executionEffort: UInt64
     access(all) let data: AnyStruct?
-    access(all) let expectNil: Bool
     access(all) let expectedFee: UFix64?
     access(all) let expectedTimestamp: UFix64?
     access(all) let expectedError: String?
@@ -167,7 +166,6 @@ access(all) struct EstimateTestCase {
         priority: FlowCallbackScheduler.Priority,
         executionEffort: UInt64,
         data: AnyStruct?,
-        expectNil: Bool,
         expectedFee: UFix64?,
         expectedTimestamp: UFix64?,
         expectedError: String?
@@ -177,7 +175,6 @@ access(all) struct EstimateTestCase {
         self.priority = priority
         self.executionEffort = executionEffort
         self.data = data
-        self.expectNil = expectNil
         self.expectedFee = expectedFee
         self.expectedTimestamp = expectedTimestamp
         self.expectedError = expectedError
@@ -198,7 +195,6 @@ access(all) fun testEstimate() {
             priority: FlowCallbackScheduler.Priority.Low,
             executionEffort: 1000,
             data: nil,
-            expectNil: false,
             expectedFee: 0.00002,
             expectedTimestamp: 0.0,
             expectedError: nil
@@ -209,7 +205,6 @@ access(all) fun testEstimate() {
             priority: FlowCallbackScheduler.Priority.High,
             executionEffort: 1000,
             data: nil,
-            expectNil: false,
             expectedFee: nil,
             expectedTimestamp: nil,
             expectedError: "Invalid timestamp: \(pastTime) is in the past, current timestamp: \(currentTime)"
@@ -220,7 +215,6 @@ access(all) fun testEstimate() {
             priority: FlowCallbackScheduler.Priority.Medium,
             executionEffort: 1000,
             data: nil,
-            expectNil: false,
             expectedFee: nil,
             expectedTimestamp: nil,
             expectedError: "Invalid timestamp: \(currentTime) is in the past, current timestamp: \(currentTime)"
@@ -231,7 +225,6 @@ access(all) fun testEstimate() {
             priority: FlowCallbackScheduler.Priority.High,
             executionEffort: 0,
             data: nil,
-            expectNil: false,
             expectedFee: nil,
             expectedTimestamp: nil,
             expectedError: "Invalid execution effort: 0 is less than the minimum execution effort of 5"
@@ -242,7 +235,6 @@ access(all) fun testEstimate() {
             priority: FlowCallbackScheduler.Priority.High,
             executionEffort: 50000,
             data: nil,
-            expectNil: false,
             expectedFee: nil,
             expectedTimestamp: nil,
             expectedError: "Invalid execution effort: 50000 is greater than the priority's available effort of 30000"
@@ -253,7 +245,6 @@ access(all) fun testEstimate() {
             priority: FlowCallbackScheduler.Priority.Medium,
             executionEffort: 20000,
             data: nil,
-            expectNil: false,
             expectedFee: nil,
             expectedTimestamp: nil,
             expectedError: "Invalid execution effort: 20000 is greater than the priority's available effort of 15000"
@@ -266,7 +257,6 @@ access(all) fun testEstimate() {
             priority: FlowCallbackScheduler.Priority.High,
             executionEffort: 5000,
             data: nil,
-            expectNil: false,
             expectedFee: 0.0001,
             expectedTimestamp: futureTime + 1.0,
             expectedError: nil
@@ -277,7 +267,6 @@ access(all) fun testEstimate() {
             priority: FlowCallbackScheduler.Priority.Medium,
             executionEffort: 5,
             data: nil,
-            expectNil: false,
             expectedFee: 0.00005,
             expectedTimestamp: futureTime + 4.0,
             expectedError: nil
@@ -288,7 +277,6 @@ access(all) fun testEstimate() {
             priority: FlowCallbackScheduler.Priority.High,
             executionEffort: 1000,
             data: nil,
-            expectNil: false,
             expectedFee: 0.0001,
             expectedTimestamp: farFutureTime,
             expectedError: nil
@@ -299,7 +287,6 @@ access(all) fun testEstimate() {
             priority: FlowCallbackScheduler.Priority.High,
             executionEffort: 1000,
             data: "string data",
-            expectNil: false,
             expectedFee: 0.0001,
             expectedTimestamp: futureTime + 10.0,
             expectedError: nil
@@ -310,7 +297,6 @@ access(all) fun testEstimate() {
             priority: FlowCallbackScheduler.Priority.Medium,
             executionEffort: 1000,
             data: {"key": "value"},
-            expectNil: false,
             expectedFee: 0.00005,
             expectedTimestamp: futureTime + 11.0,
             expectedError: nil
@@ -323,39 +309,31 @@ access(all) fun testEstimate() {
 }
 
 access(all) fun runEstimateTestCase(testCase: EstimateTestCase) {
-    let result = FlowCallbackScheduler.estimate(
+    let estimate = FlowCallbackScheduler.estimate(
         data: testCase.data,
         timestamp: testCase.timestamp,
         priority: testCase.priority,
         executionEffort: testCase.executionEffort
     )
     
-    if testCase.expectNil {
-        Test.assert(result == nil, message: "expected nil for test case: \(testCase.name)")
+    // Check fee
+    if let expectedFee = testCase.expectedFee {
+        Test.assert(expectedFee == estimate.flowFee, message: "fee mismatch for test case: \(testCase.name). Expected \(expectedFee) but got \(estimate.flowFee!)")
     } else {
-        Test.assert(result != nil, message: "expected non-nil for test case: \(testCase.name)")
-        
-        if let estimate = result {
-            // Check fee
-            if let expectedFee = testCase.expectedFee {
-                Test.assert(expectedFee == estimate.flowFee, message: "fee mismatch for test case: \(testCase.name). Expected \(expectedFee) but got \(estimate.flowFee!)")
-            } else {
-                Test.assert(estimate.flowFee == nil, message: "expected nil fee for test case: \(testCase.name)")
-            }
-            
-            // Check timestamp
-            if let expectedTimestamp = testCase.expectedTimestamp {
-                Test.assert(expectedTimestamp == estimate.timestamp, message: "timestamp mismatch for test case: \(testCase.name)")
-            } else {
-                Test.assert(estimate.timestamp == nil, message: "expected nil timestamp for test case: \(testCase.name)")
-            }
-            
-            // Check error
-            if let expectedError = testCase.expectedError {
-                Test.assert(expectedError == estimate.error, message: "error mismatch for test case: \(testCase.name). Expected \(expectedError) but got \(estimate.error!)")
-            } else {
-                Test.assert(estimate.error == nil, message: "expected nil error for test case: \(testCase.name)")
-            }
-        }
+        Test.assert(estimate.flowFee == nil, message: "expected nil fee for test case: \(testCase.name)")
+    }
+    
+    // Check timestamp
+    if let expectedTimestamp = testCase.expectedTimestamp {
+        Test.assert(expectedTimestamp == estimate.timestamp, message: "timestamp mismatch for test case: \(testCase.name)")
+    } else {
+        Test.assert(estimate.timestamp == nil, message: "expected nil timestamp for test case: \(testCase.name)")
+    }
+    
+    // Check error
+    if let expectedError = testCase.expectedError {
+        Test.assert(expectedError == estimate.error, message: "error mismatch for test case: \(testCase.name). Expected \(expectedError) but got \(estimate.error!)")
+    } else {
+        Test.assert(estimate.error == nil, message: "expected nil error for test case: \(testCase.name)")
     }
 }
