@@ -317,7 +317,7 @@ access(all) contract FlowCallbackScheduler {
                 timestamp: timestamp,
                 priority: priority,
                 executionEffort: executionEffort
-            ) ?? panic("Unavailable timestamp: not possible to schedule callback for priority")
+            )
 
             if estimate.error != nil {
                 panic(estimate.error!)
@@ -361,7 +361,7 @@ access(all) contract FlowCallbackScheduler {
             timestamp: UFix64,
             priority: Priority,
             executionEffort: UInt64
-        ): EstimatedCallback? {
+        ): EstimatedCallback {
 
             if timestamp <= getCurrentBlock().timestamp {
                 return EstimatedCallback(flowFee: nil, timestamp: nil, error: "Invalid timestamp: \(timestamp) is in the past, current timestamp: \(getCurrentBlock().timestamp)")
@@ -382,9 +382,6 @@ access(all) contract FlowCallbackScheduler {
                 priority: priority, 
                 executionEffort: executionEffort
             )
-            if scheduledTimestamp == nil {
-                return nil
-            }
 
             return EstimatedCallback(flowFee: fee, timestamp: scheduledTimestamp, error: nil)
         }
@@ -464,6 +461,7 @@ access(all) contract FlowCallbackScheduler {
             let highUsed = slotPriority[Priority.High] ?? 0
             let mediumUsed = slotPriority[Priority.Medium] ?? 0
             
+            // Ensure the results are always zero or positive
             let highSharedUsed: UInt64 = highReserve >= highUsed ? 0 : highUsed - highReserve
             let mediumSharedUsed: UInt64 = mediumReserve >= mediumUsed ? 0 : mediumUsed - mediumReserve
 
@@ -660,7 +658,7 @@ access(all) contract FlowCallbackScheduler {
         timestamp: UFix64,
         priority: Priority,
         executionEffort: UInt64
-    ): EstimatedCallback? {
+    ): EstimatedCallback {
         return self.sharedScheduler.borrow()!
             .estimate(
                 data: data, 
