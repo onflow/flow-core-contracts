@@ -63,7 +63,7 @@ access(all) fun testCallbackSchedulingAndExecution() {
     
     let scheduled = scheduledCallbacks[0]
     Test.assert(scheduled.id == callbackID, message: "callback ID mismatch")
-    //Test.assert(scheduled.timestamp == futureTime, message: "incorrect timestamp")
+    Test.assert(scheduled.timestamp == futureTime, message: "incorrect timestamp")
     Test.assert(scheduled.status() == FlowCallbackScheduler.Status.Scheduled, message: "incorrect status")
 
     var status = FlowCallbackScheduler.getStatus(id: callbackID)
@@ -193,15 +193,15 @@ access(all) fun testEstimate() {
     let estimateTestCases: [EstimateTestCase] = [
         // Error cases - should return EstimatedCallback with error
         EstimateTestCase(
-            name: "Low priority returns error",
+            name: "Low priority returns zero timestamp and no error",
             timestamp: futureTime,
             priority: FlowCallbackScheduler.Priority.Low,
             executionEffort: 1000,
             data: nil,
             expectNil: false,
-            expectedFee: nil,
-            expectedTimestamp: nil,
-            expectedError: "Invalid priority: low priority callbacks estimation not supported"
+            expectedFee: 0.00002,
+            expectedTimestamp: 0.0,
+            expectedError: nil
         ),
         EstimateTestCase(
             name: "Past timestamp returns error",
@@ -212,7 +212,7 @@ access(all) fun testEstimate() {
             expectNil: false,
             expectedFee: nil,
             expectedTimestamp: nil,
-            expectedError: "Invalid timestamp: timestamp is in the past"
+            expectedError: "Invalid timestamp: \(pastTime) is in the past, current timestamp: \(currentTime)"
         ),
         EstimateTestCase(
             name: "Current timestamp returns error",
@@ -223,7 +223,7 @@ access(all) fun testEstimate() {
             expectNil: false,
             expectedFee: nil,
             expectedTimestamp: nil,
-            expectedError: "Invalid timestamp: timestamp is in the past"
+            expectedError: "Invalid timestamp: \(currentTime) is in the past, current timestamp: \(currentTime)"
         ),
         EstimateTestCase(
             name: "Zero execution effort returns error",
@@ -234,7 +234,7 @@ access(all) fun testEstimate() {
             expectNil: false,
             expectedFee: nil,
             expectedTimestamp: nil,
-            expectedError: "Invalid execution effort: less than minimum execution effort"
+            expectedError: "Invalid execution effort: 0 is less than the minimum execution effort of 5"
         ),
         EstimateTestCase(
             name: "Excessive high priority effort returns error",
@@ -245,7 +245,7 @@ access(all) fun testEstimate() {
             expectNil: false,
             expectedFee: nil,
             expectedTimestamp: nil,
-            expectedError: "Invalid execution effort: greater than available effort for priority"
+            expectedError: "Invalid execution effort: 50000 is greater than the priority's available effort of 30000"
         ),
         EstimateTestCase(
             name: "Excessive medium priority effort returns error",
@@ -256,7 +256,7 @@ access(all) fun testEstimate() {
             expectNil: false,
             expectedFee: nil,
             expectedTimestamp: nil,
-            expectedError: "Invalid execution effort: greater than available effort for priority"
+            expectedError: "Invalid execution effort: 20000 is greater than the priority's available effort of 15000"
         ),
 
         // Valid cases - should return EstimatedCallback with no error
@@ -267,7 +267,7 @@ access(all) fun testEstimate() {
             executionEffort: 5000,
             data: nil,
             expectNil: false,
-            expectedFee: 5.0,
+            expectedFee: 0.0001,
             expectedTimestamp: futureTime + 1.0,
             expectedError: nil
         ),
@@ -278,7 +278,7 @@ access(all) fun testEstimate() {
             executionEffort: 5,
             data: nil,
             expectNil: false,
-            expectedFee: 0.0025,
+            expectedFee: 0.00005,
             expectedTimestamp: futureTime + 4.0,
             expectedError: nil
         ),
@@ -289,7 +289,7 @@ access(all) fun testEstimate() {
             executionEffort: 1000,
             data: nil,
             expectNil: false,
-            expectedFee: 1.0,
+            expectedFee: 0.0001,
             expectedTimestamp: farFutureTime,
             expectedError: nil
         ),
@@ -300,7 +300,7 @@ access(all) fun testEstimate() {
             executionEffort: 1000,
             data: "string data",
             expectNil: false,
-            expectedFee: 1.0,
+            expectedFee: 0.0001,
             expectedTimestamp: futureTime + 10.0,
             expectedError: nil
         ),
@@ -311,7 +311,7 @@ access(all) fun testEstimate() {
             executionEffort: 1000,
             data: {"key": "value"},
             expectNil: false,
-            expectedFee: 0.5,
+            expectedFee: 0.00005,
             expectedTimestamp: futureTime + 11.0,
             expectedError: nil
         )
@@ -338,7 +338,7 @@ access(all) fun runEstimateTestCase(testCase: EstimateTestCase) {
         if let estimate = result {
             // Check fee
             if let expectedFee = testCase.expectedFee {
-                Test.assert(expectedFee == estimate.flowFee, message: "fee mismatch for test case: \(testCase.name)")
+                Test.assert(expectedFee == estimate.flowFee, message: "fee mismatch for test case: \(testCase.name). Expected \(expectedFee) but got \(estimate.flowFee!)")
             } else {
                 Test.assert(estimate.flowFee == nil, message: "expected nil fee for test case: \(testCase.name)")
             }
@@ -352,7 +352,7 @@ access(all) fun runEstimateTestCase(testCase: EstimateTestCase) {
             
             // Check error
             if let expectedError = testCase.expectedError {
-                Test.assert(expectedError == estimate.error, message: "error mismatch for test case: \(testCase.name)")
+                Test.assert(expectedError == estimate.error, message: "error mismatch for test case: \(testCase.name). Expected \(expectedError) but got \(estimate.error!)")
             } else {
                 Test.assert(estimate.error == nil, message: "expected nil error for test case: \(testCase.name)")
             }
