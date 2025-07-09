@@ -55,24 +55,24 @@ access(all) fun testCallbackScheduling() {
     let feeAmount = 10.0
 
     // Try to schedule callback with insufficient FLOW, should fail
-    var tx = Test.Transaction(
-        code: Test.readFile("../transactions/callbackScheduler/schedule_callback.cdc"),
-        authorizers: [serviceAccount.address],
-        signers: [serviceAccount],
-        arguments: [futureTime, 0.0, highPriority, testData],
+    scheduleCallback(
+        timestamp: futureTime,
+        fee: 0.0,
+        effort: basicEffort,
+        priority: highPriority,
+        data: testData,
+        failWithErr: "Insufficient fees: The Fee balance of 0.00000000 is not sufficient to pay the required amount of 0.00010000 for execution of the callback."
     )
-    var result = Test.executeTransaction(tx)
-    Test.expect(result, Test.beFailed())
     
     // Setup handler and schedule callback using combined transaction with service account
-    tx = Test.Transaction(
-        code: Test.readFile("../transactions/callbackScheduler/schedule_callback.cdc"),
-        authorizers: [serviceAccount.address],
-        signers: [serviceAccount],
-        arguments: [futureTime, feeAmount, basicEffort, highPriority, testData],
+    scheduleCallback(
+        timestamp: futureTime,
+        fee: feeAmount,
+        effort: basicEffort,
+        priority: highPriority,
+        data: testData,
+        failWithErr: nil
     )
-    result = Test.executeTransaction(tx)
-    Test.expect(result, Test.beSucceeded())
 
     // Check for CallbackScheduled event using Test.eventsOfType
     var scheduledEvents = Test.eventsOfType(Type<FlowCallbackScheduler.CallbackScheduled>())
@@ -100,25 +100,25 @@ access(all) fun testCallbackScheduling() {
     Test.assertEqual(statusScheduled, status!)
 
     // Schedule another callback, medium this time
-    tx = Test.Transaction(
-        code: Test.readFile("../transactions/callbackScheduler/schedule_callback.cdc"),
-        authorizers: [serviceAccount.address],
-        signers: [serviceAccount],
-        arguments: [futureTime, feeAmount, mediumEffort, mediumPriority, testData],
+    scheduleCallback(
+        timestamp: futureTime,
+        fee: feeAmount,
+        effort: mediumEffort,
+        priority: mediumPriority,
+        data: testData,
+        failWithErr: nil
     )
-    result = Test.executeTransaction(tx)
-    Test.expect(result, Test.beSucceeded())
 
     // Schedule another medium callback but it should be put in a future timestamp
     // because it doesn't fit in the requested timestamp
-    tx = Test.Transaction(
-        code: Test.readFile("../transactions/callbackScheduler/schedule_callback.cdc"),
-        authorizers: [serviceAccount.address],
-        signers: [serviceAccount],
-        arguments: [futureTime, feeAmount, mediumEffort, mediumPriority, testData],
+    scheduleCallback(
+        timestamp: futureTime,
+        fee: feeAmount,
+        effort: mediumEffort,
+        priority: mediumPriority,
+        data: testData,
+        failWithErr: nil
     )
-    result = Test.executeTransaction(tx)
-    Test.expect(result, Test.beSucceeded())
 
     // verify that the main timestamp still has 5000 left for medium
     var effort = executeScript(
@@ -135,14 +135,14 @@ access(all) fun testCallbackScheduling() {
     Test.assertEqual(UInt64(5000), effort!)
 
     // Schedule another high callback which should fit
-    tx = Test.Transaction(
-        code: Test.readFile("../transactions/callbackScheduler/schedule_callback.cdc"),
-        authorizers: [serviceAccount.address],
-        signers: [serviceAccount],
-        arguments: [futureTime, feeAmount, heavyEffort, highPriority, testData],
+    scheduleCallback(
+        timestamp: futureTime,
+        fee: feeAmount,
+        effort: heavyEffort,
+        priority: highPriority,
+        data: testData,
+        failWithErr: nil
     )
-    result = Test.executeTransaction(tx)
-    Test.expect(result, Test.beSucceeded())
 
     effort = executeScript(
         "../transactions/callbackScheduler/scripts/get_slot_available_effort.cdc",
@@ -152,24 +152,24 @@ access(all) fun testCallbackScheduling() {
 
     // Try to schedule another high callback which should fail because it doesn't
     // fit into the requested timestamp
-    tx = Test.Transaction(
-        code: Test.readFile("../transactions/callbackScheduler/schedule_callback.cdc"),
-        authorizers: [serviceAccount.address],
-        signers: [serviceAccount],
-        arguments: [futureTime, feeAmount, heavyEffort, highPriority, testData],
+    scheduleCallback(
+        timestamp: futureTime,
+        fee: feeAmount,
+        effort: heavyEffort,
+        priority: highPriority,
+        data: testData,
+        failWithErr: "Invalid execution effort: \(heavyEffort) is greater than the priority's available effort for the requested timestamp."
     )
-    result = Test.executeTransaction(tx)
-    Test.expect(result, Test.beFailed())
 
     // Schedule a low callback
-    tx = Test.Transaction(
-        code: Test.readFile("../transactions/callbackScheduler/schedule_callback.cdc"),
-        authorizers: [serviceAccount.address],
-        signers: [serviceAccount],
-        arguments: [futureTime, feeAmount, basicEffort, lowPriority, testData],
+    scheduleCallback(
+        timestamp: futureTime,
+        fee: feeAmount,
+        effort: basicEffort,
+        priority: lowPriority,
+        data: testData,
+        failWithErr: nil
     )
-    result = Test.executeTransaction(tx)
-    Test.expect(result, Test.beSucceeded())
 
     effort = executeScript(
         "../transactions/callbackScheduler/scripts/get_slot_available_effort.cdc",
@@ -467,6 +467,30 @@ access(all) fun runEstimateTestCase(testCase: EstimateTestCase) {
 }
 
 // Helper function for scheduling a callback
-access(all) fun scheduleCallback(timestamp: UFix64, fee: UFix64, effort: UInt64, priority: UInt8, data: AnyStruct) {
-    // TODO add implementation
+access(all) fun scheduleCallback(
+    timestamp: UFix64,
+    fee: UFix64,
+    effort: UInt64,
+    priority: UInt8,
+    data: AnyStruct,
+    failWithErr: String?
+) {
+    var tx = Test.Transaction(
+        code: Test.readFile("../transactions/callbackScheduler/schedule_callback.cdc"),
+        authorizers: [serviceAccount.address],
+        signers: [serviceAccount],
+        arguments: [timestamp, fee, effort, priority, data],
+    )
+    var result = Test.executeTransaction(tx)
+
+    if let error = failWithErr {
+        Test.expect(result, Test.beFailed())
+        Test.assertError(
+            result,
+            errorMessage: error
+        )
+    
+    } else {
+        Test.expect(result, Test.beSucceeded())
+    }
 }

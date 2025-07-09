@@ -394,7 +394,7 @@ access(all) contract FlowCallbackScheduler {
             )
 
             if scheduledTimestamp == nil {
-                return EstimatedCallback(flowFee: fee, timestamp: nil, error: "Invalid execution effort: \(executionEffort) is greater than the priority's available effort of \(self.priorityEffortLimit[priority]!) for the requested timestamp.")
+                return EstimatedCallback(flowFee: fee, timestamp: nil, error: "Invalid execution effort: \(executionEffort) is greater than the priority's available effort for the requested timestamp.")
             }
 
             if priority == Priority.Low {
