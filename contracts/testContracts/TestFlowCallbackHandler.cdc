@@ -3,7 +3,7 @@ import "FlowCallbackScheduler"
 // TestFlowCallbackHandler is a simplified test contract for testing CallbackScheduler
 access(all) contract TestFlowCallbackHandler {
     access(all) var scheduledCallbacks: [FlowCallbackScheduler.ScheduledCallback]
-    access(all) var executedCallback: UInt64
+    access(all) var executedCallbacks: [UInt64]
 
     access(all) let HandlerStoragePath: StoragePath
     access(all) let HandlerPublicPath: PublicPath
@@ -12,7 +12,7 @@ access(all) contract TestFlowCallbackHandler {
         
         access(FlowCallbackScheduler.ExecuteCallback) 
         fun executeCallback(id: UInt64, data: AnyStruct?) {
-            TestFlowCallbackHandler.executedCallback = id
+            TestFlowCallbackHandler.executedCallbacks.append(id)
         }
     }
 
@@ -24,9 +24,13 @@ access(all) contract TestFlowCallbackHandler {
         self.scheduledCallbacks.append(callback)
     }
 
+    access(all) fun getExecutedCallbacks(): [UInt64] {
+        return self.executedCallbacks
+    }
+
     access(all) init() {
         self.scheduledCallbacks = []
-        self.executedCallback = 0
+        self.executedCallbacks = []
 
         self.HandlerStoragePath = /storage/testCallbackHandler
         self.HandlerPublicPath = /public/testCallbackHandler

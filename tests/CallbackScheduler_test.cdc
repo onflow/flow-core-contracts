@@ -1,4 +1,5 @@
 import Test
+import BlockchainHelpers
 import "FlowCallbackScheduler"
 import "FlowToken"
 import "TestFlowCallbackHandler"
@@ -6,54 +7,76 @@ import "TestFlowCallbackHandler"
 // Account 7 is where new contracts are deployed by default
 access(all) let admin = Test.getAccount(0x0000000000000007)
 
+access(all) let serviceAccount = Test.serviceAccount()
+
+access(all) let highPriority = UInt8(0)
+access(all) let mediumPriority = UInt8(1)
+access(all) let lowPriority = UInt8(2)
+
+access(all) let basicEffort: UInt64 = 1000
+access(all) let mediumEffort: UInt64 = 10000
+access(all) let heavyEffort: UInt64 = 20000
+
+access(all) let testData = "test data"
+
+access(all) let futureDelta = 100.0
+
 access(all)
 fun setup() {
-    let err = Test.deployContract(
+
+    var err = Test.deployContract(
         name: "FlowCallbackScheduler",
         path: "../contracts/FlowCallbackScheduler.cdc",
         arguments: []
     )
     Test.expect(err, Test.beNil())
 
-    let handlerErr = Test.deployContract(
+    err = Test.deployContract(
         name: "TestFlowCallbackHandler",
         path: "../contracts/testContracts/TestFlowCallbackHandler.cdc",
         arguments: []
     )
-    Test.expect(handlerErr, Test.beNil())
+    Test.expect(err, Test.beNil())
 }
 
 /** ---------------------------------------------------------------------------------
  Callback handler integration tests
  --------------------------------------------------------------------------------- */
 
-access(all) fun testCallbackSchedulingAndExecution() {
+access(all) fun testCallbackScheduling() {
 
-    let serviceAccount = Test.serviceAccount()
     let currentTime = getCurrentBlock().timestamp
-    let futureDelta = 100.0
     let futureTime = currentTime + futureDelta
-    let testData = "test data"
     let feeAmount = 10.0
-    let highPriority = UInt8(0)
-    
-    // Setup handler and schedule callback using combined transaction with service account
-    let tx = Test.Transaction(
+
+    // Try to schedule callback with insufficient FLOW, should fail
+    var tx = Test.Transaction(
         code: Test.readFile("../transactions/callbackScheduler/schedule_callback.cdc"),
         authorizers: [serviceAccount.address],
         signers: [serviceAccount],
-        arguments: [futureTime, feeAmount, highPriority, testData],
+        arguments: [futureTime, 0.0, highPriority, testData],
     )
-    let result = Test.executeTransaction(tx)
+    var result = Test.executeTransaction(tx)
+    Test.expect(result, Test.beFailed())
+    
+    // Setup handler and schedule callback using combined transaction with service account
+    tx = Test.Transaction(
+        code: Test.readFile("../transactions/callbackScheduler/schedule_callback.cdc"),
+        authorizers: [serviceAccount.address],
+        signers: [serviceAccount],
+        arguments: [futureTime, feeAmount, basicEffort, highPriority, testData],
+    )
+    result = Test.executeTransaction(tx)
     Test.expect(result, Test.beSucceeded())
 
     // Check for CallbackScheduled event using Test.eventsOfType
-    let scheduledEvents = Test.eventsOfType(Type<FlowCallbackScheduler.CallbackScheduled>())
+    var scheduledEvents = Test.eventsOfType(Type<FlowCallbackScheduler.CallbackScheduled>())
     Test.assert(scheduledEvents.length == 1, message: "There should be one CallbackScheduled event")
     
-    let scheduledEvent = scheduledEvents[0] as! FlowCallbackScheduler.CallbackScheduled
-    Test.assertEqual(scheduledEvent!.timestamp!, futureTime)
+    var scheduledEvent = scheduledEvents[0] as! FlowCallbackScheduler.CallbackScheduled
+    Test.assertEqual(futureTime, scheduledEvent.timestamp!)
     Test.assert(scheduledEvent.executionEffort == 1000, message: "incorrect execution effort")
+    Test.assertEqual(feeAmount, scheduledEvent.fees!)
     
     let callbackID = scheduledEvent.id
 
@@ -64,10 +87,100 @@ access(all) fun testCallbackSchedulingAndExecution() {
     let scheduled = scheduledCallbacks[0]
     Test.assert(scheduled.id == callbackID, message: "callback ID mismatch")
     Test.assert(scheduled.timestamp == futureTime, message: "incorrect timestamp")
-    Test.assert(scheduled.status() == FlowCallbackScheduler.Status.Scheduled, message: "incorrect status")
 
-    var status = FlowCallbackScheduler.getStatus(id: callbackID)
-    Test.assertEqual(FlowCallbackScheduler.Status.Scheduled, status!)
+    var status = executeScript(
+        "../transactions/callbackScheduler/scripts/get_status.cdc",
+        [callbackID]
+    ).returnValue! as! UInt8
+    Test.assertEqual(UInt8(0), status!)
+
+    // Schedule another callback, medium this time
+    tx = Test.Transaction(
+        code: Test.readFile("../transactions/callbackScheduler/schedule_callback.cdc"),
+        authorizers: [serviceAccount.address],
+        signers: [serviceAccount],
+        arguments: [futureTime, feeAmount, mediumEffort, mediumPriority, testData],
+    )
+    result = Test.executeTransaction(tx)
+    Test.expect(result, Test.beSucceeded())
+
+    // Schedule another medium callback but it should be put in a future timestamp
+    // because it doesn't fit in the requested timestamp
+    tx = Test.Transaction(
+        code: Test.readFile("../transactions/callbackScheduler/schedule_callback.cdc"),
+        authorizers: [serviceAccount.address],
+        signers: [serviceAccount],
+        arguments: [futureTime, feeAmount, mediumEffort, mediumPriority, testData],
+    )
+    result = Test.executeTransaction(tx)
+    Test.expect(result, Test.beSucceeded())
+
+    // verify that the main timestamp still has 5000 left for medium
+    var effort = executeScript(
+        "../transactions/callbackScheduler/scripts/get_slot_available_effort.cdc",
+        [futureTime, mediumPriority]
+    ).returnValue! as! UInt64
+    Test.assertEqual(UInt64(5000), effort!)
+
+    // verify that the next timestamp has 5000 left after the callback that was moved
+    effort = executeScript(
+        "../transactions/callbackScheduler/scripts/get_slot_available_effort.cdc",
+        [futureTime + 1.0, mediumPriority]
+    ).returnValue! as! UInt64
+    Test.assertEqual(UInt64(5000), effort!)
+
+    // Schedule another high callback which should fit
+    tx = Test.Transaction(
+        code: Test.readFile("../transactions/callbackScheduler/schedule_callback.cdc"),
+        authorizers: [serviceAccount.address],
+        signers: [serviceAccount],
+        arguments: [futureTime, feeAmount, heavyEffort, highPriority, testData],
+    )
+    result = Test.executeTransaction(tx)
+    Test.expect(result, Test.beSucceeded())
+
+    effort = executeScript(
+        "../transactions/callbackScheduler/scripts/get_slot_available_effort.cdc",
+        [futureTime, highPriority]
+    ).returnValue! as! UInt64
+    Test.assertEqual(UInt64(4000), effort!)
+
+    // Try to schedule another high callback which should fail because it doesn't
+    // fit into the requested timestamp
+    tx = Test.Transaction(
+        code: Test.readFile("../transactions/callbackScheduler/schedule_callback.cdc"),
+        authorizers: [serviceAccount.address],
+        signers: [serviceAccount],
+        arguments: [futureTime, feeAmount, heavyEffort, highPriority, testData],
+    )
+    result = Test.executeTransaction(tx)
+    Test.expect(result, Test.beFailed())
+
+    // Schedule a low callback
+    tx = Test.Transaction(
+        code: Test.readFile("../transactions/callbackScheduler/schedule_callback.cdc"),
+        authorizers: [serviceAccount.address],
+        signers: [serviceAccount],
+        arguments: [futureTime, feeAmount, basicEffort, lowPriority, testData],
+    )
+    result = Test.executeTransaction(tx)
+    Test.expect(result, Test.beSucceeded())
+
+    effort = executeScript(
+        "../transactions/callbackScheduler/scripts/get_slot_available_effort.cdc",
+        [futureTime, lowPriority]
+    ).returnValue! as! UInt64
+    Test.assertEqual(UInt64(4000), effort!)
+
+}
+
+access(all) fun testCallbackExecution() {
+
+    var scheduledCallbacks = TestFlowCallbackHandler.scheduledCallbacks
+    var ids: [UInt64] = []
+    for callback in scheduledCallbacks {
+        ids.append(callback.id)
+    }
 
     // Simulate FVM process - should not yet process since timestamp is in the future
     let processCallbackCode = Test.readFile("./transactions/process_callback.cdc")
@@ -97,16 +210,20 @@ access(all) fun testCallbackSchedulingAndExecution() {
 
     // Check for CallbackProcessed event after processing
     let processedEventsAfterTime = Test.eventsOfType(Type<FlowCallbackScheduler.CallbackProcessed>())
-    Test.assertEqual(1, processedEventsAfterTime.length)
-    //Test.assert(processedEventsAfterTime.length == 1, message: "CallbackProcessed event wrong count")
+    Test.assertEqual(4, processedEventsAfterTime.length)
     
     let processedEvent = processedEventsAfterTime[0] as! FlowCallbackScheduler.CallbackProcessed
-    Test.assert(processedEvent.id == callbackID, message: "callback ID mismatch")
-    Test.assert(processedEvent.executionEffort == 1000, message: "execution effort mismatch")
+    for id in ids {
+        if id == processedEvent.id {
+            Test.assert(processedEvent.executionEffort == 1000, message: "execution effort mismatch")
+        }
+    }
 
-
-    // status = CallbackScheduler.getStatus(ID: callbackID)
-    // Test.assertEqual(CallbackScheduler.Status.Processed, status!)
+    var status = executeScript(
+        "../transactions/callbackScheduler/scripts/get_status.cdc",
+        [ids[0]]
+    ).returnValue! as! UInt8
+    Test.assertEqual(UInt8(1), status!)
 
     // Simulate FVM execute - should execute the callback
     let executeCallbackCode = Test.readFile("./transactions/execute_callback.cdc")
@@ -114,7 +231,7 @@ access(all) fun testCallbackSchedulingAndExecution() {
         code: executeCallbackCode,
         authorizers: [],
         signers: [serviceAccount],
-        arguments: [callbackID]
+        arguments: [ids[0]]
     )
     Test.expect(Test.executeTransaction(executeTx), Test.beSucceeded())
     
@@ -123,24 +240,30 @@ access(all) fun testCallbackSchedulingAndExecution() {
     Test.assert(executedEvents.length == 1, message: "CallbackExecuted event wrong count")
     
     let executedEvent = executedEvents[0] as! FlowCallbackScheduler.CallbackExecuted
-    Test.assert(executedEvent.id == callbackID, message: "callback ID mismatch")
+    Test.assert(executedEvent.id == ids[0], message: "callback ID mismatch")
     
-    // TODO: Verify callback status is now Executed - this is not working as expected right now, the status is not updated
-    // status = FlowCallbackScheduler.getStatus(id: callbackID)
-    //Test.assertEqual(FlowCallbackScheduler.Status.Executed, status!)
+    // Verify callback status is now Executed
+    status = executeScript(
+        "../transactions/callbackScheduler/scripts/get_status.cdc",
+        [ids[0]]
+    ).returnValue! as! UInt8
+    Test.assertEqual(UInt8(2), status!)
+
     // Check that the callback was executed
-    //let executedCallback = TestFlowCallbackHandler.executedCallback
-    //Test.assert(executedCallback == callbackID, message: "callback ID mismatch")
+    var callbackIDs = executeScript(
+        "./scripts/get_executed_callbacks.cdc",
+        []
+    ).returnValue! as! [UInt64]
+    Test.assert(callbackIDs[0] == ids[0], message: "callback ID mismatch")
 }
 
 
 /*
 TODO test cases:
-- fix above schedule test to correctly track status updates and make sure we can query status after execution
 - test schedule and then cancel and make sure it is canceled and we can get the status after being canceled
 - schedule multiple callbacks at different times and make sure they are correctly executed 
 - test filling all slot room with high and medium priority and make sure the ones that are scheduled are exceuted
-- test filling all slot room with high and medimum and see that low priority only gets executed after high and medium are
+- test filling all slot room with high and medium and see that low priority only gets executed after high and medium are
 - test filling all slot room with high and medimum and then add more medium priority which should be executed in next available slot
  */
 
