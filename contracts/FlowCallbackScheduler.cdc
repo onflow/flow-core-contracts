@@ -326,6 +326,9 @@ access(all) contract FlowCallbackScheduler {
                 executionEffort: executionEffort
             )
 
+            // Estimate returns an error for low priority callbacks
+            // so need to check that the error is fine
+            // because low priority callbacks are allowed in schedule
             if estimate.error != nil && estimate.timestamp == nil {
                 panic(estimate.error!)
             }

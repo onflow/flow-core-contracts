@@ -13,6 +13,11 @@ access(all) let highPriority = UInt8(0)
 access(all) let mediumPriority = UInt8(1)
 access(all) let lowPriority = UInt8(2)
 
+access(all) let statusScheduled = UInt8(0)
+access(all) let statusProcessed = UInt8(1)
+access(all) let statusExecuted = UInt8(2)
+access(all) let statusCanceled = UInt8(3)
+
 access(all) let basicEffort: UInt64 = 1000
 access(all) let mediumEffort: UInt64 = 10000
 access(all) let heavyEffort: UInt64 = 20000
@@ -92,7 +97,7 @@ access(all) fun testCallbackScheduling() {
         "../transactions/callbackScheduler/scripts/get_status.cdc",
         [callbackID]
     ).returnValue! as! UInt8
-    Test.assertEqual(UInt8(0), status!)
+    Test.assertEqual(statusScheduled, status!)
 
     // Schedule another callback, medium this time
     tx = Test.Transaction(
@@ -223,7 +228,7 @@ access(all) fun testCallbackExecution() {
         "../transactions/callbackScheduler/scripts/get_status.cdc",
         [ids[0]]
     ).returnValue! as! UInt8
-    Test.assertEqual(UInt8(1), status!)
+    Test.assertEqual(statusProcessed, status!)
 
     // Simulate FVM execute - should execute the callback
     let executeCallbackCode = Test.readFile("./transactions/execute_callback.cdc")
@@ -247,7 +252,7 @@ access(all) fun testCallbackExecution() {
         "../transactions/callbackScheduler/scripts/get_status.cdc",
         [ids[0]]
     ).returnValue! as! UInt8
-    Test.assertEqual(UInt8(2), status!)
+    Test.assertEqual(statusExecuted, status!)
 
     // Check that the callback was executed
     var callbackIDs = executeScript(
@@ -459,4 +464,9 @@ access(all) fun runEstimateTestCase(testCase: EstimateTestCase) {
     } else {
         Test.assert(estimate.error == nil, message: "expected nil error for test case: \(testCase.name)")
     }
+}
+
+// Helper function for scheduling a callback
+access(all) fun scheduleCallback(timestamp: UFix64, fee: UFix64, effort: UInt64, priority: UInt8, data: AnyStruct) {
+    // TODO add implementation
 }
