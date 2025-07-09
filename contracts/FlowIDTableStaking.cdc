@@ -1829,7 +1829,7 @@ access(all) contract FlowIDTableStaking {
     /// 3. Must be a valid domain name format
     access(all) view fun isValidNetworkingAddress(address: String): Bool {
         // Check length
-       if  address.length == 0 && address.length > 510 {
+       if  address.length == 0 || address.length > 510 {
             return false
         }
 
