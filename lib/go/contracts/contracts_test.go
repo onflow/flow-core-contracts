@@ -41,7 +41,7 @@ func SetAllAddresses(env *templates.Environment) {
 	env.ServiceAccountAddress = fakeAddr
 	env.NodeVersionBeaconAddress = fakeAddr
 	env.RandomBeaconHistoryAddress = fakeAddr
-	env.FlowCallbackScheduler = fakeAddr
+	env.FlowCallbackSchedulerAddress = fakeAddr
 }
 
 // Tests that a specific contract path should succeed when retrieving it
