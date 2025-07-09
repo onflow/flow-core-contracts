@@ -188,7 +188,7 @@ access(all) fun testCallbackExecution() {
     }
 
     // Simulate FVM process - should not yet process since timestamp is in the future
-    let processCallbackCode = Test.readFile("./transactions/process_callback.cdc")
+    let processCallbackCode = Test.readFile("../transactions/callbackScheduler/admin/process_callback.cdc")
     var processTx = Test.Transaction(
         code: processCallbackCode,
         authorizers: [],
@@ -231,7 +231,7 @@ access(all) fun testCallbackExecution() {
     Test.assertEqual(statusProcessed, status!)
 
     // Simulate FVM execute - should execute the callback
-    let executeCallbackCode = Test.readFile("./transactions/execute_callback.cdc")
+    let executeCallbackCode = Test.readFile("../transactions/callbackScheduler/admin/execute_callback.cdc")
     let executeTx = Test.Transaction(
         code: executeCallbackCode,
         authorizers: [],
