@@ -22,6 +22,8 @@
 // accounts/add_key.cdc (1.407kB)
 // accounts/create_new_account.cdc (1.248kB)
 // accounts/revoke_key.cdc (364B)
+// callbackScheduler/admin/execute_callback.cdc (133B)
+// callbackScheduler/admin/process_callback.cdc (143B)
 // callbackScheduler/schedule_callback.cdc (1.888kB)
 // callbackScheduler/scripts/get_slot_available_effort.cdc (276B)
 // callbackScheduler/scripts/get_status.cdc (137B)
@@ -809,6 +811,46 @@ func accountsRevoke_keyCdc() (*asset, error) {
 
 	info := bindataFileInfo{name: "accounts/revoke_key.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x69, 0x40, 0x91, 0x33, 0x29, 0x4a, 0x24, 0xbc, 0x16, 0x73, 0x75, 0xf4, 0x70, 0x43, 0x60, 0x46, 0x76, 0xb7, 0xfd, 0xf1, 0xdd, 0xe9, 0x39, 0x65, 0x40, 0xc1, 0x3f, 0xf5, 0x40, 0xaa, 0x92, 0x88}}
+	return a, nil
+}
+
+var _callbackschedulerAdminExecute_callbackCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xca\xcc\x2d\xc8\x2f\x2a\x51\x50\x72\xcb\xc9\x2f\x77\x4e\xcc\xc9\x49\x4a\x4c\xce\x0e\x4e\xce\x48\x4d\x29\xcd\x49\x2d\x52\xe2\xe2\x2a\x29\x4a\xcc\x2b\x4e\x4c\x2e\xc9\xcc\xcf\xd3\xc8\x4c\xb1\x52\x08\xf5\xcc\x2b\x31\x33\xd1\x54\xa8\xe6\x52\x50\x50\x50\x48\xad\x48\x4d\x2e\x2d\x49\x85\xf2\x40\x00\xab\x39\x7a\x50\x75\x30\x09\xb0\x49\x99\x29\x9a\x60\x5d\xb5\x5c\xb5\x80\x00\x00\x00\xff\xff\x67\xf5\x2b\x48\x85\x00\x00\x00"
+
+func callbackschedulerAdminExecute_callbackCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_callbackschedulerAdminExecute_callbackCdc,
+		"callbackScheduler/admin/execute_callback.cdc",
+	)
+}
+
+func callbackschedulerAdminExecute_callbackCdc() (*asset, error) {
+	bytes, err := callbackschedulerAdminExecute_callbackCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "callbackScheduler/admin/execute_callback.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x3, 0x69, 0x27, 0x76, 0x42, 0xc1, 0x59, 0xd6, 0xa8, 0x8b, 0x3f, 0x3e, 0x19, 0x4c, 0x3, 0xa4, 0xfc, 0x91, 0x78, 0xb9, 0xb7, 0xb6, 0x24, 0x4b, 0x7b, 0xdd, 0x5c, 0x24, 0x83, 0x7c, 0xca, 0xf}}
+	return a, nil
+}
+
+var _callbackschedulerAdminProcess_callbackCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xca\xcc\x2d\xc8\x2f\x2a\x51\x50\x72\xcb\xc9\x2f\x77\x4e\xcc\xc9\x49\x4a\x4c\xce\x0e\x4e\xce\x48\x4d\x29\xcd\x49\x2d\x52\xe2\xe2\xd2\xd7\x57\x28\x29\x4a\xcc\x2b\x4e\x4c\x2e\xc9\xcc\xcf\x53\x28\xc9\x57\x28\x28\xca\x4f\x4e\x2d\x2e\x56\x48\x86\xaa\x2e\xe6\x42\x56\x50\xcd\xa5\xa0\xa0\xa0\x90\x5a\x91\x9a\x5c\x5a\x92\x0a\xe5\x81\x00\x56\xf3\xf5\xa0\x66\x69\x68\x82\xd5\xd5\x72\xd5\x02\x02\x00\x00\xff\xff\xc7\x91\xca\xf3\x8f\x00\x00\x00"
+
+func callbackschedulerAdminProcess_callbackCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_callbackschedulerAdminProcess_callbackCdc,
+		"callbackScheduler/admin/process_callback.cdc",
+	)
+}
+
+func callbackschedulerAdminProcess_callbackCdc() (*asset, error) {
+	bytes, err := callbackschedulerAdminProcess_callbackCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "callbackScheduler/admin/process_callback.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x51, 0xef, 0xf3, 0x9e, 0x78, 0x59, 0x34, 0xfd, 0x98, 0x86, 0x62, 0xe0, 0x3c, 0xf5, 0x3d, 0xdc, 0x98, 0x50, 0xe4, 0x76, 0xc3, 0x55, 0xb, 0xd8, 0xd7, 0x8b, 0x79, 0x84, 0x60, 0x4a, 0x5d, 0xdc}}
 	return a, nil
 }
 
@@ -6565,6 +6607,8 @@ var _bindata = map[string]func() (*asset, error){
 	"accounts/add_key.cdc":                                                        accountsAdd_keyCdc,
 	"accounts/create_new_account.cdc":                                             accountsCreate_new_accountCdc,
 	"accounts/revoke_key.cdc":                                                     accountsRevoke_keyCdc,
+	"callbackScheduler/admin/execute_callback.cdc":                                callbackschedulerAdminExecute_callbackCdc,
+	"callbackScheduler/admin/process_callback.cdc":                                callbackschedulerAdminProcess_callbackCdc,
 	"callbackScheduler/schedule_callback.cdc":                                     callbackschedulerSchedule_callbackCdc,
 	"callbackScheduler/scripts/get_slot_available_effort.cdc":                     callbackschedulerScriptsGet_slot_available_effortCdc,
 	"callbackScheduler/scripts/get_status.cdc":                                    callbackschedulerScriptsGet_statusCdc,
@@ -6924,6 +6968,10 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"revoke_key.cdc": {accountsRevoke_keyCdc, map[string]*bintree{}},
 	}},
 	"callbackScheduler": {nil, map[string]*bintree{
+		"admin": {nil, map[string]*bintree{
+			"execute_callback.cdc": {callbackschedulerAdminExecute_callbackCdc, map[string]*bintree{}},
+			"process_callback.cdc": {callbackschedulerAdminProcess_callbackCdc, map[string]*bintree{}},
+		}},
 		"schedule_callback.cdc": {callbackschedulerSchedule_callbackCdc, map[string]*bintree{}},
 		"scripts": {nil, map[string]*bintree{
 			"get_slot_available_effort.cdc": {callbackschedulerScriptsGet_slot_available_effortCdc, map[string]*bintree{}},
