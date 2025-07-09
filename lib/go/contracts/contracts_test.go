@@ -41,6 +41,7 @@ func SetAllAddresses(env *templates.Environment) {
 	env.ServiceAccountAddress = fakeAddr
 	env.NodeVersionBeaconAddress = fakeAddr
 	env.RandomBeaconHistoryAddress = fakeAddr
+	env.FlowCallbackScheduler = fakeAddr
 }
 
 // Tests that a specific contract path should succeed when retrieving it
@@ -162,6 +163,23 @@ func TestStakingCollection(t *testing.T) {
 	assert.Contains(t, contract, "import FlowStorageFees from 0x")
 	assert.Contains(t, contract, "import Burner from 0x")
 	assert.Contains(t, contract, "import LockedTokens from 0x")
+}
+
+func TestFlowCallbackScheduler(t *testing.T) {
+	env := templates.Environment{}
+	SetAllAddresses(&env)
+	contract := string(contracts.FlowCallbackScheduler(env))
+	GetCadenceContractShouldSucceed(t, contract)
+	assert.Contains(t, contract, "import FlowToken from 0x")
+	assert.Contains(t, contract, "import FlowFees from 0x")
+}
+
+func TestFlowCallbackHandler(t *testing.T) {
+	env := templates.Environment{}
+	SetAllAddresses(&env)
+	contract := string(contracts.TestFlowCallbackHandler(env))
+	GetCadenceContractShouldSucceed(t, contract)
+	assert.Contains(t, contract, "import FlowCallbackScheduler from 0x")
 }
 
 func TestNodeVersionBeacon(t *testing.T) {
