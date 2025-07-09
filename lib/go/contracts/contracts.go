@@ -49,7 +49,7 @@ const (
 	// Test contracts
 	// only used for testing
 	TESTFlowIdentityTableFilename   = "testContracts/TestFlowIDTableStaking.cdc"
-	TESTflowCallbackHandlerFilename = "TestFlowCallbackHandler.cdc"
+	TESTflowCallbackHandlerFilename = "testContracts/TestFlowCallbackHandler.cdc"
 
 	// Each contract has placeholder addresses that need to be replaced
 	// depending on which network they are being used with
