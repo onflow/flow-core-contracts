@@ -313,14 +313,14 @@ access(all) fun testEstimate() {
     let estimateTestCases: [EstimateTestCase] = [
         // Error cases - should return EstimatedCallback with error
         EstimateTestCase(
-            name: "Low priority returns zero timestamp and no error",
+            name: "Low priority returns 0.0 timestamp and error",
             timestamp: futureTime,
             priority: FlowCallbackScheduler.Priority.Low,
             executionEffort: 1000,
             data: nil,
             expectedFee: 0.00002,
             expectedTimestamp: 0.0,
-            expectedError: nil
+            expectedError: "Invalid Priority: Cannot estimate for Low Priority callbacks. They will be included in the first block with available space."
         ),
         EstimateTestCase(
             name: "Past timestamp returns error",
