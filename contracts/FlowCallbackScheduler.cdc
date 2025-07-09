@@ -140,7 +140,7 @@ access(all) contract FlowCallbackScheduler {
                     "Invalid status: Callback with id \(self.id) cannot be marked as Processed until after it is Scheduled"
             }
 
-            self.status = Status.Processed
+            self.status = newStatus
         }
 
         /// withdrawFees withdraws fees from the callback based on the refund multiplier.
