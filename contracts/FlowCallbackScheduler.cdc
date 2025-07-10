@@ -15,12 +15,28 @@ access(all) contract FlowCallbackScheduler {
         timestamp: UFix64?,
         priority: UInt8,
         executionEffort: UInt64,
-        fees: UFix64
+        fees: UFix64,
+        callbackOwner: Address
     )
 
-    access(all) event CallbackProcessed(id: UInt64, executionEffort: UInt64)
-    access(all) event CallbackExecuted(id: UInt64)
-    access(all) event CallbackCanceled(id: UInt64)
+    access(all) event CallbackProcessed(
+        id: UInt64,
+        priority: UInt8,
+        executionEffort: UInt64,
+        callbackOwner: Address
+    )
+
+    access(all) event CallbackExecuted(
+        id: UInt64,
+        priority: UInt8,
+        callbackOwner: Address
+    )
+
+    access(all) event CallbackCanceled(
+        id: UInt64,
+        priority: UInt8,
+        callbackOwner: Address
+    )
 
     /// Enums
     access(all) enum Priority: UInt8 {
@@ -137,7 +153,7 @@ access(all) contract FlowCallbackScheduler {
                 newStatus == Status.Executed ? self.status == Status.Processed : true:
                     "Invalid status: Callback with id \(self.id) cannot be marked as Executed until after it is Processed"
                 newStatus == Status.Processed ? self.status == Status.Scheduled : true:
-                    "Invalid status: Callback with id \(self.id) cannot be marked as Processed until after it is Scheduled"
+                    "Invalid status: Callback with id \(self.id) can only be set as Processed if it is Scheduled"
             }
 
             self.status = newStatus
@@ -490,7 +506,7 @@ access(all) contract FlowCallbackScheduler {
             // under 5000
             if priority == Priority.Low {
                 let totalEffortRemaining = self.slotTotalEffortLimit - (highUsed + mediumUsed)
-                return totalEffortRemaining < 5000 ? totalEffortRemaining : 5000
+                return totalEffortRemaining < priorityLimit ? totalEffortRemaining : priorityLimit
             }
             
             // Get how much shared effort has been used for each priority
@@ -552,7 +568,8 @@ access(all) contract FlowCallbackScheduler {
                 timestamp: slot,
                 priority: callback.priority.rawValue,
                 executionEffort: callback.executionEffort,
-                fees: callback.fees.balance
+                fees: callback.fees.balance,
+                callbackOwner: callback.handler.address
             )
 
             self.callbacks[callback.id] <-! callback
@@ -565,7 +582,6 @@ access(all) contract FlowCallbackScheduler {
 
             let lowPriorityTimestamp = self.lowPriorityScheduledTimestamp
             let lowPriorityCallbacks = self.slotQueue[lowPriorityTimestamp]!
-            let lowPriorityCallbacksToExecute: {UInt64: UInt64} = {}
 
             let currentTimestamp = getCurrentBlock().timestamp
             
@@ -595,13 +611,9 @@ access(all) contract FlowCallbackScheduler {
                     let callbackEffort = lowPriorityCallbacks[lowCallbackID]!
                     if callbackEffort <= lowPriorityEffortAvailable {
                         lowPriorityEffortAvailable = lowPriorityEffortAvailable - callbackEffort
-                        lowPriorityCallbacksToExecute[lowCallbackID] = callbackEffort
+                        callbackIDs[lowCallbackID] = callbackEffort
                         lowPriorityCallbacks[lowCallbackID] = nil
                     }
-                    // todo: maybe break if we have gotten under a certain effort?
-                    // if lowPriorityEffortAvailable < 500 {
-                    //     break
-                    // }
                 }
                 
                 // Process high and medium priority callbacks first
@@ -610,16 +622,12 @@ access(all) contract FlowCallbackScheduler {
                         panic("Invalid ID: \(id) callback not found")
 
                     callback.setStatus(newStatus: Status.Processed)
-                    emit CallbackProcessed(id: id, executionEffort: callback.executionEffort)
-                }
-
-                // Process low priority callbacks last
-                for lowPriorityCallback in lowPriorityCallbacksToExecute.keys {
-                    let callback = &self.callbacks[lowPriorityCallback] as &CallbackData? ?? 
-                        panic("Invalid ID: \(lowPriorityCallback) callback not found")
-
-                    callback.setStatus(newStatus: Status.Processed)
-                    emit CallbackProcessed(id: lowPriorityCallback, executionEffort: callback.executionEffort)
+                    emit CallbackProcessed(
+                        id: id,
+                        priority: callback.priority.rawValue,
+                        executionEffort: callback.executionEffort,
+                        callbackOwner: callback.handler.address
+                    )
                 }
             }
 
@@ -663,9 +671,17 @@ access(all) contract FlowCallbackScheduler {
         access(all) fun finalizeCallback(callback: &CallbackData, status: Status) {
             switch status {
                 case Status.Executed:
-                    emit CallbackExecuted(id: callback.id)
+                    emit CallbackExecuted(
+                        id: callback.id,
+                        priority: callback.priority.rawValue,
+                        callbackOwner: callback.handler.address
+                    )
                 case Status.Canceled:
-                    emit CallbackCanceled(id: callback.id)
+                    emit CallbackCanceled(
+                        id: callback.id,
+                        priority: callback.priority.rawValue,
+                        callbackOwner: callback.handler.address
+                    )
                 default:
                     panic("Invalid status: not final status")
             }

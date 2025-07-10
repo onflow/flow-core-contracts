@@ -200,7 +200,7 @@ access(all) fun testCallbackExecution() {
     // move time forward to trigger execution eligibility
     // Have to subtract one to handle the automatic timestamp drift
     // so that the medium callback that got scheduled doesn't get processed
-    Test.moveTime(by: Fix64(futureDelta-1.0))
+    Test.moveTime(by: Fix64(futureDelta - 1.0))
 
     // Simulate FVM process - should process since timestamp is in the past
     processCallbacks()
