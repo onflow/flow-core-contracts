@@ -188,8 +188,8 @@ access(all) contract FlowCallbackScheduler {
         /// callback status maps historic callback IDs to their finalized statuses
         access(contract) var historicStatuses: {UInt64: HistoricStatus}
 
-        /// slot queue is a map of timestamps to callback IDs
-        access(contract) var slotQueue: {UFix64: [UInt64]}
+        /// slot queue is a map of timestamps to callback IDs and their execution efforts
+        access(contract) var slotQueue: {UFix64: {UInt64: UInt64}}
 
         /// slot used effort is a map of timestamps map of priorities and 
         /// efforts that has been used for the timeslot
@@ -465,31 +465,49 @@ access(all) contract FlowCallbackScheduler {
 
         /// slot available effort returns the amount of effort that is available for a given timestamp and priority.
         access(all) view fun slotAvailableEffort(timestamp: UFix64, priority: Priority): UInt64 {
+            // Get the maxiumum allowed for a priority including shared
             let priorityLimit = self.priorityEffortLimit[priority]!
             
+            // If nothing has been claimed for the requested timestamp,
+            // return the full amount
             if !self.slotUsedEffort.containsKey(timestamp) {
                 return priorityLimit
             }
 
-            let slotPriority = self.slotUsedEffort[timestamp]!
+            // Get the mapping of how much effort has been used
+            // for each priority for the timestamp
+            let slotPriorityEffortsUsed = self.slotUsedEffort[timestamp]!
 
+            // Get the exclusive reserves for each priority
             let highReserve = self.priorityEffortReserve[Priority.High]!
             let mediumReserve = self.priorityEffortReserve[Priority.Medium]!
 
-            let highUsed = slotPriority[Priority.High] ?? 0
-            let mediumUsed = slotPriority[Priority.Medium] ?? 0
+            // Get how much effort has been used for each priority
+            let highUsed = slotPriorityEffortsUsed[Priority.High] ?? 0
+            let mediumUsed = slotPriorityEffortsUsed[Priority.Medium] ?? 0
+
+            // If it is low priority, return whatever effort is remaining
+            // under 5000
+            if priority == Priority.Low {
+                let totalEffortRemaining = self.slotTotalEffortLimit - (highUsed + mediumUsed)
+                return totalEffortRemaining < 5000 ? totalEffortRemaining : 5000
+            }
             
+            // Get how much shared effort has been used for each priority
             // Ensure the results are always zero or positive
             let highSharedUsed: UInt64 = highReserve >= highUsed ? 0 : highUsed - highReserve
             let mediumSharedUsed: UInt64 = mediumReserve >= mediumUsed ? 0 : mediumUsed - mediumReserve
 
+            // Get the theoretical total shared amount between priorities
             let totalShared = self.slotTotalEffortLimit - highReserve - mediumReserve
+
+            // Get the amount of shared effort available
             let sharedAvailable = totalShared - highSharedUsed - mediumSharedUsed        
 
             // we calculate available by calculating available shared effort and 
             // adding any unused reserves for that priority
             let reserve = self.priorityEffortReserve[priority]!
-            let used = slotPriority[priority] ?? 0
+            let used = slotPriorityEffortsUsed[priority] ?? 0
             let unusedReserve: UInt64 = used >= reserve ? 0 : reserve - used
             let available = sharedAvailable + unusedReserve
             
@@ -509,7 +527,7 @@ access(all) contract FlowCallbackScheduler {
 
             // If nothing is in the queue for this slot, initialize the slot
             if self.slotQueue[slot] == nil {
-                self.slotQueue[slot] = []
+                self.slotQueue[slot] = {}
 
                 // This also means that the used effort record for this slot has not been initialized
                 self.slotUsedEffort[slot] = {
@@ -520,7 +538,9 @@ access(all) contract FlowCallbackScheduler {
             }
 
             // Add this callback id to the slot
-            self.slotQueue[slot]!.append(callback.id)
+            let slotQueue = self.slotQueue[slot]!
+            slotQueue[callback.id] = callback.executionEffort
+            self.slotQueue[slot] = slotQueue
             
             // Add the execution effort for this callback to the total for the slot's priority
             let slotEfforts = self.slotUsedEffort[slot]!
@@ -542,9 +562,11 @@ access(all) contract FlowCallbackScheduler {
         /// It iterates over all the timestamps in the queue and processes the callbacks that are 
         /// eligible for execution. It also emits an event for each callback that is processed.
         access(all) fun process() {
-            // todo: minimum priority callbacks should be processed as well if space
 
             let lowPriorityTimestamp = self.lowPriorityScheduledTimestamp
+            let lowPriorityCallbacks = self.slotQueue[lowPriorityTimestamp]!
+            let lowPriorityCallbacksToExecute: {UInt64: UInt64} = {}
+
             let currentTimestamp = getCurrentBlock().timestamp
             
             // find all timestamps that are in the past
@@ -554,20 +576,50 @@ access(all) contract FlowCallbackScheduler {
                     return false
                 }
 
-                return timestamp <= currentTimestamp 
+                return timestamp <= currentTimestamp
             }
             let pastTimestamps = self.slotQueue.keys.filter(pastTimestamp)
             
             // process all callbacks from timestamps in the past
+            // and add low priority callbacks to the timestamp if there is space
             for timestamp in pastTimestamps {
-                let callbackIDs = self.slotQueue[timestamp] ?? []
+                let callbackIDs = self.slotQueue[timestamp] ?? {}
+
+                // Add low priority callbacks to the list
+                // until the low available effort is used up
+                // todo: This could get pretty costly if there are a lot of low priority callbacks
+                // in the queue. Figure out how to more efficiently go through the low priority callbacks
+                // Could potentially limit the size of the low priority callback queue?
+                var lowPriorityEffortAvailable = self.slotAvailableEffort(timestamp: timestamp, priority: Priority.Low)
+                for lowCallbackID in lowPriorityCallbacks.keys {
+                    let callbackEffort = lowPriorityCallbacks[lowCallbackID]!
+                    if callbackEffort <= lowPriorityEffortAvailable {
+                        lowPriorityEffortAvailable = lowPriorityEffortAvailable - callbackEffort
+                        lowPriorityCallbacksToExecute[lowCallbackID] = callbackEffort
+                        lowPriorityCallbacks[lowCallbackID] = nil
+                    }
+                    // todo: maybe break if we have gotten under a certain effort?
+                    // if lowPriorityEffortAvailable < 500 {
+                    //     break
+                    // }
+                }
                 
-                for id in callbackIDs {
+                // Process high and medium priority callbacks first
+                for id in callbackIDs.keys {
                     let callback = &self.callbacks[id] as &CallbackData? ?? 
                         panic("Invalid ID: \(id) callback not found")
 
                     callback.setStatus(newStatus: Status.Processed)
                     emit CallbackProcessed(id: id, executionEffort: callback.executionEffort)
+                }
+
+                // Process low priority callbacks last
+                for lowPriorityCallback in lowPriorityCallbacksToExecute.keys {
+                    let callback = &self.callbacks[lowPriorityCallback] as &CallbackData? ?? 
+                        panic("Invalid ID: \(lowPriorityCallback) callback not found")
+
+                    callback.setStatus(newStatus: Status.Processed)
+                    emit CallbackProcessed(id: lowPriorityCallback, executionEffort: callback.executionEffort)
                 }
             }
 
@@ -605,7 +657,9 @@ access(all) contract FlowCallbackScheduler {
 
         /// finalizes the callback by setting the status to executed or canceled and emitting the appropriate event.
         /// It also does garbage collection of the callback resource and the slot map if it is empty.
-        /// The callback must be found and in correct state or the function panics. 
+        /// The callback must be found and in correct state or the function panics.
+        /// This function will always be called by the fvm for a given ID
+        /// in the same block after it is processed so it won't get processed twice
         access(all) fun finalizeCallback(callback: &CallbackData, status: Status) {
             switch status {
                 case Status.Executed:
@@ -631,11 +685,12 @@ access(all) contract FlowCallbackScheduler {
             
             // garbage collect slots 
             if let slotQueue = self.slotQueue[slot] {
-                let trimmedQueue = slotQueue.filter(view fun(id: UInt64): Bool { return id != callbackID })
-                self.slotQueue[slot] = trimmedQueue
+
+                slotQueue[callbackID] = nil
+                self.slotQueue[slot] = slotQueue
 
                 // if the slot is now empty remove it from the maps
-                if trimmedQueue.length == 0 {
+                if slotQueue.keys.length == 0 {
                     self.slotQueue.remove(key: slot)
                     self.slotUsedEffort.remove(key: slot)
                 }
