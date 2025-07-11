@@ -1829,12 +1829,13 @@ access(all) contract FlowIDTableStaking {
     /// 3. Must be a valid domain name format
     access(all) view fun isValidNetworkingAddress(address: String): Bool {
         // Check length
-       if  address.length == 0 || address.length > 510 {
+        if  address.length == 0 || address.length > 510 {
             return false
         }
 
         // Split the address into domain and port
         let parts = address.split(separator: ":")
+        // Check if address is not an IPv6 address
         if parts.length != 2 {
             return false
         }
@@ -1848,50 +1849,19 @@ access(all) contract FlowIDTableStaking {
             return false
         }
 
-        // Check if domain has at least one dot and valid characters
-        if !domain.contains(".") {
-            return false
-        }
-
-        // Check if domain contains only letters, digits and hyphens
-        let validChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.-".utf8
+        // Check if domain contains only letters, digits, dot, dash, hyphen or underscore
+        let validChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.-_".utf8
         for char in domain.utf8 {
             if !validChars.contains(char) {
                 return false
             }
         }
 
-        let hyphen = "-"
-        let hyphenUTF8 = hyphen.utf8[0]
         let labels = domain.split(separator: ".")
-        for label in labels {
-            // Label should not be empty
-            if label.length == 0 {
-                return false
-            }
-
-            // Label should not start or ends with a hyphen
-            var labelChars = label.utf8
-            if labelChars[0] == hyphenUTF8 || labelChars[labelChars.length - 1] == hyphenUTF8 {
-                    return false
-            }
-        }
-
         let tld = labels[labels.length - 1]
-
-        // TLD must be at least 2 characters long
-        if tld.length < 2 {
-            return false
-        }
-
-        // TLD must not contain a hyphen
-        if tld.contains(hyphen) {
-            return false
-        }
-
         var hasLetter = false
         for c in tld.utf8 {
-            // TLD must not be all digits
+            // TLD must not be all digits i.e. an IP address
             let isUpper = c >= 65 && c <= 90   // 'A'-'Z'
             let isLower = c >= 97 && c <= 122  // 'a'-'z'
             if isUpper || isLower {
