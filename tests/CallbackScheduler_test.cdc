@@ -26,6 +26,7 @@ access(all) let heavyEffort: UInt64 = 20000
 access(all) let testData = "test data"
 
 access(all) let futureDelta = 100.0
+access(all) var futureTime = 0.0
 
 access(all)
 fun setup() {
@@ -52,7 +53,7 @@ fun setup() {
 access(all) fun testCallbackScheduling() {
 
     let currentTime = getCurrentBlock().timestamp
-    let futureTime = currentTime + futureDelta
+    futureTime = currentTime + futureDelta
     let feeAmount = 10.0
 
     // Try to schedule callback with insufficient FLOW, should fail
@@ -198,9 +199,12 @@ access(all) fun testCallbackExecution() {
     Test.assert(processedEventsBeforeTime.length == 0, message: "CallbackProcessed before time")
 
     // move time forward to trigger execution eligibility
-    // Have to subtract one to handle the automatic timestamp drift
+    // Have to subtract two to handle the automatic timestamp drift
     // so that the medium callback that got scheduled doesn't get processed
-    Test.moveTime(by: Fix64(futureDelta - 1.0))
+    Test.moveTime(by: Fix64(futureDelta - 2.0))
+    if getTimestamp() < futureTime {
+        Test.moveTime(by: Fix64(1.0))
+    }
 
     // Simulate FVM process - should process since timestamp is in the past
     processCallbacks()
