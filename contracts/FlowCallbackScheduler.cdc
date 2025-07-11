@@ -700,13 +700,13 @@ access(all) contract FlowCallbackScheduler {
             destroy callbackRes
             
             // garbage collect slots 
-            if let slotQueue = self.slotQueue[slot] {
+            if let callbackQueue = self.slotQueue[slot] {
 
-                slotQueue[callbackID] = nil
-                self.slotQueue[slot] = slotQueue
+                callbackQueue[callbackID] = nil
+                self.slotQueue[slot] = callbackQueue
 
                 // if the slot is now empty remove it from the maps
-                if slotQueue.keys.length == 0 {
+                if callbackQueue.keys.length == 0 {
                     self.slotQueue.remove(key: slot)
                     self.slotUsedEffort.remove(key: slot)
                 }
