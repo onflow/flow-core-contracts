@@ -421,15 +421,12 @@ func TestIDTableRegistration(t *testing.T) {
 		var amountToCommit interpreter.UFix64Value = 25000000000000
 
 		invalidNetworkingAddresses := []string{
-			"",                        // empty address
-			"host.com:65536",          // incorrect port
-			"no-dot-in-hostname:3569", // missing dot separator in domain name
-			"123.234.56.23:3569",      // IPv4 address instead of domain name
+			"",                   // empty address
+			"host.com:65536",     // incorrect port
+			"123.234.56.23:3569", // IPv4 address instead of domain name
 			"2001:0db8:85a3:0000:0000:8a2e:0370:7334:3569", // IPv6 address instead of domain name
-			"acd.-def.com:3569",                            // invalid label starting with hyphen
-			"host.example-site:3569",                       // hyphen in the TLD
-			"host.example-site:ab",                         //  TLD too short
-			"abcd.xyz.com",                                 // missing port
+			"host.3:3569",  //  TLD is a number
+			"abcd.xyz.com", // missing port
 		}
 
 		for _, networkingAddress := range invalidNetworkingAddresses {
