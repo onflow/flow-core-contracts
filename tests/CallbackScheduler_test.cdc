@@ -19,14 +19,19 @@ access(all) let statusExecuted = UInt8(2)
 access(all) let statusCanceled = UInt8(3)
 
 access(all) let basicEffort: UInt64 = 1000
-access(all) let lowPriorityMaxEffort: UInt64 = 5000
 access(all) let mediumEffort: UInt64 = 10000
 access(all) let heavyEffort: UInt64 = 20000
+
+access(all) let lowPriorityMaxEffort: UInt64 = 5000
+access(all) let mediumPriorityMaxEffort: UInt64 = 15000
+access(all) let highPriorityMaxEffort: UInt64 = 30000
 
 access(all) let testData = "test data"
 
 access(all) let futureDelta = 100.0
 access(all) var futureTime = 0.0
+
+access(all) var feeAmount = 10.0
 
 access(all)
 fun setup() {
@@ -60,7 +65,6 @@ access(all) fun testCallbackScheduling() {
 
     let currentTime = getCurrentBlock().timestamp
     futureTime = currentTime + futureDelta
-    let feeAmount = 10.0
 
     // Try to schedule callback with insufficient FLOW, should fail
     scheduleCallback(
@@ -95,10 +99,10 @@ access(all) fun testCallbackScheduling() {
     let callbackID = scheduledEvent.id
 
     // Get scheduled callbacks from test callback handler
-    let scheduledCallbacks = TestFlowCallbackHandler.scheduledCallbacks 
+    let scheduledCallbacks = TestFlowCallbackHandler.scheduledCallbacks.keys
     Test.assert(scheduledCallbacks.length == 1, message: "one scheduled callback")
     
-    let scheduled = scheduledCallbacks[0]
+    let scheduled = TestFlowCallbackHandler.scheduledCallbacks[scheduledCallbacks[0]]!
     Test.assert(scheduled.id == callbackID, message: "callback ID mismatch")
     Test.assert(scheduled.timestamp == futureTime, message: "incorrect timestamp")
 
@@ -187,15 +191,81 @@ access(all) fun testCallbackScheduling() {
         failWithErr: nil
     )
 
+    // Make sure the low priority status and available effort
+    // for the `futureTime` slot is correct
+    status = getStatus(id: UInt64(6))
+    Test.assertEqual(statusScheduled, status)
+
+}
+
+access(all) fun testCallbackCancelation() {
+    var balanceBefore = getBalance(account: serviceAccount.address)
+
+    // Schedule a medium callback
+    scheduleCallback(
+        timestamp: futureTime + futureDelta,
+        fee: feeAmount,
+        effort: mediumEffort,
+        priority: mediumPriority,
+        data: testData,
+        failWithErr: nil
+    )
+
+    // Cancel invalid callback should fail
+    cancelCallback(
+        id: 100,
+        failWithErr: "Invalid ID: 100 callback not found"
+    )
+
+    // Cancel the callback
+    cancelCallback(
+        id: 7,
+        failWithErr: nil
+    )
+
+    // Make sure the status is canceled
+    var status = getStatus(id: UInt64(7))
+    Test.assertEqual(statusCanceled, status)
+
+    // Available Effort should be completely unused
+    // for the slot that the canceled callback was in
+    var effort = getSlotAvailableEffort(timestamp: futureTime + futureDelta, priority: mediumPriority)
+    Test.assertEqual(UInt64(mediumPriorityMaxEffort), effort!)
+
+    // Assert that the new balance reflects the refunds
+    Test.assertEqual(balanceBefore - feeAmount/UFix64(2.0), getBalance(account: serviceAccount.address))
+
+    // Schedule a high callback in the same slot
+    // with max effort that should succeed
+    scheduleCallback(
+        timestamp: futureTime + futureDelta,
+        fee: feeAmount,
+        effort: highPriorityMaxEffort,
+        priority: highPriority,
+        data: testData,
+        failWithErr: nil
+    )
+
+    // Cancel the callback
+    cancelCallback(
+        id: 8,
+        failWithErr: nil
+    )
+
+    // Make sure the status is canceled
+    status = getStatus(id: UInt64(8))
+    Test.assertEqual(statusCanceled, status)
+
+    // Available Effort should be completely unused
+    // for the slot that the canceled callback was in
+    effort = getSlotAvailableEffort(timestamp: futureTime + futureDelta, priority: highPriority)
+    Test.assertEqual(UInt64(highPriorityMaxEffort), effort!)
+    
 }
 
 access(all) fun testCallbackExecution() {
 
-    var scheduledCallbacks = TestFlowCallbackHandler.scheduledCallbacks
-    var ids: [UInt64] = []
-    for callback in scheduledCallbacks {
-        ids.append(callback.id)
-    }
+    var scheduledIDs = TestFlowCallbackHandler.scheduledCallbacks.keys
 
     // Simulate FVM process - should not yet process since timestamp is in the future
     processCallbacks()
@@ -496,6 +566,27 @@ access(all) fun scheduleCallback(
     }
 }
 
+access(all) fun cancelCallback(id: UInt64, failWithErr: String?) {
+    var tx = Test.Transaction(
+        code: Test.readFile("../transactions/callbackScheduler/cancel_callback.cdc"),
+        authorizers: [serviceAccount.address],
+        signers: [serviceAccount],
+        arguments: [id],
+    )
+    var result = Test.executeTransaction(tx)
+
+    if let error = failWithErr {
+        Test.expect(result, Test.beFailed())
+        Test.assertError(
+            result,
+            errorMessage: error
+        )
+    
+    } else {
+        Test.expect(result, Test.beSucceeded())
+    }
+}
+
 access(all) fun processCallbacks() {
     let processCallbackCode = Test.readFile("../transactions/callbackScheduler/admin/process_callback.cdc")
     var processTx = Test.Transaction(
@@ -541,4 +632,12 @@ access(all) fun getTimestamp(): UFix64 {
         []
     ).returnValue! as! UFix64
     return timestamp!
+}
+
+access(all) fun getBalance(account: Address): UFix64 {
+    var balance = executeScript(
+        "../transactions/flowToken/scripts/get_balance.cdc",
+        [account]
+    ).returnValue! as! UFix64
+    return balance!
 }
