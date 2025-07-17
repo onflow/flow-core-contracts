@@ -22,6 +22,11 @@
 // accounts/add_key.cdc (1.407kB)
 // accounts/create_new_account.cdc (1.248kB)
 // accounts/revoke_key.cdc (364B)
+// callbackScheduler/admin/execute_callback.cdc (133B)
+// callbackScheduler/admin/process_callback.cdc (143B)
+// callbackScheduler/schedule_callback.cdc (1.888kB)
+// callbackScheduler/scripts/get_slot_available_effort.cdc (276B)
+// callbackScheduler/scripts/get_status.cdc (137B)
 // dkg/admin/force_stop_dkg.cdc (337B)
 // dkg/admin/publish_admin.cdc (300B)
 // dkg/admin/set_safe_threshold.cdc (428B)
@@ -806,6 +811,106 @@ func accountsRevoke_keyCdc() (*asset, error) {
 
 	info := bindataFileInfo{name: "accounts/revoke_key.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x69, 0x40, 0x91, 0x33, 0x29, 0x4a, 0x24, 0xbc, 0x16, 0x73, 0x75, 0xf4, 0x70, 0x43, 0x60, 0x46, 0x76, 0xb7, 0xfd, 0xf1, 0xdd, 0xe9, 0x39, 0x65, 0x40, 0xc1, 0x3f, 0xf5, 0x40, 0xaa, 0x92, 0x88}}
+	return a, nil
+}
+
+var _callbackschedulerAdminExecute_callbackCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xca\xcc\x2d\xc8\x2f\x2a\x51\x50\x72\xcb\xc9\x2f\x77\x4e\xcc\xc9\x49\x4a\x4c\xce\x0e\x4e\xce\x48\x4d\x29\xcd\x49\x2d\x52\xe2\xe2\x2a\x29\x4a\xcc\x2b\x4e\x4c\x2e\xc9\xcc\xcf\xd3\xc8\x4c\xb1\x52\x08\xf5\xcc\x2b\x31\x33\xd1\x54\xa8\xe6\x52\x50\x50\x50\x48\xad\x48\x4d\x2e\x2d\x49\x85\xf2\x40\x00\xab\x39\x7a\x50\x75\x30\x09\xb0\x49\x99\x29\x9a\x60\x5d\xb5\x5c\xb5\x80\x00\x00\x00\xff\xff\x67\xf5\x2b\x48\x85\x00\x00\x00"
+
+func callbackschedulerAdminExecute_callbackCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_callbackschedulerAdminExecute_callbackCdc,
+		"callbackScheduler/admin/execute_callback.cdc",
+	)
+}
+
+func callbackschedulerAdminExecute_callbackCdc() (*asset, error) {
+	bytes, err := callbackschedulerAdminExecute_callbackCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "callbackScheduler/admin/execute_callback.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x3, 0x69, 0x27, 0x76, 0x42, 0xc1, 0x59, 0xd6, 0xa8, 0x8b, 0x3f, 0x3e, 0x19, 0x4c, 0x3, 0xa4, 0xfc, 0x91, 0x78, 0xb9, 0xb7, 0xb6, 0x24, 0x4b, 0x7b, 0xdd, 0x5c, 0x24, 0x83, 0x7c, 0xca, 0xf}}
+	return a, nil
+}
+
+var _callbackschedulerAdminProcess_callbackCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xca\xcc\x2d\xc8\x2f\x2a\x51\x50\x72\xcb\xc9\x2f\x77\x4e\xcc\xc9\x49\x4a\x4c\xce\x0e\x4e\xce\x48\x4d\x29\xcd\x49\x2d\x52\xe2\xe2\xd2\xd7\x57\x28\x29\x4a\xcc\x2b\x4e\x4c\x2e\xc9\xcc\xcf\x53\x28\xc9\x57\x28\x28\xca\x4f\x4e\x2d\x2e\x56\x48\x86\xaa\x2e\xe6\x42\x56\x50\xcd\xa5\xa0\xa0\xa0\x90\x5a\x91\x9a\x5c\x5a\x92\x0a\xe5\x81\x00\x56\xf3\xf5\xa0\x66\x69\x68\x82\xd5\xd5\x72\xd5\x02\x02\x00\x00\xff\xff\xc7\x91\xca\xf3\x8f\x00\x00\x00"
+
+func callbackschedulerAdminProcess_callbackCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_callbackschedulerAdminProcess_callbackCdc,
+		"callbackScheduler/admin/process_callback.cdc",
+	)
+}
+
+func callbackschedulerAdminProcess_callbackCdc() (*asset, error) {
+	bytes, err := callbackschedulerAdminProcess_callbackCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "callbackScheduler/admin/process_callback.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x51, 0xef, 0xf3, 0x9e, 0x78, 0x59, 0x34, 0xfd, 0x98, 0x86, 0x62, 0xe0, 0x3c, 0xf5, 0x3d, 0xdc, 0x98, 0x50, 0xe4, 0x76, 0xc3, 0x55, 0xb, 0xd8, 0xd7, 0x8b, 0x79, 0x84, 0x60, 0x4a, 0x5d, 0xdc}}
+	return a, nil
+}
+
+var _callbackschedulerSchedule_callbackCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xb4\x55\xdf\x4f\xdb\x30\x10\x7e\xcf\x5f\x71\xf4\x01\x25\x52\x08\x7b\x98\xa6\xa9\x2a\x14\xd6\xc1\xe0\x0d\xa9\x8c\x3d\x4c\x7b\xb8\x26\x97\xc6\x22\xb5\x23\xfb\x42\x41\xa8\xff\xfb\xe4\xc4\xf9\x55\xda\x22\x26\xcd\x2f\x89\x7d\x9f\xef\x3e\x7f\x77\x3e\x8b\x55\xa1\x34\xc3\xe8\x3a\x57\xeb\x19\xe6\xf9\x02\xe3\xc7\x79\x9c\x51\x52\xe6\xa4\x47\x5e\x63\xbe\x27\xc3\x7d\xc8\x0d\xca\x64\x00\xb0\xc6\x7b\xf5\x48\xb2\xb7\x54\xca\xa5\x58\xe4\xe4\x96\x3d\xd6\x28\x0d\xc6\x2c\x94\xf4\x59\xac\xc8\x30\xae\x8a\x31\xfc\xbc\x16\xcf\x5f\x3e\x87\x90\x12\x5d\xae\x54\x29\xb9\x5b\xa2\x34\x55\xda\xce\x6f\x25\xdb\x79\xa1\x85\xd2\x82\x5f\xea\x95\xaf\x21\x30\x19\xfe\x8e\x8c\x63\x98\xb3\x16\x72\x19\xc0\xab\xe7\x01\x00\x14\x9a\x0a\xd4\xe4\x63\x1c\xd7\x2e\xb1\xe4\xcc\xff\xa6\xb4\x56\xeb\x07\xcc\x4b\x0a\x61\x8e\x4f\xe4\x7e\x6f\x8d\x29\x69\xce\x4a\xe3\x92\x66\x58\xe0\x42\xe4\x82\x5f\x66\x4a\xb2\x56\x79\x4e\x3a\x84\xbb\x72\x91\x0b\x93\x75\xc6\x10\x7e\x10\x1f\xd8\x12\xc0\xf1\x65\x1d\xdb\x72\x02\x37\x44\x0a\x47\x8e\x52\x64\xea\xcd\x51\x9c\x51\xfc\x38\xb9\xd8\xa3\x70\xe4\xbe\xe7\x7e\xaa\xd5\x6a\x0c\xef\xc0\x1c\xa3\x3b\xe4\xac\x1f\xd7\x8e\x9c\x18\xb2\x1a\x05\x93\x93\xbd\x8e\x62\x4d\xc8\xe4\x66\x7e\xd0\xba\x18\xf8\xda\x3e\x83\xc1\x27\xf2\x27\x27\xce\x7d\x08\xac\x3e\xc4\x74\xa7\xef\xb8\x51\x55\x90\x69\x03\x09\x9b\xa9\x49\x95\xcc\x9d\x15\x1b\x5d\x3d\x53\x5c\x32\x35\x86\x00\x8e\x5f\x77\x03\xb7\x68\x6d\xce\xfd\x7f\x21\xbc\xf1\xbc\xbe\xbe\xb1\xdb\x3a\xc3\x02\xce\x0e\x9e\x64\x70\xe4\xed\x11\x2d\x89\xbb\x52\x32\x7e\xaa\xb4\x0d\xfb\x21\x4d\x7f\x7f\xfa\x73\x38\x46\xcb\xea\x05\xd0\x1c\x41\x57\xc4\xff\x47\xde\xb7\x85\x64\x05\x7b\xc2\x32\xe7\x9e\x54\x4d\x9e\x17\xd5\x4d\x75\x4c\xfa\x7d\x24\xfa\x25\x38\x4b\x34\xae\x03\x38\x6e\x7b\x4e\xf4\x60\xdd\x34\x57\xe4\xd4\x39\x39\x4d\x1b\x7b\x65\xee\x92\x36\x9d\x42\x81\x52\xc4\xfe\x68\xa6\xca\x3c\x01\xa9\x18\xea\x80\xd0\xba\xac\x99\x8d\x76\xd4\xbf\xa5\x9d\x12\x19\x7b\x89\x2a\x50\xb4\x76\x94\x7c\x74\xfd\xab\x6d\x65\x41\x25\xed\xc5\x16\xd1\x81\xab\xa6\xa7\x5d\xc9\x72\x05\x67\xb0\x5b\xcd\x3b\x07\xf2\x35\xd6\xed\x6b\xdc\xee\x1b\x5e\x9e\xe9\xf4\x1d\x0f\xd1\x8d\x58\x66\xc3\xa2\x35\x0e\x94\x34\xbb\xf6\xd2\x68\x90\xfe\x20\x66\x53\xf4\xe3\x7e\xf9\x87\x03\x48\x52\xf5\xe8\xa6\x5b\x0f\x6d\xbd\xa7\xa0\xfd\x1d\x22\xba\xb6\xdf\x17\x6b\x88\xa1\xaa\x30\x85\x92\x57\xee\xcd\xa8\xdf\x8e\x21\xc8\xa6\x6d\x0c\x93\x13\xfb\x6d\x0d\x41\xa7\xc6\xbe\xeb\x85\x49\x32\xdf\x16\xc9\xef\x8e\xfd\x46\xc0\x3a\x27\x1b\x6f\x03\xde\xdf\x00\x00\x00\xff\xff\x9b\x40\x5f\xd7\x60\x07\x00\x00"
+
+func callbackschedulerSchedule_callbackCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_callbackschedulerSchedule_callbackCdc,
+		"callbackScheduler/schedule_callback.cdc",
+	)
+}
+
+func callbackschedulerSchedule_callbackCdc() (*asset, error) {
+	bytes, err := callbackschedulerSchedule_callbackCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "callbackScheduler/schedule_callback.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x9f, 0x1a, 0xee, 0xcf, 0xf, 0xd5, 0x93, 0x4c, 0xed, 0xbe, 0x6, 0x22, 0x4a, 0xb7, 0x48, 0xd6, 0x1b, 0x5c, 0xbb, 0xd6, 0x99, 0xbc, 0x46, 0x6d, 0x4b, 0x58, 0x43, 0x4c, 0x54, 0x3c, 0x98, 0xb6}}
+	return a, nil
+}
+
+var _callbackschedulerScriptsGet_slot_available_effortCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x74\x8e\x41\x4b\x87\x40\x10\xc5\xef\xfb\x29\x26\x4f\x2e\x44\x27\x91\x10\x3a\x44\x28\x74\x0b\xc4\xee\xe3\x36\xd6\xd2\xec\xae\x8c\xb3\x99\x44\xdf\x3d\xc8\x10\x0f\xfd\x4f\x33\x87\xf7\x7e\xef\xe7\xc3\x9c\x44\xa1\xe8\x38\xad\x0f\xc8\x3c\xa2\x7b\xef\xdd\x1b\xbd\x64\x26\x29\x8c\x41\xe7\x68\x59\x4a\x64\xb6\x30\xe5\x08\x01\x7d\x2c\xd5\x07\x5a\x14\xc3\xdc\xc0\xd0\xf9\xcf\xba\xba\x86\x59\x7c\x12\xaf\x5b\x03\xc3\x63\xd4\x5b\xbb\xdf\xba\x82\x2f\x03\x00\xc0\xa4\x7b\x44\xb7\x36\xe6\x00\x77\xf0\xef\xe0\xcd\xd3\x1f\xa6\x14\x5c\x9f\x91\x33\x35\x07\xd9\x5e\xfd\x92\x84\x34\x4b\xbc\x50\x7f\x25\xed\x39\xe9\xfd\x07\x7a\xc6\x91\xa9\x9d\xa6\x24\x7a\xf6\x3d\xde\xb3\xf2\xc9\xcc\x9a\x6f\xf3\x13\x00\x00\xff\xff\x43\x2d\x96\xd4\x14\x01\x00\x00"
+
+func callbackschedulerScriptsGet_slot_available_effortCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_callbackschedulerScriptsGet_slot_available_effortCdc,
+		"callbackScheduler/scripts/get_slot_available_effort.cdc",
+	)
+}
+
+func callbackschedulerScriptsGet_slot_available_effortCdc() (*asset, error) {
+	bytes, err := callbackschedulerScriptsGet_slot_available_effortCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "callbackScheduler/scripts/get_slot_available_effort.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x3d, 0x87, 0x21, 0xf2, 0x1, 0x1a, 0x8, 0x54, 0x77, 0xe2, 0xb7, 0x6c, 0xe3, 0xcf, 0xef, 0x53, 0x2, 0x32, 0x23, 0x9a, 0xe5, 0xb0, 0x4, 0xf2, 0x7, 0xfe, 0x44, 0x13, 0x1f, 0x75, 0x7, 0x32}}
+	return a, nil
+}
+
+var _callbackschedulerScriptsGet_statusCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x6c\xcc\xb1\x0a\xc2\x30\x10\x87\xf1\x3d\x4f\xf1\xb7\x53\xb3\x74\x12\x11\x57\x41\x70\x2e\xba\x9f\xc9\xa9\xc1\x6b\x2a\x97\x3b\x3a\x88\xef\x2e\xe8\xea\xf6\x2d\xdf\xaf\x4c\xcf\x59\x0d\xdd\x41\xe6\x65\x4f\x22\x17\x4a\x8f\x31\xdd\x39\xbb\xb0\x76\x21\x50\x4a\xdc\x5a\x4f\x22\x11\x57\xaf\x98\xa8\xd4\xbe\xe4\x1d\x4e\xc7\x6a\x9b\x75\xfc\xc5\x16\xaf\x00\x00\xca\xe6\x5a\xf1\x17\x1b\x6e\x6c\xa3\x91\x79\xfb\xfe\x25\xc7\xd5\xa0\xb4\x9c\x49\x9c\xc3\x3b\x7c\x02\x00\x00\xff\xff\x3a\x46\x17\xa8\x89\x00\x00\x00"
+
+func callbackschedulerScriptsGet_statusCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_callbackschedulerScriptsGet_statusCdc,
+		"callbackScheduler/scripts/get_status.cdc",
+	)
+}
+
+func callbackschedulerScriptsGet_statusCdc() (*asset, error) {
+	bytes, err := callbackschedulerScriptsGet_statusCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "callbackScheduler/scripts/get_status.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x3d, 0x1b, 0xfd, 0x9e, 0x68, 0x13, 0x34, 0xf1, 0xe2, 0x5c, 0xf9, 0x1b, 0x21, 0x82, 0xaf, 0x61, 0x23, 0x51, 0x81, 0x9f, 0xb9, 0xb4, 0x9e, 0x15, 0x7f, 0x4b, 0x76, 0x65, 0x9f, 0x73, 0x27, 0x33}}
 	return a, nil
 }
 
@@ -6502,6 +6607,11 @@ var _bindata = map[string]func() (*asset, error){
 	"accounts/add_key.cdc":                                                        accountsAdd_keyCdc,
 	"accounts/create_new_account.cdc":                                             accountsCreate_new_accountCdc,
 	"accounts/revoke_key.cdc":                                                     accountsRevoke_keyCdc,
+	"callbackScheduler/admin/execute_callback.cdc":                                callbackschedulerAdminExecute_callbackCdc,
+	"callbackScheduler/admin/process_callback.cdc":                                callbackschedulerAdminProcess_callbackCdc,
+	"callbackScheduler/schedule_callback.cdc":                                     callbackschedulerSchedule_callbackCdc,
+	"callbackScheduler/scripts/get_slot_available_effort.cdc":                     callbackschedulerScriptsGet_slot_available_effortCdc,
+	"callbackScheduler/scripts/get_status.cdc":                                    callbackschedulerScriptsGet_statusCdc,
 	"dkg/admin/force_stop_dkg.cdc":                                                dkgAdminForce_stop_dkgCdc,
 	"dkg/admin/publish_admin.cdc":                                                 dkgAdminPublish_adminCdc,
 	"dkg/admin/set_safe_threshold.cdc":                                            dkgAdminSet_safe_thresholdCdc,
@@ -6856,6 +6966,17 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"add_key.cdc": {accountsAdd_keyCdc, map[string]*bintree{}},
 		"create_new_account.cdc": {accountsCreate_new_accountCdc, map[string]*bintree{}},
 		"revoke_key.cdc": {accountsRevoke_keyCdc, map[string]*bintree{}},
+	}},
+	"callbackScheduler": {nil, map[string]*bintree{
+		"admin": {nil, map[string]*bintree{
+			"execute_callback.cdc": {callbackschedulerAdminExecute_callbackCdc, map[string]*bintree{}},
+			"process_callback.cdc": {callbackschedulerAdminProcess_callbackCdc, map[string]*bintree{}},
+		}},
+		"schedule_callback.cdc": {callbackschedulerSchedule_callbackCdc, map[string]*bintree{}},
+		"scripts": {nil, map[string]*bintree{
+			"get_slot_available_effort.cdc": {callbackschedulerScriptsGet_slot_available_effortCdc, map[string]*bintree{}},
+			"get_status.cdc": {callbackschedulerScriptsGet_statusCdc, map[string]*bintree{}},
+		}},
 	}},
 	"dkg": {nil, map[string]*bintree{
 		"admin": {nil, map[string]*bintree{
