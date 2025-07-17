@@ -464,7 +464,7 @@ func endStakingMoveTokens(t *testing.T,
 }
 
 // Registers the specified number of nodes for staking with the specified IDs
-// Does an even distrubution of node roles across the array of IDs in this order, repeating:
+// Does an even distribution of node roles across the array of IDs in this order, repeating:
 // collection, consensus, execution, verification, access
 func registerNodesForStaking(
 	t *testing.T,
@@ -498,7 +498,7 @@ func registerNodesForStaking(
 			authorizer,
 			signers[i],
 			ids[i],
-			fmt.Sprintf("%0128d", i),
+			getNetworkingAddress(i),
 			networkingkeys[i],
 			stakingKeys[i],
 			stakingKeysPOPs[i],
@@ -522,7 +522,7 @@ func commitNewTokens(t *testing.T,
 	amount, tokensCommitted interpreter.UFix64Value,
 	shouldFail bool,
 ) (
-	// the new amount of tokens that this node has committed
+// the new amount of tokens that this node has committed
 	newTokensCommitted interpreter.UFix64Value,
 ) {
 
@@ -991,4 +991,9 @@ func assertCadenceNodeArrayElementsEqual(t *testing.T, expected, actual []cadenc
 		}
 	}
 	return true
+}
+
+// Helper function to generate a valid networking address for a node number
+func getNetworkingAddress(nodeNum int) string {
+	return fmt.Sprintf("node-%d.mynode.com:3569", nodeNum)
 }

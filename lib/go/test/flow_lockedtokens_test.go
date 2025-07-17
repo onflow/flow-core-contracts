@@ -367,8 +367,8 @@ func TestLockedTokensStaker(t *testing.T) {
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), joshAddress)
 		_ = tx.AddArgument(CadenceString(joshID))
 		_ = tx.AddArgument(cadence.NewUInt8(1))
-		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
-		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
+		_ = tx.AddArgument(CadenceString(getNetworkingAddress(josh)))
+		_ = tx.AddArgument(CadenceString(getNetworkingAddress(josh)))
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0192d", josh)))
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%096d", josh)))
 		_ = tx.AddArgument(CadenceUFix64("250000.0"))
@@ -556,8 +556,8 @@ func TestLockedTokensStaker(t *testing.T) {
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), joshAddress)
 		_ = tx.AddArgument(CadenceString(joshID))
 		_ = tx.AddArgument(cadence.NewUInt8(1))
-		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
-		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
+		_ = tx.AddArgument(CadenceString(getNetworkingAddress(josh)))
+		_ = tx.AddArgument(CadenceString(getNetworkingAddress(josh)))
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0192d", josh)))
 		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%096d", josh)))
 		_ = tx.AddArgument(CadenceUFix64("745000.0"))
@@ -1650,7 +1650,7 @@ func TestLockedTokensRealStaking(t *testing.T) {
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), joshAddress)
 		_ = tx.AddArgument(CadenceString(joshID))
 		_ = tx.AddArgument(cadence.NewUInt8(1))
-		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
+		_ = tx.AddArgument(CadenceString(getNetworkingAddress(josh)))
 		_ = tx.AddArgument(CadenceString(joshNetworkingKey))
 		_ = tx.AddArgument(CadenceString(joshStakingKey))
 		_ = tx.AddArgument(CadenceString(joshStakingPOP))
@@ -1672,7 +1672,7 @@ func TestLockedTokensRealStaking(t *testing.T) {
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateLockedNodeUpdateNetworkingAddressScript(env), joshAddress)
 
-		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", execution)))
+		_ = tx.AddArgument(CadenceString(getNetworkingAddress(execution)))
 
 		signAndSubmit(
 			t, b, tx,
@@ -1682,7 +1682,7 @@ func TestLockedTokensRealStaking(t *testing.T) {
 		)
 
 		result := executeScriptAndCheck(t, b, templates.GenerateGetNetworkingAddressScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(joshID))})
-		assertEqual(t, CadenceString(fmt.Sprintf("%0128d", execution)), result)
+		assertEqual(t, CadenceString(getNetworkingAddress(execution)), result)
 	})
 
 	t.Run("Should be able to get the node info from the locked account by just using the address", func(t *testing.T) {
@@ -1737,7 +1737,7 @@ func TestLockedTokensRealStaking(t *testing.T) {
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), joshAddress)
 		_ = tx.AddArgument(CadenceString(maxID))
 		_ = tx.AddArgument(cadence.NewUInt8(2))
-		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
+		_ = tx.AddArgument(CadenceString(getNetworkingAddress(josh)))
 		_ = tx.AddArgument(CadenceString(joshNetworkingKey))
 		_ = tx.AddArgument(CadenceString(joshStakingKey))
 		_ = tx.AddArgument(CadenceString(joshStakingPOP))
@@ -1782,7 +1782,7 @@ func TestLockedTokensRealStaking(t *testing.T) {
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), joshAddress)
 		_ = tx.AddArgument(CadenceString(maxID))
 		_ = tx.AddArgument(cadence.NewUInt8(2))
-		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
+		_ = tx.AddArgument(CadenceString(getNetworkingAddress(josh)))
 		_ = tx.AddArgument(CadenceString(joshNetworkingKey))
 		_ = tx.AddArgument(CadenceString(joshStakingKey))
 		_ = tx.AddArgument(CadenceString(joshStakingPOP))
@@ -1833,7 +1833,7 @@ func TestLockedTokensRealStaking(t *testing.T) {
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), joshAddress)
 		_ = tx.AddArgument(CadenceString(maxID))
 		_ = tx.AddArgument(cadence.NewUInt8(2))
-		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", max)))
+		_ = tx.AddArgument(CadenceString(getNetworkingAddress(max)))
 		_ = tx.AddArgument(CadenceString(maxNetworkingKey))
 		_ = tx.AddArgument(CadenceString(maxStakingKey))
 		_ = tx.AddArgument(CadenceString(maxStakingPOP))
@@ -1983,7 +1983,7 @@ func TestLockedTokensRealDelegating(t *testing.T) {
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateRegisterLockedNodeScript(env), joshAddress)
 		_ = tx.AddArgument(CadenceString(joshID))
 		_ = tx.AddArgument(cadence.NewUInt8(1))
-		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", josh)))
+		_ = tx.AddArgument(CadenceString(getNetworkingAddress(josh)))
 		_ = tx.AddArgument(CadenceString(joshNetworkingKey))
 		_ = tx.AddArgument(CadenceString(joshStakingKey))
 		_ = tx.AddArgument(CadenceString(joshStakingPOP))

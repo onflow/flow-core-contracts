@@ -336,7 +336,7 @@ func TestIDTableRegistration(t *testing.T) {
 			IDTableSigner,
 			// Invalid ID: Too short
 			"3039",
-			fmt.Sprintf("%0128d", admin),
+			getNetworkingAddress(admin),
 			adminNetworkingKey,
 			adminStakingKey,
 			adminStakingPOP,
@@ -349,7 +349,7 @@ func TestIDTableRegistration(t *testing.T) {
 			idTableAddress,
 			IDTableSigner,
 			adminID,
-			fmt.Sprintf("%0128d", admin),
+			getNetworkingAddress(admin),
 			adminNetworkingKey,
 			adminStakingKey,
 			adminStakingPOP,
@@ -363,7 +363,7 @@ func TestIDTableRegistration(t *testing.T) {
 			idTableAddress,
 			IDTableSigner,
 			adminID,
-			fmt.Sprintf("%0128d", admin),
+			getNetworkingAddress(admin),
 			adminNetworkingKey,
 			adminStakingKey,
 			adminStakingPOP,
@@ -377,21 +377,7 @@ func TestIDTableRegistration(t *testing.T) {
 			idTableAddress,
 			IDTableSigner,
 			adminID,
-			// Invalid Networking Address: Length cannot be zero
-			"",
-			adminNetworkingKey,
-			adminStakingKey,
-			adminStakingPOP,
-			amountToCommit,
-			committed[adminID],
-			1,
-			true)
-
-		registerNode(t, b, env,
-			idTableAddress,
-			IDTableSigner,
-			adminID,
-			fmt.Sprintf("%0128d", admin),
+			getNetworkingAddress(admin),
 			// Invalid Networking Key: Length is correct, but not a valid ECDSA Key
 			fmt.Sprintf("%0128d", admin),
 			adminStakingKey,
@@ -405,7 +391,7 @@ func TestIDTableRegistration(t *testing.T) {
 			idTableAddress,
 			IDTableSigner,
 			adminID,
-			fmt.Sprintf("%0128d", admin),
+			getNetworkingAddress(admin),
 			adminNetworkingKey,
 			// Invalid Staking Key: Length is correct, but not a valid BLS Key
 			fmt.Sprintf("%0192d", admin),
@@ -419,7 +405,7 @@ func TestIDTableRegistration(t *testing.T) {
 			idTableAddress,
 			IDTableSigner,
 			adminID,
-			fmt.Sprintf("%0128d", admin),
+			getNetworkingAddress(admin),
 			adminNetworkingKey,
 			adminStakingKey,
 			// Invalid Staking Key POP: Length is correct, but not a valid POP
@@ -430,6 +416,36 @@ func TestIDTableRegistration(t *testing.T) {
 			true)
 	})
 
+	t.Run("Shouldn't be able to create Node struct with an invalid networking address", func(t *testing.T) {
+
+		var amountToCommit interpreter.UFix64Value = 25000000000000
+
+		invalidNetworkingAddresses := []string{
+			"",                   // empty address
+			"host.com:65536",     // incorrect port
+			"123.234.56.23:3569", // IPv4 address instead of domain name
+			"2001:0db8:85a3:0000:0000:8a2e:0370:7334:3569", // IPv6 address instead of domain name
+			"host.3:3569",  //  TLD is a number
+			"abcd.xyz.com", // missing port
+		}
+
+		for _, networkingAddress := range invalidNetworkingAddresses {
+			registerNode(t, b, env,
+				idTableAddress,
+				IDTableSigner,
+				adminID,
+				networkingAddress,
+				adminNetworkingKey,
+				adminStakingKey,
+				adminStakingPOP,
+				amountToCommit,
+				committed[adminID],
+				1,
+				true)
+		}
+
+	})
+
 	t.Run("Should be able to create a valid Node struct and not create duplicates", func(t *testing.T) {
 
 		var amountToCommit interpreter.UFix64Value = 25000000000000
@@ -438,7 +454,7 @@ func TestIDTableRegistration(t *testing.T) {
 			idTableAddress,
 			IDTableSigner,
 			adminID,
-			fmt.Sprintf("%0128d", admin),
+			getNetworkingAddress(admin),
 			adminNetworkingKey,
 			adminStakingKey,
 			adminStakingPOP,
@@ -462,7 +478,7 @@ func TestIDTableRegistration(t *testing.T) {
 		assertEqual(t, cadence.NewUInt8(1), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetNetworkingAddressScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
-		assertEqual(t, CadenceString(fmt.Sprintf("%0128d", admin)), result)
+		assertEqual(t, CadenceString(getNetworkingAddress(admin)), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetNetworkingKeyScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		assertEqual(t, CadenceString(adminNetworkingKey), result)
@@ -478,7 +494,7 @@ func TestIDTableRegistration(t *testing.T) {
 			IDTableSigner,
 			// Invalid: Admin ID is already in use
 			adminID,
-			fmt.Sprintf("%0128d", josh),
+			getNetworkingAddress(josh),
 			joshNetworkingKey,
 			joshStakingKey,
 			joshStakingPOP,
@@ -492,7 +508,7 @@ func TestIDTableRegistration(t *testing.T) {
 			joshSigner,
 			joshID,
 			// Invalid: first admin networking address is already in use
-			fmt.Sprintf("%0128d", admin),
+			getNetworkingAddress(admin),
 			joshNetworkingKey,
 			joshStakingKey,
 			joshStakingPOP,
@@ -505,7 +521,7 @@ func TestIDTableRegistration(t *testing.T) {
 			joshAddress,
 			joshSigner,
 			joshID,
-			fmt.Sprintf("%0128d", josh),
+			getNetworkingAddress(josh),
 			// Invalid: first admin networking key is already in use
 			adminNetworkingKey,
 			joshStakingKey,
@@ -519,7 +535,7 @@ func TestIDTableRegistration(t *testing.T) {
 			joshAddress,
 			joshSigner,
 			joshID,
-			fmt.Sprintf("%0128d", josh),
+			getNetworkingAddress(josh),
 			joshNetworkingKey,
 			// Invalid: first admin stake key is already in use
 			adminStakingKey,
@@ -545,10 +561,22 @@ func TestIDTableRegistration(t *testing.T) {
 			true,
 		)
 
+		// Should fail because the networking address is not a domain name
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateNetworkingAddressScript(env), idTableAddress)
+
+		tx.AddArgument(CadenceString("198.234.124.123:3569"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{idTableAddress},
+			[]crypto.Signer{IDTableSigner},
+			true,
+		)
+
 		// Should fail because the networking address is already claimed
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateNetworkingAddressScript(env), idTableAddress)
 
-		tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", admin)))
+		tx.AddArgument(CadenceString(getNetworkingAddress(admin)))
 
 		signAndSubmit(
 			t, b, tx,
@@ -560,7 +588,7 @@ func TestIDTableRegistration(t *testing.T) {
 		// Should succeed because it is a new networking address and it is the correct length
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateNetworkingAddressScript(env), idTableAddress)
 
-		tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", newAddress)))
+		tx.AddArgument(CadenceString(getNetworkingAddress(newAddress)))
 
 		signAndSubmit(
 			t, b, tx,
@@ -570,12 +598,12 @@ func TestIDTableRegistration(t *testing.T) {
 		)
 
 		result := executeScriptAndCheck(t, b, templates.GenerateGetNetworkingAddressScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
-		assertEqual(t, CadenceString(fmt.Sprintf("%0128d", newAddress)), result)
+		assertEqual(t, CadenceString(getNetworkingAddress(newAddress)), result)
 
 		// Should fail because it is the same networking address as the one that was just updated
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateNetworkingAddressScript(env), idTableAddress)
 
-		tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", newAddress)))
+		tx.AddArgument(CadenceString(getNetworkingAddress(newAddress)))
 
 		signAndSubmit(
 			t, b, tx,
@@ -587,7 +615,7 @@ func TestIDTableRegistration(t *testing.T) {
 		// Should succeed because the old networking address is claimable after updating
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateUpdateNetworkingAddressScript(env), idTableAddress)
 
-		tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", admin)))
+		tx.AddArgument(CadenceString(getNetworkingAddress(admin)))
 
 		signAndSubmit(
 			t, b, tx,
@@ -620,7 +648,7 @@ func TestIDTableRegistration(t *testing.T) {
 			joshAddress,
 			joshSigner,
 			joshID,
-			fmt.Sprintf("%0128d", josh),
+			getNetworkingAddress(josh),
 			joshNetworkingKey,
 			joshStakingKey,
 			joshStakingPOP,
@@ -638,7 +666,7 @@ func TestIDTableRegistration(t *testing.T) {
 			maxAddress,
 			maxSigner,
 			maxID,
-			fmt.Sprintf("%0128d", max),
+			getNetworkingAddress(max),
 			maxNetworkingKey,
 			maxStakingKey,
 			maxStakingPOP,
@@ -653,7 +681,7 @@ func TestIDTableRegistration(t *testing.T) {
 			accessAddress,
 			accessSigner,
 			accessID,
-			fmt.Sprintf("%0128d", access),
+			getNetworkingAddress(access),
 			accessNetworkingKey,
 			accessStakingKey,
 			accessStakingPOP,
@@ -676,7 +704,7 @@ func TestIDTableRegistration(t *testing.T) {
 			bastianAddress,
 			bastianSigner,
 			bastianID,
-			fmt.Sprintf("%0128d", bastian),
+			getNetworkingAddress(bastian),
 			bastianNetworkingKey,
 			bastianStakingKey,
 			bastianStakingPOP,
@@ -714,7 +742,7 @@ func TestIDTableRegistration(t *testing.T) {
 			bastianAddress,
 			bastianSigner,
 			bastianID,
-			fmt.Sprintf("%0128d", bastian),
+			getNetworkingAddress(bastian),
 			bastianNetworkingKey,
 			bastianStakingKey,
 			bastianStakingPOP,
@@ -814,7 +842,7 @@ func TestIDTableApprovals(t *testing.T) {
 		idTableAddress,
 		IDTableSigner,
 		adminID,
-		fmt.Sprintf("%0128d", admin),
+		getNetworkingAddress(admin),
 		adminNetworkingKey,
 		adminStakingKey,
 		adminStakingPOP,
@@ -847,7 +875,7 @@ func TestIDTableApprovals(t *testing.T) {
 		accessAddress,
 		accessSigner,
 		accessID,
-		fmt.Sprintf("%0128d", access),
+		getNetworkingAddress(access),
 		accessNetworkingKey,
 		accessStakingKey,
 		accessStakingPOP,
@@ -861,7 +889,7 @@ func TestIDTableApprovals(t *testing.T) {
 		joshAddress,
 		joshSigner,
 		joshID,
-		fmt.Sprintf("%0128d", josh),
+		getNetworkingAddress(josh),
 		joshNetworkingKey,
 		joshStakingKey,
 		joshStakingPOP,
@@ -1141,7 +1169,7 @@ func TestIDTableStaking(t *testing.T) {
 		idTableAddress,
 		IDTableSigner,
 		adminID,
-		fmt.Sprintf("%0128d", admin),
+		getNetworkingAddress(admin),
 		adminNetworkingKey,
 		adminStakingKey,
 		adminStakingPOP,
@@ -1168,7 +1196,7 @@ func TestIDTableStaking(t *testing.T) {
 		joshAddress,
 		joshSigner,
 		joshID,
-		fmt.Sprintf("%0128d", josh),
+		getNetworkingAddress(josh),
 		joshNetworkingKey,
 		joshStakingKey,
 		joshStakingPOP,
@@ -1183,7 +1211,7 @@ func TestIDTableStaking(t *testing.T) {
 		maxAddress,
 		maxSigner,
 		maxID,
-		fmt.Sprintf("%0128d", max),
+		getNetworkingAddress(max),
 		maxNetworkingKey,
 		maxStakingKey,
 		maxStakingPOP,
@@ -1198,7 +1226,7 @@ func TestIDTableStaking(t *testing.T) {
 		accessAddress,
 		accessSigner,
 		accessID,
-		fmt.Sprintf("%0128d", access),
+		getNetworkingAddress(access),
 		accessNetworkingKey,
 		accessStakingKey,
 		accessStakingPOP,
@@ -2213,7 +2241,7 @@ func TestIDTableStaking(t *testing.T) {
 
 		_ = tx.AddArgument(CadenceString(bastianID))
 		_ = tx.AddArgument(cadence.NewUInt8(3))
-		_ = tx.AddArgument(CadenceString(fmt.Sprintf("%0128d", bastian)))
+		_ = tx.AddArgument(CadenceString(getNetworkingAddress(bastian)))
 		_ = tx.AddArgument(CadenceString(bastianNetworkingKey))
 		_ = tx.AddArgument(CadenceString(bastianStakingKey))
 		_ = tx.AddArgument(CadenceString(bastianStakingPOP))
@@ -2916,7 +2944,7 @@ func TestIDTableDelegatorMinimums(t *testing.T) {
 		idTableAddress,
 		IDTableSigner,
 		adminID,
-		fmt.Sprintf("%0128d", admin),
+		getNetworkingAddress(admin),
 		adminNetworkingKey,
 		adminStakingKey,
 		adminStakingPOP,
@@ -3113,7 +3141,7 @@ func TestIDTableSlotSelection(t *testing.T) {
 		access1Address,
 		access1Signer,
 		adminID,
-		fmt.Sprintf("%0128d", admin),
+		getNetworkingAddress(admin),
 		access1NetworkingKey,
 		access1StakingKey,
 		access1StakingPOP,
@@ -3127,7 +3155,7 @@ func TestIDTableSlotSelection(t *testing.T) {
 		access2Address,
 		access2Signer,
 		joshID,
-		fmt.Sprintf("%0128d", josh),
+		getNetworkingAddress(josh),
 		access2NetworkingKey,
 		access2StakingKey,
 		access2StakingPOP,
@@ -3141,7 +3169,7 @@ func TestIDTableSlotSelection(t *testing.T) {
 		access3Address,
 		access3Signer,
 		maxID,
-		fmt.Sprintf("%0128d", max),
+		getNetworkingAddress(max),
 		access3NetworkingKey,
 		access3StakingKey,
 		access3StakingPOP,
@@ -3200,7 +3228,7 @@ func TestIDTableSlotSelection(t *testing.T) {
 		access4Address,
 		access4Signer,
 		bastianID,
-		fmt.Sprintf("%0128d", bastian),
+		getNetworkingAddress(bastian),
 		access4NetworkingKey,
 		access4StakingKey,
 		access4StakingPOP,
@@ -3428,7 +3456,7 @@ func TestIDTableRewardsWitholding(t *testing.T) {
 			nodeAddresses[i],
 			nodeSigners[i],
 			ids[i],
-			fmt.Sprintf("%0128s", ids[i]),
+			getNetworkingAddress(i),
 			nodeNetworkingKeys[i],
 			nodeStakingKeys[i],
 			nodeStakingKeyPOPs[i],
