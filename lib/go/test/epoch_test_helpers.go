@@ -500,7 +500,7 @@ func registerNodesForEpochs(
 			authorizer,
 			signers[i],
 			ids[i],
-			fmt.Sprintf("%0128d", i),
+			getNetworkingAddress(i),
 			networkingkeys[i],
 			stakingKeys[i],
 			stakingKeysPOPs[i],

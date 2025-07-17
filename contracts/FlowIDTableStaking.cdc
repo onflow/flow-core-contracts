@@ -166,7 +166,7 @@ access(all) contract FlowIDTableStaking {
                 FlowIDTableStaking.isValidNodeID(id): "The node ID must have only numbers and lowercase hex characters"
                 FlowIDTableStaking.nodes[id] == nil: "The ID cannot already exist in the record"
                 role >= UInt8(1) && role <= UInt8(5): "The role must be 1, 2, 3, 4, or 5"
-                networkingAddress.length > 0 && networkingAddress.length <= 510: "The networkingAddress must be less than 510 characters"
+                FlowIDTableStaking.isValidNetworkingAddress(address: networkingAddress): "The networkingAddress must be a valid domain name with a port (e.g., node.flow.com:3569), must not exceed 510 characters, and cannot be an IP address"
                 networkingKey.length == 128: "The networkingKey length must be exactly 64 bytes (128 hex characters)"
                 stakingKey.length == 192: "The stakingKey length must be exactly 96 bytes (192 hex characters)"
                 !FlowIDTableStaking.getNetworkingAddressClaimed(address: networkingAddress): "The networkingAddress cannot have already been claimed"
@@ -437,7 +437,7 @@ access(all) contract FlowIDTableStaking {
         access(NodeOperator) fun updateNetworkingAddress(_ newAddress: String) {
             pre {
                 FlowIDTableStaking.stakingEnabled(): "Cannot update networking address if the staking auction isn't in progress"
-                newAddress.length > 0 && newAddress.length <= 510: "The networkingAddress must be less than 510 characters"
+                FlowIDTableStaking.isValidNetworkingAddress(address: newAddress): "The networkingAddress must be a valid domain name with a port (e.g., node.flow.com:3569), must not exceed 510 characters, and cannot be an IP address"
                 !FlowIDTableStaking.getNetworkingAddressClaimed(address: newAddress): "The networkingAddress cannot have already been claimed"
             }
 
@@ -1817,6 +1817,61 @@ access(all) contract FlowIDTableStaking {
             if ((character < 48) || (character > 57 && character < 97) || (character > 102)) {
                 return false
             }
+        }
+
+        return true
+    }
+
+    /// Validates that a networking address is properly formatted
+    /// Requirements:
+    /// 1. Must not be an IP address
+    /// 2. Must contain a port number after a colon
+    /// 3. Must be a valid domain name format
+    access(all) view fun isValidNetworkingAddress(address: String): Bool {
+        // Check length
+        if  address.length == 0 || address.length > 510 {
+            return false
+        }
+
+        // Split the address into domain and port
+        let parts = address.split(separator: ":")
+        // Check if address is not an IPv6 address
+        if parts.length != 2 {
+            return false
+        }
+
+        let domain = parts[0]
+        let port = parts[1]
+
+        // Check if port is a valid number between 1 and 65535
+        let portNum = UInt16.fromString(port)
+        if portNum == nil || portNum! < 1 || portNum! > 65535 {
+            return false
+        }
+
+        // Check if domain contains only letters, digits, dot, dash, hyphen or underscore
+        let validChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.-_".utf8
+        for char in domain.utf8 {
+            if !validChars.contains(char) {
+                return false
+            }
+        }
+
+        let labels = domain.split(separator: ".")
+        let tld = labels[labels.length - 1]
+        var hasLetter = false
+        for c in tld.utf8 {
+            // TLD must not be all digits i.e. an IP address
+            let isUpper = c >= 65 && c <= 90   // 'A'-'Z'
+            let isLower = c >= 97 && c <= 122  // 'a'-'z'
+            if isUpper || isLower {
+                hasLetter = true
+                break
+            }
+        }
+
+        if !hasLetter {
+            return false
         }
 
         return true
