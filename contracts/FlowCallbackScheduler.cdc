@@ -603,6 +603,20 @@ access(all) contract FlowCallbackScheduler {
             for timestamp in pastTimestamps {
                 let callbackIDs = self.slotQueue[timestamp] ?? {}
 
+                var sortedCallbackIDs: [UInt64] = []
+                let highPriorityIDs: [UInt64] = []
+                let mediumPriorityIDs: [UInt64] = []
+
+                for id in callbackIDs.keys {
+                    if self.getPriority(id: id) == Priority.High {
+                        highPriorityIDs.append(id)
+                    }
+                    if self.getPriority(id: id) == Priority.Medium {
+                        mediumPriorityIDs.append(id)
+                    }
+                }
+                sortedCallbackIDs = highPriorityIDs.concat(mediumPriorityIDs)
+
                 // Add low priority callbacks to the list
                 // until the low available effort is used up
                 // todo: This could get pretty costly if there are a lot of low priority callbacks
@@ -615,22 +629,27 @@ access(all) contract FlowCallbackScheduler {
                         lowPriorityEffortAvailable = lowPriorityEffortAvailable - callbackEffort
                         callbackIDs[lowCallbackID] = callbackEffort
                         lowPriorityCallbacks[lowCallbackID] = nil
+                        sortedCallbackIDs.append(lowCallbackID)
                     }
                 }
-                
-                // todo: process high callbacks first, medium callbacks second,
-                // and low callbacks last.
-                for id in callbackIDs.keys {
-                    let callback = &self.callbacks[id] as &CallbackData? ?? 
-                        panic("Invalid ID: \(id) callback not found")
 
-                    callback.setStatus(newStatus: Status.Processed)
-                    emit CallbackProcessed(
-                        id: id,
-                        priority: callback.priority.rawValue,
-                        executionEffort: callback.executionEffort,
-                        callbackOwner: callback.handler.address
-                    )
+                for id in sortedCallbackIDs {
+                    // Ensure the callback still exists and is scheduled
+                    if let callback = &self.callbacks[id] as &CallbackData? {
+                        if callback.status == Status.Scheduled {
+                            callback.setStatus(newStatus: Status.Processed)
+                            emit CallbackProcessed(
+                                id: id,
+                                priority: callback.priority.rawValue,
+                                executionEffort: callback.executionEffort,
+                                callbackOwner: callback.handler.address
+                            )
+                        }
+                    } else {
+                        // This should ideally not happen if callbackIDs are correctly managed
+                        // but adding a panic for robustness in case of unexpected state
+                        panic("Invalid ID: \(id) callback not found during processing")
+                    }
                 }
             }
 
@@ -733,6 +752,14 @@ access(all) contract FlowCallbackScheduler {
                     self.slotQueue.remove(key: slot)
                     self.slotUsedEffort.remove(key: slot)
                 }
+            }
+        }
+
+        access(all) view fun getPriority(id: UInt64): Priority? {
+            if let callback = &self.callbacks[id] as &CallbackData? {
+                return callback.priority
+            } else {
+                return nil
             }
         }
     }
