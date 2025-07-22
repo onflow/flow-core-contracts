@@ -277,8 +277,8 @@ access(all) fun testCallbackExecution() {
     // move time forward to trigger execution eligibility
     // Have to subtract two to handle the automatic timestamp drift
     // so that the medium callback that got scheduled doesn't get processed
-    Test.moveTime(by: Fix64(futureDelta - 2.0))
-    if getTimestamp() < futureTime {
+    Test.moveTime(by: Fix64(futureDelta - 4.0))
+    while getTimestamp() < futureTime {
         Test.moveTime(by: Fix64(1.0))
     }
 
@@ -287,20 +287,34 @@ access(all) fun testCallbackExecution() {
 
     // Check for CallbackProcessed event after processing
     // Should have two high, one medium, and one low
+    // and they should be in order
+    let expectedEventOrder: [UInt64] = [1, 4, 2, 5]
+
     let processedEventsAfterTime = Test.eventsOfType(Type<FlowCallbackScheduler.CallbackProcessed>())
     Test.assertEqual(4, processedEventsAfterTime.length)
     
+    var i = 0
     for event in processedEventsAfterTime {
         let processedEvent = event as! FlowCallbackScheduler.CallbackProcessed
-        // medium callback that got moved should not have been processed
-        Test.assert(processedEvent.id != UInt64(3))
+        Test.assert(
+            processedEvent.id != UInt64(3),
+            message: "ID 3 Should not have been processed"
+        )
 
-        // verify that the other transactions got processed
+        // Cannot verify the order in tests at the moment
+        // Test.assert(
+        //     expectedEventOrder[i] == processedEvent.id,
+        //     message: "Events were not processed in priority order. Expected: \(expectedEventOrder[i]), got: \(processedEvent.id)"
+        // )
+
+        // verify that the transactions got processed
         var status = getStatus(id: processedEvent.id)
         Test.assertEqual(statusProcessed, status)
 
         // Simulate FVM execute - should execute the callback
         executeCallback(id: processedEvent.id)
+
+        i = i + 1
     }
 
     // Check for CallbackExecuted events
@@ -337,10 +351,7 @@ access(all) fun testCallbackExecution() {
 
 /*
 TODO test cases:
-- test schedule and then cancel and make sure it is canceled and we can get the status after being canceled
-- test filling all slot room with high and medium priority and make sure the ones that are scheduled are exceuted
 - test filling all slot room with high and medium and see that low priority only gets executed after high and medium are
-- test filling all slot room with high and medimum and then add more medium priority which should be executed in next available slot
  */
 
 
@@ -587,16 +598,17 @@ access(all) fun cancelCallback(id: UInt64, failWithErr: String?) {
     }
 }
 
-access(all) fun processCallbacks() {
+access(all) fun processCallbacks(): Test.TransactionResult {
     let processCallbackCode = Test.readFile("../transactions/callbackScheduler/admin/process_callback.cdc")
-    var processTx = Test.Transaction(
+    let processTx = Test.Transaction(
         code: processCallbackCode,
         authorizers: [],
         signers: [serviceAccount],
         arguments: []
     )
-    
-    Test.expect(Test.executeTransaction(processTx), Test.beSucceeded())
+    let processResult = Test.executeTransaction(processTx)
+    Test.expect(processResult, Test.beSucceeded())
+    return processResult
 }
 
 access(all) fun executeCallback(id: UInt64) {
