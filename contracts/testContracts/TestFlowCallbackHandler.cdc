@@ -1,8 +1,9 @@
 import "FlowCallbackScheduler"
+import "FlowToken"
 
 // TestFlowCallbackHandler is a simplified test contract for testing CallbackScheduler
 access(all) contract TestFlowCallbackHandler {
-    access(all) var scheduledCallbacks: [FlowCallbackScheduler.ScheduledCallback]
+    access(all) var scheduledCallbacks: {UInt64: FlowCallbackScheduler.ScheduledCallback}
     access(all) var executedCallbacks: [UInt64]
 
     access(all) let HandlerStoragePath: StoragePath
@@ -21,7 +22,14 @@ access(all) contract TestFlowCallbackHandler {
     }
 
     access(all) fun addScheduledCallback(callback: FlowCallbackScheduler.ScheduledCallback) {
-        self.scheduledCallbacks.append(callback)
+        self.scheduledCallbacks[callback.id] = callback
+    }
+
+    access(all) fun cancelCallback(id: UInt64): @FlowToken.Vault {
+        let callback = self.scheduledCallbacks[id]
+            ?? panic("Invalid ID: \(id) callback not found")
+        self.scheduledCallbacks[id] = nil
+        return <-FlowCallbackScheduler.cancel(callback: callback)
     }
 
     access(all) fun getExecutedCallbacks(): [UInt64] {
@@ -29,7 +37,7 @@ access(all) contract TestFlowCallbackHandler {
     }
 
     access(all) init() {
-        self.scheduledCallbacks = []
+        self.scheduledCallbacks = {}
         self.executedCallbacks = []
 
         self.HandlerStoragePath = /storage/testCallbackHandler

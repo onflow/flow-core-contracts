@@ -79,10 +79,6 @@ access(all) contract FlowCallbackScheduler {
             return self.scheduler.borrow()!.getStatus(id: self.id)
         }
 
-        access(all) fun cancel(): @FlowToken.Vault {
-            return <-self.scheduler.borrow()!.cancel(id: self.id)
-        }
-
         access(contract) init(
             scheduler: Capability<auth(CancelCallback, ReadCallbackStatus) &SharedScheduler>,
             id: UInt64, 
@@ -163,10 +159,6 @@ access(all) contract FlowCallbackScheduler {
         /// This action is only allowed for canceled callbacks, otherwise it panics.
         /// It deposits any leftover fees to the FlowFees vault to be used to pay node operator rewards
         access(all) fun withdrawFees(multiplier: UFix64): @FlowToken.Vault {
-            pre {
-                self.status == Status.Canceled: "Invalid status: Can only withdraw fees for canceled callbacks"
-            }
-
             let amount = self.fees.balance * multiplier
             let feesToReturn <- self.fees.withdraw(amount: amount) as! @FlowToken.Vault
             FlowFees.deposit(from: <-self.fees.withdraw(amount: self.fees.balance))
@@ -422,8 +414,6 @@ access(all) contract FlowCallbackScheduler {
 
         /// get status of the scheduled callback, if the callback is not found nil is returned.
         access(ReadCallbackStatus) view fun getStatus(id: UInt64): Status? {
-            // todo optimize this by not storing executed ids, only store cancelled ones and assume other are executed
-            // since ids are in order you can also know which ones are valid - check latest id
 
             if let callback = &self.callbacks[id] as &CallbackData? {
                 return callback.status
@@ -432,6 +422,8 @@ access(all) contract FlowCallbackScheduler {
             // if the callback is not found in the callbacks map, we check the callback status map for historic status
             if let historic = self.historicStatuses[id] {
                 return historic.status
+            } else if id < self.nextID {
+                return Status.Executed
             }
 
             return nil
@@ -601,6 +593,20 @@ access(all) contract FlowCallbackScheduler {
             for timestamp in pastTimestamps {
                 let callbackIDs = self.slotQueue[timestamp] ?? {}
 
+                var sortedCallbackIDs: [UInt64] = []
+                let highPriorityIDs: [UInt64] = []
+                let mediumPriorityIDs: [UInt64] = []
+
+                for id in callbackIDs.keys {
+                    if self.getPriority(id: id) == Priority.High {
+                        highPriorityIDs.append(id)
+                    }
+                    if self.getPriority(id: id) == Priority.Medium {
+                        mediumPriorityIDs.append(id)
+                    }
+                }
+                sortedCallbackIDs = highPriorityIDs.concat(mediumPriorityIDs)
+
                 // Add low priority callbacks to the list
                 // until the low available effort is used up
                 // todo: This could get pretty costly if there are a lot of low priority callbacks
@@ -613,21 +619,27 @@ access(all) contract FlowCallbackScheduler {
                         lowPriorityEffortAvailable = lowPriorityEffortAvailable - callbackEffort
                         callbackIDs[lowCallbackID] = callbackEffort
                         lowPriorityCallbacks[lowCallbackID] = nil
+                        sortedCallbackIDs.append(lowCallbackID)
                     }
                 }
-                
-                // Process high and medium priority callbacks first
-                for id in callbackIDs.keys {
-                    let callback = &self.callbacks[id] as &CallbackData? ?? 
-                        panic("Invalid ID: \(id) callback not found")
 
-                    callback.setStatus(newStatus: Status.Processed)
-                    emit CallbackProcessed(
-                        id: id,
-                        priority: callback.priority.rawValue,
-                        executionEffort: callback.executionEffort,
-                        callbackOwner: callback.handler.address
-                    )
+                for id in sortedCallbackIDs {
+                    // Ensure the callback still exists and is scheduled
+                    if let callback = &self.callbacks[id] as &CallbackData? {
+                        if callback.status == Status.Scheduled {
+                            callback.setStatus(newStatus: Status.Processed)
+                            emit CallbackProcessed(
+                                id: id,
+                                priority: callback.priority.rawValue,
+                                executionEffort: callback.executionEffort,
+                                callbackOwner: callback.handler.address
+                            )
+                        }
+                    } else {
+                        // This should ideally not happen if callbackIDs are correctly managed
+                        // but adding a panic for robustness in case of unexpected state
+                        panic("Invalid ID: \(id) callback not found during processing")
+                    }
                 }
             }
 
@@ -646,10 +658,27 @@ access(all) contract FlowCallbackScheduler {
         access(CancelCallback) fun cancel(id: UInt64): @FlowToken.Vault {
             let callback = &self.callbacks[id] as &CallbackData? ?? 
                 panic("Invalid ID: \(id) callback not found")
+
+            // Remove this callback id from its slot
+            let slotQueue = self.slotQueue[callback.scheduledTimestamp]!
+            slotQueue[id] = nil
+            self.slotQueue[callback.scheduledTimestamp] = slotQueue
+            
+            // Subtract the execution effort for this callback from the slot's priority
+            // Low priority effots don't count toward a slot's execution effort
+            // so we don't need to subtract anything for them
+            if callback.priority != Priority.Low {
+                
+                let slotEfforts = self.slotUsedEffort[callback.scheduledTimestamp]!
+                slotEfforts[callback.priority] = slotEfforts[callback.priority]! - callback.executionEffort
+                self.slotUsedEffort[callback.scheduledTimestamp] = slotEfforts
+            }
+
+            let refundedFees <- callback.withdrawFees(multiplier: self.refundMultiplier)
             
             self.finalizeCallback(callback: callback, status: Status.Canceled)
             
-            return <- callback.withdrawFees(multiplier: self.refundMultiplier)
+            return <-refundedFees
         }
 
         /// execute callback is a system function that is called by FVM to execute a callback by ID.
@@ -669,6 +698,8 @@ access(all) contract FlowCallbackScheduler {
         /// This function will always be called by the fvm for a given ID
         /// in the same block after it is processed so it won't get processed twice
         access(all) fun finalizeCallback(callback: &CallbackData, status: Status) {
+            callback.setStatus(newStatus: status)
+            
             switch status {
                 case Status.Executed:
                     emit CallbackExecuted(
@@ -682,15 +713,16 @@ access(all) contract FlowCallbackScheduler {
                         priority: callback.priority.rawValue,
                         callbackOwner: callback.handler.address
                     )
+
+                    // keep historic Canceled status for future queries after garbage collection
+                    // We don't keep executed statuses because we can just assume
+                    // they every ID that is less than the current ID counter
+                    // that is not Canceled, Scheduled, or Processed is executed
+                    let historic = HistoricStatus(timestamp: callback.scheduledTimestamp, status: status)
+                    self.historicStatuses[callback.id] = historic
                 default:
                     panic("Invalid status: not final status")
             }
-
-            callback.setStatus(newStatus: status)
-
-            // keep historic status for future queries after garbage collection
-            let historic = HistoricStatus(timestamp: callback.scheduledTimestamp, status: status)
-            self.historicStatuses[callback.id] = historic
 
             let callbackID = callback.id
             let slot = callback.scheduledTimestamp
@@ -710,6 +742,14 @@ access(all) contract FlowCallbackScheduler {
                     self.slotQueue.remove(key: slot)
                     self.slotUsedEffort.remove(key: slot)
                 }
+            }
+        }
+
+        access(all) view fun getPriority(id: UInt64): Priority? {
+            if let callback = &self.callbacks[id] as &CallbackData? {
+                return callback.priority
+            } else {
+                return nil
             }
         }
     }
@@ -757,6 +797,10 @@ access(all) contract FlowCallbackScheduler {
                 priority: priority, 
                 executionEffort: executionEffort,
             )
+    }
+
+    access(all) fun cancel(callback: ScheduledCallback): @FlowToken.Vault {
+        return <-self.sharedScheduler.borrow()!.cancel(id: callback.id)
     }
 
     access(all) view fun getStatus(id: UInt64): Status? {
