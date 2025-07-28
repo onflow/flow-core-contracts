@@ -247,11 +247,21 @@ access(all) contract FlowCallbackScheduler {
 
         access(all) init() {
             self.nextID = 1
+            self.lowPriorityScheduledTimestamp = 0.0
+            
             self.callbacks <- {}
             self.historicStatuses = {}
-            self.slotQueue = {}
-            self.slotUsedEffort = {}
-            self.lowPriorityScheduledTimestamp = 0.0
+            self.slotUsedEffort = {
+                self.lowPriorityScheduledTimestamp: {
+                    Priority.High: 0,
+                    Priority.Medium: 0,
+                    Priority.Low: 0
+                }
+            }
+            self.slotQueue = {
+                self.lowPriorityScheduledTimestamp: {}
+            }
+            
             
             /// todo: check if I need to create setters for timeslots
             
