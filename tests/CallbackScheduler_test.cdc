@@ -63,6 +63,10 @@ access(all) fun testInit() {
 
 access(all) fun testCallbackScheduling() {
 
+    // Try to process callbacks
+    // Nothing will process because nothing is scheduled, but should not fail
+    processCallbacks()
+
     let currentTime = getCurrentBlock().timestamp
     futureTime = currentTime + futureDelta
 
