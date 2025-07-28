@@ -433,6 +433,11 @@ access(all) contract FlowCallbackScheduler {
             if let historic = self.historicStatuses[id] {
                 return historic.status
             } else if id < self.nextID {
+                // historicStatuses only stores canceled statuses
+                // because the only other possible status for finalized callbacks is Executed
+                // Since the ID is a monotonically increasing number,
+                // we know that any ID that is less than the next ID and not in the 
+                // active callbacks map must have been executed
                 return Status.Executed
             }
 
@@ -583,7 +588,8 @@ access(all) contract FlowCallbackScheduler {
         access(all) fun process() {
 
             let lowPriorityTimestamp = self.lowPriorityScheduledTimestamp
-            let lowPriorityCallbacks = self.slotQueue[lowPriorityTimestamp]!
+            let lowPriorityCallbacks = self.slotQueue[lowPriorityTimestamp]
+                ?? {}
 
             let currentTimestamp = getCurrentBlock().timestamp
             
@@ -678,7 +684,6 @@ access(all) contract FlowCallbackScheduler {
             // Low priority effots don't count toward a slot's execution effort
             // so we don't need to subtract anything for them
             if callback.priority != Priority.Low {
-                
                 let slotEfforts = self.slotUsedEffort[callback.scheduledTimestamp]!
                 slotEfforts[callback.priority] = slotEfforts[callback.priority]! - callback.executionEffort
                 self.slotUsedEffort[callback.scheduledTimestamp] = slotEfforts
