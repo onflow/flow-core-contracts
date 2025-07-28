@@ -50,6 +50,12 @@ fun setup() {
  Callback handler integration tests
  --------------------------------------------------------------------------------- */
 
+
+access(all) fun testInit() {
+    processCallbacks()
+}
+
+
 access(all) fun testCallbackScheduling() {
 
     let currentTime = getCurrentBlock().timestamp
@@ -498,6 +504,7 @@ access(all) fun processCallbacks() {
         signers: [serviceAccount],
         arguments: []
     )
+    
     Test.expect(Test.executeTransaction(processTx), Test.beSucceeded())
 }
 
