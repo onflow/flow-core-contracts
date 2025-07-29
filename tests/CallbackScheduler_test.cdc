@@ -27,11 +27,16 @@ access(all) let mediumPriorityMaxEffort: UInt64 = 15000
 access(all) let highPriorityMaxEffort: UInt64 = 30000
 
 access(all) let testData = "test data"
+access(all) let failTestData = "fail"
+
+access(all) let callbackToFail = 2 as UInt64
 
 access(all) let futureDelta = 100.0
 access(all) var futureTime = 0.0
 
 access(all) var feeAmount = 10.0
+
+access(all) var startingHeight: UInt64 = 0
 
 access(all)
 fun setup() {
@@ -57,15 +62,28 @@ fun setup() {
 
 
 access(all) fun testInit() {
-    processCallbacks()
-}
-
-
-access(all) fun testCallbackScheduling() {
+    startingHeight = getCurrentBlock().height
 
     // Try to process callbacks
     // Nothing will process because nothing is scheduled, but should not fail
     processCallbacks()
+
+    // Try to execute a callback, should fail
+    executeCallback(id: UInt64(1), failWithErr: "Invalid ID: Callback with id 1 not found")
+
+    // verify that the available efforts are all their defaults
+    var effort = getSlotAvailableEffort(timestamp: futureTime, priority: highPriority)
+    Test.assertEqual(30000 as UInt64, effort)
+
+    effort = getSlotAvailableEffort(timestamp: futureTime, priority: mediumPriority)
+    Test.assertEqual(15000 as UInt64, effort)
+
+    effort = getSlotAvailableEffort(timestamp: futureTime, priority: lowPriority)
+    Test.assertEqual(5000 as UInt64, effort)
+}
+
+
+access(all) fun testCallbackScheduling() {
 
     let currentTime = getCurrentBlock().timestamp
     futureTime = currentTime + futureDelta
@@ -100,7 +118,7 @@ access(all) fun testCallbackScheduling() {
     Test.assert(scheduledEvent.executionEffort == 1000, message: "incorrect execution effort")
     Test.assertEqual(feeAmount, scheduledEvent.fees!)
     
-    let callbackID = scheduledEvent.id
+    let callbackID = scheduledEvent.id as UInt64
 
     // Get scheduled callbacks from test callback handler
     let scheduledCallbacks = TestFlowCallbackHandler.scheduledCallbacks.keys
@@ -113,13 +131,19 @@ access(all) fun testCallbackScheduling() {
     var status = getStatus(id: callbackID)
     Test.assertEqual(statusScheduled, status)
 
+    // Try to execute the callback, should fail because it isn't processed
+    executeCallback(
+        id: callbackID,
+        failWithErr: "Invalid ID: Cannot execute callback with id \(callbackID) because it has not been processed yet"
+    )
+
     // Schedule another callback, medium this time
     scheduleCallback(
         timestamp: futureTime,
         fee: feeAmount,
         effort: mediumEffort,
         priority: mediumPriority,
-        data: testData,
+        data: "fail",
         failWithErr: nil
     )
 
@@ -279,7 +303,7 @@ access(all) fun testCallbackExecution() {
     Test.assert(processedEventsBeforeTime.length == 0, message: "CallbackProcessed before time")
 
     // move time forward to trigger execution eligibility
-    // Have to subtract two to handle the automatic timestamp drift
+    // Have to subtract four to handle the automatic timestamp drift
     // so that the medium callback that got scheduled doesn't get processed
     Test.moveTime(by: Fix64(futureDelta - 4.0))
     while getTimestamp() < futureTime {
@@ -292,7 +316,8 @@ access(all) fun testCallbackExecution() {
     // Check for CallbackProcessed event after processing
     // Should have two high, one medium, and one low
     // and they should be in order
-    let expectedEventOrder: [UInt64] = [1, 4, 2, 5]
+    // Cannot verify the order of events in tests at the moment
+    // let expectedEventOrder: [UInt64] = [1, 4, 2, 5]
 
     let processedEventsAfterTime = Test.eventsOfType(Type<FlowCallbackScheduler.CallbackProcessed>())
     Test.assertEqual(4, processedEventsAfterTime.length)
@@ -316,14 +341,19 @@ access(all) fun testCallbackExecution() {
         Test.assertEqual(statusProcessed, status)
 
         // Simulate FVM execute - should execute the callback
-        executeCallback(id: processedEvent.id)
+        if processedEvent.id == callbackToFail {
+            // ID 2 should fail, so need to verify that
+            executeCallback(id: processedEvent.id, failWithErr: "Callback \(callbackToFail) failed")
+        } else {
+            executeCallback(id: processedEvent.id, failWithErr: nil)
+        }
 
         i = i + 1
     }
 
     // Check for CallbackExecuted events
     let executedEvents = Test.eventsOfType(Type<FlowCallbackScheduler.CallbackExecuted>())
-    Test.assert(executedEvents.length == 4, message: "CallbackExecuted event wrong count")
+    Test.assert(executedEvents.length == 3, message: "CallbackExecuted event wrong count")
     
     for event in executedEvents {
         let executedEvent = event as! FlowCallbackScheduler.CallbackExecuted
@@ -338,18 +368,28 @@ access(all) fun testCallbackExecution() {
         "./scripts/get_executed_callbacks.cdc",
         []
     ).returnValue! as! [UInt64]
-    Test.assert(callbackIDs.length == 4, message: "CallbackExecuted ids is the wrong count")
+    Test.assert(callbackIDs.length == 3, message: "CallbackExecuted ids is the wrong count")
+
+
+    // Verify failed callback status is still Processed
+    var status = getStatus(id: callbackToFail)
+    Test.assertEqual(statusProcessed, status)
 
     // Move time forward by 5 so that
     // the other medium and low priority callbacks get processed
     Test.moveTime(by: Fix64(5.0))
 
     // Process the two remaining callbacks
+    // this will also mark the callback that failed as executed
     processCallbacks()
 
+    // Verify callback status is now Executed
+    status = getStatus(id: callbackToFail)
+    Test.assertEqual(statusExecuted, status)
+
     // Execute the two remaining callbacks (medium and low)
-    executeCallback(id: UInt64(3))
-    executeCallback(id: UInt64(6))
+    executeCallback(id: UInt64(3), failWithErr: nil)
+    executeCallback(id: UInt64(6), failWithErr: nil)
 }
 
 
@@ -463,6 +503,16 @@ access(all) fun testEstimate() {
             expectedTimestamp: nil,
             expectedError: "Invalid execution effort: 20000 is greater than the priority's available effort of 15000"
         ),
+        EstimateTestCase(
+            name: "Excessive low priority effort returns error",
+            timestamp: futureTime + 10.0,
+            priority: FlowCallbackScheduler.Priority.Low,
+            executionEffort: 5001,
+            data: nil,
+            expectedFee: nil,
+            expectedTimestamp: nil,
+            expectedError: "Invalid execution effort: 5001 is greater than the priority's available effort of 5000"
+        ),
 
         // Valid cases - should return EstimatedCallback with no error
         EstimateTestCase(
@@ -513,6 +563,16 @@ access(all) fun testEstimate() {
             data: {"key": "value"},
             expectedFee: 0.00005,
             expectedTimestamp: futureTime + 11.0,
+            expectedError: nil
+        ),
+        EstimateTestCase(
+            name: "Array data",
+            timestamp: futureTime + 12.0,
+            priority: FlowCallbackScheduler.Priority.Medium,
+            executionEffort: 1000,
+            data: [1, 2, 3, 4, 5, 6],
+            expectedFee: 0.00005,
+            expectedTimestamp: futureTime + 12.0,
             expectedError: nil
         )
     ]
@@ -615,15 +675,44 @@ access(all) fun processCallbacks(): Test.TransactionResult {
     return processResult
 }
 
-access(all) fun executeCallback(id: UInt64) {
+access(all) fun executeCallback(id: UInt64, failWithErr: String?) {
     let executeCallbackCode = Test.readFile("../transactions/callbackScheduler/admin/execute_callback.cdc")
-        let executeTx = Test.Transaction(
-            code: executeCallbackCode,
-            authorizers: [],
-            signers: [serviceAccount],
-            arguments: [id]
+    let executeTx = Test.Transaction(
+        code: executeCallbackCode,
+        authorizers: [],
+        signers: [serviceAccount],
+        arguments: [id]
+    )
+    var result = Test.executeTransaction(executeTx)
+    if let error = failWithErr {
+        Test.expect(result, Test.beFailed())
+        Test.assertError(
+            result,
+            errorMessage: error
         )
-    Test.expect(Test.executeTransaction(executeTx), Test.beSucceeded())
+    } else {
+        Test.expect(result, Test.beSucceeded())
+    }
+}
+
+access(all) fun markFailedCallback(id: UInt64, failWithErr: String?) {
+    let markFailedCallbackCode = Test.readFile("../transactions/callbackScheduler/admin/mark_failed_callback.cdc")
+    let tx = Test.Transaction(
+        code: markFailedCallbackCode,
+        authorizers: [],
+        signers: [serviceAccount],
+        arguments: [id]
+    )
+    var result = Test.executeTransaction(tx)
+    if let error = failWithErr {
+        Test.expect(result, Test.beFailed())
+        Test.assertError(
+            result,
+            errorMessage: error
+        )
+    } else {
+        Test.expect(result, Test.beSucceeded())
+    }
 }
 
 access(all) fun getStatus(id: UInt64): UInt8 {
