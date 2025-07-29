@@ -695,26 +695,6 @@ access(all) fun executeCallback(id: UInt64, failWithErr: String?) {
     }
 }
 
-access(all) fun markFailedCallback(id: UInt64, failWithErr: String?) {
-    let markFailedCallbackCode = Test.readFile("../transactions/callbackScheduler/admin/mark_failed_callback.cdc")
-    let tx = Test.Transaction(
-        code: markFailedCallbackCode,
-        authorizers: [],
-        signers: [serviceAccount],
-        arguments: [id]
-    )
-    var result = Test.executeTransaction(tx)
-    if let error = failWithErr {
-        Test.expect(result, Test.beFailed())
-        Test.assertError(
-            result,
-            errorMessage: error
-        )
-    } else {
-        Test.expect(result, Test.beSucceeded())
-    }
-}
-
 access(all) fun getStatus(id: UInt64): UInt8 {
     var status = executeScript(
         "../transactions/callbackScheduler/scripts/get_status.cdc",
