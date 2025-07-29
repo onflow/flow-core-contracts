@@ -1,5 +1,6 @@
 import "FlowCallbackScheduler"
 import "FlowToken"
+import "FungibleToken"
 
 // TestFlowCallbackHandler is a simplified test contract for testing CallbackScheduler
 access(all) contract TestFlowCallbackHandler {
@@ -13,7 +14,29 @@ access(all) contract TestFlowCallbackHandler {
         
         access(FlowCallbackScheduler.ExecuteCallback) 
         fun executeCallback(id: UInt64, data: AnyStruct?) {
-            TestFlowCallbackHandler.executedCallbacks.append(id)
+            // Most callbacks will have string data
+            if let dataString = data as? String {
+                // intentional failure test case
+                if dataString == "fail" {
+                    panic("Callback \(id) failed")
+                } else {
+                    // All other regular test cases should succeed
+                    TestFlowCallbackHandler.executedCallbacks.append(id)
+                }
+            } else if let dataCap = data as? Capability<auth(FlowCallbackScheduler.ExecuteCallback) &{FlowCallbackScheduler.CallbackHandler}> {
+                // Testing scheduling a callback with a callback
+                let scheduledCallback = FlowCallbackScheduler.schedule(
+                    callback: dataCap,
+                    data: "test data",
+                    timestamp: getCurrentBlock().timestamp + 10.0,
+                    priority: FlowCallbackScheduler.Priority.High,
+                    executionEffort: UInt64(1000),
+                    fees: <-TestFlowCallbackHandler.getFeeFromVault(amount: 1.0)
+                )
+                TestFlowCallbackHandler.addScheduledCallback(callback: scheduledCallback)
+            } else {
+                panic("TestFlowCallbackHandler.executeCallback: Invalid data type for callback with id \(id). Type is \(data.getType().identifier)")
+            }
         }
     }
 
@@ -34,6 +57,14 @@ access(all) contract TestFlowCallbackHandler {
 
     access(all) fun getExecutedCallbacks(): [UInt64] {
         return self.executedCallbacks
+    }
+
+    access(contract) fun getFeeFromVault(amount: UFix64): @FlowToken.Vault {
+        // borrow a reference to the vault that will be used for fees
+        let vault = self.account.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault)
+            ?? panic("Could not borrow FlowToken vault")
+        
+        return <- vault.withdraw(amount: amount) as! @FlowToken.Vault
     }
 
     access(all) init() {
