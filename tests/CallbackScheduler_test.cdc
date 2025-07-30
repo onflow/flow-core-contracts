@@ -82,6 +82,26 @@ access(all) fun testInit() {
     Test.assertEqual(5000 as UInt64, effort)
 }
 
+access(all) fun testGetSizeOfData() {
+
+    // Test different values for data to verify that it reports the correct sizes
+    var size = getSizeOfData(data: 1)
+    Test.assertEqual(0.00002300 as UFix64, size)
+
+    size = getSizeOfData(data: 100000000)
+    Test.assertEqual(0.00002600 as UFix64, size)
+
+    size = getSizeOfData(data: testData)
+    Test.assertEqual(0.00003000 as UFix64, size)
+
+    let largeArray: [Int] = []
+    while largeArray.length < 10000 {
+        largeArray.append(1)
+    }
+
+    size = getSizeOfData(data: largeArray)
+    Test.assertEqual(0.05286100 as UFix64, size)
+}
 
 access(all) fun testCallbackScheduling() {
 
@@ -693,6 +713,14 @@ access(all) fun executeCallback(id: UInt64, failWithErr: String?) {
     } else {
         Test.expect(result, Test.beSucceeded())
     }
+}
+
+access(all) fun getSizeOfData(data: AnyStruct): UFix64 {
+    var size = executeScript(
+        "./scripts/get_data_size.cdc",
+        [data]
+    ).returnValue! as! UFix64
+    return size
 }
 
 access(all) fun getStatus(id: UInt64): UInt8 {

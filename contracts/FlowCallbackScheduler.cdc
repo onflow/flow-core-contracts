@@ -1,5 +1,6 @@
 import "FlowToken"
 import "FlowFees"
+import "FlowStorageFees"
 
 /// FlowCallbackScheduler 
 access(all) contract FlowCallbackScheduler {
@@ -370,11 +371,17 @@ access(all) contract FlowCallbackScheduler {
         }
 
         /// calculate fee by converting execution effort to a fee in Flow tokens.
-        access(all) view fun calculateFee(executionEffort: UInt64, priority: Priority): UFix64 {
+        access(all) fun calculateFee(executionEffort: UInt64, priority: Priority, data: AnyStruct?): UFix64 {
             // Use the official FlowFees calculation
             let baseFee = FlowFees.computeFees(inclusionEffort: 1.0, executionEffort: UFix64(executionEffort))
             
-            return baseFee * self.priorityFeeMultipliers[priority]!
+            // Scale the execution fee by the multiplier for the priority
+            let scaledExecutionFee = baseFee * self.priorityFeeMultipliers[priority]!
+
+            // Calculate the FLOW required to pay for storage of the callback data
+            let storageFee = FlowStorageFees.storageCapacityToFlow(FlowCallbackScheduler.getSizeofData(data))
+            
+            return scaledExecutionFee + storageFee
         }
 
         /// getNextIDAndIncrement returns the next ID and increments the ID counter
@@ -491,7 +498,7 @@ access(all) contract FlowCallbackScheduler {
         ///        
         /// This helps developers ensure sufficient funding and preview the expected scheduling window, 
         /// reducing the risk of unnecessary cancellations.
-        access(contract) view fun estimate(
+        access(contract) fun estimate(
             data: AnyStruct?,
             timestamp: UFix64,
             priority: Priority,
@@ -510,7 +517,7 @@ access(all) contract FlowCallbackScheduler {
                 return EstimatedCallback(flowFee: nil, timestamp: nil, error: "Invalid execution effort: \(executionEffort) is less than the minimum execution effort of \(self.minimumExecutionEffort)")
             }
 
-            let fee = self.calculateFee(executionEffort: executionEffort, priority: priority)
+            let fee = self.calculateFee(executionEffort: executionEffort, priority: priority, data: data)
 
             let scheduledTimestamp = self.calculateScheduledTimestamp(
                 timestamp: timestamp, 
@@ -881,7 +888,7 @@ access(all) contract FlowCallbackScheduler {
         )
     }
 
-    access(all) view fun estimate(
+    access(all) fun estimate(
         data: AnyStruct?,
         timestamp: UFix64,
         priority: Priority,
@@ -910,6 +917,22 @@ access(all) contract FlowCallbackScheduler {
 
     access(all) fun getSchedulerConfigMetadata(): SchedulerConfig {
         return self.sharedScheduler.borrow()!.getConfigMetadata()
+    }
+    
+    /// getSizeofData takes a callback's data
+    /// argument and stores it in the contract account's storage, 
+    /// checking storage used before and after to see how large the data is in MB
+    /// If data is nil, the function returns 0.0
+    access(all) fun getSizeofData(_ data: AnyStruct?): UFix64 {
+        if data == nil {
+            return 0.0
+        }
+        let storagePath = /storage/dataTemp
+        let storageUsedBefore = self.account.storage.used
+        self.account.storage.save(data!, to: storagePath)
+        let storageUsedAfter = self.account.storage.used
+        self.account.storage.load<AnyStruct>(from: storagePath)
+        return FlowStorageFees.convertUInt64StorageBytesToUFix64Megabytes(storageUsedAfter - storageUsedBefore)
     }
 
     /// todo protect access to the following functions to only FVM
