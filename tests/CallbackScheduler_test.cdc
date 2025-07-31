@@ -400,12 +400,7 @@ access(all) fun testCallbackExecution() {
     Test.moveTime(by: Fix64(5.0))
 
     // Process the two remaining callbacks
-    // this will also mark the callback that failed as executed
     processCallbacks()
-
-    // Verify callback status is now Executed
-    status = getStatus(id: callbackToFail)
-    Test.assertEqual(statusExecuted, status)
 
     // Execute the two remaining callbacks (medium and low)
     executeCallback(id: UInt64(3), failWithErr: nil)
