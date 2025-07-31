@@ -700,13 +700,6 @@ access(all) contract FlowCallbackScheduler {
                 for id in callbackIDs.keys {
                     let callback = self.borrowCallback(id: id)!
 
-                    // If any callbacks failed to execute properly because of an error,
-                    // mark them as executed
-                    if callback.status == Status.Processed {
-                        self.finalizeCallback(callback: callback, status: Status.Executed)
-                        continue
-                    }
-
                     if callback.priority == Priority.High {
                         highPriorityIDs.append(id)
                     } else if callback.priority == Priority.Medium {
