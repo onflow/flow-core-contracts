@@ -932,7 +932,11 @@ access(all) contract FlowCallbackScheduler {
         self.account.storage.save(data!, to: storagePath)
         let storageUsedAfter = self.account.storage.used
         self.account.storage.load<AnyStruct>(from: storagePath)
-        return FlowStorageFees.convertUInt64StorageBytesToUFix64Megabytes(storageUsedAfter - storageUsedBefore)
+        if storageUsedBefore >= storageUsedAfter { 
+            return 0.0
+        } else {
+            return FlowStorageFees.convertUInt64StorageBytesToUFix64Megabytes(storageUsedAfter - storageUsedBefore)
+        }
     }
 
     /// todo protect access to the following functions to only FVM
