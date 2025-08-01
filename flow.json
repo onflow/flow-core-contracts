@@ -9,19 +9,19 @@
 				"testnet": "9a0766d93b6608b7"
 			}
 		},
-		"FlowCallbackScheduler": {
-			"source": "./contracts/FlowCallbackScheduler.cdc",
-			"aliases": {
-				"emulator": "f8d6e0586b0a20c7",
-				"testing": "0000000000000007"
-			}
-		},
 		"Crypto": {
 			"source": "./contracts/Crypto.cdc",
 			"aliases": {
 				"mainnet": "e467b9dd11fa00df",
 				"testing": "0000000000000007",
 				"testnet": "8c5303eaa26202d6"
+			}
+		},
+		"FlowCallbackScheduler": {
+			"source": "./contracts/FlowCallbackScheduler.cdc",
+			"aliases": {
+				"emulator": "f8d6e0586b0a20c7",
+				"testing": "0000000000000007"
 			}
 		},
 		"FlowClusterQC": {
@@ -138,12 +138,6 @@
 				"testnet": "95e019a17d0e23d7"
 			}
 		},
-		"MinimalTestContract": {
-			"source": "./contracts/testContracts/MinimalTestContract.cdc",
-			"aliases": {
-				"testing": "0000000000000007"
-			}
-		},
 		"NodeVersionBeacon": {
 			"source": "./contracts/NodeVersionBeacon.cdc",
 			"aliases": {
@@ -174,6 +168,7 @@
 		"TestFlowCallbackHandler": {
 			"source": "./contracts/testContracts/TestFlowCallbackHandler.cdc",
 			"aliases": {
+				"emulator": "f8d6e0586b0a20c7",
 				"testing": "0000000000000007"
 			}
 		}
@@ -188,13 +183,6 @@
 		"emulator-account": {
 			"address": "f8d6e0586b0a20c7",
 			"key": "7677f7c9410f8773b482737c778b5d7c6acfdbbae718d61e4727a07667f66004"
-		}
-	},
-	"deployments": {
-		"emulator": {
-			"emulator-account": [
-				"MinimalTestContract"
-			]
 		}
 	}
 }
