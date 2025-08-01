@@ -237,8 +237,8 @@ access(all) contract FlowCallbackScheduler {
             pre {
                 refundMultiplier >= 0.0 && refundMultiplier <= 1.0:
                     "Invalid refund multiplier: The multiplier must be between 0.0 and 1.0 but got \(refundMultiplier)"
-                historicStatusLimit >= 1.0:
-                    "Invalid historic status limit: Limit must be greater than 1.0 but got \(historicStatusLimit)"
+                historicStatusLimit >= 1.0 && historicStatusLimit < getCurrentBlock().timestamp:
+                    "Invalid historic status limit: Limit must be greater than 1.0 and less than the current timestamp but got \(historicStatusLimit)"
                 priorityFeeMultipliers[Priority.Low]! >= 1.0:
                     "Invalid priority fee multiplier: Low priority multiplier must be greater than or equal to 1.0 but got \(priorityFeeMultipliers[Priority.Low]!)"
                 priorityFeeMultipliers[Priority.Medium]! > priorityFeeMultipliers[Priority.Low]!:
@@ -596,7 +596,9 @@ access(all) contract FlowCallbackScheduler {
             // If it is low priority, return whatever effort is remaining
             // under 5000
             if priority == Priority.Low {
-                let totalEffortRemaining = self.configurableMetadata.slotTotalEffortLimit - (highUsed + mediumUsed)
+                let highPlusMediumUsed = highUsed + mediumUsed
+                // prevent underflow
+                let totalEffortRemaining = highPlusMediumUsed > self.configurableMetadata.slotTotalEffortLimit ? 0 as UInt64 : self.configurableMetadata.slotTotalEffortLimit - highPlusMediumUsed
                 return totalEffortRemaining < priorityLimit ? totalEffortRemaining : priorityLimit
             }
             
@@ -608,8 +610,10 @@ access(all) contract FlowCallbackScheduler {
             // Get the theoretical total shared amount between priorities
             let totalShared = self.configurableMetadata.slotTotalEffortLimit - highReserve - mediumReserve
 
-            // Get the amount of shared effort available
-            let sharedAvailable = totalShared - highSharedUsed - mediumSharedUsed        
+            // Get the amount of shared effort currently available
+            let highPlusMediumSharedUsed = highSharedUsed + mediumSharedUsed
+            // prevent underflow
+            let sharedAvailable = highPlusMediumSharedUsed > totalShared ? 0 as UInt64 : totalShared - highPlusMediumSharedUsed        
 
             // we calculate available by calculating available shared effort and 
             // adding any unused reserves for that priority
@@ -758,11 +762,16 @@ access(all) contract FlowCallbackScheduler {
             self.slotQueue[callback.scheduledTimestamp] = slotQueue
             
             // Subtract the execution effort for this callback from the slot's priority
-            // Low priority effots don't count toward a slot's execution effort
+            // Low priority efforts don't count toward a slot's execution effort
             // so we don't need to subtract anything for them
             if callback.priority != Priority.Low {
                 let slotEfforts = self.slotUsedEffort[callback.scheduledTimestamp]!
-                slotEfforts[callback.priority] = slotEfforts[callback.priority]! - callback.executionEffort
+                if slotEfforts[callback.priority]! < callback.executionEffort {
+                    // prevent underflow
+                    slotEfforts[callback.priority] = 0
+                } else {
+                    slotEfforts[callback.priority] = slotEfforts[callback.priority]! - callback.executionEffort
+                }
                 self.slotUsedEffort[callback.scheduledTimestamp] = slotEfforts
             }
 
