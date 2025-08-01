@@ -129,11 +129,11 @@ access(all) fun testCallbackScheduling() {
         failWithErr: nil
     )
 
-    // Check for CallbackScheduled event using Test.eventsOfType
-    var scheduledEvents = Test.eventsOfType(Type<FlowCallbackScheduler.CallbackScheduled>())
-    Test.assert(scheduledEvents.length == 1, message: "There should be one CallbackScheduled event")
+    // Check for Scheduled event using Test.eventsOfType
+    var scheduledEvents = Test.eventsOfType(Type<FlowCallbackScheduler.Scheduled>())
+    Test.assert(scheduledEvents.length == 1, message: "There should be one Scheduled event")
     
-    var scheduledEvent = scheduledEvents[0] as! FlowCallbackScheduler.CallbackScheduled
+    var scheduledEvent = scheduledEvents[0] as! FlowCallbackScheduler.Scheduled
     Test.assertEqual(highPriority, scheduledEvent.priority!)
     Test.assertEqual(futureTime, scheduledEvent.timestamp!)
     Test.assert(scheduledEvent.executionEffort == 1000, message: "incorrect execution effort")
@@ -273,9 +273,9 @@ access(all) fun testCallbackCancelation() {
         failWithErr: nil
     )
 
-    let canceledEvents = Test.eventsOfType(Type<FlowCallbackScheduler.CallbackCanceled>())
-    Test.assert(canceledEvents.length == 1, message: "Should only have one CallbackCanceled event")
-    let canceledEvent = canceledEvents[0] as! FlowCallbackScheduler.CallbackCanceled
+    let canceledEvents = Test.eventsOfType(Type<FlowCallbackScheduler.Canceled>())
+    Test.assert(canceledEvents.length == 1, message: "Should only have one Canceled event")
+    let canceledEvent = canceledEvents[0] as! FlowCallbackScheduler.Canceled
     Test.assertEqual(UInt64(7), canceledEvent.id)
     Test.assertEqual(mediumPriority, canceledEvent.priority)
     Test.assertEqual(feeAmount/UFix64(2.0), canceledEvent.feesReturned)
@@ -329,9 +329,9 @@ access(all) fun testCallbackExecution() {
     // Simulate FVM process - should not yet process since timestamp is in the future
     processCallbacks()
 
-    // Check that no CallbackProcessed events were emitted yet (since callback is in the future)
-    let processedEventsBeforeTime = Test.eventsOfType(Type<FlowCallbackScheduler.CallbackProcessed>())
-    Test.assert(processedEventsBeforeTime.length == 0, message: "CallbackProcessed before time")
+    // Check that no Processed events were emitted yet (since callback is in the future)
+    let processedEventsBeforeTime = Test.eventsOfType(Type<FlowCallbackScheduler.Processed>())
+    Test.assert(processedEventsBeforeTime.length == 0, message: "Processed before time")
 
     // move time forward to trigger execution eligibility
     // Have to subtract four to handle the automatic timestamp drift
@@ -344,19 +344,19 @@ access(all) fun testCallbackExecution() {
     // Simulate FVM process - should process since timestamp is in the past
     processCallbacks()
 
-    // Check for CallbackProcessed event after processing
+    // Check for Processed event after processing
     // Should have two high, one medium, and one low
     // and they should be in order
     // Cannot verify the order of events in tests at the moment
     // let expectedEventOrder: [UInt64] = [1, 4, 2, 5]
 
-    let processedEventsAfterTime = Test.eventsOfType(Type<FlowCallbackScheduler.CallbackProcessed>())
+    let processedEventsAfterTime = Test.eventsOfType(Type<FlowCallbackScheduler.Processed>())
     Test.assertEqual(4, processedEventsAfterTime.length)
     
     var i = 0
     var firstEvent: Bool = false
     for event in processedEventsAfterTime {
-        let processedEvent = event as! FlowCallbackScheduler.CallbackProcessed
+        let processedEvent = event as! FlowCallbackScheduler.Processed
         Test.assert(
             processedEvent.id != UInt64(3),
             message: "ID 3 Should not have been processed"
@@ -381,9 +381,9 @@ access(all) fun testCallbackExecution() {
         
             // Verify that the first event is the low priority callback
             if !firstEvent {
-                let executedEvents = Test.eventsOfType(Type<FlowCallbackScheduler.CallbackExecuted>())
-                Test.assert(executedEvents.length == 1, message: "Should only have one CallbackExecuted event")
-                let executedEvent = executedEvents[0] as! FlowCallbackScheduler.CallbackExecuted
+                let executedEvents = Test.eventsOfType(Type<FlowCallbackScheduler.Executed>())
+                Test.assert(executedEvents.length == 1, message: "Should only have one Executed event")
+                let executedEvent = executedEvents[0] as! FlowCallbackScheduler.Executed
                 Test.assertEqual(processedEvent.id, executedEvent.id)
                 Test.assertEqual(processedEvent.priority, executedEvent.priority)
                 Test.assertEqual(processedEvent.executionEffort, executedEvent.executionEffort)
@@ -397,12 +397,12 @@ access(all) fun testCallbackExecution() {
         i = i + 1
     }
 
-    // Check for CallbackExecuted events
-    let executedEvents = Test.eventsOfType(Type<FlowCallbackScheduler.CallbackExecuted>())
-    Test.assert(executedEvents.length == 3, message: "CallbackExecuted event wrong count")
+    // Check for Executed events
+    let executedEvents = Test.eventsOfType(Type<FlowCallbackScheduler.Executed>())
+    Test.assert(executedEvents.length == 3, message: "Executed event wrong count")
     
     for event in executedEvents {
-        let executedEvent = event as! FlowCallbackScheduler.CallbackExecuted
+        let executedEvent = event as! FlowCallbackScheduler.Executed
     
         // Verify callback status is now Executed
         var status = getStatus(id: executedEvent.id)
@@ -414,7 +414,7 @@ access(all) fun testCallbackExecution() {
         "./scripts/get_executed_callbacks.cdc",
         []
     ).returnValue! as! [UInt64]
-    Test.assert(callbackIDs.length == 3, message: "CallbackExecuted ids is the wrong count")
+    Test.assert(callbackIDs.length == 3, message: "Executed ids is the wrong count")
 
 
     // Verify failed callback status is still Processed

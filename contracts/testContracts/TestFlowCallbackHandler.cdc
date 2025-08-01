@@ -12,7 +12,7 @@ access(all) contract TestFlowCallbackHandler {
     
     access(all) resource Handler: FlowCallbackScheduler.CallbackHandler {
         
-        access(FlowCallbackScheduler.ExecuteCallback) 
+        access(FlowCallbackScheduler.Execute) 
         fun executeCallback(id: UInt64, data: AnyStruct?) {
             // Most callbacks will have string data
             if let dataString = data as? String {
@@ -23,7 +23,7 @@ access(all) contract TestFlowCallbackHandler {
                     // All other regular test cases should succeed
                     TestFlowCallbackHandler.executedCallbacks.append(id)
                 }
-            } else if let dataCap = data as? Capability<auth(FlowCallbackScheduler.ExecuteCallback) &{FlowCallbackScheduler.CallbackHandler}> {
+            } else if let dataCap = data as? Capability<auth(FlowCallbackScheduler.Execute) &{FlowCallbackScheduler.CallbackHandler}> {
                 // Testing scheduling a callback with a callback
                 let scheduledCallback = FlowCallbackScheduler.schedule(
                     callback: dataCap,
