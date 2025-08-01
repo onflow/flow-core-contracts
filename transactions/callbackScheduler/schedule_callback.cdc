@@ -22,13 +22,13 @@ transaction(timestamp: UFix64, feeAmount: UFix64, effort: UInt64, priority: UInt
             let handler <- TestFlowCallbackHandler.createHandler()
         
             account.storage.save(<-handler, to: TestFlowCallbackHandler.HandlerStoragePath)
-            account.capabilities.storage.issue<auth(FlowCallbackScheduler.ExecuteCallback) &{FlowCallbackScheduler.CallbackHandler}>(TestFlowCallbackHandler.HandlerStoragePath)
+            account.capabilities.storage.issue<auth(FlowCallbackScheduler.Execute) &{FlowCallbackScheduler.CallbackHandler}>(TestFlowCallbackHandler.HandlerStoragePath)
         }
 
         // Get the capability that will be used to create the callback
         let callbackCap = account.capabilities.storage
                             .getControllers(forPath: TestFlowCallbackHandler.HandlerStoragePath)[0]
-                            .capability as! Capability<auth(FlowCallbackScheduler.ExecuteCallback) &{FlowCallbackScheduler.CallbackHandler}>
+                            .capability as! Capability<auth(FlowCallbackScheduler.Execute) &{FlowCallbackScheduler.CallbackHandler}>
         
         // borrow a reference to the vault that will be used for fees
         let vault = account.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault)
