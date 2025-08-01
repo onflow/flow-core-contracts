@@ -7,7 +7,7 @@ access(all) contract FlowCallbackScheduler {
 
     /// singleton instance used to store all callback data
     /// and route all callback functionality
-    access(self) var sharedScheduler: Capability<auth(CancelCallback) &SharedScheduler>
+    access(self) var sharedScheduler: Capability<auth(Cancel) &SharedScheduler>
 
     /// Enums
     access(all) enum Priority: UInt8 {
@@ -26,58 +26,65 @@ access(all) contract FlowCallbackScheduler {
     }
 
     /// Events
-    access(all) event CallbackScheduled(
+    access(all) event Scheduled(
         id: UInt64,
-        timestamp: UFix64?,
         priority: UInt8,
+        timestamp: UFix64?,
         executionEffort: UInt64,
         fees: UFix64,
         callbackOwner: Address
     )
 
-    access(all) event CallbackProcessed(
+    access(all) event Processed(
         id: UInt64,
         priority: UInt8,
         executionEffort: UInt64,
         callbackOwner: Address
     )
 
-    access(all) event CallbackExecuted(
+    access(all) event Executed(
         id: UInt64,
         priority: UInt8,
+        executionEffort: UInt64,
+        fees: UFix64,
         callbackOwner: Address,
-        fees: UFix64
+        succeeded: Bool
     )
 
-    access(all) event CallbackCanceled(
+    access(all) event Canceled(
         id: UInt64,
         priority: UInt8,
+        feesReturned: UFix64,
+        feesDeducted: UFix64,
         callbackOwner: Address
     )
 
     /// Entitlements
-    access(all) entitlement ExecuteCallback
-    access(all) entitlement CancelCallback
+    access(all) entitlement Execute
+    access(all) entitlement Cancel
     access(all) entitlement UpdateMetadata
 
     /// Interfaces
 
     /// The callback handler is an interface that defines a single method executeCallback that 
-    /// must be implemented by the contract or resource that would like to schedule the callback. 
-    /// The callback gets executed by the scheduler contract by calling the handler provided to 
-    /// schedule function with Callback entitlement. The arguments are:
-    /// - ID of the scheduled callback (this can be useful for any internal tracking)
-    /// - The data that was passed in during the schedule call
-    access(all) struct interface CallbackHandler {
-        access(ExecuteCallback) fun executeCallback(id: UInt64, data: AnyStruct?)
+    /// must be implemented by the resource that would like to schedule the callback. 
+    /// The callback gets executed by the scheduler contract by calling the authorized Capability 
+    /// that was provided when scheduled.
+    access(all) resource interface CallbackHandler {
+        /// Executes the implemented callback logic
+        ///
+        /// @param id: The id of the scheduled callback (this can be useful for any internal tracking)
+        /// @param data: The data that was passed when the callback was originally scheduled
+        access(Execute) fun executeCallback(id: UInt64, data: AnyStruct?)
     }
 
     /// Structs
 
-    /// Scheduled callback contains methods to cancel the callback and obtain the status. 
+    /// ScheduledCallback contains a method to check the callback status and can be passed back
+    /// to the scheduler contract to cancel the callback if it has not yet been executed. 
     /// It can only be created by the scheduler contract to prevent spoofing.
     access(all) struct ScheduledCallback {
-        access(self) let scheduler: Capability<auth(CancelCallback) &SharedScheduler>
+        access(self) let scheduler: Capability<auth(Cancel) &SharedScheduler>
         access(all) let id: UInt64
         access(all) let timestamp: UFix64?
 
@@ -86,7 +93,7 @@ access(all) contract FlowCallbackScheduler {
         }
 
         access(contract) init(
-            scheduler: Capability<auth(CancelCallback) &SharedScheduler>,
+            scheduler: Capability<auth(Cancel) &SharedScheduler>,
             id: UInt64, 
             timestamp: UFix64?
         ) {
@@ -112,7 +119,7 @@ access(all) contract FlowCallbackScheduler {
         }
     }
 
-    /// Callback data is internal representation of a scheduled callback which contains all the functionality 
+    /// Callback data is an internal representation of a scheduled callback which contains all the functionality 
     /// to schedule, process and execute each callback. 
     access(all) resource CallbackData {
         access(all) let id: UInt64
@@ -128,7 +135,7 @@ access(all) contract FlowCallbackScheduler {
         access(all) var scheduledTimestamp: UFix64
 
         /// Capability to the logic that the callback will execute
-        access(contract) let handler: Capability<auth(ExecuteCallback) &{CallbackHandler}>
+        access(contract) let handler: Capability<auth(Execute) &{CallbackHandler}>
 
         /// Optional data that can be passed to the handler
         access(contract) let data: AnyStruct?
@@ -138,7 +145,7 @@ access(all) contract FlowCallbackScheduler {
 
         access(contract) init(
             id: UInt64,
-            handler: Capability<auth(ExecuteCallback) &{CallbackHandler}>,
+            handler: Capability<auth(Execute) &{CallbackHandler}>,
             data: AnyStruct?,
             originalTimestamp: UFix64,
             priority: Priority,
@@ -310,7 +317,7 @@ access(all) contract FlowCallbackScheduler {
                 self.lowPriorityScheduledTimestamp: {}
             }
             
-            /* Defaultslot efforts and limits look like this:
+            /* Default slot efforts and limits look like this:
 
                 Timestamp Slot (35kee)
                 ┌─────────────────────────┐
@@ -435,7 +442,7 @@ access(all) contract FlowCallbackScheduler {
         ///    the fee charged. Unused execution effort is not refunded.
         /// @param: fees: A Vault resource containing sufficient funds to cover the required execution effort.
         access(contract) fun schedule(
-            callback: Capability<auth(ExecuteCallback) &{CallbackHandler}>,
+            callback: Capability<auth(Execute) &{CallbackHandler}>,
             data: AnyStruct?,
             timestamp: UFix64,
             priority: Priority,
@@ -650,10 +657,10 @@ access(all) contract FlowCallbackScheduler {
             slotEfforts[callback.priority] = slotEfforts[callback.priority]! + callback.executionEffort
             self.slotUsedEffort[slot] = slotEfforts
 
-            emit CallbackScheduled(
+            emit Scheduled(
                 id: callback.id,
-                timestamp: slot,
                 priority: callback.priority.rawValue,
+                timestamp: slot,
                 executionEffort: callback.executionEffort,
                 fees: callback.fees.balance,
                 callbackOwner: callback.handler.address
@@ -725,7 +732,7 @@ access(all) contract FlowCallbackScheduler {
                     if let callback = self.borrowCallback(id: id) {
                         if callback.status == Status.Scheduled {
                             callback.setStatus(newStatus: Status.Processed)
-                            emit CallbackProcessed(
+                            emit Processed(
                                 id: id,
                                 priority: callback.priority.rawValue,
                                 executionEffort: callback.executionEffort,
@@ -752,7 +759,7 @@ access(all) contract FlowCallbackScheduler {
         }
 
         /// cancel scheduled callback and return a portion of the fees that were paid.
-        access(CancelCallback) fun cancel(id: UInt64): @FlowToken.Vault {
+        access(Cancel) fun cancel(id: UInt64): @FlowToken.Vault {
             let callback = self.borrowCallback(id: id) ?? 
                 panic("Invalid ID: \(id) callback not found")
 
@@ -775,7 +782,22 @@ access(all) contract FlowCallbackScheduler {
                 self.slotUsedEffort[callback.scheduledTimestamp] = slotEfforts
             }
 
+            let totalFees = callback.fees.balance
             let refundedFees <- callback.payAndWithdrawFees(multiplierToWithdraw: self.configurableMetadata.refundMultiplier)
+
+            emit Canceled(
+                id: callback.id,
+                priority: callback.priority.rawValue,
+                feesReturned: refundedFees.balance,
+                feesDeducted: refundedFees.balance >= totalFees ? 0.0 : totalFees - refundedFees.balance,
+                callbackOwner: callback.handler.address
+            )
+
+            // keep historic Canceled status for future queries after garbage collection
+            // We don't keep executed statuses because we can just assume
+            // they every ID that is less than the current ID counter
+            // that is not Canceled, Scheduled, or Processed is Executed
+            self.historicCanceledCallbacks[callback.id] = callback.scheduledTimestamp
             
             self.finalizeCallback(callback: callback, status: Status.Canceled)
             
@@ -794,6 +816,18 @@ access(all) contract FlowCallbackScheduler {
             )
             
             callback.handler.borrow()!.executeCallback(id: id, data: callback.getData())
+
+            emit Executed(
+                id: callback.id,
+                priority: callback.priority.rawValue,
+                executionEffort: callback.executionEffort,
+                fees: callback.fees.balance,
+                callbackOwner: callback.handler.address,
+                succeeded: true
+            )
+
+            // Deposit all the fees into the FlowFees vault
+            destroy callback.payAndWithdrawFees(multiplierToWithdraw: 0.0)
             
             self.finalizeCallback(callback: callback, status: Status.Executed)
         }
@@ -804,33 +838,12 @@ access(all) contract FlowCallbackScheduler {
         /// This function will always be called by the fvm for a given ID
         /// in the same block after it is processed so it won't get processed twice
         access(contract) fun finalizeCallback(callback: &CallbackData, status: Status) {
-            callback.setStatus(newStatus: status)
-            
-            switch status {
-                case Status.Executed:
-                    emit CallbackExecuted(
-                        id: callback.id,
-                        priority: callback.priority.rawValue,
-                        callbackOwner: callback.handler.address,
-                        fees: callback.fees.balance
-                    )
-                    // Deposit all the fees into the FlowFees vault
-                    destroy callback.payAndWithdrawFees(multiplierToWithdraw: 0.0)
-                case Status.Canceled:
-                    emit CallbackCanceled(
-                        id: callback.id,
-                        priority: callback.priority.rawValue,
-                        callbackOwner: callback.handler.address
-                    )
-
-                    // keep historic Canceled status for future queries after garbage collection
-                    // We don't keep executed statuses because we can just assume
-                    // they every ID that is less than the current ID counter
-                    // that is not Canceled, Scheduled, or Processed is Executed
-                    self.historicCanceledCallbacks[callback.id] = callback.scheduledTimestamp
-                default:
-                    panic("Invalid status: not final status")
+            pre {
+                status == Status.Executed || status == Status.Canceled: 
+                    "Invalid status: The provided status to finalizeCallback must be Executed or Canceled"
             }
+
+            callback.setStatus(newStatus: status)
 
             let callbackID = callback.id
             let slot = callback.scheduledTimestamp
@@ -860,11 +873,11 @@ access(all) contract FlowCallbackScheduler {
         self.account.storage.save(<-scheduler, to: storagePath)
         
         self.sharedScheduler = self.account.capabilities.storage
-            .issue<auth(CancelCallback) &SharedScheduler>(storagePath)
+            .issue<auth(Cancel) &SharedScheduler>(storagePath)
     }
 
     access(all) fun schedule(
-        callback: Capability<auth(ExecuteCallback) &{CallbackHandler}>,
+        callback: Capability<auth(Execute) &{CallbackHandler}>,
         data: AnyStruct?,
         timestamp: UFix64,
         priority: Priority,
