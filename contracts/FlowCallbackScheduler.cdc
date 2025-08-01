@@ -28,8 +28,8 @@ access(all) contract FlowCallbackScheduler {
     /// Events
     access(all) event CallbackScheduled(
         id: UInt64,
-        timestamp: UFix64?,
         priority: UInt8,
+        timestamp: UFix64?,
         executionEffort: UInt64,
         fees: UFix64,
         callbackOwner: Address
@@ -45,13 +45,17 @@ access(all) contract FlowCallbackScheduler {
     access(all) event CallbackExecuted(
         id: UInt64,
         priority: UInt8,
+        executionEffort: UInt64,
+        fees: UFix64,
         callbackOwner: Address,
-        fees: UFix64
+        succeeded: Bool
     )
 
     access(all) event CallbackCanceled(
         id: UInt64,
         priority: UInt8,
+        feesReturned: UFix64,
+        feesDeducted: UFix64,
         callbackOwner: Address
     )
 
@@ -68,7 +72,7 @@ access(all) contract FlowCallbackScheduler {
     /// schedule function with Callback entitlement. The arguments are:
     /// - ID of the scheduled callback (this can be useful for any internal tracking)
     /// - The data that was passed in during the schedule call
-    access(all) struct interface CallbackHandler {
+    access(all) resource interface CallbackHandler {
         access(ExecuteCallback) fun executeCallback(id: UInt64, data: AnyStruct?)
     }
 
@@ -310,7 +314,7 @@ access(all) contract FlowCallbackScheduler {
                 self.lowPriorityScheduledTimestamp: {}
             }
             
-            /* Defaultslot efforts and limits look like this:
+            /* Default slot efforts and limits look like this:
 
                 Timestamp Slot (35kee)
                 ┌─────────────────────────┐
@@ -652,8 +656,8 @@ access(all) contract FlowCallbackScheduler {
 
             emit CallbackScheduled(
                 id: callback.id,
-                timestamp: slot,
                 priority: callback.priority.rawValue,
+                timestamp: slot,
                 executionEffort: callback.executionEffort,
                 fees: callback.fees.balance,
                 callbackOwner: callback.handler.address
@@ -770,7 +774,22 @@ access(all) contract FlowCallbackScheduler {
                 self.slotUsedEffort[callback.scheduledTimestamp] = slotEfforts
             }
 
+            let totalFees = callback.fees.balance
             let refundedFees <- callback.payAndWithdrawFees(multiplierToWithdraw: self.configurableMetadata.refundMultiplier)
+
+            emit CallbackCanceled(
+                id: callback.id,
+                priority: callback.priority.rawValue,
+                feesReturned: refundedFees.balance,
+                feesDeducted: refundedFees.balance >= totalFees ? 0.0 : totalFees - refundedFees.balance,
+                callbackOwner: callback.handler.address
+            )
+
+            // keep historic Canceled status for future queries after garbage collection
+            // We don't keep executed statuses because we can just assume
+            // they every ID that is less than the current ID counter
+            // that is not Canceled, Scheduled, or Processed is Executed
+            self.historicCanceledCallbacks[callback.id] = callback.scheduledTimestamp
             
             self.finalizeCallback(callback: callback, status: Status.Canceled)
             
@@ -789,6 +808,18 @@ access(all) contract FlowCallbackScheduler {
             )
             
             callback.handler.borrow()!.executeCallback(id: id, data: callback.getData())
+
+            emit CallbackExecuted(
+                id: callback.id,
+                priority: callback.priority.rawValue,
+                executionEffort: callback.executionEffort,
+                fees: callback.fees.balance,
+                callbackOwner: callback.handler.address,
+                succeeded: true
+            )
+
+            // Deposit all the fees into the FlowFees vault
+            destroy callback.payAndWithdrawFees(multiplierToWithdraw: 0.0)
             
             self.finalizeCallback(callback: callback, status: Status.Executed)
         }
@@ -799,33 +830,12 @@ access(all) contract FlowCallbackScheduler {
         /// This function will always be called by the fvm for a given ID
         /// in the same block after it is processed so it won't get processed twice
         access(contract) fun finalizeCallback(callback: &CallbackData, status: Status) {
-            callback.setStatus(newStatus: status)
-            
-            switch status {
-                case Status.Executed:
-                    emit CallbackExecuted(
-                        id: callback.id,
-                        priority: callback.priority.rawValue,
-                        callbackOwner: callback.handler.address,
-                        fees: callback.fees.balance
-                    )
-                    // Deposit all the fees into the FlowFees vault
-                    destroy callback.payAndWithdrawFees(multiplierToWithdraw: 0.0)
-                case Status.Canceled:
-                    emit CallbackCanceled(
-                        id: callback.id,
-                        priority: callback.priority.rawValue,
-                        callbackOwner: callback.handler.address
-                    )
-
-                    // keep historic Canceled status for future queries after garbage collection
-                    // We don't keep executed statuses because we can just assume
-                    // they every ID that is less than the current ID counter
-                    // that is not Canceled, Scheduled, or Processed is Executed
-                    self.historicCanceledCallbacks[callback.id] = callback.scheduledTimestamp
-                default:
-                    panic("Invalid status: not final status")
+            pre {
+                status == Status.Executed || status == Status.Canceled: 
+                    "Invalid status: The provided status to finalizeCallback must be Executed or Canceled"
             }
+
+            callback.setStatus(newStatus: status)
 
             let callbackID = callback.id
             let slot = callback.scheduledTimestamp

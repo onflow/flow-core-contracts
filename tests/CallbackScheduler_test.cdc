@@ -134,9 +134,11 @@ access(all) fun testCallbackScheduling() {
     Test.assert(scheduledEvents.length == 1, message: "There should be one CallbackScheduled event")
     
     var scheduledEvent = scheduledEvents[0] as! FlowCallbackScheduler.CallbackScheduled
+    Test.assertEqual(highPriority, scheduledEvent.priority!)
     Test.assertEqual(futureTime, scheduledEvent.timestamp!)
     Test.assert(scheduledEvent.executionEffort == 1000, message: "incorrect execution effort")
     Test.assertEqual(feeAmount, scheduledEvent.fees!)
+    Test.assertEqual(serviceAccount.address, scheduledEvent.callbackOwner!)
     
     let callbackID = scheduledEvent.id as UInt64
 
@@ -271,6 +273,15 @@ access(all) fun testCallbackCancelation() {
         failWithErr: nil
     )
 
+    let canceledEvents = Test.eventsOfType(Type<FlowCallbackScheduler.CallbackCanceled>())
+    Test.assert(canceledEvents.length == 1, message: "Should only have one CallbackCanceled event")
+    let canceledEvent = canceledEvents[0] as! FlowCallbackScheduler.CallbackCanceled
+    Test.assertEqual(UInt64(7), canceledEvent.id)
+    Test.assertEqual(mediumPriority, canceledEvent.priority)
+    Test.assertEqual(feeAmount/UFix64(2.0), canceledEvent.feesReturned)
+    Test.assertEqual(feeAmount/UFix64(2.0), canceledEvent.feesDeducted)
+    Test.assertEqual(serviceAccount.address, canceledEvent.callbackOwner)
+
     // Make sure the status is canceled
     var status = getStatus(id: UInt64(7))
     Test.assertEqual(statusCanceled, status)
@@ -343,6 +354,7 @@ access(all) fun testCallbackExecution() {
     Test.assertEqual(4, processedEventsAfterTime.length)
     
     var i = 0
+    var firstEvent: Bool = false
     for event in processedEventsAfterTime {
         let processedEvent = event as! FlowCallbackScheduler.CallbackProcessed
         Test.assert(
@@ -366,6 +378,20 @@ access(all) fun testCallbackExecution() {
             executeCallback(id: processedEvent.id, failWithErr: "Callback \(callbackToFail) failed")
         } else {
             executeCallback(id: processedEvent.id, failWithErr: nil)
+        
+            // Verify that the first event is the low priority callback
+            if !firstEvent {
+                let executedEvents = Test.eventsOfType(Type<FlowCallbackScheduler.CallbackExecuted>())
+                Test.assert(executedEvents.length == 1, message: "Should only have one CallbackExecuted event")
+                let executedEvent = executedEvents[0] as! FlowCallbackScheduler.CallbackExecuted
+                Test.assertEqual(processedEvent.id, executedEvent.id)
+                Test.assertEqual(processedEvent.priority, executedEvent.priority)
+                Test.assertEqual(processedEvent.executionEffort, executedEvent.executionEffort)
+                Test.assertEqual(feeAmount, executedEvent.fees)
+                Test.assertEqual(processedEvent.callbackOwner, executedEvent.callbackOwner)
+                Test.assertEqual(true, executedEvent.succeeded)
+                firstEvent = true
+            }
         }
 
         i = i + 1
