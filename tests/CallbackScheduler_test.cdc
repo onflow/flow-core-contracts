@@ -325,7 +325,7 @@ access(all) fun testCallbackExecution() {
     // move time forward to trigger execution eligibility
     // Have to subtract four to handle the automatic timestamp drift
     // so that the medium callback that got scheduled doesn't get processed
-    Test.moveTime(by: Fix64(futureDelta - 4.0))
+    Test.moveTime(by: Fix64(futureDelta - 5.0))
     while getTimestamp() < futureTime {
         Test.moveTime(by: Fix64(1.0))
     }
@@ -406,12 +406,6 @@ access(all) fun testCallbackExecution() {
     executeCallback(id: UInt64(3), failWithErr: nil)
     executeCallback(id: UInt64(6), failWithErr: nil)
 }
-
-
-/*
-TODO test cases:
-- test filling all slot room with high and medium and see that low priority only gets executed after high and medium are
- */
 
 
 /** ---------------------------------------------------------------------------------
@@ -627,6 +621,154 @@ access(all) fun runEstimateTestCase(testCase: EstimateTestCase) {
     }
 }
 
+/** ---------------------------------------------------------------------------------
+ Callback scheduler config metadata tests
+ --------------------------------------------------------------------------------- */
+
+
+access(all) fun testConfigMetadata() {
+
+    /** -------------
+    Error Test Cases
+    ---------------- */
+    setConfigMetadata(
+        slotSharedEffortLimit: nil,
+        priorityEffortReserve: nil,
+        priorityEffortLimit: nil,
+        minimumExecutionEffort: nil,
+        priorityFeeMultipliers: nil,
+        refundMultiplier: 1.1,
+        historicStatusLimit: nil,
+        shouldFail: "Invalid refund multiplier: The multiplier must be between 0.0 and 1.0 but got 1.10000000"
+    )
+
+    setConfigMetadata(
+        slotSharedEffortLimit: nil,
+        priorityEffortReserve: nil,
+        priorityEffortLimit: nil,
+        minimumExecutionEffort: nil,
+        priorityFeeMultipliers: nil,
+        refundMultiplier: nil,
+        historicStatusLimit: 0.0,
+        shouldFail: "Invalid historic status limit: Limit must be greater than 1.0 but got 0.00000000"
+    )
+
+    setConfigMetadata(
+        slotSharedEffortLimit: nil,
+        priorityEffortReserve: nil,
+        priorityEffortLimit: nil,
+        minimumExecutionEffort: nil,
+        priorityFeeMultipliers: {highPriority: 20.0, mediumPriority: 10.0, lowPriority: 0.9},
+        refundMultiplier: nil,
+        historicStatusLimit: nil,
+        shouldFail: "Invalid priority fee multiplier: Low priority multiplier must be greater than or equal to 1.0 but got 0.90000000"
+    )
+
+    setConfigMetadata(
+        slotSharedEffortLimit: nil,
+        priorityEffortReserve: nil,
+        priorityEffortLimit: nil,
+        minimumExecutionEffort: nil,
+        priorityFeeMultipliers: {highPriority: 20.0, mediumPriority: 3.0, lowPriority: 4.0},
+        refundMultiplier: nil,
+        historicStatusLimit: nil,
+        shouldFail: "Invalid priority fee multiplier: Medium priority multiplier must be greater than or equal to 4.00000000 but got 3.00000000"
+    )
+
+    setConfigMetadata(
+        slotSharedEffortLimit: nil,
+        priorityEffortReserve: nil,
+        priorityEffortLimit: nil,
+        minimumExecutionEffort: nil,
+        priorityFeeMultipliers: {highPriority: 5.0, mediumPriority: 6.0, lowPriority: 4.0},
+        refundMultiplier: nil,
+        historicStatusLimit: nil,
+        shouldFail: "Invalid priority fee multiplier: High priority multiplier must be greater than or equal to 6.00000000 but got 5.00000000"
+    )
+
+    setConfigMetadata(
+        slotSharedEffortLimit: nil,
+        priorityEffortReserve: {highPriority: 40000, mediumPriority: 30000, lowPriority: 10000},
+        priorityEffortLimit: {highPriority: 30000, mediumPriority: 30000, lowPriority: 10000},
+        minimumExecutionEffort: nil,
+        priorityFeeMultipliers: nil,
+        refundMultiplier: nil,
+        historicStatusLimit: nil,
+        shouldFail: "Invalid priority effort limit: High priority effort limit must be greater than or equal to the priority effort reserve of 40000"
+    )
+
+    setConfigMetadata(
+        slotSharedEffortLimit: nil,
+        priorityEffortReserve: {highPriority: 30000, mediumPriority: 40000, lowPriority: 10000},
+        priorityEffortLimit: {highPriority: 30000, mediumPriority: 30000, lowPriority: 10000},
+        minimumExecutionEffort: nil,
+        priorityFeeMultipliers: nil,
+        refundMultiplier: nil,
+        historicStatusLimit: nil,
+        shouldFail: "Invalid priority effort limit: Medium priority effort limit must be greater than or equal to the priority effort reserve of 40000"
+    )
+
+    setConfigMetadata(
+        slotSharedEffortLimit: nil,
+        priorityEffortReserve: {highPriority: 30000, mediumPriority: 30000, lowPriority: 20000},
+        priorityEffortLimit: {highPriority: 30000, mediumPriority: 30000, lowPriority: 10000},
+        minimumExecutionEffort: nil,
+        priorityFeeMultipliers: nil,
+        refundMultiplier: nil,
+        historicStatusLimit: nil,
+        shouldFail: "Invalid priority effort limit: Low priority effort limit must be greater than or equal to the priority effort reserve of 20000"
+    )
+
+
+    /** -------------
+    Valid Test Case
+    ---------------- */
+    let oldConfig = getConfigMetadata()
+    Test.assertEqual(oldConfig.slotTotalEffortLimit, 35000 as UInt64)
+    Test.assertEqual(oldConfig.slotSharedEffortLimit, 10000 as UInt64)
+    Test.assertEqual(oldConfig.priorityEffortReserve[FlowCallbackScheduler.Priority.High]!, 20000 as UInt64)
+    Test.assertEqual(oldConfig.priorityEffortReserve[FlowCallbackScheduler.Priority.Medium]!, 5000 as UInt64)
+    Test.assertEqual(oldConfig.priorityEffortReserve[FlowCallbackScheduler.Priority.Low]!, 0 as UInt64)
+    Test.assertEqual(oldConfig.priorityEffortLimit[FlowCallbackScheduler.Priority.High]!, 30000 as UInt64)
+    Test.assertEqual(oldConfig.priorityEffortLimit[FlowCallbackScheduler.Priority.Medium]!, 15000 as UInt64)
+    Test.assertEqual(oldConfig.priorityEffortLimit[FlowCallbackScheduler.Priority.Low]!, 5000 as UInt64)
+    Test.assertEqual(oldConfig.minimumExecutionEffort, 5 as UInt64)
+    Test.assertEqual(oldConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.High]!, 10.0)
+    Test.assertEqual(oldConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.Medium]!, 5.0)
+    Test.assertEqual(oldConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.Low]!, 2.0)
+    Test.assertEqual(oldConfig.refundMultiplier, 0.5)
+    Test.assertEqual(oldConfig.historicStatusLimit, 2592000.00000000)
+
+
+    setConfigMetadata(
+        slotSharedEffortLimit: 20000,
+        priorityEffortReserve: nil,
+        priorityEffortLimit: {highPriority: 30000, mediumPriority: 30000, lowPriority: 10000},
+        minimumExecutionEffort: 10,
+        priorityFeeMultipliers: {highPriority: 20.0, mediumPriority: 10.0, lowPriority: 4.0},
+        refundMultiplier: nil,
+        historicStatusLimit: 2000.0,
+        shouldFail: nil
+    )
+
+    // Verify new config metadata
+    let newConfig = getConfigMetadata()
+    Test.assertEqual(newConfig.slotTotalEffortLimit, 45000 as UInt64)
+    Test.assertEqual(newConfig.slotSharedEffortLimit, 20000 as UInt64)
+    Test.assertEqual(newConfig.priorityEffortReserve[FlowCallbackScheduler.Priority.High]!, oldConfig.priorityEffortReserve[FlowCallbackScheduler.Priority.High]!)
+    Test.assertEqual(newConfig.priorityEffortReserve[FlowCallbackScheduler.Priority.Medium]!, oldConfig.priorityEffortReserve[FlowCallbackScheduler.Priority.Medium]!)
+    Test.assertEqual(newConfig.priorityEffortReserve[FlowCallbackScheduler.Priority.Low]!, oldConfig.priorityEffortReserve[FlowCallbackScheduler.Priority.Low]!)
+    Test.assertEqual(newConfig.priorityEffortLimit[FlowCallbackScheduler.Priority.High]!, 30000 as UInt64)
+    Test.assertEqual(newConfig.priorityEffortLimit[FlowCallbackScheduler.Priority.Medium]!, 30000 as UInt64)
+    Test.assertEqual(newConfig.priorityEffortLimit[FlowCallbackScheduler.Priority.Low]!, 10000 as UInt64)
+    Test.assertEqual(newConfig.minimumExecutionEffort, 10 as UInt64)
+    Test.assertEqual(newConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.High]!, 20.0)
+    Test.assertEqual(newConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.Medium]!, 10.0)
+    Test.assertEqual(newConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.Low]!, 4.0)
+    Test.assertEqual(newConfig.refundMultiplier, oldConfig.refundMultiplier)
+    Test.assertEqual(newConfig.historicStatusLimit, 2000.0)
+}
+
 // Helper function for scheduling a callback
 access(all) fun scheduleCallback(
     timestamp: UFix64,
@@ -710,6 +852,46 @@ access(all) fun executeCallback(id: UInt64, failWithErr: String?) {
     }
 }
 
+access(all) fun setConfigMetadata(
+    slotSharedEffortLimit: UInt64?,
+    priorityEffortReserve: {UInt8: UInt64}?,
+    priorityEffortLimit: {UInt8: UInt64}?,
+    minimumExecutionEffort: UInt64?,
+    priorityFeeMultipliers: {UInt8: UFix64}?,
+    refundMultiplier: UFix64?,
+    historicStatusLimit: UFix64?,
+    shouldFail: String?
+) {
+    let setConfigMetadataCode = Test.readFile("../transactions/callbackScheduler/admin/set_config_metadata.cdc")
+    let setConfigMetadataTx = Test.Transaction(
+        code: setConfigMetadataCode,
+        authorizers: [admin.address],
+        signers: [admin],
+        arguments: [slotSharedEffortLimit, priorityEffortReserve, priorityEffortLimit, minimumExecutionEffort, priorityFeeMultipliers, refundMultiplier, historicStatusLimit]
+    )
+    let setConfigMetadataResult = Test.executeTransaction(setConfigMetadataTx)
+    if let error = shouldFail {
+        Test.expect(setConfigMetadataResult, Test.beFailed())
+        // Check error
+        //Test.assert(error == setConfigMetadataResult.error!.message, message: "error mismatch: Expected \(error) but got \(setConfigMetadataResult.error!.message)")
+        
+        Test.assertError(
+            setConfigMetadataResult,
+            errorMessage: error
+        )
+    } else {
+        Test.expect(setConfigMetadataResult, Test.beSucceeded())
+    }
+}
+
+access(all) fun getConfigMetadata(): FlowCallbackScheduler.SchedulerConfig {
+    var config = executeScript(
+        "../transactions/callbackScheduler/scripts/get_config.cdc",
+        []
+    ).returnValue! as! FlowCallbackScheduler.SchedulerConfig
+    return config
+}
+
 access(all) fun getSizeOfData(data: AnyStruct): UFix64 {
     var size = executeScript(
         "./scripts/get_data_size.cdc",
@@ -749,3 +931,5 @@ access(all) fun getBalance(account: Address): UFix64 {
     ).returnValue! as! UFix64
     return balance!
 }
+
+
