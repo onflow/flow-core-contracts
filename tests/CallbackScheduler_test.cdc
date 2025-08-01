@@ -650,7 +650,7 @@ access(all) fun testConfigMetadata() {
         priorityFeeMultipliers: nil,
         refundMultiplier: nil,
         historicStatusLimit: 0.0,
-        shouldFail: "Invalid historic status limit: Limit must be greater than 1.0 but got 0.00000000"
+        shouldFail: "Invalid historic status limit: Limit must be greater than 1.0 and less than the current timestamp but got 0.00000000"
     )
 
     setConfigMetadata(
