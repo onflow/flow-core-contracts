@@ -59,6 +59,11 @@ access(all) contract FlowCallbackScheduler {
         callbackOwner: Address
     )
 
+    // Emmitted when one or more of the configurable metadata fields are updated
+    // Event listeners can listen to this and query the new configuration
+    // if they need to
+    access(all) event ConfigUpdated()
+
     /// Entitlements
     access(all) entitlement Execute
     access(all) entitlement Cancel
@@ -128,7 +133,7 @@ access(all) contract FlowCallbackScheduler {
         access(all) var status: Status
 
         /// The timestamp that was requested for this callback
-        /// May be different than the actual scheduled timestamp for medium priority callbacks
+        /// May be different than the actual scheduled timestamp for low & medium priority callbacks
         access(all) let originalTimestamp: UFix64
 
         /// The actual timestamp that the callback is scheduled for
@@ -195,7 +200,7 @@ access(all) contract FlowCallbackScheduler {
         }
 
         access(all) view fun toString(): String {
-            return "callback (id: \(self.id), status: \(self.status.rawValue), timestamp: \(self.scheduledTimestamp), priority: \(self.priority.rawValue), executionEffort: \(self.executionEffort))"
+            return "callback (id: \(self.id), status: \(self.status.rawValue), timestamp: \(self.scheduledTimestamp), priority: \(self.priority.rawValue), executionEffort: \(self.executionEffort), callbackOwner: \(self.handler.address))"
         }
     }
 
@@ -377,6 +382,7 @@ access(all) contract FlowCallbackScheduler {
         /// sets all the configurable metadata for the Scheduler resource
         access(UpdateMetadata) fun setConfigMetadata(newConfig: SchedulerConfig) {
             self.configurableMetadata = newConfig
+            emit ConfigUpdated()
         }
 
         /// Borrows a reference to the specified callback
@@ -393,7 +399,7 @@ access(all) contract FlowCallbackScheduler {
             let scaledExecutionFee = baseFee * self.configurableMetadata.priorityFeeMultipliers[priority]!
 
             // Calculate the FLOW required to pay for storage of the callback data
-            let storageFee = FlowStorageFees.storageCapacityToFlow(FlowCallbackScheduler.getSizeofData(data))
+            let storageFee = FlowStorageFees.storageCapacityToFlow(FlowCallbackScheduler.getSizeOfData(data))
             
             return scaledExecutionFee + storageFee
         }
@@ -432,7 +438,7 @@ access(all) contract FlowCallbackScheduler {
         /// unavailable slots, the function panics. 
         //
         /// The schedule function accepts the following arguments:
-        /// @param: callback: A capability to an object (struct or resource) in storage that implements the callback handler 
+        /// @param: callback: A capability to a resource in storage that implements the callback handler 
         ///    interface. This handler will be invoked at execution time and will receive the specified data payload.
         /// @param: timestamp: Specifies the earliest block timestamp at which the callback is eligible for execution 
         ///    (fractional seconds values are ignored). It must be set in the future.
@@ -675,8 +681,7 @@ access(all) contract FlowCallbackScheduler {
         access(contract) fun process() {
 
             let lowPriorityTimestamp = self.lowPriorityScheduledTimestamp
-            let lowPriorityCallbacks = self.slotQueue[lowPriorityTimestamp]
-                ?? {}
+            let lowPriorityCallbacks = self.slotQueue[lowPriorityTimestamp] ?? {}
 
             let currentTimestamp = getCurrentBlock().timestamp
             
@@ -920,11 +925,11 @@ access(all) contract FlowCallbackScheduler {
         return self.sharedScheduler.borrow()!.getConfigMetadata()
     }
     
-    /// getSizeofData takes a callback's data
+    /// getSizeOfData takes a callback's data
     /// argument and stores it in the contract account's storage, 
     /// checking storage used before and after to see how large the data is in MB
     /// If data is nil, the function returns 0.0
-    access(all) fun getSizeofData(_ data: AnyStruct?): UFix64 {
+    access(all) fun getSizeOfData(_ data: AnyStruct?): UFix64 {
         if data == nil {
             return 0.0
         }
