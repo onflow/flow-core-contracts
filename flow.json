@@ -182,7 +182,14 @@
 	"accounts": {
 		"emulator-account": {
 			"address": "f8d6e0586b0a20c7",
-			"key": "7677f7c9410f8773b482737c778b5d7c6acfdbbae718d61e4727a07667f66004"
+			"key": "aff3a277caf2bdd6582c156ae7b07dbca537da7833309de88e56987faa2c0f1b"
+		}
+	},
+	"deployments": {
+		"emulator": {
+			"emulator-account": [
+				"TestFlowCallbackHandler"
+			]
 		}
 	}
 }
