@@ -90,7 +90,7 @@ access(all) contract FlowCallbackScheduler {
     access(all) struct ScheduledCallback {
         access(self) let scheduler: Capability<auth(Cancel) &SharedScheduler>
         access(all) let id: UInt64
-        access(all) let timestamp: UFix64?
+        access(all) let timestamp: UFix64
 
         access(all) view fun status(): Status? {
             return self.scheduler.borrow()!.getStatus(id: self.id)
@@ -99,8 +99,12 @@ access(all) contract FlowCallbackScheduler {
         access(contract) init(
             scheduler: Capability<auth(Cancel) &SharedScheduler>,
             id: UInt64, 
-            timestamp: UFix64?
+            timestamp: UFix64
         ) {
+            pre {
+                scheduler.check():
+                    "Invalid Scheduler Capability provided when initializing ScheduledCallback with id \(id)"
+            }
             self.scheduler = scheduler
             self.id = id
             self.timestamp = timestamp
@@ -454,10 +458,13 @@ access(all) contract FlowCallbackScheduler {
             executionEffort: UInt64,
             fees: @FlowToken.Vault
         ): ScheduledCallback {
+            // Remove fractional values from the timestamp
+            let sanitizedTimestamp = UFix64(UInt64(timestamp))
+
             // Use the estimate function to validate inputs
             let estimate = self.estimate(
                 data: data,
-                timestamp: timestamp,
+                timestamp: sanitizedTimestamp,
                 priority: priority,
                 executionEffort: executionEffort
             )
@@ -479,7 +486,7 @@ access(all) contract FlowCallbackScheduler {
                 id: callbackID,
                 handler: callback,
                 data: data,
-                originalTimestamp: timestamp,
+                originalTimestamp: sanitizedTimestamp,
                 priority: priority,
                 executionEffort: executionEffort,
                 fees: <- fees,
@@ -508,9 +515,11 @@ access(all) contract FlowCallbackScheduler {
             priority: Priority,
             executionEffort: UInt64
         ): EstimatedCallback {
+            // Remove fractional values from the timestamp
+            let sanitizedTimestamp = UFix64(UInt64(timestamp))
 
-            if timestamp <= getCurrentBlock().timestamp {
-                return EstimatedCallback(flowFee: nil, timestamp: nil, error: "Invalid timestamp: \(timestamp) is in the past, current timestamp: \(getCurrentBlock().timestamp)")
+            if sanitizedTimestamp <= getCurrentBlock().timestamp {
+                return EstimatedCallback(flowFee: nil, timestamp: nil, error: "Invalid timestamp: \(sanitizedTimestamp) is in the past, current timestamp: \(getCurrentBlock().timestamp)")
             }
 
             if executionEffort > self.configurationDetails.priorityEffortLimit[priority]! {
@@ -524,7 +533,7 @@ access(all) contract FlowCallbackScheduler {
             let fee = self.calculateFee(executionEffort: executionEffort, priority: priority, data: data)
 
             let scheduledTimestamp = self.calculateScheduledTimestamp(
-                timestamp: timestamp, 
+                timestamp: sanitizedTimestamp, 
                 priority: priority, 
                 executionEffort: executionEffort
             )
@@ -584,18 +593,22 @@ access(all) contract FlowCallbackScheduler {
 
         /// slot available effort returns the amount of effort that is available for a given timestamp and priority.
         access(all) view fun getSlotAvailableEffort(timestamp: UFix64, priority: Priority): UInt64 {
+
+            // Remove fractional values from the timestamp
+            let sanitizedTimestamp = UFix64(UInt64(timestamp))
+
             // Get the maxiumum allowed for a priority including shared
             let priorityLimit = self.configurationDetails.priorityEffortLimit[priority]!
             
             // If nothing has been claimed for the requested timestamp,
             // return the full amount
-            if !self.slotUsedEffort.containsKey(timestamp) {
+            if !self.slotUsedEffort.containsKey(sanitizedTimestamp) {
                 return priorityLimit
             }
 
             // Get the mapping of how much effort has been used
             // for each priority for the timestamp
-            let slotPriorityEffortsUsed = self.slotUsedEffort[timestamp]!
+            let slotPriorityEffortsUsed = self.slotUsedEffort[sanitizedTimestamp]!
 
             // Get the exclusive reserves for each priority
             let highReserve = self.configurationDetails.priorityEffortReserve[Priority.High]!
@@ -721,13 +734,15 @@ access(all) contract FlowCallbackScheduler {
                 // in the queue. Figure out how to more efficiently go through the low priority callbacks
                 // Could potentially limit the size of the low priority callback queue?
                 var lowPriorityEffortAvailable = self.getSlotAvailableEffort(timestamp: timestamp, priority: Priority.Low)
-                for lowCallbackID in lowPriorityCallbacks.keys {
-                    let callbackEffort = lowPriorityCallbacks[lowCallbackID]!
-                    if callbackEffort <= lowPriorityEffortAvailable {
-                        lowPriorityEffortAvailable = lowPriorityEffortAvailable - callbackEffort
-                        callbackIDs[lowCallbackID] = callbackEffort
-                        lowPriorityCallbacks[lowCallbackID] = nil
-                        sortedCallbackIDs.append(lowCallbackID)
+                if lowPriorityEffortAvailable > 0 {
+                    for lowCallbackID in lowPriorityCallbacks.keys {
+                        let callbackEffort = lowPriorityCallbacks[lowCallbackID]!
+                        if callbackEffort <= lowPriorityEffortAvailable {
+                            lowPriorityEffortAvailable = lowPriorityEffortAvailable - callbackEffort
+                            callbackIDs[lowCallbackID] = callbackEffort
+                            lowPriorityCallbacks[lowCallbackID] = nil
+                            sortedCallbackIDs.append(lowCallbackID)
+                        }
                     }
                 }
 
