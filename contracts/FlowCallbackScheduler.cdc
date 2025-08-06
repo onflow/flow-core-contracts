@@ -29,7 +29,7 @@ access(all) contract FlowCallbackScheduler {
     access(all) event Scheduled(
         id: UInt64,
         priority: UInt8,
-        timestamp: UFix64?,
+        timestamp: UFix64,
         executionEffort: UInt64,
         fees: UFix64,
         callbackOwner: Address
