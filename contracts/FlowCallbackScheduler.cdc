@@ -598,28 +598,28 @@ access(all) contract FlowCallbackScheduler {
             if priority == Priority.Low {
                 let highPlusMediumUsed = highUsed + mediumUsed
                 // prevent underflow
-                let totalEffortRemaining = highPlusMediumUsed > self.configurableMetadata.slotTotalEffortLimit ? 0 as UInt64 : self.configurableMetadata.slotTotalEffortLimit - highPlusMediumUsed
+                let totalEffortRemaining = self.configurableMetadata.slotTotalEffortLimit.saturatingSubtract(highPlusMediumUsed)
                 return totalEffortRemaining < priorityLimit ? totalEffortRemaining : priorityLimit
             }
             
             // Get how much shared effort has been used for each priority
             // Ensure the results are always zero or positive
-            let highSharedUsed: UInt64 = highReserve >= highUsed ? 0 : highUsed - highReserve
-            let mediumSharedUsed: UInt64 = mediumReserve >= mediumUsed ? 0 : mediumUsed - mediumReserve
+            let highSharedUsed: UInt64 = highUsed.saturatingSubtract(highReserve)
+            let mediumSharedUsed: UInt64 = mediumUsed.saturatingSubtract(mediumReserve)
 
             // Get the theoretical total shared amount between priorities
-            let totalShared = self.configurableMetadata.slotTotalEffortLimit - highReserve - mediumReserve
+            let totalShared = (self.configurableMetadata.slotTotalEffortLimit.saturatingSubtract(highReserve)).saturatingSubtract(mediumReserve)
 
             // Get the amount of shared effort currently available
             let highPlusMediumSharedUsed = highSharedUsed + mediumSharedUsed
             // prevent underflow
-            let sharedAvailable = highPlusMediumSharedUsed > totalShared ? 0 as UInt64 : totalShared - highPlusMediumSharedUsed        
+            let sharedAvailable = totalShared.saturatingSubtract(highPlusMediumSharedUsed)
 
             // we calculate available by calculating available shared effort and 
             // adding any unused reserves for that priority
             let reserve = self.configurableMetadata.priorityEffortReserve[priority]!
             let used = slotPriorityEffortsUsed[priority] ?? 0
-            let unusedReserve: UInt64 = used >= reserve ? 0 : reserve - used
+            let unusedReserve: UInt64 = reserve.saturatingSubtract(used)
             let available = sharedAvailable + unusedReserve
             
             return available
@@ -766,12 +766,7 @@ access(all) contract FlowCallbackScheduler {
             // so we don't need to subtract anything for them
             if callback.priority != Priority.Low {
                 let slotEfforts = self.slotUsedEffort[callback.scheduledTimestamp]!
-                if slotEfforts[callback.priority]! < callback.executionEffort {
-                    // prevent underflow
-                    slotEfforts[callback.priority] = 0
-                } else {
-                    slotEfforts[callback.priority] = slotEfforts[callback.priority]! - callback.executionEffort
-                }
+                slotEfforts[callback.priority] = slotEfforts[callback.priority]!.saturatingSubtract(callback.executionEffort)
                 self.slotUsedEffort[callback.scheduledTimestamp] = slotEfforts
             }
 
@@ -925,11 +920,8 @@ access(all) contract FlowCallbackScheduler {
         self.account.storage.save(data!, to: storagePath)
         let storageUsedAfter = self.account.storage.used
         self.account.storage.load<AnyStruct>(from: storagePath)
-        if storageUsedBefore >= storageUsedAfter { 
-            return 0.0
-        } else {
-            return FlowStorageFees.convertUInt64StorageBytesToUFix64Megabytes(storageUsedAfter - storageUsedBefore)
-        }
+
+        return FlowStorageFees.convertUInt64StorageBytesToUFix64Megabytes(storageUsedAfter.saturatingSubtract(storageUsedBefore))
     }
 
     /// todo protect access to the following functions to only FVM
