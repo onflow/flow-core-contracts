@@ -191,10 +191,15 @@ access(all) contract FlowCallbackScheduler {
         /// This action is only allowed for canceled callbacks, otherwise it panics.
         /// It deposits any leftover fees to the FlowFees vault to be used to pay node operator rewards
         access(contract) fun payAndWithdrawFees(multiplierToWithdraw: UFix64): @FlowToken.Vault {
-            let amount = self.fees.balance * multiplierToWithdraw
-            let feesToReturn <- self.fees.withdraw(amount: amount) as! @FlowToken.Vault
-            FlowFees.deposit(from: <-self.fees.withdraw(amount: self.fees.balance))
-            return <-feesToReturn
+            if multiplierToWithdraw == 0.0 {
+                FlowFees.deposit(from: <-self.fees.withdraw(amount: self.fees.balance))
+                return <-FlowToken.createEmptyVault(vaultType: Type<@FlowToken.Vault>())
+            } else {
+                let amount = self.fees.balance * multiplierToWithdraw
+                let feesToReturn <- self.fees.withdraw(amount: amount) as! @FlowToken.Vault
+                FlowFees.deposit(from: <-self.fees.withdraw(amount: self.fees.balance))
+                return <-feesToReturn
+            }
         }
 
         /// getData copies and returns the data field
