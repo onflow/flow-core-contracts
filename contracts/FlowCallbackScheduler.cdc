@@ -932,6 +932,17 @@ access(all) contract FlowCallbackScheduler {
     access(all) fun getSizeOfData(_ data: AnyStruct?): UFix64 {
         if data == nil {
             return 0.0
+        } else {
+            let type = data!.getType()
+            if type.isSubtype(of: Type<Number>()) 
+            || type.isSubtype(of: Type<Bool>()) 
+            || type.isSubtype(of: Type<Path>())
+            || type.isSubtype(of: Type<Address>())
+            || type.isSubtype(of: Type<Character>())
+            || type.isSubtype(of: Type<Capability>()) 
+            {
+                return 0.0
+            }
         }
         let storagePath = /storage/dataTemp
         let storageUsedBefore = self.account.storage.used
