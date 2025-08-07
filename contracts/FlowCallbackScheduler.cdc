@@ -21,7 +21,8 @@ access(all) contract FlowCallbackScheduler {
         access(all) case Scheduled
         access(all) case Processed
         /// finalized statuses
-        access(all) case Executed
+        access(all) case Succeeded
+        access(all) case Failed
         access(all) case Canceled
     }
 
@@ -47,7 +48,8 @@ access(all) contract FlowCallbackScheduler {
         priority: UInt8,
         executionEffort: UInt64,
         fees: UFix64,
-        callbackOwner: Address
+        callbackOwner: Address,
+        success: Bool
     )
 
     access(all) event Canceled(
@@ -176,10 +178,12 @@ access(all) contract FlowCallbackScheduler {
         /// It panics if the callback status is already finalized.
         access(contract) fun setStatus(newStatus: Status) {
             pre {
-                self.status != Status.Executed && self.status != Status.Canceled:
+                self.status != Status.Succeeded && self.status != Status.Failed && self.status != Status.Canceled:
                     "Invalid status: Callback with id \(self.id) is already finalized"
-                newStatus == Status.Executed ? self.status == Status.Processed : true:
-                    "Invalid status: Callback with id \(self.id) cannot be marked as Executed until after it is Processed"
+                newStatus == Status.Succeeded ? self.status == Status.Processed : true:
+                    "Invalid status: Callback with id \(self.id) cannot be marked as Succeeded until after it is Processed"
+                newStatus == Status.Failed ? self.status == Status.Processed : true:
+                    "Invalid status: Callback with id \(self.id) cannot be marked as Failed until after it is Processed"
                 newStatus == Status.Processed ? self.status == Status.Scheduled : true:
                     "Invalid status: Callback with id \(self.id) can only be set as Processed if it is Scheduled"
             }
@@ -308,6 +312,21 @@ access(all) contract FlowCallbackScheduler {
         }
     }
 
+    /// HistoricCallback is a struct that contains the timestamp and status of a callback
+    /// that has been finalized and is stored in the historicCallbacks map
+    /// Does not contain Succeeded statuses because we can just assume
+    /// that any ID that is less than the current ID counter
+    /// that is not Canceled, Failed, Scheduled, or Processed is Succeeded
+    access(all) struct HistoricCallback {
+        access(all) let timestamp: UFix64
+        access(all) let status: Status
+
+        access(all) init(timestamp: UFix64, status: Status) {
+            self.timestamp = timestamp
+            self.status = status
+        }
+    }
+
     /// Resources
 
     /// Shared scheduler is a resource that is used as a singleton in the scheduler contract and contains 
@@ -319,8 +338,8 @@ access(all) contract FlowCallbackScheduler {
         /// callbacks is a map of callback IDs to callback data
         access(contract) var callbacks: @{UInt64: CallbackData}
 
-        /// callback status maps historic canceled callback IDs to their original timestamps
-        access(contract) var historicCanceledCallbacks: {UInt64: UFix64}
+        /// callback status maps historic callback IDs to their statuses
+        access(contract) var historicCallbacks: {UInt64: HistoricCallback}
 
         /// slot queue is a map of timestamps to callback IDs and their execution efforts
         access(contract) var slotQueue: {UFix64: {UInt64: UInt64}}
@@ -342,7 +361,7 @@ access(all) contract FlowCallbackScheduler {
             self.lowPriorityScheduledTimestamp = 0.0
             
             self.callbacks <- {}
-            self.historicCanceledCallbacks = {}
+            self.historicCallbacks = {}
             self.slotUsedEffort = {
                 self.lowPriorityScheduledTimestamp: {
                     Priority.High: 0,
@@ -451,15 +470,14 @@ access(all) contract FlowCallbackScheduler {
             }
 
             // if the callback is not found in the callbacks map, we check the callback status map for historic status
-            if let historic = self.historicCanceledCallbacks[id] {
-                return Status.Canceled
+            if let historic = self.historicCallbacks[id] {
+                return historic.status
             } else if id < self.nextID {
-                // historicCanceledCallbacks only stores canceled callbacks
-                // because the only other possible status for finalized callbacks is Executed
+                // historicCallbacks only stores canceled and failed callbacks
                 // Since the ID is a monotonically increasing number,
                 // we know that any ID that is less than the next ID and not in the 
-                // active callbacks map must have been executed
-                return Status.Executed
+                // active callbacks map must have been succeeded
+                return Status.Succeeded
             }
 
             return nil
@@ -749,6 +767,11 @@ access(all) contract FlowCallbackScheduler {
                 for id in callbackIDs.keys {
                     let callback = self.borrowCallback(id: id)!
 
+                    if callback.status == Status.Processed {
+                        self.failCallback(id: id)
+                        continue
+                    }
+
                     if callback.priority == Priority.High {
                         highPriorityIDs.append(id)
                     } else if callback.priority == Priority.Medium {
@@ -797,11 +820,11 @@ access(all) contract FlowCallbackScheduler {
 
             // garbage collect historic statuses that are older than the limit
             // todo: maybe not do this every time, but only each X blocks to save compute
-            let historicCallbacks = self.historicCanceledCallbacks.keys
+            let historicCallbacks = self.historicCallbacks.keys
             for id in historicCallbacks {
-                let historicTimestamp = self.historicCanceledCallbacks[id]!
-                if historicTimestamp < currentTimestamp - self.configurationDetails.historicStatusLimit {
-                    self.historicCanceledCallbacks.remove(key: id)
+                let historicCallback = self.historicCallbacks[id]!
+                if historicCallback.timestamp < currentTimestamp - self.configurationDetails.historicStatusLimit {
+                    self.historicCallbacks.remove(key: id)
                 }
             }
         }
@@ -836,11 +859,14 @@ access(all) contract FlowCallbackScheduler {
                 callbackOwner: callback.handler.address
             )
 
-            // keep historic Canceled status for future queries after garbage collection
-            // We don't keep executed statuses because we can just assume
+            // keep historic Canceled and Failed statuses for future queries after garbage collection
+            // We don't keep succeeded statuses because we can just assume
             // they every ID that is less than the current ID counter
-            // that is not Canceled, Scheduled, or Processed is Executed
-            self.historicCanceledCallbacks[callback.id] = callback.scheduledTimestamp
+            // that is not Canceled, Failed,Scheduled, or Processed is Succeeded
+            self.historicCallbacks[callback.id] = HistoricCallback(
+                timestamp: callback.scheduledTimestamp,
+                status: Status.Canceled
+            )
             
             self.finalizeCallback(callback: callback, status: Status.Canceled)
             
@@ -865,13 +891,49 @@ access(all) contract FlowCallbackScheduler {
                 priority: callback.priority.rawValue,
                 executionEffort: callback.executionEffort,
                 fees: callback.fees.balance,
-                callbackOwner: callback.handler.address
+                callbackOwner: callback.handler.address,
+                success: true
             )
 
             // Deposit all the fees into the FlowFees vault
             destroy callback.payAndWithdrawFees(multiplierToWithdraw: 0.0)
             
-            self.finalizeCallback(callback: callback, status: Status.Executed)
+            self.finalizeCallback(callback: callback, status: Status.Succeeded)
+        }
+
+        /// fail callback fail a Processed callback by ID.
+        /// The callback must be found and in correct state or the function panics and this is a fatal error
+        access(contract) fun failCallback(id: UInt64) {
+            let callback = self.borrowCallback(id: id) ?? 
+                panic("Invalid ID: Callback with id \(id) not found")
+
+            assert (
+                callback.status == Status.Processed,
+                message: "Invalid ID: Cannot fail callback with id \(id) because it has not been processed yet"
+            )
+
+            // keep historic Canceled and Failed statuses for future queries after garbage collection
+            // We don't keep succeeded statuses because we can just assume
+            // they every ID that is less than the current ID counter
+            // that is not Canceled, Failed,Scheduled, or Processed is Succeeded
+            self.historicCallbacks[callback.id] = HistoricCallback(
+                timestamp: callback.scheduledTimestamp,
+                status: Status.Failed
+            )
+
+            // Deposit all the fees into the FlowFees vault
+            destroy callback.payAndWithdrawFees(multiplierToWithdraw: 0.0)
+
+            emit Executed(
+                id: callback.id,
+                priority: callback.priority.rawValue,
+                executionEffort: callback.executionEffort,
+                fees: callback.fees.balance,
+                callbackOwner: callback.handler.address,
+                success: false
+            )
+
+            self.finalizeCallback(callback: callback, status: Status.Failed)
         }
 
         /// finalizes the callback by setting the status to executed or canceled and emitting the appropriate event.
@@ -881,8 +943,8 @@ access(all) contract FlowCallbackScheduler {
         /// in the same block after it is processed so it won't get processed twice
         access(contract) fun finalizeCallback(callback: &CallbackData, status: Status) {
             pre {
-                status == Status.Executed || status == Status.Canceled: 
-                    "Invalid status: The provided status to finalizeCallback must be Executed or Canceled"
+                status == Status.Succeeded || status == Status.Failed || status == Status.Canceled: 
+                    "Invalid status: The provided status to finalizeCallback must be Succeeded, Failed, or Canceled"
             }
 
             callback.setStatus(newStatus: status)

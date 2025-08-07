@@ -15,8 +15,9 @@ access(all) let lowPriority = UInt8(2)
 
 access(all) let statusScheduled = UInt8(0)
 access(all) let statusProcessed = UInt8(1)
-access(all) let statusExecuted = UInt8(2)
-access(all) let statusCanceled = UInt8(3)
+access(all) let statusSucceeded = UInt8(2)
+access(all) let statusFailed = UInt8(3)
+access(all) let statusCanceled = UInt8(4)
 
 access(all) let basicEffort: UInt64 = 1000
 access(all) let mediumEffort: UInt64 = 10000
@@ -403,9 +404,9 @@ access(all) fun testCallbackExecution() {
     for event in executedEvents {
         let executedEvent = event as! FlowCallbackScheduler.Executed
     
-        // Verify callback status is now Executed
+        // Verify callback status is now Succeeded
         var status = getStatus(id: executedEvent.id)
-        Test.assertEqual(statusExecuted, status)
+        Test.assertEqual(statusSucceeded, status)
     }
 
     // Check that the callbacks were executed
@@ -426,6 +427,10 @@ access(all) fun testCallbackExecution() {
 
     // Process the two remaining callbacks
     processCallbacks()
+
+    // Check that the failed callback is marked as Failed
+    status = getStatus(id: callbackToFail)
+    Test.assertEqual(statusFailed, status)
 
     // Execute the two remaining callbacks (medium and low)
     executeCallback(id: UInt64(3), failWithErr: nil)
