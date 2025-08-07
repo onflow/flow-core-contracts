@@ -5,7 +5,7 @@ import "FungibleToken"
 // TestFlowCallbackHandler is a simplified test contract for testing CallbackScheduler
 access(all) contract TestFlowCallbackHandler {
     access(all) var scheduledCallbacks: {UInt64: FlowCallbackScheduler.ScheduledCallback}
-    access(all) var executedCallbacks: [UInt64]
+    access(all) var succeededCallbacks: [UInt64]
 
     access(all) let HandlerStoragePath: StoragePath
     access(all) let HandlerPublicPath: PublicPath
@@ -21,7 +21,7 @@ access(all) contract TestFlowCallbackHandler {
                     panic("Callback \(id) failed")
                 } else {
                     // All other regular test cases should succeed
-                    TestFlowCallbackHandler.executedCallbacks.append(id)
+                    TestFlowCallbackHandler.succeededCallbacks.append(id)
                 }
             } else if let dataCap = data as? Capability<auth(FlowCallbackScheduler.Execute) &{FlowCallbackScheduler.CallbackHandler}> {
                 // Testing scheduling a callback with a callback
@@ -55,8 +55,8 @@ access(all) contract TestFlowCallbackHandler {
         return <-FlowCallbackScheduler.cancel(callback: callback)
     }
 
-    access(all) fun getExecutedCallbacks(): [UInt64] {
-        return self.executedCallbacks
+    access(all) fun getSucceededCallbacks(): [UInt64] {
+        return self.succeededCallbacks
     }
 
     access(contract) fun getFeeFromVault(amount: UFix64): @FlowToken.Vault {
@@ -69,7 +69,7 @@ access(all) contract TestFlowCallbackHandler {
 
     access(all) init() {
         self.scheduledCallbacks = {}
-        self.executedCallbacks = []
+        self.succeededCallbacks = []
 
         self.HandlerStoragePath = /storage/testCallbackHandler
         self.HandlerPublicPath = /public/testCallbackHandler
