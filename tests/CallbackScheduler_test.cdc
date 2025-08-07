@@ -910,11 +910,11 @@ access(all) fun setConfigDetails(
     }
 }
 
-access(all) fun getConfigDetails(): FlowCallbackScheduler.SchedulerConfig {
+access(all) fun getConfigDetails(): {FlowCallbackScheduler.SchedulerConfig} {
     var config = executeScript(
         "../transactions/callbackScheduler/scripts/get_config.cdc",
         []
-    ).returnValue! as! FlowCallbackScheduler.SchedulerConfig
+    ).returnValue! as! {FlowCallbackScheduler.SchedulerConfig}
     return config
 }
 

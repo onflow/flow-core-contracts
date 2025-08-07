@@ -212,9 +212,10 @@ access(all) contract FlowCallbackScheduler {
         }
     }
 
-    /// Struct representing all the configuration details in the Scheduler contract
+    /// Struct interface representing all the base configuration details in the Scheduler contract
     /// that is used for governing the protocol
-    access(all) struct SchedulerConfig {
+    /// This is an interface to allow for the configuration details to be updated in the future
+    access(all) struct interface SchedulerConfig {
         /// slot total effort limit is the maximum effort that can be 
         /// cumulatively allocated to one timeslot by all priorities
         access(all) var slotTotalEffortLimit: UInt64
@@ -272,6 +273,30 @@ access(all) contract FlowCallbackScheduler {
                 priorityEffortLimit[Priority.Low]! >= priorityEffortReserve[Priority.Low]!:
                     "Invalid priority effort limit: Low priority effort limit must be greater than or equal to the priority effort reserve of \(priorityEffortReserve[Priority.Low]!)"
             }
+        }
+    }
+
+    /// Concrete implementation of the SchedulerConfig interface
+    /// This struct is used to store the configuration details in the Scheduler contract
+    access(all) struct Config: SchedulerConfig {
+        access(all) var slotTotalEffortLimit: UInt64
+        access(all) var slotSharedEffortLimit: UInt64
+        access(all) var priorityEffortReserve: {Priority: UInt64}
+        access(all) var priorityEffortLimit: {Priority: UInt64}
+        access(all) var minimumExecutionEffort: UInt64
+        access(all) var priorityFeeMultipliers: {Priority: UFix64}
+        access(all) var refundMultiplier: UFix64
+        access(all) var historicStatusLimit: UFix64
+
+        access(all) init(
+            slotSharedEffortLimit: UInt64,
+            priorityEffortReserve: {Priority: UInt64},
+            priorityEffortLimit: {Priority: UInt64},
+            minimumExecutionEffort: UInt64,
+            priorityFeeMultipliers: {Priority: UFix64},
+            refundMultiplier: UFix64,
+            historicStatusLimit: UFix64
+        ) {
             self.slotTotalEffortLimit = slotSharedEffortLimit + priorityEffortReserve[Priority.High]! + priorityEffortReserve[Priority.Medium]!
             self.slotSharedEffortLimit = slotSharedEffortLimit
             self.priorityEffortReserve = priorityEffortReserve
@@ -282,7 +307,6 @@ access(all) contract FlowCallbackScheduler {
             self.historicStatusLimit = historicStatusLimit
         }
     }
-        
 
     /// Resources
 
@@ -311,7 +335,7 @@ access(all) contract FlowCallbackScheduler {
 
         /// Struct that contains all the configuration details for the callback scheduler protocol
         /// Can be updated by the owner of the contract
-        access(contract) var configurationDetails: SchedulerConfig
+        access(contract) var configurationDetails: {SchedulerConfig}
 
         access(all) init() {
             self.nextID = 1
@@ -358,7 +382,7 @@ access(all) contract FlowCallbackScheduler {
             let highPriorityEffortReserve: UInt64 = 20_000
             let mediumPriorityEffortReserve: UInt64 = 5_000
 
-            self.configurationDetails = SchedulerConfig(
+            self.configurationDetails = Config(
                 slotSharedEffortLimit: sharedEffortLimit,
                 priorityEffortReserve: {
                     Priority.High: highPriorityEffortReserve,
@@ -383,12 +407,12 @@ access(all) contract FlowCallbackScheduler {
 
         /// Gets a struct containing all the configuration details
         /// of the Scheduler resource
-        access(all) fun getConfigurationDetails(): SchedulerConfig {
+        access(all) fun getConfigurationDetails(): {SchedulerConfig} {
             return self.configurationDetails
         }
 
         /// sets all the configuration details for the Scheduler resource
-        access(UpdateConfig) fun setConfigurationDetails(newConfig: SchedulerConfig) {
+        access(UpdateConfig) fun setConfigurationDetails(newConfig: {SchedulerConfig}) {
             self.configurationDetails = newConfig
             emit ConfigUpdated()
         }
@@ -939,7 +963,7 @@ access(all) contract FlowCallbackScheduler {
         return self.sharedScheduler.borrow()!.getSlotAvailableEffort(timestamp: timestamp, priority: priority)
     }
 
-    access(all) fun getSchedulerConfigurationDetails(): SchedulerConfig {
+    access(all) fun getSchedulerConfigurationDetails(): {SchedulerConfig} {
         return self.sharedScheduler.borrow()!.getConfigurationDetails()
     }
     
