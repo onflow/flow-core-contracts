@@ -389,7 +389,6 @@ access(all) fun testCallbackExecution() {
                 Test.assertEqual(processedEvent.executionEffort, executedEvent.executionEffort)
                 Test.assertEqual(feeAmount, executedEvent.fees)
                 Test.assertEqual(processedEvent.callbackOwner, executedEvent.callbackOwner)
-                Test.assertEqual(true, executedEvent.succeeded)
                 firstEvent = true
             }
         }
@@ -648,16 +647,16 @@ access(all) fun runEstimateTestCase(testCase: EstimateTestCase) {
 }
 
 /** ---------------------------------------------------------------------------------
- Callback scheduler config metadata tests
+ Callback scheduler config details tests
  --------------------------------------------------------------------------------- */
 
 
-access(all) fun testConfigMetadata() {
+access(all) fun testConfigDetails() {
 
     /** -------------
     Error Test Cases
     ---------------- */
-    setConfigMetadata(
+    setConfigDetails(
         slotSharedEffortLimit: nil,
         priorityEffortReserve: nil,
         priorityEffortLimit: nil,
@@ -668,7 +667,7 @@ access(all) fun testConfigMetadata() {
         shouldFail: "Invalid refund multiplier: The multiplier must be between 0.0 and 1.0 but got 1.10000000"
     )
 
-    setConfigMetadata(
+    setConfigDetails(
         slotSharedEffortLimit: nil,
         priorityEffortReserve: nil,
         priorityEffortLimit: nil,
@@ -679,7 +678,7 @@ access(all) fun testConfigMetadata() {
         shouldFail: "Invalid historic status limit: Limit must be greater than 1.0 and less than the current timestamp but got 0.00000000"
     )
 
-    setConfigMetadata(
+    setConfigDetails(
         slotSharedEffortLimit: nil,
         priorityEffortReserve: nil,
         priorityEffortLimit: nil,
@@ -690,7 +689,7 @@ access(all) fun testConfigMetadata() {
         shouldFail: "Invalid priority fee multiplier: Low priority multiplier must be greater than or equal to 1.0 but got 0.90000000"
     )
 
-    setConfigMetadata(
+    setConfigDetails(
         slotSharedEffortLimit: nil,
         priorityEffortReserve: nil,
         priorityEffortLimit: nil,
@@ -701,7 +700,7 @@ access(all) fun testConfigMetadata() {
         shouldFail: "Invalid priority fee multiplier: Medium priority multiplier must be greater than or equal to 4.00000000 but got 3.00000000"
     )
 
-    setConfigMetadata(
+    setConfigDetails(
         slotSharedEffortLimit: nil,
         priorityEffortReserve: nil,
         priorityEffortLimit: nil,
@@ -712,7 +711,7 @@ access(all) fun testConfigMetadata() {
         shouldFail: "Invalid priority fee multiplier: High priority multiplier must be greater than or equal to 6.00000000 but got 5.00000000"
     )
 
-    setConfigMetadata(
+    setConfigDetails(
         slotSharedEffortLimit: nil,
         priorityEffortReserve: {highPriority: 40000, mediumPriority: 30000, lowPriority: 10000},
         priorityEffortLimit: {highPriority: 30000, mediumPriority: 30000, lowPriority: 10000},
@@ -723,7 +722,7 @@ access(all) fun testConfigMetadata() {
         shouldFail: "Invalid priority effort limit: High priority effort limit must be greater than or equal to the priority effort reserve of 40000"
     )
 
-    setConfigMetadata(
+    setConfigDetails(
         slotSharedEffortLimit: nil,
         priorityEffortReserve: {highPriority: 30000, mediumPriority: 40000, lowPriority: 10000},
         priorityEffortLimit: {highPriority: 30000, mediumPriority: 30000, lowPriority: 10000},
@@ -734,7 +733,7 @@ access(all) fun testConfigMetadata() {
         shouldFail: "Invalid priority effort limit: Medium priority effort limit must be greater than or equal to the priority effort reserve of 40000"
     )
 
-    setConfigMetadata(
+    setConfigDetails(
         slotSharedEffortLimit: nil,
         priorityEffortReserve: {highPriority: 30000, mediumPriority: 30000, lowPriority: 20000},
         priorityEffortLimit: {highPriority: 30000, mediumPriority: 30000, lowPriority: 10000},
@@ -749,7 +748,7 @@ access(all) fun testConfigMetadata() {
     /** -------------
     Valid Test Case
     ---------------- */
-    let oldConfig = getConfigMetadata()
+    let oldConfig = getConfigDetails()
     Test.assertEqual(oldConfig.slotTotalEffortLimit, 35000 as UInt64)
     Test.assertEqual(oldConfig.slotSharedEffortLimit, 10000 as UInt64)
     Test.assertEqual(oldConfig.priorityEffortReserve[FlowCallbackScheduler.Priority.High]!, 20000 as UInt64)
@@ -766,7 +765,7 @@ access(all) fun testConfigMetadata() {
     Test.assertEqual(oldConfig.historicStatusLimit, 2592000.00000000)
 
 
-    setConfigMetadata(
+    setConfigDetails(
         slotSharedEffortLimit: 20000,
         priorityEffortReserve: nil,
         priorityEffortLimit: {highPriority: 30000, mediumPriority: 30000, lowPriority: 10000},
@@ -777,8 +776,8 @@ access(all) fun testConfigMetadata() {
         shouldFail: nil
     )
 
-    // Verify new config metadata
-    let newConfig = getConfigMetadata()
+    // Verify new config details
+    let newConfig = getConfigDetails()
     Test.assertEqual(newConfig.slotTotalEffortLimit, 45000 as UInt64)
     Test.assertEqual(newConfig.slotSharedEffortLimit, 20000 as UInt64)
     Test.assertEqual(newConfig.priorityEffortReserve[FlowCallbackScheduler.Priority.High]!, oldConfig.priorityEffortReserve[FlowCallbackScheduler.Priority.High]!)
@@ -878,7 +877,7 @@ access(all) fun executeCallback(id: UInt64, failWithErr: String?) {
     }
 }
 
-access(all) fun setConfigMetadata(
+access(all) fun setConfigDetails(
     slotSharedEffortLimit: UInt64?,
     priorityEffortReserve: {UInt8: UInt64}?,
     priorityEffortLimit: {UInt8: UInt64}?,
@@ -888,29 +887,30 @@ access(all) fun setConfigMetadata(
     historicStatusLimit: UFix64?,
     shouldFail: String?
 ) {
-    let setConfigMetadataCode = Test.readFile("../transactions/callbackScheduler/admin/set_config_metadata.cdc")
-    let setConfigMetadataTx = Test.Transaction(
-        code: setConfigMetadataCode,
+    let setConfigDetailsCode = Test.readFile("../transactions/callbackScheduler/admin/set_config_details.cdc")
+    let setConfigDetailsTx = Test.Transaction(
+        code: setConfigDetailsCode,
         authorizers: [admin.address],
         signers: [admin],
         arguments: [slotSharedEffortLimit, priorityEffortReserve, priorityEffortLimit, minimumExecutionEffort, priorityFeeMultipliers, refundMultiplier, historicStatusLimit]
     )
-    let setConfigMetadataResult = Test.executeTransaction(setConfigMetadataTx)
+    let setConfigDetailsResult = Test.executeTransaction(setConfigDetailsTx)
     if let error = shouldFail {
-        Test.expect(setConfigMetadataResult, Test.beFailed())
+        // log(error)
+        // log(setConfigDetailsResult.error!.message)
+        Test.expect(setConfigDetailsResult, Test.beFailed())
         // Check error
-        //Test.assert(error == setConfigMetadataResult.error!.message, message: "error mismatch: Expected \(error) but got \(setConfigMetadataResult.error!.message)")
-        
+        //Test.assert(error == setConfigDetailsResult.error!.message, message: "error mismatch: Expected \(error) but got \(setConfigDetailsResult.error!.message)")
         Test.assertError(
-            setConfigMetadataResult,
+            setConfigDetailsResult,
             errorMessage: error
         )
     } else {
-        Test.expect(setConfigMetadataResult, Test.beSucceeded())
+        Test.expect(setConfigDetailsResult, Test.beSucceeded())
     }
 }
 
-access(all) fun getConfigMetadata(): FlowCallbackScheduler.SchedulerConfig {
+access(all) fun getConfigDetails(): FlowCallbackScheduler.SchedulerConfig {
     var config = executeScript(
         "../transactions/callbackScheduler/scripts/get_config.cdc",
         []

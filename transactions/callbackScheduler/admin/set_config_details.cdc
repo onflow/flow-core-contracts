@@ -9,11 +9,11 @@ transaction(slotSharedEffortLimit: UInt64?,
             historicStatusLimit: UFix64?) {
     prepare(account: auth(BorrowValue, SaveValue, IssueStorageCapabilityController, PublishCapability, GetStorageCapabilityController) &Account) {
         // borrow an entitled reference to the SharedScheduler resource
-        let schedulerRef = account.storage.borrow<auth(FlowCallbackScheduler.UpdateMetadata) &FlowCallbackScheduler.SharedScheduler>(from: /storage/sharedScheduler)
+        let schedulerRef = account.storage.borrow<auth(FlowCallbackScheduler.UpdateConfig) &FlowCallbackScheduler.SharedScheduler>(from: /storage/sharedScheduler)
             ?? panic("Could not borrow reference to SharedScheduler resource")
 
         // get the current config
-        let currentConfig = schedulerRef.getConfigMetadata()
+        let currentConfig = schedulerRef.getConfigurationDetails()
 
         let highRawValue = FlowCallbackScheduler.Priority.High.rawValue
         let mediumRawValue = FlowCallbackScheduler.Priority.Medium.rawValue
@@ -69,6 +69,6 @@ transaction(slotSharedEffortLimit: UInt64?,
         )
 
         // set the new config
-        schedulerRef.setConfigMetadata(newConfig: newConfig)
+        schedulerRef.setConfigurationDetails(newConfig: newConfig)
     }
 }
