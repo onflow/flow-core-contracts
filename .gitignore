@@ -18,6 +18,7 @@ coverage.json
 coverage.lcov
 lcov.info
 *.pkey
+imports*
 
 imports*
 

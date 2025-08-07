@@ -9,7 +9,7 @@ require (
 	github.com/onflow/flow-core-contracts/lib/go/templates v1.7.2-0.20250910191958-e8d0be12d23a
 	github.com/onflow/flow-ft/lib/go/contracts v1.0.1
 	github.com/onflow/flow-go-sdk v1.0.0-preview.54
-	github.com/onflow/flow-nft/lib/go/contracts v1.2.4
+	github.com/onflow/flow-nft/lib/go/contracts v1.3.0
 	github.com/stretchr/testify v1.9.0
 )
 
