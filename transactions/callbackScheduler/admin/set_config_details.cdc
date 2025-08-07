@@ -58,7 +58,7 @@ transaction(slotSharedEffortLimit: UInt64?,
         }
 
         // create a new config, only updating the fields that are provided as non-nil arguments to this transaction
-        let newConfig: FlowCallbackScheduler.SchedulerConfig = FlowCallbackScheduler.SchedulerConfig(
+        let newConfig: FlowCallbackScheduler.Config = FlowCallbackScheduler.Config(
             slotSharedEffortLimit: slotSharedEffortLimit ?? currentConfig.slotSharedEffortLimit,
             priorityEffortReserve: newReserves,
             priorityEffortLimit: newLimits,
