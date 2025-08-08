@@ -786,7 +786,7 @@ access(all) contract FlowCallbackScheduler {
 
         /// garbage collection of any resources that can be released after processing.
         /// This includes clearing historic statuses that are older than the limit.
-        access(contract) fun garbageCollect() {
+        access(contract) fun garbageCollect(currentTimestamp: UFix64) {
             // note: historic statuses might be present longer than the limit, which is fine.
             let historicCallbacks = self.historicCanceledCallbacks.keys
             for id in historicCallbacks {
@@ -871,7 +871,7 @@ access(all) contract FlowCallbackScheduler {
                 }
             }
 
-            self.garbageCollect()
+            self.garbageCollect(currentTimestamp: currentTimestamp)
         }
 
         /// cancel scheduled callback and return a portion of the fees that were paid.
