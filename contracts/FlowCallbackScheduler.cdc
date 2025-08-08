@@ -1062,15 +1062,15 @@ access(all) contract FlowCallbackScheduler {
         return FlowStorageFees.convertUInt64StorageBytesToUFix64Megabytes(storageUsedAfter.saturatingSubtract(storageUsedBefore))
     }
 
-    /// todo protect access to the following functions to only FVM
+    /// Protected access area restricted to the service account and invoked by the FVM
 
     /// Process all callbacks that have timestamps in the past
-    access(all) fun process() {
+    access(account) fun process() {
         self.sharedScheduler.borrow()!.process()
     }
 
     /// Execute a processed callback by ID
-    access(all) fun executeCallback(id: UInt64) {
+    access(account) fun executeCallback(id: UInt64) {
         self.sharedScheduler.borrow()!.executeCallback(id: id)
     }
 }
