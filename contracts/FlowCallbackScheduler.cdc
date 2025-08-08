@@ -667,8 +667,7 @@ access(all) contract FlowCallbackScheduler {
             let highUsed = slotPriorityEffortsUsed[Priority.High] ?? 0
             let mediumUsed = slotPriorityEffortsUsed[Priority.Medium] ?? 0
 
-            // If it is low priority, return whatever effort is remaining
-            // under 5000
+            // If it is low priority, return whatever effort is remaining under 5000
             if priority == Priority.Low {
                 let highPlusMediumUsed = highUsed + mediumUsed
                 // prevent underflow
