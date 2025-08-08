@@ -252,6 +252,9 @@ access(all) contract FlowCallbackScheduler {
         /// collection transactions limit is the maximum number of transactions that can be processed in a collection
         access(all) var collectionTransactionsLimit: UInt64
 
+        /// max data size is the maximum data size that can be stored for a callback
+        access(all) var maxDataSizeMB: UFix64
+
         access(all) init(
             slotSharedEffortLimit: UInt64,
             priorityEffortReserve: {Priority: UInt64},
@@ -261,7 +264,8 @@ access(all) contract FlowCallbackScheduler {
             refundMultiplier: UFix64,
             historicStatusLimit: UFix64,
             collectionEffortLimit: UInt64,
-            collectionTransactionsLimit: UInt64
+            collectionTransactionsLimit: UInt64,
+            maxDataSizeMB: UFix64
         ) {
             pre {
                 refundMultiplier >= 0.0 && refundMultiplier <= 1.0:
@@ -284,6 +288,8 @@ access(all) contract FlowCallbackScheduler {
                     "Invalid collection effort limit: Collection effort limit must be greater than 1 but got \(collectionEffortLimit)"
                 collectionTransactionsLimit > slotSharedEffortLimit:
                     "Invalid collection transactions limit: Collection transactions limit must be greater than \(slotSharedEffortLimit) but got \(collectionTransactionsLimit)"
+                maxDataSizeMB > 0.0:
+                    "Invalid max data size: Max data size must be greater than 0.0 but got \(maxDataSizeMB)"
             }
         }
     }
@@ -301,6 +307,7 @@ access(all) contract FlowCallbackScheduler {
         access(all) var historicStatusLimit: UFix64
         access(all) var collectionEffortLimit: UInt64
         access(all) var collectionTransactionsLimit: UInt64
+        access(all) var maxDataSizeMB: UFix64
 
         access(all) init(
             slotSharedEffortLimit: UInt64,
@@ -311,7 +318,8 @@ access(all) contract FlowCallbackScheduler {
             refundMultiplier: UFix64,
             historicStatusLimit: UFix64,
             collectionEffortLimit: UInt64,
-            collectionTransactionsLimit: UInt64
+            collectionTransactionsLimit: UInt64,
+            maxDataSizeMB: UFix64
         ) {
             self.slotTotalEffortLimit = slotSharedEffortLimit + priorityEffortReserve[Priority.High]! + priorityEffortReserve[Priority.Medium]!
             self.slotSharedEffortLimit = slotSharedEffortLimit
@@ -323,6 +331,7 @@ access(all) contract FlowCallbackScheduler {
             self.historicStatusLimit = historicStatusLimit
             self.collectionEffortLimit = collectionEffortLimit
             self.collectionTransactionsLimit = collectionTransactionsLimit
+            self.maxDataSizeMB = maxDataSizeMB
         }
     }
 
@@ -421,7 +430,8 @@ access(all) contract FlowCallbackScheduler {
                 refundMultiplier: 0.5,
                 historicStatusLimit: 30.0 * 24.0 * 60.0 * 60.0, // 30 days
                 collectionEffortLimit: 8_000_000,
-                collectionTransactionsLimit: 98
+                collectionTransactionsLimit: 98,
+                maxDataSizeMB: 3.0
             )
         }
 
@@ -443,7 +453,7 @@ access(all) contract FlowCallbackScheduler {
         }
 
         /// calculate fee by converting execution effort to a fee in Flow tokens.
-        access(all) fun calculateFee(executionEffort: UInt64, priority: Priority, data: AnyStruct?): UFix64 {
+        access(all) fun calculateFee(executionEffort: UInt64, priority: Priority, dataSizeMB: UFix64): UFix64 {
             // Use the official FlowFees calculation
             let baseFee = FlowFees.computeFees(inclusionEffort: 1.0, executionEffort: UFix64(executionEffort))
             
@@ -451,7 +461,7 @@ access(all) contract FlowCallbackScheduler {
             let scaledExecutionFee = baseFee * self.config.priorityFeeMultipliers[priority]!
 
             // Calculate the FLOW required to pay for storage of the callback data
-            let storageFee = FlowStorageFees.storageCapacityToFlow(FlowCallbackScheduler.getSizeOfData(data))
+            let storageFee = FlowStorageFees.storageCapacityToFlow(dataSizeMB)
             
             return scaledExecutionFee + storageFee
         }
@@ -579,7 +589,12 @@ access(all) contract FlowCallbackScheduler {
                 return EstimatedCallback(flowFee: nil, timestamp: nil, error: "Invalid execution effort: \(executionEffort) is less than the minimum execution effort of \(self.config.minimumExecutionEffort)")
             }
 
-            let fee = self.calculateFee(executionEffort: executionEffort, priority: priority, data: data)
+            let dataSizeMB = FlowCallbackScheduler.getSizeOfData(data)
+            if dataSizeMB > self.config.maxDataSizeMB {
+                return EstimatedCallback(flowFee: nil, timestamp: nil, error: "Invalid data size: \(dataSizeMB) is greater than the maximum data size of \(self.config.maxDataSizeMB)MB")
+            }
+
+            let fee = self.calculateFee(executionEffort: executionEffort, priority: priority, dataSizeMB: dataSizeMB)
 
             let scheduledTimestamp = self.calculateScheduledTimestamp(
                 timestamp: sanitizedTimestamp, 
