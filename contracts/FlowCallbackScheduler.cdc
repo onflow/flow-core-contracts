@@ -308,6 +308,67 @@ access(all) contract FlowCallbackScheduler {
         }
     }
 
+    /// SortedTimestamps maintains a sorted array of timestamps for efficient processing
+    /// It encapsulates all operations related to maintaining and querying sorted timestamps
+    access(all) struct SortedTimestamps {
+        /// Internal sorted array of timestamps
+        access(self) var timestamps: [UFix64]
+        access(self) let lowPriorityScheduledTimestamp: UFix64
+
+        access(all) init() {
+            self.timestamps = []
+            self.lowPriorityScheduledTimestamp = 0.0
+        }
+
+        /// Add a timestamp to the sorted array maintaining sorted order
+        access(all) fun add(timestamp: UFix64) {
+            if timestamp == self.lowPriorityScheduledTimestamp {
+                return
+            }
+
+            var insertIndex = 0
+            for i, ts in self.timestamps {
+                if timestamp < ts {
+                    insertIndex = i
+                    break
+                }
+                insertIndex = i + 1
+            }
+            self.timestamps.insert(at: insertIndex, timestamp)
+        }
+
+        /// Remove a timestamp from the sorted array
+        access(all) fun remove(timestamp: UFix64) {
+            if timestamp == self.lowPriorityScheduledTimestamp {
+                return
+            }
+
+            let index = self.timestamps.firstIndex(of: timestamp)
+            if index != nil {
+                self.timestamps.remove(at: index!)
+            }
+        }
+
+        /// Get all timestamps that are in the past (less than or equal to current timestamp)
+        access(all) fun past(current: UFix64): [UFix64] {
+            let pastTimestamps: [UFix64] = []
+            for timestamp in self.timestamps {
+                if timestamp <= current {
+                    pastTimestamps.append(timestamp)
+                } else {
+                    break  // No need to check further since array is sorted
+                }
+            }
+            return pastTimestamps
+        }
+
+        /// Check if there are any timestamps that need processing
+        /// Returns true if processing is needed, false for early exit
+        access(all) fun check(current: UFix64): Bool {
+            return self.timestamps.length > 0 && self.timestamps[0] <= current
+        }
+    }
+
     /// Resources
 
     /// Shared scheduler is a resource that is used as a singleton in the scheduler contract and contains 
@@ -333,6 +394,10 @@ access(all) contract FlowCallbackScheduler {
         /// so we use this special value
         access(contract) let lowPriorityScheduledTimestamp: UFix64
 
+        /// sorted timestamps manager for efficient processing
+        /// excludes lowPriorityScheduledTimestamp
+        access(contract) var sortedTimestamps: SortedTimestamps
+
         /// Struct that contains all the configuration details for the callback scheduler protocol
         /// Can be updated by the owner of the contract
         access(contract) var configurationDetails: {SchedulerConfig}
@@ -353,6 +418,7 @@ access(all) contract FlowCallbackScheduler {
             self.slotQueue = {
                 self.lowPriorityScheduledTimestamp: {}
             }
+            self.sortedTimestamps = SortedTimestamps()
             
             /* Default slot efforts and limits look like this:
 
@@ -692,6 +758,8 @@ access(all) contract FlowCallbackScheduler {
                     Priority.Medium: 0,
                     Priority.Low: 0
                 }
+
+                self.sortedTimestamps.add(timestamp: slot)
             }
 
             // Add this callback id to the slot
@@ -726,16 +794,13 @@ access(all) contract FlowCallbackScheduler {
 
             let currentTimestamp = getCurrentBlock().timestamp
             
-            // find all timestamps that are in the past
-            let pastTimestamp = view fun (timestamp: UFix64): Bool {
-                // don't add low priority timestamp to the past timestamps
-                if timestamp == lowPriorityTimestamp { 
-                    return false
-                }
-
-                return timestamp <= currentTimestamp
+            // Early exit if no timestamps need processing
+            if !self.sortedTimestamps.check(current: currentTimestamp) {
+                return
             }
-            let pastTimestamps = self.slotQueue.keys.filter(pastTimestamp)
+            
+            // Collect past timestamps efficiently from sorted array
+            let pastTimestamps = self.sortedTimestamps.past(current: currentTimestamp)
             
             // process all callbacks from timestamps in the past
             // and add low priority callbacks to the timestamp if there is space
@@ -904,6 +969,8 @@ access(all) contract FlowCallbackScheduler {
                 if callbackQueue.keys.length == 0 {
                     self.slotQueue.remove(key: slot)
                     self.slotUsedEffort.remove(key: slot)
+
+                    self.sortedTimestamps.remove(timestamp: slot)
                 }
             }
         }
