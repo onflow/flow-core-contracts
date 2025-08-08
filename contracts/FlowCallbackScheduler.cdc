@@ -255,6 +255,9 @@ access(all) contract FlowCallbackScheduler {
         /// max data size is the maximum data size that can be stored for a callback
         access(all) var maxDataSizeMB: UFix64
 
+        /// max callback effort is the maximum effort that can be used for a callback
+        access(all) var maxCallbackEffort: UInt64
+
         access(all) init(
             slotSharedEffortLimit: UInt64,
             priorityEffortReserve: {Priority: UInt64},
@@ -265,7 +268,8 @@ access(all) contract FlowCallbackScheduler {
             historicStatusLimit: UFix64,
             collectionEffortLimit: UInt64,
             collectionTransactionsLimit: UInt64,
-            maxDataSizeMB: UFix64
+            maxDataSizeMB: UFix64,
+            maxCallbackEffort: UInt64
         ) {
             pre {
                 refundMultiplier >= 0.0 && refundMultiplier <= 1.0:
@@ -290,6 +294,8 @@ access(all) contract FlowCallbackScheduler {
                     "Invalid collection transactions limit: Collection transactions limit must be greater than \(slotSharedEffortLimit) but got \(collectionTransactionsLimit)"
                 maxDataSizeMB > 0.0:
                     "Invalid max data size: Max data size must be greater than 0.0 but got \(maxDataSizeMB)"
+                maxCallbackEffort > 0:
+                    "Invalid max callback effort: Max callback effort must be greater than 0 but got \(maxCallbackEffort)"
             }
         }
     }
@@ -308,6 +314,7 @@ access(all) contract FlowCallbackScheduler {
         access(all) var collectionEffortLimit: UInt64
         access(all) var collectionTransactionsLimit: UInt64
         access(all) var maxDataSizeMB: UFix64
+        access(all) var maxCallbackEffort: UInt64
 
         access(all) init(
             slotSharedEffortLimit: UInt64,
@@ -319,7 +326,8 @@ access(all) contract FlowCallbackScheduler {
             historicStatusLimit: UFix64,
             collectionEffortLimit: UInt64,
             collectionTransactionsLimit: UInt64,
-            maxDataSizeMB: UFix64
+            maxDataSizeMB: UFix64,
+            maxCallbackEffort: UInt64
         ) {
             self.slotTotalEffortLimit = slotSharedEffortLimit + priorityEffortReserve[Priority.High]! + priorityEffortReserve[Priority.Medium]!
             self.slotSharedEffortLimit = slotSharedEffortLimit
@@ -332,6 +340,7 @@ access(all) contract FlowCallbackScheduler {
             self.collectionEffortLimit = collectionEffortLimit
             self.collectionTransactionsLimit = collectionTransactionsLimit
             self.maxDataSizeMB = maxDataSizeMB
+            self.maxCallbackEffort = maxCallbackEffort
         }
     }
 
@@ -430,8 +439,9 @@ access(all) contract FlowCallbackScheduler {
                 refundMultiplier: 0.5,
                 historicStatusLimit: 30.0 * 24.0 * 60.0 * 60.0, // 30 days
                 collectionEffortLimit: 8_000_000,
-                collectionTransactionsLimit: 98,
-                maxDataSizeMB: 3.0
+                collectionTransactionsLimit: 90,  
+                maxDataSizeMB: 3.0, // collection data limit
+                maxCallbackEffort: 9999 // same as transaction limit
             )
         }
 
@@ -579,6 +589,10 @@ access(all) contract FlowCallbackScheduler {
 
             if sanitizedTimestamp <= getCurrentBlock().timestamp {
                 return EstimatedCallback(flowFee: nil, timestamp: nil, error: "Invalid timestamp: \(sanitizedTimestamp) is in the past, current timestamp: \(getCurrentBlock().timestamp)")
+            }
+
+            if executionEffort > self.config.maxCallbackEffort {
+                return EstimatedCallback(flowFee: nil, timestamp: nil, error: "Invalid execution effort: \(executionEffort) is greater than the maximum callback effort of \(self.config.maxCallbackEffort)")
             }
 
             if executionEffort > self.config.priorityEffortLimit[priority]! {
