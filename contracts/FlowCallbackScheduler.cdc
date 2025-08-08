@@ -783,9 +783,22 @@ access(all) contract FlowCallbackScheduler {
 
             self.callbacks[callback.id] <-! callback
         }
+
+        /// garbage collection of any resources that can be released after processing.
+        /// This includes clearing historic statuses that are older than the limit.
+        access(contract) fun garbageCollect() {
+            // note: historic statuses might be present longer than the limit, which is fine.
+            let historicCallbacks = self.historicCanceledCallbacks.keys
+            for id in historicCallbacks {
+                let historicTimestamp = self.historicCanceledCallbacks[id]!
+                if historicTimestamp < currentTimestamp - self.configurationDetails.historicStatusLimit {
+                    self.historicCanceledCallbacks.remove(key: id)
+                }
+            }
+        }
   
         /// process scheduled callbacks and prepare them for execution. 
-        /// It iterates over all the timestamps in the queue and processes the callbacks that are 
+        /// It iterates over past timestamps in the queue and processes the callbacks that are 
         /// eligible for execution. It also emits an event for each callback that is processed.
         access(contract) fun process() {
 
@@ -822,11 +835,9 @@ access(all) contract FlowCallbackScheduler {
                 }
                 sortedCallbackIDs = highPriorityIDs.concat(mediumPriorityIDs)
 
-                // Add low priority callbacks to the list
-                // until the low available effort is used up
+                // Add low priority callbacks to the list until the low available effort is used up
                 // todo: This could get pretty costly if there are a lot of low priority callbacks
                 // in the queue. Figure out how to more efficiently go through the low priority callbacks
-                // Could potentially limit the size of the low priority callback queue?
                 var lowPriorityEffortAvailable = self.getSlotAvailableEffort(timestamp: timestamp, priority: Priority.Low)
                 if lowPriorityEffortAvailable > 0 {
                     for lowCallbackID in lowPriorityCallbacks.keys {
@@ -860,15 +871,7 @@ access(all) contract FlowCallbackScheduler {
                 }
             }
 
-            // garbage collect historic statuses that are older than the limit
-            // todo: maybe not do this every time, but only each X blocks to save compute
-            let historicCallbacks = self.historicCanceledCallbacks.keys
-            for id in historicCallbacks {
-                let historicTimestamp = self.historicCanceledCallbacks[id]!
-                if historicTimestamp < currentTimestamp - self.configurationDetails.historicStatusLimit {
-                    self.historicCanceledCallbacks.remove(key: id)
-                }
-            }
+            self.garbageCollect()
         }
 
         /// cancel scheduled callback and return a portion of the fees that were paid.
@@ -939,7 +942,7 @@ access(all) contract FlowCallbackScheduler {
             self.finalizeCallback(callback: callback, status: Status.Executed)
         }
 
-        /// finalizes the callback by setting the status to executed or canceled and emitting the appropriate event.
+        /// finalizes the callback by setting the status to executed or canceled.
         /// It also does garbage collection of the callback resource and the slot map if it is empty.
         /// The callback must be found and in correct state or the function panics.
         /// This function will always be called by the fvm for a given ID
