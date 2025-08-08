@@ -49,7 +49,7 @@ access(all) contract FlowCallbackScheduler {
         executionEffort: UInt64,
         fees: UFix64,
         callbackOwner: Address,
-        success: Bool
+        status: UInt8
     )
 
     access(all) event Canceled(
@@ -321,7 +321,12 @@ access(all) contract FlowCallbackScheduler {
         access(all) let timestamp: UFix64
         access(all) let status: Status
 
-        access(all) init(timestamp: UFix64, status: Status) {
+        access(contract) init(timestamp: UFix64, status: Status) {
+            pre {
+                status == Status.Canceled || status == Status.Failed:
+                    "Invalid status: Historic callbacks can only be Canceled or Failed"
+            }
+
             self.timestamp = timestamp
             self.status = status
         }
@@ -472,12 +477,6 @@ access(all) contract FlowCallbackScheduler {
             // if the callback is not found in the callbacks map, we check the callback status map for historic status
             if let historic = self.historicCallbacks[id] {
                 return historic.status
-            } else if id < self.nextID {
-                // historicCallbacks only stores canceled and failed callbacks
-                // Since the ID is a monotonically increasing number,
-                // we know that any ID that is less than the next ID and not in the 
-                // active callbacks map must have been succeeded
-                return Status.Succeeded
             }
 
             return nil
@@ -791,7 +790,6 @@ access(all) contract FlowCallbackScheduler {
                         let callbackEffort = lowPriorityCallbacks[lowCallbackID]!
                         if callbackEffort <= lowPriorityEffortAvailable {
                             lowPriorityEffortAvailable = lowPriorityEffortAvailable - callbackEffort
-                            callbackIDs[lowCallbackID] = callbackEffort
                             lowPriorityCallbacks[lowCallbackID] = nil
                             sortedCallbackIDs.append(lowCallbackID)
                         }
@@ -892,7 +890,7 @@ access(all) contract FlowCallbackScheduler {
                 executionEffort: callback.executionEffort,
                 fees: callback.fees.balance,
                 callbackOwner: callback.handler.address,
-                success: true
+                status: Status.Succeeded.rawValue
             )
 
             // Deposit all the fees into the FlowFees vault
@@ -930,7 +928,7 @@ access(all) contract FlowCallbackScheduler {
                 executionEffort: callback.executionEffort,
                 fees: callback.fees.balance,
                 callbackOwner: callback.handler.address,
-                success: false
+                status: Status.Failed.rawValue
             )
 
             self.finalizeCallback(callback: callback, status: Status.Failed)

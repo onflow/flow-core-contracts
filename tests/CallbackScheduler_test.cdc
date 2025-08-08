@@ -31,9 +31,12 @@ access(all) let testData = "test data"
 access(all) let failTestData = "fail"
 
 access(all) let callbackToFail = 2 as UInt64
+access(all) let callbackToCancel = 7 as UInt64
 
 access(all) let futureDelta = 100.0
 access(all) var futureTime = 0.0
+access(all) let historicGarbageCollectionLimit = 30.0 * 24.0 * 60.0 * 60.0
+access(all) var timeAfterGarbageCollection = 0.0
 
 access(all) var feeAmount = 10.0
 
@@ -108,6 +111,8 @@ access(all) fun testCallbackScheduling() {
 
     let currentTime = getCurrentBlock().timestamp
     futureTime = currentTime + futureDelta
+
+    timeAfterGarbageCollection = futureTime + historicGarbageCollectionLimit
 
     // Try to schedule callback with insufficient FLOW, should fail
     scheduleCallback(
@@ -270,21 +275,21 @@ access(all) fun testCallbackCancelation() {
 
     // Cancel the callback
     cancelCallback(
-        id: 7,
+        id: callbackToCancel,
         failWithErr: nil
     )
 
     let canceledEvents = Test.eventsOfType(Type<FlowCallbackScheduler.Canceled>())
     Test.assert(canceledEvents.length == 1, message: "Should only have one Canceled event")
     let canceledEvent = canceledEvents[0] as! FlowCallbackScheduler.Canceled
-    Test.assertEqual(UInt64(7), canceledEvent.id)
+    Test.assertEqual(callbackToCancel, canceledEvent.id)
     Test.assertEqual(mediumPriority, canceledEvent.priority)
     Test.assertEqual(feeAmount/UFix64(2.0), canceledEvent.feesReturned)
     Test.assertEqual(feeAmount/UFix64(2.0), canceledEvent.feesDeducted)
     Test.assertEqual(serviceAccount.address, canceledEvent.callbackOwner)
 
     // Make sure the status is canceled
-    var status = getStatus(id: UInt64(7))
+    var status = getStatus(id: callbackToCancel)
     Test.assertEqual(statusCanceled, status)
 
     // Available Effort should be completely unused
@@ -390,6 +395,7 @@ access(all) fun testCallbackExecution() {
                 Test.assertEqual(processedEvent.executionEffort, executedEvent.executionEffort)
                 Test.assertEqual(feeAmount, executedEvent.fees)
                 Test.assertEqual(processedEvent.callbackOwner, executedEvent.callbackOwner)
+                Test.assertEqual(UInt8(2), executedEvent.status)
                 firstEvent = true
             }
         }
@@ -400,14 +406,6 @@ access(all) fun testCallbackExecution() {
     // Check for Executed events
     let executedEvents = Test.eventsOfType(Type<FlowCallbackScheduler.Executed>())
     Test.assert(executedEvents.length == 3, message: "Executed event wrong count")
-    
-    for event in executedEvents {
-        let executedEvent = event as! FlowCallbackScheduler.Executed
-    
-        // Verify callback status is now Succeeded
-        var status = getStatus(id: executedEvent.id)
-        Test.assertEqual(statusSucceeded, status)
-    }
 
     // Check that the callbacks were executed
     var callbackIDs = executeScript(
@@ -435,6 +433,33 @@ access(all) fun testCallbackExecution() {
     // Execute the two remaining callbacks (medium and low)
     executeCallback(id: UInt64(3), failWithErr: nil)
     executeCallback(id: UInt64(6), failWithErr: nil)
+}
+
+access(all) fun testCallbackGarbageCollection() {
+
+    // move time to after the garbage collection limit
+    Test.moveTime(by: Fix64(historicGarbageCollectionLimit+futureDelta*20.0))
+
+    Test.assert(timeAfterGarbageCollection < getTimestamp())
+
+    // process the callbacks to make sure the garbage collection is triggered
+    processCallbacks()
+
+    // Check that the canceled callback status is nil
+    var statusResult = executeScript(
+        "../transactions/callbackScheduler/scripts/get_status.cdc",
+        [callbackToCancel]
+    )
+    Test.assert(statusResult.error != nil, message: "Expected error because callback is not found")
+
+    // Check that the failed callback status is nil
+
+    statusResult = executeScript(
+        "../transactions/callbackScheduler/scripts/get_status.cdc",
+        [callbackToFail]
+    )
+    Test.assert(statusResult.error != nil, message: "Expected error because callback is not found")
+
 }
 
 
@@ -936,7 +961,7 @@ access(all) fun getStatus(id: UInt64): UInt8 {
         "../transactions/callbackScheduler/scripts/get_status.cdc",
         [id]
     ).returnValue! as! UInt8
-    return status!
+    return status
 }
 
 access(all) fun getSlotAvailableEffort(timestamp: UFix64, priority: UInt8): UInt64 {
