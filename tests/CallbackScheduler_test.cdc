@@ -1076,11 +1076,11 @@ access(all) fun testSortedTimestampsAdd() {
         
         // Verify result
         let result = sortedTimestamps.past(current: 100.0)
-        Test.assertEqual(testCase.expectedLength, result.length, message: "Failed test case: \(testCase.name)")
+        Test.assertEqual(testCase.expectedLength, result.length)
         
         if let expectedOrder = testCase.expectedOrder {
             for i, expected in expectedOrder {
-                Test.assertEqual(expected, result[i], message: "Failed test case: \(testCase.name) at index \(i)")
+                Test.assertEqual(expected, result[i])
             }
         }
     }
@@ -1145,10 +1145,10 @@ access(all) fun testSortedTimestampsRemove() {
         
         // Verify result
         let result = sortedTimestamps.past(current: 100.0)
-        Test.assertEqual(testCase.expectedLength, result.length, message: "Failed test case: \(testCase.name)")
+        Test.assertEqual(testCase.expectedLength, result.length)
         
         for i, expected in testCase.expectedRemaining {
-            Test.assertEqual(expected, result[i], message: "Failed test case: \(testCase.name) at index \(i)")
+            Test.assertEqual(expected, result[i])
         }
     }
 }
@@ -1205,10 +1205,10 @@ access(all) fun testSortedTimestampsPast() {
         let result = sortedTimestamps.past(current: testCase.current)
         
         // Verify result
-        Test.assertEqual(testCase.expectedPast.length, result.length, message: "Failed test case: \(testCase.name)")
+        Test.assertEqual(testCase.expectedPast.length, result.length)
         
         for i, expected in testCase.expectedPast {
-            Test.assertEqual(expected, result[i], message: "Failed test case: \(testCase.name) at index \(i)")
+            Test.assertEqual(expected, result[i])
         }
     }
 }
@@ -1269,7 +1269,7 @@ access(all) fun testSortedTimestampsCheck() {
         
         // Check result
         let result = sortedTimestamps.check(current: testCase.current)
-        Test.assertEqual(testCase.expected, result, message: "Failed test case: \(testCase.name)")
+        Test.assertEqual(testCase.expected, result)
     }
 }
 
