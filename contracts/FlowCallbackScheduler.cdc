@@ -804,7 +804,6 @@ access(all) contract FlowCallbackScheduler {
 
             let lowPriorityTimestamp = self.lowPriorityScheduledTimestamp
             let lowPriorityCallbacks = self.slotQueue[lowPriorityTimestamp] ?? {}
-
             let currentTimestamp = getCurrentBlock().timestamp
             
             // Early exit if no timestamps need processing
@@ -844,8 +843,6 @@ access(all) contract FlowCallbackScheduler {
                         let callbackEffort = lowPriorityCallbacks[lowCallbackID]!
                         if callbackEffort <= lowPriorityEffortAvailable {
                             lowPriorityEffortAvailable = lowPriorityEffortAvailable - callbackEffort
-                            callbackIDs[lowCallbackID] = callbackEffort
-                            lowPriorityCallbacks[lowCallbackID] = nil
                             sortedCallbackIDs.append(lowCallbackID)
                         }
                     }
@@ -862,11 +859,11 @@ access(all) contract FlowCallbackScheduler {
                                 executionEffort: callback.executionEffort,
                                 callbackOwner: callback.handler.address
                             )
+                        } else {
+                            panic("Invalid Status: \(id) wrong status \(callback.status.rawValue)") // critical bug
                         }
                     } else {
-                        // This should ideally not happen if callbackIDs are correctly managed
-                        // but adding a panic for robustness in case of unexpected state
-                        panic("Invalid ID: \(id) callback not found during processing")
+                        panic("Invalid ID: \(id) callback not found during processing") // critical bug
                     }
                 }
             }
