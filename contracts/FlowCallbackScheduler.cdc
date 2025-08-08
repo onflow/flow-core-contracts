@@ -2,7 +2,19 @@ import "FlowToken"
 import "FlowFees"
 import "FlowStorageFees"
 
-/// FlowCallbackScheduler 
+/// FlowCallbackScheduler enables smart contracts to schedule autonomous execution in the future.
+///
+/// This contract implements FLIP 330's scheduled callback system, allowing contracts to "wake up" and execute
+/// logic at predefined times without external triggers. 
+///
+/// Callbacks are prioritized (High/Medium/Low) with different execution guarantees and fee multipliers: 
+///   - High priority guarantees first-block execution,
+///   - Medium priority provides best-effort scheduling,
+///   - Low priority executes opportunistically when capacity allows. 
+///
+/// The system uses time slots with execution effort limits to manage network resources,
+/// ensuring predictable performance while enabling novel autonomous blockchain patterns like recurring
+/// payments, automated arbitrage, and time-based contract logic.
 access(all) contract FlowCallbackScheduler {
 
     /// singleton instance used to store all callback data
