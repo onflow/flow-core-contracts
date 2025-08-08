@@ -246,6 +246,12 @@ access(all) contract FlowCallbackScheduler {
         /// historic status limit is the maximum age of a historic canceled callback status we keep before getting pruned
         access(all) var historicStatusLimit: UFix64
 
+        /// collection effort limit is the maximum effort that can be used for all callbacks in a collection
+        access(all) var collectionEffortLimit: UInt64
+
+        /// collection transactions limit is the maximum number of transactions that can be processed in a collection
+        access(all) var collectionTransactionsLimit: UInt64
+
         access(all) init(
             slotSharedEffortLimit: UInt64,
             priorityEffortReserve: {Priority: UInt64},
@@ -253,7 +259,9 @@ access(all) contract FlowCallbackScheduler {
             minimumExecutionEffort: UInt64,
             priorityFeeMultipliers: {Priority: UFix64},
             refundMultiplier: UFix64,
-            historicStatusLimit: UFix64
+            historicStatusLimit: UFix64,
+            collectionEffortLimit: UInt64,
+            collectionTransactionsLimit: UInt64
         ) {
             pre {
                 refundMultiplier >= 0.0 && refundMultiplier <= 1.0:
@@ -272,6 +280,10 @@ access(all) contract FlowCallbackScheduler {
                     "Invalid priority effort limit: Medium priority effort limit must be greater than or equal to the priority effort reserve of \(priorityEffortReserve[Priority.Medium]!)"
                 priorityEffortLimit[Priority.Low]! >= priorityEffortReserve[Priority.Low]!:
                     "Invalid priority effort limit: Low priority effort limit must be greater than or equal to the priority effort reserve of \(priorityEffortReserve[Priority.Low]!)"
+                collectionEffortLimit > 1:
+                    "Invalid collection effort limit: Collection effort limit must be greater than 1 but got \(collectionEffortLimit)"
+                collectionTransactionsLimit > slotSharedEffortLimit:
+                    "Invalid collection transactions limit: Collection transactions limit must be greater than \(slotSharedEffortLimit) but got \(collectionTransactionsLimit)"
             }
         }
     }
@@ -287,6 +299,8 @@ access(all) contract FlowCallbackScheduler {
         access(all) var priorityFeeMultipliers: {Priority: UFix64}
         access(all) var refundMultiplier: UFix64
         access(all) var historicStatusLimit: UFix64
+        access(all) var collectionEffortLimit: UInt64
+        access(all) var collectionTransactionsLimit: UInt64
 
         access(all) init(
             slotSharedEffortLimit: UInt64,
@@ -295,7 +309,9 @@ access(all) contract FlowCallbackScheduler {
             minimumExecutionEffort: UInt64,
             priorityFeeMultipliers: {Priority: UFix64},
             refundMultiplier: UFix64,
-            historicStatusLimit: UFix64
+            historicStatusLimit: UFix64,
+            collectionEffortLimit: UInt64,
+            collectionTransactionsLimit: UInt64
         ) {
             self.slotTotalEffortLimit = slotSharedEffortLimit + priorityEffortReserve[Priority.High]! + priorityEffortReserve[Priority.Medium]!
             self.slotSharedEffortLimit = slotSharedEffortLimit
@@ -305,6 +321,8 @@ access(all) contract FlowCallbackScheduler {
             self.priorityFeeMultipliers = priorityFeeMultipliers
             self.refundMultiplier = refundMultiplier
             self.historicStatusLimit = historicStatusLimit
+            self.collectionEffortLimit = collectionEffortLimit
+            self.collectionTransactionsLimit = collectionTransactionsLimit
         }
     }
 
@@ -335,7 +353,7 @@ access(all) contract FlowCallbackScheduler {
 
         /// Struct that contains all the configuration details for the callback scheduler protocol
         /// Can be updated by the owner of the contract
-        access(contract) var configurationDetails: {SchedulerConfig}
+        access(contract) var config: {SchedulerConfig}
 
         access(all) init() {
             self.nextID = 1
@@ -382,7 +400,7 @@ access(all) contract FlowCallbackScheduler {
             let highPriorityEffortReserve: UInt64 = 20_000
             let mediumPriorityEffortReserve: UInt64 = 5_000
 
-            self.configurationDetails = Config(
+            self.config = Config(
                 slotSharedEffortLimit: sharedEffortLimit,
                 priorityEffortReserve: {
                     Priority.High: highPriorityEffortReserve,
@@ -401,19 +419,21 @@ access(all) contract FlowCallbackScheduler {
                     Priority.Low: 2.0
                 },
                 refundMultiplier: 0.5,
-                historicStatusLimit: 30.0 * 24.0 * 60.0 * 60.0 // 30 days
+                historicStatusLimit: 30.0 * 24.0 * 60.0 * 60.0, // 30 days
+                collectionEffortLimit: 8_000_000,
+                collectionTransactionsLimit: 98
             )
         }
 
         /// Gets a struct containing all the configuration details
         /// of the Scheduler resource
         access(all) fun getConfigurationDetails(): {SchedulerConfig} {
-            return self.configurationDetails
+            return self.config
         }
 
         /// sets all the configuration details for the Scheduler resource
         access(UpdateConfig) fun setConfigurationDetails(newConfig: {SchedulerConfig}) {
-            self.configurationDetails = newConfig
+            self.config = newConfig
             emit ConfigUpdated()
         }
 
@@ -428,7 +448,7 @@ access(all) contract FlowCallbackScheduler {
             let baseFee = FlowFees.computeFees(inclusionEffort: 1.0, executionEffort: UFix64(executionEffort))
             
             // Scale the execution fee by the multiplier for the priority
-            let scaledExecutionFee = baseFee * self.configurationDetails.priorityFeeMultipliers[priority]!
+            let scaledExecutionFee = baseFee * self.config.priorityFeeMultipliers[priority]!
 
             // Calculate the FLOW required to pay for storage of the callback data
             let storageFee = FlowStorageFees.storageCapacityToFlow(FlowCallbackScheduler.getSizeOfData(data))
@@ -551,12 +571,12 @@ access(all) contract FlowCallbackScheduler {
                 return EstimatedCallback(flowFee: nil, timestamp: nil, error: "Invalid timestamp: \(sanitizedTimestamp) is in the past, current timestamp: \(getCurrentBlock().timestamp)")
             }
 
-            if executionEffort > self.configurationDetails.priorityEffortLimit[priority]! {
-                return EstimatedCallback(flowFee: nil, timestamp: nil, error: "Invalid execution effort: \(executionEffort) is greater than the priority's available effort of \(self.configurationDetails.priorityEffortLimit[priority]!)")
+            if executionEffort > self.config.priorityEffortLimit[priority]! {
+                return EstimatedCallback(flowFee: nil, timestamp: nil, error: "Invalid execution effort: \(executionEffort) is greater than the priority's available effort of \(self.config.priorityEffortLimit[priority]!)")
             }
 
-            if executionEffort < self.configurationDetails.minimumExecutionEffort {
-                return EstimatedCallback(flowFee: nil, timestamp: nil, error: "Invalid execution effort: \(executionEffort) is less than the minimum execution effort of \(self.configurationDetails.minimumExecutionEffort)")
+            if executionEffort < self.config.minimumExecutionEffort {
+                return EstimatedCallback(flowFee: nil, timestamp: nil, error: "Invalid execution effort: \(executionEffort) is less than the minimum execution effort of \(self.config.minimumExecutionEffort)")
             }
 
             let fee = self.calculateFee(executionEffort: executionEffort, priority: priority, data: data)
@@ -627,7 +647,7 @@ access(all) contract FlowCallbackScheduler {
             let sanitizedTimestamp = UFix64(UInt64(timestamp))
 
             // Get the maxiumum allowed for a priority including shared
-            let priorityLimit = self.configurationDetails.priorityEffortLimit[priority]!
+            let priorityLimit = self.config.priorityEffortLimit[priority]!
             
             // If nothing has been claimed for the requested timestamp,
             // return the full amount
@@ -640,8 +660,8 @@ access(all) contract FlowCallbackScheduler {
             let slotPriorityEffortsUsed = self.slotUsedEffort[sanitizedTimestamp]!
 
             // Get the exclusive reserves for each priority
-            let highReserve = self.configurationDetails.priorityEffortReserve[Priority.High]!
-            let mediumReserve = self.configurationDetails.priorityEffortReserve[Priority.Medium]!
+            let highReserve = self.config.priorityEffortReserve[Priority.High]!
+            let mediumReserve = self.config.priorityEffortReserve[Priority.Medium]!
 
             // Get how much effort has been used for each priority
             let highUsed = slotPriorityEffortsUsed[Priority.High] ?? 0
@@ -652,7 +672,7 @@ access(all) contract FlowCallbackScheduler {
             if priority == Priority.Low {
                 let highPlusMediumUsed = highUsed + mediumUsed
                 // prevent underflow
-                let totalEffortRemaining = self.configurationDetails.slotTotalEffortLimit.saturatingSubtract(highPlusMediumUsed)
+                let totalEffortRemaining = self.config.slotTotalEffortLimit.saturatingSubtract(highPlusMediumUsed)
                 return totalEffortRemaining < priorityLimit ? totalEffortRemaining : priorityLimit
             }
             
@@ -662,7 +682,7 @@ access(all) contract FlowCallbackScheduler {
             let mediumSharedUsed: UInt64 = mediumUsed.saturatingSubtract(mediumReserve)
 
             // Get the theoretical total shared amount between priorities
-            let totalShared = (self.configurationDetails.slotTotalEffortLimit.saturatingSubtract(highReserve)).saturatingSubtract(mediumReserve)
+            let totalShared = (self.config.slotTotalEffortLimit.saturatingSubtract(highReserve)).saturatingSubtract(mediumReserve)
 
             // Get the amount of shared effort currently available
             let highPlusMediumSharedUsed = highSharedUsed + mediumSharedUsed
@@ -671,7 +691,7 @@ access(all) contract FlowCallbackScheduler {
 
             // we calculate available by calculating available shared effort and 
             // adding any unused reserves for that priority
-            let reserve = self.configurationDetails.priorityEffortReserve[priority]!
+            let reserve = self.config.priorityEffortReserve[priority]!
             let used = slotPriorityEffortsUsed[priority] ?? 0
             let unusedReserve: UInt64 = reserve.saturatingSubtract(used)
             let available = sharedAvailable + unusedReserve
@@ -737,6 +757,10 @@ access(all) contract FlowCallbackScheduler {
             }
             let pastTimestamps = self.slotQueue.keys.filter(pastTimestamp)
             
+            // total effort across different timestamps guards collection being over the effort limit
+            var totalAvailableEffort = self.config.collectionEffortLimit
+            var totalTransactionsLimit = self.config.collectionTransactionsLimit
+
             // process all callbacks from timestamps in the past
             // and add low priority callbacks to the timestamp if there is space
             for timestamp in pastTimestamps {
@@ -779,6 +803,14 @@ access(all) contract FlowCallbackScheduler {
                     // Ensure the callback still exists and is scheduled
                     if let callback = self.borrowCallback(id: id) {
                         if callback.status == Status.Scheduled {
+                            totalAvailableEffort = totalAvailableEffort - callback.executionEffort
+                            totalTransactionsLimit = totalTransactionsLimit - 1
+
+                            // this is safeguard to prevent collection growing too large in case of block production slowdown
+                            if totalAvailableEffort < 0 || totalTransactionsLimit < 0 {
+                                break
+                            }
+
                             callback.setStatus(newStatus: Status.Processed)
                             emit Processed(
                                 id: id,
@@ -800,7 +832,7 @@ access(all) contract FlowCallbackScheduler {
             let historicCallbacks = self.historicCanceledCallbacks.keys
             for id in historicCallbacks {
                 let historicTimestamp = self.historicCanceledCallbacks[id]!
-                if historicTimestamp < currentTimestamp - self.configurationDetails.historicStatusLimit {
+                if historicTimestamp < currentTimestamp - self.config.historicStatusLimit {
                     self.historicCanceledCallbacks.remove(key: id)
                 }
             }
@@ -826,7 +858,7 @@ access(all) contract FlowCallbackScheduler {
             }
 
             let totalFees = callback.fees.balance
-            let refundedFees <- callback.payAndWithdrawFees(multiplierToWithdraw: self.configurationDetails.refundMultiplier)
+            let refundedFees <- callback.payAndWithdrawFees(multiplierToWithdraw: self.config.refundMultiplier)
 
             emit Canceled(
                 id: callback.id,
