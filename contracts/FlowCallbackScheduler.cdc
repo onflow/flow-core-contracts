@@ -288,10 +288,10 @@ access(all) contract FlowCallbackScheduler {
                     "Invalid priority effort limit: Medium priority effort limit must be greater than or equal to the priority effort reserve of \(priorityEffortReserve[Priority.Medium]!)"
                 priorityEffortLimit[Priority.Low]! >= priorityEffortReserve[Priority.Low]!:
                     "Invalid priority effort limit: Low priority effort limit must be greater than or equal to the priority effort reserve of \(priorityEffortReserve[Priority.Low]!)"
-                collectionEffortLimit > 1:
-                    "Invalid collection effort limit: Collection effort limit must be greater than 1 but got \(collectionEffortLimit)"
-                collectionTransactionsLimit > slotSharedEffortLimit:
-                    "Invalid collection transactions limit: Collection transactions limit must be greater than \(slotSharedEffortLimit) but got \(collectionTransactionsLimit)"
+                collectionEffortLimit > slotSharedEffortLimit:
+                    "Invalid collection effort limit: Collection effort limit must be greater than \(slotSharedEffortLimit) but got \(collectionEffortLimit)"
+                collectionTransactionsLimit > 0:
+                    "Invalid collection transactions limit: Collection transactions limit must be greater than 0 but got \(collectionTransactionsLimit)"
                 maxDataSizeMB > 0.0:
                     "Invalid max data size: Max data size must be greater than 0.0 but got \(maxDataSizeMB)"
                 maxCallbackEffort > 0:
