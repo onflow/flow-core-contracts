@@ -9,6 +9,8 @@ access(all) contract FlowCallbackScheduler {
     /// and route all callback functionality
     access(self) var sharedScheduler: Capability<auth(Cancel) &SharedScheduler>
 
+    access(all) let schedulerStoragePath: Path
+
     /// Enums
     access(all) enum Priority: UInt8 {
         access(all) case High
@@ -798,8 +800,11 @@ access(all) contract FlowCallbackScheduler {
         }
   
         /// process scheduled callbacks and prepare them for execution. 
+        ///
         /// It iterates over past timestamps in the queue and processes the callbacks that are 
         /// eligible for execution. It also emits an event for each callback that is processed.
+        ///
+        /// This function is only called by the FVM to process callbacks.
         access(contract) fun process() {
 
             let lowPriorityTimestamp = self.lowPriorityScheduledTimestamp
@@ -914,6 +919,8 @@ access(all) contract FlowCallbackScheduler {
 
         /// execute callback is a system function that is called by FVM to execute a callback by ID.
         /// The callback must be found and in correct state or the function panics and this is a fatal error
+        ///
+        /// This function is only called by the FVM to execute callbacks.
         access(contract) fun executeCallback(id: UInt64) {
             let callback = self.borrowCallback(id: id) ?? 
                 panic("Invalid ID: Callback with id \(id) not found")
@@ -974,15 +981,6 @@ access(all) contract FlowCallbackScheduler {
                 }
             }
         }
-    }
-
-    access(all) init() {
-        let storagePath = /storage/sharedScheduler
-        let scheduler <- create SharedScheduler()
-        self.account.storage.save(<-scheduler, to: storagePath)
-        
-        self.sharedScheduler = self.account.capabilities.storage
-            .issue<auth(Cancel) &SharedScheduler>(storagePath)
     }
 
     access(all) fun schedule(
@@ -1062,15 +1060,12 @@ access(all) contract FlowCallbackScheduler {
         return FlowStorageFees.convertUInt64StorageBytesToUFix64Megabytes(storageUsedAfter.saturatingSubtract(storageUsedBefore))
     }
 
-    /// Protected access area restricted to the service account and invoked by the FVM
-
-    /// Process all callbacks that have timestamps in the past
-    access(account) fun process() {
-        self.sharedScheduler.borrow()!.process()
-    }
-
-    /// Execute a processed callback by ID
-    access(account) fun executeCallback(id: UInt64) {
-        self.sharedScheduler.borrow()!.executeCallback(id: id)
+    access(all) init() {
+        self.schedulerStoragePath = /storage/sharedScheduler
+        let scheduler <- create SharedScheduler()
+        self.account.storage.save(<-scheduler, to: storagePath)
+        
+        self.sharedScheduler = self.account.capabilities.storage
+            .issue<auth(Cancel) &SharedScheduler>(storagePath)
     }
 }
