@@ -60,7 +60,7 @@ access(all) contract FlowCallbackScheduler {
         callbackOwner: Address
     )
 
-    // Emmitted when one or more of the configuration details fields are updated
+    // Emitted when one or more of the configuration details fields are updated
     // Event listeners can listen to this and query the new configuration
     // if they need to
     access(all) event ConfigUpdated()
@@ -248,7 +248,7 @@ access(all) contract FlowCallbackScheduler {
         access(all) var refundMultiplier: UFix64
 
         /// historic status limit is the maximum age of a historic canceled callback status we keep before getting pruned
-        access(all) var historicStatusLimit: UFix64
+        access(all) var historicStatusAgeLimit: UFix64
 
         access(all) init(
             slotSharedEffortLimit: UInt64,
@@ -257,13 +257,13 @@ access(all) contract FlowCallbackScheduler {
             minimumExecutionEffort: UInt64,
             priorityFeeMultipliers: {Priority: UFix64},
             refundMultiplier: UFix64,
-            historicStatusLimit: UFix64
+            historicStatusAgeLimit: UFix64
         ) {
             pre {
                 refundMultiplier >= 0.0 && refundMultiplier <= 1.0:
                     "Invalid refund multiplier: The multiplier must be between 0.0 and 1.0 but got \(refundMultiplier)"
-                historicStatusLimit >= 1.0 && historicStatusLimit < getCurrentBlock().timestamp:
-                    "Invalid historic status limit: Limit must be greater than 1.0 and less than the current timestamp but got \(historicStatusLimit)"
+                historicStatusAgeLimit >= 1.0 && historicStatusAgeLimit < getCurrentBlock().timestamp:
+                    "Invalid historic status limit: Limit must be greater than 1.0 and less than the current timestamp but got \(historicStatusAgeLimit)"
                 priorityFeeMultipliers[Priority.Low]! >= 1.0:
                     "Invalid priority fee multiplier: Low priority multiplier must be greater than or equal to 1.0 but got \(priorityFeeMultipliers[Priority.Low]!)"
                 priorityFeeMultipliers[Priority.Medium]! > priorityFeeMultipliers[Priority.Low]!:
@@ -290,7 +290,7 @@ access(all) contract FlowCallbackScheduler {
         access(all) var minimumExecutionEffort: UInt64
         access(all) var priorityFeeMultipliers: {Priority: UFix64}
         access(all) var refundMultiplier: UFix64
-        access(all) var historicStatusLimit: UFix64
+        access(all) var historicStatusAgeLimit: UFix64
 
         access(all) init(
             slotSharedEffortLimit: UInt64,
@@ -299,7 +299,7 @@ access(all) contract FlowCallbackScheduler {
             minimumExecutionEffort: UInt64,
             priorityFeeMultipliers: {Priority: UFix64},
             refundMultiplier: UFix64,
-            historicStatusLimit: UFix64
+            historicStatusAgeLimit: UFix64
         ) {
             self.slotTotalEffortLimit = slotSharedEffortLimit + priorityEffortReserve[Priority.High]! + priorityEffortReserve[Priority.Medium]!
             self.slotSharedEffortLimit = slotSharedEffortLimit
@@ -308,7 +308,7 @@ access(all) contract FlowCallbackScheduler {
             self.minimumExecutionEffort = minimumExecutionEffort
             self.priorityFeeMultipliers = priorityFeeMultipliers
             self.refundMultiplier = refundMultiplier
-            self.historicStatusLimit = historicStatusLimit
+            self.historicStatusAgeLimit = historicStatusAgeLimit
         }
     }
 
@@ -320,8 +320,8 @@ access(all) contract FlowCallbackScheduler {
 
         access(contract) init(timestamp: UFix64, status: Status) {
             pre {
-                status == Status.Canceled || status == Status.Succeeded || status == Status.Failed:
-                    "Invalid status: Historic callbacks can only be Canceled, Succeeded, or Failed"
+                status == Status.Canceled || status == Status.Failed:
+                    "Invalid status: Historic callbacks can only be Canceled or Failed"
             }
 
             self.timestamp = timestamp
@@ -354,6 +354,9 @@ access(all) contract FlowCallbackScheduler {
         /// so we use this special value
         access(contract) let lowPriorityScheduledTimestamp: UFix64
 
+        /// used for querying historic statuses so that we don't have to store all succeeded statuses
+        access(contract) var earliestHistoricID: UInt64
+
         /// Struct that contains all the configuration details for the callback scheduler protocol
         /// Can be updated by the owner of the contract
         access(contract) var configurationDetails: {SchedulerConfig}
@@ -361,6 +364,7 @@ access(all) contract FlowCallbackScheduler {
         access(all) init() {
             self.nextID = 1
             self.lowPriorityScheduledTimestamp = 0.0
+            self.earliestHistoricID = 0
             
             self.callbacks <- {}
             self.historicCallbacks = {}
@@ -422,7 +426,7 @@ access(all) contract FlowCallbackScheduler {
                     Priority.Low: 2.0
                 },
                 refundMultiplier: 0.5,
-                historicStatusLimit: 30.0 * 24.0 * 60.0 * 60.0 // 30 days
+                historicStatusAgeLimit: 30.0 * 24.0 * 60.0 * 60.0 // 5 days
             )
         }
 
@@ -474,6 +478,8 @@ access(all) contract FlowCallbackScheduler {
             // if the callback is not found in the callbacks map, we check the callback status map for historic status
             if let historic = self.historicCallbacks[id] {
                 return historic.status
+            } else if id > self.earliestHistoricID {
+                return Status.Succeeded
             }
 
             return nil
@@ -818,8 +824,11 @@ access(all) contract FlowCallbackScheduler {
             let historicCallbacks = self.historicCallbacks.keys
             for id in historicCallbacks {
                 let historicCallback = self.historicCallbacks[id]!
-                if historicCallback.timestamp < currentTimestamp - self.configurationDetails.historicStatusLimit {
+                if historicCallback.timestamp < currentTimestamp - self.configurationDetails.historicStatusAgeLimit {
                     self.historicCallbacks.remove(key: id)
+                    if id > self.earliestHistoricID {
+                        self.earliestHistoricID = id
+                    }
                 }
             }
         }
@@ -890,11 +899,6 @@ access(all) contract FlowCallbackScheduler {
             // Deposit all the fees into the FlowFees vault
             destroy callback.payAndWithdrawFees(multiplierToWithdraw: 0.0)
 
-            // keep historic statuses for future queries after garbage collection
-            self.historicCallbacks[callback.id] = HistoricCallback(
-                timestamp: callback.scheduledTimestamp,
-                status: Status.Succeeded
-            )
             
             self.finalizeCallback(callback: callback, status: Status.Succeeded)
         }
