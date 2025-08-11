@@ -6,7 +6,7 @@ transaction(slotSharedEffortLimit: UInt64?,
             minimumExecutionEffort: UInt64?,
             priorityFeeMultipliers: {UInt8: UFix64}?,
             refundMultiplier: UFix64?,
-            historicStatusLimit: UFix64?) {
+            historicStatusAgeLimit: UFix64?) {
     prepare(account: auth(BorrowValue, SaveValue, IssueStorageCapabilityController, PublishCapability, GetStorageCapabilityController) &Account) {
         // borrow an entitled reference to the SharedScheduler resource
         let schedulerRef = account.storage.borrow<auth(FlowCallbackScheduler.UpdateConfig) &FlowCallbackScheduler.SharedScheduler>(from: /storage/sharedScheduler)
@@ -65,7 +65,7 @@ transaction(slotSharedEffortLimit: UInt64?,
             minimumExecutionEffort: minimumExecutionEffort ?? currentConfig.minimumExecutionEffort,
             priorityFeeMultipliers: newMultipliers,
             refundMultiplier: refundMultiplier ?? currentConfig.refundMultiplier,
-            historicStatusLimit: historicStatusLimit ?? currentConfig.historicStatusLimit
+            historicStatusAgeLimit: historicStatusAgeLimit ?? currentConfig.historicStatusAgeLimit
         )
 
         // set the new config
