@@ -314,17 +314,14 @@ access(all) contract FlowCallbackScheduler {
 
     /// HistoricCallback is a struct that contains the timestamp and status of a callback
     /// that has been finalized and is stored in the historicCallbacks map
-    /// Does not contain Succeeded statuses because we can just assume
-    /// that any ID that is less than the current ID counter
-    /// that is not Canceled, Failed, Scheduled, or Processed is Succeeded
     access(all) struct HistoricCallback {
         access(all) let timestamp: UFix64
         access(all) let status: Status
 
         access(contract) init(timestamp: UFix64, status: Status) {
             pre {
-                status == Status.Canceled || status == Status.Failed:
-                    "Invalid status: Historic callbacks can only be Canceled or Failed"
+                status == Status.Canceled || status == Status.Succeeded || status == Status.Failed:
+                    "Invalid status: Historic callbacks can only be Canceled, Succeeded, or Failed"
             }
 
             self.timestamp = timestamp
@@ -857,10 +854,7 @@ access(all) contract FlowCallbackScheduler {
                 callbackOwner: callback.handler.address
             )
 
-            // keep historic Canceled and Failed statuses for future queries after garbage collection
-            // We don't keep succeeded statuses because we can just assume
-            // they every ID that is less than the current ID counter
-            // that is not Canceled, Failed,Scheduled, or Processed is Succeeded
+            // keep historic statuses for future queries after garbage collection
             self.historicCallbacks[callback.id] = HistoricCallback(
                 timestamp: callback.scheduledTimestamp,
                 status: Status.Canceled
@@ -895,6 +889,12 @@ access(all) contract FlowCallbackScheduler {
 
             // Deposit all the fees into the FlowFees vault
             destroy callback.payAndWithdrawFees(multiplierToWithdraw: 0.0)
+
+            // keep historic statuses for future queries after garbage collection
+            self.historicCallbacks[callback.id] = HistoricCallback(
+                timestamp: callback.scheduledTimestamp,
+                status: Status.Succeeded
+            )
             
             self.finalizeCallback(callback: callback, status: Status.Succeeded)
         }
@@ -910,10 +910,7 @@ access(all) contract FlowCallbackScheduler {
                 message: "Invalid ID: Cannot fail callback with id \(id) because it has not been processed yet"
             )
 
-            // keep historic Canceled and Failed statuses for future queries after garbage collection
-            // We don't keep succeeded statuses because we can just assume
-            // they every ID that is less than the current ID counter
-            // that is not Canceled, Failed,Scheduled, or Processed is Succeeded
+            // keep historic statuses for future queries after garbage collection
             self.historicCallbacks[callback.id] = HistoricCallback(
                 timestamp: callback.scheduledTimestamp,
                 status: Status.Failed
