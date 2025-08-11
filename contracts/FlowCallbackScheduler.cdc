@@ -17,6 +17,8 @@ access(all) contract FlowCallbackScheduler {
     }
 
     access(all) enum Status: UInt8 {
+        /// unknown statuses are used for handling historic callbacks with null statuses
+        access(all) case Unknown
         /// mutable statuses
         access(all) case Scheduled
         access(all) case Processed
@@ -247,7 +249,8 @@ access(all) contract FlowCallbackScheduler {
         /// refund multiplier is the portion of the fees that are refunded when a callback is cancelled
         access(all) var refundMultiplier: UFix64
 
-        /// historic status limit is the maximum age of a historic canceled callback status we keep before getting pruned
+        /// historic status age limit is the maximum age in timestamp seconds
+        /// of a historic canceled callback status to keep before getting pruned
         access(all) var historicStatusAgeLimit: UFix64
 
         access(all) init(
@@ -426,7 +429,7 @@ access(all) contract FlowCallbackScheduler {
                     Priority.Low: 2.0
                 },
                 refundMultiplier: 0.5,
-                historicStatusAgeLimit: 30.0 * 24.0 * 60.0 * 60.0 // 5 days
+                historicStatusAgeLimit: 30.0 * 24.0 * 60.0 * 60.0 // 30 days
             )
         }
 
@@ -482,7 +485,7 @@ access(all) contract FlowCallbackScheduler {
                 return Status.Succeeded
             }
 
-            return nil
+            return Status.Unknown
         }
 
         /// schedule is the primary entry point for scheduling a new callback within the scheduler contract. 
