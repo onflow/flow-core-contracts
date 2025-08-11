@@ -407,6 +407,14 @@ access(all) fun testCallbackExecution() {
     let executedEvents = Test.eventsOfType(Type<FlowCallbackScheduler.Executed>())
     Test.assert(executedEvents.length == 3, message: "Executed event wrong count")
 
+    for event in executedEvents {
+        let executedEvent = event as! FlowCallbackScheduler.Executed
+
+        // Verify callback status is now Succeeded
+        var status = getStatus(id: executedEvent.id)
+        Test.assertEqual(statusSucceeded, status)
+    }
+
     // Check that the callbacks were executed
     var callbackIDs = executeScript(
         "./scripts/get_executed_callbacks.cdc",
