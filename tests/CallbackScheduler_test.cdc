@@ -13,11 +13,12 @@ access(all) let highPriority = UInt8(0)
 access(all) let mediumPriority = UInt8(1)
 access(all) let lowPriority = UInt8(2)
 
-access(all) let statusScheduled = UInt8(0)
-access(all) let statusProcessed = UInt8(1)
-access(all) let statusSucceeded = UInt8(2)
-access(all) let statusFailed = UInt8(3)
-access(all) let statusCanceled = UInt8(4)
+access(all) let statusUnknown = UInt8(0)
+access(all) let statusScheduled = UInt8(1)
+access(all) let statusProcessed = UInt8(2)
+access(all) let statusSucceeded = UInt8(3)
+access(all) let statusFailed = UInt8(4)
+access(all) let statusCanceled = UInt8(5)
 
 access(all) let basicEffort: UInt64 = 1000
 access(all) let mediumEffort: UInt64 = 10000
@@ -395,7 +396,7 @@ access(all) fun testCallbackExecution() {
                 Test.assertEqual(processedEvent.executionEffort, executedEvent.executionEffort)
                 Test.assertEqual(feeAmount, executedEvent.fees)
                 Test.assertEqual(processedEvent.callbackOwner, executedEvent.callbackOwner)
-                Test.assertEqual(UInt8(2), executedEvent.status)
+                Test.assertEqual(statusSucceeded, executedEvent.status)
                 firstEvent = true
             }
         }
@@ -453,20 +454,13 @@ access(all) fun testCallbackGarbageCollection() {
     // process the callbacks to make sure the garbage collection is triggered
     processCallbacks()
 
-    // Check that the canceled callback status is nil
-    var statusResult = executeScript(
-        "../transactions/callbackScheduler/scripts/get_status.cdc",
-        [callbackToCancel]
-    )
-    Test.assert(statusResult.error != nil, message: "Expected error because callback is not found")
+    // Check that the canceled callback status is unknown
+    var status = getStatus(id: callbackToCancel)
+    Test.assertEqual(statusUnknown, status)
 
-    // Check that the failed callback status is nil
-
-    statusResult = executeScript(
-        "../transactions/callbackScheduler/scripts/get_status.cdc",
-        [callbackToFail]
-    )
-    Test.assert(statusResult.error != nil, message: "Expected error because callback is not found")
+    // Check that the failed callback status is unknown
+    status = getStatus(id: callbackToFail)
+    Test.assertEqual(statusUnknown, status)
 
 }
 
