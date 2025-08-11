@@ -701,7 +701,7 @@ access(all) fun testConfigDetails() {
         minimumExecutionEffort: nil,
         priorityFeeMultipliers: nil,
         refundMultiplier: 1.1,
-        historicStatusLimit: nil,
+        historicStatusAgeLimit: nil,
         shouldFail: "Invalid refund multiplier: The multiplier must be between 0.0 and 1.0 but got 1.10000000"
     )
 
@@ -712,7 +712,7 @@ access(all) fun testConfigDetails() {
         minimumExecutionEffort: nil,
         priorityFeeMultipliers: nil,
         refundMultiplier: nil,
-        historicStatusLimit: 0.0,
+        historicStatusAgeLimit: 0.0,
         shouldFail: "Invalid historic status limit: Limit must be greater than 1.0 and less than the current timestamp but got 0.00000000"
     )
 
@@ -723,7 +723,7 @@ access(all) fun testConfigDetails() {
         minimumExecutionEffort: nil,
         priorityFeeMultipliers: {highPriority: 20.0, mediumPriority: 10.0, lowPriority: 0.9},
         refundMultiplier: nil,
-        historicStatusLimit: nil,
+        historicStatusAgeLimit: nil,
         shouldFail: "Invalid priority fee multiplier: Low priority multiplier must be greater than or equal to 1.0 but got 0.90000000"
     )
 
@@ -734,7 +734,7 @@ access(all) fun testConfigDetails() {
         minimumExecutionEffort: nil,
         priorityFeeMultipliers: {highPriority: 20.0, mediumPriority: 3.0, lowPriority: 4.0},
         refundMultiplier: nil,
-        historicStatusLimit: nil,
+        historicStatusAgeLimit: nil,
         shouldFail: "Invalid priority fee multiplier: Medium priority multiplier must be greater than or equal to 4.00000000 but got 3.00000000"
     )
 
@@ -745,7 +745,7 @@ access(all) fun testConfigDetails() {
         minimumExecutionEffort: nil,
         priorityFeeMultipliers: {highPriority: 5.0, mediumPriority: 6.0, lowPriority: 4.0},
         refundMultiplier: nil,
-        historicStatusLimit: nil,
+        historicStatusAgeLimit: nil,
         shouldFail: "Invalid priority fee multiplier: High priority multiplier must be greater than or equal to 6.00000000 but got 5.00000000"
     )
 
@@ -756,7 +756,7 @@ access(all) fun testConfigDetails() {
         minimumExecutionEffort: nil,
         priorityFeeMultipliers: nil,
         refundMultiplier: nil,
-        historicStatusLimit: nil,
+        historicStatusAgeLimit: nil,
         shouldFail: "Invalid priority effort limit: High priority effort limit must be greater than or equal to the priority effort reserve of 40000"
     )
 
@@ -767,7 +767,7 @@ access(all) fun testConfigDetails() {
         minimumExecutionEffort: nil,
         priorityFeeMultipliers: nil,
         refundMultiplier: nil,
-        historicStatusLimit: nil,
+        historicStatusAgeLimit: nil,
         shouldFail: "Invalid priority effort limit: Medium priority effort limit must be greater than or equal to the priority effort reserve of 40000"
     )
 
@@ -778,7 +778,7 @@ access(all) fun testConfigDetails() {
         minimumExecutionEffort: nil,
         priorityFeeMultipliers: nil,
         refundMultiplier: nil,
-        historicStatusLimit: nil,
+        historicStatusAgeLimit: nil,
         shouldFail: "Invalid priority effort limit: Low priority effort limit must be greater than or equal to the priority effort reserve of 20000"
     )
 
@@ -800,7 +800,7 @@ access(all) fun testConfigDetails() {
     Test.assertEqual(oldConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.Medium]!, 5.0)
     Test.assertEqual(oldConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.Low]!, 2.0)
     Test.assertEqual(oldConfig.refundMultiplier, 0.5)
-    Test.assertEqual(oldConfig.historicStatusLimit, 2592000.00000000)
+    Test.assertEqual(oldConfig.historicStatusAgeLimit, 2592000.00000000)
 
 
     setConfigDetails(
@@ -810,7 +810,7 @@ access(all) fun testConfigDetails() {
         minimumExecutionEffort: 10,
         priorityFeeMultipliers: {highPriority: 20.0, mediumPriority: 10.0, lowPriority: 4.0},
         refundMultiplier: nil,
-        historicStatusLimit: 2000.0,
+        historicStatusAgeLimit: 2000.0,
         shouldFail: nil
     )
 
@@ -829,7 +829,7 @@ access(all) fun testConfigDetails() {
     Test.assertEqual(newConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.Medium]!, 10.0)
     Test.assertEqual(newConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.Low]!, 4.0)
     Test.assertEqual(newConfig.refundMultiplier, oldConfig.refundMultiplier)
-    Test.assertEqual(newConfig.historicStatusLimit, 2000.0)
+    Test.assertEqual(newConfig.historicStatusAgeLimit, 2000.0)
 }
 
 // Helper function for scheduling a callback
@@ -922,15 +922,15 @@ access(all) fun setConfigDetails(
     minimumExecutionEffort: UInt64?,
     priorityFeeMultipliers: {UInt8: UFix64}?,
     refundMultiplier: UFix64?,
-    historicStatusLimit: UFix64?,
+    historicStatusAgeLimit: UFix64?,
     shouldFail: String?
 ) {
     let setConfigDetailsCode = Test.readFile("../transactions/callbackScheduler/admin/set_config_details.cdc")
     let setConfigDetailsTx = Test.Transaction(
         code: setConfigDetailsCode,
-        authorizers: [admin.address],
-        signers: [admin],
-        arguments: [slotSharedEffortLimit, priorityEffortReserve, priorityEffortLimit, minimumExecutionEffort, priorityFeeMultipliers, refundMultiplier, historicStatusLimit]
+        authorizers: [serviceAccount.address],
+        signers: [serviceAccount],
+        arguments: [slotSharedEffortLimit, priorityEffortReserve, priorityEffortLimit, minimumExecutionEffort, priorityFeeMultipliers, refundMultiplier, historicStatusAgeLimit]
     )
     let setConfigDetailsResult = Test.executeTransaction(setConfigDetailsTx)
     if let error = shouldFail {
@@ -938,7 +938,6 @@ access(all) fun setConfigDetails(
         // log(setConfigDetailsResult.error!.message)
         Test.expect(setConfigDetailsResult, Test.beFailed())
         // Check error
-        //Test.assert(error == setConfigDetailsResult.error!.message, message: "error mismatch: Expected \(error) but got \(setConfigDetailsResult.error!.message)")
         Test.assertError(
             setConfigDetailsResult,
             errorMessage: error

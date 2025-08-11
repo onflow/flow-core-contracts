@@ -21,7 +21,7 @@
 			"source": "./contracts/FlowCallbackScheduler.cdc",
 			"aliases": {
 				"emulator": "f8d6e0586b0a20c7",
-				"testing": "0000000000000007"
+				"testing": "0000000000000001"
 			}
 		},
 		"FlowClusterQC": {
@@ -169,7 +169,7 @@
 			"source": "./contracts/testContracts/TestFlowCallbackHandler.cdc",
 			"aliases": {
 				"emulator": "f8d6e0586b0a20c7",
-				"testing": "0000000000000007"
+				"testing": "0000000000000001"
 			}
 		}
 	},
