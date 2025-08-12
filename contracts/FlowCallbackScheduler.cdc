@@ -33,7 +33,7 @@ access(all) contract FlowCallbackScheduler {
     access(all) enum Status: UInt8 {
         /// unknown statuses are used for handling historic callbacks with null statuses
         access(all) case Unknown
-        /// mutable statuses
+        /// mutable status
         access(all) case Scheduled
         /// finalized statuses
         access(all) case Executed
