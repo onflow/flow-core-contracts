@@ -5,7 +5,7 @@ import "FlowCallbackScheduler"
 // executed will be processed. An event for each will be emitted.
 transaction {
     prepare(serviceAccount: auth(BorrowValue) &Account) {
-        let scheduler = serviceAccount.storage.borrow<&FlowCallbackScheduler.SharedScheduler>(from: FlowCallbackScheduler.schedulerStoragePath)
+        let scheduler = serviceAccount.storage.borrow<auth(FlowCallbackScheduler.Process) &FlowCallbackScheduler.SharedScheduler>(from: FlowCallbackScheduler.storagePath)
             ?? panic("Could not borrow FlowCallbackScheduler")
 
         scheduler.process()

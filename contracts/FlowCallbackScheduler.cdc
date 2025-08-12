@@ -21,7 +21,7 @@ access(all) contract FlowCallbackScheduler {
     /// and route all callback functionality
     access(self) var sharedScheduler: Capability<auth(Cancel) &SharedScheduler>
 
-    access(all) let schedulerStoragePath: Path
+    access(all) let storagePath: StoragePath
 
     /// Enums
     access(all) enum Priority: UInt8 {
@@ -83,6 +83,7 @@ access(all) contract FlowCallbackScheduler {
 
     /// Entitlements
     access(all) entitlement Execute
+    access(all) entitlement Process
     access(all) entitlement Cancel
     access(all) entitlement UpdateConfig
 
@@ -207,15 +208,15 @@ access(all) contract FlowCallbackScheduler {
             self.status = newStatus
         }
 
-        /// payAndWithdrawFees withdraws fees from the callback based on the refund multiplier.
+        /// payAndRefundFees withdraws fees from the callback based on the refund multiplier.
         /// This action is only allowed for canceled callbacks, otherwise it panics.
         /// It deposits any leftover fees to the FlowFees vault to be used to pay node operator rewards
-        access(contract) fun payAndWithdrawFees(multiplierToWithdraw: UFix64): @FlowToken.Vault {
-            if multiplierToWithdraw == 0.0 {
+        access(contract) fun payAndRefundFees(refundMultiplier: UFix64): @FlowToken.Vault {
+            if refundMultiplier == 0.0 {
                 FlowFees.deposit(from: <-self.fees.withdraw(amount: self.fees.balance))
                 return <-FlowToken.createEmptyVault(vaultType: Type<@FlowToken.Vault>())
             } else {
-                let amount = self.fees.balance * multiplierToWithdraw
+                let amount = self.fees.balance * refundMultiplier
                 let feesToReturn <- self.fees.withdraw(amount: amount) as! @FlowToken.Vault
                 FlowFees.deposit(from: <-self.fees.withdraw(amount: self.fees.balance))
                 return <-feesToReturn
@@ -388,7 +389,7 @@ access(all) contract FlowCallbackScheduler {
         }
 
         /// Get all timestamps that are in the past (less than or equal to current timestamp)
-        access(all) fun past(current: UFix64): [UFix64] {
+        access(all) fun getTimestampsBefore(current: UFix64): [UFix64] {
             let pastTimestamps: [UFix64] = []
             for timestamp in self.timestamps {
                 if timestamp <= current {
@@ -402,7 +403,7 @@ access(all) contract FlowCallbackScheduler {
 
         /// Check if there are any timestamps that need processing
         /// Returns true if processing is needed, false for early exit
-        access(all) fun check(current: UFix64): Bool {
+        access(all) fun checkIfTimestampsNeedProcessing(current: UFix64): Bool {
             return self.timestamps.length > 0 && self.timestamps[0] <= current
         }
     }
@@ -590,13 +591,11 @@ access(all) contract FlowCallbackScheduler {
             executionEffort: UInt64,
             fees: @FlowToken.Vault
         ): ScheduledCallback {
-            // Remove fractional values from the timestamp
-            let sanitizedTimestamp = UFix64(UInt64(timestamp))
 
             // Use the estimate function to validate inputs
             let estimate = self.estimate(
                 data: data,
-                timestamp: sanitizedTimestamp,
+                timestamp: timestamp,
                 priority: priority,
                 executionEffort: executionEffort
             )
@@ -612,6 +611,9 @@ access(all) contract FlowCallbackScheduler {
                 fees.balance >= estimate.flowFee!,
                 message: "Insufficient fees: The Fee balance of \(fees.balance) is not sufficient to pay the required amount of \(estimate.flowFee!) for execution of the callback."
             )
+
+            // Remove fractional values from the timestamp
+            let sanitizedTimestamp = UFix64(UInt64(timestamp))
 
             let callbackID = self.getNextIDAndIncrement()
             let callback <- create CallbackData(
@@ -824,12 +826,13 @@ access(all) contract FlowCallbackScheduler {
         /// garbage collection of any resources that can be released after processing.
         /// This includes clearing historic statuses that are older than the limit.
         access(contract) fun garbageCollect(currentTimestamp: UFix64) {
-            // note: historic statuses might be present longer than the limit, which is fine.
-            let historicCallbacks = self.historicCanceledCallbacks.keys
-            for id in historicCallbacks {
-                let historicTimestamp = self.historicCanceledCallbacks[id]!
-                if historicTimestamp < currentTimestamp - self.configurationDetails.historicStatusLimit {
-                    self.historicCanceledCallbacks.remove(key: id)
+            for id in self.historicCallbacks.keys {
+                let historicCallback = self.historicCallbacks[id]!
+                if historicCallback.timestamp < currentTimestamp - self.configurationDetails.historicStatusAgeLimit {
+                    self.historicCallbacks.remove(key: id)
+                    if id > self.earliestHistoricID {
+                        self.earliestHistoricID = id
+                    }
                 }
             }
         }
@@ -840,19 +843,19 @@ access(all) contract FlowCallbackScheduler {
         /// eligible for execution. It also emits an event for each callback that is processed.
         ///
         /// This function is only called by the FVM to process callbacks.
-        access(contract) fun process() {
+        access(Process) fun process() {
 
             let lowPriorityTimestamp = self.lowPriorityScheduledTimestamp
             let lowPriorityCallbacks = self.slotQueue[lowPriorityTimestamp] ?? {}
             let currentTimestamp = getCurrentBlock().timestamp
             
             // Early exit if no timestamps need processing
-            if !self.sortedTimestamps.check(current: currentTimestamp) {
+            if !self.sortedTimestamps.checkIfTimestampsNeedProcessing(current: currentTimestamp) {
                 return
             }
             
             // Collect past timestamps efficiently from sorted array
-            let pastTimestamps = self.sortedTimestamps.past(current: currentTimestamp)
+            let pastTimestamps = self.sortedTimestamps.getTimestampsBefore(current: currentTimestamp)
             
             // process all callbacks from timestamps in the past
             // and add low priority callbacks to the timestamp if there is space
@@ -888,12 +891,20 @@ access(all) contract FlowCallbackScheduler {
                         let callbackEffort = lowPriorityCallbacks[lowCallbackID]!
                         if callbackEffort <= lowPriorityEffortAvailable {
                             lowPriorityEffortAvailable = lowPriorityEffortAvailable - callbackEffort
+                            lowPriorityCallbacks.remove(key: lowCallbackID)
                             sortedCallbackIDs.append(lowCallbackID)
                         }
                     }
                 }
 
+                let ids: {UInt64: Bool} = {}
+
                 for id in sortedCallbackIDs {
+                    if ids[id] == true {
+                        panic("Invalid ID: \(id) callback found twice in sortedCallbackIDs") // critical bug
+                    }
+                    ids[id] = true
+
                     // Ensure the callback still exists and is scheduled
                     if let callback = self.borrowCallback(id: id) {
                         if callback.status == Status.Scheduled {
@@ -905,7 +916,7 @@ access(all) contract FlowCallbackScheduler {
                                 callbackOwner: callback.handler.address
                             )
                         } else {
-                            panic("Invalid Status: \(id) wrong status \(callback.status.rawValue)") // critical bug
+                            panic("Invalid Status: Callback with id \(id) has wrong status \(callback.status.rawValue)") // critical bug
                         }
                     } else {
                         panic("Invalid ID: \(id) callback not found during processing") // critical bug
@@ -936,13 +947,13 @@ access(all) contract FlowCallbackScheduler {
             }
 
             let totalFees = callback.fees.balance
-            let refundedFees <- callback.payAndWithdrawFees(multiplierToWithdraw: self.configurationDetails.refundMultiplier)
+            let refundedFees <- callback.payAndRefundFees(refundMultiplier: self.configurationDetails.refundMultiplier)
 
             emit Canceled(
                 id: callback.id,
                 priority: callback.priority.rawValue,
                 feesReturned: refundedFees.balance,
-                feesDeducted: refundedFees.balance >= totalFees ? 0.0 : totalFees - refundedFees.balance,
+                feesDeducted: totalFees - refundedFees.balance,
                 callbackOwner: callback.handler.address
             )
 
@@ -961,7 +972,7 @@ access(all) contract FlowCallbackScheduler {
         /// The callback must be found and in correct state or the function panics and this is a fatal error
         ///
         /// This function is only called by the FVM to execute callbacks.
-        access(contract) fun executeCallback(id: UInt64) {
+        access(Execute) fun executeCallback(id: UInt64) {
             let callback = self.borrowCallback(id: id) ?? 
                 panic("Invalid ID: Callback with id \(id) not found")
 
@@ -982,7 +993,7 @@ access(all) contract FlowCallbackScheduler {
             )
 
             // Deposit all the fees into the FlowFees vault
-            destroy callback.payAndWithdrawFees(multiplierToWithdraw: 0.0)
+            destroy callback.payAndRefundFees(refundMultiplier: 0.0)
 
             
             self.finalizeCallback(callback: callback, status: Status.Succeeded)
@@ -1006,7 +1017,7 @@ access(all) contract FlowCallbackScheduler {
             )
 
             // Deposit all the fees into the FlowFees vault
-            destroy callback.payAndWithdrawFees(multiplierToWithdraw: 0.0)
+            destroy callback.payAndRefundFees(refundMultiplier: 0.0)
 
             emit Executed(
                 id: callback.id,
@@ -1135,11 +1146,11 @@ access(all) contract FlowCallbackScheduler {
     }
 
     access(all) init() {
-        self.schedulerStoragePath = /storage/sharedScheduler
+        self.storagePath = /storage/sharedScheduler
         let scheduler <- create SharedScheduler()
-        self.account.storage.save(<-scheduler, to: storagePath)
+        self.account.storage.save(<-scheduler, to: self.storagePath)
         
         self.sharedScheduler = self.account.capabilities.storage
-            .issue<auth(Cancel) &SharedScheduler>(storagePath)
+            .issue<auth(Cancel) &SharedScheduler>(self.storagePath)
     }
 }
