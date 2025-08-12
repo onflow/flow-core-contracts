@@ -852,6 +852,12 @@ access(all) contract FlowCallbackScheduler {
                 for id in callbackIDs.keys {
                     let callback = self.borrowCallback(id: id)!
 
+                    // Callbacks that are already executed are finalized and removed from the queue
+                    if callback.status == Status.Executed {
+                        self.finalizeCallback(callback: callback)
+                        continue
+                    }
+
                     if callback.priority == Priority.High {
                         highPriorityIDs.append(id)
                     } else if callback.priority == Priority.Medium {
@@ -866,6 +872,13 @@ access(all) contract FlowCallbackScheduler {
                 var lowPriorityEffortAvailable = self.getSlotAvailableEffort(timestamp: timestamp, priority: Priority.Low)
                 if lowPriorityEffortAvailable > 0 {
                     for lowCallbackID in lowPriorityCallbacks.keys {
+                        let callback = self.borrowCallback(id: lowCallbackID)!
+                        // Callbacks that are already executed are finalized and removed from the queue
+                        if callback.status == Status.Executed {
+                            self.finalizeCallback(callback: callback)
+                            continue
+                        }
+
                         let callbackEffort = lowPriorityCallbacks[lowCallbackID]!
                         if callbackEffort <= lowPriorityEffortAvailable {
                             lowPriorityEffortAvailable = lowPriorityEffortAvailable - callbackEffort
@@ -887,15 +900,15 @@ access(all) contract FlowCallbackScheduler {
                                 callbackOwner: callback.handler.address
                             )
 
-                            // after pending execution event is emitted we finalize the callback as executed because we 
+                            // after pending execution event is emitted we set the callback as executed because we 
                             // must rely on execution node to actually execute it. Execution of the callback which is 
-                            // done in a seperate transaction that calls executeCallback(id) function can not update 
+                            // done in a separate transaction that calls executeCallback(id) function can not update 
                             // the status of callback or any other shared state, since that blocks concurrent callback 
                             // execution. Therefore optimistic update to executed is made here to avoid race condition.
-                            self.finalizeCallback(callback: callback, status: Status.Executed)
+                            callback.setStatus(newStatus: Status.Executed)
 
                             // charge the fee for callback execution
-                            let refundedFees <- callback.payAndWithdrawFees(multiplierToWithdraw: 0.0)
+                            destroy callback.payAndWithdrawFees(multiplierToWithdraw: 0.0)
                         } else {
                             panic("Invalid Status: \(callback.status.rawValue) for callback id \(id)") // critical bug
                         }
@@ -928,6 +941,13 @@ access(all) contract FlowCallbackScheduler {
             let totalFees = callback.fees.balance
             let refundedFees <- callback.payAndRefundFees(refundMultiplier: self.configurationDetails.refundMultiplier)
 
+            // if the callback was canceled, add it to the canceled callbacks array
+            self.canceledCallbacks.append(id)
+            // keep the array under the limit
+            if self.canceledCallbacks.length > self.configurationDetails.canceledCallbacksLimit {
+                self.canceledCallbacks.remove(at: 0)
+            }
+
             emit Canceled(
                 id: callback.id,
                 priority: callback.priority.rawValue,
@@ -936,7 +956,7 @@ access(all) contract FlowCallbackScheduler {
                 callbackOwner: callback.handler.address
             )
 
-            self.finalizeCallback(callback: callback, status: Status.Canceled)
+            self.finalizeCallback(callback: callback)
             
             return <-refundedFees
         }
@@ -965,18 +985,8 @@ access(all) contract FlowCallbackScheduler {
             )
         }
 
-        /// finalizes the callback by setting the status to executed or canceled.
-        /// It also does garbage collection of the callback resource and the slot map if it is empty.
-        /// The callback must be found and in correct state or the function panics.
-        /// This function will always be called by the fvm for a given ID
-        /// in the same block after it is processed so it won't get processed twice
-        access(contract) fun finalizeCallback(callback: &CallbackData, status: Status) {
-            pre {
-                status == Status.Executed || status == Status.Canceled: 
-                    "Invalid status: The provided status to finalizeCallback must be Executed or Canceled"
-            }
-
-            callback.setStatus(newStatus: status)
+        /// finalizes and garbage collects the callback by removing the callback resource and the slot map if it is empty.
+        access(contract) fun finalizeCallback(callback: &CallbackData) {
 
             let callbackID = callback.id
             let slot = callback.scheduledTimestamp
@@ -997,15 +1007,6 @@ access(all) contract FlowCallbackScheduler {
                     self.slotUsedEffort.remove(key: slot)
 
                     self.sortedTimestamps.remove(timestamp: slot)
-                }
-            }
-
-            // if the callback was canceled, add it to the canceled callbacks array
-            if status == Status.Canceled {
-                self.canceledCallbacks.append(callbackID)
-                // keep the array under the limit
-                if self.canceledCallbacks.length > self.configurationDetails.canceledCallbacksLimit {
-                    self.canceledCallbacks.remove(at: 0)
                 }
             }
         }
