@@ -13,10 +13,12 @@ access(all) let highPriority = UInt8(0)
 access(all) let mediumPriority = UInt8(1)
 access(all) let lowPriority = UInt8(2)
 
-access(all) let statusScheduled = UInt8(0)
-access(all) let statusProcessed = UInt8(1)
-access(all) let statusExecuted = UInt8(2)
-access(all) let statusCanceled = UInt8(3)
+access(all) let statusUnknown = UInt8(0)
+access(all) let statusScheduled = UInt8(1)
+access(all) let statusProcessed = UInt8(2)
+access(all) let statusSucceeded = UInt8(3)
+access(all) let statusFailed = UInt8(4)
+access(all) let statusCanceled = UInt8(5)
 
 access(all) let basicEffort: UInt64 = 1000
 access(all) let mediumEffort: UInt64 = 10000
@@ -30,9 +32,12 @@ access(all) let testData = "test data"
 access(all) let failTestData = "fail"
 
 access(all) let callbackToFail = 2 as UInt64
+access(all) let callbackToCancel = 7 as UInt64
 
 access(all) let futureDelta = 100.0
 access(all) var futureTime = 0.0
+access(all) let historicGarbageCollectionLimit = 30.0 * 24.0 * 60.0 * 60.0
+access(all) var timeAfterGarbageCollection = 0.0
 
 access(all) var feeAmount = 10.0
 
@@ -107,6 +112,8 @@ access(all) fun testCallbackScheduling() {
 
     let currentTime = getCurrentBlock().timestamp
     futureTime = currentTime + futureDelta
+
+    timeAfterGarbageCollection = futureTime + historicGarbageCollectionLimit
 
     // Try to schedule callback with insufficient FLOW, should fail
     scheduleCallback(
@@ -269,21 +276,21 @@ access(all) fun testCallbackCancelation() {
 
     // Cancel the callback
     cancelCallback(
-        id: 7,
+        id: callbackToCancel,
         failWithErr: nil
     )
 
     let canceledEvents = Test.eventsOfType(Type<FlowCallbackScheduler.Canceled>())
     Test.assert(canceledEvents.length == 1, message: "Should only have one Canceled event")
     let canceledEvent = canceledEvents[0] as! FlowCallbackScheduler.Canceled
-    Test.assertEqual(UInt64(7), canceledEvent.id)
+    Test.assertEqual(callbackToCancel, canceledEvent.id)
     Test.assertEqual(mediumPriority, canceledEvent.priority)
     Test.assertEqual(feeAmount/UFix64(2.0), canceledEvent.feesReturned)
     Test.assertEqual(feeAmount/UFix64(2.0), canceledEvent.feesDeducted)
     Test.assertEqual(serviceAccount.address, canceledEvent.callbackOwner)
 
     // Make sure the status is canceled
-    var status = getStatus(id: UInt64(7))
+    var status = getStatus(id: callbackToCancel)
     Test.assertEqual(statusCanceled, status)
 
     // Available Effort should be completely unused
@@ -389,6 +396,7 @@ access(all) fun testCallbackExecution() {
                 Test.assertEqual(processedEvent.executionEffort, executedEvent.executionEffort)
                 Test.assertEqual(feeAmount, executedEvent.fees)
                 Test.assertEqual(processedEvent.callbackOwner, executedEvent.callbackOwner)
+                Test.assertEqual(statusSucceeded, executedEvent.status)
                 firstEvent = true
             }
         }
@@ -399,13 +407,13 @@ access(all) fun testCallbackExecution() {
     // Check for Executed events
     let executedEvents = Test.eventsOfType(Type<FlowCallbackScheduler.Executed>())
     Test.assert(executedEvents.length == 3, message: "Executed event wrong count")
-    
+
     for event in executedEvents {
         let executedEvent = event as! FlowCallbackScheduler.Executed
-    
-        // Verify callback status is now Executed
+
+        // Verify callback status is now Succeeded
         var status = getStatus(id: executedEvent.id)
-        Test.assertEqual(statusExecuted, status)
+        Test.assertEqual(statusSucceeded, status)
     }
 
     // Check that the callbacks were executed
@@ -427,9 +435,33 @@ access(all) fun testCallbackExecution() {
     // Process the two remaining callbacks
     processCallbacks()
 
+    // Check that the failed callback is marked as Failed
+    status = getStatus(id: callbackToFail)
+    Test.assertEqual(statusFailed, status)
+
     // Execute the two remaining callbacks (medium and low)
     executeCallback(id: UInt64(3), failWithErr: nil)
     executeCallback(id: UInt64(6), failWithErr: nil)
+}
+
+access(all) fun testCallbackGarbageCollection() {
+
+    // move time to after the garbage collection limit
+    Test.moveTime(by: Fix64(historicGarbageCollectionLimit+futureDelta*20.0))
+
+    Test.assert(timeAfterGarbageCollection < getTimestamp())
+
+    // process the callbacks to make sure the garbage collection is triggered
+    processCallbacks()
+
+    // Check that the canceled callback status is unknown
+    var status = getStatus(id: callbackToCancel)
+    Test.assertEqual(statusUnknown, status)
+
+    // Check that the failed callback status is unknown
+    status = getStatus(id: callbackToFail)
+    Test.assertEqual(statusUnknown, status)
+
 }
 
 
@@ -663,7 +695,7 @@ access(all) fun testConfigDetails() {
         minimumExecutionEffort: nil,
         priorityFeeMultipliers: nil,
         refundMultiplier: 1.1,
-        historicStatusLimit: nil,
+        historicStatusAgeLimit: nil,
         shouldFail: "Invalid refund multiplier: The multiplier must be between 0.0 and 1.0 but got 1.10000000"
     )
 
@@ -674,7 +706,7 @@ access(all) fun testConfigDetails() {
         minimumExecutionEffort: nil,
         priorityFeeMultipliers: nil,
         refundMultiplier: nil,
-        historicStatusLimit: 0.0,
+        historicStatusAgeLimit: 0.0,
         shouldFail: "Invalid historic status limit: Limit must be greater than 1.0 and less than the current timestamp but got 0.00000000"
     )
 
@@ -685,7 +717,7 @@ access(all) fun testConfigDetails() {
         minimumExecutionEffort: nil,
         priorityFeeMultipliers: {highPriority: 20.0, mediumPriority: 10.0, lowPriority: 0.9},
         refundMultiplier: nil,
-        historicStatusLimit: nil,
+        historicStatusAgeLimit: nil,
         shouldFail: "Invalid priority fee multiplier: Low priority multiplier must be greater than or equal to 1.0 but got 0.90000000"
     )
 
@@ -696,7 +728,7 @@ access(all) fun testConfigDetails() {
         minimumExecutionEffort: nil,
         priorityFeeMultipliers: {highPriority: 20.0, mediumPriority: 3.0, lowPriority: 4.0},
         refundMultiplier: nil,
-        historicStatusLimit: nil,
+        historicStatusAgeLimit: nil,
         shouldFail: "Invalid priority fee multiplier: Medium priority multiplier must be greater than or equal to 4.00000000 but got 3.00000000"
     )
 
@@ -707,7 +739,7 @@ access(all) fun testConfigDetails() {
         minimumExecutionEffort: nil,
         priorityFeeMultipliers: {highPriority: 5.0, mediumPriority: 6.0, lowPriority: 4.0},
         refundMultiplier: nil,
-        historicStatusLimit: nil,
+        historicStatusAgeLimit: nil,
         shouldFail: "Invalid priority fee multiplier: High priority multiplier must be greater than or equal to 6.00000000 but got 5.00000000"
     )
 
@@ -718,7 +750,7 @@ access(all) fun testConfigDetails() {
         minimumExecutionEffort: nil,
         priorityFeeMultipliers: nil,
         refundMultiplier: nil,
-        historicStatusLimit: nil,
+        historicStatusAgeLimit: nil,
         shouldFail: "Invalid priority effort limit: High priority effort limit must be greater than or equal to the priority effort reserve of 40000"
     )
 
@@ -729,7 +761,7 @@ access(all) fun testConfigDetails() {
         minimumExecutionEffort: nil,
         priorityFeeMultipliers: nil,
         refundMultiplier: nil,
-        historicStatusLimit: nil,
+        historicStatusAgeLimit: nil,
         shouldFail: "Invalid priority effort limit: Medium priority effort limit must be greater than or equal to the priority effort reserve of 40000"
     )
 
@@ -740,7 +772,7 @@ access(all) fun testConfigDetails() {
         minimumExecutionEffort: nil,
         priorityFeeMultipliers: nil,
         refundMultiplier: nil,
-        historicStatusLimit: nil,
+        historicStatusAgeLimit: nil,
         shouldFail: "Invalid priority effort limit: Low priority effort limit must be greater than or equal to the priority effort reserve of 20000"
     )
 
@@ -762,7 +794,7 @@ access(all) fun testConfigDetails() {
     Test.assertEqual(oldConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.Medium]!, 5.0)
     Test.assertEqual(oldConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.Low]!, 2.0)
     Test.assertEqual(oldConfig.refundMultiplier, 0.5)
-    Test.assertEqual(oldConfig.historicStatusLimit, 2592000.00000000)
+    Test.assertEqual(oldConfig.historicStatusAgeLimit, 2592000.00000000)
 
 
     setConfigDetails(
@@ -772,7 +804,7 @@ access(all) fun testConfigDetails() {
         minimumExecutionEffort: 10,
         priorityFeeMultipliers: {highPriority: 20.0, mediumPriority: 10.0, lowPriority: 4.0},
         refundMultiplier: nil,
-        historicStatusLimit: 2000.0,
+        historicStatusAgeLimit: 2000.0,
         shouldFail: nil
     )
 
@@ -791,7 +823,7 @@ access(all) fun testConfigDetails() {
     Test.assertEqual(newConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.Medium]!, 10.0)
     Test.assertEqual(newConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.Low]!, 4.0)
     Test.assertEqual(newConfig.refundMultiplier, oldConfig.refundMultiplier)
-    Test.assertEqual(newConfig.historicStatusLimit, 2000.0)
+    Test.assertEqual(newConfig.historicStatusAgeLimit, 2000.0)
 }
 
 // Helper function for scheduling a callback
@@ -884,15 +916,15 @@ access(all) fun setConfigDetails(
     minimumExecutionEffort: UInt64?,
     priorityFeeMultipliers: {UInt8: UFix64}?,
     refundMultiplier: UFix64?,
-    historicStatusLimit: UFix64?,
+    historicStatusAgeLimit: UFix64?,
     shouldFail: String?
 ) {
     let setConfigDetailsCode = Test.readFile("../transactions/callbackScheduler/admin/set_config_details.cdc")
     let setConfigDetailsTx = Test.Transaction(
         code: setConfigDetailsCode,
-        authorizers: [admin.address],
-        signers: [admin],
-        arguments: [slotSharedEffortLimit, priorityEffortReserve, priorityEffortLimit, minimumExecutionEffort, priorityFeeMultipliers, refundMultiplier, historicStatusLimit]
+        authorizers: [serviceAccount.address],
+        signers: [serviceAccount],
+        arguments: [slotSharedEffortLimit, priorityEffortReserve, priorityEffortLimit, minimumExecutionEffort, priorityFeeMultipliers, refundMultiplier, historicStatusAgeLimit]
     )
     let setConfigDetailsResult = Test.executeTransaction(setConfigDetailsTx)
     if let error = shouldFail {
@@ -900,7 +932,6 @@ access(all) fun setConfigDetails(
         // log(setConfigDetailsResult.error!.message)
         Test.expect(setConfigDetailsResult, Test.beFailed())
         // Check error
-        //Test.assert(error == setConfigDetailsResult.error!.message, message: "error mismatch: Expected \(error) but got \(setConfigDetailsResult.error!.message)")
         Test.assertError(
             setConfigDetailsResult,
             errorMessage: error
@@ -931,7 +962,7 @@ access(all) fun getStatus(id: UInt64): UInt8 {
         "../transactions/callbackScheduler/scripts/get_status.cdc",
         [id]
     ).returnValue! as! UInt8
-    return status!
+    return status
 }
 
 access(all) fun getSlotAvailableEffort(timestamp: UFix64, priority: UInt8): UInt64 {
