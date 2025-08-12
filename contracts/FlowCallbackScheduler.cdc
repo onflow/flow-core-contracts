@@ -897,13 +897,7 @@ access(all) contract FlowCallbackScheduler {
                     }
                 }
 
-                let ids: {UInt64: Bool} = {}
-
                 for id in sortedCallbackIDs {
-                    if ids[id] == true {
-                        panic("Invalid ID: \(id) callback found twice in sortedCallbackIDs") // critical bug
-                    }
-                    ids[id] = true
 
                     // Ensure the callback still exists and is scheduled
                     if let callback = self.borrowCallback(id: id) {
