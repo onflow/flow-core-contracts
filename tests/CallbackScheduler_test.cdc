@@ -15,10 +15,8 @@ access(all) let lowPriority = UInt8(2)
 
 access(all) let statusUnknown = UInt8(0)
 access(all) let statusScheduled = UInt8(1)
-access(all) let statusProcessed = UInt8(2)
-access(all) let statusSucceeded = UInt8(3)
-access(all) let statusFailed = UInt8(4)
-access(all) let statusCanceled = UInt8(5)
+access(all) let statusPendingExecution = UInt8(2)
+access(all) let statusCanceled = UInt8(3)
 
 access(all) let basicEffort: UInt64 = 1000
 access(all) let mediumEffort: UInt64 = 10000
@@ -160,10 +158,10 @@ access(all) fun testCallbackScheduling() {
     var status = getStatus(id: callbackID)
     Test.assertEqual(statusScheduled, status)
 
-    // Try to execute the callback, should fail because it isn't processed
+    // Try to execute the callback, should fail because it isn't pendingExecution
     executeCallback(
         id: callbackID,
-        failWithErr: "Invalid ID: Cannot execute callback with id \(callbackID) because it has not been processed yet"
+        failWithErr: "Invalid ID: Cannot execute callback with id \(callbackID) because it has not been marked as pendingExecution yet"
     )
 
     // Schedule another callback, medium this time
@@ -337,13 +335,13 @@ access(all) fun testCallbackExecution() {
     // Simulate FVM process - should not yet process since timestamp is in the future
     processCallbacks()
 
-    // Check that no Processed events were emitted yet (since callback is in the future)
-    let processedEventsBeforeTime = Test.eventsOfType(Type<FlowCallbackScheduler.Processed>())
-    Test.assert(processedEventsBeforeTime.length == 0, message: "Processed before time")
+    // Check that no PendingExecution events were emitted yet (since callback is in the future)
+    let pendingExecutionEventsBeforeTime = Test.eventsOfType(Type<FlowCallbackScheduler.PendingExecution>())
+    Test.assert(pendingExecutionEventsBeforeTime.length == 0, message: "PendingExecution before time")
 
     // move time forward to trigger execution eligibility
     // Have to subtract four to handle the automatic timestamp drift
-    // so that the medium callback that got scheduled doesn't get processed
+    // so that the medium callback that got scheduled doesn't get marked as pendingExecution
     Test.moveTime(by: Fix64(futureDelta - 5.0))
     while getTimestamp() < futureTime {
         Test.moveTime(by: Fix64(1.0))
@@ -353,51 +351,51 @@ access(all) fun testCallbackExecution() {
     // Simulate FVM process - should process since timestamp is in the past
     processCallbacks()
 
-    // Check for Processed event after processing
+    // Check for PendingExecution event after processing
     // Should have two high, one medium, and one low
     // and they should be in order
     // Cannot verify the order of events in tests at the moment
     // let expectedEventOrder: [UInt64] = [1, 4, 2, 5]
 
-    let processedEventsAfterTime = Test.eventsOfType(Type<FlowCallbackScheduler.Processed>())
-    Test.assertEqual(4, processedEventsAfterTime.length)
+    let pendingExecutionEventsAfterTime = Test.eventsOfType(Type<FlowCallbackScheduler.PendingExecution>())
+    Test.assertEqual(4, pendingExecutionEventsAfterTime.length)
     
     var i = 0
     var firstEvent: Bool = false
-    for event in processedEventsAfterTime {
-        let processedEvent = event as! FlowCallbackScheduler.Processed
+    for event in pendingExecutionEventsAfterTime {
+        let pendingExecutionEvent = event as! FlowCallbackScheduler.PendingExecution
         Test.assert(
-            processedEvent.id != UInt64(3),
-            message: "ID 3 Should not have been processed"
+            pendingExecutionEvent.id != UInt64(3),
+            message: "ID 3 Should not have been marked as pendingExecution"
         )
 
         // Cannot verify the order in tests at the moment
         // Test.assert(
-        //     expectedEventOrder[i] == processedEvent.id,
-        //     message: "Events were not processed in priority order. Expected: \(expectedEventOrder[i]), got: \(processedEvent.id)"
+        //     expectedEventOrder[i] == pendingExecutionEvent.id,
+        //     message: "Events were not pendingExecution in priority order. Expected: \(expectedEventOrder[i]), got: \(pendingExecutionEvent.id)"
         // )
 
-        // verify that the transactions got processed
-        var status = getStatus(id: processedEvent.id)
-        Test.assertEqual(statusProcessed, status)
+        // verify that the transactions got marked as pendingExecution
+        var status = getStatus(id: pendingExecutionEvent.id)
+        Test.assertEqual(statusPendingExecution, status)
 
         // Simulate FVM execute - should execute the callback
-        if processedEvent.id == callbackToFail {
+        if pendingExecutionEvent.id == callbackToFail {
             // ID 2 should fail, so need to verify that
-            executeCallback(id: processedEvent.id, failWithErr: "Callback \(callbackToFail) failed")
+            executeCallback(id: pendingExecutionEvent.id, failWithErr: "Callback \(callbackToFail) failed")
         } else {
-            executeCallback(id: processedEvent.id, failWithErr: nil)
+            executeCallback(id: pendingExecutionEvent.id, failWithErr: nil)
         
             // Verify that the first event is the low priority callback
             if !firstEvent {
                 let executedEvents = Test.eventsOfType(Type<FlowCallbackScheduler.Executed>())
                 Test.assert(executedEvents.length == 1, message: "Should only have one Executed event")
                 let executedEvent = executedEvents[0] as! FlowCallbackScheduler.Executed
-                Test.assertEqual(processedEvent.id, executedEvent.id)
-                Test.assertEqual(processedEvent.priority, executedEvent.priority)
-                Test.assertEqual(processedEvent.executionEffort, executedEvent.executionEffort)
+                Test.assertEqual(pendingExecutionEvent.id, executedEvent.id)
+                Test.assertEqual(pendingExecutionEvent.priority, executedEvent.priority)
+                Test.assertEqual(pendingExecutionEvent.executionEffort, executedEvent.executionEffort)
                 Test.assertEqual(feeAmount, executedEvent.fees)
-                Test.assertEqual(processedEvent.callbackOwner, executedEvent.callbackOwner)
+                Test.assertEqual(pendingExecutionEvent.callbackOwner, executedEvent.callbackOwner)
                 Test.assertEqual(statusSucceeded, executedEvent.status)
                 firstEvent = true
             }
@@ -426,12 +424,12 @@ access(all) fun testCallbackExecution() {
     Test.assert(callbackIDs.length == 3, message: "Executed ids is the wrong count")
 
 
-    // Verify failed callback status is still Processed
+    // Verify failed callback status is still PendingExecution
     var status = getStatus(id: callbackToFail)
-    Test.assertEqual(statusProcessed, status)
+    Test.assertEqual(statusPendingExecution, status)
 
     // Move time forward by 5 so that
-    // the other medium and low priority callbacks get processed
+    // the other medium and low priority callbacks get marked as pendingExecution
     Test.moveTime(by: Fix64(5.0))
 
     // Process the two remaining callbacks
