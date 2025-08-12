@@ -35,10 +35,8 @@ access(all) contract FlowCallbackScheduler {
         access(all) case Unknown
         /// mutable statuses
         access(all) case Scheduled
-        access(all) case Processed
         /// finalized statuses
-        access(all) case Succeeded
-        access(all) case Failed
+        access(all) case Executed
         access(all) case Canceled
     }
 
@@ -52,7 +50,7 @@ access(all) contract FlowCallbackScheduler {
         callbackOwner: Address
     )
 
-    access(all) event Processed(
+    access(all) event PendingExecution(
         id: UInt64,
         priority: UInt8,
         executionEffort: UInt64,
@@ -65,7 +63,6 @@ access(all) contract FlowCallbackScheduler {
         executionEffort: UInt64,
         fees: UFix64,
         callbackOwner: Address,
-        status: UInt8
     )
 
     access(all) event Canceled(
@@ -195,14 +192,12 @@ access(all) contract FlowCallbackScheduler {
         /// It panics if the callback status is already finalized.
         access(contract) fun setStatus(newStatus: Status) {
             pre {
-                self.status != Status.Succeeded && self.status != Status.Failed && self.status != Status.Canceled:
+                self.status != Status.Executed && self.status != Status.Canceled:
                     "Invalid status: Callback with id \(self.id) is already finalized"
-                newStatus == Status.Succeeded ? self.status == Status.Processed : true:
-                    "Invalid status: Callback with id \(self.id) cannot be marked as Succeeded until after it is Processed"
-                newStatus == Status.Failed ? self.status == Status.Processed : true:
-                    "Invalid status: Callback with id \(self.id) cannot be marked as Failed until after it is Processed"
-                newStatus == Status.Processed ? self.status == Status.Scheduled : true:
-                    "Invalid status: Callback with id \(self.id) can only be set as Processed if it is Scheduled"
+                newStatus == Status.Executed ? self.status == Status.Scheduled : true:
+                    "Invalid status: Callback with id \(self.id) can only be set as Executed if it is Scheduled"
+                newStatus == Status.Canceled ? self.status == Status.Scheduled : true:
+                    "Invalid status: Callback with id \(self.id) can only be set as Canceled if it is Scheduled"
             }
 
             self.status = newStatus
@@ -264,9 +259,8 @@ access(all) contract FlowCallbackScheduler {
         /// refund multiplier is the portion of the fees that are refunded when a callback is cancelled
         access(all) var refundMultiplier: UFix64
 
-        /// historic status age limit is the maximum age in timestamp seconds
-        /// of a historic canceled callback status to keep before getting pruned
-        access(all) var historicStatusAgeLimit: UFix64
+        /// canceledCallbacksLimit is the maximum number of canceled callbacks to keep in the canceledCallbacks array
+        access(all) var canceledCallbacksLimit: Int
 
         access(all) init(
             slotSharedEffortLimit: UInt64,
@@ -275,13 +269,11 @@ access(all) contract FlowCallbackScheduler {
             minimumExecutionEffort: UInt64,
             priorityFeeMultipliers: {Priority: UFix64},
             refundMultiplier: UFix64,
-            historicStatusAgeLimit: UFix64
+            canceledCallbacksLimit: Int
         ) {
             pre {
                 refundMultiplier >= 0.0 && refundMultiplier <= 1.0:
                     "Invalid refund multiplier: The multiplier must be between 0.0 and 1.0 but got \(refundMultiplier)"
-                historicStatusAgeLimit >= 1.0 && historicStatusAgeLimit < getCurrentBlock().timestamp:
-                    "Invalid historic status limit: Limit must be greater than 1.0 and less than the current timestamp but got \(historicStatusAgeLimit)"
                 priorityFeeMultipliers[Priority.Low]! >= 1.0:
                     "Invalid priority fee multiplier: Low priority multiplier must be greater than or equal to 1.0 but got \(priorityFeeMultipliers[Priority.Low]!)"
                 priorityFeeMultipliers[Priority.Medium]! > priorityFeeMultipliers[Priority.Low]!:
@@ -294,6 +286,8 @@ access(all) contract FlowCallbackScheduler {
                     "Invalid priority effort limit: Medium priority effort limit must be greater than or equal to the priority effort reserve of \(priorityEffortReserve[Priority.Medium]!)"
                 priorityEffortLimit[Priority.Low]! >= priorityEffortReserve[Priority.Low]!:
                     "Invalid priority effort limit: Low priority effort limit must be greater than or equal to the priority effort reserve of \(priorityEffortReserve[Priority.Low]!)"
+                canceledCallbacksLimit >= 0:
+                    "Invalid canceled callbacks limit: The limit must be greater than or equal to 0 but got \(canceledCallbacksLimit)"
             }
         }
     }
@@ -308,7 +302,7 @@ access(all) contract FlowCallbackScheduler {
         access(all) var minimumExecutionEffort: UInt64
         access(all) var priorityFeeMultipliers: {Priority: UFix64}
         access(all) var refundMultiplier: UFix64
-        access(all) var historicStatusAgeLimit: UFix64
+        access(all) var canceledCallbacksLimit: Int
 
         access(all) init(
             slotSharedEffortLimit: UInt64,
@@ -317,7 +311,7 @@ access(all) contract FlowCallbackScheduler {
             minimumExecutionEffort: UInt64,
             priorityFeeMultipliers: {Priority: UFix64},
             refundMultiplier: UFix64,
-            historicStatusAgeLimit: UFix64
+            canceledCallbacksLimit: Int
         ) {
             self.slotTotalEffortLimit = slotSharedEffortLimit + priorityEffortReserve[Priority.High]! + priorityEffortReserve[Priority.Medium]!
             self.slotSharedEffortLimit = slotSharedEffortLimit
@@ -326,26 +320,10 @@ access(all) contract FlowCallbackScheduler {
             self.minimumExecutionEffort = minimumExecutionEffort
             self.priorityFeeMultipliers = priorityFeeMultipliers
             self.refundMultiplier = refundMultiplier
-            self.historicStatusAgeLimit = historicStatusAgeLimit
+            self.canceledCallbacksLimit = canceledCallbacksLimit
         }
     }
 
-    /// HistoricCallback is a struct that contains the timestamp and status of a callback
-    /// that has been finalized and is stored in the historicCallbacks map
-    access(all) struct HistoricCallback {
-        access(all) let timestamp: UFix64
-        access(all) let status: Status
-
-        access(contract) init(timestamp: UFix64, status: Status) {
-            pre {
-                status == Status.Canceled || status == Status.Failed:
-                    "Invalid status: Historic callbacks can only be Canceled or Failed"
-            }
-
-            self.timestamp = timestamp
-            self.status = status
-        }
-    }
 
     /// SortedTimestamps maintains a sorted array of timestamps for efficient processing
     /// It encapsulates all operations related to maintaining and querying sorted timestamps
@@ -440,6 +418,9 @@ access(all) contract FlowCallbackScheduler {
         /// used for querying historic statuses so that we don't have to store all succeeded statuses
         access(contract) var earliestHistoricID: UInt64
 
+        /// canceled callbacks keeps a record of canceled callback IDs up to a canceledCallbacksLimit
+        access(all) var canceledCallbacks: [UInt64]
+
         /// Struct that contains all the configuration details for the callback scheduler protocol
         /// Can be updated by the owner of the contract
         access(contract) var configurationDetails: {SchedulerConfig}
@@ -448,6 +429,7 @@ access(all) contract FlowCallbackScheduler {
             self.nextID = 1
             self.lowPriorityScheduledTimestamp = 0.0
             self.earliestHistoricID = 0
+            self.canceledCallbacks = []
             
             self.callbacks <- {}
             self.historicCallbacks = {}
@@ -552,20 +534,33 @@ access(all) contract FlowCallbackScheduler {
             return nextID
         }
 
-        /// get status of the scheduled callback, if the callback is not found nil is returned.
+        /// get status of the scheduled callback, if the callback is not found Unknown is returned.
         access(all) view fun getStatus(id: UInt64): Status? {
 
             if let callback = self.borrowCallback(id: id) {
                 return callback.status
             }
 
-            // if the callback is not found in the callbacks map, we check the callback status map for historic status
-            if let historic = self.historicCallbacks[id] {
-                return historic.status
-            } else if id > self.earliestHistoricID {
-                return Status.Succeeded
+            // if the callback was canceled and it is still not pruned from 
+            // list return canceled status
+            if self.canceledCallbacks.contains(id) {
+                return Status.Canceled
             }
 
+            // if no callbacks were yet canceled the status is executed
+            if self.canceledCallbacks.length == 0 {
+                return Status.Executed
+            }
+
+            // if callback ID is after first canceled ID it must be executed 
+            // otherwise it would have been canceled and part of this list
+            let firstCanceledID = self.canceledCallbacks[0]
+            if id > firstCanceledID {
+                return Status.Executed
+            }
+
+            // the callback list was pruned and the callback status might be 
+            // either canceled or execute so we return unknown
             return Status.Unknown
         }
 
@@ -679,6 +674,8 @@ access(all) contract FlowCallbackScheduler {
             if priority == Priority.Low {
                 return EstimatedCallback(flowFee: fee, timestamp: scheduledTimestamp, error: "Invalid Priority: Cannot estimate for Low Priority callbacks. They will be included in the first block with available space.")
             }
+
+            // todo: add surge factor to the estimate
 
             return EstimatedCallback(flowFee: fee, timestamp: scheduledTimestamp, error: nil)
         }
@@ -822,21 +819,7 @@ access(all) contract FlowCallbackScheduler {
 
             self.callbacks[callback.id] <-! callback
         }
-
-        /// garbage collection of any resources that can be released after processing.
-        /// This includes clearing historic statuses that are older than the limit.
-        access(contract) fun garbageCollect(currentTimestamp: UFix64) {
-            for id in self.historicCallbacks.keys {
-                let historicCallback = self.historicCallbacks[id]!
-                if historicCallback.timestamp < currentTimestamp - self.configurationDetails.historicStatusAgeLimit {
-                    self.historicCallbacks.remove(key: id)
-                    if id > self.earliestHistoricID {
-                        self.earliestHistoricID = id
-                    }
-                }
-            }
-        }
-  
+ 
         /// process scheduled callbacks and prepare them for execution. 
         ///
         /// It iterates over past timestamps in the queue and processes the callbacks that are 
@@ -869,11 +852,6 @@ access(all) contract FlowCallbackScheduler {
                 for id in callbackIDs.keys {
                     let callback = self.borrowCallback(id: id)!
 
-                    if callback.status == Status.Processed {
-                        self.failCallback(id: id)
-                        continue
-                    }
-
                     if callback.priority == Priority.High {
                         highPriorityIDs.append(id)
                     } else if callback.priority == Priority.Medium {
@@ -902,13 +880,22 @@ access(all) contract FlowCallbackScheduler {
                     // Ensure the callback still exists and is scheduled
                     if let callback = self.borrowCallback(id: id) {
                         if callback.status == Status.Scheduled {
-                            callback.setStatus(newStatus: Status.Processed)
-                            emit Processed(
+                            emit PendingExecution(
                                 id: id,
                                 priority: callback.priority.rawValue,
                                 executionEffort: callback.executionEffort,
                                 callbackOwner: callback.handler.address
                             )
+
+                            // after pending execution event is emitted we finalize the callback as executed because we 
+                            // must rely on execution node to actually execute it. Execution of the callback which is 
+                            // done in a seperate transaction that calls executeCallback(id) function can not update 
+                            // the status of callback or any other shared state, since that blocks concurrent callback 
+                            // execution. Therefore optimistic update to executed is made here to avoid race condition.
+                            self.finalizeCallback(callback: callback, status: Status.Executed)
+
+                            // charge the fee for callback execution
+                            let refundedFees <- callback.payAndWithdrawFees(multiplierToWithdraw: 0.0)
                         } else {
                             panic("Invalid Status: \(callback.status.rawValue) for callback id \(id)") // critical bug
                         }
@@ -917,8 +904,6 @@ access(all) contract FlowCallbackScheduler {
                     }
                 }
             }
-
-            self.garbageCollect(currentTimestamp: currentTimestamp)
         }
 
         /// cancel scheduled callback and return a portion of the fees that were paid.
@@ -951,12 +936,6 @@ access(all) contract FlowCallbackScheduler {
                 callbackOwner: callback.handler.address
             )
 
-            // keep historic statuses for future queries after garbage collection
-            self.historicCallbacks[callback.id] = HistoricCallback(
-                timestamp: callback.scheduledTimestamp,
-                status: Status.Canceled
-            )
-            
             self.finalizeCallback(callback: callback, status: Status.Canceled)
             
             return <-refundedFees
@@ -971,8 +950,8 @@ access(all) contract FlowCallbackScheduler {
                 panic("Invalid ID: Callback with id \(id) not found")
 
             assert (
-                callback.status == Status.Processed,
-                message: "Invalid ID: Cannot execute callback with id \(id) because it has not been processed yet"
+                callback.status == Status.Executed,
+                message: "Invalid ID: Cannot execute callback with id \(id) because it has incorrect status \(callback.status.rawValue)"
             )
             
             callback.handler.borrow()!.executeCallback(id: id, data: callback.getData())
@@ -983,46 +962,7 @@ access(all) contract FlowCallbackScheduler {
                 executionEffort: callback.executionEffort,
                 fees: callback.fees.balance,
                 callbackOwner: callback.handler.address,
-                status: Status.Succeeded.rawValue
             )
-
-            // Deposit all the fees into the FlowFees vault
-            destroy callback.payAndRefundFees(refundMultiplier: 0.0)
-
-            
-            self.finalizeCallback(callback: callback, status: Status.Succeeded)
-        }
-
-        /// fail callback fail a Processed callback by ID.
-        /// The callback must be found and in correct state or the function panics and this is a fatal error
-        access(contract) fun failCallback(id: UInt64) {
-            let callback = self.borrowCallback(id: id) ?? 
-                panic("Invalid ID: Callback with id \(id) not found")
-
-            assert (
-                callback.status == Status.Processed,
-                message: "Invalid ID: Cannot fail callback with id \(id) because it has not been processed yet"
-            )
-
-            // keep historic statuses for future queries after garbage collection
-            self.historicCallbacks[callback.id] = HistoricCallback(
-                timestamp: callback.scheduledTimestamp,
-                status: Status.Failed
-            )
-
-            // Deposit all the fees into the FlowFees vault
-            destroy callback.payAndRefundFees(refundMultiplier: 0.0)
-
-            emit Executed(
-                id: callback.id,
-                priority: callback.priority.rawValue,
-                executionEffort: callback.executionEffort,
-                fees: callback.fees.balance,
-                callbackOwner: callback.handler.address,
-                status: Status.Failed.rawValue
-            )
-
-            self.finalizeCallback(callback: callback, status: Status.Failed)
         }
 
         /// finalizes the callback by setting the status to executed or canceled.
@@ -1032,8 +972,8 @@ access(all) contract FlowCallbackScheduler {
         /// in the same block after it is processed so it won't get processed twice
         access(contract) fun finalizeCallback(callback: &CallbackData, status: Status) {
             pre {
-                status == Status.Succeeded || status == Status.Failed || status == Status.Canceled: 
-                    "Invalid status: The provided status to finalizeCallback must be Succeeded, Failed, or Canceled"
+                status == Status.Executed || status == Status.Canceled: 
+                    "Invalid status: The provided status to finalizeCallback must be Executed or Canceled"
             }
 
             callback.setStatus(newStatus: status)
@@ -1057,6 +997,15 @@ access(all) contract FlowCallbackScheduler {
                     self.slotUsedEffort.remove(key: slot)
 
                     self.sortedTimestamps.remove(timestamp: slot)
+                }
+            }
+
+            // if the callback was canceled, add it to the canceled callbacks array
+            if status == Status.Canceled {
+                self.canceledCallbacks.append(callbackID)
+                // keep the array under the limit
+                if self.canceledCallbacks.length > self.configurationDetails.canceledCallbacksLimit {
+                    self.canceledCallbacks.remove(at: 0)
                 }
             }
         }
