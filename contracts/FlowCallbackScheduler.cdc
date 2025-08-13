@@ -389,7 +389,7 @@ access(all) contract FlowCallbackScheduler {
         }
 
         /// Get all timestamps that are in the past (less than or equal to current timestamp)
-        access(all) fun getTimestampsBefore(current: UFix64): [UFix64] {
+        access(all) fun getBefore(current: UFix64): [UFix64] {
             let pastTimestamps: [UFix64] = []
             for timestamp in self.timestamps {
                 if timestamp <= current {
@@ -403,7 +403,7 @@ access(all) contract FlowCallbackScheduler {
 
         /// Check if there are any timestamps that need processing
         /// Returns true if processing is needed, false for early exit
-        access(all) fun checkIfTimestampsNeedProcessing(current: UFix64): Bool {
+        access(all) fun hasTimestampsBefore(current: UFix64): Bool {
             return self.timestamps.length > 0 && self.timestamps[0] <= current
         }
     }
@@ -850,12 +850,12 @@ access(all) contract FlowCallbackScheduler {
             let currentTimestamp = getCurrentBlock().timestamp
             
             // Early exit if no timestamps need processing
-            if !self.sortedTimestamps.checkIfTimestampsNeedProcessing(current: currentTimestamp) {
+            if !self.sortedTimestamps.hasTimestampsBefore(current: currentTimestamp) {
                 return
             }
             
             // Collect past timestamps efficiently from sorted array
-            let pastTimestamps = self.sortedTimestamps.getTimestampsBefore(current: currentTimestamp)
+            let pastTimestamps = self.sortedTimestamps.getBefore(current: currentTimestamp)
             
             // process all callbacks from timestamps in the past
             // and add low priority callbacks to the timestamp if there is space
@@ -910,7 +910,7 @@ access(all) contract FlowCallbackScheduler {
                                 callbackOwner: callback.handler.address
                             )
                         } else {
-                            panic("Invalid Status: Callback with id \(id) has wrong status \(callback.status.rawValue)") // critical bug
+                            panic("Invalid Status: \(callback.status.rawValue) for callback id \(id)") // critical bug
                         }
                     } else {
                         panic("Invalid ID: \(id) callback not found during processing") // critical bug
