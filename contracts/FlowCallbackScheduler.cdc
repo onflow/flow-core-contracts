@@ -54,6 +54,7 @@ access(all) contract FlowCallbackScheduler {
         id: UInt64,
         priority: UInt8,
         executionEffort: UInt64,
+        fees: UFix64,
         callbackOwner: Address
     )
 
@@ -61,7 +62,6 @@ access(all) contract FlowCallbackScheduler {
         id: UInt64,
         priority: UInt8,
         executionEffort: UInt64,
-        fees: UFix64,
         callbackOwner: Address,
     )
 
@@ -260,7 +260,7 @@ access(all) contract FlowCallbackScheduler {
         access(all) var refundMultiplier: UFix64
 
         /// canceledCallbacksLimit is the maximum number of canceled callbacks to keep in the canceledCallbacks array
-        access(all) var canceledCallbacksLimit: Int
+        access(all) var canceledCallbacksLimit: UInt
 
         access(all) init(
             slotSharedEffortLimit: UInt64,
@@ -269,7 +269,7 @@ access(all) contract FlowCallbackScheduler {
             minimumExecutionEffort: UInt64,
             priorityFeeMultipliers: {Priority: UFix64},
             refundMultiplier: UFix64,
-            canceledCallbacksLimit: Int
+            canceledCallbacksLimit: UInt
         ) {
             pre {
                 refundMultiplier >= 0.0 && refundMultiplier <= 1.0:
@@ -286,8 +286,6 @@ access(all) contract FlowCallbackScheduler {
                     "Invalid priority effort limit: Medium priority effort limit must be greater than or equal to the priority effort reserve of \(priorityEffortReserve[Priority.Medium]!)"
                 priorityEffortLimit[Priority.Low]! >= priorityEffortReserve[Priority.Low]!:
                     "Invalid priority effort limit: Low priority effort limit must be greater than or equal to the priority effort reserve of \(priorityEffortReserve[Priority.Low]!)"
-                canceledCallbacksLimit >= 0:
-                    "Invalid canceled callbacks limit: The limit must be greater than or equal to 0 but got \(canceledCallbacksLimit)"
             }
         }
     }
@@ -302,7 +300,7 @@ access(all) contract FlowCallbackScheduler {
         access(all) var minimumExecutionEffort: UInt64
         access(all) var priorityFeeMultipliers: {Priority: UFix64}
         access(all) var refundMultiplier: UFix64
-        access(all) var canceledCallbacksLimit: Int
+        access(all) var canceledCallbacksLimit: UInt
 
         access(all) init(
             slotSharedEffortLimit: UInt64,
@@ -311,7 +309,7 @@ access(all) contract FlowCallbackScheduler {
             minimumExecutionEffort: UInt64,
             priorityFeeMultipliers: {Priority: UFix64},
             refundMultiplier: UFix64,
-            canceledCallbacksLimit: Int
+            canceledCallbacksLimit: UInt
         ) {
             self.slotTotalEffortLimit = slotSharedEffortLimit + priorityEffortReserve[Priority.High]! + priorityEffortReserve[Priority.Medium]!
             self.slotSharedEffortLimit = slotSharedEffortLimit
@@ -397,9 +395,6 @@ access(all) contract FlowCallbackScheduler {
         /// callbacks is a map of callback IDs to callback data
         access(contract) var callbacks: @{UInt64: CallbackData}
 
-        /// callback status maps historic callback IDs to their statuses
-        access(contract) var historicCallbacks: {UInt64: HistoricCallback}
-
         /// slot queue is a map of timestamps to callback IDs and their execution efforts
         access(contract) var slotQueue: {UFix64: {UInt64: UInt64}}
 
@@ -432,7 +427,6 @@ access(all) contract FlowCallbackScheduler {
             self.canceledCallbacks = []
             
             self.callbacks <- {}
-            self.historicCallbacks = {}
             self.slotUsedEffort = {
                 self.lowPriorityScheduledTimestamp: {
                     Priority.High: 0,
@@ -492,7 +486,7 @@ access(all) contract FlowCallbackScheduler {
                     Priority.Low: 2.0
                 },
                 refundMultiplier: 0.5,
-                historicStatusAgeLimit: 30.0 * 24.0 * 60.0 * 60.0 // 30 days
+                canceledCallbacksLimit: 30 * 24 // 30 days with 1 per hour
             )
         }
 
@@ -675,8 +669,6 @@ access(all) contract FlowCallbackScheduler {
                 return EstimatedCallback(flowFee: fee, timestamp: scheduledTimestamp, error: "Invalid Priority: Cannot estimate for Low Priority callbacks. They will be included in the first block with available space.")
             }
 
-            // todo: add surge factor to the estimate
-
             return EstimatedCallback(flowFee: fee, timestamp: scheduledTimestamp, error: nil)
         }
 
@@ -850,11 +842,12 @@ access(all) contract FlowCallbackScheduler {
                 let mediumPriorityIDs: [UInt64] = []
 
                 for id in callbackIDs.keys {
-                    let callback = self.borrowCallback(id: id)!
+                    let callback = self.borrowCallback(id: id)
+                        ?? panic("Invalid ID: \(id) callback not found during initial processing") // critical bug
 
-                    // Callbacks that are already executed are finalized and removed from the queue
+                    // Callbacks that are already executed are garbage collected and removed from the queue
                     if callback.status == Status.Executed {
-                        self.finalizeCallback(callback: callback)
+                        self.garbageCollect(callback: callback)
                         continue
                     }
 
@@ -872,14 +865,17 @@ access(all) contract FlowCallbackScheduler {
                 var lowPriorityEffortAvailable = self.getSlotAvailableEffort(timestamp: timestamp, priority: Priority.Low)
                 if lowPriorityEffortAvailable > 0 {
                     for lowCallbackID in lowPriorityCallbacks.keys {
-                        let callback = self.borrowCallback(id: lowCallbackID)!
+                        let callback = self.borrowCallback(id: lowCallbackID)
+                            ?? panic("Invalid ID: \(lowCallbackID) callback not found during low priority processing") // critical bug
+
                         // Callbacks that are already executed are finalized and removed from the queue
                         if callback.status == Status.Executed {
-                            self.finalizeCallback(callback: callback)
+                            self.garbageCollect(callback: callback)
                             continue
                         }
 
-                        let callbackEffort = lowPriorityCallbacks[lowCallbackID]!
+                        let callbackEffort = lowPriorityCallbacks[lowCallbackID]
+                            ?? panic("Invalid ID: \(lowCallbackID) callback effort not found during low priority processing") // critical bug
                         if callbackEffort <= lowPriorityEffortAvailable {
                             lowPriorityEffortAvailable = lowPriorityEffortAvailable - callbackEffort
                             lowPriorityCallbacks.remove(key: lowCallbackID)
@@ -897,6 +893,7 @@ access(all) contract FlowCallbackScheduler {
                                 id: id,
                                 priority: callback.priority.rawValue,
                                 executionEffort: callback.executionEffort,
+                                fees: callback.fees.balance,
                                 callbackOwner: callback.handler.address
                             )
 
@@ -908,12 +905,12 @@ access(all) contract FlowCallbackScheduler {
                             callback.setStatus(newStatus: Status.Executed)
 
                             // charge the fee for callback execution
-                            destroy callback.payAndWithdrawFees(multiplierToWithdraw: 0.0)
+                            destroy callback.payAndRefundFees(refundMultiplier: 0.0)
                         } else {
                             panic("Invalid Status: \(callback.status.rawValue) for callback id \(id)") // critical bug
                         }
                     } else {
-                        panic("Invalid ID: \(id) callback not found during processing") // critical bug
+                        panic("Invalid ID: \(id) callback not found during sorted processing") // critical bug
                     }
                 }
             }
@@ -944,7 +941,7 @@ access(all) contract FlowCallbackScheduler {
             // if the callback was canceled, add it to the canceled callbacks array
             self.canceledCallbacks.append(id)
             // keep the array under the limit
-            if self.canceledCallbacks.length > self.configurationDetails.canceledCallbacksLimit {
+            if UInt(self.canceledCallbacks.length) > self.configurationDetails.canceledCallbacksLimit {
                 self.canceledCallbacks.remove(at: 0)
             }
 
@@ -956,7 +953,7 @@ access(all) contract FlowCallbackScheduler {
                 callbackOwner: callback.handler.address
             )
 
-            self.finalizeCallback(callback: callback)
+            self.garbageCollect(callback: callback)
             
             return <-refundedFees
         }
@@ -980,13 +977,12 @@ access(all) contract FlowCallbackScheduler {
                 id: callback.id,
                 priority: callback.priority.rawValue,
                 executionEffort: callback.executionEffort,
-                fees: callback.fees.balance,
                 callbackOwner: callback.handler.address,
             )
         }
 
         /// finalizes and garbage collects the callback by removing the callback resource and the slot map if it is empty.
-        access(contract) fun finalizeCallback(callback: &CallbackData) {
+        access(contract) fun garbageCollect(callback: &CallbackData) {
 
             let callbackID = callback.id
             let slot = callback.scheduledTimestamp
