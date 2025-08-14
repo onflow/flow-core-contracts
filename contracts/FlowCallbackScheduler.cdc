@@ -424,7 +424,7 @@ access(all) contract FlowCallbackScheduler {
             self.nextID = 1
             self.lowPriorityScheduledTimestamp = 0.0
             self.earliestHistoricID = 0
-            self.canceledCallbacks = []
+            self.canceledCallbacks = [0 as UInt64]
             
             self.callbacks <- {}
             self.slotUsedEffort = {
@@ -870,6 +870,7 @@ access(all) contract FlowCallbackScheduler {
 
                         // Callbacks that are already executed are finalized and removed from the queue
                         if callback.status == Status.Executed {
+                            lowPriorityCallbacks.remove(key: lowCallbackID)
                             self.garbageCollect(callback: callback)
                             continue
                         }

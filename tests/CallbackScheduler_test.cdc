@@ -437,7 +437,7 @@ access(all) fun testCallbackExecution() {
     // Process the two remaining callbacks
     processCallbacks()
 
-    // Check that the failed callback is marked as executed
+    // Check that the failed callback is still marked as executed
     status = getStatus(id: callbackToFail)
     Test.assertEqual(statusExecuted, status)
 
