@@ -151,11 +151,10 @@ access(all) contract FlowCallbackScheduler {
         access(all) let executionEffort: UInt64
         access(all) var status: Status
 
-        /// The timestamp that was requested for this callback
-        /// May be different than the actual scheduled timestamp for low & medium priority callbacks
-        access(all) let originalTimestamp: UFix64
-
-        /// The actual timestamp that the callback is scheduled for
+        /// The timestamp that the callback is scheduled for
+        /// For medium priority callbacks, it may be different than the requested timestamp
+        /// For low priority callbacks, it is the requested timestamp,
+        /// but the timestamp where the callback is actually executed may be different
         access(all) var scheduledTimestamp: UFix64
 
         /// Capability to the logic that the callback will execute
@@ -170,22 +169,20 @@ access(all) contract FlowCallbackScheduler {
         access(contract) init(
             id: UInt64,
             handler: Capability<auth(Execute) &{CallbackHandler}>,
+            scheduledTimestamp: UFix64,
             data: AnyStruct?,
-            originalTimestamp: UFix64,
             priority: Priority,
             executionEffort: UInt64,
             fees: @FlowToken.Vault,
-            scheduledTimestamp: UFix64
         ) {
             self.id = id
             self.handler = handler
+            self.scheduledTimestamp = scheduledTimestamp
             self.data = data
-            self.originalTimestamp = originalTimestamp
             self.priority = priority
             self.executionEffort = executionEffort
             self.fees <- fees
             self.status = Status.Scheduled
-            self.scheduledTimestamp = scheduledTimestamp
         }
 
         /// setStatus updates the status of the callback.
@@ -201,6 +198,16 @@ access(all) contract FlowCallbackScheduler {
             }
 
             self.status = newStatus
+        }
+
+        /// setScheduledTimestamp updates the scheduled timestamp of the callback.
+        /// It panics if the callback status is already finalized.
+        access(contract) fun setScheduledTimestamp(newTimestamp: UFix64) {
+            pre {
+                self.status != Status.Executed && self.status != Status.Canceled:
+                    "Invalid status: Callback with id \(self.id) is already finalized"
+            }
+            self.scheduledTimestamp = newTimestamp
         }
 
         /// payAndRefundFees withdraws fees from the callback based on the refund multiplier.
@@ -328,18 +335,13 @@ access(all) contract FlowCallbackScheduler {
     access(all) struct SortedTimestamps {
         /// Internal sorted array of timestamps
         access(self) var timestamps: [UFix64]
-        access(self) let lowPriorityScheduledTimestamp: UFix64
 
         access(all) init() {
             self.timestamps = []
-            self.lowPriorityScheduledTimestamp = 0.0
         }
 
         /// Add a timestamp to the sorted array maintaining sorted order
         access(all) fun add(timestamp: UFix64) {
-            if timestamp == self.lowPriorityScheduledTimestamp {
-                return
-            }
 
             var insertIndex = 0
             for i, ts in self.timestamps {
@@ -354,9 +356,6 @@ access(all) contract FlowCallbackScheduler {
 
         /// Remove a timestamp from the sorted array
         access(all) fun remove(timestamp: UFix64) {
-            if timestamp == self.lowPriorityScheduledTimestamp {
-                return
-            }
 
             let index = self.timestamps.firstIndex(of: timestamp)
             if index != nil {
@@ -402,12 +401,7 @@ access(all) contract FlowCallbackScheduler {
         /// efforts that has been used for the timeslot
         access(contract) var slotUsedEffort: {UFix64: {Priority: UInt64}}
 
-        /// low priority callbacks don't get assigned a timestamp, 
-        /// so we use this special value
-        access(contract) let lowPriorityScheduledTimestamp: UFix64
-
         /// sorted timestamps manager for efficient processing
-        /// excludes lowPriorityScheduledTimestamp
         access(contract) var sortedTimestamps: SortedTimestamps
         
         /// used for querying historic statuses so that we don't have to store all succeeded statuses
@@ -422,21 +416,12 @@ access(all) contract FlowCallbackScheduler {
 
         access(all) init() {
             self.nextID = 1
-            self.lowPriorityScheduledTimestamp = 0.0
             self.earliestHistoricID = 0
             self.canceledCallbacks = [0 as UInt64]
             
             self.callbacks <- {}
-            self.slotUsedEffort = {
-                self.lowPriorityScheduledTimestamp: {
-                    Priority.High: 0,
-                    Priority.Medium: 0,
-                    Priority.Low: 0
-                }
-            }
-            self.slotQueue = {
-                self.lowPriorityScheduledTimestamp: {}
-            }
+            self.slotUsedEffort = {}
+            self.slotQueue = {}
             self.sortedTimestamps = SortedTimestamps()
             
             /* Default slot efforts and limits look like this:
@@ -601,20 +586,26 @@ access(all) contract FlowCallbackScheduler {
                 message: "Insufficient fees: The Fee balance of \(fees.balance) is not sufficient to pay the required amount of \(estimate.flowFee!) for execution of the callback."
             )
 
-            // Remove fractional values from the timestamp
-            let sanitizedTimestamp = UFix64(UInt64(timestamp))
-
             let callbackID = self.getNextIDAndIncrement()
             let callback <- create CallbackData(
                 id: callbackID,
                 handler: callback,
+                scheduledTimestamp: estimate.timestamp!,
                 data: data,
-                originalTimestamp: sanitizedTimestamp,
                 priority: priority,
                 executionEffort: executionEffort,
                 fees: <- fees,
-                scheduledTimestamp: estimate.timestamp!
             )
+
+            emit Scheduled(
+                id: callback.id,
+                priority: callback.priority.rawValue,
+                timestamp: callback.scheduledTimestamp,
+                executionEffort: callback.executionEffort,
+                fees: callback.fees.balance,
+                callbackOwner: callback.handler.address
+            )
+
             self.addCallback(slot: estimate.timestamp!, callback: <-callback)
             
             return ScheduledCallback(
@@ -642,15 +633,27 @@ access(all) contract FlowCallbackScheduler {
             let sanitizedTimestamp = UFix64(UInt64(timestamp))
 
             if sanitizedTimestamp <= getCurrentBlock().timestamp {
-                return EstimatedCallback(flowFee: nil, timestamp: nil, error: "Invalid timestamp: \(sanitizedTimestamp) is in the past, current timestamp: \(getCurrentBlock().timestamp)")
+                return EstimatedCallback(
+                            flowFee: nil,
+                            timestamp: nil,
+                            error: "Invalid timestamp: \(sanitizedTimestamp) is in the past, current timestamp: \(getCurrentBlock().timestamp)"
+                        )
             }
 
             if executionEffort > self.configurationDetails.priorityEffortLimit[priority]! {
-                return EstimatedCallback(flowFee: nil, timestamp: nil, error: "Invalid execution effort: \(executionEffort) is greater than the priority's available effort of \(self.configurationDetails.priorityEffortLimit[priority]!)")
+                return EstimatedCallback(
+                            flowFee: nil,
+                            timestamp: nil,
+                            error: "Invalid execution effort: \(executionEffort) is greater than the priority's available effort of \(self.configurationDetails.priorityEffortLimit[priority]!)"
+                        )
             }
 
             if executionEffort < self.configurationDetails.minimumExecutionEffort {
-                return EstimatedCallback(flowFee: nil, timestamp: nil, error: "Invalid execution effort: \(executionEffort) is less than the minimum execution effort of \(self.configurationDetails.minimumExecutionEffort)")
+                return EstimatedCallback(
+                            flowFee: nil,
+                            timestamp: nil,
+                            error: "Invalid execution effort: \(executionEffort) is less than the minimum execution effort of \(self.configurationDetails.minimumExecutionEffort)"
+                        )
             }
 
             let fee = self.calculateFee(executionEffort: executionEffort, priority: priority, data: data)
@@ -662,11 +665,19 @@ access(all) contract FlowCallbackScheduler {
             )
 
             if scheduledTimestamp == nil {
-                return EstimatedCallback(flowFee: fee, timestamp: nil, error: "Invalid execution effort: \(executionEffort) is greater than the priority's available effort for the requested timestamp.")
+                return EstimatedCallback(
+                            flowFee: fee,
+                            timestamp: nil,
+                            error: "Invalid execution effort: \(executionEffort) is greater than the priority's available effort for the requested timestamp."
+                        )
             }
 
             if priority == Priority.Low {
-                return EstimatedCallback(flowFee: fee, timestamp: scheduledTimestamp, error: "Invalid Priority: Cannot estimate for Low Priority callbacks. They will be included in the first block with available space.")
+                return EstimatedCallback(
+                            flowFee: fee,
+                            timestamp: scheduledTimestamp,
+                            error: "Invalid Priority: Cannot estimate for Low Priority callbacks. They will be included in the first block with available space after their requested timestamp."
+                        )
             }
 
             return EstimatedCallback(flowFee: fee, timestamp: scheduledTimestamp, error: nil)
@@ -675,8 +686,7 @@ access(all) contract FlowCallbackScheduler {
         /// calculateScheduledTimestamp calculates the timestamp at which a callback 
         /// can be scheduled. It takes into account the priority of the callback and 
         /// the execution effort.
-        /// - If the callback is low priority, it returns the lowPriorityScheduledTimestamp 
-        ///    as a special value.
+        /// - If the callback is low priority, it returns the requested timestamp
         /// - If the callback is high priority, it returns the timestamp if there is enough 
         ///    space or nil if there is no space left.
         /// - If the callback is medium priority and there is no space left it finds next 
@@ -686,9 +696,6 @@ access(all) contract FlowCallbackScheduler {
             priority: Priority, 
             executionEffort: UInt64
         ): UFix64? {
-            if priority == Priority.Low {
-                return self.lowPriorityScheduledTimestamp
-            }
 
             let used = self.slotUsedEffort[timestamp]
             // if nothing is scheduled at this timestamp, we can schedule at provided timestamp
@@ -697,7 +704,7 @@ access(all) contract FlowCallbackScheduler {
             }
             
             let available = self.getSlotAvailableEffort(timestamp: timestamp, priority: priority)
-            // if theres enough space, we can schedule at provided timestamp
+            // if theres enough space, we can tentatively schedule at provided timestamp
             if executionEffort <= available {
                 return timestamp
             } else if priority == Priority.High {
@@ -705,7 +712,7 @@ access(all) contract FlowCallbackScheduler {
                 return nil
             }
 
-            // if there is no space left for medium priority we search for next available timestamp
+            // if there is no space left for medium or low priority we search for next available timestamp
             // todo: check how big the callstack can grow and if we should avoid recursion
             return self.calculateScheduledTimestamp(
                 timestamp: timestamp + 1.0, 
@@ -720,7 +727,7 @@ access(all) contract FlowCallbackScheduler {
             // Remove fractional values from the timestamp
             let sanitizedTimestamp = UFix64(UInt64(timestamp))
 
-            // Get the maxiumum allowed for a priority including shared
+            // Get the maximum allowed for a priority including shared
             let priorityLimit = self.configurationDetails.priorityEffortLimit[priority]!
             
             // If nothing has been claimed for the requested timestamp,
@@ -773,7 +780,7 @@ access(all) contract FlowCallbackScheduler {
             return available
         }
 
-        /// add callback to the queue and updates all the internal state as well as emit an event
+        /// Adds callback to the queue and updates all the internal state as well as emit an event
         access(self) fun addCallback(slot: UFix64, callback: @CallbackData) {
 
             // If nothing is in the queue for this slot, initialize the slot
@@ -795,19 +802,14 @@ access(all) contract FlowCallbackScheduler {
             slotQueue[callback.id] = callback.executionEffort
             self.slotQueue[slot] = slotQueue
             
-            // Add the execution effort for this callback to the total for the slot's priority
-            let slotEfforts = self.slotUsedEffort[slot]!
-            slotEfforts[callback.priority] = slotEfforts[callback.priority]! + callback.executionEffort
-            self.slotUsedEffort[slot] = slotEfforts
-
-            emit Scheduled(
-                id: callback.id,
-                priority: callback.priority.rawValue,
-                timestamp: slot,
-                executionEffort: callback.executionEffort,
-                fees: callback.fees.balance,
-                callbackOwner: callback.handler.address
-            )
+            if callback.priority != Priority.Low {
+                // Add the execution effort for this callback to the total for the slot's priority
+                // Low priority callbacks don't count toward a slot's execution effort
+                // because they are executed in the first block with available space after their requested timestamp
+                let slotEfforts = self.slotUsedEffort[slot]!
+                slotEfforts[callback.priority] = slotEfforts[callback.priority]! + callback.executionEffort
+                self.slotUsedEffort[slot] = slotEfforts
+            }
 
             self.callbacks[callback.id] <-! callback
         }
@@ -820,8 +822,6 @@ access(all) contract FlowCallbackScheduler {
         /// This function is only called by the FVM to process callbacks.
         access(Process) fun process() {
 
-            let lowPriorityTimestamp = self.lowPriorityScheduledTimestamp
-            let lowPriorityCallbacks = self.slotQueue[lowPriorityTimestamp] ?? {}
             let currentTimestamp = getCurrentBlock().timestamp
             
             // Early exit if no timestamps need processing
@@ -832,14 +832,12 @@ access(all) contract FlowCallbackScheduler {
             // Collect past timestamps efficiently from sorted array
             let pastTimestamps = self.sortedTimestamps.getBefore(current: currentTimestamp)
             
-            // process all callbacks from timestamps in the past
-            // and add low priority callbacks to the timestamp if there is space
+            // process all callbacks from timestamps in the past in order
             for timestamp in pastTimestamps {
                 let callbackIDs = self.slotQueue[timestamp] ?? {}
 
-                var sortedCallbackIDs: [UInt64] = []
-                let highPriorityIDs: [UInt64] = []
-                let mediumPriorityIDs: [UInt64] = []
+                // Get the available effort for low priority callbacks at this timestamp
+                var lowPriorityEffortAvailable = self.getSlotAvailableEffort(timestamp: timestamp, priority: Priority.Low)
 
                 for id in callbackIDs.keys {
                     let callback = self.borrowCallback(id: id)
@@ -847,50 +845,33 @@ access(all) contract FlowCallbackScheduler {
 
                     // Callbacks that are already executed are garbage collected and removed from the queue
                     if callback.status == Status.Executed {
-                        self.garbageCollect(callback: callback)
+                        callbackIDs.remove(key: id)
+                        destroy self.garbageCollect(callback: callback)
                         continue
                     }
 
-                    if callback.priority == Priority.High {
-                        highPriorityIDs.append(id)
-                    } else if callback.priority == Priority.Medium {
-                        mediumPriorityIDs.append(id)
-                    }
-                }
-                sortedCallbackIDs = highPriorityIDs.concat(mediumPriorityIDs)
+                    if callback.status == Status.Scheduled {
+                        if callback.priority == Priority.Low {
+                            if callback.executionEffort <= lowPriorityEffortAvailable {
+                                lowPriorityEffortAvailable = lowPriorityEffortAvailable - callback.executionEffort
+                            } else {
+                                // remove the callback from this timestamp
+                                // and try to add it to a future timestamp
+                                let newTimestamp = self.calculateScheduledTimestamp(
+                                    timestamp: timestamp + 1.0, 
+                                    priority: Priority.Low, 
+                                    executionEffort: callback.executionEffort
+                                )!
 
-                // Add low priority callbacks to the list until the low available effort is used up
-                // todo: This could get pretty costly if there are a lot of low priority callbacks
-                // in the queue. Figure out how to more efficiently go through the low priority callbacks
-                var lowPriorityEffortAvailable = self.getSlotAvailableEffort(timestamp: timestamp, priority: Priority.Low)
-                if lowPriorityEffortAvailable > 0 {
-                    for lowCallbackID in lowPriorityCallbacks.keys {
-                        let callback = self.borrowCallback(id: lowCallbackID)
-                            ?? panic("Invalid ID: \(lowCallbackID) callback not found during low priority processing") // critical bug
-
-                        // Callbacks that are already executed are finalized and removed from the queue
-                        if callback.status == Status.Executed {
-                            lowPriorityCallbacks.remove(key: lowCallbackID)
-                            self.garbageCollect(callback: callback)
-                            continue
+                                let callbackResource <- self.garbageCollect(callback: callback)
+                                callbackResource.setScheduledTimestamp(newTimestamp: newTimestamp)
+                                self.addCallback(slot: newTimestamp, callback: <-callbackResource)
+                                
+                                continue
+                            }
                         }
 
-                        let callbackEffort = lowPriorityCallbacks[lowCallbackID]
-                            ?? panic("Invalid ID: \(lowCallbackID) callback effort not found during low priority processing") // critical bug
-                        if callbackEffort <= lowPriorityEffortAvailable {
-                            lowPriorityEffortAvailable = lowPriorityEffortAvailable - callbackEffort
-                            lowPriorityCallbacks.remove(key: lowCallbackID)
-                            sortedCallbackIDs.append(lowCallbackID)
-                        }
-                    }
-                }
-
-                for id in sortedCallbackIDs {
-
-                    // Ensure the callback still exists and is scheduled
-                    if let callback = self.borrowCallback(id: id) {
-                        if callback.status == Status.Scheduled {
-                            emit PendingExecution(
+                        emit PendingExecution(
                                 id: id,
                                 priority: callback.priority.rawValue,
                                 executionEffort: callback.executionEffort,
@@ -898,20 +879,15 @@ access(all) contract FlowCallbackScheduler {
                                 callbackOwner: callback.handler.address
                             )
 
-                            // after pending execution event is emitted we set the callback as executed because we 
-                            // must rely on execution node to actually execute it. Execution of the callback which is 
-                            // done in a separate transaction that calls executeCallback(id) function can not update 
-                            // the status of callback or any other shared state, since that blocks concurrent callback 
-                            // execution. Therefore optimistic update to executed is made here to avoid race condition.
-                            callback.setStatus(newStatus: Status.Executed)
+                        // after pending execution event is emitted we set the callback as executed because we 
+                        // must rely on execution node to actually execute it. Execution of the callback which is 
+                        // done in a separate transaction that calls executeCallback(id) function can not update 
+                        // the status of callback or any other shared state, since that blocks concurrent callback 
+                        // execution. Therefore optimistic update to executed is made here to avoid race condition.
+                        callback.setStatus(newStatus: Status.Executed)
 
-                            // charge the fee for callback execution
-                            destroy callback.payAndRefundFees(refundMultiplier: 0.0)
-                        } else {
-                            panic("Invalid Status: \(callback.status.rawValue) for callback id \(id)") // critical bug
-                        }
-                    } else {
-                        panic("Invalid ID: \(id) callback not found during sorted processing") // critical bug
+                        // charge the fee for callback execution
+                        destroy callback.payAndRefundFees(refundMultiplier: 0.0)
                     }
                 }
             }
@@ -954,7 +930,7 @@ access(all) contract FlowCallbackScheduler {
                 callbackOwner: callback.handler.address
             )
 
-            self.garbageCollect(callback: callback)
+            destroy self.garbageCollect(callback: callback)
             
             return <-refundedFees
         }
@@ -983,14 +959,13 @@ access(all) contract FlowCallbackScheduler {
         }
 
         /// finalizes and garbage collects the callback by removing the callback resource and the slot map if it is empty.
-        access(contract) fun garbageCollect(callback: &CallbackData) {
+        access(contract) fun garbageCollect(callback: &CallbackData): @CallbackData {
 
             let callbackID = callback.id
             let slot = callback.scheduledTimestamp
 
             // remove callback resource
-            let callbackRes <- self.callbacks.remove(key: callbackID)
-            destroy callbackRes
+            let callbackRes <- self.callbacks.remove(key: callbackID)!
             
             // garbage collect slots 
             if let callbackQueue = self.slotQueue[slot] {
@@ -1006,6 +981,8 @@ access(all) contract FlowCallbackScheduler {
                     self.sortedTimestamps.remove(timestamp: slot)
                 }
             }
+
+            return <-callbackRes
         }
     }
 
@@ -1069,10 +1046,9 @@ access(all) contract FlowCallbackScheduler {
             let type = data!.getType()
             if type.isSubtype(of: Type<Number>()) 
             || type.isSubtype(of: Type<Bool>()) 
-            || type.isSubtype(of: Type<Path>())
             || type.isSubtype(of: Type<Address>())
             || type.isSubtype(of: Type<Character>())
-            || type.isSubtype(of: Type<Capability>()) 
+            || type.isSubtype(of: Type<Capability>())
             {
                 return 0.0
             }

@@ -30,7 +30,7 @@ access(all) let testData = "test data"
 access(all) let failTestData = "fail"
 
 access(all) let callbackToFail = 2 as UInt64
-access(all) let callbackToCancel = 7 as UInt64
+access(all) let callbackToCancel = 8 as UInt64
 
 access(all) let futureDelta = 100.0
 access(all) var futureTime = 0.0
@@ -65,7 +65,6 @@ fun setup() {
 
 
 access(all) fun testInit() {
-    startingHeight = getCurrentBlock().height
 
     // Try to process callbacks
     // Nothing will process because nothing is scheduled, but should not fail
@@ -94,6 +93,9 @@ access(all) fun testGetSizeOfData() {
     size = getSizeOfData(data: 100000000)
     Test.assertEqual(0.00000000 as UFix64, size)
 
+    size = getSizeOfData(data: StoragePath(identifier: "scheduledCallbacksStoragePath"))
+    Test.assertEqual(0.00005300 as UFix64, size)
+
     size = getSizeOfData(data: testData)
     Test.assertEqual(0.00003000 as UFix64, size)
 
@@ -107,6 +109,8 @@ access(all) fun testGetSizeOfData() {
 }
 
 access(all) fun testCallbackScheduling() {
+
+    startingHeight = getCurrentBlock().height
 
     let currentTime = getCurrentBlock().timestamp
     futureTime = currentTime + futureDelta
@@ -123,8 +127,7 @@ access(all) fun testCallbackScheduling() {
         failWithErr: "Insufficient fees: The Fee balance of 0.00000000 is not sufficient to pay the required amount of 0.00010000 for execution of the callback."
     )
     
-    // Setup handler and schedule high priority callback
-    // using combined transaction with service account
+    // Schedule high priority callback
     scheduleCallback(
         timestamp: futureTime,
         fee: feeAmount,
@@ -246,6 +249,18 @@ access(all) fun testCallbackScheduling() {
         failWithErr: nil
     )
 
+    // Schedule a low callback that has an effort of 5000 for a timestamp after `futureTime`
+    // so it would fit in the `futureTime` slot but will not be executed until later
+    // because it is a low priority callback and not scheduled for `futureTime`
+    scheduleCallback(
+        timestamp: futureTime + 200.0,
+        fee: feeAmount,
+        effort: lowPriorityMaxEffort,
+        priority: lowPriority,
+        data: testData,
+        failWithErr: nil
+    )
+
     // Make sure the low priority status and available effort
     // for the `futureTime` slot is correct
     status = getStatus(id: UInt64(6))
@@ -259,6 +274,12 @@ access(all) fun testCallbackScheduling() {
 access(all) fun testCallbackCancelation() {
     var balanceBefore = getBalance(account: serviceAccount.address)
 
+    // Cancel invalid callback should fail
+    cancelCallback(
+        id: 100,
+        failWithErr: "Invalid ID: 100 callback not found"
+    )
+
     // Schedule a medium callback
     scheduleCallback(
         timestamp: futureTime + futureDelta,
@@ -267,12 +288,6 @@ access(all) fun testCallbackCancelation() {
         priority: mediumPriority,
         data: testData,
         failWithErr: nil
-    )
-
-    // Cancel invalid callback should fail
-    cancelCallback(
-        id: 100,
-        failWithErr: "Invalid ID: 100 callback not found"
     )
 
     // Cancel the callback
@@ -315,12 +330,12 @@ access(all) fun testCallbackCancelation() {
 
     // Cancel the callback
     cancelCallback(
-        id: 8,
+        id: 9,
         failWithErr: nil
     )
 
     // Make sure the status is canceled
-    status = getStatus(id: UInt64(8))
+    status = getStatus(id: UInt64(9))
     Test.assertEqual(statusCanceled, status)
 
     // Available Effort should be completely unused
@@ -441,9 +456,31 @@ access(all) fun testCallbackExecution() {
     status = getStatus(id: callbackToFail)
     Test.assertEqual(statusExecuted, status)
 
+    // Verify that the low priority callback for later is still scheduled
+    status = getStatus(id: 7)
+    Test.assertEqual(statusScheduled, status)
+
     // Execute the two remaining callbacks (medium and low)
     executeCallback(id: UInt64(3), failWithErr: nil)
     executeCallback(id: UInt64(6), failWithErr: nil)
+
+    // Try to execute the low priority callback, should fail because it isn't pendingExecution
+    executeCallback(
+        id: 7,
+        failWithErr: "Invalid ID: Cannot execute callback with id 7 because it has incorrect status \(statusScheduled)"
+    )
+
+    // Move time forward to after the low priority callback's requested timestamp
+    Test.moveTime(by: Fix64(200.0))
+
+    // Process the remaining callback
+    processCallbacks()
+
+    executeCallback(id: UInt64(7), failWithErr: nil)
+
+    // Verify that the low priority callback is now executed
+    status = getStatus(id: 7)
+    Test.assertEqual(statusExecuted, status)    
 }
 
 /** ---------------------------------------------------------------------------------
@@ -491,14 +528,14 @@ access(all) fun testEstimate() {
     let estimateTestCases: [EstimateTestCase] = [
         // Error cases - should return EstimatedCallback with error
         EstimateTestCase(
-            name: "Low priority returns 0.0 timestamp and error",
+            name: "Low priority returns requested timestamp and error",
             timestamp: futureTime,
             priority: FlowCallbackScheduler.Priority.Low,
             executionEffort: 1000,
             data: nil,
             expectedFee: 0.00002,
-            expectedTimestamp: 0.0,
-            expectedError: "Invalid Priority: Cannot estimate for Low Priority callbacks. They will be included in the first block with available space."
+            expectedTimestamp: futureTime,
+            expectedError: "Invalid Priority: Cannot estimate for Low Priority callbacks. They will be included in the first block with available space after their requested timestamp."
         ),
         EstimateTestCase(
             name: "Past timestamp returns error",
@@ -796,7 +833,7 @@ access(all) fun testConfigDetails() {
     Test.assertEqual(newConfig.canceledCallbacksLimit, 2000 as UInt)
 }
 
-// Helper function for scheduling a callback
+// Helper functions for scheduling a callback
 access(all) fun scheduleCallback(
     timestamp: UFix64,
     fee: UFix64,
@@ -936,11 +973,14 @@ access(all) fun getStatus(id: UInt64): UInt8 {
 }
 
 access(all) fun getSlotAvailableEffort(timestamp: UFix64, priority: UInt8): UInt64 {
-    var effort = executeScript(
+    var result = executeScript(
         "../transactions/callbackScheduler/scripts/get_slot_available_effort.cdc",
         [timestamp, priority]
-    ).returnValue! as! UInt64
-    return effort!
+    )
+    Test.expect(result, Test.beSucceeded())
+
+    var effort = result.returnValue! as! UInt64
+    return effort
 }
 
 access(all) fun getTimestamp(): UFix64 {
@@ -1048,12 +1088,6 @@ access(all) fun testSortedTimestampsAdd() {
             expectedOrder: [30.0, 30.0]
         ),
         AddTestCase(
-            name: "Add lowPriorityScheduledTimestamp (should be ignored)",
-            timestampsToAdd: [20.0, 0.0, 40.0],
-            expectedLength: 2,
-            expectedOrder: [20.0, 40.0]
-        ),
-        AddTestCase(
             name: "Add single timestamp",
             timestampsToAdd: [42.0],
             expectedLength: 1,
@@ -1114,13 +1148,6 @@ access(all) fun testSortedTimestampsRemove() {
             name: "Remove non-existent timestamp",
             initialTimestamps: [10.0, 20.0],
             timestampToRemove: 99.0,
-            expectedLength: 2,
-            expectedRemaining: [10.0, 20.0]
-        ),
-        RemoveTestCase(
-            name: "Remove lowPriorityScheduledTimestamp (should be ignored)",
-            initialTimestamps: [10.0, 20.0],
-            timestampToRemove: 0.0,
             expectedLength: 2,
             expectedRemaining: [10.0, 20.0]
         ),
@@ -1278,7 +1305,7 @@ access(all) fun testSortedTimestampsEdgeCases() {
     let sortedTimestamps = FlowCallbackScheduler.SortedTimestamps()
     
     // Test adding timestamps at boundaries
-    sortedTimestamps.add(timestamp: 0.1)  // Just above lowPriorityScheduledTimestamp
+    sortedTimestamps.add(timestamp: 0.1)
     sortedTimestamps.add(timestamp: UFix64.max - 1.0)  // Near max value
     
     let allTimestamps = sortedTimestamps.getBefore(current: UFix64.max)
