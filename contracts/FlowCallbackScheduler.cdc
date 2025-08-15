@@ -586,6 +586,9 @@ access(all) contract FlowCallbackScheduler {
                 message: "Insufficient fees: The Fee balance of \(fees.balance) is not sufficient to pay the required amount of \(estimate.flowFee!) for execution of the callback."
             )
 
+            // Remove fractional values from the timestamp
+            let sanitizedTimestamp = UFix64(UInt64(timestamp))
+
             let callbackID = self.getNextIDAndIncrement()
             let callback <- create CallbackData(
                 id: callbackID,
@@ -596,16 +599,6 @@ access(all) contract FlowCallbackScheduler {
                 executionEffort: executionEffort,
                 fees: <- fees,
             )
-
-            emit Scheduled(
-                id: callback.id,
-                priority: callback.priority.rawValue,
-                timestamp: callback.scheduledTimestamp,
-                executionEffort: callback.executionEffort,
-                fees: callback.fees.balance,
-                callbackOwner: callback.handler.address
-            )
-
             self.addCallback(slot: estimate.timestamp!, callback: <-callback)
             
             return ScheduledCallback(
@@ -714,6 +707,7 @@ access(all) contract FlowCallbackScheduler {
 
             // if there is no space left for medium or low priority we search for next available timestamp
             // todo: check how big the callstack can grow and if we should avoid recursion
+            // todo: we should refactor this into loops, because we could need to recurse 100s of times
             return self.calculateScheduledTimestamp(
                 timestamp: timestamp + 1.0, 
                 priority: priority, 
@@ -780,7 +774,7 @@ access(all) contract FlowCallbackScheduler {
             return available
         }
 
-        /// Adds callback to the queue and updates all the internal state as well as emit an event
+         /// add callback to the queue and updates all the internal state as well as emit an event
         access(self) fun addCallback(slot: UFix64, callback: @CallbackData) {
 
             // If nothing is in the queue for this slot, initialize the slot
@@ -802,18 +796,132 @@ access(all) contract FlowCallbackScheduler {
             slotQueue[callback.id] = callback.executionEffort
             self.slotQueue[slot] = slotQueue
             
-            if callback.priority != Priority.Low {
-                // Add the execution effort for this callback to the total for the slot's priority
-                // Low priority callbacks don't count toward a slot's execution effort
-                // because they are executed in the first block with available space after their requested timestamp
-                let slotEfforts = self.slotUsedEffort[slot]!
-                slotEfforts[callback.priority] = slotEfforts[callback.priority]! + callback.executionEffort
-                self.slotUsedEffort[slot] = slotEfforts
-            }
+            // Add the execution effort for this callback to the total for the slot's priority
+            let slotEfforts = self.slotUsedEffort[slot]!
+            slotEfforts[callback.priority] = slotEfforts[callback.priority]! + callback.executionEffort
+            self.slotUsedEffort[slot] = slotEfforts
+
+            emit Scheduled(
+                id: callback.id,
+                priority: callback.priority.rawValue,
+                timestamp: slot,
+                executionEffort: callback.executionEffort,
+                fees: callback.fees.balance,
+                callbackOwner: callback.handler.address
+            )
 
             self.callbacks[callback.id] <-! callback
         }
- 
+
+        /// remove the callback from the slot queue.
+        access(contract) fun removeCallback(callback: &CallbackData): @CallbackData {
+
+            let callbackID = callback.id
+            let slot = callback.scheduledTimestamp
+
+            // remove callback resource
+            let callbackRes <- self.callbacks.remove(key: callbackID)!
+            
+            // garbage collect slots 
+            if let callbackQueue = self.slotQueue[slot] {
+
+                callbackQueue[callbackID] = nil
+                self.slotQueue[slot] = callbackQueue
+
+                // if the slot is now empty remove it from the maps
+                if callbackQueue.keys.length == 0 {
+                    self.slotQueue.remove(key: slot)
+                    self.slotUsedEffort.remove(key: slot)
+
+                    self.sortedTimestamps.remove(timestamp: slot)
+                }
+            }
+
+            return <-callbackRes
+        }
+
+        /// pendingQueue creates a list of callbacks that are ready for execution.
+        /// For callback to be ready for execution it must be scheduled.
+        ///
+        /// The queue is sorted by timestamp and then by priority (high, medium, low).
+        /// The queue will contain callbacks from all timestamps that are in the past.
+        /// Low priority callbacks will only be added if there is effort available in the slot.  
+        /// The return value can be empty if there are no callbacks ready for execution.
+        access(Process) fun pendingQueue(): [&CallbackData] {
+            let currentTimestamp = getCurrentBlock().timestamp
+            var pendingCallbacks: [&CallbackData] = []
+
+            // Early exit if no timestamps need processing
+            if !self.sortedTimestamps.hasTimestampsBefore(current: currentTimestamp) {
+                return []
+            }
+
+            // Collect past timestamps efficiently from sorted array
+            let pastTimestamps = self.sortedTimestamps.getBefore(current: currentTimestamp)
+
+            for timestamp in pastTimestamps {
+                let callbackIDs = self.slotQueue[timestamp] ?? {}
+                var high: [&CallbackData] = []
+                var medium: [&CallbackData] = []
+                var low: [&CallbackData] = []
+
+                // Get the available effort for low priority callbacks at this timestamp
+                var lowEffortLeft = self.getSlotAvailableEffort(timestamp: timestamp, priority: Priority.Low)
+
+                for id in callbackIDs.keys {
+                    let callback = self.borrowCallback(id: id)
+                        ?? panic("Invalid ID: \(id) callback not found during initial processing") // critical bug
+
+                    // Only add scheduled callbacks to the queue
+                    if callback.status != Status.Scheduled {
+                        continue
+                    }
+                
+                    switch callback.priority {
+                        case Priority.High:
+                            high.append(callback)
+                        case Priority.Medium:
+                            medium.append(callback)
+                        case Priority.Low:
+                            // add low priority callbacks only if there is space left in the available effort
+                            if callback.executionEffort <= lowEffortLeft {
+                                low.append(callback)
+                            }
+                            lowEffortLeft = lowEffortLeft - callback.executionEffort
+                    }
+                }
+
+                pendingCallbacks = pendingCallbacks
+                    .concat(high)
+                    .concat(medium)
+                    .concat(low)
+            }
+
+            return pendingCallbacks
+        }
+
+        /// removeExecutedCallbacks removes all callbacks that are marked as executed.
+        access(Process) fun removeExecutedCallbacks() {
+            let currentTimestamp = getCurrentBlock().timestamp
+            let pastTimestamps = self.sortedTimestamps.getBefore(current: currentTimestamp)
+
+            for timestamp in pastTimestamps {
+                let callbackIDs = self.slotQueue[timestamp] ?? {}
+                
+                for id in callbackIDs.keys {
+                    let callback = self.borrowCallback(id: id)
+                        ?? panic("Invalid ID: \(id) callback not found during initial processing") // critical bug
+
+                    // Only remove executed callbacks
+                    if callback.status != Status.Executed {
+                        continue
+                    }
+
+                    destroy self.removeCallback(callback: callback)
+                }
+            }
+        }
+
         /// process scheduled callbacks and prepare them for execution. 
         ///
         /// It iterates over past timestamps in the queue and processes the callbacks that are 
@@ -821,76 +929,33 @@ access(all) contract FlowCallbackScheduler {
         ///
         /// This function is only called by the FVM to process callbacks.
         access(Process) fun process() {
-
-            let currentTimestamp = getCurrentBlock().timestamp
+            let pendingCallbacks = self.pendingQueue()
             
-            // Early exit if no timestamps need processing
-            if !self.sortedTimestamps.hasTimestampsBefore(current: currentTimestamp) {
+            if pendingCallbacks.length == 0 {
                 return
             }
-            
-            // Collect past timestamps efficiently from sorted array
-            let pastTimestamps = self.sortedTimestamps.getBefore(current: currentTimestamp)
-            
-            // process all callbacks from timestamps in the past in order
-            for timestamp in pastTimestamps {
-                let callbackIDs = self.slotQueue[timestamp] ?? {}
 
-                // Get the available effort for low priority callbacks at this timestamp
-                var lowPriorityEffortAvailable = self.getSlotAvailableEffort(timestamp: timestamp, priority: Priority.Low)
+            for callback in pendingCallbacks {
+                emit PendingExecution(
+                    id: callback.id,
+                    priority: callback.priority.rawValue,
+                    executionEffort: callback.executionEffort,
+                    fees: callback.fees.balance,
+                    callbackOwner: callback.handler.address
+                )
 
-                for id in callbackIDs.keys {
-                    let callback = self.borrowCallback(id: id)
-                        ?? panic("Invalid ID: \(id) callback not found during initial processing") // critical bug
+                // after pending execution event is emitted we set the callback as executed because we 
+                // must rely on execution node to actually execute it. Execution of the callback which is 
+                // done in a separate transaction that calls executeCallback(id) function can not update 
+                // the status of callback or any other shared state, since that blocks concurrent callback 
+                // execution. Therefore optimistic update to executed is made here to avoid race condition.
+                callback.setStatus(newStatus: Status.Executed)
 
-                    // Callbacks that are already executed are garbage collected and removed from the queue
-                    if callback.status == Status.Executed {
-                        callbackIDs.remove(key: id)
-                        destroy self.garbageCollect(callback: callback)
-                        continue
-                    }
-
-                    if callback.status == Status.Scheduled {
-                        if callback.priority == Priority.Low {
-                            if callback.executionEffort <= lowPriorityEffortAvailable {
-                                lowPriorityEffortAvailable = lowPriorityEffortAvailable - callback.executionEffort
-                            } else {
-                                // remove the callback from this timestamp
-                                // and try to add it to a future timestamp
-                                let newTimestamp = self.calculateScheduledTimestamp(
-                                    timestamp: timestamp + 1.0, 
-                                    priority: Priority.Low, 
-                                    executionEffort: callback.executionEffort
-                                )!
-
-                                let callbackResource <- self.garbageCollect(callback: callback)
-                                callbackResource.setScheduledTimestamp(newTimestamp: newTimestamp)
-                                self.addCallback(slot: newTimestamp, callback: <-callbackResource)
-                                
-                                continue
-                            }
-                        }
-
-                        emit PendingExecution(
-                                id: id,
-                                priority: callback.priority.rawValue,
-                                executionEffort: callback.executionEffort,
-                                fees: callback.fees.balance,
-                                callbackOwner: callback.handler.address
-                            )
-
-                        // after pending execution event is emitted we set the callback as executed because we 
-                        // must rely on execution node to actually execute it. Execution of the callback which is 
-                        // done in a separate transaction that calls executeCallback(id) function can not update 
-                        // the status of callback or any other shared state, since that blocks concurrent callback 
-                        // execution. Therefore optimistic update to executed is made here to avoid race condition.
-                        callback.setStatus(newStatus: Status.Executed)
-
-                        // charge the fee for callback execution
-                        destroy callback.payAndRefundFees(refundMultiplier: 0.0)
-                    }
-                }
+                // charge the fee for callback execution
+                destroy callback.payAndRefundFees(refundMultiplier: 0.0)
             }
+
+            self.removeExecutedCallbacks()
         }
 
         /// cancel scheduled callback and return a portion of the fees that were paid.
@@ -930,7 +995,7 @@ access(all) contract FlowCallbackScheduler {
                 callbackOwner: callback.handler.address
             )
 
-            destroy self.garbageCollect(callback: callback)
+            destroy self.removeCallback(callback: callback)
             
             return <-refundedFees
         }
@@ -956,33 +1021,6 @@ access(all) contract FlowCallbackScheduler {
                 executionEffort: callback.executionEffort,
                 callbackOwner: callback.handler.address,
             )
-        }
-
-        /// finalizes and garbage collects the callback by removing the callback resource and the slot map if it is empty.
-        access(contract) fun garbageCollect(callback: &CallbackData): @CallbackData {
-
-            let callbackID = callback.id
-            let slot = callback.scheduledTimestamp
-
-            // remove callback resource
-            let callbackRes <- self.callbacks.remove(key: callbackID)!
-            
-            // garbage collect slots 
-            if let callbackQueue = self.slotQueue[slot] {
-
-                callbackQueue[callbackID] = nil
-                self.slotQueue[slot] = callbackQueue
-
-                // if the slot is now empty remove it from the maps
-                if callbackQueue.keys.length == 0 {
-                    self.slotQueue.remove(key: slot)
-                    self.slotUsedEffort.remove(key: slot)
-
-                    self.sortedTimestamps.remove(timestamp: slot)
-                }
-            }
-
-            return <-callbackRes
         }
     }
 
