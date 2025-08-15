@@ -586,9 +586,6 @@ access(all) contract FlowCallbackScheduler {
                 message: "Insufficient fees: The Fee balance of \(fees.balance) is not sufficient to pay the required amount of \(estimate.flowFee!) for execution of the callback."
             )
 
-            // Remove fractional values from the timestamp
-            let sanitizedTimestamp = UFix64(UInt64(timestamp))
-
             let callbackID = self.getNextIDAndIncrement()
             let callback <- create CallbackData(
                 id: callbackID,
