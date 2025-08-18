@@ -792,11 +792,15 @@ access(all) contract FlowCallbackScheduler {
             let slotQueue = self.slotQueue[slot]!
             slotQueue[callback.id] = callback.executionEffort
             self.slotQueue[slot] = slotQueue
-            
-            // Add the execution effort for this callback to the total for the slot's priority
-            let slotEfforts = self.slotUsedEffort[slot]!
-            slotEfforts[callback.priority] = slotEfforts[callback.priority]! + callback.executionEffort
-            self.slotUsedEffort[slot] = slotEfforts
+
+            if callback.priority != Priority.Low {
+                // Add the execution effort for this callback to the total for the slot's priority
+                // Low priority callbacks don't count toward a slot's execution effort
+                // because they are executed in the first block with available space after their requested timestamp
+                let slotEfforts = self.slotUsedEffort[slot]!
+                slotEfforts[callback.priority] = slotEfforts[callback.priority]! + callback.executionEffort
+                self.slotUsedEffort[slot] = slotEfforts
+            }
 
             emit Scheduled(
                 id: callback.id,
@@ -883,8 +887,8 @@ access(all) contract FlowCallbackScheduler {
                             // add low priority callbacks only if there is space left in the available effort
                             if callback.executionEffort <= lowEffortLeft {
                                 low.append(callback)
+                                lowEffortLeft = lowEffortLeft - callback.executionEffort
                             }
-                            lowEffortLeft = lowEffortLeft - callback.executionEffort
                     }
                 }
 
@@ -932,6 +936,8 @@ access(all) contract FlowCallbackScheduler {
                 return
             }
 
+            self.removeExecutedCallbacks()
+
             for callback in pendingCallbacks {
                 emit PendingExecution(
                     id: callback.id,
@@ -951,8 +957,6 @@ access(all) contract FlowCallbackScheduler {
                 // charge the fee for callback execution
                 destroy callback.payAndRefundFees(refundMultiplier: 0.0)
             }
-
-            self.removeExecutedCallbacks()
         }
 
         /// cancel scheduled callback and return a portion of the fees that were paid.

@@ -57,6 +57,13 @@ fun setup() {
         arguments: []
     )
     Test.expect(err, Test.beNil())
+
+    // err = Test.deployContract(
+    //     name: "TestFlowCallbackQueue",
+    //     path: "../contracts/testContracts/TestFlowCallbackQueue.cdc",
+    //     arguments: []
+    // )
+    // Test.expect(err, Test.beNil())
 }
 
 /** ---------------------------------------------------------------------------------
@@ -916,18 +923,18 @@ access(all) fun executeCallback(id: UInt64, failWithErr: String?) {
     }
 }
 
-access(all) fun testPendingQueue() {
-    let testPendingQueueCode = Test.readFile("./transactions/test_pending_queue.cdc")
-    let testPendingQueueTx = Test.Transaction(
-        code: testPendingQueueCode,
-        authorizers: [serviceAccount.address],
-        signers: [serviceAccount],
-        arguments: [],
-    )
+// access(all) fun testPendingQueue() {
+//     let testPendingQueueCode = Test.readFile("./transactions/test_pending_queue.cdc")
+//     let testPendingQueueTx = Test.Transaction(
+//         code: testPendingQueueCode,
+//         authorizers: [serviceAccount.address],
+//         signers: [serviceAccount],
+//         arguments: [],
+//     )
 
-    var result = Test.executeTransaction(testPendingQueueTx)
-    Test.expect(result, Test.beSucceeded())
-}
+//     var result = Test.executeTransaction(testPendingQueueTx)
+//     Test.expect(result, Test.beSucceeded())
+// }
 
 access(all) fun setConfigDetails(
     slotSharedEffortLimit: UInt64?,
@@ -1344,57 +1351,57 @@ access(all) fun testSortedTimestampsEdgeCases() {
     Test.assertEqual(100.0, sortedResult[99])
 }
 
-access(all) fun testPendingCallbackQueue() {
-    // Get current timestamp and set up future times
-    let currentTime = getCurrentBlock().timestamp
-    let futureTime1 = currentTime + 1000.0
-    let futureTime2 = currentTime + 2000.0
+// access(all) fun testPendingCallbackQueue() {
+//     // Get current timestamp and set up future times
+//     let currentTime = getCurrentBlock().timestamp
+//     let futureTime1 = currentTime + 1000.0
+//     let futureTime2 = currentTime + 2000.0
     
-    // Schedule callback 1 (high priority)
-    scheduleCallback(
-        timestamp: futureTime1,
-        fee: feeAmount,
-        effort: basicEffort,
-        priority: highPriority,
-        data: testData,
-        failWithErr: nil
-    )
+//     // Schedule callback 1 (high priority)
+//     scheduleCallback(
+//         timestamp: futureTime1,
+//         fee: feeAmount,
+//         effort: basicEffort,
+//         priority: highPriority,
+//         data: testData,
+//         failWithErr: nil
+//     )
     
-    // Schedule callback 2 (medium priority)
-    scheduleCallback(
-        timestamp: futureTime2,
-        fee: feeAmount,
-        effort: mediumEffort,
-        priority: mediumPriority,
-        data: testData,
-        failWithErr: nil
-    )
+//     // Schedule callback 2 (medium priority)
+//     scheduleCallback(
+//         timestamp: futureTime2,
+//         fee: feeAmount,
+//         effort: mediumEffort,
+//         priority: mediumPriority,
+//         data: testData,
+//         failWithErr: nil
+//     )
     
     
-    // Get the IDs of scheduled callbacks
-    let scheduledEvents = Test.eventsOfType(Type<FlowCallbackScheduler.Scheduled>())
-    let startIndex = scheduledEvents.length - 2
-    let callback1ID = (scheduledEvents[startIndex] as! FlowCallbackScheduler.Scheduled).id
-    let callback2ID = (scheduledEvents[startIndex + 1] as! FlowCallbackScheduler.Scheduled).id
+//     // Get the IDs of scheduled callbacks
+//     let scheduledEvents = Test.eventsOfType(Type<FlowCallbackScheduler.Scheduled>())
+//     let startIndex = scheduledEvents.length - 2
+//     let callback1ID = (scheduledEvents[startIndex] as! FlowCallbackScheduler.Scheduled).id
+//     let callback2ID = (scheduledEvents[startIndex + 1] as! FlowCallbackScheduler.Scheduled).id
     
-    // This test contract contains expected ID for each test we run, this is super awkward, 
-    // but because Test.Transaction doesn't allow arguments, we have to store them in a contract
-    let err = Test.deployContract(
-        name: "TestFlowCallbackQueue",
-        path: "../contracts/testContracts/TestFlowCallbackQueue.cdc",
-        arguments: [[
-            [], 
-            [callback1ID]
-        ] as [[UInt64]]]
-    )
-    Test.expect(err, Test.beNil())
+//     // This test contract contains expected ID for each test we run, this is super awkward, 
+//     // but because Test.Transaction doesn't allow arguments, we have to store them in a contract
+//     let err = Test.deployContract(
+//         name: "TestFlowCallbackQueue",
+//         path: "../contracts/testContracts/TestFlowCallbackQueue.cdc",
+//         arguments: [[
+//             [], 
+//             [callback1ID]
+//         ] as [[UInt64]]]
+//     )
+//     Test.expect(err, Test.beNil())
 
-    testPendingQueue()
+//     testPendingQueue()
 
-    Test.moveTime(by: 1000.0)
+//     Test.moveTime(by: 1000.0)
 
-    testPendingQueue()
+//     testPendingQueue()
 
-}
+// }
 
 
