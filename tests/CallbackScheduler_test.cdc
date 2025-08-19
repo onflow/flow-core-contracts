@@ -243,7 +243,7 @@ access(all) fun testCallbackScheduling() {
     Test.assertEqual(statusScheduled, status)
 
     effort = getSlotAvailableEffort(timestamp: futureTime, priority: lowPriority)
-    Test.assertEqual(UInt64(4000), effort!)
+    Test.assertEqual(UInt64(3000), effort!)
 
     // Schedule a low callback that has an effort of 5000
     // so it will not fit in the `futureTime` slot but will still get scheduled
@@ -274,7 +274,7 @@ access(all) fun testCallbackScheduling() {
     Test.assertEqual(statusScheduled, status)
 
     effort = getSlotAvailableEffort(timestamp: futureTime, priority: lowPriority)
-    Test.assertEqual(UInt64(4000), effort!)
+    Test.assertEqual(UInt64(3000), effort!)
 
 }
 
@@ -362,9 +362,6 @@ access(all) fun testCallbackExecution() {
     // Check that no PendingExecution events were emitted yet (since callback is in the future)
     let pendingExecutionEventsBeforeTime = Test.eventsOfType(Type<FlowCallbackScheduler.PendingExecution>())
     Test.assert(pendingExecutionEventsBeforeTime.length == 0, message: "PendingExecution before time")
-
-    var effort = getSlotAvailableEffort(timestamp: futureTime, priority: lowPriority)
-    Test.assertEqual(UInt64(4000), effort!)
 
     // move time forward to trigger execution eligibility
     // Have to subtract to handle the automatic timestamp drift

@@ -608,6 +608,17 @@ access(all) contract FlowCallbackScheduler {
                 executionEffort: executionEffort,
                 fees: <- fees,
             )
+
+            emit Scheduled(
+                id: callback.id,
+                priority: callback.priority.rawValue,
+                timestamp: callback.scheduledTimestamp,
+                executionEffort: callback.executionEffort,
+                fees: callback.fees.balance,
+                callbackOwner: callback.handler.address
+            )
+
+            // Add the callback to the slot queue and update the internal state
             self.addCallback(slot: estimate.timestamp!, callback: <-callback)
             
             return ScheduledCallback(
@@ -763,12 +774,13 @@ access(all) contract FlowCallbackScheduler {
             let mediumUsed = slotPriorityEffortsUsed[Priority.Medium] ?? 0
 
             // If it is low priority, return whatever effort is remaining
-            // under 5000
+            // under 5000, subtracting the currently used effort for low priority
             if priority == Priority.Low {
                 let highPlusMediumUsed = highUsed + mediumUsed
-                // prevent underflow
                 let totalEffortRemaining = self.configurationDetails.slotTotalEffortLimit.saturatingSubtract(highPlusMediumUsed)
-                return totalEffortRemaining < priorityLimit ? totalEffortRemaining : priorityLimit
+                let lowEffortRemaining = totalEffortRemaining < priorityLimit ? totalEffortRemaining : priorityLimit
+                let lowUsed = slotPriorityEffortsUsed[Priority.Low] ?? 0
+                return lowEffortRemaining.saturatingSubtract(lowUsed)
             }
             
             // Get how much shared effort has been used for each priority
@@ -816,23 +828,10 @@ access(all) contract FlowCallbackScheduler {
             slotQueue[callback.id] = callback.executionEffort
             self.slotQueue[slot] = slotQueue
 
-            if callback.priority != Priority.Low {
-                // Add the execution effort for this callback to the total for the slot's priority
-                // Low priority callbacks don't count toward a slot's execution effort
-                // because they are executed in the first block with available space after their requested timestamp
-                let slotEfforts = self.slotUsedEffort[slot]!
-                slotEfforts[callback.priority] = slotEfforts[callback.priority]! + callback.executionEffort
-                self.slotUsedEffort[slot] = slotEfforts
-            }
-
-            emit Scheduled(
-                id: callback.id,
-                priority: callback.priority.rawValue,
-                timestamp: slot,
-                executionEffort: callback.executionEffort,
-                fees: callback.fees.balance,
-                callbackOwner: callback.handler.address
-            )
+            // Add the execution effort for this callback to the total for the slot's priority
+            let slotEfforts = self.slotUsedEffort[slot]!
+            slotEfforts[callback.priority] = slotEfforts[callback.priority]! + callback.executionEffort
+            self.slotUsedEffort[slot] = slotEfforts
 
             self.callbacks[callback.id] <-! callback
         }
@@ -891,6 +890,11 @@ access(all) contract FlowCallbackScheduler {
 
                 // Get the available effort for low priority callbacks at this timestamp
                 var lowEffortLeft = self.getSlotAvailableEffort(timestamp: timestamp, priority: Priority.Low)
+                // Get the effort that has been used for low priority callbacks at this timestamp
+                var lowEffortUsed = self.slotUsedEffort[timestamp]![Priority.Low] ?? 0
+                let mediumEffortUsed = self.slotUsedEffort[timestamp]![Priority.Medium] ?? 0
+                let highEffortUsed = self.slotUsedEffort[timestamp]![Priority.High] ?? 0
+                var totalEffortRemaining = self.configurationDetails.slotTotalEffortLimit.saturatingSubtract(mediumEffortUsed + highEffortUsed)
 
                 for id in callbackIDs.keys {
                     let callback = self.borrowCallback(id: id)
@@ -907,10 +911,27 @@ access(all) contract FlowCallbackScheduler {
                         case Priority.Medium:
                             medium.append(callback)
                         case Priority.Low:
-                            // add low priority callbacks only if there is space left in the available effort
-                            if callback.executionEffort <= lowEffortLeft {
+                            
+                            // If there is space left for the low priority callbacks
+                            // that have already been scheduled here, add them to the queue
+                            if totalEffortRemaining >= lowEffortUsed {
                                 low.append(callback)
-                                lowEffortLeft = lowEffortLeft - callback.executionEffort
+                            } else {
+                                // If there is no space left for the low priority callback that had previously
+                                // been scheduled, we need to remove it from this timestamp and try to add it to a future timestamp
+                                let newTimestamp = self.calculateScheduledTimestamp(
+                                    timestamp: timestamp + 1.0, 
+                                    priority: Priority.Low,
+                                    executionEffort: callback.executionEffort
+                                )!
+
+                                lowEffortUsed = lowEffortUsed - callback.executionEffort
+
+                                let callbackResource <- self.removeCallback(callback: callback)
+                                callbackResource.setScheduledTimestamp(newTimestamp: newTimestamp)
+                                self.addCallback(slot: newTimestamp, callback: <-callbackResource)
+
+                                continue
                             }
                     }
                 }
