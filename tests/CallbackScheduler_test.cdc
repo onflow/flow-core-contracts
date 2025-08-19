@@ -572,7 +572,7 @@ access(all) fun testEstimate() {
             data: nil,
             expectedFee: nil,
             expectedTimestamp: nil,
-            expectedError: "Invalid execution effort: 0 is less than the minimum execution effort of 5"
+            expectedError: "Invalid execution effort: 0 is less than the minimum execution effort of 10"
         ),
         EstimateTestCase(
             name: "Excessive high priority effort returns error",
@@ -620,7 +620,7 @@ access(all) fun testEstimate() {
             name: "Medium priority minimum effort",
             timestamp: futureTime + 4.0,
             priority: FlowCallbackScheduler.Priority.Medium,
-            executionEffort: 5,
+            executionEffort: 10,
             data: nil,
             expectedFee: 0.00005,
             expectedTimestamp: futureTime + 4.0,
@@ -683,6 +683,7 @@ access(all) fun runEstimateTestCase(testCase: EstimateTestCase) {
     
     // Check fee
     if let expectedFee = testCase.expectedFee {
+        let fee = estimate.flowFee ?? panic("Couldn't unwrap fee for test case: \(testCase.name)")
         Test.assert(expectedFee == estimate.flowFee, message: "fee mismatch for test case: \(testCase.name). Expected \(expectedFee) but got \(estimate.flowFee!)")
     } else {
         Test.assert(estimate.flowFee == nil, message: "expected nil fee for test case: \(testCase.name)")
@@ -795,20 +796,20 @@ access(all) fun testConfigDetails() {
     Valid Test Case
     ---------------- */
     let oldConfig = getConfigDetails()
-    Test.assertEqual(oldConfig.slotTotalEffortLimit, 35000 as UInt64)
-    Test.assertEqual(oldConfig.slotSharedEffortLimit, 10000 as UInt64)
-    Test.assertEqual(oldConfig.priorityEffortReserve[FlowCallbackScheduler.Priority.High]!, 20000 as UInt64)
-    Test.assertEqual(oldConfig.priorityEffortReserve[FlowCallbackScheduler.Priority.Medium]!, 5000 as UInt64)
-    Test.assertEqual(oldConfig.priorityEffortReserve[FlowCallbackScheduler.Priority.Low]!, 0 as UInt64)
-    Test.assertEqual(oldConfig.priorityEffortLimit[FlowCallbackScheduler.Priority.High]!, 30000 as UInt64)
-    Test.assertEqual(oldConfig.priorityEffortLimit[FlowCallbackScheduler.Priority.Medium]!, 15000 as UInt64)
-    Test.assertEqual(oldConfig.priorityEffortLimit[FlowCallbackScheduler.Priority.Low]!, 5000 as UInt64)
-    Test.assertEqual(oldConfig.minimumExecutionEffort, 5 as UInt64)
-    Test.assertEqual(oldConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.High]!, 10.0)
-    Test.assertEqual(oldConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.Medium]!, 5.0)
-    Test.assertEqual(oldConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.Low]!, 2.0)
-    Test.assertEqual(oldConfig.refundMultiplier, 0.5)
-    Test.assertEqual(oldConfig.canceledCallbacksLimit, 720 as UInt) // 30 days with 1 per hour
+    Test.assertEqual(35000 as UInt64,oldConfig.slotTotalEffortLimit)
+    Test.assertEqual(10000 as UInt64,oldConfig.slotSharedEffortLimit)
+    Test.assertEqual(20000 as UInt64,oldConfig.priorityEffortReserve[FlowCallbackScheduler.Priority.High]!)
+    Test.assertEqual(5000 as UInt64,oldConfig.priorityEffortReserve[FlowCallbackScheduler.Priority.Medium]!)
+    Test.assertEqual(0 as UInt64,oldConfig.priorityEffortReserve[FlowCallbackScheduler.Priority.Low]!)
+    Test.assertEqual(30000 as UInt64,oldConfig.priorityEffortLimit[FlowCallbackScheduler.Priority.High]!)
+    Test.assertEqual(15000 as UInt64,oldConfig.priorityEffortLimit[FlowCallbackScheduler.Priority.Medium]!)
+    Test.assertEqual(5000 as UInt64,oldConfig.priorityEffortLimit[FlowCallbackScheduler.Priority.Low]!)
+    Test.assertEqual(10 as UInt64,oldConfig.minimumExecutionEffort)
+    Test.assertEqual(10.0,oldConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.High]!)
+    Test.assertEqual(5.0,oldConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.Medium]!)
+    Test.assertEqual(2.0,oldConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.Low]!)
+    Test.assertEqual(0.5,oldConfig.refundMultiplier)
+    Test.assertEqual(720 as UInt,oldConfig.canceledCallbacksLimit) // 30 days with 1 per hour
 
 
     setConfigDetails(
@@ -824,20 +825,20 @@ access(all) fun testConfigDetails() {
 
     // Verify new config details
     let newConfig = getConfigDetails()
-    Test.assertEqual(newConfig.slotTotalEffortLimit, 45000 as UInt64)
-    Test.assertEqual(newConfig.slotSharedEffortLimit, 20000 as UInt64)
-    Test.assertEqual(newConfig.priorityEffortReserve[FlowCallbackScheduler.Priority.High]!, oldConfig.priorityEffortReserve[FlowCallbackScheduler.Priority.High]!)
-    Test.assertEqual(newConfig.priorityEffortReserve[FlowCallbackScheduler.Priority.Medium]!, oldConfig.priorityEffortReserve[FlowCallbackScheduler.Priority.Medium]!)
-    Test.assertEqual(newConfig.priorityEffortReserve[FlowCallbackScheduler.Priority.Low]!, oldConfig.priorityEffortReserve[FlowCallbackScheduler.Priority.Low]!)
-    Test.assertEqual(newConfig.priorityEffortLimit[FlowCallbackScheduler.Priority.High]!, 30000 as UInt64)
-    Test.assertEqual(newConfig.priorityEffortLimit[FlowCallbackScheduler.Priority.Medium]!, 30000 as UInt64)
-    Test.assertEqual(newConfig.priorityEffortLimit[FlowCallbackScheduler.Priority.Low]!, 10000 as UInt64)
-    Test.assertEqual(newConfig.minimumExecutionEffort, 10 as UInt64)
-    Test.assertEqual(newConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.High]!, 20.0)
-    Test.assertEqual(newConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.Medium]!, 10.0)
-    Test.assertEqual(newConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.Low]!, 4.0)
-    Test.assertEqual(newConfig.refundMultiplier, oldConfig.refundMultiplier)
-    Test.assertEqual(newConfig.canceledCallbacksLimit, 2000 as UInt)
+    Test.assertEqual(45000 as UInt64,newConfig.slotTotalEffortLimit)
+    Test.assertEqual(20000 as UInt64,newConfig.slotSharedEffortLimit)
+    Test.assertEqual(oldConfig.priorityEffortReserve[FlowCallbackScheduler.Priority.High]!,newConfig.priorityEffortReserve[FlowCallbackScheduler.Priority.High]!)
+    Test.assertEqual(oldConfig.priorityEffortReserve[FlowCallbackScheduler.Priority.Medium]!,newConfig.priorityEffortReserve[FlowCallbackScheduler.Priority.Medium]!)
+    Test.assertEqual(oldConfig.priorityEffortReserve[FlowCallbackScheduler.Priority.Low]!,newConfig.priorityEffortReserve[FlowCallbackScheduler.Priority.Low]!)
+    Test.assertEqual(30000 as UInt64,newConfig.priorityEffortLimit[FlowCallbackScheduler.Priority.High]!)
+    Test.assertEqual(30000 as UInt64,newConfig.priorityEffortLimit[FlowCallbackScheduler.Priority.Medium]!)
+    Test.assertEqual(10000 as UInt64,newConfig.priorityEffortLimit[FlowCallbackScheduler.Priority.Low]!)
+    Test.assertEqual(10 as UInt64,newConfig.minimumExecutionEffort)
+    Test.assertEqual(20.0,newConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.High]!)
+    Test.assertEqual(10.0,newConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.Medium]!)
+    Test.assertEqual(4.0,newConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.Low]!)
+    Test.assertEqual(oldConfig.refundMultiplier,newConfig.refundMultiplier)
+    Test.assertEqual(2000 as UInt,newConfig.canceledCallbacksLimit)
 }
 
 // Helper functions for scheduling a callback
