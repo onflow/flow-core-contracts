@@ -12,7 +12,7 @@ import "FungibleToken"
 /// Your transaction will look similar to this one, but will use your custom contract and types
 /// instead of TestFlowCallbackHandler
 
-transaction(timestamp: UFix64, feeAmount: UFix64, effort: UInt64, priority: UInt8, testData: String) {
+transaction(timestamp: UFix64, feeAmount: UFix64, effort: UInt64, priority: UInt8, testData: AnyStruct?) {
 
     prepare(account: auth(BorrowValue, SaveValue, IssueStorageCapabilityController, PublishCapability, GetStorageCapabilityController) &Account) {
         

@@ -390,6 +390,11 @@ access(all) contract FlowCallbackScheduler {
         access(all) fun hasTimestampsBefore(current: UFix64): Bool {
             return self.timestamps.length > 0 && self.timestamps[0] <= current
         }
+
+        /// Get the whole array of timestamps
+        access(all) fun getAll(): [UFix64] {
+            return self.timestamps
+        }
     }
 
     /// Resources
@@ -404,8 +409,8 @@ access(all) contract FlowCallbackScheduler {
         /// callbacks is a map of callback IDs to CallbackData resource objects
         access(contract) var callbacks: @{UInt64: CallbackData}
 
-        /// slot queue is a map of timestamps to callback IDs and their execution efforts
-        access(contract) var slotQueue: {UFix64: {UInt64: UInt64}}
+        /// slot queue is a map of timestamps to Priorities to callback IDs and their execution efforts
+        access(contract) var slotQueue: {UFix64: {Priority: {UInt64: UInt64}}}
 
         /// slot used effort is a map of timestamps map of priorities and 
         /// efforts that has been used for the timeslot
@@ -555,6 +560,13 @@ access(all) contract FlowCallbackScheduler {
             return Status.Unknown
         }
 
+        /// getTotalEffortRemaining returns the total amount of effort that is available for scheduling in a slot
+        access(all) view fun getTotalEffortRemaining(slot: UFix64): UInt64 {
+            let mediumEffortUsed = self.slotUsedEffort[slot]![Priority.Medium] ?? 0
+            let highEffortUsed = self.slotUsedEffort[slot]![Priority.High] ?? 0
+            return self.configurationDetails.slotTotalEffortLimit.saturatingSubtract(mediumEffortUsed + highEffortUsed)
+        }
+
         /// schedule is the primary entry point for scheduling a new callback within the scheduler contract. 
         /// If scheduling the callback is not possible either due to invalid arguments or due to 
         /// unavailable slots, the function panics. 
@@ -664,7 +676,7 @@ access(all) contract FlowCallbackScheduler {
                 return EstimatedCallback(
                             flowFee: nil,
                             timestamp: nil,
-                            error: "Invalid execution effort: \(executionEffort) is greater than the priority's available effort of \(self.configurationDetails.priorityEffortLimit[priority]!)"
+                            error: "Invalid execution effort: \(executionEffort) is greater than the priority's max effort of \(self.configurationDetails.priorityEffortLimit[priority]!)"
                         )
             }
 
@@ -825,15 +837,85 @@ access(all) contract FlowCallbackScheduler {
 
             // Add this callback id to the slot
             let slotQueue = self.slotQueue[slot]!
-            slotQueue[callback.id] = callback.executionEffort
+            if let priorityQueue = slotQueue[callback.priority] {
+                priorityQueue[callback.id] = callback.executionEffort
+                slotQueue[callback.priority] = priorityQueue
+            } else {
+                slotQueue[callback.priority] = {
+                    callback.id: callback.executionEffort
+                }
+            }
+
             self.slotQueue[slot] = slotQueue
 
             // Add the execution effort for this callback to the total for the slot's priority
             let slotEfforts = self.slotUsedEffort[slot]!
-            slotEfforts[callback.priority] = slotEfforts[callback.priority]! + callback.executionEffort
+            var newPriorityEffort = slotEfforts[callback.priority]! + callback.executionEffort
+            slotEfforts[callback.priority] = newPriorityEffort
+            var newTotalEffort: UInt64 = 0
+            for priority in slotEfforts.keys {
+                newTotalEffort = newTotalEffort.saturatingAdd(slotEfforts[priority]!)
+            }
             self.slotUsedEffort[slot] = slotEfforts
+            
+            // Need to potentially reschedule low priority callbacks to make room for the new callback
+            // Iterate through them and record which ones to reschedule until the total effort is less than the limit
+            let lowCallbacksToReschedule: [UInt64] = []
+            if newTotalEffort > self.configurationDetails.slotTotalEffortLimit {
+                let lowPriorityCallbacks = slotQueue[Priority.Low]!
+                for id in lowPriorityCallbacks.keys {
+                    if newTotalEffort <= self.configurationDetails.slotTotalEffortLimit {
+                        break
+                    }
+                    lowCallbacksToReschedule.append(id)
+                    newTotalEffort = newTotalEffort.saturatingSubtract(lowPriorityCallbacks[id]!)
+                }
+            }
 
+            // Store the callback in the callbacks map
             self.callbacks[callback.id] <-! callback
+
+            // Reschedule low priority callbacks if needed
+            self.rescheduleLowPriorityCallbacks(slot: slot, callbacks: lowCallbacksToReschedule)
+        }
+
+        /// rescheduleLowPriorityCallbacks reschedules low priority callbacks to make room for a new callback
+        /// @param slot: The slot that the callbacks are currently scheduled at
+        /// @param callbacks: The callbacks to reschedule
+        access(self) fun rescheduleLowPriorityCallbacks(slot: UFix64, callbacks: [UInt64]) {
+            for id in callbacks {
+                let callback = self.borrowCallback(id: id)
+                    ?? panic("Invalid ID: \(id) callback not found") // critical bug
+
+                assert (
+                    callback.priority == Priority.Low,
+                    message: "Invalid Priority: Cannot reschedule callback with id \(id) because it is not low priority"
+                )
+
+                assert (
+                    callback.scheduledTimestamp == slot,
+                    message: "Invalid Timestamp: Cannot reschedule callback with id \(id) because it is not scheduled at the same slot as the new callback"
+                )
+                
+                let newTimestamp = self.calculateScheduledTimestamp(
+                    timestamp: slot + 1.0,
+                    priority: Priority.Low,
+                    executionEffort: callback.executionEffort
+                )!
+
+                let effort = callback.executionEffort
+
+                let callbackResource <- self.removeCallback(callback: callback)
+
+                // Subtract the execution effort for this callback from the slot's priority
+                let slotEfforts = self.slotUsedEffort[slot]!
+                slotEfforts[Priority.Low] = slotEfforts[Priority.Low]!.saturatingSubtract(effort)
+                self.slotUsedEffort[slot] = slotEfforts
+
+                // Update the callback's scheduled timestamp and add it back to the slot queue
+                callbackResource.setScheduledTimestamp(newTimestamp: newTimestamp)
+                self.addCallback(slot: newTimestamp, callback: <-callbackResource)
+            }
         }
 
         /// remove the callback from the slot queue.
@@ -841,6 +923,7 @@ access(all) contract FlowCallbackScheduler {
 
             let callbackID = callback.id
             let slot = callback.scheduledTimestamp
+            let callbackPriority = callback.priority
 
             // remove callback resource
             let callbackRes <- self.callbacks.remove(key: callbackID)!
@@ -848,8 +931,16 @@ access(all) contract FlowCallbackScheduler {
             // garbage collect slots 
             if let callbackQueue = self.slotQueue[slot] {
 
-                callbackQueue[callbackID] = nil
-                self.slotQueue[slot] = callbackQueue
+                if let priorityQueue = callbackQueue[callbackPriority] {
+                    priorityQueue[callbackID] = nil
+                    if priorityQueue.keys.length == 0 {
+                        callbackQueue.remove(key: callbackPriority)
+                    } else {
+                        callbackQueue[callbackPriority] = priorityQueue
+                    }
+
+                    self.slotQueue[slot] = callbackQueue
+                }
 
                 // if the slot is now empty remove it from the maps
                 if callbackQueue.keys.length == 0 {
@@ -883,56 +974,30 @@ access(all) contract FlowCallbackScheduler {
             let pastTimestamps = self.sortedTimestamps.getBefore(current: currentTimestamp)
 
             for timestamp in pastTimestamps {
-                let callbackIDs = self.slotQueue[timestamp] ?? {}
+                let callbackPriorities = self.slotQueue[timestamp] ?? {}
                 var high: [&CallbackData] = []
                 var medium: [&CallbackData] = []
                 var low: [&CallbackData] = []
 
-                // Get the available effort for low priority callbacks at this timestamp
-                var lowEffortLeft = self.getSlotAvailableEffort(timestamp: timestamp, priority: Priority.Low)
-                // Get the effort that has been used for low priority callbacks at this timestamp
-                var lowEffortUsed = self.slotUsedEffort[timestamp]![Priority.Low] ?? 0
-                let mediumEffortUsed = self.slotUsedEffort[timestamp]![Priority.Medium] ?? 0
-                let highEffortUsed = self.slotUsedEffort[timestamp]![Priority.High] ?? 0
-                var totalEffortRemaining = self.configurationDetails.slotTotalEffortLimit.saturatingSubtract(mediumEffortUsed + highEffortUsed)
+                for priority in callbackPriorities.keys {
+                    let callbackIDs = callbackPriorities[priority] ?? {}
+                    for id in callbackIDs.keys {
+                        let callback = self.borrowCallback(id: id)
+                            ?? panic("Invalid ID: \(id) callback not found during initial processing") // critical bug
 
-                for id in callbackIDs.keys {
-                    let callback = self.borrowCallback(id: id)
-                        ?? panic("Invalid ID: \(id) callback not found during initial processing") // critical bug
-
-                    // Only add scheduled callbacks to the queue
-                    if callback.status != Status.Scheduled {
-                        continue
-                    }
-                
-                    switch callback.priority {
-                        case Priority.High:
-                            high.append(callback)
-                        case Priority.Medium:
-                            medium.append(callback)
-                        case Priority.Low:
-                            
-                            // If there is space left for the low priority callbacks
-                            // that have already been scheduled here, add them to the queue
-                            if totalEffortRemaining >= lowEffortUsed {
+                        // Only add scheduled callbacks to the queue
+                        if callback.status != Status.Scheduled {
+                            continue
+                        }
+                    
+                        switch callback.priority {
+                            case Priority.High:
+                                high.append(callback)
+                            case Priority.Medium:
+                                medium.append(callback)
+                            case Priority.Low:
                                 low.append(callback)
-                            } else {
-                                // If there is no space left for the low priority callback that had previously
-                                // been scheduled, we need to remove it from this timestamp and try to add it to a future timestamp
-                                let newTimestamp = self.calculateScheduledTimestamp(
-                                    timestamp: timestamp + 1.0, 
-                                    priority: Priority.Low,
-                                    executionEffort: callback.executionEffort
-                                )!
-
-                                lowEffortUsed = lowEffortUsed - callback.executionEffort
-
-                                let callbackResource <- self.removeCallback(callback: callback)
-                                callbackResource.setScheduledTimestamp(newTimestamp: newTimestamp)
-                                self.addCallback(slot: newTimestamp, callback: <-callbackResource)
-
-                                continue
-                            }
+                        }
                     }
                 }
 
@@ -951,18 +1016,21 @@ access(all) contract FlowCallbackScheduler {
             let pastTimestamps = self.sortedTimestamps.getBefore(current: currentTimestamp)
 
             for timestamp in pastTimestamps {
-                let callbackIDs = self.slotQueue[timestamp] ?? {}
+                let callbackPriorities = self.slotQueue[timestamp] ?? {}
                 
-                for id in callbackIDs.keys {
-                    let callback = self.borrowCallback(id: id)
-                        ?? panic("Invalid ID: \(id) callback not found during initial processing") // critical bug
+                for priority in callbackPriorities.keys {
+                    let callbackIDs = callbackPriorities[priority] ?? {}
+                    for id in callbackIDs.keys {
+                        let callback = self.borrowCallback(id: id)
+                            ?? panic("Invalid ID: \(id) callback not found during initial processing") // critical bug
 
-                    // Only remove executed callbacks
-                    if callback.status != Status.Executed {
-                        continue
+                        // Only remove executed callbacks
+                        if callback.status != Status.Executed {
+                            continue
+                        }
+
+                        destroy self.removeCallback(callback: callback)
                     }
-
-                    destroy self.removeCallback(callback: callback)
                 }
             }
         }
@@ -1011,17 +1079,15 @@ access(all) contract FlowCallbackScheduler {
 
             // Remove this callback id from its slot
             let slotQueue = self.slotQueue[callback.scheduledTimestamp]!
-            slotQueue[id] = nil
+            let priorityQueue = slotQueue[callback.priority]!
+            priorityQueue[id] = nil
+            slotQueue[callback.priority] = priorityQueue
             self.slotQueue[callback.scheduledTimestamp] = slotQueue
             
             // Subtract the execution effort for this callback from the slot's priority
-            // Low priority efforts don't count toward a slot's execution effort
-            // so we don't need to subtract anything for them
-            if callback.priority != Priority.Low {
-                let slotEfforts = self.slotUsedEffort[callback.scheduledTimestamp]!
-                slotEfforts[callback.priority] = slotEfforts[callback.priority]!.saturatingSubtract(callback.executionEffort)
-                self.slotUsedEffort[callback.scheduledTimestamp] = slotEfforts
-            }
+            let slotEfforts = self.slotUsedEffort[callback.scheduledTimestamp]!
+            slotEfforts[callback.priority] = slotEfforts[callback.priority]!.saturatingSubtract(callback.executionEffort)
+            self.slotUsedEffort[callback.scheduledTimestamp] = slotEfforts
 
             let totalFees = callback.fees.balance
             let refundedFees <- callback.payAndRefundFees(refundMultiplier: self.configurationDetails.refundMultiplier)
