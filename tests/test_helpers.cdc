@@ -1,5 +1,4 @@
 import Test
-import BlockchainHelpers
 import "FlowCallbackScheduler"
 
 // Account 7 is where new contracts are deployed by default
@@ -30,9 +29,6 @@ access(all) let sharedEffortLimit: UInt64 = 10000
 
 access(all) let testData = "test data"
 access(all) let failTestData = "fail"
-
-access(all) let callbackToFail = 2 as UInt64
-access(all) let callbackToCancel = 8 as UInt64
 
 access(all) let futureDelta = 1000.0
 access(all) var futureTime = 0.0
@@ -166,7 +162,7 @@ access(all) fun setConfigDetails(
 }
 
 access(all) fun getConfigDetails(): {FlowCallbackScheduler.SchedulerConfig} {
-    var config = Test.executeScript(
+    var config = _executeScript(
         "../transactions/callbackScheduler/scripts/get_config.cdc",
         []
     ).returnValue! as! {FlowCallbackScheduler.SchedulerConfig}
@@ -174,7 +170,7 @@ access(all) fun getConfigDetails(): {FlowCallbackScheduler.SchedulerConfig} {
 }
 
 access(all) fun getSizeOfData(data: AnyStruct): UFix64 {
-    var size = Test.executeScript(
+    var size = _executeScript(
         "./scripts/get_data_size.cdc",
         [data]
     ).returnValue! as! UFix64
@@ -182,7 +178,7 @@ access(all) fun getSizeOfData(data: AnyStruct): UFix64 {
 }
 
 access(all) fun getStatus(id: UInt64): UInt8 {
-    var status = Test.executeScript(
+    var status = _executeScript(
         "../transactions/callbackScheduler/scripts/get_status.cdc",
         [id]
     ).returnValue! as! UInt8
@@ -190,7 +186,7 @@ access(all) fun getStatus(id: UInt64): UInt8 {
 }
 
 access(all) fun getSlotAvailableEffort(timestamp: UFix64, priority: UInt8): UInt64 {
-    var result = Test.executeScript(
+    var result = _executeScript(
         "../transactions/callbackScheduler/scripts/get_slot_available_effort.cdc",
         [timestamp, priority]
     )
@@ -202,7 +198,7 @@ access(all) fun getSlotAvailableEffort(timestamp: UFix64, priority: UInt8): UInt
 
 access(all) fun getPendingQueue(): [UInt64] {
 
-    var result = Test.executeScript(
+    var result = _executeScript(
         "./scripts/get_pending_queue.cdc",
         []
     )
@@ -212,7 +208,7 @@ access(all) fun getPendingQueue(): [UInt64] {
 }
 
 access(all) fun getTimestamp(): UFix64 {
-    var timestamp = Test.executeScript(
+    var timestamp = _executeScript(
         "./scripts/get_timestamp.cdc",
         []
     ).returnValue! as! UFix64
@@ -220,7 +216,7 @@ access(all) fun getTimestamp(): UFix64 {
 }
 
 access(all) fun getBalance(account: Address): UFix64 {
-    var balance = Test.executeScript(
+    var balance = _executeScript(
         "../transactions/flowToken/scripts/get_balance.cdc",
         [account]
     ).returnValue! as! UFix64
@@ -228,3 +224,7 @@ access(all) fun getBalance(account: Address): UFix64 {
 }
 
 
+access(all)
+fun _executeScript(_ path: String, _ args: [AnyStruct]): Test.ScriptResult {
+    return Test.executeScript(Test.readFile(path), args)
+}

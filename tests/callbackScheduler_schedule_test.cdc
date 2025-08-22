@@ -6,46 +6,6 @@ import "TestFlowCallbackHandler"
 
 import "test_helpers.cdc"
 
-
-// Account 7 is where new contracts are deployed by default
-access(all) let admin = Test.getAccount(0x0000000000000007)
-
-access(all) let serviceAccount = Test.serviceAccount()
-
-access(all) let highPriority = UInt8(0)
-access(all) let mediumPriority = UInt8(1)
-access(all) let lowPriority = UInt8(2)
-
-access(all) let statusUnknown = UInt8(0)
-access(all) let statusScheduled = UInt8(1)
-access(all) let statusExecuted = UInt8(2)
-access(all) let statusCanceled = UInt8(3)
-
-access(all) let basicEffort: UInt64 = 1000
-access(all) let mediumEffort: UInt64 = 10000
-access(all) let heavyEffort: UInt64 = 20000
-
-access(all) let lowPriorityMaxEffort: UInt64 = 5000
-access(all) let mediumPriorityMaxEffort: UInt64 = 15000
-access(all) let highPriorityMaxEffort: UInt64 = 30000
-
-access(all) let highPriorityEffortReserve: UInt64 = 20000
-access(all) let mediumPriorityEffortReserve: UInt64 = 5000
-access(all) let sharedEffortLimit: UInt64 = 10000
-
-access(all) let testData = "test data"
-access(all) let failTestData = "fail"
-
-access(all) let callbackToFail = 2 as UInt64
-access(all) let callbackToCancel = 8 as UInt64
-
-access(all) let futureDelta = 1000.0
-access(all) var futureTime = 0.0
-
-access(all) var feeAmount = 10.0
-
-access(all) var startingHeight: UInt64 = 0
-
 access(all)
 fun setup() {
 
@@ -62,8 +22,6 @@ fun setup() {
         arguments: []
     )
     Test.expect(err, Test.beNil())
-
-    startingHeight = getCurrentBlockHeight()
 }
 
 /** ---------------------------------------------------------------------------------
@@ -227,6 +185,8 @@ access(all) fun runScheduleAndEffortUsedTestCase(testCase: ScheduleAndEffortUsed
 
 access(all) fun testScheduleAndEffortUsed() {
 
+    var startingHeight = getCurrentBlockHeight()
+
     // Common callbacks that we will use multiple times in certain test cases
 
     let lowCallbackWith300Effort = Callback(
@@ -262,8 +222,17 @@ access(all) fun testScheduleAndEffortUsed() {
     let testCases: [ScheduleAndEffortUsedTestCase] = [
         // Low priority only test cases
         ScheduleAndEffortUsedTestCase(
-            name: "Low priority: Zero effort fails with no effort used",
+            name: "Low priority: Zero fees and zeroeffort fails with no effort used",
             callbacks: [
+                Callback(
+                    requestedDelta: futureDelta,
+                    expectedScheduledDelta: futureDelta,
+                    priority: highPriority,
+                    executionEffort: basicEffort,
+                    data: testData,
+                    fees: 0.0,
+                    failWithErr: "Insufficient fees: The Fee balance of 0.00000000 is not sufficient to pay the required amount of 0.00010000 for execution of the callback."
+                ),
                 Callback(
                     requestedDelta: futureDelta,
                     expectedScheduledDelta: futureDelta,
