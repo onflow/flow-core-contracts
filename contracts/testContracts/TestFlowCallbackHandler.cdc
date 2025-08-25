@@ -11,6 +11,14 @@ access(all) contract TestFlowCallbackHandler {
     access(all) let HandlerPublicPath: PublicPath
     
     access(all) resource Handler: FlowCallbackScheduler.CallbackHandler {
+
+        access(all) fun getName(): String {
+            return "Test FlowCallbackHandler Resource"
+        }
+
+        access(all) fun getDescription(): String {
+            return "Executes a variety of callbacks for different test cases"
+        }
         
         access(FlowCallbackScheduler.Execute) 
         fun executeCallback(id: UInt64, data: AnyStruct?) {
