@@ -125,7 +125,6 @@ access(all) fun executeCallback(
     if let error = failWithErr {
         // log(error)
         // log(result.error!.message)
-        log("SHOULD FAIL")
         Test.expect(result, Test.beFailed())
         Test.assertError(
             result,

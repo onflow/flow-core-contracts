@@ -4,7 +4,7 @@ import "FlowCallbackScheduler"
 import "FlowToken"
 import "TestFlowCallbackHandler"
 
-import "test_helpers.cdc"
+import "callback_test_helpers.cdc"
 
 access(all) let callbackToFail = 6 as UInt64
 access(all) let callbackToCancel = 2 as UInt64
@@ -209,34 +209,4 @@ access(all) fun testCallbackExecution() {
         []
     ).returnValue! as! [UInt64]
     Test.assert(callbackIDs.length == 1, message: "Executed ids is the wrong count")
-
-
-    // TODO: Test Failed Callbacks
-    //Verify failed callback status is still PendingExecution
-    // var status = getStatus(id: callbackToFail)
-    // Test.assertEqual(statusExecuted, status)
-
-    // // Check that the failed callback is still marked as executed
-    // status = getStatus(id: callbackToFail)
-    // Test.assertEqual(statusExecuted, status)
-
-
-
-    // // Try to execute the low priority callback, should fail because it isn't pendingExecution
-    // executeCallback(
-    //     id: 7,
-    //     failWithErr: "Invalid ID: Cannot execute callback with id 7 because it has incorrect status \(statusScheduled)"
-    // )
-
-    // // Move time forward to after the low priority callback's requested timestamp
-    // Test.moveTime(by: Fix64(200.0))
-
-    // // Process the remaining callback
-    // processCallbacks()
-
-    // executeCallback(id: UInt64(7), failWithErr: nil)
-
-    // // Verify that the low priority callback is now executed
-    // status = getStatus(id: 7)
-    // Test.assertEqual(statusExecuted, status)    
 }

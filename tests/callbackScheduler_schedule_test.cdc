@@ -4,7 +4,7 @@ import "FlowCallbackScheduler"
 import "FlowToken"
 import "TestFlowCallbackHandler"
 
-import "test_helpers.cdc"
+import "callback_test_helpers.cdc"
 
 access(all)
 fun setup() {
@@ -217,6 +217,7 @@ access(all) fun runScheduleAndEffortUsedTestCase(testCase: ScheduleAndEffortUsed
                 } else if callback.data as! String == "fail" {
                     executeCallback(id: callback.id!, testName: testCase.name, failWithErr: "Callback \(callback.id!) failed")
                 }
+                continue
             }
             executeCallback(id: callback.id!, testName: testCase.name, failWithErr: nil)
         }
@@ -1054,32 +1055,226 @@ access(all) fun testScheduleAndEffortUsed() {
                 futureDelta + 2.0: [1,2,3,4,5,6]
             },
             expectedPendingQueueAfterExecution: []
+        ),
+        ScheduleAndEffortUsedTestCase(
+            name: "Callback tries to cancel itself during execution: Should fail",
+            callbacks: [
+                Callback(
+                    requestedDelta: futureDelta,
+                    priority: lowPriority,
+                    executionEffort: 3000,
+                    data: "cancel",
+                    fees: feeAmount,
+                    failWithErr: nil
+                )
+            ],
+            callbacksIndicesToCancel: [],
+            expectedAvailableEfforts: {
+                futureDelta: {
+                    highPriority: highPriorityMaxEffort,
+                    mediumPriority: mediumPriorityMaxEffort,
+                    lowPriority: lowPriorityMaxEffort - 3000
+                }
+            },
+            expectedPendingQueues: {
+                futureDelta: [1]
+            },
+            expectedPendingQueueAfterExecution: []
+        ),
+        
+        // Self-canceling callback test cases
+        ScheduleAndEffortUsedTestCase(
+            name: "High priority callback canceled after scheduling",
+            callbacks: [
+                Callback(
+                    requestedDelta: futureDelta,
+                    priority: highPriority,
+                    executionEffort: 5000,
+                    data: testData,
+                    fees: feeAmount,
+                    failWithErr: nil
+                )
+            ],
+            callbacksIndicesToCancel: [0],
+            expectedAvailableEfforts: {
+                futureDelta: {
+                    highPriority: highPriorityMaxEffort,
+                    mediumPriority: mediumPriorityMaxEffort,
+                    lowPriority: lowPriorityMaxEffort
+                }
+            },
+            expectedPendingQueues: {
+                futureDelta: []
+            },
+            expectedPendingQueueAfterExecution: []
+        ),
+        
+        ScheduleAndEffortUsedTestCase(
+            name: "Medium priority callback canceled after scheduling",
+            callbacks: [
+                Callback(
+                    requestedDelta: futureDelta,
+                    priority: mediumPriority,
+                    executionEffort: 3000,
+                    data: testData,
+                    fees: feeAmount,
+                    failWithErr: nil
+                )
+            ],
+            callbacksIndicesToCancel: [0],
+            expectedAvailableEfforts: {
+                futureDelta: {
+                    highPriority: highPriorityMaxEffort,
+                    mediumPriority: mediumPriorityMaxEffort,
+                    lowPriority: lowPriorityMaxEffort
+                }
+            },
+            expectedPendingQueues: {
+                futureDelta: []
+            },
+            expectedPendingQueueAfterExecution: []
+        ),
+        
+        ScheduleAndEffortUsedTestCase(
+            name: "Low priority callback canceled after scheduling",
+            callbacks: [
+                Callback(
+                    requestedDelta: futureDelta,
+                    priority: lowPriority,
+                    executionEffort: 2000,
+                    data: testData,
+                    fees: feeAmount,
+                    failWithErr: nil
+                )
+            ],
+            callbacksIndicesToCancel: [0],
+            expectedAvailableEfforts: {
+                futureDelta: {
+                    highPriority: highPriorityMaxEffort,
+                    mediumPriority: mediumPriorityMaxEffort,
+                    lowPriority: lowPriorityMaxEffort
+                }
+            },
+            expectedPendingQueues: {
+                futureDelta: []
+            },
+            expectedPendingQueueAfterExecution: []
+        ),
+        
+        ScheduleAndEffortUsedTestCase(
+            name: "Multiple callbacks with one canceled",
+            callbacks: [
+                Callback(
+                    requestedDelta: futureDelta,
+                    priority: highPriority,
+                    executionEffort: 4000,
+                    data: testData,
+                    fees: feeAmount,
+                    failWithErr: nil
+                ),
+                Callback(
+                    requestedDelta: futureDelta,
+                    priority: mediumPriority,
+                    executionEffort: 2500,
+                    data: testData,
+                    fees: feeAmount,
+                    failWithErr: nil
+                ),
+                Callback(
+                    requestedDelta: futureDelta,
+                    priority: lowPriority,
+                    executionEffort: 1500,
+                    data: testData,
+                    fees: feeAmount,
+                    failWithErr: nil
+                )
+            ],
+            callbacksIndicesToCancel: [1],
+            expectedAvailableEfforts: {
+                futureDelta: {
+                    highPriority: highPriorityMaxEffort - 4000,
+                    mediumPriority: mediumPriorityMaxEffort,
+                    lowPriority: lowPriorityMaxEffort - 1500
+                }
+            },
+            expectedPendingQueues: {
+                futureDelta: [1, 3]
+            },
+            expectedPendingQueueAfterExecution: []
+        ),
+        
+        ScheduleAndEffortUsedTestCase(
+            name: "Multiple callbacks with multiple canceled",
+            callbacks: [
+                Callback(
+                    requestedDelta: futureDelta,
+                    priority: highPriority,
+                    executionEffort: 4000,
+                    data: testData,
+                    fees: feeAmount,
+                    failWithErr: nil
+                ),
+                Callback(
+                    requestedDelta: futureDelta,
+                    priority: mediumPriority,
+                    executionEffort: 2500,
+                    data: testData,
+                    fees: feeAmount,
+                    failWithErr: nil
+                ),
+                Callback(
+                    requestedDelta: futureDelta,
+                    priority: lowPriority,
+                    executionEffort: 1500,
+                    data: testData,
+                    fees: feeAmount,
+                    failWithErr: nil
+                )
+            ],
+            callbacksIndicesToCancel: [0, 2],
+            expectedAvailableEfforts: {
+                futureDelta: {
+                    highPriority: highPriorityMaxEffort,
+                    mediumPriority: mediumPriorityMaxEffort - 2500,
+                    lowPriority: lowPriorityMaxEffort
+                }
+            },
+            expectedPendingQueues: {
+                futureDelta: [2]
+            },
+            expectedPendingQueueAfterExecution: []
+        ),
+        
+        ScheduleAndEffortUsedTestCase(
+            name: "Callback canceled with different timestamp",
+            callbacks: [
+                Callback(
+                    requestedDelta: futureDelta + 50.0,
+                    priority: highPriority,
+                    executionEffort: 6000,
+                    data: testData,
+                    fees: feeAmount,
+                    failWithErr: nil
+                )
+            ],
+            callbacksIndicesToCancel: [0],
+            expectedAvailableEfforts: {
+                futureDelta: {
+                    highPriority: highPriorityMaxEffort,
+                    mediumPriority: mediumPriorityMaxEffort,
+                    lowPriority: lowPriorityMaxEffort
+                },
+                futureDelta + 50.0: {
+                    highPriority: highPriorityMaxEffort,
+                    mediumPriority: mediumPriorityMaxEffort,
+                    lowPriority: lowPriorityMaxEffort
+                }
+            },
+            expectedPendingQueues: {
+                futureDelta + 50.0: []
+            },
+            expectedPendingQueueAfterExecution: []
         )
-        // ScheduleAndEffortUsedTestCase(
-        //     name: "Callback tries to cancel itself during execution: Should fail",
-        //     callbacks: [
-        //         Callback(
-        //             requestedDelta: futureDelta,
-        //             priority: lowPriority,
-        //             executionEffort: 3000,
-        //             data: "cancel",
-        //             fees: feeAmount,
-        //             failWithErr: nil
-        //         )
-        //     ],
-        //     callbacksIndicesToCancel: [],
-        //     expectedAvailableEfforts: {
-        //         futureDelta: {
-        //             highPriority: highPriorityMaxEffort,
-        //             mediumPriority: mediumPriorityMaxEffort,
-        //             lowPriority: lowPriorityMaxEffort - 3000
-        //         }
-        //     },
-        //     expectedPendingQueues: {
-        //         futureDelta: [1]
-        //     },
-        //     expectedPendingQueueAfterExecution: []
-        // )
     ]
 
     var currentTimestamp = getTimestamp()
