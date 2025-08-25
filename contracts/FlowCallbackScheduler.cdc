@@ -120,10 +120,18 @@ access(all) contract FlowCallbackScheduler {
         access(Execute) fun executeCallback(id: UInt64, data: AnyStruct?)
 
         /// Gets a human readable name for the callback handler
-        access(all) fun getName(): String
+        access(all) fun getName(): String {
+            post {
+                result.length < 40: "Callback handler name must be less than 40 characters"
+            }
+        }
 
         /// Gets a human readable description for the callback handler
-        access(all) fun getDescription(): String
+        access(all) fun getDescription(): String {
+            post {
+                result.length < 200: "Callback handler description must be less than 200 characters"
+            }
+        }
     }
 
     /// Structs
