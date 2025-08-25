@@ -19,6 +19,9 @@ access(all) contract TestFlowCallbackHandler {
                 // intentional failure test case
                 if dataString == "fail" {
                     panic("Callback \(id) failed")
+                } else if dataString == "cancel" {
+                    // This should always fail because the callback can't cancel itself during execution
+                    destroy <-TestFlowCallbackHandler.cancelCallback(id: id)
                 } else {
                     // All other regular test cases should succeed
                     TestFlowCallbackHandler.succeededCallbacks.append(id)
