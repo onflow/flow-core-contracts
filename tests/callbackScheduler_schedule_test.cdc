@@ -35,8 +35,12 @@ access(all) fun testInit() {
     // Nothing will process because nothing is scheduled, but should not fail
     processCallbacks()
 
+    // try to get the status of a callback that is not scheduled yet
+    var status = getStatus(id: UInt64(10))
+    Test.assertEqual(nil, status)
+
     // Try to execute a callback, should fail
-    executeCallback(id: UInt64(1), failWithErr: "Invalid ID: Callback with id 1 not found")
+    executeCallback(id: UInt64(1), testName: "testInit", failWithErr: "Invalid ID: Callback with id 1 not found")
 
     // verify that the available efforts are all their defaults
     var effort = getSlotAvailableEffort(timestamp: futureTime, priority: highPriority)
@@ -79,8 +83,8 @@ access(all) fun testGetSizeOfData() {
 
 // Callback structure for tests
 access(all) struct Callback {
+    access(all) var id: UInt64?
     access(all) let requestedDelta: UFix64
-    access(all) let expectedScheduledDelta: UFix64
     access(all) let priority: UInt8
     access(all) let executionEffort: UInt64
     access(all) let data: AnyStruct?
@@ -89,20 +93,23 @@ access(all) struct Callback {
 
     access(all) init(
         requestedDelta: UFix64,
-        expectedScheduledDelta: UFix64,
         priority: UInt8,
         executionEffort: UInt64,
         data: AnyStruct?,
         fees: UFix64,
         failWithErr: String?
     ) {
+        self.id = nil
         self.requestedDelta = requestedDelta
-        self.expectedScheduledDelta = expectedScheduledDelta
         self.priority = priority
         self.executionEffort = executionEffort
         self.data = data
         self.fees = fees
         self.failWithErr = failWithErr
+    }
+
+    access(all) fun setID(id: UInt64) {
+        self.id = id
     }
 }
 
@@ -110,24 +117,36 @@ access(all) struct Callback {
 access(all) struct ScheduleAndEffortUsedTestCase {
     access(all) let name: String
     access(all) let callbacks: [Callback]
+    access(all) let callbacksIndicesToCancel: [Int]
     access(all) let expectedAvailableEfforts: {UFix64: {UInt8: UInt64}}
     access(all) let expectedPendingQueues: {UFix64: [UInt64]}
+    access(all) let expectedPendingQueueAfterExecution: [UInt64]
 
     access(all) init(
         name: String,
         callbacks: [Callback],
+        callbacksIndicesToCancel: [Int],
         expectedAvailableEfforts: {UFix64: {UInt8: UInt64}},
-        expectedPendingQueues: {UFix64: [UInt64]}
+        expectedPendingQueues: {UFix64: [UInt64]},
+        expectedPendingQueueAfterExecution: [UInt64]
     ) {
         self.name = name
         self.callbacks = callbacks
+        self.callbacksIndicesToCancel = callbacksIndicesToCancel
         self.expectedAvailableEfforts = expectedAvailableEfforts
         self.expectedPendingQueues = expectedPendingQueues
+        self.expectedPendingQueueAfterExecution = expectedPendingQueueAfterExecution
+    }
+    
+    access(all) fun setID(index: Int, id: UInt64) {
+        self.callbacks[index].setID(id: id)
     }
 }
 
 access(all) fun runScheduleAndEffortUsedTestCase(testCase: ScheduleAndEffortUsedTestCase, currentTimestamp: UFix64): UFix64 {
     
+    var scheduleIndex = 0
+    var idToSet = 1
     for callback in testCase.callbacks {
         scheduleCallback(
             timestamp: currentTimestamp + callback.requestedDelta,
@@ -138,6 +157,15 @@ access(all) fun runScheduleAndEffortUsedTestCase(testCase: ScheduleAndEffortUsed
             testName: testCase.name,
             failWithErr: callback.failWithErr
         )
+        if callback.failWithErr == nil {
+            testCase.setID(index: scheduleIndex, id: UInt64(idToSet))
+            idToSet = idToSet + 1
+        }
+        scheduleIndex = scheduleIndex + 1
+    }
+
+    for cancelIndex in testCase.callbacksIndicesToCancel {
+        cancelCallback(id: testCase.callbacks[cancelIndex].id!, failWithErr: nil)
     }
 
     for delta in testCase.expectedAvailableEfforts.keys {
@@ -152,7 +180,7 @@ access(all) fun runScheduleAndEffortUsedTestCase(testCase: ScheduleAndEffortUsed
         }
     }
 
-    Test.moveTime(by: Fix64(futureDelta-100.0))
+    Test.moveTime(by: Fix64(futureDelta-50.0))
 
     let sortedTimestamps = FlowCallbackScheduler.SortedTimestamps()
     for delta in testCase.expectedPendingQueues.keys {
@@ -160,12 +188,10 @@ access(all) fun runScheduleAndEffortUsedTestCase(testCase: ScheduleAndEffortUsed
     }
 
     for timestamp in sortedTimestamps.getAll() {
-        //log("Test Case: \(testCase.name), Pre Loop: Current timestamp: \(getTimestamp()), expected timestamp: \(timestamp)")
         // move time forward to trigger execution eligibility
         while getTimestamp() < timestamp {
             Test.moveTime(by: Fix64(1.0))
         }
-        //log("Test Case: \(testCase.name), Post Loop: Current timestamp: \(getTimestamp()), expected timestamp: \(timestamp)")
 
         let expectedPendingQueue = testCase.expectedPendingQueues[timestamp - currentTimestamp]!
         let actualPendingQueue = getPendingQueue()
@@ -180,6 +206,33 @@ access(all) fun runScheduleAndEffortUsedTestCase(testCase: ScheduleAndEffortUsed
         }
     }
 
+    // process callbacks
+    processCallbacks()
+
+    for callback in testCase.callbacks {
+        if callback.id != nil {
+            if callback.data != nil {
+                if callback.data as! String == "cancel" {
+                    executeCallback(id: callback.id!, testName: testCase.name, failWithErr: "Callback must be in a scheduled state in order to be canceled")
+                } else if callback.data as! String == "fail" {
+                    executeCallback(id: callback.id!, testName: testCase.name, failWithErr: "Callback \(callback.id!) failed")
+                }
+            }
+            executeCallback(id: callback.id!, testName: testCase.name, failWithErr: nil)
+        }
+    }
+
+    // get actual pending queue
+    let actualPendingQueueAfterExecution = getPendingQueue()
+    Test.assert(testCase.expectedPendingQueueAfterExecution.length == actualPendingQueueAfterExecution.length,
+        message: "pending queue after execution length mismatch for test case: \(testCase.name) after execution. Expected \(testCase.expectedPendingQueueAfterExecution.length) but got \(actualPendingQueueAfterExecution.length)"
+    )
+    for id in testCase.expectedPendingQueueAfterExecution {
+        Test.assert(actualPendingQueueAfterExecution.contains(id),
+            message: "pending queue after execution element mismatch for test case: \(testCase.name). Expected \(id) but could not find it in the actual pending queue"
+        )
+    }
+
     return getTimestamp()
 }
 
@@ -191,7 +244,6 @@ access(all) fun testScheduleAndEffortUsed() {
 
     let lowCallbackWith300Effort = Callback(
         requestedDelta: futureDelta,
-        expectedScheduledDelta: futureDelta,
         priority: lowPriority,
         executionEffort: 300,
         data: testData,
@@ -201,7 +253,6 @@ access(all) fun testScheduleAndEffortUsed() {
 
     let mediumCallbackWith4000Effort = Callback(
         requestedDelta: futureDelta,
-        expectedScheduledDelta: futureDelta,
         priority: mediumPriority,
         executionEffort: 4000,
         data: testData,
@@ -211,7 +262,6 @@ access(all) fun testScheduleAndEffortUsed() {
 
     let highCallbackWith8000Effort = Callback(
         requestedDelta: futureDelta,
-        expectedScheduledDelta: futureDelta,
         priority: highPriority,
         executionEffort: 8000,
         data: testData,
@@ -226,7 +276,6 @@ access(all) fun testScheduleAndEffortUsed() {
             callbacks: [
                 Callback(
                     requestedDelta: futureDelta,
-                    expectedScheduledDelta: futureDelta,
                     priority: highPriority,
                     executionEffort: basicEffort,
                     data: testData,
@@ -235,7 +284,6 @@ access(all) fun testScheduleAndEffortUsed() {
                 ),
                 Callback(
                     requestedDelta: futureDelta,
-                    expectedScheduledDelta: futureDelta,
                     priority: lowPriority,
                     executionEffort: 0,
                     data: testData,
@@ -243,6 +291,7 @@ access(all) fun testScheduleAndEffortUsed() {
                     failWithErr: "Invalid execution effort: 0 is less than the minimum execution effort of 10"
                 )
             ],
+            callbacksIndicesToCancel: [],
             expectedAvailableEfforts: {
                 futureDelta: {
                     highPriority: highPriorityMaxEffort,
@@ -252,14 +301,14 @@ access(all) fun testScheduleAndEffortUsed() {
             },
             expectedPendingQueues: {
                 futureDelta: []
-            }
+            },
+            expectedPendingQueueAfterExecution: []
         ),
         ScheduleAndEffortUsedTestCase(
             name: "Low priority: Min effort fits in slot and uses min effort",
             callbacks: [
                 Callback(
                     requestedDelta: futureDelta,
-                    expectedScheduledDelta: futureDelta,
                     priority: lowPriority,
                     executionEffort: 10,
                     data: testData,
@@ -267,6 +316,7 @@ access(all) fun testScheduleAndEffortUsed() {
                     failWithErr: nil
                 )
             ],
+            callbacksIndicesToCancel: [],
             expectedAvailableEfforts: {
                 futureDelta: {
                     highPriority: highPriorityMaxEffort,
@@ -276,14 +326,14 @@ access(all) fun testScheduleAndEffortUsed() {
             },
             expectedPendingQueues: {
                 futureDelta: [1]
-            }
+            },
+            expectedPendingQueueAfterExecution: []
         ),
         ScheduleAndEffortUsedTestCase(
             name: "Low priority: Max effort fits in slot and uses max effort. Other low priority callbacks are scheduled for later",
             callbacks: [
                 Callback(
                     requestedDelta: futureDelta,
-                    expectedScheduledDelta: futureDelta,
                     priority: lowPriority,
                     executionEffort: lowPriorityMaxEffort,
                     data: testData,
@@ -292,7 +342,6 @@ access(all) fun testScheduleAndEffortUsed() {
                 ),
                 Callback(
                     requestedDelta: futureDelta,
-                    expectedScheduledDelta: futureDelta + 1.0,
                     priority: lowPriority,
                     executionEffort: 10,
                     data: testData,
@@ -300,6 +349,7 @@ access(all) fun testScheduleAndEffortUsed() {
                     failWithErr: nil
                 )
             ],
+            callbacksIndicesToCancel: [],
             expectedAvailableEfforts: {
                 futureDelta: {
                     highPriority: highPriorityMaxEffort,
@@ -315,14 +365,14 @@ access(all) fun testScheduleAndEffortUsed() {
             expectedPendingQueues: {
                 futureDelta: [1],
                 futureDelta + 1.0: [1,2]
-            }
+            },
+            expectedPendingQueueAfterExecution: []
         ),
         ScheduleAndEffortUsedTestCase(
             name: "Low Priority: Greater than max effort Fails",
             callbacks: [
                 Callback(
                     requestedDelta: futureDelta,
-                    expectedScheduledDelta: futureDelta,
                     priority: lowPriority,
                     executionEffort: lowPriorityMaxEffort + 1,
                     data: testData,
@@ -330,6 +380,7 @@ access(all) fun testScheduleAndEffortUsed() {
                     failWithErr: "Invalid execution effort: \(lowPriorityMaxEffort + 1) is greater than the priority's max effort of 5000"
                 )
             ],
+            callbacksIndicesToCancel: [],
             expectedAvailableEfforts: {
                 futureDelta: {
                     highPriority: highPriorityMaxEffort,
@@ -339,7 +390,8 @@ access(all) fun testScheduleAndEffortUsed() {
             },
             expectedPendingQueues: {
                 futureDelta: []
-            }
+            },
+            expectedPendingQueueAfterExecution: []
         ),
         ScheduleAndEffortUsedTestCase(
             name: "Low Priority: Many low priority callbacks scheduled for same timestamp",
@@ -362,7 +414,6 @@ access(all) fun testScheduleAndEffortUsed() {
                 lowCallbackWith300Effort,
                 Callback(
                     requestedDelta: futureDelta,
-                    expectedScheduledDelta: futureDelta,
                     priority: lowPriority,
                     executionEffort: 300,
                     data: testData,
@@ -370,6 +421,7 @@ access(all) fun testScheduleAndEffortUsed() {
                     failWithErr: nil
                 )
             ],
+            callbacksIndicesToCancel: [],
             expectedAvailableEfforts: {
                 futureDelta: {
                     highPriority: highPriorityMaxEffort,
@@ -385,7 +437,8 @@ access(all) fun testScheduleAndEffortUsed() {
             expectedPendingQueues: {
                 futureDelta: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],
                 futureDelta + 1.0: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17]
-            }
+            },
+            expectedPendingQueueAfterExecution: []
         ),
         
         // Medium priority only test cases
@@ -394,7 +447,6 @@ access(all) fun testScheduleAndEffortUsed() {
             callbacks: [
                 Callback(
                     requestedDelta: futureDelta,
-                    expectedScheduledDelta: futureDelta,
                     priority: mediumPriority,
                     executionEffort: 10,
                     data: testData,
@@ -402,6 +454,7 @@ access(all) fun testScheduleAndEffortUsed() {
                     failWithErr: nil
                 )
             ],
+            callbacksIndicesToCancel: [],
             expectedAvailableEfforts: {
                 futureDelta: {
                     highPriority: highPriorityMaxEffort,
@@ -411,14 +464,14 @@ access(all) fun testScheduleAndEffortUsed() {
             },
             expectedPendingQueues: {
                 futureDelta: [1]
-            }
+            },
+            expectedPendingQueueAfterExecution: []
         ),
         ScheduleAndEffortUsedTestCase(
             name: "Medium priority: Max effort fits in slot and uses max effort. Other medium priority callbacks are scheduled for later",
             callbacks: [
                 Callback(
                     requestedDelta: futureDelta,
-                    expectedScheduledDelta: futureDelta,
                     priority: mediumPriority,
                     executionEffort: mediumPriorityMaxEffort,
                     data: testData,
@@ -427,7 +480,6 @@ access(all) fun testScheduleAndEffortUsed() {
                 ),
                 Callback(
                     requestedDelta: futureDelta,
-                    expectedScheduledDelta: futureDelta + 1.0,
                     priority: mediumPriority,
                     executionEffort: 10,
                     data: testData,
@@ -435,6 +487,7 @@ access(all) fun testScheduleAndEffortUsed() {
                     failWithErr: nil
                 )
             ],
+            callbacksIndicesToCancel: [],
             expectedAvailableEfforts: {
                 futureDelta: {
                     highPriority: highPriorityMaxEffort - sharedEffortLimit,
@@ -450,14 +503,14 @@ access(all) fun testScheduleAndEffortUsed() {
             expectedPendingQueues: {
                 futureDelta: [1],
                 futureDelta + 1.0: [1,2]
-            }
+            },
+            expectedPendingQueueAfterExecution: []
         ),
         ScheduleAndEffortUsedTestCase(
             name: "Medium Priority: Greater than max effort Fails",
             callbacks: [
                 Callback(
                     requestedDelta: futureDelta,
-                    expectedScheduledDelta: futureDelta,
                     priority: mediumPriority,
                     executionEffort: mediumPriorityMaxEffort + 1,
                     data: testData,
@@ -465,6 +518,7 @@ access(all) fun testScheduleAndEffortUsed() {
                     failWithErr: "Invalid execution effort: \(mediumPriorityMaxEffort + 1) is greater than the priority's max effort of 15000"
                 )
             ],
+            callbacksIndicesToCancel: [],
             expectedAvailableEfforts: {
                 futureDelta: {
                     highPriority: highPriorityMaxEffort,
@@ -474,7 +528,8 @@ access(all) fun testScheduleAndEffortUsed() {
             },
             expectedPendingQueues: {
                 futureDelta: []
-            }
+            },
+            expectedPendingQueueAfterExecution: []
         ),
         
         // Medium Priority: Many medium priority callbacks scheduled for same timestamp
@@ -492,6 +547,7 @@ access(all) fun testScheduleAndEffortUsed() {
                 mediumCallbackWith4000Effort,
                 mediumCallbackWith4000Effort
             ],
+            callbacksIndicesToCancel: [],
             expectedAvailableEfforts: {
                 futureDelta: {
                     highPriority: highPriorityMaxEffort-7000,
@@ -519,7 +575,8 @@ access(all) fun testScheduleAndEffortUsed() {
                 futureDelta + 1.0: [1,2,3,4,5,6],
                 futureDelta + 2.0: [1,2,3,4,5,6,7,8,9],
                 futureDelta + 3.0: [1,2,3,4,5,6,7,8,9,10]
-            }
+            },
+            expectedPendingQueueAfterExecution: []
         ),
         
         // High priority only test cases
@@ -528,7 +585,6 @@ access(all) fun testScheduleAndEffortUsed() {
             callbacks: [
                 Callback(
                     requestedDelta: futureDelta,
-                    expectedScheduledDelta: futureDelta,
                     priority: highPriority,
                     executionEffort: 10,
                     data: testData,
@@ -536,6 +592,7 @@ access(all) fun testScheduleAndEffortUsed() {
                     failWithErr: nil
                 )
             ],
+            callbacksIndicesToCancel: [],
             expectedAvailableEfforts: {
                 futureDelta: {
                     highPriority: highPriorityMaxEffort - 10,
@@ -545,14 +602,14 @@ access(all) fun testScheduleAndEffortUsed() {
             },
             expectedPendingQueues: {
                 futureDelta: [1]
-            }
+            },
+            expectedPendingQueueAfterExecution: []
         ),
         ScheduleAndEffortUsedTestCase(
             name: "High priority: Max effort fits in slot and uses max effort. Other high priority callbacks fail in the same slot",
             callbacks: [
                 Callback(
                     requestedDelta: futureDelta,
-                    expectedScheduledDelta: futureDelta,
                     priority: highPriority,
                     executionEffort: highPriorityMaxEffort,
                     data: testData,
@@ -561,7 +618,6 @@ access(all) fun testScheduleAndEffortUsed() {
                 ),
                 Callback(
                     requestedDelta: futureDelta,
-                    expectedScheduledDelta: futureDelta,
                     priority: highPriority,
                     executionEffort: 10,
                     data: testData,
@@ -569,6 +625,7 @@ access(all) fun testScheduleAndEffortUsed() {
                     failWithErr: "Invalid execution effort: 10 is greater than the priority's available effort for the requested timestamp."
                 )
             ],
+            callbacksIndicesToCancel: [],
             expectedAvailableEfforts: {
                 futureDelta: {
                     highPriority: 0,
@@ -584,14 +641,14 @@ access(all) fun testScheduleAndEffortUsed() {
             expectedPendingQueues: {
                 futureDelta: [1],
                 futureDelta + 1.0: [1]
-            }
+            },
+            expectedPendingQueueAfterExecution: []
         ),
         ScheduleAndEffortUsedTestCase(
             name: "High Priority: Greater than max effort Fails",
             callbacks: [
                 Callback(
                     requestedDelta: futureDelta,
-                    expectedScheduledDelta: futureDelta,
                     priority: highPriority,
                     executionEffort: highPriorityMaxEffort + 1,
                     data: testData,
@@ -599,6 +656,7 @@ access(all) fun testScheduleAndEffortUsed() {
                     failWithErr: "Invalid execution effort: \(highPriorityMaxEffort + 1) is greater than the priority's max effort of 30000"
                 )
             ],
+            callbacksIndicesToCancel: [],
             expectedAvailableEfforts: {
                 futureDelta: {
                     highPriority: highPriorityMaxEffort,
@@ -608,7 +666,8 @@ access(all) fun testScheduleAndEffortUsed() {
             },
             expectedPendingQueues: {
                 futureDelta: []
-            }
+            },
+            expectedPendingQueueAfterExecution: []
         ),
         ScheduleAndEffortUsedTestCase(
             name: "High Priority: Many high priority callbacks scheduled for the same timestamp",
@@ -618,7 +677,6 @@ access(all) fun testScheduleAndEffortUsed() {
                 highCallbackWith8000Effort,
                 Callback(
                     requestedDelta: futureDelta + 1.0,
-                    expectedScheduledDelta: futureDelta + 1.0,
                     priority: highPriority,
                     executionEffort: highPriorityMaxEffort,
                     data: testData,
@@ -626,6 +684,7 @@ access(all) fun testScheduleAndEffortUsed() {
                     failWithErr: nil
                 )
             ],
+            callbacksIndicesToCancel: [],
             expectedAvailableEfforts: {
                 futureDelta: {
                     highPriority: 6000,
@@ -641,7 +700,8 @@ access(all) fun testScheduleAndEffortUsed() {
             expectedPendingQueues: {
                 futureDelta: [1,2,3],
                 futureDelta + 1.0: [1,2,3,4]
-            }
+            },
+            expectedPendingQueueAfterExecution: []
         ),
         
         // Mixed priority test cases - testing shared limit usage
@@ -650,7 +710,6 @@ access(all) fun testScheduleAndEffortUsed() {
             callbacks: [
                 Callback(
                     requestedDelta: futureDelta,
-                    expectedScheduledDelta: futureDelta,
                     priority: highPriority,
                     executionEffort: highPriorityMaxEffort,
                     data: testData,
@@ -659,7 +718,6 @@ access(all) fun testScheduleAndEffortUsed() {
                 ),
                 Callback(
                     requestedDelta: futureDelta,
-                    expectedScheduledDelta: futureDelta,
                     priority: mediumPriority,
                     executionEffort: mediumPriorityEffortReserve,
                     data: testData,
@@ -668,7 +726,6 @@ access(all) fun testScheduleAndEffortUsed() {
                 ),
                 Callback(
                     requestedDelta: futureDelta,
-                    expectedScheduledDelta: futureDelta,
                     priority: lowPriority,
                     executionEffort: 1000,
                     data: testData,
@@ -677,7 +734,6 @@ access(all) fun testScheduleAndEffortUsed() {
                 ),
                 Callback(
                     requestedDelta: futureDelta,
-                    expectedScheduledDelta: futureDelta,
                     priority: mediumPriority,
                     executionEffort: 1000,
                     data: testData,
@@ -686,7 +742,6 @@ access(all) fun testScheduleAndEffortUsed() {
                 ),
                 Callback(
                     requestedDelta: futureDelta,
-                    expectedScheduledDelta: futureDelta,
                     priority: highPriority,
                     executionEffort: 1000,
                     data: testData,
@@ -694,6 +749,7 @@ access(all) fun testScheduleAndEffortUsed() {
                     failWithErr: "Invalid execution effort: 1000 is greater than the priority's available effort for the requested timestamp."
                 )
             ],
+            callbacksIndicesToCancel: [],
             expectedAvailableEfforts: {
                 futureDelta: {
                     highPriority: 0,
@@ -709,14 +765,14 @@ access(all) fun testScheduleAndEffortUsed() {
             expectedPendingQueues: {
                 futureDelta: [1,2],
                 futureDelta + 1.0: [1,2,3,4]
-            }
+            },
+            expectedPendingQueueAfterExecution: []
         ),
         ScheduleAndEffortUsedTestCase(
             name: "Mixed priorities: Medium uses shared limit, high priority fails in the same slot",
             callbacks: [
                 Callback(
                     requestedDelta: futureDelta,
-                    expectedScheduledDelta: futureDelta,
                     priority: mediumPriority,
                     executionEffort: mediumPriorityMaxEffort,
                     data: testData,
@@ -725,7 +781,6 @@ access(all) fun testScheduleAndEffortUsed() {
                 ),
                 Callback(
                     requestedDelta: futureDelta,
-                    expectedScheduledDelta: futureDelta,
                     priority: highPriority,
                     executionEffort: highPriorityEffortReserve + 1,
                     data: testData,
@@ -734,7 +789,6 @@ access(all) fun testScheduleAndEffortUsed() {
                 ),
                 Callback(
                     requestedDelta: futureDelta,
-                    expectedScheduledDelta: futureDelta,
                     priority: highPriority,
                     executionEffort: highPriorityEffortReserve,
                     data: testData,
@@ -742,6 +796,7 @@ access(all) fun testScheduleAndEffortUsed() {
                     failWithErr: nil
                 )
             ],
+            callbacksIndicesToCancel: [],
             expectedAvailableEfforts: {
                 futureDelta: {
                     highPriority: 0,
@@ -752,14 +807,14 @@ access(all) fun testScheduleAndEffortUsed() {
             expectedPendingQueues: {
                 futureDelta: [1,2],
                 futureDelta + 1.0: [1,2]
-            }
+            },
+            expectedPendingQueueAfterExecution: []
         ),
         ScheduleAndEffortUsedTestCase(
             name: "Mixed priorities: High and medium use most of shared limit, low priority fits in remaining but doesn't use the high or medium effort",
             callbacks: [
                 Callback(
                     requestedDelta: futureDelta,
-                    expectedScheduledDelta: futureDelta,
                     priority: highPriority,
                     executionEffort: highPriorityEffortReserve + 4000,
                     data: testData,
@@ -768,7 +823,6 @@ access(all) fun testScheduleAndEffortUsed() {
                 ),
                 Callback(
                     requestedDelta: futureDelta,
-                    expectedScheduledDelta: futureDelta,
                     priority: mediumPriority,
                     executionEffort: mediumPriorityEffortReserve + 4000,
                     data: testData,
@@ -777,7 +831,6 @@ access(all) fun testScheduleAndEffortUsed() {
                 ),
                 Callback(
                     requestedDelta: futureDelta,
-                    expectedScheduledDelta: futureDelta,
                     priority: lowPriority,
                     executionEffort: 2001,
                     data: testData,
@@ -786,7 +839,6 @@ access(all) fun testScheduleAndEffortUsed() {
                 ),
                 Callback(
                     requestedDelta: futureDelta,
-                    expectedScheduledDelta: futureDelta,
                     priority: mediumPriority,
                     executionEffort: 2001,
                     data: testData,
@@ -795,7 +847,6 @@ access(all) fun testScheduleAndEffortUsed() {
                 ),
                 Callback(
                     requestedDelta: futureDelta,
-                    expectedScheduledDelta: futureDelta,
                     priority: lowPriority,
                     executionEffort: 2000,
                     data: testData,
@@ -803,6 +854,7 @@ access(all) fun testScheduleAndEffortUsed() {
                     failWithErr: nil
                 )
             ],
+            callbacksIndicesToCancel: [],
             expectedAvailableEfforts: {
                 futureDelta: {
                     highPriority: 2000,
@@ -818,7 +870,8 @@ access(all) fun testScheduleAndEffortUsed() {
             expectedPendingQueues: {
                 futureDelta: [1,2,5],
                 futureDelta + 1.0: [1,2,3,4,5]
-            }
+            },
+            expectedPendingQueueAfterExecution: []
         ),
         
         // Test cases for low priority callbacks getting rescheduled by higher priority callbacks
@@ -827,7 +880,6 @@ access(all) fun testScheduleAndEffortUsed() {
             callbacks: [
                 Callback(
                     requestedDelta: futureDelta,
-                    expectedScheduledDelta: futureDelta,
                     priority: lowPriority,
                     executionEffort: lowPriorityMaxEffort,
                     data: testData,
@@ -836,7 +888,6 @@ access(all) fun testScheduleAndEffortUsed() {
                 ),
                 Callback(
                     requestedDelta: futureDelta,
-                    expectedScheduledDelta: futureDelta,
                     priority: highPriority,
                     executionEffort: highPriorityMaxEffort,
                     data: testData,
@@ -845,7 +896,6 @@ access(all) fun testScheduleAndEffortUsed() {
                 ),
                 Callback(
                     requestedDelta: futureDelta,
-                    expectedScheduledDelta: futureDelta,
                     priority: mediumPriority,
                     executionEffort: lowPriorityMaxEffort,
                     data: testData,
@@ -853,6 +903,7 @@ access(all) fun testScheduleAndEffortUsed() {
                     failWithErr: nil
                 )
             ],
+            callbacksIndicesToCancel: [],
             expectedAvailableEfforts: {
                 futureDelta: {
                     highPriority: 0,
@@ -868,14 +919,14 @@ access(all) fun testScheduleAndEffortUsed() {
             expectedPendingQueues: {
                 futureDelta: [2,3],
                 futureDelta + 1.0: [1,2,3]
-            }
+            },
+            expectedPendingQueueAfterExecution: []
         ),
         ScheduleAndEffortUsedTestCase(
             name: "Low priority gets rescheduled: Multiple low priority callbacks get pushed by high and medium priority",
             callbacks: [
                 Callback(
                     requestedDelta: futureDelta,
-                    expectedScheduledDelta: futureDelta,
                     priority: lowPriority,
                     executionEffort: 2000,
                     data: testData,
@@ -884,7 +935,6 @@ access(all) fun testScheduleAndEffortUsed() {
                 ),
                 Callback(
                     requestedDelta: futureDelta,
-                    expectedScheduledDelta: futureDelta,
                     priority: lowPriority,
                     executionEffort: 2000,
                     data: testData,
@@ -893,7 +943,6 @@ access(all) fun testScheduleAndEffortUsed() {
                 ),
                 Callback(
                     requestedDelta: futureDelta,
-                    expectedScheduledDelta: futureDelta,
                     priority: highPriority,
                     executionEffort: highPriorityMaxEffort,
                     data: testData,
@@ -902,7 +951,6 @@ access(all) fun testScheduleAndEffortUsed() {
                 ),
                 Callback(
                     requestedDelta: futureDelta,
-                    expectedScheduledDelta: futureDelta,
                     priority: mediumPriority,
                     executionEffort: 2000,
                     data: testData,
@@ -910,6 +958,7 @@ access(all) fun testScheduleAndEffortUsed() {
                     failWithErr: nil
                 )
             ],
+            callbacksIndicesToCancel: [],
             expectedAvailableEfforts: {
                 futureDelta: {
                     highPriority: 0,
@@ -925,14 +974,14 @@ access(all) fun testScheduleAndEffortUsed() {
             expectedPendingQueues: {
                 futureDelta: [1,3,4],
                 futureDelta + 1.0: [1,2,3,4]
-            }
+            },
+            expectedPendingQueueAfterExecution: []
         ),
         ScheduleAndEffortUsedTestCase(
             name: "Low priority gets rescheduled: Low Priorities get pushed to multiple slots",
             callbacks: [
                 Callback(
                     requestedDelta: futureDelta,
-                    expectedScheduledDelta: futureDelta,
                     priority: lowPriority,
                     executionEffort: 3000,
                     data: testData,
@@ -941,7 +990,6 @@ access(all) fun testScheduleAndEffortUsed() {
                 ),
                 Callback(
                     requestedDelta: futureDelta,
-                    expectedScheduledDelta: futureDelta,
                     priority: lowPriority,
                     executionEffort: 2000,
                     data: testData,
@@ -950,7 +998,6 @@ access(all) fun testScheduleAndEffortUsed() {
                 ),
                 Callback(
                     requestedDelta: futureDelta,
-                    expectedScheduledDelta: futureDelta,
                     priority: mediumPriority,
                     executionEffort: mediumPriorityMaxEffort,
                     data: testData,
@@ -959,7 +1006,6 @@ access(all) fun testScheduleAndEffortUsed() {
                 ),
                 Callback(
                     requestedDelta: futureDelta + 1.0,
-                    expectedScheduledDelta: futureDelta + 1.0,
                     priority: highPriority,
                     executionEffort: highPriorityMaxEffort,
                     data: testData,
@@ -968,7 +1014,6 @@ access(all) fun testScheduleAndEffortUsed() {
                 ),
                 Callback(
                     requestedDelta: futureDelta + 1.0,
-                    expectedScheduledDelta: futureDelta + 1.0,
                     priority: mediumPriority,
                     executionEffort: mediumPriorityEffortReserve - 2000,
                     data: testData,
@@ -978,7 +1023,6 @@ access(all) fun testScheduleAndEffortUsed() {
                 // Should push 1 and 2 to the next two timestamps
                 Callback(
                     requestedDelta: futureDelta,
-                    expectedScheduledDelta: futureDelta,
                     priority: highPriority,
                     executionEffort: highPriorityEffortReserve - 1000,
                     data: testData,
@@ -986,6 +1030,7 @@ access(all) fun testScheduleAndEffortUsed() {
                     failWithErr: nil
                 )
             ],
+            callbacksIndicesToCancel: [],
             expectedAvailableEfforts: {
                 futureDelta: {
                     highPriority: 1000,
@@ -1007,8 +1052,34 @@ access(all) fun testScheduleAndEffortUsed() {
                 futureDelta: [3,6],
                 futureDelta + 1.0: [2,3,4,5,6],
                 futureDelta + 2.0: [1,2,3,4,5,6]
-            }
+            },
+            expectedPendingQueueAfterExecution: []
         )
+        // ScheduleAndEffortUsedTestCase(
+        //     name: "Callback tries to cancel itself during execution: Should fail",
+        //     callbacks: [
+        //         Callback(
+        //             requestedDelta: futureDelta,
+        //             priority: lowPriority,
+        //             executionEffort: 3000,
+        //             data: "cancel",
+        //             fees: feeAmount,
+        //             failWithErr: nil
+        //         )
+        //     ],
+        //     callbacksIndicesToCancel: [],
+        //     expectedAvailableEfforts: {
+        //         futureDelta: {
+        //             highPriority: highPriorityMaxEffort,
+        //             mediumPriority: mediumPriorityMaxEffort,
+        //             lowPriority: lowPriorityMaxEffort - 3000
+        //         }
+        //     },
+        //     expectedPendingQueues: {
+        //         futureDelta: [1]
+        //     },
+        //     expectedPendingQueueAfterExecution: []
+        // )
     ]
 
     var currentTimestamp = getTimestamp()

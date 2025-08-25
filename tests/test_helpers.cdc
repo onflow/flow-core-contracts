@@ -109,7 +109,11 @@ access(all) fun processCallbacks(): Test.TransactionResult {
     return processResult
 }
 
-access(all) fun executeCallback(id: UInt64, failWithErr: String?) {
+access(all) fun executeCallback(
+    id: UInt64, 
+    testName: String,
+    failWithErr: String?
+) {
     let executeCallbackCode = Test.readFile("../transactions/callbackScheduler/admin/execute_callback.cdc")
     let executeTx = Test.Transaction(
         code: executeCallbackCode,
@@ -119,13 +123,19 @@ access(all) fun executeCallback(id: UInt64, failWithErr: String?) {
     )
     var result = Test.executeTransaction(executeTx)
     if let error = failWithErr {
+        // log(error)
+        // log(result.error!.message)
+        log("SHOULD FAIL")
         Test.expect(result, Test.beFailed())
         Test.assertError(
             result,
             errorMessage: error
         )
+    
     } else {
-        Test.expect(result, Test.beSucceeded())
+        if result.error != nil {
+            Test.assert(result.error == nil, message: "Transaction failed with error: \(result.error!.message) for test case: \(testName)")
+        }
     }
 }
 
@@ -177,11 +187,11 @@ access(all) fun getSizeOfData(data: AnyStruct): UFix64 {
     return size
 }
 
-access(all) fun getStatus(id: UInt64): UInt8 {
+access(all) fun getStatus(id: UInt64): UInt8? {
     var status = _executeScript(
         "../transactions/callbackScheduler/scripts/get_status.cdc",
         [id]
-    ).returnValue! as! UInt8
+    ).returnValue as? UInt8
     return status
 }
 

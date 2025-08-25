@@ -72,11 +72,12 @@ access(all) fun testCallbackEventsPath() {
     Test.assert(scheduled.timestamp == timeInFuture, message: "incorrect timestamp")
 
     var status = getStatus(id: callbackID)
-    Test.assertEqual(statusScheduled, status)
+    Test.assertEqual(statusScheduled, status!)
 
     // Try to execute the callback, should fail because it isn't pendingExecution
     executeCallback(
         id: callbackID,
+        testName: "Test Callback Events Path: First High Scheduled",
         failWithErr: "Invalid ID: Cannot execute callback with id \(callbackID) because it has incorrect status \(statusScheduled)"
     )
 }
@@ -123,7 +124,7 @@ access(all) fun testCallbackCancelationEvents() {
 
     // Make sure the status is canceled
     var status = getStatus(id: callbackToCancel)
-    Test.assertEqual(statusCanceled, status)
+    Test.assertEqual(statusCanceled, status!)
 
     // Available Effort should be completely unused
     // for the slot that the canceled callback was in
@@ -177,14 +178,14 @@ access(all) fun testCallbackExecution() {
 
         // verify that the transactions got marked as pendingExecution
         var status = getStatus(id: pendingExecutionEvent.id)
-        Test.assertEqual(statusExecuted, status)
+        Test.assertEqual(statusExecuted, status!)
 
         // Simulate FVM execute - should execute the callback
         if pendingExecutionEvent.id == callbackToFail {
             // ID 2 should fail, so need to verify that
-            executeCallback(id: pendingExecutionEvent.id, failWithErr: "Callback \(callbackToFail) failed")
+            executeCallback(id: pendingExecutionEvent.id, testName: "Test Callback Execution: First High Scheduled", failWithErr: "Callback \(callbackToFail) failed")
         } else {
-            executeCallback(id: pendingExecutionEvent.id, failWithErr: nil)
+            executeCallback(id: pendingExecutionEvent.id, testName: "Test Callback Execution: First High Scheduled", failWithErr: nil)
         
             // Verify that the first event is the high priority callback
             if !firstEvent {

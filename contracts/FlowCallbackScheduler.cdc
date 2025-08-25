@@ -418,9 +418,7 @@ access(all) contract FlowCallbackScheduler {
 
         /// sorted timestamps manager for efficient processing
         access(contract) var sortedTimestamps: SortedTimestamps
-        
-        /// used for querying historic statuses so that we don't have to store all succeeded statuses
-        access(contract) var earliestHistoricID: UInt64
+    
 
         /// canceled callbacks keeps a record of canceled callback IDs up to a canceledCallbacksLimit
         access(all) var canceledCallbacks: [UInt64]
@@ -431,7 +429,6 @@ access(all) contract FlowCallbackScheduler {
 
         access(all) init() {
             self.nextID = 1
-            self.earliestHistoricID = 0
             self.canceledCallbacks = [0 as UInt64]
             
             self.callbacks <- {}
@@ -536,6 +533,10 @@ access(all) contract FlowCallbackScheduler {
         /// @param id: The ID of the callback to get the status of
         /// @return Status: The status of the callback, if the callback is not found Unknown is returned.
         access(all) view fun getStatus(id: UInt64): Status? {
+            // if the callback ID is greater than the next ID, it is not scheduled yet and has never existed
+            if id >= self.nextID {
+                return nil
+            }
 
             // This should always return Scheduled or Executed
             if let callback = self.borrowCallback(id: id) {
@@ -1076,6 +1077,11 @@ access(all) contract FlowCallbackScheduler {
         access(Cancel) fun cancel(id: UInt64): @FlowToken.Vault {
             let callback = self.borrowCallback(id: id) ?? 
                 panic("Invalid ID: \(id) callback not found")
+
+            assert(
+                callback.status == Status.Scheduled,
+                message: "Callback must be in a scheduled state in order to be canceled"
+            ) 
 
             // Remove this callback id from its slot
             let slotQueue = self.slotQueue[callback.scheduledTimestamp]!
