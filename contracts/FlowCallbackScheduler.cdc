@@ -560,7 +560,7 @@ access(all) contract FlowCallbackScheduler {
         /// @return Status: The status of the callback, if the callback is not found Unknown is returned.
         access(all) view fun getStatus(id: UInt64): Status? {
             // if the callback ID is greater than the next ID, it is not scheduled yet and has never existed
-            if id >= self.nextID {
+            if id == 0 as UInt64 || id >= self.nextID {
                 return nil
             }
 

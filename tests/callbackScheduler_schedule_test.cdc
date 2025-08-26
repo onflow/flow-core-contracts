@@ -39,6 +39,10 @@ access(all) fun testInit() {
     var status = getStatus(id: UInt64(10))
     Test.assertEqual(nil, status)
 
+    // try to get the status of callback with ID 0
+    status = getStatus(id: UInt64(0))
+    Test.assertEqual(nil, status)
+
     // Try to execute a callback, should fail
     executeCallback(id: UInt64(1), testName: "testInit", failWithErr: "Invalid ID: Callback with id 1 not found")
 
