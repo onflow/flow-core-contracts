@@ -194,6 +194,22 @@ access(all) fun getStatus(id: UInt64): UInt8? {
     return status
 }
 
+access(all) fun getCallbackData(id: UInt64): FlowCallbackScheduler.CallbackData? {
+    var data = _executeScript(
+        "../transactions/callbackScheduler/scripts/get_callback_data.cdc",
+        [id]
+    ).returnValue as? FlowCallbackScheduler.CallbackData
+    return data
+}
+
+access(all) fun getCallbacksForTimeframe(startTimestamp: UFix64, endTimestamp: UFix64): {UFix64: {UInt8: [UInt64]}} {
+    var result = _executeScript(
+        "../transactions/callbackScheduler/scripts/get_callbacks_for_timeframe.cdc",
+        [startTimestamp, endTimestamp]
+    )
+    return result.returnValue! as! {UFix64: {UInt8: [UInt64]}}
+}
+
 access(all) fun getSlotAvailableEffort(timestamp: UFix64, priority: UInt8): UInt64 {
     var result = _executeScript(
         "../transactions/callbackScheduler/scripts/get_slot_available_effort.cdc",
