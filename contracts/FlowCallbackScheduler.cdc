@@ -1,3 +1,4 @@
+import "FungibleToken"
 import "FlowToken"
 import "FlowFees"
 import "FlowStorageFees"
@@ -180,14 +181,17 @@ access(all) contract FlowCallbackScheduler {
         }
     }
 
-    /// Callback data is an internal representation of a scheduled callback
+    /// Callback data is a representation of a scheduled callback
     /// It is the source of truth for an individual callback and stores the
     /// capability to the handler that contains the logic that will be executed by the callback.
-    access(all) resource CallbackData {
+    access(all) struct CallbackData {
         access(all) let id: UInt64
         access(all) let priority: Priority
         access(all) let executionEffort: UInt64
         access(all) var status: Status
+
+        /// Fee amount to pay for the callback
+        access(all) let fees: UFix64
 
         /// The timestamp that the callback is scheduled for
         /// For medium priority callbacks, it may be different than the requested timestamp
@@ -201,8 +205,9 @@ access(all) contract FlowCallbackScheduler {
         /// Optional data that can be passed to the handler
         access(contract) let data: AnyStruct?
 
-        /// Fees to pay for the callback
-        access(contract) let fees: @FlowToken.Vault
+        /// Metadata about the callback handler from the handler capability
+        access(all) let name: String
+        access(all) let description: String
 
         access(contract) init(
             id: UInt64,
@@ -211,7 +216,7 @@ access(all) contract FlowCallbackScheduler {
             data: AnyStruct?,
             priority: Priority,
             executionEffort: UInt64,
-            fees: @FlowToken.Vault,
+            fees: UFix64,
         ) {
             self.id = id
             self.handler = handler
@@ -219,8 +224,12 @@ access(all) contract FlowCallbackScheduler {
             self.data = data
             self.priority = priority
             self.executionEffort = executionEffort
-            self.fees <- fees
+            self.fees = fees
             self.status = Status.Scheduled
+            let handlerRef = handler.borrow()
+                ?? panic("Invalid callback handler: Could not borrow a reference to the callback handler")
+            self.name = handlerRef.getName()
+            self.description = handlerRef.getDescription()
         }
 
         /// setStatus updates the status of the callback.
@@ -253,18 +262,19 @@ access(all) contract FlowCallbackScheduler {
         /// like any other transaction on the Flow network.
         access(contract) fun payAndRefundFees(refundMultiplier: UFix64): @FlowToken.Vault {
             if refundMultiplier == 0.0 {
-                FlowFees.deposit(from: <-self.fees.withdraw(amount: self.fees.balance))
+                FlowFees.deposit(from: <-FlowCallbackScheduler.withdrawFees(amount: self.fees))
                 return <-FlowToken.createEmptyVault(vaultType: Type<@FlowToken.Vault>())
             } else {
-                let amount = self.fees.balance * refundMultiplier
-                let feesToReturn <- self.fees.withdraw(amount: amount) as! @FlowToken.Vault
-                FlowFees.deposit(from: <-self.fees.withdraw(amount: self.fees.balance))
+                let amountToReturn = self.fees * refundMultiplier
+                let amountToKeep = self.fees - amountToReturn
+                let feesToReturn <- FlowCallbackScheduler.withdrawFees(amount: amountToReturn)
+                FlowFees.deposit(from: <-FlowCallbackScheduler.withdrawFees(amount: amountToKeep))
                 return <-feesToReturn
             }
         }
 
         /// getData copies and returns the data field
-        access(all) view fun getData(): AnyStruct? {
+        access(contract) view fun getData(): AnyStruct? {
             return self.data
         }
     }
@@ -432,8 +442,8 @@ access(all) contract FlowCallbackScheduler {
         /// This the ID is monotonically increasing and is used to identify each callback
         access(contract) var nextID: UInt64
 
-        /// callbacks is a map of callback IDs to CallbackData resource objects
-        access(contract) var callbacks: @{UInt64: CallbackData}
+        /// callbacks is a map of callback IDs to CallbackData structs
+        access(contract) var callbacks: {UInt64: CallbackData}
 
         /// slot queue is a map of timestamps to Priorities to callback IDs and their execution efforts
         access(contract) var slotQueue: {UFix64: {Priority: {UInt64: UInt64}}}
@@ -457,7 +467,7 @@ access(all) contract FlowCallbackScheduler {
             self.nextID = 1
             self.canceledCallbacks = [0 as UInt64]
             
-            self.callbacks <- {}
+            self.callbacks = {}
             self.slotUsedEffort = {}
             self.slotQueue = {}
             self.sortedTimestamps = SortedTimestamps()
@@ -525,9 +535,62 @@ access(all) contract FlowCallbackScheduler {
             emit ConfigUpdated()
         }
 
-        /// Borrows a reference to the specified callback
+        /// getCallback returns a copy of the specified callback
+        access(contract) view fun getCallback(id: UInt64): CallbackData? {
+            return self.callbacks[id]
+        }
+
+        /// borrowCallback borrows a reference to the specified callback
         access(contract) view fun borrowCallback(id: UInt64): &CallbackData? {
             return &self.callbacks[id]
+        }
+
+        /// getCallbacksForTimeframe returns a dictionary of callbacks scheduled within a specified time range,
+        /// organized by timestamp and priority with arrays of callback IDs.
+        /// WARNING: If you provide a time range that is too large, the function will likely fail to complete
+        /// because the function will run out of gas. Keep the time range small.
+        ///
+        /// @param startTimestamp: The start timestamp (inclusive) for the time range
+        /// @param endTimestamp: The end timestamp (inclusive) for the time range
+        /// @return {UFix64: {Priority: [UInt64]}}: A dictionary mapping timestamps to priorities to arrays of callback IDs
+        access(all) fun getCallbacksForTimeframe(startTimestamp: UFix64, endTimestamp: UFix64): {UFix64: {UInt8: [UInt64]}} {
+            var callbacksInTimeframe: {UFix64: {UInt8: [UInt64]}} = {}
+            
+            // Validate input parameters
+            if startTimestamp > endTimestamp {
+                return callbacksInTimeframe
+            }
+            
+            // Get all timestamps that fall within the specified range
+            let allTimestampsBeforeEnd = self.sortedTimestamps.getBefore(current: endTimestamp)
+            
+            for timestamp in allTimestampsBeforeEnd {
+                // Check if this timestamp falls within our range
+                if timestamp >= startTimestamp {
+                    let callbackPriorities = self.slotQueue[timestamp] ?? {}
+                    
+                    var timestampCallbacks: {UInt8: [UInt64]} = {}
+                    
+                    for priority in callbackPriorities.keys {
+                        let callbackIDs = callbackPriorities[priority] ?? {}
+                        var priorityCallbacks: [UInt64] = []
+                            
+                        for id in callbackIDs.keys {
+                            priorityCallbacks.append(id)
+                        }
+                            
+                        if priorityCallbacks.length > 0 {
+                            timestampCallbacks[priority.rawValue] = priorityCallbacks
+                        }
+                    }
+                    
+                    if timestampCallbacks.keys.length > 0 {
+                        callbacksInTimeframe[timestamp] = timestampCallbacks
+                    }
+                }
+            }
+            
+            return callbacksInTimeframe
         }
 
         /// calculate fee by converting execution effort to a fee in Flow tokens.
@@ -638,15 +701,18 @@ access(all) contract FlowCallbackScheduler {
             )
 
             let callbackID = self.getNextIDAndIncrement()
-            let callback <- create CallbackData(
+            let callback = CallbackData(
                 id: callbackID,
                 handler: callback,
                 scheduledTimestamp: estimate.timestamp!,
                 data: data,
                 priority: priority,
                 executionEffort: executionEffort,
-                fees: <- fees,
+                fees: fees.balance,
             )
+
+            // Deposit the fees to the service account's vault
+            FlowCallbackScheduler.depositFees(from: <-fees)
 
             let callbackHandler = callback.handler.borrow()
                 ?? panic("Invalid callback handler: Could not borrow a reference to the callback handler")
@@ -656,7 +722,7 @@ access(all) contract FlowCallbackScheduler {
                 priority: callback.priority.rawValue,
                 timestamp: callback.scheduledTimestamp,
                 executionEffort: callback.executionEffort,
-                fees: callback.fees.balance,
+                fees: callback.fees,
                 callbackOwner: callback.handler.address,
                 callbackHandlerTypeIdentifier: callbackHandler.getType().identifier,
                 callbackName: callbackHandler.getName(),
@@ -664,7 +730,7 @@ access(all) contract FlowCallbackScheduler {
             )
 
             // Add the callback to the slot queue and update the internal state
-            self.addCallback(slot: estimate.timestamp!, callback: <-callback)
+            self.addCallback(slot: estimate.timestamp!, callback: callback)
             
             return ScheduledCallback(
                 scheduler: FlowCallbackScheduler.sharedScheduler, 
@@ -852,7 +918,7 @@ access(all) contract FlowCallbackScheduler {
         }
 
          /// add callback to the queue and updates all the internal state as well as emit an event
-        access(self) fun addCallback(slot: UFix64, callback: @CallbackData) {
+        access(self) fun addCallback(slot: UFix64, callback: CallbackData) {
 
             // If nothing is in the queue for this slot, initialize the slot
             if self.slotQueue[slot] == nil {
@@ -906,7 +972,7 @@ access(all) contract FlowCallbackScheduler {
             }
 
             // Store the callback in the callbacks map
-            self.callbacks[callback.id] <-! callback
+            self.callbacks[callback.id] = callback
 
             // Reschedule low priority callbacks if needed
             self.rescheduleLowPriorityCallbacks(slot: slot, callbacks: lowCallbacksToReschedule)
@@ -938,7 +1004,7 @@ access(all) contract FlowCallbackScheduler {
 
                 let effort = callback.executionEffort
 
-                let callbackResource <- self.removeCallback(callback: callback)
+                let callbackResource =self.removeCallback(callback: callback)
 
                 // Subtract the execution effort for this callback from the slot's priority
                 let slotEfforts = self.slotUsedEffort[slot]!
@@ -947,19 +1013,19 @@ access(all) contract FlowCallbackScheduler {
 
                 // Update the callback's scheduled timestamp and add it back to the slot queue
                 callbackResource.setScheduledTimestamp(newTimestamp: newTimestamp)
-                self.addCallback(slot: newTimestamp, callback: <-callbackResource)
+                self.addCallback(slot: newTimestamp, callback: callbackResource)
             }
         }
 
         /// remove the callback from the slot queue.
-        access(contract) fun removeCallback(callback: &CallbackData): @CallbackData {
+        access(contract) fun removeCallback(callback: &CallbackData): CallbackData {
 
             let callbackID = callback.id
             let slot = callback.scheduledTimestamp
             let callbackPriority = callback.priority
 
             // remove callback resource
-            let callbackRes <- self.callbacks.remove(key: callbackID)!
+            let callbackObject = self.callbacks.remove(key: callbackID)!
             
             // garbage collect slots 
             if let callbackQueue = self.slotQueue[slot] {
@@ -984,7 +1050,7 @@ access(all) contract FlowCallbackScheduler {
                 }
             }
 
-            return <-callbackRes
+            return callbackObject
         }
 
         /// pendingQueue creates a list of callbacks that are ready for execution.
@@ -1062,7 +1128,10 @@ access(all) contract FlowCallbackScheduler {
                             continue
                         }
 
-                        destroy self.removeCallback(callback: callback)
+                        // charge the full fee for callback execution
+                        destroy callback.payAndRefundFees(refundMultiplier: 0.0)
+
+                        self.removeCallback(callback: callback)
                     }
                 }
             }
@@ -1092,7 +1161,7 @@ access(all) contract FlowCallbackScheduler {
                     id: callback.id,
                     priority: callback.priority.rawValue,
                     executionEffort: callback.executionEffort,
-                    fees: callback.fees.balance,
+                    fees: callback.fees,
                     callbackOwner: callback.handler.address,
                     callbackHandlerTypeIdentifier: callbackHandler.getType().identifier,
                     callbackName: callbackHandler.getName(),
@@ -1105,9 +1174,6 @@ access(all) contract FlowCallbackScheduler {
                 // the status of callback or any other shared state, since that blocks concurrent callback 
                 // execution. Therefore optimistic update to executed is made here to avoid race condition.
                 callback.setStatus(newStatus: Status.Executed)
-
-                // charge the full fee for callback execution
-                destroy callback.payAndRefundFees(refundMultiplier: 0.0)
             }
         }
 
@@ -1133,7 +1199,7 @@ access(all) contract FlowCallbackScheduler {
             slotEfforts[callback.priority] = slotEfforts[callback.priority]!.saturatingSubtract(callback.executionEffort)
             self.slotUsedEffort[callback.scheduledTimestamp] = slotEfforts
 
-            let totalFees = callback.fees.balance
+            let totalFees = callback.fees
             let refundedFees <- callback.payAndRefundFees(refundMultiplier: self.configurationDetails.refundMultiplier)
 
             // if the callback was canceled, add it to the canceled callbacks array
@@ -1157,7 +1223,7 @@ access(all) contract FlowCallbackScheduler {
                 callbackDescription: callbackHandler.getDescription()
             )
 
-            destroy self.removeCallback(callback: callback)
+            self.removeCallback(callback: callback)
             
             return <-refundedFees
         }
@@ -1190,6 +1256,21 @@ access(all) contract FlowCallbackScheduler {
             
             callbackHandler.executeCallback(id: id, data: callback.getData())
         }
+    }
+    
+    /// Deposit fees to this contract's account's vault
+    access(contract) fun depositFees(from: @FlowToken.Vault) {
+        let vaultRef = self.account.storage.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)
+            ?? panic("Unable to borrow reference to the default token vault")
+        vaultRef.deposit(from: <-from)
+    }
+
+    /// Withdraw fees from this contract's account's vault
+    access(contract) fun withdrawFees(amount: UFix64): @FlowToken.Vault {
+        let vaultRef = self.account.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault)
+            ?? panic("Unable to borrow reference to the default token vault")
+            
+        return <-vaultRef.withdraw(amount: amount) as! @FlowToken.Vault
     }
 
     access(all) fun schedule(
@@ -1229,8 +1310,25 @@ access(all) contract FlowCallbackScheduler {
         return <-self.sharedScheduler.borrow()!.cancel(id: callback.id)
     }
 
+    /// getCallbackData returns the callback data for a given ID
+    /// This function can only get the data for a callback that is currently scheduled or pending execution
+    /// because finalized callback metadata is not stored in the contract
+    /// @param id: The ID of the callback to get the data for
+    /// @return: The callback data for the given ID
+    access(all) view fun getCallbackData(id: UInt64): CallbackData? {
+        return self.sharedScheduler.borrow()!.getCallback(id: id)
+    }
+
     access(all) view fun getStatus(id: UInt64): Status? {
         return self.sharedScheduler.borrow()!.getStatus(id: id)
+    }
+
+    /// getCallbacksForTimeframe returns the IDs of the callbacks that are scheduled for a given timeframe
+    /// @param startTimestamp: The start timestamp to get the IDs for
+    /// @param endTimestamp: The end timestamp to get the IDs for
+    /// @return: The IDs of the callbacks that are scheduled for the given timeframe
+    access(all) fun getCallbacksForTimeframe(startTimestamp: UFix64, endTimestamp: UFix64): {UFix64: {UInt8: [UInt64]}} {
+        return self.sharedScheduler.borrow()!.getCallbacksForTimeframe(startTimestamp: startTimestamp, endTimestamp: endTimestamp)
     }
 
     access(all) view fun getSlotAvailableEffort(timestamp: UFix64, priority: Priority): UInt64 {

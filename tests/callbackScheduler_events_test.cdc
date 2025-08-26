@@ -77,6 +77,26 @@ access(all) fun testCallbackEventsPath() {
     var status = getStatus(id: callbackID)
     Test.assertEqual(statusScheduled, status!)
 
+    var callbackData = getCallbackData(id: callbackID)
+    Test.assertEqual(callbackData!.id, callbackID)
+    Test.assertEqual(callbackData!.scheduledTimestamp, timeInFuture)
+    Test.assertEqual(callbackData!.priority.rawValue, highPriority)
+    Test.assertEqual(callbackData!.fees, feeAmount)
+    Test.assertEqual(callbackData!.executionEffort, basicEffort)
+    Test.assertEqual(callbackData!.status.rawValue, statusScheduled)
+    Test.assertEqual(callbackData!.name, "Test FlowCallbackHandler Resource")
+    Test.assertEqual(callbackData!.description, "Executes a variety of callbacks for different test cases")
+
+    var callbacks = getCallbacksForTimeframe(startTimestamp: timeInFuture-10.0, endTimestamp: timeInFuture - 1.0)
+    Test.assertEqual(callbacks.keys.length, 0)
+
+    callbacks = getCallbacksForTimeframe(startTimestamp: timeInFuture-10.0, endTimestamp: timeInFuture)
+    Test.assertEqual(callbacks.keys.length, 1)
+    let callbacksAtFutureTime = callbacks[timeInFuture]!
+    let highPriorityCallbacks = callbacksAtFutureTime[highPriority]!
+    Test.assertEqual(highPriorityCallbacks.length, 1)
+    Test.assertEqual(highPriorityCallbacks[0], callbackID)
+
     // Try to execute the callback, should fail because it isn't pendingExecution
     executeCallback(
         id: callbackID,
@@ -182,7 +202,7 @@ access(all) fun testCallbackExecution() {
             message: "ID 2 Should not have been marked as pendingExecution"
         )
 
-        // verify that the transactions got marked as pendingExecution
+        // verify that the transactions got marked as executed
         var status = getStatus(id: pendingExecutionEvent.id)
         Test.assertEqual(statusExecuted, status!)
 
