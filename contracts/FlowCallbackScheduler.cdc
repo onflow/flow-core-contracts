@@ -53,7 +53,10 @@ access(all) contract FlowCallbackScheduler {
         timestamp: UFix64,
         executionEffort: UInt64,
         fees: UFix64,
-        callbackOwner: Address
+        callbackOwner: Address,
+        callbackHandlerTypeIdentifier: String,
+        callbackName: String,
+        callbackDescription: String
     )
 
     /// Emitted when a callback's scheduled timestamp is reached and it is ready for execution
@@ -62,7 +65,10 @@ access(all) contract FlowCallbackScheduler {
         priority: UInt8,
         executionEffort: UInt64,
         fees: UFix64,
-        callbackOwner: Address
+        callbackOwner: Address,
+        callbackHandlerTypeIdentifier: String,
+        callbackName: String,
+        callbackDescription: String
     )
 
     /// Emitted when a callback is executed by the FVM
@@ -71,6 +77,9 @@ access(all) contract FlowCallbackScheduler {
         priority: UInt8,
         executionEffort: UInt64,
         callbackOwner: Address,
+        callbackHandlerTypeIdentifier: String,
+        callbackName: String,
+        callbackDescription: String
     )
 
     /// Emitted when a callback is canceled by the creator of the callback
@@ -79,7 +88,10 @@ access(all) contract FlowCallbackScheduler {
         priority: UInt8,
         feesReturned: UFix64,
         feesDeducted: UFix64,
-        callbackOwner: Address
+        callbackOwner: Address,
+        callbackHandlerTypeIdentifier: String,
+        callbackName: String,
+        callbackDescription: String
     )
 
     // Emitted when one or more of the configuration details fields are updated
@@ -106,6 +118,20 @@ access(all) contract FlowCallbackScheduler {
         /// @param data: The data that was passed when the callback was originally scheduled
         /// that may be useful for the execution of the callback logic
         access(Execute) fun executeCallback(id: UInt64, data: AnyStruct?)
+
+        /// Gets a human readable name for the callback handler
+        access(all) fun getName(): String {
+            post {
+                result.length < 40: "Callback handler name must be less than 40 characters"
+            }
+        }
+
+        /// Gets a human readable description for the callback handler
+        access(all) fun getDescription(): String {
+            post {
+                result.length < 200: "Callback handler description must be less than 200 characters"
+            }
+        }
     }
 
     /// Structs
@@ -534,7 +560,7 @@ access(all) contract FlowCallbackScheduler {
         /// @return Status: The status of the callback, if the callback is not found Unknown is returned.
         access(all) view fun getStatus(id: UInt64): Status? {
             // if the callback ID is greater than the next ID, it is not scheduled yet and has never existed
-            if id >= self.nextID {
+            if id == 0 as UInt64 || id >= self.nextID {
                 return nil
             }
 
@@ -622,13 +648,19 @@ access(all) contract FlowCallbackScheduler {
                 fees: <- fees,
             )
 
+            let callbackHandler = callback.handler.borrow()
+                ?? panic("Invalid callback handler: Could not borrow a reference to the callback handler")
+
             emit Scheduled(
                 id: callback.id,
                 priority: callback.priority.rawValue,
                 timestamp: callback.scheduledTimestamp,
                 executionEffort: callback.executionEffort,
                 fees: callback.fees.balance,
-                callbackOwner: callback.handler.address
+                callbackOwner: callback.handler.address,
+                callbackHandlerTypeIdentifier: callbackHandler.getType().identifier,
+                callbackName: callbackHandler.getName(),
+                callbackDescription: callbackHandler.getDescription()
             )
 
             // Add the callback to the slot queue and update the internal state
@@ -1053,12 +1085,18 @@ access(all) contract FlowCallbackScheduler {
             self.removeExecutedCallbacks()
 
             for callback in pendingCallbacks {
+                let callbackHandler = callback.handler.borrow()
+                    ?? panic("Invalid callback handler: Could not borrow a reference to the callback handler")
+
                 emit PendingExecution(
                     id: callback.id,
                     priority: callback.priority.rawValue,
                     executionEffort: callback.executionEffort,
                     fees: callback.fees.balance,
-                    callbackOwner: callback.handler.address
+                    callbackOwner: callback.handler.address,
+                    callbackHandlerTypeIdentifier: callbackHandler.getType().identifier,
+                    callbackName: callbackHandler.getName(),
+                    callbackDescription: callbackHandler.getDescription()
                 )
 
                 // after pending execution event is emitted we set the callback as executed because we 
@@ -1105,12 +1143,18 @@ access(all) contract FlowCallbackScheduler {
                 self.canceledCallbacks.remove(at: 0)
             }
 
+            let callbackHandler = callback.handler.borrow()
+                ?? panic("Invalid callback handler: Could not borrow a reference to the callback handler")
+
             emit Canceled(
                 id: callback.id,
                 priority: callback.priority.rawValue,
                 feesReturned: refundedFees.balance,
                 feesDeducted: totalFees - refundedFees.balance,
-                callbackOwner: callback.handler.address
+                callbackOwner: callback.handler.address,
+                callbackHandlerTypeIdentifier: callbackHandler.getType().identifier,
+                callbackName: callbackHandler.getName(),
+                callbackDescription: callbackHandler.getDescription()
             )
 
             destroy self.removeCallback(callback: callback)
@@ -1130,15 +1174,21 @@ access(all) contract FlowCallbackScheduler {
                 callback.status == Status.Executed,
                 message: "Invalid ID: Cannot execute callback with id \(id) because it has incorrect status \(callback.status.rawValue)"
             )
-            
-            callback.handler.borrow()!.executeCallback(id: id, data: callback.getData())
+
+            let callbackHandler = callback.handler.borrow()
+                ?? panic("Invalid callback handler: Could not borrow a reference to the callback handler")
 
             emit Executed(
                 id: callback.id,
                 priority: callback.priority.rawValue,
                 executionEffort: callback.executionEffort,
                 callbackOwner: callback.handler.address,
+                callbackHandlerTypeIdentifier: callbackHandler.getType().identifier,
+                callbackName: callbackHandler.getName(),
+                callbackDescription: callbackHandler.getDescription()
             )
+            
+            callbackHandler.executeCallback(id: id, data: callback.getData())
         }
     }
 

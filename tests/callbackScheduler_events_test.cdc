@@ -60,6 +60,9 @@ access(all) fun testCallbackEventsPath() {
     Test.assert(scheduledEvent.executionEffort == 1000, message: "incorrect execution effort")
     Test.assertEqual(feeAmount, scheduledEvent.fees!)
     Test.assertEqual(serviceAccount.address, scheduledEvent.callbackOwner!)
+    Test.assertEqual("A.0000000000000001.TestFlowCallbackHandler.Handler", scheduledEvent.callbackHandlerTypeIdentifier!)
+    Test.assertEqual("Test FlowCallbackHandler Resource", scheduledEvent.callbackName!)
+    Test.assertEqual("Executes a variety of callbacks for different test cases", scheduledEvent.callbackDescription!)
     
     let callbackID = scheduledEvent.id as UInt64
 
@@ -121,6 +124,9 @@ access(all) fun testCallbackCancelationEvents() {
     Test.assertEqual(feeAmount/UFix64(2.0), canceledEvent.feesReturned)
     Test.assertEqual(feeAmount/UFix64(2.0), canceledEvent.feesDeducted)
     Test.assertEqual(serviceAccount.address, canceledEvent.callbackOwner)
+    Test.assertEqual("A.0000000000000001.TestFlowCallbackHandler.Handler", canceledEvent.callbackHandlerTypeIdentifier!)
+    Test.assertEqual("Test FlowCallbackHandler Resource", canceledEvent.callbackName!)
+    Test.assertEqual("Executes a variety of callbacks for different test cases", canceledEvent.callbackDescription!)
 
     // Make sure the status is canceled
     var status = getStatus(id: callbackToCancel)
@@ -196,6 +202,9 @@ access(all) fun testCallbackExecution() {
                 Test.assertEqual(pendingExecutionEvent.priority, executedEvent.priority)
                 Test.assertEqual(pendingExecutionEvent.executionEffort, executedEvent.executionEffort)
                 Test.assertEqual(pendingExecutionEvent.callbackOwner, executedEvent.callbackOwner)
+                Test.assertEqual(pendingExecutionEvent.callbackHandlerTypeIdentifier, executedEvent.callbackHandlerTypeIdentifier!)
+                Test.assertEqual(pendingExecutionEvent.callbackName, executedEvent.callbackName!)
+                Test.assertEqual(pendingExecutionEvent.callbackDescription, executedEvent.callbackDescription!)
                 firstEvent = true
             }
         }
