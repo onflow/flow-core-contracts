@@ -9,7 +9,10 @@ import "callback_test_helpers.cdc"
 access(all) let callbackToFail = 6 as UInt64
 access(all) let callbackToCancel = 2 as UInt64
 
-access(all)var timeInFuture: UFix64 = 0.0
+access(all) var startingHeight: UInt64 = 0
+
+access(all) var feesBalanceBefore: UFix64 = 0.0
+access(all) var accountBalanceBefore: UFix64 = 0.0
 
 access(all)
 fun setup() {
@@ -28,16 +31,21 @@ fun setup() {
     )
     Test.expect(err, Test.beNil())
 
+    startingHeight = getCurrentBlockHeight()
+
 }
 
 /** ---------------------------------------------------------------------------------
  Callback handler integration tests
  --------------------------------------------------------------------------------- */
 
-access(all) fun testCallbackEventsPath() {
+access(all) fun testCallbackScheduleEventAndData() {
 
     let currentTime = getTimestamp()
-    timeInFuture = currentTime + futureDelta
+    let timeInFuture = currentTime + futureDelta
+
+    accountBalanceBefore = getBalance(account: serviceAccount.address)
+    feesBalanceBefore = getFeesBalance()
     
     // Schedule high priority callback
     scheduleCallback(
@@ -87,7 +95,11 @@ access(all) fun testCallbackEventsPath() {
     Test.assertEqual(callbackData!.name, "Test FlowCallbackHandler Resource")
     Test.assertEqual(callbackData!.description, "Executes a variety of callbacks for different test cases")
 
-    var callbacks = getCallbacksForTimeframe(startTimestamp: timeInFuture-10.0, endTimestamp: timeInFuture - 1.0)
+    // invalid timeframe should return empty dictionary
+    var callbacks = getCallbacksForTimeframe(startTimestamp: timeInFuture, endTimestamp: timeInFuture - 1.0)
+    Test.assertEqual(callbacks.keys.length, 0)
+
+    callbacks = getCallbacksForTimeframe(startTimestamp: timeInFuture-10.0, endTimestamp: timeInFuture - 1.0)
     Test.assertEqual(callbacks.keys.length, 0)
 
     callbacks = getCallbacksForTimeframe(startTimestamp: timeInFuture-10.0, endTimestamp: timeInFuture)
@@ -109,7 +121,7 @@ access(all) fun testCallbackEventsPath() {
 access(all) fun testCallbackCancelationEvents() {
 
     var currentTime = getTimestamp()
-    timeInFuture = currentTime + futureDelta
+    var timeInFuture = currentTime + futureDelta
 
     var balanceBefore = getBalance(account: serviceAccount.address)
 
@@ -159,13 +171,15 @@ access(all) fun testCallbackCancelationEvents() {
 
     // Assert that the new balance reflects the refunds
     Test.assertEqual(balanceBefore - feeAmount/UFix64(2.0), getBalance(account: serviceAccount.address))
-    
+    Test.assertEqual(feesBalanceBefore + feeAmount/UFix64(2.0), getFeesBalance())
 }
 
 access(all) fun testCallbackExecution() {
 
     var currentTime = getTimestamp()
-    timeInFuture = currentTime + futureDelta
+    var timeInFuture = currentTime + futureDelta
+
+    feesBalanceBefore = getFeesBalance()
 
     var scheduledIDs = TestFlowCallbackHandler.scheduledCallbacks.keys
 
@@ -238,4 +252,121 @@ access(all) fun testCallbackExecution() {
         []
     ).returnValue! as! [UInt64]
     Test.assert(callbackIDs.length == 1, message: "Executed ids is the wrong count")
+    
+    Test.moveTime(by: Fix64(2.0))
+
+    // Process callbacks again to remove the executed callbacks and pay fees
+    processCallbacks()
+
+    // Check that the fees were paid
+    Test.assertEqual(feesBalanceBefore + feeAmount, getFeesBalance())
+
+    // verify that the removed callback still counts as executed
+    var status = getStatus(id: 1 as UInt64)
+    Test.assertEqual(statusExecuted, status!)
+}
+
+access(all) fun testCallbackCancelationLimits() {
+
+    let currentTime = getTimestamp()
+    var timeInFuture = currentTime + futureDelta
+
+    let expectedCanceledCallbacksLength = 30 * 24
+
+    let numToCancel: UInt64 = 30 * 25
+    let startingID: UInt64 = 3
+    var i: UInt64 = startingID
+
+    // Schedule 30*25 callbacks
+    while i < numToCancel {
+
+        // Schedule a medium callback
+        scheduleCallback(
+            timestamp: timeInFuture + UFix64(i),
+            fee: feeAmount,
+            effort: mediumEffort,
+            priority: mediumPriority,
+            data: testData,
+            testName: "Cancelation Limits: Scheduled \(i)",
+            failWithErr: nil
+        )
+
+        i = i + 1
+
+    }
+
+    i = startingID
+
+    while i < numToCancel {
+
+        // Cancel the callbacks
+        cancelCallback(
+            id: i,
+            failWithErr: nil
+        )
+
+        i = i + 1
+    }
+
+    // Check that the canceled callbacks are the ones we expect
+    var canceledCallbacks = getCanceledCallbacks()
+    Test.assertEqual(canceledCallbacks.length, expectedCanceledCallbacksLength)
+    
+    // The first 28 canceled callbacks should have been removed from the canceled callbacks array
+    i = 30
+    for id in canceledCallbacks {
+        Test.assertEqual(i, id)
+        i = i + 1
+    }
+
+    // get the status of one of the first 30 callbacks and one of the later ones
+    var status = getStatus(id: 1)
+    Test.assertEqual(statusUnknown, status!)
+
+    status = getStatus(id: 31)
+    Test.assertEqual(statusCanceled, status!)
+}
+
+access(all) fun testCallbackScheduleAnotherCallback() {
+
+    if startingHeight < getCurrentBlockHeight() {
+        Test.reset(to: startingHeight)
+    }
+
+    let currentTime = getTimestamp()
+    var timeInFuture = currentTime + futureDelta*10.0
+
+    // Schedule a medium callback
+    scheduleCallback(
+        timestamp: timeInFuture,
+        fee: feeAmount,
+        effort: mediumEffort,
+        priority: mediumPriority,
+        data: "schedule",
+        testName: "Schedule Another Callback: Scheduled",
+        failWithErr: nil
+    )
+
+    let callbackData = getCallbackData(id: 1)
+    Test.assertEqual(callbackData!.id, 1 as UInt64)
+    Test.assertEqual(callbackData!.scheduledTimestamp, timeInFuture)
+    Test.assertEqual(callbackData!.priority.rawValue, mediumPriority)
+    Test.assertEqual(callbackData!.fees, feeAmount)
+    Test.assertEqual(callbackData!.executionEffort, mediumEffort)
+    Test.assertEqual(callbackData!.status.rawValue, statusScheduled)
+
+    Test.moveTime(by: Fix64(futureDelta*11.0))
+
+    processCallbacks()
+
+    executeCallback(
+        id: 1,
+        testName: "Schedule Another Callback: Executed",
+        failWithErr: nil
+    )
+
+    // get the status of the newly scheduled callback with ID 2
+    var status = getStatus(id: 2)
+    Test.assertEqual(statusScheduled, status!)
+    
 }

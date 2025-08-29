@@ -13,6 +13,7 @@ node_modules
 .vscode
 git
 
+codecov.json
 coverage.json
 coverage.lcov
 lcov.info

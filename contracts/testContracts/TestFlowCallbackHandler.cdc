@@ -56,6 +56,10 @@ access(all) contract TestFlowCallbackHandler {
     }
 
     access(all) fun addScheduledCallback(callback: FlowCallbackScheduler.ScheduledCallback) {
+        let status = callback.status()
+        if status == nil {
+            panic("Invalid status for callback with id \(callback.id)")
+        }
         self.scheduledCallbacks[callback.id] = callback
     }
 
