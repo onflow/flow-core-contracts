@@ -13,7 +13,7 @@ transaction(slotSharedEffortLimit: UInt64?,
             ?? panic("Could not borrow reference to SharedScheduler resource")
 
         // get the current config
-        let currentConfig = schedulerRef.getConfigurationDetails()
+        let currentConfig = FlowCallbackScheduler.getSchedulerConfigurationDetails()
 
         let highRawValue = FlowCallbackScheduler.Priority.High.rawValue
         let mediumRawValue = FlowCallbackScheduler.Priority.Medium.rawValue

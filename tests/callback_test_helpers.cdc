@@ -30,12 +30,10 @@ access(all) let sharedEffortLimit: UInt64 = 10000
 access(all) let testData = "test data"
 access(all) let failTestData = "fail"
 
-access(all) let futureDelta = 1000.0
+access(all) let futureDelta = 100.0
 access(all) var futureTime = 0.0
 
 access(all) var feeAmount = 10.0
-
-access(all) var startingHeight: UInt64 = 0
 
 /** ---------------------------------------------------------------------------------
  Test helper functions
@@ -210,6 +208,14 @@ access(all) fun getCallbacksForTimeframe(startTimestamp: UFix64, endTimestamp: U
     return result.returnValue! as! {UFix64: {UInt8: [UInt64]}}
 }
 
+access(all) fun getCanceledCallbacks(): [UInt64] {
+    var result = _executeScript(
+        "../transactions/callbackScheduler/scripts/get_canceled_callbacks.cdc",
+        []
+    )
+    return result.returnValue! as! [UInt64]
+}
+
 access(all) fun getSlotAvailableEffort(timestamp: UFix64, priority: UInt8): UInt64 {
     var result = _executeScript(
         "../transactions/callbackScheduler/scripts/get_slot_available_effort.cdc",
@@ -248,6 +254,13 @@ access(all) fun getBalance(account: Address): UFix64 {
     return balance!
 }
 
+access(all) fun getFeesBalance(): UFix64 {
+    var balance = _executeScript(
+        "../transactions/FlowServiceAccount/scripts/get_fees_balance.cdc",
+        []
+    ).returnValue! as! UFix64
+    return balance!
+}
 
 access(all)
 fun _executeScript(_ path: String, _ args: [AnyStruct]): Test.ScriptResult {

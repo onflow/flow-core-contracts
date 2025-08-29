@@ -38,17 +38,30 @@ transaction(timestamp: UFix64, feeAmount: UFix64, effort: UInt64, priority: UInt
         let priorityEnum = FlowCallbackScheduler.Priority(rawValue: priority)
             ?? FlowCallbackScheduler.Priority.High
 
-        // Schedule the callback with the main contract
-        let scheduledCallback = FlowCallbackScheduler.schedule(
-            callback: callbackCap,
-            data: testData,
-            timestamp: timestamp,
-            priority: priorityEnum,
-            executionEffort: effort,
-            fees: <-fees
-        )
+        let dataString = testData as? String
 
-        // Add the scheduled callback controller to the test contract
-        TestFlowCallbackHandler.addScheduledCallback(callback: scheduledCallback)
+        if dataString! == "schedule" {
+            // Schedule the callback that schedules another callback
+            let scheduledCallback = FlowCallbackScheduler.schedule(
+                callback: callbackCap,
+                data: callbackCap,
+                timestamp: timestamp,
+                priority: priorityEnum,
+                executionEffort: effort,
+                fees: <-fees
+            )
+            TestFlowCallbackHandler.addScheduledCallback(callback: scheduledCallback)
+        } else {
+            // Schedule the regular callback with the main contract
+            let scheduledCallback = FlowCallbackScheduler.schedule(
+                callback: callbackCap,
+                data: dataString!,
+                timestamp: timestamp,
+                priority: priorityEnum,
+                executionEffort: effort,
+                fees: <-fees
+            )
+            TestFlowCallbackHandler.addScheduledCallback(callback: scheduledCallback)
+        }
     }
 } 
