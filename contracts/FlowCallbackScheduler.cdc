@@ -283,6 +283,10 @@ access(all) contract FlowCallbackScheduler {
     /// that is used for governing the protocol
     /// This is an interface to allow for the configuration details to be updated in the future
     access(all) struct interface SchedulerConfig {
+
+        /// maximum effort that can be used for any callback
+        access(all) var maximumIndividualEffort: UInt64
+
         /// slot total effort limit is the maximum effort that can be 
         /// cumulatively allocated to one timeslot by all priorities
         access(all) var slotTotalEffortLimit: UInt64
@@ -303,6 +307,9 @@ access(all) contract FlowCallbackScheduler {
         /// used for any callback
         access(all) var minimumExecutionEffort: UInt64
 
+        /// max data size is the maximum data size that can be stored for a callback
+        access(all) var maxDataSizeMB: UFix64
+
         /// priority fee multipliers are values we use to calculate the added 
         /// processing fee for each priority
         access(all) var priorityFeeMultipliers: {Priority: UFix64}
@@ -315,10 +322,12 @@ access(all) contract FlowCallbackScheduler {
         access(all) var canceledCallbacksLimit: UInt
 
         access(all) init(
+            maximumIndividualEffort: UInt64,
             slotSharedEffortLimit: UInt64,
             priorityEffortReserve: {Priority: UInt64},
             priorityEffortLimit: {Priority: UInt64},
             minimumExecutionEffort: UInt64,
+            maxDataSizeMB: UFix64,
             priorityFeeMultipliers: {Priority: UFix64},
             refundMultiplier: UFix64,
             canceledCallbacksLimit: UInt
@@ -345,29 +354,35 @@ access(all) contract FlowCallbackScheduler {
     /// Concrete implementation of the SchedulerConfig interface
     /// This struct is used to store the configuration details in the Scheduler contract
     access(all) struct Config: SchedulerConfig {
+        access(all) var maximumIndividualEffort: UInt64
         access(all) var slotTotalEffortLimit: UInt64
         access(all) var slotSharedEffortLimit: UInt64
         access(all) var priorityEffortReserve: {Priority: UInt64}
         access(all) var priorityEffortLimit: {Priority: UInt64}
         access(all) var minimumExecutionEffort: UInt64
+        access(all) var maxDataSizeMB: UFix64
         access(all) var priorityFeeMultipliers: {Priority: UFix64}
         access(all) var refundMultiplier: UFix64
         access(all) var canceledCallbacksLimit: UInt
 
-        access(all) init(
+        access(all) init(   
+            maximumIndividualEffort: UInt64,
             slotSharedEffortLimit: UInt64,
             priorityEffortReserve: {Priority: UInt64},
             priorityEffortLimit: {Priority: UInt64},
             minimumExecutionEffort: UInt64,
+            maxDataSizeMB: UFix64,
             priorityFeeMultipliers: {Priority: UFix64},
             refundMultiplier: UFix64,
             canceledCallbacksLimit: UInt
         ) {
+            self.maximumIndividualEffort = maximumIndividualEffort
             self.slotTotalEffortLimit = slotSharedEffortLimit + priorityEffortReserve[Priority.High]! + priorityEffortReserve[Priority.Medium]!
             self.slotSharedEffortLimit = slotSharedEffortLimit
             self.priorityEffortReserve = priorityEffortReserve
             self.priorityEffortLimit = priorityEffortLimit
             self.minimumExecutionEffort = minimumExecutionEffort
+            self.maxDataSizeMB = maxDataSizeMB
             self.priorityFeeMultipliers = priorityFeeMultipliers
             self.refundMultiplier = refundMultiplier
             self.canceledCallbacksLimit = canceledCallbacksLimit
@@ -500,6 +515,7 @@ access(all) contract FlowCallbackScheduler {
             let mediumPriorityEffortReserve: UInt64 = 5_000
 
             self.configurationDetails = Config(
+                maximumIndividualEffort: 9999,
                 slotSharedEffortLimit: sharedEffortLimit,
                 priorityEffortReserve: {
                     Priority.High: highPriorityEffortReserve,
@@ -512,6 +528,7 @@ access(all) contract FlowCallbackScheduler {
                     Priority.Low: 5_000
                 },
                 minimumExecutionEffort: 10,
+                maxDataSizeMB: 3.0,
                 priorityFeeMultipliers: {
                     Priority.High: 10.0,
                     Priority.Medium: 5.0,
@@ -600,9 +617,9 @@ access(all) contract FlowCallbackScheduler {
         /// calculate fee by converting execution effort to a fee in Flow tokens.
         /// @param executionEffort: The execution effort of the callback
         /// @param priority: The priority of the callback
-        /// @param data: The data that was passed when the callback was originally scheduled
+        /// @param dataSizeMB: The size of the data that was passed when the callback was originally scheduled
         /// @return UFix64: The fee in Flow tokens that is required to pay for the callback
-        access(contract) fun calculateFee(executionEffort: UInt64, priority: Priority, data: AnyStruct?): UFix64 {
+        access(contract) fun calculateFee(executionEffort: UInt64, priority: Priority, dataSizeMB: UFix64): UFix64 {
             // Use the official FlowFees calculation
             let baseFee = FlowFees.computeFees(inclusionEffort: 1.0, executionEffort: UFix64(executionEffort))
             
@@ -610,7 +627,7 @@ access(all) contract FlowCallbackScheduler {
             let scaledExecutionFee = baseFee * self.configurationDetails.priorityFeeMultipliers[priority]!
 
             // Calculate the FLOW required to pay for storage of the callback data
-            let storageFee = FlowStorageFees.storageCapacityToFlow(FlowCallbackScheduler.getSizeOfData(data))
+            let storageFee = FlowStorageFees.storageCapacityToFlow(dataSizeMB)
             
             return scaledExecutionFee + storageFee
         }
@@ -768,6 +785,14 @@ access(all) contract FlowCallbackScheduler {
                         )
             }
 
+            if executionEffort > self.configurationDetails.maximumIndividualEffort {
+                return EstimatedCallback(
+                    flowFee: nil,
+                    timestamp: nil,
+                    error: "Invalid execution effort: \(executionEffort) is greater than the maximum callback effort of \(self.configurationDetails.maximumIndividualEffort)"
+                )
+            }
+
             if executionEffort > self.configurationDetails.priorityEffortLimit[priority]! {
                 return EstimatedCallback(
                             flowFee: nil,
@@ -784,7 +809,16 @@ access(all) contract FlowCallbackScheduler {
                         )
             }
 
-            let fee = self.calculateFee(executionEffort: executionEffort, priority: priority, data: data)
+            let dataSizeMB = FlowCallbackScheduler.getSizeOfData(data)
+            if dataSizeMB > self.configurationDetails.maxDataSizeMB {
+                return EstimatedCallback(
+                    flowFee: nil,
+                    timestamp: nil,
+                    error: "Invalid data size: \(dataSizeMB) is greater than the maximum data size of \(self.configurationDetails.maxDataSizeMB)MB"
+                )
+            }
+
+            let fee = self.calculateFee(executionEffort: executionEffort, priority: priority, dataSizeMB: dataSizeMB)
 
             let scheduledTimestamp = self.calculateScheduledTimestamp(
                 timestamp: sanitizedTimestamp, 
