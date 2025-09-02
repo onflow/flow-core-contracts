@@ -16,8 +16,8 @@ access(all) let statusExecuted = UInt8(2)
 access(all) let statusCanceled = UInt8(3)
 
 access(all) let basicEffort: UInt64 = 1000
-access(all) let mediumEffort: UInt64 = 10000
-access(all) let heavyEffort: UInt64 = 20000
+access(all) let mediumEffort: UInt64 = 5000
+access(all) let maxEffort: UInt64 = 9999
 
 access(all) let lowPriorityMaxEffort: UInt64 = 5000
 access(all) let mediumPriorityMaxEffort: UInt64 = 15000
@@ -137,10 +137,12 @@ access(all) fun executeCallback(
 }
 
 access(all) fun setConfigDetails(
+    maximumIndividualEffort: UInt64?,
     slotSharedEffortLimit: UInt64?,
     priorityEffortReserve: {UInt8: UInt64}?,
     priorityEffortLimit: {UInt8: UInt64}?,
     minimumExecutionEffort: UInt64?,
+    maxDataSizeMB: UFix64?,
     priorityFeeMultipliers: {UInt8: UFix64}?,
     refundMultiplier: UFix64?,
     canceledCallbacksLimit: UInt?,
@@ -151,7 +153,7 @@ access(all) fun setConfigDetails(
         code: setConfigDetailsCode,
         authorizers: [serviceAccount.address],
         signers: [serviceAccount],
-        arguments: [slotSharedEffortLimit, priorityEffortReserve, priorityEffortLimit, minimumExecutionEffort, priorityFeeMultipliers, refundMultiplier, canceledCallbacksLimit]
+        arguments: [maximumIndividualEffort, slotSharedEffortLimit, priorityEffortReserve, priorityEffortLimit, minimumExecutionEffort, maxDataSizeMB, priorityFeeMultipliers, refundMultiplier, canceledCallbacksLimit]
     )
     let setConfigDetailsResult = Test.executeTransaction(setConfigDetailsTx)
     if let error = shouldFail {
