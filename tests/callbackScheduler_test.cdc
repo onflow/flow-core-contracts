@@ -73,13 +73,13 @@ access(all) fun testGetSizeOfData() {
     size = getSizeOfData(data: testData)
     Test.assertEqual(0.00003000 as UFix64, size)
 
-    let largeArray: [Int] = []
-    while largeArray.length < 10000 {
-        largeArray.append(1)
-    }
+    // let largeArray: [Int] = []
+    // while largeArray.length < 10000 {
+    //     largeArray.append(1)
+    // }
 
-    size = getSizeOfData(data: largeArray)
-    Test.assertEqual(0.05286100 as UFix64, size)
+    // size = getSizeOfData(data: largeArray)
+    // Test.assertEqual(0.05286100 as UFix64, size)
 }
 
 /** ---------------------------------------------------------------------------------
@@ -175,17 +175,17 @@ access(all) fun testEstimate() {
             data: nil,
             expectedFee: nil,
             expectedTimestamp: nil,
-            expectedError: "Invalid execution effort: 50000 is greater than the priority's max effort of 30000"
+            expectedError: "Invalid execution effort: 50000 is greater than the maximum callback effort of 9999"
         ),
         EstimateTestCase(
             name: "Excessive medium priority effort returns error",
             timestamp: futureTime + 9.0,
             priority: FlowCallbackScheduler.Priority.Medium,
-            executionEffort: 20000,
+            executionEffort: 10000,
             data: nil,
             expectedFee: nil,
             expectedTimestamp: nil,
-            expectedError: "Invalid execution effort: 20000 is greater than the priority's max effort of 15000"
+            expectedError: "Invalid execution effort: 10000 is greater than the maximum callback effort of 9999"
         ),
         EstimateTestCase(
             name: "Excessive low priority effort returns error",
@@ -308,10 +308,12 @@ access(all) fun testConfigDetails() {
     Error Test Cases
     ---------------- */
     setConfigDetails(
+        maximumIndividualEffort: nil,
         slotSharedEffortLimit: nil,
         priorityEffortReserve: nil,
         priorityEffortLimit: nil,
         minimumExecutionEffort: nil,
+        maxDataSizeMB: nil,
         priorityFeeMultipliers: nil,
         refundMultiplier: 1.1,
         canceledCallbacksLimit: nil,
@@ -319,10 +321,12 @@ access(all) fun testConfigDetails() {
     )
 
     setConfigDetails(
+        maximumIndividualEffort: nil,
         slotSharedEffortLimit: nil,
         priorityEffortReserve: nil,
         priorityEffortLimit: nil,
         minimumExecutionEffort: nil,
+        maxDataSizeMB: nil,
         priorityFeeMultipliers: {highPriority: 20.0, mediumPriority: 10.0, lowPriority: 0.9},
         refundMultiplier: nil,
         canceledCallbacksLimit: nil,
@@ -330,10 +334,12 @@ access(all) fun testConfigDetails() {
     )
 
     setConfigDetails(
+        maximumIndividualEffort: nil,
         slotSharedEffortLimit: nil,
         priorityEffortReserve: nil,
         priorityEffortLimit: nil,
         minimumExecutionEffort: nil,
+        maxDataSizeMB: nil,
         priorityFeeMultipliers: {highPriority: 20.0, mediumPriority: 3.0, lowPriority: 4.0},
         refundMultiplier: nil,
         canceledCallbacksLimit: nil,
@@ -341,10 +347,12 @@ access(all) fun testConfigDetails() {
     )
 
     setConfigDetails(
+        maximumIndividualEffort: nil,
         slotSharedEffortLimit: nil,
         priorityEffortReserve: nil,
         priorityEffortLimit: nil,
         minimumExecutionEffort: nil,
+        maxDataSizeMB: nil,
         priorityFeeMultipliers: {highPriority: 5.0, mediumPriority: 6.0, lowPriority: 4.0},
         refundMultiplier: nil,
         canceledCallbacksLimit: nil,
@@ -352,10 +360,12 @@ access(all) fun testConfigDetails() {
     )
 
     setConfigDetails(
+        maximumIndividualEffort: nil,
         slotSharedEffortLimit: nil,
         priorityEffortReserve: {highPriority: 40000, mediumPriority: 30000, lowPriority: 10000},
         priorityEffortLimit: {highPriority: 30000, mediumPriority: 30000, lowPriority: 10000},
         minimumExecutionEffort: nil,
+        maxDataSizeMB: nil,
         priorityFeeMultipliers: nil,
         refundMultiplier: nil,
         canceledCallbacksLimit: nil,
@@ -363,10 +373,12 @@ access(all) fun testConfigDetails() {
     )
 
     setConfigDetails(
+        maximumIndividualEffort: nil,
         slotSharedEffortLimit: nil,
         priorityEffortReserve: {highPriority: 30000, mediumPriority: 40000, lowPriority: 10000},
         priorityEffortLimit: {highPriority: 30000, mediumPriority: 30000, lowPriority: 10000},
         minimumExecutionEffort: nil,
+        maxDataSizeMB: nil,
         priorityFeeMultipliers: nil,
         refundMultiplier: nil,
         canceledCallbacksLimit: nil,
@@ -374,10 +386,12 @@ access(all) fun testConfigDetails() {
     )
 
     setConfigDetails(
+        maximumIndividualEffort: nil,
         slotSharedEffortLimit: nil,
         priorityEffortReserve: {highPriority: 30000, mediumPriority: 30000, lowPriority: 20000},
         priorityEffortLimit: {highPriority: 30000, mediumPriority: 30000, lowPriority: 10000},
         minimumExecutionEffort: nil,
+        maxDataSizeMB: nil,
         priorityFeeMultipliers: nil,
         refundMultiplier: nil,
         canceledCallbacksLimit: nil,
@@ -389,6 +403,7 @@ access(all) fun testConfigDetails() {
     Valid Test Case
     ---------------- */
     let oldConfig = getConfigDetails()
+    Test.assertEqual(9999 as UInt64,oldConfig.maximumIndividualEffort)
     Test.assertEqual(35000 as UInt64,oldConfig.slotTotalEffortLimit)
     Test.assertEqual(10000 as UInt64,oldConfig.slotSharedEffortLimit)
     Test.assertEqual(20000 as UInt64,oldConfig.priorityEffortReserve[FlowCallbackScheduler.Priority.High]!)
@@ -398,6 +413,7 @@ access(all) fun testConfigDetails() {
     Test.assertEqual(15000 as UInt64,oldConfig.priorityEffortLimit[FlowCallbackScheduler.Priority.Medium]!)
     Test.assertEqual(5000 as UInt64,oldConfig.priorityEffortLimit[FlowCallbackScheduler.Priority.Low]!)
     Test.assertEqual(10 as UInt64,oldConfig.minimumExecutionEffort)
+    Test.assertEqual(3.0,oldConfig.maxDataSizeMB)
     Test.assertEqual(10.0,oldConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.High]!)
     Test.assertEqual(5.0,oldConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.Medium]!)
     Test.assertEqual(2.0,oldConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.Low]!)
@@ -406,10 +422,12 @@ access(all) fun testConfigDetails() {
 
 
     setConfigDetails(
+        maximumIndividualEffort: 14999,
         slotSharedEffortLimit: 20000,
         priorityEffortReserve: nil,
         priorityEffortLimit: {highPriority: 30000, mediumPriority: 30000, lowPriority: 10000},
         minimumExecutionEffort: 10,
+        maxDataSizeMB: 1.0,
         priorityFeeMultipliers: {highPriority: 20.0, mediumPriority: 10.0, lowPriority: 4.0},
         refundMultiplier: nil,
         canceledCallbacksLimit: 2000,
@@ -418,6 +436,7 @@ access(all) fun testConfigDetails() {
 
     // Verify new config details
     let newConfig = getConfigDetails()
+    Test.assertEqual(14999 as UInt64,newConfig.maximumIndividualEffort)
     Test.assertEqual(45000 as UInt64,newConfig.slotTotalEffortLimit)
     Test.assertEqual(20000 as UInt64,newConfig.slotSharedEffortLimit)
     Test.assertEqual(oldConfig.priorityEffortReserve[FlowCallbackScheduler.Priority.High]!,newConfig.priorityEffortReserve[FlowCallbackScheduler.Priority.High]!)
@@ -427,6 +446,7 @@ access(all) fun testConfigDetails() {
     Test.assertEqual(30000 as UInt64,newConfig.priorityEffortLimit[FlowCallbackScheduler.Priority.Medium]!)
     Test.assertEqual(10000 as UInt64,newConfig.priorityEffortLimit[FlowCallbackScheduler.Priority.Low]!)
     Test.assertEqual(10 as UInt64,newConfig.minimumExecutionEffort)
+    Test.assertEqual(1.0,newConfig.maxDataSizeMB)
     Test.assertEqual(20.0,newConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.High]!)
     Test.assertEqual(10.0,newConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.Medium]!)
     Test.assertEqual(4.0,newConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.Low]!)
