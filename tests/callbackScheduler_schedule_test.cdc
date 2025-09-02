@@ -6,8 +6,6 @@ import "TestFlowCallbackHandler"
 
 import "callback_test_helpers.cdc"
 
-access(all) let testInterval = UFix64(5.0)
-
 access(all)
 fun setup() {
 
@@ -227,12 +225,12 @@ access(all) fun testScheduleAndEffortUsed() {
     let testCases: [ScheduleAndEffortUsedTestCase] = [
         // Low priority only test cases
         ScheduleAndEffortUsedTestCase(
-            name: "Low priority: Zero fees and zeroeffort fails with no effort used",
+            name: "Low priority: Zero fees and zero effort fails with no effort used",
             callbacks: [
                 Callback(
                     requestedDelta: futureDelta,
                     priority: highPriority,
-                    executionEffort: basicEffort,
+                    executionEffort: 1000,
                     data: testData,
                     fees: 0.0,
                     failWithErr: "Insufficient fees: The Fee balance of 0.00000000 is not sufficient to pay the required amount of 0.00010000 for execution of the callback."
@@ -332,7 +330,7 @@ access(all) fun testScheduleAndEffortUsed() {
                     executionEffort: lowPriorityMaxEffort + 1,
                     data: testData,
                     fees: feeAmount,
-                    failWithErr: "Invalid execution effort: \(lowPriorityMaxEffort + 1) is greater than the priority's max effort of 5000"
+                    failWithErr: "Invalid execution effort: 5001 is greater than the priority's max effort of 5000"
                 )
             ],
             callbacksIndicesToCancel: [],
@@ -428,7 +426,7 @@ access(all) fun testScheduleAndEffortUsed() {
                 Callback(
                     requestedDelta: futureDelta,
                     priority: mediumPriority,
-                    executionEffort: mediumPriorityMaxEffort,
+                    executionEffort: maxEffort,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
@@ -436,7 +434,7 @@ access(all) fun testScheduleAndEffortUsed() {
                 Callback(
                     requestedDelta: futureDelta,
                     priority: mediumPriority,
-                    executionEffort: 10,
+                    executionEffort: maxEffort,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
@@ -445,13 +443,13 @@ access(all) fun testScheduleAndEffortUsed() {
             callbacksIndicesToCancel: [],
             expectedAvailableEfforts: {
                 futureDelta: {
-                    highPriority: highPriorityMaxEffort - sharedEffortLimit,
-                    mediumPriority: 0,
+                    highPriority: highPriorityMaxEffort - 4999,
+                    mediumPriority: mediumPriorityMaxEffort - maxEffort,
                     lowPriority: lowPriorityMaxEffort
                 },
                 futureDelta + 1.0: {
-                    highPriority: highPriorityMaxEffort,
-                    mediumPriority: mediumPriorityMaxEffort - 10,
+                    highPriority: highPriorityMaxEffort - 4999,
+                    mediumPriority: mediumPriorityMaxEffort - maxEffort,
                     lowPriority: lowPriorityMaxEffort
                 }
             },
@@ -467,10 +465,10 @@ access(all) fun testScheduleAndEffortUsed() {
                 Callback(
                     requestedDelta: futureDelta,
                     priority: mediumPriority,
-                    executionEffort: mediumPriorityMaxEffort + 1,
+                    executionEffort: maxEffort + 1,
                     data: testData,
                     fees: feeAmount,
-                    failWithErr: "Invalid execution effort: \(mediumPriorityMaxEffort + 1) is greater than the priority's max effort of 15000"
+                    failWithErr: "Invalid execution effort: \(maxEffort + 1) is greater than the maximum callback effort of 9999"
                 )
             ],
             callbacksIndicesToCancel: [],
@@ -566,7 +564,7 @@ access(all) fun testScheduleAndEffortUsed() {
                 Callback(
                     requestedDelta: futureDelta,
                     priority: highPriority,
-                    executionEffort: highPriorityMaxEffort,
+                    executionEffort: maxEffort,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
@@ -574,17 +572,33 @@ access(all) fun testScheduleAndEffortUsed() {
                 Callback(
                     requestedDelta: futureDelta,
                     priority: highPriority,
-                    executionEffort: 10,
+                    executionEffort: maxEffort,
                     data: testData,
                     fees: feeAmount,
-                    failWithErr: "Invalid execution effort: 10 is greater than the priority's available effort for the requested timestamp."
+                    failWithErr: nil
+                ),
+                Callback(
+                    requestedDelta: futureDelta,
+                    priority: highPriority,
+                    executionEffort: maxEffort,
+                    data: testData,
+                    fees: feeAmount,
+                    failWithErr: nil
+                ),
+                Callback(
+                    requestedDelta: futureDelta,
+                    priority: highPriority,
+                    executionEffort: maxEffort,
+                    data: testData,
+                    fees: feeAmount,
+                    failWithErr: "Invalid execution effort: \(maxEffort) is greater than the priority's available effort for the requested timestamp."
                 )
             ],
             callbacksIndicesToCancel: [],
             expectedAvailableEfforts: {
                 futureDelta: {
-                    highPriority: 0,
-                    mediumPriority: mediumPriorityEffortReserve,
+                    highPriority: highPriorityMaxEffort - 3*maxEffort,
+                    mediumPriority: mediumPriorityEffortReserve + 3,
                     lowPriority: lowPriorityMaxEffort
                 },
                 futureDelta + 1.0: {
@@ -594,8 +608,8 @@ access(all) fun testScheduleAndEffortUsed() {
                 }
             },
             expectedPendingQueues: {
-                futureDelta: [1],
-                futureDelta + 1.0: [1]
+                futureDelta: [1,2,3],
+                futureDelta + 1.0: [1,2,3]
             },
             expectedPendingQueueAfterExecution: []
         ),
@@ -605,10 +619,10 @@ access(all) fun testScheduleAndEffortUsed() {
                 Callback(
                     requestedDelta: futureDelta,
                     priority: highPriority,
-                    executionEffort: highPriorityMaxEffort + 1,
+                    executionEffort: maxEffort + 1,
                     data: testData,
                     fees: feeAmount,
-                    failWithErr: "Invalid execution effort: \(highPriorityMaxEffort + 1) is greater than the priority's max effort of 30000"
+                    failWithErr: "Invalid execution effort: \(maxEffort + 1) is greater than the maximum callback effort of 9999"
                 )
             ],
             callbacksIndicesToCancel: [],
@@ -633,7 +647,7 @@ access(all) fun testScheduleAndEffortUsed() {
                 Callback(
                     requestedDelta: futureDelta + 1.0,
                     priority: highPriority,
-                    executionEffort: highPriorityMaxEffort,
+                    executionEffort: 8000,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
@@ -647,8 +661,8 @@ access(all) fun testScheduleAndEffortUsed() {
                     lowPriority: lowPriorityMaxEffort
                 },
                 futureDelta + 1.0: {
-                    highPriority: 0,
-                    mediumPriority: mediumPriorityEffortReserve,
+                    highPriority: highPriorityMaxEffort - 8000,
+                    mediumPriority: mediumPriorityMaxEffort,
                     lowPriority: lowPriorityMaxEffort
                 }
             },
@@ -661,12 +675,36 @@ access(all) fun testScheduleAndEffortUsed() {
         
         // Mixed priority test cases - testing shared limit usage
         ScheduleAndEffortUsedTestCase(
-            name: "Mixed priorities: High priority uses shared limit, medium priority uses reserve",
+            name: "Mixed priorities: High priorities use shared limit, medium priority uses reserve",
             callbacks: [
                 Callback(
                     requestedDelta: futureDelta,
                     priority: highPriority,
-                    executionEffort: highPriorityMaxEffort,
+                    executionEffort: 9000,
+                    data: testData,
+                    fees: feeAmount,
+                    failWithErr: nil
+                ),
+                Callback(
+                    requestedDelta: futureDelta,
+                    priority: highPriority,
+                    executionEffort: 9000,
+                    data: testData,
+                    fees: feeAmount,
+                    failWithErr: nil
+                ),
+                Callback(
+                    requestedDelta: futureDelta,
+                    priority: highPriority,
+                    executionEffort: 9000,
+                    data: testData,
+                    fees: feeAmount,
+                    failWithErr: nil
+                ),
+                Callback(
+                    requestedDelta: futureDelta,
+                    priority: highPriority,
+                    executionEffort: 3000,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
@@ -718,8 +756,8 @@ access(all) fun testScheduleAndEffortUsed() {
                 }
             },
             expectedPendingQueues: {
-                futureDelta: [1,2],
-                futureDelta + 1.0: [1,2,3,4]
+                futureDelta: [1,2,3,4,5],
+                futureDelta + 1.0: [1,2,3,4,5,6,7]
             },
             expectedPendingQueueAfterExecution: []
         ),
@@ -729,7 +767,15 @@ access(all) fun testScheduleAndEffortUsed() {
                 Callback(
                     requestedDelta: futureDelta,
                     priority: mediumPriority,
-                    executionEffort: mediumPriorityMaxEffort,
+                    executionEffort: 9000,
+                    data: testData,
+                    fees: feeAmount,
+                    failWithErr: nil
+                ),
+                Callback(
+                    requestedDelta: futureDelta,
+                    priority: mediumPriority,
+                    executionEffort: 6000,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
@@ -737,15 +783,31 @@ access(all) fun testScheduleAndEffortUsed() {
                 Callback(
                     requestedDelta: futureDelta,
                     priority: highPriority,
-                    executionEffort: highPriorityEffortReserve + 1,
+                    executionEffort: 9000,
                     data: testData,
                     fees: feeAmount,
-                    failWithErr: "Invalid execution effort: 20001 is greater than the priority's available effort for the requested timestamp."
+                    failWithErr: nil
                 ),
                 Callback(
                     requestedDelta: futureDelta,
                     priority: highPriority,
-                    executionEffort: highPriorityEffortReserve,
+                    executionEffort: 9000,
+                    data: testData,
+                    fees: feeAmount,
+                    failWithErr: nil
+                ),
+                Callback(
+                    requestedDelta: futureDelta,
+                    priority: highPriority,
+                    executionEffort: 2001,
+                    data: testData,
+                    fees: feeAmount,
+                    failWithErr: "Invalid execution effort: 2001 is greater than the priority's available effort for the requested timestamp."
+                ),
+                Callback(
+                    requestedDelta: futureDelta,
+                    priority: highPriority,
+                    executionEffort: 2000,
                     data: testData,
                     fees: feeAmount,    
                     failWithErr: nil
@@ -760,22 +822,17 @@ access(all) fun testScheduleAndEffortUsed() {
                 }
             },
             expectedPendingQueues: {
-                futureDelta: [1,2],
-                futureDelta + 1.0: [1,2]
+                futureDelta: [1,2,3,4,5],
+                futureDelta + 1.0: [1,2,3,4,5]
             },
             expectedPendingQueueAfterExecution: []
         ),
         ScheduleAndEffortUsedTestCase(
             name: "Mixed priorities: High and medium use most of shared limit, low priority fits in remaining but doesn't use the high or medium effort",
             callbacks: [
-                Callback(
-                    requestedDelta: futureDelta,
-                    priority: highPriority,
-                    executionEffort: highPriorityEffortReserve + 4000,
-                    data: testData,
-                    fees: feeAmount,
-                    failWithErr: nil
-                ),
+                highCallbackWith8000Effort,
+                highCallbackWith8000Effort,
+                highCallbackWith8000Effort,
                 Callback(
                     requestedDelta: futureDelta,
                     priority: mediumPriority,
@@ -823,8 +880,8 @@ access(all) fun testScheduleAndEffortUsed() {
                 }
             },
             expectedPendingQueues: {
-                futureDelta: [1,2,5],
-                futureDelta + 1.0: [1,2,3,4,5]
+                futureDelta: [1,2,3,4,7],
+                futureDelta + 1.0: [1,2,3,4,5,6,7]
             },
             expectedPendingQueueAfterExecution: []
         ),
@@ -844,7 +901,23 @@ access(all) fun testScheduleAndEffortUsed() {
                 Callback(
                     requestedDelta: futureDelta,
                     priority: highPriority,
-                    executionEffort: highPriorityMaxEffort,
+                    executionEffort: 9000,
+                    data: testData,
+                    fees: feeAmount,
+                    failWithErr: nil
+                ),
+                Callback(
+                    requestedDelta: futureDelta,
+                    priority: highPriority,
+                    executionEffort: 9000,
+                    data: testData,
+                    fees: feeAmount,
+                    failWithErr: nil
+                ),
+                Callback(
+                    requestedDelta: futureDelta,
+                    priority: highPriority,
+                    executionEffort: 9000,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
@@ -852,7 +925,7 @@ access(all) fun testScheduleAndEffortUsed() {
                 Callback(
                     requestedDelta: futureDelta,
                     priority: mediumPriority,
-                    executionEffort: lowPriorityMaxEffort,
+                    executionEffort: 8000,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
@@ -872,8 +945,8 @@ access(all) fun testScheduleAndEffortUsed() {
                 }
             },
             expectedPendingQueues: {
-                futureDelta: [2,3],
-                futureDelta + 1.0: [1,2,3]
+                futureDelta: [2,3,4,5],
+                futureDelta + 1.0: [1,2,3,4,5]
             },
             expectedPendingQueueAfterExecution: []
         ),
@@ -896,10 +969,13 @@ access(all) fun testScheduleAndEffortUsed() {
                     fees: feeAmount,
                     failWithErr: nil
                 ),
+                highCallbackWith8000Effort,
+                highCallbackWith8000Effort,
+                highCallbackWith8000Effort,
                 Callback(
                     requestedDelta: futureDelta,
                     priority: highPriority,
-                    executionEffort: highPriorityMaxEffort,
+                    executionEffort: 6000,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
@@ -927,8 +1003,8 @@ access(all) fun testScheduleAndEffortUsed() {
                 }
             },
             expectedPendingQueues: {
-                futureDelta: [1,3,4],
-                futureDelta + 1.0: [1,2,3,4]
+                futureDelta: [1,3,4,5,6,7],
+                futureDelta + 1.0: [1,2,3,4,5,6,7]
             },
             expectedPendingQueueAfterExecution: []
         ),
@@ -954,7 +1030,15 @@ access(all) fun testScheduleAndEffortUsed() {
                 Callback(
                     requestedDelta: futureDelta,
                     priority: mediumPriority,
-                    executionEffort: mediumPriorityMaxEffort,
+                    executionEffort: 8000,
+                    data: testData,
+                    fees: feeAmount,
+                    failWithErr: nil
+                ),
+                Callback(
+                    requestedDelta: futureDelta,
+                    priority: mediumPriority,
+                    executionEffort: 7000,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
@@ -962,7 +1046,31 @@ access(all) fun testScheduleAndEffortUsed() {
                 Callback(
                     requestedDelta: futureDelta + 1.0,
                     priority: highPriority,
-                    executionEffort: highPriorityMaxEffort,
+                    executionEffort: 8000,
+                    data: testData,
+                    fees: feeAmount,
+                    failWithErr: nil
+                ),
+                Callback(
+                    requestedDelta: futureDelta + 1.0,
+                    priority: highPriority,
+                    executionEffort: 8000,
+                    data: testData,
+                    fees: feeAmount,
+                    failWithErr: nil
+                ),
+                Callback(
+                    requestedDelta: futureDelta + 1.0,
+                    priority: highPriority,
+                    executionEffort: 8000,
+                    data: testData,
+                    fees: feeAmount,
+                    failWithErr: nil
+                ),
+                Callback(
+                    requestedDelta: futureDelta + 1.0,
+                    priority: highPriority,
+                    executionEffort: 6000,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
@@ -975,11 +1083,19 @@ access(all) fun testScheduleAndEffortUsed() {
                     fees: feeAmount,
                     failWithErr: nil
                 ),
-                // Should push 1 and 2 to the next two timestamps
                 Callback(
                     requestedDelta: futureDelta,
                     priority: highPriority,
-                    executionEffort: highPriorityEffortReserve - 1000,
+                    executionEffort: 9500,
+                    data: testData,
+                    fees: feeAmount,
+                    failWithErr: nil
+                ),
+                // Should push 1 and 2 to the next two timestamps
+                 Callback(
+                    requestedDelta: futureDelta,
+                    priority: highPriority,
+                    executionEffort: 9500,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
@@ -1004,12 +1120,13 @@ access(all) fun testScheduleAndEffortUsed() {
                 }
             },
             expectedPendingQueues: {
-                futureDelta: [3,6],
-                futureDelta + 1.0: [2,3,4,5,6],
-                futureDelta + 2.0: [1,2,3,4,5,6]
+                futureDelta: [3,4,10,11],
+                futureDelta + 1.0: [2,3,4,5,6,7,8,9,10,11],
+                futureDelta + 2.0: [1,2,3,4,5,6,7,8,9,10,11]
             },
             expectedPendingQueueAfterExecution: []
         ),
+        // Self-canceling callback test case
         ScheduleAndEffortUsedTestCase(
             name: "Cancel Tests: Callback tries to cancel itself during execution: Should fail",
             callbacks: [
@@ -1035,7 +1152,6 @@ access(all) fun testScheduleAndEffortUsed() {
             },
             expectedPendingQueueAfterExecution: []
         ),
-        // Self-canceling callback test cases
         ScheduleAndEffortUsedTestCase(
             name: "Cancel Tests: High priority callback canceled after scheduling",
             callbacks: [
@@ -1238,10 +1354,13 @@ access(all) fun testScheduleAndEffortUsed() {
                     fees: feeAmount,
                     failWithErr: nil
                 ),
+                highCallbackWith8000Effort,
+                highCallbackWith8000Effort,
+                highCallbackWith8000Effort,
                 Callback(
                     requestedDelta: futureDelta,
                     priority: highPriority,
-                    executionEffort: highPriorityMaxEffort,
+                    executionEffort: 6000,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
@@ -1269,8 +1388,8 @@ access(all) fun testScheduleAndEffortUsed() {
                 }
             },
             expectedPendingQueues: {
-                futureDelta: [2,3],
-                futureDelta + 1.0: [2,3]
+                futureDelta: [2,3,4,5,6],
+                futureDelta + 1.0: [2,3,4,5,6]
             },
             expectedPendingQueueAfterExecution: []
         ),
