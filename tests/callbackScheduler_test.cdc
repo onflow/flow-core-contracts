@@ -120,7 +120,7 @@ access(all) struct EstimateTestCase {
 
 access(all) fun testEstimate() {
 
-    let currentTime = getTimestamp()
+    let currentTime = getCurrentBlock().timestamp
     let futureTime = currentTime + 100.0
     let pastTime = currentTime - 100.0
     let farFutureTime = currentTime + 10000.0
@@ -147,17 +147,16 @@ access(all) fun testEstimate() {
             expectedTimestamp: nil,
             expectedError: "Invalid timestamp: \(pastTime) is in the past, current timestamp: "
         ),
-        // TODO: Add back in when we have a more stable clock to test current timestamp
-        // EstimateTestCase(
-        //     name: "Current timestamp returns error",
-        //     timestamp: currentTime,
-        //     priority: FlowCallbackScheduler.Priority.Medium,
-        //     executionEffort: 1000,
-        //     data: nil,
-        //     expectedFee: nil,
-        //     expectedTimestamp: nil,
-        //     expectedError: "Invalid timestamp: \(currentTime) is in the past, current timestamp: "
-        // ),
+        EstimateTestCase(
+            name: "Current timestamp returns error",
+            timestamp: currentTime,
+            priority: FlowCallbackScheduler.Priority.Medium,
+            executionEffort: 1000,
+            data: nil,
+            expectedFee: nil,
+            expectedTimestamp: nil,
+            expectedError: "Invalid timestamp: \(currentTime) is in the past, current timestamp: "
+        ),
         EstimateTestCase(
             name: "Zero execution effort returns error",
             timestamp: futureTime + 7.0,
