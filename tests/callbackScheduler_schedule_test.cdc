@@ -128,7 +128,7 @@ access(all) fun runScheduleAndEffortUsedTestCase(testCase: ScheduleAndEffortUsed
         }
     }
 
-    Test.moveTime(by: Fix64(futureDelta-5.0))
+    Test.moveTime(by: Fix64(futureDelta-30.0))
 
     let sortedTimestamps = FlowCallbackScheduler.SortedTimestamps()
     for delta in testCase.expectedPendingQueues.keys {
