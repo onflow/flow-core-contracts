@@ -27,7 +27,10 @@ access(all) let highPriorityEffortReserve: UInt64 = 20000
 access(all) let mediumPriorityEffortReserve: UInt64 = 5000
 access(all) let sharedEffortLimit: UInt64 = 10000
 
-access(all) let collectionTransactionsLimit: Int = 90
+access(all) let canceledCallbacksLimit: UInt = 1000
+
+access(all) let collectionTransactionsLimit: Int = 100
+access(all) let collectionEffortLimit: UInt64 = 500000
 
 access(all) let testData = "test data"
 access(all) let failTestData = "fail"
