@@ -462,9 +462,9 @@ access(all) fun testConfigDetails() {
     Test.assertEqual(5.0,oldConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.Medium]!)
     Test.assertEqual(2.0,oldConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.Low]!)
     Test.assertEqual(0.5,oldConfig.refundMultiplier)
-    Test.assertEqual(720 as UInt,oldConfig.canceledCallbacksLimit) // 30 days with 1 per hour
-    Test.assertEqual(8000000 as UInt64,oldConfig.collectionEffortLimit)
-    Test.assertEqual(90 as Int,oldConfig.collectionTransactionsLimit)
+    Test.assertEqual(1000 as UInt,oldConfig.canceledCallbacksLimit)
+    Test.assertEqual(500000 as UInt64,oldConfig.collectionEffortLimit)
+    Test.assertEqual(100 as Int,oldConfig.collectionTransactionsLimit)
 
 
     setConfigDetails(
@@ -477,7 +477,7 @@ access(all) fun testConfigDetails() {
         priorityFeeMultipliers: {highPriority: 20.0, mediumPriority: 10.0, lowPriority: 4.0},
         refundMultiplier: nil,
         canceledCallbacksLimit: 2000,
-        collectionEffortLimit: 8000000,
+        collectionEffortLimit: 800000,
         collectionTransactionsLimit: 90,
         shouldFail: nil
     )
@@ -500,7 +500,7 @@ access(all) fun testConfigDetails() {
     Test.assertEqual(4.0,newConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.Low]!)
     Test.assertEqual(oldConfig.refundMultiplier,newConfig.refundMultiplier)
     Test.assertEqual(2000 as UInt,newConfig.canceledCallbacksLimit)
-    Test.assertEqual(8000000 as UInt64,newConfig.collectionEffortLimit)
+    Test.assertEqual(800000 as UInt64,newConfig.collectionEffortLimit)
     Test.assertEqual(90 as Int,newConfig.collectionTransactionsLimit)
 }
 

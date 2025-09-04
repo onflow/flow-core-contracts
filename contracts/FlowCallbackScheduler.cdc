@@ -95,6 +95,12 @@ access(all) contract FlowCallbackScheduler {
         callbackDescription: String
     )
 
+    /// Emitted when a collection limit is reached
+    access(all) event CollectionLimitReached(
+        collectionEffortLimit: UInt64?,
+        collectionTransactionsLimit: Int?
+    )
+
     // Emitted when one or more of the configuration details fields are updated
     // Event listeners can listen to this and query the new configuration
     // if they need to
@@ -555,9 +561,9 @@ access(all) contract FlowCallbackScheduler {
                     Priority.Low: 2.0
                 },
                 refundMultiplier: 0.5,
-                canceledCallbacksLimit: 30 * 24, // 30 days with 1 per hour
-                collectionEffortLimit: 8_000_000, // Maximum effort for all callbacks in a collection
-                collectionTransactionsLimit: 90 // Maximum number of callbacks in a collection
+                canceledCallbacksLimit: 1000,
+                collectionEffortLimit: 500_000, // Maximum effort for all callbacks in a collection
+                collectionTransactionsLimit: 100 // Maximum number of callbacks in a collection
             )
         }
 
@@ -1147,7 +1153,11 @@ access(all) contract FlowCallbackScheduler {
                         }
 
                         // this is safeguard to prevent collection growing too large in case of block production slowdown
-                        if totalAvailableEffort.saturatingSubtract(callback.executionEffort) == 0 || totalTransactionsLimit - 1 < 0 {
+                        if totalAvailableEffort.saturatingSubtract(callback.executionEffort) == 0 || totalTransactionsLimit == 0 {
+                            emit CollectionLimitReached(
+                                collectionEffortLimit: totalTransactionsLimit == 0 ? nil : self.configurationDetails.collectionEffortLimit,
+                                collectionTransactionsLimit: totalTransactionsLimit == 0 ? self.configurationDetails.collectionTransactionsLimit : nil
+                            )
                             break
                         }
 
