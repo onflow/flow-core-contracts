@@ -121,14 +121,14 @@ access(all) contract FlowCallbackScheduler {
         access(Execute) fun executeCallback(id: UInt64, data: AnyStruct?)
 
         /// Gets a human readable name for the callback handler
-        access(all) fun getName(): String {
+        access(all) view fun getName(): String {
             post {
                 result.length < 40: "Callback handler name must be less than 40 characters"
             }
         }
 
         /// Gets a human readable description for the callback handler
-        access(all) fun getDescription(): String {
+        access(all) view fun getDescription(): String {
             post {
                 result.length < 200: "Callback handler description must be less than 200 characters"
             }
@@ -321,6 +321,12 @@ access(all) contract FlowCallbackScheduler {
         ///to keep in the canceledCallbacks array
         access(all) var canceledCallbacksLimit: UInt
 
+        /// collectionEffortLimit is the maximum effort that can be used for all callbacks in a collection
+        access(all) var collectionEffortLimit: UInt64
+
+        /// collectionTransactionsLimit is the maximum number of callbacks that can be processed in a collection
+        access(all) var collectionTransactionsLimit: Int
+
         access(all) init(
             maximumIndividualEffort: UInt64,
             slotSharedEffortLimit: UInt64,
@@ -330,7 +336,9 @@ access(all) contract FlowCallbackScheduler {
             maxDataSizeMB: UFix64,
             priorityFeeMultipliers: {Priority: UFix64},
             refundMultiplier: UFix64,
-            canceledCallbacksLimit: UInt
+            canceledCallbacksLimit: UInt,
+            collectionEffortLimit: UInt64,
+            collectionTransactionsLimit: Int
         ) {
             pre {
                 refundMultiplier >= 0.0 && refundMultiplier <= 1.0:
@@ -347,6 +355,12 @@ access(all) contract FlowCallbackScheduler {
                     "Invalid priority effort limit: Medium priority effort limit must be greater than or equal to the priority effort reserve of \(priorityEffortReserve[Priority.Medium]!)"
                 priorityEffortLimit[Priority.Low]! >= priorityEffortReserve[Priority.Low]!:
                     "Invalid priority effort limit: Low priority effort limit must be greater than or equal to the priority effort reserve of \(priorityEffortReserve[Priority.Low]!)"
+                collectionTransactionsLimit > 0:
+                    "Invalid collection transactions limit: Collection transactions limit must be greater than 0 but got \(collectionTransactionsLimit)"
+            }
+            post {
+                self.collectionEffortLimit > self.slotTotalEffortLimit:
+                    "Invalid collection effort limit: Collection effort limit must be greater than \(self.slotTotalEffortLimit) but got \(self.collectionEffortLimit)"
             }
         }
     }
@@ -364,6 +378,8 @@ access(all) contract FlowCallbackScheduler {
         access(all) var priorityFeeMultipliers: {Priority: UFix64}
         access(all) var refundMultiplier: UFix64
         access(all) var canceledCallbacksLimit: UInt
+        access(all) var collectionEffortLimit: UInt64
+        access(all) var collectionTransactionsLimit: Int
 
         access(all) init(   
             maximumIndividualEffort: UInt64,
@@ -374,7 +390,9 @@ access(all) contract FlowCallbackScheduler {
             maxDataSizeMB: UFix64,
             priorityFeeMultipliers: {Priority: UFix64},
             refundMultiplier: UFix64,
-            canceledCallbacksLimit: UInt
+            canceledCallbacksLimit: UInt,
+            collectionEffortLimit: UInt64,
+            collectionTransactionsLimit: Int
         ) {
             self.maximumIndividualEffort = maximumIndividualEffort
             self.slotTotalEffortLimit = slotSharedEffortLimit + priorityEffortReserve[Priority.High]! + priorityEffortReserve[Priority.Medium]!
@@ -386,6 +404,8 @@ access(all) contract FlowCallbackScheduler {
             self.priorityFeeMultipliers = priorityFeeMultipliers
             self.refundMultiplier = refundMultiplier
             self.canceledCallbacksLimit = canceledCallbacksLimit
+            self.collectionEffortLimit = collectionEffortLimit
+            self.collectionTransactionsLimit = collectionTransactionsLimit
         }
     }
 
@@ -535,7 +555,9 @@ access(all) contract FlowCallbackScheduler {
                     Priority.Low: 2.0
                 },
                 refundMultiplier: 0.5,
-                canceledCallbacksLimit: 30 * 24 // 30 days with 1 per hour
+                canceledCallbacksLimit: 30 * 24, // 30 days with 1 per hour
+                collectionEffortLimit: 8_000_000, // Maximum effort for all callbacks in a collection
+                collectionTransactionsLimit: 90 // Maximum number of callbacks in a collection
             )
         }
 
@@ -1100,6 +1122,10 @@ access(all) contract FlowCallbackScheduler {
                 return []
             }
 
+            // total effort across different timestamps guards collection being over the effort limit
+            var totalAvailableEffort = self.configurationDetails.collectionEffortLimit
+            var totalTransactionsLimit = self.configurationDetails.collectionTransactionsLimit
+
             // Collect past timestamps efficiently from sorted array
             let pastTimestamps = self.sortedTimestamps.getBefore(current: currentTimestamp)
 
@@ -1119,6 +1145,14 @@ access(all) contract FlowCallbackScheduler {
                         if callback.status != Status.Scheduled {
                             continue
                         }
+
+                        // this is safeguard to prevent collection growing too large in case of block production slowdown
+                        if totalAvailableEffort.saturatingSubtract(callback.executionEffort) == 0 || totalTransactionsLimit - 1 < 0 {
+                            break
+                        }
+
+                        totalAvailableEffort = totalAvailableEffort.saturatingSubtract(callback.executionEffort)
+                        totalTransactionsLimit = totalTransactionsLimit - 1
                     
                         switch callback.priority {
                             case Priority.High:

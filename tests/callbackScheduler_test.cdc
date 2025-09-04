@@ -317,6 +317,8 @@ access(all) fun testConfigDetails() {
         priorityFeeMultipliers: nil,
         refundMultiplier: 1.1,
         canceledCallbacksLimit: nil,
+        collectionEffortLimit: nil,
+        collectionTransactionsLimit: nil,
         shouldFail: "Invalid refund multiplier: The multiplier must be between 0.0 and 1.0 but got 1.10000000"
     )
 
@@ -330,6 +332,8 @@ access(all) fun testConfigDetails() {
         priorityFeeMultipliers: {highPriority: 20.0, mediumPriority: 10.0, lowPriority: 0.9},
         refundMultiplier: nil,
         canceledCallbacksLimit: nil,
+        collectionEffortLimit: nil,
+        collectionTransactionsLimit: nil,
         shouldFail: "Invalid priority fee multiplier: Low priority multiplier must be greater than or equal to 1.0 but got 0.90000000"
     )
 
@@ -343,6 +347,8 @@ access(all) fun testConfigDetails() {
         priorityFeeMultipliers: {highPriority: 20.0, mediumPriority: 3.0, lowPriority: 4.0},
         refundMultiplier: nil,
         canceledCallbacksLimit: nil,
+        collectionEffortLimit: nil,
+        collectionTransactionsLimit: nil,
         shouldFail: "Invalid priority fee multiplier: Medium priority multiplier must be greater than or equal to 4.00000000 but got 3.00000000"
     )
 
@@ -356,6 +362,8 @@ access(all) fun testConfigDetails() {
         priorityFeeMultipliers: {highPriority: 5.0, mediumPriority: 6.0, lowPriority: 4.0},
         refundMultiplier: nil,
         canceledCallbacksLimit: nil,
+        collectionEffortLimit: nil,
+        collectionTransactionsLimit: nil,
         shouldFail: "Invalid priority fee multiplier: High priority multiplier must be greater than or equal to 6.00000000 but got 5.00000000"
     )
 
@@ -369,6 +377,8 @@ access(all) fun testConfigDetails() {
         priorityFeeMultipliers: nil,
         refundMultiplier: nil,
         canceledCallbacksLimit: nil,
+        collectionEffortLimit: nil,
+        collectionTransactionsLimit: nil,
         shouldFail: "Invalid priority effort limit: High priority effort limit must be greater than or equal to the priority effort reserve of 40000"
     )
 
@@ -382,6 +392,8 @@ access(all) fun testConfigDetails() {
         priorityFeeMultipliers: nil,
         refundMultiplier: nil,
         canceledCallbacksLimit: nil,
+        collectionEffortLimit: nil,
+        collectionTransactionsLimit: nil,
         shouldFail: "Invalid priority effort limit: Medium priority effort limit must be greater than or equal to the priority effort reserve of 40000"
     )
 
@@ -395,7 +407,39 @@ access(all) fun testConfigDetails() {
         priorityFeeMultipliers: nil,
         refundMultiplier: nil,
         canceledCallbacksLimit: nil,
+        collectionEffortLimit: nil,
+        collectionTransactionsLimit: nil,
         shouldFail: "Invalid priority effort limit: Low priority effort limit must be greater than or equal to the priority effort reserve of 20000"
+    )
+
+    setConfigDetails(
+        maximumIndividualEffort: nil,
+        slotSharedEffortLimit: nil,
+        priorityEffortReserve: nil,
+        priorityEffortLimit: nil,
+        minimumExecutionEffort: nil,
+        maxDataSizeMB: nil,
+        priorityFeeMultipliers: nil,
+        refundMultiplier: nil,
+        canceledCallbacksLimit: nil,
+        collectionEffortLimit: 30000 as UInt64,
+        collectionTransactionsLimit: nil,
+        shouldFail: "Invalid collection effort limit: Collection effort limit must be greater than 35000 but got 30000"
+    )
+
+    setConfigDetails(
+        maximumIndividualEffort: nil,
+        slotSharedEffortLimit: nil,
+        priorityEffortReserve: nil,
+        priorityEffortLimit: nil,
+        minimumExecutionEffort: nil,
+        maxDataSizeMB: nil,
+        priorityFeeMultipliers: nil,
+        refundMultiplier: nil,
+        canceledCallbacksLimit: nil,
+        collectionEffortLimit: nil,
+        collectionTransactionsLimit: 0,
+        shouldFail: "Invalid collection transactions limit: Collection transactions limit must be greater than 0 but got 0"
     )
 
 
@@ -419,6 +463,8 @@ access(all) fun testConfigDetails() {
     Test.assertEqual(2.0,oldConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.Low]!)
     Test.assertEqual(0.5,oldConfig.refundMultiplier)
     Test.assertEqual(720 as UInt,oldConfig.canceledCallbacksLimit) // 30 days with 1 per hour
+    Test.assertEqual(8000000 as UInt64,oldConfig.collectionEffortLimit)
+    Test.assertEqual(90 as Int,oldConfig.collectionTransactionsLimit)
 
 
     setConfigDetails(
@@ -431,6 +477,8 @@ access(all) fun testConfigDetails() {
         priorityFeeMultipliers: {highPriority: 20.0, mediumPriority: 10.0, lowPriority: 4.0},
         refundMultiplier: nil,
         canceledCallbacksLimit: 2000,
+        collectionEffortLimit: 8000000,
+        collectionTransactionsLimit: 90,
         shouldFail: nil
     )
 
@@ -452,6 +500,8 @@ access(all) fun testConfigDetails() {
     Test.assertEqual(4.0,newConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.Low]!)
     Test.assertEqual(oldConfig.refundMultiplier,newConfig.refundMultiplier)
     Test.assertEqual(2000 as UInt,newConfig.canceledCallbacksLimit)
+    Test.assertEqual(8000000 as UInt64,newConfig.collectionEffortLimit)
+    Test.assertEqual(90 as Int,newConfig.collectionTransactionsLimit)
 }
 
 /** ---------------------------------------------------------------------------------
