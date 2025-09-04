@@ -160,7 +160,7 @@ access(all) fun runScheduleAndEffortUsedTestCase(testCase: ScheduleAndEffortUsed
     var numberOfCallbacksExecuted = 0
 
     for callback in testCase.callbacks {
-        if callback.id != nil && numberOfCallbacksExecuted < collectionTransactionsLimit {
+        if callback.id != nil && numberOfCallbacksExecuted < collectionTransactionsLimit && UInt64(numberOfCallbacksExecuted)*maxEffort < collectionEffortLimit - maxEffort {
             numberOfCallbacksExecuted = numberOfCallbacksExecuted + 1
             if callback.data != nil {
                 if callback.data as! String == "cancel" {
@@ -1448,22 +1448,55 @@ access(all) fun testScheduleAndEffortUsed() {
         )
     ]
 
-    // Test case to test callbacks over collection transaction limit
-    var callbacksOverCollectionTxLimit: [Callback] = []
-    while callbacksOverCollectionTxLimit.length < collectionTransactionsLimit + 2 {
-        callbacksOverCollectionTxLimit.append(Callback(
-            requestedDelta: futureDelta+UFix64(callbacksOverCollectionTxLimit.length),
+    /// Test case to test callbacks over collection effort limit
+    ///
+    var callbacksOverCollectionEffortLimit: [Callback] = []
+    while UInt64(callbacksOverCollectionEffortLimit.length)*maxEffort <= collectionEffortLimit + maxEffort*2 {
+        callbacksOverCollectionEffortLimit.append(Callback(
+            requestedDelta: futureDelta+UFix64(callbacksOverCollectionEffortLimit.length),
             priority: mediumPriority,
-            executionEffort: 9999,
+            executionEffort: maxEffort,
             data: testData,
             fees: feeAmount,
             failWithErr: nil
         ))
     }
 
-    let expectedPendingQueue: {UFix64: [UInt64]} = {}
-    let queue: [UInt64] = []
+    var expectedPendingQueue: {UFix64: [UInt64]} = {}
+    var queue: [UInt64] = []
     var i: Int = 1
+    while i <= callbacksOverCollectionEffortLimit.length - 3 {
+        queue.append(UInt64(i))
+        i = i + 1
+    }
+    expectedPendingQueue[futureDelta+UFix64(callbacksOverCollectionEffortLimit.length)] = queue
+
+    testCases.append(ScheduleAndEffortUsedTestCase(
+        name: "Collection Limit Tests: Callbacks over collection effort limit",
+        callbacks: callbacksOverCollectionEffortLimit,
+        callbacksIndicesToCancel: [],
+        expectedAvailableEfforts: {},
+        expectedPendingQueues: expectedPendingQueue,
+        expectedPendingQueueAfterExecution: [UInt64(callbacksOverCollectionEffortLimit.length-2), UInt64(callbacksOverCollectionEffortLimit.length-1), UInt64(callbacksOverCollectionEffortLimit.length)]
+    ))
+
+    /// Test case to test callbacks over collection transaction limit
+    ///
+    var callbacksOverCollectionTxLimit: [Callback] = []
+    while callbacksOverCollectionTxLimit.length < collectionTransactionsLimit + 2 {
+        callbacksOverCollectionTxLimit.append(Callback(
+            requestedDelta: futureDelta+UFix64(callbacksOverCollectionTxLimit.length),
+            priority: mediumPriority,
+            executionEffort: 4000,
+            data: testData,
+            fees: feeAmount,
+            failWithErr: nil
+        ))
+    }
+
+    expectedPendingQueue = {}
+    queue = []
+    i = 1
     while i <= collectionTransactionsLimit {
         queue.append(UInt64(i))
         i = i + 1

@@ -271,9 +271,7 @@ access(all) fun testCallbackCancelationLimits() {
     let currentTime = getTimestamp()
     var timeInFuture = currentTime + futureDelta
 
-    let expectedCanceledCallbacksLength = 30 * 24
-
-    let numToCancel: UInt64 = 30 * 25
+    let numToCancel: UInt64 = UInt64(canceledCallbacksLimit) + 30
     let startingID: UInt64 = 3
     var i: UInt64 = startingID
 
@@ -310,7 +308,7 @@ access(all) fun testCallbackCancelationLimits() {
 
     // Check that the canceled callbacks are the ones we expect
     var canceledCallbacks = getCanceledCallbacks()
-    Test.assertEqual(canceledCallbacks.length, expectedCanceledCallbacksLength)
+    Test.assertEqual(UInt(canceledCallbacks.length), canceledCallbacksLimit)
     
     // The first 28 canceled callbacks should have been removed from the canceled callbacks array
     i = 30
