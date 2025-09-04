@@ -438,8 +438,8 @@ access(all) fun testConfigDetails() {
         refundMultiplier: nil,
         canceledCallbacksLimit: nil,
         collectionEffortLimit: nil,
-        collectionTransactionsLimit: 0,
-        shouldFail: "Invalid collection transactions limit: Collection transactions limit must be greater than 0 but got 0"
+        collectionTransactionsLimit: -1,
+        shouldFail: "Invalid collection transactions limit: Collection transactions limit must be greater than or equal to 0 but got -1"
     )
 
 
