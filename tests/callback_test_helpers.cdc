@@ -27,6 +27,8 @@ access(all) let highPriorityEffortReserve: UInt64 = 20000
 access(all) let mediumPriorityEffortReserve: UInt64 = 5000
 access(all) let sharedEffortLimit: UInt64 = 10000
 
+access(all) let collectionTransactionsLimit: Int = 90
+
 access(all) let testData = "test data"
 access(all) let failTestData = "fail"
 
@@ -146,6 +148,8 @@ access(all) fun setConfigDetails(
     priorityFeeMultipliers: {UInt8: UFix64}?,
     refundMultiplier: UFix64?,
     canceledCallbacksLimit: UInt?,
+    collectionEffortLimit: UInt64?,
+    collectionTransactionsLimit: Int?,
     shouldFail: String?
 ) {
     let setConfigDetailsCode = Test.readFile("../transactions/callbackScheduler/admin/set_config_details.cdc")
@@ -153,7 +157,17 @@ access(all) fun setConfigDetails(
         code: setConfigDetailsCode,
         authorizers: [serviceAccount.address],
         signers: [serviceAccount],
-        arguments: [maximumIndividualEffort, slotSharedEffortLimit, priorityEffortReserve, priorityEffortLimit, minimumExecutionEffort, maxDataSizeMB, priorityFeeMultipliers, refundMultiplier, canceledCallbacksLimit]
+        arguments: [maximumIndividualEffort, 
+                    slotSharedEffortLimit,
+                    priorityEffortReserve,
+                    priorityEffortLimit,
+                    minimumExecutionEffort,
+                    maxDataSizeMB,
+                    priorityFeeMultipliers,
+                    refundMultiplier,
+                    canceledCallbacksLimit,
+                    collectionEffortLimit,
+                    collectionTransactionsLimit]
     )
     let setConfigDetailsResult = Test.executeTransaction(setConfigDetailsTx)
     if let error = shouldFail {
