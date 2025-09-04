@@ -12,11 +12,11 @@ access(all) contract TestFlowCallbackHandler {
     
     access(all) resource Handler: FlowCallbackScheduler.CallbackHandler {
 
-        access(all) fun getName(): String {
+        access(all) view fun getName(): String {
             return "Test FlowCallbackHandler Resource"
         }
 
-        access(all) fun getDescription(): String {
+        access(all) view fun getDescription(): String {
             return "Executes a variety of callbacks for different test cases"
         }
         

@@ -157,8 +157,11 @@ access(all) fun runScheduleAndEffortUsedTestCase(testCase: ScheduleAndEffortUsed
     // process callbacks
     processCallbacks()
 
+    var numberOfCallbacksExecuted = 0
+
     for callback in testCase.callbacks {
-        if callback.id != nil {
+        if callback.id != nil && numberOfCallbacksExecuted < collectionTransactionsLimit {
+            numberOfCallbacksExecuted = numberOfCallbacksExecuted + 1
             if callback.data != nil {
                 if callback.data as! String == "cancel" {
                     executeCallback(id: callback.id!, testName: testCase.name, failWithErr: "Callback must be in a scheduled state in order to be canceled")
@@ -1418,7 +1421,6 @@ access(all) fun testScheduleAndEffortUsed() {
             },
             expectedPendingQueueAfterExecution: []
         ),
-        
         ScheduleAndEffortUsedTestCase(
             name: "Schedule Tests: Callback schedules another callback during execution",
             callbacks: [
@@ -1445,6 +1447,37 @@ access(all) fun testScheduleAndEffortUsed() {
             expectedPendingQueueAfterExecution: [2]
         )
     ]
+
+    // Test case to test callbacks over collection transaction limit
+    var callbacksOverCollectionTxLimit: [Callback] = []
+    while callbacksOverCollectionTxLimit.length < collectionTransactionsLimit + 2 {
+        callbacksOverCollectionTxLimit.append(Callback(
+            requestedDelta: futureDelta+UFix64(callbacksOverCollectionTxLimit.length),
+            priority: mediumPriority,
+            executionEffort: 9999,
+            data: testData,
+            fees: feeAmount,
+            failWithErr: nil
+        ))
+    }
+
+    let expectedPendingQueue: {UFix64: [UInt64]} = {}
+    let queue: [UInt64] = []
+    var i: Int = 1
+    while i <= collectionTransactionsLimit {
+        queue.append(UInt64(i))
+        i = i + 1
+    }
+    expectedPendingQueue[futureDelta+UFix64(callbacksOverCollectionTxLimit.length)] = queue
+
+    testCases.append(ScheduleAndEffortUsedTestCase(
+        name: "Collection Limit Tests: Callbacks over collection transaction limit",
+        callbacks: callbacksOverCollectionTxLimit,
+        callbacksIndicesToCancel: [],
+        expectedAvailableEfforts: {},
+        expectedPendingQueues: expectedPendingQueue,
+        expectedPendingQueueAfterExecution: [UInt64(collectionTransactionsLimit+1), UInt64(collectionTransactionsLimit+2)]
+    ))
 
     var currentTimestamp = getTimestamp()
 

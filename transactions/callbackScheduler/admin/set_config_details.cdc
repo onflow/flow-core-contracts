@@ -9,7 +9,9 @@ transaction(
             maxDataSizeMB: UFix64?,
             priorityFeeMultipliers: {UInt8: UFix64}?,
             refundMultiplier: UFix64?,
-            canceledCallbacksLimit: UInt?) {
+            canceledCallbacksLimit: UInt?,
+            collectionEffortLimit: UInt64?,
+            collectionTransactionsLimit: Int?) {
     prepare(account: auth(BorrowValue, SaveValue, IssueStorageCapabilityController, PublishCapability, GetStorageCapabilityController) &Account) {
         // borrow an entitled reference to the SharedScheduler resource
         let schedulerRef = account.storage.borrow<auth(FlowCallbackScheduler.UpdateConfig) &FlowCallbackScheduler.SharedScheduler>(from: /storage/sharedScheduler)
@@ -70,7 +72,9 @@ transaction(
             maxDataSizeMB: maxDataSizeMB ?? currentConfig.maxDataSizeMB,
             priorityFeeMultipliers: newMultipliers,
             refundMultiplier: refundMultiplier ?? currentConfig.refundMultiplier,
-            canceledCallbacksLimit: canceledCallbacksLimit ?? currentConfig.canceledCallbacksLimit
+            canceledCallbacksLimit: canceledCallbacksLimit ?? currentConfig.canceledCallbacksLimit,
+            collectionEffortLimit: collectionEffortLimit ?? currentConfig.collectionEffortLimit,
+            collectionTransactionsLimit: collectionTransactionsLimit ?? currentConfig.collectionTransactionsLimit
         )
 
         // set the new config
