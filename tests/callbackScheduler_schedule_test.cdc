@@ -1487,7 +1487,7 @@ access(all) fun testScheduleAndEffortUsed() {
         callbacksOverCollectionTxLimit.append(Callback(
             requestedDelta: futureDelta+UFix64(callbacksOverCollectionTxLimit.length),
             priority: mediumPriority,
-            executionEffort: 4000,
+            executionEffort: 2000,
             data: testData,
             fees: feeAmount,
             failWithErr: nil
