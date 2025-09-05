@@ -96,6 +96,8 @@ access(all) contract FlowCallbackScheduler {
     )
 
     /// Emitted when a collection limit is reached
+    /// The limit that was reached is non-nil and is the limit that was reached
+    /// The other limit that was not reached is nil
     access(all) event CollectionLimitReached(
         collectionEffortLimit: UInt64?,
         collectionTransactionsLimit: Int?
@@ -119,6 +121,13 @@ access(all) contract FlowCallbackScheduler {
     /// An authorized capability to this resource is provided when scheduling a callback.
     /// The callback scheduler uses this capability to execute the callback when its scheduled timestamp arrives.
     access(all) resource interface CallbackHandler {
+
+        /// Human readable name for the callback handler
+        access(all) let name: String
+
+        /// Human readable description for the callback handler
+        access(all) let description: String
+
         /// Executes the implemented callback logic
         ///
         /// @param id: The id of the scheduled callback (this can be useful for any internal tracking)
@@ -126,17 +135,10 @@ access(all) contract FlowCallbackScheduler {
         /// that may be useful for the execution of the callback logic
         access(Execute) fun executeCallback(id: UInt64, data: AnyStruct?)
 
-        /// Gets a human readable name for the callback handler
-        access(all) view fun getName(): String {
-            post {
-                result.length < 40: "Callback handler name must be less than 40 characters"
-            }
-        }
-
-        /// Gets a human readable description for the callback handler
-        access(all) view fun getDescription(): String {
-            post {
-                result.length < 200: "Callback handler description must be less than 200 characters"
+        init(name: String, description: String) {
+            pre {
+                name.length < 40: "Callback handler name must be less than 40 characters"
+                description.length < 200: "Callback handler description must be less than 200 characters"
             }
         }
     }
@@ -234,8 +236,8 @@ access(all) contract FlowCallbackScheduler {
             self.status = Status.Scheduled
             let handlerRef = handler.borrow()
                 ?? panic("Invalid callback handler: Could not borrow a reference to the callback handler")
-            self.name = handlerRef.getName()
-            self.description = handlerRef.getDescription()
+            self.name = handlerRef.name
+            self.description = handlerRef.description
         }
 
         /// setStatus updates the status of the callback.
@@ -563,7 +565,7 @@ access(all) contract FlowCallbackScheduler {
                 refundMultiplier: 0.5,
                 canceledCallbacksLimit: 1000,
                 collectionEffortLimit: 500_000, // Maximum effort for all callbacks in a collection
-                collectionTransactionsLimit: 100 // Maximum number of callbacks in a collection
+                collectionTransactionsLimit: 150 // Maximum number of callbacks in a collection
             )
         }
 
@@ -767,8 +769,8 @@ access(all) contract FlowCallbackScheduler {
                 fees: callback.fees,
                 callbackOwner: callback.handler.address,
                 callbackHandlerTypeIdentifier: callbackHandler.getType().identifier,
-                callbackName: callbackHandler.getName(),
-                callbackDescription: callbackHandler.getDescription()
+                callbackName: callbackHandler.name,
+                callbackDescription: callbackHandler.description
             )
 
             // Add the callback to the slot queue and update the internal state
@@ -1240,8 +1242,8 @@ access(all) contract FlowCallbackScheduler {
                     fees: callback.fees,
                     callbackOwner: callback.handler.address,
                     callbackHandlerTypeIdentifier: callbackHandler.getType().identifier,
-                    callbackName: callbackHandler.getName(),
-                    callbackDescription: callbackHandler.getDescription()
+                    callbackName: callbackHandler.name,
+                    callbackDescription: callbackHandler.description
                 )
 
                 // after pending execution event is emitted we set the callback as executed because we 
@@ -1292,8 +1294,8 @@ access(all) contract FlowCallbackScheduler {
                 feesDeducted: totalFees - refundedFees.balance,
                 callbackOwner: callback.handler.address,
                 callbackHandlerTypeIdentifier: callbackHandler.getType().identifier,
-                callbackName: callbackHandler.getName(),
-                callbackDescription: callbackHandler.getDescription()
+                callbackName: callbackHandler.name,
+                callbackDescription: callbackHandler.description
             )
 
             self.removeCallback(callback: callback)
@@ -1323,8 +1325,8 @@ access(all) contract FlowCallbackScheduler {
                 executionEffort: callback.executionEffort,
                 callbackOwner: callback.handler.address,
                 callbackHandlerTypeIdentifier: callbackHandler.getType().identifier,
-                callbackName: callbackHandler.getName(),
-                callbackDescription: callbackHandler.getDescription()
+                callbackName: callbackHandler.name,
+                callbackDescription: callbackHandler.description
             )
             
             callbackHandler.executeCallback(id: id, data: callback.getData())

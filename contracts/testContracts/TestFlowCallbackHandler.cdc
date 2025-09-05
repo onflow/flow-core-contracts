@@ -12,12 +12,12 @@ access(all) contract TestFlowCallbackHandler {
     
     access(all) resource Handler: FlowCallbackScheduler.CallbackHandler {
 
-        access(all) view fun getName(): String {
-            return "Test FlowCallbackHandler Resource"
-        }
+        access(all) let name: String
+        access(all) let description: String
 
-        access(all) view fun getDescription(): String {
-            return "Executes a variety of callbacks for different test cases"
+        init(name: String, description: String) {
+            self.name = name
+            self.description = description
         }
         
         access(FlowCallbackScheduler.Execute) 
@@ -52,7 +52,7 @@ access(all) contract TestFlowCallbackHandler {
     }
 
     access(all) fun createHandler(): @Handler {
-        return <- create Handler()
+        return <- create Handler(name: "Test FlowCallbackHandler Resource", description: "Executes a variety of callbacks for different test cases")
     }
 
     access(all) fun addScheduledCallback(callback: FlowCallbackScheduler.ScheduledCallback) {
