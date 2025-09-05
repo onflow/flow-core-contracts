@@ -17,6 +17,13 @@
 				"testnet": "8c5303eaa26202d6"
 			}
 		},
+		"FlowCallbackScheduler": {
+			"source": "./contracts/FlowCallbackScheduler.cdc",
+			"aliases": {
+				"emulator": "f8d6e0586b0a20c7",
+				"testing": "0000000000000001"
+			}
+		},
 		"FlowClusterQC": {
 			"source": "./contracts/epochs/FlowClusterQC.cdc",
 			"aliases": {
@@ -44,12 +51,21 @@
 				"testnet": "9eca2b38b18b5dfe"
 			}
 		},
+		"FlowExecutionParameters": {
+			"source": "./contracts/FlowExecutionParameters.cdc",
+			"aliases": {
+				"emulator": "f8d6e0586b0a20c7",
+				"mainnet": "f426ff57ee8f6110",
+				"testing": "0000000000000007",
+				"testnet": "6997a2f2cf57b73a"
+			}
+		},
 		"FlowFees": {
 			"source": "./contracts/FlowFees.cdc",
 			"aliases": {
 				"emulator": "e5a8b7f23e8b548f",
 				"mainnet": "f919ee77447b7497",
-				"testing": "0000000000000007",
+				"testing": "0000000000000004",
 				"testnet": "912d5440f7e3769e"
 			}
 		},
@@ -60,15 +76,6 @@
 				"mainnet": "8624b52f9ddcd04a",
 				"testing": "0000000000000007",
 				"testnet": "9eca2b38b18b5dfe"
-			}
-		},
-        "FlowExecutionParameters": {
-			"source": "./contracts/FlowExecutionParameters.cdc",
-			"aliases": {
-				"emulator": "f8d6e0586b0a20c7",
-				"mainnet": "f426ff57ee8f6110",
-				"testing": "0000000000000007",
-				"testnet": "6997a2f2cf57b73a"
 			}
 		},
 		"FlowServiceAccount": {
@@ -94,7 +101,7 @@
 			"aliases": {
 				"emulator": "f8d6e0586b0a20c7",
 				"mainnet": "e467b9dd11fa00df",
-				"testing": "0000000000000007",
+				"testing": "0000000000000001",
 				"testnet": "8c5303eaa26202d6"
 			}
 		},
@@ -103,7 +110,7 @@
 			"aliases": {
 				"emulator": "0ae53cb6e3f42a79",
 				"mainnet": "1654653399040a61",
-				"testing": "0000000000000007",
+				"testing": "0000000000000003",
 				"testnet": "7e60df042a9c0868"
 			}
 		},
@@ -112,14 +119,14 @@
 			"aliases": {
 				"emulator": "ee82856bf20e2aa6",
 				"mainnet": "f233dcee88fe0abe",
-				"testing": "0000000000000007",
+				"testing": "0000000000000002",
 				"testnet": "9a0766d93b6608b7"
 			}
 		},
 		"LinearCodeAddressGenerator": {
 			"source": "./contracts/LinearCodeAddressGenerator.cdc",
 			"aliases": {
-				"testing": "0x0000000000000007"
+				"testing": "0000000000000007"
 			}
 		},
 		"LockedTokens": {
@@ -157,6 +164,20 @@
 				"testing": "0000000000000007",
 				"testnet": "7aad92e5a0715d21"
 			}
+		},
+		"TestFlowCallbackHandler": {
+			"source": "./contracts/testContracts/TestFlowCallbackHandler.cdc",
+			"aliases": {
+				"emulator": "f8d6e0586b0a20c7",
+				"testing": "0000000000000001"
+			}
+		},
+		"TestFlowCallbackQueue": {
+			"source": "./contracts/testContracts/TestFlowCallbackQueue.cdc",
+			"aliases": {
+				"emulator": "f8d6e0586b0a20c7",
+				"testing": "0000000000000001"
+			}
 		}
 	},
 	"networks": {
@@ -168,7 +189,14 @@
 	"accounts": {
 		"emulator-account": {
 			"address": "f8d6e0586b0a20c7",
-			"key": "7677f7c9410f8773b482737c778b5d7c6acfdbbae718d61e4727a07667f66004"
+			"key": "aff3a277caf2bdd6582c156ae7b07dbca537da7833309de88e56987faa2c0f1b"
+		}
+	},
+	"deployments": {
+		"emulator": {
+			"emulator-account": [
+				"TestFlowCallbackHandler"
+			]
 		}
 	}
 }
