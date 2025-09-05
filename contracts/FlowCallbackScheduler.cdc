@@ -145,11 +145,11 @@ access(all) contract FlowCallbackScheduler {
 
     /// Structs
 
-    /// ScheduledCallback is the struct that the user receives after scheduling a callback.
+    /// ScheduledCallback is the resource that the user receives after scheduling a callback.
     /// It allows them to get the status of their callback and can be passed back
     /// to the scheduler contract to cancel the callback if it has not yet been executed. 
     /// It can only be created by the scheduler contract to prevent spoofing.
-    access(all) struct ScheduledCallback {
+    access(all) resource ScheduledCallback {
         access(self) let scheduler: Capability<auth(Cancel) &SharedScheduler>
         access(all) let id: UInt64
         access(all) let timestamp: UFix64
@@ -158,7 +158,7 @@ access(all) contract FlowCallbackScheduler {
             return self.scheduler.borrow()!.getStatus(id: self.id)
         }
 
-        access(contract) init(
+        init(
             scheduler: Capability<auth(Cancel) &SharedScheduler>,
             id: UInt64, 
             timestamp: UFix64
@@ -722,7 +722,7 @@ access(all) contract FlowCallbackScheduler {
             priority: Priority,
             executionEffort: UInt64,
             fees: @FlowToken.Vault
-        ): ScheduledCallback {
+        ): @ScheduledCallback {
 
             // Use the estimate function to validate inputs
             let estimate = self.estimate(
@@ -776,7 +776,7 @@ access(all) contract FlowCallbackScheduler {
             // Add the callback to the slot queue and update the internal state
             self.addCallback(slot: estimate.timestamp!, callback: callback)
             
-            return ScheduledCallback(
+            return <-create ScheduledCallback(
                 scheduler: FlowCallbackScheduler.sharedScheduler, 
                 id: callbackID, 
                 timestamp: estimate.timestamp!
@@ -1355,8 +1355,8 @@ access(all) contract FlowCallbackScheduler {
         priority: Priority,
         executionEffort: UInt64,
         fees: @FlowToken.Vault
-    ): ScheduledCallback {
-        return self.sharedScheduler.borrow()!.schedule(
+    ): @ScheduledCallback {
+        return <-self.sharedScheduler.borrow()!.schedule(
             callback: callback, 
             data: data, 
             timestamp: timestamp, 
@@ -1381,8 +1381,10 @@ access(all) contract FlowCallbackScheduler {
             )
     }
 
-    access(all) fun cancel(callback: ScheduledCallback): @FlowToken.Vault {
-        return <-self.sharedScheduler.borrow()!.cancel(id: callback.id)
+    access(all) fun cancel(callback: @ScheduledCallback): @FlowToken.Vault {
+        let id = callback.id
+        destroy callback
+        return <-self.sharedScheduler.borrow()!.cancel(id: id)
     }
 
     /// getCallbackData returns the callback data for a given ID

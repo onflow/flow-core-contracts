@@ -4,7 +4,7 @@ import "FungibleToken"
 
 // TestFlowCallbackHandler is a simplified test contract for testing CallbackScheduler
 access(all) contract TestFlowCallbackHandler {
-    access(all) var scheduledCallbacks: {UInt64: FlowCallbackScheduler.ScheduledCallback}
+    access(all) var scheduledCallbacks: @{UInt64: FlowCallbackScheduler.ScheduledCallback}
     access(all) var succeededCallbacks: [UInt64]
 
     access(all) let HandlerStoragePath: StoragePath
@@ -36,7 +36,7 @@ access(all) contract TestFlowCallbackHandler {
                 }
             } else if let dataCap = data as? Capability<auth(FlowCallbackScheduler.Execute) &{FlowCallbackScheduler.CallbackHandler}> {
                 // Testing scheduling a callback with a callback
-                let scheduledCallback = FlowCallbackScheduler.schedule(
+                let scheduledCallback <- FlowCallbackScheduler.schedule(
                     callback: dataCap,
                     data: "test data",
                     timestamp: getCurrentBlock().timestamp + 10.0,
@@ -44,7 +44,7 @@ access(all) contract TestFlowCallbackHandler {
                     executionEffort: UInt64(1000),
                     fees: <-TestFlowCallbackHandler.getFeeFromVault(amount: 1.0)
                 )
-                TestFlowCallbackHandler.addScheduledCallback(callback: scheduledCallback)
+                TestFlowCallbackHandler.addScheduledCallback(callback: <-scheduledCallback)
             } else {
                 panic("TestFlowCallbackHandler.executeCallback: Invalid data type for callback with id \(id). Type is \(data.getType().identifier)")
             }
@@ -55,19 +55,18 @@ access(all) contract TestFlowCallbackHandler {
         return <- create Handler(name: "Test FlowCallbackHandler Resource", description: "Executes a variety of callbacks for different test cases")
     }
 
-    access(all) fun addScheduledCallback(callback: FlowCallbackScheduler.ScheduledCallback) {
+    access(all) fun addScheduledCallback(callback: @FlowCallbackScheduler.ScheduledCallback) {
         let status = callback.status()
         if status == nil {
             panic("Invalid status for callback with id \(callback.id)")
         }
-        self.scheduledCallbacks[callback.id] = callback
+        self.scheduledCallbacks[callback.id] <-! callback
     }
 
     access(all) fun cancelCallback(id: UInt64): @FlowToken.Vault {
-        let callback = self.scheduledCallbacks[id]
+        let callback <- self.scheduledCallbacks.remove(key: id)
             ?? panic("Invalid ID: \(id) callback not found")
-        self.scheduledCallbacks[id] = nil
-        return <-FlowCallbackScheduler.cancel(callback: callback)
+        return <-FlowCallbackScheduler.cancel(callback: <-callback!)
     }
 
     access(all) fun getSucceededCallbacks(): [UInt64] {
@@ -83,7 +82,7 @@ access(all) contract TestFlowCallbackHandler {
     }
 
     access(all) init() {
-        self.scheduledCallbacks = {}
+        self.scheduledCallbacks <- {}
         self.succeededCallbacks = []
 
         self.HandlerStoragePath = /storage/testCallbackHandler

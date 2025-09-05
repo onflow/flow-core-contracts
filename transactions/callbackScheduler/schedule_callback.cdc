@@ -42,7 +42,7 @@ transaction(timestamp: UFix64, feeAmount: UFix64, effort: UInt64, priority: UInt
 
         if dataString! == "schedule" {
             // Schedule the callback that schedules another callback
-            let scheduledCallback = FlowCallbackScheduler.schedule(
+            let scheduledCallback <- FlowCallbackScheduler.schedule(
                 callback: callbackCap,
                 data: callbackCap,
                 timestamp: timestamp,
@@ -50,10 +50,10 @@ transaction(timestamp: UFix64, feeAmount: UFix64, effort: UInt64, priority: UInt
                 executionEffort: effort,
                 fees: <-fees
             )
-            TestFlowCallbackHandler.addScheduledCallback(callback: scheduledCallback)
+            TestFlowCallbackHandler.addScheduledCallback(callback: <-scheduledCallback)
         } else {
             // Schedule the regular callback with the main contract
-            let scheduledCallback = FlowCallbackScheduler.schedule(
+            let scheduledCallback <- FlowCallbackScheduler.schedule(
                 callback: callbackCap,
                 data: dataString!,
                 timestamp: timestamp,
@@ -61,7 +61,7 @@ transaction(timestamp: UFix64, feeAmount: UFix64, effort: UInt64, priority: UInt
                 executionEffort: effort,
                 fees: <-fees
             )
-            TestFlowCallbackHandler.addScheduledCallback(callback: scheduledCallback)
+            TestFlowCallbackHandler.addScheduledCallback(callback: <-scheduledCallback)
         }
     }
 } 
