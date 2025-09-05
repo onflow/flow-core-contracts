@@ -464,7 +464,7 @@ access(all) fun testConfigDetails() {
     Test.assertEqual(0.5,oldConfig.refundMultiplier)
     Test.assertEqual(1000 as UInt,oldConfig.canceledCallbacksLimit)
     Test.assertEqual(500000 as UInt64,oldConfig.collectionEffortLimit)
-    Test.assertEqual(100 as Int,oldConfig.collectionTransactionsLimit)
+    Test.assertEqual(150 as Int,oldConfig.collectionTransactionsLimit)
 
 
     setConfigDetails(

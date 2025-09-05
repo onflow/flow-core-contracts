@@ -29,7 +29,7 @@ access(all) let sharedEffortLimit: UInt64 = 10000
 
 access(all) let canceledCallbacksLimit: UInt = 1000
 
-access(all) let collectionTransactionsLimit: Int = 100
+access(all) let collectionTransactionsLimit: Int = 150
 access(all) let collectionEffortLimit: UInt64 = 500000
 
 access(all) let testData = "test data"
