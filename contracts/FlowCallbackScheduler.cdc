@@ -150,24 +150,17 @@ access(all) contract FlowCallbackScheduler {
     /// to the scheduler contract to cancel the callback if it has not yet been executed. 
     /// It can only be created by the scheduler contract to prevent spoofing.
     access(all) resource ScheduledCallback {
-        access(self) let scheduler: Capability<auth(Cancel) &SharedScheduler>
         access(all) let id: UInt64
         access(all) let timestamp: UFix64
 
         access(all) view fun status(): Status? {
-            return self.scheduler.borrow()!.getStatus(id: self.id)
+            return FlowCallbackScheduler.sharedScheduler.borrow()!.getStatus(id: self.id)
         }
 
         init(
-            scheduler: Capability<auth(Cancel) &SharedScheduler>,
             id: UInt64, 
             timestamp: UFix64
         ) {
-            pre {
-                scheduler.check():
-                    "Invalid Scheduler Capability provided when initializing ScheduledCallback with id \(id)"
-            }
-            self.scheduler = scheduler
             self.id = id
             self.timestamp = timestamp
         }
@@ -777,7 +770,6 @@ access(all) contract FlowCallbackScheduler {
             self.addCallback(slot: estimate.timestamp!, callback: callback)
             
             return <-create ScheduledCallback(
-                scheduler: FlowCallbackScheduler.sharedScheduler, 
                 id: callbackID, 
                 timestamp: estimate.timestamp!
             )
