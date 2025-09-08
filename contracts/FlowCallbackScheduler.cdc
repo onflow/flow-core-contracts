@@ -233,6 +233,14 @@ access(all) contract FlowCallbackScheduler {
             self.description = handlerRef.description
         }
 
+        access(all) view fun getHandlerType(): Type? {
+            return self.handler.getType()
+        }
+
+        access(all) view fun getHandlerAddress(): Address {
+            return self.handler.address
+        }
+
         /// setStatus updates the status of the callback.
         /// It panics if the callback status is already finalized.
         access(contract) fun setStatus(newStatus: Status) {
@@ -1224,19 +1232,21 @@ access(all) contract FlowCallbackScheduler {
             }
 
             for callback in pendingCallbacks {
-                let callbackHandler = callback.handler.borrow()
-                    ?? panic("Invalid callback handler: Could not borrow a reference to the callback handler")
-
-                emit PendingExecution(
-                    id: callback.id,
-                    priority: callback.priority.rawValue,
-                    executionEffort: callback.executionEffort,
-                    fees: callback.fees,
-                    callbackOwner: callback.handler.address,
-                    callbackHandlerTypeIdentifier: callbackHandler.getType().identifier,
-                    callbackName: callbackHandler.name,
-                    callbackDescription: callbackHandler.description
-                )
+                // Only emit the pending execution event if the callback handler capability is borrowable
+                // This is to prevent a situation where the callback handler is not available
+                // In that case, the callback is no longer valid because it cannot be executed
+                if let callbackHandler = callback.handler.borrow() {
+                    emit PendingExecution(
+                        id: callback.id,
+                        priority: callback.priority.rawValue,
+                        executionEffort: callback.executionEffort,
+                        fees: callback.fees,
+                        callbackOwner: callback.handler.address,
+                        callbackHandlerTypeIdentifier: callbackHandler.getType().identifier,
+                        callbackName: callbackHandler.name,
+                        callbackDescription: callbackHandler.description
+                    )
+                }
 
                 // after pending execution event is emitted we set the callback as executed because we 
                 // must rely on execution node to actually execute it. Execution of the callback is 
