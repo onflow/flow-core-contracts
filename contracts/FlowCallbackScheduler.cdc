@@ -1363,7 +1363,7 @@ access(all) contract FlowCallbackScheduler {
         return <-vaultRef.withdraw(amount: amount) as! @FlowToken.Vault
     }
 
-    access(all) fun schedule(
+    access(account) fun schedule(
         callback: Capability<auth(Execute) &{CallbackHandler}>,
         data: AnyStruct?,
         timestamp: UFix64,
