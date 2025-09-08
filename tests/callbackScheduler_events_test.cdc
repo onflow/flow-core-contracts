@@ -332,7 +332,7 @@ access(all) fun testCallbackScheduleAnotherCallback() {
     }
 
     let currentTime = getTimestamp()
-    var timeInFuture = currentTime + futureDelta*10.0
+    var timeInFuture = currentTime + futureDelta*5.0
 
     // Schedule a medium callback
     scheduleCallback(
@@ -353,7 +353,7 @@ access(all) fun testCallbackScheduleAnotherCallback() {
     Test.assertEqual(callbackData!.executionEffort, mediumEffort)
     Test.assertEqual(callbackData!.status.rawValue, statusScheduled)
 
-    Test.moveTime(by: Fix64(futureDelta*11.0))
+    Test.moveTime(by: Fix64(futureDelta*6.0))
 
     processCallbacks()
 
@@ -366,5 +366,53 @@ access(all) fun testCallbackScheduleAnotherCallback() {
     // get the status of the newly scheduled callback with ID 2
     var status = getStatus(id: 2)
     Test.assertEqual(statusScheduled, status!)
+    
+}
+
+
+access(all) fun testCallbackDestroyHandler() {
+
+    if startingHeight < getCurrentBlockHeight() {
+        Test.reset(to: startingHeight)
+    }
+
+    let currentTime = getTimestamp()
+    var timeInFuture = currentTime + futureDelta*10.0
+
+    // Schedule a medium callback
+    scheduleCallback(
+        timestamp: timeInFuture,
+        fee: feeAmount,
+        effort: mediumEffort,
+        priority: mediumPriority,
+        data: testData,
+        testName: "Destroy Handler: Scheduled",
+        failWithErr: nil
+    )
+
+    // Destroy the handler for the callback
+    let executeCallbackCode = Test.readFile("./transactions/destroy_handler.cdc")
+    let executeTx = Test.Transaction(
+        code: executeCallbackCode,
+        authorizers: [serviceAccount.address],
+        signers: [serviceAccount],
+        arguments: []
+    )
+    var result = Test.executeTransaction(executeTx)
+    Test.expect(result, Test.beSucceeded())
+
+    Test.moveTime(by: Fix64(futureDelta*11.0))
+
+    processCallbacks()
+
+    // The callback with the handler should not have emitted an event because the handler was destroyed
+    let pendingExecutionEvents = Test.eventsOfType(Type<FlowCallbackScheduler.PendingExecution>())
+    Test.assertEqual(pendingExecutionEvents.length, 0)
+
+    executeCallback(
+        id: 1,
+        testName: "Destroy Handler: Execute",
+        failWithErr: "Invalid callback handler: Could not borrow a reference to the callback handler"
+    )
     
 }
