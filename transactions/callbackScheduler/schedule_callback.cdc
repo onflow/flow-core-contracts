@@ -1,4 +1,5 @@
 import "FlowCallbackScheduler"
+import "FlowCallbackUtils"
 import "TestFlowCallbackHandler"
 import "FlowToken"
 import "FungibleToken"
@@ -15,9 +16,19 @@ import "FungibleToken"
 transaction(timestamp: UFix64, feeAmount: UFix64, effort: UInt64, priority: UInt8, testData: AnyStruct?) {
 
     prepare(account: auth(BorrowValue, SaveValue, IssueStorageCapabilityController, PublishCapability, GetStorageCapabilityController) &Account) {
+
+        // if a callback manager has not been created for this account yet, create one
+        if !account.storage.check<@FlowCallbackUtils.CallbackManager>(from: FlowCallbackUtils.managerStoragePath) {
+            let manager <- FlowCallbackUtils.createCallbackManager()
+            account.storage.save(<-manager, to: FlowCallbackUtils.managerStoragePath)
+
+            // create a public capability to the callback manager
+            let managerRef = account.capabilities.storage.issue<&FlowCallbackUtils.CallbackManager>(FlowCallbackUtils.managerStoragePath)
+            account.capabilities.publish(managerRef, at: FlowCallbackUtils.managerPublicPath)
+        }
         
         // If a callback handler has not been created for this account yet, create one,
-        // store it, and issue a capability that will be used to create the callback
+        // store it, and issue a capability that will be used to execute the callback
         if !account.storage.check<@TestFlowCallbackHandler.Handler>(from: TestFlowCallbackHandler.HandlerStoragePath) {
             let handler <- TestFlowCallbackHandler.createHandler()
         
@@ -38,10 +49,14 @@ transaction(timestamp: UFix64, feeAmount: UFix64, effort: UInt64, priority: UInt
         let priorityEnum = FlowCallbackScheduler.Priority(rawValue: priority)
             ?? FlowCallbackScheduler.Priority.High
 
+        // borrow a reference to the callback manager
+        let manager = account.storage.borrow<auth(FlowCallbackUtils.Owner) &FlowCallbackUtils.CallbackManager>(from: FlowCallbackUtils.managerStoragePath)
+            ?? panic("Could not borrow a CallbackManager reference from \(FlowCallbackUtils.managerStoragePath)")
+
         if let dataString = testData as? String {
             if dataString == "schedule" {
                 // Schedule the callback that schedules another callback
-                let scheduledCallback <- FlowCallbackScheduler.schedule(
+                manager.schedule(
                     callback: callbackCap,
                     data: callbackCap,
                     timestamp: timestamp,
@@ -49,12 +64,12 @@ transaction(timestamp: UFix64, feeAmount: UFix64, effort: UInt64, priority: UInt
                     executionEffort: effort,
                     fees: <-fees
                 )
-                TestFlowCallbackHandler.addScheduledCallback(callback: <-scheduledCallback)
                 return
             }
         }
+        
         // Schedule the regular callback with the main contract
-        let scheduledCallback <- FlowCallbackScheduler.schedule(
+        manager.schedule(
             callback: callbackCap,
             data: testData,
             timestamp: timestamp,
@@ -62,6 +77,5 @@ transaction(timestamp: UFix64, feeAmount: UFix64, effort: UInt64, priority: UInt
             executionEffort: effort,
             fees: <-fees
         )
-        TestFlowCallbackHandler.addScheduledCallback(callback: <-scheduledCallback)
     }
 } 

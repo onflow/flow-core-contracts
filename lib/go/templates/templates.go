@@ -39,6 +39,7 @@ const (
 	placeholderRandomBeaconHistoryAddress        = "\"RandomBeaconHistory\""
 	placeholderLinearCodeAddressGeneratorAddress = "\"LinearCodeAddressGenerator\""
 	placeholderFlowCallbackSchedulerAddress      = "\"FlowCallbackScheduler\""
+	placeholderFlowCallbackUtilsAddress          = "\"FlowCallbackUtils\""
 )
 
 type Environment struct {
@@ -69,6 +70,7 @@ type Environment struct {
 	RandomBeaconHistoryAddress        string
 	LinearCodeAddressGeneratorAddress string
 	FlowCallbackSchedulerAddress      string
+	FlowCallbackUtilsAddress          string
 }
 
 func withHexPrefix(address string) string {
@@ -254,6 +256,12 @@ func ReplaceAddresses(code string, env Environment) string {
 		code,
 		placeholderFlowCallbackSchedulerAddress,
 		env.FlowCallbackSchedulerAddress,
+	)
+
+	code = ReplaceAddress(
+		code,
+		placeholderFlowCallbackUtilsAddress,
+		env.FlowCallbackUtilsAddress,
 	)
 
 	return code

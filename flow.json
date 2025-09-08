@@ -172,8 +172,8 @@
 				"testing": "0000000000000001"
 			}
 		},
-		"TestFlowCallbackQueue": {
-			"source": "./contracts/testContracts/TestFlowCallbackQueue.cdc",
+		"FlowCallbackUtils": {
+			"source": "./contracts/FlowCallbackUtils.cdc",
 			"aliases": {
 				"emulator": "f8d6e0586b0a20c7",
 				"testing": "0000000000000001"

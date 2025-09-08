@@ -17,6 +17,13 @@ fun setup() {
     Test.expect(err, Test.beNil())
 
     err = Test.deployContract(
+        name: "FlowCallbackUtils",
+        path: "../contracts/FlowCallbackUtils.cdc",
+        arguments: []
+    )
+    Test.expect(err, Test.beNil())
+
+    err = Test.deployContract(
         name: "TestFlowCallbackHandler",
         path: "../contracts/testContracts/TestFlowCallbackHandler.cdc",
         arguments: []

@@ -174,6 +174,15 @@ func TestFlowCallbackScheduler(t *testing.T) {
 	assert.Contains(t, contract, "import FlowFees from 0x")
 }
 
+func TestFlowCallbackUtils(t *testing.T) {
+	env := templates.Environment{}
+	SetAllAddresses(&env)
+	contract := string(contracts.FlowCallbackUtils(env))
+	GetCadenceContractShouldSucceed(t, contract)
+	assert.Contains(t, contract, "import FlowToken from 0x")
+	assert.Contains(t, contract, "import FlowCallbackScheduler from 0x")
+}
+
 func TestFlowCallbackHandler(t *testing.T) {
 	env := templates.Environment{}
 	SetAllAddresses(&env)

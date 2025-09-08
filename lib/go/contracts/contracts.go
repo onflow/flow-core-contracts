@@ -45,6 +45,7 @@ const (
 	cryptoFilename                     = "Crypto.cdc"
 	linearCodeAddressGeneratorFilename = "LinearCodeAddressGenerator.cdc"
 	flowCallbackSchedulerFilename      = "FlowCallbackScheduler.cdc"
+	flowCallbackUtilsFilename          = "FlowCallbackUtils.cdc"
 
 	// Test contracts
 	// only used for testing
@@ -69,6 +70,7 @@ const (
 	placeholderStakingCollectionAddress     = "\"FlowStakingCollection\""
 	placeholderNodeVersionBeaconAddress     = "\"NodeVersionBeacon\""
 	placeholderFlowCallbackSchedulerAddress = "\"FlowCallbackScheduler\""
+	placeholderFlowCallbackUtilsAddress     = "\"FlowCallbackUtils\""
 )
 
 // Adds a `0x` prefix to the provided address string
@@ -299,6 +301,15 @@ func RandomBeaconHistory() []byte {
 // FlowCallbackScheduler returns the FlowCallbackScheduler contract.
 func FlowCallbackScheduler(env templates.Environment) []byte {
 	code := assets.MustAssetString(flowCallbackSchedulerFilename)
+
+	code = templates.ReplaceAddresses(code, env)
+
+	return []byte(code)
+}
+
+// FlowCallbackUtils returns the FlowCallbackUtils contract.
+func FlowCallbackUtils(env templates.Environment) []byte {
+	code := assets.MustAssetString(flowCallbackUtilsFilename)
 
 	code = templates.ReplaceAddresses(code, env)
 

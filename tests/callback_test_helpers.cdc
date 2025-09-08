@@ -88,6 +88,8 @@ access(all) fun cancelCallback(id: UInt64, failWithErr: String?) {
     var result = Test.executeTransaction(tx)
 
     if let error = failWithErr {
+        // log(error)
+        // log(result.error!.message)
         Test.expect(result, Test.beFailed())
         Test.assertError(
             result,

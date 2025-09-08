@@ -25,6 +25,13 @@ fun setup() {
     Test.expect(err, Test.beNil())
 
     err = Test.deployContract(
+        name: "FlowCallbackUtils",
+        path: "../contracts/FlowCallbackUtils.cdc",
+        arguments: []
+    )
+    Test.expect(err, Test.beNil())
+
+    err = Test.deployContract(
         name: "TestFlowCallbackHandler",
         path: "../contracts/testContracts/TestFlowCallbackHandler.cdc",
         arguments: []
@@ -74,14 +81,6 @@ access(all) fun testCallbackScheduleEventAndData() {
     
     let callbackID = scheduledEvent.id as UInt64
 
-    // Get scheduled callbacks from test callback handler
-    let scheduledCallbacks = TestFlowCallbackHandler.scheduledCallbacks.keys
-    Test.assert(scheduledCallbacks.length == 1, message: "one scheduled callback")
-    
-    let scheduled = TestFlowCallbackHandler.scheduledCallbacks[scheduledCallbacks[0]]!
-    Test.assert(scheduled.id == callbackID, message: "callback ID mismatch")
-    Test.assert(scheduled.timestamp == timeInFuture, message: "incorrect timestamp")
-
     var status = getStatus(id: callbackID)
     Test.assertEqual(statusScheduled, status!)
 
@@ -119,8 +118,7 @@ access(all) fun testCallbackScheduleEventAndData() {
     )
 }
 
-
-access(all) fun testCallbackCancelationEvents() {
+access(all) fun testCallbackCancellationEvents() {
 
     var currentTime = getTimestamp()
     var timeInFuture = currentTime + futureDelta
@@ -130,7 +128,7 @@ access(all) fun testCallbackCancelationEvents() {
     // Cancel invalid callback should fail
     cancelCallback(
         id: 100,
-        failWithErr: "Invalid ID: 100 callback not found"
+        failWithErr: "Invalid ID: Callback with ID 100 not found in manager"
     )
 
     // Schedule a medium callback
@@ -182,8 +180,6 @@ access(all) fun testCallbackExecution() {
     var timeInFuture = currentTime + futureDelta
 
     feesBalanceBefore = getFeesBalance()
-
-    var scheduledIDs = TestFlowCallbackHandler.scheduledCallbacks.keys
 
     // Simulate FVM process - should not yet process since timestamp is in the future
     processCallbacks()
@@ -268,7 +264,23 @@ access(all) fun testCallbackExecution() {
     Test.assertEqual(statusExecuted, status!)
 }
 
-access(all) fun testCallbackCancelationLimits() {
+access(all) fun testCallbackCancellationLimits() {
+
+    // lower the canceled callbacks limit so the test runs faster
+    setConfigDetails(
+        maximumIndividualEffort: nil,
+        slotSharedEffortLimit: nil,
+        priorityEffortReserve: nil,
+        priorityEffortLimit: nil,
+        minimumExecutionEffort: nil,
+        maxDataSizeMB: nil,
+        priorityFeeMultipliers: nil,
+        refundMultiplier: nil,
+        canceledCallbacksLimit: 10,
+        collectionEffortLimit: nil,
+        collectionTransactionsLimit: nil,
+        shouldFail: nil
+    )
 
     // lower the canceled callbacks limit so the test runs faster
     setConfigDetails(
@@ -307,7 +319,6 @@ access(all) fun testCallbackCancelationLimits() {
         )
 
         i = i + 1
-
     }
 
     let startingID: UInt64 = 3
