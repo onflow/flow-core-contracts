@@ -68,9 +68,7 @@ access(all) contract FlowCallbackScheduler {
         executionEffort: UInt64,
         fees: UFix64,
         callbackOwner: Address,
-        callbackHandlerTypeIdentifier: String,
-        callbackName: String,
-        callbackDescription: String
+        callbackHandlerTypeIdentifier: String
     )
 
     /// Emitted when a callback is executed by the FVM
@@ -123,11 +121,16 @@ access(all) contract FlowCallbackScheduler {
     /// The callback scheduler uses this capability to execute the callback when its scheduled timestamp arrives.
     access(all) resource interface CallbackHandler: ViewResolver.Resolver {
 
-        /// Human readable name for the callback handler
-        access(all) let name: String
-
-        /// Human readable description for the callback handler
-        access(all) let description: String
+        access(all) fun getName(): String {
+            post {
+                result.length < 40: "Callback handler name must be less than 40 characters"
+            }
+        }
+        access(all) fun getDescription(): String {
+            post {
+                result.length < 200: "Callback handler description must be less than 200 characters"
+            }
+        }
 
         /// Executes the implemented callback logic
         ///
@@ -135,13 +138,6 @@ access(all) contract FlowCallbackScheduler {
         /// @param data: The data that was passed when the callback was originally scheduled
         /// that may be useful for the execution of the callback logic
         access(Execute) fun executeCallback(id: UInt64, data: AnyStruct?)
-
-        init(name: String, description: String) {
-            pre {
-                name.length < 40: "Callback handler name must be less than 40 characters"
-                description.length < 200: "Callback handler description must be less than 200 characters"
-            }
-        }
     }
 
     /// Structs
@@ -239,8 +235,8 @@ access(all) contract FlowCallbackScheduler {
             self.handlerAddress = handler.address
             self.handlerTypeIdentifier = handlerRef.getType().identifier
             self.scheduledTimestamp = scheduledTimestamp
-            self.name = handlerRef.name
-            self.description = handlerRef.description
+            self.name = handlerRef.getName()
+            self.description = handlerRef.getDescription()
         }
 
         /// setStatus updates the status of the callback.
@@ -748,7 +744,7 @@ access(all) contract FlowCallbackScheduler {
             )
 
             let callbackID = self.getNextIDAndIncrement()
-            let callback = CallbackData(
+            let callbackData = CallbackData(
                 id: callbackID,
                 handler: callback,
                 scheduledTimestamp: estimate.timestamp!,
@@ -761,23 +757,20 @@ access(all) contract FlowCallbackScheduler {
             // Deposit the fees to the service account's vault
             FlowCallbackScheduler.depositFees(from: <-fees)
 
-            let callbackHandler = callback.handler.borrow()
-                ?? panic("Invalid callback handler: Could not borrow a reference to the callback handler")
-
             emit Scheduled(
-                id: callback.id,
-                priority: callback.priority.rawValue,
-                timestamp: callback.scheduledTimestamp,
-                executionEffort: callback.executionEffort,
-                fees: callback.fees,
-                callbackOwner: callback.handler.address,
-                callbackHandlerTypeIdentifier: callbackHandler.getType().identifier,
-                callbackName: callbackHandler.name,
-                callbackDescription: callbackHandler.description
+                id: callbackData.id,
+                priority: callbackData.priority.rawValue,
+                timestamp: callbackData.scheduledTimestamp,
+                executionEffort: callbackData.executionEffort,
+                fees: callbackData.fees,
+                callbackOwner: callbackData.handler.address,
+                callbackHandlerTypeIdentifier: callbackData.handlerTypeIdentifier,
+                callbackName: callbackData.name,
+                callbackDescription: callbackData.description
             )
 
             // Add the callback to the slot queue and update the internal state
-            self.addCallback(slot: estimate.timestamp!, callback: callback)
+            self.addCallback(slot: estimate.timestamp!, callback: callbackData)
             
             return <-create ScheduledCallback(
                 id: callbackID, 
@@ -1244,9 +1237,7 @@ access(all) contract FlowCallbackScheduler {
                         executionEffort: callback.executionEffort,
                         fees: callback.fees,
                         callbackOwner: callback.handler.address,
-                        callbackHandlerTypeIdentifier: callbackHandler.getType().identifier,
-                        callbackName: callbackHandler.name,
-                        callbackDescription: callbackHandler.description
+                        callbackHandlerTypeIdentifier: callbackHandler.getType().identifier
                     )
                 }
 
@@ -1288,30 +1279,16 @@ access(all) contract FlowCallbackScheduler {
                 self.canceledCallbacks.remove(at: 0)
             }
 
-            if let callbackHandler = callback.handler.borrow() {
-                emit Canceled(
-                    id: callback.id,
-                    priority: callback.priority.rawValue,
-                    feesReturned: refundedFees.balance,
-                    feesDeducted: totalFees - refundedFees.balance,
-                    callbackOwner: callback.handler.address,
-                    callbackHandlerTypeIdentifier: callbackHandler.getType().identifier,
-                    callbackName: callbackHandler.name,
-                    callbackDescription: callbackHandler.description
-                )
-            } else {
-                // if the callback handler is not borrowable, emit a cancel event with empty values
-                emit Canceled(
-                    id: callback.id,
-                    priority: callback.priority.rawValue,
-                    feesReturned: refundedFees.balance,
-                    feesDeducted: totalFees - refundedFees.balance,
-                    callbackOwner: 0x0000000000000000, // invalid address
-                    callbackHandlerTypeIdentifier: "",
-                    callbackName: "",
-                    callbackDescription: ""
-                )
-            }
+            emit Canceled(
+                id: callback.id,
+                priority: callback.priority.rawValue,
+                feesReturned: refundedFees.balance,
+                feesDeducted: totalFees - refundedFees.balance,
+                callbackOwner: callback.handler.address,
+                callbackHandlerTypeIdentifier: callback.handlerTypeIdentifier,
+                callbackName: callback.name,
+                callbackDescription: callback.description
+            )
 
             self.removeCallback(callback: callback)
             
@@ -1339,9 +1316,9 @@ access(all) contract FlowCallbackScheduler {
                 priority: callback.priority.rawValue,
                 executionEffort: callback.executionEffort,
                 callbackOwner: callback.handler.address,
-                callbackHandlerTypeIdentifier: callbackHandler.getType().identifier,
-                callbackName: callbackHandler.name,
-                callbackDescription: callbackHandler.description
+                callbackHandlerTypeIdentifier: callback.handlerTypeIdentifier,
+                callbackName: callback.name,
+                callbackDescription: callback.description
             )
             
             callbackHandler.executeCallback(id: id, data: callback.getData())

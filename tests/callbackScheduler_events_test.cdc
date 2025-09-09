@@ -239,8 +239,8 @@ access(all) fun testCallbackExecution() {
                 Test.assertEqual(pendingExecutionEvent.executionEffort, executedEvent.executionEffort)
                 Test.assertEqual(pendingExecutionEvent.callbackOwner, executedEvent.callbackOwner)
                 Test.assertEqual(pendingExecutionEvent.callbackHandlerTypeIdentifier, executedEvent.callbackHandlerTypeIdentifier!)
-                Test.assertEqual(pendingExecutionEvent.callbackName, executedEvent.callbackName!)
-                Test.assertEqual(pendingExecutionEvent.callbackDescription, executedEvent.callbackDescription!)
+                Test.assertEqual("Test FlowCallbackHandler Resource", executedEvent.callbackName!)
+                Test.assertEqual("Executes a variety of callbacks for different test cases", executedEvent.callbackDescription!)
                 firstEvent = true
             }
         }
@@ -444,10 +444,10 @@ access(all) fun testCallbackDestroyHandler() {
     Test.assertEqual(mediumPriority, canceledEvent.priority)
     Test.assertEqual(feeAmount/UFix64(2.0), canceledEvent.feesReturned)
     Test.assertEqual(feeAmount/UFix64(2.0), canceledEvent.feesDeducted)
-    Test.assertEqual(Address(0x0000000000000000), canceledEvent.callbackOwner)
-    Test.assertEqual("", canceledEvent.callbackHandlerTypeIdentifier)
-    Test.assertEqual("", canceledEvent.callbackName)
-    Test.assertEqual("", canceledEvent.callbackDescription)
+    Test.assertEqual(Address(0x0000000000000001), canceledEvent.callbackOwner)
+    Test.assertEqual("A.0000000000000001.TestFlowCallbackHandler.Handler", canceledEvent.callbackHandlerTypeIdentifier)
+    Test.assertEqual("Test FlowCallbackHandler Resource", canceledEvent.callbackName)
+    Test.assertEqual("Executes a variety of callbacks for different test cases", canceledEvent.callbackDescription)
 
     Test.moveTime(by: Fix64(futureDelta*11.0))
 
