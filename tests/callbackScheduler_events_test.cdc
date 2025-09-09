@@ -270,15 +270,30 @@ access(all) fun testCallbackExecution() {
 
 access(all) fun testCallbackCancelationLimits() {
 
+    // lower the canceled callbacks limit so the test runs faster
+    setConfigDetails(
+        maximumIndividualEffort: nil,
+        slotSharedEffortLimit: nil,
+        priorityEffortReserve: nil,
+        priorityEffortLimit: nil,
+        minimumExecutionEffort: nil,
+        maxDataSizeMB: nil,
+        priorityFeeMultipliers: nil,
+        refundMultiplier: nil,
+        canceledCallbacksLimit: 10,
+        collectionEffortLimit: nil,
+        collectionTransactionsLimit: nil,
+        shouldFail: nil
+    )
+
     let currentTime = getTimestamp()
     var timeInFuture = currentTime + futureDelta
 
-    let numToCancel: UInt64 = UInt64(canceledCallbacksLimit) + 30
-    let startingID: UInt64 = 3
-    var i: UInt64 = startingID
+    let numToCancel: UInt64 = 20
+    var i: UInt64 = 0
 
-    // Schedule 30*25 callbacks
-    while i < numToCancel {
+    // Schedule numToCancel callbacks
+    while i <= numToCancel {
 
         // Schedule a medium callback
         scheduleCallback(
@@ -295,27 +310,28 @@ access(all) fun testCallbackCancelationLimits() {
 
     }
 
-    i = startingID
+    let startingID: UInt64 = 3
+    var id = startingID
 
-    while i < numToCancel {
+    while id < numToCancel + startingID {
 
         // Cancel the callbacks
         cancelCallback(
-            id: i,
+            id: id,
             failWithErr: nil
         )
 
-        i = i + 1
+        id = id + 1
     }
 
     // Check that the canceled callbacks are the ones we expect
     var canceledCallbacks = getCanceledCallbacks()
-    Test.assertEqual(UInt(canceledCallbacks.length), canceledCallbacksLimit)
-    
-    // The first 28 canceled callbacks should have been removed from the canceled callbacks array
-    i = 30
-    for id in canceledCallbacks {
-        Test.assertEqual(i, id)
+    Test.assertEqual(10, canceledCallbacks.length)
+
+    // The first 12 canceled callbacks should have been removed from the canceled callbacks array
+    i = 13 as UInt64
+    for canceledID in canceledCallbacks {
+        Test.assertEqual(i, canceledID)
         i = i + 1
     }
 
@@ -323,7 +339,7 @@ access(all) fun testCallbackCancelationLimits() {
     var status = getStatus(id: 1)
     Test.assertEqual(statusUnknown, status!)
 
-    status = getStatus(id: 31)
+    status = getStatus(id: 20)
     Test.assertEqual(statusCanceled, status!)
 }
 
@@ -348,12 +364,12 @@ access(all) fun testCallbackScheduleAnotherCallback() {
     )
 
     let callbackData = getCallbackData(id: 1)
-    Test.assertEqual(callbackData!.id, 1 as UInt64)
-    Test.assertEqual(callbackData!.scheduledTimestamp, timeInFuture)
-    Test.assertEqual(callbackData!.priority.rawValue, mediumPriority)
-    Test.assertEqual(callbackData!.fees, feeAmount)
-    Test.assertEqual(callbackData!.executionEffort, mediumEffort)
-    Test.assertEqual(callbackData!.status.rawValue, statusScheduled)
+    Test.assertEqual(1 as UInt64,callbackData!.id)
+    Test.assertEqual(timeInFuture, callbackData!.scheduledTimestamp)
+    Test.assertEqual(mediumPriority, callbackData!.priority.rawValue)
+    Test.assertEqual(feeAmount, callbackData!.fees)
+    Test.assertEqual(mediumEffort, callbackData!.executionEffort)
+    Test.assertEqual(statusScheduled, callbackData!.status.rawValue)
 
     Test.moveTime(by: Fix64(futureDelta*6.0))
 
@@ -422,7 +438,7 @@ access(all) fun testCallbackDestroyHandler() {
     
     // make sure the canceled event was emitted with empty handler values
     let canceledEvents = Test.eventsOfType(Type<FlowCallbackScheduler.Canceled>())
-    Test.assertEqual(canceledEvents.length, 1)
+    Test.assertEqual(1, canceledEvents.length)
     let canceledEvent = canceledEvents[0] as! FlowCallbackScheduler.Canceled
     Test.assertEqual(UInt64(2), canceledEvent.id)
     Test.assertEqual(mediumPriority, canceledEvent.priority)
@@ -439,7 +455,7 @@ access(all) fun testCallbackDestroyHandler() {
 
     // The callback with the handler should not have emitted an event because the handler was destroyed
     let pendingExecutionEvents = Test.eventsOfType(Type<FlowCallbackScheduler.PendingExecution>())
-    Test.assertEqual(pendingExecutionEvents.length, 0)
+    Test.assertEqual(0, pendingExecutionEvents.length)
 
     executeCallback(
         id: 1,
