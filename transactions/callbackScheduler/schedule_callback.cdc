@@ -38,30 +38,30 @@ transaction(timestamp: UFix64, feeAmount: UFix64, effort: UInt64, priority: UInt
         let priorityEnum = FlowCallbackScheduler.Priority(rawValue: priority)
             ?? FlowCallbackScheduler.Priority.High
 
-        let dataString = testData as? String
-
-        if dataString! == "schedule" {
-            // Schedule the callback that schedules another callback
-            let scheduledCallback <- FlowCallbackScheduler.schedule(
-                callback: callbackCap,
-                data: callbackCap,
-                timestamp: timestamp,
-                priority: priorityEnum,
-                executionEffort: effort,
-                fees: <-fees
-            )
-            TestFlowCallbackHandler.addScheduledCallback(callback: <-scheduledCallback)
-        } else {
-            // Schedule the regular callback with the main contract
-            let scheduledCallback <- FlowCallbackScheduler.schedule(
-                callback: callbackCap,
-                data: dataString!,
-                timestamp: timestamp,
-                priority: priorityEnum,
-                executionEffort: effort,
-                fees: <-fees
-            )
-            TestFlowCallbackHandler.addScheduledCallback(callback: <-scheduledCallback)
+        if let dataString = testData as? String {
+            if dataString == "schedule" {
+                // Schedule the callback that schedules another callback
+                let scheduledCallback <- FlowCallbackScheduler.schedule(
+                    callback: callbackCap,
+                    data: callbackCap,
+                    timestamp: timestamp,
+                    priority: priorityEnum,
+                    executionEffort: effort,
+                    fees: <-fees
+                )
+                TestFlowCallbackHandler.addScheduledCallback(callback: <-scheduledCallback)
+                return
+            }
         }
+        // Schedule the regular callback with the main contract
+        let scheduledCallback <- FlowCallbackScheduler.schedule(
+            callback: callbackCap,
+            data: testData,
+            timestamp: timestamp,
+            priority: priorityEnum,
+            executionEffort: effort,
+            fees: <-fees
+        )
+        TestFlowCallbackHandler.addScheduledCallback(callback: <-scheduledCallback)
     }
 } 
