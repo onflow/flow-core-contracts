@@ -2,6 +2,7 @@ import "FungibleToken"
 import "FlowToken"
 import "FlowFees"
 import "FlowStorageFees"
+import "ViewResolver"
 
 /// FlowCallbackScheduler enables smart contracts to schedule autonomous execution in the future.
 ///
@@ -120,7 +121,7 @@ access(all) contract FlowCallbackScheduler {
     /// must be implemented by the resource that contains the logic to be executed by the callback.
     /// An authorized capability to this resource is provided when scheduling a callback.
     /// The callback scheduler uses this capability to execute the callback when its scheduled timestamp arrives.
-    access(all) resource interface CallbackHandler {
+    access(all) resource interface CallbackHandler: ViewResolver.Resolver {
 
         /// Human readable name for the callback handler
         access(all) let name: String
@@ -164,6 +165,9 @@ access(all) contract FlowCallbackScheduler {
             self.id = id
             self.timestamp = timestamp
         }
+
+        // event emitted when the resource is destroyed
+        access(all) event ResourceDestroyed(id: UInt64 = self.id, timestamp: UFix64 = self.timestamp)
     }
 
     /// Estimated callback contains data for estimating callback scheduling.
@@ -203,6 +207,10 @@ access(all) contract FlowCallbackScheduler {
         /// Capability to the logic that the callback will execute
         access(contract) let handler: Capability<auth(Execute) &{CallbackHandler}>
 
+        /// Type identifier of the callback handler
+        access(all) let handlerTypeIdentifier: String
+        access(all) let handlerAddress: Address
+
         /// Optional data that can be passed to the handler
         access(contract) let data: AnyStruct?
 
@@ -221,7 +229,6 @@ access(all) contract FlowCallbackScheduler {
         ) {
             self.id = id
             self.handler = handler
-            self.scheduledTimestamp = scheduledTimestamp
             self.data = data
             self.priority = priority
             self.executionEffort = executionEffort
@@ -229,16 +236,11 @@ access(all) contract FlowCallbackScheduler {
             self.status = Status.Scheduled
             let handlerRef = handler.borrow()
                 ?? panic("Invalid callback handler: Could not borrow a reference to the callback handler")
+            self.handlerAddress = handler.address
+            self.handlerTypeIdentifier = handlerRef.getType().identifier
+            self.scheduledTimestamp = scheduledTimestamp
             self.name = handlerRef.name
             self.description = handlerRef.description
-        }
-
-        access(all) view fun getHandlerType(): Type? {
-            return self.handler.getType()
-        }
-
-        access(all) view fun getHandlerAddress(): Address {
-            return self.handler.address
         }
 
         /// setStatus updates the status of the callback.
@@ -1286,19 +1288,30 @@ access(all) contract FlowCallbackScheduler {
                 self.canceledCallbacks.remove(at: 0)
             }
 
-            let callbackHandler = callback.handler.borrow()
-                ?? panic("Invalid callback handler: Could not borrow a reference to the callback handler")
-
-            emit Canceled(
-                id: callback.id,
-                priority: callback.priority.rawValue,
-                feesReturned: refundedFees.balance,
-                feesDeducted: totalFees - refundedFees.balance,
-                callbackOwner: callback.handler.address,
-                callbackHandlerTypeIdentifier: callbackHandler.getType().identifier,
-                callbackName: callbackHandler.name,
-                callbackDescription: callbackHandler.description
-            )
+            if let callbackHandler = callback.handler.borrow() {
+                emit Canceled(
+                    id: callback.id,
+                    priority: callback.priority.rawValue,
+                    feesReturned: refundedFees.balance,
+                    feesDeducted: totalFees - refundedFees.balance,
+                    callbackOwner: callback.handler.address,
+                    callbackHandlerTypeIdentifier: callbackHandler.getType().identifier,
+                    callbackName: callbackHandler.name,
+                    callbackDescription: callbackHandler.description
+                )
+            } else {
+                // if the callback handler is not borrowable, emit a cancel event with empty values
+                emit Canceled(
+                    id: callback.id,
+                    priority: callback.priority.rawValue,
+                    feesReturned: refundedFees.balance,
+                    feesDeducted: totalFees - refundedFees.balance,
+                    callbackOwner: 0x0000000000000000, // invalid address
+                    callbackHandlerTypeIdentifier: "",
+                    callbackName: "",
+                    callbackDescription: ""
+                )
+            }
 
             self.removeCallback(callback: callback)
             
