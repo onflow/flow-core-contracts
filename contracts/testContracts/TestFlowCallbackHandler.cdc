@@ -20,6 +20,14 @@ access(all) contract TestFlowCallbackHandler {
             self.description = description
         }
 
+        access(all) fun getName(): String {
+            return self.name
+        }
+
+        access(all) fun getDescription(): String {
+            return self.description
+        }
+
         access(all) view fun getViews(): [Type] {
             return []
         }
