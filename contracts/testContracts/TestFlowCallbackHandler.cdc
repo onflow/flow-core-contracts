@@ -19,6 +19,14 @@ access(all) contract TestFlowCallbackHandler {
             self.name = name
             self.description = description
         }
+
+        access(all) view fun getViews(): [Type] {
+            return []
+        }
+
+        access(all) fun resolveView(_ view: Type): AnyStruct? {
+            return nil
+        }
         
         access(FlowCallbackScheduler.Execute) 
         fun executeCallback(id: UInt64, data: AnyStruct?) {

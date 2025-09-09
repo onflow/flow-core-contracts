@@ -86,28 +86,30 @@ access(all) fun testCallbackScheduleEventAndData() {
     Test.assertEqual(statusScheduled, status!)
 
     var callbackData = getCallbackData(id: callbackID)
-    Test.assertEqual(callbackData!.id, callbackID)
-    Test.assertEqual(callbackData!.scheduledTimestamp, timeInFuture)
-    Test.assertEqual(callbackData!.priority.rawValue, highPriority)
-    Test.assertEqual(callbackData!.fees, feeAmount)
-    Test.assertEqual(callbackData!.executionEffort, basicEffort)
-    Test.assertEqual(callbackData!.status.rawValue, statusScheduled)
-    Test.assertEqual(callbackData!.name, "Test FlowCallbackHandler Resource")
-    Test.assertEqual(callbackData!.description, "Executes a variety of callbacks for different test cases")
+    Test.assertEqual(callbackID, callbackData!.id)
+    Test.assertEqual(timeInFuture, callbackData!.scheduledTimestamp)
+    Test.assertEqual(highPriority, callbackData!.priority.rawValue)
+    Test.assertEqual(feeAmount, callbackData!.fees)
+    Test.assertEqual(basicEffort, callbackData!.executionEffort)
+    Test.assertEqual(statusScheduled, callbackData!.status.rawValue)
+    Test.assertEqual("Test FlowCallbackHandler Resource", callbackData!.name)
+    Test.assertEqual("Executes a variety of callbacks for different test cases", callbackData!.description)
+    Test.assertEqual(serviceAccount.address, callbackData!.handlerAddress)
+    Test.assertEqual("A.0000000000000001.TestFlowCallbackHandler.Handler", callbackData!.handlerTypeIdentifier)
 
     // invalid timeframe should return empty dictionary
     var callbacks = getCallbacksForTimeframe(startTimestamp: timeInFuture, endTimestamp: timeInFuture - 1.0)
-    Test.assertEqual(callbacks.keys.length, 0)
+    Test.assertEqual(0, callbacks.keys.length)
 
     callbacks = getCallbacksForTimeframe(startTimestamp: timeInFuture-10.0, endTimestamp: timeInFuture - 1.0)
-    Test.assertEqual(callbacks.keys.length, 0)
+    Test.assertEqual(0, callbacks.keys.length)
 
     callbacks = getCallbacksForTimeframe(startTimestamp: timeInFuture-10.0, endTimestamp: timeInFuture)
-    Test.assertEqual(callbacks.keys.length, 1)
+    Test.assertEqual(1, callbacks.keys.length)
     let callbacksAtFutureTime = callbacks[timeInFuture]!
     let highPriorityCallbacks = callbacksAtFutureTime[highPriority]!
-    Test.assertEqual(highPriorityCallbacks.length, 1)
-    Test.assertEqual(highPriorityCallbacks[0], callbackID)
+    Test.assertEqual(1, highPriorityCallbacks.length)
+    Test.assertEqual(callbackID, highPriorityCallbacks[0])
 
     // Try to execute the callback, should fail because it isn't pendingExecution
     executeCallback(
@@ -390,7 +392,18 @@ access(all) fun testCallbackDestroyHandler() {
         failWithErr: nil
     )
 
-    // Destroy the handler for the callback
+    // Schedule a medium callback
+    scheduleCallback(
+        timestamp: timeInFuture,
+        fee: feeAmount,
+        effort: mediumEffort,
+        priority: mediumPriority,
+        data: testData,
+        testName: "Destroy Handler: SecondScheduled To Cancel",
+        failWithErr: nil
+    )
+
+    // Destroy the handler for both callbacks
     let executeCallbackCode = Test.readFile("./transactions/destroy_handler.cdc")
     let executeTx = Test.Transaction(
         code: executeCallbackCode,
@@ -400,6 +413,25 @@ access(all) fun testCallbackDestroyHandler() {
     )
     var result = Test.executeTransaction(executeTx)
     Test.expect(result, Test.beSucceeded())
+
+    // Cancel the second callback
+    cancelCallback(
+        id: 2,
+        failWithErr: nil
+    )
+    
+    // make sure the canceled event was emitted with empty handler values
+    let canceledEvents = Test.eventsOfType(Type<FlowCallbackScheduler.Canceled>())
+    Test.assertEqual(canceledEvents.length, 1)
+    let canceledEvent = canceledEvents[0] as! FlowCallbackScheduler.Canceled
+    Test.assertEqual(UInt64(2), canceledEvent.id)
+    Test.assertEqual(mediumPriority, canceledEvent.priority)
+    Test.assertEqual(feeAmount/UFix64(2.0), canceledEvent.feesReturned)
+    Test.assertEqual(feeAmount/UFix64(2.0), canceledEvent.feesDeducted)
+    Test.assertEqual(Address(0x0000000000000000), canceledEvent.callbackOwner)
+    Test.assertEqual("", canceledEvent.callbackHandlerTypeIdentifier)
+    Test.assertEqual("", canceledEvent.callbackName)
+    Test.assertEqual("", canceledEvent.callbackDescription)
 
     Test.moveTime(by: Fix64(futureDelta*11.0))
 
