@@ -110,8 +110,8 @@ access(all) contract FlowTransactionScheduler {
     /// Interfaces
 
     /// TransactionHandler is an interface that defines a single method executeTransaction that 
-    /// must be implemented by the resource that contains the logic to be executed by the scheduled tx.
-    /// An authorized capability to this resource is provided when scheduling a tx.
+    /// must be implemented by the resource that contains the logic to be executed by the scheduled transaction.
+    /// An authorized capability to this resource is provided when scheduling a transaction.
     /// The transaction scheduler uses this capability to execute the transaction when its scheduled timestamp arrives.
     access(all) resource interface TransactionHandler: ViewResolver.Resolver {
 
@@ -174,7 +174,7 @@ access(all) contract FlowTransactionScheduler {
 
     /// Transaction data is a representation of a scheduled transaction
     /// It is the source of truth for an individual transaction and stores the
-    /// capability to the handler that contains the logic that will be executed by the tx.
+    /// capability to the handler that contains the logic that will be executed by the transaction.
     access(all) struct TransactionData {
         access(all) let id: UInt64
         access(all) let priority: Priority
@@ -695,7 +695,7 @@ access(all) contract FlowTransactionScheduler {
         ///    (fractional seconds values are ignored). It must be set in the future.
         /// @param: priority: An enum value (`High`, `Medium`, or `Low`) that influences the scheduling behavior and determines 
         ///    how soon after the timestamp the transaction will be executed.
-        /// @param: executionEffort: Defines the maximum computational resources allocated to the tx. This also determines 
+        /// @param: executionEffort: Defines the maximum computational resources allocated to the transaction. This also determines 
         ///    the fee charged. Unused execution effort is not refunded.
         /// @param: fees: A Vault resource containing sufficient funds to cover the required execution effort.
         access(contract) fun schedule(
