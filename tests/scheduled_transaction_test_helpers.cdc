@@ -1,5 +1,5 @@
 import Test
-import "FlowCallbackScheduler"
+import "FlowTransactionScheduler"
 
 // Account 7 is where new contracts are deployed by default
 access(all) let admin = Test.getAccount(0x0000000000000007)
@@ -27,7 +27,7 @@ access(all) let highPriorityEffortReserve: UInt64 = 20000
 access(all) let mediumPriorityEffortReserve: UInt64 = 5000
 access(all) let sharedEffortLimit: UInt64 = 10000
 
-access(all) let canceledCallbacksLimit: UInt = 1000
+access(all) let canceledTransactionsLimit: UInt = 1000
 
 access(all) let collectionTransactionsLimit: Int = 150
 access(all) let collectionEffortLimit: UInt64 = 500000
@@ -44,8 +44,8 @@ access(all) var feeAmount = 10.0
  Test helper functions
  --------------------------------------------------------------------------------- */
 
-// Helper functions for scheduling a callback
-access(all) fun scheduleCallback(
+// Helper functions for scheduling a transaction
+access(all) fun scheduleTransaction(
     timestamp: UFix64,
     fee: UFix64,
     effort: UInt64,
@@ -55,7 +55,7 @@ access(all) fun scheduleCallback(
     failWithErr: String?
 ) {
     var tx = Test.Transaction(
-        code: Test.readFile("../transactions/callbackScheduler/schedule_callback.cdc"),
+        code: Test.readFile("../transactions/transactionScheduler/schedule_transaction.cdc"),
         authorizers: [serviceAccount.address],
         signers: [serviceAccount],
         arguments: [timestamp, fee, effort, priority, data],
@@ -78,9 +78,9 @@ access(all) fun scheduleCallback(
     }
 }
 
-access(all) fun cancelCallback(id: UInt64, failWithErr: String?) {
+access(all) fun cancelTransaction(id: UInt64, failWithErr: String?) {
     var tx = Test.Transaction(
-        code: Test.readFile("../transactions/callbackScheduler/cancel_callback.cdc"),
+        code: Test.readFile("../transactions/transactionScheduler/cancel_transaction.cdc"),
         authorizers: [serviceAccount.address],
         signers: [serviceAccount],
         arguments: [id],
@@ -99,10 +99,10 @@ access(all) fun cancelCallback(id: UInt64, failWithErr: String?) {
     }
 }
 
-access(all) fun processCallbacks(): Test.TransactionResult {
-    let processCallbackCode = Test.readFile("../transactions/callbackScheduler/admin/process_callback.cdc")
+access(all) fun processTransactions(): Test.TransactionResult {
+    let processTransactionCode = Test.readFile("../transactions/transactionScheduler/admin/process_scheduled_transactions.cdc")
     let processTx = Test.Transaction(
-        code: processCallbackCode,
+        code: processTransactionCode,
         authorizers: [serviceAccount.address],
         signers: [serviceAccount],
         arguments: []
@@ -112,14 +112,14 @@ access(all) fun processCallbacks(): Test.TransactionResult {
     return processResult
 }
 
-access(all) fun executeCallback(
+access(all) fun executeScheduledTransaction(
     id: UInt64, 
     testName: String,
     failWithErr: String?
 ) {
-    let executeCallbackCode = Test.readFile("../transactions/callbackScheduler/admin/execute_callback.cdc")
+    let executeTransactionCode = Test.readFile("../transactions/transactionScheduler/admin/execute_transaction.cdc")
     let executeTx = Test.Transaction(
-        code: executeCallbackCode,
+        code: executeTransactionCode,
         authorizers: [serviceAccount.address],
         signers: [serviceAccount],
         arguments: [id]
@@ -150,12 +150,12 @@ access(all) fun setConfigDetails(
     maxDataSizeMB: UFix64?,
     priorityFeeMultipliers: {UInt8: UFix64}?,
     refundMultiplier: UFix64?,
-    canceledCallbacksLimit: UInt?,
+    canceledTransactionsLimit: UInt?,
     collectionEffortLimit: UInt64?,
     collectionTransactionsLimit: Int?,
     shouldFail: String?
 ) {
-    let setConfigDetailsCode = Test.readFile("../transactions/callbackScheduler/admin/set_config_details.cdc")
+    let setConfigDetailsCode = Test.readFile("../transactions/transactionScheduler/admin/set_config_details.cdc")
     let setConfigDetailsTx = Test.Transaction(
         code: setConfigDetailsCode,
         authorizers: [serviceAccount.address],
@@ -168,7 +168,7 @@ access(all) fun setConfigDetails(
                     maxDataSizeMB,
                     priorityFeeMultipliers,
                     refundMultiplier,
-                    canceledCallbacksLimit,
+                    canceledTransactionsLimit,
                     collectionEffortLimit,
                     collectionTransactionsLimit]
     )
@@ -187,11 +187,11 @@ access(all) fun setConfigDetails(
     }
 }
 
-access(all) fun getConfigDetails(): {FlowCallbackScheduler.SchedulerConfig} {
+access(all) fun getConfigDetails(): {FlowTransactionScheduler.SchedulerConfig} {
     var config = _executeScript(
-        "../transactions/callbackScheduler/scripts/get_config.cdc",
+        "../transactions/transactionScheduler/scripts/get_config.cdc",
         []
-    ).returnValue! as! {FlowCallbackScheduler.SchedulerConfig}
+    ).returnValue! as! {FlowTransactionScheduler.SchedulerConfig}
     return config
 }
 
@@ -205,31 +205,31 @@ access(all) fun getSizeOfData(data: AnyStruct): UFix64 {
 
 access(all) fun getStatus(id: UInt64): UInt8? {
     var status = _executeScript(
-        "../transactions/callbackScheduler/scripts/get_status.cdc",
+        "../transactions/transactionScheduler/scripts/get_status.cdc",
         [id]
     ).returnValue as? UInt8
     return status
 }
 
-access(all) fun getCallbackData(id: UInt64): FlowCallbackScheduler.CallbackData? {
+access(all) fun getTransactionData(id: UInt64): FlowTransactionScheduler.TransactionData? {
     var data = _executeScript(
-        "../transactions/callbackScheduler/scripts/get_callback_data.cdc",
+        "../transactions/transactionScheduler/scripts/get_transaction_data.cdc",
         [id]
-    ).returnValue as? FlowCallbackScheduler.CallbackData
+    ).returnValue as? FlowTransactionScheduler.TransactionData
     return data
 }
 
-access(all) fun getCallbacksForTimeframe(startTimestamp: UFix64, endTimestamp: UFix64): {UFix64: {UInt8: [UInt64]}} {
+access(all) fun getTransactionsForTimeframe(startTimestamp: UFix64, endTimestamp: UFix64): {UFix64: {UInt8: [UInt64]}} {
     var result = _executeScript(
-        "../transactions/callbackScheduler/scripts/get_callbacks_for_timeframe.cdc",
+        "../transactions/transactionScheduler/scripts/get_transactions_for_timeframe.cdc",
         [startTimestamp, endTimestamp]
     )
     return result.returnValue! as! {UFix64: {UInt8: [UInt64]}}
 }
 
-access(all) fun getCanceledCallbacks(): [UInt64] {
+access(all) fun getCanceledTransactions(): [UInt64] {
     var result = _executeScript(
-        "../transactions/callbackScheduler/scripts/get_canceled_callbacks.cdc",
+        "../transactions/transactionScheduler/scripts/get_canceled_transactions.cdc",
         []
     )
     return result.returnValue! as! [UInt64]
@@ -237,7 +237,7 @@ access(all) fun getCanceledCallbacks(): [UInt64] {
 
 access(all) fun getSlotAvailableEffort(timestamp: UFix64, priority: UInt8): UInt64 {
     var result = _executeScript(
-        "../transactions/callbackScheduler/scripts/get_slot_available_effort.cdc",
+        "../transactions/transactionScheduler/scripts/get_slot_available_effort.cdc",
         [timestamp, priority]
     )
     Test.expect(result, Test.beSucceeded())

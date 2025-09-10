@@ -1,0 +1,107 @@
+import "FlowTransactionScheduler"
+import "FlowToken"
+import "FungibleToken"
+
+// TestFlowScheduledTransactionHandler is a simplified test contract for testing FlowTransactionScheduler
+access(all) contract TestFlowScheduledTransactionHandler {
+    access(all) var scheduledTransactions: @{UInt64: FlowTransactionScheduler.ScheduledTransaction}
+    access(all) var succeededTransactions: [UInt64]
+
+    access(all) let HandlerStoragePath: StoragePath
+    access(all) let HandlerPublicPath: PublicPath
+    
+    access(all) resource Handler: FlowTransactionScheduler.TransactionHandler {
+
+        access(all) let name: String
+        access(all) let description: String
+
+        init(name: String, description: String) {
+            self.name = name
+            self.description = description
+        }
+
+        access(all) fun getName(): String {
+            return self.name
+        }
+
+        access(all) fun getDescription(): String {
+            return self.description
+        }
+
+        access(all) view fun getViews(): [Type] {
+            return []
+        }
+
+        access(all) fun resolveView(_ view: Type): AnyStruct? {
+            return nil
+        }
+        
+        access(FlowTransactionScheduler.Execute) 
+        fun executeTransaction(id: UInt64, data: AnyStruct?) {
+            // Most transactions will have string data
+            if let dataString = data as? String {
+                // intentional failure test case
+                if dataString == "fail" {
+                    panic("Transaction \(id) failed")
+                } else if dataString == "cancel" {
+                    // This should always fail because the transaction can't cancel itself during execution
+                    destroy <-TestFlowScheduledTransactionHandler.cancelTransaction(id: id)
+                } else {
+                    // All other regular test cases should succeed
+                    TestFlowScheduledTransactionHandler.succeededTransactions.append(id)
+                }
+            } else if let dataCap = data as? Capability<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}> {
+                // Testing scheduling a transaction with a transaction
+                let scheduledTransaction <- FlowTransactionScheduler.schedule(
+                    handlerCap: dataCap,
+                    data: "test data",
+                    timestamp: getCurrentBlock().timestamp + 10.0,
+                    priority: FlowTransactionScheduler.Priority.High,
+                    executionEffort: UInt64(1000),
+                    fees: <-TestFlowScheduledTransactionHandler.getFeeFromVault(amount: 1.0)
+                )
+                TestFlowScheduledTransactionHandler.addScheduledTransaction(scheduledTx: <-scheduledTransaction)
+            } else {
+                panic("TestFlowScheduledTransactionHandler.executeTransaction: Invalid data type for transaction with id \(id). Type is \(data.getType().identifier)")
+            }
+        }
+    }
+
+    access(all) fun createHandler(): @Handler {
+        return <- create Handler(name: "Test FlowTransactionHandler Resource", description: "Executes a variety of transactions for different test cases")
+    }
+
+    access(all) fun addScheduledTransaction(scheduledTx: @FlowTransactionScheduler.ScheduledTransaction) {
+        let status = scheduledTx.status()
+        if status == nil {
+            panic("Invalid status for transaction with id \(scheduledTx.id)")
+        }
+        self.scheduledTransactions[scheduledTx.id] <-! scheduledTx
+    }
+
+    access(all) fun cancelTransaction(id: UInt64): @FlowToken.Vault {
+        let scheduledTx <- self.scheduledTransactions.remove(key: id)
+            ?? panic("Invalid ID: \(id) transaction not found")
+        return <-FlowTransactionScheduler.cancel(scheduledTx: <-scheduledTx!)
+    }
+
+    access(all) fun getSucceededTransactions(): [UInt64] {
+        return self.succeededTransactions
+    }
+
+    access(contract) fun getFeeFromVault(amount: UFix64): @FlowToken.Vault {
+        // borrow a reference to the vault that will be used for fees
+        let vault = self.account.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault)
+            ?? panic("Could not borrow FlowToken vault")
+        
+        return <- vault.withdraw(amount: amount) as! @FlowToken.Vault
+    }
+
+    access(all) init() {
+        self.scheduledTransactions <- {}
+        self.succeededTransactions = []
+
+        self.HandlerStoragePath = /storage/testTransactionHandler
+        self.HandlerPublicPath = /public/testTransactionHandler
+    }
+} 
