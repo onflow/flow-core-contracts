@@ -1,5 +1,5 @@
-import "FlowCallbackScheduler"
-import "TestFlowCallbackHandler"
+import "FlowTransactionScheduler"
+import "TestFlowScheduledTransactionHandler"
 import "FlowToken"
 import "FungibleToken"
 
@@ -10,6 +10,6 @@ transaction(id: UInt64) {
         let vault = account.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault)
             ?? panic("Could not borrow FlowToken vault")
 
-        vault.deposit(from: <-TestFlowCallbackHandler.cancelCallback(id: id))
+        vault.deposit(from: <-TestFlowScheduledTransactionHandler.cancelTransaction(id: id))
     }
 } 

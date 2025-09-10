@@ -1,5 +1,5 @@
-import "FlowCallbackScheduler"
+import "FlowTransactionScheduler"
 
 access(all) fun main(data: AnyStruct): UFix64 {
-    return FlowCallbackScheduler.getSizeOfData(data)
+    return FlowTransactionScheduler.getSizeOfData(data)
 }

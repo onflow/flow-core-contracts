@@ -1,10 +1,10 @@
-import "TestFlowCallbackHandler"
-import "FlowCallbackScheduler"
+import "TestFlowScheduledTransactionHandler"
+import "FlowTransactionScheduler"
 
 transaction {
     prepare(account: auth(BorrowValue, LoadValue) &Account) {
-        let handler <- account.storage.load<@TestFlowCallbackHandler.Handler>(from: TestFlowCallbackHandler.HandlerStoragePath)
-            ?? panic("Could not load TestFlowCallbackHandler")
+        let handler <- account.storage.load<@TestFlowScheduledTransactionHandler.Handler>(from: TestFlowScheduledTransactionHandler.HandlerStoragePath)
+            ?? panic("Could not load TestFlowScheduledTransactionHandler")
         destroy handler
     }
 }

@@ -1,24 +1,24 @@
 import Test
 import BlockchainHelpers
-import "FlowCallbackScheduler"
+import "FlowTransactionScheduler"
 import "FlowToken"
-import "TestFlowCallbackHandler"
+import "TestFlowScheduledTransactionHandler"
 
-import "callback_test_helpers.cdc"
+import "scheduled_transaction_test_helpers.cdc"
 
 access(all)
 fun setup() {
 
     var err = Test.deployContract(
-        name: "FlowCallbackScheduler",
-        path: "../contracts/FlowCallbackScheduler.cdc",
+        name: "FlowTransactionScheduler",
+        path: "../contracts/FlowTransactionScheduler.cdc",
         arguments: []
     )
     Test.expect(err, Test.beNil())
 
     err = Test.deployContract(
-        name: "TestFlowCallbackHandler",
-        path: "../contracts/testContracts/TestFlowCallbackHandler.cdc",
+        name: "TestFlowScheduledTransactionHandler",
+        path: "../contracts/testContracts/TestFlowScheduledTransactionHandler.cdc",
         arguments: []
     )
     Test.expect(err, Test.beNil())
@@ -26,26 +26,26 @@ fun setup() {
 }
 
 /** ---------------------------------------------------------------------------------
- Callback handler integration tests
+ Transaction handler integration tests
  --------------------------------------------------------------------------------- */
 
 
 access(all) fun testInit() {
 
-    // Try to process callbacks
+    // Try to process transactions
     // Nothing will process because nothing is scheduled, but should not fail
-    processCallbacks()
+    processTransactions()
 
-    // try to get the status of a callback that is not scheduled yet
+    // try to get the status of a transaction that is not scheduled yet
     var status = getStatus(id: UInt64(10))
     Test.assertEqual(nil, status)
 
-    // try to get the status of callback with ID 0
+    // try to get the status of transaction with ID 0
     status = getStatus(id: UInt64(0))
     Test.assertEqual(nil, status)
 
-    // Try to execute a callback, should fail
-    executeCallback(id: UInt64(1), testName: "testInit", failWithErr: "Invalid ID: Callback with id 1 not found")
+    // Try to execute a transaction, should fail
+    executeScheduledTransaction(id: UInt64(1), testName: "testInit", failWithErr: "Invalid ID: Transaction with id 1 not found")
 
     // verify that the available efforts are all their defaults
     var effort = getSlotAvailableEffort(timestamp: futureTime, priority: highPriority)
@@ -67,8 +67,8 @@ access(all) fun testGetSizeOfData() {
     size = getSizeOfData(data: 100000000)
     Test.assertEqual(0.00000000 as UFix64, size)
 
-    size = getSizeOfData(data: StoragePath(identifier: "scheduledCallbacksStoragePath"))
-    Test.assertEqual(0.00005300 as UFix64, size)
+    size = getSizeOfData(data: StoragePath(identifier: "scheduledTransactionsStoragePath"))
+    Test.assertEqual(0.00005600 as UFix64, size)
 
     size = getSizeOfData(data: testData)
     Test.assertEqual(0.00003000 as UFix64, size)
@@ -83,14 +83,14 @@ access(all) fun testGetSizeOfData() {
 }
 
 /** ---------------------------------------------------------------------------------
- Callback scheduler estimate() tests
+ Transaction scheduler estimate() tests
  --------------------------------------------------------------------------------- */
 
 // Test case structure for estimate function
 access(all) struct EstimateTestCase {
     access(all) let name: String
     access(all) let timestamp: UFix64
-    access(all) let priority: FlowCallbackScheduler.Priority
+    access(all) let priority: FlowTransactionScheduler.Priority
     access(all) let executionEffort: UInt64
     access(all) let data: AnyStruct?
     access(all) let expectedFee: UFix64?
@@ -100,7 +100,7 @@ access(all) struct EstimateTestCase {
     access(all) init(
         name: String,
         timestamp: UFix64,
-        priority: FlowCallbackScheduler.Priority,
+        priority: FlowTransactionScheduler.Priority,
         executionEffort: UInt64,
         data: AnyStruct?,
         expectedFee: UFix64?,
@@ -126,21 +126,21 @@ access(all) fun testEstimate() {
     let farFutureTime = currentTime + 10000.0
 
     let estimateTestCases: [EstimateTestCase] = [
-        // Error cases - should return EstimatedCallback with error
+        // Error cases - should return EstimatedScheduledTransaction with error
         EstimateTestCase(
             name: "Low priority returns requested timestamp and error",
             timestamp: futureTime,
-            priority: FlowCallbackScheduler.Priority.Low,
+            priority: FlowTransactionScheduler.Priority.Low,
             executionEffort: 1000,
             data: nil,
             expectedFee: 0.00002,
             expectedTimestamp: futureTime,
-            expectedError: "Invalid Priority: Cannot estimate for Low Priority callbacks. They will be included in the first block with available space after their requested timestamp."
+            expectedError: "Invalid Priority: Cannot estimate for Low Priority transactions. They will be included in the first block with available space after their requested timestamp."
         ),
         EstimateTestCase(
             name: "Past timestamp returns error",
             timestamp: pastTime,
-            priority: FlowCallbackScheduler.Priority.High,
+            priority: FlowTransactionScheduler.Priority.High,
             executionEffort: 1000,
             data: nil,
             expectedFee: nil,
@@ -150,7 +150,7 @@ access(all) fun testEstimate() {
         EstimateTestCase(
             name: "Current timestamp returns error",
             timestamp: currentTime,
-            priority: FlowCallbackScheduler.Priority.Medium,
+            priority: FlowTransactionScheduler.Priority.Medium,
             executionEffort: 1000,
             data: nil,
             expectedFee: nil,
@@ -160,7 +160,7 @@ access(all) fun testEstimate() {
         EstimateTestCase(
             name: "Zero execution effort returns error",
             timestamp: futureTime + 7.0,
-            priority: FlowCallbackScheduler.Priority.High,
+            priority: FlowTransactionScheduler.Priority.High,
             executionEffort: 0,
             data: nil,
             expectedFee: nil,
@@ -170,27 +170,27 @@ access(all) fun testEstimate() {
         EstimateTestCase(
             name: "Excessive high priority effort returns error",
             timestamp: futureTime + 8.0,
-            priority: FlowCallbackScheduler.Priority.High,
+            priority: FlowTransactionScheduler.Priority.High,
             executionEffort: 50000,
             data: nil,
             expectedFee: nil,
             expectedTimestamp: nil,
-            expectedError: "Invalid execution effort: 50000 is greater than the maximum callback effort of 9999"
+            expectedError: "Invalid execution effort: 50000 is greater than the maximum transaction effort of 9999"
         ),
         EstimateTestCase(
             name: "Excessive medium priority effort returns error",
             timestamp: futureTime + 9.0,
-            priority: FlowCallbackScheduler.Priority.Medium,
+            priority: FlowTransactionScheduler.Priority.Medium,
             executionEffort: 10000,
             data: nil,
             expectedFee: nil,
             expectedTimestamp: nil,
-            expectedError: "Invalid execution effort: 10000 is greater than the maximum callback effort of 9999"
+            expectedError: "Invalid execution effort: 10000 is greater than the maximum transaction effort of 9999"
         ),
         EstimateTestCase(
             name: "Excessive low priority effort returns error",
             timestamp: futureTime + 10.0,
-            priority: FlowCallbackScheduler.Priority.Low,
+            priority: FlowTransactionScheduler.Priority.Low,
             executionEffort: 5001,
             data: nil,
             expectedFee: nil,
@@ -198,11 +198,11 @@ access(all) fun testEstimate() {
             expectedError: "Invalid execution effort: 5001 is greater than the priority's max effort of 5000"
         ),
 
-        // Valid cases - should return EstimatedCallback with no error
+        // Valid cases - should return EstimatedScheduledTransaction with no error
         EstimateTestCase(
             name: "High priority effort",
             timestamp: futureTime + 1.0,
-            priority: FlowCallbackScheduler.Priority.High,
+            priority: FlowTransactionScheduler.Priority.High,
             executionEffort: 5000,
             data: nil,
             expectedFee: 0.0001,
@@ -212,7 +212,7 @@ access(all) fun testEstimate() {
         EstimateTestCase(
             name: "Medium priority minimum effort",
             timestamp: futureTime + 4.0,
-            priority: FlowCallbackScheduler.Priority.Medium,
+            priority: FlowTransactionScheduler.Priority.Medium,
             executionEffort: 10,
             data: nil,
             expectedFee: 0.00005,
@@ -222,7 +222,7 @@ access(all) fun testEstimate() {
         EstimateTestCase(
             name: "Far future timestamp",
             timestamp: farFutureTime,
-            priority: FlowCallbackScheduler.Priority.High,
+            priority: FlowTransactionScheduler.Priority.High,
             executionEffort: 1000,
             data: nil,
             expectedFee: 0.0001,
@@ -232,7 +232,7 @@ access(all) fun testEstimate() {
         EstimateTestCase(
             name: "String data",
             timestamp: futureTime + 10.0,
-            priority: FlowCallbackScheduler.Priority.High,
+            priority: FlowTransactionScheduler.Priority.High,
             executionEffort: 1000,
             data: "string data",
             expectedFee: 0.0001,
@@ -242,7 +242,7 @@ access(all) fun testEstimate() {
         EstimateTestCase(
             name: "Dictionary data",
             timestamp: futureTime + 11.0,
-            priority: FlowCallbackScheduler.Priority.Medium,
+            priority: FlowTransactionScheduler.Priority.Medium,
             executionEffort: 1000,
             data: {"key": "value"},
             expectedFee: 0.00005,
@@ -252,7 +252,7 @@ access(all) fun testEstimate() {
         EstimateTestCase(
             name: "Array data",
             timestamp: futureTime + 12.0,
-            priority: FlowCallbackScheduler.Priority.Medium,
+            priority: FlowTransactionScheduler.Priority.Medium,
             executionEffort: 1000,
             data: [1, 2, 3, 4, 5, 6],
             expectedFee: 0.00005,
@@ -267,7 +267,7 @@ access(all) fun testEstimate() {
 }
 
 access(all) fun runEstimateTestCase(testCase: EstimateTestCase) {
-    let estimate = FlowCallbackScheduler.estimate(
+    let estimate = FlowTransactionScheduler.estimate(
         data: testCase.data,
         timestamp: testCase.timestamp,
         priority: testCase.priority,
@@ -298,7 +298,7 @@ access(all) fun runEstimateTestCase(testCase: EstimateTestCase) {
 }
 
 /** ---------------------------------------------------------------------------------
- Callback scheduler config details tests
+ Transaction scheduler config details tests
  --------------------------------------------------------------------------------- */
 
 
@@ -316,7 +316,7 @@ access(all) fun testConfigDetails() {
         maxDataSizeMB: nil,
         priorityFeeMultipliers: nil,
         refundMultiplier: 1.1,
-        canceledCallbacksLimit: nil,
+        canceledTransactionsLimit: nil,
         collectionEffortLimit: nil,
         collectionTransactionsLimit: nil,
         shouldFail: "Invalid refund multiplier: The multiplier must be between 0.0 and 1.0 but got 1.10000000"
@@ -331,7 +331,7 @@ access(all) fun testConfigDetails() {
         maxDataSizeMB: nil,
         priorityFeeMultipliers: {highPriority: 20.0, mediumPriority: 10.0, lowPriority: 0.9},
         refundMultiplier: nil,
-        canceledCallbacksLimit: nil,
+        canceledTransactionsLimit: nil,
         collectionEffortLimit: nil,
         collectionTransactionsLimit: nil,
         shouldFail: "Invalid priority fee multiplier: Low priority multiplier must be greater than or equal to 1.0 but got 0.90000000"
@@ -346,7 +346,7 @@ access(all) fun testConfigDetails() {
         maxDataSizeMB: nil,
         priorityFeeMultipliers: {highPriority: 20.0, mediumPriority: 3.0, lowPriority: 4.0},
         refundMultiplier: nil,
-        canceledCallbacksLimit: nil,
+        canceledTransactionsLimit: nil,
         collectionEffortLimit: nil,
         collectionTransactionsLimit: nil,
         shouldFail: "Invalid priority fee multiplier: Medium priority multiplier must be greater than or equal to 4.00000000 but got 3.00000000"
@@ -361,7 +361,7 @@ access(all) fun testConfigDetails() {
         maxDataSizeMB: nil,
         priorityFeeMultipliers: {highPriority: 5.0, mediumPriority: 6.0, lowPriority: 4.0},
         refundMultiplier: nil,
-        canceledCallbacksLimit: nil,
+        canceledTransactionsLimit: nil,
         collectionEffortLimit: nil,
         collectionTransactionsLimit: nil,
         shouldFail: "Invalid priority fee multiplier: High priority multiplier must be greater than or equal to 6.00000000 but got 5.00000000"
@@ -376,7 +376,7 @@ access(all) fun testConfigDetails() {
         maxDataSizeMB: nil,
         priorityFeeMultipliers: nil,
         refundMultiplier: nil,
-        canceledCallbacksLimit: nil,
+        canceledTransactionsLimit: nil,
         collectionEffortLimit: nil,
         collectionTransactionsLimit: nil,
         shouldFail: "Invalid priority effort limit: High priority effort limit must be greater than or equal to the priority effort reserve of 40000"
@@ -391,7 +391,7 @@ access(all) fun testConfigDetails() {
         maxDataSizeMB: nil,
         priorityFeeMultipliers: nil,
         refundMultiplier: nil,
-        canceledCallbacksLimit: nil,
+        canceledTransactionsLimit: nil,
         collectionEffortLimit: nil,
         collectionTransactionsLimit: nil,
         shouldFail: "Invalid priority effort limit: Medium priority effort limit must be greater than or equal to the priority effort reserve of 40000"
@@ -406,7 +406,7 @@ access(all) fun testConfigDetails() {
         maxDataSizeMB: nil,
         priorityFeeMultipliers: nil,
         refundMultiplier: nil,
-        canceledCallbacksLimit: nil,
+        canceledTransactionsLimit: nil,
         collectionEffortLimit: nil,
         collectionTransactionsLimit: nil,
         shouldFail: "Invalid priority effort limit: Low priority effort limit must be greater than or equal to the priority effort reserve of 20000"
@@ -421,7 +421,7 @@ access(all) fun testConfigDetails() {
         maxDataSizeMB: nil,
         priorityFeeMultipliers: nil,
         refundMultiplier: nil,
-        canceledCallbacksLimit: nil,
+        canceledTransactionsLimit: nil,
         collectionEffortLimit: 30000 as UInt64,
         collectionTransactionsLimit: nil,
         shouldFail: "Invalid collection effort limit: Collection effort limit must be greater than 35000 but got 30000"
@@ -436,7 +436,7 @@ access(all) fun testConfigDetails() {
         maxDataSizeMB: nil,
         priorityFeeMultipliers: nil,
         refundMultiplier: nil,
-        canceledCallbacksLimit: nil,
+        canceledTransactionsLimit: nil,
         collectionEffortLimit: nil,
         collectionTransactionsLimit: -1,
         shouldFail: "Invalid collection transactions limit: Collection transactions limit must be greater than or equal to 0 but got -1"
@@ -450,19 +450,19 @@ access(all) fun testConfigDetails() {
     Test.assertEqual(9999 as UInt64,oldConfig.maximumIndividualEffort)
     Test.assertEqual(35000 as UInt64,oldConfig.slotTotalEffortLimit)
     Test.assertEqual(10000 as UInt64,oldConfig.slotSharedEffortLimit)
-    Test.assertEqual(20000 as UInt64,oldConfig.priorityEffortReserve[FlowCallbackScheduler.Priority.High]!)
-    Test.assertEqual(5000 as UInt64,oldConfig.priorityEffortReserve[FlowCallbackScheduler.Priority.Medium]!)
-    Test.assertEqual(0 as UInt64,oldConfig.priorityEffortReserve[FlowCallbackScheduler.Priority.Low]!)
-    Test.assertEqual(30000 as UInt64,oldConfig.priorityEffortLimit[FlowCallbackScheduler.Priority.High]!)
-    Test.assertEqual(15000 as UInt64,oldConfig.priorityEffortLimit[FlowCallbackScheduler.Priority.Medium]!)
-    Test.assertEqual(5000 as UInt64,oldConfig.priorityEffortLimit[FlowCallbackScheduler.Priority.Low]!)
+    Test.assertEqual(20000 as UInt64,oldConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.High]!)
+    Test.assertEqual(5000 as UInt64,oldConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.Medium]!)
+    Test.assertEqual(0 as UInt64,oldConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.Low]!)
+    Test.assertEqual(30000 as UInt64,oldConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.High]!)
+    Test.assertEqual(15000 as UInt64,oldConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.Medium]!)
+    Test.assertEqual(5000 as UInt64,oldConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.Low]!)
     Test.assertEqual(10 as UInt64,oldConfig.minimumExecutionEffort)
     Test.assertEqual(3.0,oldConfig.maxDataSizeMB)
-    Test.assertEqual(10.0,oldConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.High]!)
-    Test.assertEqual(5.0,oldConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.Medium]!)
-    Test.assertEqual(2.0,oldConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.Low]!)
+    Test.assertEqual(10.0,oldConfig.priorityFeeMultipliers[FlowTransactionScheduler.Priority.High]!)
+    Test.assertEqual(5.0,oldConfig.priorityFeeMultipliers[FlowTransactionScheduler.Priority.Medium]!)
+    Test.assertEqual(2.0,oldConfig.priorityFeeMultipliers[FlowTransactionScheduler.Priority.Low]!)
     Test.assertEqual(0.5,oldConfig.refundMultiplier)
-    Test.assertEqual(1000 as UInt,oldConfig.canceledCallbacksLimit)
+    Test.assertEqual(1000 as UInt,oldConfig.canceledTransactionsLimit)
     Test.assertEqual(500000 as UInt64,oldConfig.collectionEffortLimit)
     Test.assertEqual(150 as Int,oldConfig.collectionTransactionsLimit)
 
@@ -476,7 +476,7 @@ access(all) fun testConfigDetails() {
         maxDataSizeMB: 1.0,
         priorityFeeMultipliers: {highPriority: 20.0, mediumPriority: 10.0, lowPriority: 4.0},
         refundMultiplier: nil,
-        canceledCallbacksLimit: 2000,
+        canceledTransactionsLimit: 2000,
         collectionEffortLimit: 800000,
         collectionTransactionsLimit: 90,
         shouldFail: nil
@@ -487,19 +487,19 @@ access(all) fun testConfigDetails() {
     Test.assertEqual(14999 as UInt64,newConfig.maximumIndividualEffort)
     Test.assertEqual(45000 as UInt64,newConfig.slotTotalEffortLimit)
     Test.assertEqual(20000 as UInt64,newConfig.slotSharedEffortLimit)
-    Test.assertEqual(oldConfig.priorityEffortReserve[FlowCallbackScheduler.Priority.High]!,newConfig.priorityEffortReserve[FlowCallbackScheduler.Priority.High]!)
-    Test.assertEqual(oldConfig.priorityEffortReserve[FlowCallbackScheduler.Priority.Medium]!,newConfig.priorityEffortReserve[FlowCallbackScheduler.Priority.Medium]!)
-    Test.assertEqual(oldConfig.priorityEffortReserve[FlowCallbackScheduler.Priority.Low]!,newConfig.priorityEffortReserve[FlowCallbackScheduler.Priority.Low]!)
-    Test.assertEqual(30000 as UInt64,newConfig.priorityEffortLimit[FlowCallbackScheduler.Priority.High]!)
-    Test.assertEqual(30000 as UInt64,newConfig.priorityEffortLimit[FlowCallbackScheduler.Priority.Medium]!)
-    Test.assertEqual(10000 as UInt64,newConfig.priorityEffortLimit[FlowCallbackScheduler.Priority.Low]!)
+    Test.assertEqual(oldConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.High]!,newConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.High]!)
+    Test.assertEqual(oldConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.Medium]!,newConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.Medium]!)
+    Test.assertEqual(oldConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.Low]!,newConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.Low]!)
+    Test.assertEqual(30000 as UInt64,newConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.High]!)
+    Test.assertEqual(30000 as UInt64,newConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.Medium]!)
+    Test.assertEqual(10000 as UInt64,newConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.Low]!)
     Test.assertEqual(10 as UInt64,newConfig.minimumExecutionEffort)
     Test.assertEqual(1.0,newConfig.maxDataSizeMB)
-    Test.assertEqual(20.0,newConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.High]!)
-    Test.assertEqual(10.0,newConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.Medium]!)
-    Test.assertEqual(4.0,newConfig.priorityFeeMultipliers[FlowCallbackScheduler.Priority.Low]!)
+    Test.assertEqual(20.0,newConfig.priorityFeeMultipliers[FlowTransactionScheduler.Priority.High]!)
+    Test.assertEqual(10.0,newConfig.priorityFeeMultipliers[FlowTransactionScheduler.Priority.Medium]!)
+    Test.assertEqual(4.0,newConfig.priorityFeeMultipliers[FlowTransactionScheduler.Priority.Low]!)
     Test.assertEqual(oldConfig.refundMultiplier,newConfig.refundMultiplier)
-    Test.assertEqual(2000 as UInt,newConfig.canceledCallbacksLimit)
+    Test.assertEqual(2000 as UInt,newConfig.canceledTransactionsLimit)
     Test.assertEqual(800000 as UInt64,newConfig.collectionEffortLimit)
     Test.assertEqual(90 as Int,newConfig.collectionTransactionsLimit)
 }
@@ -568,7 +568,7 @@ access(all) struct CheckTestCase {
 }
 
 access(all) fun testSortedTimestampsInit() {
-    let sortedTimestamps = FlowCallbackScheduler.SortedTimestamps()
+    let sortedTimestamps = FlowTransactionScheduler.SortedTimestamps()
     
     // Test that it initializes with empty timestamps
     let pastTimestamps = sortedTimestamps.getBefore(current: 100.0)
@@ -607,7 +607,7 @@ access(all) fun testSortedTimestampsAdd() {
     ]
 
     for testCase in testCases {
-        let sortedTimestamps = FlowCallbackScheduler.SortedTimestamps()
+        let sortedTimestamps = FlowTransactionScheduler.SortedTimestamps()
         
         // Add all timestamps
         for timestamp in testCase.timestampsToAdd {
@@ -666,7 +666,7 @@ access(all) fun testSortedTimestampsRemove() {
     ]
 
     for testCase in testCases {
-        let sortedTimestamps = FlowCallbackScheduler.SortedTimestamps()
+        let sortedTimestamps = FlowTransactionScheduler.SortedTimestamps()
         
         // Add initial timestamps
         for timestamp in testCase.initialTimestamps {
@@ -727,7 +727,7 @@ access(all) fun testSortedTimestampsPast() {
     ]
 
     for testCase in testCases {
-        let sortedTimestamps = FlowCallbackScheduler.SortedTimestamps()
+        let sortedTimestamps = FlowTransactionScheduler.SortedTimestamps()
         
         // Add timestamps
         for timestamp in testCase.timestamps {
@@ -793,7 +793,7 @@ access(all) fun testSortedTimestampsCheck() {
     ]
 
     for testCase in testCases {
-        let sortedTimestamps = FlowCallbackScheduler.SortedTimestamps()
+        let sortedTimestamps = FlowTransactionScheduler.SortedTimestamps()
         
         // Add timestamps
         for timestamp in testCase.timestamps {
@@ -807,7 +807,7 @@ access(all) fun testSortedTimestampsCheck() {
 }
 
 access(all) fun testSortedTimestampsEdgeCases() {
-    let sortedTimestamps = FlowCallbackScheduler.SortedTimestamps()
+    let sortedTimestamps = FlowTransactionScheduler.SortedTimestamps()
     
     // Test adding timestamps at boundaries
     sortedTimestamps.add(timestamp: 0.1)
@@ -819,7 +819,7 @@ access(all) fun testSortedTimestampsEdgeCases() {
     Test.assertEqual(UFix64.max - 1.0, allTimestamps[1])
     
     // Test with many timestamps to verify sorting performance
-    let manyTimestamps = FlowCallbackScheduler.SortedTimestamps()
+    let manyTimestamps = FlowTransactionScheduler.SortedTimestamps()
     var i = 100
     while i > 0 {
         manyTimestamps.add(timestamp: UFix64(i))
