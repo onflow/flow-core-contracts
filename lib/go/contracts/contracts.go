@@ -44,31 +44,31 @@ const (
 	flowRandomBeaconHistoryFilename    = "RandomBeaconHistory.cdc"
 	cryptoFilename                     = "Crypto.cdc"
 	linearCodeAddressGeneratorFilename = "LinearCodeAddressGenerator.cdc"
-	flowCallbackSchedulerFilename      = "FlowCallbackScheduler.cdc"
+	flowTransactionSchedulerFilename   = "FlowTransactionScheduler.cdc"
 
 	// Test contracts
 	// only used for testing
-	TESTFlowIdentityTableFilename   = "testContracts/TestFlowIDTableStaking.cdc"
-	TESTflowCallbackHandlerFilename = "testContracts/TestFlowCallbackHandler.cdc"
+	TESTFlowIdentityTableFilename               = "testContracts/TestFlowIDTableStaking.cdc"
+	TESTflowScheduledTransactionHandlerFilename = "testContracts/TestFlowScheduledTransactionHandler.cdc"
 
 	// Each contract has placeholder addresses that need to be replaced
 	// depending on which network they are being used with
-	placeholderFungibleTokenAddress         = "\"FungibleToken\""
-	placeholderFungibleTokenMVAddress       = "\"FungibleTokenMetadataViews\""
-	placeholderMetadataViewsAddress         = "\"MetadataViews\""
-	placeholderFlowTokenAddress             = "\"FlowToken\""
-	placeholderIDTableAddress               = "\"FlowIDTableStaking\""
-	placeholderBurnerAddress                = "\"Burner\""
-	placeholderStakingProxyAddress          = "\"StakingProxy\""
-	placeholderQCAddr                       = "\"FlowClusterQC\""
-	placeholderDKGAddr                      = "\"FlowDKG\""
-	placeholderEpochAddr                    = "\"FlowEpoch\""
-	placeholderFlowFeesAddress              = "\"FlowFees\""
-	placeholderStorageFeesAddress           = "\"FlowStorageFees\""
-	placeholderLockedTokensAddress          = "\"LockedTokens\""
-	placeholderStakingCollectionAddress     = "\"FlowStakingCollection\""
-	placeholderNodeVersionBeaconAddress     = "\"NodeVersionBeacon\""
-	placeholderFlowCallbackSchedulerAddress = "\"FlowCallbackScheduler\""
+	placeholderFungibleTokenAddress            = "\"FungibleToken\""
+	placeholderFungibleTokenMVAddress          = "\"FungibleTokenMetadataViews\""
+	placeholderMetadataViewsAddress            = "\"MetadataViews\""
+	placeholderFlowTokenAddress                = "\"FlowToken\""
+	placeholderIDTableAddress                  = "\"FlowIDTableStaking\""
+	placeholderBurnerAddress                   = "\"Burner\""
+	placeholderStakingProxyAddress             = "\"StakingProxy\""
+	placeholderQCAddr                          = "\"FlowClusterQC\""
+	placeholderDKGAddr                         = "\"FlowDKG\""
+	placeholderEpochAddr                       = "\"FlowEpoch\""
+	placeholderFlowFeesAddress                 = "\"FlowFees\""
+	placeholderStorageFeesAddress              = "\"FlowStorageFees\""
+	placeholderLockedTokensAddress             = "\"LockedTokens\""
+	placeholderStakingCollectionAddress        = "\"FlowStakingCollection\""
+	placeholderNodeVersionBeaconAddress        = "\"NodeVersionBeacon\""
+	placeholderFlowTransactionSchedulerAddress = "\"FlowTransactionScheduler\""
 )
 
 // Adds a `0x` prefix to the provided address string
@@ -296,9 +296,9 @@ func RandomBeaconHistory() []byte {
 	return assets.MustAsset(flowRandomBeaconHistoryFilename)
 }
 
-// FlowCallbackScheduler returns the FlowCallbackScheduler contract.
-func FlowCallbackScheduler(env templates.Environment) []byte {
-	code := assets.MustAssetString(flowCallbackSchedulerFilename)
+// FlowTransactionScheduler returns the FlowTransactionScheduler contract.
+func FlowTransactionScheduler(env templates.Environment) []byte {
+	code := assets.MustAssetString(flowTransactionSchedulerFilename)
 
 	code = templates.ReplaceAddresses(code, env)
 
@@ -380,9 +380,9 @@ func TestFlowFees(fungibleTokenAddress, flowTokenAddress, storageFeesAddress str
 	return []byte(code)
 }
 
-// TestFlowCallbackHandler returns the TestFlowCallbackHandler contract.
-func TestFlowCallbackHandler(env templates.Environment) []byte {
-	code := assets.MustAssetString(TESTflowCallbackHandlerFilename)
+// TestFlowScheduledTransactionHandler returns the TestFlowScheduledTransactionHandler contract.
+func TestFlowScheduledTransactionHandler(env templates.Environment) []byte {
+	code := assets.MustAssetString(TESTflowScheduledTransactionHandlerFilename)
 
 	code = templates.ReplaceAddresses(code, env)
 

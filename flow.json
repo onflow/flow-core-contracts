@@ -17,8 +17,8 @@
 				"testnet": "8c5303eaa26202d6"
 			}
 		},
-		"FlowCallbackScheduler": {
-			"source": "./contracts/FlowCallbackScheduler.cdc",
+		"FlowTransactionScheduler": {
+			"source": "./contracts/FlowTransactionScheduler.cdc",
 			"aliases": {
 				"emulator": "f8d6e0586b0a20c7",
 				"testing": "0000000000000001"
@@ -165,15 +165,8 @@
 				"testnet": "7aad92e5a0715d21"
 			}
 		},
-		"TestFlowCallbackHandler": {
-			"source": "./contracts/testContracts/TestFlowCallbackHandler.cdc",
-			"aliases": {
-				"emulator": "f8d6e0586b0a20c7",
-				"testing": "0000000000000001"
-			}
-		},
-		"TestFlowCallbackQueue": {
-			"source": "./contracts/testContracts/TestFlowCallbackQueue.cdc",
+		"TestFlowScheduledTransactionHandler": {
+			"source": "./contracts/testContracts/TestFlowScheduledTransactionHandler.cdc",
 			"aliases": {
 				"emulator": "f8d6e0586b0a20c7",
 				"testing": "0000000000000001"
@@ -195,7 +188,7 @@
 	"deployments": {
 		"emulator": {
 			"emulator-account": [
-				"TestFlowCallbackHandler"
+				"TestFlowScheduledTransactionHandler"
 			]
 		}
 	}
