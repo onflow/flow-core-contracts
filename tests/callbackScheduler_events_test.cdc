@@ -69,8 +69,6 @@ access(all) fun testCallbackScheduleEventAndData() {
     Test.assertEqual(feeAmount, scheduledEvent.fees!)
     Test.assertEqual(serviceAccount.address, scheduledEvent.callbackOwner!)
     Test.assertEqual("A.0000000000000001.TestFlowCallbackHandler.Handler", scheduledEvent.callbackHandlerTypeIdentifier!)
-    Test.assertEqual("Test FlowCallbackHandler Resource", scheduledEvent.callbackName!)
-    Test.assertEqual("Executes a variety of callbacks for different test cases", scheduledEvent.callbackDescription!)
     
     let callbackID = scheduledEvent.id as UInt64
 
@@ -92,8 +90,6 @@ access(all) fun testCallbackScheduleEventAndData() {
     Test.assertEqual(feeAmount, callbackData!.fees)
     Test.assertEqual(basicEffort, callbackData!.executionEffort)
     Test.assertEqual(statusScheduled, callbackData!.status.rawValue)
-    Test.assertEqual("Test FlowCallbackHandler Resource", callbackData!.name)
-    Test.assertEqual("Executes a variety of callbacks for different test cases", callbackData!.description)
     Test.assertEqual(serviceAccount.address, callbackData!.handlerAddress)
     Test.assertEqual("A.0000000000000001.TestFlowCallbackHandler.Handler", callbackData!.handlerTypeIdentifier)
 
@@ -159,8 +155,6 @@ access(all) fun testCallbackCancelationEvents() {
     Test.assertEqual(feeAmount/UFix64(2.0), canceledEvent.feesDeducted)
     Test.assertEqual(serviceAccount.address, canceledEvent.callbackOwner)
     Test.assertEqual("A.0000000000000001.TestFlowCallbackHandler.Handler", canceledEvent.callbackHandlerTypeIdentifier!)
-    Test.assertEqual("Test FlowCallbackHandler Resource", canceledEvent.callbackName!)
-    Test.assertEqual("Executes a variety of callbacks for different test cases", canceledEvent.callbackDescription!)
 
     // Make sure the status is canceled
     var status = getStatus(id: callbackToCancel)
@@ -239,8 +233,6 @@ access(all) fun testCallbackExecution() {
                 Test.assertEqual(pendingExecutionEvent.executionEffort, executedEvent.executionEffort)
                 Test.assertEqual(pendingExecutionEvent.callbackOwner, executedEvent.callbackOwner)
                 Test.assertEqual(pendingExecutionEvent.callbackHandlerTypeIdentifier, executedEvent.callbackHandlerTypeIdentifier!)
-                Test.assertEqual("Test FlowCallbackHandler Resource", executedEvent.callbackName!)
-                Test.assertEqual("Executes a variety of callbacks for different test cases", executedEvent.callbackDescription!)
                 firstEvent = true
             }
         }
@@ -446,8 +438,6 @@ access(all) fun testCallbackDestroyHandler() {
     Test.assertEqual(feeAmount/UFix64(2.0), canceledEvent.feesDeducted)
     Test.assertEqual(Address(0x0000000000000001), canceledEvent.callbackOwner)
     Test.assertEqual("A.0000000000000001.TestFlowCallbackHandler.Handler", canceledEvent.callbackHandlerTypeIdentifier)
-    Test.assertEqual("Test FlowCallbackHandler Resource", canceledEvent.callbackName)
-    Test.assertEqual("Executes a variety of callbacks for different test cases", canceledEvent.callbackDescription)
 
     Test.moveTime(by: Fix64(futureDelta*11.0))
 

@@ -56,9 +56,7 @@ access(all) contract FlowCallbackScheduler {
         executionEffort: UInt64,
         fees: UFix64,
         callbackOwner: Address,
-        callbackHandlerTypeIdentifier: String,
-        callbackName: String,
-        callbackDescription: String
+        callbackHandlerTypeIdentifier: String
     )
 
     /// Emitted when a callback's scheduled timestamp is reached and it is ready for execution
@@ -77,9 +75,7 @@ access(all) contract FlowCallbackScheduler {
         priority: UInt8,
         executionEffort: UInt64,
         callbackOwner: Address,
-        callbackHandlerTypeIdentifier: String,
-        callbackName: String,
-        callbackDescription: String
+        callbackHandlerTypeIdentifier: String
     )
 
     /// Emitted when a callback is canceled by the creator of the callback
@@ -89,9 +85,7 @@ access(all) contract FlowCallbackScheduler {
         feesReturned: UFix64,
         feesDeducted: UFix64,
         callbackOwner: Address,
-        callbackHandlerTypeIdentifier: String,
-        callbackName: String,
-        callbackDescription: String
+        callbackHandlerTypeIdentifier: String
     )
 
     /// Emitted when a collection limit is reached
@@ -121,15 +115,12 @@ access(all) contract FlowCallbackScheduler {
     /// The callback scheduler uses this capability to execute the callback when its scheduled timestamp arrives.
     access(all) resource interface CallbackHandler: ViewResolver.Resolver {
 
-        access(all) fun getName(): String {
-            post {
-                result.length < 40: "Callback handler name must be less than 40 characters"
-            }
+        access(all) view fun getViews(): [Type] {
+            return []
         }
-        access(all) fun getDescription(): String {
-            post {
-                result.length < 200: "Callback handler description must be less than 200 characters"
-            }
+
+        access(all) fun resolveView(_ view: Type): AnyStruct? {
+            return nil
         }
 
         /// Executes the implemented callback logic
@@ -210,10 +201,6 @@ access(all) contract FlowCallbackScheduler {
         /// Optional data that can be passed to the handler
         access(contract) let data: AnyStruct?
 
-        /// Metadata about the callback handler from the handler capability
-        access(all) let name: String
-        access(all) let description: String
-
         access(contract) init(
             id: UInt64,
             handler: Capability<auth(Execute) &{CallbackHandler}>,
@@ -235,8 +222,6 @@ access(all) contract FlowCallbackScheduler {
             self.handlerAddress = handler.address
             self.handlerTypeIdentifier = handlerRef.getType().identifier
             self.scheduledTimestamp = scheduledTimestamp
-            self.name = handlerRef.getName()
-            self.description = handlerRef.getDescription()
         }
 
         /// setStatus updates the status of the callback.
@@ -764,9 +749,7 @@ access(all) contract FlowCallbackScheduler {
                 executionEffort: callbackData.executionEffort,
                 fees: callbackData.fees,
                 callbackOwner: callbackData.handler.address,
-                callbackHandlerTypeIdentifier: callbackData.handlerTypeIdentifier,
-                callbackName: callbackData.name,
-                callbackDescription: callbackData.description
+                callbackHandlerTypeIdentifier: callbackData.handlerTypeIdentifier
             )
 
             // Add the callback to the slot queue and update the internal state
@@ -1285,9 +1268,7 @@ access(all) contract FlowCallbackScheduler {
                 feesReturned: refundedFees.balance,
                 feesDeducted: totalFees - refundedFees.balance,
                 callbackOwner: callback.handler.address,
-                callbackHandlerTypeIdentifier: callback.handlerTypeIdentifier,
-                callbackName: callback.name,
-                callbackDescription: callback.description
+                callbackHandlerTypeIdentifier: callback.handlerTypeIdentifier
             )
 
             self.removeCallback(callback: callback)
@@ -1316,9 +1297,7 @@ access(all) contract FlowCallbackScheduler {
                 priority: callback.priority.rawValue,
                 executionEffort: callback.executionEffort,
                 callbackOwner: callback.handler.address,
-                callbackHandlerTypeIdentifier: callback.handlerTypeIdentifier,
-                callbackName: callback.name,
-                callbackDescription: callback.description
+                callbackHandlerTypeIdentifier: callback.handlerTypeIdentifier
             )
             
             callbackHandler.executeCallback(id: id, data: callback.getData())
