@@ -2,6 +2,14 @@ import "FlowTransactionScheduler"
 import "FlowToken"
 import "FungibleToken"
 
+// ⚠️  WARNING: UNSAFE FOR PRODUCTION ⚠️
+// This is a TEST CONTRACT ONLY and should NEVER be used in production!
+// This contract is designed solely for testing FlowTransactionScheduler functionality
+// and contains unsafe implementations that could lead to loss of funds or security vulnerabilities.
+//
+// DO NOT DEPLOY THIS CONTRACT OR A SIMILAR CONTRACT TO MAINNET OR ANY PRODUCTION ENVIRONMENT
+// UNLESS YOU ARE SURE WHAT YOU ARE DOING!
+//
 // TestFlowScheduledTransactionHandler is a simplified test contract for testing FlowTransactionScheduler
 access(all) contract TestFlowScheduledTransactionHandler {
     access(all) var scheduledTransactions: @{UInt64: FlowTransactionScheduler.ScheduledTransaction}
@@ -18,22 +26,6 @@ access(all) contract TestFlowScheduledTransactionHandler {
         init(name: String, description: String) {
             self.name = name
             self.description = description
-        }
-
-        access(all) fun getName(): String {
-            return self.name
-        }
-
-        access(all) fun getDescription(): String {
-            return self.description
-        }
-
-        access(all) view fun getViews(): [Type] {
-            return []
-        }
-
-        access(all) fun resolveView(_ view: Type): AnyStruct? {
-            return nil
         }
         
         access(FlowTransactionScheduler.Execute) 
@@ -71,6 +63,9 @@ access(all) contract TestFlowScheduledTransactionHandler {
         return <- create Handler(name: "Test FlowTransactionHandler Resource", description: "Executes a variety of transactions for different test cases")
     }
 
+    // ⚠️  WARNING: UNSAFE FOR PRODUCTION ⚠️
+    // This function is part of a TEST CONTRACT and should NEVER be used in production!
+    // It contains unsafe implementations that could lead to loss of funds or security vulnerabilities.
     access(all) fun addScheduledTransaction(scheduledTx: @FlowTransactionScheduler.ScheduledTransaction) {
         let status = scheduledTx.status()
         if status == nil {
@@ -79,6 +74,9 @@ access(all) contract TestFlowScheduledTransactionHandler {
         self.scheduledTransactions[scheduledTx.id] <-! scheduledTx
     }
 
+    // ⚠️  WARNING: UNSAFE FOR PRODUCTION ⚠️
+    // This function is part of a TEST CONTRACT and should NEVER be used in production!
+    // It contains unsafe implementations that could lead to loss of funds or security vulnerabilities.
     access(all) fun cancelTransaction(id: UInt64): @FlowToken.Vault {
         let scheduledTx <- self.scheduledTransactions.remove(key: id)
             ?? panic("Invalid ID: \(id) transaction not found")

@@ -3,6 +3,13 @@ import "TestFlowScheduledTransactionHandler"
 import "FlowToken"
 import "FungibleToken"
 
+// ⚠️  WARNING: UNSAFE FOR PRODUCTION ⚠️
+// This transaction uses a TEST CONTRACT and should NEVER be used in production!
+// This transaction is designed solely for testing FlowTransactionScheduler functionality
+// and contains unsafe implementations that could lead to loss of funds or security vulnerabilities.
+//
+// DO NOT USE THIS TRANSACTION IN PRODUCTION!
+//
 transaction(id: UInt64) {
 
     prepare(account: auth(BorrowValue, SaveValue, IssueStorageCapabilityController, PublishCapability, GetStorageCapabilityController) &Account) {
