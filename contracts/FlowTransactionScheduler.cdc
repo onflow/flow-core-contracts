@@ -1255,7 +1255,17 @@ access(all) contract FlowTransactionScheduler {
             let refundedFees <- tx.payAndRefundFees(refundMultiplier: self.configurationDetails.refundMultiplier)
 
             // if the transaction was canceled, add it to the canceled transactions array
-            self.canceledTransactions.append(id)
+            // maintain sorted order by inserting at the correct position
+            var insertIndex = 0
+            for i, canceledID in self.canceledTransactions {
+                if id < canceledID {
+                    insertIndex = i
+                    break
+                }
+                insertIndex = i + 1
+            }
+            self.canceledTransactions.insert(at: insertIndex, id)
+            
             // keep the array under the limit
             if UInt(self.canceledTransactions.length) > self.configurationDetails.canceledTransactionsLimit {
                 self.canceledTransactions.remove(at: 0)
