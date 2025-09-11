@@ -221,8 +221,8 @@ github.com/onflow/cadence v1.0.0-preview.51 h1:L+toCS2Sw9bsExc2PxeNMmAK96fn2LdTO
 github.com/onflow/cadence v1.0.0-preview.51/go.mod h1:7wvvecnAZtYOspLOS3Lh+FuAmMeSrXhAWiycC3kQ1UU=
 github.com/onflow/crypto v0.25.1 h1:0txy2PKPMM873JbpxQNbJmuOJtD56bfs48RQfm0ts5A=
 github.com/onflow/crypto v0.25.1/go.mod h1:C8FbaX0x8y+FxWjbkHy0Q4EASCDR9bSPWZqlpCLYyVI=
-github.com/onflow/flow-core-contracts/lib/go/templates v1.7.2-0.20250910191958-e8d0be12d23a h1:D1NNRCJLDiQ52lVEbKz9A+BOoVBlMpau/F/Q20dz2AA=
-github.com/onflow/flow-core-contracts/lib/go/templates v1.7.2-0.20250910191958-e8d0be12d23a/go.mod h1:yBkysayvSKZ/yFO3fEX4YQ/FEZtV6Tnov8ix0lBeiqM=
+github.com/onflow/flow-core-contracts/lib/go/templates v1.7.2-0.20250911143654-569c52c7d316 h1:lxxWKBVUtcqrB4Yo11r6gDHQxjiCI4Qo75IARrFyHzw=
+github.com/onflow/flow-core-contracts/lib/go/templates v1.7.2-0.20250911143654-569c52c7d316/go.mod h1:yBkysayvSKZ/yFO3fEX4YQ/FEZtV6Tnov8ix0lBeiqM=
 github.com/onflow/flow-ft/lib/go/contracts v1.0.1 h1:Ts5ob+CoCY2EjEd0W6vdLJ7hLL3SsEftzXG2JlmSe24=
 github.com/onflow/flow-ft/lib/go/contracts v1.0.1/go.mod h1:PwsL8fC81cjnUnTfmyL/HOIyHnyaw/JA474Wfj2tl6A=
 github.com/onflow/flow-ft/lib/go/templates v1.0.1 h1:FDYKAiGowABtoMNusLuRCILIZDtVqJ/5tYI4VkF5zfM=
