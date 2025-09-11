@@ -25,6 +25,13 @@ fun setup() {
     Test.expect(err, Test.beNil())
 
     err = Test.deployContract(
+        name: "FlowTransactionSchedulerUtils",
+        path: "../contracts/FlowTransactionSchedulerUtils.cdc",
+        arguments: []
+    )
+    Test.expect(err, Test.beNil())
+
+    err = Test.deployContract(
         name: "TestFlowScheduledTransactionHandler",
         path: "../contracts/testContracts/TestFlowScheduledTransactionHandler.cdc",
         arguments: []
@@ -72,14 +79,6 @@ access(all) fun testTransactionScheduleEventAndData() {
     
     let transactionID = scheduledEvent.id as UInt64
 
-    // Get scheduled transactions from test transaction handler
-    let scheduledTransactions = TestFlowScheduledTransactionHandler.scheduledTransactions.keys
-    Test.assert(scheduledTransactions.length == 1, message: "one scheduled transaction")
-    
-    let scheduled = TestFlowScheduledTransactionHandler.scheduledTransactions[scheduledTransactions[0]]!
-    Test.assert(scheduled.id == transactionID, message: "transaction ID mismatch")
-    Test.assert(scheduled.timestamp == timeInFuture, message: "incorrect timestamp")
-
     var status = getStatus(id: transactionID)
     Test.assertEqual(statusScheduled, status!)
 
@@ -126,7 +125,7 @@ access(all) fun testScheduledTransactionCancelationEvents() {
     // Cancel invalid transaction should fail
     cancelTransaction(
         id: 100,
-        failWithErr: "Invalid ID: 100 transaction not found"
+        failWithErr: "Invalid ID: Transaction with ID 100 not found in manager"
     )
 
     // Schedule a medium transaction
@@ -176,8 +175,6 @@ access(all) fun testScheduledTransactionExecution() {
     var timeInFuture = currentTime + futureDelta
 
     feesBalanceBefore = getFeesBalance()
-
-    var scheduledIDs = TestFlowScheduledTransactionHandler.scheduledTransactions.keys
 
     // Simulate FVM process - should not yet process since timestamp is in the future
     processTransactions()

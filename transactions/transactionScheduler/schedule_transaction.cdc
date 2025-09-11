@@ -1,4 +1,5 @@
 import "FlowTransactionScheduler"
+import "FlowTransactionSchedulerUtils"
 import "TestFlowScheduledTransactionHandler"
 import "FlowToken"
 import "FungibleToken"
@@ -22,9 +23,19 @@ import "FungibleToken"
 transaction(timestamp: UFix64, feeAmount: UFix64, effort: UInt64, priority: UInt8, testData: AnyStruct?) {
 
     prepare(account: auth(BorrowValue, SaveValue, IssueStorageCapabilityController, PublishCapability, GetStorageCapabilityController) &Account) {
+
+        // if a transaction scheduler manager has not been created for this account yet, create one
+        if !account.storage.check<@FlowTransactionSchedulerUtils.Manager>(from: FlowTransactionSchedulerUtils.managerStoragePath) {
+            let manager <- FlowTransactionSchedulerUtils.createManager()
+            account.storage.save(<-manager, to: FlowTransactionSchedulerUtils.managerStoragePath)
+
+            // create a public capability to the callback manager
+            let managerRef = account.capabilities.storage.issue<&FlowTransactionSchedulerUtils.Manager>(FlowTransactionSchedulerUtils.managerStoragePath)
+            account.capabilities.publish(managerRef, at: FlowTransactionSchedulerUtils.managerPublicPath)
+        }
         
         // If a transaction handler has not been created for this account yet, create one,
-        // store it, and issue a capability that will be used to create the transaction
+        // store it, and issue a capability that will be used to execute the transaction
         if !account.storage.check<@TestFlowScheduledTransactionHandler.Handler>(from: TestFlowScheduledTransactionHandler.HandlerStoragePath) {
             let handler <- TestFlowScheduledTransactionHandler.createHandler()
         
@@ -45,10 +56,14 @@ transaction(timestamp: UFix64, feeAmount: UFix64, effort: UInt64, priority: UInt
         let priorityEnum = FlowTransactionScheduler.Priority(rawValue: priority)
             ?? FlowTransactionScheduler.Priority.High
 
+        // borrow a reference to the callback manager
+        let manager = account.storage.borrow<auth(FlowTransactionSchedulerUtils.Owner) &FlowTransactionSchedulerUtils.Manager>(from: FlowTransactionSchedulerUtils.managerStoragePath)
+            ?? panic("Could not borrow a Manager reference from \(FlowTransactionSchedulerUtils.managerStoragePath)")
+
         if let dataString = testData as? String {
             if dataString == "schedule" {
                 // Schedule the transaction that schedules another transaction
-                let scheduledTransaction <- FlowTransactionScheduler.schedule(
+                manager.schedule(
                     handlerCap: handlerCap,
                     data: handlerCap,
                     timestamp: timestamp,
@@ -56,12 +71,11 @@ transaction(timestamp: UFix64, feeAmount: UFix64, effort: UInt64, priority: UInt
                     executionEffort: effort,
                     fees: <-fees
                 )
-                TestFlowScheduledTransactionHandler.addScheduledTransaction(scheduledTx: <-scheduledTransaction)
                 return
             }
         }
         // Schedule the regular transaction with the main contract
-        let scheduledTransaction <- FlowTransactionScheduler.schedule(
+        manager.schedule(
             handlerCap: handlerCap,
             data: testData,
             timestamp: timestamp,
@@ -69,6 +83,5 @@ transaction(timestamp: UFix64, feeAmount: UFix64, effort: UInt64, priority: UInt
             executionEffort: effort,
             fees: <-fees
         )
-        TestFlowScheduledTransactionHandler.addScheduledTransaction(scheduledTx: <-scheduledTransaction)
     }
 } 
