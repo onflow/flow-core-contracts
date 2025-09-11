@@ -68,7 +68,7 @@ access(all) contract TestFlowScheduledTransactionHandler {
         return self.succeededTransactions
     }
 
-    access(all) fun borrowManager(): auth(FlowTransactionSchedulerUtils.Owner) &FlowTransactionSchedulerUtils.Manager {
+    access(contract) fun borrowManager(): auth(FlowTransactionSchedulerUtils.Owner) &FlowTransactionSchedulerUtils.Manager {
         return self.account.storage.borrow<auth(FlowTransactionSchedulerUtils.Owner) &FlowTransactionSchedulerUtils.Manager>(from: FlowTransactionSchedulerUtils.managerStoragePath)
             ?? panic("Callback manager not set")
     }
