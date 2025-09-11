@@ -37,7 +37,7 @@ access(all) contract FlowTransactionSchedulerUtils {
             priority: FlowTransactionScheduler.Priority,
             executionEffort: UInt64,
             fees: @FlowToken.Vault
-        ) {
+        ): UInt64 {
             // Clean up any invalid transactions before scheduling a new one
             self.cleanup()
 
@@ -51,8 +51,12 @@ access(all) contract FlowTransactionSchedulerUtils {
                 fees: <-fees
             )
 
+            // Save transaction id to return it to the user later
+            let transactionId = scheduledTransaction.id
             // Store the transaction in our dictionary
-            self.scheduledTransactions[scheduledTransaction.id] <-! scheduledTransaction
+            self.scheduledTransactions[transactionId] <-! scheduledTransaction
+
+            return transactionId
         }
 
         /// Cancel a scheduled transaction by its ID
