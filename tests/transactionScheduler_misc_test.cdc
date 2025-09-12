@@ -247,3 +247,57 @@ access(all) fun testScheduledTransactionDestroyHandler() {
     )
     
 }
+
+access(all) fun testScheduledTransactionEstimateReturnNil() {
+
+    if startingHeight < getCurrentBlockHeight() {
+        Test.reset(to: startingHeight)
+    }
+
+    let currentTime = getTimestamp()
+    var timeInFuture = currentTime + futureDelta*20.0
+
+    // Schedule a high priority transaction
+    scheduleTransaction(
+        timestamp: timeInFuture,
+        fee: feeAmount,
+        effort: maxEffort,
+        priority: highPriority,
+        data: testData,
+        testName: "Estimate Return Nil: Scheduled 1",
+        failWithErr: nil
+    )
+
+    // Schedule a high priority transaction
+    scheduleTransaction(
+        timestamp: timeInFuture,
+        fee: feeAmount,
+        effort: maxEffort,
+        priority: highPriority,
+        data: testData,
+        testName: "Estimate Return Nil: Scheduled 2",
+        failWithErr: nil
+    )
+
+    // Schedule a high priority transaction
+    scheduleTransaction(
+        timestamp: timeInFuture,
+        fee: feeAmount,
+        effort: maxEffort,
+        priority: highPriority,
+        data: testData,
+        testName: "Estimate Return Nil: Scheduled 3",
+        failWithErr: nil
+    )
+
+    let estimate = getEstimate(
+        data: testData,
+        timestamp: timeInFuture,
+        priority: highPriority,
+        executionEffort: maxEffort
+    )
+    
+    Test.assertEqual(nil, estimate.flowFee)
+    Test.assertEqual(nil, estimate.timestamp)
+    Test.assertEqual("Invalid execution effort: \(maxEffort) is greater than the priority's available effort for the requested timestamp.", estimate.error!)
+}
