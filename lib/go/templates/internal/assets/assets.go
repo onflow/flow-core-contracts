@@ -308,6 +308,7 @@
 // transactionScheduler/schedule_transaction.cdc (4.05kB)
 // transactionScheduler/scripts/get_canceled_transactions.cdc (134B)
 // transactionScheduler/scripts/get_config.cdc (177B)
+// transactionScheduler/scripts/get_estimate.cdc (868B)
 // transactionScheduler/scripts/get_slot_available_effort.cdc (285B)
 // transactionScheduler/scripts/get_status.cdc (235B)
 // transactionScheduler/scripts/get_transaction_data.cdc (178B)
@@ -6540,6 +6541,26 @@ func transactionschedulerScriptsGet_configCdc() (*asset, error) {
 	return a, nil
 }
 
+var _transactionschedulerScriptsGet_estimateCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xa4\x92\x4d\x6b\xfa\x40\x10\xc6\xef\xf9\x14\x43\x4e\xbb\x10\x44\x45\xe4\x4f\x40\xfe\xf4\xa0\x54\x50\x28\x58\x6f\xbd\x6c\x37\x9b\x3a\x90\xdd\x95\xdd\x59\x5f\x28\x7e\xf7\x92\x17\xd3\x54\xd1\x52\xbc\x0c\xcb\x33\xc3\xef\x99\x4c\x1e\xd4\x5b\xeb\x08\xe2\x59\x61\xf7\xaf\x4e\x18\x2f\x24\xa1\x35\x2b\xb9\x51\x59\x28\x94\x8b\xa3\x48\x48\xa9\xbc\x67\xa2\x28\x38\xe4\xc1\x80\x16\x68\x58\x04\x00\x90\x09\x12\x29\x3c\x99\xe3\x8a\x5c\x90\xf4\x3f\xa9\x54\x42\xad\x3c\x09\xbd\x4d\x61\x3d\xc3\xc3\x78\x54\xcb\x5b\x87\xd6\x21\x1d\x53\x58\xcf\x0d\xfd\xab\x45\x75\x50\x32\x94\x86\xd3\x3c\xb7\x8e\xea\xde\x78\x14\xf1\x14\x6e\x6d\xd4\x9b\x7a\x42\x2d\x48\x65\x67\x29\xeb\x8c\xc1\x67\xc5\xdd\x09\xd7\x1a\x4e\x4d\xd0\x77\x70\x2f\xcd\x18\x4c\x7e\x9f\xe9\x3d\xe3\xc7\xa6\x32\xc0\xbc\xe5\xc3\x64\x02\xfd\xc6\xb7\xfb\xa1\xa5\xef\xdf\xa0\x27\x50\x85\x57\x97\xec\xc1\x23\xec\xa5\xca\x30\xe8\x3b\xf4\xe1\x23\xf4\x85\xdd\x77\xd1\x1d\x92\x30\x28\x59\x3c\x37\x3b\x51\x60\xd6\xf9\xf7\x6f\xec\xfc\xe6\x3d\x58\x06\x4f\xf0\xae\xa0\x0f\xac\xbc\x01\x4f\x60\x00\xac\xde\x98\x27\x60\x1d\x0c\x81\x2d\xec\x9e\xc7\xbc\x76\xa9\x6a\x55\x9c\xa2\xe0\xcc\xed\x0d\x55\x93\x11\xd6\x6e\x54\x67\xb5\xac\x49\xab\x75\x92\xda\x3e\x93\xab\x6b\xa4\x3f\xee\xf2\xdd\xbf\xca\xee\x85\x50\x0d\xf2\xe8\x14\x7d\x05\x00\x00\xff\xff\xbe\x78\xf7\xa7\x64\x03\x00\x00"
+
+func transactionschedulerScriptsGet_estimateCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_transactionschedulerScriptsGet_estimateCdc,
+		"transactionScheduler/scripts/get_estimate.cdc",
+	)
+}
+
+func transactionschedulerScriptsGet_estimateCdc() (*asset, error) {
+	bytes, err := transactionschedulerScriptsGet_estimateCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "transactionScheduler/scripts/get_estimate.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xbc, 0x52, 0x3f, 0xf7, 0x87, 0x13, 0xb8, 0x34, 0xb0, 0x46, 0xad, 0xb4, 0x46, 0x6e, 0xb9, 0xc1, 0x87, 0xe4, 0xe, 0x2a, 0xc8, 0x10, 0x4, 0x4f, 0xd0, 0x7b, 0x33, 0x98, 0xbd, 0x8f, 0x9e, 0xb5}}
+	return a, nil
+}
+
 var _transactionschedulerScriptsGet_slot_available_effortCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x74\xce\x31\x4b\xc5\x40\x0c\xc0\xf1\xfd\x3e\x45\x7c\x53\x0f\xc4\xe9\xf1\x90\x82\x83\xc3\x7b\xe0\x26\xd4\xba\xc7\x33\xd5\x40\xee\xae\xe4\x72\xd6\x22\x7e\x77\xc1\x3e\x4a\x97\x4e\xc9\x10\x7e\xf9\x73\x1c\xb3\x1a\x1c\x2e\x92\xa7\x17\xc5\x54\x30\x18\xe7\xd4\x85\x4f\x7a\xaf\x42\x7a\x70\x0e\x43\xa0\x52\x1a\x14\xf1\x30\xd4\x04\x11\x39\x35\xc6\x91\x8a\x61\x1c\x5b\xe8\x2f\xfc\x7d\x3a\xde\xc2\xa8\x9c\x95\x6d\x6e\xa1\x7f\x4a\x76\xef\x97\x79\x3a\xc2\x8f\x03\x00\x10\xb2\xe5\xc4\xe6\x73\xaa\x11\x1e\x60\xef\xe7\xdd\xf3\x55\x6a\x14\xa7\x57\x94\x4a\xed\x8a\xfb\x9b\x7f\x4c\xc9\xaa\xa6\x7d\xe1\x83\xac\x93\x6c\x8f\x5f\xc8\x82\x6f\x42\xe7\x61\xc8\x6a\xdb\xea\x75\xdd\x86\x6f\xfa\xbc\xfb\x75\x7f\x01\x00\x00\xff\xff\x95\xb8\x32\x8e\x1d\x01\x00\x00"
 
 func transactionschedulerScriptsGet_slot_available_effortCdcBytes() ([]byte, error) {
@@ -7019,6 +7040,7 @@ var _bindata = map[string]func() (*asset, error){
 	"transactionScheduler/schedule_transaction.cdc":                               transactionschedulerSchedule_transactionCdc,
 	"transactionScheduler/scripts/get_canceled_transactions.cdc":                  transactionschedulerScriptsGet_canceled_transactionsCdc,
 	"transactionScheduler/scripts/get_config.cdc":                                 transactionschedulerScriptsGet_configCdc,
+	"transactionScheduler/scripts/get_estimate.cdc":                               transactionschedulerScriptsGet_estimateCdc,
 	"transactionScheduler/scripts/get_slot_available_effort.cdc":                  transactionschedulerScriptsGet_slot_available_effortCdc,
 	"transactionScheduler/scripts/get_status.cdc":                                 transactionschedulerScriptsGet_statusCdc,
 	"transactionScheduler/scripts/get_transaction_data.cdc":                       transactionschedulerScriptsGet_transaction_dataCdc,
@@ -7459,6 +7481,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 		"scripts": {nil, map[string]*bintree{
 			"get_canceled_transactions.cdc": {transactionschedulerScriptsGet_canceled_transactionsCdc, map[string]*bintree{}},
 			"get_config.cdc": {transactionschedulerScriptsGet_configCdc, map[string]*bintree{}},
+			"get_estimate.cdc": {transactionschedulerScriptsGet_estimateCdc, map[string]*bintree{}},
 			"get_slot_available_effort.cdc": {transactionschedulerScriptsGet_slot_available_effortCdc, map[string]*bintree{}},
 			"get_status.cdc": {transactionschedulerScriptsGet_statusCdc, map[string]*bintree{}},
 			"get_transaction_data.cdc": {transactionschedulerScriptsGet_transaction_dataCdc, map[string]*bintree{}},
