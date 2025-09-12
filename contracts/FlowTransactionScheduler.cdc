@@ -1430,6 +1430,8 @@ access(all) contract FlowTransactionScheduler {
     access(all) init() {
         self.storagePath = /storage/sharedScheduler
         let scheduler <- create SharedScheduler()
+        let oldScheduler <- self.account.storage.load<@AnyResource>(from: self.storagePath)
+        destroy oldScheduler
         self.account.storage.save(<-scheduler, to: self.storagePath)
         
         self.sharedScheduler = self.account.capabilities.storage
