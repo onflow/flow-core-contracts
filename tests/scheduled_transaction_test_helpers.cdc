@@ -195,6 +195,19 @@ access(all) fun getConfigDetails(): {FlowTransactionScheduler.SchedulerConfig} {
     return config
 }
 
+access(all) fun getEstimate(
+    data: AnyStruct?,
+    timestamp: UFix64,
+    priority: UInt8,
+    executionEffort: UInt64
+): FlowTransactionScheduler.EstimatedScheduledTransaction {
+    var result = _executeScript(
+        "../transactions/transactionScheduler/scripts/get_estimate.cdc",
+        [data, timestamp, priority, executionEffort]
+    ).returnValue! as! FlowTransactionScheduler.EstimatedScheduledTransaction
+    return result
+}
+
 access(all) fun getSizeOfData(data: AnyStruct): UFix64 {
     var size = _executeScript(
         "./scripts/get_data_size.cdc",
