@@ -835,7 +835,7 @@ access(all) contract FlowTransactionScheduler {
 
             if scheduledTimestamp == nil {
                 return EstimatedScheduledTransaction(
-                            flowFee: fee,
+                            flowFee: nil,
                             timestamp: nil,
                             error: "Invalid execution effort: \(executionEffort) is greater than the priority's available effort for the requested timestamp."
                         )
@@ -1306,7 +1306,7 @@ access(all) contract FlowTransactionScheduler {
                 priority: tx.priority.rawValue,
                 executionEffort: tx.executionEffort,
                 transactionHandlerOwner: tx.handler.address,
-                transactionHandlerTypeIdentifier: tx.handlerTypeIdentifier
+                transactionHandlerTypeIdentifier: transactionHandler.getType().identifier
             )
             
             transactionHandler.executeTransaction(id: id, data: tx.getData())
