@@ -143,10 +143,10 @@ access(all) fun executeScheduledTransaction(
 
 access(all) fun setConfigDetails(
     maximumIndividualEffort: UInt64?,
+    minimumExecutionEffort: UInt64?,
     slotSharedEffortLimit: UInt64?,
     priorityEffortReserve: {UInt8: UInt64}?,
     priorityEffortLimit: {UInt8: UInt64}?,
-    minimumExecutionEffort: UInt64?,
     maxDataSizeMB: UFix64?,
     priorityFeeMultipliers: {UInt8: UFix64}?,
     refundMultiplier: UFix64?,
@@ -161,10 +161,10 @@ access(all) fun setConfigDetails(
         authorizers: [serviceAccount.address],
         signers: [serviceAccount],
         arguments: [maximumIndividualEffort, 
+                    minimumExecutionEffort,
                     slotSharedEffortLimit,
                     priorityEffortReserve,
                     priorityEffortLimit,
-                    minimumExecutionEffort,
                     maxDataSizeMB,
                     priorityFeeMultipliers,
                     refundMultiplier,

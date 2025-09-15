@@ -40,10 +40,10 @@ access(all) fun testScheduledTransactionCancellationLimits() {
     // lower the canceled transactions limit so the test runs faster
     setConfigDetails(
         maximumIndividualEffort: nil,
+        minimumExecutionEffort: nil,
         slotSharedEffortLimit: nil,
         priorityEffortReserve: nil,
         priorityEffortLimit: nil,
-        minimumExecutionEffort: nil,
         maxDataSizeMB: nil,
         priorityFeeMultipliers: nil,
         refundMultiplier: nil,
