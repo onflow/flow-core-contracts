@@ -2,10 +2,10 @@ import "FlowTransactionScheduler"
 
 transaction(
             maximumIndividualEffort: UInt64?,
+            minimumExecutionEffort: UInt64?,
             slotSharedEffortLimit: UInt64?,
             priorityEffortReserve: {UInt8: UInt64}?,
             priorityEffortLimit: {UInt8: UInt64}?,
-            minimumExecutionEffort: UInt64?,
             maxDataSizeMB: UFix64?,
             priorityFeeMultipliers: {UInt8: UFix64}?,
             refundMultiplier: UFix64?,
@@ -18,7 +18,7 @@ transaction(
             ?? panic("Could not borrow reference to SharedScheduler resource")
 
         // get the current config
-        let currentConfig = FlowTransactionScheduler.getSchedulerConfigurationDetails()
+        let currentConfig = FlowTransactionScheduler.getConfig()
 
         let highRawValue = FlowTransactionScheduler.Priority.High.rawValue
         let mediumRawValue = FlowTransactionScheduler.Priority.Medium.rawValue
@@ -65,10 +65,10 @@ transaction(
         // create a new config, only updating the fields that are provided as non-nil arguments to this transaction
         let newConfig: FlowTransactionScheduler.Config = FlowTransactionScheduler.Config(
             maximumIndividualEffort: maximumIndividualEffort ?? currentConfig.maximumIndividualEffort,
+            minimumExecutionEffort: minimumExecutionEffort ?? currentConfig.minimumExecutionEffort,
             slotSharedEffortLimit: slotSharedEffortLimit ?? currentConfig.slotSharedEffortLimit,
             priorityEffortReserve: newReserves,
             priorityEffortLimit: newLimits,
-            minimumExecutionEffort: minimumExecutionEffort ?? currentConfig.minimumExecutionEffort,
             maxDataSizeMB: maxDataSizeMB ?? currentConfig.maxDataSizeMB,
             priorityFeeMultipliers: newMultipliers,
             refundMultiplier: refundMultiplier ?? currentConfig.refundMultiplier,
@@ -78,6 +78,6 @@ transaction(
         )
 
         // set the new config
-        schedulerRef.setConfigurationDetails(newConfig: newConfig)
+        schedulerRef.setConfig(newConfig: newConfig)
     }
 }
