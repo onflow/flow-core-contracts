@@ -309,10 +309,10 @@ access(all) fun testConfigDetails() {
     ---------------- */
     setConfigDetails(
         maximumIndividualEffort: nil,
+        minimumExecutionEffort: nil,
         slotSharedEffortLimit: nil,
         priorityEffortReserve: nil,
         priorityEffortLimit: nil,
-        minimumExecutionEffort: nil,
         maxDataSizeMB: nil,
         priorityFeeMultipliers: nil,
         refundMultiplier: 1.1,
@@ -324,10 +324,10 @@ access(all) fun testConfigDetails() {
 
     setConfigDetails(
         maximumIndividualEffort: nil,
+        minimumExecutionEffort: nil,
         slotSharedEffortLimit: nil,
         priorityEffortReserve: nil,
         priorityEffortLimit: nil,
-        minimumExecutionEffort: nil,
         maxDataSizeMB: nil,
         priorityFeeMultipliers: {highPriority: 20.0, mediumPriority: 10.0, lowPriority: 0.9},
         refundMultiplier: nil,
@@ -339,10 +339,10 @@ access(all) fun testConfigDetails() {
 
     setConfigDetails(
         maximumIndividualEffort: nil,
+        minimumExecutionEffort: nil,
         slotSharedEffortLimit: nil,
         priorityEffortReserve: nil,
         priorityEffortLimit: nil,
-        minimumExecutionEffort: nil,
         maxDataSizeMB: nil,
         priorityFeeMultipliers: {highPriority: 20.0, mediumPriority: 3.0, lowPriority: 4.0},
         refundMultiplier: nil,
@@ -354,10 +354,10 @@ access(all) fun testConfigDetails() {
 
     setConfigDetails(
         maximumIndividualEffort: nil,
+        minimumExecutionEffort: nil,
         slotSharedEffortLimit: nil,
         priorityEffortReserve: nil,
         priorityEffortLimit: nil,
-        minimumExecutionEffort: nil,
         maxDataSizeMB: nil,
         priorityFeeMultipliers: {highPriority: 5.0, mediumPriority: 6.0, lowPriority: 4.0},
         refundMultiplier: nil,
@@ -369,10 +369,10 @@ access(all) fun testConfigDetails() {
 
     setConfigDetails(
         maximumIndividualEffort: nil,
+        minimumExecutionEffort: nil,
         slotSharedEffortLimit: nil,
         priorityEffortReserve: {highPriority: 40000, mediumPriority: 30000, lowPriority: 10000},
         priorityEffortLimit: {highPriority: 30000, mediumPriority: 30000, lowPriority: 10000},
-        minimumExecutionEffort: nil,
         maxDataSizeMB: nil,
         priorityFeeMultipliers: nil,
         refundMultiplier: nil,
@@ -384,10 +384,10 @@ access(all) fun testConfigDetails() {
 
     setConfigDetails(
         maximumIndividualEffort: nil,
+        minimumExecutionEffort: nil,
         slotSharedEffortLimit: nil,
         priorityEffortReserve: {highPriority: 30000, mediumPriority: 40000, lowPriority: 10000},
         priorityEffortLimit: {highPriority: 30000, mediumPriority: 30000, lowPriority: 10000},
-        minimumExecutionEffort: nil,
         maxDataSizeMB: nil,
         priorityFeeMultipliers: nil,
         refundMultiplier: nil,
@@ -399,10 +399,10 @@ access(all) fun testConfigDetails() {
 
     setConfigDetails(
         maximumIndividualEffort: nil,
+        minimumExecutionEffort: nil,
         slotSharedEffortLimit: nil,
         priorityEffortReserve: {highPriority: 30000, mediumPriority: 30000, lowPriority: 20000},
         priorityEffortLimit: {highPriority: 30000, mediumPriority: 30000, lowPriority: 10000},
-        minimumExecutionEffort: nil,
         maxDataSizeMB: nil,
         priorityFeeMultipliers: nil,
         refundMultiplier: nil,
@@ -414,10 +414,10 @@ access(all) fun testConfigDetails() {
 
     setConfigDetails(
         maximumIndividualEffort: nil,
+        minimumExecutionEffort: nil,
         slotSharedEffortLimit: nil,
         priorityEffortReserve: nil,
         priorityEffortLimit: nil,
-        minimumExecutionEffort: nil,
         maxDataSizeMB: nil,
         priorityFeeMultipliers: nil,
         refundMultiplier: nil,
@@ -429,10 +429,10 @@ access(all) fun testConfigDetails() {
 
     setConfigDetails(
         maximumIndividualEffort: nil,
+        minimumExecutionEffort: nil,
         slotSharedEffortLimit: nil,
         priorityEffortReserve: nil,
         priorityEffortLimit: nil,
-        minimumExecutionEffort: nil,
         maxDataSizeMB: nil,
         priorityFeeMultipliers: nil,
         refundMultiplier: nil,
@@ -442,12 +442,28 @@ access(all) fun testConfigDetails() {
         shouldFail: "Invalid collection transactions limit: Collection transactions limit must be greater than or equal to 0 but got -1"
     )
 
+    setConfigDetails(
+        maximumIndividualEffort: nil,
+        minimumExecutionEffort: nil,
+        slotSharedEffortLimit: nil,
+        priorityEffortReserve: nil,
+        priorityEffortLimit: nil,
+        maxDataSizeMB: nil,
+        priorityFeeMultipliers: nil,
+        refundMultiplier: nil,
+        canceledTransactionsLimit: 0,
+        collectionEffortLimit: nil,
+        collectionTransactionsLimit: nil,
+        shouldFail: "Invalid canceled transactions limit: Canceled transactions limit must be greater than or equal to 1 but got 0"
+    )
+
 
     /** -------------
     Valid Test Case
     ---------------- */
     let oldConfig = getConfigDetails()
     Test.assertEqual(9999 as UInt64,oldConfig.maximumIndividualEffort)
+    Test.assertEqual(10 as UInt64,oldConfig.minimumExecutionEffort)
     Test.assertEqual(35000 as UInt64,oldConfig.slotTotalEffortLimit)
     Test.assertEqual(10000 as UInt64,oldConfig.slotSharedEffortLimit)
     Test.assertEqual(20000 as UInt64,oldConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.High]!)
@@ -456,7 +472,6 @@ access(all) fun testConfigDetails() {
     Test.assertEqual(30000 as UInt64,oldConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.High]!)
     Test.assertEqual(15000 as UInt64,oldConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.Medium]!)
     Test.assertEqual(5000 as UInt64,oldConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.Low]!)
-    Test.assertEqual(10 as UInt64,oldConfig.minimumExecutionEffort)
     Test.assertEqual(3.0,oldConfig.maxDataSizeMB)
     Test.assertEqual(10.0,oldConfig.priorityFeeMultipliers[FlowTransactionScheduler.Priority.High]!)
     Test.assertEqual(5.0,oldConfig.priorityFeeMultipliers[FlowTransactionScheduler.Priority.Medium]!)
@@ -469,10 +484,10 @@ access(all) fun testConfigDetails() {
 
     setConfigDetails(
         maximumIndividualEffort: 14999,
+        minimumExecutionEffort: 10,
         slotSharedEffortLimit: 20000,
         priorityEffortReserve: nil,
         priorityEffortLimit: {highPriority: 30000, mediumPriority: 30000, lowPriority: 10000},
-        minimumExecutionEffort: 10,
         maxDataSizeMB: 1.0,
         priorityFeeMultipliers: {highPriority: 20.0, mediumPriority: 10.0, lowPriority: 4.0},
         refundMultiplier: nil,
@@ -485,6 +500,7 @@ access(all) fun testConfigDetails() {
     // Verify new config details
     let newConfig = getConfigDetails()
     Test.assertEqual(14999 as UInt64,newConfig.maximumIndividualEffort)
+    Test.assertEqual(10 as UInt64,newConfig.minimumExecutionEffort)
     Test.assertEqual(45000 as UInt64,newConfig.slotTotalEffortLimit)
     Test.assertEqual(20000 as UInt64,newConfig.slotSharedEffortLimit)
     Test.assertEqual(oldConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.High]!,newConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.High]!)
@@ -493,7 +509,6 @@ access(all) fun testConfigDetails() {
     Test.assertEqual(30000 as UInt64,newConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.High]!)
     Test.assertEqual(30000 as UInt64,newConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.Medium]!)
     Test.assertEqual(10000 as UInt64,newConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.Low]!)
-    Test.assertEqual(10 as UInt64,newConfig.minimumExecutionEffort)
     Test.assertEqual(1.0,newConfig.maxDataSizeMB)
     Test.assertEqual(20.0,newConfig.priorityFeeMultipliers[FlowTransactionScheduler.Priority.High]!)
     Test.assertEqual(10.0,newConfig.priorityFeeMultipliers[FlowTransactionScheduler.Priority.Medium]!)
@@ -575,7 +590,7 @@ access(all) fun testSortedTimestampsInit() {
     Test.assertEqual(0, pastTimestamps.length)
     
     // Test that check returns false for empty timestamps
-    Test.assertEqual(false, sortedTimestamps.hasTimestampsBefore(current: 100.0))
+    Test.assertEqual(false, sortedTimestamps.hasBefore(current: 100.0))
 }
 
 access(all) fun testSortedTimestampsAdd() {
@@ -801,7 +816,7 @@ access(all) fun testSortedTimestampsCheck() {
         }
         
         // Check result
-        let result = sortedTimestamps.hasTimestampsBefore(current: testCase.current)
+        let result = sortedTimestamps.hasBefore(current: testCase.current)
         Test.assertEqual(testCase.expected, result)
     }
 }

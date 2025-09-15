@@ -227,6 +227,7 @@ access(all) contract FlowTransactionScheduler {
         /// It panics if the transaction status is already finalized.
         access(contract) fun setStatus(newStatus: Status) {
             pre {
+                newStatus != Status.Unknown: "Invalid status: New status cannot be Unknown"
                 self.status != Status.Executed && self.status != Status.Canceled:
                     "Invalid status: Transaction with id \(self.id) is already finalized"
                 newStatus == Status.Executed ? self.status == Status.Scheduled : true:
@@ -252,6 +253,10 @@ access(all) contract FlowTransactionScheduler {
         /// It deposits any leftover fees to the FlowFees vault to be used to pay node operator rewards
         /// like any other transaction on the Flow network.
         access(contract) fun payAndRefundFees(refundMultiplier: UFix64): @FlowToken.Vault {
+            pre {
+                refundMultiplier >= 0.0 && refundMultiplier <= 1.0:
+                    "Invalid refund multiplier: The multiplier must be between 0.0 and 1.0 but got \(refundMultiplier)"
+            }
             if refundMultiplier == 0.0 {
                 FlowFees.deposit(from: <-FlowTransactionScheduler.withdrawFees(amount: self.fees))
                 return <-FlowToken.createEmptyVault(vaultType: Type<@FlowToken.Vault>())
@@ -278,6 +283,10 @@ access(all) contract FlowTransactionScheduler {
         /// maximum effort that can be used for any transaction
         access(all) var maximumIndividualEffort: UInt64
 
+        /// minimum execution effort is the minimum effort that can be 
+        /// used for any transaction
+        access(all) var minimumExecutionEffort: UInt64
+
         /// slot total effort limit is the maximum effort that can be 
         /// cumulatively allocated to one timeslot by all priorities
         access(all) var slotTotalEffortLimit: UInt64
@@ -294,10 +303,6 @@ access(all) contract FlowTransactionScheduler {
         /// priority effort limit is the maximum cumulative effort per priority in a timeslot
         access(all) var priorityEffortLimit: {Priority: UInt64}
 
-        /// minimum execution effort is the minimum effort that can be 
-        /// used for any transaction
-        access(all) var minimumExecutionEffort: UInt64
-
         /// max data size is the maximum data size that can be stored for a transaction
         access(all) var maxDataSizeMB: UFix64
 
@@ -309,7 +314,7 @@ access(all) contract FlowTransactionScheduler {
         access(all) var refundMultiplier: UFix64
 
         /// canceledTransactionsLimit is the maximum number of canceled transactions
-        ///to keep in the canceledTransactions array
+        /// to keep in the canceledTransactions array
         access(all) var canceledTransactionsLimit: UInt
 
         /// collectionEffortLimit is the maximum effort that can be used for all transactions in a collection
@@ -320,10 +325,10 @@ access(all) contract FlowTransactionScheduler {
 
         access(all) init(
             maximumIndividualEffort: UInt64,
+            minimumExecutionEffort: UInt64,
             slotSharedEffortLimit: UInt64,
             priorityEffortReserve: {Priority: UInt64},
             priorityEffortLimit: {Priority: UInt64},
-            minimumExecutionEffort: UInt64,
             maxDataSizeMB: UFix64,
             priorityFeeMultipliers: {Priority: UFix64},
             refundMultiplier: UFix64,
@@ -348,6 +353,8 @@ access(all) contract FlowTransactionScheduler {
                     "Invalid priority effort limit: Low priority effort limit must be greater than or equal to the priority effort reserve of \(priorityEffortReserve[Priority.Low]!)"
                 collectionTransactionsLimit >= 0:
                     "Invalid collection transactions limit: Collection transactions limit must be greater than or equal to 0 but got \(collectionTransactionsLimit)"
+                canceledTransactionsLimit >= 1:
+                    "Invalid canceled transactions limit: Canceled transactions limit must be greater than or equal to 1 but got \(canceledTransactionsLimit)"
             }
             post {
                 self.collectionEffortLimit > self.slotTotalEffortLimit:
@@ -360,11 +367,11 @@ access(all) contract FlowTransactionScheduler {
     /// This struct is used to store the configuration details in the Scheduler contract
     access(all) struct Config: SchedulerConfig {
         access(all) var maximumIndividualEffort: UInt64
+        access(all) var minimumExecutionEffort: UInt64
         access(all) var slotTotalEffortLimit: UInt64
         access(all) var slotSharedEffortLimit: UInt64
         access(all) var priorityEffortReserve: {Priority: UInt64}
         access(all) var priorityEffortLimit: {Priority: UInt64}
-        access(all) var minimumExecutionEffort: UInt64
         access(all) var maxDataSizeMB: UFix64
         access(all) var priorityFeeMultipliers: {Priority: UFix64}
         access(all) var refundMultiplier: UFix64
@@ -374,10 +381,10 @@ access(all) contract FlowTransactionScheduler {
 
         access(all) init(   
             maximumIndividualEffort: UInt64,
+            minimumExecutionEffort: UInt64,
             slotSharedEffortLimit: UInt64,
             priorityEffortReserve: {Priority: UInt64},
             priorityEffortLimit: {Priority: UInt64},
-            minimumExecutionEffort: UInt64,
             maxDataSizeMB: UFix64,
             priorityFeeMultipliers: {Priority: UFix64},
             refundMultiplier: UFix64,
@@ -386,11 +393,11 @@ access(all) contract FlowTransactionScheduler {
             collectionTransactionsLimit: Int
         ) {
             self.maximumIndividualEffort = maximumIndividualEffort
+            self.minimumExecutionEffort = minimumExecutionEffort
             self.slotTotalEffortLimit = slotSharedEffortLimit + priorityEffortReserve[Priority.High]! + priorityEffortReserve[Priority.Medium]!
             self.slotSharedEffortLimit = slotSharedEffortLimit
             self.priorityEffortReserve = priorityEffortReserve
             self.priorityEffortLimit = priorityEffortLimit
-            self.minimumExecutionEffort = minimumExecutionEffort
             self.maxDataSizeMB = maxDataSizeMB
             self.priorityFeeMultipliers = priorityFeeMultipliers
             self.refundMultiplier = refundMultiplier
@@ -401,7 +408,7 @@ access(all) contract FlowTransactionScheduler {
     }
 
 
-    /// SortedTimestamps maintains a sorted array of timestamps for efficient processing
+    /// SortedTimestamps maintains timestamps sorted in ascending order for efficient processing
     /// It encapsulates all operations related to maintaining and querying sorted timestamps
     access(all) struct SortedTimestamps {
         /// Internal sorted array of timestamps
@@ -449,7 +456,7 @@ access(all) contract FlowTransactionScheduler {
 
         /// Check if there are any timestamps that need processing
         /// Returns true if processing is needed, false for early exit
-        access(all) fun hasTimestampsBefore(current: UFix64): Bool {
+        access(all) fun hasBefore(current: UFix64): Bool {
             return self.timestamps.length > 0 && self.timestamps[0] <= current
         }
 
@@ -486,7 +493,7 @@ access(all) contract FlowTransactionScheduler {
 
         /// Struct that contains all the configuration details for the transaction scheduler protocol
         /// Can be updated by the owner of the contract
-        access(contract) var configurationDetails: {SchedulerConfig}
+        access(contract) var config: {SchedulerConfig}
 
         access(all) init() {
             self.nextID = 1
@@ -525,8 +532,9 @@ access(all) contract FlowTransactionScheduler {
             let highPriorityEffortReserve: UInt64 = 20_000
             let mediumPriorityEffortReserve: UInt64 = 5_000
 
-            self.configurationDetails = Config(
+            self.config = Config(
                 maximumIndividualEffort: 9999,
+                minimumExecutionEffort: 10,
                 slotSharedEffortLimit: sharedEffortLimit,
                 priorityEffortReserve: {
                     Priority.High: highPriorityEffortReserve,
@@ -538,7 +546,6 @@ access(all) contract FlowTransactionScheduler {
                     Priority.Medium: mediumPriorityEffortReserve + sharedEffortLimit,
                     Priority.Low: 5_000
                 },
-                minimumExecutionEffort: 10,
                 maxDataSizeMB: 3.0,
                 priorityFeeMultipliers: {
                     Priority.High: 10.0,
@@ -554,13 +561,13 @@ access(all) contract FlowTransactionScheduler {
 
         /// Gets a copy of the struct containing all the configuration details
         /// of the Scheduler resource
-        access(contract) view fun getConfigurationDetails(): {SchedulerConfig} {
-            return self.configurationDetails
+        access(contract) view fun getConfig(): {SchedulerConfig} {
+            return self.config
         }
 
         /// sets all the configuration details for the Scheduler resource
-        access(UpdateConfig) fun setConfigurationDetails(newConfig: {SchedulerConfig}) {
-            self.configurationDetails = newConfig
+        access(UpdateConfig) fun setConfig(newConfig: {SchedulerConfig}) {
+            self.config = newConfig
             emit ConfigUpdated()
         }
 
@@ -600,28 +607,29 @@ access(all) contract FlowTransactionScheduler {
             
             for timestamp in allTimestampsBeforeEnd {
                 // Check if this timestamp falls within our range
-                if timestamp >= startTimestamp {
-                    let transactionPriorities = self.slotQueue[timestamp] ?? {}
-                    
-                    var timestampTransactions: {UInt8: [UInt64]} = {}
-                    
-                    for priority in transactionPriorities.keys {
-                        let transactionIDs = transactionPriorities[priority] ?? {}
-                        var priorityTransactions: [UInt64] = []
-                            
-                        for id in transactionIDs.keys {
-                            priorityTransactions.append(id)
-                        }
-                            
-                        if priorityTransactions.length > 0 {
-                            timestampTransactions[priority.rawValue] = priorityTransactions
-                        }
+                if timestamp < startTimestamp { continue }
+                
+                let transactionPriorities = self.slotQueue[timestamp] ?? {}
+                
+                var timestampTransactions: {UInt8: [UInt64]} = {}
+                
+                for priority in transactionPriorities.keys {
+                    let transactionIDs = transactionPriorities[priority] ?? {}
+                    var priorityTransactions: [UInt64] = []
+                        
+                    for id in transactionIDs.keys {
+                        priorityTransactions.append(id)
                     }
-                    
-                    if timestampTransactions.keys.length > 0 {
-                        transactionsInTimeframe[timestamp] = timestampTransactions
+                        
+                    if priorityTransactions.length > 0 {
+                        timestampTransactions[priority.rawValue] = priorityTransactions
                     }
                 }
+                
+                if timestampTransactions.keys.length > 0 {
+                    transactionsInTimeframe[timestamp] = timestampTransactions
+                }
+                
             }
             
             return transactionsInTimeframe
@@ -637,7 +645,7 @@ access(all) contract FlowTransactionScheduler {
             let baseFee = FlowFees.computeFees(inclusionEffort: 1.0, executionEffort: UFix64(executionEffort))
             
             // Scale the execution fee by the multiplier for the priority
-            let scaledExecutionFee = baseFee * self.configurationDetails.priorityFeeMultipliers[priority]!
+            let scaledExecutionFee = baseFee * self.config.priorityFeeMultipliers[priority]!
 
             // Calculate the FLOW required to pay for storage of the transaction data
             let storageFee = FlowStorageFees.storageCapacityToFlow(dataSizeMB)
@@ -692,7 +700,7 @@ access(all) contract FlowTransactionScheduler {
         /// @param: transaction: A capability to a resource in storage that implements the transaction handler 
         ///    interface. This handler will be invoked at execution time and will receive the specified data payload.
         /// @param: timestamp: Specifies the earliest block timestamp at which the transaction is eligible for execution 
-        ///    (fractional seconds values are ignored). It must be set in the future.
+        ///    (Unix timestamp so fractional seconds values are ignored). It must be set in the future.
         /// @param: priority: An enum value (`High`, `Medium`, or `Low`) that influences the scheduling behavior and determines 
         ///    how soon after the timestamp the transaction will be executed.
         /// @param: executionEffort: Defines the maximum computational resources allocated to the transaction. This also determines 
@@ -792,36 +800,36 @@ access(all) contract FlowTransactionScheduler {
                         )
             }
 
-            if executionEffort > self.configurationDetails.maximumIndividualEffort {
+            if executionEffort > self.config.maximumIndividualEffort {
                 return EstimatedScheduledTransaction(
                     flowFee: nil,
                     timestamp: nil,
-                    error: "Invalid execution effort: \(executionEffort) is greater than the maximum transaction effort of \(self.configurationDetails.maximumIndividualEffort)"
+                    error: "Invalid execution effort: \(executionEffort) is greater than the maximum transaction effort of \(self.config.maximumIndividualEffort)"
                 )
             }
 
-            if executionEffort > self.configurationDetails.priorityEffortLimit[priority]! {
+            if executionEffort > self.config.priorityEffortLimit[priority]! {
                 return EstimatedScheduledTransaction(
                             flowFee: nil,
                             timestamp: nil,
-                            error: "Invalid execution effort: \(executionEffort) is greater than the priority's max effort of \(self.configurationDetails.priorityEffortLimit[priority]!)"
+                            error: "Invalid execution effort: \(executionEffort) is greater than the priority's max effort of \(self.config.priorityEffortLimit[priority]!)"
                         )
             }
 
-            if executionEffort < self.configurationDetails.minimumExecutionEffort {
+            if executionEffort < self.config.minimumExecutionEffort {
                 return EstimatedScheduledTransaction(
                             flowFee: nil,
                             timestamp: nil,
-                            error: "Invalid execution effort: \(executionEffort) is less than the minimum execution effort of \(self.configurationDetails.minimumExecutionEffort)"
+                            error: "Invalid execution effort: \(executionEffort) is less than the minimum execution effort of \(self.config.minimumExecutionEffort)"
                         )
             }
 
             let dataSizeMB = FlowTransactionScheduler.getSizeOfData(data)
-            if dataSizeMB > self.configurationDetails.maxDataSizeMB {
+            if dataSizeMB > self.config.maxDataSizeMB {
                 return EstimatedScheduledTransaction(
                     flowFee: nil,
                     timestamp: nil,
-                    error: "Invalid data size: \(dataSizeMB) is greater than the maximum data size of \(self.configurationDetails.maxDataSizeMB)MB"
+                    error: "Invalid data size: \(dataSizeMB) is greater than the maximum data size of \(self.config.maxDataSizeMB)MB"
                 )
             }
 
@@ -880,7 +888,9 @@ access(all) contract FlowTransactionScheduler {
             // if theres enough space, we can tentatively schedule at provided timestamp
             if executionEffort <= available {
                 return timestamp
-            } else if priority == Priority.High {
+            }
+            
+            if priority == Priority.High {
                 // high priority demands scheduling at exact timestamp or failing
                 return nil
             }
@@ -902,7 +912,7 @@ access(all) contract FlowTransactionScheduler {
             let sanitizedTimestamp = UFix64(UInt64(timestamp))
 
             // Get the theoretical maximum allowed for the priority including shared
-            let priorityLimit = self.configurationDetails.priorityEffortLimit[priority]!
+            let priorityLimit = self.config.priorityEffortLimit[priority]!
             
             // If nothing has been claimed for the requested timestamp,
             // return the full amount
@@ -915,8 +925,8 @@ access(all) contract FlowTransactionScheduler {
             let slotPriorityEffortsUsed = self.slotUsedEffort[sanitizedTimestamp]!
 
             // Get the exclusive reserves for each priority
-            let highReserve = self.configurationDetails.priorityEffortReserve[Priority.High]!
-            let mediumReserve = self.configurationDetails.priorityEffortReserve[Priority.Medium]!
+            let highReserve = self.config.priorityEffortReserve[Priority.High]!
+            let mediumReserve = self.config.priorityEffortReserve[Priority.Medium]!
 
             // Get how much effort has been used for each priority
             let highUsed = slotPriorityEffortsUsed[Priority.High] ?? 0
@@ -926,7 +936,7 @@ access(all) contract FlowTransactionScheduler {
             // under 5000, subtracting the currently used effort for low priority
             if priority == Priority.Low {
                 let highPlusMediumUsed = highUsed + mediumUsed
-                let totalEffortRemaining = self.configurationDetails.slotTotalEffortLimit.saturatingSubtract(highPlusMediumUsed)
+                let totalEffortRemaining = self.config.slotTotalEffortLimit.saturatingSubtract(highPlusMediumUsed)
                 let lowEffortRemaining = totalEffortRemaining < priorityLimit ? totalEffortRemaining : priorityLimit
                 let lowUsed = slotPriorityEffortsUsed[Priority.Low] ?? 0
                 return lowEffortRemaining.saturatingSubtract(lowUsed)
@@ -938,7 +948,7 @@ access(all) contract FlowTransactionScheduler {
             let mediumSharedUsed: UInt64 = mediumUsed.saturatingSubtract(mediumReserve)
 
             // Get the theoretical total shared amount between priorities
-            let totalShared = (self.configurationDetails.slotTotalEffortLimit.saturatingSubtract(highReserve)).saturatingSubtract(mediumReserve)
+            let totalShared = (self.config.slotTotalEffortLimit.saturatingSubtract(highReserve)).saturatingSubtract(mediumReserve)
 
             // Get the amount of shared effort currently available
             let highPlusMediumSharedUsed = highSharedUsed + mediumSharedUsed
@@ -947,7 +957,7 @@ access(all) contract FlowTransactionScheduler {
 
             // we calculate available by calculating available shared effort and 
             // adding any unused reserves for that priority
-            let reserve = self.configurationDetails.priorityEffortReserve[priority]!
+            let reserve = self.config.priorityEffortReserve[priority]!
             let used = slotPriorityEffortsUsed[priority] ?? 0
             let unusedReserve: UInt64 = reserve.saturatingSubtract(used)
             let available = sharedAvailable + unusedReserve
@@ -998,10 +1008,10 @@ access(all) contract FlowTransactionScheduler {
             // Need to potentially reschedule low priority transactions to make room for the new transaction
             // Iterate through them and record which ones to reschedule until the total effort is less than the limit
             let lowTransactionsToReschedule: [UInt64] = []
-            if newTotalEffort > self.configurationDetails.slotTotalEffortLimit {
+            if newTotalEffort > self.config.slotTotalEffortLimit {
                 let lowPriorityTransactions = slotQueue[Priority.Low]!
                 for id in lowPriorityTransactions.keys {
-                    if newTotalEffort <= self.configurationDetails.slotTotalEffortLimit {
+                    if newTotalEffort <= self.config.slotTotalEffortLimit {
                         break
                     }
                     lowTransactionsToReschedule.append(id)
@@ -1102,14 +1112,9 @@ access(all) contract FlowTransactionScheduler {
             let currentTimestamp = getCurrentBlock().timestamp
             var pendingTransactions: [&TransactionData] = []
 
-            // Early exit if no timestamps need processing
-            if !self.sortedTimestamps.hasTimestampsBefore(current: currentTimestamp) {
-                return []
-            }
-
             // total effort across different timestamps guards collection being over the effort limit
-            var totalAvailableEffort = self.configurationDetails.collectionEffortLimit
-            var totalTransactionsLimit = self.configurationDetails.collectionTransactionsLimit
+            var collectionAvailableEffort = self.config.collectionEffortLimit
+            var transactionsAvailableCount = self.config.collectionTransactionsLimit
 
             // Collect past timestamps efficiently from sorted array
             let pastTimestamps = self.sortedTimestamps.getBefore(current: currentTimestamp)
@@ -1132,16 +1137,16 @@ access(all) contract FlowTransactionScheduler {
                         }
 
                         // this is safeguard to prevent collection growing too large in case of block production slowdown
-                        if totalAvailableEffort.saturatingSubtract(tx.executionEffort) == 0 || totalTransactionsLimit == 0 {
+                        if tx.executionEffort >= collectionAvailableEffort || transactionsAvailableCount == 0 {
                             emit CollectionLimitReached(
-                                collectionEffortLimit: totalTransactionsLimit == 0 ? nil : self.configurationDetails.collectionEffortLimit,
-                                collectionTransactionsLimit: totalTransactionsLimit == 0 ? self.configurationDetails.collectionTransactionsLimit : nil
+                                collectionEffortLimit: transactionsAvailableCount == 0 ? nil : self.config.collectionEffortLimit,
+                                collectionTransactionsLimit: transactionsAvailableCount == 0 ? self.config.collectionTransactionsLimit : nil
                             )
                             break
                         }
 
-                        totalAvailableEffort = totalAvailableEffort.saturatingSubtract(tx.executionEffort)
-                        totalTransactionsLimit = totalTransactionsLimit - 1
+                        collectionAvailableEffort = collectionAvailableEffort.saturatingSubtract(tx.executionEffort)
+                        transactionsAvailableCount = transactionsAvailableCount - 1
                     
                         switch tx.priority {
                             case Priority.High:
@@ -1164,8 +1169,7 @@ access(all) contract FlowTransactionScheduler {
         }
 
         /// removeExecutedTransactions removes all transactions that are marked as executed.
-        access(self) fun removeExecutedTransactions() {
-            let currentTimestamp = getCurrentBlock().timestamp
+        access(self) fun removeExecutedTransactions(_ currentTimestamp: UFix64) {
             let pastTimestamps = self.sortedTimestamps.getBefore(current: currentTimestamp)
 
             for timestamp in pastTimestamps {
@@ -1199,8 +1203,13 @@ access(all) contract FlowTransactionScheduler {
         ///
         /// This function is only called by the FVM to process transactions.
         access(Process) fun process() {
+            let currentTimestamp = getCurrentBlock().timestamp
+            // Early exit if no timestamps need processing
+            if !self.sortedTimestamps.hasBefore(current: currentTimestamp) {
+                return
+            }
 
-            self.removeExecutedTransactions()
+            self.removeExecutedTransactions(currentTimestamp)
 
             let pendingTransactions = self.pendingQueue()
             
@@ -1252,7 +1261,7 @@ access(all) contract FlowTransactionScheduler {
             self.slotUsedEffort[tx.scheduledTimestamp] = slotEfforts
 
             let totalFees = tx.fees
-            let refundedFees <- tx.payAndRefundFees(refundMultiplier: self.configurationDetails.refundMultiplier)
+            let refundedFees <- tx.payAndRefundFees(refundMultiplier: self.config.refundMultiplier)
 
             // if the transaction was canceled, add it to the canceled transactions array
             // maintain sorted order by inserting at the correct position
@@ -1267,7 +1276,7 @@ access(all) contract FlowTransactionScheduler {
             self.canceledTransactions.insert(at: insertIndex, id)
             
             // keep the array under the limit
-            if UInt(self.canceledTransactions.length) > self.configurationDetails.canceledTransactionsLimit {
+            if UInt(self.canceledTransactions.length) > self.config.canceledTransactionsLimit {
                 self.canceledTransactions.remove(at: 0)
             }
 
@@ -1289,6 +1298,7 @@ access(all) contract FlowTransactionScheduler {
         /// The transaction must be found and in correct state or the function panics and this is a fatal error
         ///
         /// This function is only called by the FVM to execute transactions.
+        /// WARNING: this function should not change any shared state, it will be run concurrently and it must not be blocking.
         access(Execute) fun executeTransaction(id: UInt64) {
             let tx = self.borrowTransaction(id: id) ?? 
                 panic("Invalid ID: Transaction with id \(id) not found")
@@ -1396,8 +1406,8 @@ access(all) contract FlowTransactionScheduler {
         return self.sharedScheduler.borrow()!.getSlotAvailableEffort(timestamp: timestamp, priority: priority)
     }
 
-    access(all) fun getSchedulerConfigurationDetails(): {SchedulerConfig} {
-        return self.sharedScheduler.borrow()!.getConfigurationDetails()
+    access(all) fun getConfig(): {SchedulerConfig} {
+        return self.sharedScheduler.borrow()!.getConfig()
     }
     
     /// getSizeOfData takes a transaction's data
