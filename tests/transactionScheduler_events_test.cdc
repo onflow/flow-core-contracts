@@ -65,7 +65,7 @@ access(all) fun testTransactionScheduleEventAndData() {
     var scheduledEvent = scheduledEvents[0] as! FlowTransactionScheduler.Scheduled
     Test.assertEqual(highPriority, scheduledEvent.priority!)
     Test.assertEqual(timeInFuture, scheduledEvent.timestamp!)
-    Test.assert(scheduledEvent.executionEffort == 1000, message: "incorrect execution effort")
+    Test.assert(scheduledEvent.executionEffort == basicEffort, message: "incorrect execution effort")
     Test.assertEqual(feeAmount, scheduledEvent.fees!)
     Test.assertEqual(serviceAccount.address, scheduledEvent.transactionHandlerOwner!)
     Test.assertEqual("A.0000000000000001.TestFlowScheduledTransactionHandler.Handler", scheduledEvent.transactionHandlerTypeIdentifier!)
@@ -194,7 +194,7 @@ access(all) fun testScheduledTransactionExecution() {
         Test.moveTime(by: Fix64(1.0))
     }
 
-    // Simulate FVM process - should process since timestamp is in the past
+    // process transaction scheduled in the testTransactionScheduleEventAndData 
     processTransactions()
 
     // Check for PendingExecution event after processing
@@ -202,8 +202,7 @@ access(all) fun testScheduledTransactionExecution() {
 
     let pendingExecutionEventsAfterTime = Test.eventsOfType(Type<FlowTransactionScheduler.PendingExecution>())
     Test.assertEqual(1, pendingExecutionEventsAfterTime.length)
-    
-    var i = 0
+    23
     var firstEvent: Bool = false
     for event in pendingExecutionEventsAfterTime {
         let pendingExecutionEvent = event as! FlowTransactionScheduler.PendingExecution
@@ -236,8 +235,6 @@ access(all) fun testScheduledTransactionExecution() {
                 firstEvent = true
             }
         }
-
-        i = i + 1
     }
 
     // Check that the transactions were executed
