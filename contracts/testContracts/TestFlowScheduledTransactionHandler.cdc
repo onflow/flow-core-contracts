@@ -30,7 +30,7 @@ access(all) contract TestFlowScheduledTransactionHandler {
         }
 
         access(all) view fun getViews(): [Type] {
-            return [Type<StoragePath>(), Type<PublicPath>(), Type<FlowTransactionSchedulerUtils.HandlerData>()]
+            return [Type<StoragePath>(), Type<PublicPath>(), Type<MetadataViews.Display>(), Type<FlowTransactionSchedulerUtils.HandlerData>()]
         }
 
         access(all) fun resolveView(_ view: Type): AnyStruct? {

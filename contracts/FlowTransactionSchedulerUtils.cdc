@@ -217,6 +217,59 @@ access(all) contract FlowTransactionSchedulerUtils {
             return self.handlers.keys
         }
 
+        /// Get an un-entitled reference to a handler by a given type identifier
+        /// @param handlerTypeIdentifier: The type identifier of the handler
+        /// @return: An un-entitled reference to the handler, or nil if not found
+        access(all) view fun getHandlerByTypeIdentifier(handlerTypeIdentifier: String): &{FlowTransactionScheduler.TransactionHandler}? {
+            return self.handlers[handlerTypeIdentifier]?.borrow() as? &{FlowTransactionScheduler.TransactionHandler}
+        }
+
+        /// Get all the views that a handler implements
+        /// @param handlerTypeIdentifier: The type identifier of the handler
+        /// @return: An array of all views
+        access(all) fun getHandlerViews(handlerTypeIdentifier: String): [Type] {
+            if let handler = self.handlers[handlerTypeIdentifier]?.borrow() {
+                if let ref = handler {
+                    return ref.getViews()
+                }
+            }
+            return []
+        }
+
+        /// Resolve a view for a handler by a given type identifier
+        /// @param handlerTypeIdentifier: The type identifier of the handler
+        /// @param viewType: The type of the view to resolve
+        /// @return: The resolved view, or nil if not found
+        access(all) fun resolveHandlerView(handlerTypeIdentifier: String, viewType: Type): AnyStruct? {
+            if let handler = self.handlers[handlerTypeIdentifier]?.borrow() {
+                if let ref = handler {
+                    return ref.resolveView(viewType)
+                }
+            }
+            return nil
+        }
+
+        /// Get all the views that a handler implements from a given transaction ID
+        /// @param transactionId: The ID of the transaction
+        /// @return: An array of all views
+        access(all) fun getHandlerViewsFromTransactionID(transactionId: UInt64): [Type] {
+            if let handler = self.getTransactionHandler(id: transactionId) {
+                return handler.getViews()
+            }
+            return []
+        }
+
+        /// Resolve a view for a handler from a given transaction ID
+        /// @param transactionId: The ID of the transaction
+        /// @param viewType: The type of the view to resolve
+        /// @return: The resolved view, or nil if not found
+        access(all) fun resolveHandlerViewFromTransactionID(transactionId: UInt64, viewType: Type): AnyStruct? {
+            if let handler = self.getTransactionHandler(id: transactionId) {
+                return handler.resolveView(viewType)
+            }
+            return nil
+        }
+
         /// Get all transaction IDs stored in the manager
         /// @return: An array of all transaction IDs
         access(all) view fun getTransactionIDs(): [UInt64] {
