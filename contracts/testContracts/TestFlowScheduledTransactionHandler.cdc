@@ -1,4 +1,5 @@
 import "FlowTransactionScheduler"
+import "FlowTransactionSchedulerUtils"
 import "FlowToken"
 import "FungibleToken"
 
@@ -12,7 +13,6 @@ import "FungibleToken"
 //
 // TestFlowScheduledTransactionHandler is a simplified test contract for testing FlowTransactionScheduler
 access(all) contract TestFlowScheduledTransactionHandler {
-    access(all) var scheduledTransactions: @{UInt64: FlowTransactionScheduler.ScheduledTransaction}
     access(all) var succeededTransactions: [UInt64]
 
     access(all) let HandlerStoragePath: StoragePath
@@ -27,6 +27,24 @@ access(all) contract TestFlowScheduledTransactionHandler {
             self.name = name
             self.description = description
         }
+
+        access(all) view fun getViews(): [Type] {
+            return [Type<FlowTransactionSchedulerUtils.HandlerData>()]
+        }
+
+        access(all) fun resolveView(_ view: Type): AnyStruct? {
+            switch view {
+                case Type<FlowTransactionSchedulerUtils.HandlerData>():
+                    return FlowTransactionSchedulerUtils.HandlerData(
+                        name: self.name,
+                        description: self.description,
+                        storagePath: TestFlowScheduledTransactionHandler.HandlerStoragePath.toString(),
+                        publicPath: TestFlowScheduledTransactionHandler.HandlerPublicPath.toString()
+                    )
+                default:
+                    return nil
+            }
+        }
         
         access(FlowTransactionScheduler.Execute) 
         fun executeTransaction(id: UInt64, data: AnyStruct?) {
@@ -36,15 +54,17 @@ access(all) contract TestFlowScheduledTransactionHandler {
                 if dataString == "fail" {
                     panic("Transaction \(id) failed")
                 } else if dataString == "cancel" {
-                    // This should always fail because the transaction can't cancel itself during execution
-                    destroy <-TestFlowScheduledTransactionHandler.cancelTransaction(id: id)
+                    let manager = TestFlowScheduledTransactionHandler.borrowManager()
+                    // This should always fail because the callback can't cancel itself during execution
+                    destroy <-manager.cancel(id: id)
                 } else {
                     // All other regular test cases should succeed
                     TestFlowScheduledTransactionHandler.succeededTransactions.append(id)
                 }
             } else if let dataCap = data as? Capability<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}> {
                 // Testing scheduling a transaction with a transaction
-                let scheduledTransaction <- FlowTransactionScheduler.schedule(
+                let manager = TestFlowScheduledTransactionHandler.borrowManager()
+                manager.schedule(
                     handlerCap: dataCap,
                     data: "test data",
                     timestamp: getCurrentBlock().timestamp + 10.0,
@@ -52,7 +72,6 @@ access(all) contract TestFlowScheduledTransactionHandler {
                     executionEffort: UInt64(1000),
                     fees: <-TestFlowScheduledTransactionHandler.getFeeFromVault(amount: 1.0)
                 )
-                TestFlowScheduledTransactionHandler.addScheduledTransaction(scheduledTx: <-scheduledTransaction)
             } else {
                 panic("TestFlowScheduledTransactionHandler.executeTransaction: Invalid data type for transaction with id \(id). Type is \(data.getType().identifier)")
             }
@@ -63,28 +82,23 @@ access(all) contract TestFlowScheduledTransactionHandler {
         return <- create Handler(name: "Test FlowTransactionHandler Resource", description: "Executes a variety of transactions for different test cases")
     }
 
-    // ⚠️  WARNING: UNSAFE FOR PRODUCTION ⚠️
-    // This function is part of a TEST CONTRACT and should NEVER be used in production!
-    // It contains unsafe implementations that could lead to loss of funds or security vulnerabilities.
-    access(all) fun addScheduledTransaction(scheduledTx: @FlowTransactionScheduler.ScheduledTransaction) {
-        let status = scheduledTx.status()
-        if status == nil {
-            panic("Invalid status for transaction with id \(scheduledTx.id)")
-        }
-        self.scheduledTransactions[scheduledTx.id] <-! scheduledTx
-    }
-
-    // ⚠️  WARNING: UNSAFE FOR PRODUCTION ⚠️
-    // This function is part of a TEST CONTRACT and should NEVER be used in production!
-    // It contains unsafe implementations that could lead to loss of funds or security vulnerabilities.
-    access(all) fun cancelTransaction(id: UInt64): @FlowToken.Vault {
-        let scheduledTx <- self.scheduledTransactions.remove(key: id)
-            ?? panic("Invalid ID: \(id) transaction not found")
-        return <-FlowTransactionScheduler.cancel(scheduledTx: <-scheduledTx!)
-    }
-
     access(all) fun getSucceededTransactions(): [UInt64] {
         return self.succeededTransactions
+    }
+
+    access(contract) fun borrowManager(): auth(FlowTransactionSchedulerUtils.Owner) &FlowTransactionSchedulerUtils.Manager {
+        return self.account.storage.borrow<auth(FlowTransactionSchedulerUtils.Owner) &FlowTransactionSchedulerUtils.Manager>(from: FlowTransactionSchedulerUtils.managerStoragePath)
+            ?? panic("Callback manager not set")
+    }
+
+    access(all) fun getTransactionIDs(): [UInt64] {
+        let manager = self.borrowManager()
+        return manager.getTransactionIDs()
+    }
+
+    access(all) fun getTransactionStatus(id: UInt64): FlowTransactionScheduler.Status? {
+        let manager = self.borrowManager()
+        return manager.getTransactionStatus(id: id)
     }
 
     access(contract) fun getFeeFromVault(amount: UFix64): @FlowToken.Vault {
@@ -96,7 +110,6 @@ access(all) contract TestFlowScheduledTransactionHandler {
     }
 
     access(all) init() {
-        self.scheduledTransactions <- {}
         self.succeededTransactions = []
 
         self.HandlerStoragePath = /storage/testTransactionHandler
