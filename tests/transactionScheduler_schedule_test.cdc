@@ -17,6 +17,13 @@ fun setup() {
     Test.expect(err, Test.beNil())
 
     err = Test.deployContract(
+        name: "FlowTransactionSchedulerUtils",
+        path: "../contracts/FlowTransactionSchedulerUtils.cdc",
+        arguments: []
+    )
+    Test.expect(err, Test.beNil())
+
+    err = Test.deployContract(
         name: "TestFlowScheduledTransactionHandler",
         path: "../contracts/testContracts/TestFlowScheduledTransactionHandler.cdc",
         arguments: []
