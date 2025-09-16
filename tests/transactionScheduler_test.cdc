@@ -610,8 +610,8 @@ access(all) fun testSortedTimestampsAdd() {
         AddTestCase(
             name: "Add duplicate timestamp",
             timestampsToAdd: [30.0, 30.0],
-            expectedLength: 2,
-            expectedOrder: [30.0, 30.0]
+            expectedLength: 1,
+            expectedOrder: [30.0]
         ),
         AddTestCase(
             name: "Add single timestamp",
