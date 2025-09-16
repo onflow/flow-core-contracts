@@ -276,14 +276,6 @@ access(all) contract FlowTransactionScheduler {
         access(contract) view fun getData(): AnyStruct? {
             return self.data
         }
-
-        /// getUnentitledHandlerReference returns an un-entitled reference to the transaction handler
-        /// This allows users to query metadata views about the handler
-        /// @return: An un-entitled reference to the transaction handler
-        access(all) view fun getUnentitledHandlerReference(): &{TransactionHandler} {
-            return self.handler.borrow() as? &{TransactionHandler}
-                ?? panic("Invalid transaction handler: Could not borrow a reference to the transaction handler")
-        }
     }
 
     /// Struct interface representing all the base configuration details in the Scheduler contract
