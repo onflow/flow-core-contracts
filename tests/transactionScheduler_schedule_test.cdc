@@ -1013,7 +1013,7 @@ access(all) fun testScheduleAndEffortUsed() {
                 }
             },
             expectedPendingQueues: {
-                futureDelta: [1,3,4,5,6,7],
+                futureDelta: [2,3,4,5,6,7],
                 futureDelta + 1.0: [1,2,3,4,5,6,7]
             },
             expectedPendingQueueAfterExecution: []

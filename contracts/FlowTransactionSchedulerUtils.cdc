@@ -43,6 +43,28 @@ access(all) contract FlowTransactionSchedulerUtils {
             self.handlers = {}
         }
 
+        /// scheduleByHandler schedules a transaction by a given handler that has been used before
+        /// @param handlerTypeIdentifier: The type identifier of the handler
+        /// @param data: Optional data to pass to the transaction when executed
+        /// @param timestamp: The timestamp when the transaction should be executed
+        /// @param priority: The priority of the transaction (High, Medium, or Low)
+        /// @param executionEffort: The execution effort for the transaction
+        /// @param fees: A FlowToken vault containing sufficient fees
+        /// @return: The ID of the scheduled transaction
+        access(Owner) fun scheduleByHandler(
+            handlerTypeIdentifier: String,
+            data: AnyStruct?,
+            timestamp: UFix64,
+            priority: FlowTransactionScheduler.Priority,
+            executionEffort: UInt64,
+            fees: @FlowToken.Vault
+        ): UInt64 {
+            pre {
+                self.handlers.containsKey(handlerTypeIdentifier): "Invalid handler type identifier: Handler with type identifier \(handlerTypeIdentifier) not found in manager"
+            }
+            return self.schedule(handlerCap: self.handlers[handlerTypeIdentifier]!, data: data, timestamp: timestamp, priority: priority, executionEffort: executionEffort, fees: <-fees)
+        }
+
         /// Schedule a transaction and store it in the manager's dictionary
         /// @param handlerCap: A capability to a resource that implements the TransactionHandler interface
         /// @param data: Optional data to pass to the transaction when executed
@@ -50,7 +72,7 @@ access(all) contract FlowTransactionSchedulerUtils {
         /// @param priority: The priority of the transaction (High, Medium, or Low)
         /// @param executionEffort: The execution effort for the transaction
         /// @param fees: A FlowToken vault containing sufficient fees
-        /// @return: The scheduled transaction resource
+        /// @return: The ID of the scheduled transaction
         access(Owner) fun schedule(
             handlerCap: Capability<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}>,
             data: AnyStruct?,
@@ -293,16 +315,16 @@ access(all) contract FlowTransactionSchedulerUtils {
         access(all) let description: String
 
         // path where this handler should be stored in storage
-        access(all) let storagePath: String
+        access(all) let storagePath: StoragePath
 
         // path where this handler's public capability should be found
-        access(all) let publicPath: String
+        access(all) let publicPath: PublicPath
 
         init(
             name: String,
             description: String,
-            storagePath: String,
-            publicPath: String
+            storagePath: StoragePath,
+            publicPath: PublicPath
         ) {
             self.name = name
             self.description = description

@@ -2,6 +2,7 @@ import "FlowTransactionScheduler"
 import "FlowTransactionSchedulerUtils"
 import "FlowToken"
 import "FungibleToken"
+import "MetadataViews"
 
 // ⚠️  WARNING: UNSAFE FOR PRODUCTION ⚠️
 // This is a TEST CONTRACT ONLY and should NEVER be used in production!
@@ -29,17 +30,29 @@ access(all) contract TestFlowScheduledTransactionHandler {
         }
 
         access(all) view fun getViews(): [Type] {
-            return [Type<FlowTransactionSchedulerUtils.HandlerData>()]
+            return [Type<StoragePath>(), Type<PublicPath>(), Type<FlowTransactionSchedulerUtils.HandlerData>()]
         }
 
         access(all) fun resolveView(_ view: Type): AnyStruct? {
             switch view {
+                case Type<StoragePath>():
+                    return TestFlowScheduledTransactionHandler.HandlerStoragePath
+                case Type<PublicPath>():
+                    return TestFlowScheduledTransactionHandler.HandlerPublicPath
+                case Type<MetadataViews.Display>():
+                    return MetadataViews.Display(
+                        name: self.name,
+                        description: self.description,
+                        thumbnail: MetadataViews.HTTPFile(
+                            url: ""
+                        )
+                    )
                 case Type<FlowTransactionSchedulerUtils.HandlerData>():
                     return FlowTransactionSchedulerUtils.HandlerData(
                         name: self.name,
                         description: self.description,
-                        storagePath: TestFlowScheduledTransactionHandler.HandlerStoragePath.toString(),
-                        publicPath: TestFlowScheduledTransactionHandler.HandlerPublicPath.toString()
+                        storagePath: TestFlowScheduledTransactionHandler.HandlerStoragePath,
+                        publicPath: TestFlowScheduledTransactionHandler.HandlerPublicPath
                     )
                 default:
                     return nil

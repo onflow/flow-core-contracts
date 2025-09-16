@@ -56,7 +56,8 @@ access(all) contract FlowTransactionScheduler {
         executionEffort: UInt64,
         fees: UFix64,
         transactionHandlerOwner: Address,
-        transactionHandlerTypeIdentifier: String
+        transactionHandlerTypeIdentifier: String,
+        transactionHandlerPublicPath: PublicPath?
     )
 
     /// Emitted when a scheduled transaction's scheduled timestamp is reached and it is ready for execution
@@ -75,7 +76,8 @@ access(all) contract FlowTransactionScheduler {
         priority: UInt8,
         executionEffort: UInt64,
         transactionHandlerOwner: Address,
-        transactionHandlerTypeIdentifier: String
+        transactionHandlerTypeIdentifier: String,
+        transactionHandlerPublicPath: PublicPath?
     )
 
     /// Emitted when a scheduled transaction is canceled by the creator of the transaction
@@ -762,6 +764,11 @@ access(all) contract FlowTransactionScheduler {
             // Deposit the fees to the service account's vault
             FlowTransactionScheduler.depositFees(from: <-fees)
 
+            let handlerRef = handlerCap.borrow()
+                ?? panic("Invalid transaction handler: Could not borrow a reference to the transaction handler")
+
+            let handlerPublicPath = handlerRef.resolveView(Type<PublicPath>()) as? PublicPath
+
             emit Scheduled(
                 id: transactionData.id,
                 priority: transactionData.priority.rawValue,
@@ -769,7 +776,8 @@ access(all) contract FlowTransactionScheduler {
                 executionEffort: transactionData.executionEffort,
                 fees: transactionData.fees,
                 transactionHandlerOwner: transactionData.handler.address,
-                transactionHandlerTypeIdentifier: transactionData.handlerTypeIdentifier
+                transactionHandlerTypeIdentifier: transactionData.handlerTypeIdentifier,
+                transactionHandlerPublicPath: handlerPublicPath
             )
 
             // Add the transaction to the slot queue and update the internal state
@@ -1325,12 +1333,16 @@ access(all) contract FlowTransactionScheduler {
             let transactionHandler = tx.handler.borrow()
                 ?? panic("Invalid transaction handler: Could not borrow a reference to the transaction handler")
 
+            let handlerPublicPath = transactionHandler.resolveView(Type<PublicPath>()) as? PublicPath
+
             emit Executed(
                 id: tx.id,
                 priority: tx.priority.rawValue,
                 executionEffort: tx.executionEffort,
                 transactionHandlerOwner: tx.handler.address,
-                transactionHandlerTypeIdentifier: transactionHandler.getType().identifier
+                transactionHandlerTypeIdentifier: transactionHandler.getType().identifier,
+                transactionHandlerPublicPath: handlerPublicPath
+
             )
             
             transactionHandler.executeTransaction(id: id, data: tx.getData())
