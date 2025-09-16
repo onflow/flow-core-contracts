@@ -642,7 +642,7 @@ access(all) contract FlowTransactionScheduler {
         /// @return UFix64: The fee in Flow tokens that is required to pay for the transaction
         access(contract) fun calculateFee(executionEffort: UInt64, priority: Priority, dataSizeMB: UFix64): UFix64 {
             // Use the official FlowFees calculation
-            let baseFee = FlowFees.computeFees(inclusionEffort: 1.0, executionEffort: UFix64(executionEffort))
+            let baseFee = FlowFees.computeFees(inclusionEffort: 1.0, executionEffort: UFix64(executionEffort)/100000000.0)
             
             // Scale the execution fee by the multiplier for the priority
             let scaledExecutionFee = baseFee * self.config.priorityFeeMultipliers[priority]!
