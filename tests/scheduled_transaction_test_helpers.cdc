@@ -187,6 +187,21 @@ access(all) fun setConfigDetails(
     }
 }
 
+access(all) fun setFeeParameters(
+    surgeFactor: UFix64,
+    inclusionEffortCost: UFix64,
+    executionEffortCost: UFix64
+) {
+    var setFeeParametersTx = Test.Transaction(
+        code: Test.readFile("../transactions/FlowServiceAccount/set_tx_fee_parameters.cdc"),
+        authorizers: [serviceAccount.address],
+        signers: [serviceAccount],
+        arguments: [surgeFactor, inclusionEffortCost, executionEffortCost]
+    )
+    let setFeeParametersResult = Test.executeTransaction(setFeeParametersTx)
+    Test.expect(setFeeParametersResult, Test.beSucceeded())
+}
+
 access(all) fun getConfigDetails(): {FlowTransactionScheduler.SchedulerConfig} {
     var config = _executeScript(
         "../transactions/transactionScheduler/scripts/get_config.cdc",
