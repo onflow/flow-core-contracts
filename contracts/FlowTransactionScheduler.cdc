@@ -139,6 +139,7 @@ access(all) contract FlowTransactionScheduler {
     access(all) resource ScheduledTransaction {
         access(all) let id: UInt64
         access(all) let timestamp: UFix64
+        access(all) let handlerTypeIdentifier: String
 
         access(all) view fun status(): Status? {
             return FlowTransactionScheduler.sharedScheduler.borrow()!.getStatus(id: self.id)
@@ -146,14 +147,16 @@ access(all) contract FlowTransactionScheduler {
 
         init(
             id: UInt64, 
-            timestamp: UFix64
+            timestamp: UFix64,
+            handlerTypeIdentifier: String
         ) {
             self.id = id
             self.timestamp = timestamp
+            self.handlerTypeIdentifier = handlerTypeIdentifier
         }
 
         // event emitted when the resource is destroyed
-        access(all) event ResourceDestroyed(id: UInt64 = self.id, timestamp: UFix64 = self.timestamp)
+        access(all) event ResourceDestroyed(id: UInt64 = self.id, timestamp: UFix64 = self.timestamp, handlerTypeIdentifier: String = self.handlerTypeIdentifier)
     }
 
     /// EstimatedScheduledTransaction contains data for estimating transaction scheduling.
@@ -272,6 +275,14 @@ access(all) contract FlowTransactionScheduler {
         /// getData copies and returns the data field
         access(contract) view fun getData(): AnyStruct? {
             return self.data
+        }
+
+        /// getUnentitledHandlerReference returns an un-entitled reference to the transaction handler
+        /// This allows users to query metadata views about the handler
+        /// @return: An un-entitled reference to the transaction handler
+        access(all) view fun getUnentitledHandlerReference(): &{TransactionHandler} {
+            return self.handler.borrow() as? &{TransactionHandler}
+                ?? panic("Invalid transaction handler: Could not borrow a reference to the transaction handler")
         }
     }
 
@@ -426,6 +437,8 @@ access(all) contract FlowTransactionScheduler {
                 if timestamp < ts {
                     insertIndex = i
                     break
+                } else if timestamp == ts {
+                    return
                 }
                 insertIndex = i + 1
             }
@@ -764,7 +777,8 @@ access(all) contract FlowTransactionScheduler {
             
             return <-create ScheduledTransaction(
                 id: transactionID, 
-                timestamp: estimate.timestamp!
+                timestamp: estimate.timestamp!,
+                handlerTypeIdentifier: transactionData.handlerTypeIdentifier
             )
         }
 
