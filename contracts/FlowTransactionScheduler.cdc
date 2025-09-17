@@ -1413,7 +1413,7 @@ access(all) contract FlowTransactionScheduler {
     }
 
     /// getUnentitledHandlerForID returns an un-entitled reference to the transaction handler for a given ID
-    /// The handler reference can be used to resolve views to see where it is stored
+    /// The handler reference can be used to resolve views to get info about the handler and see where it is stored
     /// @param id: The ID of the transaction to get the handler for
     /// @return: An un-entitled reference to the transaction handler for the given ID
     access(all) view fun getUnentitledHandlerForID(id: UInt64): &{TransactionHandler}? {
