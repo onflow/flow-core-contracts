@@ -41,12 +41,24 @@ transaction(timestamp: UFix64, feeAmount: UFix64, effort: UInt64, priority: UInt
         
             account.storage.save(<-handler, to: TestFlowScheduledTransactionHandler.HandlerStoragePath)
             account.capabilities.storage.issue<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}>(TestFlowScheduledTransactionHandler.HandlerStoragePath)
+            
+            let publicHandlerCap = account.capabilities.storage.issue<&{FlowTransactionScheduler.TransactionHandler}>(TestFlowScheduledTransactionHandler.HandlerStoragePath)
+            account.capabilities.publish(publicHandlerCap, at: TestFlowScheduledTransactionHandler.HandlerPublicPath)
         }
 
-        // Get the capability that will be used to create the transaction
-        let handlerCap = account.capabilities.storage
+        // Get the entitled capability that will be used to create the transaction
+        // Need to check both controllers because the order of controllers is not guaranteed
+        var handlerCap: Capability<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}>? = nil
+        
+        if let cap = account.capabilities.storage
                             .getControllers(forPath: TestFlowScheduledTransactionHandler.HandlerStoragePath)[0]
+                            .capability as? Capability<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}> {
+            handlerCap = cap
+        } else {
+            handlerCap = account.capabilities.storage
+                            .getControllers(forPath: TestFlowScheduledTransactionHandler.HandlerStoragePath)[1]
                             .capability as! Capability<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}>
+        }
         
         // borrow a reference to the vault that will be used for fees
         let vault = account.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault)
@@ -64,7 +76,7 @@ transaction(timestamp: UFix64, feeAmount: UFix64, effort: UInt64, priority: UInt
             if dataString == "schedule" {
                 // Schedule the transaction that schedules another transaction
                 manager.schedule(
-                    handlerCap: handlerCap,
+                    handlerCap: handlerCap!,
                     data: handlerCap,
                     timestamp: timestamp,
                     priority: priorityEnum,
@@ -76,7 +88,7 @@ transaction(timestamp: UFix64, feeAmount: UFix64, effort: UInt64, priority: UInt
         }
         // Schedule the regular transaction with the main contract
         manager.schedule(
-            handlerCap: handlerCap,
+            handlerCap: handlerCap!,
             data: testData,
             timestamp: timestamp,
             priority: priorityEnum,

@@ -76,6 +76,7 @@ access(all) fun testTransactionScheduleEventAndData() {
     Test.assertEqual(feeAmount, scheduledEvent.fees!)
     Test.assertEqual(serviceAccount.address, scheduledEvent.transactionHandlerOwner!)
     Test.assertEqual("A.0000000000000001.TestFlowScheduledTransactionHandler.Handler", scheduledEvent.transactionHandlerTypeIdentifier!)
+    Test.assertEqual(TestFlowScheduledTransactionHandler.HandlerPublicPath, scheduledEvent.transactionHandlerPublicPath!)
     
     let transactionID = scheduledEvent.id as UInt64
 
@@ -229,6 +230,7 @@ access(all) fun testScheduledTransactionExecution() {
                 Test.assertEqual(pendingExecutionEvent.executionEffort, executedEvent.executionEffort)
                 Test.assertEqual(pendingExecutionEvent.transactionHandlerOwner, executedEvent.transactionHandlerOwner)
                 Test.assertEqual(pendingExecutionEvent.transactionHandlerTypeIdentifier, executedEvent.transactionHandlerTypeIdentifier!)
+                Test.assertEqual(TestFlowScheduledTransactionHandler.HandlerPublicPath, executedEvent.transactionHandlerPublicPath!)
                 firstEvent = true
             }
         }

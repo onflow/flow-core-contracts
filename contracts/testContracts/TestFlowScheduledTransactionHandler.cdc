@@ -30,7 +30,7 @@ access(all) contract TestFlowScheduledTransactionHandler {
         }
 
         access(all) view fun getViews(): [Type] {
-            return [Type<StoragePath>(), Type<PublicPath>(), Type<MetadataViews.Display>(), Type<FlowTransactionSchedulerUtils.HandlerData>()]
+            return [Type<StoragePath>(), Type<PublicPath>(), Type<MetadataViews.Display>()]
         }
 
         access(all) fun resolveView(_ view: Type): AnyStruct? {
@@ -47,21 +47,19 @@ access(all) contract TestFlowScheduledTransactionHandler {
                             url: ""
                         )
                     )
-                case Type<FlowTransactionSchedulerUtils.HandlerData>():
-                    return FlowTransactionSchedulerUtils.HandlerData(
-                        name: self.name,
-                        description: self.description,
-                        storagePath: TestFlowScheduledTransactionHandler.HandlerStoragePath,
-                        publicPath: TestFlowScheduledTransactionHandler.HandlerPublicPath
-                    )
                 default:
                     return nil
             }
         }
         
+        /// executeTransaction executes the transaction logic
+        /// This executeTransaction function only exists to test the transaction scheduler
+        /// and doesn't do anything meaningful besides having a few different cases for testing
+        /// The regular success case simply appends the transaction ID to the succeededTransactions array
         access(FlowTransactionScheduler.Execute) 
         fun executeTransaction(id: UInt64, data: AnyStruct?) {
-            // Most transactions will have string data
+            // Most test transactions will have string data
+            // though transactions can be scheduled with any data type
             if let dataString = data as? String {
                 // intentional failure test case
                 if dataString == "fail" {
@@ -102,16 +100,6 @@ access(all) contract TestFlowScheduledTransactionHandler {
     access(contract) fun borrowManager(): auth(FlowTransactionSchedulerUtils.Owner) &FlowTransactionSchedulerUtils.Manager {
         return self.account.storage.borrow<auth(FlowTransactionSchedulerUtils.Owner) &FlowTransactionSchedulerUtils.Manager>(from: FlowTransactionSchedulerUtils.managerStoragePath)
             ?? panic("Callback manager not set")
-    }
-
-    access(all) fun getTransactionIDs(): [UInt64] {
-        let manager = self.borrowManager()
-        return manager.getTransactionIDs()
-    }
-
-    access(all) fun getTransactionStatus(id: UInt64): FlowTransactionScheduler.Status? {
-        let manager = self.borrowManager()
-        return manager.getTransactionStatus(id: id)
     }
 
     access(contract) fun getFeeFromVault(amount: UFix64): @FlowToken.Vault {

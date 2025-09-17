@@ -1412,9 +1412,20 @@ access(all) contract FlowTransactionScheduler {
         return self.sharedScheduler.borrow()!.getTransaction(id: id)
     }
 
+    /// getUnentitledHandlerForID returns an un-entitled reference to the transaction handler for a given ID
+    /// The handler reference can be used to resolve views to see where it is stored
+    /// @param id: The ID of the transaction to get the handler for
+    /// @return: An un-entitled reference to the transaction handler for the given ID
+    access(all) view fun getUnentitledHandlerForID(id: UInt64): &{TransactionHandler}? {
+        return self.getTransactionData(id: id)?.getUnentitledHandlerReference()
+    }
+
+    /// getCanceledTransactions returns the IDs of the transactions that have been canceled
+    /// @return: The IDs of the transactions that have been canceled
     access(all) view fun getCanceledTransactions(): [UInt64] {
         return self.sharedScheduler.borrow()!.getCanceledTransactions()
     }
+
 
     access(all) view fun getStatus(id: UInt64): Status? {
         return self.sharedScheduler.borrow()!.getStatus(id: id)
