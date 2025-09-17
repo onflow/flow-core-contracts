@@ -34,7 +34,7 @@ access(all) contract FlowTransactionSchedulerUtils {
             }
         }
 
-        access(contract) view fun borrowUnentitled(): &{FlowTransactionScheduler.TransactionHandler}? {
+        access(contract) view fun borrow(): &{FlowTransactionScheduler.TransactionHandler}? {
             return self.capability.borrow() as? &{FlowTransactionScheduler.TransactionHandler}
         }
     }
@@ -263,17 +263,25 @@ access(all) contract FlowTransactionSchedulerUtils {
         /// Get an un-entitled reference to a transaction handler of a given ID
         /// @param id: The ID of the transaction to retrieve
         /// @return: A reference to the transaction handler, or nil if not found
-        access(all) view fun getTransactionHandler(id: UInt64): &{FlowTransactionScheduler.TransactionHandler}? {
+        access(all) view fun borrowTransactionHandlerForID(_ id: UInt64): &{FlowTransactionScheduler.TransactionHandler}? {
             let txData = self.getTransactionData(id: id)
-            return txData?.getUnentitledHandlerReference()
+            return txData?.borrowHandler()
         }
 
         /// Get all the handler type identifiers that the manager has transactions scheduled for
         /// @return: A dictionary of all handler type identifiers and their UUIDs
-        access(all) view fun getHandlerTypeIdentifiers(): {String: [UInt64]} {
+        access(all) fun getHandlerTypeIdentifiers(): {String: [UInt64]} {
             var handlerTypeIdentifiers: {String: [UInt64]} = {}
             for handlerTypeIdentifier in self.handlerInfos.keys {
-                let handlerUUIDs = self.handlerInfos[handlerTypeIdentifier]!.keys
+                let handlerUUIDs: [UInt64] = []
+                let handlerTypes = self.handlerInfos[handlerTypeIdentifier]!
+                for uuid in handlerTypes.keys {
+                    let handlerInfo = handlerTypes[uuid]!
+                    if handlerInfo.transactionIDs.length == 0 || !handlerInfo.capability.check() {
+                        continue
+                    }
+                    handlerUUIDs.append(uuid)
+                }
                 handlerTypeIdentifiers[handlerTypeIdentifier] = handlerUUIDs
             }
             return handlerTypeIdentifiers
@@ -283,14 +291,14 @@ access(all) contract FlowTransactionSchedulerUtils {
         /// @param handlerTypeIdentifier: The type identifier of the handler
         /// @param handlerUUID: The UUID of the handler, if nil, there must be only one handler of the type, otherwise nil will be returned
         /// @return: An un-entitled reference to the handler, or nil if not found
-        access(all) view fun getHandlerByTypeIdentifierAndUUID(handlerTypeIdentifier: String, handlerUUID: UInt64?): &{FlowTransactionScheduler.TransactionHandler}? {
+        access(all) view fun borrowHandler(handlerTypeIdentifier: String, handlerUUID: UInt64?): &{FlowTransactionScheduler.TransactionHandler}? {
             var uuid = handlerUUID
             if let handlers = self.handlerInfos[handlerTypeIdentifier] {
                 if handlerUUID == nil {
                     uuid = handlers.keys.length == 1 ? handlers.keys[0]! : nil
                 }
                 if let handlerInfo = handlers[uuid!] {
-                    return handlerInfo.borrowUnentitled()
+                    return handlerInfo.borrow()
                 }
             }
             return nil
@@ -301,7 +309,7 @@ access(all) contract FlowTransactionSchedulerUtils {
         /// @param handlerUUID: The UUID of the handler, if nil, there must be only one handler of the type, otherwise nil will be returned
         /// @return: An array of all views
         access(all) fun getHandlerViews(handlerTypeIdentifier: String, handlerUUID: UInt64?): [Type] {
-            if let handler = self.getHandlerByTypeIdentifierAndUUID(handlerTypeIdentifier: handlerTypeIdentifier, handlerUUID: handlerUUID) {
+            if let handler = self.borrowHandler(handlerTypeIdentifier: handlerTypeIdentifier, handlerUUID: handlerUUID) {
                 return handler.getViews()
             }
             return []
@@ -313,7 +321,7 @@ access(all) contract FlowTransactionSchedulerUtils {
         /// @param viewType: The type of the view to resolve
         /// @return: The resolved view, or nil if not found
         access(all) fun resolveHandlerView(handlerTypeIdentifier: String, handlerUUID: UInt64?, viewType: Type): AnyStruct? {
-            if let handler = self.getHandlerByTypeIdentifierAndUUID(handlerTypeIdentifier: handlerTypeIdentifier, handlerUUID: handlerUUID) {
+            if let handler = self.borrowHandler(handlerTypeIdentifier: handlerTypeIdentifier, handlerUUID: handlerUUID) {
                 return handler.resolveView(viewType)
             }
             return nil
@@ -322,8 +330,8 @@ access(all) contract FlowTransactionSchedulerUtils {
         /// Get all the views that a handler implements from a given transaction ID
         /// @param transactionId: The ID of the transaction
         /// @return: An array of all views
-        access(all) fun getHandlerViewsFromTransactionID(transactionId: UInt64): [Type] {
-            if let handler = self.getTransactionHandler(id: transactionId) {
+        access(all) fun getHandlerViewsFromTransactionID(_ id: UInt64): [Type] {
+            if let handler = self.borrowTransactionHandlerForID(id) {
                 return handler.getViews()
             }
             return []
@@ -333,8 +341,8 @@ access(all) contract FlowTransactionSchedulerUtils {
         /// @param transactionId: The ID of the transaction
         /// @param viewType: The type of the view to resolve
         /// @return: The resolved view, or nil if not found
-        access(all) fun resolveHandlerViewFromTransactionID(transactionId: UInt64, viewType: Type): AnyStruct? {
-            if let handler = self.getTransactionHandler(id: transactionId) {
+        access(all) fun resolveHandlerViewFromTransactionID(_ id: UInt64, viewType: Type): AnyStruct? {
+            if let handler = self.borrowTransactionHandlerForID(id) {
                 return handler.resolveView(viewType)
             }
             return nil
@@ -421,8 +429,8 @@ access(all) contract FlowTransactionSchedulerUtils {
     /// Get a public reference to a manager at the given address
     /// @param address: The address of the manager
     /// @return: A public reference to the manager
-    access(all) view fun getManager(address: Address): &Manager? {
-        return getAccount(address).capabilities.borrow<&Manager>(self.managerPublicPath)
+    access(all) view fun borrowManager(at: Address): &Manager? {
+        return getAccount(at).capabilities.borrow<&Manager>(self.managerPublicPath)
     }
 
     /********************************************
