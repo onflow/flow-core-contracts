@@ -57,6 +57,7 @@ access(all) contract FlowTransactionScheduler {
         fees: UFix64,
         transactionHandlerOwner: Address,
         transactionHandlerTypeIdentifier: String,
+        transactionHandlerUUID: UInt64,
         transactionHandlerPublicPath: PublicPath?
     )
 
@@ -77,6 +78,7 @@ access(all) contract FlowTransactionScheduler {
         executionEffort: UInt64,
         transactionHandlerOwner: Address,
         transactionHandlerTypeIdentifier: String,
+        transactionHandlerUUID: UInt64,
         transactionHandlerPublicPath: PublicPath?
     )
 
@@ -279,10 +281,10 @@ access(all) contract FlowTransactionScheduler {
             return self.data
         }
 
-        /// getUnentitledHandlerReference returns an un-entitled reference to the transaction handler
+        /// borrowHandler returns an un-entitled reference to the transaction handler
         /// This allows users to query metadata views about the handler
         /// @return: An un-entitled reference to the transaction handler
-        access(all) view fun getUnentitledHandlerReference(): &{TransactionHandler} {
+        access(all) view fun borrowHandler(): &{TransactionHandler} {
             return self.handler.borrow() as? &{TransactionHandler}
                 ?? panic("Invalid transaction handler: Could not borrow a reference to the transaction handler")
         }
@@ -777,6 +779,7 @@ access(all) contract FlowTransactionScheduler {
                 fees: transactionData.fees,
                 transactionHandlerOwner: transactionData.handler.address,
                 transactionHandlerTypeIdentifier: transactionData.handlerTypeIdentifier,
+                transactionHandlerUUID: handlerRef.uuid,
                 transactionHandlerPublicPath: handlerPublicPath
             )
 
@@ -1341,6 +1344,7 @@ access(all) contract FlowTransactionScheduler {
                 executionEffort: tx.executionEffort,
                 transactionHandlerOwner: tx.handler.address,
                 transactionHandlerTypeIdentifier: transactionHandler.getType().identifier,
+                transactionHandlerUUID: transactionHandler.uuid,
                 transactionHandlerPublicPath: handlerPublicPath
 
             )
@@ -1412,12 +1416,12 @@ access(all) contract FlowTransactionScheduler {
         return self.sharedScheduler.borrow()!.getTransaction(id: id)
     }
 
-    /// getUnentitledHandlerForID returns an un-entitled reference to the transaction handler for a given ID
+    /// borrowHandlerForID returns an un-entitled reference to the transaction handler for a given ID
     /// The handler reference can be used to resolve views to get info about the handler and see where it is stored
     /// @param id: The ID of the transaction to get the handler for
     /// @return: An un-entitled reference to the transaction handler for the given ID
-    access(all) view fun getUnentitledHandlerForID(id: UInt64): &{TransactionHandler}? {
-        return self.getTransactionData(id: id)?.getUnentitledHandlerReference()
+    access(all) view fun borrowHandlerForID(_ id: UInt64): &{TransactionHandler}? {
+        return self.getTransactionData(id: id)?.borrowHandler()
     }
 
     /// getCanceledTransactions returns the IDs of the transactions that have been canceled
