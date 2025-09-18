@@ -25,12 +25,12 @@ transaction(timestamp: UFix64, feeAmount: UFix64, effort: UInt64, priority: UInt
     prepare(account: auth(BorrowValue, SaveValue, IssueStorageCapabilityController, PublishCapability, GetStorageCapabilityController) &Account) {
 
         // if a transaction scheduler manager has not been created for this account yet, create one
-        if !account.storage.check<@FlowTransactionSchedulerUtils.Manager>(from: FlowTransactionSchedulerUtils.managerStoragePath) {
+        if !account.storage.check<@{FlowTransactionSchedulerUtils.Manager}>(from: FlowTransactionSchedulerUtils.managerStoragePath) {
             let manager <- FlowTransactionSchedulerUtils.createManager()
             account.storage.save(<-manager, to: FlowTransactionSchedulerUtils.managerStoragePath)
 
             // create a public capability to the callback manager
-            let managerRef = account.capabilities.storage.issue<&FlowTransactionSchedulerUtils.Manager>(FlowTransactionSchedulerUtils.managerStoragePath)
+            let managerRef = account.capabilities.storage.issue<&{FlowTransactionSchedulerUtils.Manager}>(FlowTransactionSchedulerUtils.managerStoragePath)
             account.capabilities.publish(managerRef, at: FlowTransactionSchedulerUtils.managerPublicPath)
         }
         
@@ -69,7 +69,7 @@ transaction(timestamp: UFix64, feeAmount: UFix64, effort: UInt64, priority: UInt
             ?? FlowTransactionScheduler.Priority.High
 
         // borrow a reference to the callback manager
-        let manager = account.storage.borrow<auth(FlowTransactionSchedulerUtils.Owner) &FlowTransactionSchedulerUtils.Manager>(from: FlowTransactionSchedulerUtils.managerStoragePath)
+        let manager = account.storage.borrow<auth(FlowTransactionSchedulerUtils.Owner) &{FlowTransactionSchedulerUtils.Manager}>(from: FlowTransactionSchedulerUtils.managerStoragePath)
             ?? panic("Could not borrow a Manager reference from \(FlowTransactionSchedulerUtils.managerStoragePath)")
 
         if let dataString = testData as? String {
