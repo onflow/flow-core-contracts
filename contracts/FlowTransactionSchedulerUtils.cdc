@@ -39,6 +39,32 @@ access(all) contract FlowTransactionSchedulerUtils {
         }
     }
 
+    access(all) resource interface Manager {
+
+        access(Owner) fun schedule(
+            handlerCap: Capability<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}>,
+            data: AnyStruct?,
+            timestamp: UFix64,
+            priority: FlowTransactionScheduler.Priority,
+            executionEffort: UInt64,
+            fees: @FlowToken.Vault
+        ): UInt64
+        access(Owner) fun cancel(id: UInt64): @FlowToken.Vault
+        access(all) view fun getTransactionData(id: UInt64): FlowTransactionScheduler.TransactionData?
+        access(all) view fun borrowTransactionHandlerForID(_ id: UInt64): &{FlowTransactionScheduler.TransactionHandler}?
+        access(all) fun getHandlerTypeIdentifiers(): {String: [UInt64]}
+        access(all) view fun borrowHandler(handlerTypeIdentifier: String, handlerUUID: UInt64?): &{FlowTransactionScheduler.TransactionHandler}?
+        access(all) fun getHandlerViews(handlerTypeIdentifier: String, handlerUUID: UInt64?): [Type] 
+        access(all) fun resolveHandlerView(handlerTypeIdentifier: String, handlerUUID: UInt64?, viewType: Type): AnyStruct?      
+        access(all) fun getHandlerViewsFromTransactionID(_ id: UInt64): [Type]
+        access(all) fun resolveHandlerViewFromTransactionID(_ id: UInt64, viewType: Type): AnyStruct? 
+        access(all) view fun getTransactionIDs(): [UInt64]
+        access(all) view fun getTransactionIDsByHandler(handlerTypeIdentifier: String, handlerUUID: UInt64?): [UInt64]
+        access(all) view fun getTransactionIDsByTimestamp(timestamp: UFix64): [UInt64]
+        access(all) fun getTransactionIDsByTimestampRange(startTimestamp: UFix64, endTimestamp: UFix64): {UFix64: [UInt64]}
+        access(all) view fun getTransactionStatus(id: UInt64): FlowTransactionScheduler.Status?
+    }
+
     /// Manager resource is meant to provide users and developers with a simple way
     /// to group the scheduled transactions that they own into one place to make it more
     /// convenient to schedule/cancel transactions and get information about the transactions
@@ -46,7 +72,7 @@ access(all) contract FlowTransactionSchedulerUtils {
     /// It stores ScheduledTransaction resources in a dictionary and has other fields
     /// to track the scheduled transactions by timestamp and handler
     ///
-    access(all) resource Manager {
+    access(all) resource ManagerV1: Manager {
         /// Dictionary storing scheduled transactions by their ID
         access(self) var scheduledTransactions: @{UInt64: FlowTransactionScheduler.ScheduledTransaction}
 
@@ -417,8 +443,8 @@ access(all) contract FlowTransactionSchedulerUtils {
 
     /// Create a new Manager instance
     /// @return: A new Manager resource
-    access(all) fun createManager(): @Manager {
-        return <-create Manager()
+    access(all) fun createManager(): @{Manager} {
+        return <-create ManagerV1()
     }
 
     access(all) init() {
@@ -429,8 +455,8 @@ access(all) contract FlowTransactionSchedulerUtils {
     /// Get a public reference to a manager at the given address
     /// @param address: The address of the manager
     /// @return: A public reference to the manager
-    access(all) view fun borrowManager(at: Address): &Manager? {
-        return getAccount(at).capabilities.borrow<&Manager>(self.managerPublicPath)
+    access(all) view fun borrowManager(at: Address): &{Manager}? {
+        return getAccount(at).capabilities.borrow<&{Manager}>(self.managerPublicPath)
     }
 
     /********************************************
