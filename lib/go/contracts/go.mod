@@ -6,7 +6,7 @@ toolchain go1.23.1
 
 require (
 	github.com/kevinburke/go-bindata v3.24.0+incompatible
-	github.com/onflow/flow-core-contracts/lib/go/templates v1.7.2-0.20250910191958-e8d0be12d23a
+	github.com/onflow/flow-core-contracts/lib/go/templates v1.8.2-0.20250919192804-3c5ec1711bf1
 	github.com/onflow/flow-ft/lib/go/contracts v1.0.1
 	github.com/onflow/flow-go-sdk v1.0.0-preview.54
 	github.com/onflow/flow-nft/lib/go/contracts v1.3.0
@@ -39,7 +39,7 @@ require (
 	github.com/onflow/cadence v1.0.0-preview.51 // indirect
 	github.com/onflow/crypto v0.25.1 // indirect
 	github.com/onflow/flow-ft/lib/go/templates v1.0.1 // indirect
-	github.com/onflow/flow-nft/lib/go/templates v1.2.1 // indirect
+	github.com/onflow/flow-nft/lib/go/templates v1.3.0 // indirect
 	github.com/onflow/flow/protobuf/go/flow v0.4.3 // indirect
 	github.com/onflow/go-ethereum v1.13.4 // indirect
 	github.com/pelletier/go-toml v1.2.0 // indirect

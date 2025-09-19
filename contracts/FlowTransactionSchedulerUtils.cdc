@@ -291,6 +291,40 @@ access(all) contract FlowTransactionSchedulerUtils {
             return transactionsToRemove
         }
 
+        /// Remove a handler capability from the manager
+        /// The specified handler must not have any transactions scheduled for it
+        /// @param handlerTypeIdentifier: The type identifier of the handler
+        /// @param handlerUUID: The UUID of the handler
+        access(Owner) fun removeHandler(handlerTypeIdentifier: String, handlerUUID: UInt64?) {
+            // Make sure the handler exists
+            if let handlers = self.handlerInfos[handlerTypeIdentifier] {
+                var id = handlerUUID
+                // If no UUID is provided, there must be only one handler of the type
+                if handlerUUID == nil {
+                    if handlers.keys.length > 1 {
+                        // No-op if we don't know which UUID to remove
+                        return
+                    }
+                    id = handlers.keys[0]
+                }
+                // Make sure the handler has no transactions scheduled for it
+                if let handlerInfo = handlers[id!] {
+                    if handlerInfo.transactionIDs.length > 0 {
+                        return
+                    }
+                }
+                // Remove the handler uuid from the handlers dictionary
+                handlers.remove(key: id!)
+
+                // If there are no more handlers of the type, remove the type from the handlers dictionary
+                if handlers.keys.length == 0 {
+                    self.handlerInfos.remove(key: handlerTypeIdentifier)
+                } else {
+                    self.handlerInfos[handlerTypeIdentifier] = handlers
+                }
+            }
+        }
+
         /// Get transaction data by its ID
         /// @param id: The ID of the transaction to retrieve
         /// @return: The transaction data from FlowTransactionScheduler, or nil if not found
