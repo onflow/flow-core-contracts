@@ -287,27 +287,30 @@ access(all) fun getPendingQueue(): [UInt64] {
 
 /******* Manager Getter Functions *******/
 
-access(all) fun getManagedTxStatus(id: UInt64): UInt8? {
+access(all) fun getManagedTxStatus(_ id: UInt64): UInt8? {
     var result = _executeScript(
         "../transactions/transactionScheduler/scripts/manager/get_managed_tx_status.cdc",
         [serviceAccount.address, id]
     )
+    Test.expect(result, Test.beSucceeded())
     return result.returnValue as? UInt8
 }
 
-access(all) fun getManagedTxData(id: UInt64): FlowTransactionScheduler.TransactionData? {
+access(all) fun getManagedTxData(_ id: UInt64): FlowTransactionScheduler.TransactionData? {
     var result = _executeScript(
         "../transactions/transactionScheduler/scripts/manager/get_tx_data.cdc",
         [serviceAccount.address, id]
     )
+    Test.expect(result, Test.beSucceeded())
     return result.returnValue as? FlowTransactionScheduler.TransactionData
 }
 
-access(all) fun getManagedTxIDsByTimestamp(timestamp: UFix64): [UInt64] {
+access(all) fun getManagedTxIDsByTimestamp(_ timestamp: UFix64): [UInt64] {
     var result = _executeScript(
         "../transactions/transactionScheduler/scripts/manager/get_tx_ids_by_timestamp.cdc",
         [serviceAccount.address, timestamp]
     )
+    Test.expect(result, Test.beSucceeded())
     return result.returnValue as! [UInt64]
 }
 
@@ -316,14 +319,16 @@ access(all) fun getManagedTxIDsByTimestampRange(startTimestamp: UFix64, endTimes
         "../transactions/transactionScheduler/scripts/manager/get_tx_ids_by_time_range.cdc",
         [serviceAccount.address, startTimestamp, endTimestamp]
     )
+    Test.expect(result, Test.beSucceeded())
     return result.returnValue! as! {UFix64: [UInt64]}
 }
 
-access(all) fun getManagedTxIDsByHandler(handlerTypeIdentifier: String): [UInt64] {
+access(all) fun getManagedTxIDsByHandler(handlerTypeIdentifier: String, handlerUUID: UInt64?): [UInt64] {
     var result = _executeScript(
         "../transactions/transactionScheduler/scripts/manager/get_tx_ids_by_handler.cdc",
-        [serviceAccount.address, handlerTypeIdentifier]
+        [serviceAccount.address, handlerTypeIdentifier, handlerUUID]
     )
+    Test.expect(result, Test.beSucceeded())
     return result.returnValue as! [UInt64]
 }
 
@@ -332,14 +337,16 @@ access(all) fun getManagedTxIDs(): [UInt64] {
         "../transactions/transactionScheduler/scripts/manager/get_manager_tx_ids.cdc",
         [serviceAccount.address]
     )
+    Test.expect(result, Test.beSucceeded())
     return result.returnValue as! [UInt64]
 }
 
 access(all) fun getHandlerTypeIdentifiers(): {String: [UInt64]} {
     var result = _executeScript(
-        "../transactions/transactionScheduler/scripts/manager/get_handler_type_identifiers.cdc",
+        "../transactions/transactionScheduler/scripts/manager/get_handler_types.cdc",
         [serviceAccount.address]
     )
+    Test.expect(result, Test.beSucceeded())
     return result.returnValue! as! {String: [UInt64]}
 }
 
@@ -348,14 +355,16 @@ access(all) fun getHandlerViews(handlerTypeIdentifier: String, handlerUUID: UInt
         "../transactions/transactionScheduler/scripts/manager/get_handler_views.cdc",
         [serviceAccount.address, handlerTypeIdentifier, handlerUUID]
     )
+    Test.expect(result, Test.beSucceeded())
     return result.returnValue as! [Type]
 }
 
-access(all) fun getHandlerViewsFromTransactionID(id: UInt64): [Type] {
+access(all) fun getHandlerViewsFromTransactionID(_ id: UInt64): [Type] {
     var result = _executeScript(
         "../transactions/transactionScheduler/scripts/manager/get_handler_views_from_tx_id.cdc",
         [serviceAccount.address, id]
     )
+    Test.expect(result, Test.beSucceeded())
     return result.returnValue as! [Type]
 }
 
@@ -364,6 +373,7 @@ access(all) fun resolveHandlerView(handlerTypeIdentifier: String, handlerUUID: U
         "../transactions/transactionScheduler/scripts/manager/resolve_handler_view.cdc",
         [serviceAccount.address, handlerTypeIdentifier, handlerUUID, viewType]
     )
+    Test.expect(result, Test.beSucceeded())
     return result.returnValue as? AnyStruct
 }
 
@@ -372,6 +382,7 @@ access(all) fun resolveHandlerViewFromTransactionID(id: UInt64, viewType: Type):
         "../transactions/transactionScheduler/scripts/manager/resolve_handler_view_from_tx_id.cdc",
         [serviceAccount.address, id, viewType]
     )
+    Test.expect(result, Test.beSucceeded())
     return result.returnValue as? AnyStruct
 }
 
