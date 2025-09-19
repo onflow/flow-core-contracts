@@ -4,14 +4,14 @@ import "TestFlowScheduledTransactionHandler"
 import "FlowToken"
 import "FungibleToken"
 
-// ⚠️  WARNING: UNSAFE FOR PRODUCTION ⚠️
-// This transaction uses a TEST CONTRACT and should NEVER be used in production!
+// This transaction uses a TEST CONTRACT and shouldn't be directly used in production!
 // This transaction is designed solely for testing FlowTransactionScheduler functionality
-// and contains unsafe implementations that could lead to loss of funds or security vulnerabilities.
+// and contains implementations that are specific to the tests
 //
-// DO NOT USE THIS TRANSACTION IN PRODUCTION!
+// Replace this transaction with your own implementation when using FlowTransactionScheduler
 //
 /// Schedules a transaction for the TestFlowScheduledTransactionHandler contract
+/// using the FlowTransactionSchedulerUtils.Manager
 ///
 /// This is just an example transaction that uses an example contract
 /// If you want to schedule your own transactions, you need to develop your own contract
