@@ -12,7 +12,7 @@ access(all) contract FlowTransactionSchedulerUtils {
     /// Entitlements
     access(all) entitlement Owner
 
-    access(all) struct HandlerInfos {
+    access(all) struct HandlerInfo {
         access(all) let typeIdentifier: String
         access(all) let transactionIDs: [UInt64]
         access(contract) let capability: Capability<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}>
@@ -50,7 +50,7 @@ access(all) contract FlowTransactionSchedulerUtils {
             fees: @FlowToken.Vault
         ): UInt64
         access(Owner) fun cancel(id: UInt64): @FlowToken.Vault
-        access(all) view fun getTransactionData(id: UInt64): FlowTransactionScheduler.TransactionData?
+        access(all) view fun getTransactionData(_ id: UInt64): FlowTransactionScheduler.TransactionData?
         access(all) view fun borrowTransactionHandlerForID(_ id: UInt64): &{FlowTransactionScheduler.TransactionHandler}?
         access(all) fun getHandlerTypeIdentifiers(): {String: [UInt64]}
         access(all) view fun borrowHandler(handlerTypeIdentifier: String, handlerUUID: UInt64?): &{FlowTransactionScheduler.TransactionHandler}?
@@ -60,7 +60,7 @@ access(all) contract FlowTransactionSchedulerUtils {
         access(all) fun resolveHandlerViewFromTransactionID(_ id: UInt64, viewType: Type): AnyStruct? 
         access(all) view fun getTransactionIDs(): [UInt64]
         access(all) view fun getTransactionIDsByHandler(handlerTypeIdentifier: String, handlerUUID: UInt64?): [UInt64]
-        access(all) view fun getTransactionIDsByTimestamp(timestamp: UFix64): [UInt64]
+        access(all) view fun getTransactionIDsByTimestamp(_ timestamp: UFix64): [UInt64]
         access(all) fun getTransactionIDsByTimestampRange(startTimestamp: UFix64, endTimestamp: UFix64): {UFix64: [UInt64]}
         access(all) view fun getTransactionStatus(id: UInt64): FlowTransactionScheduler.Status?
     }
@@ -91,7 +91,7 @@ access(all) contract FlowTransactionSchedulerUtils {
         /// so it is important to differentiate between them in case the user needs to retrieve a specific handler
         /// The metadata for each handler that potentially includes information about the handler's purpose
         /// can be retrieved from the handler's reference via the getViews() and resolveView() functions
-        access(self) let handlerInfos: {String: {UInt64: HandlerInfos}}
+        access(self) let handlerInfos: {String: {UInt64: HandlerInfo}}
 
         init() {
             self.scheduledTransactions <- {}
@@ -178,11 +178,16 @@ access(all) contract FlowTransactionSchedulerUtils {
                     handlerInfo.addTransactionID(id: id)
                     handlers[handlerUUID] = handlerInfo
                 } else {
-                    handlers[handlerUUID] = HandlerInfos(typeIdentifier: handlerTypeIdentifier, capability: handlerCap)
+                    let handlerInfo = HandlerInfo(typeIdentifier: handlerTypeIdentifier, capability: handlerCap)
+                    handlerInfo.addTransactionID(id: id)
+                    handlers[handlerUUID] = HandlerInfo(typeIdentifier: handlerTypeIdentifier, capability: handlerCap)
                 }
                 self.handlerInfos[handlerTypeIdentifier] = handlers
             } else {
-                self.handlerInfos[handlerTypeIdentifier] = {handlerUUID: HandlerInfos(typeIdentifier: handlerTypeIdentifier, capability: handlerCap)}
+                let handlerInfo = HandlerInfo(typeIdentifier: handlerTypeIdentifier, capability: handlerCap)
+                handlerInfo.addTransactionID(id: id)
+                let uuidDictionary: {UInt64: HandlerInfo} = {handlerUUID: handlerInfo}
+                self.handlerInfos[handlerTypeIdentifier] = uuidDictionary
             }
 
             // Store the transaction in the transactions dictionary
@@ -279,7 +284,7 @@ access(all) contract FlowTransactionSchedulerUtils {
         /// Get transaction data by its ID
         /// @param id: The ID of the transaction to retrieve
         /// @return: The transaction data from FlowTransactionScheduler, or nil if not found
-        access(all) view fun getTransactionData(id: UInt64): FlowTransactionScheduler.TransactionData? {
+        access(all) view fun getTransactionData(_ id: UInt64): FlowTransactionScheduler.TransactionData? {
             if self.scheduledTransactions.containsKey(id) {
                 return FlowTransactionScheduler.getTransactionData(id: id)
             }
@@ -290,7 +295,7 @@ access(all) contract FlowTransactionSchedulerUtils {
         /// @param id: The ID of the transaction to retrieve
         /// @return: A reference to the transaction handler, or nil if not found
         access(all) view fun borrowTransactionHandlerForID(_ id: UInt64): &{FlowTransactionScheduler.TransactionHandler}? {
-            let txData = self.getTransactionData(id: id)
+            let txData = self.getTransactionData(id)
             return txData?.borrowHandler()
         }
 
@@ -389,7 +394,9 @@ access(all) contract FlowTransactionSchedulerUtils {
                 if handlerUUID == nil {
                     uuid = handlers.keys.length == 1 ? handlers.keys[0] : nil
                 }
-                return handlers[uuid!]!.transactionIDs
+                if let handlerInfo = handlers[uuid!] {
+                    return handlerInfo.transactionIDs
+                }
             }
             return []
         }
@@ -397,7 +404,7 @@ access(all) contract FlowTransactionSchedulerUtils {
         /// Get all transaction IDs stored in the manager by a given timestamp
         /// @param timestamp: The timestamp
         /// @return: An array of all transaction IDs
-        access(all) view fun getTransactionIDsByTimestamp(timestamp: UFix64): [UInt64] {
+        access(all) view fun getTransactionIDsByTimestamp(_ timestamp: UFix64): [UInt64] {
             return self.idsByTimestamp[timestamp] ?? []
         }
 

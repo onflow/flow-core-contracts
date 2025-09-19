@@ -58,6 +58,9 @@ access(all) contract FlowTransactionScheduler {
         transactionHandlerOwner: Address,
         transactionHandlerTypeIdentifier: String,
         transactionHandlerUUID: UInt64,
+        
+        // The public path of the transaction handler that can be used to resolve views
+        // DISCLAIMER: There is no guarantee that the public path is accurate
         transactionHandlerPublicPath: PublicPath?
     )
 
@@ -79,6 +82,9 @@ access(all) contract FlowTransactionScheduler {
         transactionHandlerOwner: Address,
         transactionHandlerTypeIdentifier: String,
         transactionHandlerUUID: UInt64,
+
+        // The public path of the transaction handler that can be used to resolve views
+        // DISCLAIMER: There is no guarantee that the public path is accurate
         transactionHandlerPublicPath: PublicPath?
     )
 
