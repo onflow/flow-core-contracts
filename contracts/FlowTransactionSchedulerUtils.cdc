@@ -49,6 +49,16 @@ access(all) contract FlowTransactionSchedulerUtils {
             executionEffort: UInt64,
             fees: @FlowToken.Vault
         ): UInt64
+
+        access(Owner) fun scheduleByHandler(
+            handlerTypeIdentifier: String,
+            handlerUUID: UInt64?,
+            data: AnyStruct?,
+            timestamp: UFix64,
+            priority: FlowTransactionScheduler.Priority,
+            executionEffort: UInt64,
+            fees: @FlowToken.Vault
+        ): UInt64
         access(Owner) fun cancel(id: UInt64): @FlowToken.Vault
         access(all) view fun getTransactionData(_ id: UInt64): FlowTransactionScheduler.TransactionData?
         access(all) view fun borrowTransactionHandlerForID(_ id: UInt64): &{FlowTransactionScheduler.TransactionHandler}?

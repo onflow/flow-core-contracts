@@ -46,7 +46,7 @@ fun setup() {
  Manager Getter Functions Tests
  --------------------------------------------------------------------------------- */
 
-access(all) fun testManagerGetters() {
+access(all) fun testManagerScheduleByHandler() {
 
     // lower the canceled transactions limit so the test runs faster
     setConfigDetails(
@@ -79,91 +79,134 @@ access(all) fun testManagerGetters() {
     )
 
     // Schedule medium priority transaction
-    scheduleTransaction(
+    scheduleTransactionByHandler(
+        handlerTypeIdentifier: "A.0000000000000001.TestFlowScheduledTransactionHandler.Handler",
+        handlerUUID: nil,
         timestamp: timeInFuture,
         fee: feeAmount,
         effort: basicEffort,
         priority: mediumPriority,
         data: testData,
-        testName: "Test Transaction Manager: First Medium Scheduled",
-        failWithErr: nil
-    )
+        testName: "Test Manager Schedule First Medium By Handler",
+        failWithErr: nil)
 
     // Schedule low priority transaction
-    scheduleTransaction(
+    scheduleTransactionByHandler(
+        handlerTypeIdentifier: "A.0000000000000001.TestFlowScheduledTransactionHandler.Handler",
+        handlerUUID: nil,
         timestamp: timeInFuture,
         fee: feeAmount,
         effort: basicEffort,
         priority: lowPriority,
         data: testData,
-        testName: "Test Transaction Manager: First Low Scheduled",
+        testName: "Test Manager Schedule First Low By Handler",
         failWithErr: nil
     )
 
     // Schedule high, medium, and low priority transactions for second timestamp
-    scheduleTransaction(
+    scheduleTransactionByHandler(
+        handlerTypeIdentifier: "A.0000000000000001.TestFlowScheduledTransactionHandler.Handler",
+        handlerUUID: nil,
         timestamp: timeInFuture + 1.0,
         fee: feeAmount,
         effort: basicEffort,
         priority: highPriority,
         data: testData,
-        testName: "Test Transaction Manager: Second High Scheduled",
+        testName: "Test Manager Schedule Second High By Handler",
         failWithErr: nil
     )
 
     // Schedule medium priority transaction
-    scheduleTransaction(
+    scheduleTransactionByHandler(
+        handlerTypeIdentifier: "A.0000000000000001.TestFlowScheduledTransactionHandler.Handler",
+        handlerUUID: nil,
         timestamp: timeInFuture + 1.0,
         fee: feeAmount,
         effort: basicEffort,
         priority: mediumPriority,
         data: testData,
-        testName: "Test Transaction Manager: Second Medium Scheduled",
+        testName: "Test Manager Schedule Second Medium By Handler",
         failWithErr: nil
     )
 
     // Schedule low priority transaction
-    scheduleTransaction(
+    scheduleTransactionByHandler(
+        handlerTypeIdentifier: "A.0000000000000001.TestFlowScheduledTransactionHandler.Handler",
+        handlerUUID: nil,
         timestamp: timeInFuture + 1.0,
         fee: feeAmount,
         effort: basicEffort,
         priority: lowPriority,
         data: testData,
-        testName: "Test Transaction Manager: Second Low Scheduled",
+        testName: "Test Manager Schedule Second Low By Handler",
         failWithErr: nil
     )
 
     // Schedule high, medium, and low priority transactions for third timestamp
-    scheduleTransaction(
+    scheduleTransactionByHandler(
+        handlerTypeIdentifier: "A.0000000000000001.TestFlowScheduledTransactionHandler.Handler",
+        handlerUUID: nil,
         timestamp: timeInFuture + 2.0,
         fee: feeAmount,
         effort: basicEffort,
         priority: highPriority,
         data: testData,
-        testName: "Test Transaction Manager: Third High Scheduled",
+        testName: "Test Manager Schedule Third High By Handler",
         failWithErr: nil
     )
 
     // Schedule medium priority transaction
-    scheduleTransaction(
+    scheduleTransactionByHandler(
+        handlerTypeIdentifier: "A.0000000000000001.TestFlowScheduledTransactionHandler.Handler",
+        handlerUUID: nil,
         timestamp: timeInFuture + 2.0,
         fee: feeAmount,
         effort: basicEffort,
         priority: mediumPriority,
         data: testData,
-        testName: "Test Transaction Manager: Third Medium Scheduled",
+        testName: "Test Manager Schedule Third Medium By Handler",
         failWithErr: nil
     )
 
     // Schedule low priority transaction
-    scheduleTransaction(
+    scheduleTransactionByHandler(
+        handlerTypeIdentifier: "A.0000000000000001.TestFlowScheduledTransactionHandler.Handler",
+        handlerUUID: nil,
         timestamp: timeInFuture + 2.0,
         fee: feeAmount,
         effort: basicEffort,
         priority: lowPriority,
         data: testData,
-        testName: "Test Transaction Manager: Third Low Scheduled",
+        testName: "Test Manager Schedule Third Low By Handler",
         failWithErr: nil
+    )
+
+    // Failure Test cases for scheduleByHandler
+
+    // Test invalid handler type identifier
+    scheduleTransactionByHandler(
+        handlerTypeIdentifier: "A.0000000000000001.TestFlowScheduledTransactionHandler.BadHandler",
+        handlerUUID: nil,
+        timestamp: timeInFuture + 2.0,
+        fee: feeAmount,
+        effort: basicEffort,
+        priority: highPriority,
+        data: testData,
+        testName: "Test Manager Schedule Third High By Handler",
+        failWithErr: "Invalid handler type identifier: Handler with type identifier A.0000000000000001.TestFlowScheduledTransactionHandler.BadHandler not found in manager"
+    )
+
+    // Test invalid handler UUID
+    scheduleTransactionByHandler(
+        handlerTypeIdentifier: "A.0000000000000001.TestFlowScheduledTransactionHandler.Handler",
+        handlerUUID: 10 as UInt64,
+        timestamp: timeInFuture + 2.0,
+        fee: feeAmount,
+        effort: basicEffort,
+        priority: highPriority,
+        data: testData,
+        testName: "Test Manager Schedule Third High By Handler",
+        failWithErr: "Invalid handler UUID: Handler with type identifier A.0000000000000001.TestFlowScheduledTransactionHandler.Handler and UUID 10 not found in manager"
     )
 
 }
