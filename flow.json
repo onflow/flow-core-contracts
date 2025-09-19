@@ -15,6 +15,13 @@
 				"testing": "0000000000000001"
 			}
 		},
+		"FlowTransactionSchedulerUtils": {
+			"source": "./contracts/FlowTransactionSchedulerUtils.cdc",
+			"aliases": {
+				"emulator": "f8d6e0586b0a20c7",
+				"testing": "0000000000000001"
+			}
+		},
 		"FlowClusterQC": {
 			"source": "./contracts/epochs/FlowClusterQC.cdc",
 			"aliases": {

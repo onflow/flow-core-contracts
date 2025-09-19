@@ -17,6 +17,13 @@ fun setup() {
     Test.expect(err, Test.beNil())
 
     err = Test.deployContract(
+        name: "FlowTransactionSchedulerUtils",
+        path: "../contracts/FlowTransactionSchedulerUtils.cdc",
+        arguments: []
+    )
+    Test.expect(err, Test.beNil())
+
+    err = Test.deployContract(
         name: "TestFlowScheduledTransactionHandler",
         path: "../contracts/testContracts/TestFlowScheduledTransactionHandler.cdc",
         arguments: []
@@ -1006,7 +1013,7 @@ access(all) fun testScheduleAndEffortUsed() {
                 }
             },
             expectedPendingQueues: {
-                futureDelta: [1,3,4,5,6,7],
+                futureDelta: [2,3,4,5,6,7],
                 futureDelta + 1.0: [1,2,3,4,5,6,7]
             },
             expectedPendingQueueAfterExecution: []

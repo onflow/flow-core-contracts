@@ -56,7 +56,12 @@ access(all) contract FlowTransactionScheduler {
         executionEffort: UInt64,
         fees: UFix64,
         transactionHandlerOwner: Address,
-        transactionHandlerTypeIdentifier: String
+        transactionHandlerTypeIdentifier: String,
+        transactionHandlerUUID: UInt64,
+        
+        // The public path of the transaction handler that can be used to resolve views
+        // DISCLAIMER: There is no guarantee that the public path is accurate
+        transactionHandlerPublicPath: PublicPath?
     )
 
     /// Emitted when a scheduled transaction's scheduled timestamp is reached and it is ready for execution
@@ -75,7 +80,12 @@ access(all) contract FlowTransactionScheduler {
         priority: UInt8,
         executionEffort: UInt64,
         transactionHandlerOwner: Address,
-        transactionHandlerTypeIdentifier: String
+        transactionHandlerTypeIdentifier: String,
+        transactionHandlerUUID: UInt64,
+
+        // The public path of the transaction handler that can be used to resolve views
+        // DISCLAIMER: There is no guarantee that the public path is accurate
+        transactionHandlerPublicPath: PublicPath?
     )
 
     /// Emitted when a scheduled transaction is canceled by the creator of the transaction
@@ -275,6 +285,14 @@ access(all) contract FlowTransactionScheduler {
         /// getData copies and returns the data field
         access(contract) view fun getData(): AnyStruct? {
             return self.data
+        }
+
+        /// borrowHandler returns an un-entitled reference to the transaction handler
+        /// This allows users to query metadata views about the handler
+        /// @return: An un-entitled reference to the transaction handler
+        access(all) view fun borrowHandler(): &{TransactionHandler} {
+            return self.handler.borrow() as? &{TransactionHandler}
+                ?? panic("Invalid transaction handler: Could not borrow a reference to the transaction handler")
         }
     }
 
@@ -754,6 +772,11 @@ access(all) contract FlowTransactionScheduler {
             // Deposit the fees to the service account's vault
             FlowTransactionScheduler.depositFees(from: <-fees)
 
+            let handlerRef = handlerCap.borrow()
+                ?? panic("Invalid transaction handler: Could not borrow a reference to the transaction handler")
+
+            let handlerPublicPath = handlerRef.resolveView(Type<PublicPath>()) as? PublicPath
+
             emit Scheduled(
                 id: transactionData.id,
                 priority: transactionData.priority.rawValue,
@@ -761,7 +784,9 @@ access(all) contract FlowTransactionScheduler {
                 executionEffort: transactionData.executionEffort,
                 fees: transactionData.fees,
                 transactionHandlerOwner: transactionData.handler.address,
-                transactionHandlerTypeIdentifier: transactionData.handlerTypeIdentifier
+                transactionHandlerTypeIdentifier: transactionData.handlerTypeIdentifier,
+                transactionHandlerUUID: handlerRef.uuid,
+                transactionHandlerPublicPath: handlerPublicPath
             )
 
             // Add the transaction to the slot queue and update the internal state
@@ -1317,12 +1342,17 @@ access(all) contract FlowTransactionScheduler {
             let transactionHandler = tx.handler.borrow()
                 ?? panic("Invalid transaction handler: Could not borrow a reference to the transaction handler")
 
+            let handlerPublicPath = transactionHandler.resolveView(Type<PublicPath>()) as? PublicPath
+
             emit Executed(
                 id: tx.id,
                 priority: tx.priority.rawValue,
                 executionEffort: tx.executionEffort,
                 transactionHandlerOwner: tx.handler.address,
-                transactionHandlerTypeIdentifier: transactionHandler.getType().identifier
+                transactionHandlerTypeIdentifier: transactionHandler.getType().identifier,
+                transactionHandlerUUID: transactionHandler.uuid,
+                transactionHandlerPublicPath: handlerPublicPath
+
             )
             
             transactionHandler.executeTransaction(id: id, data: tx.getData())
@@ -1392,9 +1422,20 @@ access(all) contract FlowTransactionScheduler {
         return self.sharedScheduler.borrow()!.getTransaction(id: id)
     }
 
+    /// borrowHandlerForID returns an un-entitled reference to the transaction handler for a given ID
+    /// The handler reference can be used to resolve views to get info about the handler and see where it is stored
+    /// @param id: The ID of the transaction to get the handler for
+    /// @return: An un-entitled reference to the transaction handler for the given ID
+    access(all) view fun borrowHandlerForID(_ id: UInt64): &{TransactionHandler}? {
+        return self.getTransactionData(id: id)?.borrowHandler()
+    }
+
+    /// getCanceledTransactions returns the IDs of the transactions that have been canceled
+    /// @return: The IDs of the transactions that have been canceled
     access(all) view fun getCanceledTransactions(): [UInt64] {
         return self.sharedScheduler.borrow()!.getCanceledTransactions()
     }
+
 
     access(all) view fun getStatus(id: UInt64): Status? {
         return self.sharedScheduler.borrow()!.getStatus(id: id)

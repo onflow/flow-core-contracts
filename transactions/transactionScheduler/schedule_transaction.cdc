@@ -1,16 +1,17 @@
 import "FlowTransactionScheduler"
+import "FlowTransactionSchedulerUtils"
 import "TestFlowScheduledTransactionHandler"
 import "FlowToken"
 import "FungibleToken"
 
-// ⚠️  WARNING: UNSAFE FOR PRODUCTION ⚠️
-// This transaction uses a TEST CONTRACT and should NEVER be used in production!
+// This transaction uses a TEST CONTRACT and shouldn't be directly used in production!
 // This transaction is designed solely for testing FlowTransactionScheduler functionality
-// and contains unsafe implementations that could lead to loss of funds or security vulnerabilities.
+// and contains implementations that are specific to the tests
 //
-// DO NOT USE THIS TRANSACTION IN PRODUCTION!
+// Replace this transaction with your own implementation when using FlowTransactionScheduler
 //
 /// Schedules a transaction for the TestFlowScheduledTransactionHandler contract
+/// using the FlowTransactionSchedulerUtils.Manager
 ///
 /// This is just an example transaction that uses an example contract
 /// If you want to schedule your own transactions, you need to develop your own contract
@@ -22,6 +23,16 @@ import "FungibleToken"
 transaction(timestamp: UFix64, feeAmount: UFix64, effort: UInt64, priority: UInt8, testData: AnyStruct?) {
 
     prepare(account: auth(BorrowValue, SaveValue, IssueStorageCapabilityController, PublishCapability, GetStorageCapabilityController) &Account) {
+
+        // if a transaction scheduler manager has not been created for this account yet, create one
+        if !account.storage.check<@{FlowTransactionSchedulerUtils.Manager}>(from: FlowTransactionSchedulerUtils.managerStoragePath) {
+            let manager <- FlowTransactionSchedulerUtils.createManager()
+            account.storage.save(<-manager, to: FlowTransactionSchedulerUtils.managerStoragePath)
+
+            // create a public capability to the callback manager
+            let managerRef = account.capabilities.storage.issue<&{FlowTransactionSchedulerUtils.Manager}>(FlowTransactionSchedulerUtils.managerStoragePath)
+            account.capabilities.publish(managerRef, at: FlowTransactionSchedulerUtils.managerPublicPath)
+        }
         
         // If a transaction handler has not been created for this account yet, create one,
         // store it, and issue a capability that will be used to create the transaction
@@ -30,12 +41,24 @@ transaction(timestamp: UFix64, feeAmount: UFix64, effort: UInt64, priority: UInt
         
             account.storage.save(<-handler, to: TestFlowScheduledTransactionHandler.HandlerStoragePath)
             account.capabilities.storage.issue<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}>(TestFlowScheduledTransactionHandler.HandlerStoragePath)
+            
+            let publicHandlerCap = account.capabilities.storage.issue<&{FlowTransactionScheduler.TransactionHandler}>(TestFlowScheduledTransactionHandler.HandlerStoragePath)
+            account.capabilities.publish(publicHandlerCap, at: TestFlowScheduledTransactionHandler.HandlerPublicPath)
         }
 
-        // Get the capability that will be used to create the transaction
-        let handlerCap = account.capabilities.storage
+        // Get the entitled capability that will be used to create the transaction
+        // Need to check both controllers because the order of controllers is not guaranteed
+        var handlerCap: Capability<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}>? = nil
+        
+        if let cap = account.capabilities.storage
                             .getControllers(forPath: TestFlowScheduledTransactionHandler.HandlerStoragePath)[0]
+                            .capability as? Capability<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}> {
+            handlerCap = cap
+        } else {
+            handlerCap = account.capabilities.storage
+                            .getControllers(forPath: TestFlowScheduledTransactionHandler.HandlerStoragePath)[1]
                             .capability as! Capability<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}>
+        }
         
         // borrow a reference to the vault that will be used for fees
         let vault = account.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault)
@@ -45,30 +68,32 @@ transaction(timestamp: UFix64, feeAmount: UFix64, effort: UInt64, priority: UInt
         let priorityEnum = FlowTransactionScheduler.Priority(rawValue: priority)
             ?? FlowTransactionScheduler.Priority.High
 
+        // borrow a reference to the callback manager
+        let manager = account.storage.borrow<auth(FlowTransactionSchedulerUtils.Owner) &{FlowTransactionSchedulerUtils.Manager}>(from: FlowTransactionSchedulerUtils.managerStoragePath)
+            ?? panic("Could not borrow a Manager reference from \(FlowTransactionSchedulerUtils.managerStoragePath)")
+
         if let dataString = testData as? String {
             if dataString == "schedule" {
                 // Schedule the transaction that schedules another transaction
-                let scheduledTransaction <- FlowTransactionScheduler.schedule(
-                    handlerCap: handlerCap,
+                manager.schedule(
+                    handlerCap: handlerCap!,
                     data: handlerCap,
                     timestamp: timestamp,
                     priority: priorityEnum,
                     executionEffort: effort,
                     fees: <-fees
                 )
-                TestFlowScheduledTransactionHandler.addScheduledTransaction(scheduledTx: <-scheduledTransaction)
                 return
             }
         }
         // Schedule the regular transaction with the main contract
-        let scheduledTransaction <- FlowTransactionScheduler.schedule(
-            handlerCap: handlerCap,
+        manager.schedule(
+            handlerCap: handlerCap!,
             data: testData,
             timestamp: timestamp,
             priority: priorityEnum,
             executionEffort: effort,
             fees: <-fees
         )
-        TestFlowScheduledTransactionHandler.addScheduledTransaction(scheduledTx: <-scheduledTransaction)
     }
 } 

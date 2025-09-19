@@ -27,24 +27,25 @@ import (
 ///
 
 const (
-	flowFeesFilename                   = "FlowFees.cdc"
-	storageFeesFilename                = "FlowStorageFees.cdc"
-	executionParametersFilename        = "FlowExecutionParameters.cdc"
-	flowServiceAccountFilename         = "FlowServiceAccount.cdc"
-	flowTokenFilename                  = "FlowToken.cdc"
-	flowIdentityTableFilename          = "FlowIDTableStaking.cdc"
-	flowQCFilename                     = "epochs/FlowClusterQC.cdc"
-	flowDKGFilename                    = "epochs/FlowDKG.cdc"
-	flowEpochFilename                  = "epochs/FlowEpoch.cdc"
-	flowLockedTokensFilename           = "LockedTokens.cdc"
-	flowStakingProxyFilename           = "StakingProxy.cdc"
-	flowStakingCollectionFilename      = "FlowStakingCollection.cdc"
-	flowContractAuditsFilename         = "FlowContractAudits.cdc"
-	flowNodeVersionBeaconFilename      = "NodeVersionBeacon.cdc"
-	flowRandomBeaconHistoryFilename    = "RandomBeaconHistory.cdc"
-	cryptoFilename                     = "Crypto.cdc"
-	linearCodeAddressGeneratorFilename = "LinearCodeAddressGenerator.cdc"
-	flowTransactionSchedulerFilename   = "FlowTransactionScheduler.cdc"
+	flowFeesFilename                      = "FlowFees.cdc"
+	storageFeesFilename                   = "FlowStorageFees.cdc"
+	executionParametersFilename           = "FlowExecutionParameters.cdc"
+	flowServiceAccountFilename            = "FlowServiceAccount.cdc"
+	flowTokenFilename                     = "FlowToken.cdc"
+	flowIdentityTableFilename             = "FlowIDTableStaking.cdc"
+	flowQCFilename                        = "epochs/FlowClusterQC.cdc"
+	flowDKGFilename                       = "epochs/FlowDKG.cdc"
+	flowEpochFilename                     = "epochs/FlowEpoch.cdc"
+	flowLockedTokensFilename              = "LockedTokens.cdc"
+	flowStakingProxyFilename              = "StakingProxy.cdc"
+	flowStakingCollectionFilename         = "FlowStakingCollection.cdc"
+	flowContractAuditsFilename            = "FlowContractAudits.cdc"
+	flowNodeVersionBeaconFilename         = "NodeVersionBeacon.cdc"
+	flowRandomBeaconHistoryFilename       = "RandomBeaconHistory.cdc"
+	cryptoFilename                        = "Crypto.cdc"
+	linearCodeAddressGeneratorFilename    = "LinearCodeAddressGenerator.cdc"
+	flowTransactionSchedulerFilename      = "FlowTransactionScheduler.cdc"
+	flowTransactionSchedulerUtilsFilename = "FlowTransactionSchedulerUtils.cdc"
 
 	// Test contracts
 	// only used for testing
@@ -53,22 +54,23 @@ const (
 
 	// Each contract has placeholder addresses that need to be replaced
 	// depending on which network they are being used with
-	placeholderFungibleTokenAddress            = "\"FungibleToken\""
-	placeholderFungibleTokenMVAddress          = "\"FungibleTokenMetadataViews\""
-	placeholderMetadataViewsAddress            = "\"MetadataViews\""
-	placeholderFlowTokenAddress                = "\"FlowToken\""
-	placeholderIDTableAddress                  = "\"FlowIDTableStaking\""
-	placeholderBurnerAddress                   = "\"Burner\""
-	placeholderStakingProxyAddress             = "\"StakingProxy\""
-	placeholderQCAddr                          = "\"FlowClusterQC\""
-	placeholderDKGAddr                         = "\"FlowDKG\""
-	placeholderEpochAddr                       = "\"FlowEpoch\""
-	placeholderFlowFeesAddress                 = "\"FlowFees\""
-	placeholderStorageFeesAddress              = "\"FlowStorageFees\""
-	placeholderLockedTokensAddress             = "\"LockedTokens\""
-	placeholderStakingCollectionAddress        = "\"FlowStakingCollection\""
-	placeholderNodeVersionBeaconAddress        = "\"NodeVersionBeacon\""
-	placeholderFlowTransactionSchedulerAddress = "\"FlowTransactionScheduler\""
+	placeholderFungibleTokenAddress                 = "\"FungibleToken\""
+	placeholderFungibleTokenMVAddress               = "\"FungibleTokenMetadataViews\""
+	placeholderMetadataViewsAddress                 = "\"MetadataViews\""
+	placeholderFlowTokenAddress                     = "\"FlowToken\""
+	placeholderIDTableAddress                       = "\"FlowIDTableStaking\""
+	placeholderBurnerAddress                        = "\"Burner\""
+	placeholderStakingProxyAddress                  = "\"StakingProxy\""
+	placeholderQCAddr                               = "\"FlowClusterQC\""
+	placeholderDKGAddr                              = "\"FlowDKG\""
+	placeholderEpochAddr                            = "\"FlowEpoch\""
+	placeholderFlowFeesAddress                      = "\"FlowFees\""
+	placeholderStorageFeesAddress                   = "\"FlowStorageFees\""
+	placeholderLockedTokensAddress                  = "\"LockedTokens\""
+	placeholderStakingCollectionAddress             = "\"FlowStakingCollection\""
+	placeholderNodeVersionBeaconAddress             = "\"NodeVersionBeacon\""
+	placeholderFlowTransactionSchedulerAddress      = "\"FlowTransactionScheduler\""
+	placeholderFlowTransactionSchedulerUtilsAddress = "\"FlowTransactionSchedulerUtils\""
 )
 
 // Adds a `0x` prefix to the provided address string
@@ -299,6 +301,15 @@ func RandomBeaconHistory() []byte {
 // FlowTransactionScheduler returns the FlowTransactionScheduler contract.
 func FlowTransactionScheduler(env templates.Environment) []byte {
 	code := assets.MustAssetString(flowTransactionSchedulerFilename)
+
+	code = templates.ReplaceAddresses(code, env)
+
+	return []byte(code)
+}
+
+// FlowTransactionSchedulerUtils returns the FlowTransactionSchedulerUtils contract.
+func FlowTransactionSchedulerUtils(env templates.Environment) []byte {
+	code := assets.MustAssetString(flowTransactionSchedulerUtilsFilename)
 
 	code = templates.ReplaceAddresses(code, env)
 
