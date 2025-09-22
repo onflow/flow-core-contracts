@@ -40,6 +40,8 @@ access(all) var futureTime = 0.0
 
 access(all) var feeAmount = 10.0
 
+
+
 /** ---------------------------------------------------------------------------------
  Test helper functions
  --------------------------------------------------------------------------------- */
@@ -448,4 +450,26 @@ access(all) fun getFeesBalance(): UFix64 {
 access(all)
 fun _executeScript(_ path: String, _ args: [AnyStruct]): Test.ScriptResult {
     return Test.executeScript(Test.readFile(path), args)
+}
+
+access(all) fun upgradeSchedulerContract() {
+    var schedulerCode = Test.readFile("../contracts/FlowTransactionScheduler.cdc")
+    schedulerCode = schedulerCode.replaceAll(of: "\"FungibleToken\"", with: "FungibleToken from 0x0000000000000002")
+    schedulerCode = schedulerCode.replaceAll(of: "\"FlowToken\"", with: "FlowToken from 0x0000000000000003")
+    schedulerCode = schedulerCode.replaceAll(of: "\"FlowFees\"", with: "FlowFees from 0x0000000000000004")
+    schedulerCode = schedulerCode.replaceAll(of: "\"FlowStorageFees\"", with: "FlowStorageFees from 0x0000000000000001")
+    schedulerCode = schedulerCode.replaceAll(of: "\"ViewResolver\"", with: "ViewResolver from 0x0000000000000001")
+
+    var upgradeTx = Test.Transaction(
+        code: Test.readFile("./transactions/upgrade_contract.cdc"),
+        authorizers: [serviceAccount.address],
+        signers: [serviceAccount],
+        arguments: ["FlowTransactionScheduler", schedulerCode],
+    )
+
+    // Upgrade the FlowTransactionScheduler contract
+    var upgradeResult = Test.executeTransaction(
+        upgradeTx,
+    )
+    Test.expect(upgradeResult, Test.beSucceeded())
 }

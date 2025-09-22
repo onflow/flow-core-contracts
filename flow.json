@@ -204,6 +204,7 @@
 			"hash": "374a1994046bac9f6228b4843cb32393ef40554df9bd9907a702d098a2987bde",
 			"aliases": {
 				"emulator": "f8d6e0586b0a20c7",
+				"testing": "0000000000000001",
 				"mainnet": "1d7e57aa55817448",
 				"testnet": "631e88ae7f1d7c20"
 			}

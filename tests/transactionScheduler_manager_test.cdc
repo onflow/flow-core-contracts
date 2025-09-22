@@ -17,14 +17,9 @@ access(all) var timeInFuture: UFix64 = 0.0
 access(all)
 fun setup() {
 
-    var err = Test.deployContract(
-        name: "FlowTransactionScheduler",
-        path: "../contracts/FlowTransactionScheduler.cdc",
-        arguments: []
-    )
-    Test.expect(err, Test.beNil())
+    upgradeSchedulerContract()
 
-    err = Test.deployContract(
+    var err = Test.deployContract(
         name: "FlowTransactionSchedulerUtils",
         path: "../contracts/FlowTransactionSchedulerUtils.cdc",
         arguments: []
@@ -564,4 +559,69 @@ access(all) fun testManagerExecuteAndCleanup() {
     // Test resolving handler view from executed and cleaned up transaction ID
     let resolvedViewFromTxId = resolveHandlerViewFromTransactionID(id: 3, viewType: Type<MetadataViews.Display>())
     Test.assert(resolvedViewFromTxId == nil, message: "Should return nil view from cleaned up transaction ID 3")
+}
+
+access(all) fun testManagerScheduleDifferentUUID() {
+
+    // schedule a transaction with the same handler type but different handler UUID
+    let handlerType = "A.0000000000000001.TestFlowScheduledTransactionHandler.Handler"
+    var tx = Test.Transaction(
+        code: Test.readFile("./transactions/schedule_tx_with_different_handler.cdc"),
+        authorizers: [serviceAccount.address],
+        signers: [serviceAccount],
+        arguments: [timeInFuture + UFix64(50.0), feeAmount, basicEffort, highPriority, testData],
+    )
+    var result = Test.executeTransaction(tx)
+    Test.expect(result, Test.beSucceeded())
+
+    // schedule a transaction with the same handler by type but nil uuid
+    // Should fail because there are two uuids for the handler type
+    tx = Test.Transaction(
+        code: Test.readFile("../transactions/transactionScheduler/schedule_transaction_by_handler.cdc"),
+        authorizers: [serviceAccount.address],
+        signers: [serviceAccount],
+        arguments: [handlerType, nil, timeInFuture + UFix64(50.0), feeAmount, basicEffort, highPriority, testData],
+    )
+    result = Test.executeTransaction(tx)
+    Test.expect(result, Test.beFailed())
+    Test.assertError(result, errorMessage: "Invalid handler UUID: Handler with type identifier A.0000000000000001.TestFlowScheduledTransactionHandler.Handler has more than one UUID, but no UUID was provided")
+
+    
+
+    // get the handler type identifiers
+    let handlerTypeIdentifiers = getHandlerTypeIdentifiers()
+    Test.assert(handlerTypeIdentifiers.length == 1, message: "Should have 1 handler type identifier but got \(handlerTypeIdentifiers.length)")
+    Test.assert(handlerTypeIdentifiers.containsKey(handlerType), message: "Should contain handler type \(handlerType)")
+    let handlerUUIDs = handlerTypeIdentifiers[handlerType]!
+    Test.assert(handlerUUIDs.length == 2, message: "Should have 2 handler UUIDs but got \(handlerUUIDs.length)")
+
+    // schedule a transaction with the same handler by type and uuid
+    tx = Test.Transaction(
+        code: Test.readFile("../transactions/transactionScheduler/schedule_transaction_by_handler.cdc"),
+        authorizers: [serviceAccount.address],
+        signers: [serviceAccount],
+        arguments: [handlerType, handlerUUIDs[0], timeInFuture + UFix64(50.0), feeAmount, basicEffort, highPriority, testData],
+    )
+    result = Test.executeTransaction(tx)
+    Test.expect(result, Test.beSucceeded())
+
+    // verify that both uuids are represented in the manager
+    
+    var txIds = getManagedTxIDsByHandler(handlerTypeIdentifier: handlerType, handlerUUID: nil)
+    Test.assert(txIds.length == 0, message: "Should have 0 transactions for the handler type because there are two uuids but got \(txIds.length)")
+
+    txIds = getManagedTxIDsByHandler(handlerTypeIdentifier: handlerType, handlerUUID: handlerUUIDs[0])
+    Test.assert(txIds.length > 0, message: "Should have more than 0 transactions for the handler type with uuid \(handlerUUIDs[0]) but got \(txIds.length)")
+
+    txIds = getManagedTxIDsByHandler(handlerTypeIdentifier: handlerType, handlerUUID: handlerUUIDs[1])
+    Test.assert(txIds.length > 0, message: "Should have more than 0 transactions for the handler type with uuid \(handlerUUIDs[1]) but got \(txIds.length)")
+
+    // Get handler views with nil uuid
+    let views = getHandlerViews(handlerTypeIdentifier: handlerType, handlerUUID: nil)
+    Test.assert(views.length == 0, message: "Should have 0 views for the handler type with nil uuid but got \(views.length)")
+
+    // Get handler views with uuid
+    let views2 = getHandlerViews(handlerTypeIdentifier: handlerType, handlerUUID: handlerUUIDs[0])
+    Test.assert(views2.length > 0, message: "Should have more than 0 views for the handler type with uuid \(handlerUUIDs[0]) but got \(views2.length)")
+    
 }
