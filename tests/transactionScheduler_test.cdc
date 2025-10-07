@@ -82,13 +82,29 @@ access(all) fun testGetSizeOfData() {
     size = getSizeOfData(data: testData)
     Test.assertEqual(0.00003000 as UFix64, size)
 
-    // let largeArray: [Int] = []
-    // while largeArray.length < 10000 {
-    //     largeArray.append(1)
-    // }
+    size = getSizeOfData(data: 0x0000000000000001)
+    Test.assertEqual(0.00000000 as UFix64, size)
 
-    // size = getSizeOfData(data: largeArray)
-    // Test.assertEqual(0.05286100 as UFix64, size)
+    let largeArray: [Int] = []
+    while largeArray.length < 10000 {
+         largeArray.append(1)
+    }
+
+    size = getSizeOfData(data: largeArray)
+    Test.assertEqual(0.05337100 as UFix64, size)
+
+    // let currentTime = getCurrentBlock().timestamp
+    // let futureTime = currentTime + 100.0
+
+    // let estimate = FlowTransactionScheduler.estimate(
+    //     data: testData,
+    //     timestamp: futureTime,
+    //     priority: FlowTransactionScheduler.Priority.Medium,
+    //     executionEffort: 1000
+    // )
+
+    // size = getSizeOfData(data: estimate)
+    // Test.assertEqual(0.00021000 as UFix64, size)
 }
 
 /** ---------------------------------------------------------------------------------
@@ -865,3 +881,41 @@ access(all) fun testSortedTimestampsEdgeCases() {
     Test.assertEqual(3.0, sortedResult[2])
     Test.assertEqual(100.0, sortedResult[99])
 }
+
+
+// access(all) fun testLargeArrayProcessing() {
+    // let currentTime = getCurrentBlock().timestamp
+    // let futureTime = currentTime + 100.0
+
+    // let largeArray: [Int] = []
+    // while largeArray.length < 18000 {
+    //      largeArray.append(1)
+    // }
+
+    // scheduleTransaction(
+    //     timestamp: futureTime,
+    //     fee: 10.0,
+    //     effort: 1000,
+    //     priority: mediumPriority,
+    //     data: largeArray,
+    //     testName: "testLargeArrayProcessing",
+    //     failWithErr: nil
+    // )
+
+    // scheduleTransaction(
+    //     timestamp: futureTime,
+    //     fee: 10.0,
+    //     effort: 1000,
+    //     priority: mediumPriority,
+    //     data: largeArray,
+    //     testName: "testLargeArrayProcessing",
+    //     failWithErr: nil
+    // )
+
+    // // move time forward by futureDelta
+    // Test.moveTime(by: Fix64(100.0))
+    // processTransactions()
+
+    // processTransactions()
+
+// }
