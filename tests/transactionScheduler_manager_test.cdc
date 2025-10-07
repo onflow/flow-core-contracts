@@ -17,14 +17,19 @@ access(all) var timeInFuture: UFix64 = 0.0
 access(all)
 fun setup() {
 
-    upgradeSchedulerContract()
-
     var err = Test.deployContract(
+        name: "FlowTransactionScheduler",
+        path: "../contracts/FlowTransactionScheduler.cdc",
+        arguments: []
+    )
+    Test.expect(err, Test.beNil())
+
+    err = Test.deployContract(
         name: "FlowTransactionSchedulerUtils",
         path: "../contracts/FlowTransactionSchedulerUtils.cdc",
         arguments: []
     )
-    Test.expect(err, Test.beNil())
+    Test.expect(err, Test.beNil())  
 
     err = Test.deployContract(
         name: "TestFlowScheduledTransactionHandler",
@@ -32,6 +37,8 @@ fun setup() {
         arguments: []
     )
     Test.expect(err, Test.beNil())
+
+    fundAccountWithFlow(to: admin.address, amount: 10000.0)
 
     startingHeight = getCurrentBlockHeight()
 
@@ -75,7 +82,7 @@ access(all) fun testManagerScheduleByHandler() {
 
     // Schedule medium priority transaction
     scheduleTransactionByHandler(
-        handlerTypeIdentifier: "A.0000000000000001.TestFlowScheduledTransactionHandler.Handler",
+        handlerTypeIdentifier: "A.0000000000000007.TestFlowScheduledTransactionHandler.Handler",
         handlerUUID: nil,
         timestamp: timeInFuture,
         fee: feeAmount,
@@ -87,7 +94,7 @@ access(all) fun testManagerScheduleByHandler() {
 
     // Schedule low priority transaction
     scheduleTransactionByHandler(
-        handlerTypeIdentifier: "A.0000000000000001.TestFlowScheduledTransactionHandler.Handler",
+        handlerTypeIdentifier: "A.0000000000000007.TestFlowScheduledTransactionHandler.Handler",
         handlerUUID: nil,
         timestamp: timeInFuture,
         fee: feeAmount,
@@ -100,7 +107,7 @@ access(all) fun testManagerScheduleByHandler() {
 
     // Schedule high, medium, and low priority transactions for second timestamp
     scheduleTransactionByHandler(
-        handlerTypeIdentifier: "A.0000000000000001.TestFlowScheduledTransactionHandler.Handler",
+        handlerTypeIdentifier: "A.0000000000000007.TestFlowScheduledTransactionHandler.Handler",
         handlerUUID: nil,
         timestamp: timeInFuture + 1.0,
         fee: feeAmount,
@@ -113,7 +120,7 @@ access(all) fun testManagerScheduleByHandler() {
 
     // Schedule medium priority transaction
     scheduleTransactionByHandler(
-        handlerTypeIdentifier: "A.0000000000000001.TestFlowScheduledTransactionHandler.Handler",
+        handlerTypeIdentifier: "A.0000000000000007.TestFlowScheduledTransactionHandler.Handler",
         handlerUUID: nil,
         timestamp: timeInFuture + 1.0,
         fee: feeAmount,
@@ -126,7 +133,7 @@ access(all) fun testManagerScheduleByHandler() {
 
     // Schedule low priority transaction
     scheduleTransactionByHandler(
-        handlerTypeIdentifier: "A.0000000000000001.TestFlowScheduledTransactionHandler.Handler",
+        handlerTypeIdentifier: "A.0000000000000007.TestFlowScheduledTransactionHandler.Handler",
         handlerUUID: nil,
         timestamp: timeInFuture + 1.0,
         fee: feeAmount,
@@ -139,7 +146,7 @@ access(all) fun testManagerScheduleByHandler() {
 
     // Schedule high, medium, and low priority transactions for third timestamp
     scheduleTransactionByHandler(
-        handlerTypeIdentifier: "A.0000000000000001.TestFlowScheduledTransactionHandler.Handler",
+        handlerTypeIdentifier: "A.0000000000000007.TestFlowScheduledTransactionHandler.Handler",
         handlerUUID: nil,
         timestamp: timeInFuture + 2.0,
         fee: feeAmount,
@@ -152,7 +159,7 @@ access(all) fun testManagerScheduleByHandler() {
 
     // Schedule medium priority transaction
     scheduleTransactionByHandler(
-        handlerTypeIdentifier: "A.0000000000000001.TestFlowScheduledTransactionHandler.Handler",
+        handlerTypeIdentifier: "A.0000000000000007.TestFlowScheduledTransactionHandler.Handler",
         handlerUUID: nil,
         timestamp: timeInFuture + 2.0,
         fee: feeAmount,
@@ -165,7 +172,7 @@ access(all) fun testManagerScheduleByHandler() {
 
     // Schedule low priority transaction
     scheduleTransactionByHandler(
-        handlerTypeIdentifier: "A.0000000000000001.TestFlowScheduledTransactionHandler.Handler",
+        handlerTypeIdentifier: "A.0000000000000007.TestFlowScheduledTransactionHandler.Handler",
         handlerUUID: nil,
         timestamp: timeInFuture + 2.0,
         fee: feeAmount,
@@ -180,7 +187,7 @@ access(all) fun testManagerScheduleByHandler() {
 
     // Test invalid handler type identifier
     scheduleTransactionByHandler(
-        handlerTypeIdentifier: "A.0000000000000001.TestFlowScheduledTransactionHandler.BadHandler",
+        handlerTypeIdentifier: "A.0000000000000007.TestFlowScheduledTransactionHandler.BadHandler",
         handlerUUID: nil,
         timestamp: timeInFuture + 2.0,
         fee: feeAmount,
@@ -188,12 +195,12 @@ access(all) fun testManagerScheduleByHandler() {
         priority: highPriority,
         data: testData,
         testName: "Test Manager Schedule Third High By Handler",
-        failWithErr: "Invalid handler type identifier: Handler with type identifier A.0000000000000001.TestFlowScheduledTransactionHandler.BadHandler not found in manager"
+        failWithErr: "Invalid handler type identifier: Handler with type identifier A.0000000000000007.TestFlowScheduledTransactionHandler.BadHandler not found in manager"
     )
 
     // Test invalid handler UUID
     scheduleTransactionByHandler(
-        handlerTypeIdentifier: "A.0000000000000001.TestFlowScheduledTransactionHandler.Handler",
+        handlerTypeIdentifier: "A.0000000000000007.TestFlowScheduledTransactionHandler.Handler",
         handlerUUID: 10 as UInt64,
         timestamp: timeInFuture + 2.0,
         fee: feeAmount,
@@ -201,7 +208,7 @@ access(all) fun testManagerScheduleByHandler() {
         priority: highPriority,
         data: testData,
         testName: "Test Manager Schedule Third High By Handler",
-        failWithErr: "Invalid handler UUID: Handler with type identifier A.0000000000000001.TestFlowScheduledTransactionHandler.Handler and UUID 10 not found in manager"
+        failWithErr: "Invalid handler UUID: Handler with type identifier A.0000000000000007.TestFlowScheduledTransactionHandler.Handler and UUID 10 not found in manager"
     )
 
 }
@@ -296,7 +303,7 @@ access(all) fun testGetManagedTxIDsByTimestampRange() {
 access(all) fun testGetManagedTxIDsByHandler() {
     // Test getting transaction IDs by handler type
     // Note: All transactions use the same handler type (TestFlowScheduledTransactionHandler)
-    let handlerType = "A.0000000000000001.TestFlowScheduledTransactionHandler.Handler"
+    let handlerType = "A.0000000000000007.TestFlowScheduledTransactionHandler.Handler"
     let txIds = getManagedTxIDsByHandler(handlerTypeIdentifier: handlerType, handlerUUID: nil)
     
     // Should have all 9 transactions
@@ -308,12 +315,12 @@ access(all) fun testGetManagedTxIDsByHandler() {
     }
 
     // Test getting transaction IDs for handler with invalid UUID
-    let invalidUUIDHandler = "A.0000000000000001.TestFlowScheduledTransactionHandler.Handler"
+    let invalidUUIDHandler = "A.0000000000000007.TestFlowScheduledTransactionHandler.Handler"
     let emptyTxIds = getManagedTxIDsByHandler(handlerTypeIdentifier: invalidUUIDHandler, handlerUUID: 10 as UInt64)
     Test.assert(emptyTxIds.length == 0, message: "Invalid UUID handler should return empty array")
     
     // Test getting transaction IDs for non-existent handler
-    let nonExistentHandler = "A.0000000000000001.NonExistentHandler.Handler"
+    let nonExistentHandler = "A.0000000000000007.NonExistentHandler.Handler"
     let emptyTxIds2 = getManagedTxIDsByHandler(handlerTypeIdentifier: nonExistentHandler, handlerUUID: nil)
     Test.assert(emptyTxIds.length == 0, message: "Non-existent handler should return empty array")
 }
@@ -338,7 +345,7 @@ access(all) fun testGetHandlerTypeIdentifiers() {
     // Should have one handler type with 9 transactions
     Test.assert(handlerTypes.length == 1, message: "Should have 1 handler type")
     
-    let handlerType = "A.0000000000000001.TestFlowScheduledTransactionHandler.Handler"
+    let handlerType = "A.0000000000000007.TestFlowScheduledTransactionHandler.Handler"
     if let handlerUUIDs = handlerTypes[handlerType] {
         Test.assert(handlerUUIDs.length == 1, message: "Handler type should have 1 uuid but got \(handlerUUIDs.length)")
     } else {
@@ -348,7 +355,7 @@ access(all) fun testGetHandlerTypeIdentifiers() {
 
 access(all) fun testGetHandlerViews() {
     // Test getting handler views by handler type
-    let handlerType = "A.0000000000000001.TestFlowScheduledTransactionHandler.Handler"
+    let handlerType = "A.0000000000000007.TestFlowScheduledTransactionHandler.Handler"
     let views = getHandlerViews(handlerTypeIdentifier: handlerType, handlerUUID: nil)
     
     // Should return the view types available for this handler
@@ -365,7 +372,7 @@ access(all) fun testGetHandlerViews() {
 
 access(all) fun testResolveHandlerView() {
     // Test resolving handler view by handler type
-    let handlerType = "A.0000000000000001.TestFlowScheduledTransactionHandler.Handler"
+    let handlerType = "A.0000000000000007.TestFlowScheduledTransactionHandler.Handler"
     let views = getHandlerViews(handlerTypeIdentifier: handlerType, handlerUUID: nil)
     
     if views.length > 0 {
@@ -425,7 +432,7 @@ access(all) fun testManagerCancel() {
     Test.assert(txIds3.contains(9), message: "Should contain transaction ID 9")
 
     // Test getting transaction IDs by handler
-    let handlerType = "A.0000000000000001.TestFlowScheduledTransactionHandler.Handler"
+    let handlerType = "A.0000000000000007.TestFlowScheduledTransactionHandler.Handler"
     let txIds = getManagedTxIDsByHandler(handlerTypeIdentifier: handlerType, handlerUUID: nil)
     
     // Should have all 6 transactions
@@ -526,7 +533,7 @@ access(all) fun testManagerExecuteAndCleanup() {
     Test.assert(txIds1.length == 0, message: "Should have 0 transactions for first timestamp")
 
     // Test getting transaction IDs by handler
-    let handlerType = "A.0000000000000001.TestFlowScheduledTransactionHandler.Handler"
+    let handlerType = "A.0000000000000007.TestFlowScheduledTransactionHandler.Handler"
     let txIds = getManagedTxIDsByHandler(handlerTypeIdentifier: handlerType, handlerUUID: nil)
     
     // Should only have 5 transactions. the four executed and the one scheduled
@@ -564,11 +571,11 @@ access(all) fun testManagerExecuteAndCleanup() {
 access(all) fun testManagerScheduleDifferentUUID() {
 
     // schedule a transaction with the same handler type but different handler UUID
-    let handlerType = "A.0000000000000001.TestFlowScheduledTransactionHandler.Handler"
+    let handlerType = "A.0000000000000007.TestFlowScheduledTransactionHandler.Handler"
     var tx = Test.Transaction(
         code: Test.readFile("./transactions/schedule_tx_with_different_handler.cdc"),
-        authorizers: [serviceAccount.address],
-        signers: [serviceAccount],
+        authorizers: [admin.address],
+        signers: [admin],
         arguments: [timeInFuture + UFix64(50.0), feeAmount, basicEffort, highPriority, testData],
     )
     var result = Test.executeTransaction(tx)
@@ -578,13 +585,13 @@ access(all) fun testManagerScheduleDifferentUUID() {
     // Should fail because there are two uuids for the handler type
     tx = Test.Transaction(
         code: Test.readFile("../transactions/transactionScheduler/schedule_transaction_by_handler.cdc"),
-        authorizers: [serviceAccount.address],
-        signers: [serviceAccount],
+        authorizers: [admin.address],
+        signers: [admin],
         arguments: [handlerType, nil, timeInFuture + UFix64(50.0), feeAmount, basicEffort, highPriority, testData],
     )
     result = Test.executeTransaction(tx)
     Test.expect(result, Test.beFailed())
-    Test.assertError(result, errorMessage: "Invalid handler UUID: Handler with type identifier A.0000000000000001.TestFlowScheduledTransactionHandler.Handler has more than one UUID, but no UUID was provided")
+    Test.assertError(result, errorMessage: "Invalid handler UUID: Handler with type identifier A.0000000000000007.TestFlowScheduledTransactionHandler.Handler has more than one UUID, but no UUID was provided")
 
     
 
@@ -598,8 +605,8 @@ access(all) fun testManagerScheduleDifferentUUID() {
     // schedule a transaction with the same handler by type and uuid
     tx = Test.Transaction(
         code: Test.readFile("../transactions/transactionScheduler/schedule_transaction_by_handler.cdc"),
-        authorizers: [serviceAccount.address],
-        signers: [serviceAccount],
+        authorizers: [admin.address],
+        signers: [admin],
         arguments: [handlerType, handlerUUIDs[0], timeInFuture + UFix64(50.0), feeAmount, basicEffort, highPriority, testData],
     )
     result = Test.executeTransaction(tx)

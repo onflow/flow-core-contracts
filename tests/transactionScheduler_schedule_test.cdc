@@ -9,9 +9,14 @@ import "scheduled_transaction_test_helpers.cdc"
 access(all)
 fun setup() {
 
-    upgradeSchedulerContract()
-
     var err = Test.deployContract(
+        name: "FlowTransactionScheduler",
+        path: "../contracts/FlowTransactionScheduler.cdc",
+        arguments: []
+    )
+    Test.expect(err, Test.beNil())
+
+    err = Test.deployContract(
         name: "FlowTransactionSchedulerUtils",
         path: "../contracts/FlowTransactionSchedulerUtils.cdc",
         arguments: []
@@ -24,6 +29,8 @@ fun setup() {
         arguments: []
     )
     Test.expect(err, Test.beNil())
+
+    fundAccountWithFlow(to: admin.address, amount: 10000.0)
 }
 
 /** ---------------------------------------------------------------------------------

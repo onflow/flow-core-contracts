@@ -58,8 +58,8 @@ access(all) fun scheduleTransaction(
 ) {
     var tx = Test.Transaction(
         code: Test.readFile("../transactions/transactionScheduler/schedule_transaction.cdc"),
-        authorizers: [serviceAccount.address],
-        signers: [serviceAccount],
+        authorizers: [admin.address],
+        signers: [admin],
         arguments: [timestamp, fee, effort, priority, data],
     )
     var result = Test.executeTransaction(tx)
@@ -93,8 +93,8 @@ access(all) fun scheduleTransactionByHandler(
 ) {
     var tx = Test.Transaction(
         code: Test.readFile("../transactions/transactionScheduler/schedule_transaction_by_handler.cdc"),
-        authorizers: [serviceAccount.address],
-        signers: [serviceAccount],
+        authorizers: [admin.address],
+        signers: [admin],
         arguments: [handlerTypeIdentifier, handlerUUID, timestamp, fee, effort, priority, data],
     )
     var result = Test.executeTransaction(tx)
@@ -118,8 +118,8 @@ access(all) fun scheduleTransactionByHandler(
 access(all) fun cancelTransaction(id: UInt64, failWithErr: String?) {
     var tx = Test.Transaction(
         code: Test.readFile("../transactions/transactionScheduler/cancel_transaction.cdc"),
-        authorizers: [serviceAccount.address],
-        signers: [serviceAccount],
+        authorizers: [admin.address],
+        signers: [admin],
         arguments: [id],
     )
     var result = Test.executeTransaction(tx)
@@ -140,8 +140,8 @@ access(all) fun processTransactions(): Test.TransactionResult {
     let processTransactionCode = Test.readFile("../transactions/transactionScheduler/admin/process_scheduled_transactions.cdc")
     let processTx = Test.Transaction(
         code: processTransactionCode,
-        authorizers: [serviceAccount.address],
-        signers: [serviceAccount],
+        authorizers: [admin.address],
+        signers: [admin],
         arguments: []
     )
     let processResult = Test.executeTransaction(processTx)
@@ -157,8 +157,8 @@ access(all) fun executeScheduledTransaction(
     let executeTransactionCode = Test.readFile("../transactions/transactionScheduler/admin/execute_transaction.cdc")
     let executeTx = Test.Transaction(
         code: executeTransactionCode,
-        authorizers: [serviceAccount.address],
-        signers: [serviceAccount],
+        authorizers: [admin.address],
+        signers: [admin],
         arguments: [id]
     )
     var result = Test.executeTransaction(executeTx)
@@ -195,8 +195,8 @@ access(all) fun setConfigDetails(
     let setConfigDetailsCode = Test.readFile("../transactions/transactionScheduler/admin/set_config_details.cdc")
     let setConfigDetailsTx = Test.Transaction(
         code: setConfigDetailsCode,
-        authorizers: [serviceAccount.address],
-        signers: [serviceAccount],
+        authorizers: [admin.address],
+        signers: [admin],
         arguments: [maximumIndividualEffort, 
                     minimumExecutionEffort,
                     slotSharedEffortLimit,
@@ -327,7 +327,7 @@ access(all) fun getPendingQueue(): [UInt64] {
 access(all) fun getManagedTxStatus(_ id: UInt64): UInt8? {
     var result = _executeScript(
         "../transactions/transactionScheduler/scripts/manager/get_managed_tx_status.cdc",
-        [serviceAccount.address, id]
+        [admin.address, id]
     )
     Test.expect(result, Test.beSucceeded())
     return result.returnValue as? UInt8
@@ -336,7 +336,7 @@ access(all) fun getManagedTxStatus(_ id: UInt64): UInt8? {
 access(all) fun getManagedTxData(_ id: UInt64): FlowTransactionScheduler.TransactionData? {
     var result = _executeScript(
         "../transactions/transactionScheduler/scripts/manager/get_tx_data.cdc",
-        [serviceAccount.address, id]
+        [admin.address, id]
     )
     Test.expect(result, Test.beSucceeded())
     return result.returnValue as? FlowTransactionScheduler.TransactionData
@@ -345,7 +345,7 @@ access(all) fun getManagedTxData(_ id: UInt64): FlowTransactionScheduler.Transac
 access(all) fun getManagedTxIDsByTimestamp(_ timestamp: UFix64): [UInt64] {
     var result = _executeScript(
         "../transactions/transactionScheduler/scripts/manager/get_tx_ids_by_timestamp.cdc",
-        [serviceAccount.address, timestamp]
+        [admin.address, timestamp]
     )
     Test.expect(result, Test.beSucceeded())
     return result.returnValue as! [UInt64]
@@ -354,7 +354,7 @@ access(all) fun getManagedTxIDsByTimestamp(_ timestamp: UFix64): [UInt64] {
 access(all) fun getManagedTxIDsByTimestampRange(startTimestamp: UFix64, endTimestamp: UFix64): {UFix64: [UInt64]} {
     var result = _executeScript(
         "../transactions/transactionScheduler/scripts/manager/get_tx_ids_by_time_range.cdc",
-        [serviceAccount.address, startTimestamp, endTimestamp]
+        [admin.address, startTimestamp, endTimestamp]
     )
     Test.expect(result, Test.beSucceeded())
     return result.returnValue! as! {UFix64: [UInt64]}
@@ -363,7 +363,7 @@ access(all) fun getManagedTxIDsByTimestampRange(startTimestamp: UFix64, endTimes
 access(all) fun getManagedTxIDsByHandler(handlerTypeIdentifier: String, handlerUUID: UInt64?): [UInt64] {
     var result = _executeScript(
         "../transactions/transactionScheduler/scripts/manager/get_tx_ids_by_handler.cdc",
-        [serviceAccount.address, handlerTypeIdentifier, handlerUUID]
+        [admin.address, handlerTypeIdentifier, handlerUUID]
     )
     Test.expect(result, Test.beSucceeded())
     return result.returnValue as! [UInt64]
@@ -372,7 +372,7 @@ access(all) fun getManagedTxIDsByHandler(handlerTypeIdentifier: String, handlerU
 access(all) fun getManagedTxIDs(): [UInt64] {
     var result = _executeScript(
         "../transactions/transactionScheduler/scripts/manager/get_manager_tx_ids.cdc",
-        [serviceAccount.address]
+        [admin.address]
     )
     Test.expect(result, Test.beSucceeded())
     return result.returnValue as! [UInt64]
@@ -381,7 +381,7 @@ access(all) fun getManagedTxIDs(): [UInt64] {
 access(all) fun getHandlerTypeIdentifiers(): {String: [UInt64]} {
     var result = _executeScript(
         "../transactions/transactionScheduler/scripts/manager/get_handler_types.cdc",
-        [serviceAccount.address]
+        [admin.address]
     )
     Test.expect(result, Test.beSucceeded())
     return result.returnValue! as! {String: [UInt64]}
@@ -390,7 +390,7 @@ access(all) fun getHandlerTypeIdentifiers(): {String: [UInt64]} {
 access(all) fun getHandlerViews(handlerTypeIdentifier: String, handlerUUID: UInt64?): [Type] {
     var result = _executeScript(
         "../transactions/transactionScheduler/scripts/manager/get_handler_views.cdc",
-        [serviceAccount.address, handlerTypeIdentifier, handlerUUID]
+        [admin.address, handlerTypeIdentifier, handlerUUID]
     )
     Test.expect(result, Test.beSucceeded())
     return result.returnValue as! [Type]
@@ -399,7 +399,7 @@ access(all) fun getHandlerViews(handlerTypeIdentifier: String, handlerUUID: UInt
 access(all) fun getHandlerViewsFromTransactionID(_ id: UInt64): [Type] {
     var result = _executeScript(
         "../transactions/transactionScheduler/scripts/manager/get_handler_views_from_tx_id.cdc",
-        [serviceAccount.address, id]
+        [admin.address, id]
     )
     Test.expect(result, Test.beSucceeded())
     return result.returnValue as! [Type]
@@ -408,7 +408,7 @@ access(all) fun getHandlerViewsFromTransactionID(_ id: UInt64): [Type] {
 access(all) fun resolveHandlerView(handlerTypeIdentifier: String, handlerUUID: UInt64?, viewType: Type): AnyStruct? {
     var result = _executeScript(
         "../transactions/transactionScheduler/scripts/manager/resolve_handler_view.cdc",
-        [serviceAccount.address, handlerTypeIdentifier, handlerUUID, viewType]
+        [admin.address, handlerTypeIdentifier, handlerUUID, viewType]
     )
     Test.expect(result, Test.beSucceeded())
     return result.returnValue as? AnyStruct
@@ -417,10 +417,49 @@ access(all) fun resolveHandlerView(handlerTypeIdentifier: String, handlerUUID: U
 access(all) fun resolveHandlerViewFromTransactionID(id: UInt64, viewType: Type): AnyStruct? {
     var result = _executeScript(
         "../transactions/transactionScheduler/scripts/manager/resolve_handler_view_from_tx_id.cdc",
-        [serviceAccount.address, id, viewType]
+        [admin.address, id, viewType]
     )
     Test.expect(result, Test.beSucceeded())
     return result.returnValue as? AnyStruct
+}
+
+access(all) fun upgradeSchedulerContract() {
+    var schedulerCode = Test.readFile("../contracts/FlowTransactionScheduler.cdc")
+    schedulerCode = schedulerCode.replaceAll(of: "\"FungibleToken\"", with: "FungibleToken from 0x0000000000000002")
+    schedulerCode = schedulerCode.replaceAll(of: "\"FlowToken\"", with: "FlowToken from 0x0000000000000003")
+    schedulerCode = schedulerCode.replaceAll(of: "\"FlowFees\"", with: "FlowFees from 0x0000000000000004")
+    schedulerCode = schedulerCode.replaceAll(of: "\"FlowStorageFees\"", with: "FlowStorageFees from 0x0000000000000001")
+    schedulerCode = schedulerCode.replaceAll(of: "\"ViewResolver\"", with: "ViewResolver from 0x0000000000000001")
+
+    var upgradeTx = Test.Transaction(
+        code: Test.readFile("./transactions/upgrade_contract.cdc"),
+        authorizers: [admin.address],
+        signers: [admin],
+        arguments: ["FlowTransactionScheduler", schedulerCode],
+    )
+
+    // Upgrade the FlowTransactionScheduler contract
+    var upgradeResult = Test.executeTransaction(
+        upgradeTx,
+    )
+    Test.expect(upgradeResult, Test.beSucceeded())
+}
+
+access(all) fun upgradeSchedulerUtilsContract() {
+    var schedulerUtilsCode = Test.readFile("../contracts/FlowTransactionSchedulerUtils.cdc")
+    schedulerUtilsCode = schedulerUtilsCode.replaceAll(of: "\"FlowTransactionScheduler\"", with: "FlowTransactionScheduler from 0x0000000000000007")
+    schedulerUtilsCode = schedulerUtilsCode.replaceAll(of: "\"FlowToken\"", with: "FlowToken from 0x0000000000000003")
+
+    var upgradeTx = Test.Transaction(
+        code: Test.readFile("./transactions/upgrade_contract.cdc"),
+        authorizers: [admin.address],
+        signers: [admin],
+        arguments: ["FlowTransactionSchedulerUtils", schedulerUtilsCode],
+    )
+    var upgradeResult = Test.executeTransaction(
+        upgradeTx,
+    )
+    Test.expect(upgradeResult, Test.beSucceeded())
 }
 
 access(all) fun getTimestamp(): UFix64 {
@@ -452,24 +491,14 @@ fun _executeScript(_ path: String, _ args: [AnyStruct]): Test.ScriptResult {
     return Test.executeScript(Test.readFile(path), args)
 }
 
-access(all) fun upgradeSchedulerContract() {
-    var schedulerCode = Test.readFile("../contracts/FlowTransactionScheduler.cdc")
-    schedulerCode = schedulerCode.replaceAll(of: "\"FungibleToken\"", with: "FungibleToken from 0x0000000000000002")
-    schedulerCode = schedulerCode.replaceAll(of: "\"FlowToken\"", with: "FlowToken from 0x0000000000000003")
-    schedulerCode = schedulerCode.replaceAll(of: "\"FlowFees\"", with: "FlowFees from 0x0000000000000004")
-    schedulerCode = schedulerCode.replaceAll(of: "\"FlowStorageFees\"", with: "FlowStorageFees from 0x0000000000000001")
-    schedulerCode = schedulerCode.replaceAll(of: "\"ViewResolver\"", with: "ViewResolver from 0x0000000000000001")
+access(all) fun fundAccountWithFlow(to: Address, amount: UFix64) {
 
-    var upgradeTx = Test.Transaction(
-        code: Test.readFile("./transactions/upgrade_contract.cdc"),
+    var tx = Test.Transaction(
+        code: Test.readFile("../transactions/flowToken/transfer_tokens.cdc"),
         authorizers: [serviceAccount.address],
         signers: [serviceAccount],
-        arguments: ["FlowTransactionScheduler", schedulerCode],
+        arguments: [amount, to],
     )
-
-    // Upgrade the FlowTransactionScheduler contract
-    var upgradeResult = Test.executeTransaction(
-        upgradeTx,
-    )
-    Test.expect(upgradeResult, Test.beSucceeded())
+    var result = Test.executeTransaction(tx)
+    Test.expect(result, Test.beSucceeded())
 }
