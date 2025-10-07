@@ -17,9 +17,14 @@ access(all) var accountBalanceBefore: UFix64 = 0.0
 access(all)
 fun setup() {
 
-    upgradeSchedulerContract()
-
     var err = Test.deployContract(
+        name: "FlowTransactionScheduler",
+        path: "../contracts/FlowTransactionScheduler.cdc",
+        arguments: []
+    )
+    Test.expect(err, Test.beNil())
+
+    err = Test.deployContract(
         name: "FlowTransactionSchedulerUtils",
         path: "../contracts/FlowTransactionSchedulerUtils.cdc",
         arguments: []
@@ -32,6 +37,8 @@ fun setup() {
         arguments: []
     )
     Test.expect(err, Test.beNil())
+
+    fundAccountWithFlow(to: admin.address, amount: 10000.0)
 
     startingHeight = getCurrentBlockHeight()
 
@@ -46,7 +53,7 @@ access(all) fun testTransactionScheduleEventAndData() {
     let currentTime = getTimestamp()
     let timeInFuture = currentTime + futureDelta
 
-    accountBalanceBefore = getBalance(account: serviceAccount.address)
+    accountBalanceBefore = getBalance(account: admin.address)
     feesBalanceBefore = getFeesBalance()
     
     // Schedule high priority transaction
@@ -69,8 +76,8 @@ access(all) fun testTransactionScheduleEventAndData() {
     Test.assertEqual(timeInFuture, scheduledEvent.timestamp!)
     Test.assert(scheduledEvent.executionEffort == basicEffort, message: "incorrect execution effort")
     Test.assertEqual(feeAmount, scheduledEvent.fees!)
-    Test.assertEqual(serviceAccount.address, scheduledEvent.transactionHandlerOwner!)
-    Test.assertEqual("A.0000000000000001.TestFlowScheduledTransactionHandler.Handler", scheduledEvent.transactionHandlerTypeIdentifier!)
+    Test.assertEqual(admin.address, scheduledEvent.transactionHandlerOwner!)
+    Test.assertEqual("A.0000000000000007.TestFlowScheduledTransactionHandler.Handler", scheduledEvent.transactionHandlerTypeIdentifier!)
     Test.assertEqual(TestFlowScheduledTransactionHandler.HandlerPublicPath, scheduledEvent.transactionHandlerPublicPath!)
     
     let transactionID = scheduledEvent.id as UInt64
@@ -85,8 +92,8 @@ access(all) fun testTransactionScheduleEventAndData() {
     Test.assertEqual(feeAmount, transactionData!.fees)
     Test.assertEqual(basicEffort, transactionData!.executionEffort)
     Test.assertEqual(statusScheduled, transactionData!.status.rawValue)
-    Test.assertEqual(serviceAccount.address, transactionData!.handlerAddress)
-    Test.assertEqual("A.0000000000000001.TestFlowScheduledTransactionHandler.Handler", transactionData!.handlerTypeIdentifier)
+    Test.assertEqual(admin.address, transactionData!.handlerAddress)
+    Test.assertEqual("A.0000000000000007.TestFlowScheduledTransactionHandler.Handler", transactionData!.handlerTypeIdentifier)
 
     // invalid timeframe should return empty dictionary
     var transactions = getTransactionsForTimeframe(startTimestamp: timeInFuture, endTimestamp: timeInFuture - 1.0)
@@ -116,7 +123,7 @@ access(all) fun testScheduledTransactionCancelationEvents() {
     var currentTime = getTimestamp()
     var timeInFuture = currentTime + futureDelta
 
-    var balanceBefore = getBalance(account: serviceAccount.address)
+    var balanceBefore = getBalance(account: admin.address)
 
     // Cancel invalid transaction should fail
     cancelTransaction(
@@ -148,8 +155,8 @@ access(all) fun testScheduledTransactionCancelationEvents() {
     Test.assertEqual(mediumPriority, canceledEvent.priority)
     Test.assertEqual(feeAmount/UFix64(2.0), canceledEvent.feesReturned)
     Test.assertEqual(feeAmount/UFix64(2.0), canceledEvent.feesDeducted)
-    Test.assertEqual(serviceAccount.address, canceledEvent.transactionHandlerOwner)
-    Test.assertEqual("A.0000000000000001.TestFlowScheduledTransactionHandler.Handler", canceledEvent.transactionHandlerTypeIdentifier!)
+    Test.assertEqual(admin.address, canceledEvent.transactionHandlerOwner)
+    Test.assertEqual("A.0000000000000007.TestFlowScheduledTransactionHandler.Handler", canceledEvent.transactionHandlerTypeIdentifier!)
 
     // Make sure the status is canceled
     var status = getStatus(id: transactionToCancel)
@@ -161,7 +168,7 @@ access(all) fun testScheduledTransactionCancelationEvents() {
     Test.assertEqual(UInt64(mediumPriorityMaxEffort), effort!)
 
     // Assert that the new balance reflects the refunds
-    Test.assertEqual(balanceBefore - feeAmount/UFix64(2.0), getBalance(account: serviceAccount.address))
+    Test.assertEqual(balanceBefore - feeAmount/UFix64(2.0), getBalance(account: admin.address))
     Test.assertEqual(feesBalanceBefore + feeAmount/UFix64(2.0), getFeesBalance())
 }
 

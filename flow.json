@@ -12,14 +12,14 @@
 			"source": "./contracts/FlowTransactionScheduler.cdc",
 			"aliases": {
 				"emulator": "f8d6e0586b0a20c7",
-				"testing": "0000000000000001"
+				"testing": "0000000000000007"
 			}
 		},
 		"FlowTransactionSchedulerUtils": {
 			"source": "./contracts/FlowTransactionSchedulerUtils.cdc",
 			"aliases": {
 				"emulator": "f8d6e0586b0a20c7",
-				"testing": "0000000000000001"
+				"testing": "0000000000000007"
 			}
 		},
 		"FlowClusterQC": {
@@ -158,7 +158,7 @@
 			"source": "./contracts/testContracts/TestFlowScheduledTransactionHandler.cdc",
 			"aliases": {
 				"emulator": "f8d6e0586b0a20c7",
-				"testing": "0000000000000001"
+				"testing": "0000000000000007"
 			}
 		}
 	},
@@ -229,13 +229,6 @@
 		"emulator-account": {
 			"address": "f8d6e0586b0a20c7",
 			"key": "aff3a277caf2bdd6582c156ae7b07dbca537da7833309de88e56987faa2c0f1b"
-		}
-	},
-	"deployments": {
-		"emulator": {
-			"emulator-account": [
-				"TestFlowScheduledTransactionHandler"
-			]
 		}
 	}
 }

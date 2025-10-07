@@ -17,9 +17,14 @@ access(all) var accountBalanceBefore: UFix64 = 0.0
 access(all)
 fun setup() {
 
-    upgradeSchedulerContract()
-
     var err = Test.deployContract(
+        name: "FlowTransactionScheduler",
+        path: "../contracts/FlowTransactionScheduler.cdc",
+        arguments: []
+    )
+    Test.expect(err, Test.beNil())
+
+    err = Test.deployContract(
         name: "FlowTransactionSchedulerUtils",
         path: "../contracts/FlowTransactionSchedulerUtils.cdc",
         arguments: []
@@ -32,6 +37,8 @@ fun setup() {
         arguments: []
     )
     Test.expect(err, Test.beNil())
+
+    fundAccountWithFlow(to: admin.address, amount: 10000.0)
 
     startingHeight = getCurrentBlockHeight()
 
@@ -210,8 +217,8 @@ access(all) fun testScheduledTransactionDestroyHandler() {
     let destroyHandlerCode = Test.readFile("./transactions/destroy_handler.cdc")
     let executeTx = Test.Transaction(
         code: destroyHandlerCode,
-        authorizers: [serviceAccount.address],
-        signers: [serviceAccount],
+        authorizers: [admin.address],
+        signers: [admin],
         arguments: []
     )
     var result = Test.executeTransaction(executeTx)
@@ -231,8 +238,8 @@ access(all) fun testScheduledTransactionDestroyHandler() {
     Test.assertEqual(mediumPriority, canceledEvent.priority)
     Test.assertEqual(feeAmount/UFix64(2.0), canceledEvent.feesReturned)
     Test.assertEqual(feeAmount/UFix64(2.0), canceledEvent.feesDeducted)
-    Test.assertEqual(Address(0x0000000000000001), canceledEvent.transactionHandlerOwner)
-    Test.assertEqual("A.0000000000000001.TestFlowScheduledTransactionHandler.Handler", canceledEvent.transactionHandlerTypeIdentifier)
+    Test.assertEqual(Address(0x0000000000000007), canceledEvent.transactionHandlerOwner)
+    Test.assertEqual("A.0000000000000007.TestFlowScheduledTransactionHandler.Handler", canceledEvent.transactionHandlerTypeIdentifier)
 
     Test.moveTime(by: Fix64(futureDelta*11.0))
 
