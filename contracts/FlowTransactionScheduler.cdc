@@ -569,7 +569,7 @@ access(all) contract FlowTransactionScheduler {
                     Priority.Medium: mediumPriorityEffortReserve + sharedEffortLimit,
                     Priority.Low: 5_000
                 },
-                maxDataSizeMB: 3.0,
+                maxDataSizeMB: 0.1,
                 priorityFeeMultipliers: {
                     Priority.High: 10.0,
                     Priority.Medium: 5.0,
@@ -1220,8 +1220,26 @@ access(all) contract FlowTransactionScheduler {
                         // charge the full fee for transaction execution
                         destroy tx.payAndRefundFees(refundMultiplier: 0.0)
 
-                        self.removeTransaction(txData: tx)
+                        // remove transaction object
+                        let transactionObject = self.transactions.remove(key: id)!
+
+                        transactionIDs.remove(key: id)
                     }
+
+                    // if the priority queue is now empty remove it from the map
+                    if transactionIDs.keys.length == 0 {
+                        transactionPriorities.remove(key: priority)
+                    } else {
+                        transactionPriorities[priority] = transactionIDs
+                    }
+                }
+
+                // if the slot is now empty remove it from the maps
+                if transactionPriorities.keys.length == 0 {
+                    self.slotQueue.remove(key: timestamp)
+                    self.slotUsedEffort.remove(key: timestamp)
+
+                    self.sortedTimestamps.remove(timestamp: timestamp)
                 }
             }
         }
