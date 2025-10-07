@@ -529,35 +529,35 @@ access(all) contract FlowTransactionScheduler {
             
             /* Default slot efforts and limits look like this:
 
-                Timestamp Slot (35kee)
+                Timestamp Slot (17.5kee)
                 ┌─────────────────────────┐
                 │ ┌─────────────┐         │ 
-                │ │ High Only   │         │ High: 30kee max
-                │ │   20kee     │         │ (20 exclusive + 10 shared)
+                │ │ High Only   │         │ High: 15kee max
+                │ │   10kee     │         │ (10 exclusive + 5 shared)
                 │ └─────────────┘         │
                 | ┌───────────────┐       |
                 │ |  Shared Pool  │       |
                 | │ (High+Medium) │       |
-                | │     10kee     │       |
+                | │     5kee     │       |
                 | └───────────────┘       |
-                │ ┌─────────────┐         │ Medium: 15kee max  
-                │ │ Medium Only │         │ (5 exclusive + 10 shared)
-                │ │   5kee      │         │
+                │ ┌─────────────┐         │ Medium: 7.5kee max  
+                │ │ Medium Only │         │ (2.5 exclusive + 5 shared)
+                │ │   2.5kee      │         │
                 │ └─────────────┘         │
-                │ ┌─────────────────────┐ │ Low: 5kee max
+                │ ┌─────────────────────┐ │ Low: 2.5kee max
                 │ │ Low (if space left) │ │ (execution time only)
-                │ │       5kee          │ │
+                │ │       2.5kee          │ │
                 │ └─────────────────────┘ │
                 └─────────────────────────┘
             */
 
-            let sharedEffortLimit: UInt64 = 10_000
-            let highPriorityEffortReserve: UInt64 = 20_000
-            let mediumPriorityEffortReserve: UInt64 = 5_000
+            let sharedEffortLimit: UInt64 = 5_000
+            let highPriorityEffortReserve: UInt64 = 10_000
+            let mediumPriorityEffortReserve: UInt64 = 2_500
 
             self.config = Config(
                 maximumIndividualEffort: 9999,
-                minimumExecutionEffort: 10,
+                minimumExecutionEffort: 100,
                 slotSharedEffortLimit: sharedEffortLimit,
                 priorityEffortReserve: {
                     Priority.High: highPriorityEffortReserve,
@@ -567,7 +567,7 @@ access(all) contract FlowTransactionScheduler {
                 priorityEffortLimit: {
                     Priority.High: highPriorityEffortReserve + sharedEffortLimit,
                     Priority.Medium: mediumPriorityEffortReserve + sharedEffortLimit,
-                    Priority.Low: 5_000
+                    Priority.Low: 2_500
                 },
                 maxDataSizeMB: 0.1,
                 priorityFeeMultipliers: {
@@ -1202,6 +1202,7 @@ access(all) contract FlowTransactionScheduler {
         /// removeExecutedTransactions removes all transactions that are marked as executed.
         access(self) fun removeExecutedTransactions(_ currentTimestamp: UFix64) {
             let pastTimestamps = self.sortedTimestamps.getBefore(current: currentTimestamp)
+            var numRemoved = 0
 
             for timestamp in pastTimestamps {
                 let transactionPriorities = self.slotQueue[timestamp] ?? {}
@@ -1224,6 +1225,10 @@ access(all) contract FlowTransactionScheduler {
                         let transactionObject = self.transactions.remove(key: id)!
 
                         transactionIDs.remove(key: id)
+
+                        if numRemoved >= self.config.collectionTransactionsLimit {
+                            break
+                        }
                     }
 
                     // if the priority queue is now empty remove it from the map
@@ -1231,6 +1236,10 @@ access(all) contract FlowTransactionScheduler {
                         transactionPriorities.remove(key: priority)
                     } else {
                         transactionPriorities[priority] = transactionIDs
+                    }
+
+                    if numRemoved >= self.config.collectionTransactionsLimit {
+                        break
                     }
                 }
 
@@ -1240,6 +1249,10 @@ access(all) contract FlowTransactionScheduler {
                     self.slotUsedEffort.remove(key: timestamp)
 
                     self.sortedTimestamps.remove(timestamp: timestamp)
+                }
+
+                if numRemoved >= self.config.collectionTransactionsLimit {
+                    break
                 }
             }
         }
