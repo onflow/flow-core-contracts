@@ -106,6 +106,9 @@ access(all) contract FlowTransactionScheduler {
         collectionTransactionsLimit: Int?
     )
 
+    /// Emitted when the limit on the number of transactions that can be removed in process() is reached
+    access(all) event RemovalLimitReached()
+
     // Emitted when one or more of the configuration details fields are updated
     // Event listeners can listen to this and query the new configuration
     // if they need to
@@ -1210,6 +1213,12 @@ access(all) contract FlowTransactionScheduler {
                 for priority in transactionPriorities.keys {
                     let transactionIDs = transactionPriorities[priority] ?? {}
                     for id in transactionIDs.keys {
+
+                        if numRemoved >= self.config.collectionTransactionsLimit*2 {
+                            emit RemovalLimitReached()
+                            return
+                        }
+
                         let tx = self.borrowTransaction(id: id)
                             ?? panic("Invalid ID: \(id) transaction not found during initial processing") // critical bug
 
@@ -1226,9 +1235,7 @@ access(all) contract FlowTransactionScheduler {
 
                         transactionIDs.remove(key: id)
 
-                        if numRemoved >= self.config.collectionTransactionsLimit {
-                            break
-                        }
+                        numRemoved = numRemoved + 1
                     }
 
                     // if the priority queue is now empty remove it from the map
@@ -1236,10 +1243,6 @@ access(all) contract FlowTransactionScheduler {
                         transactionPriorities.remove(key: priority)
                     } else {
                         transactionPriorities[priority] = transactionIDs
-                    }
-
-                    if numRemoved >= self.config.collectionTransactionsLimit {
-                        break
                     }
                 }
 
@@ -1249,10 +1252,6 @@ access(all) contract FlowTransactionScheduler {
                     self.slotUsedEffort.remove(key: timestamp)
 
                     self.sortedTimestamps.remove(timestamp: timestamp)
-                }
-
-                if numRemoved >= self.config.collectionTransactionsLimit {
-                    break
                 }
             }
         }
