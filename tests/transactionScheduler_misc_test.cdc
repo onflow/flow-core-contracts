@@ -281,21 +281,10 @@ access(all) fun testScheduledTransactionEstimateReturnNil() {
     scheduleTransaction(
         timestamp: timeInFuture,
         fee: feeAmount,
-        effort: maxEffort,
+        effort: sharedEffortLimit,
         priority: highPriority,
         data: testData,
         testName: "Estimate Return Nil: Scheduled 2",
-        failWithErr: nil
-    )
-
-    // Schedule a high priority transaction
-    scheduleTransaction(
-        timestamp: timeInFuture,
-        fee: feeAmount,
-        effort: maxEffort,
-        priority: highPriority,
-        data: testData,
-        testName: "Estimate Return Nil: Scheduled 3",
         failWithErr: nil
     )
 
@@ -303,10 +292,10 @@ access(all) fun testScheduledTransactionEstimateReturnNil() {
         data: testData,
         timestamp: timeInFuture,
         priority: highPriority,
-        executionEffort: maxEffort
+        executionEffort: sharedEffortLimit
     )
     
     Test.assertEqual(nil, estimate.flowFee)
     Test.assertEqual(nil, estimate.timestamp)
-    Test.assertEqual("Invalid execution effort: \(maxEffort) is greater than the priority's available effort for the requested timestamp.", estimate.error!)
+    Test.assertEqual("Invalid execution effort: \(sharedEffortLimit) is greater than the priority's available effort for the requested timestamp.", estimate.error!)
 }

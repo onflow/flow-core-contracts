@@ -19,13 +19,13 @@ access(all) let basicEffort: UInt64 = 1000
 access(all) let mediumEffort: UInt64 = 5000
 access(all) let maxEffort: UInt64 = 9999
 
-access(all) let lowPriorityMaxEffort: UInt64 = 5000
-access(all) let mediumPriorityMaxEffort: UInt64 = 15000
-access(all) let highPriorityMaxEffort: UInt64 = 30000
+access(all) let lowPriorityMaxEffort: UInt64 = 2500
+access(all) let mediumPriorityMaxEffort: UInt64 = 7500
+access(all) let highPriorityMaxEffort: UInt64 = 15000
 
-access(all) let highPriorityEffortReserve: UInt64 = 20000
-access(all) let mediumPriorityEffortReserve: UInt64 = 5000
-access(all) let sharedEffortLimit: UInt64 = 10000
+access(all) let highPriorityEffortReserve: UInt64 = 10000
+access(all) let mediumPriorityEffortReserve: UInt64 = 2500
+access(all) let sharedEffortLimit: UInt64 = 5000
 
 access(all) let canceledTransactionsLimit: UInt = 1000
 
