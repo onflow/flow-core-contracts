@@ -106,6 +106,10 @@ access(all) contract FlowTransactionScheduler {
         collectionTransactionsLimit: Int?
     )
 
+    access(all) event RemovalLimitReached(id: UInt64, remainingLength: Int)
+    access(all) event TransactionAdded(id: UInt64)
+    access(all) event TransactionRemoved(id: UInt64)
+
     // Emitted when one or more of the configuration details fields are updated
     // Event listeners can listen to this and query the new configuration
     // if they need to
@@ -344,6 +348,8 @@ access(all) contract FlowTransactionScheduler {
         /// collectionTransactionsLimit is the maximum number of transactions that can be processed in a collection
         access(all) var collectionTransactionsLimit: Int
 
+        access(all) var removalTransactionsLimit: Int
+
         access(all) init(
             maximumIndividualEffort: UInt64,
             minimumExecutionEffort: UInt64,
@@ -355,7 +361,8 @@ access(all) contract FlowTransactionScheduler {
             refundMultiplier: UFix64,
             canceledTransactionsLimit: UInt,
             collectionEffortLimit: UInt64,
-            collectionTransactionsLimit: Int
+            collectionTransactionsLimit: Int,
+            removalTransactionsLimit: Int
         ) {
             pre {
                 refundMultiplier >= 0.0 && refundMultiplier <= 1.0:
@@ -376,6 +383,8 @@ access(all) contract FlowTransactionScheduler {
                     "Invalid collection transactions limit: Collection transactions limit must be greater than or equal to 0 but got \(collectionTransactionsLimit)"
                 canceledTransactionsLimit >= 1:
                     "Invalid canceled transactions limit: Canceled transactions limit must be greater than or equal to 1 but got \(canceledTransactionsLimit)"
+                removalTransactionsLimit >= 0:
+                    "Invalid removal transactions limit: Removal transactions limit must be greater than or equal to 0 but got \(removalTransactionsLimit)"
             }
             post {
                 self.collectionEffortLimit > self.slotTotalEffortLimit:
@@ -399,6 +408,7 @@ access(all) contract FlowTransactionScheduler {
         access(all) var canceledTransactionsLimit: UInt
         access(all) var collectionEffortLimit: UInt64
         access(all) var collectionTransactionsLimit: Int
+        access(all) var removalTransactionsLimit: Int
 
         access(all) init(   
             maximumIndividualEffort: UInt64,
@@ -411,7 +421,8 @@ access(all) contract FlowTransactionScheduler {
             refundMultiplier: UFix64,
             canceledTransactionsLimit: UInt,
             collectionEffortLimit: UInt64,
-            collectionTransactionsLimit: Int
+            collectionTransactionsLimit: Int,
+            removalTransactionsLimit: Int
         ) {
             self.maximumIndividualEffort = maximumIndividualEffort
             self.minimumExecutionEffort = minimumExecutionEffort
@@ -425,6 +436,7 @@ access(all) contract FlowTransactionScheduler {
             self.canceledTransactionsLimit = canceledTransactionsLimit
             self.collectionEffortLimit = collectionEffortLimit
             self.collectionTransactionsLimit = collectionTransactionsLimit
+            self.removalTransactionsLimit = removalTransactionsLimit
         }
     }
 
@@ -578,7 +590,8 @@ access(all) contract FlowTransactionScheduler {
                 refundMultiplier: 0.5,
                 canceledTransactionsLimit: 1000,
                 collectionEffortLimit: 500_000, // Maximum effort for all transactions in a collection
-                collectionTransactionsLimit: 150 // Maximum number of transactions in a collection
+                collectionTransactionsLimit: 150, // Maximum number of transactions in a collection
+                removalTransactionsLimit: 200 // Maximum number of transactions to remove in single process
             )
         }
 
@@ -1052,6 +1065,7 @@ access(all) contract FlowTransactionScheduler {
 
             // Store the transaction in the transactions map
             self.transactions[txData.id] = txData
+            emit TransactionAdded(id: txData.id)
 
             // Reschedule low priority transactions if needed
             self.rescheduleLowPriorityTransactions(slot: slot, transactions: lowTransactionsToReschedule)
@@ -1105,6 +1119,7 @@ access(all) contract FlowTransactionScheduler {
 
             // remove transaction object
             let transactionObject = self.transactions.remove(key: transactionID)!
+            emit TransactionRemoved(id: transactionID)
             
             // garbage collect slots 
             if let transactionQueue = self.slotQueue[slot] {
@@ -1202,6 +1217,7 @@ access(all) contract FlowTransactionScheduler {
         /// removeExecutedTransactions removes all transactions that are marked as executed.
         access(self) fun removeExecutedTransactions(_ currentTimestamp: UFix64) {
             let pastTimestamps = self.sortedTimestamps.getBefore(current: currentTimestamp)
+            var removedCount = 0
 
             for timestamp in pastTimestamps {
                 let transactionPriorities = self.slotQueue[timestamp] ?? {}
@@ -1209,6 +1225,12 @@ access(all) contract FlowTransactionScheduler {
                 for priority in transactionPriorities.keys {
                     let transactionIDs = transactionPriorities[priority] ?? {}
                     for id in transactionIDs.keys {
+                        removedCount = removedCount + 1
+                        if removedCount >= self.config.removalTransactionsLimit {
+                            emit RemovalLimitReached(id: id, remainingLength: transactionIDs.keys.length)
+                            return
+                        }
+
                         let tx = self.borrowTransaction(id: id)
                             ?? panic("Invalid ID: \(id) transaction not found during initial processing") // critical bug
 
