@@ -1214,7 +1214,9 @@ access(all) contract FlowTransactionScheduler {
                     let transactionIDs = transactionPriorities[priority] ?? {}
                     for id in transactionIDs.keys {
 
-                        if numRemoved >= self.config.collectionTransactionsLimit {
+                        numRemoved = numRemoved + 1
+
+                        if numRemoved >= 200 {
                             emit RemovalLimitReached()
                             return
                         }
