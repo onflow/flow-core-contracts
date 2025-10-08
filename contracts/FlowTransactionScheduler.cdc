@@ -348,8 +348,6 @@ access(all) contract FlowTransactionScheduler {
         /// collectionTransactionsLimit is the maximum number of transactions that can be processed in a collection
         access(all) var collectionTransactionsLimit: Int
 
-        access(all) var removalTransactionsLimit: Int
-
         access(all) init(
             maximumIndividualEffort: UInt64,
             minimumExecutionEffort: UInt64,
@@ -362,7 +360,6 @@ access(all) contract FlowTransactionScheduler {
             canceledTransactionsLimit: UInt,
             collectionEffortLimit: UInt64,
             collectionTransactionsLimit: Int,
-            removalTransactionsLimit: Int
         ) {
             pre {
                 refundMultiplier >= 0.0 && refundMultiplier <= 1.0:
@@ -383,8 +380,6 @@ access(all) contract FlowTransactionScheduler {
                     "Invalid collection transactions limit: Collection transactions limit must be greater than or equal to 0 but got \(collectionTransactionsLimit)"
                 canceledTransactionsLimit >= 1:
                     "Invalid canceled transactions limit: Canceled transactions limit must be greater than or equal to 1 but got \(canceledTransactionsLimit)"
-                removalTransactionsLimit >= 0:
-                    "Invalid removal transactions limit: Removal transactions limit must be greater than or equal to 0 but got \(removalTransactionsLimit)"
             }
             post {
                 self.collectionEffortLimit > self.slotTotalEffortLimit:
@@ -408,7 +403,6 @@ access(all) contract FlowTransactionScheduler {
         access(all) var canceledTransactionsLimit: UInt
         access(all) var collectionEffortLimit: UInt64
         access(all) var collectionTransactionsLimit: Int
-        access(all) var removalTransactionsLimit: Int
 
         access(all) init(   
             maximumIndividualEffort: UInt64,
@@ -422,7 +416,6 @@ access(all) contract FlowTransactionScheduler {
             canceledTransactionsLimit: UInt,
             collectionEffortLimit: UInt64,
             collectionTransactionsLimit: Int,
-            removalTransactionsLimit: Int
         ) {
             self.maximumIndividualEffort = maximumIndividualEffort
             self.minimumExecutionEffort = minimumExecutionEffort
@@ -436,7 +429,6 @@ access(all) contract FlowTransactionScheduler {
             self.canceledTransactionsLimit = canceledTransactionsLimit
             self.collectionEffortLimit = collectionEffortLimit
             self.collectionTransactionsLimit = collectionTransactionsLimit
-            self.removalTransactionsLimit = removalTransactionsLimit
         }
     }
 
@@ -591,7 +583,6 @@ access(all) contract FlowTransactionScheduler {
                 canceledTransactionsLimit: 1000,
                 collectionEffortLimit: 500_000, // Maximum effort for all transactions in a collection
                 collectionTransactionsLimit: 150, // Maximum number of transactions in a collection
-                removalTransactionsLimit: 200 // Maximum number of transactions to remove in single process
             )
         }
 
@@ -1226,7 +1217,7 @@ access(all) contract FlowTransactionScheduler {
                     let transactionIDs = transactionPriorities[priority] ?? {}
                     for id in transactionIDs.keys {
                         removedCount = removedCount + 1
-                        if removedCount >= self.config.removalTransactionsLimit {
+                        if removedCount >= 2000 {
                             emit RemovalLimitReached(id: id, remainingLength: transactionIDs.keys.length)
                             return
                         }
