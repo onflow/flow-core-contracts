@@ -1220,7 +1220,7 @@ access(all) contract FlowTransactionScheduler {
                         }
 
                         let tx = self.borrowTransaction(id: id)
-                            ?? panic("Invalid ID: \(id) transaction not found during initial processing") // critical bug
+                            ?? panic("Invalid ID: \(id) transaction not found during removal") // critical bug
 
                         // Only remove executed transactions
                         if tx.status != Status.Executed {
@@ -1231,27 +1231,8 @@ access(all) contract FlowTransactionScheduler {
                         destroy tx.payAndRefundFees(refundMultiplier: 0.0)
 
                         // remove transaction object
-                        let transactionObject = self.transactions.remove(key: id)!
-
-                        transactionIDs.remove(key: id)
-
-                        numRemoved = numRemoved + 1
+                        self.removeTransaction(txData: tx)
                     }
-
-                    // if the priority queue is now empty remove it from the map
-                    if transactionIDs.keys.length == 0 {
-                        transactionPriorities.remove(key: priority)
-                    } else {
-                        transactionPriorities[priority] = transactionIDs
-                    }
-                }
-
-                // if the slot is now empty remove it from the maps
-                if transactionPriorities.keys.length == 0 {
-                    self.slotQueue.remove(key: timestamp)
-                    self.slotUsedEffort.remove(key: timestamp)
-
-                    self.sortedTimestamps.remove(timestamp: timestamp)
                 }
             }
         }
