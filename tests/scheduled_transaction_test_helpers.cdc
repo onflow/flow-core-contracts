@@ -15,9 +15,13 @@ access(all) let statusScheduled = UInt8(1)
 access(all) let statusExecuted = UInt8(2)
 access(all) let statusCanceled = UInt8(3)
 
+access(all) let slotTotalEffortLimit: UInt64 = 17500
+
 access(all) let basicEffort: UInt64 = 1000
 access(all) let mediumEffort: UInt64 = 5000
 access(all) let maxEffort: UInt64 = 9999
+
+access(all) let minEffort: UInt64 = 100
 
 access(all) let lowPriorityMaxEffort: UInt64 = 2500
 access(all) let mediumPriorityMaxEffort: UInt64 = 7500
@@ -183,7 +187,7 @@ access(all) fun setConfigDetails(
     minimumExecutionEffort: UInt64?,
     slotSharedEffortLimit: UInt64?,
     priorityEffortReserve: {UInt8: UInt64}?,
-    priorityEffortLimit: {UInt8: UInt64}?,
+    lowPriorityEffortLimit: UInt64?,
     maxDataSizeMB: UFix64?,
     priorityFeeMultipliers: {UInt8: UFix64}?,
     refundMultiplier: UFix64?,
@@ -201,7 +205,7 @@ access(all) fun setConfigDetails(
                     minimumExecutionEffort,
                     slotSharedEffortLimit,
                     priorityEffortReserve,
-                    priorityEffortLimit,
+                    lowPriorityEffortLimit,
                     maxDataSizeMB,
                     priorityFeeMultipliers,
                     refundMultiplier,

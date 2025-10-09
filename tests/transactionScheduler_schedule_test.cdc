@@ -207,28 +207,28 @@ access(all) fun testScheduleAndEffortUsed() {
 
     // Common transactions that we will use multiple times in certain test cases
 
-    let lowTransactionWith300Effort = ScheduledTransaction(
+    let lowTransactionWith150Effort = ScheduledTransaction(
         requestedDelta: futureDelta,
         priority: lowPriority,
-        executionEffort: 300,
+        executionEffort: 150,
         data: testData,
         fees: feeAmount,
         failWithErr: nil
     )
 
-    let mediumTransactionWith4000Effort = ScheduledTransaction(
+    let mediumTransactionWith2000Effort = ScheduledTransaction(
         requestedDelta: futureDelta,
         priority: mediumPriority,
-        executionEffort: 4000,
+        executionEffort: 2000,
         data: testData,
         fees: feeAmount,
         failWithErr: nil
     )
 
-    let highTransactionWith8000Effort = ScheduledTransaction(
+    let highTransactionWith4000Effort = ScheduledTransaction(
         requestedDelta: futureDelta,
         priority: highPriority,
-        executionEffort: 8000,
+        executionEffort: 4000,
         data: testData,
         fees: feeAmount,
         failWithErr: nil
@@ -253,7 +253,7 @@ access(all) fun testScheduleAndEffortUsed() {
                     executionEffort: 0,
                     data: testData,
                     fees: feeAmount,
-                    failWithErr: "Invalid execution effort: 0 is less than the minimum execution effort of 10"
+                    failWithErr: "Invalid execution effort: 0 is less than the minimum execution effort of 100"
                 )
             ],
             transactionsIndicesToCancel: [],
@@ -275,7 +275,7 @@ access(all) fun testScheduleAndEffortUsed() {
                 ScheduledTransaction(
                     requestedDelta: futureDelta,
                     priority: lowPriority,
-                    executionEffort: 10,
+                    executionEffort: 100,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
@@ -286,7 +286,7 @@ access(all) fun testScheduleAndEffortUsed() {
                 futureDelta: {
                     highPriority: highPriorityMaxEffort,
                     mediumPriority: mediumPriorityMaxEffort,
-                    lowPriority: lowPriorityMaxEffort - 10
+                    lowPriority: lowPriorityMaxEffort - 100
                 }
             },
             expectedPendingQueues: {
@@ -308,7 +308,7 @@ access(all) fun testScheduleAndEffortUsed() {
                 ScheduledTransaction(
                     requestedDelta: futureDelta,
                     priority: lowPriority,
-                    executionEffort: 10,
+                    executionEffort: minEffort,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
@@ -324,7 +324,7 @@ access(all) fun testScheduleAndEffortUsed() {
                 futureDelta + 1.0: {
                     highPriority: highPriorityMaxEffort,
                     mediumPriority: mediumPriorityMaxEffort,
-                    lowPriority: lowPriorityMaxEffort - 10
+                    lowPriority: lowPriorityMaxEffort - minEffort
                 }
             },
             expectedPendingQueues: {
@@ -342,7 +342,7 @@ access(all) fun testScheduleAndEffortUsed() {
                     executionEffort: lowPriorityMaxEffort + 1,
                     data: testData,
                     fees: feeAmount,
-                    failWithErr: "Invalid execution effort: 5001 is greater than the priority's max effort of 5000"
+                    failWithErr: "Invalid execution effort: \(lowPriorityMaxEffort + 1) is greater than the priority's max effort of \(lowPriorityMaxEffort)"
                 )
             ],
             transactionsIndicesToCancel: [],
@@ -361,26 +361,26 @@ access(all) fun testScheduleAndEffortUsed() {
         ScheduleAndEffortUsedTestCase(
             name: "Low Priority: Many low priority transactions scheduled for same timestamp",
             transactions: [
-                lowTransactionWith300Effort,
-                lowTransactionWith300Effort,
-                lowTransactionWith300Effort,
-                lowTransactionWith300Effort,
-                lowTransactionWith300Effort,
-                lowTransactionWith300Effort,
-                lowTransactionWith300Effort,
-                lowTransactionWith300Effort,
-                lowTransactionWith300Effort,
-                lowTransactionWith300Effort,
-                lowTransactionWith300Effort,
-                lowTransactionWith300Effort,
-                lowTransactionWith300Effort,
-                lowTransactionWith300Effort,
-                lowTransactionWith300Effort,
-                lowTransactionWith300Effort,
+                lowTransactionWith150Effort,
+                lowTransactionWith150Effort,
+                lowTransactionWith150Effort,
+                lowTransactionWith150Effort,
+                lowTransactionWith150Effort,
+                lowTransactionWith150Effort,
+                lowTransactionWith150Effort,
+                lowTransactionWith150Effort,
+                lowTransactionWith150Effort,
+                lowTransactionWith150Effort,
+                lowTransactionWith150Effort,
+                lowTransactionWith150Effort,
+                lowTransactionWith150Effort,
+                lowTransactionWith150Effort,
+                lowTransactionWith150Effort,
+                lowTransactionWith150Effort,
                 ScheduledTransaction(
                     requestedDelta: futureDelta,
                     priority: lowPriority,
-                    executionEffort: 300,
+                    executionEffort: 150,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
@@ -391,12 +391,12 @@ access(all) fun testScheduleAndEffortUsed() {
                 futureDelta: {
                     highPriority: highPriorityMaxEffort,
                     mediumPriority: mediumPriorityMaxEffort,
-                    lowPriority: 200
+                    lowPriority: 100
                 },
                 futureDelta + 1.0: {
                     highPriority: highPriorityMaxEffort,
                     mediumPriority: mediumPriorityMaxEffort,
-                    lowPriority: 4700
+                    lowPriority: lowPriorityMaxEffort - 150
                 }
             },
             expectedPendingQueues: {
@@ -413,7 +413,7 @@ access(all) fun testScheduleAndEffortUsed() {
                 ScheduledTransaction(
                     requestedDelta: futureDelta,
                     priority: mediumPriority,
-                    executionEffort: 10,
+                    executionEffort: minEffort,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
@@ -423,7 +423,7 @@ access(all) fun testScheduleAndEffortUsed() {
             expectedAvailableEfforts: {
                 futureDelta: {
                     highPriority: highPriorityMaxEffort,
-                    mediumPriority: mediumPriorityMaxEffort - 10,
+                    mediumPriority: mediumPriorityMaxEffort - minEffort,
                     lowPriority: lowPriorityMaxEffort
                 }
             },
@@ -438,7 +438,7 @@ access(all) fun testScheduleAndEffortUsed() {
                 ScheduledTransaction(
                     requestedDelta: futureDelta,
                     priority: mediumPriority,
-                    executionEffort: maxEffort,
+                    executionEffort: mediumPriorityMaxEffort,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
@@ -446,7 +446,7 @@ access(all) fun testScheduleAndEffortUsed() {
                 ScheduledTransaction(
                     requestedDelta: futureDelta,
                     priority: mediumPriority,
-                    executionEffort: maxEffort,
+                    executionEffort: mediumPriorityMaxEffort,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
@@ -455,13 +455,13 @@ access(all) fun testScheduleAndEffortUsed() {
             transactionsIndicesToCancel: [],
             expectedAvailableEfforts: {
                 futureDelta: {
-                    highPriority: highPriorityMaxEffort - 4999,
-                    mediumPriority: mediumPriorityMaxEffort - maxEffort,
+                    highPriority: highPriorityMaxEffort - sharedEffortLimit,
+                    mediumPriority: 0,
                     lowPriority: lowPriorityMaxEffort
                 },
                 futureDelta + 1.0: {
-                    highPriority: highPriorityMaxEffort - 4999,
-                    mediumPriority: mediumPriorityMaxEffort - maxEffort,
+                    highPriority: highPriorityMaxEffort - sharedEffortLimit,
+                    mediumPriority: 0,
                     lowPriority: lowPriorityMaxEffort
                 }
             },
@@ -480,7 +480,7 @@ access(all) fun testScheduleAndEffortUsed() {
                     executionEffort: maxEffort + 1,
                     data: testData,
                     fees: feeAmount,
-                    failWithErr: "Invalid execution effort: \(maxEffort + 1) is greater than the maximum transaction effort of 9999"
+                    failWithErr: "Invalid execution effort: \(maxEffort + 1) is greater than the maximum transaction effort of \(maxEffort)"
                 )
             ],
             transactionsIndicesToCancel: [],
@@ -501,37 +501,37 @@ access(all) fun testScheduleAndEffortUsed() {
         ScheduleAndEffortUsedTestCase(
             name: "Medium Priority: Many medium priority transactions scheduled for same timestamp",
             transactions: [
-                mediumTransactionWith4000Effort,
-                mediumTransactionWith4000Effort,
-                mediumTransactionWith4000Effort,
-                mediumTransactionWith4000Effort,
-                mediumTransactionWith4000Effort,
-                mediumTransactionWith4000Effort,
-                mediumTransactionWith4000Effort,
-                mediumTransactionWith4000Effort,
-                mediumTransactionWith4000Effort,
-                mediumTransactionWith4000Effort
+                mediumTransactionWith2000Effort,
+                mediumTransactionWith2000Effort,
+                mediumTransactionWith2000Effort,
+                mediumTransactionWith2000Effort,
+                mediumTransactionWith2000Effort,
+                mediumTransactionWith2000Effort,
+                mediumTransactionWith2000Effort,
+                mediumTransactionWith2000Effort,
+                mediumTransactionWith2000Effort,
+                mediumTransactionWith2000Effort
             ],
             transactionsIndicesToCancel: [],
             expectedAvailableEfforts: {
                 futureDelta: {
-                    highPriority: highPriorityMaxEffort-7000,
-                    mediumPriority: 3000,
+                    highPriority: highPriorityMaxEffort - 3500,
+                    mediumPriority: 1500,
                     lowPriority: lowPriorityMaxEffort
                 },
                 futureDelta + 1.0: {
-                    highPriority: highPriorityMaxEffort-7000,
-                    mediumPriority: 3000,
+                    highPriority: highPriorityMaxEffort - 3500,
+                    mediumPriority: 1500,
                     lowPriority: lowPriorityMaxEffort
                 },
                 futureDelta + 2.0: {
-                    highPriority: highPriorityMaxEffort-7000,
-                    mediumPriority: 3000,
+                    highPriority: highPriorityMaxEffort - 3500,
+                    mediumPriority: 1500,
                     lowPriority: lowPriorityMaxEffort
                 },
                 futureDelta + 3.0: {
                     highPriority: highPriorityMaxEffort,
-                    mediumPriority: 11000,
+                    mediumPriority: mediumPriorityMaxEffort - 2000,
                     lowPriority: lowPriorityMaxEffort
                 }
             },
@@ -551,7 +551,7 @@ access(all) fun testScheduleAndEffortUsed() {
                 ScheduledTransaction(
                     requestedDelta: futureDelta,
                     priority: highPriority,
-                    executionEffort: 10,
+                    executionEffort: minEffort,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
@@ -560,7 +560,7 @@ access(all) fun testScheduleAndEffortUsed() {
             transactionsIndicesToCancel: [],
             expectedAvailableEfforts: {
                 futureDelta: {
-                    highPriority: highPriorityMaxEffort - 10,
+                    highPriority: highPriorityMaxEffort - minEffort,
                     mediumPriority: mediumPriorityMaxEffort,
                     lowPriority: lowPriorityMaxEffort
                 }
@@ -587,30 +587,14 @@ access(all) fun testScheduleAndEffortUsed() {
                     executionEffort: maxEffort,
                     data: testData,
                     fees: feeAmount,
-                    failWithErr: nil
-                ),
-                ScheduledTransaction(
-                    requestedDelta: futureDelta,
-                    priority: highPriority,
-                    executionEffort: maxEffort,
-                    data: testData,
-                    fees: feeAmount,
-                    failWithErr: nil
-                ),
-                ScheduledTransaction(
-                    requestedDelta: futureDelta,
-                    priority: highPriority,
-                    executionEffort: maxEffort,
-                    data: testData,
-                    fees: feeAmount,
                     failWithErr: "Invalid execution effort: \(maxEffort) is greater than the priority's available effort for the requested timestamp."
                 )
             ],
             transactionsIndicesToCancel: [],
             expectedAvailableEfforts: {
                 futureDelta: {
-                    highPriority: highPriorityMaxEffort - 3*maxEffort,
-                    mediumPriority: mediumPriorityEffortReserve + 3,
+                    highPriority: highPriorityMaxEffort - maxEffort,
+                    mediumPriority: mediumPriorityMaxEffort,
                     lowPriority: lowPriorityMaxEffort
                 },
                 futureDelta + 1.0: {
@@ -620,8 +604,8 @@ access(all) fun testScheduleAndEffortUsed() {
                 }
             },
             expectedPendingQueues: {
-                futureDelta: [1,2,3],
-                futureDelta + 1.0: [1,2,3]
+                futureDelta: [1],
+                futureDelta + 1.0: [1]
             },
             expectedPendingQueueAfterExecution: []
         ),
@@ -653,13 +637,13 @@ access(all) fun testScheduleAndEffortUsed() {
         ScheduleAndEffortUsedTestCase(
             name: "High Priority: Many high priority transactions scheduled for the same timestamp",
             transactions: [
-                highTransactionWith8000Effort,
-                highTransactionWith8000Effort,
-                highTransactionWith8000Effort,
+                highTransactionWith4000Effort,
+                highTransactionWith4000Effort,
+                highTransactionWith4000Effort,
                 ScheduledTransaction(
                     requestedDelta: futureDelta + 1.0,
                     priority: highPriority,
-                    executionEffort: 8000,
+                    executionEffort: 4000,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
@@ -668,12 +652,12 @@ access(all) fun testScheduleAndEffortUsed() {
             transactionsIndicesToCancel: [],
             expectedAvailableEfforts: {
                 futureDelta: {
-                    highPriority: 6000,
-                    mediumPriority: 11000,
+                    highPriority: highPriorityMaxEffort - 12000,
+                    mediumPriority: 5500,
                     lowPriority: lowPriorityMaxEffort
                 },
                 futureDelta + 1.0: {
-                    highPriority: highPriorityMaxEffort - 8000,
+                    highPriority: highPriorityMaxEffort - 4000,
                     mediumPriority: mediumPriorityMaxEffort,
                     lowPriority: lowPriorityMaxEffort
                 }
@@ -700,23 +684,7 @@ access(all) fun testScheduleAndEffortUsed() {
                 ScheduledTransaction(
                     requestedDelta: futureDelta,
                     priority: highPriority,
-                    executionEffort: 9000,
-                    data: testData,
-                    fees: feeAmount,
-                    failWithErr: nil
-                ),
-                ScheduledTransaction(
-                    requestedDelta: futureDelta,
-                    priority: highPriority,
-                    executionEffort: 9000,
-                    data: testData,
-                    fees: feeAmount,
-                    failWithErr: nil
-                ),
-                ScheduledTransaction(
-                    requestedDelta: futureDelta,
-                    priority: highPriority,
-                    executionEffort: 3000,
+                    executionEffort: 6000,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
@@ -768,8 +736,8 @@ access(all) fun testScheduleAndEffortUsed() {
                 }
             },
             expectedPendingQueues: {
-                futureDelta: [1,2,3,4,5],
-                futureDelta + 1.0: [1,2,3,4,5,6,7]
+                futureDelta: [1,2,3],
+                futureDelta + 1.0: [1,2,3,4,5]
             },
             expectedPendingQueueAfterExecution: []
         ),
@@ -779,15 +747,7 @@ access(all) fun testScheduleAndEffortUsed() {
                 ScheduledTransaction(
                     requestedDelta: futureDelta,
                     priority: mediumPriority,
-                    executionEffort: 9000,
-                    data: testData,
-                    fees: feeAmount,
-                    failWithErr: nil
-                ),
-                ScheduledTransaction(
-                    requestedDelta: futureDelta,
-                    priority: mediumPriority,
-                    executionEffort: 6000,
+                    executionEffort: 7500,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
@@ -803,23 +763,15 @@ access(all) fun testScheduleAndEffortUsed() {
                 ScheduledTransaction(
                     requestedDelta: futureDelta,
                     priority: highPriority,
-                    executionEffort: 9000,
+                    executionEffort: 1001,
                     data: testData,
                     fees: feeAmount,
-                    failWithErr: nil
+                    failWithErr: "Invalid execution effort: 1001 is greater than the priority's available effort for the requested timestamp."
                 ),
                 ScheduledTransaction(
                     requestedDelta: futureDelta,
                     priority: highPriority,
-                    executionEffort: 2001,
-                    data: testData,
-                    fees: feeAmount,
-                    failWithErr: "Invalid execution effort: 2001 is greater than the priority's available effort for the requested timestamp."
-                ),
-                ScheduledTransaction(
-                    requestedDelta: futureDelta,
-                    priority: highPriority,
-                    executionEffort: 2000,
+                    executionEffort: 1000,
                     data: testData,
                     fees: feeAmount,    
                     failWithErr: nil
@@ -834,21 +786,21 @@ access(all) fun testScheduleAndEffortUsed() {
                 }
             },
             expectedPendingQueues: {
-                futureDelta: [1,2,3,4,5],
-                futureDelta + 1.0: [1,2,3,4,5]
+                futureDelta: [1,2,3],
+                futureDelta + 1.0: [1,2,3]
             },
             expectedPendingQueueAfterExecution: []
         ),
         ScheduleAndEffortUsedTestCase(
             name: "Mixed priorities: High and medium use most of shared limit, low priority fits in remaining but doesn't use the high or medium effort",
             transactions: [
-                highTransactionWith8000Effort,
-                highTransactionWith8000Effort,
-                highTransactionWith8000Effort,
+                highTransactionWith4000Effort,
+                highTransactionWith4000Effort,
+                highTransactionWith4000Effort,
                 ScheduledTransaction(
                     requestedDelta: futureDelta,
                     priority: mediumPriority,
-                    executionEffort: mediumPriorityEffortReserve + 4000,
+                    executionEffort: mediumPriorityEffortReserve + 2000,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
@@ -856,7 +808,7 @@ access(all) fun testScheduleAndEffortUsed() {
                 ScheduledTransaction(
                     requestedDelta: futureDelta,
                     priority: lowPriority,
-                    executionEffort: 2001,
+                    executionEffort: 1001,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
@@ -864,7 +816,7 @@ access(all) fun testScheduleAndEffortUsed() {
                 ScheduledTransaction(
                     requestedDelta: futureDelta,
                     priority: mediumPriority,
-                    executionEffort: 2001,
+                    executionEffort: 1001,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
@@ -872,7 +824,7 @@ access(all) fun testScheduleAndEffortUsed() {
                 ScheduledTransaction(
                     requestedDelta: futureDelta,
                     priority: lowPriority,
-                    executionEffort: 2000,
+                    executionEffort: 1000,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
@@ -881,14 +833,14 @@ access(all) fun testScheduleAndEffortUsed() {
             transactionsIndicesToCancel: [],
             expectedAvailableEfforts: {
                 futureDelta: {
-                    highPriority: 2000,
-                    mediumPriority: 2000,
+                    highPriority: 1000,
+                    mediumPriority: 1000,
                     lowPriority: 0
                 },
                 futureDelta + 1.0: {
                     highPriority: highPriorityMaxEffort,
-                    mediumPriority: mediumPriorityMaxEffort-2001,
-                    lowPriority: lowPriorityMaxEffort - 2001
+                    mediumPriority: mediumPriorityMaxEffort-1001,
+                    lowPriority: lowPriorityMaxEffort - 1001
                 }
             },
             expectedPendingQueues: {
@@ -913,7 +865,7 @@ access(all) fun testScheduleAndEffortUsed() {
                 ScheduledTransaction(
                     requestedDelta: futureDelta,
                     priority: highPriority,
-                    executionEffort: 9000,
+                    executionEffort: 4500,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
@@ -921,7 +873,7 @@ access(all) fun testScheduleAndEffortUsed() {
                 ScheduledTransaction(
                     requestedDelta: futureDelta,
                     priority: highPriority,
-                    executionEffort: 9000,
+                    executionEffort: 4500,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
@@ -929,7 +881,7 @@ access(all) fun testScheduleAndEffortUsed() {
                 ScheduledTransaction(
                     requestedDelta: futureDelta,
                     priority: highPriority,
-                    executionEffort: 9000,
+                    executionEffort: 4500,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
@@ -937,7 +889,7 @@ access(all) fun testScheduleAndEffortUsed() {
                 ScheduledTransaction(
                     requestedDelta: futureDelta,
                     priority: mediumPriority,
-                    executionEffort: 8000,
+                    executionEffort: 4000,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
@@ -968,7 +920,7 @@ access(all) fun testScheduleAndEffortUsed() {
                 ScheduledTransaction(
                     requestedDelta: futureDelta,
                     priority: lowPriority,
-                    executionEffort: 2000,
+                    executionEffort: 1000,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
@@ -976,18 +928,18 @@ access(all) fun testScheduleAndEffortUsed() {
                 ScheduledTransaction(
                     requestedDelta: futureDelta,
                     priority: lowPriority,
-                    executionEffort: 2000,
+                    executionEffort: 1000,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
                 ),
-                highTransactionWith8000Effort,
-                highTransactionWith8000Effort,
-                highTransactionWith8000Effort,
+                highTransactionWith4000Effort,
+                highTransactionWith4000Effort,
+                highTransactionWith4000Effort,
                 ScheduledTransaction(
                     requestedDelta: futureDelta,
                     priority: highPriority,
-                    executionEffort: 6000,
+                    executionEffort: 3000,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
@@ -995,7 +947,7 @@ access(all) fun testScheduleAndEffortUsed() {
                 ScheduledTransaction(
                     requestedDelta: futureDelta,
                     priority: mediumPriority,
-                    executionEffort: 2000,
+                    executionEffort: 1000,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
@@ -1005,13 +957,13 @@ access(all) fun testScheduleAndEffortUsed() {
             expectedAvailableEfforts: {
                 futureDelta: {
                     highPriority: 0,
-                    mediumPriority: 3000,
-                    lowPriority: 1000
+                    mediumPriority: 1500,
+                    lowPriority: 500
                 },
                 futureDelta + 1.0: {
                     highPriority: highPriorityMaxEffort,
                     mediumPriority: mediumPriorityMaxEffort,
-                    lowPriority: 3000
+                    lowPriority: 1500
                 }
             },
             expectedPendingQueues: {
@@ -1023,74 +975,78 @@ access(all) fun testScheduleAndEffortUsed() {
         ScheduleAndEffortUsedTestCase(
             name: "Low priority gets rescheduled: Low Priorities get pushed to multiple slots",
             transactions: [
+                // Schedule two low priority transactions for the same timestamp
                 ScheduledTransaction(
                     requestedDelta: futureDelta,
                     priority: lowPriority,
+                    executionEffort: 1500,
+                    data: testData,
+                    fees: feeAmount,
+                    failWithErr: nil
+                ),
+                ScheduledTransaction(
+                    requestedDelta: futureDelta,
+                    priority: lowPriority,
+                    executionEffort: 1000,
+                    data: testData,
+                    fees: feeAmount,
+                    failWithErr: nil
+                ),
+                // Schedule medium transactions to fill up the medium slots and shared limit
+                ScheduledTransaction(
+                    requestedDelta: futureDelta,
+                    priority: mediumPriority,
+                    executionEffort: 4000,
+                    data: testData,
+                    fees: feeAmount,
+                    failWithErr: nil
+                ),
+                ScheduledTransaction(
+                    requestedDelta: futureDelta,
+                    priority: mediumPriority,
+                    executionEffort: 3500,
+                    data: testData,
+                    fees: feeAmount,
+                    failWithErr: nil
+                ),
+                // Schedule high transactions for the next timestamp so that the low priority transactions get pushed to the next timestamp
+                ScheduledTransaction(
+                    requestedDelta: futureDelta + 1.0,
+                    priority: highPriority,
+                    executionEffort: 4000,
+                    data: testData,
+                    fees: feeAmount,
+                    failWithErr: nil
+                ),
+                ScheduledTransaction(
+                    requestedDelta: futureDelta + 1.0,
+                    priority: highPriority,
+                    executionEffort: 4000,
+                    data: testData,
+                    fees: feeAmount,
+                    failWithErr: nil
+                ),
+                ScheduledTransaction(
+                    requestedDelta: futureDelta + 1.0,
+                    priority: highPriority,
+                    executionEffort: 4000,
+                    data: testData,
+                    fees: feeAmount,
+                    failWithErr: nil
+                ),
+                ScheduledTransaction(
+                    requestedDelta: futureDelta + 1.0,
+                    priority: highPriority,
                     executionEffort: 3000,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
                 ),
-                ScheduledTransaction(
-                    requestedDelta: futureDelta,
-                    priority: lowPriority,
-                    executionEffort: 2000,
-                    data: testData,
-                    fees: feeAmount,
-                    failWithErr: nil
-                ),
-                ScheduledTransaction(
-                    requestedDelta: futureDelta,
-                    priority: mediumPriority,
-                    executionEffort: 8000,
-                    data: testData,
-                    fees: feeAmount,
-                    failWithErr: nil
-                ),
-                ScheduledTransaction(
-                    requestedDelta: futureDelta,
-                    priority: mediumPriority,
-                    executionEffort: 7000,
-                    data: testData,
-                    fees: feeAmount,
-                    failWithErr: nil
-                ),
-                ScheduledTransaction(
-                    requestedDelta: futureDelta + 1.0,
-                    priority: highPriority,
-                    executionEffort: 8000,
-                    data: testData,
-                    fees: feeAmount,
-                    failWithErr: nil
-                ),
-                ScheduledTransaction(
-                    requestedDelta: futureDelta + 1.0,
-                    priority: highPriority,
-                    executionEffort: 8000,
-                    data: testData,
-                    fees: feeAmount,
-                    failWithErr: nil
-                ),
-                ScheduledTransaction(
-                    requestedDelta: futureDelta + 1.0,
-                    priority: highPriority,
-                    executionEffort: 8000,
-                    data: testData,
-                    fees: feeAmount,
-                    failWithErr: nil
-                ),
-                ScheduledTransaction(
-                    requestedDelta: futureDelta + 1.0,
-                    priority: highPriority,
-                    executionEffort: 6000,
-                    data: testData,
-                    fees: feeAmount,
-                    failWithErr: nil
-                ),
+                // Schedule medium transaction for the next timestamp to fill up the medium slots so that the low priority transactions get pushed to the next timestamp
                 ScheduledTransaction(
                     requestedDelta: futureDelta + 1.0,
                     priority: mediumPriority,
-                    executionEffort: mediumPriorityEffortReserve - 2000,
+                    executionEffort: mediumPriorityEffortReserve - 1000,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
@@ -1098,7 +1054,7 @@ access(all) fun testScheduleAndEffortUsed() {
                 ScheduledTransaction(
                     requestedDelta: futureDelta,
                     priority: highPriority,
-                    executionEffort: 9500,
+                    executionEffort: 4750,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
@@ -1107,7 +1063,7 @@ access(all) fun testScheduleAndEffortUsed() {
                  ScheduledTransaction(
                     requestedDelta: futureDelta,
                     priority: highPriority,
-                    executionEffort: 9500,
+                    executionEffort: 4750,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
@@ -1116,19 +1072,19 @@ access(all) fun testScheduleAndEffortUsed() {
             transactionsIndicesToCancel: [],
             expectedAvailableEfforts: {
                 futureDelta: {
-                    highPriority: 1000,
+                    highPriority: 500,
                     mediumPriority: 0,
-                    lowPriority: 1000
+                    lowPriority: 500
                 },
                 futureDelta + 1.0: {
                     highPriority: 0,
-                    mediumPriority: 2000,
+                    mediumPriority: 1000,
                     lowPriority: 0
                 },
                 futureDelta + 2.0: {
                     highPriority: highPriorityMaxEffort,
                     mediumPriority: mediumPriorityMaxEffort,
-                    lowPriority: 2000
+                    lowPriority: 1000
                 }
             },
             expectedPendingQueues: {
@@ -1145,7 +1101,7 @@ access(all) fun testScheduleAndEffortUsed() {
                 ScheduledTransaction(
                     requestedDelta: futureDelta,
                     priority: lowPriority,
-                    executionEffort: 3000,
+                    executionEffort: 1500,
                     data: "cancel",
                     fees: feeAmount,
                     failWithErr: nil
@@ -1156,7 +1112,7 @@ access(all) fun testScheduleAndEffortUsed() {
                 futureDelta: {
                     highPriority: highPriorityMaxEffort,
                     mediumPriority: mediumPriorityMaxEffort,
-                    lowPriority: lowPriorityMaxEffort - 3000
+                    lowPriority: lowPriorityMaxEffort - 1500
                 }
             },
             expectedPendingQueues: {
@@ -1366,13 +1322,13 @@ access(all) fun testScheduleAndEffortUsed() {
                     fees: feeAmount,
                     failWithErr: nil
                 ),
-                highTransactionWith8000Effort,
-                highTransactionWith8000Effort,
-                highTransactionWith8000Effort,
+                highTransactionWith4000Effort,
+                highTransactionWith4000Effort,
+                highTransactionWith4000Effort,
                 ScheduledTransaction(
                     requestedDelta: futureDelta,
                     priority: highPriority,
-                    executionEffort: 6000,
+                    executionEffort: 3000,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
@@ -1380,7 +1336,7 @@ access(all) fun testScheduleAndEffortUsed() {
                 ScheduledTransaction(
                     requestedDelta: futureDelta,
                     priority: mediumPriority,
-                    executionEffort: lowPriorityMaxEffort,
+                    executionEffort: mediumPriorityEffortReserve,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
@@ -1411,7 +1367,7 @@ access(all) fun testScheduleAndEffortUsed() {
                 ScheduledTransaction(
                     requestedDelta: futureDelta,
                     priority: mediumPriority,
-                    executionEffort: 2000,
+                    executionEffort: 1000,
                     data: "fail",
                     fees: feeAmount,
                     failWithErr: nil
@@ -1421,7 +1377,7 @@ access(all) fun testScheduleAndEffortUsed() {
             expectedAvailableEfforts: {
                 futureDelta: {
                     highPriority: highPriorityMaxEffort,
-                    mediumPriority: mediumPriorityMaxEffort - 2000,
+                    mediumPriority: mediumPriorityMaxEffort - 1000,
                     lowPriority: lowPriorityMaxEffort
                 }
             },
@@ -1436,7 +1392,7 @@ access(all) fun testScheduleAndEffortUsed() {
                 ScheduledTransaction(
                     requestedDelta: futureDelta,
                     priority: highPriority,
-                    executionEffort: 3000,
+                    executionEffort: 1500,
                     data: "schedule",
                     fees: feeAmount,
                     failWithErr: nil
@@ -1445,7 +1401,7 @@ access(all) fun testScheduleAndEffortUsed() {
             transactionsIndicesToCancel: [],
             expectedAvailableEfforts: {
                 futureDelta: {
-                    highPriority: highPriorityMaxEffort - 3000,
+                    highPriority: highPriorityMaxEffort - 1500,
                     mediumPriority: mediumPriorityMaxEffort,
                     lowPriority: lowPriorityMaxEffort
                 }
@@ -1460,11 +1416,11 @@ access(all) fun testScheduleAndEffortUsed() {
     /// Test case to test transactions over collection effort limit
     ///
     var transactionsOverCollectionEffortLimit: [ScheduledTransaction] = []
-    while UInt64(transactionsOverCollectionEffortLimit.length)*maxEffort <= collectionEffortLimit + maxEffort*2 {
+    while UInt64(transactionsOverCollectionEffortLimit.length)*mediumPriorityMaxEffort <= collectionEffortLimit + mediumPriorityMaxEffort*2 {
         transactionsOverCollectionEffortLimit.append(ScheduledTransaction(
             requestedDelta: futureDelta+UFix64(transactionsOverCollectionEffortLimit.length),
             priority: mediumPriority,
-            executionEffort: maxEffort,
+            executionEffort: mediumPriorityMaxEffort,
             data: testData,
             fees: feeAmount,
             failWithErr: nil

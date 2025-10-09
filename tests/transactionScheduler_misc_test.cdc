@@ -52,7 +52,7 @@ access(all) fun testScheduledTransactionCancellationLimits() {
         minimumExecutionEffort: nil,
         slotSharedEffortLimit: nil,
         priorityEffortReserve: nil,
-        priorityEffortLimit: nil,
+        lowPriorityEffortLimit: nil,
         maxDataSizeMB: nil,
         priorityFeeMultipliers: nil,
         refundMultiplier: nil,

@@ -5,7 +5,7 @@ transaction(
             minimumExecutionEffort: UInt64?,
             slotSharedEffortLimit: UInt64?,
             priorityEffortReserve: {UInt8: UInt64}?,
-            priorityEffortLimit: {UInt8: UInt64}?,
+            lowPriorityEffortLimit: UInt64?,
             maxDataSizeMB: UFix64?,
             priorityFeeMultipliers: {UInt8: UFix64}?,
             refundMultiplier: UFix64?,
@@ -29,11 +29,7 @@ transaction(
             FlowTransactionScheduler.Priority.Medium: currentConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.Medium]!,
             FlowTransactionScheduler.Priority.Low: currentConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.Low]!
         }
-        var newLimits: {FlowTransactionScheduler.Priority: UInt64} = {
-            FlowTransactionScheduler.Priority.High: currentConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.High]!,
-            FlowTransactionScheduler.Priority.Medium: currentConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.Medium]!,
-            FlowTransactionScheduler.Priority.Low: currentConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.Low]!
-        }
+
         var newMultipliers: {FlowTransactionScheduler.Priority: UFix64} = {
             FlowTransactionScheduler.Priority.High: currentConfig.priorityFeeMultipliers[FlowTransactionScheduler.Priority.High]!,
             FlowTransactionScheduler.Priority.Medium: currentConfig.priorityFeeMultipliers[FlowTransactionScheduler.Priority.Medium]!,
@@ -47,13 +43,7 @@ transaction(
                 FlowTransactionScheduler.Priority.Low: reserves[lowRawValue]!
             }
         }
-        if let limits = priorityEffortLimit {
-            newLimits = {
-                FlowTransactionScheduler.Priority.High: limits[highRawValue]!,
-                FlowTransactionScheduler.Priority.Medium: limits[mediumRawValue]!,
-                FlowTransactionScheduler.Priority.Low: limits[lowRawValue]!
-            }
-        }
+
         if let multipliers = priorityFeeMultipliers {
             newMultipliers = {
                 FlowTransactionScheduler.Priority.High: multipliers[highRawValue]!,
@@ -68,7 +58,7 @@ transaction(
             minimumExecutionEffort: minimumExecutionEffort ?? currentConfig.minimumExecutionEffort,
             slotSharedEffortLimit: slotSharedEffortLimit ?? currentConfig.slotSharedEffortLimit,
             priorityEffortReserve: newReserves,
-            priorityEffortLimit: newLimits,
+            lowPriorityEffortLimit: lowPriorityEffortLimit ?? currentConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.Low]!,
             maxDataSizeMB: maxDataSizeMB ?? currentConfig.maxDataSizeMB,
             priorityFeeMultipliers: newMultipliers,
             refundMultiplier: refundMultiplier ?? currentConfig.refundMultiplier,
