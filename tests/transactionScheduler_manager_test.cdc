@@ -63,6 +63,7 @@ access(all) fun testManagerScheduleByHandler() {
         canceledTransactionsLimit: 2,
         collectionEffortLimit: nil,
         collectionTransactionsLimit: nil,
+        txRemovalLimit: nil,
         shouldFail: nil
     )
 

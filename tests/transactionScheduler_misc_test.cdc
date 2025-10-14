@@ -59,6 +59,7 @@ access(all) fun testScheduledTransactionCancellationLimits() {
         canceledTransactionsLimit: 10,
         collectionEffortLimit: nil,
         collectionTransactionsLimit: nil,
+        txRemovalLimit: nil,
         shouldFail: nil
     )
 

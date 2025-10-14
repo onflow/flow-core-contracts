@@ -358,7 +358,8 @@ access(all) contract FlowTransactionScheduler {
             refundMultiplier: UFix64,
             canceledTransactionsLimit: UInt,
             collectionEffortLimit: UInt64,
-            collectionTransactionsLimit: Int
+            collectionTransactionsLimit: Int,
+            txRemovalLimit: UInt
         ) {
             post {
                 self.refundMultiplier >= 0.0 && self.refundMultiplier <= 1.0:
@@ -385,6 +386,8 @@ access(all) contract FlowTransactionScheduler {
                     "Invalid collection effort limit: Collection effort limit must be greater than \(self.slotTotalEffortLimit) but got \(self.collectionEffortLimit)"
             }
         }
+
+        access(all) view fun getTxRemovalLimit(): UInt
     }
 
     /// Concrete implementation of the SchedulerConfig interface
@@ -414,7 +417,8 @@ access(all) contract FlowTransactionScheduler {
             refundMultiplier: UFix64,
             canceledTransactionsLimit: UInt,
             collectionEffortLimit: UInt64,
-            collectionTransactionsLimit: Int
+            collectionTransactionsLimit: Int,
+            txRemovalLimit: UInt
         ) {
             self.maximumIndividualEffort = maximumIndividualEffort
             self.minimumExecutionEffort = minimumExecutionEffort
@@ -432,6 +436,13 @@ access(all) contract FlowTransactionScheduler {
             self.canceledTransactionsLimit = canceledTransactionsLimit
             self.collectionEffortLimit = collectionEffortLimit
             self.collectionTransactionsLimit = collectionTransactionsLimit
+            FlowTransactionScheduler.account.storage.load<UInt>(from: /storage/txRemovalLimit)
+            FlowTransactionScheduler.account.storage.save(txRemovalLimit, to: /storage/txRemovalLimit)
+        }
+
+        access(all) view fun getTxRemovalLimit(): UInt {
+            return FlowTransactionScheduler.account.storage.copy<UInt>(from: /storage/txRemovalLimit)
+                ?? 200
         }
     }
 
@@ -581,7 +592,8 @@ access(all) contract FlowTransactionScheduler {
                 refundMultiplier: 0.5,
                 canceledTransactionsLimit: 1000,
                 collectionEffortLimit: 500_000, // Maximum effort for all transactions in a collection
-                collectionTransactionsLimit: 150 // Maximum number of transactions in a collection
+                collectionTransactionsLimit: 150, // Maximum number of transactions in a collection
+                txRemovalLimit: 200
             )
         }
 
@@ -1216,9 +1228,9 @@ access(all) contract FlowTransactionScheduler {
 
                         numRemoved = numRemoved + 1
 
-                        let removalLimit = self.config.collectionTransactionsLimit + (self.config.collectionTransactionsLimit / 2)
+                        let removalLimit = self.config.getTxRemovalLimit()
 
-                        if numRemoved >= removalLimit {
+                        if UInt(numRemoved) >= removalLimit {
                             emit RemovalLimitReached()
                             return
                         }

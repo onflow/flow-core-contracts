@@ -194,6 +194,7 @@ access(all) fun setConfigDetails(
     canceledTransactionsLimit: UInt?,
     collectionEffortLimit: UInt64?,
     collectionTransactionsLimit: Int?,
+    txRemovalLimit: UInt?,
     shouldFail: String?
 ) {
     let setConfigDetailsCode = Test.readFile("../transactions/transactionScheduler/admin/set_config_details.cdc")
@@ -211,7 +212,8 @@ access(all) fun setConfigDetails(
                     refundMultiplier,
                     canceledTransactionsLimit,
                     collectionEffortLimit,
-                    collectionTransactionsLimit]
+                    collectionTransactionsLimit,
+                    txRemovalLimit]
     )
     let setConfigDetailsResult = Test.executeTransaction(setConfigDetailsTx)
     if let error = shouldFail {
@@ -244,10 +246,12 @@ access(all) fun setFeeParameters(
 }
 
 access(all) fun getConfigDetails(): {FlowTransactionScheduler.SchedulerConfig} {
-    var config = _executeScript(
+    var configResult = _executeScript(
         "../transactions/transactionScheduler/scripts/get_config.cdc",
         []
-    ).returnValue! as! {FlowTransactionScheduler.SchedulerConfig}
+    )
+    Test.expect(configResult, Test.beSucceeded())
+    var config = configResult.returnValue! as! {FlowTransactionScheduler.SchedulerConfig}
     return config
 }
 

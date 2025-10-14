@@ -1,5 +1,6 @@
 import "FlowTransactionScheduler"
 
 access(all) fun main(): {FlowTransactionScheduler.SchedulerConfig} {
-    return FlowTransactionScheduler.getConfig()
+    let config = FlowTransactionScheduler.getConfig()
+    return config
 }

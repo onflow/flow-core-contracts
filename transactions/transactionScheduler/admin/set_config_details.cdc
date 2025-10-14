@@ -11,7 +11,8 @@ transaction(
             refundMultiplier: UFix64?,
             canceledTransactionsLimit: UInt?,
             collectionEffortLimit: UInt64?,
-            collectionTransactionsLimit: Int?) {
+            collectionTransactionsLimit: Int?,
+            txRemovalLimit: UInt?) {
     prepare(account: auth(BorrowValue, SaveValue, IssueStorageCapabilityController, PublishCapability, GetStorageCapabilityController) &Account) {
         // borrow an entitled reference to the SharedScheduler resource
         let schedulerRef = account.storage.borrow<auth(FlowTransactionScheduler.UpdateConfig) &FlowTransactionScheduler.SharedScheduler>(from: /storage/sharedScheduler)
@@ -64,7 +65,8 @@ transaction(
             refundMultiplier: refundMultiplier ?? currentConfig.refundMultiplier,
             canceledTransactionsLimit: canceledTransactionsLimit ?? currentConfig.canceledTransactionsLimit,
             collectionEffortLimit: collectionEffortLimit ?? currentConfig.collectionEffortLimit,
-            collectionTransactionsLimit: collectionTransactionsLimit ?? currentConfig.collectionTransactionsLimit
+            collectionTransactionsLimit: collectionTransactionsLimit ?? currentConfig.collectionTransactionsLimit,
+            txRemovalLimit: txRemovalLimit ?? currentConfig.getTxRemovalLimit()
         )
 
         // set the new config
