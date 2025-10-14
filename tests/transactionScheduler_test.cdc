@@ -350,6 +350,7 @@ access(all) fun testConfigDetails() {
         canceledTransactionsLimit: nil,
         collectionEffortLimit: nil,
         collectionTransactionsLimit: nil,
+        txRemovalLimit: nil,
         shouldFail: "Invalid refund multiplier: The multiplier must be between 0.0 and 1.0 but got 1.10000000"
     )
 
@@ -365,6 +366,7 @@ access(all) fun testConfigDetails() {
         canceledTransactionsLimit: nil,
         collectionEffortLimit: nil,
         collectionTransactionsLimit: nil,
+        txRemovalLimit: nil,
         shouldFail: "Invalid priority fee multiplier: Low priority multiplier must be greater than or equal to 1.0 but got 0.90000000"
     )
 
@@ -380,6 +382,7 @@ access(all) fun testConfigDetails() {
         canceledTransactionsLimit: nil,
         collectionEffortLimit: nil,
         collectionTransactionsLimit: nil,
+        txRemovalLimit: nil,
         shouldFail: "Invalid priority fee multiplier: Medium priority multiplier must be greater than or equal to 4.00000000 but got 3.00000000"
     )
 
@@ -395,6 +398,7 @@ access(all) fun testConfigDetails() {
         canceledTransactionsLimit: nil,
         collectionEffortLimit: nil,
         collectionTransactionsLimit: nil,
+        txRemovalLimit: nil,
         shouldFail: "Invalid priority fee multiplier: High priority multiplier must be greater than or equal to 6.00000000 but got 5.00000000"
     )
 
@@ -410,6 +414,7 @@ access(all) fun testConfigDetails() {
         canceledTransactionsLimit: nil,
         collectionEffortLimit: nil,
         collectionTransactionsLimit: nil,
+        txRemovalLimit: nil,
         shouldFail: "Invalid priority effort limit: Low priority effort limit must be greater than or equal to the priority effort reserve of 20000"
     )
 
@@ -425,6 +430,7 @@ access(all) fun testConfigDetails() {
         canceledTransactionsLimit: nil,
         collectionEffortLimit: slotTotalEffortLimit - 1,
         collectionTransactionsLimit: nil,
+        txRemovalLimit: nil,
         shouldFail: "Invalid collection effort limit: Collection effort limit must be greater than \(slotTotalEffortLimit) but got \(slotTotalEffortLimit - 1)"
     )
 
@@ -440,6 +446,7 @@ access(all) fun testConfigDetails() {
         canceledTransactionsLimit: nil,
         collectionEffortLimit: nil,
         collectionTransactionsLimit: -1,
+        txRemovalLimit: nil,
         shouldFail: "Invalid collection transactions limit: Collection transactions limit must be greater than or equal to 0 but got -1"
     )
 
@@ -455,6 +462,7 @@ access(all) fun testConfigDetails() {
         canceledTransactionsLimit: 0,
         collectionEffortLimit: nil,
         collectionTransactionsLimit: nil,
+        txRemovalLimit: nil,
         shouldFail: "Invalid canceled transactions limit: Canceled transactions limit must be greater than or equal to 1 but got 0"
     )
 
@@ -481,6 +489,7 @@ access(all) fun testConfigDetails() {
     Test.assertEqual(1000 as UInt,oldConfig.canceledTransactionsLimit)
     Test.assertEqual(500000 as UInt64,oldConfig.collectionEffortLimit)
     Test.assertEqual(150 as Int,oldConfig.collectionTransactionsLimit)
+    Test.assertEqual(200 as UInt,oldConfig.getTxRemovalLimit())
 
 
     setConfigDetails(
@@ -495,6 +504,7 @@ access(all) fun testConfigDetails() {
         canceledTransactionsLimit: 2000,
         collectionEffortLimit: 800000,
         collectionTransactionsLimit: 90,
+        txRemovalLimit: 210,
         shouldFail: nil
     )
 
