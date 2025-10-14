@@ -1218,6 +1218,7 @@ access(all) contract FlowTransactionScheduler {
         access(self) fun removeExecutedTransactions(_ currentTimestamp: UFix64) {
             let pastTimestamps = self.sortedTimestamps.getBefore(current: currentTimestamp)
             var numRemoved = 0
+            let removalLimit = self.config.getTxRemovalLimit()
 
             for timestamp in pastTimestamps {
                 let transactionPriorities = self.slotQueue[timestamp] ?? {}
@@ -1227,8 +1228,6 @@ access(all) contract FlowTransactionScheduler {
                     for id in transactionIDs.keys {
 
                         numRemoved = numRemoved + 1
-
-                        let removalLimit = self.config.getTxRemovalLimit()
 
                         if UInt(numRemoved) >= removalLimit {
                             emit RemovalLimitReached()
