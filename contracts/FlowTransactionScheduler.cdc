@@ -673,7 +673,10 @@ access(all) contract FlowTransactionScheduler {
             // Calculate the FLOW required to pay for storage of the transaction data
             let storageFee = FlowStorageFees.storageCapacityToFlow(dataSizeMB)
             
-            return scaledExecutionFee + storageFee
+            // Add inclusion Flow fee for scheduled transactions
+            let inclusionFee = 0.01
+
+            return scaledExecutionFee + storageFee + inclusionFee
         }
 
         /// getNextIDAndIncrement returns the next ID and increments the ID counter
