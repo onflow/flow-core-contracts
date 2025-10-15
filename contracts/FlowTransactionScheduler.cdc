@@ -674,7 +674,7 @@ access(all) contract FlowTransactionScheduler {
             let storageFee = FlowStorageFees.storageCapacityToFlow(dataSizeMB)
             
             // Add inclusion Flow fee for scheduled transactions
-            let inclusionFee = 0.01
+            let inclusionFee = 0.00001
 
             return scaledExecutionFee + storageFee + inclusionFee
         }
