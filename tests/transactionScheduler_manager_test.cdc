@@ -56,13 +56,14 @@ access(all) fun testManagerScheduleByHandler() {
         minimumExecutionEffort: nil,
         slotSharedEffortLimit: nil,
         priorityEffortReserve: nil,
-        priorityEffortLimit: nil,
+        lowPriorityEffortLimit: nil,
         maxDataSizeMB: nil,
         priorityFeeMultipliers: nil,
         refundMultiplier: nil,
         canceledTransactionsLimit: 2,
         collectionEffortLimit: nil,
         collectionTransactionsLimit: nil,
+        txRemovalLimit: nil,
         shouldFail: nil
     )
 

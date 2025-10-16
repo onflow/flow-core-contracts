@@ -106,6 +106,9 @@ access(all) contract FlowTransactionScheduler {
         collectionTransactionsLimit: Int?
     )
 
+    /// Emitted when the limit on the number of transactions that can be removed in process() is reached
+    access(all) event RemovalLimitReached()
+
     // Emitted when one or more of the configuration details fields are updated
     // Event listeners can listen to this and query the new configuration
     // if they need to
@@ -349,39 +352,42 @@ access(all) contract FlowTransactionScheduler {
             minimumExecutionEffort: UInt64,
             slotSharedEffortLimit: UInt64,
             priorityEffortReserve: {Priority: UInt64},
-            priorityEffortLimit: {Priority: UInt64},
+            lowPriorityEffortLimit: UInt64,
             maxDataSizeMB: UFix64,
             priorityFeeMultipliers: {Priority: UFix64},
             refundMultiplier: UFix64,
             canceledTransactionsLimit: UInt,
             collectionEffortLimit: UInt64,
-            collectionTransactionsLimit: Int
+            collectionTransactionsLimit: Int,
+            txRemovalLimit: UInt
         ) {
-            pre {
-                refundMultiplier >= 0.0 && refundMultiplier <= 1.0:
-                    "Invalid refund multiplier: The multiplier must be between 0.0 and 1.0 but got \(refundMultiplier)"
-                priorityFeeMultipliers[Priority.Low]! >= 1.0:
-                    "Invalid priority fee multiplier: Low priority multiplier must be greater than or equal to 1.0 but got \(priorityFeeMultipliers[Priority.Low]!)"
-                priorityFeeMultipliers[Priority.Medium]! > priorityFeeMultipliers[Priority.Low]!:
-                    "Invalid priority fee multiplier: Medium priority multiplier must be greater than or equal to \(priorityFeeMultipliers[Priority.Low]!) but got \(priorityFeeMultipliers[Priority.Medium]!)"
-                priorityFeeMultipliers[Priority.High]! > priorityFeeMultipliers[Priority.Medium]!:
-                    "Invalid priority fee multiplier: High priority multiplier must be greater than or equal to \(priorityFeeMultipliers[Priority.Medium]!) but got \(priorityFeeMultipliers[Priority.High]!)"
-                priorityEffortLimit[Priority.High]! >= priorityEffortReserve[Priority.High]!:
-                    "Invalid priority effort limit: High priority effort limit must be greater than or equal to the priority effort reserve of \(priorityEffortReserve[Priority.High]!)"
-                priorityEffortLimit[Priority.Medium]! >= priorityEffortReserve[Priority.Medium]!:
-                    "Invalid priority effort limit: Medium priority effort limit must be greater than or equal to the priority effort reserve of \(priorityEffortReserve[Priority.Medium]!)"
-                priorityEffortLimit[Priority.Low]! >= priorityEffortReserve[Priority.Low]!:
-                    "Invalid priority effort limit: Low priority effort limit must be greater than or equal to the priority effort reserve of \(priorityEffortReserve[Priority.Low]!)"
-                collectionTransactionsLimit >= 0:
-                    "Invalid collection transactions limit: Collection transactions limit must be greater than or equal to 0 but got \(collectionTransactionsLimit)"
-                canceledTransactionsLimit >= 1:
-                    "Invalid canceled transactions limit: Canceled transactions limit must be greater than or equal to 1 but got \(canceledTransactionsLimit)"
-            }
             post {
+                self.refundMultiplier >= 0.0 && self.refundMultiplier <= 1.0:
+                    "Invalid refund multiplier: The multiplier must be between 0.0 and 1.0 but got \(refundMultiplier)"
+                self.priorityFeeMultipliers[Priority.Low]! >= 1.0:
+                    "Invalid priority fee multiplier: Low priority multiplier must be greater than or equal to 1.0 but got \(self.priorityFeeMultipliers[Priority.Low]!)"
+                self.priorityFeeMultipliers[Priority.Medium]! > self.priorityFeeMultipliers[Priority.Low]!:
+                    "Invalid priority fee multiplier: Medium priority multiplier must be greater than or equal to \(priorityFeeMultipliers[Priority.Low]!) but got \(priorityFeeMultipliers[Priority.Medium]!)"
+                self.priorityFeeMultipliers[Priority.High]! > self.priorityFeeMultipliers[Priority.Medium]!:
+                    "Invalid priority fee multiplier: High priority multiplier must be greater than or equal to \(priorityFeeMultipliers[Priority.Medium]!) but got \(priorityFeeMultipliers[Priority.High]!)"
+                self.priorityEffortLimit[Priority.High]! >= self.priorityEffortReserve[Priority.High]!:
+                    "Invalid priority effort limit: High priority effort limit must be greater than or equal to the priority effort reserve of \(priorityEffortReserve[Priority.High]!)"
+                self.priorityEffortLimit[Priority.Medium]! >= self.priorityEffortReserve[Priority.Medium]!:
+                    "Invalid priority effort limit: Medium priority effort limit must be greater than or equal to the priority effort reserve of \(priorityEffortReserve[Priority.Medium]!)"
+                self.priorityEffortLimit[Priority.Low]! >= self.priorityEffortReserve[Priority.Low]!:
+                    "Invalid priority effort limit: Low priority effort limit must be greater than or equal to the priority effort reserve of \(priorityEffortReserve[Priority.Low]!)"
+                self.priorityEffortReserve[Priority.Low]! == 0:
+                    "Invalid priority effort reserve: Low priority effort reserve must be 0"
+                self.collectionTransactionsLimit >= 0:
+                    "Invalid collection transactions limit: Collection transactions limit must be greater than or equal to 0 but got \(collectionTransactionsLimit)"
+                self.canceledTransactionsLimit >= 1:
+                    "Invalid canceled transactions limit: Canceled transactions limit must be greater than or equal to 1 but got \(canceledTransactionsLimit)"
                 self.collectionEffortLimit > self.slotTotalEffortLimit:
                     "Invalid collection effort limit: Collection effort limit must be greater than \(self.slotTotalEffortLimit) but got \(self.collectionEffortLimit)"
             }
         }
+
+        access(all) view fun getTxRemovalLimit(): UInt
     }
 
     /// Concrete implementation of the SchedulerConfig interface
@@ -405,26 +411,38 @@ access(all) contract FlowTransactionScheduler {
             minimumExecutionEffort: UInt64,
             slotSharedEffortLimit: UInt64,
             priorityEffortReserve: {Priority: UInt64},
-            priorityEffortLimit: {Priority: UInt64},
+            lowPriorityEffortLimit: UInt64,
             maxDataSizeMB: UFix64,
             priorityFeeMultipliers: {Priority: UFix64},
             refundMultiplier: UFix64,
             canceledTransactionsLimit: UInt,
             collectionEffortLimit: UInt64,
-            collectionTransactionsLimit: Int
+            collectionTransactionsLimit: Int,
+            txRemovalLimit: UInt
         ) {
             self.maximumIndividualEffort = maximumIndividualEffort
             self.minimumExecutionEffort = minimumExecutionEffort
             self.slotTotalEffortLimit = slotSharedEffortLimit + priorityEffortReserve[Priority.High]! + priorityEffortReserve[Priority.Medium]!
             self.slotSharedEffortLimit = slotSharedEffortLimit
             self.priorityEffortReserve = priorityEffortReserve
-            self.priorityEffortLimit = priorityEffortLimit
+            self.priorityEffortLimit = {
+                Priority.High: priorityEffortReserve[Priority.High]! + slotSharedEffortLimit,
+                Priority.Medium: priorityEffortReserve[Priority.Medium]! + slotSharedEffortLimit,
+                Priority.Low: lowPriorityEffortLimit
+            }
             self.maxDataSizeMB = maxDataSizeMB
             self.priorityFeeMultipliers = priorityFeeMultipliers
             self.refundMultiplier = refundMultiplier
             self.canceledTransactionsLimit = canceledTransactionsLimit
             self.collectionEffortLimit = collectionEffortLimit
             self.collectionTransactionsLimit = collectionTransactionsLimit
+            FlowTransactionScheduler.account.storage.load<UInt>(from: /storage/txRemovalLimit)
+            FlowTransactionScheduler.account.storage.save(txRemovalLimit, to: /storage/txRemovalLimit)
+        }
+
+        access(all) view fun getTxRemovalLimit(): UInt {
+            return FlowTransactionScheduler.account.storage.copy<UInt>(from: /storage/txRemovalLimit)
+                ?? 200
         }
     }
 
@@ -529,47 +547,43 @@ access(all) contract FlowTransactionScheduler {
             
             /* Default slot efforts and limits look like this:
 
-                Timestamp Slot (35kee)
+                Timestamp Slot (17.5kee)
                 ┌─────────────────────────┐
                 │ ┌─────────────┐         │ 
-                │ │ High Only   │         │ High: 30kee max
-                │ │   20kee     │         │ (20 exclusive + 10 shared)
+                │ │ High Only   │         │ High: 15kee max
+                │ │   10kee     │         │ (10 exclusive + 5 shared)
                 │ └─────────────┘         │
                 | ┌───────────────┐       |
                 │ |  Shared Pool  │       |
                 | │ (High+Medium) │       |
-                | │     10kee     │       |
+                | │     5kee     │       |
                 | └───────────────┘       |
-                │ ┌─────────────┐         │ Medium: 15kee max  
-                │ │ Medium Only │         │ (5 exclusive + 10 shared)
-                │ │   5kee      │         │
+                │ ┌─────────────┐         │ Medium: 7.5kee max  
+                │ │ Medium Only │         │ (2.5 exclusive + 5 shared)
+                │ │   2.5kee      │         │
                 │ └─────────────┘         │
-                │ ┌─────────────────────┐ │ Low: 5kee max
+                │ ┌─────────────────────┐ │ Low: 2.5kee max
                 │ │ Low (if space left) │ │ (execution time only)
-                │ │       5kee          │ │
+                │ │       2.5kee          │ │
                 │ └─────────────────────┘ │
                 └─────────────────────────┘
             */
 
-            let sharedEffortLimit: UInt64 = 10_000
-            let highPriorityEffortReserve: UInt64 = 20_000
-            let mediumPriorityEffortReserve: UInt64 = 5_000
+            let sharedEffortLimit: UInt64 = 5_000
+            let highPriorityEffortReserve: UInt64 = 10_000
+            let mediumPriorityEffortReserve: UInt64 = 2_500
 
             self.config = Config(
                 maximumIndividualEffort: 9999,
-                minimumExecutionEffort: 10,
+                minimumExecutionEffort: 100,
                 slotSharedEffortLimit: sharedEffortLimit,
                 priorityEffortReserve: {
                     Priority.High: highPriorityEffortReserve,
                     Priority.Medium: mediumPriorityEffortReserve,
                     Priority.Low: 0
                 },
-                priorityEffortLimit: {
-                    Priority.High: highPriorityEffortReserve + sharedEffortLimit,
-                    Priority.Medium: mediumPriorityEffortReserve + sharedEffortLimit,
-                    Priority.Low: 5_000
-                },
-                maxDataSizeMB: 3.0,
+                lowPriorityEffortLimit: 2_500,
+                maxDataSizeMB: 0.1,
                 priorityFeeMultipliers: {
                     Priority.High: 10.0,
                     Priority.Medium: 5.0,
@@ -578,7 +592,8 @@ access(all) contract FlowTransactionScheduler {
                 refundMultiplier: 0.5,
                 canceledTransactionsLimit: 1000,
                 collectionEffortLimit: 500_000, // Maximum effort for all transactions in a collection
-                collectionTransactionsLimit: 150 // Maximum number of transactions in a collection
+                collectionTransactionsLimit: 150, // Maximum number of transactions in a collection
+                txRemovalLimit: 200
             )
         }
 
@@ -967,7 +982,7 @@ access(all) contract FlowTransactionScheduler {
             let mediumUsed = slotPriorityEffortsUsed[Priority.Medium] ?? 0
 
             // If it is low priority, return whatever effort is remaining
-            // under 5000, subtracting the currently used effort for low priority
+            // under the low priority effort limit, subtracting the currently used effort for low priority
             if priority == Priority.Low {
                 let highPlusMediumUsed = highUsed + mediumUsed
                 let totalEffortRemaining = self.config.slotTotalEffortLimit.saturatingSubtract(highPlusMediumUsed)
@@ -1205,6 +1220,8 @@ access(all) contract FlowTransactionScheduler {
         /// removeExecutedTransactions removes all transactions that are marked as executed.
         access(self) fun removeExecutedTransactions(_ currentTimestamp: UFix64) {
             let pastTimestamps = self.sortedTimestamps.getBefore(current: currentTimestamp)
+            var numRemoved = 0
+            let removalLimit = self.config.getTxRemovalLimit()
 
             for timestamp in pastTimestamps {
                 let transactionPriorities = self.slotQueue[timestamp] ?? {}
@@ -1212,8 +1229,16 @@ access(all) contract FlowTransactionScheduler {
                 for priority in transactionPriorities.keys {
                     let transactionIDs = transactionPriorities[priority] ?? {}
                     for id in transactionIDs.keys {
+
+                        numRemoved = numRemoved + 1
+
+                        if UInt(numRemoved) >= removalLimit {
+                            emit RemovalLimitReached()
+                            return
+                        }
+
                         let tx = self.borrowTransaction(id: id)
-                            ?? panic("Invalid ID: \(id) transaction not found during initial processing") // critical bug
+                            ?? panic("Invalid ID: \(id) transaction not found during removal") // critical bug
 
                         // Only remove executed transactions
                         if tx.status != Status.Executed {
@@ -1223,6 +1248,7 @@ access(all) contract FlowTransactionScheduler {
                         // charge the full fee for transaction execution
                         destroy tx.payAndRefundFees(refundMultiplier: 0.0)
 
+                        // remove all associated transaction data
                         self.removeTransaction(txData: tx)
                     }
                 }
