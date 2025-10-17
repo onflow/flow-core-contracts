@@ -583,7 +583,7 @@ access(all) contract FlowTransactionScheduler {
                     Priority.Low: 0
                 },
                 lowPriorityEffortLimit: 2_500,
-                maxDataSizeMB: 0.1,
+                maxDataSizeMB: 0.001,
                 priorityFeeMultipliers: {
                     Priority.High: 10.0,
                     Priority.Medium: 5.0,
