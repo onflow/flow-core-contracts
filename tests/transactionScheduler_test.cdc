@@ -481,7 +481,7 @@ access(all) fun testConfigDetails() {
     Test.assertEqual(highPriorityMaxEffort as UInt64,oldConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.High]!)
     Test.assertEqual(mediumPriorityMaxEffort as UInt64,oldConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.Medium]!)
     Test.assertEqual(lowPriorityMaxEffort as UInt64,oldConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.Low]!)
-    Test.assertEqual(0.1,oldConfig.maxDataSizeMB)
+    Test.assertEqual(0.001,oldConfig.maxDataSizeMB)
     Test.assertEqual(10.0,oldConfig.priorityFeeMultipliers[FlowTransactionScheduler.Priority.High]!)
     Test.assertEqual(5.0,oldConfig.priorityFeeMultipliers[FlowTransactionScheduler.Priority.Medium]!)
     Test.assertEqual(2.0,oldConfig.priorityFeeMultipliers[FlowTransactionScheduler.Priority.Low]!)
