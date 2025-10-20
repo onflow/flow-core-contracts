@@ -586,7 +586,7 @@ access(all) contract FlowTransactionScheduler {
                     Priority.Low: 0
                 },
                 lowPriorityEffortLimit: 2_500,
-                maxDataSizeMB: 0.1,
+                maxDataSizeMB: 0.001,
                 priorityFeeMultipliers: {
                     Priority.High: 10.0,
                     Priority.Medium: 5.0,
@@ -1086,12 +1086,12 @@ access(all) contract FlowTransactionScheduler {
                     continue
                 }
 
-                if tx!.priority == Priority.Low {
+                if tx!.priority != Priority.Low {
                     emit CriticalIssue(message: "Invalid Priority: Cannot reschedule transaction with id \(id) because it is not low priority")
                     continue
                 }
                 
-                if tx!.scheduledTimestamp == slot {
+                if tx!.scheduledTimestamp != slot {
                     emit CriticalIssue(message: "Invalid Timestamp: Cannot reschedule transaction with id \(id) because it is not scheduled at the same slot as the new transaction")
                     continue
                 }
@@ -1099,11 +1099,11 @@ access(all) contract FlowTransactionScheduler {
                 let newTimestamp = self.calculateScheduledTimestamp(
                     timestamp: slot + 1.0,
                     priority: Priority.Low,
-                    executionEffort: tx.executionEffort
+                    executionEffort: tx!.executionEffort
                 )!
 
-                let effort = tx.executionEffort
-                let transactionData = self.removeTransaction(txData: tx)
+                let effort = tx!.executionEffort
+                let transactionData = self.removeTransaction(txData: tx!)
 
                 // Subtract the execution effort for this transaction from the slot's priority
                 let slotEfforts = self.slotUsedEffort[slot]!
