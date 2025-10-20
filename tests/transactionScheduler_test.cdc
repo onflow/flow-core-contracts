@@ -82,13 +82,29 @@ access(all) fun testGetSizeOfData() {
     size = getSizeOfData(data: testData)
     Test.assertEqual(0.00003000 as UFix64, size)
 
-    // let largeArray: [Int] = []
-    // while largeArray.length < 10000 {
-    //     largeArray.append(1)
-    // }
+    size = getSizeOfData(data: 0x0000000000000001)
+    Test.assertEqual(0.00000000 as UFix64, size)
 
-    // size = getSizeOfData(data: largeArray)
-    // Test.assertEqual(0.05286100 as UFix64, size)
+    let largeArray: [Int] = []
+    while largeArray.length < 10000 {
+         largeArray.append(1)
+    }
+
+    size = getSizeOfData(data: largeArray)
+    Test.assertEqual(0.05337100 as UFix64, size)
+
+    // let currentTime = getCurrentBlock().timestamp
+    // let futureTime = currentTime + 100.0
+
+    // let estimate = FlowTransactionScheduler.estimate(
+    //     data: testData,
+    //     timestamp: futureTime,
+    //     priority: FlowTransactionScheduler.Priority.Medium,
+    //     executionEffort: 1000
+    // )
+
+    // size = getSizeOfData(data: estimate)
+    // Test.assertEqual(0.00021000 as UFix64, size)
 }
 
 /** ---------------------------------------------------------------------------------
@@ -190,7 +206,7 @@ access(all) fun testEstimate() {
             data: nil,
             expectedFee: nil,
             expectedTimestamp: nil,
-            expectedError: "Invalid execution effort: 50000 is greater than the maximum transaction effort of 9999"
+            expectedError: "Invalid execution effort: 50000 is greater than the maximum transaction effort of \(maxEffort)"
         ),
         EstimateTestCase(
             name: "Excessive medium priority effort returns error",
@@ -200,17 +216,17 @@ access(all) fun testEstimate() {
             data: nil,
             expectedFee: nil,
             expectedTimestamp: nil,
-            expectedError: "Invalid execution effort: 10000 is greater than the maximum transaction effort of 9999"
+            expectedError: "Invalid execution effort: 10000 is greater than the maximum transaction effort of \(maxEffort)"
         ),
         EstimateTestCase(
             name: "Excessive low priority effort returns error",
             timestamp: futureTime + 10.0,
             priority: FlowTransactionScheduler.Priority.Low,
-            executionEffort: 5001,
+            executionEffort: lowPriorityMaxEffort + 1,
             data: nil,
             expectedFee: nil,
             expectedTimestamp: nil,
-            expectedError: "Invalid execution effort: 5001 is greater than the priority's max effort of 5000"
+            expectedError: "Invalid execution effort: \(lowPriorityMaxEffort + 1) is greater than the priority's max effort of \(lowPriorityMaxEffort)"
         ),
 
         // Valid cases - should return EstimatedScheduledTransaction with no error
@@ -228,9 +244,9 @@ access(all) fun testEstimate() {
             name: "Medium priority minimum effort",
             timestamp: futureTime + 4.0,
             priority: FlowTransactionScheduler.Priority.Medium,
-            executionEffort: 10,
+            executionEffort: minEffort,
             data: nil,
-            expectedFee: 0.00006245,
+            expectedFee: 0.00017495,
             expectedTimestamp: futureTime + 4.0,
             expectedError: nil
         ),
@@ -327,13 +343,14 @@ access(all) fun testConfigDetails() {
         minimumExecutionEffort: nil,
         slotSharedEffortLimit: nil,
         priorityEffortReserve: nil,
-        priorityEffortLimit: nil,
+        lowPriorityEffortLimit: nil,
         maxDataSizeMB: nil,
         priorityFeeMultipliers: nil,
         refundMultiplier: 1.1,
         canceledTransactionsLimit: nil,
         collectionEffortLimit: nil,
         collectionTransactionsLimit: nil,
+        txRemovalLimit: nil,
         shouldFail: "Invalid refund multiplier: The multiplier must be between 0.0 and 1.0 but got 1.10000000"
     )
 
@@ -342,13 +359,14 @@ access(all) fun testConfigDetails() {
         minimumExecutionEffort: nil,
         slotSharedEffortLimit: nil,
         priorityEffortReserve: nil,
-        priorityEffortLimit: nil,
+        lowPriorityEffortLimit: nil,
         maxDataSizeMB: nil,
         priorityFeeMultipliers: {highPriority: 20.0, mediumPriority: 10.0, lowPriority: 0.9},
         refundMultiplier: nil,
         canceledTransactionsLimit: nil,
         collectionEffortLimit: nil,
         collectionTransactionsLimit: nil,
+        txRemovalLimit: nil,
         shouldFail: "Invalid priority fee multiplier: Low priority multiplier must be greater than or equal to 1.0 but got 0.90000000"
     )
 
@@ -357,13 +375,14 @@ access(all) fun testConfigDetails() {
         minimumExecutionEffort: nil,
         slotSharedEffortLimit: nil,
         priorityEffortReserve: nil,
-        priorityEffortLimit: nil,
+        lowPriorityEffortLimit: nil,
         maxDataSizeMB: nil,
         priorityFeeMultipliers: {highPriority: 20.0, mediumPriority: 3.0, lowPriority: 4.0},
         refundMultiplier: nil,
         canceledTransactionsLimit: nil,
         collectionEffortLimit: nil,
         collectionTransactionsLimit: nil,
+        txRemovalLimit: nil,
         shouldFail: "Invalid priority fee multiplier: Medium priority multiplier must be greater than or equal to 4.00000000 but got 3.00000000"
     )
 
@@ -372,13 +391,14 @@ access(all) fun testConfigDetails() {
         minimumExecutionEffort: nil,
         slotSharedEffortLimit: nil,
         priorityEffortReserve: nil,
-        priorityEffortLimit: nil,
+        lowPriorityEffortLimit: nil,
         maxDataSizeMB: nil,
         priorityFeeMultipliers: {highPriority: 5.0, mediumPriority: 6.0, lowPriority: 4.0},
         refundMultiplier: nil,
         canceledTransactionsLimit: nil,
         collectionEffortLimit: nil,
         collectionTransactionsLimit: nil,
+        txRemovalLimit: nil,
         shouldFail: "Invalid priority fee multiplier: High priority multiplier must be greater than or equal to 6.00000000 but got 5.00000000"
     )
 
@@ -386,44 +406,15 @@ access(all) fun testConfigDetails() {
         maximumIndividualEffort: nil,
         minimumExecutionEffort: nil,
         slotSharedEffortLimit: nil,
-        priorityEffortReserve: {highPriority: 40000, mediumPriority: 30000, lowPriority: 10000},
-        priorityEffortLimit: {highPriority: 30000, mediumPriority: 30000, lowPriority: 10000},
-        maxDataSizeMB: nil,
-        priorityFeeMultipliers: nil,
-        refundMultiplier: nil,
-        canceledTransactionsLimit: nil,
-        collectionEffortLimit: nil,
-        collectionTransactionsLimit: nil,
-        shouldFail: "Invalid priority effort limit: High priority effort limit must be greater than or equal to the priority effort reserve of 40000"
-    )
-
-    setConfigDetails(
-        maximumIndividualEffort: nil,
-        minimumExecutionEffort: nil,
-        slotSharedEffortLimit: nil,
-        priorityEffortReserve: {highPriority: 30000, mediumPriority: 40000, lowPriority: 10000},
-        priorityEffortLimit: {highPriority: 30000, mediumPriority: 30000, lowPriority: 10000},
-        maxDataSizeMB: nil,
-        priorityFeeMultipliers: nil,
-        refundMultiplier: nil,
-        canceledTransactionsLimit: nil,
-        collectionEffortLimit: nil,
-        collectionTransactionsLimit: nil,
-        shouldFail: "Invalid priority effort limit: Medium priority effort limit must be greater than or equal to the priority effort reserve of 40000"
-    )
-
-    setConfigDetails(
-        maximumIndividualEffort: nil,
-        minimumExecutionEffort: nil,
-        slotSharedEffortLimit: nil,
         priorityEffortReserve: {highPriority: 30000, mediumPriority: 30000, lowPriority: 20000},
-        priorityEffortLimit: {highPriority: 30000, mediumPriority: 30000, lowPriority: 10000},
+        lowPriorityEffortLimit: 10000,
         maxDataSizeMB: nil,
         priorityFeeMultipliers: nil,
         refundMultiplier: nil,
         canceledTransactionsLimit: nil,
         collectionEffortLimit: nil,
         collectionTransactionsLimit: nil,
+        txRemovalLimit: nil,
         shouldFail: "Invalid priority effort limit: Low priority effort limit must be greater than or equal to the priority effort reserve of 20000"
     )
 
@@ -432,14 +423,15 @@ access(all) fun testConfigDetails() {
         minimumExecutionEffort: nil,
         slotSharedEffortLimit: nil,
         priorityEffortReserve: nil,
-        priorityEffortLimit: nil,
+        lowPriorityEffortLimit: nil,
         maxDataSizeMB: nil,
         priorityFeeMultipliers: nil,
         refundMultiplier: nil,
         canceledTransactionsLimit: nil,
-        collectionEffortLimit: 30000 as UInt64,
+        collectionEffortLimit: slotTotalEffortLimit - 1,
         collectionTransactionsLimit: nil,
-        shouldFail: "Invalid collection effort limit: Collection effort limit must be greater than 35000 but got 30000"
+        txRemovalLimit: nil,
+        shouldFail: "Invalid collection effort limit: Collection effort limit must be greater than \(slotTotalEffortLimit) but got \(slotTotalEffortLimit - 1)"
     )
 
     setConfigDetails(
@@ -447,13 +439,14 @@ access(all) fun testConfigDetails() {
         minimumExecutionEffort: nil,
         slotSharedEffortLimit: nil,
         priorityEffortReserve: nil,
-        priorityEffortLimit: nil,
+        lowPriorityEffortLimit: nil,
         maxDataSizeMB: nil,
         priorityFeeMultipliers: nil,
         refundMultiplier: nil,
         canceledTransactionsLimit: nil,
         collectionEffortLimit: nil,
         collectionTransactionsLimit: -1,
+        txRemovalLimit: nil,
         shouldFail: "Invalid collection transactions limit: Collection transactions limit must be greater than or equal to 0 but got -1"
     )
 
@@ -462,13 +455,14 @@ access(all) fun testConfigDetails() {
         minimumExecutionEffort: nil,
         slotSharedEffortLimit: nil,
         priorityEffortReserve: nil,
-        priorityEffortLimit: nil,
+        lowPriorityEffortLimit: nil,
         maxDataSizeMB: nil,
         priorityFeeMultipliers: nil,
         refundMultiplier: nil,
         canceledTransactionsLimit: 0,
         collectionEffortLimit: nil,
         collectionTransactionsLimit: nil,
+        txRemovalLimit: nil,
         shouldFail: "Invalid canceled transactions limit: Canceled transactions limit must be greater than or equal to 1 but got 0"
     )
 
@@ -478,16 +472,16 @@ access(all) fun testConfigDetails() {
     ---------------- */
     let oldConfig = getConfigDetails()
     Test.assertEqual(9999 as UInt64,oldConfig.maximumIndividualEffort)
-    Test.assertEqual(10 as UInt64,oldConfig.minimumExecutionEffort)
-    Test.assertEqual(35000 as UInt64,oldConfig.slotTotalEffortLimit)
-    Test.assertEqual(10000 as UInt64,oldConfig.slotSharedEffortLimit)
-    Test.assertEqual(20000 as UInt64,oldConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.High]!)
-    Test.assertEqual(5000 as UInt64,oldConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.Medium]!)
+    Test.assertEqual(100 as UInt64,oldConfig.minimumExecutionEffort)
+    Test.assertEqual(slotTotalEffortLimit as UInt64,oldConfig.slotTotalEffortLimit)
+    Test.assertEqual(sharedEffortLimit as UInt64,oldConfig.slotSharedEffortLimit)
+    Test.assertEqual(highPriorityEffortReserve as UInt64,oldConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.High]!)
+    Test.assertEqual(mediumPriorityEffortReserve as UInt64,oldConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.Medium]!)
     Test.assertEqual(0 as UInt64,oldConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.Low]!)
-    Test.assertEqual(30000 as UInt64,oldConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.High]!)
-    Test.assertEqual(15000 as UInt64,oldConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.Medium]!)
-    Test.assertEqual(5000 as UInt64,oldConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.Low]!)
-    Test.assertEqual(3.0,oldConfig.maxDataSizeMB)
+    Test.assertEqual(highPriorityMaxEffort as UInt64,oldConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.High]!)
+    Test.assertEqual(mediumPriorityMaxEffort as UInt64,oldConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.Medium]!)
+    Test.assertEqual(lowPriorityMaxEffort as UInt64,oldConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.Low]!)
+    Test.assertEqual(0.1,oldConfig.maxDataSizeMB)
     Test.assertEqual(10.0,oldConfig.priorityFeeMultipliers[FlowTransactionScheduler.Priority.High]!)
     Test.assertEqual(5.0,oldConfig.priorityFeeMultipliers[FlowTransactionScheduler.Priority.Medium]!)
     Test.assertEqual(2.0,oldConfig.priorityFeeMultipliers[FlowTransactionScheduler.Priority.Low]!)
@@ -495,35 +489,37 @@ access(all) fun testConfigDetails() {
     Test.assertEqual(1000 as UInt,oldConfig.canceledTransactionsLimit)
     Test.assertEqual(500000 as UInt64,oldConfig.collectionEffortLimit)
     Test.assertEqual(150 as Int,oldConfig.collectionTransactionsLimit)
+    Test.assertEqual(200 as UInt,oldConfig.getTxRemovalLimit())
 
 
     setConfigDetails(
         maximumIndividualEffort: 14999,
-        minimumExecutionEffort: 10,
+        minimumExecutionEffort: 100,
         slotSharedEffortLimit: 20000,
         priorityEffortReserve: nil,
-        priorityEffortLimit: {highPriority: 30000, mediumPriority: 30000, lowPriority: 10000},
+        lowPriorityEffortLimit: nil,
         maxDataSizeMB: 1.0,
         priorityFeeMultipliers: {highPriority: 20.0, mediumPriority: 10.0, lowPriority: 4.0},
         refundMultiplier: nil,
         canceledTransactionsLimit: 2000,
         collectionEffortLimit: 800000,
         collectionTransactionsLimit: 90,
+        txRemovalLimit: 210,
         shouldFail: nil
     )
 
     // Verify new config details
     let newConfig = getConfigDetails()
     Test.assertEqual(14999 as UInt64,newConfig.maximumIndividualEffort)
-    Test.assertEqual(10 as UInt64,newConfig.minimumExecutionEffort)
-    Test.assertEqual(45000 as UInt64,newConfig.slotTotalEffortLimit)
+    Test.assertEqual(100 as UInt64,newConfig.minimumExecutionEffort)
+    Test.assertEqual(32500 as UInt64,newConfig.slotTotalEffortLimit)
     Test.assertEqual(20000 as UInt64,newConfig.slotSharedEffortLimit)
     Test.assertEqual(oldConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.High]!,newConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.High]!)
     Test.assertEqual(oldConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.Medium]!,newConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.Medium]!)
     Test.assertEqual(oldConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.Low]!,newConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.Low]!)
     Test.assertEqual(30000 as UInt64,newConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.High]!)
-    Test.assertEqual(30000 as UInt64,newConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.Medium]!)
-    Test.assertEqual(10000 as UInt64,newConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.Low]!)
+    Test.assertEqual(22500 as UInt64,newConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.Medium]!)
+    Test.assertEqual(2500 as UInt64,newConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.Low]!)
     Test.assertEqual(1.0,newConfig.maxDataSizeMB)
     Test.assertEqual(20.0,newConfig.priorityFeeMultipliers[FlowTransactionScheduler.Priority.High]!)
     Test.assertEqual(10.0,newConfig.priorityFeeMultipliers[FlowTransactionScheduler.Priority.Medium]!)
@@ -865,3 +861,41 @@ access(all) fun testSortedTimestampsEdgeCases() {
     Test.assertEqual(3.0, sortedResult[2])
     Test.assertEqual(100.0, sortedResult[99])
 }
+
+
+// access(all) fun testLargeArrayProcessing() {
+    // let currentTime = getCurrentBlock().timestamp
+    // let futureTime = currentTime + 100.0
+
+    // let largeArray: [Int] = []
+    // while largeArray.length < 18000 {
+    //      largeArray.append(1)
+    // }
+
+    // scheduleTransaction(
+    //     timestamp: futureTime,
+    //     fee: 10.0,
+    //     effort: 1000,
+    //     priority: mediumPriority,
+    //     data: largeArray,
+    //     testName: "testLargeArrayProcessing",
+    //     failWithErr: nil
+    // )
+
+    // scheduleTransaction(
+    //     timestamp: futureTime,
+    //     fee: 10.0,
+    //     effort: 1000,
+    //     priority: mediumPriority,
+    //     data: largeArray,
+    //     testName: "testLargeArrayProcessing",
+    //     failWithErr: nil
+    // )
+
+    // // move time forward by futureDelta
+    // Test.moveTime(by: Fix64(100.0))
+    // processTransactions()
+
+    // processTransactions()
+
+// }
