@@ -114,6 +114,9 @@ access(all) contract FlowTransactionScheduler {
     // if they need to
     access(all) event ConfigUpdated()
 
+    // Emitted when a critical issue is encountered
+    access(all) event CriticalIssue(message: String)
+
     /// Entitlements
     access(all) entitlement Execute
     access(all) entitlement Process
@@ -583,7 +586,7 @@ access(all) contract FlowTransactionScheduler {
                     Priority.Low: 0
                 },
                 lowPriorityEffortLimit: 2_500,
-                maxDataSizeMB: 0.1,
+                maxDataSizeMB: 0.001,
                 priorityFeeMultipliers: {
                     Priority.High: 10.0,
                     Priority.Medium: 5.0,
@@ -1078,27 +1081,29 @@ access(all) contract FlowTransactionScheduler {
         access(self) fun rescheduleLowPriorityTransactions(slot: UFix64, transactions: [UInt64]) {
             for id in transactions {
                 let tx = self.borrowTransaction(id: id)
-                    ?? panic("Invalid ID: \(id) transaction not found") // critical bug
+                if tx == nil {
+                    emit CriticalIssue(message: "Invalid ID: \(id) transaction not found while rescheduling low priority transactions")
+                    continue
+                }
 
-                assert (
-                    tx.priority == Priority.Low,
-                    message: "Invalid Priority: Cannot reschedule transaction with id \(id) because it is not low priority"
-                )
-
-                assert (
-                    tx.scheduledTimestamp == slot,
-                    message: "Invalid Timestamp: Cannot reschedule transaction with id \(id) because it is not scheduled at the same slot as the new transaction"
-                )
+                if tx!.priority != Priority.Low {
+                    emit CriticalIssue(message: "Invalid Priority: Cannot reschedule transaction with id \(id) because it is not low priority")
+                    continue
+                }
                 
+                if tx!.scheduledTimestamp != slot {
+                    emit CriticalIssue(message: "Invalid Timestamp: Cannot reschedule transaction with id \(id) because it is not scheduled at the same slot as the new transaction")
+                    continue
+                }
+
                 let newTimestamp = self.calculateScheduledTimestamp(
                     timestamp: slot + 1.0,
                     priority: Priority.Low,
-                    executionEffort: tx.executionEffort
+                    executionEffort: tx!.executionEffort
                 )!
 
-                let effort = tx.executionEffort
-
-                let transactionData = self.removeTransaction(txData: tx)
+                let effort = tx!.executionEffort
+                let transactionData = self.removeTransaction(txData: tx!)
 
                 // Subtract the execution effort for this transaction from the slot's priority
                 let slotEfforts = self.slotUsedEffort[slot]!
@@ -1175,15 +1180,18 @@ access(all) contract FlowTransactionScheduler {
                     let transactionIDs = transactionPriorities[priority] ?? {}
                     for id in transactionIDs.keys {
                         let tx = self.borrowTransaction(id: id)
-                            ?? panic("Invalid ID: \(id) transaction not found during initial processing") // critical bug
-
+                        if tx == nil {
+                            emit CriticalIssue(message: "Invalid ID: \(id) transaction not found while preparing pending queue")
+                            continue
+                        }
+                        
                         // Only add scheduled transactions to the queue
-                        if tx.status != Status.Scheduled {
+                        if tx!.status != Status.Scheduled {
                             continue
                         }
 
                         // this is safeguard to prevent collection growing too large in case of block production slowdown
-                        if tx.executionEffort >= collectionAvailableEffort || transactionsAvailableCount == 0 {
+                        if tx!.executionEffort >= collectionAvailableEffort || transactionsAvailableCount == 0 {
                             emit CollectionLimitReached(
                                 collectionEffortLimit: transactionsAvailableCount == 0 ? nil : self.config.collectionEffortLimit,
                                 collectionTransactionsLimit: transactionsAvailableCount == 0 ? self.config.collectionTransactionsLimit : nil
@@ -1191,16 +1199,16 @@ access(all) contract FlowTransactionScheduler {
                             break
                         }
 
-                        collectionAvailableEffort = collectionAvailableEffort.saturatingSubtract(tx.executionEffort)
+                        collectionAvailableEffort = collectionAvailableEffort.saturatingSubtract(tx!.executionEffort)
                         transactionsAvailableCount = transactionsAvailableCount - 1
                     
-                        switch tx.priority {
+                        switch tx!.priority {
                             case Priority.High:
-                                high.append(tx)
+                                high.append(tx!)
                             case Priority.Medium:
-                                medium.append(tx)
+                                medium.append(tx!)
                             case Priority.Low:
-                                low.append(tx)
+                                low.append(tx!)
                         }
                     }
                 }
@@ -1235,18 +1243,20 @@ access(all) contract FlowTransactionScheduler {
                         }
 
                         let tx = self.borrowTransaction(id: id)
-                            ?? panic("Invalid ID: \(id) transaction not found during removal") // critical bug
+                        if tx == nil {
+                            emit CriticalIssue(message: "Invalid ID: \(id) transaction not found while removing executed transactions")
+                            continue
+                        }
 
                         // Only remove executed transactions
-                        if tx.status != Status.Executed {
+                        if tx!.status != Status.Executed {
                             continue
                         }
 
                         // charge the full fee for transaction execution
-                        destroy tx.payAndRefundFees(refundMultiplier: 0.0)
+                        destroy tx!.payAndRefundFees(refundMultiplier: 0.0)
 
-                        // remove all associated transaction data
-                        self.removeTransaction(txData: tx)
+                        self.removeTransaction(txData: tx!)
                     }
                 }
             }
@@ -1269,10 +1279,6 @@ access(all) contract FlowTransactionScheduler {
             self.removeExecutedTransactions(currentTimestamp)
 
             let pendingTransactions = self.pendingQueue()
-            
-            if pendingTransactions.length == 0 {
-                return
-            }
 
             for tx in pendingTransactions {
                 // Only emit the pending execution event if the transaction handler capability is borrowable
