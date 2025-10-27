@@ -1,5 +1,8 @@
 import "FlowTransactionScheduler"
+import "FungibleToken"
 import "FlowToken"
+import "EVM"
+import "MetadataViews"
 
 /// FlowTransactionSchedulerUtils provides utility functionality for working with scheduled transactions
 /// on the Flow blockchain. Currently, it only includes a Manager resource for managing scheduled transactions.
@@ -577,6 +580,174 @@ access(all) contract FlowTransactionSchedulerUtils {
     /// @return: A public reference to the manager
     access(all) view fun borrowManager(at: Address): &{Manager}? {
         return getAccount(at).capabilities.borrow<&{Manager}>(self.managerPublicPath)
+    }
+
+    /*********************************************
+    
+    COA Handler Utils
+
+    **********************************************/
+
+    access(all) view fun coaHandlerStoragePath(): StoragePath {
+        return /storage/coaScheduledTransactionHandler
+    }
+
+    access(all) view fun coaHandlerPublicPath(): PublicPath {
+        return /public/coaScheduledTransactionHandler
+    }
+
+    /// COATransactionHandler is a resource that wraps a capability to a COA (Contract Owned Account)
+    /// and implements the TransactionHandler interface to allow scheduling transactions for COAs.
+    /// This handler enables users to schedule transactions that will be executed on behalf of their COA.
+    access(all) resource COATransactionHandler: FlowTransactionScheduler.TransactionHandler {
+        /// The capability to the COA resource
+        access(self) let coaCapability: Capability<auth(EVM.Owner) &EVM.CadenceOwnedAccount>
+
+        /// The capability to the FlowToken vault
+        access(self) let flowTokenVaultCapability: Capability<auth(FungibleToken.Withdraw) &FlowToken.Vault>
+
+        init(coaCapability: Capability<auth(EVM.Owner) &EVM.CadenceOwnedAccount>,
+             flowTokenVaultCapability: Capability<auth(FungibleToken.Withdraw) &FlowToken.Vault>,
+        )
+        {
+            self.coaCapability = coaCapability
+            self.flowTokenVaultCapability = flowTokenVaultCapability
+        }
+
+        /// Execute the scheduled transaction using the COA
+        /// @param id: The ID of the scheduled transaction
+        /// @param data: Optional data passed to the transaction execution. In this case, the data needs to be a COAHandlerParams struct with valid values.
+        access(FlowTransactionScheduler.Execute) fun executeTransaction(id: UInt64, data: AnyStruct?) {
+            let coa = self.coaCapability.borrow()
+                ?? panic("COA capability is invalid or expired for scheduled transaction with ID \(id)")
+
+            if let params = data as? COAHandlerParams {
+                switch params.txType {
+                    case COAHandlerTxType.DepositFLOW:
+                        if params.amount == nil {
+                            panic("Amount is required for deposit for scheduled transaction with ID \(id)")
+                        }
+                        let vault = self.flowTokenVaultCapability.borrow()
+                            ?? panic("FlowToken vault capability is invalid or expired for scheduled transaction with ID \(id)")
+                        coa.deposit(from: <-vault.withdraw(amount: params.amount!) as! @FlowToken.Vault)
+                    case COAHandlerTxType.WithdrawFLOW:
+                        if params.amount == nil {
+                            panic("Amount is required for withdrawal from COA for scheduled transaction with ID \(id)")
+                        }
+                        let vault = self.flowTokenVaultCapability.borrow()
+                            ?? panic("FlowToken vault capability is invalid or expired for scheduled transaction with ID \(id)")
+                        let amount = EVM.Balance(attoflow: 0)
+                        amount.setFLOW(flow: params.amount!)
+                        vault.deposit(from: <-coa.withdraw(balance: amount) as! @{FungibleToken.Vault})
+                    case COAHandlerTxType.Call:
+                        if params.callToEVMAddress == nil || params.data == nil || params.gasLimit == nil || params.value == nil {
+                            panic("Call to EVM address, data, gas limit, and value are required for EVM call for scheduled transaction with ID \(id)")
+                        }
+                        let result = coa.call(to: params.callToEVMAddress!, data: params.data!, gasLimit: params.gasLimit!, value: params.value!)
+                }
+            } else {
+                panic("Invalid scheduled transactiondata type for COA handler execution for tx with ID \(id)! Expected FlowTransactionSchedulerUtils.COAHandlerParams but got \(data.getType().identifier)")
+            }
+        }
+
+        /// Get the views supported by this handler
+        /// @return: Array of view types
+        access(all) view fun getViews(): [Type] {
+            return [
+                Type<COAHandlerView>(),
+                Type<StoragePath>(),
+                Type<PublicPath>(),
+                Type<MetadataViews.Display>()
+            ]
+        }
+
+        /// Resolve a view for this handler
+        /// @param viewType: The type of view to resolve
+        /// @return: The resolved view data, or nil if not supported
+        access(all) fun resolveView(_ viewType: Type): AnyStruct? {
+            if viewType == Type<COAHandlerView>() {
+                return COAHandlerView(
+                    coaOwner: self.coaCapability.borrow()?.owner?.address,
+                    coaEVMAddress: self.coaCapability.borrow()?.address(),
+                )
+            }
+            if viewType == Type<StoragePath>() {
+                return FlowTransactionSchedulerUtils.coaHandlerStoragePath()
+            } else if viewType == Type<PublicPath>() {
+                return FlowTransactionSchedulerUtils.coaHandlerPublicPath()
+            } else if viewType == Type<MetadataViews.Display>() {
+                return MetadataViews.Display(
+                    name: "COA Scheduled Transaction Handler",
+                    description: "Scheduled Transaction Handler that can execute transactions on behalf of a COA",
+                    thumbnail: MetadataViews.HTTPFile(
+                        url: ""
+                    )
+                )
+            }
+            return nil
+        }
+    }
+
+    /// Enum for COA handler execution type
+    access(all) enum COAHandlerTxType: UInt8 {
+        access(all) case DepositFLOW
+        access(all) case WithdrawFLOW
+        access(all) case Call
+
+        // TODO: Should we have other transaction types??
+    }
+
+    access(all) struct COAHandlerParams {
+
+        access(all) let txType: COAHandlerTxType
+
+        access(all) let amount: UFix64?
+        access(all) let callToEVMAddress: EVM.EVMAddress?
+        access(all) let data: [UInt8]?
+        access(all) let gasLimit: UInt64?
+        access(all) let value: EVM.Balance?   
+
+        init(txType: UInt8, amount: UFix64?, callToEVMAddress: [UInt8; 20]?, data: [UInt8]?, gasLimit: UInt64?, value: UFix64?) {
+            self.txType = COAHandlerTxType(rawValue: txType)
+                ?? panic("Invalid COA transaction type enum")
+            self.amount = amount
+            self.callToEVMAddress = callToEVMAddress != nil ? EVM.EVMAddress(bytes: callToEVMAddress!) : nil
+            self.data = data
+            self.gasLimit = gasLimit
+            if let unwrappedValue = value {
+                self.value = EVM.Balance(attoflow: 0)
+                self.value!.setFLOW(flow: unwrappedValue)
+            } else {
+                self.value = nil
+            }
+        }
+    }
+
+    /// View struct for COA handler metadata
+    access(all) struct COAHandlerView {
+        access(all) let coaOwner: Address?
+        access(all) let coaEVMAddress: EVM.EVMAddress?
+
+        // TODO: Should we include other metadata about the COA, like balance, code, etc???
+
+        init(coaOwner: Address?, coaEVMAddress: EVM.EVMAddress?) {
+            self.coaOwner = coaOwner
+            self.coaEVMAddress = coaEVMAddress
+        }
+    }
+
+    /// Create a COA transaction handler
+    /// @param coaCapability: Capability to the COA resource
+    /// @param metadata: Optional metadata about the handler
+    /// @return: A new COATransactionHandler resource
+    access(all) fun createCOATransactionHandler(
+        coaCapability: Capability<auth(EVM.Owner) &EVM.CadenceOwnedAccount>,
+        flowTokenVaultCapability: Capability<auth(FungibleToken.Withdraw) &FlowToken.Vault>,
+    ): @COATransactionHandler {
+        return <-create COATransactionHandler(
+            coaCapability: coaCapability,
+            flowTokenVaultCapability: flowTokenVaultCapability,
+        )
     }
 
     /********************************************
