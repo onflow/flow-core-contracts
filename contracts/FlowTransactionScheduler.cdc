@@ -929,31 +929,33 @@ access(all) contract FlowTransactionScheduler {
             executionEffort: UInt64
         ): UFix64? {
 
-            let used = self.slotUsedEffort[timestamp]
-            // if nothing is scheduled at this timestamp, we can schedule at provided timestamp
-            if used == nil { 
-                return timestamp
-            }
-            
-            let available = self.getSlotAvailableEffort(timestamp: timestamp, priority: priority)
-            // if theres enough space, we can tentatively schedule at provided timestamp
-            if executionEffort <= available {
-                return timestamp
-            }
-            
-            if priority == Priority.High {
-                // high priority demands scheduling at exact timestamp or failing
-                return nil
+            var timestampToSearch = timestamp
+            var timestamp20YearsInFuture = getCurrentBlock().timestamp + 20.0 * 365.0 * 24.0 * 60.0 * 60.0
+
+            while timestampToSearch < timestamp20YearsInFuture {
+
+                let used = self.slotUsedEffort[timestampToSearch]
+                // if nothing is scheduled at this timestamp, we can schedule at provided timestamp
+                if used == nil { 
+                    return timestampToSearch
+                }
+                
+                let available = self.getSlotAvailableEffort(timestamp: timestampToSearch, priority: priority)
+                // if theres enough space, we can tentatively schedule at provided timestamp
+                if executionEffort <= available {
+                    return timestampToSearch
+                }
+                
+                if priority == Priority.High {
+                    // high priority demands scheduling at exact timestamp or failing
+                    return nil
+                }
+
+                timestampToSearch = timestampToSearch + 1.0
             }
 
-            // if there is no space left for medium or low priority we search for next available timestamp
-            // todo: check how big the callstack can grow and if we should avoid recursion
-            // todo: we should refactor this into loops, because we could need to recurse 100s of times
-            return self.calculateScheduledTimestamp(
-                timestamp: timestamp + 1.0, 
-                priority: priority, 
-                executionEffort: executionEffort
-            )
+            // if we have searched through all possible timestamps and there is no space left, return nil
+            return nil
         }
 
         /// slot available effort returns the amount of effort that is available for a given timestamp and priority.
