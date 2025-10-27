@@ -217,7 +217,9 @@ access(all) contract FlowTransactionScheduler {
         access(all) let handlerAddress: Address
 
         /// Optional data that can be passed to the handler
-        access(contract) let data: AnyStruct?
+        /// This data is publicly accessible, so make sure it does not contain
+        /// any privileged information or functionality
+        access(all) let data: AnyStruct?
 
         access(contract) init(
             id: UInt64,
