@@ -439,8 +439,6 @@ access(all) contract FlowTransactionScheduler {
             self.canceledTransactionsLimit = canceledTransactionsLimit
             self.collectionEffortLimit = collectionEffortLimit
             self.collectionTransactionsLimit = collectionTransactionsLimit
-            FlowTransactionScheduler.account.storage.load<UInt>(from: /storage/txRemovalLimit)
-            FlowTransactionScheduler.account.storage.save(txRemovalLimit, to: /storage/txRemovalLimit)
         }
 
         access(all) view fun getTxRemovalLimit(): UInt {
@@ -607,8 +605,10 @@ access(all) contract FlowTransactionScheduler {
         }
 
         /// sets all the configuration details for the Scheduler resource
-        access(UpdateConfig) fun setConfig(newConfig: {SchedulerConfig}) {
+        access(UpdateConfig) fun setConfig(newConfig: {SchedulerConfig}, txRemovalLimit: UInt) {
             self.config = newConfig
+            FlowTransactionScheduler.account.storage.load<UInt>(from: /storage/txRemovalLimit)
+            FlowTransactionScheduler.account.storage.save(txRemovalLimit, to: /storage/txRemovalLimit)
             emit ConfigUpdated()
         }
 
