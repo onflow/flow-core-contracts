@@ -219,7 +219,7 @@ access(all) contract FlowTransactionScheduler {
         /// Optional data that can be passed to the handler
         /// This data is publicly accessible, so make sure it does not contain
         /// any privileged information or functionality
-        access(all) let data: AnyStruct?
+        access(contract) let data: AnyStruct?
 
         access(contract) init(
             id: UInt64,
@@ -291,7 +291,7 @@ access(all) contract FlowTransactionScheduler {
         }
 
         /// getData copies and returns the data field
-        access(contract) view fun getData(): AnyStruct? {
+        access(all) view fun getData(): AnyStruct? {
             return self.data
         }
 
