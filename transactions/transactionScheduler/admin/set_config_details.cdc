@@ -70,6 +70,6 @@ transaction(
         )
 
         // set the new config
-        schedulerRef.setConfig(newConfig: newConfig)
+        schedulerRef.setConfig(newConfig: newConfig, txRemovalLimit: txRemovalLimit ?? currentConfig.getTxRemovalLimit())
     }
 }

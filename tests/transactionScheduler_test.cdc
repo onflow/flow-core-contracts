@@ -86,25 +86,12 @@ access(all) fun testGetSizeOfData() {
     Test.assertEqual(0.00000000 as UFix64, size)
 
     let largeArray: [Int] = []
-    while largeArray.length < 10000 {
+    while largeArray.length < 199 {
          largeArray.append(1)
     }
 
     size = getSizeOfData(data: largeArray)
-    Test.assertEqual(0.05337100 as UFix64, size)
-
-    // let currentTime = getCurrentBlock().timestamp
-    // let futureTime = currentTime + 100.0
-
-    // let estimate = FlowTransactionScheduler.estimate(
-    //     data: testData,
-    //     timestamp: futureTime,
-    //     priority: FlowTransactionScheduler.Priority.Medium,
-    //     executionEffort: 1000
-    // )
-
-    // size = getSizeOfData(data: estimate)
-    // Test.assertEqual(0.00021000 as UFix64, size)
+    Test.assertEqual(0.00107500 as UFix64, size)
 }
 
 /** ---------------------------------------------------------------------------------
@@ -481,7 +468,7 @@ access(all) fun testConfigDetails() {
     Test.assertEqual(highPriorityMaxEffort as UInt64,oldConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.High]!)
     Test.assertEqual(mediumPriorityMaxEffort as UInt64,oldConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.Medium]!)
     Test.assertEqual(lowPriorityMaxEffort as UInt64,oldConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.Low]!)
-    Test.assertEqual(0.1,oldConfig.maxDataSizeMB)
+    Test.assertEqual(0.001,oldConfig.maxDataSizeMB)
     Test.assertEqual(10.0,oldConfig.priorityFeeMultipliers[FlowTransactionScheduler.Priority.High]!)
     Test.assertEqual(5.0,oldConfig.priorityFeeMultipliers[FlowTransactionScheduler.Priority.Medium]!)
     Test.assertEqual(2.0,oldConfig.priorityFeeMultipliers[FlowTransactionScheduler.Priority.Low]!)
