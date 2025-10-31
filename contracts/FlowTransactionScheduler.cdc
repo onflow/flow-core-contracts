@@ -930,9 +930,10 @@ access(all) contract FlowTransactionScheduler {
         ): UFix64? {
 
             var timestampToSearch = timestamp
-            var timestamp20YearsInFuture = getCurrentBlock().timestamp + 20.0 * 365.0 * 24.0 * 60.0 * 60.0
 
-            while timestampToSearch < timestamp20YearsInFuture {
+            // If no available timestamps are found, this will eventually reach the gas limit and fail
+            // This is extremely unlikely
+            while true {
 
                 let used = self.slotUsedEffort[timestampToSearch]
                 // if nothing is scheduled at this timestamp, we can schedule at provided timestamp
@@ -954,7 +955,7 @@ access(all) contract FlowTransactionScheduler {
                 timestampToSearch = timestampToSearch + 1.0
             }
 
-            // if we have searched through all possible timestamps and there is no space left, return nil
+            // should never happen
             return nil
         }
 
