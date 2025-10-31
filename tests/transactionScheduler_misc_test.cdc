@@ -44,6 +44,23 @@ fun setup() {
 
 }
 
+access(all) fun testScheduledTransactionMoveExecutionCapability() {
+    var tx = Test.Transaction(
+        code: Test.readFile("./transactions/create_execution_account.cdc"),
+        authorizers: [admin.address],
+        signers: [admin],
+        arguments: [],
+    )
+    var result = Test.executeTransaction(tx)
+    Test.expect(result, Test.beSucceeded())
+    
+    executeScheduledTransactionWithCapability(
+        id: 1,
+        testName: "Scheduled Transaction Move Execution Capability: Execute Should Fail because ID does not exist",
+        failWithErr: "Invalid ID: Transaction with id 1 not found"
+    )
+}
+
 access(all) fun testScheduledTransactionCancellationLimits() {
 
     // lower the canceled transactions limit so the test runs faster
