@@ -6,8 +6,10 @@ import (
 
 const (
 	// Admin Transactions
-	executeTransactionFilename = "transactionScheduler/admin/execute_transaction.cdc"
-	processTransactionFilename = "transactionScheduler/admin/process_scheduled_transactions.cdc"
+	executeTransactionFilename               = "transactionScheduler/admin/execute_transaction.cdc"
+	executeTransactionWithCapabilityFilename = "transactionScheduler/admin/execute_transaction_with_capability.cdc"
+	createExecutionAccountFilename           = "transactionScheduler/admin/create_execution_account.cdc"
+	processTransactionFilename               = "transactionScheduler/admin/process_scheduled_transactions.cdc"
 
 	// User Transactions
 	scheduleTransactionFilename = "transactionScheduler/schedule_transaction.cdc"
@@ -21,6 +23,18 @@ const (
 
 func GenerateExecuteTransactionScript(env Environment) []byte {
 	code := assets.MustAssetString(executeTransactionFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateSchedulerExecutorTransactionScript(env Environment) []byte {
+	code := assets.MustAssetString(executeTransactionWithCapabilityFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateCreateExecutionAccountScript(env Environment) []byte {
+	code := assets.MustAssetString(createExecutionAccountFilename)
 
 	return []byte(ReplaceAddresses(code, env))
 }

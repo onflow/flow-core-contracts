@@ -158,7 +158,36 @@ access(all) fun executeScheduledTransaction(
     testName: String,
     failWithErr: String?
 ) {
-    let executeTransactionCode = Test.readFile("../transactions/transactionScheduler/admin/execute_transaction.cdc")
+    let executeTransactionCode = Test.readFile("./transactions/execute_transaction.cdc")
+    let executeTx = Test.Transaction(
+        code: executeTransactionCode,
+        authorizers: [admin.address],
+        signers: [admin],
+        arguments: [id]
+    )
+    var result = Test.executeTransaction(executeTx)
+    if let error = failWithErr {
+        // log(error)
+        // log(result.error!.message)
+        Test.expect(result, Test.beFailed())
+        Test.assertError(
+            result,
+            errorMessage: error
+        )
+    
+    } else {
+        if result.error != nil {
+            Test.assert(result.error == nil, message: "Transaction failed with error: \(result.error!.message) for test case: \(testName)")
+        }
+    }
+}
+
+access(all) fun executeScheduledTransactionWithCapability(
+    id: UInt64, 
+    testName: String,
+    failWithErr: String?
+) {
+    let executeTransactionCode = Test.readFile("./transactions/execute_transaction_with_capability.cdc")
     let executeTx = Test.Transaction(
         code: executeTransactionCode,
         authorizers: [admin.address],

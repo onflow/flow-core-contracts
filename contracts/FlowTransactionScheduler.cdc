@@ -217,6 +217,8 @@ access(all) contract FlowTransactionScheduler {
         access(all) let handlerAddress: Address
 
         /// Optional data that can be passed to the handler
+        /// This data is publicly accessible, so make sure it does not contain
+        /// any privileged information or functionality
         access(contract) let data: AnyStruct?
 
         access(contract) init(
@@ -289,7 +291,7 @@ access(all) contract FlowTransactionScheduler {
         }
 
         /// getData copies and returns the data field
-        access(contract) view fun getData(): AnyStruct? {
+        access(all) view fun getData(): AnyStruct? {
             return self.data
         }
 
@@ -690,8 +692,11 @@ access(all) contract FlowTransactionScheduler {
 
             // Calculate the FLOW required to pay for storage of the transaction data
             let storageFee = FlowStorageFees.storageCapacityToFlow(dataSizeMB)
-            
-            return scaledExecutionFee + storageFee
+
+            // Add inclusion Flow fee for scheduled transactions
+            let inclusionFee = 0.00001
+
+            return scaledExecutionFee + storageFee + inclusionFee
         }
 
         /// getNextIDAndIncrement returns the next ID and increments the ID counter
@@ -927,31 +932,34 @@ access(all) contract FlowTransactionScheduler {
             executionEffort: UInt64
         ): UFix64? {
 
-            let used = self.slotUsedEffort[timestamp]
-            // if nothing is scheduled at this timestamp, we can schedule at provided timestamp
-            if used == nil { 
-                return timestamp
-            }
-            
-            let available = self.getSlotAvailableEffort(timestamp: timestamp, priority: priority)
-            // if theres enough space, we can tentatively schedule at provided timestamp
-            if executionEffort <= available {
-                return timestamp
-            }
-            
-            if priority == Priority.High {
-                // high priority demands scheduling at exact timestamp or failing
-                return nil
+            var timestampToSearch = timestamp
+
+            // If no available timestamps are found, this will eventually reach the gas limit and fail
+            // This is extremely unlikely
+            while true {
+
+                let used = self.slotUsedEffort[timestampToSearch]
+                // if nothing is scheduled at this timestamp, we can schedule at provided timestamp
+                if used == nil { 
+                    return timestampToSearch
+                }
+                
+                let available = self.getSlotAvailableEffort(timestamp: timestampToSearch, priority: priority)
+                // if theres enough space, we can tentatively schedule at provided timestamp
+                if executionEffort <= available {
+                    return timestampToSearch
+                }
+                
+                if priority == Priority.High {
+                    // high priority demands scheduling at exact timestamp or failing
+                    return nil
+                }
+
+                timestampToSearch = timestampToSearch + 1.0
             }
 
-            // if there is no space left for medium or low priority we search for next available timestamp
-            // todo: check how big the callstack can grow and if we should avoid recursion
-            // todo: we should refactor this into loops, because we could need to recurse 100s of times
-            return self.calculateScheduledTimestamp(
-                timestamp: timestamp + 1.0, 
-                priority: priority, 
-                executionEffort: executionEffort
-            )
+            // should never happen
+            return nil
         }
 
         /// slot available effort returns the amount of effort that is available for a given timestamp and priority.
