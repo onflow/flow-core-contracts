@@ -89,6 +89,9 @@ func TestEpochDeployment(t *testing.T) {
 			clusterQCs:               nil,
 			dkgKeys:                  nil})
 
+	// Should not be in a phase transition since the epoch is just starting
+	result := executeScriptAndCheck(t, b, templates.GenerateIsPhaseTransitionScript(env), nil)
+	assertEqual(t, cadence.NewBool(false), result)
 }
 
 func TestEpochClusters(t *testing.T) {
@@ -586,6 +589,10 @@ func TestEpochAdvance(t *testing.T) {
 		// Advance to epoch Setup and make sure that the epoch cannot be ended
 		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHSETUP", false)
 
+		// Should not be in a phase transition since we already advanced to epoch setup
+		result := executeScriptAndCheck(t, b, templates.GenerateIsPhaseTransitionScript(env), nil)
+		assertEqual(t, cadence.NewBool(false), result)
+
 		verifyConfigMetadata(t, b, env,
 			ConfigMetadata{
 				currentEpochCounter:      startEpochCounter,
@@ -638,7 +645,7 @@ func TestEpochAdvance(t *testing.T) {
 			})
 
 		// QC Contract Checks
-		result := executeScriptAndCheck(t, b, templates.GenerateGetClusterWeightScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt16(uint16(0)))})
+		result = executeScriptAndCheck(t, b, templates.GenerateGetClusterWeightScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt16(uint16(0)))})
 		assert.Equal(t, cadence.NewUInt64(100), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetNodeWeightScript(env), [][]byte{jsoncdc.MustEncode(cadence.UInt16(uint16(1))), jsoncdc.MustEncode(cadence.String(ids[0]))})
@@ -864,6 +871,10 @@ func TestEpochQCDKG(t *testing.T) {
 		false,
 	)
 
+	// Should be in a phase transition since we haven't advanced to epoch setup and view is greater than the staking end view (50)
+	result := executeScriptAndCheck(t, b, templates.GenerateIsPhaseTransitionScript(env), nil)
+	assertEqual(t, cadence.NewBool(true), result)
+
 	// Advance to epoch Setup and make sure that the epoch cannot be ended
 	advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHSETUP", false)
 
@@ -1001,6 +1012,10 @@ func TestEpochQCDKG(t *testing.T) {
 		// Advance to epoch commit
 		advanceView(t, b, env, idTableAddress, IDTableSigner, 1, "EPOCHCOMMIT", false)
 
+		// Should be in a phase transition since we advanced to epoch commit and view is greater than the end view (70)
+		result = executeScriptAndCheck(t, b, templates.GenerateIsPhaseTransitionScript(env), nil)
+		assertEqual(t, cadence.NewBool(true), result)
+
 		verifyConfigMetadata(t, b, env,
 			ConfigMetadata{
 				currentEpochCounter:      startEpochCounter,
@@ -1086,6 +1101,10 @@ func TestEpochQCDKG(t *testing.T) {
 				totalSupply:    "7000000000.0",
 				rewards:        "6571204.6775",
 			})
+
+		// Should be in a phase transition since we just ended the epoch but haven't paid rewards
+		result = executeScriptAndCheck(t, b, templates.GenerateIsPhaseTransitionScript(env), nil)
+		assertEqual(t, cadence.NewBool(true), result)
 
 		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateEpochPayRewardsScript(env), idTableAddress)
 
