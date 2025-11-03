@@ -1296,6 +1296,41 @@ access(all) contract FlowEpoch {
                 ?? 0.0
     }
 
+    /// Checks if the current epoch is in a phase transition
+    /// so that other system contracts can skip computation-heavy operations
+    /// during the phase transition.
+    access(all) fun isPhaseTransition(): Bool {
+        switch self.currentEpochPhase {
+            case EpochPhase.STAKINGAUCTION:
+                if let previousEpochMetadata = self.getEpochMetadata(FlowEpoch.currentEpochCounter.saturatingSubtract(1)) {
+                    // Paying rewards for the previous epoch
+                    if self.currentEpochCounter > 0 && !previousEpochMetadata.rewardsPaid {
+                        return true
+                    }
+                }
+                let currentBlock = getCurrentBlock()
+                let currentEpochMetadata = self.getEpochMetadata(self.currentEpochCounter)!
+                // Staking auction is ending
+                if currentBlock.view >= currentEpochMetadata.stakingEndView {
+                    return true
+                }
+            case EpochPhase.EPOCHSETUP:
+                // QC and DKG are completed and will be cleaned up
+                if FlowClusterQC.votingCompleted() && (FlowDKG.dkgCompleted() != nil) {
+                    return true
+                }
+            case EpochPhase.EPOCHCOMMIT:
+                let currentBlock = getCurrentBlock()
+                let currentEpochMetadata = FlowEpoch.getEpochMetadata(FlowEpoch.currentEpochCounter)!
+                // Epoch is ending
+                if currentBlock.view >= currentEpochMetadata.endView {
+                    return true
+                }
+        }
+
+        return false
+    }
+
     init (currentEpochCounter: UInt64,
           numViewsInEpoch: UInt64,
           numViewsInStakingAuction: UInt64,

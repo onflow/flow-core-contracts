@@ -39,6 +39,7 @@ const (
 	getCurrentViewFilename           = "epoch/scripts/get_current_view.cdc"
 	getFlowTotalSupplyFilename       = "flowToken/scripts/get_supply.cdc"
 	getFlowBonusTokensFilename       = "epoch/scripts/get_bonus_tokens.cdc"
+	isPhaseTransitionFilename        = "epoch/scripts/is_phase_transition.cdc"
 
 	// test scripts
 	getRandomizeFilename      = "epoch/scripts/get_randomize.cdc"
@@ -235,6 +236,12 @@ func GenerateGetFlowTotalSupplyScript(env Environment) []byte {
 
 func GenerateGetBonusTokensScript(env Environment) []byte {
 	code := assets.MustAssetString(getFlowBonusTokensFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateIsPhaseTransitionScript(env Environment) []byte {
+	code := assets.MustAssetString(isPhaseTransitionFilename)
 
 	return []byte(ReplaceAddresses(code, env))
 }
