@@ -46,7 +46,7 @@ fun setup() {
 
 access(all) fun testScheduledTransactionMoveExecutionCapability() {
     var tx = Test.Transaction(
-        code: Test.readFile("./transactions/create_execution_account.cdc"),
+        code: Test.readFile("../transactions/transactionScheduler/admin/create_execution_account.cdc"),
         authorizers: [admin.address],
         signers: [admin],
         arguments: [],
