@@ -245,7 +245,7 @@ access(all) fun testScheduleAndEffortUsed() {
                     executionEffort: 1000,
                     data: testData,
                     fees: 0.0,
-                    failWithErr: "Insufficient fees: The Fee balance of 0.00000000 is not sufficient to pay the required amount of 0.00010000 for execution of the transaction."
+                    failWithErr: "Insufficient fees: The Fee balance of 0.00000000 is not sufficient to pay the required amount of 0.00011000 for execution of the transaction."
                 ),
                 ScheduledTransaction(
                     requestedDelta: futureDelta,
