@@ -301,7 +301,7 @@
 // storageFees/scripts/get_storage_capacity.cdc (153B)
 // storageFees/scripts/get_storage_fee_conversion.cdc (121B)
 // storageFees/scripts/get_storage_fee_min.cdc (115B)
-// transactionScheduler/admin/execute_transaction.cdc (579B)
+// transactionScheduler/admin/create_execution_account.cdc (991B)
 // transactionScheduler/admin/execute_transaction_with_capability.cdc (750B)
 // transactionScheduler/admin/process_scheduled_transactions.cdc (612B)
 // transactionScheduler/admin/set_config_details.cdc (4.515kB)
@@ -6414,23 +6414,23 @@ func storagefeesScriptsGet_storage_fee_minCdc() (*asset, error) {
 	return a, nil
 }
 
-var _transactionschedulerAdminExecute_transactionCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x74\x90\x4f\x4b\xc3\x40\x10\xc5\xef\xf9\x14\x8f\x1c\x4a\x72\x49\x2f\xe2\xa1\xa8\xc5\xbf\xd0\x83\x20\xb4\xf6\x3e\xdd\x1d\xcd\xc2\x76\x37\x4c\x26\x56\x91\x7e\x77\x49\xf3\xc7\x2a\x64\x4e\xbb\xcc\x9b\xdf\xbc\x79\x6e\x5f\x45\x51\xa4\x4f\x3e\x1e\x36\x42\xa1\x26\xa3\x2e\x86\xb5\x29\xd9\x36\x9e\x25\x4d\x92\xf9\x1c\x8f\x9f\x6c\x1a\x65\x10\xea\xbe\x61\xa1\xbf\x6a\xec\xbe\xa0\x25\x63\x0a\x02\x13\x83\x0a\x19\x2d\x5a\xd8\xa6\x74\x35\x0e\xce\x7b\xec\x18\x86\x7c\x0b\x1b\x00\xdb\x67\x50\xb0\xa7\xf7\x39\x7f\x50\x73\xe7\x63\xd0\x3b\xc1\xea\xa1\x48\xce\x94\x99\xb3\x0b\xbc\xae\x82\x5e\x5e\xe4\xf8\x4e\x00\xa0\x12\xae\x48\x38\xab\x59\x3e\x9c\xe1\x5b\x63\x62\x13\x74\x01\x6a\xb4\xcc\xee\xa2\x48\x3c\x6c\xc9\x37\x9c\x63\xd6\xf7\x86\xc9\xb6\x3c\xeb\x78\xb3\xe0\x1a\x7f\x29\x45\xad\x51\xe8\x9d\x8b\xdd\x89\x73\x75\x62\x4e\xa5\x50\xf4\x29\xe6\x98\x4d\x4a\xd6\x25\x09\xdb\xf1\x7f\x93\xbd\x49\xdc\x2f\x26\x83\x1d\xf6\xbf\x90\x96\xf9\xe8\xb9\xad\xe5\x12\x15\x05\x67\xb2\xf4\x3e\x36\xde\x22\x44\x45\x67\x72\x12\x96\xe6\xc9\x88\x18\x4f\x2e\xfa\xc8\x37\xff\x32\x76\xb6\xdb\x77\x4c\x8e\x3f\x01\x00\x00\xff\xff\x49\x42\x5e\xf8\x43\x02\x00\x00"
+var _transactionschedulerAdminCreate_execution_accountCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x94\x93\xd1\x6e\x82\x30\x14\x86\xaf\xe5\x29\x4e\xbc\x30\x90\x30\xb8\x37\xd3\x6c\x21\x5b\x62\x76\xe9\x1e\x80\x5a\x8e\xa3\x0b\x6b\x49\x7b\x50\xc9\xe2\xbb\x2f\x48\x29\x45\x67\xb2\x71\x45\x0f\x6d\xcf\xf7\x9f\xff\x47\x7c\xd5\x4a\x13\xcc\x5f\x2b\x75\x7c\xd7\x4c\x1a\xc6\x49\x28\xb9\xe5\x25\x16\x4d\x85\x7a\x1e\x04\x34\x96\xe1\x3b\x98\xd5\x1a\x6b\xa6\x31\x34\xa8\x0f\x82\xe3\x33\xe7\xaa\x91\xb4\x04\xd6\x50\x19\x66\xac\x66\x3b\x51\x09\x12\x68\x62\xd8\x92\xd2\xec\x03\x23\x58\xd8\x5d\x51\x77\xc1\xac\x42\x02\x89\x47\x5b\x83\x15\xd8\xb7\xb0\x66\x2d\xea\x25\x4c\x6f\x8e\x82\x00\xec\x93\xa6\xb0\x31\xa6\x41\x60\x12\xf2\x97\x13\xf2\x86\x30\x7f\x40\x49\x82\x2a\x2c\x80\x0f\xcd\x5b\xd8\x2b\x0d\xf9\xd3\x3d\x51\xc9\xb6\x64\x1a\x0b\xb7\xce\x5d\x87\x0e\xcd\xbb\x66\x75\xc5\x92\x70\x4f\x5f\x62\x7a\x79\x89\xe8\x98\x1e\x2f\xfa\xef\x76\xb4\xb4\x11\x2c\xfe\x0a\xb5\x0e\x53\xdb\x20\x35\xd3\x2f\xd3\x89\x74\x43\x46\xa0\x12\x7d\x70\x21\x2f\x15\x89\x47\x60\x3d\xba\x3b\x32\x4e\xde\x09\x30\xec\x80\xe1\x78\x3a\x06\x52\x4b\x70\xdd\xb1\x47\x1f\xda\x17\x1e\xbc\x71\x7e\xb7\x53\xa8\x4c\x23\x23\x04\x06\xfb\xa6\xaa\x5a\x70\x16\xe5\x43\x12\xf2\x6b\xb7\xee\xe1\x76\x8e\xd8\x5a\xe6\x1b\xe3\xc9\x98\x98\x62\xf7\xfa\xa6\xd8\x18\xc6\x90\x29\x49\x9a\x71\x32\x31\xbc\x61\x6b\x62\xd8\xc8\x9d\x3a\xc5\xe0\xa7\x76\x0c\xeb\x3a\x8c\x1c\xc5\xef\x03\x1f\x12\xac\x76\x9f\xc8\x69\x18\xba\x9d\x1b\xa8\x7d\xbf\xec\x13\x74\x23\xec\x2a\x59\x13\x2f\x6e\x04\xff\xc3\x12\xf7\xdb\xcc\xce\xc1\xf9\x27\x00\x00\xff\xff\xcb\xbc\x09\x10\xdf\x03\x00\x00"
 
-func transactionschedulerAdminExecute_transactionCdcBytes() ([]byte, error) {
+func transactionschedulerAdminCreate_execution_accountCdcBytes() ([]byte, error) {
 	return bindataRead(
-		_transactionschedulerAdminExecute_transactionCdc,
-		"transactionScheduler/admin/execute_transaction.cdc",
+		_transactionschedulerAdminCreate_execution_accountCdc,
+		"transactionScheduler/admin/create_execution_account.cdc",
 	)
 }
 
-func transactionschedulerAdminExecute_transactionCdc() (*asset, error) {
-	bytes, err := transactionschedulerAdminExecute_transactionCdcBytes()
+func transactionschedulerAdminCreate_execution_accountCdc() (*asset, error) {
+	bytes, err := transactionschedulerAdminCreate_execution_accountCdcBytes()
 	if err != nil {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "transactionScheduler/admin/execute_transaction.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x75, 0xd1, 0x2c, 0xc4, 0x3b, 0x54, 0x38, 0xa, 0xd6, 0x8e, 0xce, 0xc5, 0x77, 0xa6, 0xd6, 0x8c, 0xaf, 0x49, 0x28, 0xf9, 0x9b, 0x22, 0xf0, 0xfe, 0x88, 0xae, 0x7b, 0x9e, 0xf2, 0x2a, 0x7f, 0xaa}}
+	info := bindataFileInfo{name: "transactionScheduler/admin/create_execution_account.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x15, 0x51, 0xbd, 0xb, 0xef, 0xbd, 0x2b, 0x7e, 0xc5, 0x41, 0x81, 0xf9, 0xc5, 0x92, 0x33, 0x4e, 0x4a, 0x2a, 0xda, 0x8b, 0xc, 0x9c, 0x41, 0x9c, 0x14, 0x3f, 0x80, 0x23, 0xbb, 0x72, 0x7a, 0x8c}}
 	return a, nil
 }
 
@@ -7306,7 +7306,7 @@ var _bindata = map[string]func() (*asset, error){
 	"storageFees/scripts/get_storage_capacity.cdc":                                storagefeesScriptsGet_storage_capacityCdc,
 	"storageFees/scripts/get_storage_fee_conversion.cdc":                          storagefeesScriptsGet_storage_fee_conversionCdc,
 	"storageFees/scripts/get_storage_fee_min.cdc":                                 storagefeesScriptsGet_storage_fee_minCdc,
-	"transactionScheduler/admin/execute_transaction.cdc":                          transactionschedulerAdminExecute_transactionCdc,
+	"transactionScheduler/admin/create_execution_account.cdc":                     transactionschedulerAdminCreate_execution_accountCdc,
 	"transactionScheduler/admin/execute_transaction_with_capability.cdc":          transactionschedulerAdminExecute_transaction_with_capabilityCdc,
 	"transactionScheduler/admin/process_scheduled_transactions.cdc":               transactionschedulerAdminProcess_scheduled_transactionsCdc,
 	"transactionScheduler/admin/set_config_details.cdc":                           transactionschedulerAdminSet_config_detailsCdc,
@@ -7758,7 +7758,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	}},
 	"transactionScheduler": {nil, map[string]*bintree{
 		"admin": {nil, map[string]*bintree{
-			"execute_transaction.cdc": {transactionschedulerAdminExecute_transactionCdc, map[string]*bintree{}},
+			"create_execution_account.cdc": {transactionschedulerAdminCreate_execution_accountCdc, map[string]*bintree{}},
 			"execute_transaction_with_capability.cdc": {transactionschedulerAdminExecute_transaction_with_capabilityCdc, map[string]*bintree{}},
 			"process_scheduled_transactions.cdc": {transactionschedulerAdminProcess_scheduled_transactionsCdc, map[string]*bintree{}},
 			"set_config_details.cdc": {transactionschedulerAdminSet_config_detailsCdc, map[string]*bintree{}},

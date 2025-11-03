@@ -158,7 +158,7 @@ access(all) fun executeScheduledTransaction(
     testName: String,
     failWithErr: String?
 ) {
-    let executeTransactionCode = Test.readFile("../transactions/transactionScheduler/admin/execute_transaction.cdc")
+    let executeTransactionCode = Test.readFile("./transactions/execute_transaction.cdc")
     let executeTx = Test.Transaction(
         code: executeTransactionCode,
         authorizers: [admin.address],
@@ -196,8 +196,8 @@ access(all) fun executeScheduledTransactionWithCapability(
     )
     var result = Test.executeTransaction(executeTx)
     if let error = failWithErr {
-        log(error)
-        log(result.error!.message)
+        // log(error)
+        // log(result.error!.message)
         Test.expect(result, Test.beFailed())
         Test.assertError(
             result,
