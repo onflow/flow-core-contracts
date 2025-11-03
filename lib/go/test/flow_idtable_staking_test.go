@@ -329,7 +329,7 @@ func TestIDTableRegistration(t *testing.T) {
 
 	t.Run("Shouldn't be able to create invalid Node structs", func(t *testing.T) {
 
-		var amountToCommit interpreter.UFix64Value = 25000000000000
+		var amountToCommit interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(250000)
 
 		registerNode(t, b, env,
 			idTableAddress,
@@ -418,7 +418,7 @@ func TestIDTableRegistration(t *testing.T) {
 
 	t.Run("Shouldn't be able to create Node struct with an invalid networking address", func(t *testing.T) {
 
-		var amountToCommit interpreter.UFix64Value = 25000000000000
+		var amountToCommit interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(250000)
 
 		invalidNetworkingAddresses := []string{
 			"",                   // empty address
@@ -448,7 +448,7 @@ func TestIDTableRegistration(t *testing.T) {
 
 	t.Run("Should be able to create a valid Node struct and not create duplicates", func(t *testing.T) {
 
-		var amountToCommit interpreter.UFix64Value = 25000000000000
+		var amountToCommit interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(250000)
 
 		registerNode(t, b, env,
 			idTableAddress,
@@ -642,7 +642,7 @@ func TestIDTableRegistration(t *testing.T) {
 
 	t.Run("Should be able to create more valid Node structs", func(t *testing.T) {
 
-		var amountToCommit interpreter.UFix64Value = 50000000000000
+		var amountToCommit interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(500000)
 
 		committed[joshID] = registerNode(t, b, env,
 			joshAddress,
@@ -660,7 +660,7 @@ func TestIDTableRegistration(t *testing.T) {
 		result := executeScriptAndCheck(t, b, templates.GenerateGetCommittedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(joshID))})
 		assertEqual(t, CadenceUFix64(committed[joshID].String()), result)
 
-		amountToCommit = 135000000000000
+		amountToCommit = interpreter.NewUnmeteredUFix64ValueWithInteger(1350000)
 
 		committed[maxID] = registerNode(t, b, env,
 			maxAddress,
@@ -675,7 +675,7 @@ func TestIDTableRegistration(t *testing.T) {
 			3,
 			false)
 
-		amountToCommit = 5000000000000
+		amountToCommit = interpreter.NewUnmeteredUFix64ValueWithInteger(50000)
 
 		committed[accessID] = registerNode(t, b, env,
 			accessAddress,
@@ -698,7 +698,7 @@ func TestIDTableRegistration(t *testing.T) {
 
 	t.Run("Shouldn't be able to register a node if it would be more than the candidate limit", func(t *testing.T) {
 
-		var amountToCommit interpreter.UFix64Value = 48000000000000
+		var amountToCommit interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(480000)
 
 		registerNode(t, b, env,
 			bastianAddress,
@@ -734,7 +734,7 @@ func TestIDTableRegistration(t *testing.T) {
 		// read the candidate nodes limits and make sure they have changed
 		assertCandidateLimitsEquals(t, b, env, []uint64{1, 1, 1, 1, 2})
 
-		var amountToCommit interpreter.UFix64Value = 48000000000000
+		var amountToCommit interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(480000)
 
 		// Try to register the node again
 		// it should succeed this time
@@ -765,7 +765,7 @@ func TestIDTableRegistration(t *testing.T) {
 
 	t.Run("Should remove nodes from the candidate list if they unstake below the minimum", func(t *testing.T) {
 
-		var amountToRequest interpreter.UFix64Value = 47990100000000
+		var amountToRequest interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(479901)
 
 		requestUnstaking(t, b, env,
 			bastianAddress,
@@ -837,7 +837,7 @@ func TestIDTableApprovals(t *testing.T) {
 
 	committed := make(map[string]interpreter.UFix64Value)
 
-	var amountToCommit interpreter.UFix64Value = 25000000000000
+	var amountToCommit interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(250000)
 	committed[adminID] = registerNode(t, b, env,
 		idTableAddress,
 		IDTableSigner,
@@ -870,7 +870,7 @@ func TestIDTableApprovals(t *testing.T) {
 	)
 
 	// Register an access node
-	amountToCommit = 00000000
+	amountToCommit = interpreter.NewUnmeteredUFix64ValueWithInteger(0)
 	committed[adminID] = registerNode(t, b, env,
 		accessAddress,
 		accessSigner,
@@ -1033,7 +1033,7 @@ func TestIDTableApprovals(t *testing.T) {
 	assertEqual(t, CadenceString(accessID), idArray[0])
 
 	t.Run("Adding new stake to a zero-stake access node who is already a participant should not add them to the candidate list", func(t *testing.T) {
-		amountToCommit = 10000000000
+		amountToCommit = interpreter.NewUnmeteredUFix64ValueWithInteger(100)
 		commitNewTokens(t, b, env,
 			accessAddress,
 			accessSigner,
@@ -1072,7 +1072,7 @@ func TestIDTableApprovals(t *testing.T) {
 	)
 
 	t.Run("Adding new stake to a non-participant, approved, zero-stake access node should add them to the candidate list", func(t *testing.T) {
-		amountToCommit = 10000000000
+		amountToCommit = interpreter.NewUnmeteredUFix64ValueWithInteger(100)
 		commitNewTokens(t, b, env,
 			joshAddress,
 			joshSigner,
@@ -1112,8 +1112,8 @@ func TestIDTableStaking(t *testing.T) {
 
 	accountKeys := test.AccountKeyGenerator()
 
-	var totalPayout interpreter.UFix64Value = 125000000000000 // 1.25M
-	var cutPercentage interpreter.UFix64Value = 8000000       // 8.0 %
+	var totalPayout interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(1250000) // 1.25M
+	var cutPercentage interpreter.UFix64Value = interpreter.NewUnmeteredUFix64Value(8000000)          // 8.0 %
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
@@ -1124,7 +1124,7 @@ func TestIDTableStaking(t *testing.T) {
 	env.IDTableAddress = idTableAddress.Hex()
 	env.FlowFeesAddress = feesAddr.Hex()
 
-	var totalStaked interpreter.UFix64Value = 0
+	var totalStaked interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(0)
 
 	committed := make(map[string]interpreter.UFix64Value)
 	staked := make(map[string]interpreter.UFix64Value)
@@ -1164,7 +1164,7 @@ func TestIDTableStaking(t *testing.T) {
 	mintTokensForAccount(t, b, env, maxDelegatorTwoAddress, "1000000000.0")
 
 	// Register the First nodes
-	var amountToCommit interpreter.UFix64Value = 25000000000000
+	var amountToCommit interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(250000)
 	committed[adminID] = registerNode(t, b, env,
 		idTableAddress,
 		IDTableSigner,
@@ -1190,7 +1190,7 @@ func TestIDTableStaking(t *testing.T) {
 	result = executeScriptAndCheck(t, b, templates.GenerateGetUnstakingBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 	assertEqual(t, CadenceUFix64(unstaking[adminID].String()), result)
 
-	amountToCommit = 50000000000000
+	amountToCommit = interpreter.NewUnmeteredUFix64ValueWithInteger(500000)
 
 	committed[joshID] = registerNode(t, b, env,
 		joshAddress,
@@ -1205,7 +1205,7 @@ func TestIDTableStaking(t *testing.T) {
 		2,
 		false)
 
-	amountToCommit = 135000000000000
+	amountToCommit = interpreter.NewUnmeteredUFix64ValueWithInteger(1350000)
 
 	committed[maxID] = registerNode(t, b, env,
 		maxAddress,
@@ -1220,7 +1220,7 @@ func TestIDTableStaking(t *testing.T) {
 		3,
 		false)
 
-	amountToCommit = 5000000000000
+	amountToCommit = interpreter.NewUnmeteredUFix64ValueWithInteger(500000)
 
 	committed[accessID] = registerNode(t, b, env,
 		accessAddress,
@@ -1237,7 +1237,7 @@ func TestIDTableStaking(t *testing.T) {
 
 	t.Run("Should be able to commit additional tokens for max's node", func(t *testing.T) {
 
-		var amountToCommit interpreter.UFix64Value = 10000000000000
+		var amountToCommit interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(100000)
 
 		committed[maxID] = commitNewTokens(t, b, env,
 			maxAddress,
@@ -1252,7 +1252,7 @@ func TestIDTableStaking(t *testing.T) {
 
 	t.Run("Should not be able request unstaking for more than is available", func(t *testing.T) {
 
-		var amountToRequest interpreter.UFix64Value = 500000000000000
+		var amountToRequest interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(5000000)
 
 		requestUnstaking(t, b, env,
 			maxAddress,
@@ -1267,7 +1267,7 @@ func TestIDTableStaking(t *testing.T) {
 
 	t.Run("Should be able to request unstaking which moves from comitted to unstaked", func(t *testing.T) {
 
-		var amountToRequest interpreter.UFix64Value = 2000000000000
+		var amountToRequest interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(20000)
 
 		committed[joshID], unstaked[joshID], request[joshID] = requestUnstaking(t, b, env,
 			joshAddress,
@@ -1279,7 +1279,7 @@ func TestIDTableStaking(t *testing.T) {
 			false,
 		)
 
-		amountToRequest = 10000000000000
+		amountToRequest = interpreter.NewUnmeteredUFix64ValueWithInteger(100000)
 
 		committed[maxID], unstaked[maxID], request[maxID] = requestUnstaking(t, b, env,
 			maxAddress,
@@ -1300,7 +1300,7 @@ func TestIDTableStaking(t *testing.T) {
 
 	t.Run("Should be able to withdraw tokens from unstaked", func(t *testing.T) {
 
-		unstaked[maxID] = unstaked[maxID] - 5000000000000
+		unstaked[maxID] = unstaked[maxID].Minus(stubInterpreter(), interpreter.NewUnmeteredUFix64ValueWithInteger(50000)).(interpreter.UFix64Value)
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateWithdrawUnstakedTokensScript(env), maxAddress)
 
@@ -1320,7 +1320,7 @@ func TestIDTableStaking(t *testing.T) {
 
 	t.Run("Should be able to commit unstaked tokens", func(t *testing.T) {
 
-		var amountToCommit interpreter.UFix64Value = 5000000000000
+		var amountToCommit interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(50000)
 
 		committed[maxID], unstaked[maxID] = commitUnstaked(t, b, env,
 			maxAddress,
@@ -1468,8 +1468,8 @@ func TestIDTableStaking(t *testing.T) {
 
 	t.Run("Should be able to end the staking auction, which removes insufficiently staked nodes", func(t *testing.T) {
 
-		unstaked[joshID] = unstaked[joshID] + committed[joshID]
-		committed[joshID] = 0
+		unstaked[joshID] = unstaked[joshID].Plus(stubInterpreter(), committed[joshID]).(interpreter.UFix64Value)
+		committed[joshID] = interpreter.NewUnmeteredUFix64ValueWithInteger(0)
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndStakingScript(env), idTableAddress)
 
@@ -1556,7 +1556,7 @@ func TestIDTableStaking(t *testing.T) {
 
 	t.Run("Should not be able to perform additional staking operations when staking isn't enabled", func(t *testing.T) {
 
-		var amountToCommit interpreter.UFix64Value = 100000000000
+		var amountToCommit interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(1000)
 
 		commitNewTokens(t, b, env,
 			maxAddress,
@@ -1581,7 +1581,7 @@ func TestIDTableStaking(t *testing.T) {
 			rewards[maxID],
 			true)
 
-		var amountToRequest interpreter.UFix64Value = 5000000000000
+		var amountToRequest interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(50000)
 
 		requestUnstaking(t, b, env,
 			maxAddress,
@@ -1672,7 +1672,7 @@ func TestIDTableStaking(t *testing.T) {
 
 	t.Run("Should be able to commit unstaked and new tokens from the node who was not included", func(t *testing.T) {
 
-		var amountToCommit interpreter.UFix64Value = 48000000000000
+		var amountToCommit interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(480000)
 
 		committed[joshID], unstaked[joshID] = commitUnstaked(t, b, env,
 			joshAddress,
@@ -1682,7 +1682,7 @@ func TestIDTableStaking(t *testing.T) {
 			unstaked[joshID],
 			false)
 
-		amountToCommit = 10000000000000
+		amountToCommit = interpreter.NewUnmeteredUFix64ValueWithInteger(100000)
 
 		committed[joshID] = commitNewTokens(t, b, env,
 			joshAddress,
@@ -1718,7 +1718,7 @@ func TestIDTableStaking(t *testing.T) {
 
 	t.Run("Should be able to request unstaking from a staked node", func(t *testing.T) {
 
-		var amountToRequest interpreter.UFix64Value = 5000000000000
+		var amountToRequest interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(50000)
 
 		committed[adminID], unstaked[adminID], request[adminID] = requestUnstaking(t, b, env,
 			idTableAddress,
@@ -1740,7 +1740,7 @@ func TestIDTableStaking(t *testing.T) {
 		assertEqual(t, CadenceUFix64(staked[adminID].String()), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetTotalCommitmentBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
-		assertEqual(t, CadenceUFix64((committed[adminID].Plus(stubInterpreter(), staked[adminID].Minus(stubInterpreter(), request[adminID], interpreter.EmptyLocationRange), interpreter.EmptyLocationRange)).String()), result)
+		assertEqual(t, CadenceUFix64((committed[adminID].Plus(stubInterpreter(), staked[adminID].Minus(stubInterpreter(), request[adminID]))).String()), result)
 
 		// josh, max, and access are proposed
 		result = executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
@@ -1841,13 +1841,13 @@ func TestIDTableStaking(t *testing.T) {
 			false,
 		)
 
-		committed[joshID+firstDelegatorStringID] = 10000000000000
+		committed[joshID+firstDelegatorStringID] = interpreter.NewUnmeteredUFix64ValueWithInteger(100000)
 
 		result := executeScriptAndCheck(t, b, templates.GenerateGetCommittedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(joshID))})
 		assertEqual(t, CadenceUFix64(committed[joshID].String()), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetTotalCommitmentBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(joshID))})
-		assertEqual(t, CadenceUFix64((committed[joshID].Plus(stubInterpreter(), committed[joshID+firstDelegatorStringID], interpreter.EmptyLocationRange)).(interpreter.UFix64Value).String()), result)
+		assertEqual(t, CadenceUFix64((committed[joshID].Plus(stubInterpreter(), committed[joshID+firstDelegatorStringID])).(interpreter.UFix64Value).String()), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorCommittedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(joshID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
 		assertEqual(t, CadenceUFix64(committed[joshID+firstDelegatorStringID].String()), result)
@@ -1859,9 +1859,9 @@ func TestIDTableStaking(t *testing.T) {
 
 	t.Run("Should be able to request unstake delegated tokens from Josh, which moves them from committed to unstaked", func(t *testing.T) {
 
-		var amountToUnstake interpreter.UFix64Value = 4000000000000
-		committed[joshID+firstDelegatorStringID] = committed[joshID+firstDelegatorStringID].Minus(stubInterpreter(), amountToUnstake, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
-		unstaked[joshID+firstDelegatorStringID] = unstaked[joshID+firstDelegatorStringID].Plus(stubInterpreter(), amountToUnstake, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		var amountToUnstake interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(40000)
+		committed[joshID+firstDelegatorStringID] = committed[joshID+firstDelegatorStringID].Minus(stubInterpreter(), amountToUnstake).(interpreter.UFix64Value)
+		unstaked[joshID+firstDelegatorStringID] = unstaked[joshID+firstDelegatorStringID].Plus(stubInterpreter(), amountToUnstake).(interpreter.UFix64Value)
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDelegatorRequestUnstakeScript(env), joshDelegatorOneAddress)
 		_ = tx.AddArgument(CadenceUFix64(amountToUnstake.String()))
@@ -1877,7 +1877,7 @@ func TestIDTableStaking(t *testing.T) {
 		assertEqual(t, CadenceUFix64(committed[joshID].String()), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetTotalCommitmentBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(joshID))})
-		assertEqual(t, CadenceUFix64((committed[joshID].Plus(stubInterpreter(), committed[joshID+firstDelegatorStringID], interpreter.EmptyLocationRange).(interpreter.UFix64Value)).String()), result)
+		assertEqual(t, CadenceUFix64((committed[joshID].Plus(stubInterpreter(), committed[joshID+firstDelegatorStringID]).(interpreter.UFix64Value)).String()), result)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetDelegatorCommittedScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(joshID)), jsoncdc.MustEncode(cadence.UInt32(firstDelegatorID))})
 		assertEqual(t, CadenceUFix64(committed[joshID+firstDelegatorStringID].String()), result)
@@ -1892,9 +1892,9 @@ func TestIDTableStaking(t *testing.T) {
 
 	t.Run("Should be able to withdraw josh delegator's unstaked tokens", func(t *testing.T) {
 
-		var amountToWithdraw interpreter.UFix64Value = 2000000000000
+		var amountToWithdraw interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(20000)
 
-		unstaked[joshID+firstDelegatorStringID] = unstaked[joshID+firstDelegatorStringID].Minus(stubInterpreter(), amountToWithdraw, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		unstaked[joshID+firstDelegatorStringID] = unstaked[joshID+firstDelegatorStringID].Minus(stubInterpreter(), amountToWithdraw).(interpreter.UFix64Value)
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDelegatorWithdrawUnstakedScript(env), joshDelegatorOneAddress)
 
@@ -1917,10 +1917,10 @@ func TestIDTableStaking(t *testing.T) {
 
 	t.Run("Should be able to delegate unstaked tokens to josh", func(t *testing.T) {
 
-		var amountToCommit interpreter.UFix64Value = 2000000000000
+		var amountToCommit interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(20000)
 
-		unstaked[joshID+firstDelegatorStringID] = unstaked[joshID+firstDelegatorStringID].Minus(stubInterpreter(), amountToCommit, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
-		committed[joshID+firstDelegatorStringID] = committed[joshID+firstDelegatorStringID].Plus(stubInterpreter(), amountToCommit, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		unstaked[joshID+firstDelegatorStringID] = unstaked[joshID+firstDelegatorStringID].Minus(stubInterpreter(), amountToCommit).(interpreter.UFix64Value)
+		committed[joshID+firstDelegatorStringID] = committed[joshID+firstDelegatorStringID].Plus(stubInterpreter(), amountToCommit).(interpreter.UFix64Value)
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDelegatorStakeUnstakedScript(env), joshDelegatorOneAddress)
 
@@ -1961,7 +1961,7 @@ func TestIDTableStaking(t *testing.T) {
 			false,
 		)
 
-		request[adminID] = 25000000000000
+		request[adminID] = interpreter.NewUnmeteredUFix64ValueWithInteger(250000)
 
 		result := executeScriptAndCheck(t, b, templates.GenerateReturnProposedTableScript(env), nil)
 
@@ -1999,7 +1999,7 @@ func TestIDTableStaking(t *testing.T) {
 
 	t.Run("Should not be able to perform delegation actions when staking isn't enabled", func(t *testing.T) {
 
-		var amount interpreter.UFix64Value = 200000000
+		var amount interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(2)
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDelegatorStakeUnstakedScript(env), joshDelegatorOneAddress)
 
@@ -2079,7 +2079,7 @@ func TestIDTableStaking(t *testing.T) {
 				minted:     "1249900.0000",
 				feesBurned: "0.0125"})
 
-		totalStaked = 165000000000000
+		totalStaked = interpreter.NewUnmeteredUFix64ValueWithInteger(1650000)
 
 		result := executeScriptAndCheck(t, b, templates.GenerateGetUnstakedBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		assertEqual(t, CadenceUFix64(unstaked[adminID].String()), result)
@@ -2095,19 +2095,19 @@ func TestIDTableStaking(t *testing.T) {
 
 		// Update test rewards values for the admin node
 		rewardsResult, _ := payRewards(false, totalPayout, totalStaked, cutPercentage, staked[adminID])
-		rewards[adminID] = rewards[adminID].Plus(stubInterpreter(), rewardsResult, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		rewards[adminID] = rewards[adminID].Plus(stubInterpreter(), rewardsResult).(interpreter.UFix64Value)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		assertEqual(t, CadenceUFix64(rewards[adminID].String()), result)
 
 		// Update test rewards values for the josh node
-		rewardsResult, _ = payRewards(false, totalPayout, totalStaked, cutPercentage, 0)
-		rewards[joshID] = rewards[joshID].Plus(stubInterpreter(), rewardsResult, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		rewardsResult, _ = payRewards(false, totalPayout, totalStaked, cutPercentage, interpreter.NewUnmeteredUFix64ValueWithInteger(0))
+		rewards[joshID] = rewards[joshID].Plus(stubInterpreter(), rewardsResult).(interpreter.UFix64Value)
 
 		// Update test rewards values for the josh node delegator
-		rewardsResult, delegateeRewardsResult := payRewards(true, totalPayout, totalStaked, cutPercentage, 0)
-		rewards[joshID] = rewards[joshID].Plus(stubInterpreter(), delegateeRewardsResult, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
-		rewards[joshID+firstDelegatorStringID] = rewards[joshID+firstDelegatorStringID].Plus(stubInterpreter(), rewardsResult, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		rewardsResult, delegateeRewardsResult := payRewards(true, totalPayout, totalStaked, cutPercentage, interpreter.NewUnmeteredUFix64ValueWithInteger(0))
+		rewards[joshID] = rewards[joshID].Plus(stubInterpreter(), delegateeRewardsResult).(interpreter.UFix64Value)
+		rewards[joshID+firstDelegatorStringID] = rewards[joshID+firstDelegatorStringID].Plus(stubInterpreter(), rewardsResult).(interpreter.UFix64Value)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(joshID))})
 		assertEqual(t, CadenceUFix64(rewards[joshID].String()), result)
@@ -2340,8 +2340,8 @@ func TestIDTableStaking(t *testing.T) {
 			false,
 		)
 
-		rewards[adminID] = rewards[adminID].Minus(stubInterpreter(), interpreter.NewUFix64ValueWithInteger(nil, func() uint64 { return newCommitAmount }, interpreter.EmptyLocationRange), interpreter.EmptyLocationRange).(interpreter.UFix64Value)
-		committed[adminID] = committed[adminID].Plus(stubInterpreter(), interpreter.NewUFix64ValueWithInteger(nil, func() uint64 { return newCommitAmount }, interpreter.EmptyLocationRange), interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		rewards[adminID] = rewards[adminID].Minus(stubInterpreter(), interpreter.NewUFix64ValueWithInteger(nil, func() uint64 { return newCommitAmount })).(interpreter.UFix64Value)
+		committed[adminID] = committed[adminID].Plus(stubInterpreter(), interpreter.NewUFix64ValueWithInteger(nil, func() uint64 { return newCommitAmount })).(interpreter.UFix64Value)
 
 		result := executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(adminID))})
 		assertEqual(t, CadenceUFix64(rewards[adminID].String()), result)
@@ -2353,9 +2353,9 @@ func TestIDTableStaking(t *testing.T) {
 	// Josh Delegator Requests to unstake which marks their request
 	t.Run("Should be able to request unstake delegated tokens from Josh, marks as requested", func(t *testing.T) {
 
-		var requestAmount interpreter.UFix64Value = 4000000000000
+		var requestAmount interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(40000)
 
-		request[joshID+firstDelegatorStringID] = request[joshID+firstDelegatorStringID].Plus(stubInterpreter(), requestAmount, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		request[joshID+firstDelegatorStringID] = request[joshID+firstDelegatorStringID].Plus(stubInterpreter(), requestAmount).(interpreter.UFix64Value)
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDelegatorRequestUnstakeScript(env), joshDelegatorOneAddress)
 		_ = tx.AddArgument(CadenceUFix64(requestAmount.String()))
@@ -2386,9 +2386,9 @@ func TestIDTableStaking(t *testing.T) {
 
 	t.Run("Should be able cancel unstake request for delegator", func(t *testing.T) {
 
-		var cancelRequestAmount interpreter.UFix64Value = 2000000000000
+		var cancelRequestAmount interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(20000)
 
-		request[joshID+firstDelegatorStringID] = request[joshID+firstDelegatorStringID].Minus(stubInterpreter(), cancelRequestAmount, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		request[joshID+firstDelegatorStringID] = request[joshID+firstDelegatorStringID].Minus(stubInterpreter(), cancelRequestAmount).(interpreter.UFix64Value)
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDelegatorStakeUnstakedScript(env), joshDelegatorOneAddress)
 
@@ -2410,9 +2410,9 @@ func TestIDTableStaking(t *testing.T) {
 	// Josh Delegator Requests to unstake which marks their request
 	t.Run("Should be able to request unstake delegated tokens from Josh, marks as requested", func(t *testing.T) {
 
-		var requestAmount interpreter.UFix64Value = 2000000000000
+		var requestAmount interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(20000)
 
-		request[joshID+firstDelegatorStringID] = request[joshID+firstDelegatorStringID].Plus(stubInterpreter(), requestAmount, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		request[joshID+firstDelegatorStringID] = request[joshID+firstDelegatorStringID].Plus(stubInterpreter(), requestAmount).(interpreter.UFix64Value)
 
 		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateDelegatorRequestUnstakeScript(env), joshDelegatorOneAddress)
 		_ = tx.AddArgument(CadenceUFix64(requestAmount.String()))
@@ -2448,7 +2448,7 @@ func TestIDTableStaking(t *testing.T) {
 
 		assertRoleCountsEquals(t, b, env, []uint16{0, 1, 2, 0, 1})
 
-		unstaked[adminID] = unstaked[adminID].Plus(stubInterpreter(), committed[adminID], interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		unstaked[adminID] = unstaked[adminID].Plus(stubInterpreter(), committed[adminID]).(interpreter.UFix64Value)
 
 	})
 
@@ -2560,7 +2560,7 @@ func TestIDTableStaking(t *testing.T) {
 		result = executeScriptAndCheck(t, b, templates.GenerateGetTotalTokensStakedScript(env), nil)
 		assertEqual(t, CadenceUFix64("3720000.0"), result)
 
-		totalStaked = 372000000000000
+		totalStaked = interpreter.NewUnmeteredUFix64ValueWithInteger(3720000)
 
 		assertRoleCountsEquals(t, b, env, []uint16{0, 1, 1, 0, 1})
 
@@ -2584,11 +2584,11 @@ func TestIDTableStaking(t *testing.T) {
 		assertEqual(t, CadenceUFix64(rewards[adminID].String()), result)
 
 		rewardsResult, _ := payRewards(false, totalPayout, totalStaked, cutPercentage, staked[joshID])
-		rewards[joshID] = rewards[joshID].Plus(stubInterpreter(), rewardsResult, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		rewards[joshID] = rewards[joshID].Plus(stubInterpreter(), rewardsResult).(interpreter.UFix64Value)
 
 		rewardsResult, delegateeRewardsResult := payRewards(true, totalPayout, totalStaked, cutPercentage, staked[joshID+firstDelegatorStringID])
-		rewards[joshID] = rewards[joshID].Plus(stubInterpreter(), delegateeRewardsResult, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
-		rewards[joshID+firstDelegatorStringID] = rewards[joshID+firstDelegatorStringID].Plus(stubInterpreter(), rewardsResult, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		rewards[joshID] = rewards[joshID].Plus(stubInterpreter(), delegateeRewardsResult).(interpreter.UFix64Value)
+		rewards[joshID+firstDelegatorStringID] = rewards[joshID+firstDelegatorStringID].Plus(stubInterpreter(), rewardsResult).(interpreter.UFix64Value)
 
 		result = executeScriptAndCheck(t, b, templates.GenerateGetRewardBalanceScript(env), [][]byte{jsoncdc.MustEncode(cadence.String(joshID))})
 		assertEqual(t, CadenceUFix64(rewards[joshID].String()), result)
@@ -2939,7 +2939,7 @@ func TestIDTableDelegatorMinimums(t *testing.T) {
 	mintTokensForAccount(t, b, env, delegator2Address, "1000000.0")
 
 	// Register the First node
-	var amountToCommit interpreter.UFix64Value = 25000000000000
+	var amountToCommit interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(250000)
 	registerNode(t, b, env,
 		idTableAddress,
 		IDTableSigner,
@@ -3134,7 +3134,7 @@ func TestIDTableSlotSelection(t *testing.T) {
 		assertEqual(t, cadence.NewUInt16(2), result)
 	})
 
-	var amountToCommit interpreter.UFix64Value = 10000000000000
+	var amountToCommit interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(100000)
 
 	// Register the first access node
 	registerNode(t, b, env,
@@ -3398,8 +3398,8 @@ func TestIDTableRewardsWitholding(t *testing.T) {
 
 	accountKeys := test.AccountKeyGenerator()
 
-	var totalPayout interpreter.UFix64Value = 125000000000000 // 1.25M
-	var cutPercentage interpreter.UFix64Value = 8000000       // 08.0 %
+	var totalPayout interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(1250000) // 1.25M
+	var cutPercentage interpreter.UFix64Value = interpreter.NewUnmeteredUFix64Value(8000000)          // 08.0 %
 
 	// Create new keys for the ID table account
 	IDTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
@@ -3443,7 +3443,7 @@ func TestIDTableRewardsWitholding(t *testing.T) {
 	}
 
 	// Each node will commit 500k FLOW
-	var amountToCommit interpreter.UFix64Value = 50000000000000
+	var amountToCommit interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(500000)
 
 	// Fund each node and register each node for staking
 	for i := 0; i < numNodes; i++ {
@@ -3576,45 +3576,45 @@ func TestIDTableRewardsWitholding(t *testing.T) {
 		// and one of the non-delegated-to nodes
 
 		// The amount of tokens each delegator committed (10k FLOW)
-		var delegatorCommitment interpreter.UFix64Value = 1000000000000
+		var delegatorCommitment interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(10000)
 		// The total number of delegators = 10
-		var numDelegators interpreter.UFix64Value = 1000000000
+		var numDelegators interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(10)
 		// For multiplying the token amounts (5 nodes for node 0)
-		var numDelegatorsForNode0 interpreter.UFix64Value = 500000000
+		var numDelegatorsForNode0 interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(5)
 		// 10 Nodes total
-		var numNodesTotal interpreter.UFix64Value = 1000000000
+		var numNodesTotal interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(10)
 
 		// Number of Nodes whose rewards have been withheld (For multiplying the token amounts)
-		var numWithheldNodes interpreter.UFix64Value = 200000000
+		var numWithheldNodes interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(2)
 
-		var totalStaked interpreter.UFix64Value = delegatorCommitment.Mul(stubInterpreter(), numDelegators, interpreter.EmptyLocationRange).Plus(stubInterpreter(), amountToCommit.Mul(stubInterpreter(), numNodesTotal, interpreter.EmptyLocationRange), interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		var totalStaked interpreter.UFix64Value = delegatorCommitment.Mul(stubInterpreter(), numDelegators).Plus(stubInterpreter(), amountToCommit.Mul(stubInterpreter(), numNodesTotal)).(interpreter.UFix64Value)
 
-		var totalStakedFromNonOperationalStakers interpreter.UFix64Value = delegatorCommitment.Mul(stubInterpreter(), numDelegatorsForNode0, interpreter.EmptyLocationRange).Plus(stubInterpreter(), amountToCommit.Mul(stubInterpreter(), numWithheldNodes, interpreter.EmptyLocationRange), interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		var totalStakedFromNonOperationalStakers interpreter.UFix64Value = delegatorCommitment.Mul(stubInterpreter(), numDelegatorsForNode0).Plus(stubInterpreter(), amountToCommit.Mul(stubInterpreter(), numWithheldNodes)).(interpreter.UFix64Value)
 
 		// First calculate the node and delegator rewards assuming no withholding
-		nodeRewardWithoutWithold := totalPayout.Div(stubInterpreter(), totalStaked, interpreter.EmptyLocationRange).Mul(stubInterpreter(), amountToCommit, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
-		delegatorReward := totalPayout.Div(stubInterpreter(), totalStaked, interpreter.EmptyLocationRange).Mul(stubInterpreter(), delegatorCommitment, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
-		delegatorRewardNodeCut := delegatorReward.Mul(stubInterpreter(), cutPercentage, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
-		delegatorRewardMinusNode := delegatorReward.Minus(stubInterpreter(), delegatorRewardNodeCut, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		nodeRewardWithoutWithold := totalPayout.Div(stubInterpreter(), totalStaked).Mul(stubInterpreter(), amountToCommit).(interpreter.UFix64Value)
+		delegatorReward := totalPayout.Div(stubInterpreter(), totalStaked).Mul(stubInterpreter(), delegatorCommitment).(interpreter.UFix64Value)
+		delegatorRewardNodeCut := delegatorReward.Mul(stubInterpreter(), cutPercentage).(interpreter.UFix64Value)
+		delegatorRewardMinusNode := delegatorReward.Minus(stubInterpreter(), delegatorRewardNodeCut).(interpreter.UFix64Value)
 
 		// The rewards for a node and its 5 delegators
 		// without including withheld rewards from other nodes
-		nodeRewardPlusDelegators := nodeRewardWithoutWithold.Plus(stubInterpreter(), delegatorRewardNodeCut.Mul(stubInterpreter(), numDelegatorsForNode0, interpreter.EmptyLocationRange), interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		nodeRewardPlusDelegators := nodeRewardWithoutWithold.Plus(stubInterpreter(), delegatorRewardNodeCut.Mul(stubInterpreter(), numDelegatorsForNode0)).(interpreter.UFix64Value)
 
 		// Figure out the sum of tokens withheld from all punished nodes
-		amountWithheld := nodeRewardWithoutWithold.Mul(stubInterpreter(), numWithheldNodes, interpreter.EmptyLocationRange).Plus(stubInterpreter(), delegatorReward.Mul(stubInterpreter(), numDelegatorsForNode0, interpreter.EmptyLocationRange), interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		amountWithheld := nodeRewardWithoutWithold.Mul(stubInterpreter(), numWithheldNodes).Plus(stubInterpreter(), delegatorReward.Mul(stubInterpreter(), numDelegatorsForNode0)).(interpreter.UFix64Value)
 
 		// Calculate the additional tokens to give to nodes and delegators
 		// only from the withheld tokens
-		nodeRewardFromWithheld := amountWithheld.Div(stubInterpreter(), totalStaked.Minus(stubInterpreter(), totalStakedFromNonOperationalStakers, interpreter.EmptyLocationRange), interpreter.EmptyLocationRange).Mul(stubInterpreter(), amountToCommit, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
-		delegatorRewardFromWithheld := amountWithheld.Div(stubInterpreter(), totalStaked.Minus(stubInterpreter(), totalStakedFromNonOperationalStakers, interpreter.EmptyLocationRange), interpreter.EmptyLocationRange).Mul(stubInterpreter(), delegatorCommitment, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
-		delegatorRewardNodeCutFromWithheld := delegatorRewardFromWithheld.Mul(stubInterpreter(), cutPercentage, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
-		delegatorRewardMinusNodeFromWithheld := delegatorRewardFromWithheld.Minus(stubInterpreter(), delegatorRewardNodeCutFromWithheld, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		nodeRewardFromWithheld := amountWithheld.Div(stubInterpreter(), totalStaked.Minus(stubInterpreter(), totalStakedFromNonOperationalStakers)).Mul(stubInterpreter(), amountToCommit).(interpreter.UFix64Value)
+		delegatorRewardFromWithheld := amountWithheld.Div(stubInterpreter(), totalStaked.Minus(stubInterpreter(), totalStakedFromNonOperationalStakers)).Mul(stubInterpreter(), delegatorCommitment).(interpreter.UFix64Value)
+		delegatorRewardNodeCutFromWithheld := delegatorRewardFromWithheld.Mul(stubInterpreter(), cutPercentage).(interpreter.UFix64Value)
+		delegatorRewardMinusNodeFromWithheld := delegatorRewardFromWithheld.Minus(stubInterpreter(), delegatorRewardNodeCutFromWithheld).(interpreter.UFix64Value)
 
 		// Add the normal rewards to the rewards from withholding
-		totalNodeReward := nodeRewardWithoutWithold.Plus(stubInterpreter(), nodeRewardFromWithheld, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
-		totalNodeRewardPlusDelegators := nodeRewardPlusDelegators.Plus(stubInterpreter(), nodeRewardFromWithheld.Plus(stubInterpreter(), delegatorRewardNodeCutFromWithheld.Mul(stubInterpreter(), numDelegatorsForNode0, interpreter.EmptyLocationRange), interpreter.EmptyLocationRange), interpreter.EmptyLocationRange).(interpreter.UFix64Value)
-		totalDelegatorReward := delegatorRewardMinusNode.Plus(stubInterpreter(), delegatorRewardMinusNodeFromWithheld, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		totalNodeReward := nodeRewardWithoutWithold.Plus(stubInterpreter(), nodeRewardFromWithheld).(interpreter.UFix64Value)
+		totalNodeRewardPlusDelegators := nodeRewardPlusDelegators.Plus(stubInterpreter(), nodeRewardFromWithheld.Plus(stubInterpreter(), delegatorRewardNodeCutFromWithheld.Mul(stubInterpreter(), numDelegatorsForNode0))).(interpreter.UFix64Value)
+		totalDelegatorReward := delegatorRewardMinusNode.Plus(stubInterpreter(), delegatorRewardMinusNodeFromWithheld).(interpreter.UFix64Value)
 
 		// Nodes 1, 3-9
 		for i := 1; i < numNodes; i++ {

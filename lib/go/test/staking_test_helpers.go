@@ -405,7 +405,7 @@ func registerNode(t *testing.T,
 	)
 
 	if !shouldFail {
-		newTokensCommitted = tokensCommitted.Plus(stubInterpreter(), amount, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		newTokensCommitted = tokensCommitted.Plus(stubInterpreter(), amount).(interpreter.UFix64Value)
 	}
 
 	return
@@ -487,8 +487,8 @@ func registerNodesForStaking(
 	}
 
 	// set the amount of tokens as the 1.35M, which is greater than the minimum for all the nodes
-	var amountToCommit interpreter.UFix64Value = 135000000000000
-	var committed interpreter.UFix64Value = 0
+	var amountToCommit interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(1350000)
+	var committed interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(0)
 
 	// iterate through all the authorizers and execute the register node transaction
 	i := 0
@@ -522,7 +522,7 @@ func commitNewTokens(t *testing.T,
 	amount, tokensCommitted interpreter.UFix64Value,
 	shouldFail bool,
 ) (
-// the new amount of tokens that this node has committed
+	// the new amount of tokens that this node has committed
 	newTokensCommitted interpreter.UFix64Value,
 ) {
 
@@ -543,7 +543,7 @@ func commitNewTokens(t *testing.T,
 	)
 
 	if !shouldFail {
-		newTokensCommitted = tokensCommitted.Plus(stubInterpreter(), amount, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		newTokensCommitted = tokensCommitted.Plus(stubInterpreter(), amount).(interpreter.UFix64Value)
 	} else {
 		newTokensCommitted = tokensCommitted
 	}
@@ -581,8 +581,8 @@ func commitUnstaked(t *testing.T,
 	)
 
 	if !shouldFail {
-		newTokensCommitted = tokensCommitted.Plus(stubInterpreter(), amount, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
-		newTokensUnstaked = tokensUnstaked.Minus(stubInterpreter(), amount, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		newTokensCommitted = tokensCommitted.Plus(stubInterpreter(), amount).(interpreter.UFix64Value)
+		newTokensUnstaked = tokensUnstaked.Minus(stubInterpreter(), amount).(interpreter.UFix64Value)
 	} else {
 		newTokensCommitted = tokensCommitted
 		newTokensUnstaked = tokensUnstaked
@@ -620,8 +620,8 @@ func commitRewarded(t *testing.T,
 	)
 
 	if !shouldFail {
-		newTokensRewarded = tokensRewarded.Minus(stubInterpreter(), amount, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
-		newTokensCommitted = tokensCommitted.Plus(stubInterpreter(), amount, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		newTokensRewarded = tokensRewarded.Minus(stubInterpreter(), amount).(interpreter.UFix64Value)
+		newTokensCommitted = tokensCommitted.Plus(stubInterpreter(), amount).(interpreter.UFix64Value)
 	} else {
 		newTokensRewarded = tokensRewarded
 		newTokensCommitted = tokensCommitted
@@ -659,14 +659,14 @@ func requestUnstaking(t *testing.T,
 	)
 
 	if !shouldFail {
-		if tokensCommitted > amount {
-			newTokensCommitted = tokensCommitted.Minus(stubInterpreter(), amount, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
-			newTokensUnstaked = tokensUnstaked.Plus(stubInterpreter(), amount, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		if tokensCommitted.UFix64Value > amount.UFix64Value {
+			newTokensCommitted = tokensCommitted.Minus(stubInterpreter(), amount).(interpreter.UFix64Value)
+			newTokensUnstaked = tokensUnstaked.Plus(stubInterpreter(), amount).(interpreter.UFix64Value)
 			newRequest = request
 		} else {
-			newRequest = request.Plus(stubInterpreter(), amount.Minus(stubInterpreter(), tokensCommitted, interpreter.EmptyLocationRange), interpreter.EmptyLocationRange).(interpreter.UFix64Value)
-			newTokensUnstaked = tokensUnstaked.Plus(stubInterpreter(), tokensCommitted, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
-			newTokensCommitted = 0
+			newRequest = request.Plus(stubInterpreter(), amount.Minus(stubInterpreter(), tokensCommitted)).(interpreter.UFix64Value)
+			newTokensUnstaked = tokensUnstaked.Plus(stubInterpreter(), tokensCommitted).(interpreter.UFix64Value)
+			newTokensCommitted = interpreter.NewUnmeteredUFix64ValueWithInteger(0)
 		}
 	} else {
 		newRequest = request
@@ -684,14 +684,14 @@ func payRewards(
 ) (
 	rewards, delegateeRewards interpreter.UFix64Value,
 ) {
-	calculatedRewards := totalPayout.Div(stubInterpreter(), totalStaked, interpreter.EmptyLocationRange).Mul(stubInterpreter(), staked, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+	calculatedRewards := totalPayout.Div(stubInterpreter(), totalStaked).Mul(stubInterpreter(), staked).(interpreter.UFix64Value)
 
 	if isDelegator {
-		delegateeRewards = calculatedRewards.Mul(stubInterpreter(), cut, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
-		rewards = calculatedRewards.Minus(stubInterpreter(), delegateeRewards, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		delegateeRewards = calculatedRewards.Mul(stubInterpreter(), cut).(interpreter.UFix64Value)
+		rewards = calculatedRewards.Minus(stubInterpreter(), delegateeRewards).(interpreter.UFix64Value)
 
 	} else {
-		delegateeRewards = 0
+		delegateeRewards = interpreter.NewUnmeteredUFix64ValueWithInteger(0)
 		rewards = calculatedRewards
 	}
 
@@ -703,19 +703,19 @@ func moveTokens(committed, staked, requested, unstaking, unstaked, totalStaked i
 ) (
 	newCommitted, newStaked, newRequested, newUnstaking, newUnstaked, newTotalStaked interpreter.UFix64Value,
 ) {
-	newTotalStaked = totalStaked.Plus(stubInterpreter(), committed, interpreter.EmptyLocationRange).Minus(stubInterpreter(), requested, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+	newTotalStaked = totalStaked.Plus(stubInterpreter(), committed).Minus(stubInterpreter(), requested).(interpreter.UFix64Value)
 
-	newCommitted = 0
+	newCommitted = interpreter.NewUnmeteredUFix64ValueWithInteger(0)
 
-	newStaked = staked.Plus(stubInterpreter(), committed, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+	newStaked = staked.Plus(stubInterpreter(), committed).(interpreter.UFix64Value)
 
-	newUnstaked = unstaked.Plus(stubInterpreter(), unstaking, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+	newUnstaked = unstaked.Plus(stubInterpreter(), unstaking).(interpreter.UFix64Value)
 
 	newUnstaking = requested
 
-	newStaked = newStaked.Minus(stubInterpreter(), requested, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+	newStaked = newStaked.Minus(stubInterpreter(), requested).(interpreter.UFix64Value)
 
-	newRequested = 0
+	newRequested = interpreter.NewUnmeteredUFix64ValueWithInteger(0)
 
 	return
 }

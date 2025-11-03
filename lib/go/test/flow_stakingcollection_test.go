@@ -465,7 +465,7 @@ func TestStakingCollectionRegisterNode(t *testing.T) {
 	userAddresses, _, userSigners := registerAndMintManyAccounts(t, b, env, accountKeys, 4)
 	_, adminStakingKey, adminStakingPOP, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
 
-	var amountToCommit interpreter.UFix64Value = 48000000000000
+	var amountToCommit interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(480000)
 
 	// and register a normal node outside of the collection
 	registerNode(t, b, env,
@@ -882,7 +882,7 @@ func TestStakingCollectionCreateMachineAccountForExistingNode(t *testing.T) {
 	userAddresses, _, userSigners := registerAndMintManyAccounts(t, b, env, accountKeys, 4)
 	_, adminStakingKey, adminStakingKeyPOP, _, adminNetworkingKey := generateKeysForNodeRegistration(t)
 
-	var amountToCommit interpreter.UFix64Value = 48000000000000
+	var amountToCommit interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(480000)
 
 	// and register a normal node outside of the collection
 	registerNode(t, b, env,

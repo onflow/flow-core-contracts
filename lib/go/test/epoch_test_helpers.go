@@ -464,7 +464,7 @@ func registerNodeWithSetupAccount(t *testing.T,
 	)
 
 	if !shouldFail {
-		newTokensCommitted = tokensCommitted.Plus(stubInterpreter(), amount, interpreter.EmptyLocationRange).(interpreter.UFix64Value)
+		newTokensCommitted = tokensCommitted.Plus(stubInterpreter(), amount).(interpreter.UFix64Value)
 	}
 
 	return
@@ -490,8 +490,8 @@ func registerNodesForEpochs(
 		t.Fail()
 	}
 
-	var amountToCommit interpreter.UFix64Value = 135000000000000
-	var committed interpreter.UFix64Value = 0
+	var amountToCommit interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(1350000)
+	var committed interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(0)
 
 	i := 0
 	for _, authorizer := range authorizers {
