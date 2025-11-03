@@ -9,6 +9,9 @@ import "scheduled_transaction_test_helpers.cdc"
 access(all)
 fun setup() {
 
+    // upgrade the FlowEpoch contract to the latest version
+    upgradeEpochContract()
+
     var err = Test.deployContract(
         name: "FlowTransactionScheduler",
         path: "../contracts/FlowTransactionScheduler.cdc",

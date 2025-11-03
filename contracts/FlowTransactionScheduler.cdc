@@ -3,6 +3,7 @@ import "FlowToken"
 import "FlowFees"
 import "FlowStorageFees"
 import "ViewResolver"
+import "FlowEpoch"
 
 /// FlowTransactionScheduler enables smart contracts to schedule autonomous execution in the future.
 ///
@@ -1281,6 +1282,14 @@ access(all) contract FlowTransactionScheduler {
             let currentTimestamp = getCurrentBlock().timestamp
             // Early exit if no timestamps need processing
             if !self.sortedTimestamps.hasBefore(current: currentTimestamp) {
+                return
+            }
+
+            // Skip processing if the epoch is in one of the phase transitions
+            // or expensive operations
+            // We don't skip if it is running in a test environment,
+            // so we check automaticRewardsEnabled() because it is only true on testnet and mainnet.
+            if FlowEpoch.isPhaseTransition() && FlowEpoch.automaticRewardsEnabled() {
                 return
             }
 

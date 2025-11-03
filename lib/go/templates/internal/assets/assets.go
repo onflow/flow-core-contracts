@@ -73,6 +73,7 @@
 // epoch/scripts/get_proposed_counter.cdc (98B)
 // epoch/scripts/get_randomize.cdc (110B)
 // epoch/scripts/get_target_end_time_for_epoch.cdc (248B)
+// epoch/scripts/is_phase_transition.cdc (93B)
 // flowToken/burn_tokens.cdc (992B)
 // flowToken/create_forwarder.cdc (1.944kB)
 // flowToken/mint_tokens.cdc (1.392kB)
@@ -1851,6 +1852,26 @@ func epochScriptsGet_target_end_time_for_epochCdc() (*asset, error) {
 
 	info := bindataFileInfo{name: "epoch/scripts/get_target_end_time_for_epoch.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
 	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xc5, 0xcc, 0xe2, 0x3, 0xcd, 0xfc, 0xf5, 0xfe, 0x3f, 0x18, 0xc2, 0xfb, 0xdc, 0x70, 0x98, 0xd0, 0xab, 0xc9, 0x3a, 0x89, 0xec, 0x93, 0x83, 0x17, 0xc3, 0x96, 0x76, 0xc7, 0x5d, 0xbd, 0x29, 0x3d}}
+	return a, nil
+}
+
+var _epochScriptsIs_phase_transitionCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xca\xcc\x2d\xc8\x2f\x2a\x51\x50\x72\xcb\xc9\x2f\x77\x2d\xc8\x4f\xce\x50\xe2\xe2\x4a\x4c\x4e\x4e\x2d\x2e\xd6\x48\xcc\xc9\xd1\x54\x48\x2b\xcd\x53\xc8\x4d\xcc\xcc\xd3\xd0\xb4\x52\x70\xca\xcf\xcf\x51\xa8\xe6\x52\x50\x50\x50\x28\x4a\x2d\x29\x2d\xca\x53\x80\xeb\xd2\xcb\x2c\x0e\xc8\x48\x2c\x4e\x0d\x29\x4a\xcc\x2b\xce\x2c\xc9\xcc\xcf\xd3\xd0\xe4\xaa\x05\x04\x00\x00\xff\xff\x4d\x0f\xa3\xb9\x5d\x00\x00\x00"
+
+func epochScriptsIs_phase_transitionCdcBytes() ([]byte, error) {
+	return bindataRead(
+		_epochScriptsIs_phase_transitionCdc,
+		"epoch/scripts/is_phase_transition.cdc",
+	)
+}
+
+func epochScriptsIs_phase_transitionCdc() (*asset, error) {
+	bytes, err := epochScriptsIs_phase_transitionCdcBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "epoch/scripts/is_phase_transition.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0xef, 0xba, 0x68, 0x81, 0xe3, 0x34, 0xdf, 0x5e, 0xce, 0x23, 0xeb, 0x54, 0x9f, 0x75, 0xa7, 0x89, 0x52, 0x90, 0xc8, 0x6f, 0x2, 0x2a, 0x72, 0xc, 0x97, 0xce, 0x74, 0xcd, 0xfe, 0x41, 0x18, 0xab}}
 	return a, nil
 }
 
@@ -7078,6 +7099,7 @@ var _bindata = map[string]func() (*asset, error){
 	"epoch/scripts/get_proposed_counter.cdc":                                      epochScriptsGet_proposed_counterCdc,
 	"epoch/scripts/get_randomize.cdc":                                             epochScriptsGet_randomizeCdc,
 	"epoch/scripts/get_target_end_time_for_epoch.cdc":                             epochScriptsGet_target_end_time_for_epochCdc,
+	"epoch/scripts/is_phase_transition.cdc":                                       epochScriptsIs_phase_transitionCdc,
 	"flowToken/burn_tokens.cdc":                                                   flowtokenBurn_tokensCdc,
 	"flowToken/create_forwarder.cdc":                                              flowtokenCreate_forwarderCdc,
 	"flowToken/mint_tokens.cdc":                                                   flowtokenMint_tokensCdc,
@@ -7470,6 +7492,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 			"get_proposed_counter.cdc": {epochScriptsGet_proposed_counterCdc, map[string]*bintree{}},
 			"get_randomize.cdc": {epochScriptsGet_randomizeCdc, map[string]*bintree{}},
 			"get_target_end_time_for_epoch.cdc": {epochScriptsGet_target_end_time_for_epochCdc, map[string]*bintree{}},
+			"is_phase_transition.cdc": {epochScriptsIs_phase_transitionCdc, map[string]*bintree{}},
 		}},
 	}},
 	"flowToken": {nil, map[string]*bintree{

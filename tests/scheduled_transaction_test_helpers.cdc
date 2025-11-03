@@ -499,6 +499,27 @@ access(all) fun upgradeSchedulerUtilsContract() {
     Test.expect(upgradeResult, Test.beSucceeded())
 }
 
+access(all) fun upgradeEpochContract() {
+    var epochCode = Test.readFile("../contracts/epochs/FlowEpoch.cdc")
+    epochCode = epochCode.replaceAll(of: "\"FungibleToken\"", with: "FungibleToken from 0x0000000000000002")
+    epochCode = epochCode.replaceAll(of: "\"FlowToken\"", with: "FlowToken from 0x0000000000000003")
+    epochCode = epochCode.replaceAll(of: "\"FlowFees\"", with: "FlowFees from 0x0000000000000004")
+    epochCode = epochCode.replaceAll(of: "\"FlowIDTableStaking\"", with: "FlowIDTableStaking from 0x0000000000000001")
+    epochCode = epochCode.replaceAll(of: "\"FlowClusterQC\"", with: "FlowClusterQC from 0x0000000000000001")
+    epochCode = epochCode.replaceAll(of: "\"FlowDKG\"", with: "FlowDKG from 0x0000000000000001")
+
+    var upgradeTx = Test.Transaction(
+        code: Test.readFile("./transactions/upgrade_contract.cdc"),
+        authorizers: [serviceAccount.address],
+        signers: [serviceAccount],
+        arguments: ["FlowEpoch", epochCode],
+    )
+    var upgradeResult = Test.executeTransaction(
+        upgradeTx,
+    )
+    Test.expect(upgradeResult, Test.beSucceeded())
+}
+
 access(all) fun getTimestamp(): UFix64 {
     var timestamp = _executeScript(
         "./scripts/get_timestamp.cdc",

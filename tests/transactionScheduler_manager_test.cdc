@@ -17,6 +17,9 @@ access(all) var timeInFuture: UFix64 = 0.0
 access(all)
 fun setup() {
 
+    // upgrade the FlowEpoch contract to the latest version
+    upgradeEpochContract()
+
     var err = Test.deployContract(
         name: "FlowTransactionScheduler",
         path: "../contracts/FlowTransactionScheduler.cdc",
