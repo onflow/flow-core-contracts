@@ -151,7 +151,7 @@ access(all) fun testEstimate() {
             priority: FlowTransactionScheduler.Priority.Low,
             executionEffort: 1000,
             data: nil,
-            expectedFee: 0.00051984,
+            expectedFee: 0.00052984,
             expectedTimestamp: futureTime,
             expectedError: "Invalid Priority: Cannot estimate for Low Priority transactions. They will be included in the first block with available space after their requested timestamp."
         ),
@@ -223,7 +223,7 @@ access(all) fun testEstimate() {
             priority: FlowTransactionScheduler.Priority.High,
             executionEffort: 5000,
             data: nil,
-            expectedFee: 0.01259620,
+            expectedFee: 0.01260620,
             expectedTimestamp: futureTime + 1.0,
             expectedError: nil
         ),
@@ -233,7 +233,7 @@ access(all) fun testEstimate() {
             priority: FlowTransactionScheduler.Priority.Medium,
             executionEffort: minEffort,
             data: nil,
-            expectedFee: 0.00017495,
+            expectedFee: 0.00018495,
             expectedTimestamp: futureTime + 4.0,
             expectedError: nil
         ),
@@ -243,7 +243,7 @@ access(all) fun testEstimate() {
             priority: FlowTransactionScheduler.Priority.High,
             executionEffort: 1000,
             data: nil,
-            expectedFee: 0.00259920,
+            expectedFee: 0.00260920,
             expectedTimestamp: farFutureTime,
             expectedError: nil
         ),
@@ -253,7 +253,7 @@ access(all) fun testEstimate() {
             priority: FlowTransactionScheduler.Priority.High,
             executionEffort: 1000,
             data: "string data",
-            expectedFee: 0.00259920,
+            expectedFee: 0.00260920,
             expectedTimestamp: futureTime + 10.0,
             expectedError: nil
         ),
@@ -263,7 +263,7 @@ access(all) fun testEstimate() {
             priority: FlowTransactionScheduler.Priority.Medium,
             executionEffort: 1000,
             data: {"key": "value"},
-            expectedFee: 0.00129960,
+            expectedFee: 0.00130960,
             expectedTimestamp: futureTime + 11.0,
             expectedError: nil
         ),
@@ -273,7 +273,7 @@ access(all) fun testEstimate() {
             priority: FlowTransactionScheduler.Priority.Medium,
             executionEffort: 1000,
             data: [1, 2, 3, 4, 5, 6],
-            expectedFee: 0.00129960,
+            expectedFee: 0.00130960,
             expectedTimestamp: futureTime + 12.0,
             expectedError: nil
         )
@@ -848,41 +848,3 @@ access(all) fun testSortedTimestampsEdgeCases() {
     Test.assertEqual(3.0, sortedResult[2])
     Test.assertEqual(100.0, sortedResult[99])
 }
-
-
-// access(all) fun testLargeArrayProcessing() {
-    // let currentTime = getCurrentBlock().timestamp
-    // let futureTime = currentTime + 100.0
-
-    // let largeArray: [Int] = []
-    // while largeArray.length < 18000 {
-    //      largeArray.append(1)
-    // }
-
-    // scheduleTransaction(
-    //     timestamp: futureTime,
-    //     fee: 10.0,
-    //     effort: 1000,
-    //     priority: mediumPriority,
-    //     data: largeArray,
-    //     testName: "testLargeArrayProcessing",
-    //     failWithErr: nil
-    // )
-
-    // scheduleTransaction(
-    //     timestamp: futureTime,
-    //     fee: 10.0,
-    //     effort: 1000,
-    //     priority: mediumPriority,
-    //     data: largeArray,
-    //     testName: "testLargeArrayProcessing",
-    //     failWithErr: nil
-    // )
-
-    // // move time forward by futureDelta
-    // Test.moveTime(by: Fix64(100.0))
-    // processTransactions()
-
-    // processTransactions()
-
-// }
