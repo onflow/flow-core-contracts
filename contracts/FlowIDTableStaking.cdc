@@ -38,7 +38,7 @@ access(all) contract FlowIDTableStaking {
     /// Epoch
     access(all) event NewEpoch(totalStaked: UFix64, totalRewardPayout: UFix64, newEpochCounter: UInt64)
     access(all) event EpochTotalRewardsPaid(total: UFix64, fromFees: UFix64, minted: UFix64, feesBurned: UFix64, epochCounterForRewards: UInt64)
-    access(all) event NodeRewardsSetToSlash(nodeSlashPercentages: {String: UFix64})
+    access(all) event NodeRewardsSetToSlash(nodeSlashPercentagesRemaining: {String: UFix64})
 
     /// Node
     access(all) event NewNodeCreated(nodeID: String, role: UInt8, amountCommitted: UFix64)
@@ -948,7 +948,7 @@ access(all) contract FlowIDTableStaking {
                 )
             }
 
-            emit NodeRewardsSetToSlash(nodeSlashPercentages: nodeIDs)
+            emit NodeRewardsSetToSlash(nodeSlashPercentagesRemaining: nodeIDs)
             FlowIDTableStaking.account.storage.load<{String: UFix64}>(from: /storage/idTableNonOperationalNodesList)
             FlowIDTableStaking.account.storage.save<{String: UFix64}>(nodeIDs, to: /storage/idTableNonOperationalNodesList)
         }
