@@ -38,6 +38,7 @@ access(all) contract FlowIDTableStaking {
     /// Epoch
     access(all) event NewEpoch(totalStaked: UFix64, totalRewardPayout: UFix64, newEpochCounter: UInt64)
     access(all) event EpochTotalRewardsPaid(total: UFix64, fromFees: UFix64, minted: UFix64, feesBurned: UFix64, epochCounterForRewards: UInt64)
+    access(all) event NodeRewardsSetToSlash(nodeSlashPercentages: {String: UFix64})
 
     /// Node
     access(all) event NewNodeCreated(nodeID: String, role: UInt8, amountCommitted: UFix64)
@@ -52,6 +53,7 @@ access(all) contract FlowIDTableStaking {
     access(all) event RewardTokensWithdrawn(nodeID: String, amount: UFix64)
     access(all) event NetworkingAddressUpdated(nodeID: String, newAddress: String)
     access(all) event NodeWeightChanged(nodeID: String, newWeight: UInt64)
+    access(all) event NodeRewardsSlashed(nodeID: String, percentageSlashed: UFix64)
 
     /// Delegator
     access(all) event NewDelegatorCreated(nodeID: String, delegatorID: UInt32)
@@ -945,6 +947,8 @@ access(all) contract FlowIDTableStaking {
                     message: "Percentage value to decrease rewards payout should be between 0 and 1"
                 )
             }
+
+            emit NodeRewardsSetToSlash(nodeSlashPercentages: nodeIDs)
             FlowIDTableStaking.account.storage.load<{String: UFix64}>(from: /storage/idTableNonOperationalNodesList)
             FlowIDTableStaking.account.storage.save<{String: UFix64}>(nodeIDs, to: /storage/idTableNonOperationalNodesList)
         }
@@ -1337,6 +1341,8 @@ access(all) contract FlowIDTableStaking {
                 // Each node's rewards can be decreased to a different percentage
                 // Its delegator's rewards are also decreased to the same percentage
                 let rewardDecreaseToPercentage = nonOperationalNodes[nodeID]!
+
+                emit NodeRewardsSlashed(nodeID: nodeID, percentageSlashed: 1.0 - rewardDecreaseToPercentage)
 
                 sumStakeFromNonOperationalStakers = sumStakeFromNonOperationalStakers + nodeRecord.tokensStaked.balance
 
