@@ -460,28 +460,39 @@ access(all) contract FlowTransactionScheduler {
             self.timestamps = []
         }
 
+        // bisect is a function that finds the index to insert a new timestamp in the sorted array.
+        // taken from bisect_right in pthon https://stackoverflow.com/questions/2945017/javas-equivalent-to-bisect-in-python
+		access(all) fun bisect(new: UFix64): Int? {
+			var high = self.timestamps.length
+			var low = 0
+			while low < high {
+				let mid = (low+high)/2
+				let midTimestamp = self.timestamps[mid]
+
+				if midTimestamp == new {
+                    return nil
+                } else if midTimestamp > new {
+					high = mid
+				} else {
+					low = mid + 1
+				}
+			}
+			return low
+		}
+
         /// Add a timestamp to the sorted array maintaining sorted order
         access(all) fun add(timestamp: UFix64) {
-
-            var insertIndex = 0
-            for i, ts in self.timestamps {
-                if timestamp < ts {
-                    insertIndex = i
-                    break
-                } else if timestamp == ts {
-                    return
-                }
-                insertIndex = i + 1
+            // Only insert if the timestamp is not already in the array
+            if let insertIndex = self.bisect(new: timestamp) {
+                self.timestamps.insert(at: insertIndex, timestamp)
             }
-            self.timestamps.insert(at: insertIndex, timestamp)
         }
 
         /// Remove a timestamp from the sorted array
         access(all) fun remove(timestamp: UFix64) {
-
-            let index = self.timestamps.firstIndex(of: timestamp)
-            if index != nil {
-                self.timestamps.remove(at: index!)
+            // Only remove if the timestamp is in the array
+            if let index = self.timestamps.firstIndex(of: timestamp) {
+                self.timestamps.remove(at: index)
             }
         }
 
@@ -1336,15 +1347,21 @@ access(all) contract FlowTransactionScheduler {
 
             // if the transaction was canceled, add it to the canceled transactions array
             // maintain sorted order by inserting at the correct position
-            var insertIndex = 0
-            for i, canceledID in self.canceledTransactions {
-                if id < canceledID {
-                    insertIndex = i
-                    break
-                }
-                insertIndex = i + 1
-            }
-            self.canceledTransactions.insert(at: insertIndex, id)
+			var high = self.canceledTransactions.length
+			var low = 0
+			while low < high {
+				let mid = (low+high)/2
+				let midCanceledID = self.canceledTransactions[mid]
+
+				if midCanceledID == id {
+                    emit CriticalIssue(message: "Invalid ID: \(id) transaction already in canceled transactions array")
+                } else if midCanceledID > id {
+					high = mid
+				} else {
+					low = mid + 1
+				}
+			}
+            self.canceledTransactions.insert(at: low, id)
             
             // keep the array under the limit
             if UInt(self.canceledTransactions.length) > self.config.canceledTransactionsLimit {
