@@ -38,7 +38,9 @@ access(all) contract FlowIDTableStaking {
     /// Epoch
     access(all) event NewEpoch(totalStaked: UFix64, totalRewardPayout: UFix64, newEpochCounter: UInt64)
     access(all) event EpochTotalRewardsPaid(total: UFix64, fromFees: UFix64, minted: UFix64, feesBurned: UFix64, epochCounterForRewards: UInt64)
-    access(all) event NodeRewardsSetToSlash(nodeSlashPercentagesRemaining: {String: UFix64})
+    // The single parameter is a map from node ID to the percentage of theirs and their delegator's rewards
+    // that will remain after being withheld from the node at each subsequent payout, until the withholding map is modified again.
+    access(all) event NodeRewardWithholdingsUpdated(nodeRewardsPercentageRemaining: {String: UFix64})
 
     /// Node
     access(all) event NewNodeCreated(nodeID: String, role: UInt8, amountCommitted: UFix64)
@@ -53,7 +55,7 @@ access(all) contract FlowIDTableStaking {
     access(all) event RewardTokensWithdrawn(nodeID: String, amount: UFix64)
     access(all) event NetworkingAddressUpdated(nodeID: String, newAddress: String)
     access(all) event NodeWeightChanged(nodeID: String, newWeight: UInt64)
-    access(all) event NodeRewardsSlashed(nodeID: String, percentageSlashed: UFix64)
+    access(all) event NodeRewardsWithheld(nodeID: String, percentageRemaining: UFix64)
 
     /// Delegator
     access(all) event NewDelegatorCreated(nodeID: String, delegatorID: UInt32)
@@ -948,7 +950,7 @@ access(all) contract FlowIDTableStaking {
                 )
             }
 
-            emit NodeRewardsSetToSlash(nodeSlashPercentagesRemaining: nodeIDs)
+            emit NodeRewardWithholdingsUpdated(nodeRewardsPercentageRemaining: nodeIDs)
             FlowIDTableStaking.account.storage.load<{String: UFix64}>(from: /storage/idTableNonOperationalNodesList)
             FlowIDTableStaking.account.storage.save<{String: UFix64}>(nodeIDs, to: /storage/idTableNonOperationalNodesList)
         }
@@ -1342,7 +1344,7 @@ access(all) contract FlowIDTableStaking {
                 // Its delegator's rewards are also decreased to the same percentage
                 let rewardDecreaseToPercentage = nonOperationalNodes[nodeID]!
 
-                emit NodeRewardsSlashed(nodeID: nodeID, percentageSlashed: 1.0 - rewardDecreaseToPercentage)
+                emit NodeRewardsWithheld(nodeID: nodeID, percentageRemaining: rewardDecreaseToPercentage)
 
                 sumStakeFromNonOperationalStakers = sumStakeFromNonOperationalStakers + nodeRecord.tokensStaked.balance
 
