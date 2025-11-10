@@ -20,6 +20,7 @@ import "FlowDKG"
 import "FlowEpoch"
 import "Burner"
 import "FlowTransactionScheduler"
+import "MetadataViews"
 
 access(all) contract FlowStakingCollection {
 
@@ -1277,17 +1278,46 @@ access(all) contract FlowStakingCollection {
     
     ***********************************************/
 
+    access(all) event StakingRewardsHandlerError(error: String)
+
+    access(all) struct StakingRewardsHandlerData {
+        access(all) let nodeIDsToRestake: [String]
+        access(all) let delegatorIDsToRestake: [DelegatorIDs]
+        access(all) let nodeIDsToWithdraw: [String]
+        access(all) let delegatorIDsToWithdraw: [DelegatorIDs]
+
+        access(all) let executionEffort: UInt64
+        access(all) let priority: FlowTransactionScheduler.Priority
+
+        init(nodeIDsToRestake: [String], 
+             delegatorIDsToRestake: [DelegatorIDs], 
+             nodeIDsToWithdraw: [String], 
+             delegatorIDsToWithdraw: [DelegatorIDs],
+             executionEffort: UInt64,
+             priority: FlowTransactionScheduler.Priority) {
+            self.nodeIDsToRestake = nodeIDsToRestake
+            self.delegatorIDsToRestake = delegatorIDsToRestake
+            self.nodeIDsToWithdraw = nodeIDsToWithdraw
+            self.delegatorIDsToWithdraw = delegatorIDsToWithdraw
+            self.executionEffort = executionEffort
+            self.priority = priority
+        }
+    }
+
     /// Handler to automatically restake or withdraw rewards for nodes and delegators every epoch
     access(all) resource StakingRewardsHandler: FlowTransactionScheduler.TransactionHandler {
 
         /// Fully entitled capability to the StakingCollection
-        access(self) let stakingCollection: Capability<auth(Mutate) &StakingCollection>
+        access(self) let stakingCollection: Capability<auth(CollectionOwner) &StakingCollection>
 
         /// Fully entitled capability to the FlowToken vault
-        access(self) let flowTokenVault: Capability<auth(FlowToken.Withdraw) &FlowToken.Vault>
+        access(self) let flowTokenVault: Capability<auth(FungibleToken.Withdraw) &FlowToken.Vault>
+
+        /// Fully entitled capability to the FlowTransactionUtils.Manager
+        access(self) let manager: Capability<auth(FlowTransactionSchedulerUtils.Owner) &{FlowTransactionSchedulerUtils.Manager}>
 
         /// Entitled capability to this StakingRewardsHandler
-        access(self) let selfCapability: Capability<auth(Execute) &{FlowTransactionScheduler.TransactionHandler}>?
+        access(self) var selfCapability: Capability<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}>?
 
         /// Data for the staking rewards handler specifying which nodes and delegators to restake or withdraw rewards for
         access(all) var data: StakingRewardsHandlerData
@@ -1295,14 +1325,21 @@ access(all) contract FlowStakingCollection {
         /// Error message for the staking rewards handler if it fails to schedule the next transaction
         access(all) var error: String?
 
-        init(stakingCollection: Capability<auth(Mutate) &StakingCollection>, data: StakingRewardsHandlerData) {
+        init(stakingCollection: Capability<auth(CollectionOwner) &StakingCollection>,
+             flowTokenVault: Capability<auth(FungibleToken.Withdraw) &FlowToken.Vault>,
+             manager: Capability<auth(FlowTransactionSchedulerUtils.Owner) &{FlowTransactionSchedulerUtils.Manager}>,
+             data: StakingRewardsHandlerData) 
+        {
             self.stakingCollection = stakingCollection
-            self.setNewStakingData(data: data)
+            self.flowTokenVault = flowTokenVault
+            self.manager = manager
+            self.data = data
             self.error = nil
             self.selfCapability = nil
+            self.setNewStakingData(data: data)
         }
 
-        access(CollectionOwner) fun setSelfCapability(selfCapability: Capability<auth(Execute) &{FlowTransactionScheduler.TransactionHandler}>) {
+        access(CollectionOwner) fun setSelfCapability(selfCapability: Capability<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}>) {
             pre {
                 self.selfCapability == nil: "StakingRewardsHandler: Self capability already set"
             }
@@ -1314,10 +1351,10 @@ access(all) contract FlowStakingCollection {
         }
 
         access(CollectionOwner) fun setNewStakingData(data: StakingRewardsHandlerData) {
-            let stakingCollectionRef = stakingCollection.borrow() ?? panic("StakingRewardsHandler: Invalid staking collection capability")
+            let stakingCollectionRef = self.stakingCollection.borrow() ?? panic("StakingRewardsHandler: Invalid staking collection capability")
             for nodeID in data.nodeIDsToRestake {
                 if !stakingCollectionRef.doesStakeExist(nodeID: nodeID, delegatorID: nil) {
-                    panic("StakingRewardsHandler: Node ID \(nodeID) does not exist in the staking collection"))
+                    panic("StakingRewardsHandler: Node ID \(nodeID) does not exist in the staking collection")
                 }
             }
             for delegatorID in data.delegatorIDsToRestake {
@@ -1349,11 +1386,17 @@ access(all) contract FlowStakingCollection {
         access(all) fun resolveView(_ view: Type): AnyStruct? {
             switch view {
                 case Type<StoragePath>():
-                    return FlowStakingCollection.restakeRewardsHandlerStoragePath()
+                    return FlowStakingCollection.rewardsHandlerStoragePath()
                 case Type<PublicPath>():
-                    return FlowStakingCollection.restakeRewardsHandlerPublicPath()
+                    return FlowStakingCollection.rewardsHandlerPublicPath()
                 case Type<MetadataViews.Display>():
-                    return MetadataViews.Display(name: "Restake Rewards Handler", description: "Automatically restakes rewards for nodes and delegators every epoch")
+                    return MetadataViews.Display(
+                        name: "Staking Collection Rewards Handler",
+                        description: "Automatically restakes and/or withdrawsrewards for nodes and delegators every epoch",
+                        thumbnail: MetadataViews.HTTPFile(
+                            url: ""
+                        )
+                    )
                 case Type<[FlowIDTableStaking.NodeInfo]>():
                     if let collectionRef = self.stakingCollection.borrow() {
                         return collectionRef.getAllNodeInfo()
@@ -1370,26 +1413,29 @@ access(all) contract FlowStakingCollection {
         }
 
         access(FlowTransactionScheduler.Execute) fun executeTransaction(id: UInt64, data: AnyStruct?) {
-            let stakingCollectionRef = stakingCollection.borrow() ?? panic("StakingRewardsHandler: Invalid staking collection capability")
-            for nodeID in data.nodeIDsToRestake {
-                let rewardsBalance = FlowIDTableStaking.NodeInfo(nodeID: nodeID).tokensRewarded
-                if rewardsBalance > 0.0 {
-                    stakingCollectionRef.stakeRewardedTokens(nodeID: nodeID, delegatorID: nil, amount: rewardsBalance)
+            let stakingCollectionRef = self.stakingCollection.borrow() ?? panic("StakingRewardsHandler: Invalid staking collection capability")
+            
+            if FlowIDTableStaking.stakingEnabled() {
+                for nodeID in self.data.nodeIDsToRestake {
+                    let rewardsBalance = FlowIDTableStaking.NodeInfo(nodeID: nodeID).tokensRewarded
+                    if rewardsBalance > 0.0 {
+                        stakingCollectionRef.stakeRewardedTokens(nodeID: nodeID, delegatorID: nil, amount: rewardsBalance)
+                    }
+                }
+                for delegatorID in self.data.delegatorIDsToRestake {
+                    let rewardsBalance = FlowIDTableStaking.DelegatorInfo(nodeID: delegatorID.delegatorNodeID, delegatorID: delegatorID.delegatorID).tokensRewarded
+                    if rewardsBalance > 0.0 {
+                        stakingCollectionRef.stakeRewardedTokens(nodeID: delegatorID.delegatorNodeID, delegatorID: delegatorID.delegatorID, amount: rewardsBalance)
+                    }
                 }
             }
-            for delegatorID in data.delegatorIDsToRestake {
-                let rewardsBalance = FlowIDTableStaking.DelegatorInfo(nodeID: delegatorID.delegatorNodeID, delegatorID: delegatorID.delegatorID).tokensRewarded
-                if rewardsBalance > 0.0 {
-                    stakingCollectionRef.stakeRewardedTokens(nodeID: delegatorID.delegatorNodeID, delegatorID: delegatorID.delegatorID, amount: rewardsBalance)
-                }
-            }
-            for nodeID in data.nodeIDsToWithdraw {
+            for nodeID in self.data.nodeIDsToWithdraw {
                 let rewardsBalance = FlowIDTableStaking.NodeInfo(nodeID: nodeID).tokensRewarded
                 if rewardsBalance > 0.0 {
                     stakingCollectionRef.withdrawRewardedTokens(nodeID: nodeID, delegatorID: nil, amount: rewardsBalance)
                 }
             }
-            for delegatorID in data.delegatorIDsToWithdraw {
+            for delegatorID in self.data.delegatorIDsToWithdraw {
                 let rewardsBalance = FlowIDTableStaking.DelegatorInfo(nodeID: delegatorID.delegatorNodeID, delegatorID: delegatorID.delegatorID).tokensRewarded
                 if rewardsBalance > 0.0 {
                     stakingCollectionRef.withdrawRewardedTokens(nodeID: delegatorID.delegatorNodeID, delegatorID: delegatorID.delegatorID, amount: rewardsBalance)
@@ -1400,14 +1446,24 @@ access(all) contract FlowStakingCollection {
         }
 
         access(all) fun scheduleNextTransaction() {
-            let nextExecutionTimestamp = getCurrentBlock().timestamp + 604800.0, // 1 week from now
+            var nextExecutionTimestamp: UFix64 = 0.0
+
+            if FlowIDTableStaking.stakingEnabled() {
+                // if the staking auction is enabled, schedule the next transaction for 1 week from now
+                // because that is a valid time for staking operations
+                nextExecutionTimestamp = getCurrentBlock().timestamp + 604800.0 // 1 week from now
+            } else {
+                // if the staking auction is not enabled, schedule the next transaction for 1 day from now
+                // because that is a valid time for staking operations
+                nextExecutionTimestamp = getCurrentBlock().timestamp + 86400.0 // 1 day from now
+            }
 
             // get the estimate for the next scheduled transaction
             let estimate = FlowTransactionScheduler.estimate(
                 data: nil,
-                timestamp: nextExecutionTimestamp
-                priority: self.priority,
-                executionEffort: self.executionEffort
+                timestamp: nextExecutionTimestamp,
+                priority: self.data.priority,
+                executionEffort: self.data.executionEffort
             )
             if estimate.error != nil && estimate.timestamp == nil {
                 emit StakingRewardsHandlerError(error: estimate.error!)
@@ -1416,7 +1472,7 @@ access(all) contract FlowStakingCollection {
             }
 
             // borrow the flow token vault reference
-            let flowTokenVaultRef = flowTokenVault.borrow()
+            let flowTokenVaultRef = self.flowTokenVault.borrow()
 
             if flowTokenVaultRef == nil {
                 let errorMessage = "StakingRewardsHandler: Invalid flow token vault capability"
@@ -1432,48 +1488,35 @@ access(all) contract FlowStakingCollection {
                 return
             }
 
+            let managerRef = self.manager.borrow() ?? panic("StakingRewardsHandler: Invalid manager capability")
+
             // schedule the next transaction
-            FlowTransactionScheduler.schedule(
+            managerRef.schedule(
                 handlerCap: self.selfCapability!,
                 data: nil,
                 timestamp: nextExecutionTimestamp,
-                priority: self.priority,
-                executionEffort: self.executionEffort,
+                priority: self.data.priority,
+                executionEffort: self.data.executionEffort,
                 fees: <- flowTokenVaultRef!.withdraw(amount: estimate.flowFee!)
             )
         }
     }
 
-    access(all) struct StakingRewardsHandlerData {
-        access(all) let nodeIDsToRestake: [String]
-        access(all) let delegatorIDsToRestake: [DelegatorIDs]
-        access(all) let nodeIDsToWithdraw: [String]
-        access(all) let delegatorIDsToWithdraw: [DelegatorIDs]
-
-        access(all) let executionEffort: UInt64
-        access(all) let priority: FlowTransactionScheduler.Priority
-
-        init(nodeIDsToRestake: [String], 
-             delegatorIDsToRestake: [DelegatorIDs], 
-             nodeIDsToWithdraw: [String], 
-             delegatorIDsToWithdraw: [DelegatorIDs],
-             executionEffort: UInt64,
-             priority: FlowTransactionScheduler.Priority) {
-            self.nodeIDsToRestake = nodeIDsToRestake
-            self.delegatorIDsToRestake = delegatorIDsToRestake
-            self.nodeIDsToWithdraw = nodeIDsToWithdraw
-            self.delegatorIDsToWithdraw = delegatorIDsToWithdraw
-            self.executionEffort = executionEffort
-            self.priority = priority
-        }
+    access(all) fun rewardsHandlerStoragePath(): StoragePath {
+        return /storage/flowStakingCollectionRewardsHandler
     }
 
-    access(all) fun restakeRewardsHandlerStoragePath(): StoragePath {
-        return /storage/flowStakingCollectionRestakeRewardsHandler
+    access(all) fun rewardsHandlerPublicPath(): PublicPath {
+        return /public/flowStakingCollectionRewardsHandler
     }
 
-    access(all) fun restakeRewardsHandlerPublicPath(): PublicPath {
-        return /public/flowStakingCollectionRestakeRewardsHandler
+    access(all) fun createRewardsHandler(
+        stakingCollection: Capability<auth(CollectionOwner) &StakingCollection>,
+        flowTokenVault: Capability<auth(FungibleToken.Withdraw) &FlowToken.Vault>,
+        manager: Capability<auth(FlowTransactionSchedulerUtils.Owner) &{FlowTransactionSchedulerUtils.Manager}>,
+        data: StakingRewardsHandlerData): @StakingRewardsHandler
+    {
+        return <- create StakingRewardsHandler(stakingCollection: stakingCollection, flowTokenVault: flowTokenVault, manager: manager, data: data)
     }
 
     init() {
