@@ -67,10 +67,12 @@ func newTestSetup(t *testing.T) (emulator.Emulator, *adapters.SDKAdapter, *test.
 
 	// Setup the env variable that stores import addresses for various contracts
 	env := templates.Environment{
-		FungibleTokenAddress: emulatorFTAddress,
-		FlowTokenAddress:     emulatorFlowTokenAddress,
-		BurnerAddress:        emulatorServiceAccount,
-		StorageFeesAddress:   emulatorServiceAccount,
+		FungibleTokenAddress:                 emulatorFTAddress,
+		FlowTokenAddress:                     emulatorFlowTokenAddress,
+		BurnerAddress:                        emulatorServiceAccount,
+		StorageFeesAddress:                   emulatorServiceAccount,
+		FlowTransactionSchedulerAddress:      emulatorServiceAccount,
+		FlowTransactionSchedulerUtilsAddress: emulatorServiceAccount,
 	}
 
 	return b, adapter, accountKeys, env

@@ -2,6 +2,7 @@ package test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/onflow/flow-emulator/convert"
@@ -20,6 +21,9 @@ import (
 
 func TestStakingCollectionDeploy(t *testing.T) {
 	b, adapter, accountKeys, env := newTestSetup(t)
+
+	fmt.Println("env: ", env.FlowTransactionSchedulerAddress)
+	fmt.Println("env: ", env.FlowTransactionSchedulerUtilsAddress)
 
 	// Create new keys for the epoch account
 	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
