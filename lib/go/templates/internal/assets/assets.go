@@ -5,7 +5,7 @@
 // FlowServiceAccount/remove_account_creator.cdc (566B)
 // FlowServiceAccount/scripts/get_account_creators.cdc (117B)
 // FlowServiceAccount/scripts/get_account_fee.cdc (112B)
-// FlowServiceAccount/scripts/get_execution_effort_weights.cdc (131B)
+// FlowServiceAccount/scripts/get_execution_effort_weights.cdc (169B)
 // FlowServiceAccount/scripts/get_execution_memory_limit.cdc (119B)
 // FlowServiceAccount/scripts/get_execution_memory_weights.cdc (131B)
 // FlowServiceAccount/scripts/get_fees_balance.cdc (89B)
@@ -494,7 +494,7 @@ func flowserviceaccountScriptsGet_account_feeCdc() (*asset, error) {
 	return a, nil
 }
 
-var _flowserviceaccountScriptsGet_execution_effort_weightsCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x64\xcc\xb1\x0a\xc2\x30\x10\x06\xe0\x3d\x4f\xf1\xd3\x29\x59\x9c\xc4\xa1\x9b\x43\x05\x67\x11\xe7\x70\x5c\x6a\x20\xbd\xc8\xe5\xa2\x42\xe9\xbb\x3b\x38\x76\xfa\xb6\x2f\x2f\xaf\xaa\x86\xe1\x52\xea\xe7\xc6\xfa\xce\xc4\x67\xa2\xda\xc5\x06\xe7\x22\x11\xb7\xe6\x63\x29\x01\xa9\x0b\x96\x98\xc5\x87\x11\xeb\xfd\x2a\x76\x3a\x8e\xf8\xbb\x61\x75\x00\xa0\x6c\x5d\x05\xfb\xea\x30\xb3\x4d\x5f\xa6\x6e\xb9\xca\x94\x52\x55\x7b\x70\x9e\x9f\xd6\x7c\x70\xdb\x2f\x00\x00\xff\xff\x24\x21\x26\x03\x83\x00\x00\x00"
+var _flowserviceaccountScriptsGet_execution_effort_weightsCdc = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x74\x8c\x31\x0b\xc2\x30\x10\x46\xf7\xfc\x8a\x8f\x4e\xed\xe2\x24\x0e\xdd\x1c\x2a\xb8\x09\x22\xce\xe1\xb8\xd4\x40\x72\x91\xcb\x45\x85\xd2\xff\xee\x20\x88\x8b\xd3\x83\xf7\xe0\xc5\x7c\x2f\x6a\xe8\x0e\xa9\x3c\xcf\xac\x8f\x48\xbc\x27\x2a\x4d\xac\x73\xbf\x6d\x7a\x31\x35\x8b\x45\x4e\x5e\x7d\x66\x63\xad\x9d\x73\x9e\x88\x6b\xed\x7d\x4a\x03\x42\x13\x64\x1f\xa5\x1f\x46\x2c\x97\xa3\xd8\x6e\x3b\xe2\xc3\x15\x8b\x03\x00\x65\x6b\x2a\xf8\xf3\xdb\xcc\x6c\x5f\x3d\x85\x50\xd4\xae\x1c\xe7\x9b\xd5\x7e\x70\xeb\x3b\x00\x00\xff\xff\x44\x85\xac\xda\xa9\x00\x00\x00"
 
 func flowserviceaccountScriptsGet_execution_effort_weightsCdcBytes() ([]byte, error) {
 	return bindataRead(
@@ -510,7 +510,7 @@ func flowserviceaccountScriptsGet_execution_effort_weightsCdc() (*asset, error) 
 	}
 
 	info := bindataFileInfo{name: "FlowServiceAccount/scripts/get_execution_effort_weights.cdc", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
-	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x52, 0x62, 0xfa, 0xe7, 0xfe, 0xc8, 0xb5, 0x98, 0xe7, 0xf0, 0x53, 0xf4, 0x3b, 0x6, 0x52, 0xfa, 0x2f, 0x46, 0xcb, 0x92, 0xd6, 0x5c, 0x32, 0x44, 0x7d, 0x45, 0x85, 0x68, 0x73, 0x33, 0x41, 0x4}}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x1f, 0x9e, 0xb2, 0x72, 0xa0, 0x13, 0xb4, 0xa4, 0x63, 0x4f, 0x26, 0x3b, 0x8a, 0x35, 0x50, 0xaf, 0x0, 0x3b, 0x65, 0xa9, 0xd0, 0x3e, 0x7d, 0xb5, 0x7e, 0xc7, 0xaf, 0xfd, 0x47, 0x73, 0x5, 0xa3}}
 	return a, nil
 }
 

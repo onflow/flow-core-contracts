@@ -30,15 +30,18 @@ func TestContracts(t *testing.T) {
 	b, adapter := newBlockchain()
 
 	env := templates.Environment{
-		FungibleTokenAddress:  emulatorFTAddress,
-		FlowTokenAddress:      emulatorFlowTokenAddress,
-		FlowFeesAddress:       emulatorFlowFeesAddress,
-		ServiceAccountAddress: b.ServiceKey().Address.Hex(),
-		BurnerAddress:         emulatorServiceAccount,
-		StorageFeesAddress:    emulatorServiceAccount,
+		FungibleTokenAddress:           emulatorFTAddress,
+		FlowTokenAddress:               emulatorFlowTokenAddress,
+		FlowFeesAddress:                emulatorFlowFeesAddress,
+		ServiceAccountAddress:          b.ServiceKey().Address.Hex(),
+		BurnerAddress:                  b.ServiceKey().Address.Hex(),
+		StorageFeesAddress:             b.ServiceKey().Address.Hex(),
+		FlowExecutionParametersAddress: emulatorFTAddress,
 	}
 
 	accountKeys := test.AccountKeyGenerator()
+
+	serviceSigner, _ := b.ServiceKey().Signer()
 
 	storageFeesAccountKey, storageFeesSigner := accountKeys.NewWithSigner()
 
@@ -296,7 +299,7 @@ func TestContracts(t *testing.T) {
 	t.Run("Should set and get execution effort weights", func(t *testing.T) {
 		tx := createTxWithTemplateAndAuthorizer(b,
 			templates.GenerateSetExecutionEffortWeights(env),
-			b.ServiceKey().Address)
+			flow.HexToAddress(env.FungibleTokenAddress))
 
 		keyValuePairs := make([]cadence.KeyValuePair, 3)
 
@@ -320,8 +323,8 @@ func TestContracts(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{},
-			[]crypto.Signer{},
+			[]flow.Address{flow.HexToAddress(env.FungibleTokenAddress)},
+			[]crypto.Signer{serviceSigner},
 			false,
 		)
 
@@ -340,7 +343,7 @@ func TestContracts(t *testing.T) {
 	t.Run("Should set and get execution memory weights", func(t *testing.T) {
 		tx := createTxWithTemplateAndAuthorizer(b,
 			templates.GenerateSetExecutionMemoryWeights(env),
-			b.ServiceKey().Address)
+			flow.HexToAddress(env.FungibleTokenAddress))
 
 		keyValuePairs := make([]cadence.KeyValuePair, 3)
 
@@ -364,8 +367,8 @@ func TestContracts(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{},
-			[]crypto.Signer{},
+			[]flow.Address{flow.HexToAddress(env.FungibleTokenAddress)},
+			[]crypto.Signer{serviceSigner},
 			false,
 		)
 
@@ -384,7 +387,7 @@ func TestContracts(t *testing.T) {
 	t.Run("Should set and get execution memory limit", func(t *testing.T) {
 		tx := createTxWithTemplateAndAuthorizer(b,
 			templates.GenerateSetExecutionMemoryLimit(env),
-			b.ServiceKey().Address)
+			flow.HexToAddress(env.FungibleTokenAddress))
 
 		newLimit := cadence.UInt64(1234567890)
 
@@ -393,8 +396,8 @@ func TestContracts(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{},
-			[]crypto.Signer{},
+			[]flow.Address{flow.HexToAddress(env.FungibleTokenAddress)},
+			[]crypto.Signer{serviceSigner},
 			false,
 		)
 
