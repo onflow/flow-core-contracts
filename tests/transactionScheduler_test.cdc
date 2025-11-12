@@ -138,6 +138,11 @@ access(all) fun testEstimate() {
         executionEffortCost: 24.99249924
     )
 
+    let largeArray: [Int] = []
+    while largeArray.length < 10000 {
+         largeArray.append(1)
+    }
+
     let currentTime = getCurrentBlock().timestamp
     let futureTime = currentTime + 100.0
     let pastTime = currentTime - 100.0
@@ -214,6 +219,16 @@ access(all) fun testEstimate() {
             expectedFee: nil,
             expectedTimestamp: nil,
             expectedError: "Invalid execution effort: \(lowPriorityMaxEffort + 1) is greater than the priority's max effort of \(lowPriorityMaxEffort)"
+        ),
+        EstimateTestCase(
+            name: "Excessive data size returns error",
+            timestamp: futureTime + 11.0,
+            priority: FlowTransactionScheduler.Priority.High,
+            executionEffort: 1000,
+            data: largeArray,
+            expectedFee: nil,
+            expectedTimestamp: nil,
+            expectedError: "Invalid data size: 0.05337100 is greater than the maximum data size of 0.00100000MB"
         ),
 
         // Valid cases - should return EstimatedScheduledTransaction with no error
