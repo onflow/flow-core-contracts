@@ -73,6 +73,7 @@ func newTestSetup(t *testing.T) (emulator.Emulator, *adapters.SDKAdapter, *test.
 		StorageFeesAddress:                   emulatorServiceAccount,
 		FlowTransactionSchedulerAddress:      emulatorServiceAccount,
 		FlowTransactionSchedulerUtilsAddress: emulatorServiceAccount,
+		MetadataViewsAddress:                 emulatorServiceAccount,
 	}
 
 	return b, adapter, accountKeys, env

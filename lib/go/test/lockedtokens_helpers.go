@@ -321,8 +321,6 @@ func deployAllCollectionContracts(t *testing.T,
 	adminAddress flow.Address,
 	adminSigner crypto.Signer) {
 
-	// DEPLOY StakingProxy
-
 	// Deploy the StakingProxy contract
 	stakingProxyCode := contracts.FlowStakingProxy()
 	stakingProxyAddress, err := adapter.CreateAccount(context.Background(), nil, []sdktemplates.Contract{
