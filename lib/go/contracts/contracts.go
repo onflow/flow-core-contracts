@@ -39,6 +39,7 @@ const (
 	flowLockedTokensFilename              = "LockedTokens.cdc"
 	flowStakingProxyFilename              = "StakingProxy.cdc"
 	flowStakingCollectionFilename         = "FlowStakingCollection.cdc"
+	oldFlowStakingCollectionFilename      = "OldFlowStakingCollection.cdc"
 	flowContractAuditsFilename            = "FlowContractAudits.cdc"
 	flowNodeVersionBeaconFilename         = "NodeVersionBeacon.cdc"
 	flowRandomBeaconHistoryFilename       = "RandomBeaconHistory.cdc"
@@ -250,7 +251,7 @@ func FlowStakingProxy() []byte {
 func FlowStakingCollection(
 	env templates.Environment,
 ) []byte {
-	code := assets.MustAssetString(flowStakingCollectionFilename)
+	code := assets.MustAssetString(oldFlowStakingCollectionFilename)
 
 	code = templates.ReplaceAddresses(code, env)
 
@@ -357,16 +358,19 @@ func TESTFlowStakingCollection(
 	code := assets.MustAssetString(flowStakingCollectionFilename)
 
 	env := templates.Environment{
-		FungibleTokenAddress:     fungibleTokenAddress,
-		FlowTokenAddress:         flowTokenAddress,
-		IDTableAddress:           idTableAddress,
-		StakingProxyAddress:      stakingProxyAddress,
-		LockedTokensAddress:      lockedTokensAddress,
-		StorageFeesAddress:       storageFeesAddress,
-		QuorumCertificateAddress: qcAddress,
-		DkgAddress:               dkgAddress,
-		EpochAddress:             epochAddress,
-		BurnerAddress:            storageFeesAddress,
+		FungibleTokenAddress:                 fungibleTokenAddress,
+		FlowTokenAddress:                     flowTokenAddress,
+		IDTableAddress:                       idTableAddress,
+		StakingProxyAddress:                  stakingProxyAddress,
+		LockedTokensAddress:                  lockedTokensAddress,
+		StorageFeesAddress:                   storageFeesAddress,
+		QuorumCertificateAddress:             qcAddress,
+		DkgAddress:                           dkgAddress,
+		EpochAddress:                         epochAddress,
+		BurnerAddress:                        storageFeesAddress,
+		FlowTransactionSchedulerAddress:      storageFeesAddress,
+		FlowTransactionSchedulerUtilsAddress: storageFeesAddress,
+		MetadataViewsAddress:                 storageFeesAddress,
 	}
 
 	code = templates.ReplaceAddresses(code, env)
