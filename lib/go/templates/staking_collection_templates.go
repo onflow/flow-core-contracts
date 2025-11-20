@@ -35,6 +35,8 @@ const (
 	collectionCreateNewTokenHolderAccountFilename = "stakingCollection/create_new_tokenholder_acct.cdc"
 	collectionRegisterMultipleNodesFilename       = "stakingCollection/register_multiple_nodes.cdc"
 	collectionRegisterMultipleDelegatorsFilename  = "stakingCollection/register_multiple_delegators.cdc"
+	collectionScheduleNodeStakingFilename         = "stakingCollection/schedule_node_staking.cdc"
+	collectionScheduleDelegatorStakingFilename    = "stakingCollection/schedule_delegator_staking.cdc"
 
 	// scripts
 	collectionGetDoesStakeExistFilename                = "stakingCollection/scripts/get_does_stake_exist.cdc"
@@ -193,6 +195,24 @@ func GenerateCollectionRegisterMultipleNodesScript(env Environment) []byte {
 
 func GenerateCollectionRegisterMultipleDelegatorsScript(env Environment) []byte {
 	code := assets.MustAssetString(collectionRegisterMultipleDelegatorsFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateCollectionScheduleNodeStaking(env Environment) []byte {
+	code := assets.MustAssetString(collectionScheduleStakingFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateCollectionScheduleDelegatorStaking(env Environment) []byte {
+	code := assets.MustAssetString(collectionScheduleDelegatorStakingFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateCollectionUpdateScheduledStaking(env Environment) []byte {
+	code := assets.MustAssetString(collectionUpdateScheduledStakingFilename)
 
 	return []byte(ReplaceAddresses(code, env))
 }

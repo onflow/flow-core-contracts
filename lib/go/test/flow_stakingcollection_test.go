@@ -3055,3 +3055,51 @@ func TestStakingCollectionRegisterMultipleNodes(t *testing.T) {
 	})
 
 }
+
+func TestStakingCollectionScheduledStaking(t *testing.T) {
+	b, adapter, accountKeys, env := newTestSetup(t)
+	// Create new keys for the epoch account
+	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
+
+	_, _ = initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
+		startEpochCounter, // start epoch counter
+		numEpochViews,     // num views per epoch
+		numStakingViews,   // num views for staking auction
+		numDKGViews,       // num views for DKG phase
+		numClusters,       // num collector clusters
+		randomSource,      // random source
+		rewardIncreaseFactor)
+
+	adminAccountKey, adminSigner := accountKeys.NewWithSigner()
+	adminAddress, _ := adapter.CreateAccount(context.Background(), []*flow.AccountKey{adminAccountKey}, nil)
+
+	deployAllCollectionContracts(t, b, adapter, accountKeys, &env, adminAddress, adminSigner)
+
+	joshAddress, _, joshSigner, joshID1, joshID2 := registerStakingCollectionNodesAndDelegators(
+		t, b, adapter,
+		accountKeys,
+		env,
+		"1000000.0", "1000000.0",
+		adminAccountKey, adminAddress, adminSigner)
+
+	// schedule recurring transactions to withdraw and restake rewards
+
+	// end staking auction and epoch, then pay rewards
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateEndEpochScript(env), flow.HexToAddress(env.IDTableAddress))
+	approvedNodeIDs := generateCadenceNodeDictionary([]string{adminID, joshID})
+	err := tx.AddArgument(approvedNodeIDs)
+	require.NoError(t, err)
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{flow.HexToAddress(env.IDTableAddress)},
+		[]crypto.Signer{IDTableSigner},
+		false,
+	)
+	tx = createTxWithTemplateAndAuthorizer(b, templates.GeneratePayRewardsScript(env), flow.HexToAddress(env.IDTableAddress))
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{flow.HexToAddress(env.IDTableAddress)},
+		[]crypto.Signer{IDTableSigner},
+		false,
+	)
+}

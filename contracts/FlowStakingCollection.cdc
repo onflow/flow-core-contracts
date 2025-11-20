@@ -1289,31 +1289,32 @@ access(all) contract FlowStakingCollection {
     /// @param error: The error message
     access(all) event StakingRewardsHandlerError(owner: Address, error: String)
 
+    /// Data for the staking rewards handler specifying which nodes and delegators to restake or withdraw rewards for
     access(all) struct StakingRewardsHandlerData {
         access(all) let nodeIDsToRestake: [String]
         access(all) let delegatorIDsToRestake: [DelegatorIDs]
         access(all) let nodeIDsToWithdraw: [String]
         access(all) let delegatorIDsToWithdraw: [DelegatorIDs]
 
+        /// The execution effort for performing all the restaking and withdrawal operations
+        /// This will scale based on the number of nodes and delegators to restake or withdraw rewards for
         access(all) let executionEffort: UInt64
-        access(all) let priority: FlowTransactionScheduler.Priority
 
         init(nodeIDsToRestake: [String], 
              delegatorIDsToRestake: [DelegatorIDs], 
              nodeIDsToWithdraw: [String], 
              delegatorIDsToWithdraw: [DelegatorIDs],
-             executionEffort: UInt64,
-             priority: FlowTransactionScheduler.Priority) {
+             executionEffort: UInt64) {
             self.nodeIDsToRestake = nodeIDsToRestake
             self.delegatorIDsToRestake = delegatorIDsToRestake
             self.nodeIDsToWithdraw = nodeIDsToWithdraw
             self.delegatorIDsToWithdraw = delegatorIDsToWithdraw
             self.executionEffort = executionEffort
-            self.priority = priority
         }
     }
 
     /// Handler to automatically restake or withdraw rewards for nodes and delegators every epoch
+    /// Each user who wants to set up automatic staking must store an instance of this handler resource in their account storage
     access(all) resource StakingRewardsHandler: FlowTransactionScheduler.TransactionHandler {
 
         /// Fully entitled capability to the StakingCollection
@@ -1329,8 +1330,10 @@ access(all) contract FlowStakingCollection {
         access(self) var selfCapability: Capability<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}>?
 
         /// Data for the staking rewards handler specifying which nodes and delegators to restake or withdraw rewards for
-        access(all) var data: StakingRewardsHandlerData
+        access(self) var data: StakingRewardsHandlerData
 
+        /// The ID of the latest scheduled transaction
+        /// This ID can be used to cancel the transaction with the FlowTransactionSchedulerUtils.Manager if needed
         access(all) var latestScheduledID: UInt64?
 
         /// Error message for the staking rewards handler if it fails to schedule the next transaction
@@ -1351,37 +1354,51 @@ access(all) contract FlowStakingCollection {
             self.setNewStakingData(data: data)
         }
 
+        /// Gets the data for the staking rewards handler
+        ///
+        /// @return StakingRewardsHandlerData: The data for the staking rewards handler
+        access(all) view fun getData(): StakingRewardsHandlerData {
+            return self.data
+        }
+
+        /// Sets the self capability for the staking rewards handler
+        ///
+        /// @param selfCapability: The fully entitled capability to this StakingRewardsHandler
         access(CollectionOwner) fun setSelfCapability(selfCapability: Capability<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}>) {
             pre {
-                self.selfCapability == nil: "StakingRewardsHandler: Self capability already set"
+                self.selfCapability == nil: "StakingRewardsHandler.setSelfCapability(): Self capability already set"
             }
 
-            let selfCapabilityRef = selfCapability.borrow() ?? panic("StakingRewardsHandler: Invalid self capability")
-            assert(selfCapabilityRef.uuid == self.uuid, message: "StakingRewardsHandler: Self capability UUID does not match")
+            let selfCapabilityRef = selfCapability.borrow() ?? panic("StakingRewardsHandler.setSelfCapability(): Invalid self capability")
+            assert(selfCapabilityRef.uuid == self.uuid, message: "StakingRewardsHandler.setSelfCapability(): Self capability UUID \(selfCapabilityRef.uuid) does not match the handler's UUID \(self.uuid)")
 
             self.selfCapability = selfCapability
         }
 
+        /// Sets the new staking data for the staking rewards handler
+        /// Used to update which nodes and delegators to restake or withdraw rewards for
+        ///
+        /// @param data: The new staking data for the staking rewards handler
         access(CollectionOwner) fun setNewStakingData(data: StakingRewardsHandlerData) {
             let stakingCollectionRef = self.stakingCollection.borrow() ?? panic("StakingRewardsHandler: Invalid staking collection capability")
             for nodeID in data.nodeIDsToRestake {
                 if !stakingCollectionRef.doesStakeExist(nodeID: nodeID, delegatorID: nil) {
-                    panic("StakingRewardsHandler: Node ID \(nodeID) does not exist in the staking collection")
+                    panic("StakingRewardsHandler.setNewStakingData(): Node ID \(nodeID) to restake does not exist in the staking collection")
                 }
             }
             for delegatorID in data.delegatorIDsToRestake {
                 if !stakingCollectionRef.doesStakeExist(nodeID: delegatorID.delegatorNodeID, delegatorID: delegatorID.delegatorID) {
-                    panic("StakingRewardsHandler: Delegator with node ID \(delegatorID.delegatorNodeID) and delegator ID \(delegatorID.delegatorID) does not exist in the staking collection")
+                    panic("StakingRewardsHandler.setNewStakingData(): Delegator with node ID \(delegatorID.delegatorNodeID) and delegator ID \(delegatorID.delegatorID) to restake does not exist in the staking collection")
                 }
             }
             for nodeID in data.nodeIDsToWithdraw {
                 if !stakingCollectionRef.doesStakeExist(nodeID: nodeID, delegatorID: nil) {
-                    panic("StakingRewardsHandler: Node ID \(nodeID) does not exist in the staking collection")
+                    panic("StakingRewardsHandler.setNewStakingData(): Node ID \(nodeID) to withdraw does not exist in the staking collection")
                 }
             }
             for delegatorID in data.delegatorIDsToWithdraw {
                 if !stakingCollectionRef.doesStakeExist(nodeID: delegatorID.delegatorNodeID, delegatorID: delegatorID.delegatorID) {
-                    panic("StakingRewardsHandler: Delegator with node ID \(delegatorID.delegatorNodeID) and delegator ID \(delegatorID.delegatorID) does not exist in the staking collection")
+                    panic("StakingRewardsHandler.setNewStakingData(): Delegator with node ID \(delegatorID.delegatorNodeID) and delegator ID \(delegatorID.delegatorID) to withdraw does not exist in the staking collection")
                 }
             }
             self.data = data
@@ -1424,40 +1441,54 @@ access(all) contract FlowStakingCollection {
             }
         }
 
+        /// Executes the staking rewards handler transaction and schedules the next one
+        ///
+        /// @param id: The ID of the transaction
+        /// @param data: The data for the transaction
         access(FlowTransactionScheduler.Execute) fun executeTransaction(id: UInt64, data: AnyStruct?) {
-            let stakingCollectionRef = self.stakingCollection.borrow() ?? panic("StakingRewardsHandler: Invalid staking collection capability")
+            if let stakingCollectionRef = self.stakingCollection.borrow() {
             
-            if FlowIDTableStaking.stakingEnabled() {
-                for nodeID in self.data.nodeIDsToRestake {
+                if FlowIDTableStaking.stakingEnabled() {
+                    for nodeID in self.data.nodeIDsToRestake {
+                        let rewardsBalance = FlowIDTableStaking.NodeInfo(nodeID: nodeID).tokensRewarded
+                        if rewardsBalance > 0.0 {
+                            stakingCollectionRef.stakeRewardedTokens(nodeID: nodeID, delegatorID: nil, amount: rewardsBalance)
+                        }
+                    }
+                    for delegatorID in self.data.delegatorIDsToRestake {
+                        let rewardsBalance = FlowIDTableStaking.DelegatorInfo(nodeID: delegatorID.delegatorNodeID, delegatorID: delegatorID.delegatorID).tokensRewarded
+                        if rewardsBalance > 0.0 {
+                            stakingCollectionRef.stakeRewardedTokens(nodeID: delegatorID.delegatorNodeID, delegatorID: delegatorID.delegatorID, amount: rewardsBalance)
+                        }
+                    }
+                }
+                for nodeID in self.data.nodeIDsToWithdraw {
                     let rewardsBalance = FlowIDTableStaking.NodeInfo(nodeID: nodeID).tokensRewarded
                     if rewardsBalance > 0.0 {
-                        stakingCollectionRef.stakeRewardedTokens(nodeID: nodeID, delegatorID: nil, amount: rewardsBalance)
+                        stakingCollectionRef.withdrawRewardedTokens(nodeID: nodeID, delegatorID: nil, amount: rewardsBalance)
                     }
                 }
-                for delegatorID in self.data.delegatorIDsToRestake {
+                for delegatorID in self.data.delegatorIDsToWithdraw {
                     let rewardsBalance = FlowIDTableStaking.DelegatorInfo(nodeID: delegatorID.delegatorNodeID, delegatorID: delegatorID.delegatorID).tokensRewarded
                     if rewardsBalance > 0.0 {
-                        stakingCollectionRef.stakeRewardedTokens(nodeID: delegatorID.delegatorNodeID, delegatorID: delegatorID.delegatorID, amount: rewardsBalance)
+                        stakingCollectionRef.withdrawRewardedTokens(nodeID: delegatorID.delegatorNodeID, delegatorID: delegatorID.delegatorID, amount: rewardsBalance)
                     }
                 }
-            }
-            for nodeID in self.data.nodeIDsToWithdraw {
-                let rewardsBalance = FlowIDTableStaking.NodeInfo(nodeID: nodeID).tokensRewarded
-                if rewardsBalance > 0.0 {
-                    stakingCollectionRef.withdrawRewardedTokens(nodeID: nodeID, delegatorID: nil, amount: rewardsBalance)
-                }
-            }
-            for delegatorID in self.data.delegatorIDsToWithdraw {
-                let rewardsBalance = FlowIDTableStaking.DelegatorInfo(nodeID: delegatorID.delegatorNodeID, delegatorID: delegatorID.delegatorID).tokensRewarded
-                if rewardsBalance > 0.0 {
-                    stakingCollectionRef.withdrawRewardedTokens(nodeID: delegatorID.delegatorNodeID, delegatorID: delegatorID.delegatorID, amount: rewardsBalance)
-                }
-            }
 
-            self.scheduleNextTransaction()
+                self.scheduleNextTransaction()
+            } else {
+                let errorMessage = "StakingRewardsHandler.executeTransaction(): Invalid staking collection capability"
+                emit StakingRewardsHandlerError(owner: self.owner!.address, error: errorMessage)
+                self.error = errorMessage
+            }
         }
 
-        access(all) fun scheduleNextTransaction() {
+        /// Schedules the next transaction for the staking rewards handler
+        access(self) fun scheduleNextTransaction() {
+            pre {
+                self.selfCapability != nil: "StakingRewardsHandler.scheduleNextTransaction(): Self capability not set"
+            }
+
             var nextExecutionTimestamp: UFix64 = 0.0
 
             if FlowIDTableStaking.stakingEnabled() {
@@ -1474,7 +1505,7 @@ access(all) contract FlowStakingCollection {
             let estimate = FlowTransactionScheduler.estimate(
                 data: nil,
                 timestamp: nextExecutionTimestamp,
-                priority: self.data.priority,
+                priority: FlowTransactionScheduler.Priority.Low,
                 executionEffort: self.data.executionEffort
             )
             if estimate.error != nil && estimate.timestamp == nil {
@@ -1487,27 +1518,27 @@ access(all) contract FlowStakingCollection {
             let flowTokenVaultRef = self.flowTokenVault.borrow()
 
             if flowTokenVaultRef == nil {
-                let errorMessage = "StakingRewardsHandler: Invalid flow token vault capability"
+                let errorMessage = "StakingRewardsHandler.scheduleNextTransaction(): Invalid flow token vault capability"
                 emit StakingRewardsHandlerError(owner: self.owner!.address, error: errorMessage)
                 self.error = errorMessage
                 return
             }
 
             if flowTokenVaultRef!.balance < estimate.flowFee! {
-                let errorMessage = "StakingRewardsHandler: Insufficient fees: The Fee balance of \(flowTokenVaultRef!.balance) is not sufficient to pay the required amount of \(estimate.flowFee!) for execution of the transaction."
+                let errorMessage = "StakingRewardsHandler.scheduleNextTransaction(): Insufficient fees: The Fee balance of \(flowTokenVaultRef!.balance) is not sufficient to pay the required amount of \(estimate.flowFee!) for execution of the transaction."
                 emit StakingRewardsHandlerError(owner: self.owner!.address, error: errorMessage)
                 self.error = errorMessage
                 return
             }
 
-            let managerRef = self.manager.borrow() ?? panic("StakingRewardsHandler: Invalid manager capability")
+            let managerRef = self.manager.borrow() ?? panic("StakingRewardsHandler.scheduleNextTransaction(): Invalid manager capability")
 
             // schedule the next transaction
             self.latestScheduledID = managerRef.schedule(
                 handlerCap: self.selfCapability!,
                 data: nil,
                 timestamp: nextExecutionTimestamp,
-                priority: self.data.priority,
+                priority: FlowTransactionScheduler.Priority.Low,
                 executionEffort: self.data.executionEffort,
                 fees: <- flowTokenVaultRef!.withdraw(amount: estimate.flowFee!) as! @FlowToken.Vault
             )
