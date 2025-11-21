@@ -5,6 +5,7 @@ import "FlowToken"
 import "FlowTransactionSchedulerUtils"
 
 import "scheduled_transaction_test_helpers.cdc"
+import "evm_test_helpers.cdc"
 
 access(all) var startingHeight: UInt64 = 0
 
@@ -43,6 +44,8 @@ access(all) fun testCOAScheduledTransactions() {
 
     let currentTime = getTimestamp()
     let timeInFuture = currentTime + futureDelta
+
+    setupCOATransaction(amount: 100.0)
 
     // Schedule high priority transaction
     scheduleCOATransaction(
