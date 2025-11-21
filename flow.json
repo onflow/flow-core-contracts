@@ -8,21 +8,6 @@
 				"testnet": "8c5303eaa26202d6"
 			}
 		},
-		"FlowTransactionScheduler": {
-			"source": "./contracts/FlowTransactionScheduler.cdc",
-			"aliases": {
-				"emulator": "f8d6e0586b0a20c7",
-                "testnet": "8c5303eaa26202d6",
-				"testing": "0000000000000007"
-			}
-		},
-		"FlowTransactionSchedulerUtils": {
-			"source": "./contracts/FlowTransactionSchedulerUtils.cdc",
-			"aliases": {
-				"emulator": "f8d6e0586b0a20c7",
-				"testing": "0000000000000007"
-			}
-		},
 		"FlowClusterQC": {
 			"source": "./contracts/epochs/FlowClusterQC.cdc",
 			"aliases": {
@@ -196,6 +181,15 @@
 			"hash": "610692c2092bd29d8f49aefc10b6e8ff3d4b3909331fece98f6966fbdcb4cdd4",
 			"aliases": {}
 		},
+		"EVM": {
+			"source": "mainnet://e467b9dd11fa00df.EVM",
+			"hash": "2a4782c7459dc5b72c034f67c8dd1beac6bb9b29104772a3e6eb6850718bb3b4",
+			"aliases": {
+				"emulator": "f8d6e0586b0a20c7",
+				"mainnet": "e467b9dd11fa00df",
+				"testnet": "8c5303eaa26202d6"
+			}
+		},
 		"FlowClusterQC": {
 			"source": "mainnet://8624b52f9ddcd04a.FlowClusterQC",
 			"hash": "5fd45018af7e3b7606caf437dd0b6be72f698556313754c12308b8d5b174051d",
@@ -334,9 +328,9 @@
 	"networks": {
 		"emulator": "127.0.0.1:3569",
 		"mainnet": "access.mainnet.nodes.onflow.org:9000",
+		"migration": "access-001.migrationtestnet1.nodes.onflow.org:9000",
 		"testing": "127.0.0.1:3569",
-		"testnet": "access.devnet.nodes.onflow.org:9000",
-        "migration": "access-001.migrationtestnet1.nodes.onflow.org:9000"
+		"testnet": "access.devnet.nodes.onflow.org:9000"
 	},
 	"accounts": {
 		"emulator-account": {

@@ -119,44 +119,6 @@ access(all) fun scheduleTransactionByHandler(
     }
 }
 
-access(all) fun scheduleCOATransaction(
-    timestamp: UFix64,
-    fee: UFix64,
-    effort: UInt64,
-    priority: UInt8,
-    coaTXTypeEnum: UInt8,
-    amount: UFix64?,
-    callToEVMAddress: [UInt8; 20]?,
-    data: [UInt8]?,
-    gasLimit: UInt64?,
-    value: UFix64?,
-    testName: String,
-    failWithErr: String?
-) {
-    var tx = Test.Transaction(
-        code: Test.readFile("../transactions/transactionScheduler/schedule_coa_transaction.cdc"),
-        authorizers: [admin.address],
-        signers: [admin],
-        arguments: [timestamp, fee, effort, priority, coaTXTypeEnum, amount, callToEVMAddress, data, gasLimit, value],
-    )
-    var result = Test.executeTransaction(tx)
-
-    if let error = failWithErr {
-        // log(error)
-        // log(result.error!.message)
-        Test.expect(result, Test.beFailed())
-        Test.assertError(
-            result,
-            errorMessage: error
-        )
-    
-    } else {
-        if result.error != nil {
-            Test.assert(result.error == nil, message: "Transaction failed with error: \(result.error!.message) for test case: \(testName)")
-        }
-    }
-}
-
 access(all) fun cancelTransaction(id: UInt64, failWithErr: String?) {
     var tx = Test.Transaction(
         code: Test.readFile("../transactions/transactionScheduler/cancel_transaction.cdc"),

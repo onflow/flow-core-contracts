@@ -36,10 +36,14 @@ transaction(
             var coaCapability: Capability<auth(EVM.Owner) &EVM.CadenceOwnedAccount>? = nil
 
             // get the COA capability
-            if account.capabilities.storage.getControllers(forPath: /storage/coa).length > 0 {
-                coaCapability = account.capabilities.storage.getControllers(forPath: /storage/coa)[0].capability as! Capability<auth(EVM.Owner) &EVM.CadenceOwnedAccount>
-            } else {
-                coaCapability = account.capabilities.storage.issue<auth(EVM.Owner) &EVM.CadenceOwnedAccount>(/storage/coa)
+            for controller in account.capabilities.storage.getControllers(forPath: /storage/evm) {
+                if let capability = controller.capability as? Capability<auth(EVM.Owner) &EVM.CadenceOwnedAccount> {
+                    coaCapability = capability
+                    break
+                }
+            }
+            if coaCapability == nil {
+                coaCapability = account.capabilities.storage.issue<auth(EVM.Owner) &EVM.CadenceOwnedAccount>(/storage/evm)
             }
 
             var flowTokenVaultCapability: Capability<auth(FungibleToken.Withdraw) &FlowToken.Vault>? = nil
