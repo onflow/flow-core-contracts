@@ -116,7 +116,8 @@ transaction(effort: UInt64,
                 data: nil,
                 timestamp: getCurrentBlock().timestamp + 604800.0, // 1 week
                 priority: FlowTransactionScheduler.Priority.Low,
-                executionEffort: effort
+                executionEffort: effort,
+                fees: <-flowTokenVaultCap.withdraw(amount: 0.001) as! @FlowToken.Vault
             )
         } else {
 
