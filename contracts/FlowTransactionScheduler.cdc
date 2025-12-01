@@ -460,8 +460,10 @@ access(all) contract FlowTransactionScheduler {
             self.timestamps = []
         }
 
-        // bisect is a function that finds the index to insert a new timestamp in the sorted array.
-        // taken from bisect_right in pthon https://stackoverflow.com/questions/2945017/javas-equivalent-to-bisect-in-python
+        /// bisect is a function that finds the index to insert a new timestamp in the sorted array.
+        /// taken from bisect_right in pthon https://stackoverflow.com/questions/2945017/javas-equivalent-to-bisect-in-python
+        /// @param new: The new timestamp to insert
+        /// @return: The index to insert the new timestamp at or nil if the timestamp is already in the array
 		access(all) fun bisect(new: UFix64): Int? {
 			var high = self.timestamps.length
 			var low = 0
