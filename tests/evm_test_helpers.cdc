@@ -28,11 +28,12 @@ access(all) fun scheduleCOATransaction(
     effort: UInt64,
     priority: UInt8,
     coaTXTypeEnum: UInt8,
+    revertOnFailure: Bool,
     amount: UFix64?,
-    callToEVMAddress: [UInt8; 20]?,
+    callToEVMAddress: String?,
     data: [UInt8]?,
     gasLimit: UInt64?,
-    value: UFix64?,
+    value: UInt?,
     testName: String,
     failWithErr: String?
 ) {
@@ -40,7 +41,7 @@ access(all) fun scheduleCOATransaction(
         code: Test.readFile("../transactions/transactionScheduler/schedule_coa_transaction.cdc"),
         authorizers: [adminAcct.address],
         signers: [adminAcct],
-        arguments: [timestamp, fee, effort, priority, coaTXTypeEnum, amount, callToEVMAddress, data, gasLimit, value],
+        arguments: [timestamp, fee, effort, priority, coaTXTypeEnum, revertOnFailure, amount, callToEVMAddress, data, gasLimit, value],
     )
     var result = Test.executeTransaction(tx)
 
