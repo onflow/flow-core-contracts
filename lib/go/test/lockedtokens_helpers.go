@@ -321,8 +321,6 @@ func deployAllCollectionContracts(t *testing.T,
 	adminAddress flow.Address,
 	adminSigner crypto.Signer) {
 
-	// DEPLOY StakingProxy
-
 	// Deploy the StakingProxy contract
 	stakingProxyCode := contracts.FlowStakingProxy()
 	stakingProxyAddress, err := adapter.CreateAccount(context.Background(), nil, []sdktemplates.Contract{
@@ -454,6 +452,43 @@ func registerStakingCollectionNodesAndDelegators(
 	)
 
 	return newUserAddress, newUserSharedAddress, newUserSigner, userNodeID1, userNodeID2
+}
+
+// Schedules recurring transactions to withdraw and restake rewards
+func scheduleNodeStaking(t *testing.T,
+	b emulator.Emulator,
+	env templates.Environment,
+	signerAddress flow.Address,
+	signer crypto.Signer,
+	nodeIDsToRestake []string,
+	nodeIDsToWithdraw []string,
+) {
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionScheduleNodeStaking(env), signerAddress)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{signerAddress},
+		[]crypto.Signer{signer},
+		false,
+	)
+}
+
+func scheduleDelegatorStaking(t *testing.T,
+	b emulator.Emulator,
+	env templates.Environment,
+	signerAddress flow.Address,
+	signer crypto.Signer,
+	delegatorIDsToRestake []DelegatorIDs,
+	delegatorIDsToWithdraw []DelegatorIDs,
+) {
+	tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionScheduleDelegatorStaking(env), signerAddress)
+
+	signAndSubmit(
+		t, b, tx,
+		[]flow.Address{signerAddress},
+		[]crypto.Signer{signer},
+		false,
+	)
 }
 
 // Queries all the important information from a user's staking collection
