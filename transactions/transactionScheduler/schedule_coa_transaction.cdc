@@ -10,11 +10,12 @@ transaction(
     effort: UInt64,
     priority: UInt8,
     coaTXTypeEnum: UInt8,
+    revertOnFailure: Bool,
     amount: UFix64?,
-    callToEVMAddress: [UInt8; 20]?,
+    callToEVMAddress: String?,
     data: [UInt8]?,
     gasLimit: UInt64?,
-    value: UFix64?
+    value: UInt?
 ) {
 
     prepare(account: auth(BorrowValue, SaveValue, IssueStorageCapabilityController, PublishCapability, GetStorageCapabilityController) &Account) {
@@ -98,6 +99,7 @@ transaction(
 
         let coaHandlerParams = FlowTransactionSchedulerUtils.COAHandlerParams(
             txType: coaTXTypeEnum,
+            revertOnFailure: revertOnFailure,
             amount: amount,
             callToEVMAddress: callToEVMAddress,
             data: data,

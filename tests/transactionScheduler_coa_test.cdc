@@ -54,6 +54,7 @@ access(all) fun testCOAScheduledTransactions() {
         effort: basicEffort,
         priority: highPriority,
         coaTXTypeEnum: depositFLOWEnum,
+        revertOnFailure: false,
         amount: 100.0,
         callToEVMAddress: nil,
         data: nil,
