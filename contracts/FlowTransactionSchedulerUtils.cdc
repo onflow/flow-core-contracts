@@ -620,6 +620,12 @@ access(all) contract FlowTransactionSchedulerUtils {
             self.flowTokenVaultCapability = flowTokenVaultCapability
         }
 
+        access(self) fun emitError(id: UInt64, errorMessage: String) {
+            let coa = self.coaCapability.borrow()!
+            emit COAHandlerExecutionError(id: id, owner: self.owner?.address, coaAddress: coa.address().toString(),
+                                          errorMessage: errorMessage)
+        }
+
         /// Execute the scheduled transaction using the COA
         /// @param id: The ID of the scheduled transaction
         /// @param data: Optional data passed to the transaction execution. In this case, the data must be a COAHandlerParams struct with valid values.
@@ -632,49 +638,62 @@ access(all) contract FlowTransactionSchedulerUtils {
             }
 
             if let transactions = data as? [COAHandlerParams] {
-                for txParams in transactions {
+                for index, txParams in transactions {
                     switch txParams.txType {
                         case COAHandlerTxType.DepositFLOW:
                             if txParams.amount == nil {
-                                emit COAHandlerExecutionError(id: id, owner: self.owner?.address, coaAddress: coa!.address().toString(),
-                                                            errorMessage: "Amount is required for deposit for scheduled transaction with ID \(id)")
+                                self.emitError(id: id, errorMessage: "Amount is required for deposit for scheduled transaction with ID \(id) and index \(index)")
                                 return
                             }
                             let vault = self.flowTokenVaultCapability.borrow()
                             if vault == nil {
-                                emit COAHandlerExecutionError(id: id, owner: self.owner?.address, coaAddress: coa!.address().toString(), errorMessage: "FlowToken vault capability is invalid or expired for scheduled transaction with ID \(id)")
+                                self.emitError(id: id, errorMessage: "FlowToken vault capability is invalid or expired for scheduled transaction with ID \(id) and index \(index)")
                                 return
+                            }
+                            if txParams.amount! > vault!.balance && !txParams.revertOnFailure {
+                                self.emitError(id: id, errorMessage: "Insufficient FLOW in FlowToken vault for deposit into COA for scheduled transaction with ID \(id) and index \(index)")
+                                continue
                             }
                             coa!.deposit(from: <-vault!.withdraw(amount: txParams.amount!) as! @FlowToken.Vault)
                         case COAHandlerTxType.WithdrawFLOW:
                             if txParams.amount == nil {
-                                emit COAHandlerExecutionError(id: id, owner: self.owner?.address, coaAddress: coa!.address().toString(),
-                                                            errorMessage: "Amount is required for withdrawal from COA for scheduled transaction with ID \(id)")
+                                self.emitError(id: id, errorMessage: "Amount is required for withdrawal from COA for scheduled transaction with ID \(id) and index \(index)")
                             }
 
                             let vault = self.flowTokenVaultCapability.borrow()
                             if vault == nil {
-                                emit COAHandlerExecutionError(id: id, owner: self.owner?.address, coaAddress: coa!.address().toString(),
-                                                            errorMessage: "FlowToken vault capability is invalid or expired for scheduled transaction with ID \(id)")
+                                self.emitError(id: id, errorMessage: "FlowToken vault capability is invalid or expired for scheduled transaction with ID \(id) and index \(index)")
                                 return
                             }
 
                             let amount = EVM.Balance(attoflow: 0)
                             amount.setFLOW(flow: txParams.amount!)
 
+                            if amount.attoflow > coa!.balance().attoflow && !txParams.revertOnFailure {
+                                self.emitError(id: id, errorMessage: "Insufficient FLOW in COA vault for withdrawal from COA for scheduled transaction with ID \(id) and index \(index)")
+                                continue
+                            }
+
                             vault!.deposit(from: <-coa!.withdraw(balance: amount))
                         case COAHandlerTxType.Call:
                             if txParams.callToEVMAddress == nil || txParams.data == nil || txParams.gasLimit == nil || txParams.value == nil {
-                                emit COAHandlerExecutionError(id: id, owner: self.owner?.address, coaAddress: coa!.address().toString(),
-                                                            errorMessage: "Call to EVM address, data, gas limit, and value are required for EVM call for scheduled transaction with ID \(id)")
+                                self.emitError(id: id, errorMessage: "Call to EVM address, data, gas limit, and value are required for EVM call for scheduled transaction with ID \(id) and index \(index)")
                                 return
                             }
                             let result = coa!.call(to: txParams.callToEVMAddress!, data: txParams.data!, gasLimit: txParams.gasLimit!, value: txParams.value!)
+
+                            if result.status != EVM.Status.successful {
+                                if !txParams.revertOnFailure {
+                                    self.emitError(id: id, errorMessage: "EVM call failed for scheduled transaction with ID \(id) and index \(index) with error: \(result.errorCode):\(result.errorMessage)")
+                                    continue
+                                } else {
+                                    panic("EVM call failed for scheduled transaction with ID \(id) and index \(index) with error: \(result.errorCode):\(result.errorMessage)")
+                                }
+                            }
                     }
                 }
             } else {
-                emit COAHandlerExecutionError(id: id, owner: self.owner?.address, coaAddress: coa!.address().toString(),
-                                              errorMessage: "Invalid scheduled transaction data type for COA handler execution for tx with ID \(id)! Expected FlowTransactionSchedulerUtils.COAHandlerParams but got \(data.getType().identifier)")
+                self.emitError(id: id, errorMessage: "Invalid scheduled transaction data type for COA handler execution for tx with ID \(id)! Expected [FlowTransactionSchedulerUtils.COAHandlerParams] but got \(data.getType().identifier)")
                 return
             }
         }
@@ -756,13 +775,22 @@ access(all) contract FlowTransactionSchedulerUtils {
                 assert(amount != nil, message: "Amount is required for withdrawal but was not provided")
             }
             if self.txType == COAHandlerTxType.Call {
-                assert(callToEVMAddress != nil && callToEVMAddress!.length == 20, message: "Call to EVM address is required for EVM call but was not provided or is invalid")
+                assert(callToEVMAddress != nil && callToEVMAddress!.length == 40, message: "Call to EVM address is required for EVM call but was not provided or is invalid length (must be 40 hex chars)")
                 assert(data != nil, message: "Data is required for EVM call but was not provided")
                 assert(gasLimit != nil, message: "Gas limit is required for EVM call but was not provided")
                 assert(value != nil, message: "Value is required for EVM call but was not provided")
             }
             self.amount = amount
-            self.callToEVMAddress = callToEVMAddress != nil ? EVM.EVMAddress(bytes: callToEVMAddress!.decodeHex() as! [UInt8; 20]) : nil
+            if callToEVMAddress != nil {
+                let decodedAddress = callToEVMAddress!.decodeHex()
+                assert(
+                    decodedAddress.length == 20,
+                    message:"Invalid EVM address length for scheduled transaction! Expected 20 bytes but got \(decodedAddress.length) bytes for EVM address \(callToEVMAddress!)"
+                )
+                self.callToEVMAddress = EVM.EVMAddress(bytes: decodedAddress.toConstantSized<[UInt8; 20]>()!)
+            } else {
+                self.callToEVMAddress = nil
+            }
             self.data = data
             self.gasLimit = gasLimit
             if let unwrappedValue = value {

@@ -106,10 +106,13 @@ transaction(
             gasLimit: gasLimit,
             value: value
         )
+
+        let coaHandlerParamsArray = [coaHandlerParams]
+        
         // Schedule the COA transaction with the main contract
         manager.schedule(
             handlerCap: handlerCap!,
-            data: coaHandlerParams,
+            data: coaHandlerParamsArray,
             timestamp: timestamp,
             priority: priorityEnum,
             executionEffort: effort,
