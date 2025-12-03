@@ -5,7 +5,7 @@ import "EVM"
 import "MetadataViews"
 
 /// FlowTransactionSchedulerUtils provides utility functionality for working with scheduled transactions
-/// on the Flow blockchain. Currently, it only includes a Manager resource for managing scheduled transactions.
+/// on the Flow blockchain.
 ///
 /// In the future, this contract will be updated to include more functionality 
 /// to make it more convenient for working with scheduled transactions for various use cases.
