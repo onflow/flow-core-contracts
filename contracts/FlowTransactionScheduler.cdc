@@ -1466,7 +1466,9 @@ access(all) contract FlowTransactionScheduler {
     /// Allows users to calculate the fee for a scheduled transaction without having to call the expensive estimate function
     /// @param executionEffort: The execution effort of the transaction
     /// @param priority: The priority of the transaction
-    /// @param dataSizeMB: The size of the data that was passed when the transaction was originally scheduled
+    /// @param dataSizeMB: The size of the data to be stored with the scheduled transaction
+    ///                    The user must calculate this data size themselves before calling this function
+    ///                    But should be done in a separate script or transaction to avoid the expensive getSizeOfData function
     /// @return UFix64: The fee in Flow tokens that is required to pay for the transaction
     access(all) fun calculateFee(executionEffort: UInt64, priority: Priority, dataSizeMB: UFix64): UFix64 {
         return self.sharedScheduler.borrow()!.calculateFee(executionEffort: executionEffort, priority: priority, dataSizeMB: dataSizeMB)
