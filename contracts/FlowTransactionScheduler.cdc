@@ -992,7 +992,7 @@ access(all) contract FlowTransactionScheduler {
 
             // Get the mapping of how much effort has been used
             // for each priority for the timestamp
-            let slotPriorityEffortsUsed = self.slotUsedEffort[sanitizedTimestamp]!
+            let slotPriorityEffortsUsed = &self.slotUsedEffort[sanitizedTimestamp]! as &{Priority: UInt64}
 
             // Get the exclusive reserves for each priority
             let highReserve = self.config.priorityEffortReserve[Priority.High]!
@@ -1053,8 +1053,8 @@ access(all) contract FlowTransactionScheduler {
             }
 
             // Add this transaction id to the slot
-            let slotQueue = self.slotQueue[slot]!
-            if let priorityQueue = slotQueue[txData.priority] {
+            let slotQueue = &self.slotQueue[slot]! as auth(Mutate) &{Priority: {UInt64: UInt64}}
+            if let priorityQueue = *slotQueue[txData.priority] { 
                 priorityQueue[txData.id] = txData.executionEffort
                 slotQueue[txData.priority] = priorityQueue
             } else {
@@ -1063,17 +1063,14 @@ access(all) contract FlowTransactionScheduler {
                 }
             }
 
-            self.slotQueue[slot] = slotQueue
-
             // Add the execution effort for this transaction to the total for the slot's priority
-            let slotEfforts = self.slotUsedEffort[slot]!
+            let slotEfforts = &self.slotUsedEffort[slot]! as auth(Mutate) &{Priority: UInt64}
             var newPriorityEffort = slotEfforts[txData.priority]! + txData.executionEffort
             slotEfforts[txData.priority] = newPriorityEffort
             var newTotalEffort: UInt64 = 0
             for priority in slotEfforts.keys {
                 newTotalEffort = newTotalEffort.saturatingAdd(slotEfforts[priority]!)
             }
-            self.slotUsedEffort[slot] = slotEfforts
             
             // Need to potentially reschedule low priority transactions to make room for the new transaction
             // Iterate through them and record which ones to reschedule until the total effort is less than the limit
@@ -1464,6 +1461,15 @@ access(all) contract FlowTransactionScheduler {
                 priority: priority, 
                 executionEffort: executionEffort,
             )
+    }
+
+    /// Allows users to calculate the fee for a scheduled transaction without having to call the expensive estimate function
+    /// @param executionEffort: The execution effort of the transaction
+    /// @param priority: The priority of the transaction
+    /// @param dataSizeMB: The size of the data that was passed when the transaction was originally scheduled
+    /// @return UFix64: The fee in Flow tokens that is required to pay for the transaction
+    access(all) fun calculateFee(executionEffort: UInt64, priority: Priority, dataSizeMB: UFix64): UFix64 {
+        return self.sharedScheduler.borrow()!.calculateFee(executionEffort: executionEffort, priority: priority, dataSizeMB: dataSizeMB)
     }
 
     access(all) fun cancel(scheduledTx: @ScheduledTransaction): @FlowToken.Vault {
