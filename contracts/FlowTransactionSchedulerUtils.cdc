@@ -630,6 +630,8 @@ access(all) contract FlowTransactionSchedulerUtils {
         /// @param id: The ID of the scheduled transaction
         /// @param data: Optional data passed to the transaction execution. In this case, the data must be a COAHandlerParams struct with valid values.
         access(FlowTransactionScheduler.Execute) fun executeTransaction(id: UInt64, data: AnyStruct?) {
+
+            // Borrow the COA capability
             let coa = self.coaCapability.borrow()
             if coa == nil {
                 emit COAHandlerExecutionError(id: id, owner: self.owner?.address ?? Address(0x0), coaAddress: nil,
@@ -637,33 +639,50 @@ access(all) contract FlowTransactionSchedulerUtils {
                 return
             }
 
-            if let transactions = data as? [COAHandlerParams] {
+            // Parse the data into a list of COAHandlerParams
+            // If the data is a single COAHandlerParams struct, wrap it in a list
+            var params: [COAHandlerParams]? = data as? [COAHandlerParams]
+            if params == nil {
+                if let param = data as? COAHandlerParams {
+                    params = [param]
+                }
+            }
+
+            // Iterate through all the COA transactions and execute them all
+            // If revertOnFailure is true for a transaction and any part of it fails, the entire scheduled transaction will be reverted
+            // If not but a part of the transaction fails, an error event will be emitted but the scheduled transaction will continue to execute the next transaction
+            //
+            if let transactions = params {
                 for index, txParams in transactions {
                     switch txParams.txType {
                         case COAHandlerTxType.DepositFLOW:
-                            if txParams.amount == nil {
-                                self.emitError(id: id, errorMessage: "Amount is required for deposit for scheduled transaction with ID \(id) and index \(index)")
-                                return
-                            }
                             let vault = self.flowTokenVaultCapability.borrow()
                             if vault == nil {
-                                self.emitError(id: id, errorMessage: "FlowToken vault capability is invalid or expired for scheduled transaction with ID \(id) and index \(index)")
-                                return
+                                if !txParams.revertOnFailure {
+                                    self.emitError(id: id, errorMessage: "FlowToken vault capability is invalid or expired for scheduled transaction with ID \(id) and index \(index)")
+                                    continue
+                                } else {
+                                    panic("FlowToken vault capability is invalid or expired for scheduled transaction with ID \(id) and index \(index)")
+                                }
                             }
+
                             if txParams.amount! > vault!.balance && !txParams.revertOnFailure {
                                 self.emitError(id: id, errorMessage: "Insufficient FLOW in FlowToken vault for deposit into COA for scheduled transaction with ID \(id) and index \(index)")
                                 continue
                             }
+
+                            // Deposit the FLOW into the COA vault. If there isn't enough FLOW in the vault,
+                            //the transaction will be reverted because we know revertOnFailure is true
                             coa!.deposit(from: <-vault!.withdraw(amount: txParams.amount!) as! @FlowToken.Vault)
                         case COAHandlerTxType.WithdrawFLOW:
-                            if txParams.amount == nil {
-                                self.emitError(id: id, errorMessage: "Amount is required for withdrawal from COA for scheduled transaction with ID \(id) and index \(index)")
-                            }
-
                             let vault = self.flowTokenVaultCapability.borrow()
                             if vault == nil {
-                                self.emitError(id: id, errorMessage: "FlowToken vault capability is invalid or expired for scheduled transaction with ID \(id) and index \(index)")
-                                return
+                                if !txParams.revertOnFailure {
+                                    self.emitError(id: id, errorMessage: "FlowToken vault capability is invalid or expired for scheduled transaction with ID \(id) and index \(index)")
+                                    continue
+                                } else {
+                                    panic("FlowToken vault capability is invalid or expired for scheduled transaction with ID \(id) and index \(index)")
+                                }
                             }
 
                             let amount = EVM.Balance(attoflow: 0)
@@ -674,12 +693,10 @@ access(all) contract FlowTransactionSchedulerUtils {
                                 continue
                             }
 
+                            // Withdraw the FLOW from the COA vault. If there isn't enough FLOW in the COA,
+                            // the transaction will be reverted because we know revertOnFailure is true
                             vault!.deposit(from: <-coa!.withdraw(balance: amount))
                         case COAHandlerTxType.Call:
-                            if txParams.callToEVMAddress == nil || txParams.data == nil || txParams.gasLimit == nil || txParams.value == nil {
-                                self.emitError(id: id, errorMessage: "Call to EVM address, data, gas limit, and value are required for EVM call for scheduled transaction with ID \(id) and index \(index)")
-                                return
-                            }
                             let result = coa!.call(to: txParams.callToEVMAddress!, data: txParams.data!, gasLimit: txParams.gasLimit!, value: txParams.value!)
 
                             if result.status != EVM.Status.successful {
