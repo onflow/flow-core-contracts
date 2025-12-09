@@ -62,6 +62,39 @@ access(all) fun scheduleCOATransaction(
     }
 }
 
+access(all) fun scheduleMultipleCOATransactions(
+    timestamp: UFix64,
+    fee: UFix64,
+    effort: UInt64,
+    priority: UInt8,
+    calls: [{String: AnyStruct}],
+    testName: String,
+    failWithErr: String?
+) {
+    var tx = Test.Transaction(
+        code: Test.readFile("../transactions/transactionScheduler/schedule_multiple_coa_transactions.cdc"),
+        authorizers: [adminAcct.address],
+        signers: [adminAcct],
+        arguments: [timestamp, fee, effort, priority, calls],
+    )
+    var result = Test.executeTransaction(tx)
+
+    if let error = failWithErr {
+        // log(error)
+        // log(result.error!.message)
+        Test.expect(result, Test.beFailed())
+        Test.assertError(
+            result,
+            errorMessage: error
+        )
+    
+    } else {
+        if result.error != nil {
+            Test.assert(result.error == nil, message: "Transaction failed with error: \(result.error!.message) for test case: \(testName)")
+        }
+    }
+}
+
 access(all) fun createCOAHandlerParams(
     coaTXTypeEnum: UInt8,
     revertOnFailure: Bool,

@@ -308,6 +308,35 @@ access(all) fun testCOAScheduledTransactions() {
         failWithErr: nil
     )
 
+    // Testing framework error with {String: AnyStruct}
+    // // Deposit Too much Flow and not revert
+    // let call1: {String: AnyStruct} = {}
+    // call1["coaTXTypeEnum"] = depositFLOWEnum
+    // call1["revertOnFailure"] = false
+    // call1["amount"] = 10000000.0
+
+    // // transfer FLOW in EVM and revert on failure, but should succeed
+    // let call2: {String: AnyStruct} = {} 
+    // call2["coaTXTypeEnum"] = callEnum
+    // call2["revertOnFailure"] = true
+    // call2["callToEVMAddress"] = "1234567890abcdef1234567890abcdef12345678"
+    // call2["data"] = []
+    // call2["gasLimit"] = 100000
+    // call2["value"] = 1000000000000000000 // 1 FLOW in attoFLOW
+
+    // let calls: [{String: AnyStruct}] = [call1, call2]
+
+    // // Schedule multiple high priority transactions to deposit FLOW and withdraw FLOW
+    // scheduleMultipleCOATransactions(
+    //     timestamp: timeInFuture,
+    //     fee: feeAmount,
+    //     effort: basicEffort,
+    //     priority: highPriority,
+    //     calls: calls,
+    //     testName: "Test COA Transaction Scheduling: Multiple COA Transactions should not revert on failure",
+    //     failWithErr: nil
+    // )
+
     Test.moveTime(by: Fix64(futureDelta+10.0))
 
     processTransactions()
@@ -360,6 +389,13 @@ access(all) fun testCOAScheduledTransactions() {
         failWithErr: "have 50000000000000000000 want 1000000000000000000000"
     )
 
+    // Testing framework error with {String: AnyStruct}
+    // executeScheduledTransaction(
+    //     id: 9,
+    //     testName: "Test COA Transaction Scheduling: Multiple COA Transactions should not revert on failure",
+    //     failWithErr: nil
+    // )
+
     var errorEvents = Test.eventsOfType(Type<FlowTransactionSchedulerUtils.COAHandlerExecutionError>())
     Test.assert(errorEvents.length == 2, message: "There should be two COAHandlerExecutionError events but there are \(errorEvents.length) events")
     var errorEvent = errorEvents[0] as! FlowTransactionSchedulerUtils.COAHandlerExecutionError
@@ -372,6 +408,11 @@ access(all) fun testCOAScheduledTransactions() {
     Test.assertEqual(admin.address, errorEvent.owner!)
     Test.assertEqual("Insufficient FLOW in FlowToken vault for deposit into COA for scheduled transaction with ID 7 and index 0", errorEvent.errorMessage)
 
+    // errorEvent = errorEvents[2] as! FlowTransactionSchedulerUtils.COAHandlerExecutionError
+    // Test.assertEqual(9 as UInt64, errorEvent.id)
+    // Test.assertEqual(admin.address, errorEvent.owner!)
+    // Test.assertEqual("Insufficient FLOW in FlowToken vault for deposit into COA for scheduled transaction with ID 7 and index 0", errorEvent.errorMessage)
+    
     let accountBalanceAfter = getBalance(account: admin.address)
     Test.assertEqual(accountBalanceBefore+50.0, accountBalanceAfter)
 }
