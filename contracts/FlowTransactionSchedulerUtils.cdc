@@ -119,6 +119,7 @@ access(all) contract FlowTransactionSchedulerUtils {
         access(all) view fun getTransactionIDsByTimestamp(_ timestamp: UFix64): [UInt64]
         access(all) fun getTransactionIDsByTimestampRange(startTimestamp: UFix64, endTimestamp: UFix64): {UFix64: [UInt64]}
         access(all) view fun getTransactionStatus(id: UInt64): FlowTransactionScheduler.Status?
+        access(all) view fun getSortedTimestamps(): FlowTransactionScheduler.SortedTimestamps
     }
 
     /// Manager resource is meant to provide users and developers with a simple way
@@ -290,6 +291,7 @@ access(all) contract FlowTransactionSchedulerUtils {
                 ids.remove(at: index!)
                 if ids.length == 0 {
                     self.idsByTimestamp.remove(key: timestamp)
+                    self.sortedTimestamps.remove(timestamp: timestamp)
                 } else {
                     self.idsByTimestamp[timestamp] = ids
                 }
@@ -320,9 +322,14 @@ access(all) contract FlowTransactionSchedulerUtils {
                 let ids = self.idsByTimestamp[timestamp] ?? []
                 for id in ids {
                     let status = FlowTransactionScheduler.getStatus(id: id)
-                    if status == nil || status == FlowTransactionScheduler.Status.Unknown {
-                        transactionsToRemove.append(id)
-                    }
+                    transactionsToRemove.append(id)
+                }
+                // Need to temporarily limit the number of transactions to remove
+                // because some managers on mainnet have already hit the limit and we need to batch them
+                // to make sure they get cleaned up properly
+                // This will be removed eventually
+                if transactionsToRemove.length > 100 {
+                    break
                 }
             }
 
@@ -540,6 +547,12 @@ access(all) contract FlowTransactionSchedulerUtils {
                 return FlowTransactionScheduler.getStatus(id: id)
             }
             return FlowTransactionScheduler.Status.Unknown
+        }
+
+        /// Gets the sorted timestamps struct
+        /// @return: The sorted timestamps struct
+        access(all) view fun getSortedTimestamps(): FlowTransactionScheduler.SortedTimestamps {
+            return self.sortedTimestamps
         }
     }
 

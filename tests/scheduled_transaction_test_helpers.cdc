@@ -415,6 +415,15 @@ access(all) fun getManagedTxIDs(): [UInt64] {
     return result.returnValue as! [UInt64]
 }
 
+access(all) fun getManagerTimestamps(): [UFix64] {
+    var result = _executeScript(
+        "./scripts/get_manager_timestamps.cdc",
+        [admin.address]
+    )
+    Test.expect(result, Test.beSucceeded())
+    return result.returnValue as! [UFix64]
+}
+
 access(all) fun getHandlerTypeIdentifiers(): {String: [UInt64]} {
     var result = _executeScript(
         "../transactions/transactionScheduler/scripts/manager/get_handler_types.cdc",
