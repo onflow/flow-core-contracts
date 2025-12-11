@@ -473,6 +473,13 @@ access(all) fun testManagerExecuteAndCleanup() {
     // move time until after all the timestamps
     Test.moveTime(by: Fix64(futureDelta + 5.0))
 
+    // get the old timestamps
+    let oldTimestamps = getManagerTimestamps()
+    Test.assert(oldTimestamps.length == 3, message: "Should have 3 timestamps but got \(oldTimestamps.length)")
+    Test.assert(oldTimestamps.contains(timeInFuture), message: "Should contain timestamp \(timeInFuture)")
+    Test.assert(oldTimestamps.contains(timeInFuture + 1.0), message: "Should contain timestamp \(timeInFuture + 1.0)")
+    Test.assert(oldTimestamps.contains(timeInFuture + 2.0), message: "Should contain timestamp \(timeInFuture + 2.0)")
+
     // process the transactions
     processTransactions()
 
@@ -497,6 +504,10 @@ access(all) fun testManagerExecuteAndCleanup() {
         testName: "Test Manager Execute and Cleanup",
         failWithErr: nil)
 
+    // get the old timestamps, timeInFuture should have been removed
+    let timestamps = getManagerTimestamps()
+    Test.assert(timestamps.length == 0, message: "Should have 0 timestamps after cleanup but got \(timestamps.length)")
+
     // get status of id 1
     let status1 = getStatus(id: 1)
     Test.assert(status1 == statusUnknown, message: "Status for transaction 1 should be unknown but got \(status1!)")
@@ -515,13 +526,13 @@ access(all) fun testManagerExecuteAndCleanup() {
 
     // check that ID 5, 6, 8, and 9 are still in the manager and executed
     let status5 = getManagedTxStatus(5)
-    Test.assert(status5 == statusExecuted, message: "Status for transaction 5 should be executed but got \(status5!)")
+    Test.assert(status5 == statusUnknown, message: "Status for transaction 5 should be unknown but got \(status5!)")
     let status6 = getManagedTxStatus(6)
-    Test.assert(status6 == statusExecuted, message: "Status for transaction 6 should be executed but got \(status6!)")
+    Test.assert(status6 == statusUnknown, message: "Status for transaction 6 should be unknown but got \(status6!)")
     let status8 = getManagedTxStatus(8)
-    Test.assert(status8 == statusExecuted, message: "Status for transaction 8 should be executed but got \(status8!)")
+    Test.assert(status8 == statusUnknown, message: "Status for transaction 8 should be unknown but got \(status8!)")
     let status9 = getManagedTxStatus(9)
-    Test.assert(status9 == statusExecuted, message: "Status for transaction 9 should be executed but got \(status9!)")
+    Test.assert(status9 == statusUnknown, message: "Status for transaction 9 should be unknown but got \(status9!)")
 
     // test getting data for transactions which were executed and cleaned up
     let data2 = getManagedTxData(2)
@@ -537,28 +548,14 @@ access(all) fun testManagerExecuteAndCleanup() {
     let handlerType = "A.0000000000000007.TestFlowScheduledTransactionHandler.Handler"
     let txIds = getManagedTxIDsByHandler(handlerTypeIdentifier: handlerType, handlerUUID: nil)
     
-    // Should only have 5 transactions. the four executed and the one scheduled
-    Test.assert(txIds.length == 5, message: "Should have 4 transactions for the handler type but got \(txIds.length)")
-    var i: UInt64 = 1
-    while i <= 10 {
-        if i == 1 ||i == 2 || i == 3 || i == 4 || i == 7 {
-            Test.assert(!txIds.contains(i), message: "Should not contain transaction ID \(i)")
-        } else {
-            Test.assert(txIds.contains(i), message: "Should contain transaction ID \(i)")
-        }
-        i = i + 1
-    }
+    // Should only have 1 transaction, the one scheduled
+    Test.assert(txIds.length == 1, message: "Should have 1 transaction for the handler type but got \(txIds.length)")
+    Test.assert(txIds.contains(10), message: "Should contain transaction ID 10")
 
     // Test getting all transaction IDs
     let allTxIds = getManagedTxIDs()
-    Test.assert(allTxIds.length == 5, message: "Should have 5 total transactions")
-    i = 1
-    while i <= 10 {
-        if i == 1 || i == 2 || i == 3 || i == 4 || i == 7 {
-            Test.assert(!allTxIds.contains(i), message: "Should not contain transaction ID \(i)")
-        }
-        i = i + 1
-    }
+    Test.assert(allTxIds.length == 1, message: "Should have 1 total transaction")
+    Test.assert(allTxIds.contains(10), message: "Should contain transaction ID 10")
 
     // Test getting handler views from executed and cleaned up transaction ID
     let viewsFromTxId = getHandlerViewsFromTransactionID(3)
