@@ -233,13 +233,13 @@ access(all) fun testScheduledTransactionDestroyHandler() {
 
     // Destroy the handler for both transactions
     let destroyHandlerCode = Test.readFile("./transactions/destroy_handler.cdc")
-    let executeTx = Test.Transaction(
+    let destroyHandlerTx = Test.Transaction(
         code: destroyHandlerCode,
         authorizers: [admin.address],
         signers: [admin],
         arguments: []
     )
-    var result = Test.executeTransaction(executeTx)
+    var result = Test.executeTransaction(destroyHandlerTx)
     Test.expect(result, Test.beSucceeded())
 
     // Cancel the second transaction

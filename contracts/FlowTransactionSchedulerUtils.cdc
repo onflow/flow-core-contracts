@@ -222,6 +222,7 @@ access(all) contract FlowTransactionSchedulerUtils {
 
             // Store the handler capability in our dictionary for later retrieval
             let id = scheduledTransaction.id
+            let actualTimestamp = scheduledTransaction.timestamp
             let handlerRef = handlerCap.borrow()
                 ?? panic("Invalid transaction handler: Could not borrow a reference to the transaction handler")
             let handlerTypeIdentifier = handlerRef.getType().identifier
@@ -251,14 +252,14 @@ access(all) contract FlowTransactionSchedulerUtils {
             self.scheduledTransactions[scheduledTransaction.id] <-! scheduledTransaction
 
             // Add the transaction to the sorted timestamps array
-            self.sortedTimestamps.add(timestamp: timestamp)
+            self.sortedTimestamps.add(timestamp: actualTimestamp)
 
             // Store the transaction in the ids by timestamp dictionary
-            if let ids = self.idsByTimestamp[timestamp] {
+            if let ids = self.idsByTimestamp[actualTimestamp] {
                 ids.append(id)
-                self.idsByTimestamp[timestamp] = ids
+                self.idsByTimestamp[actualTimestamp] = ids
             } else {
-                self.idsByTimestamp[timestamp] = [id]
+                self.idsByTimestamp[actualTimestamp] = [id]
             }
 
             return id
@@ -285,28 +286,26 @@ access(all) contract FlowTransactionSchedulerUtils {
         /// @param timestamp: The timestamp of the transaction to remove
         /// @param handlerTypeIdentifier: The type identifier of the handler of the transaction to remove
         access(self) fun removeID(id: UInt64, timestamp: UFix64, handlerTypeIdentifier: String) {
+            pre {
+                self.handlerInfos.containsKey(handlerTypeIdentifier): "Invalid handler type identifier: Handler with type identifier \(handlerTypeIdentifier) not found in manager"
+                self.idsByTimestamp.containsKey(timestamp): "Invalid timestamp: Timestamp \(timestamp) not found in manager for transaction with ID \(id)"
+            }
 
-            if let ids = self.idsByTimestamp[timestamp] {
-                let index = ids.firstIndex(of: id)
-                ids.remove(at: index!)
-                if ids.length == 0 {
-                    self.idsByTimestamp.remove(key: timestamp)
-                    self.sortedTimestamps.remove(timestamp: timestamp)
-                } else {
-                    self.idsByTimestamp[timestamp] = ids
-                }
+            let ids = &self.idsByTimestamp[timestamp]! as auth(Mutate) &[UInt64]
+            let index = ids.firstIndex(of: id)
+            ids.remove(at: index!)
+            if ids.length == 0 {
+                self.idsByTimestamp.remove(key: timestamp)
+                self.sortedTimestamps.remove(timestamp: timestamp)
             }
 
             let handlerUUID = self.handlerUUIDsByTransactionID.remove(key: id)
                 ?? panic("Invalid ID: Transaction with ID \(id) not found in manager")
 
             // Remove the transaction ID from the handler info array
-            if let handlers = self.handlerInfos[handlerTypeIdentifier] {
-                if let handlerInfo = handlers[handlerUUID] {
-                    handlerInfo.removeTransactionID(id: id)
-                    handlers[handlerUUID] = handlerInfo
-                }
-                self.handlerInfos[handlerTypeIdentifier] = handlers
+            let handlers = &self.handlerInfos[handlerTypeIdentifier]! as auth(Mutate) &{UInt64: HandlerInfo}
+            if let handlerInfo = handlers[handlerUUID] {
+                handlerInfo.removeTransactionID(id: id)
             }
         }
 
@@ -320,16 +319,22 @@ access(all) contract FlowTransactionSchedulerUtils {
             let pastTimestamps = self.sortedTimestamps.getBefore(current: currentTimestamp)
             for timestamp in pastTimestamps {
                 let ids = self.idsByTimestamp[timestamp] ?? []
+                if ids.length == 0 {
+                    self.sortedTimestamps.remove(timestamp: timestamp)
+                    continue
+                }
                 for id in ids {
                     let status = FlowTransactionScheduler.getStatus(id: id)
-                    transactionsToRemove.append(id)
-                }
-                // Need to temporarily limit the number of transactions to remove
-                // because some managers on mainnet have already hit the limit and we need to batch them
-                // to make sure they get cleaned up properly
-                // This will be removed eventually
-                if transactionsToRemove.length > 100 {
-                    break
+                    if status == nil || status! != FlowTransactionScheduler.Status.Scheduled {
+                        transactionsToRemove.append(id)
+                        // Need to temporarily limit the number of transactions to remove
+                        // because some managers on mainnet have already hit the limit and we need to batch them
+                        // to make sure they get cleaned up properly
+                        // This will be removed eventually
+                        if transactionsToRemove.length > 100 {
+                            break
+                        }
+                    }
                 }
             }
 
