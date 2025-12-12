@@ -288,24 +288,24 @@ access(all) contract FlowTransactionSchedulerUtils {
         access(self) fun removeID(id: UInt64, timestamp: UFix64, handlerTypeIdentifier: String) {
             pre {
                 self.handlerInfos.containsKey(handlerTypeIdentifier): "Invalid handler type identifier: Handler with type identifier \(handlerTypeIdentifier) not found in manager"
-                self.idsByTimestamp.containsKey(timestamp): "Invalid timestamp: Timestamp \(timestamp) not found in manager for transaction with ID \(id)"
             }
 
-            let ids = &self.idsByTimestamp[timestamp]! as auth(Mutate) &[UInt64]
-            let index = ids.firstIndex(of: id)
-            ids.remove(at: index!)
-            if ids.length == 0 {
-                self.idsByTimestamp.remove(key: timestamp)
-                self.sortedTimestamps.remove(timestamp: timestamp)
+            if self.idsByTimestamp.containsKey(timestamp) {
+                let ids = &self.idsByTimestamp[timestamp]! as auth(Mutate) &[UInt64]
+                let index = ids.firstIndex(of: id)
+                ids.remove(at: index!)
+                if ids.length == 0 {
+                    self.idsByTimestamp.remove(key: timestamp)
+                    self.sortedTimestamps.remove(timestamp: timestamp)
+                }
             }
 
-            let handlerUUID = self.handlerUUIDsByTransactionID.remove(key: id)
-                ?? panic("Invalid ID: Transaction with ID \(id) not found in manager")
-
-            // Remove the transaction ID from the handler info array
-            let handlers = &self.handlerInfos[handlerTypeIdentifier]! as auth(Mutate) &{UInt64: HandlerInfo}
-            if let handlerInfo = handlers[handlerUUID] {
-                handlerInfo.removeTransactionID(id: id)
+            if let handlerUUID = self.handlerUUIDsByTransactionID.remove(key: id) {
+                // Remove the transaction ID from the handler info array
+                let handlers = &self.handlerInfos[handlerTypeIdentifier]! as auth(Mutate) &{UInt64: HandlerInfo}
+                if let handlerInfo = handlers[handlerUUID] {
+                    handlerInfo.removeTransactionID(id: id)
+                }
             }
         }
 
@@ -314,7 +314,7 @@ access(all) contract FlowTransactionSchedulerUtils {
         /// @return: The transactions that were cleaned up (removed from the manager)
         access(Owner) fun cleanup(): [UInt64] {
             let currentTimestamp = getCurrentBlock().timestamp
-            var transactionsToRemove: [UInt64] = []
+            var transactionsToRemove: {UInt64: UFix64} = {}
 
             let pastTimestamps = self.sortedTimestamps.getBefore(current: currentTimestamp)
             for timestamp in pastTimestamps {
@@ -326,7 +326,7 @@ access(all) contract FlowTransactionSchedulerUtils {
                 for id in ids {
                     let status = FlowTransactionScheduler.getStatus(id: id)
                     if status == nil || status! != FlowTransactionScheduler.Status.Scheduled {
-                        transactionsToRemove.append(id)
+                        transactionsToRemove[id] = timestamp
                         // Need to temporarily limit the number of transactions to remove
                         // because some managers on mainnet have already hit the limit and we need to batch them
                         // to make sure they get cleaned up properly
@@ -339,14 +339,14 @@ access(all) contract FlowTransactionSchedulerUtils {
             }
 
             // Then remove and destroy the identified transactions
-            for id in transactionsToRemove {
+            for id in transactionsToRemove.keys {
                 if let tx <- self.scheduledTransactions.remove(key: id) {
-                    self.removeID(id: id, timestamp: tx.timestamp, handlerTypeIdentifier: tx.handlerTypeIdentifier)
+                    self.removeID(id: id, timestamp: transactionsToRemove[id]!, handlerTypeIdentifier: tx.handlerTypeIdentifier)
                     destroy tx
                 }
             }
 
-            return transactionsToRemove
+            return transactionsToRemove.keys
         }
 
         /// Remove a handler capability from the manager
