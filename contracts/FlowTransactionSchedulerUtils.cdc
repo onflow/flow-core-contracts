@@ -331,7 +331,7 @@ access(all) contract FlowTransactionSchedulerUtils {
                         // because some managers on mainnet have already hit the limit and we need to batch them
                         // to make sure they get cleaned up properly
                         // This will be removed eventually
-                        if transactionsToRemove.length > 100 {
+                        if transactionsToRemove.length > 50 {
                             break
                         }
                     }
