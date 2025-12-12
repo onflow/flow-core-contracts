@@ -19,9 +19,12 @@ coverage.lcov
 lcov.info
 *.pkey
 imports*
+.cursorignore
 
 imports*
 
 # Private flow.jsons
 
 private.flow.json
+
+my-test-account.pkey
