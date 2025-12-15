@@ -995,10 +995,6 @@ access(all) contract FlowTransactionScheduler {
             // for each priority for the timestamp
             let slotPriorityEffortsUsed = &self.slotUsedEffort[sanitizedTimestamp]! as &{Priority: UInt64}
 
-            // Get the exclusive reserves for each priority
-            let highReserve = self.config.priorityEffortReserve[Priority.High]!
-            let mediumReserve = self.config.priorityEffortReserve[Priority.Medium]!
-
             // Get how much effort has been used for each priority
             let highUsed = slotPriorityEffortsUsed[Priority.High] ?? 0
             let mediumUsed = slotPriorityEffortsUsed[Priority.Medium] ?? 0
@@ -1012,6 +1008,10 @@ access(all) contract FlowTransactionScheduler {
                 let lowUsed = slotPriorityEffortsUsed[Priority.Low] ?? 0
                 return lowEffortRemaining.saturatingSubtract(lowUsed)
             }
+
+            // Get the exclusive reserves for each priority
+            let highReserve = self.config.priorityEffortReserve[Priority.High]!
+            let mediumReserve = self.config.priorityEffortReserve[Priority.Medium]!
             
             // Get how much shared effort has been used for each priority
             // Ensure the results are always zero or positive
