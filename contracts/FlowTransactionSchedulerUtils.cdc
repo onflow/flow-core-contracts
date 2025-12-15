@@ -598,7 +598,7 @@ access(all) contract FlowTransactionSchedulerUtils {
         return /public/coaScheduledTransactionHandler
     }
 
-    /// COATransactionHandler is a resource that wraps a capability to a COA (Contract Owned Account)
+    /// COATransactionHandler is a resource that wraps a capability to a COA (Cadence Owned Account)
     /// and implements the TransactionHandler interface to allow scheduling transactions for COAs.
     /// This handler enables users to schedule transactions that will be executed on behalf of their COA.
     access(all) resource COATransactionHandler: FlowTransactionScheduler.TransactionHandler {
@@ -734,6 +734,7 @@ access(all) contract FlowTransactionSchedulerUtils {
                 return COAHandlerView(
                     coaOwner: self.coaCapability.borrow()?.owner?.address,
                     coaEVMAddress: self.coaCapability.borrow()?.address(),
+                    coaBalance: self.coaCapability.borrow()?.balance(),
                 )
             }
             if viewType == Type<StoragePath>() {
@@ -793,18 +794,12 @@ access(all) contract FlowTransactionSchedulerUtils {
             }
             if self.txType == COAHandlerTxType.Call {
                 assert(callToEVMAddress != nil && callToEVMAddress!.length == 40, message: "Call to EVM address is required for EVM call but was not provided or is invalid length (must be 40 hex chars)")
-                assert(data != nil, message: "Data is required for EVM call but was not provided")
+                assert((data != nil && value != nil) || (data == nil ? value != nil : true), message: "Data and/or value are required for EVM call but neither were provided")
                 assert(gasLimit != nil, message: "Gas limit is required for EVM call but was not provided")
-                assert(value != nil, message: "Value is required for EVM call but was not provided")
             }
             self.amount = amount
             if callToEVMAddress != nil {
-                let decodedAddress = callToEVMAddress!.decodeHex()
-                assert(
-                    decodedAddress.length == 20,
-                    message:"Invalid EVM address length for scheduled transaction! Expected 20 bytes but got \(decodedAddress.length) bytes for EVM address \(callToEVMAddress!)"
-                )
-                self.callToEVMAddress = EVM.EVMAddress(bytes: decodedAddress.toConstantSized<[UInt8; 20]>()!)
+                self.callToEVMAddress = EVM.addressFromString(callToEVMAddress!)
             } else {
                 self.callToEVMAddress = nil
             }
@@ -823,17 +818,18 @@ access(all) contract FlowTransactionSchedulerUtils {
         access(all) let coaOwner: Address?
         access(all) let coaEVMAddress: EVM.EVMAddress?
 
-        // TODO: Should we include other metadata about the COA, like balance, code, etc???
+        access(all) let coaBalance: EVM.Balance?
 
-        init(coaOwner: Address?, coaEVMAddress: EVM.EVMAddress?) {
+        init(coaOwner: Address?, coaEVMAddress: EVM.EVMAddress?, coaBalance: EVM.Balance?) {
             self.coaOwner = coaOwner
             self.coaEVMAddress = coaEVMAddress
+            self.coaBalance = coaBalance
         }
     }
 
     /// Create a COA transaction handler
     /// @param coaCapability: Capability to the COA resource
-    /// @param metadata: Optional metadata about the handler
+    /// @param flowTokenVaultCapability: Capability to the FlowToken vault
     /// @return: A new COATransactionHandler resource
     access(all) fun createCOATransactionHandler(
         coaCapability: Capability<auth(EVM.Owner) &EVM.CadenceOwnedAccount>,

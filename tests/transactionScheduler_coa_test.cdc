@@ -114,17 +114,6 @@ access(all) fun testCOAHandlerParams() {
                             revertOnFailure: false,
                             amount: nil,
                             callToEVMAddress: "1234567890abcdef1234567890abcdef12345678", // 40 hex chars (20 bytes when decoded)
-                            data: nil,
-                            gasLimit: 100000,
-                            value: 0,
-                            testName: "Test COA HandlerParams: Call with nil data",
-                            failWithErr: "Data is required for EVM call but was not provided")
-
-    params = createCOAHandlerParams(
-                            coaTXTypeEnum: callEnum,
-                            revertOnFailure: false,
-                            amount: nil,
-                            callToEVMAddress: "1234567890abcdef1234567890abcdef12345678", // 40 hex chars (20 bytes when decoded)
                             data: [1, 2, 3],
                             gasLimit: nil,
                             value: 0,
@@ -136,11 +125,11 @@ access(all) fun testCOAHandlerParams() {
                             revertOnFailure: false,
                             amount: nil,
                             callToEVMAddress: "1234567890abcdef1234567890abcdef12345678", // 40 hex chars (20 bytes when decoded)
-                            data: [1, 2, 3],
+                            data: nil,
                             gasLimit: 100000,
                             value: nil,
                             testName: "Test COA HandlerParams: Call with nil value",
-                            failWithErr: "Value is required for EVM call but was not provided")
+                            failWithErr: "Data and/or value are required for EVM call but neither were provided")
 
     // Success Test Case
     params = createCOAHandlerParams(
