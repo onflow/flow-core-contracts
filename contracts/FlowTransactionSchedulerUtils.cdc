@@ -234,16 +234,15 @@ access(all) contract FlowTransactionSchedulerUtils {
             self.handlerUUIDsByTransactionID[id] = handlerUUID
 
             // Store the handler capability in the handlers dictionary for later retrieval
-            if let handlers = self.handlerInfos[handlerTypeIdentifier] {
+            if self.handlerInfos[handlerTypeIdentifier] != nil {
+                let handlers = &self.handlerInfos[handlerTypeIdentifier]! as auth(Mutate) &{UInt64: HandlerInfo}
                 if let handlerInfo = handlers[handlerUUID] {
                     handlerInfo.addTransactionID(id: id)
-                    handlers[handlerUUID] = handlerInfo
                 } else {
                     let handlerInfo = HandlerInfo(typeIdentifier: handlerTypeIdentifier, capability: handlerCap)
                     handlerInfo.addTransactionID(id: id)
                     handlers[handlerUUID] = handlerInfo
                 }
-                self.handlerInfos[handlerTypeIdentifier] = handlers
             } else {
                 let handlerInfo = HandlerInfo(typeIdentifier: handlerTypeIdentifier, capability: handlerCap)
                 handlerInfo.addTransactionID(id: id)
@@ -258,9 +257,9 @@ access(all) contract FlowTransactionSchedulerUtils {
             self.sortedTimestamps.add(timestamp: actualTimestamp)
 
             // Store the transaction in the ids by timestamp dictionary
-            if let ids = self.idsByTimestamp[actualTimestamp] {
+            if self.idsByTimestamp[actualTimestamp] != nil {
+                let ids = &self.idsByTimestamp[actualTimestamp]! as auth(Mutate) &[UInt64]
                 ids.append(id)
-                self.idsByTimestamp[actualTimestamp] = ids
             } else {
                 self.idsByTimestamp[actualTimestamp] = [id]
             }
