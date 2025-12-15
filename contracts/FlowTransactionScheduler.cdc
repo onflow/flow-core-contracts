@@ -957,7 +957,7 @@ access(all) contract FlowTransactionScheduler {
                     return timestampToSearch
                 }
                 
-                let available = self.getSlotAvailableEffort(timestamp: timestampToSearch, priority: priority)
+                let available = self.getSlotAvailableEffort(sanitizedTimestamp: timestampToSearch, priority: priority)
                 // if theres enough space, we can tentatively schedule at provided timestamp
                 if executionEffort <= available {
                     return timestampToSearch
@@ -976,10 +976,11 @@ access(all) contract FlowTransactionScheduler {
         }
 
         /// slot available effort returns the amount of effort that is available for a given timestamp and priority.
-        access(contract) view fun getSlotAvailableEffort(timestamp: UFix64, priority: Priority): UInt64 {
-
-            // Remove fractional values from the timestamp
-            let sanitizedTimestamp = UFix64(UInt64(timestamp))
+        /// @param sanitizedTimestamp: The timestamp to get the available effort for. It should already have been sanitized
+        ///                            in the calling function
+        /// @param priority: The priority to get the available effort for
+        /// @return UInt64: The amount of effort that is available for the given timestamp and priority
+        access(contract) view fun getSlotAvailableEffort(sanitizedTimestamp: UFix64, priority: Priority): UInt64 {
 
             // Get the theoretical maximum allowed for the priority including shared
             let priorityLimit = self.config.priorityEffortLimit[priority]!
@@ -1517,7 +1518,9 @@ access(all) contract FlowTransactionScheduler {
     }
 
     access(all) view fun getSlotAvailableEffort(timestamp: UFix64, priority: Priority): UInt64 {
-        return self.sharedScheduler.borrow()!.getSlotAvailableEffort(timestamp: timestamp, priority: priority)
+        // Remove fractional values from the timestamp
+        let sanitizedTimestamp = UFix64(UInt64(timestamp))
+        return self.sharedScheduler.borrow()!.getSlotAvailableEffort(sanitizedTimestamp: sanitizedTimestamp, priority: priority)
     }
 
     access(all) fun getConfig(): {SchedulerConfig} {
