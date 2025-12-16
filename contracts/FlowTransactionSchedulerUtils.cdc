@@ -793,7 +793,7 @@ access(all) contract FlowTransactionSchedulerUtils {
                 assert(amount != nil, message: "Amount is required for withdrawal but was not provided")
             }
             if self.txType == COAHandlerTxType.Call {
-                assert(callToEVMAddress != nil && callToEVMAddress!.length == 40, message: "Call to EVM address is required for EVM call but was not provided or is invalid length (must be 40 hex chars)")
+                assert(callToEVMAddress != nil, message: "Call to EVM address is required for EVM call but was not provided")
                 assert((data != nil && value != nil) || (data == nil ? value != nil : true), message: "Data and/or value are required for EVM call but neither were provided")
                 assert(gasLimit != nil, message: "Gas limit is required for EVM call but was not provided")
             }
@@ -803,7 +803,11 @@ access(all) contract FlowTransactionSchedulerUtils {
             } else {
                 self.callToEVMAddress = nil
             }
-            self.data = data
+            if data != nil {
+                self.data = data
+            } else {
+                self.data = []
+            }
             self.gasLimit = gasLimit
             if let unwrappedValue = value {
                 self.value = EVM.Balance(attoflow: unwrappedValue)
