@@ -1054,32 +1054,34 @@ access(all) contract FlowTransactionScheduler {
             }
 
             // Add this transaction id to the slot
-            let slotQueue = self.slotQueue[slot]!
-            if let priorityQueue = slotQueue[txData.priority] {
+            let transactionsForSlot = self.slotQueue[slot]! //as auth(Mutate) &{Priority: {UInt64: UInt64}}
+            if let priorityQueue = transactionsForSlot[txData.priority] {
                 priorityQueue[txData.id] = txData.executionEffort
-                slotQueue[txData.priority] = priorityQueue
+                transactionsForSlot[txData.priority] = priorityQueue
             } else {
-                slotQueue[txData.priority] = {
+                transactionsForSlot[txData.priority] = {
                     txData.id: txData.executionEffort
                 }
             }
-            self.slotQueue[slot] = slotQueue
+            self.slotQueue[slot] = transactionsForSlot
 
             // Add the execution effort for this transaction to the total for the slot's priority
-            let slotEfforts = self.slotUsedEffort[slot]!
+            let slotEfforts = &self.slotUsedEffort[slot]! as auth(Mutate) &{Priority: UInt64}
             var newPriorityEffort = slotEfforts[txData.priority]! + txData.executionEffort
             slotEfforts[txData.priority] = newPriorityEffort
             var newTotalEffort: UInt64 = 0
             for priority in slotEfforts.keys {
                 newTotalEffort = newTotalEffort.saturatingAdd(slotEfforts[priority]!)
             }
-            self.slotUsedEffort[slot] = slotEfforts
+
+            // Store the transaction in the transactions map
+            self.transactions[txData.id] = txData
             
             // Need to potentially reschedule low priority transactions to make room for the new transaction
             // Iterate through them and record which ones to reschedule until the total effort is less than the limit
             let lowTransactionsToReschedule: [UInt64] = []
             if newTotalEffort > self.config.slotTotalEffortLimit {
-                let lowPriorityTransactions = slotQueue[Priority.Low]!
+                let lowPriorityTransactions = transactionsForSlot[Priority.Low]!
                 for id in lowPriorityTransactions.keys {
                     if newTotalEffort <= self.config.slotTotalEffortLimit {
                         break
@@ -1088,9 +1090,6 @@ access(all) contract FlowTransactionScheduler {
                     newTotalEffort = newTotalEffort.saturatingSubtract(lowPriorityTransactions[id]!)
                 }
             }
-
-            // Store the transaction in the transactions map
-            self.transactions[txData.id] = txData
 
             // Reschedule low priority transactions if needed
             self.rescheduleLowPriorityTransactions(slot: slot, transactions: lowTransactionsToReschedule)
@@ -1127,9 +1126,9 @@ access(all) contract FlowTransactionScheduler {
                 let transactionData = self.removeTransaction(txData: tx!)
 
                 // Subtract the execution effort for this transaction from the slot's priority
-                let slotEfforts = self.slotUsedEffort[slot]!
+                let slotEfforts = &self.slotUsedEffort[slot]! as auth(Mutate) &{Priority: UInt64}
                 slotEfforts[Priority.Low] = slotEfforts[Priority.Low]!.saturatingSubtract(effort)
-                self.slotUsedEffort[slot] = slotEfforts
+                //self.slotUsedEffort[slot] = slotEfforts
 
                 // Update the transaction's scheduled timestamp and add it back to the slot queue
                 transactionData.setScheduledTimestamp(newTimestamp: newTimestamp)
@@ -1148,26 +1147,25 @@ access(all) contract FlowTransactionScheduler {
             let transactionObject = self.transactions.remove(key: transactionID)!
             
             // garbage collect slots 
-            if let transactionQueue = self.slotQueue[slot] {
+            let transactionQueue = &self.slotQueue[slot]! as auth(Mutate) &{Priority: {UInt64: UInt64}}
 
-                if let priorityQueue = transactionQueue[transactionPriority] {
-                    priorityQueue[transactionID] = nil
-                    if priorityQueue.keys.length == 0 {
-                        transactionQueue.remove(key: transactionPriority)
-                    } else {
-                        transactionQueue[transactionPriority] = priorityQueue
-                    }
-
-                    self.slotQueue[slot] = transactionQueue
+            if let priorityQueue = *transactionQueue[transactionPriority] {
+                priorityQueue[transactionID] = nil
+                if priorityQueue.keys.length == 0 {
+                    transactionQueue.remove(key: transactionPriority)
+                } else {
+                    transactionQueue[transactionPriority] = priorityQueue
                 }
 
-                // if the slot is now empty remove it from the maps
-                if transactionQueue.keys.length == 0 {
-                    self.slotQueue.remove(key: slot)
-                    self.slotUsedEffort.remove(key: slot)
+                //self.slotQueue[slot] = transactionQueue
+            }
 
-                    self.sortedTimestamps.remove(timestamp: slot)
-                }
+            // if the slot is now empty remove it from the maps
+            if transactionQueue.keys.length == 0 {
+                self.slotQueue.remove(key: slot)
+                self.slotUsedEffort.remove(key: slot)
+
+                self.sortedTimestamps.remove(timestamp: slot)
             }
 
             return transactionObject
