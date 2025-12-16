@@ -110,11 +110,11 @@ transaction(
         for i, call in calls {
             let coaTXTypeEnum = call["coaTXTypeEnum"] as! UInt8
             let revertOnFailure = call["revertOnFailure"] as! Bool
-            let amount = call["amount"] as! UFix64
-            let callToEVMAddress = call["callToEVMAddress"] as! String
-            let data = call["data"] as! [UInt8]
-            let gasLimit = call["gasLimit"] as! UInt64
-            let value = call["value"] as! UInt
+            let amount = call["amount"] as! UFix64?
+            let callToEVMAddress = call["callToEVMAddress"] as! String?
+            let data = call["data"] as! [UInt8]?
+            let gasLimit = call["gasLimit"] as! UInt64?
+            let value = call["value"] as! UInt?
 
             let coaHandlerParams = FlowTransactionSchedulerUtils.COAHandlerParams(
                 txType: coaTXTypeEnum,
