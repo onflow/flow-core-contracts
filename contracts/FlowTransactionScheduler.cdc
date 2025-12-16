@@ -1054,8 +1054,8 @@ access(all) contract FlowTransactionScheduler {
             }
 
             // Add this transaction id to the slot
-            let slotQueue = &self.slotQueue[slot]! as auth(Mutate) &{Priority: {UInt64: UInt64}}
-            if let priorityQueue = *slotQueue[txData.priority] { 
+            let slotQueue = self.slotQueue[slot]!
+            if let priorityQueue = slotQueue[txData.priority] {
                 priorityQueue[txData.id] = txData.executionEffort
                 slotQueue[txData.priority] = priorityQueue
             } else {
@@ -1063,15 +1063,17 @@ access(all) contract FlowTransactionScheduler {
                     txData.id: txData.executionEffort
                 }
             }
+            self.slotQueue[slot] = slotQueue
 
             // Add the execution effort for this transaction to the total for the slot's priority
-            let slotEfforts = &self.slotUsedEffort[slot]! as auth(Mutate) &{Priority: UInt64}
+            let slotEfforts = self.slotUsedEffort[slot]!
             var newPriorityEffort = slotEfforts[txData.priority]! + txData.executionEffort
             slotEfforts[txData.priority] = newPriorityEffort
             var newTotalEffort: UInt64 = 0
             for priority in slotEfforts.keys {
                 newTotalEffort = newTotalEffort.saturatingAdd(slotEfforts[priority]!)
             }
+            self.slotUsedEffort[slot] = slotEfforts
             
             // Need to potentially reschedule low priority transactions to make room for the new transaction
             // Iterate through them and record which ones to reschedule until the total effort is less than the limit
