@@ -1054,7 +1054,7 @@ access(all) contract FlowTransactionScheduler {
             }
 
             // Add this transaction id to the slot
-            let transactionsForSlot = self.slotQueue[slot]! //as auth(Mutate) &{Priority: {UInt64: UInt64}}
+            let transactionsForSlot = self.slotQueue[slot]!
             if let priorityQueue = transactionsForSlot[txData.priority] {
                 priorityQueue[txData.id] = txData.executionEffort
                 transactionsForSlot[txData.priority] = priorityQueue
@@ -1128,7 +1128,6 @@ access(all) contract FlowTransactionScheduler {
                 // Subtract the execution effort for this transaction from the slot's priority
                 let slotEfforts = &self.slotUsedEffort[slot]! as auth(Mutate) &{Priority: UInt64}
                 slotEfforts[Priority.Low] = slotEfforts[Priority.Low]!.saturatingSubtract(effort)
-                //self.slotUsedEffort[slot] = slotEfforts
 
                 // Update the transaction's scheduled timestamp and add it back to the slot queue
                 transactionData.setScheduledTimestamp(newTimestamp: newTimestamp)
@@ -1147,18 +1146,17 @@ access(all) contract FlowTransactionScheduler {
             let transactionObject = self.transactions.remove(key: transactionID)!
             
             // garbage collect slots 
-            let transactionQueue = &self.slotQueue[slot]! as auth(Mutate) &{Priority: {UInt64: UInt64}}
+            let transactionQueue = self.slotQueue[slot]!
 
-            if let priorityQueue = *transactionQueue[transactionPriority] {
+            if let priorityQueue = transactionQueue[transactionPriority] {
                 priorityQueue[transactionID] = nil
                 if priorityQueue.keys.length == 0 {
                     transactionQueue.remove(key: transactionPriority)
                 } else {
                     transactionQueue[transactionPriority] = priorityQueue
                 }
-
-                //self.slotQueue[slot] = transactionQueue
             }
+            self.slotQueue[slot] = transactionQueue
 
             // if the slot is now empty remove it from the maps
             if transactionQueue.keys.length == 0 {
