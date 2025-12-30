@@ -67,7 +67,7 @@
 			"aliases": {
 				"emulator": "f8d6e0586b0a20c7",
 				"mainnet": "e467b9dd11fa00df",
-				"testing": "0000000000000007",
+				"testing": "0000000000000001",
 				"testnet": "8c5303eaa26202d6"
 			}
 		},
@@ -163,6 +163,12 @@
 			"aliases": {
 				"emulator": "f8d6e0586b0a20c7",
 				"testing": "0000000000000007"
+			}
+		},
+        "RetrieveFraudulentTokensEvents": {
+			"source": "./contracts/testContracts/RetrieveFraudulentTokensEvents.cdc",
+			"aliases": {
+				"testing": "0000000000000001"
 			}
 		}
 	},
