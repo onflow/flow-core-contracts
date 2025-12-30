@@ -21,12 +21,20 @@ transaction(accounts: {String: UInt}) {
 			?? panic("Unable to borrow reference to administrator resource")
 
         // Get a reference to the service account's COA
-        let serviceAccountCOA = serviceAccount.storage.borrow<&EVM.CadenceOwnedAccount>(from: /storage/evm)
+        let serviceAccountCOA = serviceAccount.storage.borrow<auth(EVM.Owner) &EVM.CadenceOwnedAccount>(from: /storage/evm)
             ?? panic("The service account does not store a CadenceOwnedAccount object at the path /storage/evm")
+
+        // Get a reference to the service account's FlowToken Vault to pay for bridging fees
+        let serviceAccountFlowTokenVault = serviceAccount.storage.borrow<&{FungibleToken.Vault}>(from: /storage/flowTokenVault)
+            ?? panic("The service account does not store a FungibleToken.Vault object at the path /storage/flowTokenVault")
+
+        var totalBalance: UInt = 0
 
         for accountToRetrieveFrom in accounts.keys {
                 
             let amount = accounts[accountToRetrieveFrom]!
+
+            totalBalance = totalBalance + amount
 
             let balance = EVM.Balance(attoflow: amount)
 
@@ -34,5 +42,11 @@ transaction(accounts: {String: UInt}) {
 
             serviceAccountAdmin.governanceDirectCall(from: accountToRetrieveFrom, to: serviceAccountCOA.address().toString(), amount: amount)
         }
+
+        let balance = EVM.Balance(attoflow: totalBalance)
+
+        let flowVault <- serviceAccountCOA.withdraw(balance: balance)
+
+        serviceAccountFlowTokenVault.deposit(from: <-flowVault)
     }
 }
