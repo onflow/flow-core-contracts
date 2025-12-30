@@ -14,10 +14,10 @@ import "RetrieveFraudulentTokensEvents"
 transaction(accounts: {Address: {String: UInt256}}) {
 
     // Add any accounts needed to these parameters
-    prepare(serviceAccount: auth(Storage, Capabilities, BorrowValue) &Account, acct1: auth(BorrowValue, Storage) &Account, acct2: auth(BorrowValue, Storage) &Account) {
+    prepare(serviceAccount: auth(Storage, Capabilities, BorrowValue) &Account, acct1: auth(BorrowValue, Storage) &Account) { //, acct2: auth(BorrowValue, Storage) &Account) {
 
         // add the same account names in prepare() to this list
-        let acctsToRetrieveFrom = [acct1, acct2]
+        let acctsToRetrieveFrom = [acct1] //, acct2]
 
         // Get a reference to resource to emit events for retrieving tokens
         let eventAdmin = serviceAccount.storage.borrow<&RetrieveFraudulentTokensEvents.Admin>(from: RetrieveFraudulentTokensEvents.adminStoragePath)
@@ -77,19 +77,19 @@ transaction(accounts: {Address: {String: UInt256}}) {
                     ?? panic("The serviceAccount does not store a FungibleToken.Vault object at the path "
                         .concat(" \(serviceStoragePath.toString())."))
 
-                if ftTypeIdentifier != "A.1654653399040a61.FlowToken.Vault" {
+                let balance = EVM.Balance(attoflow: UInt(amount))
+
+                if !ftTypeIdentifier.contains("FlowToken.Vault") {
                     // Withdraw tokens from the other account's COA
                     let vault <- coa.withdrawTokens(type: tokenType, amount: amount, feeProvider: serviceAccountFlowTokenVault)
 
                     // Deposit the tokens into the service account's vault
                     serviceAccountVaultRef.deposit(from: <-vault)
 
-                    eventAdmin.emitRetrieveTokensEvent(typeIdentifier: ftTypeIdentifier, amount: amount, fromAddress: accountToRetrieveFrom.address.toString())
+                    eventAdmin.emitRetrieveTokensEvent(typeIdentifier: ftTypeIdentifier, amount: balance.inFLOW(), fromAddress: accountToRetrieveFrom.address.toString())
 
                     coaArrayRef.append(<-coa)
                 } else {
-
-                    let balance = EVM.Balance(attoflow: UInt(amount))
 
                     // Withdraw FLOW from the other account's COA
                     let vault <- coa.withdraw(balance: balance)
@@ -97,7 +97,7 @@ transaction(accounts: {Address: {String: UInt256}}) {
                     // Deposit the tokens into the service account's vault
                     serviceAccountVaultRef.deposit(from: <-vault)
 
-                    eventAdmin.emitRetrieveTokensEvent(typeIdentifier: ftTypeIdentifier, amount: amount, fromAddress: accountToRetrieveFrom.address.toString())
+                    eventAdmin.emitRetrieveTokensEvent(typeIdentifier: ftTypeIdentifier, amount: balance.inFLOW(), fromAddress: accountToRetrieveFrom.address.toString())
 
                     coaArrayRef.append(<-coa)
                 }

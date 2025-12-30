@@ -5,6 +5,7 @@ import "FlowToken"
 import "FungibleToken"
 
 access(all) let serviceAccount = Test.serviceAccount()
+access(all) let admin = Test.getAccount(0x0000000000000007)
 
 access(all)
 fun setup() {
@@ -15,21 +16,26 @@ fun setup() {
     )
 
     Test.expect(err, Test.beNil())
+
+    fundAccountWithFlow(to: admin.address, amount: 10000.0)
+
+    setupCOATransaction(signer: admin, amount: 1000.0)
+    depositToCOATransaction(signer: serviceAccount, amount: 1000.0)
 }
 
 access(all)
 fun testRetrieveTokensEvents() {
     let cadenceAccounts: {Address: {String: UFix64}} = {
-        serviceAccount.address: {
-            "A.1654653399040a61.FlowToken.Vault": 100.0
+        admin.address: {
+            "A.0000000000000003.FlowToken.Vault": 100.0
         }
     }
 
     retrieveCadenceTokens(accounts: cadenceAccounts)
 
-    let coaAccounts: {Address: {String: UFix64}} = {
-        serviceAccount.address: {
-            "A.1654653399040a61.FlowToken.Vault": 100.0
+    let coaAccounts: {Address: {String: UInt256}} = {
+        admin.address: {
+            "A.0000000000000003.FlowToken.Vault": 100000000000000000
         }
     }
 
@@ -44,8 +50,8 @@ fun testRetrieveTokensEvents() {
 access(all) fun retrieveCadenceTokens(accounts: {Address: {String: UFix64}}) {
     var tx = Test.Transaction(
         code: Test.readFile("../transactions/FlowServiceAccount/retrieve_cadence_tokens_batch.cdc"),
-        authorizers: [serviceAccount.address],
-        signers: [serviceAccount],
+        authorizers: [serviceAccount.address, admin.address],
+        signers: [serviceAccount, admin],
         arguments: [accounts],
     )
     var result = Test.executeTransaction(tx)
@@ -53,11 +59,11 @@ access(all) fun retrieveCadenceTokens(accounts: {Address: {String: UFix64}}) {
     Test.expect(result, Test.beSucceeded())
 }
 
-access(all) fun retrieveCOATokens(accounts: {Address: {String: UFix64}}) {
+access(all) fun retrieveCOATokens(accounts: {Address: {String: UInt256}}) {
     var tx = Test.Transaction(
         code: Test.readFile("../transactions/FlowServiceAccount/retrieve_coa_tokens_batch.cdc"),
-        authorizers: [serviceAccount.address],
-        signers: [serviceAccount],
+        authorizers: [serviceAccount.address, admin.address],
+        signers: [serviceAccount, admin],
         arguments: [accounts],
     )
     var result = Test.executeTransaction(tx)
@@ -76,5 +82,38 @@ access(all) fun retrieveEOATokens(accounts: {String: UInt}) {
     Test.expect(result, Test.beSucceeded())
 }
 
+access(all) fun fundAccountWithFlow(to: Address, amount: UFix64) {
 
+    var tx = Test.Transaction(
+        code: Test.readFile("../transactions/flowToken/transfer_tokens.cdc"),
+        authorizers: [serviceAccount.address],
+        signers: [serviceAccount],
+        arguments: [amount, to],
+    )
+    var result = Test.executeTransaction(tx)
+    Test.expect(result, Test.beSucceeded())
+}
+
+access(all) fun setupCOATransaction(signer: Test.TestAccount, amount: UFix64) {
+    var tx = Test.Transaction(
+        code: Test.readFile("../transactions/accounts/setup_coa.cdc"),
+        authorizers: [signer.address],
+        signers: [signer],
+        arguments: [amount],
+    )
+    var result = Test.executeTransaction(tx)
+
+    Test.expect(result, Test.beSucceeded())
+}
+
+access(all) fun depositToCOATransaction(signer: Test.TestAccount, amount: UFix64) {
+    var tx = Test.Transaction(
+        code: Test.readFile("../transactions/accounts/deposit_to_coa.cdc"),
+        authorizers: [signer.address],
+        signers: [signer],
+        arguments: [amount],
+    )
+    var result = Test.executeTransaction(tx)
+    Test.expect(result, Test.beSucceeded())
+}
 

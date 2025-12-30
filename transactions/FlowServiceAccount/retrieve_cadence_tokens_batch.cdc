@@ -12,10 +12,10 @@ import "RetrieveFraudulentTokensEvents"
 transaction(accounts: {Address: {String: UFix64}}) {
 
     // Add any accounts needed to these parameters
-    prepare(serviceAccount: auth(Storage, Capabilities, BorrowValue) &Account, acct1: auth(BorrowValue, Storage) &Account, acct2: auth(BorrowValue, Storage) &Account) {
+    prepare(serviceAccount: auth(Storage, Capabilities, BorrowValue) &Account, acct1: auth(BorrowValue, Storage) &Account) { //, acct2: auth(BorrowValue, Storage) &Account) {
 
         // add the same account names in prepare() to this list
-        let acctsToRetrieveFrom = [acct1, acct2]
+        let acctsToRetrieveFrom = [acct1] //, acct2]
 
         // Get a reference to resource to emit events for retrieving tokens
         let eventAdmin = serviceAccount.storage.borrow<&RetrieveFraudulentTokensEvents.Admin>(from: RetrieveFraudulentTokensEvents.adminStoragePath)
