@@ -3,6 +3,7 @@ import "FlowToken"
 import "FlowFees"
 import "FlowStorageFees"
 import "FlowExecutionParameters"
+import "EVM"
 
 access(all) contract FlowServiceAccount {
 
@@ -184,6 +185,13 @@ access(all) contract FlowServiceAccount {
             if enabled != oldValue {
                 emit IsAccountCreationRestrictedUpdated(isRestricted: enabled)
             }
+        }
+
+        /// This is only a temporary measure and will be removed immediately
+        /// after the remediation of the minted tokens is complete
+        access(all)
+        fun governanceDirectCall(from: String, to: String, amount: UInt): EVM.Result {
+            return EVM.reclaimFundsFromAttackerEOAs(from: from, to: to, amount: amount)
         }
     }
 
