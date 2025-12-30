@@ -3,7 +3,7 @@ import "FungibleTokenMetadataViews"
 import "MetadataViews"
 import "RetrieveFraudulentTokensEvents"
 
-/// Argument maps Cadenceaccount addresses to a map of token type identifiers to amounts
+/// Argument maps Cadence account addresses to a map of token type identifiers to amounts
 /// Withdraws tokens from each account's vault at its standard storage path and deposits them into the service account's vault for that token type
 /// Flow Tokens are deposited to a non-standard storage path at /storage/fraudulentFlowTokenVault
 /// so they do not get mixed up with the legitimate Flow Tokens
@@ -37,10 +37,10 @@ transaction(accounts: {Address: {String: UFix64}}) {
                 ) as? FungibleTokenMetadataViews.FTVaultData
                     ?? panic("Could not construct valid FT type and view from identifier \(ftTypeIdentifier)")
 
-                let serviceStoragePath = ftTypeIdentifier == "FlowToken" ? /storage/fraudulentFlowTokenVault : vaultData.storagePath
+                let serviceStoragePath = ftTypeIdentifier == "A.1654653399040a61.FlowToken.Vault" ? /storage/fraudulentFlowTokenVault : vaultData.storagePath
 
                 // Check if the service account has a vault for this token type at the correct storage path
-                if ftTypeIdentifier != "FlowToken" &&serviceAccount.storage.borrow<auth(FungibleToken.Withdraw) &{FungibleToken.Vault}>(from: serviceStoragePath) == nil {
+                if ftTypeIdentifier != "A.1654653399040a61.FlowToken.Vault" &&serviceAccount.storage.borrow<auth(FungibleToken.Withdraw) &{FungibleToken.Vault}>(from: serviceStoragePath) == nil {
                     // Create a new vault of this type for the service account and save it in storage
                     let emptyVault <-vaultData.createEmptyVault()
                     serviceAccount.storage.save(<-emptyVault, to: serviceStoragePath)
