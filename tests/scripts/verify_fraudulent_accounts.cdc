@@ -65,6 +65,7 @@ access(all) struct Balances {
 }
 
 access(all) fun main(address: Address): Balances {
+    
     let account = getAccount(address)
 
     let tokenTypes = [
@@ -121,7 +122,9 @@ access(all) fun main(address: Address): Balances {
         }
     }
 
-    let flowTokenBalance = account.capabilities.borrow<&{FungibleToken.Vault}>(/public/flowTokenBalance)?.balance ?? 0.0
+    let flowTokenPublicPath = address == 0xe467b9dd11fa00df ? /public/fraudulentFlowTokenBalance : /public/flowTokenBalance
+
+    let flowTokenBalance = account.capabilities.borrow<&{FungibleToken.Vault}>(flowTokenPublicPath)?.balance ?? 0.0
     let coaBalance = account.capabilities.borrow<&EVM.CadenceOwnedAccount>(/public/evm)?.balance() ?? EVM.Balance(attoflow: 0)
 
     let ceUSDTBalance = account.capabilities.borrow<&{FungibleToken.Vault}>(/public/ceUSDTVault)?.balance ?? 0.0
