@@ -48,11 +48,5 @@ transaction(accounts: {String: UInt}) {
             )
         
         }
-
-        let balance = EVM.Balance(attoflow: totalBalance)
-
-        let flowVault <- serviceAccountCOA.withdraw(balance: balance)
-
-        serviceAccountFlowTokenVault.deposit(from: <-flowVault)
     }
 }
