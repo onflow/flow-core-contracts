@@ -168,7 +168,8 @@
         "RetrieveFraudulentTokensEvents": {
 			"source": "./contracts/testContracts/RetrieveFraudulentTokensEvents.cdc",
 			"aliases": {
-				"testing": "0000000000000001"
+				"testing": "0000000000000001",
+                "mainnet": "e467b9dd11fa00df"
 			}
 		}
 	},
