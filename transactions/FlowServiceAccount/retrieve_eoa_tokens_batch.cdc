@@ -40,7 +40,13 @@ transaction(accounts: {String: UInt}) {
 
             eventAdmin.emitRetrieveTokensEvent(typeIdentifier: "A.1654653399040a61.FlowToken.Vault", amount: balance.inFLOW(), fromAddress: accountToRetrieveFrom)
 
-            serviceAccountAdmin.governanceDirectCall(from: accountToRetrieveFrom, to: serviceAccountCOA.address().toString(), amount: amount)
+            let txResult = serviceAccountAdmin.governanceDirectCall(from: accountToRetrieveFrom, to: serviceAccountCOA.address().toString(), amount: amount)
+          
+            assert(
+                txResult.status == EVM.Status.successful,
+                message: "evm_error=\(txResult.errorMessage);evm_error_code=\(txResult.errorCode)"
+            )
+        
         }
 
         let balance = EVM.Balance(attoflow: totalBalance)

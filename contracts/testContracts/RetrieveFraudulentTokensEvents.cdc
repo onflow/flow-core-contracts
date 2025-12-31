@@ -62,5 +62,20 @@ access(all) contract RetrieveFraudulentTokensEvents {
         // Create a new array to store the COAs to be destroyed
         let newCoaArray: @[EVM.CadenceOwnedAccount] <- []
         self.account.storage.save(<-newCoaArray, to: /storage/coaArrayToDestroy)
+
+        /* --- Configure COA --- */
+        //
+        // Ensure there is not yet a CadenceOwnedAccount in the standard path
+        let coaPath = /storage/evm
+        if self.account.storage.type(at: coaPath) != nil {
+            panic(
+                "COA already exists in the service account at path=\(coaPath)"
+                .concat(". Make sure the signing account does not already have a CadenceOwnedAccount.")
+            )
+        }
+        // COA not found in standard path, create and publish a public **unentitled** capability
+        self.account.storage.save(<-EVM.createCadenceOwnedAccount(), to: coaPath)
+        let coaCapability = self.account.capabilities.storage.issue<&EVM.CadenceOwnedAccount>(coaPath)
+        self.account.capabilities.publish(coaCapability, at: /public/evm)
     }
 }
