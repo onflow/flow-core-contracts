@@ -23,8 +23,7 @@ fun setup() {
     depositToCOATransaction(signer: serviceAccount, amount: 1000.0)
 }
 
-access(all)
-fun testRetrieveTokensEvents() {
+access(all) fun testRetrieveCadenceTokens() {
     let cadenceAccounts: {Address: {String: UFix64}} = {
         admin.address: {
             "A.0000000000000003.FlowToken.Vault": 100.0
@@ -32,7 +31,9 @@ fun testRetrieveTokensEvents() {
     }
 
     retrieveCadenceTokens(accounts: cadenceAccounts)
+}
 
+access(all) fun testRetrieveCOATokens() {
     let coaAccounts: {Address: {String: UInt256}} = {
         admin.address: {
             "A.0000000000000003.FlowToken.Vault": 100000000000000000
@@ -40,7 +41,9 @@ fun testRetrieveTokensEvents() {
     }
 
     retrieveCOATokens(accounts: coaAccounts)
+}
 
+access(all) fun testRetrieveEOATokens() {
     let eoaAccounts: {String: UInt} = {
         "0x9D9247F5C3F3B78F7EE2C480B9CDaB91393Bf4D6": 100000000000000000
     }
