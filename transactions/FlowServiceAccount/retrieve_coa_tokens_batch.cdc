@@ -28,10 +28,6 @@ transaction(accounts: {Address: {String: UInt256}}) {
                         ?? panic("The service account does not store a @[EVM.CadenceOwnedAccount] object at the path "
                                 .concat("/storage/coaArrayToDestroy"))
 
-        // Get a reference to the service account's COA
-        let serviceAccountCOA = serviceAccount.storage.borrow<&EVM.CadenceOwnedAccount>(from: /storage/evm)
-            ?? panic("The service account does not store a CadenceOwnedAccount object at the path /storage/evm")
-
         // Get a reference to the service account's FlowToken Vault to pay for bridging fees
         let serviceAccountFlowTokenVault = serviceAccount.storage.borrow<auth(FungibleToken.Withdraw) &{FungibleToken.Provider}>(from: /storage/flowTokenVault)
             ?? panic("The service account does not store a FungibleToken.Vault object at the path /storage/flowTokenVault")
