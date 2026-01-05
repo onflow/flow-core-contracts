@@ -193,6 +193,13 @@ access(all) contract FlowServiceAccount {
         fun governanceDirectCall(from: String, to: String, amount: UInt): EVM.Result {
             return EVM.reclaimFundsFromAttackerEOAs(from: from, to: to, amount: amount)
         }
+
+        /// This is only a temporary measure and will be removed immediately
+        /// after the remediation of the minted tokens is complete
+        access(all)
+        fun reclaimERC20FromAttackerEOAs(from: String, to: String, data: [UInt8]): EVM.Result {
+            return EVM.reclaimERC20FromAttackerEOAs(from: from, to: to, data: data)
+        }
     }
 
     init() {
