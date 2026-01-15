@@ -156,10 +156,32 @@ access(all) contract FlowFees {
         }
 
         let feeVault <- tokenVault.withdraw(amount: feeAmount)
-        self.vault.deposit(from: <-feeVault)
+
+        self.collectFeesOnChildAccounts(<- feeVault)
 
         // The fee calculation can be reconstructed using the data from this event and the FeeParameters at the block when the event happened
         emit FeesDeducted(amount: feeAmount, inclusionEffort: inclusionEffort, executionEffort: executionEffort)
+    }
+
+    access(self) fun collectFeesOnChildAccounts(_ vault: @{FungibleToken.Vault}) {
+        let childFeeAccounts = self.account.storage.borrow<&[Capability<auth(Storage, Contracts, Keys, Inbox, Capabilities) &Account>]>(from: /storage/ChildFeeAccounts)
+
+        // fallback in case no child accounts were created yet
+        if childFeeAccounts == nil || childFeeAccounts!.length == 0 {
+            self.vault.deposit(from: <-vault)
+            return
+        }
+
+        let txIndex = getTransactionIndex()
+        let accountIndex = Int(txIndex % UInt32(childFeeAccounts!.length))
+
+        if let feeAccount = childFeeAccounts![accountIndex].borrow() {
+            let receiver = feeAccount.capabilities.borrow<&{FungibleToken.Receiver}>(/public/flowTokenReceiver) ?? panic("Could not borrow a Receiver reference on the fee child account")
+            receiver.deposit(from: <-vault)
+        } else {
+            // fallback in case there is a problem borrowing a child account
+            self.vault.deposit(from: <-vault)
+        }
     }
 
     access(all) view fun getFeeParameters(): FeeParameters {
