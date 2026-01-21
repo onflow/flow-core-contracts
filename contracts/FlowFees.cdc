@@ -28,7 +28,23 @@ access(all) contract FlowFees {
 
     /// Get the balance of the Fees Vault
     access(all) fun getFeeBalance(): UFix64 {
-        return self.vault.balance
+        let childFeeAccounts = self.account.storage.borrow<&[Capability<auth(Storage, Contracts, Keys, Inbox, Capabilities) &Account>]>(from: /storage/ChildFeeAccounts)
+
+        // fallback in case no child accounts were created yet
+        if childFeeAccounts == nil || childFeeAccounts!.length == 0 {
+            return self.vault.balance
+        }
+
+        var totalFees = 0.0
+        totalFees = totalFees + self.vault.balance
+
+        for feeAccountRef in childFeeAccounts! {
+           if let feeAccount = feeAccountRef.borrow() {
+                totalFees = totalFees + feeAccount.availableBalance
+           }
+        }
+
+        return totalFees
     }
 
     access(all) resource Administrator {
@@ -36,9 +52,62 @@ access(all) contract FlowFees {
         //
         // Allows the administrator to withdraw tokens from the fee vault
         access(all) fun withdrawTokensFromFeeVault(amount: UFix64): @{FungibleToken.Vault} {
-            let vault <- FlowFees.vault.withdraw(amount: amount)
+            var remainingAmount = amount
+            var withdrawAmount: UFix64 = 0.0
+            if FlowFees.vault.balance < remainingAmount {
+                withdrawAmount = FlowFees.vault.balance
+            } else {
+                withdrawAmount = remainingAmount
+            }
+            remainingAmount = remainingAmount - withdrawAmount
+            var vault <- FlowFees.vault.withdraw(amount: withdrawAmount)
+
+            let childFeeAccounts = FlowFees.account.storage.borrow<&[Capability<auth(Storage, Contracts, Keys, Inbox, Capabilities) &Account>]>(from: /storage/ChildFeeAccounts)
+
+            // fallback in case no child accounts were created yet
+            if childFeeAccounts == nil || childFeeAccounts!.length == 0 {
+                if remainingAmount > 0.0 {
+                    panic("Ammount of tokens to withdraw is greater than the total fees collected.")
+                }
+                if vault.balance != amount {
+                   // unreachable
+                   panic("Unexpected return vault balance!")
+                }
+
+                emit TokensWithdrawn(amount: amount)
+                return <- vault
+            }
+
+            var accountIndex = 0;
+            while accountIndex < childFeeAccounts!.length && remainingAmount > 0.0 {
+                accountIndex = accountIndex + 1
+
+                if let feeAccount = childFeeAccounts![accountIndex].borrow() {
+
+                    let childVaultRef = feeAccount.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault) ?? panic("Could not borrow child account flowTokenVault")
+                    let availableBalance = feeAccount.availableBalance
+
+                    var withdrawAmount: UFix64 = 0.0
+                    if availableBalance < remainingAmount {
+                        withdrawAmount = availableBalance
+                    } else {
+                        withdrawAmount = remainingAmount
+                    }
+                    remainingAmount = remainingAmount - withdrawAmount
+                    vault.deposit(from: <- childVaultRef.withdraw(amount: withdrawAmount))
+               }
+            }
+
+            if remainingAmount > 0.0 {
+                panic("Ammount of tokens to withdraw is greater than the total fees collected.")
+            }
+            if vault.balance != amount {
+               // unreachable
+               panic("Unexpected return vault balance!")
+            }
+
             emit TokensWithdrawn(amount: amount)
-            return <-vault
+            return <- vault
         }
 
         /// Allows the administrator to change all the fee parameters at once

@@ -1,7 +1,7 @@
 transaction(accounts: Int) {
     prepare(admin: auth(Storage, BorrowValue, UpdateContract) &Account) {
        let feeChildAccounts: [Capability<auth(Storage, Contracts, Keys, Inbox, Capabilities) &Account>] =
-            admin.storage.load<[Capability<auth(Storage, Contracts, Keys, Inbox, Capabilities) &Account>]>(feeChildAccounts, to: /storage/ChildFeeAccounts) ?? []
+            admin.storage.load<[Capability<auth(Storage, Contracts, Keys, Inbox, Capabilities) &Account>]>(from: /storage/ChildFeeAccounts) ?? []
 
         var i = 0
         while i < accounts {
