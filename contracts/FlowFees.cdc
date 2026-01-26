@@ -67,7 +67,7 @@ access(all) contract FlowFees {
             // fallback in case no child accounts were created yet
             if childFeeAccounts == nil || childFeeAccounts!.length == 0 {
                 if remainingAmount > 0.0 {
-                    panic("Ammount of tokens to withdraw is greater than the total fees collected.")
+                    panic("Cannot withdraw the requested amount of fee tokens. The amount of FLOW of \(amount) requested to withdraw is greater than the total fees in the fee vaults.")
                 }
                 if vault.balance != amount {
                    // unreachable
@@ -99,7 +99,7 @@ access(all) contract FlowFees {
             }
 
             if remainingAmount > 0.0 {
-                panic("Ammount of tokens to withdraw is greater than the total fees collected.")
+                panic("Cannot withdraw the requested amount of fee tokens. The amount of FLOW of \(amount) requested to withdraw is greater than the total fees in the fee vaults.")
             }
             if vault.balance != amount {
                // unreachable
@@ -232,6 +232,8 @@ access(all) contract FlowFees {
         emit FeesDeducted(amount: feeAmount, inclusionEffort: inclusionEffort, executionEffort: executionEffort)
     }
 
+    /// The supplied vault will go to one child fee account according to the current number of child fee accounts and the current transaction index.
+    /// if there are no child accounts, the fees will be collected in the self.vault
     access(self) fun collectFeesOnChildAccounts(_ vault: @{FungibleToken.Vault}) {
         let childFeeAccounts = self.account.storage.borrow<&[Capability<auth(Storage, Contracts, Keys, Inbox, Capabilities) &Account>]>(from: /storage/ChildFeeAccounts)
 
