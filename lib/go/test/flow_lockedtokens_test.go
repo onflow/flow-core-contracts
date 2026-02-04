@@ -1128,8 +1128,8 @@ func TestLockedTokensDelegator(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{joshAddress, joshSharedAddress},
-			[]crypto.Signer{joshSigner, adminSigner},
+			[]flow.Address{joshSharedAddress},
+			[]crypto.Signer{adminSigner},
 			false,
 		)
 
