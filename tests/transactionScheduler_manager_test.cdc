@@ -54,8 +54,8 @@ access(all) fun testManagerScheduleByHandler() {
     setConfigDetails(
         maximumIndividualEffort: nil,
         minimumExecutionEffort: nil,
-        slotSharedEffortLimit: nil,
-        priorityEffortReserve: nil,
+        highPriorityEffortLimit: nil,
+        mediumPriorityEffortLimit: nil,
         lowPriorityEffortLimit: nil,
         maxDataSizeMB: nil,
         priorityFeeMultipliers: nil,

@@ -151,14 +151,14 @@ access(all) fun testEstimate() {
     let estimateTestCases: [EstimateTestCase] = [
         // Error cases - should return EstimatedScheduledTransaction with error
         EstimateTestCase(
-            name: "Low priority returns requested timestamp and error",
+            name: "Low priority returns requested timestamp with no error",
             timestamp: futureTime,
             priority: FlowTransactionScheduler.Priority.Low,
             executionEffort: 1000,
             data: nil,
             expectedFee: 0.00052984,
             expectedTimestamp: futureTime,
-            expectedError: "Invalid Priority: Cannot estimate for Low Priority transactions. They will be included in the first block with available space after their requested timestamp."
+            expectedError: nil
         ),
         EstimateTestCase(
             name: "Past timestamp returns error",
@@ -343,8 +343,8 @@ access(all) fun testConfigDetails() {
     setConfigDetails(
         maximumIndividualEffort: nil,
         minimumExecutionEffort: nil,
-        slotSharedEffortLimit: nil,
-        priorityEffortReserve: nil,
+        highPriorityEffortLimit: nil,
+        mediumPriorityEffortLimit: nil,
         lowPriorityEffortLimit: nil,
         maxDataSizeMB: nil,
         priorityFeeMultipliers: nil,
@@ -359,8 +359,8 @@ access(all) fun testConfigDetails() {
     setConfigDetails(
         maximumIndividualEffort: nil,
         minimumExecutionEffort: nil,
-        slotSharedEffortLimit: nil,
-        priorityEffortReserve: nil,
+        highPriorityEffortLimit: nil,
+        mediumPriorityEffortLimit: nil,
         lowPriorityEffortLimit: nil,
         maxDataSizeMB: nil,
         priorityFeeMultipliers: {highPriority: 20.0, mediumPriority: 10.0, lowPriority: 0.9},
@@ -375,8 +375,8 @@ access(all) fun testConfigDetails() {
     setConfigDetails(
         maximumIndividualEffort: nil,
         minimumExecutionEffort: nil,
-        slotSharedEffortLimit: nil,
-        priorityEffortReserve: nil,
+        highPriorityEffortLimit: nil,
+        mediumPriorityEffortLimit: nil,
         lowPriorityEffortLimit: nil,
         maxDataSizeMB: nil,
         priorityFeeMultipliers: {highPriority: 20.0, mediumPriority: 3.0, lowPriority: 4.0},
@@ -391,8 +391,8 @@ access(all) fun testConfigDetails() {
     setConfigDetails(
         maximumIndividualEffort: nil,
         minimumExecutionEffort: nil,
-        slotSharedEffortLimit: nil,
-        priorityEffortReserve: nil,
+        highPriorityEffortLimit: nil,
+        mediumPriorityEffortLimit: nil,
         lowPriorityEffortLimit: nil,
         maxDataSizeMB: nil,
         priorityFeeMultipliers: {highPriority: 5.0, mediumPriority: 6.0, lowPriority: 4.0},
@@ -404,12 +404,13 @@ access(all) fun testConfigDetails() {
         shouldFail: "Invalid priority fee multiplier: High priority multiplier must be greater than or equal to 6.00000000 but got 5.00000000"
     )
 
+    // Medium effort limit must be greater than low
     setConfigDetails(
         maximumIndividualEffort: nil,
         minimumExecutionEffort: nil,
-        slotSharedEffortLimit: nil,
-        priorityEffortReserve: {highPriority: 30000, mediumPriority: 30000, lowPriority: 20000},
-        lowPriorityEffortLimit: 10000,
+        highPriorityEffortLimit: 15000,
+        mediumPriorityEffortLimit: 2500,
+        lowPriorityEffortLimit: 2500,
         maxDataSizeMB: nil,
         priorityFeeMultipliers: nil,
         refundMultiplier: nil,
@@ -417,14 +418,31 @@ access(all) fun testConfigDetails() {
         collectionEffortLimit: nil,
         collectionTransactionsLimit: nil,
         txRemovalLimit: nil,
-        shouldFail: "Invalid priority effort limit: Low priority effort limit must be greater than or equal to the priority effort reserve of 20000"
+        shouldFail: "Invalid priority effort limit: Medium priority effort limit must be greater than the low priority effort limit of 2500"
+    )
+
+    // High effort limit must be greater than medium
+    setConfigDetails(
+        maximumIndividualEffort: nil,
+        minimumExecutionEffort: nil,
+        highPriorityEffortLimit: 7500,
+        mediumPriorityEffortLimit: 7500,
+        lowPriorityEffortLimit: 2500,
+        maxDataSizeMB: nil,
+        priorityFeeMultipliers: nil,
+        refundMultiplier: nil,
+        canceledTransactionsLimit: nil,
+        collectionEffortLimit: nil,
+        collectionTransactionsLimit: nil,
+        txRemovalLimit: nil,
+        shouldFail: "Invalid priority effort limit: High priority effort limit must be greater than the medium priority effort limit of 7500"
     )
 
     setConfigDetails(
         maximumIndividualEffort: nil,
         minimumExecutionEffort: nil,
-        slotSharedEffortLimit: nil,
-        priorityEffortReserve: nil,
+        highPriorityEffortLimit: nil,
+        mediumPriorityEffortLimit: nil,
         lowPriorityEffortLimit: nil,
         maxDataSizeMB: nil,
         priorityFeeMultipliers: nil,
@@ -439,8 +457,8 @@ access(all) fun testConfigDetails() {
     setConfigDetails(
         maximumIndividualEffort: nil,
         minimumExecutionEffort: nil,
-        slotSharedEffortLimit: nil,
-        priorityEffortReserve: nil,
+        highPriorityEffortLimit: nil,
+        mediumPriorityEffortLimit: nil,
         lowPriorityEffortLimit: nil,
         maxDataSizeMB: nil,
         priorityFeeMultipliers: nil,
@@ -455,8 +473,8 @@ access(all) fun testConfigDetails() {
     setConfigDetails(
         maximumIndividualEffort: nil,
         minimumExecutionEffort: nil,
-        slotSharedEffortLimit: nil,
-        priorityEffortReserve: nil,
+        highPriorityEffortLimit: nil,
+        mediumPriorityEffortLimit: nil,
         lowPriorityEffortLimit: nil,
         maxDataSizeMB: nil,
         priorityFeeMultipliers: nil,
@@ -473,33 +491,34 @@ access(all) fun testConfigDetails() {
     Valid Test Case
     ---------------- */
     let oldConfig = getConfigDetails()
-    Test.assertEqual(9999 as UInt64,oldConfig.maximumIndividualEffort)
-    Test.assertEqual(100 as UInt64,oldConfig.minimumExecutionEffort)
-    Test.assertEqual(slotTotalEffortLimit as UInt64,oldConfig.slotTotalEffortLimit)
-    Test.assertEqual(sharedEffortLimit as UInt64,oldConfig.slotSharedEffortLimit)
-    Test.assertEqual(highPriorityEffortReserve as UInt64,oldConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.High]!)
-    Test.assertEqual(mediumPriorityEffortReserve as UInt64,oldConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.Medium]!)
-    Test.assertEqual(0 as UInt64,oldConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.Low]!)
-    Test.assertEqual(highPriorityMaxEffort as UInt64,oldConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.High]!)
-    Test.assertEqual(mediumPriorityMaxEffort as UInt64,oldConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.Medium]!)
-    Test.assertEqual(lowPriorityMaxEffort as UInt64,oldConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.Low]!)
-    Test.assertEqual(0.001,oldConfig.maxDataSizeMB)
-    Test.assertEqual(10.0,oldConfig.priorityFeeMultipliers[FlowTransactionScheduler.Priority.High]!)
-    Test.assertEqual(5.0,oldConfig.priorityFeeMultipliers[FlowTransactionScheduler.Priority.Medium]!)
-    Test.assertEqual(2.0,oldConfig.priorityFeeMultipliers[FlowTransactionScheduler.Priority.Low]!)
-    Test.assertEqual(0.5,oldConfig.refundMultiplier)
-    Test.assertEqual(1000 as UInt,oldConfig.canceledTransactionsLimit)
-    Test.assertEqual(500000 as UInt64,oldConfig.collectionEffortLimit)
-    Test.assertEqual(150 as Int,oldConfig.collectionTransactionsLimit)
-    Test.assertEqual(200 as UInt,oldConfig.getTxRemovalLimit())
+    Test.assertEqual(9999 as UInt64, oldConfig.maximumIndividualEffort)
+    Test.assertEqual(100 as UInt64, oldConfig.minimumExecutionEffort)
+    // slotTotalEffortLimit is now the sum of all per-priority limits
+    Test.assertEqual(slotTotalEffortLimit as UInt64, oldConfig.slotTotalEffortLimit)
+    Test.assertEqual(0 as UInt64, oldConfig.slotSharedEffortLimit)
+    Test.assertEqual(0 as UInt64, oldConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.High]!)
+    Test.assertEqual(0 as UInt64, oldConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.Medium]!)
+    Test.assertEqual(0 as UInt64, oldConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.Low]!)
+    Test.assertEqual(highPriorityMaxEffort as UInt64, oldConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.High]!)
+    Test.assertEqual(mediumPriorityMaxEffort as UInt64, oldConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.Medium]!)
+    Test.assertEqual(lowPriorityMaxEffort as UInt64, oldConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.Low]!)
+    Test.assertEqual(0.001, oldConfig.maxDataSizeMB)
+    Test.assertEqual(10.0, oldConfig.priorityFeeMultipliers[FlowTransactionScheduler.Priority.High]!)
+    Test.assertEqual(5.0, oldConfig.priorityFeeMultipliers[FlowTransactionScheduler.Priority.Medium]!)
+    Test.assertEqual(2.0, oldConfig.priorityFeeMultipliers[FlowTransactionScheduler.Priority.Low]!)
+    Test.assertEqual(0.5, oldConfig.refundMultiplier)
+    Test.assertEqual(1000 as UInt, oldConfig.canceledTransactionsLimit)
+    Test.assertEqual(500000 as UInt64, oldConfig.collectionEffortLimit)
+    Test.assertEqual(150 as Int, oldConfig.collectionTransactionsLimit)
+    Test.assertEqual(200 as UInt, oldConfig.getTxRemovalLimit())
 
 
     setConfigDetails(
         maximumIndividualEffort: 14999,
         minimumExecutionEffort: 100,
-        slotSharedEffortLimit: 20000,
-        priorityEffortReserve: nil,
-        lowPriorityEffortLimit: nil,
+        highPriorityEffortLimit: 30000,
+        mediumPriorityEffortLimit: 15000,
+        lowPriorityEffortLimit: 5000,
         maxDataSizeMB: 1.0,
         priorityFeeMultipliers: {highPriority: 20.0, mediumPriority: 10.0, lowPriority: 4.0},
         refundMultiplier: nil,
@@ -512,24 +531,25 @@ access(all) fun testConfigDetails() {
 
     // Verify new config details
     let newConfig = getConfigDetails()
-    Test.assertEqual(14999 as UInt64,newConfig.maximumIndividualEffort)
-    Test.assertEqual(100 as UInt64,newConfig.minimumExecutionEffort)
-    Test.assertEqual(32500 as UInt64,newConfig.slotTotalEffortLimit)
-    Test.assertEqual(20000 as UInt64,newConfig.slotSharedEffortLimit)
-    Test.assertEqual(oldConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.High]!,newConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.High]!)
-    Test.assertEqual(oldConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.Medium]!,newConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.Medium]!)
-    Test.assertEqual(oldConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.Low]!,newConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.Low]!)
-    Test.assertEqual(30000 as UInt64,newConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.High]!)
-    Test.assertEqual(22500 as UInt64,newConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.Medium]!)
-    Test.assertEqual(2500 as UInt64,newConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.Low]!)
-    Test.assertEqual(1.0,newConfig.maxDataSizeMB)
-    Test.assertEqual(20.0,newConfig.priorityFeeMultipliers[FlowTransactionScheduler.Priority.High]!)
-    Test.assertEqual(10.0,newConfig.priorityFeeMultipliers[FlowTransactionScheduler.Priority.Medium]!)
-    Test.assertEqual(4.0,newConfig.priorityFeeMultipliers[FlowTransactionScheduler.Priority.Low]!)
-    Test.assertEqual(oldConfig.refundMultiplier,newConfig.refundMultiplier)
-    Test.assertEqual(2000 as UInt,newConfig.canceledTransactionsLimit)
-    Test.assertEqual(800000 as UInt64,newConfig.collectionEffortLimit)
-    Test.assertEqual(90 as Int,newConfig.collectionTransactionsLimit)
+    Test.assertEqual(14999 as UInt64, newConfig.maximumIndividualEffort)
+    Test.assertEqual(100 as UInt64, newConfig.minimumExecutionEffort)
+    // slotTotalEffortLimit = 30000 + 15000 + 5000
+    Test.assertEqual(50000 as UInt64, newConfig.slotTotalEffortLimit)
+    Test.assertEqual(0 as UInt64, newConfig.slotSharedEffortLimit)
+    Test.assertEqual(0 as UInt64, newConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.High]!)
+    Test.assertEqual(0 as UInt64, newConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.Medium]!)
+    Test.assertEqual(0 as UInt64, newConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.Low]!)
+    Test.assertEqual(30000 as UInt64, newConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.High]!)
+    Test.assertEqual(15000 as UInt64, newConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.Medium]!)
+    Test.assertEqual(5000 as UInt64, newConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.Low]!)
+    Test.assertEqual(1.0, newConfig.maxDataSizeMB)
+    Test.assertEqual(20.0, newConfig.priorityFeeMultipliers[FlowTransactionScheduler.Priority.High]!)
+    Test.assertEqual(10.0, newConfig.priorityFeeMultipliers[FlowTransactionScheduler.Priority.Medium]!)
+    Test.assertEqual(4.0, newConfig.priorityFeeMultipliers[FlowTransactionScheduler.Priority.Low]!)
+    Test.assertEqual(oldConfig.refundMultiplier, newConfig.refundMultiplier)
+    Test.assertEqual(2000 as UInt, newConfig.canceledTransactionsLimit)
+    Test.assertEqual(800000 as UInt64, newConfig.collectionEffortLimit)
+    Test.assertEqual(90 as Int, newConfig.collectionTransactionsLimit)
 }
 
 /** ---------------------------------------------------------------------------------
