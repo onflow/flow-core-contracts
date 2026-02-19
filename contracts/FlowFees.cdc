@@ -81,17 +81,18 @@ access(all) contract FlowFees {
             var accountIndex = 0;
             while accountIndex < childFeeAccounts!.length && remainingAmount > 0.0 {
                 if let feeAccount = childFeeAccounts![accountIndex].borrow() {
-                    let childVaultRef = feeAccount.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault) ?? panic("Could not borrow child account flowTokenVault")
-                    let availableBalance = feeAccount.availableBalance
+                    if let childVaultRef = feeAccount.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault) {
+                        let availableBalance = feeAccount.availableBalance
 
-                    var withdrawAmount = 0.0
-                    if availableBalance < remainingAmount {
-                        withdrawAmount = availableBalance
-                    } else {
-                        withdrawAmount = remainingAmount
+                        var withdrawAmount = 0.0
+                        if availableBalance < remainingAmount {
+                            withdrawAmount = availableBalance
+                        } else {
+                            withdrawAmount = remainingAmount
+                        }
+                        remainingAmount = remainingAmount - withdrawAmount
+                        vault.deposit(from: <- childVaultRef.withdraw(amount: withdrawAmount))
                     }
-                    remainingAmount = remainingAmount - withdrawAmount
-                    vault.deposit(from: <- childVaultRef.withdraw(amount: withdrawAmount))
                 }
                 accountIndex = accountIndex + 1
             }
@@ -245,12 +246,13 @@ access(all) contract FlowFees {
         let accountIndex = Int(txIndex % UInt32(childFeeAccounts!.length))
 
         if let feeAccount = childFeeAccounts![accountIndex].borrow() {
-            let receiver = feeAccount.capabilities.borrow<&{FungibleToken.Receiver}>(/public/flowTokenReceiver) ?? panic("Could not borrow a Receiver reference on the fee child account")
-            receiver.deposit(from: <-vault)
-        } else {
-            // fallback in case there is a problem borrowing a child account
-            self.vault.deposit(from: <-vault)
-        }
+            if let receiver = feeAccount.capabilities.borrow<&{FungibleToken.Receiver}>(/public/flowTokenReceiver) {
+                receiver.deposit(from: <-vault)
+                return
+            }
+        } 
+        // fallback in case there is a problem borrowing a child account
+        self.vault.deposit(from: <-vault)
     }
 
     access(all) view fun getFeeParameters(): FeeParameters {
