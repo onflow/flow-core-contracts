@@ -7,6 +7,9 @@
 
 access(all) contract StakingProxy {
 
+    /// Entitlement that grants access to the node operator's privileged functions
+    access(all) entitlement NodeOperator
+
     /// path to store the node operator resource
     /// in the node operators account for staking helper
     access(all) let NodeOperatorCapabilityStoragePath: StoragePath
@@ -100,7 +103,7 @@ access(all) contract StakingProxy {
 
         /// Node operator calls this to add info about a node they
         /// want to accept tokens for
-        access(all) fun addNodeInfo(nodeInfo: NodeInfo) {
+        access(NodeOperator) fun addNodeInfo(nodeInfo: NodeInfo) {
             pre {
                 self.nodeInfo[nodeInfo.id] == nil
             }
@@ -108,7 +111,7 @@ access(all) contract StakingProxy {
         }
 
         /// Remove node info if it isn't in use any more
-        access(all) fun removeNodeInfo(nodeID: String): NodeInfo {
+        access(NodeOperator) fun removeNodeInfo(nodeID: String): NodeInfo {
             return self.nodeInfo.remove(key: nodeID)!
         }
 
@@ -130,7 +133,7 @@ access(all) contract StakingProxy {
 
         /// The node operator can call the removeStakingProxy function
         /// to remove a staking proxy if it is no longer needed
-        access(all) fun removeStakingProxy(nodeID: String): {NodeStakerProxy} {
+        access(NodeOperator) fun removeStakingProxy(nodeID: String): {NodeStakerProxy} {
             pre {
                 self.stakingProxies[nodeID] != nil
             }
@@ -140,7 +143,7 @@ access(all) contract StakingProxy {
 
         /// Borrow a "reference" to the staking proxy so staking operations
         /// can be performed with it
-        access(all) fun borrowStakingProxy(nodeID: String): {NodeStakerProxy}? {
+        access(NodeOperator) fun borrowStakingProxy(nodeID: String): {NodeStakerProxy}? {
             return self.stakingProxies[nodeID]
         }
     }

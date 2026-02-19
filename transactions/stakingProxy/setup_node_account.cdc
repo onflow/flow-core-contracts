@@ -7,7 +7,7 @@ transaction() {
 
         nodeOperator.storage.save(<-proxyHolder, to: StakingProxy.NodeOperatorCapabilityStoragePath)
 
-        let nodeOperatorCap = nodeOperator.capabilities.storage.issue<&StakingProxy.NodeStakerProxyHolder>(
+        let nodeOperatorCap = nodeOperator.capabilities.storage.issue<&{StakingProxy.NodeStakerProxyHolderPublic}>(
             StakingProxy.NodeOperatorCapabilityStoragePath
         )
 
