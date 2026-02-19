@@ -2,11 +2,6 @@
 
 These are the smart contracts that define the core functionality of the Flow protocol.
 
-The version of the contracts in the `master` branch is the
-Cadence 1.0 version of the contracts and is not the same
-as the ones that are currently deployed to testnet and mainnet.
-See the `cadence-0.42` branch for the currently deployed versions.
-
 # What is Flow?
 
 Flow is a new blockchain for open worlds. Read more about it [here](https://www.onflow.org/).
@@ -76,11 +71,26 @@ You can see [more docs about storage capacity and fees here.](https://docs.onflo
 | Testnet  | `0x8c5303eaa26202d6` |
 | Mainnet  | `0xe467b9dd11fa00df` |
 
-This contract manages account creation and flow token initialization. It enforces temporary
-requirements for which accounts are allowed to create other accounts, and provides common
-functionality for flow tokens.
+This contract manages account creation and flow token initialization and contains other utils for fees.
 
 You can find transactions for interacting with the service account contract in the `transactions/FlowServiceAccount` directory.
+
+## Scheduled Transactions Contracts
+
+`contracts/FlowTransactionScheduler.cdc`
+`contracts/FlowTransactionSchedulerUtils.cdc`
+
+| Network  | Contract Address     |
+| ---------| -------------------- |
+| Emulator | `0xf8d6e0586b0a20c7` |
+| Testnet  | `0x8c5303eaa26202d6` |
+| Mainnet  | `0xe467b9dd11fa00df` |
+
+These contracts manage scheduled transaction functionality. 
+
+You can find transactions for interacting with the scheduled transactions contracts in the `transactions/transactionScheduler/` directory.
+
+[Scheduled Transaction Docs](https://developers.flow.com/blockchain-development-tutorials/forte/scheduled-transactions/scheduled-transactions-introduction)
 
 ## Random Beacon History Contract
 

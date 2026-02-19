@@ -284,8 +284,8 @@ func TestContracts(t *testing.T) {
 
 		signAndSubmit(
 			t, b, tx,
-			[]flow.Address{storageFeesAddress},
-			[]crypto.Signer{storageFeesSigner},
+			[]flow.Address{},
+			[]crypto.Signer{},
 			false,
 		)
 
