@@ -53,7 +53,7 @@ access(all) contract FlowFees {
         // Allows the administrator to withdraw tokens from the fee vault
         access(all) fun withdrawTokensFromFeeVault(amount: UFix64): @{FungibleToken.Vault} {
             var remainingAmount = amount
-            var withdrawAmount: UFix64 = 0.0
+            var withdrawAmount = 0.0
             if FlowFees.vault.balance < remainingAmount {
                 withdrawAmount = FlowFees.vault.balance
             } else {
@@ -80,14 +80,11 @@ access(all) contract FlowFees {
 
             var accountIndex = 0;
             while accountIndex < childFeeAccounts!.length && remainingAmount > 0.0 {
-                accountIndex = accountIndex + 1
-
                 if let feeAccount = childFeeAccounts![accountIndex].borrow() {
-
                     let childVaultRef = feeAccount.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault) ?? panic("Could not borrow child account flowTokenVault")
                     let availableBalance = feeAccount.availableBalance
 
-                    var withdrawAmount: UFix64 = 0.0
+                    var withdrawAmount = 0.0
                     if availableBalance < remainingAmount {
                         withdrawAmount = availableBalance
                     } else {
@@ -95,7 +92,8 @@ access(all) contract FlowFees {
                     }
                     remainingAmount = remainingAmount - withdrawAmount
                     vault.deposit(from: <- childVaultRef.withdraw(amount: withdrawAmount))
-               }
+                }
+                accountIndex = accountIndex + 1
             }
 
             if remainingAmount > 0.0 {
