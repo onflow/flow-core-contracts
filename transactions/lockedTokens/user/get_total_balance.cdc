@@ -20,16 +20,14 @@ access(all) fun main(address: Address): UFix64 {
     var sum = 0.0
 
     let account = getAccount(address)
+    let authAccount = getAuthAccount<auth(Storage) &Account>(address)
 
     if let vaultRef = account.capabilities.borrow<&FlowToken.Vault>(/public/flowTokenBalance) {
         sum = sum + vaultRef.balance
     }
 
-    // Get token balance from the unlocked account's node staking pools
-    let optionalNodeStakerRef = account
-        .capabilities.borrow<&{FlowIDTableStaking.NodeStakerPublic}>(
-            FlowIDTableStaking.NodeStakerPublicPath
-        )
+    // get node staker reference from storage
+    let optionalNodeStakerRef = authAccount.storage.borrow<&FlowIDTableStaking.NodeStaker>(from: FlowIDTableStaking.NodeStakerStoragePath)
 
     if let nodeStakerRef = optionalNodeStakerRef {
         let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeStakerRef.id)

@@ -42,9 +42,6 @@ transaction(
             )
 
             acct.storage.save(<-nodeStaker, to: FlowIDTableStaking.NodeStakerStoragePath)
-
-            let nodeStakerCap = acct.capabilities.storage.issue<&{FlowIDTableStaking.NodeStakerPublic}>(FlowIDTableStaking.NodeStakerStoragePath)
-            acct.capabilities.publish(nodeStakerCap, at: FlowIDTableStaking.NodeStakerPublicPath)
         }
 
         let nodeRef = acct.storage.borrow<&FlowIDTableStaking.NodeStaker>(from: FlowIDTableStaking.NodeStakerStoragePath)
