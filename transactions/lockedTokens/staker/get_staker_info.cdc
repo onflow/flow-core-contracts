@@ -9,11 +9,10 @@ access(all) fun main(account: Address): [FlowIDTableStaking.NodeInfo] {
     let nodeInfoArray: [FlowIDTableStaking.NodeInfo] = []
 
     let pubAccount = getAccount(account)
+    let authAccount = getAuthAccount<auth(Storage) &Account>(account)
 
-    let optionalNodeStakerRef = pubAccount
-        .capabilities.borrow<&{FlowIDTableStaking.NodeStakerPublic}>(
-            FlowIDTableStaking.NodeStakerPublicPath
-        )
+    // get node staker reference from storage
+    let optionalNodeStakerRef = authAccount.storage.borrow<&FlowIDTableStaking.NodeStaker>(from: FlowIDTableStaking.NodeStakerStoragePath)
 
     if let nodeStakerRef = optionalNodeStakerRef {
         let info = FlowIDTableStaking.NodeInfo(nodeID: nodeStakerRef.id)
