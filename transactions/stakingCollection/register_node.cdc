@@ -20,15 +20,9 @@ transaction(id: String,
     prepare(account: auth(BorrowValue) &Account) {
         pre {
 			machineAccountKeySignatureAlgorithm == 1 || machineAccountKeySignatureAlgorithm == 2:
-                "Cannot register node with provided machine account key: Must provide a signature algorithm raw value that corresponds to "
-                .concat("one of the available signature algorithms for Flow keys.")
-                .concat("You provided ").concat(machineAccountKeySignatureAlgorithm.toString())
-                .concat(" but the options are either 1 (ECDSA_P256) or 2 (ECDSA_secp256k1).")
+                "Cannot register node with provided machine account key: Must provide a signature algorithm raw value that corresponds to one of the available signature algorithms for Flow keys. You provided \(machineAccountKeySignatureAlgorithm) but the options are either 1 (ECDSA_P256) or 2 (ECDSA_secp256k1)."
 			machineAccountKeyHashAlgorithm == 1 || machineAccountKeyHashAlgorithm == 3:
-                "Cannot register node with provided machine account key: Must provide a hash algorithm raw value that corresponds to "
-                .concat("one of of the available hash algorithms for Flow keys.")
-                .concat("You provided ").concat(machineAccountKeyHashAlgorithm.toString())
-                .concat(" but the options are either 1 (SHA2_256) or 3 (SHA3_256).")
+                "Cannot register node with provided machine account key: Must provide a hash algorithm raw value that corresponds to one of the available hash algorithms for Flow keys. You provided \(machineAccountKeyHashAlgorithm) but the options are either 1 (SHA2_256) or 3 (SHA3_256)."
 		}
 
         self.stakingCollectionRef = account.storage.borrow<auth(FlowStakingCollection.CollectionOwner) &FlowStakingCollection.StakingCollection>(from: FlowStakingCollection.StakingCollectionStoragePath)

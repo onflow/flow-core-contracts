@@ -6,10 +6,7 @@ access(all) fun main(account: Address): EVM.Balance {
 
     let coaRef = getAccount(account)
         .capabilities.borrow<&EVM.CadenceOwnedAccount>(/public/evm)
-        ?? panic("Could not borrow a balance reference to the COA in account "
-                .concat(account.toString()).concat(" at path /public/evm. ")
-                .concat("Make sure you are querying an address that has ")
-                .concat("a COA set up properly at the specified path."))
+        ?? panic("Could not borrow a balance reference to the COA in account \(account) at path /public/evm. Make sure you are querying an address that has a COA set up properly at the specified path.")
 
     return coaRef.balance()
 }

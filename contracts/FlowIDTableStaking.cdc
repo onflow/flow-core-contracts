@@ -546,8 +546,7 @@ access(all) contract FlowIDTableStaking {
                 nodeRecord.tokensStaked.balance +
                 nodeRecord.tokensCommitted.balance
                 >= amount + nodeRecord.tokensRequestedToUnstake,
-                message: "FlowIDTableStaking.NodeStaker.requestUnstaking: Not enough tokens to unstake!"
-                         .concat(" Only have \(nodeRecord.tokensStaked.balance + nodeRecord.tokensCommitted.balance) tokens but requested to unstake \(amount + nodeRecord.tokensRequestedToUnstake) tokens")
+                message: "FlowIDTableStaking.NodeStaker.requestUnstaking: Not enough tokens to unstake! Only have \(nodeRecord.tokensStaked.balance + nodeRecord.tokensCommitted.balance) tokens but requested to unstake \(amount + nodeRecord.tokensRequestedToUnstake) tokens"
             )
 
             // Node operators who have delegators have to have enough of their own tokens staked
@@ -736,8 +735,7 @@ access(all) contract FlowIDTableStaking {
                 delRecord.tokensStaked.balance +
                 delRecord.tokensCommitted.balance
                 >= amount + delRecord.tokensRequestedToUnstake,
-                message: "FlowIDTableStaking.NodeDelegator.requestUnstaking: Not enough tokens to unstake!"
-                         .concat(" Only have \(delRecord.tokensStaked.balance + delRecord.tokensCommitted.balance) tokens but requested to unstake \(amount + delRecord.tokensRequestedToUnstake) tokens")
+                message: "FlowIDTableStaking.NodeDelegator.requestUnstaking: Not enough tokens to unstake! Only have \(delRecord.tokensStaked.balance + delRecord.tokensCommitted.balance) tokens but requested to unstake \(amount + delRecord.tokensRequestedToUnstake) tokens"
             )
 
             // if the request can come from committed, withdraw from committed to unstaked

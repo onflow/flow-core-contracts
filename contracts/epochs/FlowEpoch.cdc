@@ -437,8 +437,7 @@ access(all) contract FlowEpoch {
     access(contract) fun generateRandomSource(): String {
         post {
             result.length == 32:
-                "FlowEpoch.generateRandomSource: Critical invariant violated! "
-                    .concat("Expected hex random source with length 32 (128 bits) but got length \(result.length) instead.")
+                "FlowEpoch.generateRandomSource: Critical invariant violated! Expected hex random source with length 32 (128 bits) but got length \(result.length) instead."
         }
         var randomSource = String.encodeHex(revertibleRandom<UInt128>().toBigEndianBytes())
         return randomSource
@@ -598,17 +597,14 @@ access(all) contract FlowEpoch {
             for nodeID in nodeIDs {
                 assert(
                     FlowIDTableStaking.NodeInfo(nodeID: nodeID).initialWeight > 0, 
-                    message: "FlowEpoch.Admin.recoverEpochPreChecks: All nodes in node ids list for recovery epoch must have a weight > 0. The node "
-                    .concat(nodeID).concat(" has a weight of 0.")
+                    message: "FlowEpoch.Admin.recoverEpochPreChecks: All nodes in node ids list for recovery epoch must have a weight > 0. The node \(nodeID) has a weight of 0."
                 )
             }
 
             // sanity check we must receive qc vote data for each cluster
             assert(
                 numOfClusterAssignments == numOfClusterQCVoteData, 
-                message: "FlowEpoch.Admin.recoverEpochPreChecks: The number of cluster assignments "
-                .concat(numOfClusterAssignments.toString()).concat(" does not match the number of cluster qc vote data ")
-                .concat(numOfClusterQCVoteData.toString())
+                message: "FlowEpoch.Admin.recoverEpochPreChecks: The number of cluster assignments \(numOfClusterAssignments) does not match the number of cluster qc vote data \(numOfClusterQCVoteData)"
             )
         }
         
@@ -648,12 +644,7 @@ access(all) contract FlowEpoch {
         {
             pre {
                 recoveryEpochCounter == FlowEpoch.proposedEpochCounter():
-                    "FlowEpoch.Admin.recoverNewEpoch: Recovery epoch counter must equal current epoch counter + 1. "
-                        .concat("Got recovery epoch counter (")
-                        .concat(recoveryEpochCounter.toString())
-                        .concat(") with current epoch counter (")
-                        .concat(FlowEpoch.currentEpochCounter.toString())
-                        .concat(").")
+                    "FlowEpoch.Admin.recoverNewEpoch: Recovery epoch counter must equal current epoch counter + 1. Got recovery epoch counter (\(recoveryEpochCounter)) with current epoch counter (\(FlowEpoch.currentEpochCounter))."
             }
 
             self.stopEpochComponents()
@@ -729,12 +720,7 @@ access(all) contract FlowEpoch {
         { 
             pre {
                 recoveryEpochCounter == FlowEpoch.currentEpochCounter:
-                    "FlowEpoch.Admin.recoverCurrentEpoch: Recovery epoch counter must equal current epoch counter. "
-                        .concat("Got recovery epoch counter (")
-                        .concat(recoveryEpochCounter.toString())
-                        .concat(") with current epoch counter (")
-                        .concat(FlowEpoch.currentEpochCounter.toString())
-                        .concat(").")
+                    "FlowEpoch.Admin.recoverCurrentEpoch: Recovery epoch counter must equal current epoch counter. Got recovery epoch counter (\(recoveryEpochCounter)) with current epoch counter (\(FlowEpoch.currentEpochCounter))."
             }
 
             self.stopEpochComponents()

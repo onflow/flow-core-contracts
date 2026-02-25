@@ -10,9 +10,7 @@ transaction(groupKey: String, pubKeys: [String], idMapping: {String: Int}) {
 
     prepare(signer: auth(BorrowValue) &Account) {
         self.dkgParticipant = signer.storage.borrow<&FlowDKG.Participant>(from: FlowDKG.ParticipantStoragePath)
-            ?? panic("Cannot borrow DKG Participant reference from path "
-                    .concat(FlowDKG.ParticipantStoragePath.toString())
-                    .concat(". The signer needs to ensure their account is initialized with the DKG Participant resource."))
+            ?? panic("Cannot borrow DKG Participant reference from path \(FlowDKG.ParticipantStoragePath). The signer needs to ensure their account is initialized with the DKG Participant resource.")
         self.submission = FlowDKG.ResultSubmission(groupPubKey: groupKey, pubKeys: pubKeys, idMapping: idMapping)
     }
 
