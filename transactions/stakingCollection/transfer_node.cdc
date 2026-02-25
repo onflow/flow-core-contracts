@@ -27,9 +27,7 @@ transaction(nodeID: String, to: Address) {
             ?? panic(FlowStakingCollection.getCollectionMissingError(to))
 
         let machineAccountInfo = self.fromStakingCollectionRef.getMachineAccounts()[nodeID]
-            ?? panic("Could not get machine account info from the signer's account for the node ID "
-                    .concat(nodeID).concat(". Make sure that the node has configured a machine account ")
-                    .concat("and has it registered in the staking collection."))
+            ?? panic("Could not get machine account info from the signer's account for the node ID \(nodeID). Make sure that the node has configured a machine account and has it registered in the staking collection.")
 
         // Remove the NodeStaker from the authorizers StakingCollection.
         let nodeStaker <- self.fromStakingCollectionRef.removeNode(nodeID: nodeID)

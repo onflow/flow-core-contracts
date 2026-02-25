@@ -58,7 +58,7 @@ access(all) contract RandomBeaconHistory {
             assert(
                 // random source must be at least 128 bits
                 randomSourceHistory.length >= 128 / 8,
-                message: "Random source must be at least 128 bits"
+                message: "RandomBeaconHistory.Heartbeat.heartbeat: Random source must be at least 128 bits but got \(randomSourceHistory.length * 8) bits"
             )
 
             let currentBlockHeight = getCurrentBlock().height
@@ -111,7 +111,7 @@ access(all) contract RandomBeaconHistory {
         access(all) fun setMaxEntriesPerCall(max: UInt64) {
             assert(
                 max > 0,
-                message: "the maximum entry per call must be strictly positive"
+                message: "RandomBeaconHistory.Backfiller.setMaxEntriesPerCall: the maximum entry per call must be strictly positive but got \(max)"
             )
             self.maxEntriesPerCall = max
         }
@@ -253,18 +253,18 @@ access(all) contract RandomBeaconHistory {
     ///
     access(all) fun sourceOfRandomness(atBlockHeight blockHeight: UInt64): RandomSource {
         pre {
-            self.lowestHeight != nil: "History has not yet been initialized"
-            blockHeight >= self.lowestHeight!: "Requested block height precedes recorded history"
-            blockHeight < getCurrentBlock().height: "Source of randomness not yet recorded"
+            self.lowestHeight != nil: "RandomBeaconHistory.sourceOfRandomness: History has not yet been initialized"
+            blockHeight >= self.lowestHeight!: "RandomBeaconHistory.sourceOfRandomness: Requested block height \(blockHeight) precedes recorded history, which starts at \(self.lowestHeight!)"
+            blockHeight < getCurrentBlock().height: "RandomBeaconHistory.sourceOfRandomness: Source of randomness not yet recorded for block height \(blockHeight)"
         }
         let index = blockHeight - self.lowestHeight!
         assert(
             index >= 0,
-            message: "Problem finding random source history index"
+            message: "RandomBeaconHistory.sourceOfRandomness: Problem finding random source history index"
         )
         assert(
             index < UInt64(self.randomSourceHistory.length) && self.randomSourceHistory[index].length > 0,
-            message: "Source of randomness is currently not available but will be available soon"
+            message: "RandomBeaconHistory.sourceOfRandomness: Source of randomness is currently not available but will be available soon"
         )
         return RandomSource(blockHeight: blockHeight, value: self.randomSourceHistory[index])
     }
@@ -279,7 +279,7 @@ access(all) contract RandomBeaconHistory {
     ///
     access(all) fun getRandomSourceHistoryPage(_ page: UInt64, perPage: UInt64): RandomSourceHistoryPage {
         pre {
-            self.lowestHeight != nil: "History has not yet been initialized"
+            self.lowestHeight != nil: "RandomBeaconHistory.getRandomSourceHistoryPage: History has not yet been initialized"
         }
         let values: [RandomSource] = []
         let totalLength = UInt64(self.randomSourceHistory.length)
@@ -303,7 +303,7 @@ access(all) contract RandomBeaconHistory {
         for i, value in self.randomSourceHistory.slice(from: Int(startIndex), upTo: Int(endIndex)) {
             assert(
                 value.length > 0,
-                message: "Source of randomness is currently not available but will be available soon"
+                message: "RandomBeaconHistory.getRandomSourceHistoryPage: Source of randomness is currently not available but will be available soon"
             )
             values.append(
                 RandomSource(
@@ -326,7 +326,7 @@ access(all) contract RandomBeaconHistory {
     /// @return The block height at which the first source of randomness was recorded
     ///
     access(all) view fun getLowestHeight(): UInt64 {
-        return self.lowestHeight ?? panic("History has not yet been initialized")
+        return self.lowestHeight ?? panic("RandomBeaconHistory.getLowestHeight: History has not yet been initialized")
     }
 
     /// Getter for the contract's Backfiller resource

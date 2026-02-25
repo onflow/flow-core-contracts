@@ -18,10 +18,7 @@ transaction(amount: UFix64) {
         // Borrow the CadenceOwnedAccount reference
         self.coa = signer.storage.borrow<&EVM.CadenceOwnedAccount>(
                 from: coaPath
-            ) ?? panic(
-                "Could not find CadenceOwnedAccount (COA) in signer's account at path=".concat(coaPath.toString())
-                .concat(". Make sure the signing account has initialized a COA at the expected path.")
-            )
+            ) ?? panic("Could not find CadenceOwnedAccount (COA) in signer's account at path=\(coaPath). Make sure the signing account has initialized a COA at the expected path.")
 
         /* --- Assign fundingVault --- */
         //
@@ -38,7 +35,7 @@ transaction(amount: UFix64) {
 
     pre {
         self.fundingVault == nil || self.fundingVault?.balance ?? 0.0 == amount:
-            "Mismatched funding vault acquired given requested amount=".concat(amount.toString())
+            "Mismatched funding vault acquired given requested amount=\(amount)"
     }
 
     execute {

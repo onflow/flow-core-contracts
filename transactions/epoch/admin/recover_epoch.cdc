@@ -29,7 +29,7 @@ transaction(recoveryEpochCounter: UInt64,
 
     prepare(signer: auth(BorrowValue) &Account) {
         let epochAdmin = signer.storage.borrow<&FlowEpoch.Admin>(from: FlowEpoch.adminStoragePath)
-            ?? panic("Could not borrow epoch admin from ".concat(FlowEpoch.adminStoragePath.toString()))
+            ?? panic("Could not borrow epoch admin from \(FlowEpoch.adminStoragePath)")
 
         let proposedEpochCounter = FlowEpoch.proposedEpochCounter()
         if recoveryEpochCounter == proposedEpochCounter {

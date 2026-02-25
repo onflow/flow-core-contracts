@@ -17,9 +17,7 @@ transaction(amount: UFix64, to: Address) {
 
         // Get a reference to the signer's stored vault
         let vaultRef = signer.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault)
-            ?? panic("The signer does not store a FlowToken Vault object at the path "
-                    .concat("/storage/flowTokenVault. ")
-                    .concat("The signer must initialize their account with this vault first!"))
+            ?? panic("The signer does not store a FlowToken Vault object at the path /storage/flowTokenVault. The signer must initialize their account with this vault first!")
 
         // Withdraw tokens from the signer's stored vault
         self.sentVault <- vaultRef.withdraw(amount: amount)
@@ -30,10 +28,7 @@ transaction(amount: UFix64, to: Address) {
         // Get a reference to the recipient's Receiver
         let receiverRef =  getAccount(to)
             .capabilities.borrow<&{FungibleToken.Receiver}>(/public/flowTokenReceiver)
-            ?? panic("Could not borrow a Receiver reference to the FlowToken Vault in account "
-                .concat(to.toString()).concat(" at path /public/flowTokenReceiver")
-                .concat(". Make sure you are sending to an address that has ")
-                .concat("a FlowToken Vault set up properly at the specified path."))
+            ?? panic("Could not borrow a Receiver reference to the FlowToken Vault in account \(to) at path /public/flowTokenReceiver. Make sure you are sending to an address that has a FlowToken Vault set up properly at the specified path.")
 
         // Deposit the withdrawn tokens in the recipient's receiver
         receiverRef.deposit(from: <-self.sentVault)

@@ -9,14 +9,10 @@ transaction(amount: UFix64) {
 
     prepare(acct: auth(BorrowValue) &Account) {
         self.holderRef = acct.storage.borrow<&LockedTokens.TokenHolder>(from: LockedTokens.TokenHolderStoragePath)
-            ?? panic("Cannot deposit tokens to a locked account! The signer of the transaction "
-                    .concat("does not have an associated locked account, ")
-                    .concat("so there is nowhere to deposit the tokens."))
+            ?? panic("Cannot deposit tokens to a locked account! The signer of the transaction does not have an associated locked account, so there is nowhere to deposit the tokens.")
 
         self.vaultRef = acct.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault)
-            ?? panic("The signer does not store a FlowToken Vault object at the path "
-                    .concat("/storage/flowTokenVault. ")
-                    .concat("The signer must initialize their account with this vault first!"))
+            ?? panic("The signer does not store a FlowToken Vault object at the path /storage/flowTokenVault. The signer must initialize their account with this vault first!")
     }
 
     execute {
