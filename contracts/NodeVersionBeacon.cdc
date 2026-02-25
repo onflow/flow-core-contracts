@@ -187,7 +187,7 @@ access(all) contract NodeVersionBeacon {
         access(all) fun setVersionBoundary(versionBoundary: VersionBoundary) {
             pre {
                 versionBoundary.blockHeight > getCurrentBlock().height + NodeVersionBeacon.versionBoundaryFreezePeriod
-                    : "Cannot set/update a version boundary for past blocks or blocks in the near future."
+                    : "NodeVersionBeacon.Admin.setVersionBoundary: Cannot set/update a version boundary for past blocks or blocks in the near future. Must be greater than \(getCurrentBlock().height + NodeVersionBeacon.versionBoundaryFreezePeriod) but got \(versionBoundary.blockHeight)"
             }
             // Set the flag to true so the event will be emitted next time emitChanges is called
             NodeVersionBeacon.emitEventOnNextHeartbeat = true
@@ -225,8 +225,8 @@ access(all) contract NodeVersionBeacon {
         access(all) fun deleteVersionBoundary(blockHeight: UInt64) {
             pre {
                 blockHeight > getCurrentBlock().height + NodeVersionBeacon.versionBoundaryFreezePeriod
-                    : "Cannot delete a version for past blocks or blocks in the near future."
-                NodeVersionBeacon.versionBoundary.containsKey(blockHeight): "No boundary defined at that blockHeight."
+                    : "NodeVersionBeacon.Admin.deleteVersionBoundary: Cannot delete a version boundary for past blocks or blocks in the near future. Must be greater than \(getCurrentBlock().height + NodeVersionBeacon.versionBoundaryFreezePeriod) but got \(blockHeight)"
+                NodeVersionBeacon.versionBoundary.containsKey(blockHeight): "NodeVersionBeacon.Admin.deleteVersionBoundary: No boundary defined at block height \(blockHeight)"
             }
             // Set the flag to true so the event will be emitted next time emitChanges is called
             NodeVersionBeacon.emitEventOnNextHeartbeat = true
@@ -242,7 +242,7 @@ access(all) contract NodeVersionBeacon {
                 i = i - 1
             }
             assert(NodeVersionBeacon.versionBoundaryBlockList[i] == blockHeight,
-             message: "version boundary exists in map, so it should also exist in the ordered list")
+             message: "NodeVersionBeacon.Admin.deleteVersionBoundary: version boundary exists in map, so it should also exist in the ordered list")
 
             NodeVersionBeacon.versionBoundaryBlockList.remove(at: i)
 
@@ -259,7 +259,7 @@ access(all) contract NodeVersionBeacon {
         /// Updates the number of blocks in which version boundaries are frozen.
         access(all) fun setVersionBoundaryFreezePeriod(newFreezePeriod: UInt64) {
             post {
-                NodeVersionBeacon.versionBoundaryFreezePeriod == newFreezePeriod: "Update buffer was not properly set!"
+                NodeVersionBeacon.versionBoundaryFreezePeriod == newFreezePeriod: "NodeVersionBeacon.Admin.setVersionBoundaryFreezePeriod: Update buffer was not properly set!"
             }
 
             // Get current block height.
@@ -278,7 +278,7 @@ access(all) contract NodeVersionBeacon {
             assert(
                 currentBlockHeight + NodeVersionBeacon.versionBoundaryFreezePeriod < nextBlockBoundary &&
                 currentBlockHeight + newFreezePeriod < nextBlockBoundary,
-                message: "Updating buffer now breaks version boundary update expectations. Try updating buffer after next version boundary."
+                message: "NodeVersionBeacon.Admin.setVersionBoundaryFreezePeriod: Updating buffer now breaks version boundary update expectations. Try updating buffer after next version boundary."
             )
 
             NodeVersionBeacon.versionBoundaryFreezePeriod = newFreezePeriod
@@ -407,7 +407,7 @@ access(all) contract NodeVersionBeacon {
 
         // index is never 0 since version 0 is always in the past
         if let index = NodeVersionBeacon.firstUpcomingBoundary {
-            assert(index > 0, message: "index should never be 0 since version 0 is always in the past")
+            assert(index > 0, message: "NodeVersionBeacon.getCurrentVersionBoundary: index should never be 0 since version 0 is always in the past")
             current = self.versionBoundaryBlockList[index-1]
         } else {
             current = UInt64(NodeVersionBeacon.versionBoundaryBlockList.length - 1)
@@ -455,8 +455,8 @@ access(all) contract NodeVersionBeacon {
     /// results are sorted by block height
     access(all) fun getVersionBoundariesPage(page: Int, perPage: Int) : VersionBoundaryPage {
         pre {
-            page >= 0: "page must be greater than or equal to 0"
-            perPage > 0: "perPage must be greater than 0"
+            page >= 0: "NodeVersionBeacon.getVersionBoundariesPage: page must be greater than or equal to 0 but got \(page)"
+            perPage > 0: "NodeVersionBeacon.getVersionBoundariesPage: perPage must be greater than 0 but got \(perPage)"
         }
 
         let totalLength = NodeVersionBeacon.versionBoundaryBlockList.length

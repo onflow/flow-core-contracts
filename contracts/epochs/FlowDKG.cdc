@@ -258,13 +258,9 @@ access(all) contract FlowDKG {
         access(all) fun addSubmission(nodeID: String, submission: ResultSubmission) {
             pre {
                 self.authorized[nodeID] != nil:
-                    "FlowDKG.addSubmission: Submittor (node ID: "
-                        .concat(nodeID)
-                        .concat(") is not authorized for this DKG instance.")
+                    "FlowDKG.addSubmission: Submittor (node ID: \(nodeID)) is not authorized for this DKG instance."
                 self.byNodeID[nodeID] == nil:
-                    "FlowDKG.SubmissionTracker.addSubmission: Submittor (node ID: "
-                        .concat(nodeID)
-                        .concat(") may only submit once and has already submitted")
+                    "FlowDKG.SubmissionTracker.addSubmission: Submittor (node ID: \(nodeID)) may only submit once and has already submitted"
                 submission.isValidForCommittee(authorized: self.authorized.keys):
                     "FlowDKG.SubmissionTracker.addSubmission: Submission must contain exactly one public key per authorized participant"
             }
@@ -338,9 +334,7 @@ access(all) contract FlowDKG {
         init(nodeID: String) {
             pre {
                 FlowDKG.participantIsClaimed(nodeID) == nil:
-                    "FlowDKG.Participant.init: Cannot create Participant resource for a node ID ("
-                        .concat(nodeID)
-                        .concat(") that has already been claimed")
+                    "FlowDKG.Participant.init: Cannot create Participant resource for a node ID (\(nodeID)) that has already been claimed"
             }
             self.nodeID = nodeID
             FlowDKG.nodeClaimed[nodeID] = true
@@ -350,9 +344,7 @@ access(all) contract FlowDKG {
         access(all) fun postMessage(_ content: String) {
             pre {
                 FlowDKG.participantIsRegistered(self.nodeID):
-                    "FlowDKG.Participant.postMessage: Cannot post whiteboard message. Sender (node ID: "
-                        .concat(self.nodeID)
-                        .concat(") is not registered for the current DKG instance")
+                    "FlowDKG.Participant.postMessage: Cannot post whiteboard message. Sender (node ID: \(self.nodeID)) is not registered for the current DKG instance"
                 content.length > 0:
                     "FlowDKG.Participant.postMessage: Cannot post empty message to the whiteboard"
                 FlowDKG.dkgEnabled:
@@ -400,8 +392,8 @@ access(all) contract FlowDKG {
             pre {
                 !FlowDKG.dkgEnabled:
                     "FlowDKG.Admin.setSafeSuccessThreshold: Cannot set the DKG success threshold while the DKG is enabled"
-                newThresholdPercentage == nil ||  newThresholdPercentage! < 1.0:
-                    "FlowDKG.Admin.setSafeSuccessThreshold: Invalid input. Safe threshold percentage must be in [0,1)"
+                newThresholdPercentage == nil || newThresholdPercentage! < 1.0:
+                    "FlowDKG.Admin.setSafeSuccessThreshold: Invalid input. Safe threshold percentage must be in [0,1) but got \(newThresholdPercentage!)"
             }
 
             FlowDKG.account.storage.load<UFix64>(from: /storage/flowDKGSafeThreshold)

@@ -208,7 +208,7 @@ access(all) contract FlowClusterQC {
 
         view init(nodeID: String, clusterIndex: UInt16, voteWeight: UInt64) {
             pre {
-                nodeID.length == 64: "Voter ID must be a valid length node ID"
+                nodeID.length == 64: "FlowClusterQC.Vote.init: Voter ID must be a valid length of 64 hex characters but got \(nodeID.length)"
             }
             self.signature = nil
             self.message = nil
@@ -285,7 +285,7 @@ access(all) contract FlowClusterQC {
 
         init(nodeID: String, stakingKey: String) {
             pre {
-                !FlowClusterQC.voterIsClaimed(nodeID): "Cannot create a Voter resource for a node ID that has already been claimed"
+                !FlowClusterQC.voterIsClaimed(nodeID): "FlowClusterQC.Voter.init: Cannot create a Voter resource for a node ID (\(nodeID)) that has already been claimed"
             }
 
             self.nodeID = nodeID
@@ -300,10 +300,10 @@ access(all) contract FlowClusterQC {
         ///
         access(all) fun vote(voteSignature: String, voteMessage: String) {
             pre {
-                FlowClusterQC.inProgress: "Voting phase is not in progress"
-                voteSignature.length > 0: "Vote signature must not be empty"
-                voteMessage.length > 0: "Vote message must not be empty"
-                !FlowClusterQC.nodeHasVoted(self.nodeID): "Vote must not have been cast already"
+                FlowClusterQC.inProgress: "FlowClusterQC.Voter.vote: Voting phase is not in progress"
+                voteSignature.length > 0: "FlowClusterQC.Voter.vote: Vote signature must not be empty"
+                voteMessage.length > 0: "FlowClusterQC.Voter.vote: Vote message must not be empty"
+                !FlowClusterQC.nodeHasVoted(self.nodeID): "FlowClusterQC.Voter.vote: Vote must not have been cast already for node ID \(self.nodeID)"
             }
 
             // Get the public key object from the stored key
@@ -323,12 +323,12 @@ access(all) contract FlowClusterQC {
             // Assert the validity
             assert (
                 isValid,
-                message: "Vote Signature cannot be verified"
+                message: "FlowClusterQC.Voter.vote: Vote Signature cannot be verified for node ID \(self.nodeID)"
             )
 
             // Get the cluster that this node belongs to
             let clusterIndex = FlowClusterQC.nodeCluster[self.nodeID]
-                ?? panic("This node cannot vote during the current epoch")
+                ?? panic("FlowClusterQC.Voter.vote: Node \(self.nodeID) cannot vote during the current epoch because it is not registered")
             let cluster = FlowClusterQC.clusters[clusterIndex]!
 
             // Get this node's allocated vote
@@ -399,7 +399,7 @@ access(all) contract FlowClusterQC {
         /// majority of each cluster has submitted a vote. 
         access(all) fun stopVoting() {
             pre {
-                FlowClusterQC.votingCompleted(): "Voting must be complete before it can be stopped"
+                FlowClusterQC.votingCompleted(): "FlowClusterQC.Admin.stopVoting: Voting must be complete before it can be stopped"
             }
             FlowClusterQC.inProgress = false
         }
