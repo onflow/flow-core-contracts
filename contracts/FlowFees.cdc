@@ -211,7 +211,7 @@ access(all) contract FlowFees {
         }
 
         let tokenVault = acct.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault)
-            ?? panic("Unable to borrow reference to the default token vault")
+            ?? panic("FlowFees.deductTransactionFee: Unable to borrow reference to the default token vault")
 
 
         if feeAmount > tokenVault.balance {
@@ -256,7 +256,7 @@ access(all) contract FlowFees {
     }
 
     access(all) view fun getFeeParameters(): FeeParameters {
-        return self.account.storage.copy<FeeParameters>(from: /storage/FlowTxFeeParameters) ?? panic("Error getting tx fee parameters. They need to be initialized first!")
+        return self.account.storage.copy<FeeParameters>(from: /storage/FlowTxFeeParameters) ?? panic("FlowFees.getFeeParameters: Error getting tx fee parameters. They need to be initialized first!")
     }
 
     access(self) fun setFeeParameters(_ feeParameters: FeeParameters) {

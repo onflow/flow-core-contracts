@@ -7,10 +7,7 @@ access(all) fun main(account: Address): UFix64 {
 
     let vaultRef = getAccount(account)
         .capabilities.borrow<&FlowToken.Vault>(/public/flowTokenBalance)
-        ?? panic("Could not borrow a balance reference to the FlowToken Vault in account "
-                .concat(account.toString()).concat(" at path /public/flowTokenBalance. ")
-                .concat("Make sure you are querying an address that has ")
-                .concat("a FlowToken Vault set up properly at the specified path."))
+        ?? panic("Could not borrow a balance reference to the FlowToken Vault in account \(account) at path /public/flowTokenBalance. Make sure you are querying an address that has a FlowToken Vault set up properly at the specified path.")
 
     return vaultRef.balance
 }

@@ -17,9 +17,7 @@ transaction(amount: UFix64) {
 
         // Withdraw tokens from the admin vault in storage
         let vaultRef = signer.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault)
-            ?? panic("The signer does not store a FlowToken Vault object at the path "
-                    .concat("/storage/flowTokenVault. ")
-                    .concat("The signer must initialize their account with this vault first!"))
+            ?? panic("The signer does not store a FlowToken Vault object at the path /storage/flowTokenVault. The signer must initialize their account with this vault first!")
 
         self.vault <- vaultRef.withdraw(amount: amount)
     }

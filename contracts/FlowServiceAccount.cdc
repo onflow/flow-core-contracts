@@ -56,7 +56,7 @@ access(all) contract FlowServiceAccount {
     /// Return a reference to the default token vault on an account
     access(all) view fun defaultTokenVault(_ acct: auth(BorrowValue) &Account): auth(FungibleToken.Withdraw) &FlowToken.Vault {
         return acct.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault)
-            ?? panic("Unable to borrow reference to the default token vault")
+            ?? panic("FlowServiceAccount.defaultTokenVault: Unable to borrow reference to the default token vault")
     }
 
     /// Will be deprecated and can be deleted after the switchover to FlowFees.deductTransactionFee
@@ -87,12 +87,12 @@ access(all) contract FlowServiceAccount {
     ) {
 
         if !FlowServiceAccount.isAccountCreator(payer.address) {
-            panic("Account not authorized to create accounts")
+            panic("FlowServiceAccount.setupNewAccount: Account \(payer.address) is not authorized to create accounts")
         }
 
 
         if self.accountCreationFee < FlowStorageFees.minimumStorageReservation {
-            panic("Account creation fees setup incorrectly")
+            panic("FlowServiceAccount.setupNewAccount: Account creation fees setup incorrectly")
         }
 
         let tokenVault = self.defaultTokenVault(payer)

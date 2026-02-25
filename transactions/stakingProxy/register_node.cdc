@@ -18,7 +18,7 @@ transaction(address: Address, id: String, stakingKeyPoP: String, amount: UFix64)
             ?? panic("Could not borrow node operator public capability")
 
         let nodeInfo = nodeOperatorRef.getNodeInfo(nodeID: id)
-            ?? panic("Couldn't get info for nodeID=".concat(id))
+            ?? panic("Couldn't get info for nodeID=\(id)")
 
         self.holderRef.createNodeStaker(nodeInfo: nodeInfo, stakingKeyPoP: stakingKeyPoP, amount: amount)
 

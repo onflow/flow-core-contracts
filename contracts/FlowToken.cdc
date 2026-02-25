@@ -212,7 +212,7 @@ access(all) contract FlowToken: FungibleToken {
                 )
             case Type<FungibleTokenMetadataViews.FTVaultData>():
                 let vaultRef = FlowToken.account.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault)
-			        ?? panic("Could not borrow reference to the contract's Vault!")
+			        ?? panic("FlowToken.resolveContractView: Could not borrow reference to the contract's Vault!")
                 return FungibleTokenMetadataViews.FTVaultData(
                     storagePath: /storage/flowTokenVault,
                     receiverPath: /public/flowTokenReceiver,
@@ -256,8 +256,8 @@ access(all) contract FlowToken: FungibleToken {
         //
         access(all) fun mintTokens(amount: UFix64): @FlowToken.Vault {
             pre {
-                amount > UFix64(0): "Amount minted must be greater than zero"
-                amount <= self.allowedAmount: "Amount minted must be less than the allowed amount"
+                amount > UFix64(0): "FlowToken.Minter.mintTokens: Amount minted must be greater than zero but got \(amount)"
+                amount <= self.allowedAmount: "FlowToken.Minter.mintTokens: Amount minted (\(amount)) must be less than or equal to the allowed amount (\(self.allowedAmount))"
             }
             FlowToken.totalSupply = FlowToken.totalSupply + amount
             self.allowedAmount = self.allowedAmount - amount

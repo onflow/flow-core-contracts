@@ -169,11 +169,11 @@ access(all) contract LockedTokens {
                 // NOTE: This precondition prevents underflow — unlockLimit can never go negative.
                 // The subtraction in the postcondition is safe because this check guarantees
                 // unlockLimit >= amount before any state is modified.
-                self.unlockLimit >= amount: "Requested amount exceeds unlocked token limit"
+                self.unlockLimit >= amount: "LockedTokens.LockedTokenManager.withdrawUnlockedTokens: Requested amount \(amount) exceeds unlocked token limit of \(self.unlockLimit)"
             }
 
             post {
-                self.unlockLimit == before(self.unlockLimit) - amount: "Updated unlocked token limit is incorrect"
+                self.unlockLimit == before(self.unlockLimit) - amount: "LockedTokens.LockedTokenManager.withdrawUnlockedTokens: Updated unlocked token limit is incorrect"
             }
 
             let vaultRef = self.vault.borrow()!
@@ -215,7 +215,7 @@ access(all) contract LockedTokens {
 
                 assert(
                     stakingInfo.tokensStaked + stakingInfo.tokensCommitted + stakingInfo.tokensUnstaking + stakingInfo.tokensUnstaked + stakingInfo.tokensRewarded == 0.0,
-                    message: "Cannot register a new node until all tokens from the previous node have been withdrawn"
+                    message: "LockedTokens.LockedTokenManager.registerNode: Cannot register a new node until all tokens from the previous node have been withdrawn"
                 )
 
                 destroy nodeStaker
@@ -247,7 +247,7 @@ access(all) contract LockedTokens {
 
                 assert(
                     delegatorInfo.tokensStaked + delegatorInfo.tokensCommitted + delegatorInfo.tokensUnstaking + delegatorInfo.tokensUnstaked + delegatorInfo.tokensRewarded == 0.0,
-                    message: "Cannot register a new delegator until all tokens from the previous node have been withdrawn"
+                    message: "LockedTokens.LockedTokenManager.registerDelegator: Cannot register a new delegator until all tokens from the previous delegator have been withdrawn"
                 )
 
                 destroy delegator
@@ -257,7 +257,7 @@ access(all) contract LockedTokens {
 
             assert(
                 vaultRef.balance >= FlowIDTableStaking.getDelegatorMinimumStakeRequirement(),
-                message: "Must have the delegation minimum FLOW requirement in the locked vault to register a node"
+                message: "LockedTokens.LockedTokenManager.registerDelegator: Must have the delegation minimum FLOW requirement (\(FlowIDTableStaking.getDelegatorMinimumStakeRequirement())) in the locked vault to register a delegator but only have \(vaultRef.balance)"
             )
 
             let tokens <- vaultRef.withdraw(amount: amount)
@@ -338,7 +338,7 @@ access(all) contract LockedTokens {
 
         init(lockedAddress: Address, tokenManager: Capability<auth(FungibleToken.Withdraw, LockedTokens.UnlockTokens) &LockedTokenManager>) {
             pre {
-                tokenManager.borrow() != nil: "Must pass a LockedTokenManager capability"
+                tokenManager.borrow() != nil: "LockedTokens.TokenHolder.init: Must pass a LockedTokenManager capability"
             }
 
             self.address = lockedAddress
@@ -435,7 +435,7 @@ access(all) contract LockedTokens {
         access(TokenOperations) fun borrowStaker(): LockedNodeStakerProxy {
             pre {
                 self.nodeStakerProxy != nil:
-                    "The NodeStakerProxy doesn't exist!"
+                    "LockedTokens.TokenHolder.borrowStaker: The NodeStakerProxy doesn't exist!"
             }
             return self.nodeStakerProxy!
         }
@@ -451,7 +451,7 @@ access(all) contract LockedTokens {
         access(TokenOperations) fun borrowDelegator(): LockedNodeDelegatorProxy {
             pre {
                 self.nodeDelegatorProxy != nil:
-                    "The NodeDelegatorProxy doesn't exist!"
+                    "LockedTokens.TokenHolder.borrowDelegator: The NodeDelegatorProxy doesn't exist!"
             }
             return self.nodeDelegatorProxy!
         }
@@ -477,7 +477,7 @@ access(all) contract LockedTokens {
 
         init(tokenManager: Capability<auth(FungibleToken.Withdraw, LockedTokens.UnlockTokens) &LockedTokenManager>) {
             pre {
-                tokenManager.borrow() != nil: "Invalid token manager capability"
+                tokenManager.borrow() != nil: "LockedTokens.LockedNodeStakerProxy.init: Invalid token manager capability"
             }
             self.tokenManager = tokenManager
         }
@@ -492,7 +492,7 @@ access(all) contract LockedTokens {
 
             assert(
                 self.nodeObjectExists(tokenManagerRef),
-                message: "Cannot change networking address if there is no node object!"
+                message: "LockedTokens.LockedNodeStakerProxy.updateNetworkingAddress: Cannot change networking address if there is no node object!"
             )
 
             tokenManagerRef.borrowNode()?.updateNetworkingAddress(newAddress)
@@ -504,7 +504,7 @@ access(all) contract LockedTokens {
 
             assert(
                 self.nodeObjectExists(tokenManagerRef),
-                message: "Cannot stake if there is no node object!"
+                message: "LockedTokens.LockedNodeStakerProxy.stakeNewTokens: Cannot stake if there is no node object!"
             )
 
             let vaultRef = tokenManagerRef.vault.borrow()!
@@ -518,7 +518,7 @@ access(all) contract LockedTokens {
 
             assert(
                 self.nodeObjectExists(tokenManagerRef),
-                message: "Cannot stake if there is no node object!"
+                message: "LockedTokens.LockedNodeStakerProxy.stakeUnstakedTokens: Cannot stake if there is no node object!"
             )
 
             tokenManagerRef.borrowNode()?.stakeUnstakedTokens(amount: amount)
@@ -532,7 +532,7 @@ access(all) contract LockedTokens {
 
             assert(
                 self.nodeObjectExists(tokenManagerRef),
-                message: "Cannot stake if there is no node object!"
+                message: "LockedTokens.LockedNodeStakerProxy.stakeRewardedTokens: Cannot stake if there is no node object!"
             )
 
             tokenManagerRef.borrowNode()?.stakeRewardedTokens(amount: amount)
@@ -546,7 +546,7 @@ access(all) contract LockedTokens {
 
             assert(
                 self.nodeObjectExists(tokenManagerRef),
-                message: "Cannot stake if there is no node object!"
+                message: "LockedTokens.LockedNodeStakerProxy.requestUnstaking: Cannot unstake if there is no node object!"
             )
 
             tokenManagerRef.borrowNode()?.requestUnstaking(amount: amount)
@@ -559,7 +559,7 @@ access(all) contract LockedTokens {
 
             assert(
                 self.nodeObjectExists(tokenManagerRef),
-                message: "Cannot stake if there is no node object!"
+                message: "LockedTokens.LockedNodeStakerProxy.unstakeAll: Cannot unstake if there is no node object!"
             )
 
             tokenManagerRef.borrowNode()?.unstakeAll()
@@ -574,7 +574,7 @@ access(all) contract LockedTokens {
 
             assert(
                 self.nodeObjectExists(tokenManagerRef),
-                message: "Cannot stake if there is no node object!"
+                message: "LockedTokens.LockedNodeStakerProxy.withdrawUnstakedTokens: Cannot withdraw if there is no node object!"
             )
 
             let vaultRef = tokenManagerRef.vault.borrow()!
@@ -591,7 +591,7 @@ access(all) contract LockedTokens {
 
             assert(
                 self.nodeObjectExists(tokenManagerRef),
-                message: "Cannot stake if there is no node object!"
+                message: "LockedTokens.LockedNodeStakerProxy.withdrawRewardedTokens: Cannot withdraw if there is no node object!"
             )
 
             tokenManagerRef.deposit(from: <-tokenManagerRef.borrowNode()?.withdrawRewardedTokens(amount: amount)!)
@@ -605,7 +605,7 @@ access(all) contract LockedTokens {
 
         init(tokenManager: Capability<auth(FungibleToken.Withdraw, LockedTokens.UnlockTokens) &LockedTokenManager>) {
             pre {
-                tokenManager.borrow() != nil: "Invalid LockedTokenManager capability"
+                tokenManager.borrow() != nil: "LockedTokens.LockedNodeDelegatorProxy.init: Invalid LockedTokenManager capability"
             }
             self.tokenManager = tokenManager
         }
@@ -620,7 +620,7 @@ access(all) contract LockedTokens {
 
             assert(
                 self.delegatorObjectExists(tokenManagerRef),
-                message: "Cannot stake if there is no delegator object!"
+                message: "LockedTokens.LockedNodeDelegatorProxy.delegateNewTokens: Cannot delegate if there is no delegator object!"
             )
 
             let vaultRef = tokenManagerRef.vault.borrow()!
@@ -634,7 +634,7 @@ access(all) contract LockedTokens {
 
             assert(
                 self.delegatorObjectExists(tokenManagerRef),
-                message: "Cannot stake if there is no delegator object!"
+                message: "LockedTokens.LockedNodeDelegatorProxy.delegateUnstakedTokens: Cannot delegate if there is no delegator object!"
             )
 
             tokenManagerRef.borrowDelegator()?.delegateUnstakedTokens(amount: amount)
@@ -647,7 +647,7 @@ access(all) contract LockedTokens {
 
             assert(
                 self.delegatorObjectExists(tokenManagerRef),
-                message: "Cannot stake if there is no delegator object!"
+                message: "LockedTokens.LockedNodeDelegatorProxy.delegateRewardedTokens: Cannot delegate if there is no delegator object!"
             )
 
             tokenManagerRef.borrowDelegator()?.delegateRewardedTokens(amount: amount)
@@ -661,7 +661,7 @@ access(all) contract LockedTokens {
 
             assert(
                 self.delegatorObjectExists(tokenManagerRef),
-                message: "Cannot stake if there is no delegator object!"
+                message: "LockedTokens.LockedNodeDelegatorProxy.requestUnstaking: Cannot unstake if there is no delegator object!"
             )
 
             tokenManagerRef.borrowDelegator()?.requestUnstaking(amount: amount)
@@ -674,7 +674,7 @@ access(all) contract LockedTokens {
 
             assert(
                 self.delegatorObjectExists(tokenManagerRef),
-                message: "Cannot stake if there is no delegator object!"
+                message: "LockedTokens.LockedNodeDelegatorProxy.withdrawUnstakedTokens: Cannot withdraw if there is no delegator object!"
             )
 
             let vaultRef = tokenManagerRef.vault.borrow()!
@@ -690,7 +690,7 @@ access(all) contract LockedTokens {
 
             assert(
                 self.delegatorObjectExists(tokenManagerRef),
-                message: "Cannot stake if there is no delegator object!"
+                message: "LockedTokens.LockedNodeDelegatorProxy.withdrawRewardedTokens: Cannot withdraw if there is no delegator object!"
             )
 
             tokenManagerRef.deposit(from: <-tokenManagerRef.borrowDelegator()?.withdrawRewardedTokens(amount: amount)!)
@@ -756,7 +756,7 @@ access(all) contract LockedTokens {
 
         access(all) fun addCapability(cap: Capability<auth(LockedTokens.AccountCreator) &TokenAdminCollection>) {
             pre {
-                cap.borrow() != nil: "Invalid token admin collection capability"
+                cap.borrow() != nil: "LockedTokens.LockedAccountCreator.addCapability: Invalid token admin collection capability"
             }
             self.addAccountCapability = cap
         }
@@ -767,9 +767,9 @@ access(all) contract LockedTokens {
 
             pre {
                 self.addAccountCapability != nil:
-                    "Cannot add account until the token admin has deposited the account registration capability"
+                    "LockedTokens.LockedAccountCreator.addAccount: Cannot add account until the token admin has deposited the account registration capability"
                 tokenAdmin.borrow() != nil:
-                    "Invalid tokenAdmin capability"
+                    "LockedTokens.LockedAccountCreator.addAccount: Invalid tokenAdmin capability"
             }
 
             let adminRef = self.addAccountCapability!.borrow()!
