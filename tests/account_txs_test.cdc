@@ -23,10 +23,10 @@ fun testCreateAccount() {
         txResult,
         errorMessage: "Cannot add Key: Must provide a signature algorithm raw value that corresponds to "
                 .concat("one of the available signature algorithms for Flow keys.")
-                .concat("You provided 0")
+                .concat(" You provided 0")
                 .concat(" but the options are either 1 (ECDSA_P256) or 2 (ECDSA_secp256k1).")
     )
-     
+
     // Should fail
     txResult = executeTransaction(
         "../transactions/accounts/create_new_account.cdc",
@@ -38,7 +38,7 @@ fun testCreateAccount() {
         txResult,
         errorMessage: "Cannot add Key: Must provide a signature algorithm raw value that corresponds to "
                 .concat("one of the available signature algorithms for Flow keys.")
-                .concat("You provided 3")
+                .concat(" You provided 3")
                 .concat(" but the options are either 1 (ECDSA_P256) or 2 (ECDSA_secp256k1).")
     )
 
@@ -52,8 +52,8 @@ fun testCreateAccount() {
     Test.assertError(
         txResult,
         errorMessage: "Cannot add Key: Must provide a hash algorithm raw value that corresponds to "
-                .concat("one of of the available hash algorithms for Flow keys.")
-                .concat("You provided 0")
+                .concat("one of the available hash algorithms for Flow keys.")
+                .concat(" You provided 0")
                 .concat(" but the options are either 1 (SHA2_256) or 3 (SHA3_256).")
     )
 
@@ -67,8 +67,8 @@ fun testCreateAccount() {
     Test.assertError(
         txResult,
         errorMessage: "Cannot add Key: Must provide a hash algorithm raw value that corresponds to "
-                .concat("one of of the available hash algorithms for Flow keys.")
-                .concat("You provided 2")
+                .concat("one of the available hash algorithms for Flow keys.")
+                .concat(" You provided 2")
                 .concat(" but the options are either 1 (SHA2_256) or 3 (SHA3_256).")
     )
 
@@ -96,7 +96,7 @@ fun testAddKey() {
         txResult,
         errorMessage: "Cannot add Key: Must provide a signature algorithm raw value that corresponds to "
                 .concat("one of the available signature algorithms for Flow keys.")
-                .concat("You provided 0")
+                .concat(" You provided 0")
                 .concat(" but the options are either 1 (ECDSA_P256) or 2 (ECDSA_secp256k1).")
     )
 
@@ -111,7 +111,7 @@ fun testAddKey() {
         txResult,
         errorMessage: "Cannot add Key: Must provide a signature algorithm raw value that corresponds to "
                 .concat("one of the available signature algorithms for Flow keys.")
-                .concat("You provided 5")
+                .concat(" You provided 5")
                 .concat(" but the options are either 1 (ECDSA_P256) or 2 (ECDSA_secp256k1).")
     )
 
@@ -125,8 +125,8 @@ fun testAddKey() {
     Test.assertError(
         txResult,
         errorMessage: "Cannot add Key: Must provide a hash algorithm raw value that corresponds to "
-                .concat("one of of the available hash algorithms for Flow keys.")
-                .concat("You provided 0")
+                .concat("one of the available hash algorithms for Flow keys.")
+                .concat(" You provided 0")
                 .concat(" but the options are either 1 (SHA2_256) or 3 (SHA3_256).")
     )
 
@@ -140,8 +140,8 @@ fun testAddKey() {
     Test.assertError(
         txResult,
         errorMessage: "Cannot add Key: Must provide a hash algorithm raw value that corresponds to "
-                .concat("one of of the available hash algorithms for Flow keys.")
-                .concat("You provided 10")
+                .concat("one of the available hash algorithms for Flow keys.")
+                .concat(" You provided 10")
                 .concat(" but the options are either 1 (SHA2_256) or 3 (SHA3_256).")
     )
 
