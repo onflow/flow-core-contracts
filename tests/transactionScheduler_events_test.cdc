@@ -231,7 +231,9 @@ access(all) fun testScheduledTransactionExecution() {
                 Test.assertEqual(pendingExecutionEvent.priority, executedEvent.priority)
                 Test.assertEqual(pendingExecutionEvent.executionEffort, executedEvent.executionEffort)
                 Test.assertEqual(pendingExecutionEvent.transactionHandlerOwner, executedEvent.transactionHandlerOwner)
-                Test.assertEqual(pendingExecutionEvent.transactionHandlerTypeIdentifier, executedEvent.transactionHandlerTypeIdentifier!)
+                // PendingExecution always emits "" for transactionHandlerTypeIdentifier (to avoid failures
+                // when the handler contract is broken), so we check the Executed event directly instead
+                Test.assertEqual("", pendingExecutionEvent.transactionHandlerTypeIdentifier)
                 Test.assertEqual(TestFlowScheduledTransactionHandler.HandlerPublicPath, executedEvent.transactionHandlerPublicPath!)
                 firstEvent = true
             }
