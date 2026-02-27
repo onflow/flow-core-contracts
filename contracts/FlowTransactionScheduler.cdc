@@ -1298,19 +1298,17 @@ access(all) contract FlowTransactionScheduler {
             let pendingTransactions = self.pendingQueue()
 
             for tx in pendingTransactions {
-                // Only emit the pending execution event if the transaction handler capability is borrowable
-                // This is to prevent a situation where the transaction handler is not available
-                // In that case, the transaction is no longer valid because it cannot be executed
-                if let transactionHandler = tx.handler.borrow() {
-                    emit PendingExecution(
-                        id: tx.id,
-                        priority: tx.priority.rawValue,
-                        executionEffort: tx.executionEffort,
-                        fees: tx.fees,
-                        transactionHandlerOwner: tx.handler.address,
-                        transactionHandlerTypeIdentifier: transactionHandler.getType().identifier
-                    )
-                }
+
+                emit PendingExecution(
+                    id: tx.id,
+                    priority: tx.priority.rawValue,
+                    executionEffort: tx.executionEffort,
+                    fees: tx.fees,
+                    transactionHandlerOwner: tx.handler.address,
+                    // Cannot use the real type identifier here because if
+                    // the handler contract is broken, it could cause the process function to fail
+                    transactionHandlerTypeIdentifier: ""
+                )
 
                 // after pending execution event is emitted we set the transaction as executed because we 
                 // must rely on execution node to actually execute it. Execution of the transaction is 

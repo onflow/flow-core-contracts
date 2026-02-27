@@ -263,9 +263,12 @@ access(all) fun testScheduledTransactionDestroyHandler() {
 
     processTransactions()
 
-    // The transaction with the handler should not have emitted an event because the handler was destroyed
+    // The PendingExecution event is always emitted even when the handler is destroyed,
+    // but transactionHandlerTypeIdentifier is "" since the handler cannot be borrowed
     let pendingExecutionEvents = Test.eventsOfType(Type<FlowTransactionScheduler.PendingExecution>())
-    Test.assertEqual(0, pendingExecutionEvents.length)
+    Test.assertEqual(1, pendingExecutionEvents.length)
+    let pendingEvent = pendingExecutionEvents[0] as! FlowTransactionScheduler.PendingExecution
+    Test.assertEqual("", pendingEvent.transactionHandlerTypeIdentifier)
 
     executeScheduledTransaction(
         id: 1,
