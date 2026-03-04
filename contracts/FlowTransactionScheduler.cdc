@@ -382,8 +382,6 @@ access(all) contract FlowTransactionScheduler {
                     "Invalid priority effort limit: Medium priority effort limit must be greater than the low priority effort limit of \(priorityEffortLimit[Priority.Low]!)"
                 self.priorityEffortLimit[Priority.High]! > self.priorityEffortLimit[Priority.Medium]!:
                     "Invalid priority effort limit: High priority effort limit must be greater than the medium priority effort limit of \(priorityEffortLimit[Priority.Medium]!)"
-                self.priorityEffortReserve[Priority.Low]! == 0:
-                    "Invalid priority effort reserve: Low priority effort reserve must be 0"
                 self.collectionTransactionsLimit >= 0:
                     "Invalid collection transactions limit: Collection transactions limit must be greater than or equal to 0 but got \(collectionTransactionsLimit)"
                 self.canceledTransactionsLimit >= 1:
@@ -430,7 +428,7 @@ access(all) contract FlowTransactionScheduler {
             // Legacy fields kept for storage compatibility; not used by scheduling logic
             self.slotTotalEffortLimit = priorityEffortLimit[Priority.High]! + priorityEffortLimit[Priority.Medium]! + priorityEffortLimit[Priority.Low]!
             self.slotSharedEffortLimit = 0
-            self.priorityEffortReserve = {Priority.High: 0, Priority.Medium: 0, Priority.Low: 0}
+            self.priorityEffortReserve = {Priority.High: priorityEffortLimit[Priority.High]!, Priority.Medium: priorityEffortLimit[Priority.Medium]!, Priority.Low: priorityEffortLimit[Priority.Low]!}
             self.maxDataSizeMB = maxDataSizeMB
             self.priorityFeeMultipliers = priorityFeeMultipliers
             self.refundMultiplier = refundMultiplier
