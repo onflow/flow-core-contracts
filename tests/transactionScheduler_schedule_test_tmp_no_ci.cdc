@@ -453,14 +453,15 @@ access(all) fun testScheduleAndEffortUsed() {
                 )
             ],
             transactionsIndicesToCancel: [],
+            // V2: medium pool is independent; high pool is unaffected when medium is full
             expectedAvailableEfforts: {
                 futureDelta: {
-                    highPriority: highPriorityMaxEffort - sharedEffortLimit,
+                    highPriority: highPriorityMaxEffort,
                     mediumPriority: 0,
                     lowPriority: lowPriorityMaxEffort
                 },
                 futureDelta + 1.0: {
-                    highPriority: highPriorityMaxEffort - sharedEffortLimit,
+                    highPriority: highPriorityMaxEffort,
                     mediumPriority: 0,
                     lowPriority: lowPriorityMaxEffort
                 }
@@ -513,19 +514,20 @@ access(all) fun testScheduleAndEffortUsed() {
                 mediumTransactionWith2000Effort
             ],
             transactionsIndicesToCancel: [],
+            // V2: medium pool is independent; high pool is unaffected when medium transactions fill their slots
             expectedAvailableEfforts: {
                 futureDelta: {
-                    highPriority: highPriorityMaxEffort - 3500,
+                    highPriority: highPriorityMaxEffort,
                     mediumPriority: 1500,
                     lowPriority: lowPriorityMaxEffort
                 },
                 futureDelta + 1.0: {
-                    highPriority: highPriorityMaxEffort - 3500,
+                    highPriority: highPriorityMaxEffort,
                     mediumPriority: 1500,
                     lowPriority: lowPriorityMaxEffort
                 },
                 futureDelta + 2.0: {
-                    highPriority: highPriorityMaxEffort - 3500,
+                    highPriority: highPriorityMaxEffort,
                     mediumPriority: 1500,
                     lowPriority: lowPriorityMaxEffort
                 },
@@ -543,7 +545,7 @@ access(all) fun testScheduleAndEffortUsed() {
             },
             expectedPendingQueueAfterExecution: []
         ),
-        
+
         // High priority only test cases
         ScheduleAndEffortUsedTestCase(
             name: "High priority: Min effort fits in slot and uses min effort",
@@ -650,10 +652,11 @@ access(all) fun testScheduleAndEffortUsed() {
                 )
             ],
             transactionsIndicesToCancel: [],
+            // V2: high pool is independent; medium pool is unaffected when high transactions fill their slot
             expectedAvailableEfforts: {
                 futureDelta: {
                     highPriority: highPriorityMaxEffort - 12000,
-                    mediumPriority: 5500,
+                    mediumPriority: mediumPriorityMaxEffort,
                     lowPriority: lowPriorityMaxEffort
                 },
                 futureDelta + 1.0: {
@@ -668,10 +671,10 @@ access(all) fun testScheduleAndEffortUsed() {
             },
             expectedPendingQueueAfterExecution: []
         ),
-        
-        // Mixed priority test cases - testing shared limit usage
+
+        // Mixed priority test cases - testing isolated pool behavior
         ScheduleAndEffortUsedTestCase(
-            name: "Mixed priorities: High priorities use shared limit, medium priority uses reserve",
+            name: "Mixed priorities: High priority pool fills up, medium and low pools are independent",
             transactions: [
                 ScheduledTransaction(
                     requestedDelta: futureDelta,
@@ -692,7 +695,7 @@ access(all) fun testScheduleAndEffortUsed() {
                 ScheduledTransaction(
                     requestedDelta: futureDelta,
                     priority: mediumPriority,
-                    executionEffort: mediumPriorityEffortReserve,
+                    executionEffort: 2500,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
@@ -723,26 +726,22 @@ access(all) fun testScheduleAndEffortUsed() {
                 )
             ],
             transactionsIndicesToCancel: [],
+            // V2: pools are isolated; medium (2500+1000=3500 used, 4000 remaining) and low (1000 used, 1500 remaining)
+            // are unaffected when the high pool (9000+6000=15000) is full
             expectedAvailableEfforts: {
                 futureDelta: {
                     highPriority: 0,
-                    mediumPriority: 0,
-                    lowPriority: 0
-                },
-                futureDelta + 1.0: {
-                    highPriority: highPriorityMaxEffort,
-                    mediumPriority: mediumPriorityMaxEffort - 1000,
-                    lowPriority: lowPriorityMaxEffort - 1000
+                    mediumPriority: 4000,
+                    lowPriority: 1500
                 }
             },
             expectedPendingQueues: {
-                futureDelta: [1,2,3],
-                futureDelta + 1.0: [1,2,3,4,5]
+                futureDelta: [1,2,3,4,5]
             },
             expectedPendingQueueAfterExecution: []
         ),
         ScheduleAndEffortUsedTestCase(
-            name: "Mixed priorities: Medium uses shared limit, high priority fails in the same slot",
+            name: "Mixed priorities: Medium priority pool fills up, high priority pool remains independent",
             transactions: [
                 ScheduledTransaction(
                     requestedDelta: futureDelta,
@@ -766,33 +765,34 @@ access(all) fun testScheduleAndEffortUsed() {
                     executionEffort: 1001,
                     data: testData,
                     fees: feeAmount,
-                    failWithErr: "Invalid execution effort: 1001 is greater than the priority's available effort for the requested timestamp."
+                    // V2: high pool is independent; 6000 remain after 9000 used, so 1001 fits
+                    failWithErr: nil
                 ),
                 ScheduledTransaction(
                     requestedDelta: futureDelta,
                     priority: highPriority,
                     executionEffort: 1000,
                     data: testData,
-                    fees: feeAmount,    
+                    fees: feeAmount,
                     failWithErr: nil
                 )
             ],
             transactionsIndicesToCancel: [],
+            // V2: high pool (9000+1001+1000=11001 used, 3999 remaining), medium pool (7500 used, 0 remaining)
             expectedAvailableEfforts: {
                 futureDelta: {
-                    highPriority: 0,
+                    highPriority: 3999,
                     mediumPriority: 0,
-                    lowPriority: 0
+                    lowPriority: lowPriorityMaxEffort
                 }
             },
             expectedPendingQueues: {
-                futureDelta: [1,2,3],
-                futureDelta + 1.0: [1,2,3]
+                futureDelta: [1,2,3,4]
             },
             expectedPendingQueueAfterExecution: []
         ),
         ScheduleAndEffortUsedTestCase(
-            name: "Mixed priorities: High and medium use most of shared limit, low priority fits in remaining but doesn't use the high or medium effort",
+            name: "Mixed priorities: High medium and low priority pools are all independent",
             transactions: [
                 highTransactionWith4000Effort,
                 highTransactionWith4000Effort,
@@ -800,7 +800,7 @@ access(all) fun testScheduleAndEffortUsed() {
                 ScheduledTransaction(
                     requestedDelta: futureDelta,
                     priority: mediumPriority,
-                    executionEffort: mediumPriorityEffortReserve + 2000,
+                    executionEffort: 4500,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
@@ -831,266 +831,16 @@ access(all) fun testScheduleAndEffortUsed() {
                 )
             ],
             transactionsIndicesToCancel: [],
+            // V2: all 7 txs fit at futureDelta; high=12000 used, medium=4500+1001=5501 used, low=1001+1000=2001 used
             expectedAvailableEfforts: {
                 futureDelta: {
-                    highPriority: 1000,
-                    mediumPriority: 1000,
-                    lowPriority: 0
-                },
-                futureDelta + 1.0: {
-                    highPriority: highPriorityMaxEffort,
-                    mediumPriority: mediumPriorityMaxEffort-1001,
-                    lowPriority: lowPriorityMaxEffort - 1001
+                    highPriority: 3000,
+                    mediumPriority: 1999,
+                    lowPriority: 499
                 }
             },
             expectedPendingQueues: {
-                futureDelta: [1,2,3,4,7],
-                futureDelta + 1.0: [1,2,3,4,5,6,7]
-            },
-            expectedPendingQueueAfterExecution: []
-        ),
-        
-        // Test cases for low priority transactions getting rescheduled by higher priority transactions
-        ScheduleAndEffortUsedTestCase(
-            name: "Low priority gets rescheduled: Low priority fills slot, high and medium priority pushes it to next timestamp",
-            transactions: [
-                ScheduledTransaction(
-                    requestedDelta: futureDelta,
-                    priority: lowPriority,
-                    executionEffort: lowPriorityMaxEffort,
-                    data: testData,
-                    fees: feeAmount,
-                    failWithErr: nil
-                ),
-                ScheduledTransaction(
-                    requestedDelta: futureDelta,
-                    priority: highPriority,
-                    executionEffort: 4500,
-                    data: testData,
-                    fees: feeAmount,
-                    failWithErr: nil
-                ),
-                ScheduledTransaction(
-                    requestedDelta: futureDelta,
-                    priority: highPriority,
-                    executionEffort: 4500,
-                    data: testData,
-                    fees: feeAmount,
-                    failWithErr: nil
-                ),
-                ScheduledTransaction(
-                    requestedDelta: futureDelta,
-                    priority: highPriority,
-                    executionEffort: 4500,
-                    data: testData,
-                    fees: feeAmount,
-                    failWithErr: nil
-                ),
-                ScheduledTransaction(
-                    requestedDelta: futureDelta,
-                    priority: mediumPriority,
-                    executionEffort: 4000,
-                    data: testData,
-                    fees: feeAmount,
-                    failWithErr: nil
-                )
-            ],
-            transactionsIndicesToCancel: [],
-            expectedAvailableEfforts: {
-                futureDelta: {
-                    highPriority: 0,
-                    mediumPriority: 0,
-                    lowPriority: 0
-                },
-                futureDelta + 1.0: {
-                    highPriority: highPriorityMaxEffort,
-                    mediumPriority: mediumPriorityMaxEffort,
-                    lowPriority: 0
-                }
-            },
-            expectedPendingQueues: {
-                futureDelta: [2,3,4,5],
-                futureDelta + 1.0: [1,2,3,4,5]
-            },
-            expectedPendingQueueAfterExecution: []
-        ),
-        ScheduleAndEffortUsedTestCase(
-            name: "Low priority gets rescheduled: Multiple low priority transactions get pushed by high and medium priority",
-            transactions: [
-                ScheduledTransaction(
-                    requestedDelta: futureDelta,
-                    priority: lowPriority,
-                    executionEffort: 1000,
-                    data: testData,
-                    fees: feeAmount,
-                    failWithErr: nil
-                ),
-                ScheduledTransaction(
-                    requestedDelta: futureDelta,
-                    priority: lowPriority,
-                    executionEffort: 1000,
-                    data: testData,
-                    fees: feeAmount,
-                    failWithErr: nil
-                ),
-                highTransactionWith4000Effort,
-                highTransactionWith4000Effort,
-                highTransactionWith4000Effort,
-                ScheduledTransaction(
-                    requestedDelta: futureDelta,
-                    priority: highPriority,
-                    executionEffort: 3000,
-                    data: testData,
-                    fees: feeAmount,
-                    failWithErr: nil
-                ),
-                ScheduledTransaction(
-                    requestedDelta: futureDelta,
-                    priority: mediumPriority,
-                    executionEffort: 1000,
-                    data: testData,
-                    fees: feeAmount,
-                    failWithErr: nil
-                )
-            ],
-            transactionsIndicesToCancel: [],
-            expectedAvailableEfforts: {
-                futureDelta: {
-                    highPriority: 0,
-                    mediumPriority: 1500,
-                    lowPriority: 500
-                },
-                futureDelta + 1.0: {
-                    highPriority: highPriorityMaxEffort,
-                    mediumPriority: mediumPriorityMaxEffort,
-                    lowPriority: 1500
-                }
-            },
-            expectedPendingQueues: {
-                futureDelta: [2,3,4,5,6,7],
-                futureDelta + 1.0: [1,2,3,4,5,6,7]
-            },
-            expectedPendingQueueAfterExecution: []
-        ),
-        ScheduleAndEffortUsedTestCase(
-            name: "Low priority gets rescheduled: Low Priorities get pushed to multiple slots",
-            transactions: [
-                // Schedule two low priority transactions for the same timestamp
-                ScheduledTransaction(
-                    requestedDelta: futureDelta,
-                    priority: lowPriority,
-                    executionEffort: 1500,
-                    data: testData,
-                    fees: feeAmount,
-                    failWithErr: nil
-                ),
-                ScheduledTransaction(
-                    requestedDelta: futureDelta,
-                    priority: lowPriority,
-                    executionEffort: 1000,
-                    data: testData,
-                    fees: feeAmount,
-                    failWithErr: nil
-                ),
-                // Schedule medium transactions to fill up the medium slots and shared limit
-                ScheduledTransaction(
-                    requestedDelta: futureDelta,
-                    priority: mediumPriority,
-                    executionEffort: 4000,
-                    data: testData,
-                    fees: feeAmount,
-                    failWithErr: nil
-                ),
-                ScheduledTransaction(
-                    requestedDelta: futureDelta,
-                    priority: mediumPriority,
-                    executionEffort: 3500,
-                    data: testData,
-                    fees: feeAmount,
-                    failWithErr: nil
-                ),
-                // Schedule high transactions for the next timestamp so that the low priority transactions get pushed to the next timestamp
-                ScheduledTransaction(
-                    requestedDelta: futureDelta + 1.0,
-                    priority: highPriority,
-                    executionEffort: 4000,
-                    data: testData,
-                    fees: feeAmount,
-                    failWithErr: nil
-                ),
-                ScheduledTransaction(
-                    requestedDelta: futureDelta + 1.0,
-                    priority: highPriority,
-                    executionEffort: 4000,
-                    data: testData,
-                    fees: feeAmount,
-                    failWithErr: nil
-                ),
-                ScheduledTransaction(
-                    requestedDelta: futureDelta + 1.0,
-                    priority: highPriority,
-                    executionEffort: 4000,
-                    data: testData,
-                    fees: feeAmount,
-                    failWithErr: nil
-                ),
-                ScheduledTransaction(
-                    requestedDelta: futureDelta + 1.0,
-                    priority: highPriority,
-                    executionEffort: 3000,
-                    data: testData,
-                    fees: feeAmount,
-                    failWithErr: nil
-                ),
-                // Schedule medium transaction for the next timestamp to fill up the medium slots so that the low priority transactions get pushed to the next timestamp
-                ScheduledTransaction(
-                    requestedDelta: futureDelta + 1.0,
-                    priority: mediumPriority,
-                    executionEffort: mediumPriorityEffortReserve - 1000,
-                    data: testData,
-                    fees: feeAmount,
-                    failWithErr: nil
-                ),
-                ScheduledTransaction(
-                    requestedDelta: futureDelta,
-                    priority: highPriority,
-                    executionEffort: 4750,
-                    data: testData,
-                    fees: feeAmount,
-                    failWithErr: nil
-                ),
-                // Should push 1 and 2 to the next two timestamps
-                 ScheduledTransaction(
-                    requestedDelta: futureDelta,
-                    priority: highPriority,
-                    executionEffort: 4750,
-                    data: testData,
-                    fees: feeAmount,
-                    failWithErr: nil
-                )
-            ],
-            transactionsIndicesToCancel: [],
-            expectedAvailableEfforts: {
-                futureDelta: {
-                    highPriority: 500,
-                    mediumPriority: 0,
-                    lowPriority: 500
-                },
-                futureDelta + 1.0: {
-                    highPriority: 0,
-                    mediumPriority: 1000,
-                    lowPriority: 0
-                },
-                futureDelta + 2.0: {
-                    highPriority: highPriorityMaxEffort,
-                    mediumPriority: mediumPriorityMaxEffort,
-                    lowPriority: 1000
-                }
-            },
-            expectedPendingQueues: {
-                futureDelta: [3,4,10,11],
-                futureDelta + 1.0: [2,3,4,5,6,7,8,9,10,11],
-                futureDelta + 2.0: [1,2,3,4,5,6,7,8,9,10,11]
+                futureDelta: [1,2,3,4,5,6,7]
             },
             expectedPendingQueueAfterExecution: []
         ),
@@ -1312,7 +1062,7 @@ access(all) fun testScheduleAndEffortUsed() {
             expectedPendingQueueAfterExecution: []
         ),
         ScheduleAndEffortUsedTestCase(
-            name: "Cancel Tests: Cancel a transaction that was moved to a different timestamp by another transaction",
+            name: "Cancel Tests: Cancel a low priority transaction that filled the low pool while high pool is also full",
             transactions: [
                 ScheduledTransaction(
                     requestedDelta: futureDelta,
@@ -1336,28 +1086,23 @@ access(all) fun testScheduleAndEffortUsed() {
                 ScheduledTransaction(
                     requestedDelta: futureDelta,
                     priority: mediumPriority,
-                    executionEffort: mediumPriorityEffortReserve,
+                    executionEffort: 2500,
                     data: testData,
                     fees: feeAmount,
                     failWithErr: nil
                 )
             ],
             transactionsIndicesToCancel: [0],
+            // V2: tx1 (low) stays at futureDelta; after cancel: low pool (2500) restored; high=0, medium=5000 remaining
             expectedAvailableEfforts: {
                 futureDelta: {
                     highPriority: 0,
-                    mediumPriority: 0,
-                    lowPriority: 0
-                },
-                futureDelta + 1.0: {
-                    highPriority: highPriorityMaxEffort,
-                    mediumPriority: mediumPriorityMaxEffort,
+                    mediumPriority: 5000,
                     lowPriority: lowPriorityMaxEffort
                 }
             },
             expectedPendingQueues: {
-                futureDelta: [2,3,4,5,6],
-                futureDelta + 1.0: [2,3,4,5,6]
+                futureDelta: [2,3,4,5,6]
             },
             expectedPendingQueueAfterExecution: []
         ),

@@ -16,7 +16,8 @@ access(all) let statusScheduled = UInt8(1)
 access(all) let statusExecuted = UInt8(2)
 access(all) let statusCanceled = UInt8(3)
 
-access(all) let slotTotalEffortLimit: UInt64 = 17500
+// slotTotalEffortLimit is the sum of all per-priority limits (High + Medium + Low)
+access(all) let slotTotalEffortLimit: UInt64 = 25000
 
 access(all) let basicEffort: UInt64 = 1000
 access(all) let mediumEffort: UInt64 = 5000
@@ -27,10 +28,6 @@ access(all) let minEffort: UInt64 = 100
 access(all) let lowPriorityMaxEffort: UInt64 = 2500
 access(all) let mediumPriorityMaxEffort: UInt64 = 7500
 access(all) let highPriorityMaxEffort: UInt64 = 15000
-
-access(all) let highPriorityEffortReserve: UInt64 = 10000
-access(all) let mediumPriorityEffortReserve: UInt64 = 2500
-access(all) let sharedEffortLimit: UInt64 = 5000
 
 access(all) let canceledTransactionsLimit: UInt = 1000
 
@@ -215,8 +212,8 @@ access(all) fun executeScheduledTransactionWithCapability(
 access(all) fun setConfigDetails(
     maximumIndividualEffort: UInt64?,
     minimumExecutionEffort: UInt64?,
-    slotSharedEffortLimit: UInt64?,
-    priorityEffortReserve: {UInt8: UInt64}?,
+    highPriorityEffortLimit: UInt64?,
+    mediumPriorityEffortLimit: UInt64?,
     lowPriorityEffortLimit: UInt64?,
     maxDataSizeMB: UFix64?,
     priorityFeeMultipliers: {UInt8: UFix64}?,
@@ -232,10 +229,10 @@ access(all) fun setConfigDetails(
         code: setConfigDetailsCode,
         authorizers: [admin.address],
         signers: [admin],
-        arguments: [maximumIndividualEffort, 
+        arguments: [maximumIndividualEffort,
                     minimumExecutionEffort,
-                    slotSharedEffortLimit,
-                    priorityEffortReserve,
+                    highPriorityEffortLimit,
+                    mediumPriorityEffortLimit,
                     lowPriorityEffortLimit,
                     maxDataSizeMB,
                     priorityFeeMultipliers,

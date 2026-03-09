@@ -3,8 +3,8 @@ import "FlowTransactionScheduler"
 transaction(
             maximumIndividualEffort: UInt64?,
             minimumExecutionEffort: UInt64?,
-            slotSharedEffortLimit: UInt64?,
-            priorityEffortReserve: {UInt8: UInt64}?,
+            highPriorityEffortLimit: UInt64?,
+            mediumPriorityEffortLimit: UInt64?,
             lowPriorityEffortLimit: UInt64?,
             maxDataSizeMB: UFix64?,
             priorityFeeMultipliers: {UInt8: UFix64}?,
@@ -25,24 +25,10 @@ transaction(
         let mediumRawValue = FlowTransactionScheduler.Priority.Medium.rawValue
         let lowRawValue = FlowTransactionScheduler.Priority.Low.rawValue
 
-        var newReserves: {FlowTransactionScheduler.Priority: UInt64} = {
-            FlowTransactionScheduler.Priority.High: currentConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.High]!,
-            FlowTransactionScheduler.Priority.Medium: currentConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.Medium]!,
-            FlowTransactionScheduler.Priority.Low: currentConfig.priorityEffortReserve[FlowTransactionScheduler.Priority.Low]!
-        }
-
         var newMultipliers: {FlowTransactionScheduler.Priority: UFix64} = {
             FlowTransactionScheduler.Priority.High: currentConfig.priorityFeeMultipliers[FlowTransactionScheduler.Priority.High]!,
             FlowTransactionScheduler.Priority.Medium: currentConfig.priorityFeeMultipliers[FlowTransactionScheduler.Priority.Medium]!,
             FlowTransactionScheduler.Priority.Low: currentConfig.priorityFeeMultipliers[FlowTransactionScheduler.Priority.Low]!
-        }
-
-        if let reserves = priorityEffortReserve {
-            newReserves = {
-                FlowTransactionScheduler.Priority.High: reserves[highRawValue]!,
-                FlowTransactionScheduler.Priority.Medium: reserves[mediumRawValue]!,
-                FlowTransactionScheduler.Priority.Low: reserves[lowRawValue]!
-            }
         }
 
         if let multipliers = priorityFeeMultipliers {
@@ -57,9 +43,11 @@ transaction(
         let newConfig: FlowTransactionScheduler.Config = FlowTransactionScheduler.Config(
             maximumIndividualEffort: maximumIndividualEffort ?? currentConfig.maximumIndividualEffort,
             minimumExecutionEffort: minimumExecutionEffort ?? currentConfig.minimumExecutionEffort,
-            slotSharedEffortLimit: slotSharedEffortLimit ?? currentConfig.slotSharedEffortLimit,
-            priorityEffortReserve: newReserves,
-            lowPriorityEffortLimit: lowPriorityEffortLimit ?? currentConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.Low]!,
+            priorityEffortLimit: {
+                FlowTransactionScheduler.Priority.High: highPriorityEffortLimit ?? currentConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.High]!,
+                FlowTransactionScheduler.Priority.Medium: mediumPriorityEffortLimit ?? currentConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.Medium]!,
+                FlowTransactionScheduler.Priority.Low: lowPriorityEffortLimit ?? currentConfig.priorityEffortLimit[FlowTransactionScheduler.Priority.Low]!
+            },
             maxDataSizeMB: maxDataSizeMB ?? currentConfig.maxDataSizeMB,
             priorityFeeMultipliers: newMultipliers,
             refundMultiplier: refundMultiplier ?? currentConfig.refundMultiplier,
