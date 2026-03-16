@@ -1232,6 +1232,7 @@ access(all) contract FlowTransactionScheduler {
 
 				if midCanceledID == id {
                     emit CriticalIssue(message: "Invalid ID: \(id) transaction already in canceled transactions array")
+                    break
                 } else if midCanceledID > id {
 					high = mid
 				} else {
