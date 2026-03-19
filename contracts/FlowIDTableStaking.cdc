@@ -1387,7 +1387,13 @@ access(all) contract FlowIDTableStaking {
                 rewardsBreakdownArray.append(rewardsBreakdown)
             }
 
-            var withheldRewardsScale = sumRewardsWithheld / (totalStaked - sumStakeFromNonOperationalStakers)
+            // If all staked nodes are non-operational, the denominator is zero and there are
+            // no operational nodes to redistribute withheld rewards to, so the scale is zero.
+            var withheldRewardsScale = 0.0
+            let operationalStake = totalStaked - sumStakeFromNonOperationalStakers
+            if operationalStake > 0.0 {
+                withheldRewardsScale = sumRewardsWithheld / operationalStake
+            }
             let totalRewardsPlusWithheld = totalRewardScale + withheldRewardsScale
 
             /// iterate through all the nodes to pay
