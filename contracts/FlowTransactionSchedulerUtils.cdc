@@ -294,8 +294,9 @@ access(all) contract FlowTransactionSchedulerUtils {
 
             if self.idsByTimestamp.containsKey(timestamp) {
                 let ids = &self.idsByTimestamp[timestamp]! as auth(Mutate) &[UInt64]
-                let index = ids.firstIndex(of: id)
-                ids.remove(at: index!)
+                if let index = ids.firstIndex(of: id) {
+                    ids.remove(at: index)
+                }
                 if ids.length == 0 {
                     self.idsByTimestamp.remove(key: timestamp)
                     self.sortedTimestamps.remove(timestamp: timestamp)
