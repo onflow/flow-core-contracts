@@ -102,6 +102,8 @@ access(all) contract FlowClusterQC {
 
         /// Returns the minimum sum of vote weight required in order to be able to generate a
         /// valid quorum certificate for this cluster.
+        /// This is an INCLUSIVE lower bound: a vote weight >= this value meets quorum.
+        /// The threshold is set above 2/3 of total weight, ensuring Byzantine fault tolerance.
         access(all) view fun voteThreshold(): UInt64 {
             if self.totalWeight == 0 {
                 return 0
@@ -123,10 +125,15 @@ access(all) contract FlowClusterQC {
         }
 
         /// Returns the status of this cluster's QC process
-        /// If there is a number of weight for identical votes exceeding the `voteThreshold`,
-        /// Then this cluster's QC generation is considered complete and this method returns 
-        /// the vote message that reached quorum
-        /// If no vote is found to reach quorum, then `nil` is returned
+        /// If a vote message accumulates weight >= voteThreshold(), the QC is complete.
+        /// Then this cluster's QC generation is considered complete and this method returns
+        /// the vote message that reached quorum.
+        /// If no vote is found to reach quorum, then `nil` is returned.
+        ///
+        /// NOTE: The `>=` comparison is correct and intentional. voteThreshold() returns an
+        /// inclusive lower bound — a total weight equal to the threshold satisfies quorum.
+        /// This is NOT a weakened quorum check; the threshold value itself is calculated to
+        /// require strictly more than 2/3 of total weight.
         access(all) view fun isComplete(): String? {
             for message in self.uniqueVoteMessageTotalWeights.keys {
                 if self.uniqueVoteMessageTotalWeights[message]! >= self.voteThreshold() {
