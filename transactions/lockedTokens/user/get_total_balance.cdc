@@ -20,6 +20,10 @@ access(all) fun main(address: Address): UFix64 {
     var sum = 0.0
 
     let account = getAccount(address)
+    // NOTE: getAuthAccount is not available in Cadence 1.0 scripts and will fail at runtime.
+    // This script is outdated and needs to be rewritten. It cannot be used on mainnet.
+    // The NodeStaker resource is no longer publicly accessible via capability, so an alternative
+    // approach (e.g. reading staking info via FlowIDTableStaking.NodeInfo) is required.
     let authAccount = getAuthAccount<auth(Storage) &Account>(address)
 
     if let vaultRef = account.capabilities.borrow<&FlowToken.Vault>(/public/flowTokenBalance) {

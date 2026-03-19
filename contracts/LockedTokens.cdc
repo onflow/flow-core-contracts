@@ -166,6 +166,9 @@ access(all) contract LockedTokens {
 
         access(self) fun withdrawUnlockedTokens(amount: UFix64): @{FungibleToken.Vault} {
             pre {
+                // NOTE: This precondition prevents underflow — unlockLimit can never go negative.
+                // The subtraction in the postcondition is safe because this check guarantees
+                // unlockLimit >= amount before any state is modified.
                 self.unlockLimit >= amount: "Requested amount exceeds unlocked token limit"
             }
 
