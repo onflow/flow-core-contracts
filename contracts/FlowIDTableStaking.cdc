@@ -143,7 +143,10 @@ access(all) contract FlowIDTableStaking {
         /// List of delegators for this node operator
         access(all) let delegators: @{UInt32: DelegatorRecord}
 
-        /// The incrementing ID used to register new delegators
+        /// The incrementing ID used to register new delegators.
+        /// NOTE: delegatorIDs are scoped per node — the unique identifier for a delegator is
+        /// the pair (nodeID, delegatorID), not delegatorID alone. Two delegators at different
+        /// nodes may share the same delegatorID without any collision or conflict.
         access(all) var delegatorIDCounter: UInt32
 
         /// The amount of tokens that this node has requested to unstake for the next epoch
@@ -1580,6 +1583,10 @@ access(all) contract FlowIDTableStaking {
             message: "Cannot register a node operator if the staking auction isn't in progress"
         )
 
+        // NOTE: An empty vault is intentionally passed to NodeRecord here. The caller-provided
+        // tokensCommitted vault is validated against the minimum stake requirement at line below,
+        // then deposited via stakeNewTokens() immediately after the node is stored. The NodeRecord
+        // is created first so it exists in storage before tokens are committed to it.
         let newNode <- create NodeRecord(id: id,
                                          role: role,
                                          networkingAddress: networkingAddress,

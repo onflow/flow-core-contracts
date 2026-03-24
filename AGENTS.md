@@ -72,6 +72,16 @@ Cadence tests deploy contracts using `Test.deployContract()` and account `0x0000
 
 New tests should be written in Cadence where possible.
 
+## Mandatory workflow for any Cadence code change
+
+Whenever any `.cdc` file is modified (contracts, transactions, scripts, or tests), the following steps are **required** before committing and pushing:
+
+1. `make generate` — regenerates the Go asset files that embed `.cdc` source; CI will fail without this
+2. `make test` — runs all Cadence and Go tests
+3. `make ci` — runs tests + `go mod tidy` + `git diff --exit-code` (requires a clean committed tree)
+
+All three must pass. Run them in order, commit the generated assets alongside the `.cdc` changes.
+
 ## Network Contract Addresses
 
 Key addresses vary by network (see `flow.json` for full mapping):

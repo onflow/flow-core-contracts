@@ -20,6 +20,7 @@ access(all) fun main(address: Address): UFix64 {
     var sum = 0.0
 
     let account = getAccount(address)
+
     let authAccount = getAuthAccount<auth(Storage) &Account>(address)
 
     if let vaultRef = account.capabilities.borrow<&FlowToken.Vault>(/public/flowTokenBalance) {
