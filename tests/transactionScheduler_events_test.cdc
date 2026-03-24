@@ -55,7 +55,7 @@ access(all) fun testTransactionScheduleEventAndData() {
 
     accountBalanceBefore = getBalance(account: admin.address)
     feesBalanceBefore = getFeesBalance()
-    
+
     // Schedule high priority transaction
     scheduleTransaction(
         timestamp: timeInFuture,
@@ -70,7 +70,7 @@ access(all) fun testTransactionScheduleEventAndData() {
     // Check for Scheduled event using Test.eventsOfType
     var scheduledEvents = Test.eventsOfType(Type<FlowTransactionScheduler.Scheduled>())
     Test.assert(scheduledEvents.length == 1, message: "There should be one Scheduled event but there are \(scheduledEvents.length) events")
-    
+
     var scheduledEvent = scheduledEvents[0] as! FlowTransactionScheduler.Scheduled
     Test.assertEqual(highPriority, scheduledEvent.priority!)
     Test.assertEqual(timeInFuture, scheduledEvent.timestamp!)
@@ -79,7 +79,7 @@ access(all) fun testTransactionScheduleEventAndData() {
     Test.assertEqual(admin.address, scheduledEvent.transactionHandlerOwner!)
     Test.assertEqual("A.0000000000000007.TestFlowScheduledTransactionHandler.Handler", scheduledEvent.transactionHandlerTypeIdentifier!)
     Test.assertEqual(TestFlowScheduledTransactionHandler.HandlerPublicPath, scheduledEvent.transactionHandlerPublicPath!)
-    
+
     let transactionID = scheduledEvent.id as UInt64
 
     var status = getStatus(id: transactionID)
@@ -194,7 +194,7 @@ access(all) fun testScheduledTransactionExecution() {
         Test.moveTime(by: Fix64(1.0))
     }
 
-    // process transaction scheduled in the testTransactionScheduleEventAndData 
+    // process transaction scheduled in the testTransactionScheduleEventAndData
     processTransactions()
 
     // Check for PendingExecution event after processing
@@ -211,9 +211,9 @@ access(all) fun testScheduledTransactionExecution() {
             message: "ID 2 Should not have been marked as pendingExecution"
         )
 
-        // verify that the transactions got marked as executed
+        // verify that the transactions got marked as active (in execution)
         var status = getStatus(id: pendingExecutionEvent.id)
-        Test.assertEqual(statusExecuted, status!)
+        Test.assertEqual(statusActive, status!)
 
         // Simulate FVM execute - should execute the transaction
         if pendingExecutionEvent.id == transactionToFail {
@@ -221,18 +221,18 @@ access(all) fun testScheduledTransactionExecution() {
             executeScheduledTransaction(id: pendingExecutionEvent.id, testName: "Test Transaction Execution: First High Scheduled", failWithErr: "Transaction \(transactionToFail) failed")
         } else {
             executeScheduledTransaction(id: pendingExecutionEvent.id, testName: "Test Transaction Execution: First High Scheduled", failWithErr: nil)
-        
+
             // Verify that the first event is the high priority transaction
             if !firstEvent {
-                let executedEvents = Test.eventsOfType(Type<FlowTransactionScheduler.Executed>())
-                Test.assert(executedEvents.length == 1, message: "Should only have one Executed event")
-                let executedEvent = executedEvents[0] as! FlowTransactionScheduler.Executed
+                let executedEvents = Test.eventsOfType(Type<FlowTransactionScheduler.Active>())
+                Test.assert(executedEvents.length == 1, message: "Should only have one Active event")
+                let executedEvent = executedEvents[0] as! FlowTransactionScheduler.Active
                 Test.assertEqual(pendingExecutionEvent.id, executedEvent.id)
                 Test.assertEqual(pendingExecutionEvent.priority, executedEvent.priority)
                 Test.assertEqual(pendingExecutionEvent.executionEffort, executedEvent.executionEffort)
                 Test.assertEqual(pendingExecutionEvent.transactionHandlerOwner, executedEvent.transactionHandlerOwner)
                 // PendingExecution always emits "" for transactionHandlerTypeIdentifier (to avoid failures
-                // when the handler contract is broken), so we check the Executed event directly instead
+                // when the handler contract is broken), so we check the Active event directly instead
                 Test.assertEqual("", pendingExecutionEvent.transactionHandlerTypeIdentifier)
                 Test.assertEqual(TestFlowScheduledTransactionHandler.HandlerPublicPath, executedEvent.transactionHandlerPublicPath!)
                 firstEvent = true
@@ -246,7 +246,7 @@ access(all) fun testScheduledTransactionExecution() {
         []
     ).returnValue! as! [UInt64]
     Test.assert(transactionIDs.length == 1, message: "Executed ids is the wrong count")
-    
+
     Test.moveTime(by: Fix64(2.0))
 
     // Process transactions again to remove the executed transactions and pay fees

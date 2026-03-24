@@ -13,8 +13,9 @@ access(all) let lowPriority = UInt8(2)
 
 access(all) let statusUnknown = UInt8(0)
 access(all) let statusScheduled = UInt8(1)
-access(all) let statusExecuted = UInt8(2)
-access(all) let statusCanceled = UInt8(3)
+access(all) let statusActive = UInt8(2)
+access(all) let statusExecuted = UInt8(3)
+access(all) let statusCanceled = UInt8(4)
 
 // slotTotalEffortLimit is the sum of all per-priority limits (High + Medium + Low)
 access(all) let slotTotalEffortLimit: UInt64 = 25000

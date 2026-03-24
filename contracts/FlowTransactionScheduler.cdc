@@ -44,6 +44,7 @@ access(all) contract FlowTransactionScheduler {
         access(all) case Unknown
         /// mutable status
         access(all) case Scheduled
+        access(all) case Active
         /// finalized statuses
         access(all) case Executed
         access(all) case Canceled
@@ -61,7 +62,7 @@ access(all) contract FlowTransactionScheduler {
         transactionHandlerOwner: Address,
         transactionHandlerTypeIdentifier: String,
         transactionHandlerUUID: UInt64,
-        
+
         // The public path of the transaction handler that can be used to resolve views
         // DISCLAIMER: There is no guarantee that the public path is accurate
         transactionHandlerPublicPath: PublicPath?
@@ -77,8 +78,8 @@ access(all) contract FlowTransactionScheduler {
         transactionHandlerTypeIdentifier: String
     )
 
-    /// Emitted when a scheduled transaction is executed by the FVM
-    access(all) event Executed(
+    /// Emitted when a scheduled transaction is active by the FVM
+    access(all) event Active(
         id: UInt64,
         priority: UInt8,
         executionEffort: UInt64,
@@ -128,8 +129,8 @@ access(all) contract FlowTransactionScheduler {
 
     /// Interfaces
 
-    /// TransactionHandler is an interface that defines a single method executeTransaction that 
-    /// must be implemented by the resource that contains the logic to be executed by the scheduled transaction.
+    /// TransactionHandler is an interface that defines a single method executeTransaction that
+    /// must be implemented by the resource that contains the logic to be active by the scheduled transaction.
     /// An authorized capability to this resource is provided when scheduling a transaction.
     /// The transaction scheduler uses this capability to execute the transaction when its scheduled timestamp arrives.
     access(all) resource interface TransactionHandler: ViewResolver.Resolver {
@@ -154,7 +155,7 @@ access(all) contract FlowTransactionScheduler {
 
     /// ScheduledTransaction is the resource that the user receives after scheduling a transaction.
     /// It allows them to get the status of their transaction and can be passed back
-    /// to the scheduler contract to cancel the transaction if it has not yet been executed. 
+    /// to the scheduler contract to cancel the transaction if it has not yet been active.
     access(all) resource ScheduledTransaction {
         access(all) let id: UInt64
         access(all) let timestamp: UFix64
@@ -165,7 +166,7 @@ access(all) contract FlowTransactionScheduler {
         }
 
         init(
-            id: UInt64, 
+            id: UInt64,
             timestamp: UFix64,
             handlerTypeIdentifier: String
         ) {
@@ -182,7 +183,7 @@ access(all) contract FlowTransactionScheduler {
     access(all) struct EstimatedScheduledTransaction {
         /// flowFee is the estimated fee in Flow for the transaction to be scheduled
         access(all) let flowFee: UFix64?
-        /// timestamp is estimated timestamp that the transaction will be executed at
+        /// timestamp is estimated timestamp that the transaction will be active at
         access(all) let timestamp: UFix64?
         /// error is an optional error message if the transaction cannot be scheduled
         access(all) let error: String?
@@ -196,7 +197,7 @@ access(all) contract FlowTransactionScheduler {
 
     /// Transaction data is a representation of a scheduled transaction
     /// It is the source of truth for an individual transaction and stores the
-    /// capability to the handler that contains the logic that will be executed by the transaction.
+    /// capability to the handler that contains the logic that will be active by the transaction.
     access(all) struct TransactionData {
         access(all) let id: UInt64
         access(all) let priority: Priority
@@ -209,7 +210,7 @@ access(all) contract FlowTransactionScheduler {
         /// The timestamp that the transaction is scheduled for
         /// For medium priority transactions, it may be different than the requested timestamp
         /// For low priority transactions, it is the requested timestamp,
-        /// but the timestamp where the transaction is actually executed may be different
+        /// but the timestamp where the transaction is actually active may be different
         access(all) var scheduledTimestamp: UFix64
 
         /// Capability to the logic that the transaction will execute
@@ -254,8 +255,10 @@ access(all) contract FlowTransactionScheduler {
                 newStatus != Status.Unknown: "Invalid status: New status cannot be Unknown"
                 self.status != Status.Executed && self.status != Status.Canceled:
                     "Invalid status: Transaction with id \(self.id) is already finalized"
-                newStatus == Status.Executed ? self.status == Status.Scheduled : true:
-                    "Invalid status: Transaction with id \(self.id) can only be set as Executed if it is Scheduled"
+                newStatus == Status.Active ? self.status == Status.Scheduled : true:
+                    "Invalid status: Transaction with id \(self.id) can only be set as Active if it is Scheduled"
+                newStatus == Status.Executed ? self.status == Status.Active : true:
+                    "Invalid status: Transaction with id \(self.id) can only be set as Executed if it is Active"
                 newStatus == Status.Canceled ? self.status == Status.Scheduled : true:
                     "Invalid status: Transaction with id \(self.id) can only be set as Canceled if it is Scheduled"
             }
@@ -315,20 +318,20 @@ access(all) contract FlowTransactionScheduler {
         /// maximum effort that can be used for any transaction
         access(all) var maximumIndividualEffort: UInt64
 
-        /// minimum execution effort is the minimum effort that can be 
+        /// minimum execution effort is the minimum effort that can be
         /// used for any transaction
         access(all) var minimumExecutionEffort: UInt64
 
-        /// slot total effort limit is the maximum effort that can be 
+        /// slot total effort limit is the maximum effort that can be
         /// cumulatively allocated to one timeslot by all priorities
         access(all) var slotTotalEffortLimit: UInt64
 
-        /// slot shared effort limit is the maximum effort 
-        /// that can be allocated to high and medium priority 
+        /// slot shared effort limit is the maximum effort
+        /// that can be allocated to high and medium priority
         /// transactions combined after their exclusive effort reserves have been filled
         access(all) var slotSharedEffortLimit: UInt64
 
-        /// priority effort reserve is the amount of effort that is 
+        /// priority effort reserve is the amount of effort that is
         /// reserved exclusively for each priority
         access(all) var priorityEffortReserve: {Priority: UInt64}
 
@@ -338,7 +341,7 @@ access(all) contract FlowTransactionScheduler {
         /// max data size is the maximum data size that can be stored for a transaction
         access(all) var maxDataSizeMB: UFix64
 
-        /// priority fee multipliers are values we use to calculate the added 
+        /// priority fee multipliers are values we use to calculate the added
         /// processing fee for each priority
         access(all) var priorityFeeMultipliers: {Priority: UFix64}
 
@@ -519,8 +522,8 @@ access(all) contract FlowTransactionScheduler {
 
     /// Resources
 
-    /// Shared scheduler is a resource that is used as a singleton in the scheduler contract and contains 
-    /// all the functionality to schedule, process and execute transactions as well as the internal state. 
+    /// Shared scheduler is a resource that is used as a singleton in the scheduler contract and contains
+    /// all the functionality to schedule, process and execute transactions as well as the internal state.
     access(all) resource SharedScheduler {
         /// nextID contains the next transaction ID to be assigned
         /// This the ID is monotonically increasing and is used to identify each transaction
@@ -532,13 +535,13 @@ access(all) contract FlowTransactionScheduler {
         /// slot queue is a map of timestamps to Priorities to transaction IDs and their execution efforts
         access(contract) var slotQueue: {UFix64: {Priority: {UInt64: UInt64}}}
 
-        /// slot used effort is a map of timestamps map of priorities and 
+        /// slot used effort is a map of timestamps map of priorities and
         /// efforts that has been used for the timeslot
         access(contract) var slotUsedEffort: {UFix64: {Priority: UInt64}}
 
         /// sorted timestamps manager for efficient processing
         access(contract) var sortedTimestamps: SortedTimestamps
-    
+
         /// canceled transactions keeps a record of canceled transaction IDs up to a canceledTransactionsLimit
         access(contract) var canceledTransactions: [UInt64]
 
@@ -549,12 +552,12 @@ access(all) contract FlowTransactionScheduler {
         access(all) init() {
             self.nextID = 1
             self.canceledTransactions = [0 as UInt64]
-            
+
             self.transactions = {}
             self.slotUsedEffort = {}
             self.slotQueue = {}
             self.sortedTimestamps = SortedTimestamps()
-            
+
             /* Default slot efforts - each priority has its own independent pool:
 
                 Timestamp Slot (25kee total)
@@ -635,42 +638,42 @@ access(all) contract FlowTransactionScheduler {
         /// @return {UFix64: {Priority: [UInt64]}}: A dictionary mapping timestamps to priorities to arrays of transaction IDs
         access(contract) fun getTransactionsForTimeframe(startTimestamp: UFix64, endTimestamp: UFix64): {UFix64: {UInt8: [UInt64]}} {
             var transactionsInTimeframe: {UFix64: {UInt8: [UInt64]}} = {}
-            
+
             // Validate input parameters
             if startTimestamp > endTimestamp {
                 return transactionsInTimeframe
             }
-            
+
             // Get all timestamps that fall within the specified range
             let allTimestampsBeforeEnd = self.sortedTimestamps.getBefore(current: endTimestamp)
-            
+
             for timestamp in allTimestampsBeforeEnd {
                 // Check if this timestamp falls within our range
                 if timestamp < startTimestamp { continue }
-                
+
                 let transactionPriorities = self.slotQueue[timestamp] ?? {}
-                
+
                 var timestampTransactions: {UInt8: [UInt64]} = {}
-                
+
                 for priority in transactionPriorities.keys {
                     let transactionIDs = transactionPriorities[priority] ?? {}
                     var priorityTransactions: [UInt64] = []
-                        
+
                     for id in transactionIDs.keys {
                         priorityTransactions.append(id)
                     }
-                        
+
                     if priorityTransactions.length > 0 {
                         timestampTransactions[priority.rawValue] = priorityTransactions
                     }
                 }
-                
+
                 if timestampTransactions.keys.length > 0 {
                     transactionsInTimeframe[timestamp] = timestampTransactions
                 }
-                
+
             }
-            
+
             return transactionsInTimeframe
         }
 
@@ -682,7 +685,7 @@ access(all) contract FlowTransactionScheduler {
         access(contract) fun calculateFee(executionEffort: UInt64, priority: Priority, dataSizeMB: UFix64): UFix64 {
             // Use the official FlowFees calculation
             let baseFee = FlowFees.computeFees(inclusionEffort: 1.0, executionEffort: UFix64(executionEffort)/100000000.0)
-            
+
             // Scale the execution fee by the multiplier for the priority
             let scaledExecutionFee = baseFee * self.config.priorityFeeMultipliers[priority]!
 
@@ -711,12 +714,12 @@ access(all) contract FlowTransactionScheduler {
                 return nil
             }
 
-            // This should always return Scheduled or Executed
+            // This should always return Scheduled or Active
             if let tx = self.borrowTransaction(id: id) {
                 return tx.status
             }
 
-            // if the transaction was canceled and it is still not pruned from 
+            // if the transaction was canceled and it is still not pruned from
             // list return canceled status
             if self.canceledTransactions.contains(id) {
                 return Status.Canceled
@@ -736,23 +739,23 @@ access(all) contract FlowTransactionScheduler {
                 return Status.Executed
             }
 
-            // the transaction list was pruned and the transaction status might be 
+            // the transaction list was pruned and the transaction status might be
             // either canceled or execute so we return unknown
             return Status.Unknown
         }
 
-        /// schedule is the primary entry point for scheduling a new transaction within the scheduler contract. 
-        /// If scheduling the transaction is not possible either due to invalid arguments or due to 
-        /// unavailable slots, the function panics. 
+        /// schedule is the primary entry point for scheduling a new transaction within the scheduler contract.
+        /// If scheduling the transaction is not possible either due to invalid arguments or due to
+        /// unavailable slots, the function panics.
         //
         /// The schedule function accepts the following arguments:
-        /// @param: transaction: A capability to a resource in storage that implements the transaction handler 
+        /// @param: transaction: A capability to a resource in storage that implements the transaction handler
         ///    interface. This handler will be invoked at execution time and will receive the specified data payload.
-        /// @param: timestamp: Specifies the earliest block timestamp at which the transaction is eligible for execution 
+        /// @param: timestamp: Specifies the earliest block timestamp at which the transaction is eligible for execution
         ///    (Unix timestamp so fractional seconds values are ignored). It must be set in the future.
-        /// @param: priority: An enum value (`High`, `Medium`, or `Low`) that influences the scheduling behavior and determines 
-        ///    how soon after the timestamp the transaction will be executed.
-        /// @param: executionEffort: Defines the maximum computational resources allocated to the transaction. This also determines 
+        /// @param: priority: An enum value (`High`, `Medium`, or `Low`) that influences the scheduling behavior and determines
+        ///    how soon after the timestamp the transaction will be active.
+        /// @param: executionEffort: Defines the maximum computational resources allocated to the transaction. This also determines
         ///    the fee charged. Unused execution effort is not refunded.
         /// @param: fees: A Vault resource containing sufficient funds to cover the required execution effort.
         access(contract) fun schedule(
@@ -814,9 +817,9 @@ access(all) contract FlowTransactionScheduler {
 
             // Add the transaction to the slot queue and update the internal state
             self.addTransaction(slot: estimate.timestamp!, txData: transactionData)
-            
+
             return <-create ScheduledTransaction(
-                id: transactionID, 
+                id: transactionID,
                 timestamp: estimate.timestamp!,
                 handlerTypeIdentifier: transactionData.handlerTypeIdentifier
             )
@@ -893,8 +896,8 @@ access(all) contract FlowTransactionScheduler {
             let fee = self.calculateFee(executionEffort: executionEffort, priority: priority, dataSizeMB: dataSizeMB)
 
             let scheduledTimestamp = self.calculateScheduledTimestamp(
-                timestamp: sanitizedTimestamp, 
-                priority: priority, 
+                timestamp: sanitizedTimestamp,
+                priority: priority,
                 executionEffort: executionEffort
             )
 
@@ -909,10 +912,10 @@ access(all) contract FlowTransactionScheduler {
             return EstimatedScheduledTransaction(flowFee: fee, timestamp: scheduledTimestamp, error: nil)
         }
 
-        /// calculateScheduledTimestamp calculates the timestamp at which a transaction 
-        /// can be scheduled. It takes into account the priority of the transaction and 
+        /// calculateScheduledTimestamp calculates the timestamp at which a transaction
+        /// can be scheduled. It takes into account the priority of the transaction and
         /// the execution effort.
-        /// - If the transaction is high priority, it returns the timestamp if there is enough 
+        /// - If the transaction is high priority, it returns the timestamp if there is enough
         ///    space or nil if there is no space left.
         /// - If the transaction is medium or low priority and there is space left in the requested timestamp,
         ///   it returns the requested timestamp. If there is not enough space, it finds the next timestamp with space.
@@ -922,8 +925,8 @@ access(all) contract FlowTransactionScheduler {
         /// @param executionEffort: The execution effort of the transaction
         /// @return UFix64?: The timestamp at which the transaction can be scheduled, or nil if there is no space left for a high priority transaction
         access(contract) view fun calculateScheduledTimestamp(
-            timestamp: UFix64, 
-            priority: Priority, 
+            timestamp: UFix64,
+            priority: Priority,
             executionEffort: UInt64
         ): UFix64? {
 
@@ -935,16 +938,16 @@ access(all) contract FlowTransactionScheduler {
 
                 let used = self.slotUsedEffort[timestampToSearch]
                 // if nothing is scheduled at this timestamp, we can schedule at provided timestamp
-                if used == nil { 
+                if used == nil {
                     return timestampToSearch
                 }
-                
+
                 let available = self.getSlotAvailableEffort(sanitizedTimestamp: timestampToSearch, priority: priority)
                 // if theres enough space, we can tentatively schedule at provided timestamp
                 if executionEffort <= available {
                     return timestampToSearch
                 }
-                
+
                 if priority == Priority.High {
                     // high priority demands scheduling at exact timestamp or failing
                     return nil
@@ -1025,8 +1028,8 @@ access(all) contract FlowTransactionScheduler {
 
             // remove transaction object
             let transactionObject = self.transactions.remove(key: transactionID)!
-            
-            // garbage collect slots 
+
+            // garbage collect slots
             let transactionQueue = self.slotQueue[slot]!
 
             if let priorityQueue = transactionQueue[transactionPriority] {
@@ -1055,7 +1058,7 @@ access(all) contract FlowTransactionScheduler {
         ///
         /// The queue is sorted by timestamp and then by priority (high, medium, low).
         /// The queue will contain transactions from all timestamps that are in the past.
-        /// Low priority transactions will only be added if there is effort available in the slot.  
+        /// Low priority transactions will only be added if there is effort available in the slot.
         /// The return value can be empty if there are no transactions ready for execution.
         access(Process) fun pendingQueue(): [&TransactionData] {
             let currentTimestamp = getCurrentBlock().timestamp
@@ -1082,7 +1085,7 @@ access(all) contract FlowTransactionScheduler {
                             emit CriticalIssue(message: "Invalid ID: \(id) transaction not found while preparing pending queue")
                             continue
                         }
-                        
+
                         // Only add scheduled transactions to the queue
                         if tx!.status != Status.Scheduled {
                             continue
@@ -1099,7 +1102,7 @@ access(all) contract FlowTransactionScheduler {
 
                         collectionAvailableEffort = collectionAvailableEffort.saturatingSubtract(tx!.executionEffort)
                         transactionsAvailableCount = transactionsAvailableCount - 1
-                    
+
                         switch tx!.priority {
                             case Priority.High:
                                 high.append(tx!)
@@ -1120,15 +1123,15 @@ access(all) contract FlowTransactionScheduler {
             return pendingTransactions
         }
 
-        /// removeExecutedTransactions removes all transactions that are marked as executed.
-        access(self) fun removeExecutedTransactions(_ currentTimestamp: UFix64) {
+        /// removeActiveTransactions removes all transactions that are marked as active.
+        access(self) fun removeActiveTransactions(_ currentTimestamp: UFix64) {
             let pastTimestamps = self.sortedTimestamps.getBefore(current: currentTimestamp)
             var numRemoved = 0
             let removalLimit = self.config.getTxRemovalLimit()
 
             for timestamp in pastTimestamps {
                 let transactionPriorities = self.slotQueue[timestamp] ?? {}
-                
+
                 for priority in transactionPriorities.keys {
                     let transactionIDs = transactionPriorities[priority] ?? {}
                     for id in transactionIDs.keys {
@@ -1142,14 +1145,15 @@ access(all) contract FlowTransactionScheduler {
 
                         let tx = self.borrowTransaction(id: id)
                         if tx == nil {
-                            emit CriticalIssue(message: "Invalid ID: \(id) transaction not found while removing executed transactions")
+                            emit CriticalIssue(message: "Invalid ID: \(id) transaction not found while removing active transactions")
                             continue
                         }
 
-                        // Only remove executed transactions
-                        if tx!.status != Status.Executed {
+                        // Only remove active transactions
+                        if tx!.status != Status.Active {
                             continue
                         }
+                        tx!.setStatus(newStatus: Status.Executed)
 
                         // charge the full fee for transaction execution
                         destroy tx!.payAndRefundFees(refundMultiplier: 0.0)
@@ -1160,10 +1164,10 @@ access(all) contract FlowTransactionScheduler {
             }
         }
 
-        /// process scheduled transactions and prepare them for execution. 
+        /// process scheduled transactions and prepare them for execution.
         ///
-        /// First, it removes transactions that have already been executed. 
-        /// Then, it iterates over past timestamps in the queue and processes the transactions that are 
+        /// First, it removes transactions that have already been active.
+        /// Then, it iterates over past timestamps in the queue and processes the transactions that are
         /// eligible for execution. It also emits an event for each transaction that is processed.
         ///
         /// This function is only called by the FVM to process transactions.
@@ -1174,7 +1178,7 @@ access(all) contract FlowTransactionScheduler {
                 return
             }
 
-            self.removeExecutedTransactions(currentTimestamp)
+            self.removeActiveTransactions(currentTimestamp)
 
             let pendingTransactions = self.pendingQueue()
 
@@ -1191,13 +1195,13 @@ access(all) contract FlowTransactionScheduler {
                     transactionHandlerTypeIdentifier: ""
                 )
 
-                // after pending execution event is emitted we set the transaction as executed because we 
-                // must rely on execution node to actually execute it. Execution of the transaction is 
+                // after pending execution event is emitted we set the transaction as active because we
+                // must rely on execution node to actually execute it. Execution of the transaction is
                 // done in a separate transaction that calls executeTransaction(id) function.
                 // Executing the transaction can not update the status of transaction or any other shared state,
                 // since that blocks concurrent transaction execution.
-                // Therefore an optimistic update to executed is made here to avoid race condition.
-                tx.setStatus(newStatus: Status.Executed)
+                // Therefore an optimistic update to active is made here to avoid race condition.
+                tx.setStatus(newStatus: Status.Active)
             }
         }
 
@@ -1206,14 +1210,14 @@ access(all) contract FlowTransactionScheduler {
         /// @param id: The ID of the transaction to cancel
         /// @return: The fees to be returned to the caller
         access(Cancel) fun cancel(id: UInt64): @FlowToken.Vault {
-            let tx = self.borrowTransaction(id: id) ?? 
+            let tx = self.borrowTransaction(id: id) ??
                 panic("Invalid ID: \(id) transaction not found")
 
             assert(
                 tx.status == Status.Scheduled,
                 message: "Transaction must be in a scheduled state in order to be canceled"
             )
-            
+
             // Subtract the execution effort for this transaction from the slot's priority
             let slotEfforts = self.slotUsedEffort[tx.scheduledTimestamp]!
             slotEfforts[tx.priority] = slotEfforts[tx.priority]!.saturatingSubtract(tx.executionEffort)
@@ -1240,7 +1244,7 @@ access(all) contract FlowTransactionScheduler {
 				}
 			}
             self.canceledTransactions.insert(at: low, id)
-            
+
             // keep the array under the limit
             if UInt(self.canceledTransactions.length) > self.config.canceledTransactionsLimit {
                 self.canceledTransactions.remove(at: 0)
@@ -1256,7 +1260,7 @@ access(all) contract FlowTransactionScheduler {
             )
 
             self.removeTransaction(txData: tx)
-            
+
             return <-refundedFees
         }
 
@@ -1266,11 +1270,11 @@ access(all) contract FlowTransactionScheduler {
         /// This function is only called by the FVM to execute transactions.
         /// WARNING: this function should not change any shared state, it will be run concurrently and it must not be blocking.
         access(Execute) fun executeTransaction(id: UInt64) {
-            let tx = self.borrowTransaction(id: id) ?? 
+            let tx = self.borrowTransaction(id: id) ??
                 panic("Invalid ID: Transaction with id \(id) not found")
 
             assert (
-                tx.status == Status.Executed,
+                tx.status == Status.Active,
                 message: "Invalid ID: Cannot execute transaction with id \(id) because it has incorrect status \(tx.status.rawValue)"
             )
 
@@ -1279,7 +1283,7 @@ access(all) contract FlowTransactionScheduler {
 
             let handlerPublicPath = transactionHandler.resolveView(Type<PublicPath>()) as? PublicPath
 
-            emit Executed(
+            emit Active(
                 id: tx.id,
                 priority: tx.priority.rawValue,
                 executionEffort: tx.executionEffort,
@@ -1289,11 +1293,11 @@ access(all) contract FlowTransactionScheduler {
                 transactionHandlerPublicPath: handlerPublicPath
 
             )
-            
+
             transactionHandler.executeTransaction(id: id, data: tx.getData())
         }
     }
-    
+
     /// Deposit fees to this contract's account's vault
     access(contract) fun depositFees(from: @FlowToken.Vault) {
         let vaultRef = self.account.storage.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)
@@ -1305,7 +1309,7 @@ access(all) contract FlowTransactionScheduler {
     access(contract) fun withdrawFees(amount: UFix64): @FlowToken.Vault {
         let vaultRef = self.account.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault)
             ?? panic("Unable to borrow reference to the default token vault")
-            
+
         return <-vaultRef.withdraw(amount: amount) as! @FlowToken.Vault
     }
 
@@ -1318,11 +1322,11 @@ access(all) contract FlowTransactionScheduler {
         fees: @FlowToken.Vault
     ): @ScheduledTransaction {
         return <-self.sharedScheduler.borrow()!.schedule(
-            handlerCap: handlerCap, 
-            data: data, 
-            timestamp: timestamp, 
-            priority: priority, 
-            executionEffort: executionEffort, 
+            handlerCap: handlerCap,
+            data: data,
+            timestamp: timestamp,
+            priority: priority,
+            executionEffort: executionEffort,
             fees: <-fees
         )
     }
@@ -1335,9 +1339,9 @@ access(all) contract FlowTransactionScheduler {
     ): EstimatedScheduledTransaction {
         return self.sharedScheduler.borrow()!
             .estimate(
-                data: data, 
-                timestamp: timestamp, 
-                priority: priority, 
+                data: data,
+                timestamp: timestamp,
+                priority: priority,
                 executionEffort: executionEffort,
             )
     }
@@ -1404,9 +1408,9 @@ access(all) contract FlowTransactionScheduler {
     access(all) fun getConfig(): {SchedulerConfig} {
         return self.sharedScheduler.borrow()!.getConfig()
     }
-    
+
     /// getSizeOfData takes a transaction's data
-    /// argument and stores it in the contract account's storage, 
+    /// argument and stores it in the contract account's storage,
     /// checking storage used before and after to see how large the data is in MB
     /// If data is nil, the function returns 0.0
     access(all) fun getSizeOfData(_ data: AnyStruct?): UFix64 {
@@ -1414,8 +1418,8 @@ access(all) contract FlowTransactionScheduler {
             return 0.0
         } else {
             let type = data!.getType()
-            if type.isSubtype(of: Type<Number>()) 
-            || type.isSubtype(of: Type<Bool>()) 
+            if type.isSubtype(of: Type<Number>())
+            || type.isSubtype(of: Type<Bool>())
             || type.isSubtype(of: Type<Address>())
             || type.isSubtype(of: Type<Character>())
             || type.isSubtype(of: Type<Capability>())
@@ -1438,7 +1442,7 @@ access(all) contract FlowTransactionScheduler {
         let oldScheduler <- self.account.storage.load<@AnyResource>(from: self.storagePath)
         destroy oldScheduler
         self.account.storage.save(<-scheduler, to: self.storagePath)
-        
+
         self.sharedScheduler = self.account.capabilities.storage
             .issue<auth(Cancel) &SharedScheduler>(self.storagePath)
     }
