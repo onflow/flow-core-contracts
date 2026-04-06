@@ -145,9 +145,19 @@ access(all) fun runScheduleAndEffortUsedTestCase(testCase: ScheduleAndEffortUsed
     }
 
     for timestamp in sortedTimestamps.getAll() {
-        // move time forward to trigger execution eligibility
+        // move time forward to trigger execution eligibility.
+        // Do a bulk move to within 0.5 seconds of the target, then use 0.5-second
+        // steps for the final approach. Smaller steps reduce overshoot below the
+        // 1.0-second slot boundary.
+        let currentTime = getTimestamp()
+        if currentTime < timestamp {
+            let delta = timestamp - currentTime
+            if delta > 0.5 {
+                Test.moveTime(by: Fix64(delta - 0.5))
+            }
+        }
         while getTimestamp() < timestamp {
-            Test.moveTime(by: Fix64(1.0))
+            Test.moveTime(by: Fix64(0.5))
         }
 
         let expectedPendingQueue = testCase.expectedPendingQueues[timestamp - currentTimestamp]!

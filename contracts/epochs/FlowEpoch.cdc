@@ -417,6 +417,8 @@ access(all) contract FlowEpoch {
     /// Saves a modified EpochMetadata struct to the metadata in account storage
     access(contract) fun saveEpochMetadata(_ newMetadata: EpochMetadata) {
         pre {
+            // The `currentEpochCounter == 0` guard ensures the subtraction is only
+            // evaluated when the counter is >= 1, making `currentEpochCounter - 1` safe.
             self.currentEpochCounter == 0 ||
             (newMetadata.counter >= self.currentEpochCounter - 1 &&
             newMetadata.counter <= self.proposedEpochCounter()):
@@ -942,6 +944,8 @@ access(all) contract FlowEpoch {
 
     /// Pays rewards to the nodes and delegators of the previous epoch
     access(account) fun payRewardsForPreviousEpoch() {
+        // `currentEpochCounter` is always >= 1 here because this function is only called
+        // during epoch transitions after the first epoch has completed, making `- 1` safe.
         if let previousEpochMetadata = self.getEpochMetadata(self.currentEpochCounter - 1) {
             if !previousEpochMetadata.rewardsPaid {
                 let summary = FlowIDTableStaking.EpochRewardsSummary(totalRewards: previousEpochMetadata.totalRewards, breakdown: previousEpochMetadata.rewardAmounts)
@@ -971,6 +975,8 @@ access(all) contract FlowEpoch {
         // Update the epoch counters
         self.currentEpochCounter = self.proposedEpochCounter()
 
+        // `proposedEpochCounter()` returns `currentEpochCounter + 1`, so after the
+        // assignment above `currentEpochCounter` is >= 1, making `- 1` safe.
         let previousEpochMetadata = self.getEpochMetadata(self.currentEpochCounter - 1)!
         let newEpochMetadata = self.getEpochMetadata(self.currentEpochCounter)!
 
