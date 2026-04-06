@@ -202,13 +202,13 @@ access(all) contract FlowStakingCollection {
         access(self) fun getTokens(amount: UFix64): @{FungibleToken.Vault} {
 
             let unlockedVault = self.unlockedVault.borrow()!
-            let unlockedBalance = unlockedVault.balance - FlowStorageFees.minimumStorageReservation
+            let unlockedBalance = unlockedVault.balance.saturatingSubtract(FlowStorageFees.minimumStorageReservation)
 
             // If there is a locked account, use the locked vault first
             if self.lockedVault != nil {
 
                 let lockedVault = self.lockedVault!.borrow()!
-                let lockedBalance = lockedVault.balance - FlowStorageFees.minimumStorageReservation
+                let lockedBalance = lockedVault.balance.saturatingSubtract(FlowStorageFees.minimumStorageReservation)
 
                 assert(
                     amount <= lockedBalance + unlockedBalance,
@@ -734,11 +734,11 @@ access(all) contract FlowStakingCollection {
                     let tokenHolder = self.tokenHolder!.borrow()!
 
                     // Get any needed unlocked tokens, and deposit them to the locked vault.
-                    let lockedBalance = self.lockedVault!.borrow()!.balance - FlowStorageFees.minimumStorageReservation
+                    let lockedBalance = self.lockedVault!.borrow()!.balance.saturatingSubtract(FlowStorageFees.minimumStorageReservation)
                     if (amount > lockedBalance) {
                         let numUnlockedTokensToUse = amount - lockedBalance
                         tokenHolder.deposit(from: <- self.unlockedVault.borrow()!.withdraw(amount: numUnlockedTokensToUse))
-                    }   
+                    }
 
                     // Use the delegator stored in the locked account
                     let delegator = tokenHolder.borrowDelegator()
@@ -750,11 +750,11 @@ access(all) contract FlowStakingCollection {
                 node.stakeNewTokens(<-self.getTokens(amount: amount))
             } else {
                 // Get any needed unlocked tokens, and deposit them to the locked vault.
-                let lockedBalance = self.lockedVault!.borrow()!.balance - FlowStorageFees.minimumStorageReservation
+                let lockedBalance = self.lockedVault!.borrow()!.balance.saturatingSubtract(FlowStorageFees.minimumStorageReservation)
                 if (amount > lockedBalance) {
                     let numUnlockedTokensToUse = amount - lockedBalance
                     self.tokenHolder!.borrow()!.deposit(from: <- self.unlockedVault.borrow()!.withdraw(amount: numUnlockedTokensToUse))
-                } 
+                }
 
                 // Use the staker stored in the locked account
                 let staker = self.tokenHolder!.borrow()!.borrowStaker()
