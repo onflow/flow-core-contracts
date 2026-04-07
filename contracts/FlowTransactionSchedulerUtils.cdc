@@ -342,7 +342,7 @@ access(all) contract FlowTransactionSchedulerUtils {
             }
 
             // Then remove and destroy the identified transactions
-            for id in transactionsToRemove.keys {
+            for id in transactionsToRemove {
                 if let tx <- self.scheduledTransactions.remove(key: id) {
                     self.removeID(id: id, timestamp: transactionsToRemove[id]!, handlerTypeIdentifier: tx.handlerTypeIdentifier)
                     destroy tx
@@ -414,7 +414,7 @@ access(all) contract FlowTransactionSchedulerUtils {
             for handlerTypeIdentifier in self.handlerInfos.keys {
                 let handlerUUIDs: [UInt64] = []
                 let handlerTypes = self.handlerInfos[handlerTypeIdentifier]!
-                for uuid in handlerTypes.keys {
+                for uuid in handlerTypes {
                     let handlerInfo = handlerTypes[uuid]!
                     if !handlerInfo.capability.check() {
                         continue

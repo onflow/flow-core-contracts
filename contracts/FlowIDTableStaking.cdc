@@ -969,7 +969,7 @@ access(all) contract FlowIDTableStaking {
             let currentApproveList = FlowIDTableStaking.getApprovedList()
                 ?? panic("FlowIDTableStaking.Admin.setApprovedList: Could not load approve list from storage")
 
-            for id in newApproveList.keys {
+            for id in newApproveList {
                 if FlowIDTableStaking.nodes[id] == nil {
                     panic("FlowIDTableStaking.Admin.setApprovedList: Approved node \(id) does not already exist in the identity table")
                 }
@@ -978,7 +978,7 @@ access(all) contract FlowIDTableStaking {
             // If one of the nodes has been removed from the approve list
             // it need to be set as movesPending so it will be caught in the `removeInvalidNodes` method
             // If this happens not during the staking auction, the node should be removed and marked to unstake immediately
-            for id in currentApproveList.keys {
+            for id in currentApproveList {
                 if newApproveList[id] == nil {
                     if FlowIDTableStaking.stakingEnabled() {
                         FlowIDTableStaking.modifyNewMovesPending(nodeID: id, delegatorID: nil, existingList: nil)
@@ -1113,7 +1113,7 @@ access(all) contract FlowIDTableStaking {
             // to get their initialWeight set to 100
             // Nodes removed from the approve list are already refunded at the time
             // of removal in the setApprovedList method
-            for nodeID in movesPendingList.keys {
+            for nodeID in movesPendingList {
                 let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
 
                 let totalTokensCommitted = nodeRecord.nodeFullCommittedBalance()
@@ -1178,7 +1178,7 @@ access(all) contract FlowIDTableStaking {
 
                 if currentNodeCount[role]! >= slotLimits[role]! {
                     // if all slots are full, remove and refund all pending nodes
-                    for nodeID in candidateNodesForRole.keys {
+                    for nodeID in candidateNodesForRole {
                         self.removeAndRefundNodeRecord(nodeID)
                     }
                 } else if currentNodeCount[role]! + UInt16(candidateNodesForRole.keys.length) > slotLimits[role]! {
@@ -1204,7 +1204,7 @@ access(all) contract FlowIDTableStaking {
                     }
 
                     // Remove and Refund the selected nodes
-                    for nodeIndex in deletionList.keys {
+                    for nodeIndex in deletionList {
                         let nodeID = candidateNodesForRole.keys[nodeIndex]
                         self.removeAndRefundNodeRecord(nodeID)
                         nodesToRemoveFromCandidateNodes.append(nodeID)
@@ -1332,7 +1332,7 @@ access(all) contract FlowIDTableStaking {
             // Iterate through all the non-operational nodes and calculate
             // their rewards that will be withheld
             let nonOperationalNodes = FlowIDTableStaking.getNonOperationalNodesList()
-            for nodeID in nonOperationalNodes.keys {
+            for nodeID in nonOperationalNodes {
                 let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
 
                 // Each node's rewards can be decreased to a different percentage
@@ -1398,7 +1398,7 @@ access(all) contract FlowIDTableStaking {
             let totalRewardsPlusWithheld = totalRewardScale + withheldRewardsScale
 
             /// iterate through all the nodes to pay
-            for nodeID in stakedNodeIDs.keys {
+            for nodeID in stakedNodeIDs {
                 if nonOperationalNodes[nodeID] != nil { continue }
 
                 let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
@@ -1469,7 +1469,7 @@ access(all) contract FlowIDTableStaking {
 
             let stakedNodeIDs: {String: Bool} = FlowIDTableStaking.getParticipantNodeList()!
 
-            for nodeID in movesPendingNodeIDs.keys {
+            for nodeID in movesPendingNodeIDs {
                 let nodeRecord = FlowIDTableStaking.borrowNodeRecord(nodeID)
 
                 let approved = approvedNodeIDs[nodeID] ?? false
@@ -1504,7 +1504,7 @@ access(all) contract FlowIDTableStaking {
                 let pendingDelegatorsList = movesPendingNodeIDs[nodeID]!
 
                 // move all the delegators' tokens between buckets
-                for delegator in pendingDelegatorsList.keys {
+                for delegator in pendingDelegatorsList {
                     let delRecord = nodeRecord.borrowDelegatorRecord(delegator)
 
                     // If the delegator's committed tokens for the next epoch
@@ -1811,7 +1811,7 @@ access(all) contract FlowIDTableStaking {
 
             let roleCounts: {UInt8: UInt16} = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
 
-            for nodeID in participantNodeIDs.keys {
+            for nodeID in participantNodeIDs {
                 let nodeInfo = FlowIDTableStaking.NodeInfo(nodeID: nodeID)
                 roleCounts[nodeInfo.role] = roleCounts[nodeInfo.role]! + 1
             }

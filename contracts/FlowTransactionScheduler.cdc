@@ -652,11 +652,11 @@ access(all) contract FlowTransactionScheduler {
                 
                 var timestampTransactions: {UInt8: [UInt64]} = {}
                 
-                for priority in transactionPriorities.keys {
+                for priority in transactionPriorities {
                     let transactionIDs = transactionPriorities[priority] ?? {}
                     var priorityTransactions: [UInt64] = []
-                        
-                    for id in transactionIDs.keys {
+
+                    for id in transactionIDs {
                         priorityTransactions.append(id)
                     }
                         
@@ -1074,9 +1074,9 @@ access(all) contract FlowTransactionScheduler {
                 var medium: [&TransactionData] = []
                 var low: [&TransactionData] = []
 
-                for priority in transactionPriorities.keys {
+                for priority in transactionPriorities {
                     let transactionIDs = transactionPriorities[priority] ?? {}
-                    for id in transactionIDs.keys {
+                    for id in transactionIDs {
                         let tx = self.borrowTransaction(id: id)
                         if tx == nil {
                             emit CriticalIssue(message: "Invalid ID: \(id) transaction not found while preparing pending queue")
@@ -1129,9 +1129,9 @@ access(all) contract FlowTransactionScheduler {
             for timestamp in pastTimestamps {
                 let transactionPriorities = self.slotQueue[timestamp] ?? {}
                 
-                for priority in transactionPriorities.keys {
+                for priority in transactionPriorities {
                     let transactionIDs = transactionPriorities[priority] ?? {}
-                    for id in transactionIDs.keys {
+                    for id in transactionIDs {
 
                         numRemoved = numRemoved + 1
 
