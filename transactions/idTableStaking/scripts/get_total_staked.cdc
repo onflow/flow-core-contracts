@@ -5,7 +5,7 @@ access(all) fun main(): UFix64 {
 
     // calculate the total number of tokens staked
     var totalStaked: UFix64 = 0.0
-    for nodeType in stakedTokens.keys {
+    for nodeType in stakedTokens {
         // Do not count access nodes
         if nodeType != UInt8(5) {
             totalStaked = totalStaked + stakedTokens[nodeType]!

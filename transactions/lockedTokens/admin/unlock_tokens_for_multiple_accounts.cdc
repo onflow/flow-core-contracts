@@ -20,7 +20,7 @@ transaction(unlockInfo: {Address: UFix64}) {
         let adminRef = admin.storage.borrow<&LockedTokens.TokenAdminCollection>(from: LockedTokens.LockedTokenAdminCollectionStoragePath)
             ?? panic("Could not borrow a reference to the admin collection")
 
-        for unlockedAddress in unlockInfo.keys {
+        for unlockedAddress in unlockInfo {
 
             // All of the if lets are because we don't  want to
             // revert the entire transaction if it fails
