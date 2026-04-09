@@ -223,7 +223,7 @@ require (
 	// replaced by module version in this repo - disregard pinned version
 	github.com/onflow/flow-core-contracts/lib/go/contracts v1.9.4-0.20260407151750-6e8621db576c
 	// replaced by module version in this repo - disregard pinned version
-	github.com/onflow/flow-core-contracts/lib/go/templates v1.9.4-0.20260407145810-2a5cd40fe879
+	github.com/onflow/flow-core-contracts/lib/go/templates v1.10.1-0.20260409180155-df0e608f10d0
 )
 
 replace github.com/onflow/flow-core-contracts/lib/go/contracts => ../contracts
