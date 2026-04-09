@@ -606,10 +606,10 @@ github.com/onflow/flow-go v0.47.0-ledger-service.1.0.20260320214141-968222a41c12
 github.com/onflow/flow-go v0.47.0-ledger-service.1.0.20260320214141-968222a41c12/go.mod h1:G4iPRm5pseSjGbw8ejf+oNyzDA7QpOBqioa7fYLstBQ=
 github.com/onflow/flow-go-sdk v1.10.0 h1:9SDON8fRUmCHfpsjLbO5z1+IpeZy+mcs49guZN3iktw=
 github.com/onflow/flow-go-sdk v1.10.0/go.mod h1:SIs8hSgvC9qhWwFIpbxd5dfTthBbCHaxULVV3Z226XA=
-github.com/onflow/flow-nft/lib/go/contracts v1.4.0 h1:PBXQSlFS6k6KBbceCMzaAvrbhWSb2zWw5bIf/+WaTOM=
-github.com/onflow/flow-nft/lib/go/contracts v1.4.0/go.mod h1:XUsJjlbVoI0kebgv87xsO70U/ITGYbSEgTwbyg1RcOs=
-github.com/onflow/flow-nft/lib/go/templates v1.4.0 h1:rgk/K7JEDYGMveCJfCDIAyZ4mXHgtJ8oRGdgf2YdLt0=
-github.com/onflow/flow-nft/lib/go/templates v1.4.0/go.mod h1:v9FIc7p48C5BPk/bWytpxQMZbVVsLVnvXAyo12dNEAE=
+github.com/onflow/flow-nft/lib/go/contracts v1.4.1 h1:iQ8s4W5HNWd92MVRZbKxYpQ6UJn9snHLKQ9hFFNCiys=
+github.com/onflow/flow-nft/lib/go/contracts v1.4.1/go.mod h1:XUsJjlbVoI0kebgv87xsO70U/ITGYbSEgTwbyg1RcOs=
+github.com/onflow/flow-nft/lib/go/templates v1.4.1 h1:P+FN51waQrACpyVeXzLl1cnlD5J8bUYiemHXgeZBM+8=
+github.com/onflow/flow-nft/lib/go/templates v1.4.1/go.mod h1:Z5kaMh/3SKSNx9tJj/nvc87iUap9b5L26UnU0Y4xy+0=
 github.com/onflow/flow/protobuf/go/flow v0.4.20 h1:Ndq2l7Nu8p/RWNSRIRrpnBUpzfc5fYLEmHCFpJ9JGgo=
 github.com/onflow/flow/protobuf/go/flow v0.4.20/go.mod h1:NA2pX2nw8zuaxfKphhKsk00kWLwfd+tv8mS23YXO4Sk=
 github.com/onflow/go-ethereum v1.13.4 h1:iNO86fm8RbBbhZ87ZulblInqCdHnAQVY8okBrNsTevc=

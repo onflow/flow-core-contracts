@@ -132,8 +132,8 @@ require (
 	github.com/onflow/flow-evm-bridge v0.1.0 // indirect
 	github.com/onflow/flow-ft/lib/go/contracts v1.1.0 // indirect
 	github.com/onflow/flow-ft/lib/go/templates v1.1.0 // indirect
-	github.com/onflow/flow-nft/lib/go/contracts v1.4.0 // indirect
-	github.com/onflow/flow-nft/lib/go/templates v1.4.0 // indirect
+	github.com/onflow/flow-nft/lib/go/contracts v1.4.1 // indirect
+	github.com/onflow/flow-nft/lib/go/templates v1.4.1 // indirect
 	github.com/onflow/flow/protobuf/go/flow v0.4.20 // indirect
 	github.com/onflow/go-ethereum v1.13.4 // indirect
 	github.com/onflow/nft-storefront/lib/go/contracts v1.0.0 // indirect
