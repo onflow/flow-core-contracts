@@ -9,7 +9,7 @@ require (
 	github.com/onflow/cadence v1.10.0
 	github.com/onflow/flow-ft/lib/go/templates v1.1.0
 	github.com/onflow/flow-go-sdk v1.9.2
-	github.com/onflow/flow-nft/lib/go/templates v1.4.0
+	github.com/onflow/flow-nft/lib/go/templates v1.4.1
 	github.com/psiemens/sconfig v0.1.0
 	github.com/spf13/cobra v1.5.0
 )
@@ -21,7 +21,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0 // indirect
-	github.com/ethereum/go-ethereum v1.17.0 // indirect
+	github.com/ethereum/go-ethereum v1.16.8 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.1-0.20251019205732-39888e6be013 // indirect
 	github.com/fxamacker/circlehash v0.3.0 // indirect
@@ -68,6 +68,8 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+replace github.com/ethereum/go-ethereum => github.com/ethereum/go-ethereum v1.16.8
 
 // This retraction block retracts version v1.2.3, which was tagged out-of-order.
 // Currently go considers v1.2.3 to be the latest version, due to semver ordering,

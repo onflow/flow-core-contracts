@@ -7,7 +7,7 @@ require (
 	github.com/onflow/flow-core-contracts/lib/go/templates v1.9.4-0.20260407145810-2a5cd40fe879
 	github.com/onflow/flow-ft/lib/go/contracts v1.1.0
 	github.com/onflow/flow-go-sdk v1.9.2
-	github.com/onflow/flow-nft/lib/go/contracts v1.4.0
+	github.com/onflow/flow-nft/lib/go/contracts v1.4.1
 	github.com/stretchr/testify v1.11.1
 )
 
@@ -40,7 +40,7 @@ require (
 	github.com/onflow/crypto v0.25.3 // indirect
 	github.com/onflow/fixed-point v0.1.1 // indirect
 	github.com/onflow/flow-ft/lib/go/templates v1.1.0 // indirect
-	github.com/onflow/flow-nft/lib/go/templates v1.4.0 // indirect
+	github.com/onflow/flow-nft/lib/go/templates v1.4.1 // indirect
 	github.com/onflow/flow/protobuf/go/flow v0.4.16 // indirect
 	github.com/pelletier/go-toml v1.2.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
@@ -69,6 +69,8 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+replace github.com/ethereum/go-ethereum => github.com/ethereum/go-ethereum v1.16.8
 
 // This retraction block retracts version v1.2.3, which was tagged out-of-order.
 // Currently go considers v1.2.3 to be the latest version, due to semver ordering,
