@@ -69,8 +69,6 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/ethereum/go-ethereum => github.com/ethereum/go-ethereum v1.16.8
-
 // This retraction block retracts version v1.2.3, which was tagged out-of-order.
 // Currently go considers v1.2.3 to be the latest version, due to semver ordering,
 // despite it being several months old and many revisions behind the tip.
