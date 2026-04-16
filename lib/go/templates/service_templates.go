@@ -78,7 +78,7 @@ func GenerateTransferGenericVaultWithPathsScript(env Environment) []byte {
 }
 
 func GenerateTransferGenericVaultWithAddressScript(env Environment) []byte {
-	return ft_templates.GenerateTransferGenericVaultWithAddressScript(env.FungibleTokenAddress, env.FungibleTokenMetadataViewsAddress)
+	return ft_templates.GenerateTransferGenericVaultWithAddressScript(env.FungibleTokenAddress, env.FungibleTokenMetadataViewsAddress, env.MetadataViewsAddress)
 }
 
 func GenerateSetupNFTAccountFromAddressScript(env Environment) []byte {
