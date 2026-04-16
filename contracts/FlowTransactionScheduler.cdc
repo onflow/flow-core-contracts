@@ -1,8 +1,8 @@
-import FungibleToken from 0xf233dcee88fe0abe
-import FlowToken from 0x1654653399040a61
-import FlowFees from 0xf919ee77447b7497
-import FlowStorageFees from 0xe467b9dd11fa00df
-import ViewResolver from 0x1d7e57aa55817448
+import "FungibleToken"
+import "FlowToken"
+import "FlowFees"
+import "FlowStorageFees"
+import "ViewResolver"
 
 /// FlowTransactionScheduler enables smart contracts to schedule autonomous execution in the future.
 ///
@@ -600,6 +600,9 @@ access(all) contract FlowTransactionScheduler {
         }
 
         /// sets all the configuration details for the Scheduler resource
+        /// NOTE: This function is guarded by the UpdateConfig entitlement, which is an admin-only
+        /// capability. It is not callable by regular users. Any configuration changes (including
+        /// txRemovalLimit) require explicit authorization from the contract administrator.
         access(UpdateConfig) fun setConfig(newConfig: {SchedulerConfig}, txRemovalLimit: UInt) {
             self.config = newConfig
             FlowTransactionScheduler.account.storage.load<UInt>(from: /storage/txRemovalLimit)
@@ -649,11 +652,11 @@ access(all) contract FlowTransactionScheduler {
                 
                 var timestampTransactions: {UInt8: [UInt64]} = {}
                 
-                for priority in transactionPriorities.keys {
+                for priority in transactionPriorities {
                     let transactionIDs = transactionPriorities[priority] ?? {}
                     var priorityTransactions: [UInt64] = []
-                        
-                    for id in transactionIDs.keys {
+
+                    for id in transactionIDs {
                         priorityTransactions.append(id)
                     }
                         
@@ -719,8 +722,15 @@ access(all) contract FlowTransactionScheduler {
                 return Status.Canceled
             }
 
-            // if transaction ID is after first canceled ID it must be executed 
-            // otherwise it would have been canceled and part of this list
+            // If we reach this point, the transaction is not in the active transactions map
+            // and not in canceledTransactions. Since Scheduled transactions always remain in
+            // the transactions map until execution, a transaction can only reach this code path
+            // after it has been executed and aged out. The inference below uses the sorted
+            // canceledTransactions array as a lower-bound anchor: if the requested ID is greater
+            // than the oldest known canceled ID, it must have been executed (not canceled),
+            // because any cancellation would have added it to the canceledTransactions array.
+            // NOTE: Scheduled (future) transactions cannot be incorrectly reported as Executed
+            // here — they are still in the transactions map and are returned as Scheduled above.
             let firstCanceledID = self.canceledTransactions[0]
             if id > firstCanceledID {
                 return Status.Executed
@@ -994,7 +1004,11 @@ access(all) contract FlowTransactionScheduler {
             }
             self.slotQueue[slot] = transactionsForSlot
 
-            // Add the execution effort for this transaction to the per-priority total for the slot
+            // Add the execution effort for this transaction to the per-priority total for the slot.
+            // NOTE: This addition cannot overflow in practice. executionEffort is validated against
+            // maximumIndividualEffort and priorityEffortLimit before reaching this point (in estimate()),
+            // and the cumulative slot total is bounded by priorityEffortLimit[priority] which is
+            // checked on every schedule() call. UInt64 max (~1.8e19) far exceeds any reachable sum.
             let slotEfforts = &self.slotUsedEffort[slot]! as auth(Mutate) &{Priority: UInt64}
             slotEfforts[txData.priority] = slotEfforts[txData.priority]! + txData.executionEffort
 
@@ -1060,9 +1074,9 @@ access(all) contract FlowTransactionScheduler {
                 var medium: [&TransactionData] = []
                 var low: [&TransactionData] = []
 
-                for priority in transactionPriorities.keys {
+                for priority in transactionPriorities {
                     let transactionIDs = transactionPriorities[priority] ?? {}
-                    for id in transactionIDs.keys {
+                    for id in transactionIDs {
                         let tx = self.borrowTransaction(id: id)
                         if tx == nil {
                             emit CriticalIssue(message: "Invalid ID: \(id) transaction not found while preparing pending queue")
@@ -1115,9 +1129,9 @@ access(all) contract FlowTransactionScheduler {
             for timestamp in pastTimestamps {
                 let transactionPriorities = self.slotQueue[timestamp] ?? {}
                 
-                for priority in transactionPriorities.keys {
+                for priority in transactionPriorities {
                     let transactionIDs = transactionPriorities[priority] ?? {}
-                    for id in transactionIDs.keys {
+                    for id in transactionIDs {
 
                         numRemoved = numRemoved + 1
 
@@ -1218,6 +1232,7 @@ access(all) contract FlowTransactionScheduler {
 
 				if midCanceledID == id {
                     emit CriticalIssue(message: "Invalid ID: \(id) transaction already in canceled transactions array")
+                    break
                 } else if midCanceledID > id {
 					high = mid
 				} else {
