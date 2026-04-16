@@ -1,13 +1,13 @@
-import Burner from 0xf233dcee88fe0abe
-import FungibleToken from 0xf233dcee88fe0abe
-import NonFungibleToken from 0x1d7e57aa55817448
-import FlowToken from 0x1654653399040a61
+import "Burner"
+import "FungibleToken"
+import "NonFungibleToken"
+import "FlowToken"
 
-import EVM from 0xe467b9dd11fa00df
+import "EVM"
 
-import FlowEVMBridgeHandlerInterfaces from 0x1e4aa0b87d10b141
-import FlowEVMBridgeConfig from 0x1e4aa0b87d10b141
-import FlowEVMBridgeUtils from 0x1e4aa0b87d10b141
+import "FlowEVMBridgeHandlerInterfaces"
+import "FlowEVMBridgeConfig"
+import "FlowEVMBridgeUtils"
 
 /// FlowEVMBridgeHandlers
 ///
@@ -105,7 +105,7 @@ access(all) contract FlowEVMBridgeHandlers {
             let amount = tokens.balance
             let uintAmount = FlowEVMBridgeUtils.convertCadenceAmountToERC20Amount(amount, erc20Address: evmAddress)
 
-            assert(uintAmount > UInt256(0), message: "Amount to bridge must be greater than 0")
+            assert(uintAmount > 0, message: "Amount to bridge must be greater than 0")
 
             Burner.burn(<-tokens)
 
@@ -127,7 +127,7 @@ access(all) contract FlowEVMBridgeHandlers {
             owner: EVM.EVMAddress,
             type: Type,
             amount: UInt256,
-            protectedTransferCall: fun (): EVM.Result
+            protectedTransferCall: fun (): EVM.ResultDecoded
         ): @{FungibleToken.Vault} {
             let evmAddress = self.getTargetEVMAddress()!
 
@@ -147,7 +147,7 @@ access(all) contract FlowEVMBridgeHandlers {
 
             // After state confirmation, mint the tokens and return
             let minter = self.borrowMinter()
-                ?? panic("Cannot bridge - Minter not set in ".concat(self.getType().identifier))
+                ?? panic("Cannot bridge - Minter not set in \(self.getType().identifier)")
             let minted <- minter.mint(amount: ufixAmount)
             return <-minted
         }
@@ -170,7 +170,7 @@ access(all) contract FlowEVMBridgeHandlers {
         access(FlowEVMBridgeHandlerInterfaces.Admin)
         fun setMinter(_ minter: @{FlowEVMBridgeHandlerInterfaces.TokenMinter}) {
             pre {
-                self.minter == nil: "Minter has already been set in ".concat(self.getType().identifier)
+                self.minter == nil: "Minter has already been set in \(self.getType().identifier)"
             }
             self.minter <-! minter
         }
@@ -179,7 +179,7 @@ access(all) contract FlowEVMBridgeHandlers {
         access(FlowEVMBridgeHandlerInterfaces.Admin)
         fun enableBridging() {
             pre {
-                self.minter != nil: "Cannot enable ".concat(self.getType().identifier).concat(" without a minter")
+                self.minter != nil: "Cannot enable \(self.getType().identifier) without a minter"
             }
             self.enabled = true
         }
@@ -262,12 +262,13 @@ access(all) contract FlowEVMBridgeHandlers {
             let preBalance = FlowEVMBridgeUtils.balanceOf(owner: coa.address(), evmContractAddress: wflowAddress)
 
             // Wrap the deposited FLOW as WFLOW, giving the bridge COA the necessary WFLOW to transfer
-            let wrapResult = FlowEVMBridgeUtils.call(
+            let wrapResult = FlowEVMBridgeUtils.callWithSigAndArgs(
                 signature: "deposit()",
                 targetEVMAddress: wflowAddress,
                 args: [],
                 gasLimit: FlowEVMBridgeConfig.gasLimit,
-                value: balance
+                value: balance,
+                resultTypes: nil
             )
             assert(wrapResult.status == EVM.Status.successful, message: "Failed to wrap FLOW as WFLOW")
             
@@ -276,16 +277,12 @@ access(all) contract FlowEVMBridgeHandlers {
             // Cover underflow
             assert(
                 postBalance > preBalance,
-                message: "Escrowed WFLOW balance did not increment after wrapping FLOW - pre: "
-                    .concat(preBalance.toString()).concat(" | post: ").concat(postBalance.toString())
+                message: "Escrowed WFLOW balance did not increment after wrapping FLOW - pre: \(preBalance.toString()) | post: \(postBalance.toString())"
             )
             // Confirm bridge COA's WFLOW balance has incremented by the expected amount
             assert(
                 postBalance - preBalance == uintAmount,
-                message: "Escrowed WFLOW balance after wrapping does not match requested amount - expected: "
-                    .concat((preBalance + uintAmount).toString())
-                    .concat(" | actual: ")
-                    .concat((postBalance - preBalance).toString())
+                message: "Escrowed WFLOW balance after wrapping does not match requested amount - expected: \(preBalance + uintAmount).toString()) | actual: \(postBalance - preBalance).toString())"
             )
 
             // Transfer WFLOW to recipient
@@ -307,7 +304,7 @@ access(all) contract FlowEVMBridgeHandlers {
             owner: EVM.EVMAddress,
             type: Type,
             amount: UInt256,
-            protectedTransferCall: fun (): EVM.Result
+            protectedTransferCall: fun (): EVM.ResultDecoded
         ): @{FungibleToken.Vault} {
             let wflowAddress = self.getTargetEVMAddress()!
 
@@ -318,8 +315,7 @@ access(all) contract FlowEVMBridgeHandlers {
                 )
             assert(
                 ufixAmount > 0.0,
-                message: "Requested UInt256 amount ".concat(amount.toString()).concat(" converted to 0.0 ")
-                    .concat(" - try bridging a larger amount to avoid UFix64 precision loss during conversion")
+                message: "Requested UInt256 amount \(amount.toString()) converted to 0.0  - try bridging a larger amount to avoid UFix64 precision loss during conversion"
             )
 
             // Transfers WFLOW to bridge COA as escrow
@@ -335,12 +331,13 @@ access(all) contract FlowEVMBridgeHandlers {
             let preBalance = coa.balance().attoflow
 
             // Unwrap the transferred WFLOW to FLOW, giving the bridge COA the necessary FLOW to withdraw from EVM
-            let unwrapResult = FlowEVMBridgeUtils.call(
+            let unwrapResult = FlowEVMBridgeUtils.callWithSigAndArgs(
                 signature: "withdraw(uint256)",
                 targetEVMAddress: wflowAddress,
                 args: [amount],
                 gasLimit: FlowEVMBridgeConfig.gasLimit,
-                value: 0.0
+                value: 0.0,
+                resultTypes: nil
             )
             assert(unwrapResult.status == EVM.Status.successful, message: "Failed to unwrap WFLOW as FLOW")
 
@@ -349,34 +346,29 @@ access(all) contract FlowEVMBridgeHandlers {
             // Cover underflow
             assert(
                 postBalance > preBalance,
-                message: "Escrowed FLOW Balance did not increment after unwrapping WFLOW - pre: ".concat(preBalance.toString())
-                    .concat(" | post: ").concat(postBalance.toString())
+                message: "Escrowed FLOW Balance did not increment after unwrapping WFLOW - pre: \(preBalance.toString()) | post: \(postBalance.toString())"
             )
             // Confirm bridge COA's FLOW balance has incremented by the expected amount
             assert(
                 UInt256(postBalance - preBalance) == amount,
-                message: "Escrowed WFLOW balance after unwrapping does not match requested amount - expected: "
-                    .concat((UInt256(preBalance) + amount).toString())
-                    .concat(" | actual: ")
-                    .concat((postBalance - preBalance).toString())
+                message: "Escrowed WFLOW balance after unwrapping does not match requested amount - expected: \(UInt256(preBalance) + amount).toString()) | actual: \(postBalance - preBalance).toString())"
             )
 
-            // Withdraw escrowed FLOW from bridge COA
+            // Withdraw escrowed FLOW from bridge COA.
+            // EVM.Balance takes a UInt (64-bit on all supported platforms). `UInt(amount)` truncates silently if
+            // `amount > UInt.max`. The assert immediately below catches any truncation: if truncation occurred,
+            // `UInt256(withdrawBalance.attoflow) != amount` and the transaction reverts. In practice this cannot
+            // trigger: total FLOW supply is ~1.25B × 10^18 attoflow ≈ 1.25e27, far below UInt.max (~1.8e19 × 1e9
+            // = 1.8e28 for 64-bit). No valid WFLOW bridge request can produce an amount large enough to truncate.
             let withdrawBalance = EVM.Balance(attoflow: UInt(amount))
             assert(
                 UInt256(withdrawBalance.attoflow) == amount,
-                message: "Requested balance failed to convert to attoflow - expected: "
-                    .concat(amount.toString())
-                    .concat(" | actual: ")
-                    .concat(withdrawBalance.attoflow.toString())
+                message: "Requested balance failed to convert to attoflow - expected: \(amount.toString()) | actual: \(withdrawBalance.attoflow.toString())"
             )
             let flowVault <- coa.withdraw(balance: withdrawBalance)
             assert(
                 flowVault.balance == ufixAmount,
-                message: "Resulting FLOW Vault balance does not match requested amount - expected: "
-                    .concat(ufixAmount.toString())
-                    .concat(" | actual: ")
-                    .concat(flowVault.balance.toString())
+                message: "Resulting FLOW Vault balance does not match requested amount - expected: \(ufixAmount.toString()) | actual: \(flowVault.balance.toString())"
             )
             return <-flowVault
         }
@@ -388,15 +380,13 @@ access(all) contract FlowEVMBridgeHandlers {
         /// Sets the target type for the handler
         access(FlowEVMBridgeHandlerInterfaces.Admin)
         fun setTargetType(_ type: Type) {
-            panic("WFLOWTokenHandler has targetType set to "
-                .concat(self.targetType.identifier).concat(" at initialization"))
+            panic("WFLOWTokenHandler has targetType set to \(self.targetType.identifier) at initialization")
         }
 
         /// Sets the target EVM address for the handler
         access(FlowEVMBridgeHandlerInterfaces.Admin)
         fun setTargetEVMAddress(_ address: EVM.EVMAddress) {
-            panic("WFLOWTokenHandler has EVMAddress set to "
-                .concat(self.targetEVMAddress.toString()).concat(" at initialization"))
+            panic("WFLOWTokenHandler has EVMAddress set to \(self.targetEVMAddress.toString()) at initialization")
         }
 
         /// Sets the target type for the handler

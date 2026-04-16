@@ -1,8 +1,8 @@
-import NonFungibleToken from 0x1d7e57aa55817448
-import CrossVMMetadataViews from 0x1d7e57aa55817448
-import EVM from 0xe467b9dd11fa00df
+import "NonFungibleToken"
+import "CrossVMMetadataViews"
+import "EVM"
 
-import FlowEVMBridgeCustomAssociationTypes from 0x1e4aa0b87d10b141
+import "FlowEVMBridgeCustomAssociationTypes"
 
 /// The FlowEVMBridgeCustomAssociations is tasked with preserving custom associations between Cadence assets and their
 /// EVM implementations. These associations should be validated before `saveCustomAssociation` is called by
@@ -128,7 +128,7 @@ access(all) contract FlowEVMBridgeCustomAssociations {
             type.isSubtype(of: Type<@{NonFungibleToken.NFT}>()):
             "Only NFT cross-VM associations are currently supported but \(type.identifier) is not an NFT implementation"
             self.associationsByEVMAddress[evmContractAddress.toString()] == nil:
-            "EVM Address \(evmContractAddress.toString()) already has a custom association with \(self.borrowNFTCustomConfig(forType: type)!.getCadenceType().identifier)"
+            "EVM Address \(evmContractAddress.toString()) already has a custom association with \(self.associationsByEVMAddress[evmContractAddress.toString()]!.identifier)"
             fulfillmentMinter?.check() ?? true:
             "The NFTFulfillmentMinter Capability issued from \(fulfillmentMinter!.address.toString()) is invalid. Ensure the Capability is properly issued and active."
         }

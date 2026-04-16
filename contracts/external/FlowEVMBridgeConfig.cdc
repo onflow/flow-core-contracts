@@ -1,8 +1,8 @@
-import EVM from 0xe467b9dd11fa00df
-import NonFungibleToken from 0x1d7e57aa55817448
+import "EVM"
+import "NonFungibleToken"
 
-import FlowEVMBridgeHandlerInterfaces from 0x1e4aa0b87d10b141
-import FlowEVMBridgeCustomAssociations from 0x1e4aa0b87d10b141
+import "FlowEVMBridgeHandlerInterfaces"
+import "FlowEVMBridgeCustomAssociations"
 
 /// This contract is used to store configuration information shared by FlowEVMBridge contracts
 ///
@@ -101,8 +101,14 @@ contract FlowEVMBridgeConfig {
         return self.paused
     }
 
-    /// Returns whether operations for a given Type are paused. A return value of nil indicates the Type is not yet
-    /// onboarded to the bridge.
+    /// Returns whether operations for a given Type are paused.
+    ///
+    /// Note: the return type is `Bool?` for API compatibility, but this function currently always returns a
+    /// non-nil `Bool`. The three sub-expressions all produce concrete `Bool` values via nil-coalescing or direct
+    /// comparison. A `nil` return cannot occur under current logic. Call sites should use `== false` (rather than
+    /// `!= true`) so that a hypothetical future `nil` is treated conservatively as "paused" rather than
+    /// "not paused". The doc comment claim that `nil` means "not yet onboarded" does not reflect actual behavior
+    /// and is retained only for historical reference.
     ///
     access(all)
     view fun isTypePaused(_ type: Type): Bool? {

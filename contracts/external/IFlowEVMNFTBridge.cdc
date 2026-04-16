@@ -1,10 +1,10 @@
-import FungibleToken from 0xf233dcee88fe0abe
-import NonFungibleToken from 0x1d7e57aa55817448
+import "FungibleToken"
+import "NonFungibleToken"
 
-import EVM from 0xe467b9dd11fa00df
+import "EVM"
 
-import FlowEVMBridgeConfig from 0x1e4aa0b87d10b141
-import CrossVMNFT from 0x1e4aa0b87d10b141
+import "FlowEVMBridgeConfig"
+import "CrossVMNFT"
 
 access(all) contract interface IFlowEVMNFTBridge {
     
@@ -74,8 +74,7 @@ access(all) contract interface IFlowEVMNFTBridge {
                 to: to.toString(),
                 evmContractAddress: self.getAssociatedEVMAddress(with: token.getType())?.toString()
                     ?? panic(
-                        "Could not find EVM Contract address associated with provided NFT identifier="
-                        .concat(token.getType().identifier)
+                        "Could not find EVM Contract address associated with provided NFT identifier=\(token.getType().identifier)"
                     ),
                 bridgeAddress: self.account.address
             )
@@ -101,7 +100,7 @@ access(all) contract interface IFlowEVMNFTBridge {
         type: Type,
         id: UInt256,
         feeProvider: auth(FungibleToken.Withdraw) &{FungibleToken.Provider},
-        protectedTransferCall: fun (EVM.EVMAddress): EVM.Result
+        protectedTransferCall: fun (EVM.EVMAddress): EVM.ResultDecoded
     ): @{NonFungibleToken.NFT} {
         post {
             emit BridgedNFTFromEVM(

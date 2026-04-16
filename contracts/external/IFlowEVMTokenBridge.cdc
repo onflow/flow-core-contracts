@@ -1,7 +1,7 @@
-import FungibleToken from 0xf233dcee88fe0abe
-import NonFungibleToken from 0x1d7e57aa55817448
+import "FungibleToken"
+import "NonFungibleToken"
 
-import EVM from 0xe467b9dd11fa00df
+import "EVM"
 
 access(all) contract interface IFlowEVMTokenBridge {
     
@@ -68,8 +68,7 @@ access(all) contract interface IFlowEVMTokenBridge {
                 to: to.toString(),
                 evmContractAddress: self.getAssociatedEVMAddress(with: vault.getType())?.toString()
                     ?? panic(
-                        "Could not find EVM Contract address associated with provided Token identifier="
-                        .concat(vault.getType().identifier)
+                        "Could not find EVM Contract address associated with provided Token identifier=\(vault.getType().identifier)"
                     ),
                 bridgeAddress: self.account.address
             )
@@ -95,7 +94,7 @@ access(all) contract interface IFlowEVMTokenBridge {
         type: Type,
         amount: UInt256,
         feeProvider: auth(FungibleToken.Withdraw) &{FungibleToken.Provider},
-        protectedTransferCall: fun (): EVM.Result
+        protectedTransferCall: fun (): EVM.ResultDecoded
     ): @{FungibleToken.Vault} {
         post {
             emit BridgedTokensFromEVM(
