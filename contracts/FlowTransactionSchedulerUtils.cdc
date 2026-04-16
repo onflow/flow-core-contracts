@@ -1,8 +1,8 @@
-import "FlowTransactionScheduler"
-import "FungibleToken"
-import "FlowToken"
-import "EVM"
-import "MetadataViews"
+import FlowTransactionScheduler from 0xe467b9dd11fa00df
+import FungibleToken from 0xf233dcee88fe0abe
+import FlowToken from 0x1654653399040a61
+import EVM from 0xe467b9dd11fa00df
+import MetadataViews from 0x1d7e57aa55817448
 
 /// FlowTransactionSchedulerUtils provides utility functionality for working with scheduled transactions
 /// on the Flow blockchain.
@@ -294,9 +294,8 @@ access(all) contract FlowTransactionSchedulerUtils {
 
             if self.idsByTimestamp.containsKey(timestamp) {
                 let ids = &self.idsByTimestamp[timestamp]! as auth(Mutate) &[UInt64]
-                if let index = ids.firstIndex(of: id) {
-                    ids.remove(at: index)
-                }
+                let index = ids.firstIndex(of: id)
+                ids.remove(at: index!)
                 if ids.length == 0 {
                     self.idsByTimestamp.remove(key: timestamp)
                     self.sortedTimestamps.remove(timestamp: timestamp)
@@ -342,7 +341,7 @@ access(all) contract FlowTransactionSchedulerUtils {
             }
 
             // Then remove and destroy the identified transactions
-            for id in transactionsToRemove {
+            for id in transactionsToRemove.keys {
                 if let tx <- self.scheduledTransactions.remove(key: id) {
                     self.removeID(id: id, timestamp: transactionsToRemove[id]!, handlerTypeIdentifier: tx.handlerTypeIdentifier)
                     destroy tx
@@ -414,7 +413,7 @@ access(all) contract FlowTransactionSchedulerUtils {
             for handlerTypeIdentifier in self.handlerInfos.keys {
                 let handlerUUIDs: [UInt64] = []
                 let handlerTypes = self.handlerInfos[handlerTypeIdentifier]!
-                for uuid in handlerTypes {
+                for uuid in handlerTypes.keys {
                     let handlerInfo = handlerTypes[uuid]!
                     if !handlerInfo.capability.check() {
                         continue

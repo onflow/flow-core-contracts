@@ -1,8 +1,8 @@
-import "FungibleToken"
-import "FlowToken"
-import "FlowFees"
-import "FlowStorageFees"
-import "FlowExecutionParameters"
+import FungibleToken from 0xf233dcee88fe0abe
+import FlowToken from 0x1654653399040a61
+import FlowFees from 0xf919ee77447b7497
+import FlowStorageFees from 0xe467b9dd11fa00df
+import FlowExecutionParameters from 0xf426ff57ee8f6110
 
 access(all) contract FlowServiceAccount {
 
@@ -56,7 +56,7 @@ access(all) contract FlowServiceAccount {
     /// Return a reference to the default token vault on an account
     access(all) view fun defaultTokenVault(_ acct: auth(BorrowValue) &Account): auth(FungibleToken.Withdraw) &FlowToken.Vault {
         return acct.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault)
-            ?? panic("FlowServiceAccount.defaultTokenVault: Unable to borrow reference to the default token vault")
+            ?? panic("Unable to borrow reference to the default token vault")
     }
 
     /// Will be deprecated and can be deleted after the switchover to FlowFees.deductTransactionFee
@@ -73,7 +73,7 @@ access(all) contract FlowServiceAccount {
         if self.transactionFee > tokenVault.balance {
             feeAmount = tokenVault.balance
         }
-        
+
         let feeVault <- tokenVault.withdraw(amount: feeAmount)
         FlowFees.deposit(from: <-feeVault)
     }
@@ -87,12 +87,12 @@ access(all) contract FlowServiceAccount {
     ) {
 
         if !FlowServiceAccount.isAccountCreator(payer.address) {
-            panic("FlowServiceAccount.setupNewAccount: Account \(payer.address) is not authorized to create accounts")
+            panic("Account not authorized to create accounts")
         }
 
 
         if self.accountCreationFee < FlowStorageFees.minimumStorageReservation {
-            panic("FlowServiceAccount.setupNewAccount: Account creation fees setup incorrectly")
+            panic("Account creation fees setup incorrectly")
         }
 
         let tokenVault = self.defaultTokenVault(payer)
@@ -127,12 +127,12 @@ access(all) contract FlowServiceAccount {
         return self.accountCreators.keys
     }
 
-    // Gets Execution Effort Weights from the service account's storage 
+    // Gets Execution Effort Weights from the service account's storage
     access(all) view fun getExecutionEffortWeights(): {UInt64: UInt64} {
         return FlowExecutionParameters.getExecutionEffortWeights()
     }
 
-    // Gets Execution Memory Weights from the service account's storage 
+    // Gets Execution Memory Weights from the service account's storage
     access(all) view fun getExecutionMemoryWeights(): {UInt64: UInt64} {
         return FlowExecutionParameters.getExecutionMemoryWeights()
     }

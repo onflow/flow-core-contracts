@@ -27,9 +27,9 @@ access(all) contract StakingProxy {
 
         init(nodeID: String, role: UInt8, networkingAddress: String, networkingKey: String, stakingKey: String) {
             pre {
-                nodeID.length == 64: "StakingProxy.NodeInfo.init: Node ID length must be 32 bytes (64 hex characters) but got \(nodeID.length)"
+                nodeID.length == 64: "Node ID length must be 32 bytes (64 hex characters)"
                 networkingAddress.length > 0 && networkingKey.length > 0 && stakingKey.length > 0:
-                        "StakingProxy.NodeInfo.init: Address and keys must all be non-empty"
+                        "Address and Key have to be the correct length"
             }
             self.id = nodeID
             self.role = role
