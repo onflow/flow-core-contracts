@@ -4,8 +4,8 @@ go 1.24.0
 
 require (
 	github.com/kevinburke/go-bindata v3.24.0+incompatible
-	github.com/onflow/flow-core-contracts/lib/go/templates v1.10.1-0.20260409180530-5a68c4cae8a2
-	github.com/onflow/flow-ft/lib/go/contracts v1.1.0
+	github.com/onflow/flow-core-contracts/lib/go/templates v1.10.2-0.20260416131955-9c14ad685211
+	github.com/onflow/flow-ft/lib/go/contracts v1.1.1
 	github.com/onflow/flow-go-sdk v1.9.2
 	github.com/onflow/flow-nft/lib/go/contracts v1.4.1
 	github.com/stretchr/testify v1.11.1
@@ -39,7 +39,7 @@ require (
 	github.com/onflow/cadence v1.10.0 // indirect
 	github.com/onflow/crypto v0.25.3 // indirect
 	github.com/onflow/fixed-point v0.1.1 // indirect
-	github.com/onflow/flow-ft/lib/go/templates v1.1.0 // indirect
+	github.com/onflow/flow-ft/lib/go/templates v1.1.1 // indirect
 	github.com/onflow/flow-nft/lib/go/templates v1.4.1 // indirect
 	github.com/onflow/flow/protobuf/go/flow v0.4.16 // indirect
 	github.com/pelletier/go-toml v1.2.0 // indirect

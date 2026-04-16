@@ -7,7 +7,7 @@ toolchain go1.24.1
 require (
 	github.com/kevinburke/go-bindata v3.24.0+incompatible
 	github.com/onflow/cadence v1.10.0
-	github.com/onflow/flow-ft/lib/go/templates v1.1.1-0.20260414134002-e4ac36fb5b92
+	github.com/onflow/flow-ft/lib/go/templates v1.1.1
 	github.com/onflow/flow-go-sdk v1.9.2
 	github.com/onflow/flow-nft/lib/go/templates v1.4.1
 	github.com/psiemens/sconfig v0.1.0

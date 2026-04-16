@@ -130,8 +130,8 @@ require (
 	github.com/onflow/atree v0.14.0 // indirect
 	github.com/onflow/fixed-point v0.1.1 // indirect
 	github.com/onflow/flow-evm-bridge v0.1.0 // indirect
-	github.com/onflow/flow-ft/lib/go/contracts v1.1.0 // indirect
-	github.com/onflow/flow-ft/lib/go/templates v1.1.1-0.20260414134002-e4ac36fb5b92 // indirect
+	github.com/onflow/flow-ft/lib/go/contracts v1.1.1 // indirect
+	github.com/onflow/flow-ft/lib/go/templates v1.1.1 // indirect
 	github.com/onflow/flow-nft/lib/go/contracts v1.4.1 // indirect
 	github.com/onflow/flow-nft/lib/go/templates v1.4.1 // indirect
 	github.com/onflow/flow/protobuf/go/flow v0.4.20 // indirect
@@ -223,7 +223,7 @@ require (
 	// replaced by module version in this repo - disregard pinned version
 	github.com/onflow/flow-core-contracts/lib/go/contracts v1.9.4-0.20260407151750-6e8621db576c
 	// replaced by module version in this repo - disregard pinned version
-	github.com/onflow/flow-core-contracts/lib/go/templates v1.10.1-0.20260409180530-5a68c4cae8a2
+	github.com/onflow/flow-core-contracts/lib/go/templates v1.10.2-0.20260416131955-9c14ad685211
 )
 
 replace github.com/onflow/flow-core-contracts/lib/go/contracts => ../contracts
