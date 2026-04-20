@@ -336,8 +336,12 @@ func LinearCodeAddressGenerator() []byte {
 func TESTFlowIDTableStaking(fungibleTokenAddress, flowTokenAddress string) []byte {
 	code := assets.MustAssetString(TESTFlowIdentityTableFilename)
 
-	code = strings.ReplaceAll(code, placeholderFungibleTokenAddress, withHexPrefix(fungibleTokenAddress))
-	code = strings.ReplaceAll(code, placeholderFlowTokenAddress, withHexPrefix(flowTokenAddress))
+	env := templates.Environment{
+		FungibleTokenAddress: fungibleTokenAddress,
+		FlowTokenAddress:     flowTokenAddress,
+	}
+
+	code = templates.ReplaceAddresses(code, env)
 
 	return []byte(code)
 }
