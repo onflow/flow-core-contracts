@@ -10,4 +10,4 @@ generate:
 .PHONY: ci
 ci:
 	$(MAKE) ci -C lib/go
-	flow test --cover --covercode="contracts" tests/*_test.cdc
+	flow test --cover --covercode="contracts" --jobs 1 tests/*_test.cdc
