@@ -18,7 +18,5 @@ jobs:
         run: flow version
       - name: Update PATH
         run: echo "/root/.local/bin" >> $GITHUB_PATH
-      - name: Install Flow CLI
-        run: sh -ci "$(curl -fsSL https://raw.githubusercontent.com/onflow/flow-cli/master/install.sh)"
       - name: Run Go and Cadence tests
         run: make ci
