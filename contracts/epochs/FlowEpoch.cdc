@@ -1,9 +1,9 @@
-import "FungibleToken"
-import "FlowToken"
-import "FlowIDTableStaking"
-import "FlowClusterQC"
-import "FlowDKG"
-import "FlowFees"
+import FungibleToken from 0xf233dcee88fe0abe
+import FlowToken from 0x1654653399040a61
+import FlowIDTableStaking from 0x8624b52f9ddcd04a
+import FlowClusterQC from 0x8624b52f9ddcd04a
+import FlowDKG from 0x8624b52f9ddcd04a
+import FlowFees from 0xf919ee77447b7497
 
 // The top-level smart contract managing the lifecycle of epochs. In Flow,
 // epochs are the smallest unit of time where the identity table (the set of
@@ -417,18 +417,16 @@ access(all) contract FlowEpoch {
     /// Saves a modified EpochMetadata struct to the metadata in account storage
     access(contract) fun saveEpochMetadata(_ newMetadata: EpochMetadata) {
         pre {
-            // The `currentEpochCounter == 0` guard ensures the subtraction is only
-            // evaluated when the counter is >= 1, making `currentEpochCounter - 1` safe.
             self.currentEpochCounter == 0 ||
             (newMetadata.counter >= self.currentEpochCounter - 1 &&
             newMetadata.counter <= self.proposedEpochCounter()):
-                "FlowEpoch.saveEpochMetadata: Cannot modify epoch metadata from epochs after the proposed epoch \(self.proposedEpochCounter()) or before the previous epoch \(self.currentEpochCounter - 1)"
+                "Cannot modify epoch metadata from epochs after the proposed epoch or before the previous epoch"
         }
         if let metadataDictionary = self.account.storage.borrow<auth(Mutate) &{UInt64: EpochMetadata}>(from: self.metadataStoragePath) {
             if let metadata = metadataDictionary[newMetadata.counter] {
                 assert (
                     metadata.counter == newMetadata.counter,
-                    message: "FlowEpoch.saveEpochMetadata: Cannot save metadata with mismatching epoch counters"
+                    message: "Cannot save metadata with mismatching epoch counters"
                 )
             }
             metadataDictionary[newMetadata.counter] = newMetadata
@@ -439,7 +437,10 @@ access(all) contract FlowEpoch {
     access(contract) fun generateRandomSource(): String {
         post {
             result.length == 32:
-                "FlowEpoch.generateRandomSource: Critical invariant violated! Expected hex random source with length 32 (128 bits) but got length \(result.length) instead."
+                "FlowEpoch.generateRandomSource: Critical invariant violated! "
+                    .concat("Expected hex random source with length 32 (128 bits) but got length ")
+                    .concat(result.length.toString())
+                    .concat(" instead.")
         }
         var randomSource = String.encodeHex(revertibleRandom<UInt128>().toBigEndianBytes())
         return randomSource
@@ -464,10 +465,10 @@ access(all) contract FlowEpoch {
     access(all) resource Admin {
         access(all) fun updateEpochViews(_ newEpochViews: UInt64) {
             pre {
-                FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION: "FlowEpoch.Admin.updateEpochViews: Can only update fields during the staking auction"
+                FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION: "Can only update fields during the staking auction"
                 FlowEpoch.isValidPhaseConfiguration(FlowEpoch.configurableMetadata.numViewsInStakingAuction,
                     FlowEpoch.configurableMetadata.numViewsInDKGPhase,
-                    newEpochViews): "FlowEpoch.Admin.updateEpochViews: New Epoch Views must be greater than the sum of staking and DKG Phase views"
+                    newEpochViews): "New Epoch Views must be greater than the sum of staking and DKG Phase views"
             }
 
             FlowEpoch.configurableMetadata.setNumViewsInEpoch(newEpochViews)
@@ -475,10 +476,10 @@ access(all) contract FlowEpoch {
 
         access(all) fun updateAuctionViews(_ newAuctionViews: UInt64) {
             pre {
-                FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION: "FlowEpoch.Admin.updateAuctionViews: Can only update fields during the staking auction"
+                FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION: "Can only update fields during the staking auction"
                 FlowEpoch.isValidPhaseConfiguration(newAuctionViews,
                     FlowEpoch.configurableMetadata.numViewsInDKGPhase,
-                    FlowEpoch.configurableMetadata.numViewsInEpoch): "FlowEpoch.Admin.updateAuctionViews: Epoch Views must be greater than the sum of new staking and DKG Phase views"
+                    FlowEpoch.configurableMetadata.numViewsInEpoch): "Epoch Views must be greater than the sum of new staking and DKG Phase views"
             }
 
             FlowEpoch.configurableMetadata.setNumViewsInStakingAuction(newAuctionViews)
@@ -486,10 +487,10 @@ access(all) contract FlowEpoch {
 
         access(all) fun updateDKGPhaseViews(_ newPhaseViews: UInt64) {
             pre {
-                FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION: "FlowEpoch.Admin.updateDKGPhaseViews: Can only update fields during the staking auction"
+                FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION: "Can only update fields during the staking auction"
                 FlowEpoch.isValidPhaseConfiguration(FlowEpoch.configurableMetadata.numViewsInStakingAuction,
                     newPhaseViews,
-                    FlowEpoch.configurableMetadata.numViewsInEpoch): "FlowEpoch.Admin.updateDKGPhaseViews: Epoch Views must be greater than the sum of staking and new DKG Phase views"
+                    FlowEpoch.configurableMetadata.numViewsInEpoch): "Epoch Views must be greater than the sum of staking and new DKG Phase views"
             }
 
             FlowEpoch.configurableMetadata.setNumViewsInDKGPhase(newPhaseViews)
@@ -497,7 +498,7 @@ access(all) contract FlowEpoch {
 
         access(all) fun updateEpochTimingConfig(_ newConfig: EpochTimingConfig) {
             pre {
-                FlowEpoch.currentEpochCounter >= newConfig.refCounter: "FlowEpoch.Admin.updateEpochTimingConfig: Reference epoch must be before next epoch"
+                FlowEpoch.currentEpochCounter >= newConfig.refCounter: "Reference epoch must be before next epoch"
             }
             FlowEpoch.account.storage.load<EpochTimingConfig>(from: /storage/flowEpochTimingConfig)
             FlowEpoch.account.storage.save(newConfig, to: /storage/flowEpochTimingConfig)
@@ -505,7 +506,7 @@ access(all) contract FlowEpoch {
 
         access(all) fun updateNumCollectorClusters(_ newNumClusters: UInt16) {
             pre {
-                FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION: "FlowEpoch.Admin.updateNumCollectorClusters: Can only update fields during the staking auction"
+                FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION: "Can only update fields during the staking auction"
             }
 
             FlowEpoch.configurableMetadata.setNumCollectorClusters(newNumClusters)
@@ -513,8 +514,8 @@ access(all) contract FlowEpoch {
 
         access(all) fun updateFLOWSupplyIncreasePercentage(_ newPercentage: UFix64) {
             pre {
-                FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION: "FlowEpoch.Admin.updateFLOWSupplyIncreasePercentage: Can only update fields during the staking auction"
-                newPercentage <= 1.0: "FlowEpoch.Admin.updateFLOWSupplyIncreasePercentage: New FLOW supply increase percentage must be between zero and one but got \(newPercentage)"
+                FlowEpoch.currentEpochPhase == EpochPhase.STAKINGAUCTION: "Can only update fields during the staking auction"
+                newPercentage <= 1.0: "New value must be between zero and one"
             }
 
             FlowEpoch.configurableMetadata.setFLOWsupplyIncreasePercentage(newPercentage)
@@ -592,21 +593,24 @@ access(all) contract FlowEpoch {
         {
             pre {
                 FlowEpoch.isValidPhaseConfiguration(stakingEndView-startView+1, FlowEpoch.configurableMetadata.numViewsInDKGPhase, endView-startView+1):
-                    "FlowEpoch.Admin.recoverEpochPreChecks: Invalid startView, stakingEndView, and endView configuration"
+                    "Invalid startView, stakingEndView, and endView configuration"
             }
 
             /// sanity check all nodes should have a weight > 0
             for nodeID in nodeIDs {
                 assert(
                     FlowIDTableStaking.NodeInfo(nodeID: nodeID).initialWeight > 0, 
-                    message: "FlowEpoch.Admin.recoverEpochPreChecks: All nodes in node ids list for recovery epoch must have a weight > 0. The node \(nodeID) has a weight of 0."
+                    message: "FlowEpoch.Admin.recoverEpochPreChecks: All nodes in node ids list for recovery epoch must have a weight > 0. The node "
+                    .concat(nodeID).concat(" has a weight of 0.")
                 )
             }
 
             // sanity check we must receive qc vote data for each cluster
             assert(
                 numOfClusterAssignments == numOfClusterQCVoteData, 
-                message: "FlowEpoch.Admin.recoverEpochPreChecks: The number of cluster assignments \(numOfClusterAssignments) does not match the number of cluster qc vote data \(numOfClusterQCVoteData)"
+                message: "FlowEpoch.Admin.recoverEpochPreChecks: The number of cluster assignments "
+                .concat(numOfClusterAssignments.toString()).concat(" does not match the number of cluster qc vote data ")
+                .concat(numOfClusterQCVoteData.toString())
             )
         }
         
@@ -646,7 +650,12 @@ access(all) contract FlowEpoch {
         {
             pre {
                 recoveryEpochCounter == FlowEpoch.proposedEpochCounter():
-                    "FlowEpoch.Admin.recoverNewEpoch: Recovery epoch counter must equal current epoch counter + 1. Got recovery epoch counter (\(recoveryEpochCounter)) with current epoch counter (\(FlowEpoch.currentEpochCounter))."
+                    "FlowEpoch.Admin.recoverNewEpoch: Recovery epoch counter must equal current epoch counter + 1. "
+                        .concat("Got recovery epoch counter (")
+                        .concat(recoveryEpochCounter.toString())
+                        .concat(") with current epoch counter (")
+                        .concat(FlowEpoch.currentEpochCounter.toString())
+                        .concat(").")
             }
 
             self.stopEpochComponents()
@@ -722,7 +731,12 @@ access(all) contract FlowEpoch {
         { 
             pre {
                 recoveryEpochCounter == FlowEpoch.currentEpochCounter:
-                    "FlowEpoch.Admin.recoverCurrentEpoch: Recovery epoch counter must equal current epoch counter. Got recovery epoch counter (\(recoveryEpochCounter)) with current epoch counter (\(FlowEpoch.currentEpochCounter))."
+                    "FlowEpoch.Admin.recoverCurrentEpoch: Recovery epoch counter must equal current epoch counter. "
+                        .concat("Got recovery epoch counter (")
+                        .concat(recoveryEpochCounter.toString())
+                        .concat(") with current epoch counter (")
+                        .concat(FlowEpoch.currentEpochCounter.toString())
+                        .concat(").")
             }
 
             self.stopEpochComponents()
@@ -944,8 +958,6 @@ access(all) contract FlowEpoch {
 
     /// Pays rewards to the nodes and delegators of the previous epoch
     access(account) fun payRewardsForPreviousEpoch() {
-        // `currentEpochCounter` is always >= 1 here because this function is only called
-        // during epoch transitions after the first epoch has completed, making `- 1` safe.
         if let previousEpochMetadata = self.getEpochMetadata(self.currentEpochCounter - 1) {
             if !previousEpochMetadata.rewardsPaid {
                 let summary = FlowIDTableStaking.EpochRewardsSummary(totalRewards: previousEpochMetadata.totalRewards, breakdown: previousEpochMetadata.rewardAmounts)
@@ -975,8 +987,6 @@ access(all) contract FlowEpoch {
         // Update the epoch counters
         self.currentEpochCounter = self.proposedEpochCounter()
 
-        // `proposedEpochCounter()` returns `currentEpochCounter + 1`, so after the
-        // assignment above `currentEpochCounter` is >= 1, making `- 1` safe.
         let previousEpochMetadata = self.getEpochMetadata(self.currentEpochCounter - 1)!
         let newEpochMetadata = self.getEpochMetadata(self.currentEpochCounter)!
 
