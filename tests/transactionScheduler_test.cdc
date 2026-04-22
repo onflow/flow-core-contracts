@@ -70,10 +70,17 @@ access(all) fun testInit() {
 access(all) fun testGetSizeOfData() {
 
     // Test different values for data to verify that it reports the correct sizes
+
     var size = getSizeOfData(data: 1)
-    Test.assertEqual(0.00000000 as UFix64, size)
+    Test.assertEqual(0.00002300 as UFix64, size)
 
     size = getSizeOfData(data: 100000000)
+    Test.assertEqual(0.00002600 as UFix64, size)
+
+    size = getSizeOfData(data: Int8(1))
+    Test.assertEqual(0.00000000 as UFix64, size)
+
+    size = getSizeOfData(data: UInt256(100000000))
     Test.assertEqual(0.00000000 as UFix64, size)
 
     size = getSizeOfData(data: StoragePath(identifier: "scheduledTransactionsStoragePath"))
@@ -82,7 +89,7 @@ access(all) fun testGetSizeOfData() {
     size = getSizeOfData(data: testData)
     Test.assertEqual(0.00003000 as UFix64, size)
 
-    size = getSizeOfData(data: 0x0000000000000001)
+    size = getSizeOfData(data: Address(0x0000000000000001))
     Test.assertEqual(0.00000000 as UFix64, size)
 
     let largeArray: [Int] = []
