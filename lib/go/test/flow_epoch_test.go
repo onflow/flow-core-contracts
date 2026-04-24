@@ -4,11 +4,13 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/rand"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/onflow/cadence"
 	jsoncdc "github.com/onflow/cadence/encoding/json"
+	"github.com/onflow/cadence/interpreter"
 	"github.com/onflow/crypto"
 	"github.com/onflow/flow-go/module/signature"
 	"github.com/stretchr/testify/assert"
@@ -2035,4 +2037,133 @@ func verifyEpochRecoverGovernanceTx(
 		dkgIdMapping:       dkgIDMapping,
 	}
 	verifyEpochRecover(t, adapter, idTableAddress, expectedRecoverEvent)
+}
+
+// TestKeyCaseValidation tests that the contract properly rejects keys containing
+// uppercase hex characters. This prevents case-aliasing attacks where different hex
+// strings (e.g., "aabb" vs "AABB") decode to the same bytes but would be treated as
+// different keys by string-based uniqueness checks.
+//
+// The fix adds isLowercaseHex() validation to ensure all networking and staking keys
+// contain only lowercase hex characters (0-9, a-f).
+func TestKeyCaseValidation(t *testing.T) {
+	b, _, accountKeys, env := newTestSetup(t)
+
+	// Create new keys for the epoch account
+	idTableAccountKey, IDTableSigner := accountKeys.NewWithSigner()
+
+	// Deploy full epoch infrastructure (staking, qc, dkg, epoch contracts)
+	initializeAllEpochContracts(t, b, idTableAccountKey, IDTableSigner, &env,
+		startEpochCounter,
+		numEpochViews,
+		numStakingViews,
+		numDKGViews,
+		numClusters,
+		randomSource,
+		rewardIncreaseFactor)
+
+	// Generate accounts and keys for testing
+	numNodes := 3
+	addresses, _, signers := registerAndMintManyAccounts(t, b, env, accountKeys, numNodes)
+	ids, _, _ := generateNodeIDs(numNodes)
+	stakingPrivateKeys, stakingPublicKeys, _, networkingPublicKeys := generateManyNodeKeys(t, numNodes)
+	stakingKeyPOPs := generateManyKeyPOPs(t, stakingPrivateKeys)
+
+	var amountToCommit interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(1350000)
+	var committed interpreter.UFix64Value = interpreter.NewUnmeteredUFix64ValueWithInteger(0)
+
+	t.Run("Registration with lowercase keys should succeed", func(t *testing.T) {
+		// All generated keys should be lowercase hex
+		registerNode(t, b, env,
+			addresses[0],
+			signers[0],
+			ids[0],
+			"node0.flow.com:3569",
+			networkingPublicKeys[0], // lowercase
+			stakingPublicKeys[0],    // lowercase
+			stakingKeyPOPs[0],
+			amountToCommit,
+			committed,
+			1, // collector role
+			false)
+	})
+
+	t.Run("Registration with uppercase networking key should fail", func(t *testing.T) {
+		uppercaseNetworkingKey := strings.ToUpper(networkingPublicKeys[1])
+
+		// Verify the key is actually uppercase
+		require.NotEqual(t, networkingPublicKeys[1], uppercaseNetworkingKey,
+			"uppercase key should be different from original")
+
+		// Verify both decode to the same bytes (demonstrating the attack vector)
+		bytes1, err := hex.DecodeString(networkingPublicKeys[1])
+		require.NoError(t, err)
+		bytes2, err := hex.DecodeString(uppercaseNetworkingKey)
+		require.NoError(t, err)
+		require.Equal(t, bytes1, bytes2,
+			"both keys should decode to identical bytes")
+
+		// Registration should fail because uppercase hex is rejected
+		registerNode(t, b, env,
+			addresses[1],
+			signers[1],
+			ids[1],
+			"node1.flow.com:3569",
+			uppercaseNetworkingKey, // UPPERCASE - should be rejected
+			stakingPublicKeys[1],   // lowercase
+			stakingKeyPOPs[1],
+			amountToCommit,
+			committed,
+			2, // consensus role
+			true) // should fail
+	})
+
+	t.Run("Registration with uppercase staking key should fail", func(t *testing.T) {
+		uppercaseStakingKey := strings.ToUpper(stakingPublicKeys[2])
+
+		// Verify the key is actually uppercase
+		require.NotEqual(t, stakingPublicKeys[2], uppercaseStakingKey,
+			"uppercase key should be different from original")
+
+		// Registration should fail because uppercase hex is rejected
+		registerNode(t, b, env,
+			addresses[2],
+			signers[2],
+			ids[2],
+			"node2.flow.com:3569",
+			networkingPublicKeys[2], // lowercase
+			uppercaseStakingKey,     // UPPERCASE - should be rejected
+			stakingKeyPOPs[2],
+			amountToCommit,
+			committed,
+			3, // execution role
+			true) // should fail
+	})
+
+	t.Run("Registration with mixed case networking key should fail", func(t *testing.T) {
+		// Create a mixed case key (e.g., "aAbBcCdD...")
+		originalKey := networkingPublicKeys[1]
+		mixedCaseKey := ""
+		for i, c := range originalKey {
+			if i%2 == 0 {
+				mixedCaseKey += strings.ToUpper(string(c))
+			} else {
+				mixedCaseKey += string(c)
+			}
+		}
+
+		// Registration should fail because mixed case hex is rejected
+		registerNode(t, b, env,
+			addresses[1],
+			signers[1],
+			ids[1],
+			"node1b.flow.com:3569",
+			mixedCaseKey,         // MIXED CASE - should be rejected
+			stakingPublicKeys[1], // lowercase
+			stakingKeyPOPs[1],
+			amountToCommit,
+			committed,
+			2, // consensus role
+			true) // should fail
+	})
 }
