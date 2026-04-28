@@ -1,6 +1,6 @@
-import "FungibleToken"
-import "MetadataViews"
-import "FungibleTokenMetadataViews"
+import FungibleToken from 0xf233dcee88fe0abe
+import MetadataViews from 0x1d7e57aa55817448
+import FungibleTokenMetadataViews from 0xf233dcee88fe0abe
 
 access(all) contract FlowToken: FungibleToken {
 
@@ -80,22 +80,16 @@ access(all) contract FlowToken: FungibleToken {
 
             // If the owner is the staking account, do not emit the contract defined events
             // this is to help with the performance of the epoch transition operations
-            // Either way, event listeners should be paying attention to the
+            // Either way, event listeners should be paying attention to the 
             // FungibleToken.Withdrawn events anyway because those contain
             // much more comprehensive metadata
             // Additionally, these events will eventually be removed from this contract completely
             // in favor of the FungibleToken events
-            //
-            // NOTE: The address exclusions below are NOT a security bypass — they are a documented
-            // performance optimization for known service accounts that process high volumes of
-            // token movements during epoch transitions. These are fixed, well-known protocol
-            // addresses (emulator service account, testnet staking contract, mainnet staking contract).
-            // This does not affect the security of user funds in any way.
             if let address = self.owner?.address {
                 if address != 0xf8d6e0586b0a20c7 &&
                    address != 0xf4527793ee68aede &&
                    address != 0x9eca2b38b18b5dfe &&
-                   address != 0x8624b52f9ddcd04a
+                   address != 0x8624b52f9ddcd04a 
                 {
                     emit TokensWithdrawn(amount: amount, from: address)
                 }
@@ -212,7 +206,7 @@ access(all) contract FlowToken: FungibleToken {
                 )
             case Type<FungibleTokenMetadataViews.FTVaultData>():
                 let vaultRef = FlowToken.account.storage.borrow<auth(FungibleToken.Withdraw) &FlowToken.Vault>(from: /storage/flowTokenVault)
-			        ?? panic("FlowToken.resolveContractView: Could not borrow reference to the contract's Vault!")
+			        ?? panic("Could not borrow reference to the contract's Vault!")
                 return FungibleTokenMetadataViews.FTVaultData(
                     storagePath: /storage/flowTokenVault,
                     receiverPath: /public/flowTokenReceiver,
@@ -256,8 +250,8 @@ access(all) contract FlowToken: FungibleToken {
         //
         access(all) fun mintTokens(amount: UFix64): @FlowToken.Vault {
             pre {
-                amount > UFix64(0): "FlowToken.Minter.mintTokens: Amount minted must be greater than zero but got \(amount)"
-                amount <= self.allowedAmount: "FlowToken.Minter.mintTokens: Amount minted (\(amount)) must be less than or equal to the allowed amount (\(self.allowedAmount))"
+                amount > UFix64(0): "Amount minted must be greater than zero"
+                amount <= self.allowedAmount: "Amount minted must be less than the allowed amount"
             }
             FlowToken.totalSupply = FlowToken.totalSupply + amount
             self.allowedAmount = self.allowedAmount - amount
@@ -275,29 +269,29 @@ access(all) contract FlowToken: FungibleToken {
         return FlowToken.account.storage.copy<String>(from: /storage/flowTokenLogoURI) ?? ""
     }
 
-    init() {
+    init(adminAccount: auth(Storage, Capabilities) &Account) {
         self.totalSupply = 0.0
 
         // Create the Vault with the total supply of tokens and save it in storage
         //
         let vault <- create Vault(balance: self.totalSupply)
 
-        self.account.storage.save(<-vault, to: /storage/flowTokenVault)
+        adminAccount.storage.save(<-vault, to: /storage/flowTokenVault)
 
         // Create a public capability to the stored Vault that only exposes
         // the `deposit` method through the `Receiver` interface
         //
-        let receiverCapability = self.account.capabilities.storage.issue<&FlowToken.Vault>(/storage/flowTokenVault)
-        self.account.capabilities.publish(receiverCapability, at: /public/flowTokenReceiver)
+        let receiverCapability = adminAccount.capabilities.storage.issue<&FlowToken.Vault>(/storage/flowTokenVault)
+        adminAccount.capabilities.publish(receiverCapability, at: /public/flowTokenReceiver)
 
         // Create a public capability to the stored Vault that only exposes
         // the `balance` field through the `Balance` interface
         //
-        let balanceCapability = self.account.capabilities.storage.issue<&FlowToken.Vault>(/storage/flowTokenVault)
-        self.account.capabilities.publish(balanceCapability, at: /public/flowTokenBalance)
+        let balanceCapability = adminAccount.capabilities.storage.issue<&FlowToken.Vault>(/storage/flowTokenVault)
+        adminAccount.capabilities.publish(balanceCapability, at: /public/flowTokenBalance)
 
         let admin <- create Administrator()
-        self.account.storage.save(<-admin, to: /storage/flowTokenAdmin)
+        adminAccount.storage.save(<-admin, to: /storage/flowTokenAdmin)
 
     }
 }
