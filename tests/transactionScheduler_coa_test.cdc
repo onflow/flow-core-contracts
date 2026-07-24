@@ -360,7 +360,7 @@ access(all) fun testCOAScheduledTransactions() {
     executeScheduledTransaction(
         id: 6,
         testName: "Test COA Transaction Scheduling: Deposit too much FLOW and revert",
-        failWithErr: "is greater than the balance of the Vault"
+        failWithErr: "is greater than the balance of the `Vault`"
     )
 
     executeScheduledTransaction(
