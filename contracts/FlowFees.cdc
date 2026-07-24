@@ -66,15 +66,11 @@ access(all) contract FlowFees {
     /// the contract's internal vault, not in the account's default FLOW
     /// vault, so they are not reflected in that account's balance.
     /// Use getFeeBalance() to get the total balance of all collected fees.
-    access(all) view fun getFeeReceiverAddresses(): [Address] {
-        var addresses: [Address] = [self.account.address]
+    access(all) fun getFeeReceiverAddresses(): [Address] {
+        let addresses: [Address] = [self.account.address]
         if let childFeeAccounts = self.borrowChildFeeAccounts() {
-            var i = 0
-            while i < childFeeAccounts.length {
-                // concat is used because mutating functions
-                // like append cannot be called in view functions
-                addresses = addresses.concat([childFeeAccounts[i].address])
-                i = i + 1
+            for childFeeAccount in childFeeAccounts {
+                addresses.append(childFeeAccount.address)
             }
         }
         return addresses
