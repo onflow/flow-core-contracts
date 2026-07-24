@@ -171,7 +171,9 @@ access(all) contract FlowIDTableStaking {
                 role >= UInt8(1) && role <= UInt8(5): "FlowIDTableStaking.NodeRecord.init: The role must be 1, 2, 3, 4, or 5 but got \(role)"
                 FlowIDTableStaking.isValidNetworkingAddress(address: networkingAddress): "FlowIDTableStaking.NodeRecord.init: The networkingAddress must be a valid domain name with a port (e.g., node.flow.com:3569), must not exceed 510 characters, and cannot be an IP address, but got \(networkingAddress)"
                 networkingKey.length == 128: "FlowIDTableStaking.NodeRecord.init: The networkingKey length must be exactly 64 bytes (128 hex characters) but got \(networkingKey.length)"
+                FlowIDTableStaking.isLowercaseHex(networkingKey): "FlowIDTableStaking.NodeRecord.init: The networkingKey must contain only lowercase hex characters (0-9, a-f)"
                 stakingKey.length == 192: "FlowIDTableStaking.NodeRecord.init: The stakingKey length must be exactly 96 bytes (192 hex characters) but got \(stakingKey.length)"
+                FlowIDTableStaking.isLowercaseHex(stakingKey): "FlowIDTableStaking.NodeRecord.init: The stakingKey must contain only lowercase hex characters (0-9, a-f)"
                 !FlowIDTableStaking.getNetworkingAddressClaimed(address: networkingAddress): "FlowIDTableStaking.NodeRecord.init: The networkingAddress \(networkingAddress) has already been claimed by another node and cannot be used again"
                 !FlowIDTableStaking.getNetworkingKeyClaimed(key: networkingKey): "FlowIDTableStaking.NodeRecord.init: The networkingKey \(networkingKey) has already been claimed by another node and cannot be used again"
                 !FlowIDTableStaking.getStakingKeyClaimed(key: stakingKey): "FlowIDTableStaking.NodeRecord.init: The stakingKey \(stakingKey) has already been claimed by another node and cannot be used again"
@@ -1819,18 +1821,25 @@ access(all) contract FlowIDTableStaking {
         }
     }
 
-    /// Checks if the given string has all numbers or lowercase hex characters
-    /// Used to ensure that there are no duplicate node IDs
-    access(all) view fun isValidNodeID(_ input: String): Bool {
+    /// Checks if the given string contains only lowercase hex characters (0-9, a-f)
+    /// Used to prevent case-aliasing attacks where different hex strings
+    /// (e.g., "aabb" vs "AABB") decode to the same bytes
+    access(all) view fun isLowercaseHex(_ input: String): Bool {
         let byteVersion = input.utf8
 
         for character in byteVersion {
+            // Only allow 0-9 (ASCII 48-57) and a-f (ASCII 97-102)
             if ((character < 48) || (character > 57 && character < 97) || (character > 102)) {
                 return false
             }
         }
 
         return true
+    }
+
+    /// Checks if the given node ID has all numbers or lowercase hex characters
+    access(all) view fun isValidNodeID(_ input: String): Bool {
+        return self.isLowercaseHex(input)
     }
 
     /// Validates that a networking address is properly formatted

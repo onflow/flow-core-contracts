@@ -1410,19 +1410,10 @@ access(all) contract FlowTransactionScheduler {
     /// checking storage used before and after to see how large the data is in MB
     /// If data is nil, the function returns 0.0
     access(all) fun getSizeOfData(_ data: AnyStruct?): UFix64 {
-        if data == nil {
+        if self.isSizeTrivial(data) {
             return 0.0
-        } else {
-            let type = data!.getType()
-            if type.isSubtype(of: Type<Number>()) 
-            || type.isSubtype(of: Type<Bool>()) 
-            || type.isSubtype(of: Type<Address>())
-            || type.isSubtype(of: Type<Character>())
-            || type.isSubtype(of: Type<Capability>())
-            {
-                return 0.0
-            }
         }
+
         let storagePath = /storage/dataTemp
         let storageUsedBefore = self.account.storage.used
         self.account.storage.save(data!, to: storagePath)
@@ -1431,6 +1422,37 @@ access(all) contract FlowTransactionScheduler {
 
         return FlowStorageFees.convertUInt64StorageBytesToUFix64Megabytes(storageUsedAfter.saturatingSubtract(storageUsedBefore))
     }
+
+
+    access(all) fun isSizeTrivial(_ optionalData: AnyStruct?): Bool {
+        // If data is non-nil, skip the known small-sized primitive types.
+        if let data = optionalData {
+            let type = data.getType()
+
+            // Arbitrary-sized numbers can be large.
+            // So they must be measured.
+            if type.isSubtype(of: Type<Int>())
+                || type.isSubtype(of: Type<UInt>()) {
+                return false
+            }
+
+            // Some primitive types are trivial in size.
+            if type.isSubtype(of: Type<Number>())
+                || type.isSubtype(of: Type<Bool>())
+                || type.isSubtype(of: Type<Address>())
+                || type.isSubtype(of: Type<Character>())
+                || type.isSubtype(of: Type<Capability>()) {
+                    return true
+            }
+
+            // Everything else needs to be measured.
+            return false
+        }
+
+        // Data is nil: no need to meassure.
+        return true
+    }
+
 
     access(all) init() {
         self.storagePath = /storage/sharedScheduler
