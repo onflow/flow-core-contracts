@@ -1,7 +1,7 @@
 .PHONY: test
 test: generate
 	$(MAKE) test -C lib/go
-	flow test --cover --covercode="contracts" tests/*.cdc
+	flow test --cover --covercode="contracts" --jobs 1 tests/*.cdc
 
 .PHONY: generate
 generate:
