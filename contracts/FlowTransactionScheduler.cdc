@@ -795,6 +795,9 @@ access(all) contract FlowTransactionScheduler {
             // Deposit the fees to the service account's vault
             FlowTransactionScheduler.depositFees(from: <-fees)
 
+            // Reserve the slot capacity before invoking handler callback.
+            self.addTransaction(slot: estimate.timestamp!, txData: transactionData)
+
             let handlerRef = handlerCap.borrow()
                 ?? panic("Invalid transaction handler: Could not borrow a reference to the transaction handler")
 
@@ -812,9 +815,6 @@ access(all) contract FlowTransactionScheduler {
                 transactionHandlerPublicPath: handlerPublicPath
             )
 
-            // Add the transaction to the slot queue and update the internal state
-            self.addTransaction(slot: estimate.timestamp!, txData: transactionData)
-            
             return <-create ScheduledTransaction(
                 id: transactionID, 
                 timestamp: estimate.timestamp!,
@@ -1010,7 +1010,18 @@ access(all) contract FlowTransactionScheduler {
             // and the cumulative slot total is bounded by priorityEffortLimit[priority] which is
             // checked on every schedule() call. UInt64 max (~1.8e19) far exceeds any reachable sum.
             let slotEfforts = &self.slotUsedEffort[slot]! as auth(Mutate) &{Priority: UInt64}
-            slotEfforts[txData.priority] = slotEfforts[txData.priority]! + txData.executionEffort
+            let newSlotEffort = slotEfforts[txData.priority]! + txData.executionEffort
+
+            // The per-priority slot total must never exceed the configured limit.
+            // estimate() already enforces this before schedule() reserves capacity, so
+            // this assertion should be unreachable; it guards against any reentrancy vector
+            // that reaches addTransaction() without a fresh capacity check.
+            assert(
+                newSlotEffort <= self.config.priorityEffortLimit[txData.priority]!,
+                message: "Invalid execution effort: scheduling \(txData.executionEffort) would raise the \(txData.priority.rawValue) priority slot total to \(newSlotEffort), exceeding the limit of \(self.config.priorityEffortLimit[txData.priority]!)."
+            )
+
+            slotEfforts[txData.priority] = newSlotEffort
 
             // Store the transaction in the transactions map
             self.transactions[txData.id] = txData
