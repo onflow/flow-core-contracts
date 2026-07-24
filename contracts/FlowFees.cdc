@@ -16,6 +16,11 @@ access(all) contract FlowFees {
     // Event that is emitted when fee parameters change
     access(all) event FeeParametersChanged(surgeFactor: UFix64, inclusionEffortCost: UFix64, executionEffortCost: UFix64)
 
+    // Event that is emitted when the list of child fee accounts changes.
+    // Contains the full new list of child fee account addresses
+    // (the FlowFees account itself is not included)
+    access(all) event ChildFeeAccountsChanged(addresses: [Address])
+
     // Private vault with public deposit function
     access(self) var vault: @FlowToken.Vault
 
@@ -28,7 +33,7 @@ access(all) contract FlowFees {
 
     /// Get the balance of the Fees Vault
     access(all) fun getFeeBalance(): UFix64 {
-        let childFeeAccounts = self.account.storage.borrow<&[Capability<auth(Storage, Contracts, Keys, Inbox, Capabilities) &Account>]>(from: /storage/ChildFeeAccounts)
+        let childFeeAccounts = self.borrowChildFeeAccounts()
 
         // fallback in case no child accounts were created yet
         if childFeeAccounts == nil || childFeeAccounts!.length == 0 {
@@ -47,6 +52,34 @@ access(all) contract FlowFees {
         return totalFees
     }
 
+    /// Borrows the list of child fee account capabilities from storage.
+    /// Returns nil if no child fee accounts were added yet.
+    access(self) view fun borrowChildFeeAccounts(): &[Capability<auth(Storage, Contracts, Keys, Inbox, Capabilities) &Account>]? {
+        return self.account.storage.borrow<&[Capability<auth(Storage, Contracts, Keys, Inbox, Capabilities) &Account>]>(from: /storage/ChildFeeAccounts)
+    }
+
+    /// Returns the addresses of all accounts that may receive transaction
+    /// fee deposits, i.e. the possible `to` addresses of the deposit events
+    /// emitted when fees are collected: the FlowFees account plus any
+    /// child fee accounts.
+    /// Note that fees received by the FlowFees account itself are held in
+    /// the contract's internal vault, not in the account's default FLOW
+    /// vault, so they are not reflected in that account's balance.
+    /// Use getFeeBalance() to get the total balance of all collected fees.
+    access(all) view fun getFeeReceiverAddresses(): [Address] {
+        var addresses: [Address] = [self.account.address]
+        if let childFeeAccounts = self.borrowChildFeeAccounts() {
+            var i = 0
+            while i < childFeeAccounts.length {
+                // concat is used because mutating functions
+                // like append cannot be called in view functions
+                addresses = addresses.concat([childFeeAccounts[i].address])
+                i = i + 1
+            }
+        }
+        return addresses
+    }
+
     access(all) resource Administrator {
         // withdraw
         //
@@ -62,7 +95,7 @@ access(all) contract FlowFees {
             remainingAmount = remainingAmount - withdrawAmount
             var vault <- FlowFees.vault.withdraw(amount: withdrawAmount)
 
-            let childFeeAccounts = FlowFees.account.storage.borrow<&[Capability<auth(Storage, Contracts, Keys, Inbox, Capabilities) &Account>]>(from: /storage/ChildFeeAccounts)
+            let childFeeAccounts = FlowFees.borrowChildFeeAccounts()
 
             // fallback in case no child accounts were created yet
             if childFeeAccounts == nil || childFeeAccounts!.length == 0 {
@@ -120,6 +153,40 @@ access(all) contract FlowFees {
             let oldParameters = FlowFees.getFeeParameters()
             let newParameters = FeeParameters(surgeFactor: surgeFactor, inclusionEffortCost: oldParameters.inclusionEffortCost, executionEffortCost: oldParameters.executionEffortCost)
             FlowFees.setFeeParameters(newParameters)
+        }
+
+        /// Creates the given number of new child fee accounts, paid for
+        /// by `payer`, and adds them to the list of accounts that may
+        /// receive transaction fee deposits.
+        /// The new accounts have no keys and are only accessible through
+        /// the account capabilities stored in the FlowFees account,
+        /// so they are fully controlled by the FlowFees contract.
+        access(all) fun createChildFeeAccounts(count: Int, payer: auth(BorrowValue | Storage) &Account) {
+            pre {
+                count > 0:
+                    "FlowFees.createChildFeeAccounts: The number of child fee accounts to create must be positive"
+            }
+
+            let childFeeAccounts = FlowFees.account.storage.load<[Capability<auth(Storage, Contracts, Keys, Inbox, Capabilities) &Account>]>(from: /storage/ChildFeeAccounts) ?? []
+
+            let childAddresses: [Address] = []
+            for existingChildFeeAccount in childFeeAccounts {
+                childAddresses.append(existingChildFeeAccount.address)
+            }
+
+            var i = 0
+            while i < count {
+                i = i + 1
+                let newAccount = Account(payer: payer)
+                let cap = newAccount.capabilities.account.issue<auth(Storage, Contracts, Keys, Inbox, Capabilities) &Account>()
+
+                childFeeAccounts.append(cap)
+                childAddresses.append(cap.address)
+            }
+
+            FlowFees.account.storage.save(childFeeAccounts, to: /storage/ChildFeeAccounts)
+
+            emit ChildFeeAccountsChanged(addresses: childAddresses)
         }
     }
 
@@ -234,7 +301,7 @@ access(all) contract FlowFees {
     /// The supplied vault will go to one child fee account according to the current number of child fee accounts and the current transaction index.
     /// if there are no child accounts, the fees will be collected in the self.vault
     access(self) fun collectFeesOnChildAccounts(_ vault: @{FungibleToken.Vault}) {
-        let childFeeAccounts = self.account.storage.borrow<&[Capability<auth(Storage, Contracts, Keys, Inbox, Capabilities) &Account>]>(from: /storage/ChildFeeAccounts)
+        let childFeeAccounts = self.borrowChildFeeAccounts()
 
         // fallback in case no child accounts were created yet
         if childFeeAccounts == nil || childFeeAccounts!.length == 0 {

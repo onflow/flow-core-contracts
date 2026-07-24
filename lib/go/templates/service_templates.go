@@ -29,17 +29,18 @@ const (
 	addAccountCreator              = "FlowServiceAccount/add_account_creator.cdc"
 	removeAccountCreator           = "FlowServiceAccount/remove_account_creator.cdc"
 
-	depositFeesFilename       = "FlowServiceAccount/deposit_fees.cdc"
-	getFeesBalanceFilename    = "FlowServiceAccount/scripts/get_fees_balance.cdc"
-	getFeeParametersFilename  = "FlowServiceAccount/scripts/get_tx_fee_parameters.cdc"
-	setFeeParametersFilename  = "FlowServiceAccount/set_tx_fee_parameters.cdc"
-	setFeeSurgeFactorFilename = "FlowServiceAccount/set_tx_fee_surge_factor.cdc"
-	getExecutionEffortWeighs  = "FlowServiceAccount/scripts/get_execution_effort_weights.cdc"
-	setExecutionEffortWeighs  = "FlowServiceAccount/set_execution_effort_weights.cdc"
-	getExecutionMemoryWeighs  = "FlowServiceAccount/scripts/get_execution_memory_weights.cdc"
-	setExecutionMemoryWeighs  = "FlowServiceAccount/set_execution_memory_weights.cdc"
-	getExecutionMemoryLimit   = "FlowServiceAccount/scripts/get_execution_memory_limit.cdc"
-	setExecutionMemoryLimit   = "FlowServiceAccount/set_execution_memory_limit.cdc"
+	depositFeesFilename             = "FlowServiceAccount/deposit_fees.cdc"
+	getFeesBalanceFilename          = "FlowServiceAccount/scripts/get_fees_balance.cdc"
+	getFeeReceiverAddressesFilename = "FlowServiceAccount/scripts/get_fee_receiver_addresses.cdc"
+	getFeeParametersFilename        = "FlowServiceAccount/scripts/get_tx_fee_parameters.cdc"
+	setFeeParametersFilename        = "FlowServiceAccount/set_tx_fee_parameters.cdc"
+	setFeeSurgeFactorFilename       = "FlowServiceAccount/set_tx_fee_surge_factor.cdc"
+	getExecutionEffortWeighs        = "FlowServiceAccount/scripts/get_execution_effort_weights.cdc"
+	setExecutionEffortWeighs        = "FlowServiceAccount/set_execution_effort_weights.cdc"
+	getExecutionMemoryWeighs        = "FlowServiceAccount/scripts/get_execution_memory_weights.cdc"
+	setExecutionMemoryWeighs        = "FlowServiceAccount/set_execution_memory_weights.cdc"
+	getExecutionMemoryLimit         = "FlowServiceAccount/scripts/get_execution_memory_limit.cdc"
+	setExecutionMemoryLimit         = "FlowServiceAccount/set_execution_memory_limit.cdc"
 
 	verifyPayerBalanceForTxExecution = "FlowServiceAccount/scripts/verify_payer_balance_for_tx_execution.cdc"
 
@@ -182,6 +183,12 @@ func GenerateRemoveAccountCreator(env Environment) []byte {
 
 func GenerateGetFeesBalanceScript(env Environment) []byte {
 	code := assets.MustAssetString(getFeesBalanceFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+func GenerateGetFeeReceiverAddressesScript(env Environment) []byte {
+	code := assets.MustAssetString(getFeeReceiverAddressesFilename)
 
 	return []byte(ReplaceAddresses(code, env))
 }
