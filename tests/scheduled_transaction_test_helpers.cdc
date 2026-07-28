@@ -82,6 +82,38 @@ access(all) fun scheduleTransaction(
     }
 }
 
+// Helper function for scheduling a transaction with the malicious reentrant handler
+// whose resolveView() attempts to reenter schedule() while the outer call is in flight
+access(all) fun scheduleReentrantTransaction(
+    timestamp: UFix64,
+    fee: UFix64,
+    effort: UInt64,
+    priority: UInt8,
+    testName: String,
+    failWithErr: String?
+) {
+    var tx = Test.Transaction(
+        code: Test.readFile("../transactions/transactionScheduler/schedule_transaction_reentrant.cdc"),
+        authorizers: [admin.address],
+        signers: [admin],
+        arguments: [timestamp, fee, effort, priority],
+    )
+    var result = Test.executeTransaction(tx)
+
+    if let error = failWithErr {
+        Test.expect(result, Test.beFailed())
+        Test.assertError(
+            result,
+            errorMessage: error
+        )
+
+    } else {
+        if result.error != nil {
+            Test.assert(result.error == nil, message: "Transaction failed with error: \(result.error!.message) for test case: \(testName)")
+        }
+    }
+}
+
 access(all) fun scheduleTransactionByHandler(
     handlerTypeIdentifier: String,
     handlerUUID: UInt64?,

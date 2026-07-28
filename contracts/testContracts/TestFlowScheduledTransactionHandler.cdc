@@ -93,6 +93,89 @@ access(all) contract TestFlowScheduledTransactionHandler {
         return <- create Handler(name: "Test FlowTransactionHandler Resource", description: "Executes a variety of transactions for different test cases")
     }
 
+    /** ---------------------------------------------------------------------------------
+     Reentrant handler for testing the reentrancy protection in FlowTransactionScheduler.schedule()
+     --------------------------------------------------------------------------------- */
+
+    access(all) let ReentrantHandlerStoragePath: StoragePath
+    access(all) let ReentrantHandlerPublicPath: PublicPath
+
+    /// The timestamp that the reentrant schedule attempt targets.
+    /// A constant far-future timestamp is used so tests can schedule the outer transaction
+    /// at the exact same slot without depending on the block time.
+    access(all) let reentrantScheduleTimestamp: UFix64
+
+    /// The execution effort used for the reentrant schedule attempt
+    access(all) let reentrantScheduleEffort: UInt64
+
+    /// Whether the reentrant schedule has already been attempted.
+    /// Used to only attempt the reentrant schedule once to avoid infinite recursion.
+    access(all) var reentrantScheduleAttempted: Bool
+
+    /// ReentrantHandler is a malicious handler used to test that schedule() cannot be
+    /// reentered to bypass the per-slot effort limit.
+    /// Its resolveView() attempts to schedule another high-priority transaction for the
+    /// same slot while the outer schedule() call is still in flight.
+    access(all) resource ReentrantHandler: FlowTransactionScheduler.TransactionHandler {
+
+        access(all) view fun getViews(): [Type] {
+            return [Type<StoragePath>(), Type<PublicPath>()]
+        }
+
+        access(all) fun resolveView(_ view: Type): AnyStruct? {
+            switch view {
+                case Type<StoragePath>():
+                    return TestFlowScheduledTransactionHandler.ReentrantHandlerStoragePath
+                case Type<PublicPath>():
+                    // Malicious behavior: attempt to reenter schedule() while the outer
+                    // schedule() call that triggered this resolveView() is still in flight.
+                    // Only attempt once to avoid infinite recursion.
+                    if !TestFlowScheduledTransactionHandler.reentrantScheduleAttempted {
+                        TestFlowScheduledTransactionHandler.reentrantScheduleAttempted = true
+                        TestFlowScheduledTransactionHandler.attemptReentrantSchedule()
+                    }
+                    return TestFlowScheduledTransactionHandler.ReentrantHandlerPublicPath
+                default:
+                    return nil
+            }
+        }
+
+        access(FlowTransactionScheduler.Execute)
+        fun executeTransaction(id: UInt64, data: AnyStruct?) {
+            // The reentrant transactions are never meant to be executed in tests
+        }
+    }
+
+    access(all) fun createReentrantHandler(): @ReentrantHandler {
+        return <- create ReentrantHandler()
+    }
+
+    /// Attempts to schedule a high-priority transaction for the same slot as the
+    /// outer schedule() call that is currently in flight.
+    /// With the reentrancy fix in place, the outer call has already reserved its slot
+    /// capacity, so this nested schedule fails the effort estimate and panics.
+    access(contract) fun attemptReentrantSchedule() {
+        let manager = self.borrowManager()
+
+        // Find the entitled capability for the reentrant handler
+        var handlerCap: Capability<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}>? = nil
+        for controller in self.account.capabilities.storage.getControllers(forPath: self.ReentrantHandlerStoragePath) {
+            if let cap = controller.capability as? Capability<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}> {
+                handlerCap = cap
+                break
+            }
+        }
+
+        manager.schedule(
+            handlerCap: handlerCap ?? panic("Could not find an entitled capability for the reentrant transaction handler"),
+            data: nil,
+            timestamp: self.reentrantScheduleTimestamp,
+            priority: FlowTransactionScheduler.Priority.High,
+            executionEffort: self.reentrantScheduleEffort,
+            fees: <-self.getFeeFromVault(amount: 10.0)
+        )
+    }
+
     access(all) fun getSucceededTransactions(): [UInt64] {
         return self.succeededTransactions
     }
@@ -115,5 +198,11 @@ access(all) contract TestFlowScheduledTransactionHandler {
 
         self.HandlerStoragePath = /storage/testTransactionHandler
         self.HandlerPublicPath = /public/testTransactionHandler
+
+        self.ReentrantHandlerStoragePath = /storage/testReentrantTransactionHandler
+        self.ReentrantHandlerPublicPath = /public/testReentrantTransactionHandler
+        self.reentrantScheduleTimestamp = 4_000_000_000.0
+        self.reentrantScheduleEffort = 9_000
+        self.reentrantScheduleAttempted = false
     }
 } 
