@@ -1016,9 +1016,10 @@ access(all) contract FlowTransactionScheduler {
             // estimate() already enforces this before schedule() reserves capacity, so
             // this assertion should be unreachable; it guards against any reentrancy vector
             // that reaches addTransaction() without a fresh capacity check.
+            let limit = self.config.priorityEffortLimit[txData.priority]!
             assert(
-                newSlotEffort <= self.config.priorityEffortLimit[txData.priority]!,
-                message: "Invalid execution effort: scheduling \(txData.executionEffort) would raise the \(txData.priority.rawValue) priority slot total to \(newSlotEffort), exceeding the limit of \(self.config.priorityEffortLimit[txData.priority]!)."
+                newSlotEffort <= limit,
+                message: "Invalid execution effort: scheduling \(txData.executionEffort) would raise the \(txData.priority.rawValue) priority slot total to \(newSlotEffort), exceeding the limit of \(limit)."
             )
 
             slotEfforts[txData.priority] = newSlotEffort
