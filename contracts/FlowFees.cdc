@@ -54,8 +54,8 @@ access(all) contract FlowFees {
 
     /// Borrows the list of child fee account capabilities from storage.
     /// Returns nil if no child fee accounts were added yet.
-    access(self) view fun borrowChildFeeAccounts(): &[Capability<auth(Storage, Contracts, Keys, Inbox, Capabilities) &Account>]? {
-        return self.account.storage.borrow<&[Capability<auth(Storage, Contracts, Keys, Inbox, Capabilities) &Account>]>(from: /storage/ChildFeeAccounts)
+    access(self) view fun borrowChildFeeAccounts(): auth(Storage) &[Capability<auth(Storage, Contracts, Keys, Inbox, Capabilities) &Account>]? {
+        return self.account.storage.borrow<auth(Storage) &[Capability<auth(Storage, Contracts, Keys, Inbox, Capabilities) &Account>]>(from: /storage/ChildFeeAccounts)
     }
 
     /// Returns the addresses of all accounts that may receive transaction
