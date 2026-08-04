@@ -67,6 +67,35 @@ access(all) fun testInit() {
     Test.assertEqual(lowPriorityMaxEffort, effort)
 }
 
+// Tests that schedule() cannot be reentered from a malicious handler's resolveView()
+// to bypass the per-slot effort limit for a priority.
+// The reentrant handler attempts to schedule another high-priority transaction for the
+// same slot while the outer schedule() call is still in flight.
+// Since the outer call reserves its slot capacity before invoking the handler callback,
+// the nested schedule() fails the effort estimate, panics, and the whole transaction
+// is rolled back atomically.
+access(all) fun testScheduleReentrancy() {
+
+    let timestamp = TestFlowScheduledTransactionHandler.reentrantScheduleTimestamp
+    let reentrantEffort = TestFlowScheduledTransactionHandler.reentrantScheduleEffort
+
+    // The outer transaction requests an effort that fits in the slot on its own,
+    // but would exceed the high priority slot limit if the reentrant schedule succeeded
+    scheduleReentrantTransaction(
+        timestamp: timestamp,
+        fee: feeAmount,
+        effort: reentrantEffort,
+        priority: highPriority,
+        testName: "Schedule with a handler that reenters schedule()",
+        failWithErr: "Invalid execution effort: \(reentrantEffort) is greater than the priority's available effort for the requested timestamp."
+    )
+
+    // The failed schedule must have been rolled back atomically,
+    // so the slot must still have all its effort available
+    let effort = getSlotAvailableEffort(timestamp: timestamp, priority: highPriority)
+    Test.assertEqual(highPriorityMaxEffort, effort)
+}
+
 access(all) fun testGetSizeOfData() {
 
     // Test different values for data to verify that it reports the correct sizes
