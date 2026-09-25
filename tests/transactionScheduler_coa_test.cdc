@@ -309,7 +309,9 @@ access(all) fun testCOAScheduledTransactions() {
     call2["revertOnFailure"] = true
     call2["callToEVMAddress"] = "1234567890abcdef1234567890abcdef12345678"
     call2["data"] = nil
-    call2["gasLimit"] = UInt64(100000)
+    // Needs to cover EIP-8037 state-creation gas (120 bytes * 1530 = 183600)
+    // on top of the 21000 intrinsic gas, since the target address is a fresh EOA
+    call2["gasLimit"] = UInt64(300000)
     call2["value"] = UInt(1000000000000000000) // 1 FLOW in attoFLOW
     let calls: [{String: AnyStruct}] = [call1, call2]
 
