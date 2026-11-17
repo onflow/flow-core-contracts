@@ -1,8 +1,6 @@
 module github.com/onflow/flow-core-contracts/lib/go/templates
 
-go 1.24.0
-
-toolchain go1.24.1
+go 1.25.1
 
 require (
 	github.com/kevinburke/go-bindata v3.24.0+incompatible
@@ -39,7 +37,7 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mitchellh/mapstructure v1.4.1 // indirect
 	github.com/onflow/atree v0.14.0 // indirect
-	github.com/onflow/crypto v0.25.3 // indirect
+	github.com/onflow/crypto v0.25.4 // indirect
 	github.com/onflow/fixed-point v0.1.1 // indirect
 	github.com/onflow/flow/protobuf/go/flow v0.4.16 // indirect
 	github.com/pelletier/go-toml v1.2.0 // indirect
