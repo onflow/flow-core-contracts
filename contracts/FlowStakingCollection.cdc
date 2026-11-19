@@ -332,8 +332,19 @@ access(all) contract FlowStakingCollection {
         }
 
         /// Function to add an existing NodeStaker object
+        /// If machineAccountInfo is provided, its nodeID must match the node's ID
+        /// to ensure the machine account is correctly associated with its corresponding node.
         access(all) fun addNodeObject(_ node: @FlowIDTableStaking.NodeStaker, machineAccountInfo: MachineAccountInfo?) {
             let id = node.id
+
+            // Validate that machineAccountInfo belongs to this node to ensure data consistency
+            if let info = machineAccountInfo {
+                assert(
+                    info.nodeID == id,
+                    message: "FlowStakingCollection.StakingCollection.addNodeObject: The provided MachineAccountInfo has nodeID \(info.nodeID) which does not match the node's ID \(id). MachineAccountInfo must be associated with its corresponding node."
+                )
+            }
+
             let stakingInfo = FlowIDTableStaking.NodeInfo(nodeID: id)
             let totalStaked = stakingInfo.totalTokensInRecord() - stakingInfo.tokensRewarded
             self.unlockedTokensUsed = self.unlockedTokensUsed + totalStaked
