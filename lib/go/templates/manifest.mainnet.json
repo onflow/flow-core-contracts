@@ -1235,6 +1235,104 @@
       ],
       "network": "mainnet",
       "hash": "8f4c136937f99298248b7d0404340154438ddd655eea1790168d0788c36d4af8"
+    },
+    {
+      "id": "SCO.18",
+      "name": "Withdraw Unstaked Tokens As Vault",
+      "source": "import FlowStakingCollection from 0x8d0e87b65159ae63\nimport FungibleToken from 0xf233dcee88fe0abe\n\n/// Withdraw unstaked tokens from the specified node or delegator in the staking\n/// collection and RETURN them as a vault to the caller, instead of depositing\n/// them into the collection's own vault.\n///\n/// This transaction deposits the returned vault into the caller's own vault to\n/// show it is a usable vault; a caller that needs to route the funds elsewhere\n/// (e.g. bridging them to an EVM account) can deposit it wherever it likes.\n///\n/// Only works for collections without a locked account — see\n/// `withdrawUnstakedTokensAsVault`.\ntransaction(nodeID: String, delegatorID: UInt32?, amount: UFix64) {\n\n    let stakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\n    let receiver: \u0026{FungibleToken.Receiver}\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.stakingCollectionRef = account.storage.borrow\u003cauth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(FlowStakingCollection.getCollectionMissingError(nil))\n\n        self.receiver = account.storage.borrow\u003c\u0026{FungibleToken.Receiver}\u003e(from: /storage/flowTokenVault)\n            ?? panic(\"Could not borrow a receiver reference to the FlowToken Vault\")\n    }\n\n    execute {\n        let tokens \u003c- self.stakingCollectionRef.withdrawUnstakedTokensAsVault(nodeID: nodeID, delegatorID: delegatorID, amount: amount)\n        self.receiver.deposit(from: \u003c-tokens)\n    }\n}\n",
+      "arguments": [
+        {
+          "type": "String",
+          "name": "nodeID",
+          "label": "Node ID",
+          "sampleValues": [
+            {
+              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6",
+              "type": "String"
+            }
+          ]
+        },
+        {
+          "type": "UInt32?",
+          "name": "delegatorID",
+          "label": "Delegator ID",
+          "sampleValues": [
+            {
+              "value": null,
+              "type": "Optional"
+            },
+            {
+              "value": {
+                "value": "42",
+                "type": "UInt32"
+              },
+              "type": "Optional"
+            }
+          ]
+        },
+        {
+          "type": "UFix64",
+          "name": "amount",
+          "label": "Amount",
+          "sampleValues": [
+            {
+              "value": "92233720368.54775808",
+              "type": "UFix64"
+            }
+          ]
+        }
+      ],
+      "network": "mainnet",
+      "hash": "589f48ea5f80e9988cdf3d53efc2d7a0eb89dcbd7900fe9f95ff17c431a443a5"
+    },
+    {
+      "id": "SCO.19",
+      "name": "Withdraw Rewarded Tokens As Vault",
+      "source": "import FlowStakingCollection from 0x8d0e87b65159ae63\nimport FungibleToken from 0xf233dcee88fe0abe\n\n/// Withdraw rewarded tokens from the specified node or delegator in the staking\n/// collection and RETURN them as a vault to the caller, instead of depositing\n/// them into the collection's own vault.\n///\n/// This transaction deposits the returned vault into the caller's own vault to\n/// show it is a usable vault; a caller that needs to route the funds elsewhere\n/// (e.g. bridging them to an EVM account) can deposit it wherever it likes.\n///\n/// Only works for collections without a locked account — see\n/// `withdrawRewardedTokensAsVault`.\ntransaction(nodeID: String, delegatorID: UInt32?, amount: UFix64) {\n\n    let stakingCollectionRef: auth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\n    let receiver: \u0026{FungibleToken.Receiver}\n\n    prepare(account: auth(BorrowValue) \u0026Account) {\n        self.stakingCollectionRef = account.storage.borrow\u003cauth(FlowStakingCollection.CollectionOwner) \u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(FlowStakingCollection.getCollectionMissingError(nil))\n\n        self.receiver = account.storage.borrow\u003c\u0026{FungibleToken.Receiver}\u003e(from: /storage/flowTokenVault)\n            ?? panic(\"Could not borrow a receiver reference to the FlowToken Vault\")\n    }\n\n    execute {\n        let tokens \u003c- self.stakingCollectionRef.withdrawRewardedTokensAsVault(nodeID: nodeID, delegatorID: delegatorID, amount: amount)\n        self.receiver.deposit(from: \u003c-tokens)\n    }\n}\n",
+      "arguments": [
+        {
+          "type": "String",
+          "name": "nodeID",
+          "label": "Node ID",
+          "sampleValues": [
+            {
+              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6",
+              "type": "String"
+            }
+          ]
+        },
+        {
+          "type": "UInt32?",
+          "name": "delegatorID",
+          "label": "Delegator ID",
+          "sampleValues": [
+            {
+              "value": null,
+              "type": "Optional"
+            },
+            {
+              "value": {
+                "value": "42",
+                "type": "UInt32"
+              },
+              "type": "Optional"
+            }
+          ]
+        },
+        {
+          "type": "UFix64",
+          "name": "amount",
+          "label": "Amount",
+          "sampleValues": [
+            {
+              "value": "92233720368.54775808",
+              "type": "UFix64"
+            }
+          ]
+        }
+      ],
+      "network": "mainnet",
+      "hash": "e63ea929a70a619df87f357acee15aada3cc0027b950855a982bad3aaa506fcd"
     }
   ]
 }

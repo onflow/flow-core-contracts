@@ -13,28 +13,30 @@ const (
 	collectionSetupFilename = "stakingCollection/setup_staking_collection.cdc"
 
 	// user templates
-	collectionAddDelegatorFilename                = "stakingCollection/add_delegator.cdc"
-	collectionAddNodeFilename                     = "stakingCollection/add_node.cdc"
-	collectionCreateMachineAccountForNodeFilename = "stakingCollection/create_machine_account.cdc"
-	collectionRegisterDelegatorFilename           = "stakingCollection/register_delegator.cdc"
-	collectionRegisterNodeFilename                = "stakingCollection/register_node.cdc"
-	collectionRegisterNodeOldFilename             = "stakingCollection/register_node_old.cdc"
-	collectionRequestUnstakingFilename            = "stakingCollection/request_unstaking.cdc"
-	collectionStakeNewTokensFilename              = "stakingCollection/stake_new_tokens.cdc"
-	collectionStakeRewardedTokensFilename         = "stakingCollection/stake_rewarded_tokens.cdc"
-	collectionStakeUnstakedTokensFilename         = "stakingCollection/stake_unstaked_tokens.cdc"
-	collectionRestakeAllStakersFilename           = "stakingCollection/restake_all_stakers.cdc"
-	collectionUnstakeAllFilename                  = "stakingCollection/unstake_all.cdc"
-	collectionWithdrawRewardedTokensFilename      = "stakingCollection/withdraw_rewarded_tokens.cdc"
-	collectionWithdrawUnstakedTokensFilename      = "stakingCollection/withdraw_unstaked_tokens.cdc"
-	collectionCloseStakeFilename                  = "stakingCollection/close_stake.cdc"
-	collectionTransferNodeFilename                = "stakingCollection/transfer_node.cdc"
-	collectionTransferDelegatorFilename           = "stakingCollection/transfer_delegator.cdc"
-	collectionWithdrawFromMachineAccountFilename  = "stakingCollection/withdraw_from_machine_account.cdc"
-	collectionUpdateNetworkingAddressFilename     = "stakingCollection/update_networking_address.cdc"
-	collectionCreateNewTokenHolderAccountFilename = "stakingCollection/create_new_tokenholder_acct.cdc"
-	collectionRegisterMultipleNodesFilename       = "stakingCollection/register_multiple_nodes.cdc"
-	collectionRegisterMultipleDelegatorsFilename  = "stakingCollection/register_multiple_delegators.cdc"
+	collectionAddDelegatorFilename                  = "stakingCollection/add_delegator.cdc"
+	collectionAddNodeFilename                       = "stakingCollection/add_node.cdc"
+	collectionCreateMachineAccountForNodeFilename   = "stakingCollection/create_machine_account.cdc"
+	collectionRegisterDelegatorFilename             = "stakingCollection/register_delegator.cdc"
+	collectionRegisterNodeFilename                  = "stakingCollection/register_node.cdc"
+	collectionRegisterNodeOldFilename               = "stakingCollection/register_node_old.cdc"
+	collectionRequestUnstakingFilename              = "stakingCollection/request_unstaking.cdc"
+	collectionStakeNewTokensFilename                = "stakingCollection/stake_new_tokens.cdc"
+	collectionStakeRewardedTokensFilename           = "stakingCollection/stake_rewarded_tokens.cdc"
+	collectionStakeUnstakedTokensFilename           = "stakingCollection/stake_unstaked_tokens.cdc"
+	collectionRestakeAllStakersFilename             = "stakingCollection/restake_all_stakers.cdc"
+	collectionUnstakeAllFilename                    = "stakingCollection/unstake_all.cdc"
+	collectionWithdrawRewardedTokensFilename        = "stakingCollection/withdraw_rewarded_tokens.cdc"
+	collectionWithdrawUnstakedTokensFilename        = "stakingCollection/withdraw_unstaked_tokens.cdc"
+	collectionWithdrawUnstakedTokensAsVaultFilename = "stakingCollection/withdraw_unstaked_tokens_as_vault.cdc"
+	collectionWithdrawRewardedTokensAsVaultFilename = "stakingCollection/withdraw_rewarded_tokens_as_vault.cdc"
+	collectionCloseStakeFilename                    = "stakingCollection/close_stake.cdc"
+	collectionTransferNodeFilename                  = "stakingCollection/transfer_node.cdc"
+	collectionTransferDelegatorFilename             = "stakingCollection/transfer_delegator.cdc"
+	collectionWithdrawFromMachineAccountFilename    = "stakingCollection/withdraw_from_machine_account.cdc"
+	collectionUpdateNetworkingAddressFilename       = "stakingCollection/update_networking_address.cdc"
+	collectionCreateNewTokenHolderAccountFilename   = "stakingCollection/create_new_tokenholder_acct.cdc"
+	collectionRegisterMultipleNodesFilename         = "stakingCollection/register_multiple_nodes.cdc"
+	collectionRegisterMultipleDelegatorsFilename    = "stakingCollection/register_multiple_delegators.cdc"
 
 	// scripts
 	collectionGetDoesStakeExistFilename                = "stakingCollection/scripts/get_does_stake_exist.cdc"
@@ -145,6 +147,24 @@ func GenerateCollectionWithdrawRewardedTokens(env Environment) []byte {
 
 func GenerateCollectionWithdrawUnstakedTokens(env Environment) []byte {
 	code := assets.MustAssetString(collectionWithdrawUnstakedTokensFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+// GenerateCollectionWithdrawUnstakedTokensAsVault withdraws unstaked tokens and
+// returns them as a vault to the caller, rather than depositing them into the
+// collection's own vault.
+func GenerateCollectionWithdrawUnstakedTokensAsVault(env Environment) []byte {
+	code := assets.MustAssetString(collectionWithdrawUnstakedTokensAsVaultFilename)
+
+	return []byte(ReplaceAddresses(code, env))
+}
+
+// GenerateCollectionWithdrawRewardedTokensAsVault withdraws rewarded tokens and
+// returns them as a vault to the caller, rather than depositing them into the
+// collection's own vault.
+func GenerateCollectionWithdrawRewardedTokensAsVault(env Environment) []byte {
+	code := assets.MustAssetString(collectionWithdrawRewardedTokensAsVaultFilename)
 
 	return []byte(ReplaceAddresses(code, env))
 }

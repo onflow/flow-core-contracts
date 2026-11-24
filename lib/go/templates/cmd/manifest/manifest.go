@@ -896,6 +896,64 @@ func generateManifest(env templates.Environment) *manifest {
 		},
 	))
 
+	m.addTemplate(generateTemplate(
+		"SCO.18", "Withdraw Unstaked Tokens As Vault",
+		env,
+		templates.GenerateCollectionWithdrawUnstakedTokensAsVault,
+		[]argument{
+			{
+				Type:         "String",
+				Name:         "nodeID",
+				Label:        "Node ID",
+				SampleValues: []cadenceValue{sampleNodeID},
+			},
+			{
+				Type:  "UInt32?",
+				Name:  "delegatorID",
+				Label: "Delegator ID",
+				SampleValues: []cadenceValue{
+					sampleNullOptional,
+					sampleDelegatorIDOptional,
+				},
+			},
+			{
+				Type:         "UFix64",
+				Name:         "amount",
+				Label:        "Amount",
+				SampleValues: []cadenceValue{sampleAmount},
+			},
+		},
+	))
+
+	m.addTemplate(generateTemplate(
+		"SCO.19", "Withdraw Rewarded Tokens As Vault",
+		env,
+		templates.GenerateCollectionWithdrawRewardedTokensAsVault,
+		[]argument{
+			{
+				Type:         "String",
+				Name:         "nodeID",
+				Label:        "Node ID",
+				SampleValues: []cadenceValue{sampleNodeID},
+			},
+			{
+				Type:  "UInt32?",
+				Name:  "delegatorID",
+				Label: "Delegator ID",
+				SampleValues: []cadenceValue{
+					sampleNullOptional,
+					sampleDelegatorIDOptional,
+				},
+			},
+			{
+				Type:         "UFix64",
+				Name:         "amount",
+				Label:        "Amount",
+				SampleValues: []cadenceValue{sampleAmount},
+			},
+		},
+	))
+
 	return m
 }
 

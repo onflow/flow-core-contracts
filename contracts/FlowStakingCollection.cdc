@@ -929,6 +929,98 @@ access(all) contract FlowStakingCollection {
             }
         }
 
+        /// Withdraw unstaked tokens and RETURN them as a vault, instead of
+        /// depositing them into the collection's own vault.
+        ///
+        /// For callers that must route the withdrawn funds somewhere other than
+        /// back into the collection's Cadence vault — e.g. bridging them to an
+        /// EVM account — and so cannot use `withdrawUnstakedTokens`, which
+        /// deposits into the vault and returns nothing.
+        ///
+        /// Restricted to UNLOCKED collections: for a locked-token collection the
+        /// withdrawn funds belong back in the locked account, so returning a
+        /// vault to an arbitrary caller would bypass the lock. Locked
+        /// collections must keep using `withdrawUnstakedTokens`.
+        access(CollectionOwner) fun withdrawUnstakedTokensAsVault(
+            nodeID: String,
+            delegatorID: UInt32?,
+            amount: UFix64
+        ): @{FungibleToken.Vault} {
+            pre {
+                self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID):
+                    self.getStakerDoesntExistInCollectionError(funcName: "withdrawUnstakedTokensAsVault", nodeID: nodeID, delegatorID: delegatorID)
+                self.lockedVault == nil:
+                    "FlowStakingCollection.StakingCollection.withdrawUnstakedTokensAsVault: Cannot return a vault from a collection with a locked account; the withdrawn funds must go back to the locked account."
+            }
+
+            if let delegatorID = delegatorID {
+                let delegator = self.borrowDelegator(nodeID: nodeID, delegatorID: delegatorID)
+                    ?? panic("FlowStakingCollection.StakingCollection.withdrawUnstakedTokensAsVault: delegator does not exist in the collection")
+                let tokens <- delegator.withdrawUnstakedTokens(amount: amount)
+                assert(
+                    tokens.balance <= self.unlockedTokensUsed + self.lockedTokensUsed,
+                    message: "FlowStakingCollection.StakingCollection.withdrawUnstakedTokensAsVault: Cannot return more FLOW to the caller than is already in use for staking."
+                )
+                self.unlockedTokensUsed = self.unlockedTokensUsed - tokens.balance
+                return <- tokens
+            }
+
+            let node = self.borrowNode(nodeID)
+                ?? panic("FlowStakingCollection.StakingCollection.withdrawUnstakedTokensAsVault: node does not exist in the collection")
+            let tokens <- node.withdrawUnstakedTokens(amount: amount)
+            assert(
+                tokens.balance <= self.unlockedTokensUsed + self.lockedTokensUsed,
+                message: "FlowStakingCollection.StakingCollection.withdrawUnstakedTokensAsVault: Cannot return more FLOW to the caller than is already in use for staking."
+            )
+            self.unlockedTokensUsed = self.unlockedTokensUsed - tokens.balance
+            return <- tokens
+        }
+
+        /// Withdraw rewarded tokens and RETURN them as a vault, instead of
+        /// depositing them into the collection's own vault.
+        ///
+        /// The rewards counterpart of `withdrawUnstakedTokensAsVault`; same
+        /// unlocked-only restriction. The `unlockedTokensUsed` bookkeeping
+        /// mirrors `withdrawRewardedTokens`: rewards are newly minted and not
+        /// yet reflected in the tokens-used fields, so they are added before
+        /// the withdrawal and removed as they leave.
+        access(CollectionOwner) fun withdrawRewardedTokensAsVault(
+            nodeID: String,
+            delegatorID: UInt32?,
+            amount: UFix64
+        ): @{FungibleToken.Vault} {
+            pre {
+                self.doesStakeExist(nodeID: nodeID, delegatorID: delegatorID):
+                    self.getStakerDoesntExistInCollectionError(funcName: "withdrawRewardedTokensAsVault", nodeID: nodeID, delegatorID: delegatorID)
+                self.lockedVault == nil:
+                    "FlowStakingCollection.StakingCollection.withdrawRewardedTokensAsVault: Cannot return a vault from a collection with a locked account; the withdrawn funds must go back to the locked account."
+            }
+
+            if let delegatorID = delegatorID {
+                let delegator = self.borrowDelegator(nodeID: nodeID, delegatorID: delegatorID)
+                    ?? panic("FlowStakingCollection.StakingCollection.withdrawRewardedTokensAsVault: delegator does not exist in the collection")
+                self.unlockedTokensUsed = self.unlockedTokensUsed + amount
+                let tokens <- delegator.withdrawRewardedTokens(amount: amount)
+                assert(
+                    tokens.balance <= self.unlockedTokensUsed + self.lockedTokensUsed,
+                    message: "FlowStakingCollection.StakingCollection.withdrawRewardedTokensAsVault: Cannot return more FLOW to the caller than is already in use for staking."
+                )
+                self.unlockedTokensUsed = self.unlockedTokensUsed - tokens.balance
+                return <- tokens
+            }
+
+            let node = self.borrowNode(nodeID)
+                ?? panic("FlowStakingCollection.StakingCollection.withdrawRewardedTokensAsVault: node does not exist in the collection")
+            self.unlockedTokensUsed = self.unlockedTokensUsed + amount
+            let tokens <- node.withdrawRewardedTokens(amount: amount)
+            assert(
+                tokens.balance <= self.unlockedTokensUsed + self.lockedTokensUsed,
+                message: "FlowStakingCollection.StakingCollection.withdrawRewardedTokensAsVault: Cannot return more FLOW to the caller than is already in use for staking."
+            )
+            self.unlockedTokensUsed = self.unlockedTokensUsed - tokens.balance
+            return <- tokens
+        }
+
         // Closers
 
         /// Closes an existing stake or delegation, moving all withdrawable tokens back to the users account and removing the stake
