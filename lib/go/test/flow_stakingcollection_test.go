@@ -1575,6 +1575,36 @@ func TestStakingCollectionStakeTokens(t *testing.T) {
 			tokensRewarded:           "0.0",
 		})
 	})
+
+	t.Run("Should not be able to withdraw AsVault from a collection with a locked account", func(t *testing.T) {
+		// josh's collection is backed by a locked account, so the AsVault
+		// variants must refuse: the withdrawn funds belong back in the locked
+		// account, and returning a vault to an arbitrary caller would bypass
+		// the lock. Both variants, node and delegator.
+		tx := createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionWithdrawUnstakedTokensAsVault(env), joshAddress)
+		_ = tx.AddArgument(CadenceString(joshID2))
+		_ = tx.AddArgument(cadence.NewOptional(nil))
+		_ = tx.AddArgument(CadenceUFix64("1000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
+			true,
+		)
+
+		tx = createTxWithTemplateAndAuthorizer(b, templates.GenerateCollectionWithdrawRewardedTokensAsVault(env), joshAddress)
+		_ = tx.AddArgument(CadenceString(joshID2))
+		_ = tx.AddArgument(cadence.NewOptional(nil))
+		_ = tx.AddArgument(CadenceUFix64("1000.0"))
+
+		signAndSubmit(
+			t, b, tx,
+			[]flow.Address{joshAddress},
+			[]crypto.Signer{joshSigner},
+			true,
+		)
+	})
 }
 
 func TestStakingCollectionRewards(t *testing.T) {
